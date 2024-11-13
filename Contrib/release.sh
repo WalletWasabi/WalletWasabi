@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
 #                                                                                    #
@@ -11,7 +12,7 @@
 #  and sign the installers for windows (win ci job) and generate and sign the one    #
 #  for macOS (osx job).                                                              #
 #------------------------------------------------------------------------------------#
-set -x
+set -xe
 
 STASH_MESSAGE="Stashed changes for script execution"
 # Check if there are any uncommitted changes
@@ -24,7 +25,7 @@ fi
 LATEST_TAG=$(git describe --tags --abbrev=0)
 # Extract the version number (strip the first character)
 VERSION=${LATEST_TAG:1}
-SHORT_VERSION=${VERSION:0:-2}
+SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
@@ -144,7 +145,11 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   # Hack! *.deps.json files contains this SHA516 that depends on the absolute path of
   # the nuget packages. This means that these files are different in different computers
   # and for different users. (End goal: reproducibility)
-  sed -i 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
+    sed -i '' 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  else
+    sed -i 's/"sha512": "sha512-[^"]*"/"sha512": ""/g' "$OUTPUT_DIR/$DESKTOP.deps.json"
+  fi
 
   # Adjust platform name for macOS
   ALTER_PLATFORM=$PLATFORM
@@ -252,7 +257,7 @@ sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
 sudo chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 
 # Build the .deb package
-dpkg --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
+dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
 fi
 
 #------------------------------------------------------------------------------------#

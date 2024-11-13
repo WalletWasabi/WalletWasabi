@@ -39,7 +39,7 @@ public class RuntimeParams
 		}
 	}
 
-	private AsyncLock AsyncLock { get; } = new();
+	private readonly AsyncLock _asyncLock = new();
 	private static string FilePath => Path.Combine(FileDir, "RuntimeParams.json");
 
 	public static void SetDataDir(string dataDir)
@@ -51,7 +51,7 @@ public class RuntimeParams
 	{
 		try
 		{
-			using (await AsyncLock.LockAsync())
+			using (await _asyncLock.LockAsync())
 			{
 				if (!Directory.Exists(FileDir))
 				{

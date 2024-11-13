@@ -83,8 +83,8 @@ public class TorSettings
 		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
 
 		Log = log;
-		GeoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
-		GeoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
+		_geoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
+		_geoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
 
 	public TorMode TorMode { get; }
@@ -137,8 +137,8 @@ public class TorSettings
 	public int RpcVirtualPort => 80;
 	public int RpcOnionPort => 37129;
 
-	private string GeoIpPath { get; }
-	private string GeoIp6Path { get; }
+	private readonly string _geoIpPath;
+	private readonly string _geoIp6Path;
 
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
 	public static string GetTorBinaryFilePath(string path, OSPlatform? platform = null)
@@ -171,8 +171,8 @@ public class TorSettings
 			$"--ControlPort {port}",
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
-			$"--GeoIPFile \"{GeoIpPath}\"",
-			$"--GeoIPv6File \"{GeoIp6Path}\""
+			$"--GeoIPFile \"{_geoIpPath}\"",
+			$"--GeoIPv6File \"{_geoIp6Path}\""
 		];
 
 		if (useBridges)

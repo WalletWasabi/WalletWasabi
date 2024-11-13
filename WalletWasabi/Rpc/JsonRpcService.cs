@@ -24,10 +24,10 @@ public class JsonRpcServiceMetadataProvider
 
 	public JsonRpcServiceMetadataProvider(Type serviceType)
 	{
-		ServiceType = serviceType;
+		_serviceType = serviceType;
 	}
 
-	private Type ServiceType { get; }
+	private readonly Type _serviceType;
 
 	/// <summary>
 	/// Tries to return the metadata for a given procedure name.
@@ -66,7 +66,7 @@ public class JsonRpcServiceMetadataProvider
 
 	internal IEnumerable<JsonRpcMethodMetadata> EnumerateServiceInfo()
 	{
-		var publicMethods = ServiceType.GetMethods();
+		var publicMethods = _serviceType.GetMethods();
 		foreach (var methodInfo in publicMethods)
 		{
 			var attrs = methodInfo.GetCustomAttributes();
@@ -93,7 +93,7 @@ public class JsonRpcServiceMetadataProvider
 
 	internal MethodInfo? GetInitializationMethod()
 	{
-		var publicMethods = ServiceType.GetMethods();
+		var publicMethods = _serviceType.GetMethods();
 		foreach (var methodInfo in publicMethods)
 		{
 			var attrs = methodInfo.GetCustomAttributes();

@@ -1,3 +1,4 @@
+using System.Net.Http;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
@@ -14,14 +15,14 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 {
 	public BlockstreamInfoClientTests()
 	{
-		ClearnetHttpClientFactory = new(torEndPoint: null, backendUriGetter: null);
-		TorHttpClientFactory = new(Common.TorSocks5Endpoint, backendUriGetter: null);
+		ClearnetHttpClientFactory = new HttpClientFactory();
+		TorHttpClientFactory = new OnionHttpClientFactory(new Uri($"socks5://{Common.TorSocks5Endpoint}"));
 
 		TorProcessManager = new(Common.TorSettings);
 	}
 
-	private WasabiHttpClientFactory ClearnetHttpClientFactory { get; }
-	private WasabiHttpClientFactory TorHttpClientFactory { get; }
+	private IHttpClientFactory ClearnetHttpClientFactory { get; }
+	private IHttpClientFactory TorHttpClientFactory { get; }
 	private TorProcessManager TorProcessManager { get; }
 
 	public async Task InitializeAsync()
@@ -33,8 +34,6 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		await ClearnetHttpClientFactory.DisposeAsync();
-		await TorHttpClientFactory.DisposeAsync();
 		await TorProcessManager.DisposeAsync();
 	}
 

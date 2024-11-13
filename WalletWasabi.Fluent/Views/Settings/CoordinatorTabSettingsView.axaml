@@ -20,9 +20,9 @@
       </TextBox>
     </StackPanel>
 
-    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (s/vb) higher than the value indicated here.">
+    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vb) higher than the value indicated here.">
       <TextBlock Text="Max Coinjoin Mining Fee Rate" />
-      <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="s/vb"/>
+      <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="sat/vb"/>
     </StackPanel>
 
     <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a minimum input count lower than the value indicated here.">

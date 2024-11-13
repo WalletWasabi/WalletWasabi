@@ -109,7 +109,7 @@ public class IndexBuilderServiceTests
 		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
 
 		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
 		var allOutputs = txOutputs.Concat(prevTxOutputs);
 
 		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
@@ -130,7 +130,7 @@ public class IndexBuilderServiceTests
 		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV1Taproot });
 
 		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.Where(y => y.PrevOutput is { }).Select(y => y.PrevOutput));
+		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
 		var allOutputs = txOutputs.Concat(prevTxOutputs);
 
 		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV1Taproot);

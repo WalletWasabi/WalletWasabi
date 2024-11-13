@@ -16,7 +16,9 @@ public class CredentialDependencyTests
 	{
 		var g = DependencyGraph.ResolveCredentialDependencies(
 			inputValues: new[] { (10000L, 1930L), (1000L, 1930L) },
-			outputValues: new[] { (5000L, 31L), (3500L, 31L), (2500L, 31L) });
+			outputValues: new[] { (5000L, 31L), (3500L, 31L), (2500L, 31L) },
+			ProtocolConstants.MaxAmountPerAlice,
+			ProtocolConstants.MaxVsizeCredentialValue);
 
 		await SimulateAsyncRequestsAsync(g);
 	}
@@ -125,7 +127,7 @@ public class CredentialDependencyTests
 		// correct
 		var inputValues = new [] { (3L, 3L)};
 		var outputValues = new [] { (1L, 1L), (1L, 1L), (1L, 1L)};
-		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
+		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
 
 		Assert.Equal(5, g.Vertices.Count);
 
@@ -161,7 +163,7 @@ public class CredentialDependencyTests
 	{
 		var inputValues = new [] { (1L, 0L)};
 		var outputValues = new [] { (1L, 0L)};
-		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
+		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
 
 		Assert.Equal(2, g.Vertices.Count);
 
@@ -267,7 +269,7 @@ public class CredentialDependencyTests
 		var inputValues = ParseTuplas(inputs);
 		var outputValues = ParseTuplas(outputs);
 
-		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues);
+		var g = DependencyGraph.ResolveCredentialDependencies(inputValues, outputValues, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
 
 		// Useful for debugging:
 		// File.WriteAllText("/tmp/graphs/" + inputs + " -- " + outputs + ".dot", g.Graphviz());
@@ -350,7 +352,7 @@ public class CredentialDependencyTests
 	[Fact]
 	public void EdgeConstraints()
 	{
-		var g = DependencyGraph.FromValues(new[] { ( 11L, 0L), (8L, 0L) }, new[] { (7L, 0L), (11L, 0L) });
+		var g = DependencyGraph.FromValues(new[] { ( 11L, 0L), (8L, 0L) }, new[] { (7L, 0L), (11L, 0L) }, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
 
 		var i = g.GetInputs().First();
 		var o = g.GetOutputs().First();

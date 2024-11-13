@@ -81,7 +81,7 @@
             <ShowFlyoutOnPointerOverBehavior />
           </Interaction.Behaviors>
           <FlyoutBase.AttachedFlyout>
-            <Flyout Placement="Bottom" ShowMode="TransientWithDismissOnPointerMoveAway">
+            <Flyout Placement="BottomEdgeAlignedLeft" ShowMode="TransientWithDismissOnPointerMoveAway">
               <Panel DataContext="{Binding PrivacySuggestions}" Margin="0 5 0 0">
                 <!-- Warnings -->
                 <send:PrivacyWarningsView IsVisible="{Binding !MaxPrivacy}" />

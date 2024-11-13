@@ -11,6 +11,8 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
+using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -36,10 +38,17 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		UiContext = uiContext;
 		_wallet = wallet;
 
+		InputList = new InputsCoinListViewModel(model.WalletInputs, wallet.Network, model.WalletInputs.Count + model.ForeignInputs.Value.Count);
+		OutputList = new OutputsCoinListViewModel(
+			model.WalletOutputs.Select(x => x.TxOut).ToList(),
+			model.ForeignOutputs.Value.Select(x => x.TxOut).ToList(),
+			wallet.Network);
+
 		NextCommand = ReactiveCommand.Create(OnNext);
 		Fee = wallet.AmountProvider.Create(model.Fee);
 		IsFeeVisible = model.Fee != null;
 		TransactionId = model.Id;
+		TransactionHex = model.Hex.Value;
 		DestinationAddresses = wallet.Transactions.GetDestinationAddresses(model.Id).ToArray();
 		SingleAddress = DestinationAddresses.Count == 1 ? DestinationAddresses.First() : null;
 
@@ -48,10 +57,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 		Task.Run(() => UpdateValuesAsync(model, CancellationToken.None));
 	}
 
+	public InputsCoinListViewModel InputList { get; }
+	public OutputsCoinListViewModel OutputList { get; }
+
 	public BitcoinAddress? SingleAddress { get; set; }
 
 	public uint256 TransactionId { get; }
-
+	public string TransactionHex { get; }
 	public Amount? Fee { get; }
 
 	public ICollection<BitcoinAddress> DestinationAddresses { get; }

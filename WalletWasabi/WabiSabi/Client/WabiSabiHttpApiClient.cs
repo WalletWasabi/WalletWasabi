@@ -3,9 +3,8 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Http.Extensions;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.Serialization;
@@ -14,11 +13,13 @@ namespace WalletWasabi.WabiSabi.Client;
 
 public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 {
-	private IHttpClient _client;
+	private readonly string _identity;
+	private readonly IHttpClientFactory _httpClientFactory;
 
-	public WabiSabiHttpApiClient(IHttpClient client)
+	public WabiSabiHttpApiClient(string identity, IHttpClientFactory httpClientFactory)
 	{
-		_client = client;
+		_identity = identity;
+		_httpClientFactory = httpClientFactory;
 	}
 
 	private enum RemoteAction
@@ -65,6 +66,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 		using CancellationTokenSource absoluteTimeoutCts = new(totalTimeout);
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, absoluteTimeoutCts.Token);
 		CancellationToken combinedToken = linkedCts.Token;
+		var httpClient = _httpClientFactory.CreateClient(_identity);
 
 		int attempt = 1;
 		do
@@ -78,7 +80,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 				using CancellationTokenSource requestCts = CancellationTokenSource.CreateLinkedTokenSource(combinedToken, requestTimeoutCts.Token);
 
 				// Any transport layer errors will throw an exception here.
-				HttpResponseMessage response = await _client.SendAsync(HttpMethod.Post, GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
+				HttpResponseMessage response = await httpClient.PostAsync(GetUriEndPoint(action), content, requestCts.Token).ConfigureAwait(false);
 
 				TimeSpan totalTime = DateTime.UtcNow - start;
 

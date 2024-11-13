@@ -8,22 +8,22 @@ public class CoreConfig
 {
 	public CoreConfig(CoreConfig coreConfig)
 	{
-		Lines = coreConfig.Lines.ToList();
+		_lines = coreConfig._lines.ToList();
 	}
 
 	public CoreConfig()
 	{
-		Lines = new List<CoreConfigLine>();
+		_lines = new List<CoreConfigLine>();
 	}
 
-	private List<CoreConfigLine> Lines { get; }
+	private readonly List<CoreConfigLine> _lines;
 
-	public int Count => Lines.Count;
+	public int Count => _lines.Count;
 
 	public IDictionary<string, string> ToDictionary()
 	{
 		var myDic = new Dictionary<string, string>();
-		foreach (var line in Lines)
+		foreach (var line in _lines)
 		{
 			if (line.HasKeyValuePair)
 			{
@@ -34,7 +34,7 @@ public class CoreConfig
 		return myDic;
 	}
 
-	public override string ToString() => $"{Guard.Correct(string.Join(Environment.NewLine, Lines))}{Environment.NewLine}"; // Good practice to end with a newline.
+	public override string ToString() => $"{Guard.Correct(string.Join(Environment.NewLine, _lines))}{Environment.NewLine}"; // Good practice to end with a newline.
 
 	public bool AddOrUpdate(string configString)
 	{
@@ -43,26 +43,26 @@ public class CoreConfig
 		{
 			if (line.HasKeyValuePair)
 			{
-				var foundLine = Lines.FirstOrDefault(x =>
+				var foundLine = _lines.FirstOrDefault(x =>
 						x.Key == line.Key
 						|| line.Key == $"main.{x.Key}"
 						|| x.Key == $"main.{line.Key}");
 
 				if (foundLine is null)
 				{
-					Lines.Add(line);
+					_lines.Add(line);
 					ret = true;
 				}
 				else if (foundLine.Value != line.Value)
 				{
-					Lines.Remove(foundLine);
-					Lines.Add(line);
+					_lines.Remove(foundLine);
+					_lines.Add(line);
 					ret = true;
 				}
 			}
 			else
 			{
-				Lines.Add(line);
+				_lines.Add(line);
 				ret = true;
 			}
 		}
@@ -84,13 +84,13 @@ public class CoreConfig
 
 	private bool RemoveFirstEmptyDuplication()
 	{
-		for (int i = 1; i < Lines.Count; i++)
+		for (int i = 1; i < _lines.Count; i++)
 		{
-			CoreConfigLine currentLine = Lines[i];
-			CoreConfigLine prevLine = Lines[i - 1];
+			CoreConfigLine currentLine = _lines[i];
+			CoreConfigLine prevLine = _lines[i - 1];
 			if (string.IsNullOrWhiteSpace(currentLine.Line) && string.IsNullOrWhiteSpace(prevLine.Line))
 			{
-				Lines.Remove(currentLine);
+				_lines.Remove(currentLine);
 				return true;
 			}
 		}
@@ -140,5 +140,5 @@ public class CoreConfig
 		return retLines.Select(x => new CoreConfigLine(x));
 	}
 
-	public int RemoveAll(string configKey) => Lines.RemoveAll(line => line.Key.Contains(configKey));
+	public int RemoveAll(string configKey) => _lines.RemoveAll(line => line.Key.Contains(configKey));
 }

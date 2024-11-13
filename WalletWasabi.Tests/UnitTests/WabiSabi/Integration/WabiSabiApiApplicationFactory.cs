@@ -12,7 +12,6 @@ using NBitcoin;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
@@ -69,9 +68,6 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	public Task<ArenaClient> CreateArenaClientAsync(HttpClient httpClient) =>
 		CreateArenaClientAsync(CreateWabiSabiHttpApiClient(httpClient));
 
-	public Task<ArenaClient> CreateArenaClientAsync(IHttpClient httpClient) =>
-		CreateArenaClientAsync(new WabiSabiHttpApiClient(httpClient));
-
 	public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 	{
 		var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
@@ -85,5 +81,5 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	}
 
 	public WabiSabiHttpApiClient CreateWabiSabiHttpApiClient(HttpClient httpClient) =>
-		new(new ClearnetHttpClient(httpClient));
+		new("identity", new MockHttpClientFactory { OnCreateClient = _ => httpClient});
 }

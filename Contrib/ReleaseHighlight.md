@@ -1,38 +1,33 @@
 ## Release Highlights
 
-🥕 Taproot receive addresses
-🚀 Faster transaction broadcasting
-🔍 Help to setup and find a coordinator
-⏫ More accurate CPFP fee estimation
-📉 Safer protocol
-🪲 Backend optimizations
+🌐 Enhanced Tor integration
+📊 Better BTC amount formatting
+🔍 More insight on transactions
+💰 [Beta] Payment in coinjoin (RPC only)
+🔒 Trezor Safe 5 & ColdCard Q support
 
 ## Release Summary
 
-Wasabi Wallet v2.2.0.0 release
+Wasabi Wallet v2.3.0.0 release
 
-This version of Wasabi is full of extra features, improvements, and fixes. The highlights are:
+This version of Wasabi introduces major improvements to the user experience with a more intuitive and useful interface, while continuing our efforts to enhance and streamline the codebase for easier maintainability and better building blocks for further improvements.
 
-🥕 Taproot receive addresses
+🌐 Enhanced Tor integration
 
-Users can now choose taproot when generating a new receiving address. Spending a taproot input is 16% cheaper compared to spending a native segwit input. Users aren’t the only ones that benefit - Bitcoin nodes can verify taproot’s signatures faster than legacy ones, so the entire network gets a little speed boost.
+We’ve completely rewritten our Tor integration, replacing custom code with a more efficient, standard HttpClient. This not only improves performance but also enhances code clarity, making it easier to review which identities are used in specific contexts. This reduces potential errors and improves the wallet's overall security.
 
-🚀 Faster transaction broadcasting
+📊 Better BTC amount formatting
 
-A more sophisticated transaction broadcasting mechanism was introduced to make the process faster. Transactions are now broadcast to multiple nodes in parallel (through the Tor network) and fail more quickly if the transaction is rejected by the network. Users who upgrade will notice it now takes half as long to send their coins.
+Amount formatting has been significantly improved across the wallet, offering clearer readability for both small and large balances, whether you want to read as BTC (decimals) or Sats. The aesthetics of all screens presenting amounts have been revisited to be smoother and consistent throughout the application.
 
-🔍 Help to setup and find a coordinator
+🔍 More insight on transactions
 
-A new message is now shown when no coordinator is configured, along with some help to understand how to find and setup one.
+The _Preview Transaction_ and _Transaction Details_ dialogs now include a lists of inputs and outputs. This long-requested feature offers insight into the privacy-enhancing effects of coinjoins and the level of anonymity achieved with each transaction. Additionally, it is now visually clear how privacy suggestions improves transactions.
 
-⏫ More accurate CPFP fee estimation
+💰 [Beta] Payment in coinjoin (RPC only)
 
-The CPFP feature now takes into account the fee paid by the parent transaction. In previous releases, the child transaction assumed the parent paid 0 sats in fees, and thus always overpaid for the speed up.. This improvement will be especially significant in high-fee environments, where the CPFP feature is most useful!
+Our Payment in coinjoin feature is now officially in beta! It is currently accessible only though the RPC. While this feature is still in development and lacks certain functionalities, we encourage users to test it and provide feedback. Learn more about it in the [Documentation](https://docs.wasabiwallet.io/using-wasabi/RPC.html#payincoinjoin)
 
-📉 Safer protocol
+🔒 Trezor Safe 5 & ColdCard Q support
 
-In order to avoid introducing unknown incentives and to limit risk to users, the coordination fee concept has been removed. Only coinjoin coordinators that don't charge any coordination fee continue to be supported.
-
-🪲 Backend optimizations
-
- Users who run a Wasabi backend can now do so with a pruned node and significant CPU/RAM savings. This makes hosting a backend much cheaper and helps to decentralize this component which Wasabi clients still depend on.
+Hardware Wallet Interface (HWI) has been updated to version 3.1.0 along with support for Trezor Safe 5 & ColdCard Q.

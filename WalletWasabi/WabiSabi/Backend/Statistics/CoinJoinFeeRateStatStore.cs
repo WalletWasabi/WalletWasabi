@@ -17,9 +17,9 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
 		: base(TimeSpan.FromMinutes(10))
 	{
-		Config = config;
-		Rpc = rpc;
-		CoinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
+		_config = config;
+		_rpc = rpc;
+		_coinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
 	}
 
 	public CoinJoinFeeRateStatStore(WabiSabiConfig config, IRPCClient rpc)
@@ -33,40 +33,40 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private static TimeSpan MaximumTimeToStore { get; } = TimeFrames.Max();
 
-	private List<CoinJoinFeeRateStat> CoinJoinFeeRateStats { get; }
+	private readonly List<CoinJoinFeeRateStat> _coinJoinFeeRateStats;
 
 	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = Array.Empty<CoinJoinFeeRateMedian>();
 
-	private WabiSabiConfig Config { get; }
-	private IRPCClient Rpc { get; }
+	private readonly WabiSabiConfig _config;
+	private readonly IRPCClient _rpc;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var feeRate = (await Rpc.EstimateConservativeSmartFeeAsync((int)Config.ConfirmationTarget, cancel).ConfigureAwait(false)).FeeRate;
+		var feeRate = (await _rpc.EstimateConservativeSmartFeeAsync((int)_config.ConfirmationTarget, cancel).ConfigureAwait(false)).FeeRate;
 
-		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, Config.ConfirmationTarget, feeRate);
+		CoinJoinFeeRateStat feeRateStat = new(DateTimeOffset.UtcNow, _config.ConfirmationTarget, feeRate);
 		Add(feeRateStat);
 		NewStat?.Invoke(this, feeRateStat);
 	}
 
 	private void Add(CoinJoinFeeRateStat feeRateStat)
 	{
-		CoinJoinFeeRateStats.Add(feeRateStat);
+		_coinJoinFeeRateStats.Add(feeRateStat);
 
 		DefaultMedians = TimeFrames.Select(t => new CoinJoinFeeRateMedian(t, GetMedian(t))).ToArray();
 
 		// Prune old items.
 		DateTimeOffset removeBefore = DateTimeOffset.UtcNow - MaximumTimeToStore;
-		while (CoinJoinFeeRateStats.Count != 0 && CoinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
+		while (_coinJoinFeeRateStats.Count != 0 && _coinJoinFeeRateStats[0].DateTimeOffset < removeBefore)
 		{
-			CoinJoinFeeRateStats.RemoveAt(0);
+			_coinJoinFeeRateStats.RemoveAt(0);
 		}
 	}
 
 	private FeeRate GetMedian(TimeSpan timeFrame)
 	{
 		var from = DateTimeOffset.UtcNow - timeFrame;
-		var feeRates = CoinJoinFeeRateStats
+		var feeRates = _coinJoinFeeRateStats
 			.Where(x => x.DateTimeOffset >= from)
 			.OrderByDescending(x => x.FeeRate.SatoshiPerByte)
 			.ToArray();

@@ -9,21 +9,21 @@ public class InsecureRandom : WasabiRandom
 
 	public InsecureRandom()
 	{
-		Random = Random.Shared;
+		_random = Random.Shared;
 	}
 
 	public InsecureRandom(int seed)
 	{
-		Random = new Random(seed);
+		_random = new Random(seed);
 	}
 
-	private Random Random { get; }
+	private readonly Random _random;
 
-	public override void GetBytes(byte[] buffer) => Random.NextBytes(buffer);
+	public override void GetBytes(byte[] buffer) => _random.NextBytes(buffer);
 
-	public override void GetBytes(Span<byte> buffer) => Random.NextBytes(buffer);
+	public override void GetBytes(Span<byte> buffer) => _random.NextBytes(buffer);
 
-	public override int GetInt(int fromInclusive, int toExclusive) => Random.Next(fromInclusive, toExclusive);
+	public override int GetInt(int fromInclusive, int toExclusive) => _random.Next(fromInclusive, toExclusive);
 
-	public long GetInt64(long fromInclusive, long toExclusive) => Random.NextInt64(fromInclusive, toExclusive);
+	public long GetInt64(long fromInclusive, long toExclusive) => _random.NextInt64(fromInclusive, toExclusive);
 }

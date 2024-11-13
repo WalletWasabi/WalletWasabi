@@ -1,0 +1,51 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
+             xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.CoinjoinCoinListView"
+             x:DataType="coinjoins:CoinjoinCoinListViewModel"
+             x:CompileBindings="True">
+
+  <UserControl.Resources>
+    <ContextMenu IsVisible="{Binding BtcAddress, Converter={x:Static ObjectConverters.IsNotNull}}" x:Key="AddressContextMenu" x:DataType="coinjoins:CoinjoinCoinListItem">
+      <MenuItem Header="Copy Bitcoin Address"
+                Command="{Binding ClipboardCopyCommand}"
+                CommandParameter="{Binding BtcAddress, StringFormat={}{0}}">
+        <MenuItem.Icon>
+          <PathIcon Data="{StaticResource btc_logo}" />
+        </MenuItem.Icon>
+      </MenuItem>
+    </ContextMenu>
+  </UserControl.Resources>
+
+  <Panel>
+    <TreeDataGrid x:Name="TreeDataGrid" Source="{Binding TreeDataGridSource}">
+      <TreeDataGrid.Styles>
+        <Style Selector="treeDataGrid|TreeDataGridAmountPrivacyTextCell">
+          <Setter Property="FontFamily" Value="{StaticResource MonospacedFont}" />
+          <Setter Property="FontWeight" Value="Bold" />
+          <Setter Property="Opacity" Value="1" />
+          <Setter Property="FontSize" Value="14" />
+          <Setter Property="Background" Value="Transparent" />
+          <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+        </Style>
+        <Style Selector="TreeDataGridExpanderCell">
+          <Setter Property="Theme" Value="{StaticResource CoinjoinCoinsListViewTreeDataGridExpanderCell}" />
+        </Style>
+        <Style Selector="TreeDataGridRow" x:DataType="coinjoins:CoinjoinCoinListItem">
+          <Setter Property="Theme" Value="{StaticResource CoinjoinCoinsListViewTreeDataGridRow}" />
+          <Setter Property="ContextMenu" Value="{StaticResource AddressContextMenu}" />
+        </Style>
+      </TreeDataGrid.Styles>
+      <Interaction.Behaviors>
+        <SetLastChildBehavior />
+      </Interaction.Behaviors>
+      <TreeDataGrid.ElementFactory>
+        <treeDataGrid:PrivacyElementFactory />
+      </TreeDataGrid.ElementFactory>
+    </TreeDataGrid>
+  </Panel>
+</UserControl>

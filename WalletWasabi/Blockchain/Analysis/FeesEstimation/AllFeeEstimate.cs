@@ -24,7 +24,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// <summary>
 	/// Constructor takes the input confirmation estimations and filters out all confirmation targets that are not <see cref="Constants.ConfirmationTargets">whitelisted</see>.
 	/// </summary>
-	/// <param name="estimations">Map of confirmation targets to fee rates in satoshis (e.g. confirmation target 1 -> 50 sats/vByte).</param>
+	/// <param name="estimations">Map of confirmation targets to fee rates in satoshis (e.g. confirmation target 1 -> 50 sat/vByte).</param>
 	[JsonConstructor]
 	public AllFeeEstimate(IDictionary<int, int> estimations)
 	{

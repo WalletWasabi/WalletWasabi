@@ -1,137 +1,135 @@
-using System.Diagnostics.CodeAnalysis;
+using System.Collections.Concurrent;
+using System.Linq;
 using System.Net;
 using System.Net.Http;
-using System.Threading.Tasks;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5.Pool;
-using WalletWasabi.Tor.Socks5.Pool.Circuits;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
-/// <summary>
-/// Factory class to get proper <see cref="IHttpClient"/> client which is set up based on user settings.
-/// </summary>
-public class WasabiHttpClientFactory : IWasabiHttpClientFactory, IAsyncDisposable
+public delegate DateTime LifetimeResolver(string identity);
+
+public class HttpClientFactory : IHttpClientFactory
 {
-	/// <summary>
-	/// Creates a new instance of the object.
-	/// </summary>
-	/// <param name="torEndPoint">If <c>null</c> then clearnet (not over Tor) is used, otherwise HTTP requests are routed through provided Tor endpoint.</param>
-	public WasabiHttpClientFactory(EndPoint? torEndPoint, Func<Uri>? backendUriGetter, bool torControlAvailable = true)
+	class NotifyHttpClientHandler(string name, Action<string> disposedCallback) : HttpClientHandler
 	{
-		HttpClient = CreateLongLivedHttpClient(automaticDecompression: DecompressionMethods.GZip | DecompressionMethods.Brotli);
-
-		TorEndpoint = torEndPoint;
-		BackendUriGetter = backendUriGetter;
-
-		// Connecting to loopback's URIs cannot be done via Tor.
-		if (TorEndpoint is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
+		protected override void Dispose(bool disposing)
 		{
-			TorHttpPool = new(TorEndpoint, torControlAvailable);
-			BackendHttpClient = new TorHttpClient(BackendUriGetter, TorHttpPool, Mode.DefaultCircuit);
-		}
-		else
-		{
-			BackendHttpClient = new ClearnetHttpClient(HttpClient, BackendUriGetter);
-		}
-
-		SharedWasabiClient = new(BackendHttpClient);
-	}
-
-	/// <summary>Tor SOCKS5 endpoint.</summary>
-	/// <remarks>The property should be <c>private</c> when Tor refactoring is done.</remarks>
-	public EndPoint? TorEndpoint { get; }
-
-	/// <remarks>The property should be <c>private</c> when Tor refactoring is done.</remarks>
-	public Func<Uri>? BackendUriGetter { get; }
-
-	/// <summary>Whether Tor is enabled or disabled.</summary>
-	[MemberNotNullWhen(returnValue: true, nameof(TorEndpoint))]
-	public bool IsTorEnabled => TorEndpoint is not null;
-
-	/// <summary>The .NET HTTP client to be used by <see cref="ClearnetHttpClient"/> instances.</summary>
-	private HttpClient HttpClient { get; }
-
-	/// <summary>Available only when Tor is enabled in User settings.</summary>
-	public TorHttpPool? TorHttpPool { get; }
-
-	/// <summary>Backend HTTP client, shared instance.</summary>
-	private IHttpClient BackendHttpClient { get; }
-
-	/// <summary>Shared instance of <see cref="WasabiClient"/>.</summary>
-	public WasabiClient SharedWasabiClient { get; }
-
-	/// <summary>
-	/// Creates a long-lived <see cref="HttpClient"/> instance for accessing clearnet sites.
-	/// </summary>
-	/// <remarks>Created HTTP client handles correctly DNS changes.</remarks>
-	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/core/extensions/httpclient-factory"/>
-	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "HTTP client will dispose the handler correctly.")]
-	public static HttpClient CreateLongLivedHttpClient(TimeSpan? pooledConnectionLifetime = null, DecompressionMethods? automaticDecompression = null)
-	{
-		SocketsHttpHandler handler = new()
-		{
-			PooledConnectionLifetime = pooledConnectionLifetime ?? TimeSpan.FromMinutes(5),
-		};
-
-		if (automaticDecompression is not null)
-		{
-			handler.AutomaticDecompression = automaticDecompression.Value;
-		}
-
-		return new HttpClient(handler);
-	}
-
-	/// <summary>
-	/// Creates new <see cref="TorHttpClient"/> or <see cref="ClearnetHttpClient"/> based on user settings.
-	/// </summary>
-	public IHttpClient NewHttpClient(Func<Uri>? baseUriFn, Mode mode, ICircuit? circuit = null, int maximumRedirects = 0)
-	{
-		// Connecting to loopback's URIs cannot be done via Tor.
-		if (TorHttpPool is { } && (BackendUriGetter is null || !BackendUriGetter().IsLoopback))
-		{
-			return new TorHttpClient(baseUriFn, TorHttpPool, mode, circuit, maximumRedirects);
-		}
-		else
-		{
-			return new ClearnetHttpClient(HttpClient, baseUriFn);
+			Logger.LogDebug($"Disposing httpclient handler {name}");
+			base.Dispose(disposing);
+			disposedCallback(name);
 		}
 	}
 
-	/// <summary>Creates new <see cref="TorHttpClient"/>.</summary>
-	/// <remarks>Do not use this function unless <see cref="NewHttpClient(Func{Uri}?, Mode, ICircuit?, int)"/> is not sufficient for your use case.</remarks>
-	/// <exception cref="InvalidOperationException"/>
-	public TorHttpClient NewTorHttpClient(Mode mode, Func<Uri>? baseUriFn = null, ICircuit? circuit = null)
-	{
-		if (TorEndpoint is null)
-		{
-			throw new InvalidOperationException("Tor is not enabled in the user settings.");
-		}
+	private readonly ConcurrentDictionary<string, DateTime> _expirationDatetimes = new();
+	private readonly ConcurrentDictionary<string, HttpClientHandler> _httpClientHandlers = new();
+	private readonly ConcurrentBag<LifetimeResolver> _lifetimeResolvers = new();
 
-		return (TorHttpClient)NewHttpClient(baseUriFn, mode, circuit);
+	public HttpClientFactory()
+	{
+		AddLifetimeResolver(identity => identity.StartsWith("long-live")
+			? DateTime.MaxValue
+			: DateTime.UtcNow.AddHours(6));
 	}
 
-	/// <summary>
-	/// Creates a new <see cref="IHttpClient"/> with the base URI is set to Wasabi Backend.
-	/// </summary>
-	public IHttpClient NewHttpClient(Mode mode, ICircuit? circuit = null, int maximumRedirects = 0)
+	public HttpClient CreateClient(string name)
 	{
-		return NewHttpClient(BackendUriGetter, mode, circuit, maximumRedirects);
+		CheckForExpirations();
+		var httpClientHandler = _httpClientHandlers.GetOrAdd(name, CreateHttpClientHandler);
+		return new HttpClient(httpClientHandler, false);
 	}
 
-	public async ValueTask DisposeAsync()
+	public void AddLifetimeResolver(LifetimeResolver resolver)
 	{
-		// Dispose managed state (managed objects).
-		if (BackendHttpClient is IDisposable httpClient)
-		{
-			httpClient.Dispose();
-		}
+		_lifetimeResolvers.Add(resolver);
+	}
 
-		HttpClient.Dispose();
-
-		if (TorHttpPool is not null)
+	private void CheckForExpirations()
+	{
+		var expiredHandlers = _expirationDatetimes.Where(x => x.Value < DateTime.UtcNow).Select(x => x.Key).ToArray();
+		foreach (var handlerName in expiredHandlers)
 		{
-			await TorHttpPool.DisposeAsync().ConfigureAwait(false);
+			if (_httpClientHandlers.TryRemove(handlerName, out var handler))
+			{
+				handler.Dispose();
+			}
 		}
+	}
+
+	protected virtual HttpClientHandler CreateHttpClientHandler(string name)
+	{
+		Logger.LogDebug($"Create handler {name}");
+		SetExpirationDate(name);
+		return new NotifyHttpClientHandler(name,
+			handlerName =>
+			{
+				_httpClientHandlers.TryRemove(handlerName, out _);
+				_expirationDatetimes.TryRemove(handlerName, out _);
+			});
+	}
+
+	private void SetExpirationDate(string name)
+	{
+		var expirationTime = _lifetimeResolvers.Min(resolve => resolve(name));
+		_expirationDatetimes.AddOrUpdate(name, expirationTime, (_,_) => expirationTime);
+	}
+}
+
+public class OnionHttpClientFactory(Uri proxyUri) : HttpClientFactory
+{
+	protected override HttpClientHandler CreateHttpClientHandler(string name)
+	{
+		var credentials = new NetworkCredential(name, name);
+		var webProxy = new WebProxy(proxyUri, BypassOnLocal: false, [], Credentials: credentials);
+		var handler = base.CreateHttpClientHandler(name);
+		handler.Proxy = webProxy;
+		return handler;
+	}
+}
+
+public class CoordinatorHttpClientFactory : IHttpClientFactory
+{
+	private readonly Uri _baseAddress;
+	private readonly HttpClientFactory _internalHttpClientFactory;
+
+	public CoordinatorHttpClientFactory(Uri baseAddress, HttpClientFactory internalHttpClientFactory)
+	{
+		_baseAddress = baseAddress;
+		_internalHttpClientFactory = internalHttpClientFactory;
+		_internalHttpClientFactory.AddLifetimeResolver(ResolveLifetimeByIdentity);
+	}
+
+	public HttpClient CreateClient(string name)
+	{
+		var httpClient = _internalHttpClientFactory.CreateClient(name);
+		httpClient.BaseAddress = _baseAddress;
+		httpClient.DefaultRequestVersion = HttpVersion.Version11;
+		httpClient.DefaultRequestHeaders.UserAgent.Clear();
+		return httpClient;
+	}
+
+	private DateTime ResolveLifetimeByIdentity(string name)
+	{
+		var identity = name.Split('-', StringSplitOptions.RemoveEmptyEntries).First();
+		var lifetime = TimeSpan.FromSeconds(identity switch
+		{
+			"bob" => 40,
+			"alice" => 1.5 * 3_600,
+			"satoshi" => int.MaxValue,
+			_ => int.MaxValue,
+		});
+		return DateTime.UtcNow.Add(lifetime);
+	}
+}
+
+public class BackendHttpClientFactory(Uri baseAddress, IHttpClientFactory internalHttpClientFactory)
+	: IHttpClientFactory
+{
+	public HttpClient CreateClient(string name)
+	{
+		var httpClient = internalHttpClientFactory.CreateClient(name);
+		httpClient.DefaultRequestVersion = HttpVersion.Version11;
+		httpClient.DefaultRequestHeaders.UserAgent.Clear();
+		httpClient.BaseAddress = baseAddress;
+		return httpClient;
 	}
 }

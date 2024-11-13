@@ -9,20 +9,20 @@ public class InitConfigStartupTask : IStartupTask
 {
 	public InitConfigStartupTask(Global global)
 	{
-		Global = global;
+		_global = global;
 	}
 
-	private Global Global { get; }
+	private readonly Global _global;
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		Logger.InitializeDefaults(Path.Combine(Global.DataDir, "Logs.txt"));
+		Logger.InitializeDefaults(Path.Combine(_global.DataDir, "Logs.txt"));
 		Logger.LogSoftwareStarted("Wasabi Backend");
 
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-		await Global.InitializeAsync(cancellationToken);
+		await _global.InitializeAsync(cancellationToken);
 	}
 
 	private static void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

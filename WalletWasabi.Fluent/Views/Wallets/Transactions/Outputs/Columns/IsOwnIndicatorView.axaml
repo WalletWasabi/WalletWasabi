@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:outputs="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:DataType="outputs:OutputsCoinListItem"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs.Columns.IsOwnIndicatorView">
+
+  <InvalidatingStackPanel Orientation="Horizontal" Spacing="2" HorizontalAlignment="Right">
+    <Border BorderThickness="1"
+            ToolTip.Tip="This output belongs to one of your opened wallets"
+            VerticalAlignment="Center"
+            Margin="0 0 8 0"
+            IsVisible="{Binding ShowOwn}"
+            BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
+      <TextBlock Classes="h10" Text="OWN"/>
+    </Border>
+    <Border BorderThickness="1"
+            ToolTip.Tip="This output goes back to your own wallet"
+            VerticalAlignment="Center"
+            IsVisible="{Binding ShowChange}"
+            BorderBrush="{DynamicResource TextControlForeground}" Opacity="0.6" CornerRadius="4" Padding="3">
+      <TextBlock Classes="h10" Text="CHANGE"/>
+    </Border>
+  </InvalidatingStackPanel>
+</UserControl>

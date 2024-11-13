@@ -39,9 +39,9 @@ public class WasabiClientTests
 			return response;
 		}
 
-		var mockTorHttpClient = new MockIHttpClient();
+		using var mockTorHttpClient = new MockHttpClient();
 		mockTorHttpClient.OnSendAsync = req =>
-			FakeServerCodeAsync(req.Method, req.RequestUri.PathAndQuery, req.Content, CancellationToken.None);
+			FakeServerCodeAsync(req.Method, req.RequestUri.ToString(), req.Content, CancellationToken.None);
 
 		var client = new WasabiClient(mockTorHttpClient);
 		Assert.Empty(WasabiClient.TransactionCache);

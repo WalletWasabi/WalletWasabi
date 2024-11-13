@@ -18,12 +18,14 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _fullyMixed;
 	[AutoNotify] private string _percentText = "";
-	[AutoNotify] private Money _balancePrivate = Money.Zero;
+	[AutoNotify] private Amount _balancePrivate;
 	[AutoNotify] private bool _hasPrivateBalance;
 
 	private PrivacyControlTileViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
+
+		_balancePrivate = _wallet.AmountProvider.Create(Money.Zero);
 
 		var canShowDetails = _wallet.HasBalance;
 
@@ -101,7 +103,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		FullyMixed = isWalletPrivate;
 
-		BalancePrivate = coins.Where(x => x.IsPrivate).TotalAmount();
-		HasPrivateBalance = BalancePrivate > Money.Zero;
+		BalancePrivate = _wallet.AmountProvider.Create(coins.Where(x => x.IsPrivate).TotalAmount());
+		HasPrivateBalance = BalancePrivate.HasBalance;
 	}
 }

@@ -13,44 +13,44 @@ public class SmartHeaderChain
 {
 	public const int Unlimited = 0;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private uint _tipHeight;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private SmartHeader? _tip;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private uint256? _tipHash;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private uint _serverTipHeight;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private int _hashesLeft;
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private int _hashesCount;
 
 	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
 	public SmartHeaderChain(int maxChainSize = Unlimited)
 	{
-		MaxChainSize = maxChainSize;
+		_maxChainSize = maxChainSize;
 	}
 
 	/// <summary>Task completion source that is completed once a <see cref="ServerTipHeight"/> is initialized for the first time.</summary>
 	public TaskCompletionSource ServerTipInitializedTcs { get; } = new();
 
 	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
-	private int MaxChainSize { get; }
+	private readonly int _maxChainSize;
 
-	private LinkedList<SmartHeader> Chain { get; } = new();
-	private object Lock { get; } = new();
+	private readonly LinkedList<SmartHeader> _chain = new();
+	private readonly object _lock = new();
 
 	public SmartHeader? Tip
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _tip;
 			}
@@ -61,7 +61,7 @@ public class SmartHeaderChain
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _tipHeight;
 			}
@@ -72,7 +72,7 @@ public class SmartHeaderChain
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _tipHash;
 			}
@@ -83,7 +83,7 @@ public class SmartHeaderChain
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _serverTipHeight;
 			}
@@ -94,7 +94,7 @@ public class SmartHeaderChain
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _hashesLeft;
 			}
@@ -111,7 +111,7 @@ public class SmartHeaderChain
 	{
 		get
 		{
-			lock (Lock)
+			lock (_lock)
 			{
 				return _hashesCount;
 			}
@@ -123,11 +123,11 @@ public class SmartHeaderChain
 	/// </summary>
 	public void AppendTip(SmartHeader tip)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			if (Chain.Count > 0)
+			if (_chain.Count > 0)
 			{
-				SmartHeader lastHeader = Chain.Last!.Value;
+				SmartHeader lastHeader = _chain.Last!.Value;
 
 				if (lastHeader.BlockHash != tip.PrevHash)
 				{
@@ -140,14 +140,14 @@ public class SmartHeaderChain
 				}
 			}
 
-			Chain.AddLast(tip);
+			_chain.AddLast(tip);
 			_hashesCount++;
 			SetTipNoLock(tip);
 
-			if (MaxChainSize != Unlimited && Chain.Count > MaxChainSize)
+			if (_maxChainSize != Unlimited && _chain.Count > _maxChainSize)
 			{
 				// Intentionally, we do not modify hashes count here.
-				Chain.RemoveFirst();
+				_chain.RemoveFirst();
 			}
 		}
 	}
@@ -156,14 +156,14 @@ public class SmartHeaderChain
 	{
 		bool result = false;
 
-		lock (Lock)
+		lock (_lock)
 		{
-			if (Chain.Count > 0)
+			if (_chain.Count > 0)
 			{
-				Chain.RemoveLast();
+				_chain.RemoveLast();
 				_hashesCount--;
 
-				SmartHeader? newTip = (Chain.Count > 0) ? Chain.Last!.Value : null;
+				SmartHeader? newTip = (_chain.Count > 0) ? _chain.Last!.Value : null;
 				SetTipNoLock(newTip);
 
 				result = true;
@@ -175,7 +175,7 @@ public class SmartHeaderChain
 
 	public void SetServerTipHeight(uint height)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
 			_serverTipHeight = height;
 			SetHashesLeftNoLock();
@@ -187,13 +187,13 @@ public class SmartHeaderChain
 	/// <remarks>Only for tests.</remarks>
 	public (uint height, SmartHeader header)[] GetChain()
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			return Chain.Select(x => (x.Height, x)).ToArray();
+			return _chain.Select(x => (x.Height, x)).ToArray();
 		}
 	}
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private void SetTipNoLock(SmartHeader? tip)
 	{
 		_tip = tip;
@@ -202,7 +202,7 @@ public class SmartHeaderChain
 		SetHashesLeftNoLock();
 	}
 
-	/// <remarks>Guarded by <see cref="Lock"/>.</remarks>
+	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private void SetHashesLeftNoLock()
 	{
 		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);

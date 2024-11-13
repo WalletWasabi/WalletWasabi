@@ -14,7 +14,6 @@ using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinControl.Core;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
@@ -89,7 +88,7 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 			.Subscribe()
 			.DisposeWith(_disposables);
 
-		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, _ignorePrivacyMode, allowSelection);
+		TreeDataGridSource = CoinListDataGridSource.Create(_itemsCollection, allowSelection);
 		TreeDataGridSource.DisposeWith(_disposables);
 		CoinItems = coinItemsCollection;
 

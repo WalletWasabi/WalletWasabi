@@ -44,31 +44,28 @@ internal enum ServerEvent
 // Class to manage the conversation updates
 public class BuyAnythingManager : PeriodicRunner
 {
-	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client, bool useTestApi) : base(period)
+	public BuyAnythingManager(string dataDir, TimeSpan period, BuyAnythingClient client) : base(period)
 	{
-		Client = client;
-		FilePath = Path.Combine(dataDir, "Conversations", useTestApi ? "TestConversations.json" : "Conversations.json");
+		_client = client;
+		_filePath = Path.Combine(dataDir, "Conversations", "Conversations.json");
 
 		string countriesFilePath = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BuyAnything", "Data", "Countries.json");
 		string fileContent = File.ReadAllText(countriesFilePath);
 		Country[] countries = [];
-		if (!useTestApi)
-		{
-			countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
-								  ?? throw new InvalidOperationException("Couldn't read the countries list.");
-		}
+		countries = JsonConvert.DeserializeObject<Country[]>(fileContent)
+							  ?? throw new InvalidOperationException("Couldn't read the countries list.");
 		Countries = countries;
 	}
 
-	private BuyAnythingClient Client { get; }
+	private readonly BuyAnythingClient _client;
 	public IReadOnlyList<Country> Countries { get; private set; }
-	private ConversationTracking ConversationTracking { get; } = new();
+	private readonly ConversationTracking _conversationTracking = new();
 	private bool IsConversationsLoaded { get; set; }
-	private string FilePath { get; }
+	private readonly string _filePath;
 
 	public event EventHandler<ConversationUpdateEvent>? ConversationUpdated;
 
-	private AsyncLock FileLock { get; } = new();
+	private readonly AsyncLock _fileLock = new();
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -76,7 +73,7 @@ public class BuyAnythingManager : PeriodicRunner
 		await EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 		// Iterate over the conversations that are updatable
-		foreach (var track in ConversationTracking.GetUpdatableConversations())
+		foreach (var track in _conversationTracking.GetUpdatableConversations())
 		{
 			try
 			{
@@ -95,7 +92,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task CheckUpdateInOrderStatusAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
-		var orders = await Client
+		var orders = await _client
 			.GetOrdersUpdateAsync(track.Credential, cancel)
 			.ConfigureAwait(false);
 
@@ -268,7 +265,7 @@ public class BuyAnythingManager : PeriodicRunner
 	private async Task CheckUpdateInChatAsync(ConversationUpdateTrack track, CancellationToken cancel)
 	{
 		// Get full customer profile to get updated messages.
-		var customerProfileResponse = await Client
+		var customerProfileResponse = await _client
 			.GetCustomerProfileAsync(track.Credential, cancel)
 			.ConfigureAwait(false);
 
@@ -289,19 +286,19 @@ public class BuyAnythingManager : PeriodicRunner
 	}
 
 	public int GetNextConversationId(string walletId) =>
-		ConversationTracking.GetNextConversationId(walletId);
+		_conversationTracking.GetNextConversationId(walletId);
 
 	public async Task<Conversation[]> GetConversationsAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		var walletId = GetWalletId(wallet);
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		return ConversationTracking.GetConversationsByWalletId(walletId);
+		return _conversationTracking.GetConversationsByWalletId(walletId);
 	}
 
 	public async Task<int> RemoveConversationsByIdsAsync(IEnumerable<ConversationId> toRemoveIds, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var removedCount = ConversationTracking.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
+		var removedCount = _conversationTracking.RemoveAll(x => toRemoveIds.Contains(x.Conversation.Id));
 		if (removedCount > 0)
 		{
 			await SaveAsync(cancellationToken).ConfigureAwait(false);
@@ -312,7 +309,7 @@ public class BuyAnythingManager : PeriodicRunner
 
 	public async Task<State[]> GetStatesForCountryAsync(Country country, CancellationToken cancellationToken)
 	{
-		return await Client.GetStatesByCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
+		return await _client.GetStatesByCountryIdAsync(country.Id, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<Conversation> StartNewConversationAsync(Wallet wallet, Conversation conversation, CancellationToken cancellationToken)
@@ -332,7 +329,7 @@ public class BuyAnythingManager : PeriodicRunner
 		var walletId = GetWalletId(wallet);
 
 		var (orderId, orderNumber) =
-			await Client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
+			await _client.CreateNewConversationAsync(credential.UserName, credential.Password, country.Id, product.Value, fullChat.ToText(), cancellationToken)
 						.ConfigureAwait(false);
 
 		conversation =
@@ -347,7 +344,7 @@ public class BuyAnythingManager : PeriodicRunner
 				},
 			};
 
-		ConversationTracking.Add(new ConversationUpdateTrack(conversation));
+		_conversationTracking.Add(new ConversationUpdateTrack(conversation));
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 
@@ -357,7 +354,7 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task UpdateConversationAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
+		var track = _conversationTracking.GetConversationTrackById(conversation.Id);
 
 		if (track.Conversation == conversation)
 		{
@@ -367,7 +364,7 @@ public class BuyAnythingManager : PeriodicRunner
 		track.Conversation = conversation;
 
 		var rawText = track.Conversation.ChatMessages.ToText();
-		await Client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
+		await _client.UpdateConversationAsync(track.Credential, rawText, cancellationToken).ConfigureAwait(false);
 
 		await SaveAsync(cancellationToken).ConfigureAwait(false);
 	}
@@ -376,7 +373,7 @@ public class BuyAnythingManager : PeriodicRunner
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
 
-		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
+		var track = _conversationTracking.GetConversationTrackById(conversation.Id);
 		if (track.Conversation.ConversationStatus == ConversationStatus.InvoiceExpired)
 		{
 			throw new InvalidOperationException("Invoice has expired.");
@@ -403,14 +400,14 @@ public class BuyAnythingManager : PeriodicRunner
 			throw new ArgumentException($"Conversation {conversation.Id} is missing Delivery information.");
 		}
 
-		await Client.SetBillingAddressAsync(track.Credential, firstName, lastName, streetName, houseNumber, postalCode, city, stateId, country.Id, cancellationToken).ConfigureAwait(false);
+		await _client.SetBillingAddressAsync(track.Credential, firstName, lastName, streetName, houseNumber, postalCode, city, stateId, country.Id, cancellationToken).ConfigureAwait(false);
 		return await HandlePaymentAsync(track, conversation, cancellationToken).ConfigureAwait(false);
 	}
 
 	private async Task<Conversation> HandlePaymentAsync(ConversationUpdateTrack track, Conversation newConversation,
 		CancellationToken cancellationToken)
 	{
-		await Client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken)
+		await _client.HandlePaymentAsync(track.Credential, track.Conversation.Id.OrderId, cancellationToken)
 			.ConfigureAwait(false);
 		track.Conversation = newConversation with
 		{
@@ -427,7 +424,7 @@ public class BuyAnythingManager : PeriodicRunner
 	public async Task UpdateConversationOnlyLocallyAsync(Conversation conversation, CancellationToken cancellationToken)
 	{
 		await EnsureConversationsAreLoadedAsync(cancellationToken).ConfigureAwait(false);
-		var track = ConversationTracking.GetConversationTrackById(conversation.Id);
+		var track = _conversationTracking.GetConversationTrackById(conversation.Id);
 
 		if (track.Conversation == conversation)
 		{
@@ -546,11 +543,11 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			TypeNameHandling = TypeNameHandling.Objects
 		};
-		using (await FileLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _fileLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			IoHelpers.EnsureFileExists(FilePath);
-			string json = JsonConvert.SerializeObject(ConversationTracking, Formatting.Indented, settings);
-			await File.WriteAllTextAsync(FilePath, json, cancellationToken).ConfigureAwait(false);
+			IoHelpers.EnsureFileExists(_filePath);
+			string json = JsonConvert.SerializeObject(_conversationTracking, Formatting.Indented, settings);
+			await File.WriteAllTextAsync(_filePath, json, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -610,9 +607,9 @@ public class BuyAnythingManager : PeriodicRunner
 
 	private async Task LoadConversationsAsync(CancellationToken cancellationToken)
 	{
-		using (await FileLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		using (await _fileLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			IoHelpers.EnsureFileExists(FilePath);
+			IoHelpers.EnsureFileExists(_filePath);
 
 			try
 			{
@@ -621,17 +618,17 @@ public class BuyAnythingManager : PeriodicRunner
 					TypeNameHandling = TypeNameHandling.Objects
 				};
 
-				string json = await File.ReadAllTextAsync(FilePath, cancellationToken).ConfigureAwait(false);
+				string json = await File.ReadAllTextAsync(_filePath, cancellationToken).ConfigureAwait(false);
 				var conversations = JsonConvert.DeserializeObject<ConversationTracking>(json, settings) ?? new();
-				ConversationTracking.Load(conversations);
+				_conversationTracking.Load(conversations);
 			}
 			catch (JsonException ex)
 			{
 				// Something happened with the file.
-				var bakFilePath = $"{FilePath}.bak";
+				var bakFilePath = $"{_filePath}.bak";
 				Logger.LogError($"Wasabi was not able to load conversations file. Resetting the conversations and backup the corrupted file to: '{bakFilePath}'. Reason: '{ex}'.");
-				File.Move(FilePath, bakFilePath, true);
-				ConversationTracking.Load(new ConversationTracking());
+				File.Move(_filePath, bakFilePath, true);
+				_conversationTracking.Load(new ConversationTracking());
 				await SaveAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception ex)
@@ -654,7 +651,7 @@ public class BuyAnythingManager : PeriodicRunner
 		{
 			try
 			{
-				Countries = await Client.GetCountriesAsync(cancel).ConfigureAwait(false);
+				Countries = await _client.GetCountriesAsync(cancel).ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{

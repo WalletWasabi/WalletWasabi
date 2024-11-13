@@ -4,6 +4,8 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:inputs="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Transactions.Inputs"
+             xmlns:outputs="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:TransactionDetailsViewModel"
              x:CompileBindings="True"
@@ -60,7 +62,7 @@
                      Label="Fee"
                      CopyableContent="{Binding Fee.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
         <PrivacyContentControl>
-          <AmountControl Classes="Fee" Amount="{Binding Fee}" />
+          <AmountControl Classes="WithUsd" Amount="{Binding Fee}" />
         </PrivacyContentControl>
       </PreviewItem>
 
@@ -113,6 +115,22 @@
         </PrivacyContentControl>
       </PreviewItem>
 
+      <!-- Inputs/Outputs -->
+      <Separator />
+      <PreviewItem Icon="{StaticResource input_count}" />
+      <DockPanel Margin="30 -30 0 0" LastChildFill="True">
+        <Grid >
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*"/>
+            <ColumnDefinition Width="30"/>
+            <ColumnDefinition Width="*"/>
+          </Grid.ColumnDefinitions>
+          <inputs:InputsCoinListView Grid.Column="0" Margin="10 -15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+          <PathIcon Grid.Column="1" Opacity="0.6" Margin="0 2 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
+          <outputs:OutputsCoinListView Grid.Column="2" Margin="10 -15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+        </Grid>
+      </DockPanel>
+
       <!-- Labels -->
       <Separator IsVisible="{Binding IsLabelsVisible}" />
       <PreviewItem IsVisible="{Binding IsLabelsVisible}"
@@ -122,6 +140,14 @@
         <PrivacyContentControl VerticalContentAlignment="Center">
           <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </PrivacyContentControl>
+      </PreviewItem>
+
+      <!-- Hex -->
+      <Separator />
+      <PreviewItem Icon="{StaticResource binary_file}"
+                   Label="Hex"
+                   CopyableContent="{Binding TransactionHex}">
+        <TextBlock Text="Copy" />
       </PreviewItem>
     </StackPanel>
   </ContentArea>

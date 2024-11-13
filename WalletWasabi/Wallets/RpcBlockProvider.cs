@@ -10,16 +10,16 @@ public class RpcBlockProvider : IBlockProvider
 {
 	public RpcBlockProvider(IRPCClient rpcClient)
 	{
-		RpcClient = rpcClient;
+		_rpcClient = rpcClient;
 	}
 
-	private IRPCClient RpcClient { get; }
+	private readonly IRPCClient _rpcClient;
 
 	public async Task<Block?> TryGetBlockAsync(uint256 hash, CancellationToken cancellationToken)
 	{
 		try
 		{
-			return await RpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
+			return await _rpcClient.GetBlockAsync(hash, cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{

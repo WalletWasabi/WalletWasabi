@@ -11,9 +11,9 @@ public class HostedServices : IDisposable
 {
 	private volatile bool _disposedValue = false; // To detect redundant calls
 
-	private List<HostedService> Services { get; } = new();
+	private readonly List<HostedService> _services = new();
 
-	private object ServicesLock { get; } = new();
+	private readonly object _servicesLock = new();
 	private bool IsStartAllAsyncStarted { get; set; } = false;
 
 	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService
@@ -30,16 +30,16 @@ public class HostedServices : IDisposable
 
 		if (IsStartAllAsyncStarted)
 		{
-			throw new InvalidOperationException("Services are already started.");
+			throw new InvalidOperationException("_services are already started.");
 		}
 
-		lock (ServicesLock)
+		lock (_servicesLock)
 		{
 			if (AnyNoLock<T>())
 			{
 				throw new InvalidOperationException($"{typeof(T).Name} is already registered.");
 			}
-			Services.Add(new HostedService(service, friendlyName));
+			_services.Add(new HostedService(service, friendlyName));
 		}
 	}
 
@@ -100,37 +100,37 @@ public class HostedServices : IDisposable
 
 	private IEnumerable<HostedService> CloneServices()
 	{
-		lock (ServicesLock)
+		lock (_servicesLock)
 		{
-			return Services.ToArray();
+			return _services.ToArray();
 		}
 	}
 
 	public T? GetOrDefault<T>() where T : class, IHostedService
 	{
-		lock (ServicesLock)
+		lock (_servicesLock)
 		{
-			return Services.SingleOrDefault(x => x.Service is T)?.Service as T;
+			return _services.SingleOrDefault(x => x.Service is T)?.Service as T;
 		}
 	}
 
 	public T Get<T>() where T : class, IHostedService
 	{
-		lock (ServicesLock)
+		lock (_servicesLock)
 		{
-			return (T)Services.Single(x => x.Service is T).Service;
+			return (T)_services.Single(x => x.Service is T).Service;
 		}
 	}
 
 	public bool Any<T>() where T : class, IHostedService
 	{
-		lock (ServicesLock)
+		lock (_servicesLock)
 		{
 			return AnyNoLock<T>();
 		}
 	}
 
-	private bool AnyNoLock<T>() where T : class, IHostedService => Services.Any(x => x.Service is T);
+	private bool AnyNoLock<T>() where T : class, IHostedService => _services.Any(x => x.Service is T);
 
 	#region IDisposable Support
 

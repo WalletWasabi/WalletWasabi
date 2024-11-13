@@ -6,6 +6,7 @@
     <Easing x:Key="FluentEasing">0.4,0,0.6,1</Easing>
     <KeySpline x:Key="FluentKeySpline">0.4,0,0.6,1</KeySpline>
     <FontFamily x:Key="MonospacedFont">avares://WalletWasabi.Fluent/Assets/Fonts#Roboto Mono</FontFamily>
+    <FontFamily x:Key="AmountsFont">avares://WalletWasabi.Fluent/Assets/Fonts#Amounts Mono</FontFamily>
     <FontFamily x:Key="WasabiLogoTextFont">avares://WalletWasabi.Fluent/Assets/Fonts#Objectivity</FontFamily>
     <sys:Int32 x:Key="MaxLabelLength">50</sys:Int32>
     <x:Double x:Key="LabelMaxWidth">120</x:Double>

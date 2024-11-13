@@ -22,9 +22,9 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 	public WasabiSynchronizer Synchronizer { get; }
 	public BlockstreamInfoFeeProvider BlockstreamProvider { get; }
 	public AllFeeEstimate? LastAllFeeEstimate { get; private set; }
-	private object Lock { get; } = new();
+	private readonly object _lock = new();
 	public bool InError { get; private set; }
-	private AbandonedTasks ProcessingEvents { get; } = new();
+	private readonly AbandonedTasks _processingEvents = new();
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -42,13 +42,13 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 		Synchronizer.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 		BlockstreamProvider.AllFeeEstimateArrived -= OnAllFeeEstimateArrived;
 
-		await ProcessingEvents.WhenAllAsync().ConfigureAwait(false);
+		await _processingEvents.WhenAllAsync().ConfigureAwait(false);
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private void OnAllFeeEstimateArrived(object? sender, AllFeeEstimate fees)
 	{
-		using (RunningTasks.RememberWith(ProcessingEvents))
+		using (RunningTasks.RememberWith(_processingEvents))
 		{
 			// Only go further if we have estimations.
 			if (fees.Estimations.Count == 0)
@@ -57,7 +57,7 @@ public class ThirdPartyFeeProvider : PeriodicRunner, IThirdPartyFeeProvider
 			}
 
 			var notify = false;
-			lock (Lock)
+			lock (_lock)
 			{
 				notify = SetAllFeeEstimate(fees);
 			}

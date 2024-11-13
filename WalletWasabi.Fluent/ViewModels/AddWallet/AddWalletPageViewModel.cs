@@ -67,7 +67,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 				return;
 			}
 
-			var filePath = file.Path.AbsolutePath;
+			var filePath = file.Path.LocalPath;
 			var walletName = Path.GetFileNameWithoutExtension(filePath);
 
 			var options = new WalletCreationOptions.ImportWallet(walletName, filePath);

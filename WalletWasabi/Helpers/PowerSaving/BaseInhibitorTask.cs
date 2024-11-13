@@ -15,8 +15,8 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	{
 		BasePeriod = period;
 		Reason = reason;
-		Process = process;
-		Cts = new CancellationTokenSource(period);
+		_process = process;
+		_cts = new CancellationTokenSource(period);
 
 		_ = WaitAsync();
 	}
@@ -42,15 +42,15 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	/// <summary>Reason why the power saving is inhibited.</summary>
 	public string Reason { get; }
 
-	private ProcessAsync Process { get; }
-	private CancellationTokenSource Cts { get; }
-	private TaskCompletionSource StoppedTcs { get; } = new();
+	private readonly ProcessAsync _process;
+	private readonly CancellationTokenSource _cts;
+	private readonly TaskCompletionSource _stoppedTcs = new();
 
 	private async Task WaitAsync()
 	{
 		try
 		{
-			await Process.WaitForExitAsync(Cts.Token).ConfigureAwait(false);
+			await _process.WaitForExitAsync(_cts.Token).ConfigureAwait(false);
 
 			// This should be hit only when somebody externally kills the inhibiting process.
 			Logger.LogError("Inhibit process ended prematurely.");
@@ -65,12 +65,12 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		}
 		finally
 		{
-			if (!Process.HasExited)
+			if (!_process.HasExited)
 			{
-				// Process cannot stop on its own so we know it is actually running.
+				// _process cannot stop on its own so we know it is actually running.
 				try
 				{
-					Process.Kill(entireProcessTree: true);
+					_process.Kill(entireProcessTree: true);
 					Logger.LogTrace("Inhibit task was killed.");
 				}
 				catch (Exception ex)
@@ -81,10 +81,10 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 
 			lock (StateLock)
 			{
-				Cts.Cancel();
-				Cts.Dispose();
+				_cts.Cancel();
+				_cts.Dispose();
 				_isDone = true;
-				StoppedTcs.SetResult();
+				_stoppedTcs.SetResult();
 			}
 
 			Logger.LogTrace("Inhibit task is finished.");
@@ -100,12 +100,12 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			lock (StateLock)
 			{
-				if (!_isDone && !Cts.IsCancellationRequested)
+				if (!_isDone && !_cts.IsCancellationRequested)
 				{
 					// This does nothing when cancellation of CTS is already requested.
-					Cts.CancelAfter(period);
+					_cts.CancelAfter(period);
 					logMessage = $"Power saving task was prolonged to: {DateTime.UtcNow.Add(period)}";
-					return !Cts.IsCancellationRequested;
+					return !_cts.IsCancellationRequested;
 				}
 
 				logMessage = "Power saving task is already finished.";
@@ -129,11 +129,11 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			if (!_isDone)
 			{
-				Cts.Cancel();
+				_cts.Cancel();
 			}
 		}
 
-		return StoppedTcs.Task;
+		return _stoppedTcs.Task;
 	}
 
 	/// <summary>

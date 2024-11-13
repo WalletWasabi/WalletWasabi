@@ -8,6 +8,7 @@ using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 
@@ -30,6 +31,26 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		_wallet = wallet;
 		_transaction = transaction;
+		var allWalletInputs = transaction.WalletInputs.Union(transaction.Children.SelectMany(x => x.WalletInputs)).ToList();
+		var allWalletOutputs = transaction.WalletOutputs.Union(transaction.Children.SelectMany(x => x.WalletOutputs)).ToList();
+		var freshWalletInputs = allWalletInputs.Where(x => !allWalletOutputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
+		var finalWalletOutputs = allWalletOutputs.Where(x => !allWalletInputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
+
+		var allInputs = transaction.ForeignInputs.Value
+			.Union(transaction.Children.SelectMany(x => x.ForeignInputs.Value))
+			.Union(allWalletInputs.Select(x => x.Outpoint))
+			.ToList();
+
+		var allOutputs = transaction.ForeignOutputs.Value.Select(x => new OutPoint(x.Transaction.GetHash(), x.N))
+			.Union(transaction.Children.SelectMany(x => x.ForeignOutputs.Value.Select(y => new OutPoint(y.Transaction.GetHash(), y.N))))
+			.Union(allWalletOutputs.Select(x => x.Outpoint))
+			.ToList();
+
+		var freshInputs = allInputs.Where(x => !allOutputs.Contains(x));
+		var finalOutputs = allOutputs.Where(x => !allInputs.Contains(x));
+
+		InputList = new CoinjoinCoinListViewModel(freshWalletInputs, wallet.Network, freshWalletInputs.Count + freshInputs.Count());
+		OutputList = new CoinjoinCoinListViewModel(finalWalletOutputs, wallet.Network, finalWalletOutputs.Count + finalOutputs.Count());
 
 		UiContext = uiContext;
 
@@ -39,6 +60,9 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		ConfirmationTime = Task.Run(() => wallet.Transactions.TryEstimateConfirmationTimeAsync(transaction, CancellationToken.None)).Result;
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 	}
+
+	public CoinjoinCoinListViewModel InputList { get; }
+	public CoinjoinCoinListViewModel OutputList { get; }
 
 	public TimeSpan? ConfirmationTime { get; set; }
 
@@ -61,7 +85,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		{
 			Date = transaction.DateToolTipString;
 			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
-			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.DisplayAmount));
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;

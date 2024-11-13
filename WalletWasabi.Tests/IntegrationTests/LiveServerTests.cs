@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
@@ -11,9 +12,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Tor.Socks5;
-using WalletWasabi.Tor.Socks5.Pool;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -25,13 +23,12 @@ public class LiveServerTests : IAsyncLifetime
 	public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 	{
 		LiveServerTestsFixture = liveServerTestsFixture;
-
-		TorHttpPool = new(new TorTcpConnectionFactory(Common.TorSocks5Endpoint));
+		HttpClientFactory = new OnionHttpClientFactory(new Uri($"socks5://{Common.TorSocks5Endpoint}"));
 		TorProcessManager = new(Common.TorSettings);
 	}
 
 	private TorProcessManager TorProcessManager { get; }
-	private TorHttpPool TorHttpPool { get; }
+	private IHttpClientFactory HttpClientFactory { get; }
 	private LiveServerTestsFixture LiveServerTestsFixture { get; }
 
 	public async Task InitializeAsync()
@@ -43,7 +40,6 @@ public class LiveServerTests : IAsyncLifetime
 
 	public async Task DisposeAsync()
 	{
-		await TorHttpPool.DisposeAsync();
 		await TorProcessManager.DisposeAsync();
 	}
 
@@ -95,9 +91,9 @@ public class LiveServerTests : IAsyncLifetime
 
 	private WasabiClient MakeWasabiClient(Network network)
 	{
-		Uri baseUri = LiveServerTestsFixture.UriMappings[network];
-		TorHttpClient torHttpClient = new(baseUri, TorHttpPool);
-		return new WasabiClient(torHttpClient);
+		HttpClient httpClient = HttpClientFactory.CreateClient();
+		httpClient.BaseAddress =LiveServerTestsFixture.UriMappings[network];
+		return new WasabiClient(httpClient);
 	}
 
 	public static IEnumerable<object[]> GetNetworks()

@@ -40,15 +40,15 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// <param name="timeoutMultiplier">Used for multiplying all specified timeouts. For CI testing purposes only.</param>
 	public SingleInstanceChecker(int port, int timeoutMultiplier = 1)
 	{
-		Port = port;
+		_port = port;
 		_timeoutMultiplier = timeoutMultiplier;
 	}
 
 	public event EventHandler? OtherInstanceStarted;
 
-	private int Port { get; }
+	private readonly int _port;
 
-	private CancellationTokenSource DisposeCts { get; } = new();
+	private readonly CancellationTokenSource _disposeCts = new();
 	private TaskCompletionSource? TaskStartTcpListener { get; set; }
 
 	public async Task<WasabiInstanceStatus> CheckSingleInstanceAsync()
@@ -76,17 +76,17 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	/// <returns>true if this is the only instance running; otherwise false.</returns>
 	private async Task<bool> CanRunAsSingleInstanceAsync()
 	{
-        ObjectDisposedException.ThrowIf(DisposeCts.IsCancellationRequested, this);
+        ObjectDisposedException.ThrowIf(_disposeCts.IsCancellationRequested, this);
 
 		try
 		{
 			TaskStartTcpListener = new TaskCompletionSource();
 
 			// Start ExecuteAsync.
-			await StartAsync(DisposeCts.Token).ConfigureAwait(false);
+			await StartAsync(_disposeCts.Token).ConfigureAwait(false);
 
 			// Wait for the result of TcpListener.Start().
-			await TaskStartTcpListener.Task.WaitAsync(DisposeCts.Token).ConfigureAwait(false);
+			await TaskStartTcpListener.Task.WaitAsync(_disposeCts.Token).ConfigureAwait(false);
 
 			// This is the first instance, nothing else to do.
 			return true;
@@ -105,9 +105,9 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		};
 
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(_timeoutMultiplier * 10));
-		using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(DisposeCts.Token, timeoutCts.Token);
+		using CancellationTokenSource cts = CancellationTokenSource.CreateLinkedTokenSource(_disposeCts.Token, timeoutCts.Token);
 
-		await client.ConnectAsync(IPAddress.Loopback, Port, cts.Token).ConfigureAwait(false);
+		await client.ConnectAsync(IPAddress.Loopback, _port, cts.Token).ConfigureAwait(false);
 
 #pragma warning disable CA2007 // Consider calling ConfigureAwait on the awaited task
 		await using NetworkStream networkStream = client.GetStream();
@@ -135,10 +135,10 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 	{
 		var task = TaskStartTcpListener
 			?? throw new InvalidOperationException("This should never happen!");
-		
+
 		try
 		{
-            using TcpListener listener = new(IPAddress.Loopback, Port)
+            using TcpListener listener = new(IPAddress.Loopback, _port)
 			{
 				ExclusiveAddressUse = true
 			};
@@ -192,17 +192,17 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 
 	public async ValueTask DisposeAsync()
 	{
-		DisposeCts.Cancel();
+		_disposeCts.Cancel();
 
 		await StopAsync(CancellationToken.None).ConfigureAwait(false);
 
-		DisposeCts.Dispose();
+		_disposeCts.Dispose();
 	}
 
 	public override void Dispose()
 	{
 		base.Dispose();
-		DisposeCts.Cancel();
+		_disposeCts.Cancel();
 
 		// Stopping the execution task and wait until it finishes.
 		using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(_timeoutMultiplier * 20));
@@ -221,6 +221,6 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
             }
         }
 
-		DisposeCts.Dispose();
+		_disposeCts.Dispose();
 	}
 }

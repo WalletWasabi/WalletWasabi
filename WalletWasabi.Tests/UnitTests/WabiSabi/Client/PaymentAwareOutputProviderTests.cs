@@ -53,7 +53,7 @@ public class PaymentAwareOutputProviderTests
 
 		// Make sure this doesn't throw
 		var vsizes = Enumerable.Repeat(0L, int.MaxValue).Prepend(availableVsize);
-		DependencyGraph.ResolveCredentialDependencies(registeredCoinsEffectiveValues, outputs, roundParameters.MiningFeeRate, vsizes);
+		DependencyGraph.ResolveCredentialDependencies(registeredCoinsEffectiveValues, outputs, roundParameters.MiningFeeRate, vsizes, ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
 	}
 
 	[Theory]

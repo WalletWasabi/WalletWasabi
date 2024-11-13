@@ -25,11 +25,11 @@ public partial class TorControlClientFactory
 
 	public TorControlClientFactory(IRandom? random = null)
 	{
-		Random = random ?? new UnsecureRandom();
+		_random = random ?? new UnsecureRandom();
 	}
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
-	private IRandom Random { get; }
+	private readonly IRandom _random;
 
 	/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
@@ -77,7 +77,7 @@ public partial class TorControlClientFactory
 	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken)
 	{
 		byte[] nonceBytes = new byte[32];
-		Random.GetBytes(nonceBytes);
+		_random.GetBytes(nonceBytes);
 		string clientNonce = ByteHelpers.ToHex(nonceBytes);
 
 		TorControlReply authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);

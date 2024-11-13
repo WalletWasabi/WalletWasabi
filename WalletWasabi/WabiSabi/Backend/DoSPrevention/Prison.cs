@@ -11,16 +11,16 @@ public class Prison
 {
 	public Prison(IEnumerable<Offender> offenders, ChannelWriter<Offender> channelWriterWriter)
 	{
-		OffendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
-		NotificationChannelWriter = channelWriterWriter;
+		_offendersByTxId = offenders.GroupBy(x => x.OutPoint.Hash).ToDictionary(x => x.Key, x => x.ToList());
+		_notificationChannelWriter = channelWriterWriter;
 	}
 
-	private ChannelWriter<Offender> NotificationChannelWriter { get; }
-	private Dictionary<uint256, List<Offender>> OffendersByTxId { get; }
-	private Dictionary<OutPoint, TimeFrame> BanningTimeCache { get; } = new();
+	private readonly ChannelWriter<Offender> _notificationChannelWriter;
+	private readonly Dictionary<uint256, List<Offender>> _offendersByTxId;
+	private readonly Dictionary<OutPoint, TimeFrame> _banningTimeCache = new();
 
-	/// <remarks>Lock object to guard <see cref="OffendersByTxId"/>and <see cref="BanningTimeCache"/></remarks>
-	private object Lock { get; } = new();
+	/// <remarks>_lock object to guard <see cref="_offendersByTxId"/>and <see cref="_banningTimeCache"/></remarks>
+	private readonly object _lock = new();
 
 	public void BackendStabilitySafetyBan(OutPoint outPoint, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new BackendStabilitySafety(roundId)));
@@ -64,9 +64,9 @@ public class Prison
 			var basePunishmentInHours = configuration.SeverityInBitcoinsPerHour / disruption.Value.ToDecimal(MoneyUnit.BTC);
 
 			IReadOnlyList<RoundDisruption> offenderHistory;
-			lock (Lock)
+			lock (_lock)
 			{
-				offenderHistory = OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders)
+				offenderHistory = _offendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders)
 					? offenders
 						.Where(x => x.OutPoint.N == offender.OutPoint.N)
 						.Select(x => x.Offense)
@@ -103,14 +103,14 @@ public class Prison
 		}
 
 		Offender? offender;
-		lock (Lock)
+		lock (_lock)
 		{
-			if (BanningTimeCache.TryGetValue(outpoint, out var cachedBanningTime))
+			if (_banningTimeCache.TryGetValue(outpoint, out var cachedBanningTime))
 			{
 				return cachedBanningTime;
 			}
 
-			offender = OffendersByTxId.TryGetValue(outpoint.Hash, out var offenders)
+			offender = _offendersByTxId.TryGetValue(outpoint.Hash, out var offenders)
 				? offenders.LastOrDefault(x => x.OutPoint == outpoint)
 				: null;
 		}
@@ -126,29 +126,29 @@ public class Prison
 			_ => throw new NotSupportedException("Unknown offense type.")
 		});
 
-		lock (Lock)
+		lock (_lock)
 		{
-			BanningTimeCache[outpoint] = banningTime;
+			_banningTimeCache[outpoint] = banningTime;
 		}
 		return banningTime;
 	}
 
 	private void Punish(Offender offender)
 	{
-		lock (Lock)
+		lock (_lock)
 		{
-			if (OffendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders))
+			if (_offendersByTxId.TryGetValue(offender.OutPoint.Hash, out var offenders))
 			{
 				offenders.Add(offender);
 			}
 			else
 			{
-				OffendersByTxId.Add(offender.OutPoint.Hash, new List<Offender> { offender });
+				_offendersByTxId.Add(offender.OutPoint.Hash, new List<Offender> { offender });
 			}
 
-			BanningTimeCache.Remove(offender.OutPoint);
+			_banningTimeCache.Remove(offender.OutPoint);
 		}
-		if (!NotificationChannelWriter.TryWrite(offender))
+		if (!_notificationChannelWriter.TryWrite(offender))
 		{
 			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
 		}

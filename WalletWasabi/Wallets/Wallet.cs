@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -24,6 +25,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -454,7 +456,7 @@ public class Wallet : BackgroundService, IWallet
 				await CpfpInfoProvider.UpdateCacheAsync(CancellationToken.None).ConfigureAwait(false);
 			}
 
-			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClientFactory).ConfigureAwait(false);
+			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClient).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -512,7 +514,7 @@ public class Wallet : BackgroundService, IWallet
 		{
 			try
 			{
-				var client = Synchronizer.HttpClientFactory.SharedWasabiClient;
+				var client = new WasabiClient(Synchronizer.HttpClient);
 				var compactness = 10;
 
 				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);

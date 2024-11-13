@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,7 +41,7 @@ public class WasabiApplication
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
 			return ExitCode.Ok;
 		}
-		if (AppConfig.Arguments.Contains("--help"))
+		if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
 		{
 			ShowHelp();
 			return ExitCode.Ok;

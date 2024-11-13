@@ -19,7 +19,7 @@ public class HardwareWalletViewModel : WalletViewModel
 				var file = await FileDialogHelper.OpenFileAsync("Import Transaction", new[] { "psbt", "txn", "*" });
 				if (file is { })
 				{
-					var path = file.Path.AbsolutePath;
+					var path = file.Path.LocalPath;
 					var txn = await walletModel.Transactions.LoadFromFileAsync(path);
 					Navigate().To().BroadcastTransaction(txn);
 				}

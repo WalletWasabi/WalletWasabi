@@ -242,14 +242,14 @@ public class BlockchainAnalyzer
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
 					hdPubKey.SetAnonymitySet(startingOutputAnonset.sanctioned, txid);
 				}
-				else if (hdPubKey.OutputAnonSetReasons.Contains(txid))
+				else if (hdPubKey.HistoricalAnonSet.ContainsKey(txid))
 				{
 					// If we already processed this transaction for this script
 					// then we'll go with normal processing.
 					// It may be a duplicated processing or new information arrived (like other wallet loaded)
 					// If there are more anonsets already
 					// then it's address reuse that we have already punished so leave it alone.
-					if (hdPubKey.OutputAnonSetReasons.Count == 1)
+					if (hdPubKey.HistoricalAnonSet.Count == 1)
 					{
 						hdPubKey.SetAnonymitySet(anonset, txid);
 					}

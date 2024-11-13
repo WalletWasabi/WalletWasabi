@@ -3,6 +3,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
@@ -22,31 +23,35 @@ public class TransactionBroadcastEntry
 	public TaskCompletionSource<EndPoint[]> BroadcastCompleted { get; }
 	public TaskCompletionSource<EndPoint[]> PropagationConfirmed { get; }
 
-	private readonly HashSet<EndPoint> _broadcastedTo = new();
-	private readonly HashSet<EndPoint> _confirmedBy = new();
+	private readonly List<EndPoint> _broadcastTo = new();
+	private readonly List<EndPoint> _confirmedBy = new();
 	private readonly object _syncObj = new();
 
 	public void BroadcastedTo(EndPoint nodeEndpoint)
 	{
 		lock (_syncObj)
 		{
-			if (_broadcastedTo.Add(nodeEndpoint) && _broadcastedTo.Count > 1)
+			_broadcastTo.Add(nodeEndpoint);
+			var count = _broadcastTo.GroupBy(x => x).Count();
+			if (count >= NetworkBroadcaster.MinBroadcastNodes)
 			{
-				BroadcastCompleted.TrySetResult(_broadcastedTo.ToArray());
+				BroadcastCompleted.TrySetResult(_broadcastTo.ToArray());
 			}
 		}
 	}
 
 	public bool WasBroadcastedTo(EndPoint nodeEndpoint)
 	{
-		return _broadcastedTo.Contains(nodeEndpoint);
+		return _broadcastTo.Contains(nodeEndpoint);
 	}
 
 	public void ConfirmPropagationOnce(EndPoint nodeEndpoint)
 	{
 		lock (_syncObj)
 		{
-			if (_confirmedBy.Add(nodeEndpoint) && _confirmedBy.Count > 1)
+			_confirmedBy.Add(nodeEndpoint);
+			var count = _confirmedBy.GroupBy(x => x).Count();
+			if (count > 1)
 			{
 				PropagationConfirmed.TrySetResult(_confirmedBy.ToArray());
 			}
@@ -57,4 +62,8 @@ public class TransactionBroadcastEntry
 	{
 		PropagationConfirmed.TrySetResult([nodeEndpoint]);
 	}
+
+	public bool Is(uint256 id) =>
+		id == Transaction.Transaction.GetHash() ||
+		id == Transaction.Transaction.GetWitHash();
 }

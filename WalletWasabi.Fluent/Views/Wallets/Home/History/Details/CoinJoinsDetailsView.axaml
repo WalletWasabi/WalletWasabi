@@ -4,6 +4,7 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coinjoins"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinsDetailsViewModel"
              x:CompileBindings="True"
@@ -38,13 +39,31 @@
         <TextBlock Text="{Binding TxCount, Mode=OneWay}" />
       </PreviewItem>
 
+      <!-- Inputs/Outputs -->
+      <Separator />
+      <PreviewItem Icon="{StaticResource input_count}" />
+      <DockPanel Margin="0 -35 0 0" LastChildFill="True">
+        <Grid ColumnDefinitions="*,30,*">
+          <StackPanel Grid.Column="0">
+            <TextBlock Margin="35 0 25 0" Text="Inputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+          </StackPanel>
+          <PathIcon Grid.Column="1" Opacity="0.6" Margin="0 48 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
+          <StackPanel Grid.Column="2">
+            <TextBlock Margin="35 0 25 0" Text="Outputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
+            <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
+          </StackPanel>
+        </Grid>
+      </DockPanel>
       <Separator />
 
       <!-- CJ fee  -->
       <PreviewItem Icon="{StaticResource btc_logo}"
-                     Label="Fees"
-                     CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
-        <AmountControl Classes="Fee" Amount="{Binding CoinJoinFeeAmount}" />
+                   Label="Fees"
+                   CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <PrivacyContentControl>
+          <AmountControl Classes="WithUsd" Amount="{Binding CoinJoinFeeAmount}" />
+        </PrivacyContentControl>
       </PreviewItem>
 
       <Separator />

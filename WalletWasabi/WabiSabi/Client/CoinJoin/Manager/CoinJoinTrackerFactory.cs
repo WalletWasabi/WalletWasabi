@@ -1,39 +1,39 @@
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class CoinJoinTrackerFactory
 {
 	public CoinJoinTrackerFactory(
-		IWasabiHttpClientFactory httpClientFactory,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		RoundStateUpdater roundStatusUpdater,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CancellationToken cancellationToken)
 	{
-		HttpClientFactory = httpClientFactory;
-		RoundStatusUpdater = roundStatusUpdater;
-		CoinJoinConfiguration = coinJoinConfiguration;
-		CancellationToken = cancellationToken;
-		LiquidityClueProvider = new LiquidityClueProvider();
+		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
+		_roundStatusUpdater = roundStatusUpdater;
+		_coinJoinConfiguration = coinJoinConfiguration;
+		_cancellationToken = cancellationToken;
+		_liquidityClueProvider = new LiquidityClueProvider();
 	}
 
-	private IWasabiHttpClientFactory HttpClientFactory { get; }
-	private RoundStateUpdater RoundStatusUpdater { get; }
-	private CoinJoinConfiguration CoinJoinConfiguration { get; }
-	private CancellationToken CancellationToken { get; }
-	private LiquidityClueProvider LiquidityClueProvider { get; }
+	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
+	private readonly RoundStateUpdater _roundStatusUpdater;
+	private readonly CoinJoinConfiguration _coinJoinConfiguration;
+	private readonly CancellationToken _cancellationToken;
+	private readonly LiquidityClueProvider _liquidityClueProvider;
 
 	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		await LiquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
+		await _liquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
 		if (wallet.KeyChain is null)
 		{
@@ -45,17 +45,17 @@ public class CoinJoinTrackerFactory
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
-			HttpClientFactory,
+			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
 			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
-			RoundStatusUpdater,
+			_roundStatusUpdater,
 			coinSelector,
-			CoinJoinConfiguration,
-			LiquidityClueProvider,
+			_coinJoinConfiguration,
+			_liquidityClueProvider,
 			feeRateMedianTimeFrame: wallet.FeeRateMedianTimeFrame,
 			skipFactors: wallet.CoinjoinSkipFactors,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
-		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, CancellationToken);
+		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}
 }

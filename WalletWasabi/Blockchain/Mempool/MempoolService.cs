@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -23,41 +24,41 @@ public class MempoolService
 
 	public event EventHandler<SmartTransaction>? TransactionReceived;
 
-	/// <remarks>Guarded by <see cref="ProcessedLock"/>.</remarks>
-	private HashSet<uint256> ProcessedTransactionHashes { get; } = new();
+	/// <remarks>Guarded by <see cref="_processedLock"/>.</remarks>
+	private readonly HashSet<uint256> _processedTransactionHashes = new();
 
-	/// <summary>Guards <see cref="ProcessedTransactionHashes"/>.</summary>
-	private object ProcessedLock { get; } = new();
+	/// <summary>Guards <see cref="_processedTransactionHashes"/>.</summary>
+	private readonly object _processedLock = new();
 
 	/// <summary>Transactions that we would reply to INV messages.</summary>
-	/// <remarks>Guarded by <see cref="BroadcastStoreLock"/>.</remarks>
-	private List<TransactionBroadcastEntry> BroadcastStore { get; } = new();
+	/// <remarks>Guarded by <see cref="_broadcastStoreLock"/>.</remarks>
+	private readonly List<TransactionBroadcastEntry> _broadcastStore = new();
 
-	/// <summary>Guards <see cref="BroadcastStore"/>.</summary>
-	private object BroadcastStoreLock { get; } = new();
+	/// <summary>Guards <see cref="_broadcastStore"/>.</summary>
+	private readonly object _broadcastStoreLock = new();
 
 	public bool TrustedNodeMode { get; set; }
 
 	public bool TryAddToBroadcastStore(SmartTransaction transaction)
 	{
-		lock (BroadcastStoreLock)
+		lock (_broadcastStoreLock)
 		{
-			if (BroadcastStore.Any(x => x.TransactionId == transaction.GetHash()))
+			if (_broadcastStore.Any(x => x.Is(transaction.Transaction.GetWitHash())))
 			{
 				return false;
 			}
 
 			var entry = new TransactionBroadcastEntry(transaction);
-			BroadcastStore.Add(entry);
+			_broadcastStore.Add(entry);
 			return true;
 		}
 	}
 
 	public bool TryGetFromBroadcastStore(uint256 transactionHash, [NotNullWhen(true)] out TransactionBroadcastEntry? entry)
 	{
-		lock (BroadcastStoreLock)
+		lock (_broadcastStoreLock)
 		{
-			entry = BroadcastStore.FirstOrDefault(x => x.TransactionId == transactionHash);
+			entry = _broadcastStore.FirstOrDefault(x => x.Is(transactionHash));
 			return entry is not null;
 		}
 	}
@@ -76,7 +77,7 @@ public class MempoolService
 	/// <summary>
 	/// Tries to perform mempool cleanup with the help of the backend.
 	/// </summary>
-	public async Task<bool> TryPerformMempoolCleanupAsync(WasabiHttpClientFactory httpClientFactory)
+	public async Task<bool> TryPerformMempoolCleanupAsync(HttpClient httpClient)
 	{
 		// If already cleaning, then no need to run it that often.
 		if (Interlocked.CompareExchange(ref _cleanupInProcess, 1, 0) == 1)
@@ -87,9 +88,9 @@ public class MempoolService
 		// This function is designed to prevent forever growing mempool.
 		try
 		{
-			lock (ProcessedLock)
+			lock (_processedLock)
 			{
-				if (ProcessedTransactionHashes.Count == 0)
+				if (_processedTransactionHashes.Count == 0)
 				{
 					// There's nothing to cleanup.
 					return true;
@@ -99,13 +100,14 @@ public class MempoolService
 			Logger.LogInfo("Start cleaning out mempool...");
 			{
 				var compactness = 10;
-				var allMempoolHashes = await httpClientFactory.SharedWasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
+				var wasabiClient = new WasabiClient(httpClient);
+				var allMempoolHashes = await wasabiClient.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
 
 				int removedTxCount;
 
-				lock (ProcessedLock)
+				lock (_processedLock)
 				{
-					removedTxCount = ProcessedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
+					removedTxCount = _processedTransactionHashes.RemoveWhere(x => !allMempoolHashes.Contains(x.ToString()[..compactness]));
 				}
 
 				Logger.LogInfo($"{removedTxCount} transactions were removed from mempool.");
@@ -139,9 +141,9 @@ public class MempoolService
 
 	public bool IsProcessed(uint256 txid)
 	{
-		lock (ProcessedLock)
+		lock (_processedLock)
 		{
-			return ProcessedTransactionHashes.Contains(txid);
+			return _processedTransactionHashes.Contains(txid);
 		}
 	}
 
@@ -149,9 +151,9 @@ public class MempoolService
 	{
 		SmartTransaction? txAdded = null;
 
-		lock (ProcessedLock)
+		lock (_processedLock)
 		{
-			if (ProcessedTransactionHashes.Add(tx.GetHash()))
+			if (_processedTransactionHashes.Add(tx.GetHash()))
 			{
 				txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(tx.GetHash()));
 			}
@@ -171,11 +173,11 @@ public class MempoolService
 	public bool TrySpend(SmartCoin coin, SmartTransaction tx)
 	{
 		var spent = false;
-		lock (BroadcastStoreLock)
+		lock (_broadcastStoreLock)
 		{
-			foreach (var foundCoin in BroadcastStore
+			foreach (var foundCoin in _broadcastStore
 				.SelectMany(x => x.Transaction.WalletInputs)
-				.Concat(BroadcastStore.SelectMany(x => x.Transaction.WalletOutputs))
+				.Concat(_broadcastStore.SelectMany(x => x.Transaction.WalletOutputs))
 				.Where(x => x == coin))
 			{
 				foundCoin.SpenderTransaction = tx;
