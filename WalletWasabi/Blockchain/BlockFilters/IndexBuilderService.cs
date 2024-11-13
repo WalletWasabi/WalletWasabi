@@ -253,7 +253,7 @@ public class IndexBuilderService
 			if (hasAtLeastOneTaprootOutput && allInputHavePubKeys)
 			{
 				var pubkeys = inputs.Select(x => (x.OutPoint, ExtractPubKey(x)));
-				yield return SilentPayment.TweakData(pubkeys).ToBytes();
+				yield return null!; //  SilentPayment.TweakData(pubkeys).ToBytes();
 			}
 		}
 

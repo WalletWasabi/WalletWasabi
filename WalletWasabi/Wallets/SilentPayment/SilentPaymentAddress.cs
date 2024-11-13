@@ -41,4 +41,10 @@ public record SilentPaymentAddress(int Version, ECPubKey ScanKey, ECPubKey Spend
 		Buffer.BlockCopy(base32, 0, buffer, 1, base32.Length);
 		return spEncoder.EncodeRaw(buffer, Bech32EncodingType.BECH32M);
 	}
+
+	public SilentPaymentAddress DeriveAddressForLabel(ECPubKey mG)
+	{
+		var bm = (SpendKey.Q.ToGroupElementJacobian() + mG.Q).ToGroupElement();
+		return this with {SpendKey = new ECPubKey(bm, null)};
+	}
 }

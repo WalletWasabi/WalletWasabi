@@ -437,11 +437,10 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 					x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
 				.Key;
 
-		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey));
-		using var partialSecret = SilentPayment.ComputePartialSecret(spentCoins);
-		var paymentAddresses = _silentPayments.Select(x => x.Value.ToWip(network));
+		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey)).ToArray();
+		var paymentAddresses = _silentPayments.Select(x => x.Value);
 		var scriptPubKeys = SilentPayment
-			.GetPubKeys(paymentAddresses, partialSecret, network)
+			.GetPubKeys(paymentAddresses, spentCoins)
 			.Select(x => (SilentPaymentAddress: x.Key, SilentPaymentPubKey: x.Value.First()))
 			.Select(x => (x.SilentPaymentAddress, XOnlyPubKey: x.SilentPaymentPubKey.PubKey))
 			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.XOnlyPubKey.ToBytes())))
