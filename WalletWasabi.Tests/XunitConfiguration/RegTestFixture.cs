@@ -64,12 +64,6 @@ public class RegTestFixture : IDisposable
 						.UseUrls(BackendEndPoint))
 				.Build();
 
-		if (BackendHost.Services.GetService(typeof(Global)) is not Global global)
-		{
-			throw new InvalidOperationException($"Service {nameof(Global)} is not registered.");
-		}
-
-		Global = global;
 		var hostInitializationTask = BackendHost.RunWithTasksAsync();
 		Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
 
@@ -91,7 +85,6 @@ public class RegTestFixture : IDisposable
 
 	public IHost BackendHost { get; }
 	public CoreNode BackendRegTestNode { get; }
-	public Global Global { get; }
 
 	public IHttpClientFactory BackendHttpClientFactory { get; }
 

@@ -17,7 +17,7 @@ public class UtxoPrisonWardenTests
 	{
 		var workDir = Common.GetWorkDir();
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
-		using var w = new Warden(new WabiSabiConfig());
+		using var w = new Warden("Prison.txt", new WabiSabiConfig());
 		await w.StartAsync(CancellationToken.None);
 		await w.StopAsync(CancellationToken.None);
 	}
@@ -29,7 +29,7 @@ public class UtxoPrisonWardenTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
-		using var w = new Warden(new WabiSabiConfig());
+		using var w = new Warden("Prison.txt", new WabiSabiConfig());
 		await w.StartAsync(CancellationToken.None);
 		var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 		var i1 = BitcoinFactory.CreateOutPoint();
@@ -48,7 +48,7 @@ public class UtxoPrisonWardenTests
 
 		// See if prev UTXOs are loaded.
 		var cfg = new WabiSabiConfig();
-		using var w2 = new Warden(cfg);
+		using var w2 = new Warden("Prison.txt", cfg);
 		await w2.StartAsync(CancellationToken.None);
 
 		var dosConfig =  cfg.GetDoSConfiguration();
