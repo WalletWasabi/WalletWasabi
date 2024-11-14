@@ -175,7 +175,7 @@ public partial class SendViewModel : RoutableViewModel
 			_ => throw new ArgumentException("Invalid address type", nameof(_addressParsedResult))
 		};
 
-		var transactionInfo = new TransactionInfo(destination , _walletModel.Settings.AnonScoreTarget)
+		var transactionInfo = new TransactionInfo(To, destination , _walletModel.Settings.AnonScoreTarget)
 		{
 			PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
 			IsFixedAmount = IsFixedAmount,

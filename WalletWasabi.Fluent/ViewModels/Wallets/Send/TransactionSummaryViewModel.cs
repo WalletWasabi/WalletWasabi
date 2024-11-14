@@ -35,7 +35,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
-		AddressText = info.Destination.ToString();
+		AddressText = info.DisplayAddress;
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}

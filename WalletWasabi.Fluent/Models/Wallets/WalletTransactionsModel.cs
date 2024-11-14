@@ -118,7 +118,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			new Money(amount, MoneyUnit.BTC),
 			label: new LabelsArray("Buy Anything Agent"));
 
-		var transactionInfo = new TransactionInfo(paymentIntent, _walletModel.Settings.AnonScoreTarget)
+		var transactionInfo = new TransactionInfo(address, paymentIntent, _walletModel.Settings.AnonScoreTarget)
 		{
 			IsFixedAmount = true
 		};

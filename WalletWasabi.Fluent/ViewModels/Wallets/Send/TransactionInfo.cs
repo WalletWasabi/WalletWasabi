@@ -14,8 +14,9 @@ public partial class TransactionInfo
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(PaymentIntent paymentIntent, int anonScoreTarget)
+	public TransactionInfo(string displayAddress, PaymentIntent paymentIntent, int anonScoreTarget)
 	{
+		DisplayAddress = displayAddress;
 		PaymentIntent = paymentIntent;
 		PrivateCoinThreshold = anonScoreTarget;
 
@@ -30,6 +31,7 @@ public partial class TransactionInfo
 
 	public Money Amount => PaymentIntent.TotalAmount;
 
+	public string DisplayAddress { get; init; }
 	public PaymentIntent PaymentIntent { get; init; }
 	public Destination Destination => PaymentIntent.Requests.First().Destination;
 	public LabelsArray Recipient => PaymentIntent.Requests.Count() == 1 ?
@@ -71,11 +73,10 @@ public partial class TransactionInfo
 
 	public TransactionInfo Clone()
 	{
-		return new TransactionInfo(PaymentIntent, PrivateCoinThreshold)
+		return new TransactionInfo(DisplayAddress, PaymentIntent, PrivateCoinThreshold)
 		{
 			FeeRate = FeeRate,
 			Coins = Coins,
-			PaymentIntent = PaymentIntent,
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
 			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			ChangelessCoins = ChangelessCoins,
