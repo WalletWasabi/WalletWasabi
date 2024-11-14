@@ -26,7 +26,7 @@ public static class TransactionHelpers
 				transactionInfo.Destination,
 				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
-				transactionInfo.ChangelessCoins,
+				transactionInfo.ChangelessCoins.Select(x => x.Outpoint),
 				tryToSign: tryToSign);
 		}
 
@@ -36,12 +36,11 @@ public static class TransactionHelpers
 		}
 
 		return wallet.BuildTransaction(
-			transactionInfo.Destination,
-			transactionInfo.Amount,
-			transactionInfo.Recipient,
-			transactionInfo.FeeRate,
-			transactionInfo.Coins,
-			transactionInfo.SubtractFee,
+			wallet.Password,
+			transactionInfo.PaymentIntent,
+			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+			true,
+			transactionInfo.Coins.Select(x => x.Outpoint),
 			isPayJoin ? transactionInfo.PayJoinClient : null,
 			tryToSign: tryToSign);
 	}
@@ -58,17 +57,11 @@ public static class TransactionHelpers
 
 		try
 		{
-			var intent = new PaymentIntent(
-				destination: transactionInfo.Destination,
-				amount: transactionInfo.Amount,
-				subtractFee: transactionInfo.SubtractFee,
-				label: transactionInfo.Recipient);
-
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);
 
 			TransactionParameters parameters = new (
-				intent,
+				transactionInfo.PaymentIntent,
 				transactionInfo.FeeRate,
 				AllowUnconfirmed: true,
 				AllowDoubleSpend: false,

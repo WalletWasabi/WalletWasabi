@@ -3,6 +3,7 @@ using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -13,9 +14,9 @@ public partial class TransactionInfo
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(BitcoinAddress destination, int anonScoreTarget)
+	public TransactionInfo(PaymentIntent paymentIntent, int anonScoreTarget)
 	{
-		Destination = destination;
+		PaymentIntent = paymentIntent;
 		PrivateCoinThreshold = anonScoreTarget;
 
 		this.WhenAnyValue(x => x.FeeRate)
@@ -27,11 +28,13 @@ public partial class TransactionInfo
 
 	public int PrivateCoinThreshold { get; }
 
-	public Money Amount { get; init; } = Money.Zero;
+	public Money Amount => PaymentIntent.TotalAmount;
 
-	public BitcoinAddress Destination { get; init; }
-
-	public LabelsArray Recipient { get; set; } = LabelsArray.Empty;
+	public PaymentIntent PaymentIntent { get; init; }
+	public Destination Destination => PaymentIntent.Requests.First().Destination;
+	public LabelsArray Recipient => PaymentIntent.Requests.Count() == 1 ?
+		PaymentIntent.Requests.First().Labels :
+		new LabelsArray(PaymentIntent.Requests.SelectMany(x => x.Labels));
 
 	public FeeRate? MaximumPossibleFeeRate { get; set; }
 
@@ -68,13 +71,11 @@ public partial class TransactionInfo
 
 	public TransactionInfo Clone()
 	{
-		return new TransactionInfo(Destination, PrivateCoinThreshold)
+		return new TransactionInfo(PaymentIntent, PrivateCoinThreshold)
 		{
 			FeeRate = FeeRate,
 			Coins = Coins,
-			Amount = Amount,
-			Destination = Destination,
-			Recipient = Recipient,
+			PaymentIntent = PaymentIntent,
 			MaximumPossibleFeeRate = MaximumPossibleFeeRate,
 			ConfirmationTimeSpan = ConfirmationTimeSpan,
 			ChangelessCoins = ChangelessCoins,

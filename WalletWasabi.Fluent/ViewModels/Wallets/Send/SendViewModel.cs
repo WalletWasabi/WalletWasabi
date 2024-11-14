@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -23,7 +24,6 @@ using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Userfacing.Bip21;
 using WalletWasabi.Fluent.Models.Transactions;
 using Constants = WalletWasabi.Helpers.Constants;
 
@@ -49,6 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
+	private AddressStringParserSuccess _addressParsedResult;
 
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
@@ -148,14 +149,36 @@ public partial class SendViewModel : RoutableViewModel
 			return;
 		}
 
-		var amount = new Money(amountBtc, MoneyUnit.BTC);
-		var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _walletModel.Network), _walletModel.Settings.AnonScoreTarget)
+		if (_addressParsedResult is not { } addressParsedResult)
 		{
-			Amount = amount,
-			Recipient = label,
+			return;
+		}
+
+		var amount = new Money(amountBtc, MoneyUnit.BTC);
+		PaymentIntent destination = _addressParsedResult switch
+		{
+			AddressStringParserSuccess.BitcoinAddressParsed bitcoinAddress => new PaymentIntent(
+				bitcoinAddress.Address.ScriptPubKey,
+				amount,
+				amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin),
+				label: label),
+			AddressStringParserSuccess.Bip21UriParsed bip21Uri => new PaymentIntent(
+				bip21Uri.Address.ScriptPubKey,
+				amount,
+				amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin),
+				label: label),
+			AddressStringParserSuccess.SilentPaymentAddressParsed silentPaymentAddress => new PaymentIntent(
+				silentPaymentAddress.Address,
+				amount,
+				amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin),
+				label: label),
+			_ => throw new ArgumentException("Invalid address type", nameof(_addressParsedResult))
+		};
+
+		var transactionInfo = new TransactionInfo(destination , _walletModel.Settings.AnonScoreTarget)
+		{
 			PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
 			IsFixedAmount = IsFixedAmount,
-			SubtractFee = amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
 		};
 
 		if (_coinJoinManager is { } coinJoinManager)
@@ -252,7 +275,7 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _walletModel.Network, out _)))
+		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _walletModel.Network).IsOk))
 		{
 			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
 		}
@@ -289,43 +312,57 @@ public partial class SendViewModel : RoutableViewModel
 			return false;
 		}
 
-		bool result = false;
+		// Reset PayJoinEndPoint by default
+		PayJoinEndPoint = null;
+		IsFixedAmount = false;
 
-		if (AddressStringParser.TryParse(text, _walletModel.Network, out Bip21UriParser.Result? parserResult))
-		{
-			result = true;
+		var result = AddressStringParser.TryParse(text, _walletModel.Network)
+			.Match(
+				success =>
+				{
+					_addressParsedResult = success;
+					switch (success)
+					{
+						case AddressStringParserSuccess.Bip21UriParsed bip21:
+							To = bip21.DisplayAddress;
 
-			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
+							if (!string.IsNullOrEmpty(bip21.Amount))
+							{
+								if (decimal.TryParse(bip21.Amount, out decimal amount))
+								{
+									AmountBtc = amount;
+									IsFixedAmount = true;
+								}
+							}
 
-			if (parserResult.Address is { })
-			{
-				To = parserResult.Address.ToString();
-			}
+							if (!string.IsNullOrEmpty(bip21.Label))
+							{
+								SuggestionLabels = new SuggestionLabelsViewModel(
+									_walletModel,
+									Intent.Send,
+									3,
+									[bip21.Label]);
+							}
 
-			if (parserResult.Amount is { })
-			{
-				AmountBtc = parserResult.Amount.ToDecimal(MoneyUnit.BTC);
-				IsFixedAmount = true;
-			}
-			else
-			{
-				IsFixedAmount = false;
-			}
+							if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
+							{
+								PayJoinEndPoint = bip21.PayjoinEndpoint;
+							}
+							return true;
 
-			if (parserResult.Label is { } parsedLabel)
-			{
-				SuggestionLabels = new SuggestionLabelsViewModel(
-				_walletModel,
-				Intent.Send,
-				3,
-				[parsedLabel]);
-			}
-		}
-		else
-		{
-			IsFixedAmount = false;
-			PayJoinEndPoint = null;
-		}
+						case AddressStringParserSuccess.BitcoinAddressParsed bitcoinAddress:
+							To = bitcoinAddress.DisplayAddress;
+							return true;
+
+						case AddressStringParserSuccess.SilentPaymentAddressParsed silentPayment:
+							To = silentPayment.DisplayAddress;
+							return true;
+
+						default:
+							return true;
+					}
+				},
+				_ => false);
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 

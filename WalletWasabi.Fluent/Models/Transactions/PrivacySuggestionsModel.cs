@@ -246,8 +246,7 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != parameters.TransactionInfo.Destination.ScriptPubKey);
-
+		var hasChange = parameters.Transaction.Transaction.Transaction.TotalOut != parameters.TransactionInfo.Amount;
 		if (hasChange)
 		{
 			yield return new CreatesChangeWarning();
@@ -334,15 +333,23 @@ public partial class PrivacySuggestionsModel
 		decimal usdExchangeRate,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
+		var referenceScriptPubKey = transactionInfo.Destination switch
+		{
+			Destination.Loudly loudly => loudly.ScriptPubKey,
+			Destination.Silent silent => silent.FakeScriptPubKey,
+			_ => throw new InvalidOperationException("Unknown destination type")
+		};
+
 		var selectionsTask =
 			ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 				coinsToUse,
 				transactionInfo.FeeRate,
-				new TxOut(transactionInfo.Amount, transactionInfo.Destination),
+				transactionInfo.Amount,
+				referenceScriptPubKey,
 				maxInputCount,
 				cancellationToken);
 
-		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
+		await foreach (IReadOnlyList<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			BuildTransactionResult? transaction = null;
 
@@ -352,7 +359,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					selection,
+					selection.Select(x => x.Outpoint),
 					tryToSign: false);
 			}
 			catch (Exception ex)
@@ -385,13 +392,12 @@ public partial class PrivacySuggestionsModel
 		try
 		{
 			txn = _wallet.BuildTransaction(
-				transactionInfo.Destination,
-				transactionInfo.Amount,
-				transactionInfo.Recipient,
-				transactionInfo.FeeRate,
-				coins,
-				false,
-				transactionInfo.PayJoinClient,
+				password: _wallet.Password,
+				payments: transactionInfo.PaymentIntent,
+				feeStrategy: FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+				allowUnconfirmed: true,
+				allowedInputs: coins.Select(coin => coin.Outpoint),
+				payjoinClient: transactionInfo.PayJoinClient,
 				tryToSign: false);
 		}
 		catch (Exception)
@@ -402,7 +408,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					coins,
+					coins.Select(x => x.Outpoint),
 					tryToSign: false);
 
 				isChangeless = true;

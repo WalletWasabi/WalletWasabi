@@ -58,21 +58,26 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
 		var destinationIndexedTxOut =
-			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
-				.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
-				.FirstOrDefault(x => x.ScriptPubKey == info.Destination.ScriptPubKey);
+			info.Destination is Destination.Loudly loudly
+				? transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+					.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
+					.FirstOrDefault(x => x.ScriptPubKey == loudly.ScriptPubKey)
+				: transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+					.FirstOrDefault();
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
 		FeeRate = info.FeeRate;
 
-		InputList = new InputsCoinListViewModel(transactionResult.Transaction.WalletInputs,
+		InputList = new InputsCoinListViewModel(
+			transactionResult.Transaction.WalletInputs,
 			_wallet.Network,
 			transactionResult.Transaction.WalletInputs.Count + transactionResult.Transaction.ForeignInputs.Count,
 			Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().Children.Count);
 
-		OutputList = new OutputsCoinListViewModel(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
+		OutputList = new OutputsCoinListViewModel(
+			transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
 			_wallet.Network,
 			destinationIndexedTxOut?.ScriptPubKey,
