@@ -28,7 +28,8 @@ public static class CurrencyExtensions
 		}
 
 		return result.InnerWalletOutputs
-			.Where(x => x.ScriptPubKey == ((Destination.Loudly)destination).ScriptPubKey)
+			.Where(x => destination is Destination.Loudly loudly && x.ScriptPubKey == loudly.ScriptPubKey ||
+			            destination is Destination.Silent silent && silent.IsOwnScript(x.ScriptPubKey))
 			.Select(x => x.Amount)
 			.Sum();
 	}

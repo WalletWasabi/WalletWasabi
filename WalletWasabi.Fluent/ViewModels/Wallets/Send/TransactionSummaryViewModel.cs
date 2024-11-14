@@ -57,13 +57,15 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
-		var destinationIndexedTxOut =
-			info.Destination is Destination.Loudly loudly
-				? transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
-					.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
-					.FirstOrDefault(x => x.ScriptPubKey == loudly.ScriptPubKey)
-				: transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
-					.FirstOrDefault();
+		var destinationIndexedTxOut = transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+			.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
+			.FirstOrDefault(x =>
+				info.Destination switch
+				{
+					Destination.Loudly loudly => x.ScriptPubKey == loudly.ScriptPubKey,
+					Destination.Silent silent => silent.IsOwnScript(x.ScriptPubKey),
+					_ => throw new InvalidOperationException("Unknown destination type")
+				});
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);

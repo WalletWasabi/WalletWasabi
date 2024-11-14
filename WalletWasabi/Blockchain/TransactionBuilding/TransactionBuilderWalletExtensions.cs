@@ -108,14 +108,14 @@ public static class TransactionBuilderWalletExtensions
 		var intent = destination switch
 			{
 				Destination.Loudly loudly => new PaymentIntent(
-					loudly.ScriptPubKey,
-					MoneyRequest.CreateAllRemaining(subtractFee: true),
-					label),
+					scriptPubKey: loudly.ScriptPubKey,
+					amount: MoneyRequest.CreateAllRemaining(subtractFee: true),
+					label: label),
 				Destination.Silent silent => new PaymentIntent(
-					silent.Address,
-					MoneyRequest.CreateAllRemaining(subtractFee: true),
-					label),
-				_ => throw new ArgumentException("Invalid destination type", nameof(destination))
+					address: silent.Address,
+					amount: MoneyRequest.CreateAllRemaining(subtractFee: true),
+					label: label),
+				_ => throw new InvalidOperationException("Unknown destination type")
 			};
 
 		var txRes = wallet.BuildTransaction(

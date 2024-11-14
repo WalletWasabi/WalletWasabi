@@ -246,7 +246,14 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = parameters.Transaction.Transaction.Transaction.TotalOut != parameters.TransactionInfo.Amount;
+		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x =>
+			parameters.TransactionInfo.Destination switch
+			{
+				Destination.Loudly loudly => x.ScriptPubKey != loudly.ScriptPubKey,
+				Destination.Silent silent => !silent.IsOwnScript(x.ScriptPubKey),
+				_ => throw new InvalidOperationException("Unknown destination type")
+			}
+		);
 		if (hasChange)
 		{
 			yield return new CreatesChangeWarning();
@@ -391,6 +398,7 @@ public partial class PrivacySuggestionsModel
 
 		try
 		{
+			// TODO: Verify the subtract fee change
 			txn = _wallet.BuildTransaction(
 				password: _wallet.Password,
 				payments: transactionInfo.PaymentIntent,

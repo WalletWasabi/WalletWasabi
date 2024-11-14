@@ -36,12 +36,12 @@ public static class TransactionHelpers
 		}
 
 		return wallet.BuildTransaction(
-			wallet.Password,
-			transactionInfo.PaymentIntent,
-			FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
-			true,
-			transactionInfo.Coins.Select(x => x.Outpoint),
-			isPayJoin ? transactionInfo.PayJoinClient : null,
+			password: wallet.Password,
+			payments: transactionInfo.PaymentIntent,
+			feeStrategy: FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+			allowUnconfirmed: true,
+			allowedInputs: transactionInfo.Coins.Select(coin => coin.Outpoint),
+			payjoinClient: transactionInfo.PayJoinClient,
 			tryToSign: tryToSign);
 	}
 

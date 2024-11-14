@@ -42,7 +42,7 @@ public abstract record AddressStringParserError
 public static class AddressStringParser
 {
 	/// <summary>
-	/// Parses either a Bitcoin address, a BIP21 URI string, a Silent Payment address or a Payjoin endpoint.
+	/// Parses either a Bitcoin address, a BIP21 URI string (with or without Payjoin endpoint) or  a Silent Payment address.
 	/// </summary>
 	/// <seealso href="https://github.com/lightning/bolts/blob/master/11-payment-encoding.md"/>
 	public static AddressStringParserResult TryParse(string text, Network expectedNetwork)
@@ -119,7 +119,7 @@ public static class AddressStringParser
 		}
 		catch(Exception)
 		{
-			return AddressStringParserResult.Fail(new AddressStringParserError.GenericError("Input was not recognized as a valid destination supported by Wasabi (Bitcoin Address, Bip21 Uri, Silent Payment Address or Payjoin Endpoint"));
+			return AddressStringParserResult.Fail(new AddressStringParserError.GenericError("Input was not recognized as a valid destination supported by Wasabi (Bitcoin Address, Bip21 Uri (with or without Payjoin endpoint) or a Silent Payment Address"));
 		}
 	}
 }
