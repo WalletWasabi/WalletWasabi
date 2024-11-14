@@ -5,7 +5,7 @@
 :green_apple: [Apple M1/M2](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}-arm64.dmg)
 :apple: [Apple Intel](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.dmg)
 :penguin: [Ubuntu / Debian](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.deb)
-:penguin: [Other Linux](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}.tar.gz)
+:penguin: [Other Linux](https://github.com/WalletWasabi/WalletWasabi/releases/download/v{version}/Wasabi-{version}-linux-x64.tar.gz)
 
 ---
 
