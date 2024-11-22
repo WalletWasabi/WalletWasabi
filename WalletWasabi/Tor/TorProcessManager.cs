@@ -93,7 +93,13 @@ public class TorProcessManager : IAsyncDisposable
 			}
 		}
 
-		throw new InvalidOperationException($"No attempt to {operation} Tor was successful.");
+		if (_settings.TorMode == TorMode.Enabled)
+		{
+			throw new InvalidOperationException($"No attempt to start Tor was successful. Try to kill any running Tor instance using the activity monitor.");
+		}
+
+		throw new InvalidOperationException($"No attempt to connect to Tor was successful. It seems no Tor instance is currently running.\n" +
+		                                    $"Please start Tor before opening Wasabi or set 'UseTor' to 'Enabled' in the configuration file.");
 	}
 
 	/// <summary>Waits until Tor process is fully started or until it is stopped for some reason.</summary>
