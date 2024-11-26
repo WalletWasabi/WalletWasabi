@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -590,4 +591,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public static bool operator !=(SmartTransaction? x, SmartTransaction? y) => !(x == y);
 
 	#endregion EqualityAndComparison
+
+	public void SetTweakData(ECPubKey tweakData)
+	{
+		TweakData = tweakData;
+	}
+
+	public ECPubKey? TweakData { get; private set; }
 }

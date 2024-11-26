@@ -6,7 +6,6 @@ using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Helpers;
-using ByteHelpers = WabiSabi.Helpers.ByteHelpers;
 
 namespace WalletWasabi.Wallets.SilentPayment;
 
@@ -27,15 +26,29 @@ public static class SilentPayment
 		return ComputeSharedSecret(inputs.Select(x => x.PrevOut).ToArray(), A, b);
 	}
 
+	public static ECPubKey ComputeSharedSecretReceiver(ECPubKey tweakData, ECPrivKey b) =>
+		new(tweakData.GetSharedPubkey(b).Q, null);
+
 	private static ECPubKey ComputeSharedSecret(OutPoint[] outpoints, ECPrivKey a, ECPubKey B) =>
 		DHSharedSecret(InputHash(outpoints, a.CreatePubKey()), B, a);
 
 	private static ECPubKey ComputeSharedSecret(OutPoint[] outpoints, ECPubKey A, ECPrivKey b) =>
 		DHSharedSecret(InputHash(outpoints, A), A, b);
 
-	// let ecdh_shared_secret = input_hash ⋅ (a ⋅ B)
 	private static ECPubKey DHSharedSecret(Scalar inputHash, ECPubKey pubKey, ECPrivKey privKey) =>
-		new((inputHash * pubKey.GetSharedPubkey(privKey).Q).ToGroupElement(), null);
+		new(TweakData(inputHash, pubKey).GetSharedPubkey(privKey).Q, null);
+
+	public static ECPubKey TweakData(OutPoint[] inputs, GE?[] As) =>
+		TweakData(inputs, SumPublicKeys(As.Where(x => x is not null).Select(x => (GE) x!)));
+
+	public static ECPubKey TweakData(OutPoint[] inputs, ECPubKey A) =>
+		TweakData(InputHash(inputs, A), A);
+
+	public static ECPubKey TweakData(Scalar inputHash, ECPubKey pubKey)
+	{
+		var ret = new ECPubKey((inputHash * pubKey.Q).ToGroupElement(), null);
+		return ret;
+	}
 
 	// let tk = hash_BIP0352/SharedSecret(serP(ecdh_shared_secret) || ser32(k))
 	private static ECPrivKey TweakKey(ECPubKey sharedSecret, uint k) =>
@@ -71,8 +84,8 @@ public static class SilentPayment
 		var n = 0;
 		while(found == n)
 		{
-			var pns = addresses.Select(address => ComputePubKey(address, (uint)n, sharedSecret)).ToArray();
-			if (outputs.FirstOrDefault(o => pns.Select(x => x.PubKey.Q).Contains(o.Q)) is {} nonNullOutput)
+			var pns = addresses.Select(address => ComputePubKey(address, (uint)n, sharedSecret)).Select(x => Tweak(x.PubKey)).ToArray();
+			if (outputs.FirstOrDefault(o => pns.Select(x => x.Q).Contains(o.Q)) is {} nonNullOutput)
 			{
 				yield return nonNullOutput;
 				found++;
@@ -81,7 +94,7 @@ public static class SilentPayment
 			{
 				foreach (var output in outputs)
 				{
-					if (pns.Select(pn => pn.PubKey.Q).Contains(output.Q))
+					if (pns.Select(pn => pn.Q).Contains(output.Q))
 					{
 						yield return output;
 						found++;
@@ -91,17 +104,36 @@ public static class SilentPayment
 
 			n++;
 		}
+
+		ECXOnlyPubKey Tweak(ECXOnlyPubKey xo)
+		{
+			var tr = new TaprootInternalPubKey(xo.ToBytes());
+			var ok = tr.GetTaprootFullPubKey().OutputKey;
+			return ECXOnlyPubKey.Create(ok.ToBytes());
+		}
 	}
 
-	public static Dictionary<SilentPaymentAddress, SilentPaymentPubKey[]> GetPubKeys(IEnumerable<SilentPaymentAddress> addresses, ECPubKey sharedSecret, ECXOnlyPubKey[] outputs)
+	public static bool IsElegible(Transaction tx)
 	{
-		return addresses.Select(address => (
-				Address : address,
-				PubKeys : Enumerable
-					.Range(0, int.MaxValue)
-					.Select(k => ComputePubKey(address, (uint)k, sharedSecret))
-					.TakeWhile(x => outputs.Select(o => o.Q).Contains(x.PubKey.Q))))
-			.ToDictionary(x => x.Address, x => x.PubKeys.ToArray());
+		var hasTaprootOutputs = tx.Outputs.Any(x => x.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+		return hasTaprootOutputs;
+	}
+
+	public static Script[] ExtractSilentPaymentScriptPubKeys(SilentPaymentAddress[] addresses, ECPubKey tweakData, Transaction tx, ECPrivKey scanKey)
+	{
+		if (IsElegible(tx))
+		{
+			var taprootPubKeys = tx.Outputs
+				.Where(x => x.ScriptPubKey.IsScriptType(ScriptType.Taproot))
+				.Select(x => PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(x.ScriptPubKey))
+				.Select(x => ECXOnlyPubKey.Create(x.ToBytes()))
+				.ToArray();
+			var sharedSecret = ComputeSharedSecretReceiver(tweakData, scanKey);
+			var silentPaymentOutputs = GetPubKeys(addresses, sharedSecret, taprootPubKeys);
+			return silentPaymentOutputs.Select(x => new TaprootPubKey(x.ToBytes()).ScriptPubKey).ToArray();
+		}
+
+		return [];
 	}
 
 	public static ECPubKey CreateLabel(ECPrivKey scanKey, uint label)
@@ -129,6 +161,55 @@ public static class SilentPayment
 	{
 		using var tk = TweakKey(sharedSecret, k);
 		return ECPrivKey.Create((tk.sec + spendKey.sec).ToBytes());
+	}
+
+	public static GE? ExtractPubKey(Script? scriptSig, WitScript? txInWitness, Script prevOutScriptPubKey)
+	{
+		var spk = prevOutScriptPubKey;
+		if (txInWitness is {} && spk.IsScriptType(ScriptType.Taproot))
+		{
+			var pubKeyParameters = PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(spk);
+			var annex = txInWitness[txInWitness.PushCount -1][^1] == 0x50 ? 1 : 0;
+			if (txInWitness.PushCount > annex &&
+			    ByteHelpers.CompareFastUnsafe(txInWitness[txInWitness.PushCount - annex - 1][1..33], NUMS))
+			{
+				return null;
+			}
+			return ECXOnlyPubKey.Create(pubKeyParameters.ToBytes()).Q;
+		}
+		if (txInWitness is {} && spk.IsScriptType(ScriptType.P2WPKH))
+		{
+			var witScriptParameters =
+				PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txInWitness);
+			if (witScriptParameters is { } nonNullWitScriptParameters && nonNullWitScriptParameters.PublicKey.IsCompressed)
+			{
+				var q = ECPubKey.Create(nonNullWitScriptParameters.PublicKey.ToBytes()).ToXOnlyPubKey().Q;
+				return nonNullWitScriptParameters.PublicKey.ToBytes()[0] == 0x02 ? q : q.Negate();
+			}
+		}
+		if (scriptSig is {} && spk.IsScriptType(ScriptType.P2PKH))
+		{
+			var pk = scriptSig.GetAllPubKeys().First();
+			return pk.IsCompressed && pk.GetScriptPubKey(ScriptPubKeyType.Legacy) == spk
+				? ECPubKey.Create(pk.ToBytes()).Q
+				: null;
+		}
+		if (scriptSig is {}  && spk.IsScriptType(ScriptType.P2SH))
+		{
+			var p2sh = PayToScriptHashTemplate.Instance.ExtractScriptSigParameters(scriptSig);
+			if (txInWitness is {} && p2sh.RedeemScript.IsScriptType(ScriptType.P2WPKH))
+			{
+				var witScriptParameters =
+					PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(txInWitness);
+				if (witScriptParameters is { } nonNullWitScriptParameters && nonNullWitScriptParameters.PublicKey.IsCompressed)
+				{
+					var q = ECPubKey.Create(nonNullWitScriptParameters.PublicKey.ToBytes()).ToXOnlyPubKey().Q;
+					return nonNullWitScriptParameters.PublicKey.ToBytes()[0] == 0x02 ? q : q.Negate();
+				}
+			}
+		}
+
+		return null;
 	}
 
 	private static ECPubKey ComputePubKey(ECPubKey spendKey, ECPubKey sharedSecret, uint k)

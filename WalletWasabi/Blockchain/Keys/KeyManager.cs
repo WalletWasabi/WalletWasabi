@@ -7,6 +7,8 @@ using System.Linq;
 using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
+using NBitcoin.Secp256k1;
+using NNostr.Client;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
@@ -15,6 +17,7 @@ using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.SilentPayment;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 
 namespace WalletWasabi.Blockchain.Keys;
@@ -521,19 +524,32 @@ public class KeyManager
 		}
 	}
 
-	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
+	public IEnumerable<Key> GetSecrets(string password, params Script[] scripts)
 	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<ExtKey>();
+		var extKeysAndPubs = new List<Key>();
 
 		lock (_criticalStateLock)
 		{
 			foreach (HdPubKey key in GetKeys(x =>
 				scripts.Contains(x.P2wpkhScript)
-				|| scripts.Contains(x.P2Taproot)))
+				|| (scripts.Contains(x.P2Taproot) && !x.FullKeyPath.IsSilentPaymentKeyPath(_blockchainState.Network))))
 			{
 				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add(ek);
+				extKeysAndPubs.Add(ek.PrivateKey);
+			}
+
+			foreach (HdPubKey key in GetKeys(x => x.FullKeyPath.IsSilentPaymentKeyPath(_blockchainState.Network) && x.TweakData is { } ))
+			{
+				ExtKey scanKey = extKey.Derive(key.FullKeyPath);
+				using var ecScanKey = ECPrivKey.Create(scanKey.PrivateKey.ToBytes());
+				var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(key.TweakData, ecScanKey);
+
+				var spendKeyPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend).Derive((uint)key.Index);
+				ExtKey spendKey = extKey.Derive(spendKeyPath);
+				using var ecSpendKey = ECPrivKey.Create(spendKey.PrivateKey.ToBytes());
+				using var privateKey = SilentPayment.ComputePrivKey(ecSpendKey, sharedSecret, 0);
+				extKeysAndPubs.Add(new Key(privateKey.ToBytes()));
 			}
 		}
 		return extKeysAndPubs;
@@ -874,6 +890,9 @@ public static class KeyPathExtensions
 			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
 										 // throw new NotSupportedException("Unknown script type.")
 		};
+
+	public static bool IsSilentPaymentKeyPath(this KeyPath keyPath, Network network) =>
+		keyPath.GetAccountKeyPath() == KeyManager.GetAccountKeyPath(network, KeyPurpose.Scan);
 }
 
 public static class HdPubKeyExtensions

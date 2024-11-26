@@ -1,14 +1,10 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using DynamicData;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
 using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
@@ -53,7 +49,6 @@ public class SilentPaymentTests
 				var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.scan_priv_key));
 				var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.spend_priv_key));
 				var labels = given.Labels;
-				var outputs = given.Outputs.Select(Encoders.Hex.DecodeData).Select(x => ECXOnlyPubKey.Create(x)).ToArray();
 
 				var baseAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
 				var addresses = new List<SilentPaymentAddress> {baseAddress};
@@ -66,67 +61,34 @@ public class SilentPaymentTests
 
 				var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(utxos, scanKey);
 
+				var outputs = given.Outputs.Select(Tweak).ToArray();
 				var xonlyPks = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, outputs);
-				var all = xonlyPks.Select(x => x.ToBytes()).ToArray();
+				var all = xonlyPks; //.Select(x => x.ToBytes()).ToArray();
 
 				Assert.All(
-					expected.Outputs.Select(x => x.pub_key),
-					expectedPk => Assert.Contains(all, pk => Encoders.Hex.EncodeData(pk) == expectedPk ));
+					expected.Outputs.Select(x => Tweak(x.pub_key)),
+					expectedPk => Assert.Contains(all, pk => pk.Q.x == expectedPk.Q.x ));
 			}
-			catch (ArgumentException e) when(e.Message.Contains("Invalid WitScript") && test.comment.Contains("point at infinity"))
+			catch (InvalidOperationException e) when(e.Message.Contains("infinite") && test.comment.Contains("point at infinity"))
 			{
 				// ignore because it is expected to fail;
 			}
+		}
+
+		ECXOnlyPubKey Tweak(string pk)
+		{
+			var tripb = TaprootInternalPubKey.Parse(pk);
+			var ok = tripb.GetTaprootFullPubKey().OutputKey;
+			return ECXOnlyPubKey.Create(ok.ToBytes());
 		}
 	}
 
 	private GE? ExtractPubKey(ReceivingVin vin)
 	{
 		var spk = Script.FromHex(vin.PrevOut.ScriptPubKey.Hex);
-		if (spk.IsScriptType(ScriptType.Taproot))
-		{
-			var pubKeyParameters = PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(spk);
-			var txInWitnessBytes = Encoders.Hex.DecodeData(vin.TxInWitness);
-			var txInWitness = new WitScript(txInWitnessBytes);
-			var annex = txInWitnessBytes[^1] == 0x50 ? 1 : 0;
-			if (txInWitness.PushCount > annex &&
-			    ByteHelpers.CompareFastUnsafe(txInWitness[txInWitness.PushCount - annex - 1][1..33], SilentPayment.NUMS))
-			{
-				return null;
-			}
-			return ECXOnlyPubKey.Create(pubKeyParameters.ToBytes()).Q;
-		}
-		if (spk.IsScriptType(ScriptType.P2WPKH))
-		{
-			var witScriptParameters =
-				PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(new WitScript(vin.TxInWitness));
-			return witScriptParameters is { } nonNullWitScriptParameters
-				? ECXOnlyPubKey.Create(nonNullWitScriptParameters.PublicKey.GetTaprootFullPubKey().OutputKey.ToBytes()).Q
-				: null;
-		}
-		if (spk.IsScriptType(ScriptType.P2PKH))
-		{
-			var pk = Script.FromHex(vin.ScriptSig).GetAllPubKeys().First();
-			return pk.IsCompressed && pk.GetScriptPubKey(ScriptPubKeyType.Legacy) == spk
-				? ECPubKey.Create(pk.ToBytes()).Q
-				: null;
-		}
-		if (spk.IsScriptType(ScriptType.P2SH))
-		{
-			var scriptSig = new Script(vin.ScriptSig);
-			var p2sh = PayToScriptHashTemplate.Instance.ExtractScriptSigParameters(scriptSig);
-			if (p2sh.RedeemScript.IsScriptType(ScriptType.P2WPKH))
-			{
-				var witScriptParameters =
-					PayToWitPubKeyHashTemplate.Instance.ExtractWitScriptParameters(new WitScript(vin.TxInWitness));
-				return witScriptParameters is { } nonNullWitScriptParameters
-					? ECXOnlyPubKey
-						.Create(nonNullWitScriptParameters.PublicKey.GetTaprootFullPubKey().OutputKey.ToBytes()).Q
-					: null;
-			}
-		}
-
-		return null;
+		var scriptSig = Script.FromHex(vin.ScriptSig);
+		var txInWitness = string.IsNullOrEmpty(vin.TxInWitness) ? null :  new WitScript (Encoders.Hex.DecodeData(vin.TxInWitness));
+		return SilentPayment.ExtractPubKey(scriptSig, txInWitness, spk);
 	}
 }
 
@@ -154,7 +116,7 @@ public record SilentPaymentTestVector(string comment, Sending[] Sending, Receivi
 	{
 		var vectorsJson = File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json");
 		var vectors = JsonConvert.DeserializeObject<IEnumerable<SilentPaymentTestVector>>(vectorsJson);
-		return vectors;  //.Where(x => x.comment.Contains("NUMS"));
+		return vectors; //.Where(x => x.comment.Contains("infinity"));
 	}
 
 	private static readonly SilentPaymentTestVector[] TestCases = VectorsData().ToArray();
