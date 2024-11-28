@@ -40,7 +40,7 @@ $supportedPlatforms = @(
 if ($IsWindows) {
   $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
 } elseif ($IsMacOS) {
-  $sevenZip = '7z'
+  $sevenZip = '7zz'
 } else {
   $sevenZip = '7zz'
 }
