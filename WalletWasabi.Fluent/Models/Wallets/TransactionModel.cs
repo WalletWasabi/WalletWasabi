@@ -36,6 +36,8 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsChild { get; set; }
 
+	public Money? Balance { get; set; }
+
 	public required Func<string> HexFunction { get; set; }
 	public Lazy<string> Hex => new(HexFunction());
 
@@ -77,6 +79,6 @@ public partial class TransactionModel : ReactiveObject
 
 	public override string ToString()
 	{
-		return $"{Type} {Status} {DateString} {Amount}";
+		return $"{Type} {Status} {DateString} {Amount} {Balance}";
 	}
 }
