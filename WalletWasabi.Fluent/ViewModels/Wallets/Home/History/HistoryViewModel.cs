@@ -212,8 +212,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				IndicatorsColumn(),
 				DateColumn(),
 				AmountColumn(),
-				LabelsColumn(),
 				BalanceColumn(),
+				LabelsColumn(),
 				ActionsColumn(),
 			}
 		}.DisposeWith(disposables);
@@ -225,8 +225,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			new SortableItem("Status") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
 			new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
-			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
-			new SortableItem("Balance") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Descending)) },
+			new SortableItem("Balance") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Descending)) },
 		];
 	}
 
