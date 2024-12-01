@@ -123,7 +123,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				CanUserResizeColumn = false,
 				CanUserSortColumn = true,
 				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Balance),
-				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Balance),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Balance)
 			});
 	}
 
@@ -212,8 +212,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				IndicatorsColumn(),
 				DateColumn(),
 				AmountColumn(),
-				BalanceColumn(),
 				LabelsColumn(),
+				BalanceColumn(),
 				ActionsColumn(),
 			}
 		}.DisposeWith(disposables);
@@ -226,6 +226,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
 			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+			new SortableItem("Balance") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Descending)) },
 		];
 	}
 

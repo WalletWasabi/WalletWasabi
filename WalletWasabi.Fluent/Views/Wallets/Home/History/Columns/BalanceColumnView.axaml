@@ -13,6 +13,6 @@
                          UseOpacity="True"
                          MaxPrivacyChars="14"
                          Margin="15 0 0 0">
-    <AmountControl Classes="WithSign" Amount="{Binding Transaction.Balance}" />
+    <AmountControl Amount="{Binding Transaction.Balance}" />
   </PrivacyContentControl>
 </UserControl>

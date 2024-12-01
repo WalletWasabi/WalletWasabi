@@ -23,9 +23,10 @@ public class TransactionTreeBuilder
 		_wallet = wallet;
 	}
 
+	private Amount _balance = new (Money.Zero);
+
 	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
 	{
-		Money balance = Money.Zero;
 		TransactionModel? coinJoinGroup = default;
 
 		var result = new List<TransactionModel>();
@@ -34,18 +35,18 @@ public class TransactionTreeBuilder
 		{
 			var item = summaries[i];
 
-			balance += item.Amount;
+			_balance = new Amount(_balance.Btc + item.Amount);
 
 			if (!item.IsOwnCoinjoin())
 			{
-				result.Add(await CreateRegularAsync(i, item, balance, cancellationToken));
+				result.Add(await CreateRegularAsync(i, item, cancellationToken));
 			}
 
 			if (item.IsOwnCoinjoin())
 			{
 				coinJoinGroup ??= await CreateCoinjoinGroupAsync(i, item, cancellationToken);
 
-				coinJoinGroup.Add(await CreateCoinjoinTransactionAsync(i, item, balance, cancellationToken));
+				coinJoinGroup.Add(await CreateCoinjoinTransactionAsync(i, item, cancellationToken));
 			}
 
 			if (coinJoinGroup is { } cjg &&
@@ -58,7 +59,7 @@ public class TransactionTreeBuilder
 				}
 				else
 				{
-					UpdateCoinjoinGroup(cjg, balance);
+					UpdateCoinjoinGroup(cjg);
 					result.Add(cjg);
 				}
 
@@ -102,17 +103,6 @@ public class TransactionTreeBuilder
 
 				var speedUpGroup = CreateSpeedUpGroup(summary, parent, groupItems);
 
-				// Check if the last item's balance is not null before calling SetBalance.
-				var bal = groupItems.Last().Balance;
-				if (bal is not null)
-				{
-					speedUpGroup.Balance = bal;
-				}
-				else
-				{
-					continue;
-				}
-
 				result.Add(speedUpGroup);
 
 				// Remove the items.
@@ -129,7 +119,7 @@ public class TransactionTreeBuilder
 		return found is not null;
 	}
 
-	private async Task<TransactionModel> CreateRegularAsync(int index, TransactionSummary transactionSummary, Money balance, CancellationToken cancellationToken)
+	private async Task<TransactionModel> CreateRegularAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
@@ -140,13 +130,13 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
+			Balance = _balance,
 			HasBeenSpedUp = transactionSummary.IsSpeedup,
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
-			Balance = balance,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
 			Type = itemType,
@@ -174,6 +164,7 @@ public class TransactionTreeBuilder
 		return new TransactionModel
 		{
 			Amount = Money.Zero,
+			Balance = _balance,
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
@@ -200,6 +191,7 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = parent.Amount,
+			Balance = _balance,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
@@ -245,15 +237,10 @@ public class TransactionTreeBuilder
 		return result;
 	}
 
-	private void UpdateCoinjoinGroup(TransactionModel coinjoinGroup, Money balance)
+	private void UpdateCoinjoinGroup(TransactionModel coinjoinGroup)
 	{
-		coinjoinGroup.Balance = balance;
-
-		foreach (var child in coinjoinGroup.Children.Reverse())
+		foreach (var child in coinjoinGroup.Children)
 		{
-			child.Balance = balance;
-			balance -= child.Amount;
-
 			child.IsChild = true;
 		}
 
@@ -268,6 +255,8 @@ public class TransactionTreeBuilder
 
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
 		coinjoinGroup.Amount = amount;
+
+		coinjoinGroup.Balance = _balance;
 
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 		coinjoinGroup.Fee = fee;
@@ -293,7 +282,7 @@ public class TransactionTreeBuilder
 		}
 	}
 
-	private async Task<TransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, Money balance, CancellationToken cancellationToken)
+	private async Task<TransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
@@ -303,11 +292,11 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
+			Balance = _balance,
 			OrderIndex = index,
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
-			Balance = balance,
 			Labels = transactionSummary.Labels,
 			Type = TransactionType.Coinjoin,
 			Status = status,
