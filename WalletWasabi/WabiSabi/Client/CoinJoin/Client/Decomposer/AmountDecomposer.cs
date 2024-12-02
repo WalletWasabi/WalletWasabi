@@ -74,7 +74,7 @@ public class AmountDecomposer
 		return denoms;
 	}
 
-	public IEnumerable<Output> Decompose(Money myInputSum, IEnumerable<Money> allInputCoinEffectiveValues)
+	public IEnumerable<Output> Decompose(Money myInputSum, IEnumerable<Money> allInputCoinEffectiveValues, bool isPerformingAPayment = false)
 	{
 		var denoms = GetFilteredDenominations(allInputCoinEffectiveValues);
 
@@ -88,8 +88,8 @@ public class AmountDecomposer
 				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin.");
 		}
 
-		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
-		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
+		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense, except if a payment is ongoing.
+		if (!isPerformingAPayment && denoms.Min(x => x.EffectiveCost) > myInputSum)
 		{
 			throw new InvalidOperationException("Not enough coins registered to participate in the coinjoin.");
 		}
