@@ -14,15 +14,12 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 public class PaymentAwareOutputProvider : OutputProvider
 {
 	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments, WasabiRandom? random = null)
-		: base(destinationProvider)
+		: base(destinationProvider, random)
 	{
 		_batchedPayments = batchedPayments;
-		_random = random ?? SecureRandom.Instance;
 	}
 
 	private readonly PaymentBatch _batchedPayments;
-
-	private readonly WasabiRandom _random;
 
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
@@ -75,7 +72,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 			roundParameters.AllowedOutputAmounts.Max,
 			availableVsize,
 			DestinationProvider.SupportedScriptTypes,
-			_random);
+			Random);
 
 		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues).ToArray();
 		var decomposedOutputs = GetTxOuts(outputValues, DestinationProvider);

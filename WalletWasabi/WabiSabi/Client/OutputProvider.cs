@@ -12,11 +12,11 @@ public class OutputProvider
 	public OutputProvider(IDestinationProvider destinationProvider, WasabiRandom? random = null)
 	{
 		DestinationProvider = destinationProvider;
-		_random = random ?? SecureRandom.Instance;
+		Random = random ?? SecureRandom.Instance;
 	}
 
 	internal IDestinationProvider DestinationProvider { get; }
-	private readonly WasabiRandom _random;
+	protected readonly WasabiRandom Random;
 
 	public virtual IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
@@ -31,7 +31,7 @@ public class OutputProvider
 			roundParameters.AllowedOutputAmounts.Max,
 			availableVsize,
 			DestinationProvider.SupportedScriptTypes,
-			_random);
+			Random);
 
 		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues.Sum(), allCoinEffectiveValues).ToArray();
