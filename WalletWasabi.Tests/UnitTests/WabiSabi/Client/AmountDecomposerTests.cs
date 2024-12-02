@@ -53,7 +53,8 @@ public class AmountDecomposerTests
 		var allowedOutputTypes = isTaprootEnabled ? new List<ScriptType>() { ScriptType.Taproot, ScriptType.P2WPKH } : new List<ScriptType>() { ScriptType.P2WPKH };
 
 		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange.Min, allowedOutputAmountRange.Max, availableVsize, allowedOutputTypes, InsecureRandom.Instance);
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues);
+		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues.Sum(), allCoinEffectiveValues);
 
 		var totalEffectiveValue = registeredCoinEffectiveValues.Sum(x => x);
 		var totalEffectiveCost = outputValues.Sum(x => x.EffectiveCost);

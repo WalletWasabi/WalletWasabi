@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
@@ -11,13 +13,16 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // coinjoin round which include those outputs that are payments.
 public class PaymentAwareOutputProvider : OutputProvider
 {
-	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments)
+	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments, WasabiRandom? random = null)
 		: base(destinationProvider)
 	{
 		_batchedPayments = batchedPayments;
+		_random = random ?? SecureRandom.Instance;
 	}
 
 	private readonly PaymentBatch _batchedPayments;
+
+	private readonly WasabiRandom _random;
 
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
@@ -61,8 +66,19 @@ public class PaymentAwareOutputProvider : OutputProvider
 			availableValues = availableValues.Append(totalValueUsedForPayment).ToArray();
 		}
 
+		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
+
 		// Decompose the available values and return them.
-		var decomposedOutputs = base.GetOutputs(roundId, roundParameters, availableValues, theirCoinEffectiveValues, availableVsize);
+		AmountDecomposer amountDecomposer = new(
+			roundParameters.MiningFeeRate,
+			roundParameters.CalculateMinReasonableOutputAmount(DestinationProvider.SupportedScriptTypes),
+			roundParameters.AllowedOutputAmounts.Max,
+			availableVsize,
+			DestinationProvider.SupportedScriptTypes,
+			_random);
+
+		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues).ToArray();
+		var decomposedOutputs = GetTxOuts(outputValues, DestinationProvider);
 		foreach (var txOut in decomposedOutputs)
 		{
 			yield return txOut;

@@ -74,11 +74,10 @@ public class AmountDecomposer
 		return denoms;
 	}
 
-	public IEnumerable<Output> Decompose(IEnumerable<Money> myInputCoinEffectiveValues, IEnumerable<Money> othersInputCoinEffectiveValues)
+	public IEnumerable<Output> Decompose(Money myInputSum, IEnumerable<Money> allInputCoinEffectiveValues)
 	{
-		var denoms = GetFilteredDenominations(othersInputCoinEffectiveValues.Concat(myInputCoinEffectiveValues));
-		var myInputs = myInputCoinEffectiveValues.ToArray();
-		var myInputSum = myInputs.Sum();
+		var denoms = GetFilteredDenominations(allInputCoinEffectiveValues);
+
 		var smallestScriptType = Math.Min(ScriptType.P2WPKH.EstimateOutputVsize(), ScriptType.Taproot.EstimateOutputVsize());
 		var maxNumberOfOutputsAllowed = Math.Min(AvailableVsize / smallestScriptType, 10); // The absolute max possible with the smallest script type.
 
@@ -87,12 +86,6 @@ public class AmountDecomposer
 		{
 			throw new InvalidOperationException(
 				"No valid output denominations found. This can occur when an insufficient number of coins are registered to participate in the coinjoin.");
-		}
-
-		// If my input sum is smaller than the smallest denomination, then participation in a coinjoin makes no sense.
-		if (denoms.Min(x => x.EffectiveCost) > myInputSum)
-		{
-			throw new InvalidOperationException("Not enough coins registered to participate in the coinjoin.");
 		}
 
 		var setCandidates = new Dictionary<int, (IEnumerable<Output> Decomposition, Money Cost)>();

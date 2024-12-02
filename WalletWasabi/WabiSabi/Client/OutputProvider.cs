@@ -33,7 +33,8 @@ public class OutputProvider
 			DestinationProvider.SupportedScriptTypes,
 			_random);
 
-		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues, theirCoinEffectiveValues).ToArray();
+		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
+		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues.Sum(), allCoinEffectiveValues).ToArray();
 		return GetTxOuts(outputValues, DestinationProvider);
 	}
 
