@@ -30,10 +30,10 @@ public class KeyChain : IKeyChain
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		ExtKey hdKey = _keyManager.GetSecrets(_password, destination.ScriptPubKey).SingleOrDefault()
+		Key key = _keyManager.GetSecrets(_password, destination.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{destination.ScriptPubKey}' was not found.");
 		Key masterKey = GetMasterKey();
-		BitcoinSecret secret = hdKey.GetBitcoinSecret(_keyManager.GetNetwork(), destination.ScriptPubKey);
+		BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), destination.ScriptPubKey);
 
 		return NBitcoinExtensions.GetOwnershipProof(masterKey, secret, destination.ScriptPubKey, commitmentData);
 	}
@@ -49,9 +49,9 @@ public class KeyChain : IKeyChain
 
 		var txInput = transaction.Inputs.AsIndexedInputs().FirstOrDefault(input => input.PrevOut == coin.Outpoint)
 			?? throw new InvalidOperationException("Missing input.");
-		ExtKey hdKey = _keyManager.GetSecrets(_password, coin.ScriptPubKey).SingleOrDefault()
+		Key key = _keyManager.GetSecrets(_password, coin.ScriptPubKey).SingleOrDefault()
 			?? throw new InvalidOperationException($"The signing key for '{coin.ScriptPubKey}' was not found.");
-		BitcoinSecret secret = hdKey.GetBitcoinSecret(_keyManager.GetNetwork(), coin.ScriptPubKey);
+		BitcoinSecret secret = key.GetBitcoinSecret(_keyManager.GetNetwork(), coin.ScriptPubKey);
 
 		TransactionBuilder builder = Network.Main.CreateTransactionBuilder();
 		builder.AddKeys(secret);

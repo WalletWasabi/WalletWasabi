@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.BitcoinCore.Rpc.Models;
@@ -13,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Stores;
+using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
@@ -191,6 +193,7 @@ public class IndexBuilderService
 							}
 
 							var filter = BuildFilterForBlock(block, _pubKeyTypes);
+							var tweakData = BuildSilentPaymentTweakData(block);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
@@ -231,6 +234,35 @@ public class IndexBuilderService
 				Logger.LogError($"Synchronization attempt failed to start: {ex}");
 			}
 		});
+	}
+
+	private IEnumerable<byte[]> BuildSilentPaymentTweakData(VerboseBlockInfo block)
+	{
+		foreach (var tx in block.Transactions)
+		{
+			var inputs = tx.Inputs.OfType<VerboseInputInfo.Full>().ToList();
+			if (inputs.Count < tx.Inputs.Count())
+			{
+				continue;
+			}
+
+			var hasAtLeastOneTaprootOutput = tx.Outputs.Any(x => x.ScriptPubKey.IsScriptType(ScriptType.Taproot));
+			var allInputHavePubKeys = inputs
+				.All(x => x.PrevOut.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
+
+			if (hasAtLeastOneTaprootOutput && allInputHavePubKeys)
+			{
+				var pubkeys = inputs.Select(x => (x.OutPoint, ExtractPubKey(x)));
+				yield return null!; //  SilentPayment.TweakData(pubkeys).ToBytes();
+			}
+		}
+
+		static ECXOnlyPubKey ExtractPubKey(VerboseInputInfo.Full input) =>
+			input.PrevOut.PubkeyType switch
+			{
+				RpcPubkeyType.TxWitnessV0Keyhash => ECXOnlyPubKey.Create(PayToWitPubKeyHashTemplate.Instance .ExtractWitScriptParameters(input.WitScript).PublicKey.GetTaprootFullPubKey().OutputKey.ToBytes()),
+				RpcPubkeyType.TxWitnessV1Taproot => ECXOnlyPubKey.Create(PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(input.PrevOut.ScriptPubKey).ToBytes())
+			};
 	}
 
 	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
