@@ -2,9 +2,8 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
   <Style Selector="StackPanel.settingsLayout">
     <Setter Property="Spacing" Value="15" />
-    <Setter Property="MinWidth" Value="360" />
-    <Setter Property="MaxWidth" Value="650" />
-    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="Margin" Value="0 0 15 0" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
     <Setter Property="Orientation" Value="Vertical" />
   </Style>
 
@@ -36,5 +35,33 @@
 
   <Style Selector="StackPanel.settingsLayout > StackPanel">
     <Setter Property="Spacing" Value="6" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > ComboBox">
+    <Setter Property="DockPanel.Dock" Value="Right" />
+    <Setter Property="Width" Value="175" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > TextBox">
+    <Setter Property="DockPanel.Dock" Value="Right" />
+    <Setter Property="Width" Value="275" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > CurrencyEntryBox">
+    <Setter Property="DockPanel.Dock" Value="Right" />
+    <Setter Property="Width" Value="275" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > CurrencyEntryBox.hideValidations /template/ DataValidationErrors#PART_DataValidationErrors">
+    <Setter Property="IsVisible" Value="False" />
+  </Style>
+
+  <Style Selector="StackPanel.settingsLayout > DockPanel > DockPanel">
+    <Setter Property="Dock" Value="Right" />
+    <Setter Property="Width" Value="275" />
+    <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
 </Styles>

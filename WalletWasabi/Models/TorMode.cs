@@ -19,6 +19,6 @@ public enum TorMode
 	/// In this mode, Wasabi app is not the owner of its Tor process.
 	/// <para>Useful for distributions like Whonix or Tails where starting a new Tor process is not a good option.</para>
 	/// </remarks>
-	[FriendlyName("Enabled (connect-only mode)")]
+	[FriendlyName("Connect Only")]
 	EnabledOnlyRunning,
 }

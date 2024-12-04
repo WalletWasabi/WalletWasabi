@@ -20,6 +20,11 @@ This project incorporates code and dependencies from the following open source p
 **Copyright:** Copyright (c) Roland Pheasant 2011-2022  
 **Included:** Reactive extensions for managing dynamic collections.  
 
+## Ginger Wallet
+**License:** MIT License
+**Copyright:** Copyright (c) 2024 GingerPrivacy
+**Included:** Settings layout
+
 ## HWI (Hardware Wallet Interface)
 **License:** MIT License  
 **Copyright:** Copyright (c) 2017 Andrew Chow  
