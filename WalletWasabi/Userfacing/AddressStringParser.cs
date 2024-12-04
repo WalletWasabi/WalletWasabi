@@ -1,47 +1,64 @@
+using System.Collections.Generic;
 using NBitcoin;
-using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing.Bip21;
+using WalletWasabi.Wallets.SilentPayment;
+using NBitcoinExtensions = WalletWasabi.Extensions.NBitcoinExtensions;
 
 namespace WalletWasabi.Userfacing;
 
+using AddressStringParserResult = Result<AddressStringParserSuccess, AddressStringParserError>;
+
+public abstract record AddressStringParserSuccess
+{
+	private AddressStringParserSuccess(string displayAddress)
+	{
+		DisplayAddress = displayAddress;
+	}
+
+	public record Bip21UriParsed(string DisplayAddress, BitcoinAddress Address, string Amount, string Label, string? PayjoinEndpoint) : AddressStringParserSuccess(DisplayAddress);
+	public record BitcoinAddressParsed(string DisplayAddress, BitcoinAddress Address) : AddressStringParserSuccess(DisplayAddress);
+	public record SilentPaymentAddressParsed(string DisplayAddress, SilentPaymentAddress Address) : AddressStringParserSuccess(DisplayAddress);
+
+	public string DisplayAddress { get; }
+}
+
+public abstract record AddressStringParserError
+{
+	private AddressStringParserError(string message)
+	{
+		Message = message;
+	}
+
+	public record InputLengthInvalid(string Message) : AddressStringParserError(Message);
+	public record InputTooLong(string Message) : AddressStringParserError(Message);
+	public record LightningUnsupported(string Message) : AddressStringParserError(Message);
+	public record WrongNetwork(string Message) : AddressStringParserError(Message);
+	public record GenericError(string Message) : AddressStringParserError(Message);
+
+	public string Message { get; }
+}
+
 public static class AddressStringParser
 {
-	public static bool TryParse(string text, Network expectedNetwork, [NotNullWhen(true)] out Bip21UriParser.Result? result)
-		=> TryParse(text, expectedNetwork, out result, out _);
-
 	/// <summary>
-	/// Parses either a Bitcoin address or a BIP21 URI string.
+	/// Parses either a Bitcoin address, a BIP21 URI string (with or without Payjoin endpoint) or  a Silent Payment address.
 	/// </summary>
 	/// <seealso href="https://github.com/lightning/bolts/blob/master/11-payment-encoding.md"/>
-	public static bool TryParse(
-		string text,
-		Network expectedNetwork,
-		[NotNullWhen(true)] out Bip21UriParser.Result? result,
-		out string? errorMessage)
+	public static AddressStringParserResult TryParse(string text, Network expectedNetwork)
 	{
-		result = null;
-		errorMessage = null;
-
-		if (text is null || expectedNetwork is null)
-		{
-			errorMessage = "Internal error.";
-			return false;
-		}
-
 		text = text.Trim();
 
 		if (text == "")
 		{
-			errorMessage = "Input length is invalid.";
-			return false;
+			return AddressStringParserResult.Fail(new AddressStringParserError.InputLengthInvalid("Input length invalid."));
 		}
 
 		// Too long URIs/Bitcoin address are unsupported.
 		if (text.Length > 1000)
 		{
-			errorMessage = "Input is too long.";
-			return false;
+			return AddressStringParserResult.Fail(new AddressStringParserError.InputTooLong("Input is too long."));
+
 		}
 
 		// Lightning addresses are unsupported.
@@ -53,8 +70,8 @@ public static class AddressStringParser
 
 		if (isLightningAddress)
 		{
-			errorMessage = "Lightning addresses are not supported.";
-			return false;
+			return AddressStringParserResult.Fail(new AddressStringParserError.LightningUnsupported("Lightning addresses are not supported."));
+
 		}
 
 		Bip21UriParser.Error? error;
@@ -64,22 +81,25 @@ public static class AddressStringParser
 		{
 			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(text, expectedNetwork, out BitcoinAddress? address))
 			{
-				Uri uri = new($"{Bip21UriParser.UriScheme}:{text}");
-				result = new Bip21UriParser.Result(uri, expectedNetwork, address);
-				return true;
+				return AddressStringParserResult.Ok(new AddressStringParserSuccess.BitcoinAddressParsed(address.ToString(), address));
 			}
 
-			error = Bip21UriParser.ErrorInvalidAddress with { Details = text };
+			error = Bip21UriParser.ErrorInvalidAddress;
 		}
 		else // Parse BIP21 URI string.
 		{
-			if (Bip21UriParser.TryParse(input: text, expectedNetwork, out result, out error))
+			if (Bip21UriParser.TryParse(input: text, expectedNetwork, out var result, out error))
 			{
-				return true;
+				return AddressStringParserResult.Ok(
+					new AddressStringParserSuccess.Bip21UriParsed(
+						result.Address.ToString(),
+						result.Address,
+						result.Amount?.ToString() ?? "",
+						result.Label ?? "",
+						result.UnknownParameters.GetValueOrDefault("pj")));
 			}
 		}
 
-		errorMessage = error.Message;
 
 		// Special check to verify if the provided Bitcoin address is not for a different Bitcoin network.
 		if (error.IsOfSameType(Bip21UriParser.ErrorInvalidAddress))
@@ -88,11 +108,18 @@ public static class AddressStringParser
 
 			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(error.Details!, networkGuess, out _))
 			{
-				errorMessage = $"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.";
-				return false;
+				return AddressStringParserResult.Fail(new AddressStringParserError.WrongNetwork($"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}."));
 			}
 		}
 
-		return false;
+		try
+		{
+			var silentPaymentAddress = SilentPaymentAddress.Parse(text, expectedNetwork);
+			return AddressStringParserResult.Ok(new AddressStringParserSuccess.SilentPaymentAddressParsed(text, silentPaymentAddress));
+		}
+		catch(Exception)
+		{
+			return AddressStringParserResult.Fail(new AddressStringParserError.GenericError("Input was not recognized as a valid destination supported by Wasabi (Bitcoin Address, Bip21 Uri (with or without Payjoin endpoint) or a Silent Payment Address"));
+		}
 	}
 }

@@ -96,6 +96,40 @@ public static class TransactionBuilderWalletExtensions
 		return txRes;
 	}
 
+	public static BuildTransactionResult BuildChangelessTransaction(
+		this Wallet wallet,
+		Destination destination,
+		LabelsArray label,
+		FeeRate feeRate,
+		IEnumerable<OutPoint> allowedInputs,
+		bool allowDoubleSpend = false,
+		bool tryToSign = true)
+	{
+		var intent = destination switch
+			{
+				Destination.Loudly loudly => new PaymentIntent(
+					scriptPubKey: loudly.ScriptPubKey,
+					amount: MoneyRequest.CreateAllRemaining(subtractFee: true),
+					label: label),
+				Destination.Silent silent => new PaymentIntent(
+					address: silent.Address,
+					amount: MoneyRequest.CreateAllRemaining(subtractFee: true),
+					label: label),
+				_ => throw new InvalidOperationException("Unknown destination type")
+			};
+
+		var txRes = wallet.BuildTransaction(
+			wallet.Password,
+			intent,
+			FeeStrategy.CreateFromFeeRate(feeRate),
+			allowUnconfirmed: true,
+			allowedInputs: allowedInputs,
+			allowDoubleSpend: allowDoubleSpend,
+			tryToSign: tryToSign);
+
+		return txRes;
+	}
+
 	public static BuildTransactionResult BuildTransaction(
 		this Wallet wallet,
 		IDestination destination,
