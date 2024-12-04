@@ -113,10 +113,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public TransactionInfo Create(string address, decimal amount, LabelsArray labels)
 	{
-		var transactionInfo = new TransactionInfo(BitcoinAddress.Create(address, _wallet.Network), _walletModel.Settings.AnonScoreTarget)
+		var paymentIntent = new PaymentIntent(
+			BitcoinAddress.Create(address, _wallet.Network),
+			new Money(amount, MoneyUnit.BTC),
+			label: new LabelsArray("Buy Anything Agent"));
+
+		var transactionInfo = new TransactionInfo(address, paymentIntent, _walletModel.Settings.AnonScoreTarget)
 		{
-			Amount = new Money(amount, MoneyUnit.BTC),
-			Recipient = new LabelsArray("Buy Anything Agent"),
 			IsFixedAmount = true
 		};
 
@@ -174,7 +177,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					transactionInfo.ChangelessCoins,
+					transactionInfo.ChangelessCoins.Select(x => x.Outpoint),
 					tryToSign: tryToSign);
 			}
 
@@ -184,7 +187,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			}
 
 			return _wallet.BuildTransactionForSIB(
-				transactionInfo.Destination,
+				BitcoinAddress.Create(((Destination.Loudly)transactionInfo.Destination).ScriptPubKey.ToString(), _wallet.Network),
 				transactionInfo.Amount,
 				transactionInfo.Recipient,
 				transactionInfo.SubtractFee,

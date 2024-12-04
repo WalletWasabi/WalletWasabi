@@ -13,6 +13,8 @@ public abstract record Destination
 		public Script FakeScriptPubKey =>
 			new PubKey(Address.ScanKey.AddTweak(Address.SpendKey.ToXOnlyPubKey().ToBytes()).ToBytes()).GetScriptPubKey(
 				ScriptPubKeyType.TaprootBIP86);
+
+		public bool IsOwnScript(Script script) => false;
 	};
 }
 
