@@ -1,4 +1,3 @@
-# Credits
 This project incorporates code and dependencies from the following open source projects:
 
 ## AsyncEx
