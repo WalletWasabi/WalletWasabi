@@ -234,10 +234,14 @@ public class TransactionProcessor
 						continue;
 					}
 				}
-
+				else
+				{
+					var trpubKey = PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(output.ScriptPubKey);
+					var ecpk = new ECPubKey(ECXOnlyPubKey.Create(trpubKey.ToBytes()).Q, null);
+					foundKey = KeyManager.GetNextSilentPaymentDummyKey(0, new PubKey(ecpk.ToBytes()), tx.Labels, tx.TweakData);
+				}
 
 				SmartCoin newCoin = new(tx, i, foundKey);
-				newCoin.HdPubKey.TweakData = tx.TweakData;
 
 				result.ReceivedCoins.Add(newCoin);
 

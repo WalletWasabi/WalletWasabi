@@ -21,7 +21,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
-	public ECPubKey? TweakData { get; set; }
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
@@ -80,6 +79,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
+
+	[JsonProperty(Order = 5)]
+	public ECPubKey? TweakData { get; set; }
 
 	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>
