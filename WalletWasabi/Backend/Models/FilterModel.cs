@@ -23,7 +23,7 @@ public class FilterModel
 		Header = header;
 		FilterData = filterData;
 		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
-		TweakData = tweakData.Chunk(33).ToArray();
+		TweakData = tweakData.Chunk(35).ToArray();
 	}
 
 	public SmartHeader Header { get; }

@@ -358,6 +358,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				BlockIndex = tx.BlockIndex;
 				updated = true;
 			}
+
+			if (tx.TweakData is { } && TweakData != tx.TweakData)
+			{
+				TweakData = tx.TweakData;
+				updated = true;
+			}
 		}
 		else if (Height == Height.Unknown && tx.Height == Height.Mempool)
 		{

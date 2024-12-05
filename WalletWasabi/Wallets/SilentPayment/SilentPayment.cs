@@ -167,7 +167,7 @@ public static class SilentPayment
 				return nonNullWitScriptParameters.PublicKey.ToBytes()[0] == 0x02 ? q : q.Negate();
 			}
 		}
-		if (scriptSig is {} && spk.IsScriptType(ScriptType.P2PKH))
+		if (scriptSig != Script.Empty && spk.IsScriptType(ScriptType.P2PKH))
 		{
 			var pubKeyId = PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(spk);
 			var pubKeyHash = new uint160(pubKeyId.ToBytes());

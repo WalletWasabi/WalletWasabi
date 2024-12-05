@@ -204,20 +204,20 @@ public class TransactionProcessor
 		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
 
 		// Process silent payment
-		HdPubKey? scanKey = null;
-		var spScripts = new List<Script>();
+		var spScripts = new List<(ECPubKey ScanKey, Script ScriptPubKey)>();
 		if (tx.TweakData != null)
 		{
 			var scriptPubKeys = KeyManager
 				.GetSilentPaymentScanData()
-				.SelectMany(x => SilentPayment.ExtractSilentPaymentScriptPubKeys([x.Address], tx.TweakData, tx.Transaction, x.ScanSecret));
+				.Select(x => (x.Address.ScanKey, Scripts: SilentPayment.ExtractSilentPaymentScriptPubKeys([x.Address], tx.TweakData, tx.Transaction, x.ScanSecret)))
+				.SelectMany(x => x.Scripts.Select(y => (x.ScanKey, y)));
 			spScripts.AddRange(scriptPubKeys);
 		}
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
 			var output = tx.Transaction.Outputs[i];
-			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey) || spScripts.Contains(output.ScriptPubKey))
+			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey) || spScripts.Select(x => x.ScriptPubKey).Contains(output.ScriptPubKey))
 			{
 				if (foundKey is { })
 				{
@@ -235,7 +235,8 @@ public class TransactionProcessor
 					}
 				}
 
-				SmartCoin newCoin = new(tx, i, foundKey ?? scanKey );
+
+				SmartCoin newCoin = new(tx, i, foundKey);
 				newCoin.HdPubKey.TweakData = tx.TweakData;
 
 				result.ReceivedCoins.Add(newCoin);

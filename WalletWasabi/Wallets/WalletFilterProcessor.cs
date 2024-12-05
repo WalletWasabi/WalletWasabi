@@ -237,7 +237,9 @@ public class WalletFilterProcessor : BackgroundService
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(height, syncType).Concat(GetSilentPaymentScriptPubKeysToTest(filter.TweakData));
+		var indexedTweaks = filter.TweakData.Select(x => (BitConverter.ToUInt16(x[0..2]), x[2..]));
+		var sp = GetSilentPaymentScriptPubKeysToTest(indexedTweaks.Select(x => x.Item2).ToArray()).ToArray();
+		var toTestKeys = GetScriptPubKeysToTest(height, syncType).Concat(sp);
 
 		var matchFound = false;
 		if (toTestKeys.Any())
@@ -255,7 +257,13 @@ public class WalletFilterProcessor : BackgroundService
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
 				{
 					Transaction tx = currentBlock.Transactions[i];
-					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+					SmartTransaction txToProcess = new (tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash()));
+					if (indexedTweaks.FirstOrDefault(x => x.Item1 == i).Item2 is {} tweakBytes)
+					{
+						var tweak = ECPubKey.Create(tweakBytes);
+						txToProcess.SetTweakData(tweak);
+					}
+					txsToProcess.Add(txToProcess);
 				}
 
 				_transactionProcessor.Process(txsToProcess);

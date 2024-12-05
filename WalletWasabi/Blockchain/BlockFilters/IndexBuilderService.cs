@@ -242,7 +242,7 @@ public class IndexBuilderService
 
 	private IEnumerable<byte[]> BuildSilentPaymentTweakData(VerboseBlockInfo block)
 	{
-		foreach (var tx in block.Transactions)
+		foreach (var (tx, i) in block.Transactions.Select((tx, i) => (tx, i)))
 		{
 			var inputs = tx.Inputs.OfType<VerboseInputInfo.Full>().ToList();
 			if (inputs.Count < tx.Inputs.Count())
@@ -259,7 +259,7 @@ public class IndexBuilderService
 			if (hasAtLeastOneTaprootOutput && pubKeys.Length > 0)
 			{
 				var prevOuts = inputs.Select(x => x.OutPoint).ToArray();
-				yield return SilentPayment.TweakData(prevOuts, pubKeys).ToBytes();
+				yield return BitConverter.GetBytes((ushort)i).Concat(SilentPayment.TweakData(prevOuts, pubKeys).ToBytes()).ToArray();
 			}
 		}
 	}
