@@ -169,9 +169,18 @@ public static class SilentPayment
 		}
 		if (scriptSig is {} && spk.IsScriptType(ScriptType.P2PKH))
 		{
-			var pk = scriptSig.GetAllPubKeys().First();
-			return pk.IsCompressed && pk.GetScriptPubKey(ScriptPubKeyType.Legacy) == spk
-				? ECPubKey.Create(pk.ToBytes()).Q
+			var pubKeyId = PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(spk);
+			var pubKeyHash = new uint160(pubKeyId.ToBytes());
+
+			var scriptSigBytes = scriptSig.ToBytes();
+			var pubKeyBytes = Enumerable.Range(33, scriptSigBytes.Length-32)
+				.Reverse()
+				.Select(i => scriptSigBytes[(i-33)..i])
+				.Where(pkb => pkb[0] is 2 or 3 or 4)
+				.FirstOrDefault(pkb => Hashes.Hash160(pkb)== pubKeyHash);
+
+			return pubKeyBytes != null
+				? ECPubKey.Create(pubKeyBytes).Q
 				: null;
 		}
 		if (scriptSig is {}  && spk.IsScriptType(ScriptType.P2SH))
