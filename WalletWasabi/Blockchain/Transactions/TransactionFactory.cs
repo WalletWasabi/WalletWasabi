@@ -220,8 +220,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+			IEnumerable<Key> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
+
 			psbt = builder.SolveSilentPayment(psbt);
 			builder.SignPSBT(psbt);
 
@@ -335,7 +336,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
 	private int _substractFeeFrom = 0;
-	private ExtKey[] _keys;
+	private Key[] _keys;
 
 	public bool OptInRBF
 	{
@@ -409,7 +410,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		return _builder.EstimateSize(tx, virtualSize);
 	}
 
-	public TransactionBuilderWithSilentPaymentSupport AddKeys(ExtKey[] keys)
+	public TransactionBuilderWithSilentPaymentSupport AddKeys(Key[] keys)
 	{
 		_keys = keys;
 		_builder.AddKeys(keys);
@@ -431,20 +432,18 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		var keys = _keys;
 
 		Key GetKeyForScriptPubKey(Script spk) =>
-			keys.Select(k => (Key: k.PrivateKey, PubKey: k.GetPublicKey()))
+			keys.Select(k => (Key: k, PubKey: k.PubKey))
 				.First(x =>
 					x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk ||
 					x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
 				.Key;
 
-		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey));
-		using var partialSecret = SilentPayment.ComputePartialSecret(spentCoins);
-		var paymentAddresses = _silentPayments.Select(x => x.Value.ToWip(network));
+		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey)).ToArray();
+		var paymentAddresses = _silentPayments.Select(x => x.Value);
 		var scriptPubKeys = SilentPayment
-			.GetPubKeys(paymentAddresses, partialSecret, network)
+			.GetPubKeys(paymentAddresses, spentCoins)
 			.Select(x => (SilentPaymentAddress: x.Key, SilentPaymentPubKey: x.Value.First()))
-			.Select(x => (x.SilentPaymentAddress, XOnlyPubKey: x.SilentPaymentPubKey.PubKey))
-			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.XOnlyPubKey.ToBytes())))
+			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootInternalPubKey(x.SilentPaymentPubKey.ToBytes()).GetTaprootFullPubKey()))
 			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
 
 		var tx = psbt.GetOriginalTransaction();

@@ -73,13 +73,18 @@ public static class ServiceFactory
 		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
 
 		ExtPubKey? taprootExtPubKey = null;
+		ExtPubKey? silentPaymentScanExtPubKey = null;
+		ExtPubKey? silentPaymentSpendExtPubKey = null;
 		if (isTaprootAllowed)
 		{
 			KeyPath taprootAccountKeyPath = KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86);
 			taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
+
+			silentPaymentScanExtPubKey = extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, KeyPurpose.Scan)).Neuter();
+			silentPaymentSpendExtPubKey = extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, KeyPurpose.Spend)).Neuter();
 		}
 
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, 21, blockchainState, null, segwitAccountKeyPath, null);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, 21, blockchainState, null, segwitAccountKeyPath, null);
 	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()
@@ -89,6 +94,9 @@ public static class ServiceFactory
 
 		return KeyManager.CreateNewWatchOnly(
 			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit)).Neuter(),
-			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86)).Neuter());
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86)).Neuter(),
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, KeyPurpose.Scan)).Neuter(),
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, KeyPurpose.Spend)).Neuter()
+			);
 	}
 }

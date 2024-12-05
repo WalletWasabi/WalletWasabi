@@ -18,17 +18,18 @@ public static class CurrencyExtensions
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination)
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, Destination destination)
 	{
 		var isNormalPayment = result.OuterWalletOutputs.Any();
 
-		if (isNormalPayment)
+		if (isNormalPayment || destination is Destination.Silent)
 		{
 			return result.OuterWalletOutputs.Sum(x => x.Amount);
 		}
 
 		return result.InnerWalletOutputs
-			.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
+			.Where(x => destination is Destination.Loudly loudly && x.ScriptPubKey == loudly.ScriptPubKey ||
+			            destination is Destination.Silent silent && silent.IsOwnScript(x.ScriptPubKey))
 			.Select(x => x.Amount)
 			.Sum();
 	}

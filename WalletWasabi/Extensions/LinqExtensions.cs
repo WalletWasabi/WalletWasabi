@@ -177,6 +177,13 @@ public static class LinqExtensions
 			}
 		}
 	}
+
+	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: class =>
+		source.Where(x => x is not null).Select(x => x!);
+
+	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: struct =>
+		source.Where(x => x.HasValue).Select(x => x!.Value);
+
 	public static IEnumerable<T> Singleton<T>(this T item)
 	{
 		yield return item;

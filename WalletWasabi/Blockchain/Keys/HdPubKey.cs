@@ -2,6 +2,7 @@ using NBitcoin;
 using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
@@ -46,7 +47,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		}
 		else
 		{
-			throw new ArgumentException(nameof(FullKeyPath));
+			IsInternal = false;
 		}
 	}
 
@@ -78,6 +79,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
+
+	[JsonProperty(Order = 5)]
+	public ECPubKey? TweakData { get; set; }
 
 	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>
 	/// <remarks>Value can be non-<c>null</c> only for <see cref="IsInternal">internal keys</see> as they should be used just once.</remarks>

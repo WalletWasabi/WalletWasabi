@@ -419,8 +419,8 @@ public static class NBitcoinExtensions
 		return null;
 	}
 
-	public static BitcoinSecret GetBitcoinSecret(this ExtKey hdKey, Network network, Script scriptPubKey)
-		=> GetBitcoinSecret(network, hdKey.PrivateKey, scriptPubKey);
+	public static BitcoinSecret GetBitcoinSecret(this Key key, Network network, Script scriptPubKey)
+		=> GetBitcoinSecret(network, key, scriptPubKey);
 
 	public static BitcoinSecret GetBitcoinSecret(Network network, Key privateKey, Script scriptPubKey)
 	{
