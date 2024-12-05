@@ -21,9 +21,9 @@ This project incorporates code and dependencies from the following open source p
 **Included:** Reactive extensions for managing dynamic collections.  
 
 ## Ginger Wallet
-**License:** MIT License
-**Copyright:** Copyright (c) 2024 GingerPrivacy
-**Included:** Settings layout
+**License:** MIT License  
+**Copyright:** Copyright (c) 2024 GingerPrivacy  
+**Included:** Settings layout  
 
 ## HWI (Hardware Wallet Interface)
 **License:** MIT License  
