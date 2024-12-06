@@ -36,6 +36,8 @@ public partial class TransactionModel : ReactiveObject
 
 	public bool IsChild { get; set; }
 
+	public required Amount Balance { get; set; }
+
 	public required Func<string> HexFunction { get; set; }
 	public Lazy<string> Hex => new(HexFunction());
 
