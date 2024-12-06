@@ -1,33 +1,36 @@
 ## Release Highlights
-
-🌐 Enhanced Tor integration
-📊 Better BTC amount formatting
-🔍 More insight on transactions
-💰 [Beta] Payment in coinjoin (RPC only)
-🔒 Trezor Safe 5 & ColdCard Q support
+🪲 Bug Fixes
+💫 Settings Layout & UI Enhancements
+⤴️ Tor Update: Upgraded to v13.5.9
+🚫 Buy Anything Button Disabled
 
 ## Release Summary
+Wasabi Wallet v2.3.1 is a stability-focused release packed with critical bug fixes and preparatory changes for upcoming major features.
 
-Wasabi Wallet v2.3.0.0 release
+### 🪲 Notable Bug Fixes
+- Fixed an issue where the transaction broadcaster displayed an error even when transactions were successfully broadcast.
+- Resolved a problem with DNS endpoints for remote Bitcoin nodes
+- Improved the amount decomposer to prevent privacy leaks when using the payment-in-round feature.
+- Fixed sorting tables by amount
+- Sometimes small rounds were not recognized as such by the wallet, leading to improper anon score computation  
 
-This version of Wasabi introduces major improvements to the user experience with a more intuitive and useful interface, while continuing our efforts to enhance and streamline the codebase for easier maintainability and better building blocks for further improvements.
+### 💫 Settings & UI Enhancements
+The Settings layout has been refined, optimizing space for a more streamlined user experience.  
 
-🌐 Enhanced Tor integration
+Additionally, some new UI features have been implemented:  
+- Coin lists now display the address associated with each UTXO.  
+- Added functionality to copy addresses directly from the Coin List view  
 
-We’ve completely rewritten our Tor integration, replacing custom code with a more efficient, standard HttpClient. This not only improves performance but also enhances code clarity, making it easier to review which identities are used in specific contexts. This reduces potential errors and improves the wallet's overall security.
+### 🚫 Buy Anything Button Disabled
+This feature, launched nearly a year ago, allowed users to access the premium ShopInBit concierge service directly through the wallet.  
 
-📊 Better BTC amount formatting
+This version disables it, for the following reasons:  
+- Limited usage among users.  
+- The same service is fully accessible via the ShopInBit platform.  
+- Occupies valuable interface space  
+- Improving the experience would require additional maintenance costs.  
 
-Amount formatting has been significantly improved across the wallet, offering clearer readability for both small and large balances, whether you want to read as BTC (decimals) or Sats. The aesthetics of all screens presenting amounts have been revisited to be smoother and consistent throughout the application.
 
-🔍 More insight on transactions
+Starting with this release, the button will disappear if there are no active or completed orders. Users can still access the interface to manage or finalize ongoing orders.
 
-The _Preview Transaction_ and _Transaction Details_ dialogs now include a lists of inputs and outputs. This long-requested feature offers insight into the privacy-enhancing effects of coinjoins and the level of anonymity achieved with each transaction. Additionally, it is now visually clear how privacy suggestions improves transactions.
-
-💰 [Beta] Payment in coinjoin (RPC only)
-
-Our Payment in coinjoin feature is now officially in beta! It is currently accessible only though the RPC. While this feature is still in development and lacks certain functionalities, we encourage users to test it and provide feedback. Learn more about it in the [Documentation](https://docs.wasabiwallet.io/using-wasabi/RPC.html#payincoinjoin)
-
-🔒 Trezor Safe 5 & ColdCard Q support
-
-Hardware Wallet Interface (HWI) has been updated to version 3.1.0 along with support for Trezor Safe 5 & ColdCard Q.
+In the next release, the feature will be completely removed from the codebase.
