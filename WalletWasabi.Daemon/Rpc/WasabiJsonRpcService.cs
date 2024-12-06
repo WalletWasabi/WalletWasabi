@@ -237,7 +237,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
-				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var result = ActiveWallet!.BuildTransaction(
 			password,
 			payment,
@@ -266,7 +266,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var payment = new PaymentIntent(
 			payments.Select(
 				p =>
-				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
+				new DestinationRequest(p.Sendto.ScriptPubKey, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
 		var result = ActiveWallet!.BuildTransactionWithoutOverpaymentProtection(
 			password,
 			payment,

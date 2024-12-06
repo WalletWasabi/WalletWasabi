@@ -1,7 +1,6 @@
 using NBitcoin;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -10,7 +9,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -833,36 +831,6 @@ public class TransactionFactoryTests
 				Assert.Fail("Main value is not correct.");
 			}
 		}
-	}
-
-	[Fact]
-	public void CanPaySilentPaymentAddresses()
-	{
-		Money paymentAmount = Money.Coins(0.02m);
-
-		TransactionFactory transactionFactory = ServiceFactory.CreateTransactionFactory([("", 0, 1.0m, true, 100)]);
-
-		using var scanKey = new Key();
-		using var spendKey = new Key();
-
-		var silentPaymentAddress = new SilentPaymentAddress(0,
-			ECPubKey.Create(scanKey.PubKey.ToBytes()),
-			ECPubKey.Create(spendKey.PubKey.ToBytes()));
-		PaymentIntent payment = new(silentPaymentAddress, MoneyRequest.Create(paymentAmount));
-		Assert.Equal(ChangeStrategy.Auto, payment.ChangeStrategy);
-
-		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(12m).Build();
-		var result = transactionFactory.BuildTransaction(txParameters);
-		var paymentOutput = Assert.Single(result.OuterWalletOutputs);
-
-		var spentCoins = result.SpentCoins.Select(x => new Utxo(x.Outpoint, transactionFactory.KeyManager.GetSecrets("foo", [x.ScriptPubKey]).First().PrivateKey, x.ScriptPubKey));
-		using var partialSecret = SilentPayment.ComputePartialSecret(spentCoins);
-		var scriptPubKey = SilentPayment.ComputeScriptPubKey(silentPaymentAddress, partialSecret, 0);
-		Assert.Equal(paymentOutput.ScriptPubKey, scriptPubKey);
-
-		var pk = SilentPayment.ComputePrivKey(silentPaymentAddress, ECPrivKey.Create(spendKey.ToBytes()), partialSecret, 0);
-		var generatedScriptPubKey = new TaprootPubKey(pk.CreateXOnlyPubKey().ToBytes()).ScriptPubKey;
-		Assert.Equal(paymentOutput.ScriptPubKey, generatedScriptPubKey);
 	}
 
 	private static TransactionParametersBuilder CreateBuilder()

@@ -80,7 +80,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();
-		var scp = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
+		var scp = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
 
 		PaymentIntent validIntent = new(scp, Money.Coins(1));
 		PaymentIntent invalidIntent = new(new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)), new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));
