@@ -16,7 +16,7 @@ public class JsonRpcServer : BackgroundService
 	{
 		_config = config;
 		_terminateService = terminateService;
-		_requestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service, config.Network);
+		_requestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service);
 
 		_listener = new HttpListener();
 		_listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
