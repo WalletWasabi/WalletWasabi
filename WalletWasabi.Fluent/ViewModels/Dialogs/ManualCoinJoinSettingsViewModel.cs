@@ -12,6 +12,7 @@ public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
+	[AutoNotify] private bool _newWalletWorkflow;
 
 	public ManualCoinJoinSettingsViewModel(CoinJoinProfileViewModelBase current)
 	{

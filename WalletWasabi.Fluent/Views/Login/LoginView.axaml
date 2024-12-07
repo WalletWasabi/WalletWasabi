@@ -57,7 +57,7 @@
                 <FocusOnAttachedBehavior />
               </Interaction.Behaviors>
             </CopyablePasswordTextBox>
-            <Panel Margin="0 -20 0 0 ">
+            <Panel Margin="0 5 0 0 ">
               <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
                 <Button.IsDefault>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
