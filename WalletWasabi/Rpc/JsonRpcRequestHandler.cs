@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Extensions;
@@ -19,24 +20,27 @@ namespace WalletWasabi.Rpc;
 public class JsonRpcRequestHandler<TService>
 	where TService : notnull
 {
-	private static readonly JsonSerializerSettings DefaultSettings = new()
-	{
-		NullValueHandling = NullValueHandling.Ignore,
-		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-		Converters = new JsonConverter[]
-		{
-			new Uint256JsonConverter(),
-			new OutPointAsTxoRefJsonConverter(),
-			new BitcoinAddressJsonConverter()
-		}
-	};
+	private readonly JsonSerializerSettings _defaultSettings;
 
-	private static readonly JsonSerializer DefaultSerializer = JsonSerializer.Create(DefaultSettings);
+	private readonly JsonSerializer _defaultSerializer;
 
-	public JsonRpcRequestHandler(TService service)
+	public JsonRpcRequestHandler(TService service, Network network)
 	{
 		_service = service;
 		_metadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
+		_defaultSettings = new()
+    	{
+    		NullValueHandling = NullValueHandling.Ignore,
+    		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+    		Converters = new JsonConverter[]
+    		{
+    			new Uint256JsonConverter(),
+    			new OutPointAsTxoRefJsonConverter(),
+    			new BitcoinAddressJsonConverter(),
+    			new DestinationJsonConverter(network)
+    		}
+    	};
+		_defaultSerializer = JsonSerializer.Create(_defaultSettings);
 	}
 
 	private readonly TService _service;
@@ -60,7 +64,7 @@ public class JsonRpcRequestHandler<TService>
 
 	public string CreateParseErrorResponse()
 	{
-		return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(DefaultSettings);
+		return JsonRpcResponse.CreateErrorResponse(null, JsonRpcErrorCodes.ParseError).ToJson(_defaultSettings);
 	}
 
 	public async Task<string> HandleRequestsAsync(string path, JsonRpcRequest[] jsonRpcRequests, bool isBatch, CancellationToken cancellationToken)
@@ -98,7 +102,7 @@ public class JsonRpcRequestHandler<TService>
 				for (int i = 0; i < count; i++)
 				{
 					var parameter = methodParameters[i];
-					var item = jArray[i].ToObject(parameter.type, DefaultSerializer)
+					var item = jArray[i].ToObject(parameter.type, _defaultSerializer)
 						?? throw new InvalidOperationException($"Parameter `{parameter.name}` is null.");
 					parameters.Add(item);
 				}
@@ -122,7 +126,7 @@ public class JsonRpcRequestHandler<TService>
 					}
 
 					var parameterValue = jObj[parameter.name]!;
-					if (parameterValue.ToObject(parameter.type, DefaultSerializer) is not { } parameterTypedValue)
+					if (parameterValue.ToObject(parameter.type, _defaultSerializer) is not { } parameterTypedValue)
 					{
 						return Error(
 							JsonRpcErrorCodes.InvalidParams,
@@ -184,7 +188,7 @@ public class JsonRpcRequestHandler<TService>
 			{
 				response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, result);
 			}
-			return response.ToJson(DefaultSettings);
+			return response.ToJson(_defaultSettings);
 		}
 		catch (TargetInvocationException e)
 		{
@@ -201,7 +205,7 @@ public class JsonRpcRequestHandler<TService>
 	{
 		var response = JsonRpcResponse.CreateErrorResponse(id, code, reason);
 		return id is { }
-			? response.ToJson(DefaultSettings)
+			? response.ToJson(_defaultSettings)
 			: "";
 	}
 }
