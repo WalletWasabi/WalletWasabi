@@ -73,6 +73,9 @@
 		<None Update="./UnitTests/Data/VerboseBlock.json">
 			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
+		<None Update="UnitTests\Data\SilentPaymentTestVectors.json">
+			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+		</None>
 	</ItemGroup>
 
 	<ItemGroup>
