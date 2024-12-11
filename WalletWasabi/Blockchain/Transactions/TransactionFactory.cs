@@ -218,7 +218,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+			IEnumerable<Key> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
 			builder.SignPSBT(psbt);
 
