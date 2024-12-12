@@ -309,7 +309,7 @@ public class Global
 			? Config.JsonRpcServerPrefixes.Append($"http://+:37129/").ToArray()
 			: Config.JsonRpcServerPrefixes;
 
-		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes);
+		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes, Config.Network);
 		if (jsonRpcServerConfig.IsEnabled)
 		{
 			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(global: this);

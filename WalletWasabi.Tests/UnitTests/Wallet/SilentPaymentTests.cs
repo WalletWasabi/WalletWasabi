@@ -6,6 +6,7 @@ using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
@@ -48,8 +49,8 @@ public class SilentPaymentTests
 				{
 					continue;
 				}
-				var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.scan_priv_key));
-				var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.spend_priv_key));
+				using var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.scan_priv_key));
+				using var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.spend_priv_key));
 				var labels = given.Labels;
 
 				var baseAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
@@ -57,7 +58,7 @@ public class SilentPaymentTests
 				foreach (var label in labels)
 				{
 					var labelKey = SilentPayment.CreateLabel(scanKey, (uint)label);
-					addresses.Add(baseAddress.DeriveAddressForLabel(labelKey));
+					addresses.Add(baseAddress.DeriveAddressForLabel(labelKey.CreatePubKey()));
 				}
 				var expectedAddresses = expected.Addresses.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
 				Assert.Equal(expectedAddresses, addresses);
@@ -66,7 +67,7 @@ public class SilentPaymentTests
 
 				var outputs = given.Outputs.Select(Tweak).ToArray();
 				var xonlyPks = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, outputs);
-				var all = xonlyPks;
+				var all = xonlyPks.SelectMany(x => x.Value);
 
 				Assert.All(
 					expected.Outputs.Select(x => Tweak(x.pub_key)),
@@ -120,7 +121,7 @@ public record SilentPaymentTestVector(string comment, Sending[] Sending, Receivi
 	{
 		var vectorsJson = File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json");
 		var vectors = JsonConvert.DeserializeObject<IEnumerable<SilentPaymentTestVector>>(vectorsJson);
-		return vectors; //.Where(x => x.comment.Contains("Multiple outputs with labels: un-labeled and labeled address; same recipient"));
+		return vectors.Where(x => x.comment.Contains("Receiving"));
 	}
 
 	private static readonly SilentPaymentTestVector[] TestCases = VectorsData().ToArray();
