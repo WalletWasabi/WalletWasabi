@@ -16,7 +16,7 @@ public class HardwareWalletViewModel : WalletViewModel
 		{
 			try
 			{
-				var file = await FileDialogHelper.OpenFileAsync("Import Transaction", new[] { "psbt", "txn", "*" });
+				var file = await FileDialogHelper.OpenFileAsync(Lang.Resources.HardwareWalletViewModel_ImportTransaction_Title, new[] { "psbt", "txn", "*" });
 				if (file is { })
 				{
 					var path = file.Path.LocalPath;
@@ -27,7 +27,10 @@ public class HardwareWalletViewModel : WalletViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
+				await ShowErrorAsync(
+					Lang.Resources.HardwareWalletViewModel_ImportTransaction_Title,
+					ex.ToUserFriendlyString(),
+					Lang.Resources.HardwareWalletViewModel_Error_LoadTransaction_Caption);
 			}
 		});
 	}

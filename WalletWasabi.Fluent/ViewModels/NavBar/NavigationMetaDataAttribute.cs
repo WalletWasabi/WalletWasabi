@@ -1,3 +1,5 @@
+using WalletWasabi.Fluent.Models;
+
 #pragma warning disable IDE0130 // Namespace does not match folder structure (see https://github.com/WalletWasabi/WalletWasabi/pull/10576#issuecomment-1552750543)
 
 namespace WalletWasabi.Fluent;
@@ -11,15 +13,14 @@ public sealed class NavigationMetaDataAttribute : Attribute
 
 	public string? Caption { get; set; }
 
+	public string? Keywords { get; set; }
 	public string? IconName { get; set; }
 
 	public string? IconNameFocused { get; set; }
 
 	public int Order { get; set; }
 
-	public string? Category { get; set; }
-
-	public string[]? Keywords { get; set; }
+	public SearchCategory Category { get; set; }
 
 	public NavBarPosition NavBarPosition { get; set; }
 

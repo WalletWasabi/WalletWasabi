@@ -6,6 +6,7 @@ using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
@@ -14,11 +15,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Settings",
-	Caption = "Manage appearance, privacy and other settings",
 	Order = 1,
-	Category = "General",
-	Keywords = new[] { "Settings", "General", "User", "Interface", "Advanced" },
+	Category = SearchCategory.General,
+	Title = "SettingsPageViewModel_Title",
+	Caption = "SettingsPageViewModel_Caption",
+	Keywords = "SettingsPageViewModel_Keywords",
 	IconName = "nav_settings_24_regular",
 	IconNameFocused = "nav_settings_24_filled",
 	Searchable = false,
@@ -55,9 +56,9 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		// Show restart notification when needed only if this page is not active.
 		UiContext.ApplicationSettings.IsRestartNeeded
-				 .Where(x => x && !IsActive)
-				 .Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
-				 .Subscribe();
+			.Where(x => x && !IsActive)
+			.Do(_ => NotificationHelpers.Show(new RestartViewModel(Lang.Resources.SettingsPageViewModel_Restart)))
+			.Subscribe();
 	}
 
 	public bool IsReadOnly => UiContext.ApplicationSettings.IsOverridden;

@@ -77,6 +77,7 @@ public class ConfigManagerNgTests
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
+			  "DisplayLanguage": 1,
 			  "ConfigVersion": 0
 			}
 			""";

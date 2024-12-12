@@ -13,11 +13,11 @@ namespace WalletWasabi.Userfacing;
 public static class PasswordHelper
 {
 	public const int MaxPasswordLength = 150;
-	public const string CompatibilityPasswordWarnMessage = "Compatibility passphrase was used! Please consider generating a new wallet to ensure recoverability!";
-	public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
-	public const string MatchingMessage = "Passphrases don't match.";
-	public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
-	public static readonly string PasswordTooLongMessage = $"Passphrase is too long.";
+	public static readonly string CompatibilityPasswordWarnMessage = Lang.Resources.Password_Message_CompatibilityPasswordWarn;
+	public static readonly string TrimWarnMessage = Lang.Resources.Password_Message_TrimWarn;
+	public static readonly string MatchingMessage = Lang.Resources.Password_Message_Matching;
+	public static readonly string WhitespaceMessage = Lang.Resources.Password_Message_Whitespace;
+	public static readonly string PasswordTooLongMessage = Lang.Resources.Password_Message_TooLong;
 
 	public static string[] GetPossiblePasswords(string? originalPassword)
 	{

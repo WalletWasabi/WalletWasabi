@@ -2,14 +2,13 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.AddWallet;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Login;
 
-[NavigationMetaData(Title = "")]
+[NavigationMetaData(Title = "Utils_Empty")]
 public partial class LoginViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _password;
@@ -43,13 +42,16 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (!success)
 		{
-			ErrorMessage = "The passphrase is incorrect! Please try again.";
+			ErrorMessage = Lang.Resources.LoginViewModel_Error_PassphraseIncorrect_Message;
 			return;
 		}
 
 		if (compatibilityPasswordUsed)
 		{
-			await ShowErrorAsync(Title, PasswordHelper.CompatibilityPasswordWarnMessage, "Compatibility password was used");
+			await ShowErrorAsync(
+				"",
+				PasswordHelper.CompatibilityPasswordWarnMessage,
+				Lang.Resources.LoginViewModel_Error_CompatibilityPasswordUsed_Caption);
 		}
 
 		walletModel.Auth.CompleteLogin();

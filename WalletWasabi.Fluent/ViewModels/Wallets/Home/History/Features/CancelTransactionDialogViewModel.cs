@@ -4,14 +4,13 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 
-[NavigationMetaData(Title = "Cancel Transaction", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "CancelTransactionDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CancelTransactionDialogViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -54,7 +53,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 			if (isAuthorized)
 			{
 				await _wallet.Transactions.SendAsync(cancellingTransaction);
-				var (title, caption) = ("Success", "Your transaction has been successfully cancelled.");
+				var (title, caption) = ( Lang.Resources.Words_Success,  Lang.Resources.CancelTransactionDialogViewModel_Success);
 
 				// TODO: Remove this after SendSuccessViewModel is decoupled
 				var wallet = MainViewModel.Instance.NavBar.Wallets.First(x => x.Wallet.WalletName == _wallet.Name).Wallet;
@@ -65,8 +64,12 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			var msg = cancellingTransaction.TargetTransaction.IsConfirmed ? "The transaction is already confirmed." : ex.ToUserFriendlyString();
-			UiContext.Navigate().To().ShowErrorDialog(msg, "Cancellation Failed", "Wasabi was unable to cancel your transaction.", NavigationTarget.CompactDialogScreen);
+			var msg = cancellingTransaction.TargetTransaction.IsConfirmed ?  Lang.Resources.CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Message : ex.ToUserFriendlyString();
+			UiContext.Navigate().To().ShowErrorDialog(
+				msg,
+				Lang.Resources.CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Title,
+				Lang.Resources.CancelTransactionDialogViewModel_Error_AlreadyConfirmed_Caption,
+				NavigationTarget.CompactDialogScreen);
 		}
 
 		IsBusy = false;
@@ -76,7 +79,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	{
 		if (_wallet.Auth.HasPassword)
 		{
-			return await Navigate().To().PasswordAuthDialog(_wallet, "Send").GetResultAsync();
+			return await Navigate().To().PasswordAuthDialog(_wallet,  Lang.Resources.Words_Send).GetResultAsync();
 		}
 
 		return true;

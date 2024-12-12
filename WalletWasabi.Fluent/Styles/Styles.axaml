@@ -49,4 +49,5 @@
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ScrollBar.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ComboBoxItem.axaml" />
   <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/TabControl.axaml" />
+  <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/ListBox.axaml" />
 </Styles>

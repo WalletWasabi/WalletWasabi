@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -156,7 +156,7 @@ public class WasabiApplication
 
 		foreach (var (parameter, hint) in Config.GetConfigOptionsMetadata().OrderBy(x => x.ParameterName))
 		{
-			Console.Write($"  --{parameter.ToLower(),-30} ");
+			Console.Write($"  --{parameter.ToLowerInvariant(),-30} ");
 			var hintLines = hint.SplitLines(lineWidth: 40);
 			Console.WriteLine(hintLines[0]);
 			foreach (var hintLine in hintLines.Skip(1))

@@ -1,5 +1,7 @@
+using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -9,14 +11,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Advanced",
-	Caption = "Manage advanced settings",
 	Order = 3,
-	Category = "Settings",
-	Keywords = new[]
-	{
-			"Settings", "Advanced", "Enable", "GPU", "Backend", "URI"
-	},
+	Category = SearchCategory.Settings,
+	Title = "AdvancedSettingsTabViewModel_Title",
+	Caption = "AdvancedSettingsTabViewModel_Caption",
+	Keywords = "AdvancedSettingsTabViewModel_Keywords",
 	IconName = "settings_general_regular")]
 public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 {
@@ -48,7 +47,7 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 
 		if (!Uri.TryCreate(backendUri, UriKind.Absolute, out _))
 		{
-			errors.Add(ErrorSeverity.Error, "Invalid URI.");
+			errors.Add(ErrorSeverity.Error, $"{Lang.Resources.Sentences_InvalidURI}");
 			return;
 		}
 

@@ -13,7 +13,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
-[NavigationMetaData(Title = "Exclude Coins", NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "ExcludedCoinsViewModel_Title", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 {
 	private readonly IWalletModel _wallet;

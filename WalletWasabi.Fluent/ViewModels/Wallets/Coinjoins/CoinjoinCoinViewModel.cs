@@ -28,7 +28,7 @@ public class CoinjoinCoinViewModel : CoinjoinCoinListItem
 		Children = coins;
 		TotalCoinsOnSideCount = coinjoinInputCount;
 		IsExpanded = false;
-		TitleText = $"{Children.Count} out of {TotalCoinsOnSideCount}";
+		TitleText = $"{Children.Count} {Lang.Resources.Sentences_out_of} {TotalCoinsOnSideCount}";
 	}
 	public SmartCoin? Coin { get; }
 }

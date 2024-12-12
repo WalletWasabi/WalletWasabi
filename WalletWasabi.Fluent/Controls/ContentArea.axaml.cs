@@ -38,13 +38,13 @@ public class ContentArea : ContentControl
 		AvaloniaProperty.Register<ContentArea, bool>(nameof(FocusCancel));
 
 	public static readonly StyledProperty<object> CancelContentProperty =
-		AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), "Cancel");
+		AvaloniaProperty.Register<ContentArea, object>(nameof(CancelContent), Lang.Resources.Words_Cancel);
 
 	public static readonly StyledProperty<object> NextContentProperty =
-		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Next");
+		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), Lang.Resources.Words_Next);
 
 	public static readonly StyledProperty<object> SkipContentProperty =
-		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), "Skip");
+		AvaloniaProperty.Register<ContentArea, object>(nameof(NextContent), Lang.Resources.Words_Skip);
 
 	public static readonly StyledProperty<bool> IsBusyProperty =
 		AvaloniaProperty.Register<ContentArea, bool>(nameof(IsBusy));

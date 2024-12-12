@@ -11,7 +11,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Confirm Recovery Words")]
+[NavigationMetaData(Title = "ConfirmRecoveryWordsViewModel_Title")]
 public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 {
 	private readonly List<RecoveryWordViewModel> _words;
@@ -134,10 +134,10 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
-		var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
-			"It's needed to open and to recover your wallet.\n" +
-			"It's a recovery words extension for more security.";
-		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
+		var password = await Navigate().To().CreatePasswordDialog(
+			Lang.Resources.ConfirmRecoveryWordsViewModel_AddPassphrase_Title,
+			Lang.Resources.ConfirmRecoveryWordsViewModel_AddPassphrase_Caption,
+			enableEmpty: true).GetResultAsync();
 
 		if (password is { })
 		{

@@ -12,7 +12,8 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
-[NavigationMetaData(Title = "Transaction Broadcaster")]
+[NavigationMetaData(Title = "LoadTransactionViewModel_Title")]
+
 public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransaction?>
 {
 	[AutoNotify] private SmartTransaction? _finalTransaction;
@@ -43,7 +44,7 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 	{
 		try
 		{
-			var file = await FileDialogHelper.OpenFileAsync("Import Transaction", new[] { "psbt", "txn", "*" });
+			var file = await FileDialogHelper.OpenFileAsync(Lang.Resources.LoadTransactionViewModel_ImportTransaction_Title, new[] { "psbt", "txn", "*" });
 			if (file is { })
 			{
 				var filePath = file.Path.LocalPath;
@@ -53,7 +54,10 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to load the transaction.");
+			await ShowErrorAsync(
+				Lang.Resources.LoadTransactionViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.LoadTransactionViewModel_Error_LoadTransaction_Caption);
 		}
 	}
 
@@ -73,7 +77,10 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			await ShowErrorAsync(Title, ex.ToUserFriendlyString(), "It was not possible to paste the transaction.");
+			await ShowErrorAsync(
+				Lang.Resources.LoadTransactionViewModel_Title,
+				ex.ToUserFriendlyString(),
+				Lang.Resources.LoadTransactionViewModel_Error_PasteTransaction_Caption);
 		}
 	}
 }

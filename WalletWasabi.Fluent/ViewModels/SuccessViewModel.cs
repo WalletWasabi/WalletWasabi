@@ -5,7 +5,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-[NavigationMetaData(Title = "Success")]
+[NavigationMetaData(Title = "SuccessViewModel_Title")]
 public partial class SuccessViewModel : RoutableViewModel
 {
 	private SuccessViewModel()
