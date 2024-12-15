@@ -564,7 +564,7 @@ fi
 
 if [ "$RELEASE_NOTE" = "yes" ]; then
   sed -e "s/{version}/$VERSION/g" \
-      -e "/{highlights}/r ./Contrib/ReleaseHighlight.md" \
+      -e "/{highlights}/r ./WalletWasabi/ReleaseHighlights/ReleaseHighlights.md" \
       -e "/{highlights}/d" \
       ./Contrib/ReleaseTemplate.md
 fi

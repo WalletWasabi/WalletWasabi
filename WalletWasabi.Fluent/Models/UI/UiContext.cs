@@ -1,3 +1,4 @@
+using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -32,7 +33,7 @@ public class UiContext
 		IEditableSearchSource editableSearchSource,
 		ITorStatusCheckerModel torStatusChecker,
 		IHealthMonitor healthMonitor,
-		ReleaseHighlights.ReleaseHighlights releaseHighlights)
+		ReleaseHighlights releaseHighlights)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -65,7 +66,7 @@ public class UiContext
 	public IEditableSearchSource EditableSearchSource { get; }
 	public ITorStatusCheckerModel TorStatusChecker { get; }
 	public IHealthMonitor HealthMonitor { get; }
-	public ReleaseHighlights.ReleaseHighlights ReleaseHighlights { get; }
+	public ReleaseHighlights ReleaseHighlights { get; }
 	public MainViewModel? MainViewModel { get; private set; }
 
 	public void RegisterNavigation(INavigate navigate)

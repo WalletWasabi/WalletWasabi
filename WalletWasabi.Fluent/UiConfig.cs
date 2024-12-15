@@ -19,7 +19,7 @@ public class UiConfig : ConfigBase
 	private string _windowState = "Normal";
 	private bool _runOnSystemStartup;
 	private bool _oobe;
-	private Version _lastVersionHighlightsDisplayed = new (2, 3, 0);
+	private Version _lastVersionHighlightsDisplayed = new (2, 3, 1);
 	private bool _hideOnClose;
 	private bool _autoPaste;
 	private int _feeTarget;

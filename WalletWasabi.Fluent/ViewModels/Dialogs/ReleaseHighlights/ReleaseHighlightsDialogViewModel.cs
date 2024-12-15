@@ -20,5 +20,5 @@ public partial class ReleaseHighlightsDialogViewModel: DialogViewModelBase<Unit>
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 	}
 
-	public WalletWasabi.ReleaseHighlights.ReleaseHighlights ReleaseHighlights { get; }
+	public Announcements.ReleaseHighlights ReleaseHighlights { get; }
 }

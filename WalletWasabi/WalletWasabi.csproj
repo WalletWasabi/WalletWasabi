@@ -85,7 +85,7 @@
 		<None Update="BuyAnything\Data\Countries.json">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="ReleaseHighlights\ReleaseHighlights.md">
+		<None Update="Announcements\ReleaseHighlights.md">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 	</ItemGroup>

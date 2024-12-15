@@ -1,9 +1,8 @@
-
 using System.IO;
 using System.Linq;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.ReleaseHighlights;
+namespace WalletWasabi.Announcements;
 
 public class ReleaseHighlights
 {
@@ -28,7 +27,7 @@ public class ReleaseHighlights
 
 	private void Parse()
 	{
-		var releaseHighlights = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "ReleaseHighlights", "ReleaseHighlights.md");
+		var releaseHighlights = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Announcements", "ReleaseHighlights.md");
 		if (!File.Exists(releaseHighlights))
 		{
 			throw new FileNotFoundException("The release notes file was not found.", releaseHighlights);
