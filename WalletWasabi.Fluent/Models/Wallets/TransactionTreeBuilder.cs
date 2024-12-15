@@ -23,6 +23,8 @@ public class TransactionTreeBuilder
 		_wallet = wallet;
 	}
 
+	private Amount _balance = new (Money.Zero);
+
 	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
 	{
 		TransactionModel? coinJoinGroup = default;
@@ -32,6 +34,8 @@ public class TransactionTreeBuilder
 		for (var i = 0; i < summaries.Count; i++)
 		{
 			var item = summaries[i];
+
+			_balance = new Amount(_balance.Btc + item.Amount);
 
 			if (!item.IsOwnCoinjoin())
 			{
@@ -98,6 +102,7 @@ public class TransactionTreeBuilder
 				}
 
 				var speedUpGroup = CreateSpeedUpGroup(summary, parent, groupItems);
+
 				result.Add(speedUpGroup);
 
 				// Remove the items.
@@ -125,6 +130,7 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
+			Balance = _balance,
 			HasBeenSpedUp = transactionSummary.IsSpeedup,
 			OrderIndex = index,
 			Labels = transactionSummary.Labels,
@@ -158,6 +164,7 @@ public class TransactionTreeBuilder
 		return new TransactionModel
 		{
 			Amount = Money.Zero,
+			Balance = _balance,
 			Labels = transactionSummary.Labels,
 			Confirmations = confirmations,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
@@ -184,6 +191,7 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = parent.Amount,
+			Balance = _balance,
 			OrderIndex = parent.OrderIndex,
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
@@ -248,6 +256,8 @@ public class TransactionTreeBuilder
 		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
 		coinjoinGroup.Amount = amount;
 
+		coinjoinGroup.Balance = _balance;
+
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 		coinjoinGroup.Fee = fee;
 
@@ -282,6 +292,7 @@ public class TransactionTreeBuilder
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
+			Balance = _balance,
 			OrderIndex = index,
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
