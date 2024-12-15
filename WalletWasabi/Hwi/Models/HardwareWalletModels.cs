@@ -37,6 +37,9 @@ public enum HardwareWalletModels
 	[FriendlyName("Ledger Nano X")]
 	Ledger_Nano_X,
 
+	[FriendlyName("Ledger Stax")]
+	Ledger_Stax,
+
 	[FriendlyName("Trezor One")]
 	Trezor_1,
 
