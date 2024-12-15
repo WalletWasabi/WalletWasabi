@@ -31,7 +31,8 @@ public class UiContext
 		IAmountProvider amountProvider,
 		IEditableSearchSource editableSearchSource,
 		ITorStatusCheckerModel torStatusChecker,
-		IHealthMonitor healthMonitor)
+		IHealthMonitor healthMonitor,
+		ReleaseHighlights.ReleaseHighlights releaseHighlights)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -47,6 +48,7 @@ public class UiContext
 		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
 		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
 		HealthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
+		ReleaseHighlights = releaseHighlights ?? throw new ArgumentNullException(nameof(releaseHighlights));
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -63,6 +65,7 @@ public class UiContext
 	public IEditableSearchSource EditableSearchSource { get; }
 	public ITorStatusCheckerModel TorStatusChecker { get; }
 	public IHealthMonitor HealthMonitor { get; }
+	public ReleaseHighlights.ReleaseHighlights ReleaseHighlights { get; }
 	public MainViewModel? MainViewModel { get; private set; }
 
 	public void RegisterNavigation(INavigate navigate)
