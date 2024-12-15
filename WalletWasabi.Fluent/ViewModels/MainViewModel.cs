@@ -77,10 +77,11 @@ public partial class MainViewModel : ViewModelBase
 				.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = UiContext.ApplicationSettings.Oobe;
+		var isFirstLaunch = !UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe)
+			if (isFirstLaunch)
 			{
 				IsOobeBackgroundVisible = true;
 
@@ -95,7 +96,7 @@ public partial class MainViewModel : ViewModelBase
 
 			await Task.Delay(1000);
 
-			if (Constants.ClientVersion > UiContext.ApplicationSettings.LastVersionHighlightsDisplayed)
+			if (!isFirstLaunch && Constants.ClientVersion > UiContext.ApplicationSettings.LastVersionHighlightsDisplayed)
 			{
 				await uiContext.Navigate().NavigateDialogAsync(new ReleaseHighlightsDialogViewModel(UiContext),
 					navigationMode: NavigationMode.Clear);
