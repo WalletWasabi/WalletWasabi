@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
+    <PackageVersion Include="Markdown.Avalonia" Version="11.0.3-a1" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />

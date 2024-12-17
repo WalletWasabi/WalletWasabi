@@ -1,0 +1,83 @@
+<Styles xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:ctxt="clr-namespace:ColorTextBlock.Avalonia;assembly=ColorTextBlock.Avalonia"
+        xmlns:mdctl="clr-namespace:Markdown.Avalonia.Controls;assembly=Markdown.Avalonia">
+
+  <Style Selector="ctxt|CTextBlock.Heading1">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+  </Style>
+  <Style Selector="ctxt|CTextBlock.Heading2">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+    <Setter Property="Margin" Value="0 20 0 0" />
+  </Style>
+  <Style Selector="ctxt|CTextBlock.Heading3">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+    <Setter Property="Margin" Value="0 20 0 7" />
+  </Style>
+  <Style Selector="ctxt|CTextBlock.Heading4">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+  </Style>
+  <Style Selector="ctxt|CTextBlock.Heading5">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+  </Style>
+  <Style Selector="ctxt|CTextBlock.Heading6">
+    <Setter Property="Foreground" Value="{DynamicResource TextForegroundColor}" />
+  </Style>
+
+  <Style Selector="mdctl|Rule.Single">
+    <Setter Property="Foreground">
+      <SolidColorBrush Opacity="0.4" Color="{DynamicResource SystemBaseHighColor}" />
+    </Setter>
+  </Style>
+  <Style Selector="mdctl|Rule.TwoLines">
+    <Setter Property="Foreground">
+      <SolidColorBrush Opacity="0.4" Color="{DynamicResource SystemBaseHighColor}" />
+    </Setter>
+  </Style>
+  <Style Selector="mdctl|Rule.Bold">
+    <Setter Property="Foreground">
+      <SolidColorBrush Opacity="0.4" Color="{DynamicResource SystemBaseHighColor}" />
+    </Setter>
+  </Style>
+  <Style Selector="mdctl|Rule.BoldWithSingle">
+    <Setter Property="Foreground">
+      <SolidColorBrush Opacity="0.4" Color="{DynamicResource SystemBaseHighColor}" />
+    </Setter>
+  </Style>
+
+  <Style Selector="ctxt|CHyperlink:pointerover">
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorLight3}"/>
+  </Style>
+
+  <Style Selector="Border.Table">
+    <Setter Property="Padding" Value="2"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource OverlayCornerRadius}"/>
+    <Setter Property="BorderThickness" Value="0"/>
+  </Style>
+
+  <Style Selector="Grid.Table">
+    <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="Border.TableHeader">
+    <Setter Property="Margin" Value="1 0"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="{DynamicResource Layer1BackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="Border.OddTableRow">
+    <Setter Property="Margin" Value="1 1"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="Border.EvenTableRow">
+    <Setter Property="Margin" Value="1 1"/>
+    <Setter Property="BorderThickness" Value="0"/>
+    <Setter Property="Background" Value="{DynamicResource Layer2BackgroundBrush}"/>
+  </Style>
+
+  <Style Selector="Border.TableHeader ctxt|CTextBlock">
+    <Setter Property="FontWeight" Value="Bold"/>
+  </Style>
+</Styles>

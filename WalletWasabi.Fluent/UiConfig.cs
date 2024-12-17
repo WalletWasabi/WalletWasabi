@@ -1,13 +1,10 @@
 using Newtonsoft.Json;
 using System.ComponentModel;
-using System.Reactive;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Fluent.Converters;
-using System.Runtime.Serialization;
-using System.Runtime.InteropServices;
-using WalletWasabi.Fluent.Models.Wallets;
+using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent;
 
@@ -22,6 +19,7 @@ public class UiConfig : ConfigBase
 	private string _windowState = "Normal";
 	private bool _runOnSystemStartup;
 	private bool _oobe;
+	private Version _lastVersionHighlightsDisplayed = new (2, 3, 1);
 	private bool _hideOnClose;
 	private bool _autoPaste;
 	private int _feeTarget;
@@ -43,11 +41,12 @@ public class UiConfig : ConfigBase
 				x => x.LastSelectedWallet,
 				x => x.WindowState,
 				x => x.Oobe,
+				x => x.LastVersionHighlightsDisplayed,
 				x => x.RunOnSystemStartup,
 				x => x.PrivacyMode,
 				x => x.HideOnClose,
 				x => x.FeeTarget,
-				(_, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
+				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
 			.Throttle(TimeSpan.FromMilliseconds(500))
 			.Skip(1) // Won't save on UiConfig creation.
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -74,6 +73,13 @@ public class UiConfig : ConfigBase
 	{
 		get => _oobe;
 		set => RaiseAndSetIfChanged(ref _oobe, value);
+	}
+
+	[JsonProperty(PropertyName = "LastVersionHighlightsDisplayed")]
+	public Version LastVersionHighlightsDisplayed
+	{
+		get => _lastVersionHighlightsDisplayed;
+		set => RaiseAndSetIfChanged(ref _lastVersionHighlightsDisplayed, value);
 	}
 
 	[JsonProperty(PropertyName = "WindowState")]
