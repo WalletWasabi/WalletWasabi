@@ -96,7 +96,9 @@ public partial class MainViewModel : ViewModelBase
 
 			await Task.Delay(1000);
 
-			if (!isFirstLaunch && Constants.ClientVersion > UiContext.ApplicationSettings.LastVersionHighlightsDisplayed)
+			var lastVersionHighlightsDisplayed = UiContext.ApplicationSettings.LastVersionHighlightsDisplayed;
+			UiContext.ApplicationSettings.LastVersionHighlightsDisplayed = Constants.ClientVersion;
+			if (!isFirstLaunch && Constants.ClientVersion > lastVersionHighlightsDisplayed)
 			{
 				await uiContext.Navigate().NavigateDialogAsync(new ReleaseHighlightsDialogViewModel(UiContext),
 					navigationMode: NavigationMode.Clear);

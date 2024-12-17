@@ -12,7 +12,6 @@ public partial class ReleaseHighlightsDialogViewModel: DialogViewModelBase<Unit>
 	public ReleaseHighlightsDialogViewModel(UiContext uiContext)
 	{
 		ReleaseHighlights = uiContext.ReleaseHighlights;
-		uiContext.ApplicationSettings.LastVersionHighlightsDisplayed = Constants.ClientVersion;
 
 		NextCommand = ReactiveCommand.Create(() => Close());
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel));
