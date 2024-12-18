@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing.Bip21;
@@ -19,11 +20,21 @@ public abstract record Address
 		{
 			Bitcoin bitcoin => bitcoin.Address.ToString(),
 			SilentPayment sp => sp.Address.ToWip(network),
-			Bip21Uri bip21 => $"bitcoin:{bip21.Address}"
-			                  + (bip21.Amount is not null ? $"&amount={bip21.Amount}" : "")
-			                  + (bip21.Label is not null ? $"&label={bip21.Label}" : "")
-			                  + (bip21.PayjoinEndpoint is not null ? $"&pj={bip21.PayjoinEndpoint}" : "")
+			Bip21Uri bip21 => UriToString(bip21)
 		};
+
+	private string UriToString(Bip21Uri bip21)
+	{
+		var parametersArray = new[]
+		{
+			bip21.Amount is not null ? $"amount={bip21.Amount}" : "",
+			bip21.Label is not null ? $"label={bip21.Label}" : "",
+			bip21.PayjoinEndpoint is not null ? $"pj={bip21.PayjoinEndpoint}" : ""
+		}.Where(x => x != "");
+		var parameterString = string.Join("&", parametersArray);
+
+		return string.Join("?", [$"bitcoin:{bip21.Address}", parameterString]);
+	}
 }
 
 public static class AddressParser

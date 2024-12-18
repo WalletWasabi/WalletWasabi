@@ -316,7 +316,7 @@ public partial class SendViewModel : RoutableViewModel
 					switch (success)
 					{
 						case Address.Bip21Uri bip21:
-							To = bip21.ToWif(_walletModel.Network);
+							To = bip21.Address.ToString();
 
 							if (bip21.Amount is not null)
 							{
