@@ -246,7 +246,8 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != parameters.TransactionInfo.Destination.ScriptPubKey);
+		var destinationScriptPubKey = GetScriptPubKeyOrFake(parameters.TransactionInfo.Destination);
+		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
 
 		if (hasChange)
 		{
@@ -338,11 +339,11 @@ public partial class PrivacySuggestionsModel
 			ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 				coinsToUse,
 				transactionInfo.FeeRate,
-				new TxOut(transactionInfo.Amount, transactionInfo.Destination),
+				new TxOut(transactionInfo.Amount, GetScriptPubKeyOrFake(transactionInfo.Destination)),
 				maxInputCount,
 				cancellationToken);
 
-		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
+		await foreach (IReadOnlyList<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			BuildTransactionResult? transaction = null;
 
@@ -352,7 +353,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					selection,
+					selection.Select(x => x.Outpoint),
 					tryToSign: false);
 			}
 			catch (Exception ex)
@@ -384,6 +385,7 @@ public partial class PrivacySuggestionsModel
 
 		try
 		{
+			// TODO: Verify the subtract fee change
 			txn = _wallet.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,
@@ -402,7 +404,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					coins,
+					coins.Select(x => x.Outpoint),
 					tryToSign: false);
 
 				isChangeless = true;
@@ -438,6 +440,14 @@ public partial class PrivacySuggestionsModel
 			_ => "the same amount"
 		};
 	}
+
+	private static Script GetScriptPubKeyOrFake(Destination destination) =>
+		destination switch
+		{
+			Destination.Loudly l => l.ScriptPubKey,
+			Destination.Silent s => s.FakeScriptPubKey,
+			_ => throw new ArgumentException("Unknown destination type")
+		};
 
 	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
 	{

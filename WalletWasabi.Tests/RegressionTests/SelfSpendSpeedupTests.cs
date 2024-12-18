@@ -245,7 +245,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 
 			#region HasNoChange
 
-			txToSpeedUp = wallet.BuildChangelessTransaction(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey().GetDestination()!, "bar", new FeeRate(1m), wallet.Coins);
+			txToSpeedUp = wallet.BuildChangelessTransaction(keyManager.GetNextReceiveKey("foo").GetAssumedScriptPubKey(), "bar", new FeeRate(1m), wallet.Coins);
 			await broadcaster.SendTransactionAsync(txToSpeedUp.Transaction);
 
 			foreach (var coin in txToSpeedUp.SpentCoins)

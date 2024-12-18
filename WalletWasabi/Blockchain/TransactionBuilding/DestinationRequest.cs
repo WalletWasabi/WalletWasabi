@@ -6,6 +6,17 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public abstract record Destination
 {
+	public static implicit operator Destination(BitcoinAddress address) => new Loudly(address.ScriptPubKey);
+	public static implicit operator Destination(Script scriptPubKey) => new Loudly(scriptPubKey);
+
+	public string ToString(Network network) =>
+		this switch
+		{
+			Loudly l => l.ScriptPubKey.GetDestinationAddress(network).ToString(),
+			Silent s => s.Address.ToWip(network),
+			_ => throw new ArgumentException("Unknown Destination type")
+		};
+
 	public record Loudly(Script ScriptPubKey) : Destination;
 
 	public record Silent(SilentPaymentAddress Address) : Destination

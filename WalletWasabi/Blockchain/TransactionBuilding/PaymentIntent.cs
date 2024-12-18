@@ -20,8 +20,19 @@ public class PaymentIntent
 	{
 	}
 
+	/*
 	public PaymentIntent(IDestination destination, Money amount, bool subtractFee = false, LabelsArray? label = null)
 		: this(new DestinationRequest(destination.ScriptPubKey, MoneyRequest.Create(amount, subtractFee), label))
+	{
+	}
+*/
+	public PaymentIntent(Destination destination, Money amount, bool subtractFee = false, LabelsArray? label = null)
+		: this(new DestinationRequest(destination, MoneyRequest.Create(amount, subtractFee), label))
+	{
+	}
+
+	public PaymentIntent(Key destination, Money amount, bool subtractFee = false, LabelsArray? label = null)
+		: this(new DestinationRequest(destination, MoneyRequest.Create(amount, subtractFee), label))
 	{
 	}
 
