@@ -353,7 +353,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					selection.Select(x => x.Outpoint),
+					selection,
 					tryToSign: false);
 			}
 			catch (Exception ex)
@@ -404,7 +404,7 @@ public partial class PrivacySuggestionsModel
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					coins.Select(x => x.Outpoint),
+					coins,
 					tryToSign: false);
 
 				isChangeless = true;

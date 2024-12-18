@@ -174,7 +174,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					transactionInfo.Destination,
 					transactionInfo.Recipient,
 					transactionInfo.FeeRate,
-					transactionInfo.ChangelessCoins.Select(x => x.Outpoint),
+					transactionInfo.ChangelessCoins,
 					tryToSign: tryToSign);
 			}
 
