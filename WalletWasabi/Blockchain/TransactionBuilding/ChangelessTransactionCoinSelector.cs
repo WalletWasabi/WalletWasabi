@@ -17,12 +17,13 @@ public static class ChangelessTransactionCoinSelector
 	public static async IAsyncEnumerable<IReadOnlyList<SmartCoin>> GetAllStrategyResultsAsync(
 		IReadOnlyList<SmartCoin> availableCoins,
 		FeeRate feeRate,
-		TxOut txOut,
+		Money amount,
+		Script referenceScriptPubKey,
 		int maxInputCount,
 		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
 		// target = target amount + output cost
-		long target = txOut.Value.Satoshi + feeRate.GetFee(txOut.ScriptPubKey.EstimateOutputVsize()).Satoshi;
+		long target = amount + feeRate.GetFee(referenceScriptPubKey.EstimateOutputVsize()).Satoshi;
 
 		// Group coins by their script pub key and sort the groups in the descending order. Each coin group is considered to be a single coin for the purposes of the algorithm.
 		// All coins in a single group have the same script pub key so all the coins should be spent together or not spent at all.
