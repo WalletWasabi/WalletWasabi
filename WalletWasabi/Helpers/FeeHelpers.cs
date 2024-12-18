@@ -17,7 +17,7 @@ public static class FeeHelpers
 {
 	public static bool TryGetMaxFeeRateForChangeless(
 		Wallet wallet,
-		IDestination destination,
+		Destination destination,
 		LabelsArray labels,
 		FeeRate startingFeeRate,
 		IEnumerable<SmartCoin> coins,
@@ -34,7 +34,7 @@ public static class FeeHelpers
 
 	public static bool TryGetMaxFeeRate(
 		Wallet wallet,
-		IDestination destination,
+		Destination destination,
 		Money amount,
 		LabelsArray labels,
 		FeeRate startingFeeRate,

@@ -62,39 +62,13 @@ public static class TransactionBuilderWalletExtensions
 
 	public static BuildTransactionResult BuildChangelessTransaction(
 		this Wallet wallet,
-		IDestination destination,
+		Destination destination,
 		LabelsArray label,
 		FeeRate feeRate,
 		IEnumerable<SmartCoin> allowedInputs,
 		bool allowDoubleSpend = false,
 		bool tryToSign = true)
 		=> wallet.BuildChangelessTransaction(destination, label, feeRate, allowedInputs.Select(coin => coin.Outpoint), allowDoubleSpend, tryToSign);
-
-	public static BuildTransactionResult BuildChangelessTransaction(
-		this Wallet wallet,
-		IDestination destination,
-		LabelsArray label,
-		FeeRate feeRate,
-		IEnumerable<OutPoint> allowedInputs,
-		bool allowDoubleSpend = false,
-		bool tryToSign = true)
-	{
-		var intent = new PaymentIntent(
-			destination,
-			MoneyRequest.CreateAllRemaining(subtractFee: true),
-			label);
-
-		var txRes = wallet.BuildTransaction(
-			wallet.Password,
-			intent,
-			FeeStrategy.CreateFromFeeRate(feeRate),
-			allowUnconfirmed: true,
-			allowedInputs: allowedInputs,
-			allowDoubleSpend: allowDoubleSpend,
-			tryToSign: tryToSign);
-
-		return txRes;
-	}
 
 	public static BuildTransactionResult BuildChangelessTransaction(
 		this Wallet wallet,
@@ -132,7 +106,7 @@ public static class TransactionBuilderWalletExtensions
 
 	public static BuildTransactionResult BuildTransaction(
 		this Wallet wallet,
-		IDestination destination,
+		Destination destination,
 		Money amount,
 		LabelsArray label,
 		FeeRate feeRate,
@@ -187,7 +161,7 @@ public static class TransactionBuilderWalletExtensions
 
 	public static BuildTransactionResult BuildTransactionForSIB(
 		this Wallet wallet,
-		IDestination destination,
+		Destination destination,
 		Money amount,
 		LabelsArray label,
 		bool subtractFee,

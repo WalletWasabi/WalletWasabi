@@ -26,7 +26,7 @@ public static class TransactionHelpers
 				transactionInfo.Destination,
 				transactionInfo.Recipient,
 				transactionInfo.FeeRate,
-				transactionInfo.ChangelessCoins,
+				transactionInfo.ChangelessCoins.Select(x => x.Outpoint),
 				tryToSign: tryToSign);
 		}
 
