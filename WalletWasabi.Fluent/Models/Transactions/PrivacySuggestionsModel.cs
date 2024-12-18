@@ -246,7 +246,7 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var destinationScriptPubKey = GetScriptPubKeyOrFake(parameters.TransactionInfo.Destination);
+		var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
 		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
 
 		if (hasChange)
@@ -339,7 +339,7 @@ public partial class PrivacySuggestionsModel
 			ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 				coinsToUse,
 				transactionInfo.FeeRate,
-				new TxOut(transactionInfo.Amount, GetScriptPubKeyOrFake(transactionInfo.Destination)),
+				new TxOut(transactionInfo.Amount, transactionInfo.Destination.GetScriptPubKey()),
 				maxInputCount,
 				cancellationToken);
 
@@ -440,14 +440,6 @@ public partial class PrivacySuggestionsModel
 			_ => "the same amount"
 		};
 	}
-
-	private static Script GetScriptPubKeyOrFake(Destination destination) =>
-		destination switch
-		{
-			Destination.Loudly l => l.ScriptPubKey,
-			Destination.Silent s => s.FakeScriptPubKey,
-			_ => throw new ArgumentException("Unknown destination type")
-		};
 
 	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
 	{

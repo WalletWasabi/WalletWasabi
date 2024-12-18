@@ -120,7 +120,7 @@ public class TransactionFactory
 
 		if (payments.TryGetCustomRequest(out DestinationRequest? customChange))
 		{
-			var changeScript = GetScriptPubKey(customChange.Destination);
+			var changeScript = customChange.Destination.GetScriptPubKey();
 			KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
 			changeHdPubKey = hdPubKey;
 
@@ -157,7 +157,7 @@ public class TransactionFactory
 			.Select(t =>
 				(label: t.Labels,
 					destination: t.Destination,
-					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == GetScriptPubKey(t.Destination))?.Value))
+					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.GetScriptPubKey())?.Value))
 			.Where(x => x.amount is not null);
 
 		if (!psbt.TryGetFee(out var fee))
@@ -181,7 +181,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(GetScriptPubKey(x.destination))).Sum(x => x.amount);
+			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.GetScriptPubKey())).Sum(x => x.amount);
 		}
 
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
@@ -273,7 +273,7 @@ public class TransactionFactory
 
 		foreach (var coin in smartTransaction.WalletOutputs)
 		{
-			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => GetScriptPubKey(x.Destination) == coin.ScriptPubKey);
+			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.GetScriptPubKey() == coin.ScriptPubKey);
 
 			// If change then we concatenate all the labels.
 			// The foundKeyLabel has already been added previously, so no need to concatenate.
@@ -291,15 +291,6 @@ public class TransactionFactory
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
-
-		static Script GetScriptPubKey(Destination destination) =>
-			destination switch
-			{
-				Destination.Loudly l => l.ScriptPubKey,
-				Destination.Silent s => s.FakeScriptPubKey,
-				_ => throw new ArgumentException("Unknow destination type")
-			};
-
 	}
 
 	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilderWithSilentPaymentSupport builder, PSBT psbt, HdPubKey changeHdPubKey)
