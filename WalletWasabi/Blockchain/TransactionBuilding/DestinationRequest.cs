@@ -14,7 +14,15 @@ public abstract record Destination
 		{
 			Loudly l => l.ScriptPubKey.GetDestinationAddress(network).ToString(),
 			Silent s => s.Address.ToWip(network),
-			_ => throw new ArgumentException("Unknown Destination type")
+			_ => throw new ArgumentException("Unknown destination type")
+		};
+
+	public Script GetScriptPubKey() =>
+		this switch
+		{
+			Loudly l => l.ScriptPubKey,
+			Silent s => s.FakeScriptPubKey,
+			_ => throw new ArgumentException("Unknown destination type")
 		};
 
 	public record Loudly(Script ScriptPubKey) : Destination;
