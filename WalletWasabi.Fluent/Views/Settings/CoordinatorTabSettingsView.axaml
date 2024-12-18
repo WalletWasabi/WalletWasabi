@@ -9,7 +9,7 @@
              x:CompileBindings="True">
   <StackPanel Classes="settingsLayout">
 
-    <StackPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
+    <DockPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
       <TextBlock Text="Coordinator URI" />
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
         <Interaction.Behaviors>
@@ -18,20 +18,20 @@
           <WhitespaceInputRemovalBehavior />
         </Interaction.Behaviors>
       </TextBox>
-    </StackPanel>
+    </DockPanel>
 
-    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vb) higher than the value indicated here.">
+    <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vb) higher than the value indicated here.">
       <TextBlock Text="Max Coinjoin Mining Fee Rate" />
       <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="sat/vb"/>
-    </StackPanel>
+    </DockPanel>
 
-    <StackPanel ToolTip.Tip="The client will refuse to participate in rounds with a minimum input count lower than the value indicated here.">
+    <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a minimum input count lower than the value indicated here.">
       <TextBlock Text="Min Input Count" />
       <TextBox Classes="standalone" Name="AbsoluteMinInputCountTextBox" Text="{Binding AbsoluteMinInputCount}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />
         </Interaction.Behaviors>
       </TextBox>
-    </StackPanel>
+    </DockPanel>
   </StackPanel>
 </UserControl>

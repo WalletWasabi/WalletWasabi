@@ -14,7 +14,7 @@
       <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
     </DockPanel>
 
-    <StackPanel>
+    <DockPanel>
       <TextBlock Text="Backend URI" />
       <TextBox Text="{Binding BackendUri}">
         <Interaction.Behaviors>
@@ -23,7 +23,7 @@
           <WhitespaceInputRemovalBehavior />
         </Interaction.Behaviors>
       </TextBox>
-    </StackPanel>
+    </DockPanel>
 
   </StackPanel>
 </UserControl>

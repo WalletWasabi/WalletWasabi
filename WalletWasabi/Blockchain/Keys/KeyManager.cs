@@ -446,10 +446,9 @@ public class KeyManager
 		}
 	}
 
-	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
+	public IEnumerable<Key> GetSecrets(string password, params Script[] scripts)
 	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<ExtKey>();
 
 		lock (_criticalStateLock)
 		{
@@ -457,11 +456,9 @@ public class KeyManager
 				scripts.Contains(x.P2wpkhScript)
 				|| scripts.Contains(x.P2Taproot)))
 			{
-				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add(ek);
+				yield return extKey.Derive(key.FullKeyPath).PrivateKey;
 			}
 		}
-		return extKeysAndPubs;
 	}
 
 	private (int PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }

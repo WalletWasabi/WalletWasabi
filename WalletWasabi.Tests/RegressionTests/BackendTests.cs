@@ -1,35 +1,18 @@
-using Microsoft.Extensions.Caching.Memory;
-using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using NBitcoin.Protocol;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionBroadcasting;
-using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Services;
-using WalletWasabi.Stores;
-using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using Constants = WalletWasabi.Helpers.Constants;
@@ -118,12 +101,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		using Backend.Global global = setup.Global;
-
-		var indexBuilderServiceDir = Helpers.Common.GetWorkDir();
-		var indexFilePath = Path.Combine(indexBuilderServiceDir, $"Index{rpc.Network}.dat");
-
-		IndexBuilderService indexBuilderService = new(rpc, global.HostedServices.Get<BlockNotifier>(), "filters.txt");
+		using var blockNotifier = new BlockNotifier(rpc);
+		IndexBuilderService indexBuilderService = new(rpc, blockNotifier, "filters.txt");
 		try
 		{
 			indexBuilderService.Synchronize();

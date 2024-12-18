@@ -10,8 +10,10 @@ public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBa
 	public NewWalletAdvancedOptionsDialogViewModel(CoinJoinProfileViewModelBase currentProfile, bool isAutoCoinjoinEnabled)
 	{
 		IsAutoCoinjoinEnabled = isAutoCoinjoinEnabled;
-		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(currentProfile);
-
+		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(currentProfile)
+		{
+			NewWalletWorkflow = true
+		};
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;

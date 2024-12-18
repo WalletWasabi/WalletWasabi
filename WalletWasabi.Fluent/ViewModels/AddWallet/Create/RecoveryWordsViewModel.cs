@@ -1,13 +1,9 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Disposables;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using Dispatcher = Avalonia.Threading.Dispatcher;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
@@ -27,10 +23,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.Create(() => OnNext(options));
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
-		CopyToClipboardCommand = ReactiveCommand.CreateFromTask(OnCopyToClipboardAsync);
 	}
-
-	public ICommand CopyToClipboardCommand { get; }
 
 	public List<RecoveryWordViewModel> MnemonicWords { get; }
 
@@ -44,45 +37,12 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 		Navigate().Clear();
 	}
 
-	private string GetRecoveryWordsString()
-	{
-		var words = MnemonicWords.Select(x => x.Word).ToArray();
-		var text = string.Join(" ", words);
-
-		return text;
-	}
-
-	private async Task OnCopyToClipboardAsync()
-	{
-		var text = GetRecoveryWordsString();
-
-		await UiContext.Clipboard.SetTextAsync(text);
-	}
-
-	private async Task ClearRecoveryWordsFromClipboardAsync()
-	{
-		var currentText = await UiContext.Clipboard.GetTextAsync();
-		var recoveryWordsString = GetRecoveryWordsString();
-
-		if (currentText == recoveryWordsString)
-		{
-			await UiContext.Clipboard.ClearAsync();
-		}
-	}
-
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		base.OnNavigatedTo(isInHistory, disposables);
-	}
-
-	protected override void OnNavigatedFrom(bool isInHistory)
-	{
-		base.OnNavigatedFrom(isInHistory);
-
-		Dispatcher.UIThread.InvokeAsync(ClearRecoveryWordsFromClipboardAsync);
 	}
 
 	private List<RecoveryWordViewModel> CreateList(Mnemonic mnemonic)

@@ -193,9 +193,20 @@
       <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrushDisabled}" />
     </Style>
 
-    <!-- TODO: temporary fix to prevent layout issue when error occurs  -->
     <Style Selector="^/template/ DataValidationErrors">
-      <Setter Property="MinHeight" Value="21" />
+      <Setter Property="Margin" Value="0 -16 0 0" />
+      <Setter Property="RenderTransform" Value="scale(1,0)" />
+      <Setter Property="RenderTransformOrigin" Value="0.5,0" />
+      <Setter Property="Transitions">
+        <Transitions>
+          <TransformOperationsTransition Property="RenderTransform" Duration="0:0:0.1" Delay="0:0:0.2" Easing="{StaticResource FluentEasing}" />
+          <ThicknessTransition Property="Margin" Duration="0:0:0.2" Easing="{StaticResource FluentEasing}" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="^:error /template/ DataValidationErrors">
+      <Setter Property="Margin" Value="0 5 0 0" />
+      <Setter Property="RenderTransform" Value="scale(1,1)" />
     </Style>
 
     <Style Selector="^:pointerover /template/ Border#PART_BorderElement">
