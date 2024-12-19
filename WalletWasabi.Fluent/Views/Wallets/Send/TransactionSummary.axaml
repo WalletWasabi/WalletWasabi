@@ -136,9 +136,7 @@
         <PreviewItem Icon="{StaticResource paper_cash_regular}"
                      Label="Fee Rate"
                      CopyableContent="{Binding FeeRate.SatoshiPerByte}">
-          <PrivacyContentControl>
-            <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:0.##} sat/vByte'}" />
-          </PrivacyContentControl>
+         <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:0.##} sat/vByte'}" />
         </PreviewItem>
       </StackPanel>
     </DockPanel>
