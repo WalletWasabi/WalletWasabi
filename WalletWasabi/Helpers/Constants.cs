@@ -57,11 +57,11 @@ public static class Constants
 	public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 	public const int DefaultMainNetBitcoinP2pPort = 8333;
-	public const int DefaultTestNetBitcoinP2pPort = 18333;
+	public const int DefaultTestNetBitcoinP2pPort = 48333;
 	public const int DefaultRegTestBitcoinP2pPort = 18444;
 
 	public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
-	public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+	public const int DefaultTestNetBitcoinCoreRpcPort = 48332;
 	public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 	public const decimal DefaultDustThreshold = 0.00005m;
