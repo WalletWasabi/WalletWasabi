@@ -379,7 +379,7 @@ public class TransactionFactoryTests
 		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(20m).Build();
 		var ex = Assert.Throws<OutputTooSmallException>(() => transactionFactory.BuildTransaction(txParameters));
 
-		Assert.Equal(Money.Satoshis(3240), ex.Missing);
+		Assert.Equal(Money.Satoshis(3240), ex.Value.Abs());
 	}
 
 	[Fact]
