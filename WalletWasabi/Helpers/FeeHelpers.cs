@@ -34,7 +34,7 @@ public static class FeeHelpers
 
 	public static bool TryGetMaxFeeRate(
 		Wallet wallet,
-		IDestination destination,
+		PaymentIntent intent,
 		Money amount,
 		LabelsArray labels,
 		FeeRate startingFeeRate,
@@ -45,10 +45,18 @@ public static class FeeHelpers
 	{
 		maxFeeRate = SeekMaxFeeRate(
 			startingFeeRate,
-			feeRate => wallet.BuildTransaction(destination, amount, labels, feeRate, coins, subtractFee, null, tryToSign));
+			feeRate => wallet.BuildTransaction(
+				password: wallet.Password,
+				payments: intent,
+				feeStrategy: FeeStrategy.CreateFromFeeRate(feeRate),
+				allowUnconfirmed: true,
+				allowedInputs: coins.Select(coin => coin.Outpoint),
+				payjoinClient: null,
+				tryToSign: tryToSign));
 
 		return maxFeeRate is not null;
 	}
+
 
 	/// <summary>
 	/// SeekMaxFeeRate iteratively searches for the highest feasible fee rate
