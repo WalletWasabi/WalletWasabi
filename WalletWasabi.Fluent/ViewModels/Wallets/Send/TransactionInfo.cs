@@ -3,6 +3,7 @@ using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -13,7 +14,7 @@ public partial class TransactionInfo
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
 	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
 
-	public TransactionInfo(BitcoinAddress destination, int anonScoreTarget)
+	public TransactionInfo(Destination destination, int anonScoreTarget)
 	{
 		Destination = destination;
 		PrivateCoinThreshold = anonScoreTarget;
@@ -29,7 +30,7 @@ public partial class TransactionInfo
 
 	public Money Amount { get; init; } = Money.Zero;
 
-	public BitcoinAddress Destination { get; init; }
+	public Destination Destination { get; init; }
 
 	public LabelsArray Recipient { get; set; } = LabelsArray.Empty;
 
