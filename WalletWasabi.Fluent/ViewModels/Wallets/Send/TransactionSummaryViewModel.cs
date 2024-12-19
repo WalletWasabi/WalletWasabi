@@ -35,7 +35,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		Parent = parent;
 		_wallet = wallet;
 		IsPreview = isPreview;
-		AddressText = info.Destination.ToString();
+		AddressText = info.Destination.ToString(_wallet.Network);
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
 	}
@@ -57,22 +57,29 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
 		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
-		var destinationIndexedTxOut =
-			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
-				.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
-				.FirstOrDefault(x => x.ScriptPubKey == info.Destination.ScriptPubKey);
+		var destinationIndexedTxOut = transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
+			.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
+			.FirstOrDefault(x =>
+				info.Destination switch
+				{
+					Destination.Loudly loudly => x.ScriptPubKey == loudly.ScriptPubKey,
+					Destination.Silent silent => false, /* we can only send */
+					_ => throw new InvalidOperationException("Unknown destination type")
+				});
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
 		FeeRate = info.FeeRate;
 
-		InputList = new InputsCoinListViewModel(transactionResult.Transaction.WalletInputs,
+		InputList = new InputsCoinListViewModel(
+			transactionResult.Transaction.WalletInputs,
 			_wallet.Network,
 			transactionResult.Transaction.WalletInputs.Count + transactionResult.Transaction.ForeignInputs.Count,
 			Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().Children.Count);
 
-		OutputList = new OutputsCoinListViewModel(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
+		OutputList = new OutputsCoinListViewModel(
+			transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
 			_wallet.Network,
 			destinationIndexedTxOut?.ScriptPubKey,
