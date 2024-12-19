@@ -191,12 +191,9 @@ public class RpcBasedTests
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		try
 		{
-			var rpc = coreNode.RpcClient;
+			var rpc = await coreNode.RpcClient.CreateWalletAsync("wallet");
+
 			var network = rpc.Network;
-
-			var walletName = "wallet";
-			await rpc.CreateWalletAsync(walletName);
-
 			using var k1 = new Key();
 			var blockId = await rpc.GenerateToAddressAsync(1, k1.PubKey.WitHash.GetAddress(network));
 			var block = await rpc.GetBlockAsync(blockId[0]);
