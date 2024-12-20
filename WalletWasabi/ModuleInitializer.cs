@@ -23,7 +23,16 @@ class ModuleInitializer
 		// Get the internal dictionary
 		var networks = networksField!.GetValue(bitcoinInstance) as ConcurrentDictionary<ChainName, Network>;
 
+		var testnet4 = networks[new ChainName("testnet4")];
+
 		// Replaces testnet by testnet4 network
-		networks[new ChainName("testnet")] = networks[new ChainName("testnet4")];
+		networks[new ChainName("testnet")] = testnet4;
+
+		var otherAliasesField = typeof(Network)
+			.GetField("_OtherAliases", BindingFlags.NonPublic | BindingFlags.Static);
+
+		var otherAliases = otherAliasesField!.GetValue(null) as ConcurrentDictionary<string, Network>;
+		otherAliases["test"] = testnet4;
+		otherAliases["testnet"] = testnet4;
 	}
 }
