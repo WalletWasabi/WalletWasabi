@@ -17,7 +17,7 @@ A few examples:
 
 | Config file                | Command line                | Environment variable             |
 |----------------------------|-----------------------------|----------------------------------|
-| Network: "TestNet4"        | --network=testnet4          | WASABI-NETWORK=testnet4          |
+| Network: "TestNet"         | --network=testnet           | WASABI-NETWORK=testnet           |
 | JsonRpcServerEnabled: true | --jsonrpcserverenabled=true | WASABI-JSONRPCSERVERENABLED=true |
 | UseTor: true               | --usetor=true               | WASABI-USETOR=true               |
 | DustThreshold: "0.00005"   | --dustthreshold=0.00005     | WASABI-DUSTTHRESHOLD=0.00005     |
