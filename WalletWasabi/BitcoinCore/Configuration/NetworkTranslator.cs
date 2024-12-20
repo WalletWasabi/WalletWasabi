@@ -69,7 +69,7 @@ public static class NetworkTranslator
 		}
 		else if (network == Network.TestNet)
 		{
-			return "-regtest=0 -testnet=1";
+			return "-regtest=0 -testnet4=1";
 		}
 		else if (network == Network.RegTest)
 		{

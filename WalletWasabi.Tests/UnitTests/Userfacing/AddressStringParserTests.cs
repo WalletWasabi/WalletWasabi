@@ -81,22 +81,22 @@ public class AddressStringParserTests
 		Assert.Equal("Invalid amount value.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=", Network.Main, out _, out errorMessage));
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", errorMessage);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=XYZ", Network.Main, out _, out errorMessage));
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", errorMessage);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100'000", Network.Main, out _, out errorMessage));
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", errorMessage);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100000", Network.Main, out _, out errorMessage));
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", errorMessage);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?req-somethingyoudontunderstand=50&req-somethingelseyoudontget=999", Network.Main, out _, out errorMessage));
 		Assert.Equal("Unsupported required parameter found.", errorMessage);
 
 		Assert.False(AddressStringParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?req-somethingyoudontunderstand=50&req-somethingelseyoudontget=999", Network.Main, out _, out errorMessage));
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", errorMessage);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", errorMessage);
 
 		// Success cases.
 		Assert.True(AddressStringParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main, out Bip21UriParser.Result? result));

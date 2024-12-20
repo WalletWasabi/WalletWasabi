@@ -32,10 +32,10 @@ public class SmartHeaderTests
 		uint expectedHeightMain = 481824;
 		var expectedTimeMain = DateTimeOffset.FromUnixTimeSeconds(1503539857);
 
-		var expectedHashTest = new uint256("00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a");
-		var expectedPrevHashTest = new uint256("0000000000211a4d54bceb763ea690a4171a734c48d36f7d8e30b51d6df6ea85");
-		uint expectedHeightTest = 828575;
-		var expectedTimeTest = DateTimeOffset.FromUnixTimeSeconds(1463079943);
+		var expectedHashTest = new uint256("00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043");
+		var expectedPrevHashTest = uint256.Zero;
+		uint expectedHeightTest = 0;
+		var expectedTimeTest = DateTimeOffset.FromUnixTimeSeconds(1714777860);
 
 		var expectedHashReg = Network.RegTest.GenesisHash;
 		var expectedPrevHashReg = uint256.Zero;

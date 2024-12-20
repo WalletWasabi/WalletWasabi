@@ -15,12 +15,12 @@ All configuration options available via `Config.json` file are also available as
 
 A few examples:
 
-| Config file | Command line | Environment variable |
-|-------------|--------------|----------------------|
-| Network: "TestNet" | --network=testnet | WASABI-NETWORK=testnet |
-| JsonRpcServerEnabled: true| --jsonrpcserverenabled=true | WASABI-JSONRPCSERVERENABLED=true |
-| UseTor: true | --usetor=true | WASABI-USETOR=true |
-| DustThreshold: "0.00005" | --dustthreshold=0.00005 | WASABI-DUSTTHRESHOLD=0.00005 |
+| Config file                | Command line                | Environment variable             |
+|----------------------------|-----------------------------|----------------------------------|
+| Network: "TestNet"         | --network=testnet           | WASABI-NETWORK=testnet           |
+| JsonRpcServerEnabled: true | --jsonrpcserverenabled=true | WASABI-JSONRPCSERVERENABLED=true |
+| UseTor: true               | --usetor=true               | WASABI-USETOR=true               |
+| DustThreshold: "0.00005"   | --dustthreshold=0.00005     | WASABI-DUSTTHRESHOLD=0.00005     |
 
 ### Values precedence
 

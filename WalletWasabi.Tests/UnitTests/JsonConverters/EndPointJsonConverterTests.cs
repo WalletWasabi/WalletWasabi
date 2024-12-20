@@ -21,7 +21,7 @@ public class EndPointJsonConverterTests
 		TestData testObject = new();
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"DefaultMainNet":"127.0.0.1:8333","DefaultTestNet":"127.0.0.1:18333","DefaultRegTest":"127.0.0.1:18443","None":null,"NotAnnotated":null}""", json);
+		Assert.Equal("""{"DefaultMainNet":"127.0.0.1:8333","DefaultTestNet":"127.0.0.1:48333","DefaultRegTest":"127.0.0.1:18443","None":null,"NotAnnotated":null}""", json);
 	}
 
 	/// <summary>
@@ -141,7 +141,7 @@ public class EndPointJsonConverterTests
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultTestNetBitcoinP2pPort)]
 		[System.Text.Json.Serialization.JsonConverter(typeof(EndPointJsonConverterNg))]
 		[System.Text.Json.Serialization.JsonPropertyName(nameof(DefaultTestNet))]
-		public EndPoint DefaultTestNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 18333);
+		public EndPoint DefaultTestNet { get; set; } = new IPEndPoint(IPAddress.Loopback, 48333);
 
 		[Newtonsoft.Json.JsonProperty(PropertyName = nameof(DefaultRegTest))]
 		[Newtonsoft.Json.JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
