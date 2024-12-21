@@ -144,6 +144,11 @@ public class MockRpcClient : IRPCClient
 		return OnGetVerboseBlockAsync?.Invoke(blockId) ?? NotImplementedTask<VerboseBlockInfo>(nameof(GetVerboseBlockAsync));
 	}
 
+	public Task<BlockFilter> GetBlockFilterAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	{
+		throw new NotImplementedException();
+	}
+
 	public Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
 	{
 		return OnSendRawTransactionAsync switch

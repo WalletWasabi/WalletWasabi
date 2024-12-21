@@ -252,6 +252,11 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
+			if (_smartHeaderChain.TipHash is not null && _smartHeaderChain.Tip.Header != uint256.Zero && filter.Filter.GetHeader(_smartHeaderChain.Tip.Header) != filter.Header.Header)
+			{
+				throw new InvalidOperationException($"Header doesn't point to previous header.");
+			}
+
 			_smartHeaderChain.AppendTip(filter.Header);
 
 			if (enqueue)
