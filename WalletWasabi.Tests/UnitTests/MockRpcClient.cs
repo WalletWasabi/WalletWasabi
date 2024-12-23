@@ -17,6 +17,7 @@ public class MockRpcClient : IRPCClient
 	public Func<uint256, Task<BlockHeader>>? OnGetBlockHeaderAsync { get; set; }
 	public Func<Task<BlockchainInfo>>? OnGetBlockchainInfoAsync { get; set; }
 	public Func<uint256, Task<VerboseBlockInfo>>? OnGetVerboseBlockAsync { get; set; }
+	public Func<uint256, Task<BlockFilter>>? OnGetBlockFilterAsync { get; set; }
 	public Func<Transaction, uint256>? OnSendRawTransactionAsync { get; set; }
 	public Func<Task<MemPoolInfo>>? OnGetMempoolInfoAsync { get; set; }
 	public Func<Task<uint256[]>>? OnGetRawMempoolAsync { get; set; }
@@ -142,6 +143,11 @@ public class MockRpcClient : IRPCClient
 	public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
 		return OnGetVerboseBlockAsync?.Invoke(blockId) ?? NotImplementedTask<VerboseBlockInfo>(nameof(GetVerboseBlockAsync));
+	}
+
+	public Task<BlockFilter> GetBlockFilterAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	{
+		return OnGetBlockFilterAsync?.Invoke(blockId) ?? NotImplementedTask<BlockFilter>(nameof(GetBlockFilterAsync));
 	}
 
 	public Task<uint256> SendRawTransactionAsync(Transaction transaction, CancellationToken cancellationToken = default)
