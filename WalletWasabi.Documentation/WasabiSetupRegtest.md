@@ -17,19 +17,19 @@ Todo:
      Windows x64:
     ```
     "C:\Program Files\Bitcoin\bitcoin-qt.exe" -regtest -blockfilterindex -txindex -datadir=c:\Bitcoin
-    ```        
-    macOS: 
+    ```
+    macOS:
     ```
     "/Applications/Bitcoin-Qt.app/Contents/MacOS/Bitcoin-Qt" -regtest -blockfilterindex -txindex -datadir=$HOME/Library/Application Support/Bitcoin"
     ```
-    Linux: 
+    Linux:
     ```
      ~/bitcoin-[version number]/bin/bitcoin-qt -regtest -blockfilterindex -txindex -datadir=$HOME/.bitcoin/
     ```
 4. Go to Bitcoin Knots data directory. If the directory is missing run core bitcoin-qt, then quit immediately. In this way the data directory and the config files will be generated.
-    
+
     There may be differences if you used the "-datadir" parameter before.
-    
+
     Defaults:
     Windows
     ```
@@ -92,7 +92,7 @@ Todo:
       "Network": "RegTest",
       "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
       "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
-      "TestNetBitcoinP2pEndPoint": "127.0.0.1:18333",
+      "TestNetBitcoinP2pEndPoint": "127.0.0.1:48333",
       "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
       "MainNetBitcoinCoreRpcEndPoint": "127.0.0.1:8332",
       "TestNetBitcoinCoreRpcEndPoint": "127.0.0.1:18332",
@@ -107,7 +107,7 @@ Todo:
     ```
 7. Start Bitcoin Knots in RegTest (command to run is explained above).
 8. Go to WalletWasabi folder
-9. Open the command line and enter. This will build all the projects under this directory. 
+9. Open the command line and enter. This will build all the projects under this directory.
 `dotnet build`
 10. Go to WalletWasabi\WalletWasabi.Backend folder.
 `dotnet run --no-build`

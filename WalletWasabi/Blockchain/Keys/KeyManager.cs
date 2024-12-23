@@ -119,10 +119,10 @@ public class KeyManager
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		new((network.Name, scriptPubKeyType) switch
 		{
-			("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
+			("TestNet4", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
 			("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
 			("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
-			("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
+			("TestNet4", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
 			("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
 			("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
