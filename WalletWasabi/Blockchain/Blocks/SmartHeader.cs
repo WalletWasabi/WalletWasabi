@@ -6,8 +6,8 @@ namespace WalletWasabi.Blockchain.Blocks;
 
 public class SmartHeader
 {
-	public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, DateTimeOffset blockTime)
-		: this(blockHash, prevHash, height, blockTime.ToUnixTimeSeconds())
+	public SmartHeader(uint256 blockHash, uint256 header, uint height, DateTimeOffset blockTime)
+		: this(blockHash, header, height, blockTime.ToUnixTimeSeconds())
 	{
 	}
 

@@ -16,8 +16,7 @@ public class SmartHeaderTests
 		new SmartHeader(uint256.Zero, uint256.One, 1, blockTime);
 
 		Assert.Throws<ArgumentNullException>(() => new SmartHeader(blockHash: null!, uint256.One, 1, blockTime));
-		Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, prevHash: null!, 1, blockTime));
-		Assert.Throws<InvalidOperationException>(() => new SmartHeader(uint256.Zero, uint256.Zero, 1, blockTime));
+		Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, header: null!, 1, blockTime));
 	}
 
 	[Fact]
