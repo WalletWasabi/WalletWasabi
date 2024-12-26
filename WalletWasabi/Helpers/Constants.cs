@@ -57,17 +57,17 @@ public static class Constants
 	public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 	public const int DefaultMainNetBitcoinP2pPort = 8333;
-	public const int DefaultTestNetBitcoinP2pPort = 18333;
+	public const int DefaultTestNetBitcoinP2pPort = 48333;
 	public const int DefaultRegTestBitcoinP2pPort = 18444;
 
 	public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
-	public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+	public const int DefaultTestNetBitcoinCoreRpcPort = 48332;
 	public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 	public const decimal DefaultDustThreshold = 0.00005m;
 	public const decimal DefaultMaxCoinJoinMiningFeeRate = 150.0m;
 	public const int DefaultAbsoluteMinInputCount = 21;
-	public const int AbsoluteMinInputCount = 5;
+	public const int AbsoluteMinInputCount = 2;
 
 	public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
