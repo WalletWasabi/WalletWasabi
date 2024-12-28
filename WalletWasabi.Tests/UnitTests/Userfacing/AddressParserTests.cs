@@ -53,11 +53,11 @@ public class AddressParserTests
 		Assert.Equal("Invalid amount value.", AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=100'000", Network.Main).Error);
 		Assert.Equal("Invalid amount value.", AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=100,000", Network.Main).Error);
 
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=", Network.Main).Error);
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=XYZ", Network.Main).Error);
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100'000", Network.Main).Error);
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100000", Network.Main).Error);
-		Assert.Equal("Bitcoin address is valid for TestNet and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?req-somethingyoudontunderstand=50&req-somethingelseyoudontget=999", Network.Main).Error);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=", Network.Main).Error);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=XYZ", Network.Main).Error);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100'000", Network.Main).Error);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=100000", Network.Main).Error);
+		Assert.Equal("Bitcoin address is valid for TestNet4 and not for Main.", AddressParser.Parse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?req-somethingyoudontunderstand=50&req-somethingelseyoudontget=999", Network.Main).Error);
 
 		Assert.Equal("Unsupported required parameter found.", AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?req-somethingyoudontunderstand=50&req-somethingelseyoudontget=999", Network.Main).Error);
 
