@@ -267,11 +267,17 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressParser.Parse(To, _walletModel.Network).IsOk))
+		if (!string.IsNullOrEmpty(To))
 		{
-			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			var parseResult = AddressParser.Parse(To, _walletModel.Network);
+			if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !parseResult.IsOk))
+			{
+				errors.Add(ErrorSeverity.Error, parseResult.Error);
+				return;
+			}
 		}
-		else if (IsPayJoin && _walletModel.IsHardwareWallet)
+
+		if (IsPayJoin && _walletModel.IsHardwareWallet)
 		{
 			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}

@@ -64,7 +64,7 @@ public static class AddressParser
 			Network networkGuess = expectedNetwork == Network.TestNet ? Network.Main : Network.TestNet;
 			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(text, networkGuess, out _))
 			{
-				return AddressParsingResult.Fail($"Bitcoin address is valid for {networkGuess} and not for {expectedNetwork}.");
+				return AddressParsingResult.Fail($"Bitcoin address is valid for {networkGuess} but not for {expectedNetwork}.");
 			}
 
 			if (NBitcoinExtensions.TryParseBitcoinAddressForNetwork(text, expectedNetwork, out BitcoinAddress? address))
@@ -74,12 +74,20 @@ public static class AddressParser
 
 			try
 			{
-				var silentPaymentAddress = SilentPaymentAddress.Parse(text, expectedNetwork);
-				return AddressParsingResult.Ok(new Address.SilentPayment(silentPaymentAddress));
+				_ = SilentPaymentAddress.Parse(text, networkGuess);
+				return AddressParsingResult.Fail($"Silent payment address is valid for {networkGuess} but not for {expectedNetwork}.");
 			}
 			catch(Exception)
 			{
-				return AddressParsingResult.Fail(Bip21UriParser.ErrorInvalidAddress.Message);
+				try
+				{
+					var silentPaymentAddress = SilentPaymentAddress.Parse(text, expectedNetwork);
+					return AddressParsingResult.Ok(new Address.SilentPayment(silentPaymentAddress));
+				}
+				catch(Exception)
+				{
+					return AddressParsingResult.Fail(Bip21UriParser.ErrorInvalidAddress.Message);
+				}
 			}
 		}
 
