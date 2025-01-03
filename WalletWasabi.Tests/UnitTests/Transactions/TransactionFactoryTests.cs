@@ -848,7 +848,9 @@ public class TransactionFactoryTests
 
 		var paymentAmount = Money.Coins(0.9m);
 
-		var keyManager = ServiceFactory.CreateKeyManager("password");
+		var mnemonic =
+			new Mnemonic("lizard include drift struggle blind impose meadow before tilt leopard abstract valid");
+		var keyManager = ServiceFactory.CreateKeyManager("password", mnemonic: mnemonic);
 
 		// Generates a pubkey to receive funds (1 BTC)
 		var pubkey = keyManager.GetNextReceiveKey(LabelsArray.Empty);
@@ -883,17 +885,7 @@ public class TransactionFactoryTests
 			.ToArray();
 		var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
 		using var pk = new Key(SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0).sec.ToBytes());
-		Assert.Equal(paymentOutput.ScriptPubKey, pk.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86));
-
-		// Spend the silent payment output
-		var spCoin = new Coin(spendingTx, 0);
-		var spSpendingTx = Network.Main.CreateTransaction();
-		spSpendingTx.Inputs.Add(spCoin.Outpoint);
-		spSpendingTx.Outputs.Add(Money.Coins(0.1m), BitcoinAddress.Create("bc1q03j8mlzewrlyf33r3qr8q9qt2ajzhm0js6rrpr", Network.Main));
-
-		var bitcoinSecret = pk.GetBitcoinSecret(Network.Main);
-		spSpendingTx.Sign(bitcoinSecret, spCoin);
-
+		Assert.Equal($"1 {pk.PubKey.TaprootInternalKey}", paymentOutput.ScriptPubKey.ToString());
 	}
 
 	[Fact]
@@ -906,7 +898,9 @@ public class TransactionFactoryTests
 
 		var paymentAmount = Money.Coins(0.9m);
 
-		var keyManager = ServiceFactory.CreateKeyManager("password");
+		var mnemonic =
+			new Mnemonic("lizard include drift struggle blind impose meadow before tilt leopard abstract valid");
+		var keyManager = ServiceFactory.CreateKeyManager("password", mnemonic: mnemonic);
 
 		// Generates a pubkey to receive funds (1 BTC)
 		var pubkey = keyManager.GetNextReceiveKey(LabelsArray.Empty);
@@ -950,16 +944,43 @@ public class TransactionFactoryTests
 
 		var basePrivateKey = SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0);
 		using var pk = new Key((basePrivateKey.sec + label.sec).ToBytes());
-		Assert.Equal(paymentOutput.ScriptPubKey, pk.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86));
+		Assert.Equal($"1 {pk.PubKey.TaprootInternalKey}", paymentOutput.ScriptPubKey.ToString());
+	}
 
-		// Spend the silent payment output
-		var spCoin = new Coin(spendingTx, 0);
-		var spSpendingTx = Network.Main.CreateTransaction();
-		spSpendingTx.Inputs.Add(spCoin.Outpoint);
-		spSpendingTx.Outputs.Add(Money.Coins(0.1m), BitcoinAddress.Create("bc1q03j8mlzewrlyf33r3qr8q9qt2ajzhm0js6rrpr", Network.Main));
+	[Fact]
+	public void RealMainNetTransaction()
+	{
+		var mnemonic = new Mnemonic("bargain pumpkin blouse crush invest control radar install alien same shield grain");
+		var extKey = mnemonic.DeriveExtKey();
+		var scanKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/1'/0")).PrivateKey.ToBytes());
+		var spendKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/0'/0")).PrivateKey.ToBytes());
+		var tx = Transaction.Parse(
+			"020000000001016ea784410522d6c6c7dd43f9f2f05356200a7ab1f531f7bc5e34b4f84a89d7b4010000000000000080024006000000000000225120b8b5f908697c0c5982609bf577d319f7670c570e55532417cf7690e46fe67f6b6daa0100000000001600142897cab30c29ff293d1b8ef57153c3c3df0a72440247304402207d864ccbf293728f115a9a60e107cffa228e2e9b3a6325246804d2b99c52be2f02205ad685c728fa3c47f19a4863f122aee7f76eaa60101e49001157808af482d0580121024c006af7003e9588c5ca755686ffe0df6c2c107f42d06c213355783a5ed6ac9300000000",
+			Network.Main);
+		var silentPaymentAddress = SilentPaymentAddress.Parse(
+			"sp1qqwegltczx7hry7xtptykt6z70m0akdkne463ghhn33qyyudz2p0jkqa6e5672fm4pj4a24cthu6g4829s6nr3lkjcjxah4gaxr6wd4vhh5970lk7",
+			Network.Main);
+		var gsp = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
+		Assert.Equal(silentPaymentAddress, gsp);
 
-		var bitcoinSecret = pk.GetBitcoinSecret(Network.Main);
-		spSpendingTx.Sign(bitcoinSecret, spCoin);
+		var prevOuts = tx.Inputs.Select(x => x.PrevOut).ToArray();
+		var prevOutScript = Script.FromHex("00148e66f5ffc5cd985076aa0fe325da4b9a239e7ab7");
+		var pubKeys = tx.Inputs
+			.Select(x => SilentPayment.ExtractPubKey(x.ScriptSig, x.WitScript, prevOutScript))
+			.DropNulls()
+			.ToArray();
+
+		var tweakData = SilentPayment.TweakData(prevOuts, pubKeys);
+		var outputs = SilentPayment.ExtractSilentPaymentScriptPubKeys([silentPaymentAddress], tweakData, tx, scanKey);
+
+		var detectedAddress = Assert.Single(outputs.Keys);
+		Assert.Equal(silentPaymentAddress, detectedAddress);
+
+		var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
+		using var pk = new Key(SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0).sec.ToBytes());
+
+		var singleScript = Assert.Single(outputs[detectedAddress]);
+		Assert.Equal("bc1phz6ljzrf0sx9nqnqn06h05ce7ansc4cw24fjg970w6gwgmlx0a4sdnn5ll", singleScript.GetDestinationAddress(Network.Main).ToString());
 	}
 
 	private static Script GetScriptPubKey(ICoinsView coins, OutPoint outPoint)
