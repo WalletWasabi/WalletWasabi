@@ -246,7 +246,8 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != parameters.TransactionInfo.Destination.ScriptPubKey);
+		var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
+		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
 
 		if (hasChange)
 		{
@@ -338,11 +339,11 @@ public partial class PrivacySuggestionsModel
 			ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 				coinsToUse,
 				transactionInfo.FeeRate,
-				new TxOut(transactionInfo.Amount, transactionInfo.Destination),
+				new TxOut(transactionInfo.Amount, transactionInfo.Destination.GetScriptPubKey()),
 				maxInputCount,
 				cancellationToken);
 
-		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
+		await foreach (IReadOnlyList<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			BuildTransactionResult? transaction = null;
 
@@ -384,6 +385,7 @@ public partial class PrivacySuggestionsModel
 
 		try
 		{
+			// TODO: Verify the subtract fee change
 			txn = _wallet.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,
