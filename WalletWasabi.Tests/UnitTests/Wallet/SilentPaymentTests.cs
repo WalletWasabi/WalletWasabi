@@ -6,7 +6,6 @@ using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
 using Newtonsoft.Json;
 using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
@@ -65,12 +64,12 @@ public class SilentPaymentTests
 
 				var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
 
-				var outputs = given.Outputs.Select(Tweak).ToArray();
+				var outputs = given.Outputs.Select(Parse).ToArray();
 				var xonlyPks = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, outputs);
 				var all = xonlyPks.SelectMany(x => x.Value);
 
 				Assert.All(
-					expected.Outputs.Select(x => Tweak(x.pub_key)),
+					expected.Outputs.Select(x => Parse(x.pub_key)),
 					expectedPk => Assert.Contains(all, pk => pk.Q.x == expectedPk.Q.x ));
 			}
 			catch (InvalidOperationException e) when(e.Message.Contains("infinite") && test.comment.Contains("point at infinity"))
@@ -79,12 +78,8 @@ public class SilentPaymentTests
 			}
 		}
 
-		ECXOnlyPubKey Tweak(string pk)
-		{
-			var tripb = TaprootInternalPubKey.Parse(pk);
-			var ok = tripb.GetTaprootFullPubKey().OutputKey;
-			return ECXOnlyPubKey.Create(ok.ToBytes());
-		}
+		ECXOnlyPubKey Parse(string pk) =>
+			ECXOnlyPubKey.Create(Encoders.Hex.DecodeData(pk));
 	}
 
 
@@ -121,7 +116,7 @@ public record SilentPaymentTestVector(string comment, Sending[] Sending, Receivi
 	{
 		var vectorsJson = File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json");
 		var vectors = JsonConvert.DeserializeObject<IEnumerable<SilentPaymentTestVector>>(vectorsJson);
-		return vectors.Where(x => x.comment.Contains("Receiving"));
+		return vectors;
 	}
 
 	private static readonly SilentPaymentTestVector[] TestCases = VectorsData().ToArray();

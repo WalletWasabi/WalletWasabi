@@ -422,19 +422,32 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 	{
 		var keys = _keys;
 
-		Key GetKeyForScriptPubKey(Script spk) =>
-			keys.Select(k => (Key: k, PubKey: k.PubKey))
-				.First(x =>
-					x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk ||
-					x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
-				.Key;
+		Key GetKeyForScriptPubKey(Script spk)
+		{
+			foreach (var key in keys)
+			{
+				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk)
+				{
+					return key.Tweak();
+				}
+				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
+				{
+					return key;
+				}
+			}
 
-		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey)).ToArray();
+			throw new InvalidOperationException("Key not found for script pub key");
+		}
+
+		var spentCoins = psbt.Inputs
+			.Select(x => x.GetCoin())
+			.Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey))
+			.ToArray();
 		var paymentAddresses = _silentPayments.Select(x => x.Value);
 		var scriptPubKeys = SilentPayment
 			.GetPubKeys(paymentAddresses, spentCoins)
 			.Select(x => (SilentPaymentAddress: x.Key, SilentPaymentPubKey: x.Value.First()))
-			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootInternalPubKey(x.SilentPaymentPubKey.ToBytes()).GetTaprootFullPubKey()))
+			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.SilentPaymentPubKey.ToBytes())))
 			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
 
 		var tx = psbt.GetOriginalTransaction();

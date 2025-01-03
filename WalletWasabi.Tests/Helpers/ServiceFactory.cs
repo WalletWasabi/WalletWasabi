@@ -61,9 +61,9 @@ public static class ServiceFactory
 		return sCoins;
 	}
 
-	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false)
+	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false, Mnemonic? mnemonic = null)
 	{
-		var mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve);
+		mnemonic ??= new Mnemonic(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey(password);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
