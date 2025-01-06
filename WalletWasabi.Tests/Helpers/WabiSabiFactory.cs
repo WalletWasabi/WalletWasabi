@@ -331,7 +331,7 @@ public static class WabiSabiFactory
 		bool redCoinIsolation)
 	{
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
-		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
+		var coinSelector = new CoinJoinCoinSelector(anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold, false);
 		var mock = new Mock<CoinJoinClient>(
 			apiClientFactory,
 			keyChain,
