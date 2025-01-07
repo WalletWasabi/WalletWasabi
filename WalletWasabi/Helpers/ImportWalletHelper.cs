@@ -70,7 +70,7 @@ public static class ImportWalletHelper
 		{
 			reverseByteOrder = true;
 		}
-		else
+		else if(!coldCardVersionString.Contains('Q')) // ColdCard Q adds a Q to the version string, which is not a valid C# Version object
 		{
 			Version coldCardVersion = new(coldCardVersionString);
 
