@@ -22,7 +22,7 @@ public record SilentPaymentAddress(int Version, ECPubKey ScanKey, ECPubKey Spend
 
 		if (result.Length != 107)
 		{
-			throw new FormatException("Wrong lenght");
+			throw new FormatException("Wrong length");
 		}
 
 		var data = spEncoder.FromBase32(result[1..]);

@@ -159,7 +159,8 @@ public partial class SendViewModel : RoutableViewModel
 		Destination destination = parsedAddress switch
 		{
 			Address.Bitcoin bitcoin => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
-			Address.Bip21Uri bip21Uri => new Destination.Loudly(bip21Uri.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.Bitcoin bitcoin }  => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.SilentPayment silentPayment }  => new Destination.Silent(silentPayment.Address),
 			Address.SilentPayment silentPayment => new Destination.Silent(silentPayment.Address),
 			_ => throw new ArgumentException("Unknown address type")
 		};
@@ -322,7 +323,7 @@ public partial class SendViewModel : RoutableViewModel
 					switch (success)
 					{
 						case Address.Bip21Uri bip21:
-							To = bip21.Address.ToString();
+							To = bip21.Address.ToWif(_walletModel.Network);
 
 							if (bip21.Amount is not null)
 							{
