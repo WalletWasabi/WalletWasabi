@@ -18,7 +18,7 @@ public static class CurrencyExtensions
 		NumberDecimalSeparator = "."
 	};
 
-	public static Money CalculateDestinationAmount(this BuildTransactionResult result, BitcoinAddress destination)
+	public static Money CalculateDestinationAmount(this BuildTransactionResult result, Destination destination)
 	{
 		var isNormalPayment = result.OuterWalletOutputs.Any();
 
@@ -28,9 +28,10 @@ public static class CurrencyExtensions
 		}
 
 		return result.InnerWalletOutputs
-			.Where(x => x.ScriptPubKey == destination.ScriptPubKey)
-			.Select(x => x.Amount)
-			.Sum();
+			.Where(x =>
+			destination is Destination.Loudly loudly && x.ScriptPubKey == loudly.ScriptPubKey
+			/* TODO add info to results about what is the change*/)
+			.Sum(x => x.Amount);
 	}
 
 	public static string FormattedBtc(this decimal amount)

@@ -41,19 +41,11 @@ public static class SilentPayment
 		Enumerable
 			.Range(0, outputs.Length)
 			.Select(n => addresses.Select(address =>
-				(Address: address, TweakedPubKey: GetTweakPubKey(address.SpendKey, sharedSecret, (uint) n))))
+				(Address: address, PubKey: ComputePubKey(address.SpendKey, sharedSecret, (uint) n))))
 			.SelectMany(x => x)
-			.Where(x => outputs.Select(o => o.Q).Contains(x.TweakedPubKey.Q))
+			.Where(x => outputs.Select(o => o.Q).Contains(x.PubKey.Q))
 			.GroupBy(x => x.Address)
-			.ToDictionary(x => x.Key, x => x.Select(y => y.TweakedPubKey).ToArray());
-
-	public static ECXOnlyPubKey GetTweakPubKey(ECPubKey spendKey, ECPubKey sharedSecret, uint n)
-	{
-		var xo = ComputePubKey(spendKey, sharedSecret, n);
-		var tr = new TaprootInternalPubKey(xo.ToBytes());
-		var ok = tr.GetTaprootFullPubKey().OutputKey;
-		return ECXOnlyPubKey.Create(ok.ToBytes());
-	}
+			.ToDictionary(x => x.Key, x => x.Select(y => y.PubKey).ToArray());
 
 	public static Dictionary<SilentPaymentAddress, Script[]> ExtractSilentPaymentScriptPubKeys(SilentPaymentAddress[] addresses, ECPubKey tweakData, Transaction tx, ECPrivKey scanKey)
 	{
@@ -106,7 +98,7 @@ public static class SilentPayment
 				"BIP0352/SharedSecret",
 				ByteHelpers.Combine(sharedSecret.ToBytes(), Serialize32(k))));
 
-	private static ECPubKey ComputeSharedSecretSender(Utxo[] utxos, ECPubKey B)
+	public static ECPubKey ComputeSharedSecretSender(Utxo[] utxos, ECPubKey B)
 	{
 		using var a = SumPrivateKeys(utxos);
 		return ComputeSharedSecret(utxos.Select(x => x.OutPoint).ToArray(), a, B);
