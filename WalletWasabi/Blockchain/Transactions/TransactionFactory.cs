@@ -1,11 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using NBitcoin.Policy;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -127,11 +125,11 @@ public class TransactionFactory
 			var changeStrategy = payments.ChangeStrategy;
 			if (changeStrategy == ChangeStrategy.Custom)
 			{
-				builder.SetChange(changeScript);
+				builder.SetChange(customChange.Destination);
 			}
 			else if (changeStrategy == ChangeStrategy.AllRemainingCustom)
 			{
-				builder.SendAllRemaining(changeScript);
+				builder.SendAllRemaining(customChange.Destination);
 			}
 			else
 			{
@@ -376,14 +374,36 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		_builder.SubtractFees();
 	}
 
-	public void SetChange(Script changeScript)
+	public void SetChange(Destination destination)
 	{
-		_builder.SetChange(changeScript);
+		switch (destination)
+		{
+			case Destination.Loudly l:
+				_builder.SetChange(l.ScriptPubKey);
+				break;
+			case Destination.Silent s:
+			{
+				_builder.SetChange(s.FakeScriptPubKey);
+				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+				break;
+			}
+		}
 	}
 
-	public void SendAllRemaining(Script script)
+	public void SendAllRemaining(Destination destination)
 	{
-		_builder.SendAllRemaining(script);
+		switch (destination)
+		{
+			case Destination.Loudly l:
+				_builder.SendAllRemaining(l.ScriptPubKey);
+				break;
+			case Destination.Silent s:
+			{
+				_builder.SendAllRemaining(s.FakeScriptPubKey);
+				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+				break;
+			}
+		}
 	}
 
 	public void SendEstimatedFees(FeeRate feeRate)
