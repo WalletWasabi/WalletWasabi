@@ -46,6 +46,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
                  Title="Send"
+                 Caption="{Binding Caption}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <Interaction.Behaviors>
       <KeyDownTrigger Key="Enter" EventRoutingStrategy="Bubble" MarkAsHandled="False">

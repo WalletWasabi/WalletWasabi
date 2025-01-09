@@ -52,6 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 	private bool _parsingTo;
 	private Address _parsedAddress;
 
+	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -388,6 +389,13 @@ public partial class SendViewModel : RoutableViewModel
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);
+
+		if (_parameters.Donate)
+		{
+			To = Constants.DonationAddress;
+			Caption = "Donate to Wasabi Wallet developers to keep maintaining the software";
+			TryParseUrl(_to);
+		}
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)
