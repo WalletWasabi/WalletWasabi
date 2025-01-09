@@ -112,7 +112,7 @@ public partial class SendViewModel : RoutableViewModel
 				{
 					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
 					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.Any;
+					var hasError = Validations.AnyErrors;
 
 					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
 				});
@@ -264,6 +264,10 @@ public partial class SendViewModel : RoutableViewModel
 		else if (AmountBtc <= 0)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
+		}
+		else if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
+		{
+			errors.Add(ErrorSeverity.Warning, "Most wallets don't recognize Silent Payments lower than 1000 sats.");
 		}
 	}
 
