@@ -7,9 +7,12 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
@@ -981,6 +984,36 @@ public class TransactionFactoryTests
 
 		var singleScript = Assert.Single(outputs[detectedAddress]);
 		Assert.Equal("bc1phz6ljzrf0sx9nqnqn06h05ce7ansc4cw24fjg970w6gwgmlx0a4sdnn5ll", singleScript.GetDestinationAddress(Network.Main).ToString());
+	}
+
+	[Fact]
+	public async Task CanSpendSilentPaymentUtxos()
+	{
+		var mnemonic = new Mnemonic("bargain pumpkin blouse crush invest control radar install alien same shield grain");
+		var km = ServiceFactory.CreateKeyManager(mnemonic: mnemonic, password: "foo", isTaprootAllowed: true);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			[
+				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
+			], keyManager: km);
+
+		var hdScanKey = km.GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Scan);
+		var hdSpendKey = km.GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Spend);
+		var silentPaymentAddress = new SilentPaymentAddress(0, hdScanKey.PubKey, hdSpendKey.PubKey);
+
+		//var payment = new PaymentIntent(silentPaymentAddress, MoneyRequest.Create(Money.Coins(1m), subtractFee: true));
+		var payment = new PaymentIntent(silentPaymentAddress, MoneyRequest.CreateAllRemaining(subtractFee: true));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(4m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
+		var paymentOutput = Assert.Single(result.OuterWalletOutputs);
+
+		string dir = "./TransactionStore";
+		await IoHelpers.TryDeleteDirectoryAsync(dir);
+		AllTransactionStore transactionStore = new(dir, Network.RegTest);
+		await transactionStore.InitializeAsync();
+		var transactionProcessor = new TransactionProcessor(transactionStore, null, km, Money.Coins(0.0001m));
+		var processingResult = transactionProcessor.Process(result.Transaction);
+		Assert.True(result.Signed);
+
 	}
 
 	private static Script GetScriptPubKey(ICoinsView coins, OutPoint outPoint)

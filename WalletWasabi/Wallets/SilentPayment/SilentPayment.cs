@@ -25,6 +25,9 @@ public static class SilentPayment
 	public static ECPubKey TweakData(OutPoint[] inputs, GE[] pubKeys) =>
 		TweakData(inputs, SumPublicKeys(pubKeys));
 
+	public static ECPubKey TweakData(Utxo[] utxos) =>
+		TweakData(utxos.Select(x => x.OutPoint).ToArray(), SumPrivateKeys(utxos).CreatePubKey());
+
 	public static Dictionary<SilentPaymentAddress, ECXOnlyPubKey[]> GetPubKeys(IEnumerable<SilentPaymentAddress> recipients, Utxo[] utxos) =>
 		recipients
 			.GroupBy(x => x.ScanKey, (scanKey, addresses) => {

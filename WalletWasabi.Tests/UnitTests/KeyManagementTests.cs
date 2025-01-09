@@ -31,18 +31,24 @@ public class KeyManagementTests
 		Assert.NotNull(manager.EncryptedSecret);
 		Assert.NotNull(manager.SegwitExtPubKey);
 		Assert.NotNull(manager.TaprootExtPubKey);
+		Assert.NotNull(manager.SilentPaymentScanExtPubKey);
+		Assert.NotNull(manager.SilentPaymentSpendExtPubKey);
 
 		Assert.NotNull(manager2.ChainCode);
 		Assert.NotNull(manager2.EncryptedSecret);
 		Assert.NotNull(manager2.SegwitExtPubKey);
 		Assert.NotNull(manager2.TaprootExtPubKey);
+		Assert.NotNull(manager2.SilentPaymentScanExtPubKey);
+		Assert.NotNull(manager2.SilentPaymentSpendExtPubKey);
 
 		Assert.NotNull(manager3.ChainCode);
 		Assert.NotNull(manager3.EncryptedSecret);
 		Assert.NotNull(manager3.SegwitExtPubKey);
 		Assert.NotNull(manager3.TaprootExtPubKey);
+		Assert.NotNull(manager3.SilentPaymentScanExtPubKey);
+		Assert.NotNull(manager3.SilentPaymentSpendExtPubKey);
 
-		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, null, new BlockchainState(Network.Main));
+		var sameManager = new KeyManager(manager.EncryptedSecret, manager.ChainCode, manager.MasterFingerprint, manager.SegwitExtPubKey, manager.TaprootExtPubKey, manager.SilentPaymentScanExtPubKey, manager.SilentPaymentSpendExtPubKey, null, new BlockchainState(Network.Main));
 		var sameManager2 = new KeyManager(manager.EncryptedSecret, manager.ChainCode, password, Network.Main);
 		Logger.TurnOff();
 		Assert.Throws<SecurityException>(() => new KeyManager(manager.EncryptedSecret, manager.ChainCode, "differentPassword", Network.Main));
@@ -52,11 +58,15 @@ public class KeyManagementTests
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
+		Assert.Equal(manager.SilentPaymentScanExtPubKey, sameManager.SilentPaymentScanExtPubKey);
+		Assert.Equal(manager.SilentPaymentSpendExtPubKey, sameManager.SilentPaymentSpendExtPubKey);
 
 		Assert.Equal(manager.ChainCode, sameManager2.ChainCode);
 		Assert.Equal(manager.EncryptedSecret, sameManager2.EncryptedSecret);
 		Assert.Equal(manager.SegwitExtPubKey, sameManager2.SegwitExtPubKey);
 		Assert.Equal(manager.TaprootExtPubKey, sameManager2.TaprootExtPubKey);
+		Assert.Equal(manager.SilentPaymentScanExtPubKey, sameManager2.SilentPaymentScanExtPubKey);
+		Assert.Equal(manager.SilentPaymentSpendExtPubKey, sameManager2.SilentPaymentSpendExtPubKey);
 
 		var differentManager = KeyManager.CreateNew(out Mnemonic mnemonic4, password, Network.Main);
 		Assert.NotEqual(mnemonic, mnemonic4);
@@ -64,12 +74,16 @@ public class KeyManagementTests
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
 		Assert.NotEqual(manager.TaprootExtPubKey, differentManager.TaprootExtPubKey);
+		Assert.NotEqual(manager.SilentPaymentScanExtPubKey, differentManager.SilentPaymentScanExtPubKey);
+		Assert.NotEqual(manager.SilentPaymentSpendExtPubKey, differentManager.SilentPaymentSpendExtPubKey);
 
 		var manager5 = new KeyManager(manager2.EncryptedSecret, manager2.ChainCode, password: null!, Network.Main);
 		Assert.Equal(manager2.ChainCode, manager5.ChainCode);
 		Assert.Equal(manager2.EncryptedSecret, manager5.EncryptedSecret);
 		Assert.Equal(manager2.SegwitExtPubKey, manager5.SegwitExtPubKey);
 		Assert.Equal(manager2.TaprootExtPubKey, manager5.TaprootExtPubKey);
+		Assert.Equal(manager2.SilentPaymentScanExtPubKey, manager5.SilentPaymentScanExtPubKey);
+		Assert.Equal(manager2.SilentPaymentSpendExtPubKey, manager5.SilentPaymentSpendExtPubKey);
 	}
 
 	[Fact]
@@ -83,12 +97,16 @@ public class KeyManagementTests
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
+		Assert.Equal(manager.SilentPaymentScanExtPubKey, sameManager.SilentPaymentScanExtPubKey);
+		Assert.Equal(manager.SilentPaymentSpendExtPubKey, sameManager.SilentPaymentSpendExtPubKey);
 
 		var differentManager = KeyManager.Recover(mnemonic, "differentPassword", Network.Main, KeyPath.Parse("m/999'/999'/999'"), null, null, 55);
 		Assert.NotEqual(manager.ChainCode, differentManager.ChainCode);
 		Assert.NotEqual(manager.EncryptedSecret, differentManager.EncryptedSecret);
 		Assert.NotEqual(manager.SegwitExtPubKey, differentManager.SegwitExtPubKey);
 		Assert.NotEqual(manager.TaprootExtPubKey, differentManager.TaprootExtPubKey);
+		Assert.NotEqual(manager.SilentPaymentScanExtPubKey, differentManager.SilentPaymentScanExtPubKey);
+		Assert.NotEqual(manager.SilentPaymentSpendExtPubKey, differentManager.SilentPaymentSpendExtPubKey);
 
 		var newKey = differentManager.GenerateNewKey("some-label", KeyState.Clean, true);
 		Assert.Equal(newKey.Index, differentManager.MinGapLimit);
@@ -151,6 +169,8 @@ public class KeyManagementTests
 		Assert.Equal(manager.EncryptedSecret, sameManager.EncryptedSecret);
 		Assert.Equal(manager.SegwitExtPubKey, sameManager.SegwitExtPubKey);
 		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
+		Assert.Equal(manager.SilentPaymentScanExtPubKey, sameManager.SilentPaymentScanExtPubKey);
+		Assert.Equal(manager.SilentPaymentSpendExtPubKey, sameManager.SilentPaymentSpendExtPubKey);
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}
@@ -203,8 +223,12 @@ public class KeyManagementTests
 		var labels = new LabelsArray("who-knows");
 		var segwitKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.Segwit);
 		var taprootKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.TaprootBIP86);
+		var silentPaymentScanKey = manager.GetNextReceiveKey(labels, KeyPurpose.Scan);
+		var silentPaymentSpendKey = manager.GetNextReceiveKey(labels, KeyPurpose.Spend);
 		Assert.Equal("84'/0'/0'/0/0", segwitKey.FullKeyPath.ToString());
 		Assert.Equal("86'/0'/0'/0/0", taprootKey.FullKeyPath.ToString());
+		Assert.Equal("352'/0'/0'/1'/0", silentPaymentScanKey.FullKeyPath.ToString());
+		Assert.Equal("352'/0'/0'/0'/0", silentPaymentSpendKey.FullKeyPath.ToString());
 	}
 
 	[Fact]
