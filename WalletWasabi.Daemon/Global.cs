@@ -33,9 +33,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.BuyAnything;
-using WalletWasabi.WebClients.BuyAnything;
-using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
 
@@ -260,15 +257,6 @@ public class Global
 						await CreateSleepInhibitorAsync().ConfigureAwait(false);
 					}
 				}
-
-				var apiKey = "SWSCU3LIYWVHVXRVYJJNDLJZBG";
-				var uri = new Uri("https://shopinbit.com/store-api/");
-				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("long-live-shopinbit"), uri, apiKey);
-
-				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
-				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
-				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
