@@ -18,7 +18,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -65,7 +64,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-		BuyViewModel = new BuyViewModel(UiContext, WalletModel);
 
 		_uiConfig = Services.UiConfig;
 
@@ -130,8 +128,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
 			null;
 
-		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
-
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			if (await AuthorizeForPasswordAsync())
@@ -176,24 +172,12 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
-		CanBuy = BuyViewModel.HasRelevantOrder;
-
-		HasUnreadConversations = BuyViewModel.Orders
-			.ToObservableChangeSet(x => x.OrderNumber)
-			.AutoRefresh(x => x.HasUnreadMessages)
-			.Filter(model => model.HasUnreadMessages)
-			.AsObservableCache()
-			.CountChanged
-			.Select(x => x > 0);
-
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
-
-	public ICommand BuyCommand { get; set; }
 
 	// TODO: Remove this
 	public Wallet Wallet { get; }
@@ -215,10 +199,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public WalletSettingsViewModel Settings { get; private set; }
 
 	public HistoryViewModel History { get; }
-
-	public BuyViewModel BuyViewModel { get; }
-
-	public IObservable<bool> CanBuy { get; }
 
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
@@ -251,8 +231,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		get => _title;
 		protected set => this.RaiseAndSetIfChanged(ref _title, value);
 	}
-
-	public IObservable<bool> HasUnreadConversations { get; }
 
 	public void SelectTransaction(uint256 txid)
 	{
