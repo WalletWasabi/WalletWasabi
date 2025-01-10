@@ -62,6 +62,8 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _conversionReversed;
 	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
+	[AutoNotify] private string _defaultLabel;
+
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
@@ -83,6 +85,8 @@ public partial class SendViewModel : RoutableViewModel
 			: _walletModel.Balances;
 
 		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
+
+		_defaultLabel = _parameters.Donate ? "Wasabi team" : "";
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 

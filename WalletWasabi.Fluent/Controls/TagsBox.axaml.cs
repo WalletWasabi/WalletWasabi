@@ -32,6 +32,7 @@ public class TagsBox : TemplatedControl
 	private IEnumerable<string>? _items;
 	private IEnumerable<string>? _topItems;
 	private bool _requestAdd;
+	private string? _defaultLabel;
 
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
@@ -88,6 +89,12 @@ public class TagsBox : TemplatedControl
 
 	public static readonly StyledProperty<bool> EnableDeleteProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(EnableDelete), true);
+
+	public static readonly DirectProperty<TagsBox, string?> DefaultLabelProperty =
+		AvaloniaProperty.RegisterDirect<TagsBox, string?>(
+			nameof(DefaultLabel),
+			o => o.DefaultLabel,
+			(o, v) => o.DefaultLabel = v);
 
 	[Content]
 	public IEnumerable<string>? Items
@@ -188,6 +195,12 @@ public class TagsBox : TemplatedControl
 
 	private string CurrentText => _autoCompleteBox?.Text ?? "";
 
+	public string? DefaultLabel
+	{
+		get => _defaultLabel;
+		set => SetAndRaise(DefaultLabelProperty, ref _defaultLabel, value);
+	}
+
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 	{
 		base.OnApplyTemplate(e);
@@ -218,6 +231,11 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
+		if (!string.IsNullOrEmpty(DefaultLabel))
+		{
+			AddTag(DefaultLabel);
+		}
+		
 		_containerControl = _presenter.ItemsPanelRoot;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>()
 			.FirstOrDefault();
