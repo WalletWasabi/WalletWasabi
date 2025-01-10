@@ -63,6 +63,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 	[AutoNotify] private string _defaultLabel;
+	[AutoNotify] private bool _isFixedAddress;
 
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
@@ -408,6 +409,7 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			To = Constants.DonationAddress;
 			Caption = "Donate to The Wasabi Wallet Developers to continue maintaining the software";
+			IsFixedAddress = true;
 			TryParseUrl(_to);
 		}
 	}
