@@ -52,6 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 	private bool _parsingTo;
 	private Address _parsedAddress;
 
+	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -59,7 +60,11 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
+	[AutoNotify] private string _defaultLabel;
+	[AutoNotify] private bool _isFixedAddress;
+
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
@@ -81,6 +86,8 @@ public partial class SendViewModel : RoutableViewModel
 			: _walletModel.Balances;
 
 		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
+
+		_defaultLabel = _parameters.Donate ? "Wasabi team" : "";
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -111,7 +118,7 @@ public partial class SendViewModel : RoutableViewModel
 				{
 					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
 					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.Any;
+					var hasError = Validations.AnyErrors;
 
 					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
 				});
@@ -132,6 +139,8 @@ public partial class SendViewModel : RoutableViewModel
 	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
+
+	public bool IsNotInDonationWorkflow => !_parameters.Donate;
 
 	public ICommand PasteCommand { get; }
 
@@ -188,7 +197,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		var isAutoPasteEnabled = UiContext.ApplicationSettings.AutoPaste;
 
-		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
+		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled && IsNotInDonationWorkflow)
 		{
 			await OnPasteAsync(pasteIfInvalid: false);
 		}
@@ -264,6 +273,10 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
 		}
+		else if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
+		{
+			errors.Add(ErrorSeverity.Warning, "Most wallets don't recognize Silent Payments lower than 1000 sats.");
+		}
 	}
 
 	private void ValidateToField(IValidationErrors errors)
@@ -315,6 +328,8 @@ public partial class SendViewModel : RoutableViewModel
 		PayJoinEndPoint = null;
 		IsFixedAmount = false;
 
+		var isSilentPayment = false;
+
 		var result = AddressParser.Parse(text, _walletModel.Network)
 			.Match(
 				success =>
@@ -352,6 +367,7 @@ public partial class SendViewModel : RoutableViewModel
 
 						case Address.SilentPayment silentPayment:
 							To = silentPayment.Address.ToWip(_walletModel.Network);
+							isSilentPayment = true;
 							return true;
 
 						default:
@@ -359,6 +375,8 @@ public partial class SendViewModel : RoutableViewModel
 					}
 				},
 				_ => false);
+
+		DisplaySilentPaymentInfo = isSilentPayment && _parameters.Donate;
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
@@ -388,6 +406,14 @@ public partial class SendViewModel : RoutableViewModel
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);
+
+		if (_parameters.Donate)
+		{
+			To = Constants.DonationAddress;
+			Caption = "Donate to The Wasabi Wallet Developers to continue maintaining the software";
+			IsFixedAddress = true;
+			TryParseUrl(_to);
+		}
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)

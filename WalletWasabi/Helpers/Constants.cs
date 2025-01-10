@@ -16,6 +16,8 @@ public static class Constants
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
 	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";
 
+	public const string DonationAddress = "sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3";
+
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
 	/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.

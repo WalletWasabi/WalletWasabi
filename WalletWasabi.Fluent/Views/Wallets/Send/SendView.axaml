@@ -46,6 +46,7 @@
                  EnableCancel="{Binding EnableCancel}"
                  IsBusy="{Binding IsBusy}"
                  Title="Send"
+                 Caption="{Binding Caption}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto">
     <Interaction.Behaviors>
       <KeyDownTrigger Key="Enter" EventRoutingStrategy="Bubble" MarkAsHandled="False">
@@ -97,6 +98,7 @@
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
+                 IsReadOnly="{Binding IsFixedAddress}"
                  Watermark="(e.g. Bitcoin address, Silent Payment address or payjoin URL)"
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
@@ -113,6 +115,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
               <AnimatedButton KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
+                                IsVisible="{Binding IsNotInDonationWorkflow}"
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
@@ -130,6 +133,10 @@
             </StackPanel>
           </TextBox.InnerRightContent>
         </TextBox>
+      </DockPanel>
+      <DockPanel DockPanel.Dock="Top" IsVisible="{Binding DisplaySilentPaymentInfo}">
+        <Label DockPanel.Dock="Left" Content="" Target="sp_info" />
+      <TextBlock x:Name="sp_info" Opacity="0.6" Text="ⓘ Silent Payments are privately reusable static addresses"/>
       </DockPanel>
       <!-- Amount -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,15">
@@ -173,6 +180,7 @@
         <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
                Margin="0,10,0,10"/>
         <TagsBox x:Name="LabelTagBox"
+                 DefaultLabel="{Binding DefaultLabel}"
                  VerticalAlignment="Top"
                  Watermark="{StaticResource LabelsWatermarkText}"
                  TagSeparator=","
