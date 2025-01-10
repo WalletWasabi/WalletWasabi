@@ -140,6 +140,8 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
+	public bool IsNotInDonationWorkflow => !_parameters.Donate;
+
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }
@@ -195,7 +197,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		var isAutoPasteEnabled = UiContext.ApplicationSettings.AutoPaste;
 
-		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
+		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled && IsNotInDonationWorkflow)
 		{
 			await OnPasteAsync(pasteIfInvalid: false);
 		}

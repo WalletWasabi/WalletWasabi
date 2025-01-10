@@ -115,6 +115,7 @@
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
               <AnimatedButton KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
+                                IsVisible="{Binding IsNotInDonationWorkflow}"
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
