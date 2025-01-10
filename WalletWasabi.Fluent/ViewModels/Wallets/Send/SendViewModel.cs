@@ -407,7 +407,7 @@ public partial class SendViewModel : RoutableViewModel
 		if (_parameters.Donate)
 		{
 			To = Constants.DonationAddress;
-			Caption = "Donate to Wasabi Wallet developers to keep maintaining the software";
+			Caption = "Donate to the Wasabi Wallet developers to keep maintaining the software";
 			TryParseUrl(_to);
 		}
 	}
