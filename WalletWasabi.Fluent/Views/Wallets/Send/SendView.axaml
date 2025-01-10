@@ -132,6 +132,10 @@
           </TextBox.InnerRightContent>
         </TextBox>
       </DockPanel>
+      <DockPanel DockPanel.Dock="Top" IsVisible="{Binding DisplaySilentPaymentInfo}">
+        <Label DockPanel.Dock="Left" Content="" Target="sp_info" />
+      <TextBlock x:Name="sp_info" Opacity="0.6" Text="ⓘ Silent Payments are privately reusable static addresses"/>
+      </DockPanel>
       <!-- Amount -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,15">
         <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />

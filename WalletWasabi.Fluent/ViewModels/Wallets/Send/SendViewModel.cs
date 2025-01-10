@@ -60,6 +60,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
@@ -320,6 +321,8 @@ public partial class SendViewModel : RoutableViewModel
 		PayJoinEndPoint = null;
 		IsFixedAmount = false;
 
+		var isSilentPayment = false;
+
 		var result = AddressParser.Parse(text, _walletModel.Network)
 			.Match(
 				success =>
@@ -357,6 +360,7 @@ public partial class SendViewModel : RoutableViewModel
 
 						case Address.SilentPayment silentPayment:
 							To = silentPayment.Address.ToWip(_walletModel.Network);
+							isSilentPayment = true;
 							return true;
 
 						default:
@@ -364,6 +368,8 @@ public partial class SendViewModel : RoutableViewModel
 					}
 				},
 				_ => false);
+
+		DisplaySilentPaymentInfo = isSilentPayment && _parameters.Donate;
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
