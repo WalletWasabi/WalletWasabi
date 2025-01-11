@@ -1,35 +1,40 @@
 ## Release Highlights
-#### 🪲 Bug Fixes<br/>
-#### 💫 Settings Layout & UI Enhancements<br/>
-#### 📈 Tor Update: Upgraded to v13.5.9<br/>
-#### 🚫 Buy Anything Button Disabled<br/>
+#### 🤫 Send to Silent Payments addresses<br/>
+#### 🎁 Bootstrap of our Donation Campaign<br/>
+#### 📝 Release Notes in the client<br/>
 
 ## Release Summary
-Wasabi Wallet v2.3.1 is a stability-focused release packed with critical bug fixes and preparatory changes for upcoming major features.
+Wasabi Wallet v2.4.0 brings send to Silent Payments addresses!
 
-### 🪲 Notable Bug Fixes
-- Fixed an issue where the transaction broadcaster displayed an error, while the transaction was successfully broadcast
-- Resolved a problem with DNS endpoints for remote Bitcoin nodes
-- Improved the amount decomposer to prevent privacy leaks when using the *payment-in-round* feature
-- Fixed sorting tables by amount
-- Sometimes small rounds were not recognized by the wallet, leading to improper anon score computation
+### 🤫 Send to Silent Payments addresses
 
-### 💫 Settings & UI Enhancements
-The Settings layout has been refined, optimizing space for a more streamlined user experience.
+Silent Payments are privately reusable static addresses. While sending Bitcoin to them is as easy as sending to regular addresses, it is not possible for an observer to link several payments to the same Silent Payments address.
 
-Additionally, some new UI features have been implemented:
-- Coin lists now display the address associated with each UTXO
-- Added functionality to copy addresses directly from the Coin List view
-- Consistent formatting of Fee Rate to 2 decimals without trailing 0
+They are useful to send an address to multiple persons at the same time (tips, donations...) or to make multiple payments between the same entities (salary, rent...).
 
-### 🚫 Buy Anything Button Disabled
-This feature, launched nearly a year ago, allowed users to access the premium ShopinBit concierge service directly through the wallet.
+Wasabi is now one of the first wallet to support send to Silent Payment addresses, and we hope that more wallets will join! We are working on allowing receiving, please bear with us!
 
-This version disables it, for the following reasons:
-- Limited usage among users
-- The same service is fully accessible via the ShopInBit platform
-- Occupies valuable interface space
-- Improving the experience would require additional maintenance costs
+### 🎁 Start of our Donation Campaign
 
-Starting with this release, the button is removed, unless there are active or completed orders.<br/>
-In the next release, the feature will be completely removed from the codebase.<br/>
+Wasabi is Free Open Source Software (FOSS).
+No service is provided, and therefore it doesn't generate any revenue.
+
+However, maintaining and improving the software requires ongoing effort, such as maintenance, continuous improvement, bug fixes, testing, documentation, regular updates etc...
+
+While Wasabi is one of the best tools available to use Bitcoin privately, achieving flawless financial-sovereign privacy is still a work in progress.
+There are many features yet to be implemented, and your support can help make them a reality.
+
+Additionally, contributors cover static costs, such as server expenses and release management, using their personal funds.
+
+A donate button has been added on the main screen.<br/>
+It uses Silent Payments, so it's a great way to test that new feature!
+
+By donating, you’re directly supporting the developers who work tirelessly to maintain and improve Wasabi Wallet and make Bitcoin privacy accessible for everyone.
+
+### 📝 Release Notes in the client
+
+If you've reached this far, you've probably noticed that the release notes highlights are now available in the client! They are displayed every first launch after an update.
+
+Full release notes are still available on GitHub.
+
+
