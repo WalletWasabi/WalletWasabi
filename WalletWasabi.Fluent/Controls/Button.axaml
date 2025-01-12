@@ -113,14 +113,6 @@
   <Design.PreviewWith>
     <StackPanel Spacing="10">
       <Button Theme="{StaticResource FunctionButton}" Content="Function Button" />
-      <Button Theme="{StaticResource FunctionButton}">
-        <Button.Content>
-          <DockPanel>
-            <PathIcon Data="{StaticResource wallet_action_buy}" />
-            <TextBlock VerticalAlignment="Center">Function button with icon</TextBlock>
-          </DockPanel>
-        </Button.Content>
-      </Button>
       <Button Theme="{StaticResource AccentButton}" Content="Accent Button" />
       <Button Theme="{StaticResource AccentButton}" IsEnabled="False" Content="Accent Button Disabled" />
       <Button Theme="{StaticResource SortButtonBase}">Layer2</Button>
