@@ -95,10 +95,6 @@
   <SolidColorBrush x:Key="ScrollBarThumbFillPressed" Color="{DynamicResource SystemAccentColorDark1}" />
   <SolidColorBrush x:Key="ScrollBarThumbFillPointerOver" Color="{DynamicResource SystemAccentColorLight1}" />
 
-  <!-- BuyAnything -->
-  <SolidColorBrush x:Key="ChatInputBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <SolidColorBrush x:Key="UnreadBadgeColor" Color="#DCA63E" />
-
   <!-- BoxShadows -->
   <BoxShadows x:Key="DialogAlertStartBoxShadow">0 0 10 5 #DDA73E</BoxShadows>
   <BoxShadows x:Key="DialogAlertEndBoxShadow">0 0 10 1 #DDA73E</BoxShadows>

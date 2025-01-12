@@ -129,15 +129,6 @@
   <Color x:Key="CoinjoinWaveDefaultColor">#FF63A300</Color>
   <Color x:Key="CoinjoinWaveCriticalColor">#FF7800</Color>
 
-  <!-- BuyAnything -->
-  <SolidColorBrush x:Key="BuyAnythingConversationsBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <SolidColorBrush x:Key="BuyAnythingChatBackground" Color="{StaticResource Layer2BackgroundBrush}" />
-  <SolidColorBrush x:Key="AssistantMessageBackground" Color="{StaticResource Layer1BackgroundBrush}" />
-  <SolidColorBrush x:Key="ConversationSelectedBackground" Color="{StaticResource Layer2BackgroundBrush}" />
-  <SolidColorBrush x:Key="ConversationPointerOverBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.5" />
-  <SolidColorBrush x:Key="ConversationPressedBackground" Color="{StaticResource Layer2BackgroundBrush}" Opacity="0.8" />
-  <StaticResource x:Key="UserMessageBackground" ResourceKey="SystemAccentCustomColorLight" />
-
   <!-- WalletIcon -->
   <Color x:Key="WalletIconBackgroundStartColor">#FF646464</Color>
   <Color x:Key="WalletIconBackgroundEndColor">#FF333333</Color>
