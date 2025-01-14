@@ -16,7 +16,8 @@ namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class CoinJoinCoinSelector
 {
-	public const int MaxInputsRegistrableByWallet = 15; // how many
+	public const int MaxInputsRegistrableByWallet = 15;
+	public const int DontConsolidateHigherThanRatioOfPrivateBalance = 20; // TODO: Should be customizable
 
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
@@ -93,7 +94,7 @@ public class CoinJoinCoinSelector
 		// If that was to be sure, then we simply don't have to return at the end of this section.
 		// We might really want to do that because it reduces crumbling of the wallet by allowing consolidation instead of decomposition of the change.
 		PaymentAwareOutputProvider? paymentAwareOutputProvider = null;
-		if(OutputProvider is PaymentAwareOutputProvider provider)
+		if (OutputProvider is PaymentAwareOutputProvider provider)
 		{
 			paymentAwareOutputProvider = provider;
 
@@ -130,7 +131,8 @@ public class CoinJoinCoinSelector
 
 			if (toPerformPayments.Count != 0)
 			{
-				var totalToPerformPaymentsAmount = toPerformPayments.Sum(x => x.Amount) + 0; // TODO: Replace 0 by Max Possible Shared Overhead.
+				var totalToPerformPaymentsAmount =
+					toPerformPayments.Sum(x => x.Amount) + 0; // TODO: Replace 0 by Max Possible Shared Overhead.
 
 				// TODO: This can be optimized by searching the combination of coins that minimize both the number of coins used and the change.
 				// Search for the smallest group of coins that would be enough to perform the payments.
@@ -138,13 +140,15 @@ public class CoinJoinCoinSelector
 				{
 					var currentTotalEffectiveValue = winner.Sum(x => x.EffectiveValue(parameters.MiningFeeRate));
 
-					if (currentTotalEffectiveValue + coin.EffectiveValue(parameters.MiningFeeRate) >= totalToPerformPaymentsAmount)
+					if (currentTotalEffectiveValue + coin.EffectiveValue(parameters.MiningFeeRate) >=
+					    totalToPerformPaymentsAmount)
 					{
 						// Adding the coin would be enough, so search for lower coins that would also be enough. This optimizes change.
 						// We are certain to find one here because of previous condition. Worst case scenario: lowerCoin = coin.
 						foreach (var lowerCoin in privateCoinsSortedByEffectiveValue.Reverse())
 						{
-							if(currentTotalEffectiveValue + coin.EffectiveValue(parameters.MiningFeeRate) >= totalToPerformPaymentsAmount)
+							if (currentTotalEffectiveValue + coin.EffectiveValue(parameters.MiningFeeRate) >=
+							    totalToPerformPaymentsAmount)
 							{
 								winner.Add(lowerCoin);
 							}
@@ -259,7 +263,7 @@ public class CoinJoinCoinSelector
 
 			var availableSpots = MaxInputsRegistrableByWallet - winner.Count;
 
-			if(availableSpots <= 0)
+			if (availableSpots <= 0)
 			{
 				return winner.ToShuffled(_rnd).ToImmutableList();
 			}
@@ -270,17 +274,20 @@ public class CoinJoinCoinSelector
 			// Base inclusion has to be very high at the begining to not skip the most important coins
 			// however we can lower it quickly to avoid any potential deterministic behavior.
 			// We lower so if index is MaxInputsRegistrableByWallet then penalty will be 25%.
-			var baseInclusionPenalty = currentIndex * (BasePercentageOfSemiPrivateCoinsInclusion / (MaxInputsRegistrableByWallet * 4.0));
+			var baseInclusionPenalty = currentIndex *
+			                           (BasePercentageOfSemiPrivateCoinsInclusion /
+			                            (MaxInputsRegistrableByWallet * 4.0));
 
 			// We want to avoid selecting coins coming from the same Tx, so there must be a logarithmic penalty.
 			// But if we have a lot of spots, we should be less picky with this restriction and so we lower the penalty with a boost.
 			var spotsRatio = (double)availableSpots / MaxInputsRegistrableByWallet;
-			var boost = 1 + spotsRatio;  // This will range from 1 to 2
+			var boost = 1 + spotsRatio; // This will range from 1 to 2
 			var sameTxPenaltyRatio = 1 / Math.Pow(numberOfCoinsAddedFromThisTx / boost, 2);
 
-			var finalPercentageOfInclusion = (BasePercentageOfSemiPrivateCoinsInclusion - baseInclusionPenalty) * sameTxPenaltyRatio;
+			var finalPercentageOfInclusion =
+				(BasePercentageOfSemiPrivateCoinsInclusion - baseInclusionPenalty) * sameTxPenaltyRatio;
 
-			if(_rnd.GetInt(0, 101) < finalPercentageOfInclusion)
+			if (_rnd.GetInt(0, 101) < finalPercentageOfInclusion)
 			{
 				winner.Add(coin);
 			}
@@ -301,7 +308,7 @@ public class CoinJoinCoinSelector
 		// We also need to keep risk of Anon Score Loss low, otherwise selecting those coins can be very expansive.
 
 		// Note: This implementation must change if we don't return earlier with payments.
-		if(paymentAwareOutputProvider is not null)
+		if (paymentAwareOutputProvider is not null && paymentAwareOutputProvider.BatchedPayments.GetPayments().Count > 0)
 		{
 			// Being there means that we have to consolidate because we don't have enough private coins to perform any payment.
 			// We can know how much we need to consolidate: While the sum of effective values of the private inputs is not enough to perform all the payments.
@@ -335,10 +342,31 @@ public class CoinJoinCoinSelector
 		// Consolidation module, based on the FeeRateMedians, spread of the amounts and min anonscore selected.
 		// The most important part is to not over nor under consolidate, algo must balance itself.
 
-		// FeeRateMedians multiplier
-		var feeRateMultiplier = parameters.FeeRatesMedians
-			.OrderByDescending(x => x.Key)
-			.First(x => x.Key <= TimeSpan.FromMinutes(10))
-			.Value;
+		// Consolidate only during cheap periods, otherwise doing it makes no sense as having a lot of coins helps reducing change.
+		if (parameters.FeeRatesMedians.All(x => parameters.MiningFeeRate < x.Value))
+		{
+			// Having too big private coins is a problem because it increases change during standard payments + risk of AnonLoss.
+			// Therefore, we want to consolidate only the smaller denominations coins.
+			var utxosThatCanBeConsolidated = privateCoins
+				.Where(x => !winner.Contains(x))
+				.Where(x => x.Amount.Satoshi < privateCoins.Sum(y => y.Amount.Satoshi) /
+					DontConsolidateHigherThanRatioOfPrivateBalance)
+				.OrderBy(x => x.Amount);
+
+			foreach (var coin in utxosThatCanBeConsolidated)
+			{
+				if (winner.Count >= MaxInputsRegistrableByWallet)
+				{
+					return winner.ToShuffled(_rnd).ToImmutableList();
+				}
+
+				winner.Add(coin); // TODO: Bias
+
+				// TODO: Random Stopping Condition
+			}
+
+		}
+
 		return winner.ToShuffled(_rnd).ToImmutableList();
+	}
 }
