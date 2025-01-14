@@ -75,12 +75,6 @@ public class CoinJoinCoinSelector
 			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
-		if (semiPrivateCoins.Length + redCoins.Length == 0)
-		{
-			Logger.LogDebug("No suitable coins for this round.");
-			return ImmutableList<TCoin>.Empty;
-		}
-
 		Logger.LogDebug($"Coin selection started:");
 		Logger.LogDebug(
 			$"{nameof(filteredCoins)}: {filteredCoins.Count} coins, valued at {Money.Satoshis(filteredCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
@@ -95,7 +89,9 @@ public class CoinJoinCoinSelector
 
 		// PAYMENTS IF ENOUGH PRIVATE COINS
 		// If there are enough private coins, we can perform payments. It is more important than increasing privacy.
-		// An interesting improvements could be to participate in parallel to the same round.
+		// An interesting improvements is to make sure with the decomposer that we can perform payment + gain privacy at the same time.
+		// If that was to be sure, then we simply don't have to return at the end of this section.
+		// We might really want to do that because it reduces crumbling of the wallet by allowing consolidation instead of decomposition of the change.
 		PaymentAwareOutputProvider? paymentAwareOutputProvider = null;
 		if(OutputProvider is PaymentAwareOutputProvider provider)
 		{
@@ -106,6 +102,7 @@ public class CoinJoinCoinSelector
 				.Where(x => x.State is PendingPayment)
 				.ToList();
 
+			// TODO: Maybe we need to bias the sort to break potential determinism.
 			var privateCoinsSortedByEffectiveValue = privateCoins
 				.OrderByDescending(x => x.EffectiveValue(parameters.MiningFeeRate))
 				.ToArray();
@@ -115,15 +112,10 @@ public class CoinJoinCoinSelector
 				.Take(MaxInputsRegistrableByWallet)
 				.Sum(x => x);
 
-			// TODO: We need to account for the Shared Overhead here
-			// TODO: A solution is to add 2 new parameters to the UtxoSelectionParameters:
-			// TODO: - Total Overhead to pay
-			// TODO: - Min number of inputs possible
-			// TODO: So this client could account the max overhead he will have to pay.
-			availablePrivateEffectiveValue -= 0;
+			availablePrivateEffectiveValue -= 0; // TODO: Replace 0 by Max Possible Shared Overhead.
 
 			// Don't touch the priority provided by PaymentAwareOutputProvider.
-			// This only works because there is no
+			// This only works because there is no coordination fee.
 			var toPerformPayments = new List<Payment>();
 			foreach (var payment in payments)
 			{
@@ -138,19 +130,17 @@ public class CoinJoinCoinSelector
 
 			if (toPerformPayments.Count != 0)
 			{
-				// TODO: Again the Shared Overhead should be accounted here.
-				var totalToPerformPaymentsAmount = toPerformPayments.Sum(x => x.Amount) + 0;
+				var totalToPerformPaymentsAmount = toPerformPayments.Sum(x => x.Amount) + 0; // TODO: Replace 0 by Max Possible Shared Overhead.
 
-				// TODO: Here we can improve by searching the combination of coins that minimize both the number of coins used and the change .
-				// TODO: I'm only making a small optimization here, that might be enough:
-				// TODO: If adding a coin would be enough to make the payments, I search to see if there are lower coins that would also be enough.
+				// TODO: This can be optimized by searching the combination of coins that minimize both the number of coins used and the change.
+				// Search for the smallest group of coins that would be enough to perform the payments.
 				foreach (var coin in privateCoinsSortedByEffectiveValue)
 				{
 					var currentTotalEffectiveValue = winner.Sum(x => x.EffectiveValue(parameters.MiningFeeRate));
 
 					if (currentTotalEffectiveValue + coin.EffectiveValue(parameters.MiningFeeRate) >= totalToPerformPaymentsAmount)
 					{
-						// Adding the coin would be enough, so search for lower coins that would also be enough.
+						// Adding the coin would be enough, so search for lower coins that would also be enough. This optimizes change.
 						// We are certain to find one here because of previous condition. Worst case scenario: lowerCoin = coin.
 						foreach (var lowerCoin in privateCoinsSortedByEffectiveValue.Reverse())
 						{
@@ -166,15 +156,21 @@ public class CoinJoinCoinSelector
 					winner.Add(coin);
 				}
 
-				// Because the AmountDecomposer is currently not made to accept payments + consolidating or gaining privacy at the same time,
-				// it is better to return here and not add any other coin. So this round will only be used to perform the payments.
-				// This can cause issues if an user is consistently trying to perform small payments: he will never gain privacy as he will always be performing payments.
 				return winner.ToShuffled(_rnd).ToImmutableList();
 			}
 		}
 
+		// TODO: This shouln't be a reason to abort a round. We should continue and check if consolidation is required.
+		if (semiPrivateCoins.Length + redCoins.Length == 0)
+		{
+			Logger.LogDebug("No suitable coins for this round.");
+			return ImmutableList<TCoin>.Empty;
+		}
+
+
 		// COINS SHARING SCRIPT PUB KEY
 		// Those have the highest of all priorities. We select as many as we can.
+		// It is after Payments but it should be OK because Private coins shouldn't share scriptPubKey.
 		// Only MaxInputsRegistrableByWallet can limit amount selected or RedCoinIsolation if several non-unique ScriptPubKeys are available.
 		var samePubKeyGroups = filteredCoins
 			.GroupBy(x => x.ScriptPubKey)
@@ -268,7 +264,7 @@ public class CoinJoinCoinSelector
 				return winner.ToShuffled(_rnd).ToImmutableList();
 			}
 
-			// We enumerate the winner instead of keeping track because it's cheap anyway some red coins from same TxId might already be in there.
+			// We enumerate the winner instead of keeping track because it's cheap anyway and some red coins from same TxId might already be in there.
 			var numberOfCoinsAddedFromThisTx = winner.Count(x => x.TransactionId == coin.TransactionId);
 
 			// Base inclusion has to be very high at the begining to not skip the most important coins
@@ -277,7 +273,7 @@ public class CoinJoinCoinSelector
 			var baseInclusionPenalty = currentIndex * (BasePercentageOfSemiPrivateCoinsInclusion / (MaxInputsRegistrableByWallet * 4.0));
 
 			// We want to avoid selecting coins coming from the same Tx, so there must be a logarithmic penalty.
-			// But we have a lot of spots, we should be less picky with this restriction and so we lower the penalty with a boost.
+			// But if we have a lot of spots, we should be less picky with this restriction and so we lower the penalty with a boost.
 			var spotsRatio = (double)availableSpots / MaxInputsRegistrableByWallet;
 			var boost = 1 + spotsRatio;  // This will range from 1 to 2
 			var sameTxPenaltyRatio = 1 / Math.Pow(numberOfCoinsAddedFromThisTx / boost, 2);
@@ -295,7 +291,8 @@ public class CoinJoinCoinSelector
 		// PRIVATE COINS
 		// Choosing which private coins to add is by far the most difficult.
 		// There is no actual need to select these coins.
-		// In the standard case, selecting private coins must be only for straight improvements.
+		// In the standard case, selecting private coins must be only for straight improvements of the selection
+		// or in the UTXO set owned by the user.
 		// We want to select private coins to:
 		// - Consolidate them to perform payments or (currently not implemented) if fees are low.
 		// - Keep a nice distribution of coins to reduce change for payments outside of rounds
@@ -303,10 +300,45 @@ public class CoinJoinCoinSelector
 		// - Reduce determinism regarding the Anon Score Target
 		// We also need to keep risk of Anon Score Loss low, otherwise selecting those coins can be very expansive.
 
-		//
+		// Note: This implementation must change if we don't return earlier with payments.
 		if(paymentAwareOutputProvider is not null)
 		{
-			var payments = paymentAwareOutputProvider.BatchedPayments;
+			// Being there means that we have to consolidate because we don't have enough private coins to perform any payment.
+			// We can know how much we need to consolidate: While the sum of effective values of the private inputs is not enough to perform all the payments.
+			var totalAmountOfPayments = paymentAwareOutputProvider.BatchedPayments
+				.GetPayments()
+				.Where(x => x.State is PendingPayment)
+				.Sum(x => x.Amount);
+
+			// TODO: We need to bias the sort to break potential determinism.
+			// We reverse the order because we want to consolidate smallest coins in priority.
+			var privateCoinsSortedByReverseEffectiveValue = privateCoins
+				.OrderByDescending(x => x.EffectiveValue(parameters.MiningFeeRate))
+				.Reverse()
+				.ToArray();
+
+			var i = 0;
+			while (winner.Where(x => x.IsPrivate(AnonScoreTarget))
+				       .Sum(x => x.EffectiveValue(parameters.MiningFeeRate)) < totalAmountOfPayments &&
+			       winner.Count < MaxInputsRegistrableByWallet)
+			{
+				winner.Add(privateCoinsSortedByReverseEffectiveValue[i]);
+				i++;
+
+				//TODO: Random stoping condition here to avoid having too often MaxInputsRegistrableByWallet.
+			}
+
+			return winner.ToShuffled(_rnd).ToImmutableList();
 		}
+
+
+		// Consolidation module, based on the FeeRateMedians, spread of the amounts and min anonscore selected.
+		// The most important part is to not over nor under consolidate, algo must balance itself.
+
+		// FeeRateMedians multiplier
+		var feeRateMultiplier = parameters.FeeRatesMedians
+			.OrderByDescending(x => x.Key)
+			.First(x => x.Key <= TimeSpan.FromMinutes(10))
+			.Value;
 		return winner.ToShuffled(_rnd).ToImmutableList();
 }

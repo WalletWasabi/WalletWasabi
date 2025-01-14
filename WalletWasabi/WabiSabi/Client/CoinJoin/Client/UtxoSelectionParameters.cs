@@ -14,9 +14,10 @@ public record UtxoSelectionParameters(
 	MoneyRange AllowedInputAmounts,
 	Money MinAllowedOutputAmount,
 	FeeRate MiningFeeRate,
+	Dictionary<TimeSpan, FeeRate> FeeRatesMedians,
 	ImmutableSortedSet<ScriptType> AllowedInputScriptTypes)
 {
-	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, ScriptType[] scriptTypesSupportedByWallet)
+	public static UtxoSelectionParameters FromRoundParameters(RoundParameters roundParameters, Dictionary<TimeSpan, FeeRate> feeRatesMedians, ScriptType[] scriptTypesSupportedByWallet)
 	{
 		var outputTypes = roundParameters.AllowedOutputTypes.Intersect(scriptTypesSupportedByWallet);
 		var maxVsizeInputOutputPairScriptType = outputTypes.MaxBy(x => x.EstimateInputVsize() + x.EstimateOutputVsize());
@@ -35,6 +36,7 @@ public record UtxoSelectionParameters(
 			roundParameters.AllowedInputAmounts,
 			smallestReasonableEffectiveDenomination,
 			roundParameters.MiningFeeRate,
+			feeRatesMedians,
 			roundParameters.AllowedInputTypes);
 	}
 }
