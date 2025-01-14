@@ -37,15 +37,15 @@ public static class SilentPayment
 			.GroupBy(x => x.Address)
 			.ToDictionary(x => x.Key, x => x.Select(y => y.PubKey).ToArray());
 
-	public static Dictionary<SilentPaymentAddress, ECXOnlyPubKey[]> GetPubKeys(IEnumerable<SilentPaymentAddress> addresses, ECPubKey sharedSecret, ECXOnlyPubKey[] outputs) =>
+	public static (SilentPaymentAddress Address, ECXOnlyPubKey PubKey)[] GetPubKeys(IEnumerable<SilentPaymentAddress> addresses,
+		ECPubKey sharedSecret, ECXOnlyPubKey[] outputs) =>
 		Enumerable
 			.Range(0, outputs.Length)
 			.Select(n => addresses.Select(address =>
 				(Address: address, PubKey: ComputePubKey(address.SpendKey, sharedSecret, (uint) n))))
 			.SelectMany(x => x)
 			.Where(x => outputs.Select(o => o.Q).Contains(x.PubKey.Q))
-			.GroupBy(x => x.Address)
-			.ToDictionary(x => x.Key, x => x.Select(y => y.PubKey).ToArray());
+			.ToArray();
 
 	public static Dictionary<SilentPaymentAddress, Script[]> ExtractSilentPaymentScriptPubKeys(SilentPaymentAddress[] addresses, ECPubKey tweakData, Transaction tx, ECPrivKey scanKey)
 	{
@@ -61,8 +61,8 @@ public static class SilentPayment
 			.Select(x => ECXOnlyPubKey.Create(x.ToBytes()))
 			.ToArray();
 		var sharedSecret = ComputeSharedSecretReceiver(tweakData, scanKey);
-		var silentPaymentOutputs = GetPubKeys(addresses, sharedSecret, taprootPubKeys);
-		return silentPaymentOutputs.ToDictionary(x => x.Key, x => x.Value.Select(y => new TaprootPubKey(y.ToBytes()).ScriptPubKey).ToArray());
+		var silentPaymentOutputs = GetPubKeys(addresses, sharedSecret, taprootPubKeys).GroupBy(x => x.Address);
+		return silentPaymentOutputs.ToDictionary(x => x.Key, x => x.Select(y => new TaprootPubKey(y.PubKey.ToBytes()).ScriptPubKey).ToArray());
 	}
 
 	private static bool IsElegible(Transaction tx) =>
@@ -114,9 +114,12 @@ public static class SilentPayment
 
 	public static ECPrivKey ComputePrivKey(ECPrivKey spendKey, ECPubKey sharedSecret, uint k)
 	{
-		using var tk = TweakKey(sharedSecret, k);
-		return ECPrivKey.Create((tk.sec + spendKey.sec).ToBytes());
+		using var tweakKey = TweakKey(sharedSecret, k);
+		return ComputePrivKey(spendKey, tweakKey);
 	}
+
+	public static ECPrivKey ComputePrivKey(ECPrivKey spendKey, ECPrivKey tweakKey) =>
+		ECPrivKey.Create((tweakKey.sec + spendKey.sec).ToBytes());
 
 	public static GE? ExtractPubKey(Script scriptSig, WitScript txInWitness, Script prevOutScriptPubKey)
 	{

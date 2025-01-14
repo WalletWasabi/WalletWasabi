@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using NBitcoin;
@@ -17,18 +16,19 @@ public class SilentPaymentTests
 	[MemberData(nameof(SilentPaymentTestVector.TestCasesData), MemberType = typeof(SilentPaymentTestVector))]
 	public void TestVectors(SilentPaymentTestVector test)
 	{
-		foreach (var sending in test.Sending)
+		// Sending functionality
+		foreach (var (given, expected) in test.Sending)
 		{
 			try
 			{
-				var utxos = sending.Given.Vin.Select(x => new Utxo(
+				var utxos = given.Vin.Select(x => new Utxo(
 					new OutPoint(uint256.Parse(x.TxId), x.Vout), new Key(Encoders.Hex.DecodeData(x.Private_Key)),
 					Script.FromHex(x.PrevOut.ScriptPubKey.Hex))).ToArray();
-				var recipients = sending.Given.Recipients.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
+				var recipients = given.Recipients.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
 				var xonlyPks = SilentPayment.GetPubKeys(recipients, utxos);
 				var actual = xonlyPks.SelectMany(x => x.Value).Select(x => Encoders.Hex.EncodeData(x.ToBytes()));
 
-				Assert.Subset(sending.Expected.Outputs.SelectMany(x => x).ToHashSet(), actual.ToHashSet());
+				Assert.Subset(expected.Outputs.SelectMany(x => x).ToHashSet(), actual.ToHashSet());
 			}
 			catch (ArgumentException e) when(e.Message.Contains("Invalid ec private key") && test.comment.Contains("point at infinity"))
 			{
@@ -36,41 +36,89 @@ public class SilentPaymentTests
 			}
 		}
 
-		foreach (var receiving in test.Receiving)
+		// Receiving functionality
+
+		// message and auxiliary data used in signature
+		// see: https://github.com/bitcoinops/taproot-workshop/blob/master/1.1-schnorr-signatures.ipynb
+		var msg = NBitcoin.Crypto.Hashes.SHA256(Encoders.ASCII.DecodeData("message"));
+		var aux = NBitcoin.Crypto.Hashes.SHA256(Encoders.ASCII.DecodeData("random auxiliary data"));
+
+		foreach (var (given, expected) in test.Receiving)
 		{
-			var given = receiving.Given;
-			var expected = receiving.Expected;
+			var (givenInputs, givenOutputs, keyMaterial, labels) = given;
 			try
 			{
-				var prevOuts = given.Vin.Select(x => OutPoint.Parse(x.TxId + "-" + x.Vout)).ToArray();
-				var pubKeys = given.Vin.Select(ExtractPubKey).DropNulls().ToArray();
+				var prevOuts = givenInputs.Select(x => OutPoint.Parse(x.TxId + "-" + x.Vout)).ToArray();
+				var pubKeys = givenInputs.Select(ExtractPubKey).DropNulls().ToArray();
 				if (!pubKeys.Any())
 				{
-					continue;
+					continue; // if there are no pubkeys then nothing can be done
 				}
-				using var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.scan_priv_key));
-				using var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData(given.Key_Material.spend_priv_key));
-				var labels = given.Labels;
 
+				// Parse key material (scan and spend keys)
+				using var scanKey = ParsePrivKey(keyMaterial.scan_priv_key);
+				using var spendKey = ParsePrivKey(keyMaterial.spend_priv_key);
+
+				// Addresses
 				var baseAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
-				var addresses = new List<SilentPaymentAddress> {baseAddress};
-				foreach (var label in labels)
-				{
-					var labelKey = SilentPayment.CreateLabel(scanKey, (uint)label);
-					addresses.Add(baseAddress.DeriveAddressForLabel(labelKey.CreatePubKey()));
-				}
+
+				// Creates a lookup table Dic<SilentPaymentAddress, (ECPrivKey labelSecret, ECPubKey labelPubKey)>
+				var addressesTable = labels
+					.Select(label => SilentPayment.CreateLabel(scanKey, (uint) label))
+					.Select(labelSecret => new LabelInfo.Full(labelSecret, labelSecret.CreatePubKey()))
+					.Select(labelInfo => (LabelInfo: (LabelInfo)labelInfo, Address: baseAddress.DeriveAddressForLabel(labelInfo.PubKey))) // each label has a different address
+					.Prepend((LabelInfo: new LabelInfo.None(), baseAddress))
+					.ToDictionary(x => x.Address, x => x.LabelInfo);
+				var addresses = addressesTable.Keys.ToArray();
 				var expectedAddresses = expected.Addresses.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
 				Assert.Equal(expectedAddresses, addresses);
 
 				var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
 
-				var outputs = given.Outputs.Select(Parse).ToArray();
-				var xonlyPks = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, outputs);
-				var all = xonlyPks.SelectMany(x => x.Value);
+				// Outputs
+				var givenOutputPubKeys = givenOutputs.Select(ParseXOnlyPubKey).ToArray();
+				var detectedOutputPubKeys = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, givenOutputPubKeys);
+				var detectedOutputs = detectedOutputPubKeys.Select(x => Encoders.Hex.EncodeData(x.PubKey.ToBytes())).ToArray();
+				var expectedOutputs = expected.Outputs.Select(x => x.pub_key).ToArray();
 
-				Assert.All(
-					expected.Outputs.Select(x => Parse(x.pub_key)),
-					expectedPk => Assert.Contains(all, pk => pk.Q.x == expectedPk.Q.x ));
+				Assert.Equal(detectedOutputs.ToHashSet(), expectedOutputs.ToHashSet());
+
+				// Tweak Key
+
+				// Enrich the detected output xonlypubkeys with corresponding label info (secret and public key)
+				var detectedXonlyWithLabelInfo = detectedOutputPubKeys
+					.Select(x => (x.Address, x.PubKey, LabelInfo: addressesTable[x.Address]))
+					.ToArray();
+
+				// Compute tweakKey for each detected output
+				var tweakKeys = detectedXonlyWithLabelInfo
+					.Select((pk, k) => {
+						var tk = SilentPayment.TweakKey(sharedSecret, (uint) k);
+						return pk.LabelInfo switch
+						{
+							LabelInfo.None => (pk.PubKey, TweakKey: tk),
+							LabelInfo.Full info => (pk.PubKey, TweakKey: tk.TweakAdd(info.Secret.sec.ToBytes())),
+							_ => throw new ArgumentException("Unknown label type")
+						};
+					})
+					.ToArray();
+
+				var detectedTweakKeys = tweakKeys.Select(x => Encoders.Hex.EncodeData(x.TweakKey.sec.ToBytes()));
+				var expectedTweakKeys = expected.Outputs.Select(o => o.priv_key_tweak);
+
+				Assert.Equal(expectedTweakKeys.ToHashSet(), detectedTweakKeys.ToHashSet());
+
+				// Signature
+				var expectedSignature = expected.Outputs.Select(o => o.signature).ToHashSet();
+				var tweakKeyMap = tweakKeys.ToDictionary(x => x.PubKey, x => x.TweakKey);
+				var computedSignatures = detectedOutputPubKeys
+					.Select(x => (x.Address, x.PubKey, TweakKey: tweakKeyMap[x.PubKey]))
+					.Select(x => SilentPayment.ComputePrivKey(spendKey, x.TweakKey))
+					.Select(x => x.SignBIP340(msg, aux))
+					.Select(x => Encoders.Hex.EncodeData(x.ToBytes()))
+					.ToArray();
+
+				Assert.Equal(expectedSignature.ToHashSet(), computedSignatures.ToHashSet());
 			}
 			catch (InvalidOperationException e) when(e.Message.Contains("infinite") && test.comment.Contains("point at infinity"))
 			{
@@ -78,8 +126,11 @@ public class SilentPaymentTests
 			}
 		}
 
-		ECXOnlyPubKey Parse(string pk) =>
+		ECXOnlyPubKey ParseXOnlyPubKey(string pk) =>
 			ECXOnlyPubKey.Create(Encoders.Hex.DecodeData(pk));
+
+		ECPrivKey ParsePrivKey(string pk) =>
+			ECPrivKey.Create(Encoders.Hex.DecodeData(pk));
 	}
 
 
@@ -111,13 +162,9 @@ public record Receiving(ReceivingGiven Given, ReceivingExpected Expected);
 
 public record SilentPaymentTestVector(string comment, Sending[] Sending, Receiving[] Receiving)
 {
-
-	private static IEnumerable<SilentPaymentTestVector> VectorsData()
-	{
-		var vectorsJson = File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json");
-		var vectors = JsonConvert.DeserializeObject<IEnumerable<SilentPaymentTestVector>>(vectorsJson);
-		return vectors;
-	}
+	private static SilentPaymentTestVector[] VectorsData() =>
+		JsonConvert.DeserializeObject<SilentPaymentTestVector[]>(
+			File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json"))!;
 
 	private static readonly SilentPaymentTestVector[] TestCases = VectorsData().ToArray();
 
@@ -125,4 +172,11 @@ public record SilentPaymentTestVector(string comment, Sending[] Sending, Receivi
 		TestCases.Select(testCase => new object[] { testCase }).ToArray();
 
 	public override string ToString() => comment;
+}
+
+public abstract record LabelInfo
+{
+	public record Full(ECPrivKey Secret, ECPubKey PubKey) : LabelInfo;
+
+	public record None : LabelInfo;
 }
