@@ -1,16 +1,16 @@
 using System.Linq;
-using Microsoft.AspNetCore.Mvc;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
-using WalletWasabi.Backend.Filters;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.Filters;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models;
 
-namespace WalletWasabi.Backend.Controllers;
+namespace WalletWasabi.Coordinator.Controllers;
 
 [ApiController]
 [ExceptionTranslate]

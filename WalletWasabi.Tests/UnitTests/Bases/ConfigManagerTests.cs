@@ -6,6 +6,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
+using Key = Avalonia.Remote.Protocol.Input.Key;
 
 namespace WalletWasabi.Tests.UnitTests.Bases;
 
@@ -24,7 +25,11 @@ public class ConfigManagerTests
 		string configPath = Path.Combine(workDirectory, $"{nameof(CheckFileChangeTestAsync)}.json");
 
 		// Create config and store it.
-		WabiSabiConfig config = new();
+		WabiSabiConfig config = new ();
+		config.AnnouncerConfig = config.AnnouncerConfig with
+		{
+			Key = "nsec13zprl2n0acj9cgrteyfgwcuhrk3xgac775zqyflhxxsfvwjvfe9qrg9l0v"
+		};
 		config.SetFilePath(configPath);
 		config.ToFile();
 
@@ -42,6 +47,9 @@ public class ConfigManagerTests
 		static string GetVanillaConfigString()
 				=> $$"""
 			{
+			  "Network": "Main",
+			  "BitcoinCoreRpcEndPoint": "127.0.0.1:8332",
+			  "BitcoinRpcConnectionString": "user:password",
 			  "ConfirmationTarget": 108,
 			  "DoSSeverity": "0.10",
 			  "DoSMinTimeForFailedToVerify": "31d 0h 0m 0s",
@@ -81,7 +89,18 @@ public class ConfigManagerTests
 			  "AllowP2shOutputs": false,
 			  "AllowP2wshOutputs": false,
 			  "DelayTransactionSigning": false,
-			  "IsCoordinationEnabled": true
+			  "AnnouncerConfig": {
+			    "CoordinatorName": "Coordinator",
+			    "IsEnabled": false,
+			    "CoordinatorDescription": "WabiSabi Coinjoin Coordinator",
+			    "CoordinatorUri": "https://api.example.com/",
+			    "AbsoluteMinInputCount": 21,
+			    "ReadMoreUri": "https://api.example.com/",
+			    "RelayUris": [
+			      "wss://relay.primal.net"
+			    ],
+			    "Key": "nsec13zprl2n0acj9cgrteyfgwcuhrk3xgac775zqyflhxxsfvwjvfe9qrg9l0v"
+			  }
 			}
 			""".ReplaceLineEndings("\n");
 	}

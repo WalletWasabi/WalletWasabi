@@ -114,27 +114,7 @@ public class Startup
 		var network = config.Network;
 
 		services.AddSingleton(_ => network);
-		WabiSabiConfig wabisabiConfig = new(Path.Combine(dataDir, "WabiSabiConfig.json"));
-		wabisabiConfig.LoadFile(createIfMissing: true);
-		services.AddSingleton(wabisabiConfig);
-		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>(s =>
-			new Warden(
-				Path.Combine(dataDir, "WabiSabi", "Prison.txt"),
-				s.GetRequiredService<WabiSabiConfig>()));
-		services.AddSingleton<CoinJoinFeeRateStatStore>(s =>
-			CoinJoinFeeRateStatStore.LoadFromFile(
-				Path.Combine(dataDir, "WabiSabi", "CoinJoinFeeRateStatStore.txt"),
-				s.GetRequiredService<WabiSabiConfig>(),
-				s.GetRequiredService<IRPCClient>()
-				));
-		services.AddSingleton<RoundParameterFactory>();
-		services.AddBackgroundService<Arena>();
 		services.AddBackgroundService<BlockNotifier>();
-
-		services.AddSingleton<AnnouncerConfig>(_ => config.AnnouncerConfig);
-		services.AddBackgroundService<CoordinatorAnnouncer>();
-
 		services.AddSingleton<MempoolService>();
 		services.AddSingleton<P2pNode>(s =>
 			new P2pNode(

@@ -29,8 +29,12 @@ SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
+BACKEND="WalletWasabi.Backend"
+COORDINATOR="WalletWasabi.Coordinator"
 DAEMON="WalletWasabi.Daemon"
 DESKTOP_PROJECT="./$DESKTOP/$DESKTOP.csproj"
+BACKEND_PROJECT="./$BACKEND/$BACKEND.csproj"
+COORDINATOR_PROJECT="./$COORDINATOR/$COORDINATOR.csproj"
 
 # Build directory
 ROOT_DIR=$(pwd)
@@ -38,6 +42,8 @@ BUILD_DIR="$ROOT_DIR/build"
 
 # Executable name
 EXECUTABLE_NAME="wassabee"
+BACKEND_EXECUTABLE_NAME="wbackend"
+COORDINATOR_EXECUTABLE_NAME="wcoordinator"
 
 # Directory where to save the generated packages
 PACKAGES_DIR="$ROOT_DIR/packages"
@@ -59,6 +65,7 @@ if [ "$1" = "wininstaller" ]; then
   RELEASE_NOTE="no"
   SIGN_PGP="no"
   CREATE_OSX_DMG="no"
+  PACKAGE_COORDINATOR="no"
 elif [ "$1" = "debian" ]; then
   # Supported platforms
   PLATFORMS=("linux-x64")
@@ -67,6 +74,7 @@ elif [ "$1" = "debian" ]; then
   RELEASE_NOTE="no"
   SIGN_PGP="no"
   CREATE_OSX_DMG="no"
+  PACKAGE_COORDINATOR="yes"
 elif [ "$1" = "dmg" ]; then
   PLATFORMS=("osx-x64" "osx-arm64")
   CREATE_WINDOWS_INSTALLER="no"
@@ -74,6 +82,7 @@ elif [ "$1" = "dmg" ]; then
   RELEASE_NOTE="no"
   SIGN_PGP="no"
   CREATE_OSX_DMG="yes"
+  PACKAGE_COORDINATOR="no"
 elif [ "$1" = "releasenote" ]; then
   PLATFORMS=()
   CREATE_WINDOWS_INSTALLER="no"
@@ -81,6 +90,7 @@ elif [ "$1" = "releasenote" ]; then
   RELEASE_NOTE="yes"
   SIGN_PGP="no"
   CREATE_OSX_DMG="no"
+  PACKAGE_COORDINATOR="no"
 elif [ "$1" = "gpgsign" ]; then
   PLATFORMS=()
   CREATE_WINDOWS_INSTALLER="no"
@@ -88,6 +98,7 @@ elif [ "$1" = "gpgsign" ]; then
   RELEASE_NOTE="no"
   SIGN_PGP="yes"
   CREATE_OSX_DMG="no"
+  PACKAGE_COORDINATOR="no"
 fi
 
 # Remove the build directory if it exists and recreate it
@@ -106,25 +117,33 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   # Define output directory for the platform
   OUTPUT_DIR=$BUILD_DIR/$PLATFORM
 
-  # Build dotnet application
-  dotnet restore $DESKTOP_PROJECT --locked-mode
-  dotnet publish $DESKTOP_PROJECT \
-          --configuration Release \
-          --runtime $PLATFORM \
-          --force \
-          --output $OUTPUT_DIR \
-          --self-contained true \
-          --disable-parallel \
-          --no-cache \
-          --no-restore \
-          --property:SelfContained=true \
-          --property:VersionPrefix=$VERSION \
-          --property:DebugType=none \
-          --property:DebugSymbols=false \
-          --property:ErrorReport=none \
-          --property:DocumentationFile='' \
-          --property:Deterministic=true \
-          /clp:ErrorsOnly
+  if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
+    PROJECTS_TO_BUILD=("$DESKTOP_PROJECT" "$BACKEND_PROJECT" "$COORDINATOR_PROJECT" )
+  else
+    PROJECTS_TO_BUILD=("$DESKTOP_PROJECT" )
+  fi
+
+  for PROJECT in "${PROJECTS_TO_BUILD[@]}"; do
+    # Build dotnet application
+    dotnet restore $PROJECT --locked-mode
+    dotnet publish $PROJECT \
+            --configuration Release \
+            --runtime $PLATFORM \
+            --force \
+            --output $OUTPUT_DIR \
+            --self-contained true \
+            --disable-parallel \
+            --no-cache \
+            --no-restore \
+            --property:SelfContained=true \
+            --property:VersionPrefix=$VERSION \
+            --property:DebugType=none \
+            --property:DebugSymbols=false \
+            --property:ErrorReport=none \
+            --property:DocumentationFile='' \
+            --property:Deterministic=true \
+            /clp:ErrorsOnly
+  done
 
   # Determine executable file extension based on platform
   EXE_FILE_EXTENSION=''
@@ -136,6 +155,10 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   # Rename executables as wassabee and wassabeed
   mv $OUTPUT_DIR/{$DESKTOP,${EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
   mv $OUTPUT_DIR/{$DAEMON,${EXECUTABLE_NAME}d}$EXE_FILE_EXTENSION
+  if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
+    mv $OUTPUT_DIR/{$COORDINATOR,${COORDINATOR_EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
+    mv $OUTPUT_DIR/{$BACKEND,${BACKEND_EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
+  fi
 
   # Remove microservices binaries for other platforms
   MICRO_SERVICES_DIR="$OUTPUT_DIR/Microservices/Binaries"
@@ -255,6 +278,22 @@ ${INSTALL_DIR}/${EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
 sudo chmod -R 0655 ${DEBIAN_BIN}/wasabiwallet
 sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
 sudo chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
+
+if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
+  # Create wrapper scripts
+  echo "#!/usr/bin/env sh
+  ${INSTALL_DIR}/${BACKEND_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
+
+  echo "#!/usr/bin/env sh
+  ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}d
+
+  # Remove execution to everything except for executables and their wrapper scripts
+  sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${BACKEND_EXECUTABLE_NAME}
+  sudo chmod 0755 ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
+  sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${COORDINATOR_EXECUTABLE_NAME}
+  sudo chmod 0755 ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
+
+fi
 
 # Build the .deb package
 dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"

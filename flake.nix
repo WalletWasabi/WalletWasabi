@@ -32,8 +32,14 @@
         # Build all components and run tests (CI)
         buildEverything = buildWasabiModule.overrideAttrs (oldAttrs: rec {
           pname = "WalletWasabi";
-          projectFile = ["WalletWasabi.Backend/WalletWasabi.Backend.csproj" "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
-          executables = [ "WalletWasabi.Backend" "WalletWasabi.Fluent.Desktop" ];
+          projectFile = [
+             "WalletWasabi.Backend/WalletWasabi.Backend.csproj"
+             "WalletWasabi.Backend/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
+          executables = [
+            "WalletWasabi.Backend"
+            "WalletWasabi.Coordinator"
+            "WalletWasabi.Fluent.Desktop" ];
           runtimeDeps = with pkgs; [
              pkgs.openssl pkgs.zlib
              # for client

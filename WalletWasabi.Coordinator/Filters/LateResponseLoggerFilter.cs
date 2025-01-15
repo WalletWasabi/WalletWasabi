@@ -2,7 +2,7 @@ using Microsoft.AspNetCore.Mvc.Filters;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Backend.Models;
 
-namespace WalletWasabi.Backend.Filters;
+namespace WalletWasabi.Coordinator.Filters;
 
 public class LateResponseLoggerFilter : ExceptionFilterAttribute
 {

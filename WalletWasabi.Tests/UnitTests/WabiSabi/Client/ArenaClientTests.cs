@@ -8,6 +8,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
