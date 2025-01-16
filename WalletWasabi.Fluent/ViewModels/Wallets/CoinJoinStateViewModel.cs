@@ -22,7 +22,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CountDownMessage = "Awaiting auto-start of coinjoin";
 	private const string WaitingMessage = "Awaiting coinjoin";
 	private const string UneconomicalRoundMessage = "Awaiting cheaper coinjoins";
-	private const string RandomlySkippedRoundMessage = "Skipping a round for better privacy";
 	private const string CoinjoinMiningFeeRateTooHighMessage = "Mining fee rate was too high";
 	private const string MinInputCountTooLowMessage = "Min input count was too low";
 	private const string PauseMessage = "Coinjoin is paused";
@@ -387,7 +386,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,
 					CoinjoinError.UneconomicalRound => UneconomicalRoundMessage,
-					CoinjoinError.RandomlySkippedRound => RandomlySkippedRoundMessage,
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					_ => GeneralErrorMessage
