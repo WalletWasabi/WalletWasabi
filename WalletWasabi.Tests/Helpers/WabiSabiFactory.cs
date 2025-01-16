@@ -303,7 +303,7 @@ public static class WabiSabiFactory
 	public static (IKeyChain, SmartCoin, SmartCoin) CreateCoinKeyPairs(KeyManager? keyManager = null)
 	{
 		var km = keyManager ?? ServiceFactory.CreateKeyManager("");
-		var keyChain = new KeyChain(km,"");
+		var keyChain = new KeyChain(km, "");
 
 		var smartCoin1 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m));
 		var smartCoin2 = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(2m));
@@ -317,7 +317,7 @@ public static class WabiSabiFactory
 	{
 		return CreateTestCoinJoinClient(
 			apiClientFactory,
-			new KeyChain(keyManager,""),
+			new KeyChain(keyManager, ""),
 			new OutputProvider(new InternalDestinationProvider(keyManager)),
 			roundStateUpdater,
 			keyManager.RedCoinIsolation);
@@ -341,8 +341,7 @@ public static class WabiSabiFactory
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero,
-			TimeSpan.Zero,
-			null);
+			TimeSpan.Zero);
 
 		// Overwrite Maximum Request Delay parameter but still use the original method.
 		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
