@@ -36,7 +36,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
 	public CoinJoinClient(
-		Func<string,IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
@@ -44,8 +44,7 @@ public class CoinJoinClient
 		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan feeRateMedianTimeFrame = default,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
-		CoinjoinSkipFactors? skipFactors = null)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_keyChain = keyChain;
@@ -55,7 +54,6 @@ public class CoinJoinClient
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
 		_feeRateMedianTimeFrame = feeRateMedianTimeFrame;
-		_skipFactors = skipFactors ?? CoinjoinSkipFactors.NoSkip;
 		_secureRandom = new SecureRandom();
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -74,7 +72,6 @@ public class CoinJoinClient
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly TimeSpan _feeRateMedianTimeFrame;
-	private readonly CoinjoinSkipFactors _skipFactors;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -133,7 +130,7 @@ public class CoinJoinClient
 		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > _coinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
-			                                    $"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sat/vb but maximum allowed is {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
+												$"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sat/vb but maximum allowed is {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
 		}
 
 		return roundState;
@@ -173,12 +170,6 @@ public class CoinJoinClient
 					string roundSkippedMessage = $"Min input count for the round was {roundParameters.MinInputCountByRound} but min allowed is {_coinJoinConfiguration.AbsoluteMinInputCount}.";
 					currentRoundState.LogInfo(roundSkippedMessage);
 					throw new CoinJoinClientException(CoinjoinError.MinInputCountTooLow, roundSkippedMessage);
-				}
-				if (_skipFactors.ShouldSkipRoundRandomly(_secureRandom, roundParameters.MiningFeeRate, _roundStatusUpdater.CoinJoinFeeRateMedians, currentRoundState.Id))
-				{
-					string roundSkippedMessage = "Round skipped randomly for better privacy.";
-					currentRoundState.LogInfo(roundSkippedMessage);
-					throw new CoinJoinClientException(CoinjoinError.RandomlySkippedRound, roundSkippedMessage);
 				}
 			}
 
@@ -749,7 +740,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
-		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y=>y.Value > 0)).Select(x => x.Value);
+		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y => y.Value > 0)).Select(x => x.Value);
 
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
@@ -804,6 +795,7 @@ public class CoinJoinClient
 					case DependencyGraphTaskScheduler.UnknownError s:
 						roundState.LogInfo($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...");
 						break;
+
 					case DependencyGraphTaskScheduler.AlreadyRegisteredScriptError s:
 						_outputProvider.DestinationProvider.TrySetScriptStates(KeyState.Used, [s.ScriptPubKey]);
 						roundState.LogInfo($"Script ({s.ScriptPubKey}) was already registered. Continuing...");
@@ -839,7 +831,7 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var isItSoloCoinjoin =  signingState.Inputs.Count() == registeredAliceClients.Length;
+		var isItSoloCoinjoin = signingState.Inputs.Count() == registeredAliceClients.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
