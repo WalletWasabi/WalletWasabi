@@ -754,14 +754,17 @@ public class CoinJoinClient
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
 
-		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
+		var (ourCoins, theirCoins) = constructionState.Inputs.Partition(x => registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate));
 
-		// Verify that our own inputs are in the list of inputs
-		if (!registeredCoins.All(coin => constructionState.Inputs.Contains(coin)))
+		// Verify that prevout information is correct for our own inputs.
+		if (!registeredCoins.All(registeredCoin =>
+			    ourCoins.Any(ourCoin =>
+				    ourCoin.TxOut.ScriptPubKey.Hash == registeredCoin.TxOut.ScriptPubKey.Hash &&
+				    ourCoin.TxOut.Value == registeredCoin.TxOut.Value)))
 		{
-			throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "Not all of our registered coins are listed on the CJ input list.");
+			throw new CoinJoinClientException(CoinjoinError.CoordinatorLiedAboutInputs, "Coordinator lied about registered inputs. It probably tries to be malicious.");
 		}
 
 		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
