@@ -71,12 +71,11 @@ public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		return profile.AnonScoreTarget < MaxAnonScore
 			&& profile.AnonScoreTarget >= MinAnonScore
 			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
-			&& profile.RedCoinIsolation == RedCoinIsolation
-			&& profile.SkipFactors == SkipFactors;
+			&& profile.RedCoinIsolation == RedCoinIsolation;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation, SkipFactors);
+		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation);
 	}
 }
