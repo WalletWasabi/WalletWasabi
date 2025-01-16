@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	// TODO: Safety coinjoins should be moved here & be configurable.
-	public const int MinAnonScore = 23;
+	public const int MinAnonScore = 30;
 	public const int MaxAnonScore = 50;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
