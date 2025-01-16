@@ -36,7 +36,7 @@ public class CoinJoinClient
 	private static readonly TimeSpan MaximumRequestDelay = TimeSpan.FromSeconds(10);
 
 	public CoinJoinClient(
-		Func<string,IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
+		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
 		RoundStateUpdater roundStatusUpdater,
@@ -133,7 +133,7 @@ public class CoinJoinClient
 		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > _coinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
-			                                    $"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sat/vb but maximum allowed is {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
+												$"the mining fee rate for the round was {roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte} sat/vb but maximum allowed is {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}.");
 		}
 
 		return roundState;
@@ -749,7 +749,7 @@ public class CoinJoinClient
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, phaseTimeoutCts.Token);
 
 		var registeredCoins = registeredAliceClients.Select(x => x.SmartCoin.Coin);
-		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y=>y.Value > 0)).Select(x => x.Value);
+		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y => y.Value > 0)).Select(x => x.Value);
 
 		// Calculate outputs values
 		var constructionState = roundState.Assert<ConstructionState>();
@@ -757,6 +757,12 @@ public class CoinJoinClient
 		var theirCoins = constructionState.Inputs.Where(x => !registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
 		var theirCoinEffectiveValues = theirCoins.Select(x => x.EffectiveValue(roundParameters.MiningFeeRate));
+
+		// Verify that our own inputs are in the list of inputs
+		if (!registeredCoins.All(coin => constructionState.Inputs.Contains(coin)))
+		{
+			throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "Not all of our registered coins are listed on the CJ input list.");
+		}
 
 		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
 
@@ -804,6 +810,7 @@ public class CoinJoinClient
 					case DependencyGraphTaskScheduler.UnknownError s:
 						roundState.LogInfo($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...");
 						break;
+
 					case DependencyGraphTaskScheduler.AlreadyRegisteredScriptError s:
 						_outputProvider.DestinationProvider.TrySetScriptStates(KeyState.Used, [s.ScriptPubKey]);
 						roundState.LogInfo($"Script ({s.ScriptPubKey}) was already registered. Continuing...");
@@ -839,7 +846,7 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var isItSoloCoinjoin =  signingState.Inputs.Count() == registeredAliceClients.Length;
+		var isItSoloCoinjoin = signingState.Inputs.Count() == registeredAliceClients.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
