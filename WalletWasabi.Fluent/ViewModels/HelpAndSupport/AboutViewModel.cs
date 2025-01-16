@@ -99,6 +99,8 @@ public partial class AboutViewModel : RoutableViewModel
 
 		AboutAdvancedInfoDialogCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().To().AboutAdvancedInfo().GetResultAsync());
 
+		ReleaseHighlightsDialogCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().To().ReleaseHighlightsDialog().GetResultAsync());
+
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.Clipboard.SetTextAsync(link));
 
 		NextCommand = CancelCommand;
@@ -110,6 +112,7 @@ public partial class AboutViewModel : RoutableViewModel
 
 	public LinkViewModel License { get; }
 
+	public ICommand ReleaseHighlightsDialogCommand { get; }
 	public ICommand AboutAdvancedInfoDialogCommand { get; }
 
 	public ICommand OpenBrowserCommand { get; }

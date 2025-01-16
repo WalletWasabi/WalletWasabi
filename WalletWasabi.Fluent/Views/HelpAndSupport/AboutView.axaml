@@ -21,7 +21,17 @@
           <ContentControl Template="{DynamicResource wasabi_logo_text_dynamic}"
                           VerticalAlignment="Center" ClipToBounds="False" />
         </Viewbox>
-        <TextBlock DockPanel.Dock="Top" HorizontalAlignment="Center" Text="{Binding ClientVersion}" Margin="0,5,0,50" Opacity="0.5" />
+        <StackPanel DockPanel.Dock="Top" HorizontalAlignment="Center" Orientation="Vertical" Margin="0,5,0,50" Opacity="0.5">
+          <TextBlock HorizontalAlignment="Center" Text="{Binding ClientVersion}" />
+          <Button HorizontalAlignment="Center"
+                  Classes="plain obscured"
+                  Command="{Binding ReleaseHighlightsDialogCommand}">
+            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2 10 2 2">
+              <PathIcon Data="{StaticResource info_regular}" />
+              <TextBlock Text="Release Highlights" Classes="activeHyperLink" />
+            </StackPanel>
+          </Button>
+        </StackPanel>
         <DockPanel>
           <StackPanel Spacing="10" DockPanel.Dock="Top" HorizontalAlignment="Stretch" Orientation="Vertical">
             <!-- Links -->
@@ -80,7 +90,7 @@
                   Command="{Binding AboutAdvancedInfoDialogCommand}">
             <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
               <PathIcon Data="{StaticResource info_regular}" />
-              <TextBlock Text="Advanced Information" Classes="Hyperlink" />
+              <TextBlock Text="Advanced Information" Classes="activeHyperLink" />
             </StackPanel>
           </Button>
         </DockPanel>
