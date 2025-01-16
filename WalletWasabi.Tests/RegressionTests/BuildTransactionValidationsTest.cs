@@ -43,13 +43,12 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		using Backend.Global global = setup.Global;
 		string password = setup.Password;
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 
 		// Create the services.
 		// 1. Create connection service.
-		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
+		NodesGroup nodes = new(setup.Network, requirements: Constants.NodeRequirements);
 		nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 		// 2. Create mempool service.
@@ -80,7 +79,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
 		using Key key = new();
-		var scp = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main);
+		var scp = key.PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy);
 
 		PaymentIntent validIntent = new(scp, Money.Coins(1));
 		PaymentIntent invalidIntent = new(new DestinationRequest(scp, Money.Coins(10 * 1000 * 1000)), new DestinationRequest(scp, Money.Coins(12 * 1000 * 1000)));

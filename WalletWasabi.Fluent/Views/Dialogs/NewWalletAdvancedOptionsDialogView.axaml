@@ -14,15 +14,6 @@
     EnableCancel="{Binding EnableCancel}"
     EnableBack="{Binding EnableBack}"
     EnableNext="True" NextContent="Done">
-    <StackPanel Classes="settingsLayout">
-
-      <DockPanel>
-        <TextBlock Text="Automatically start coinjoin" />
-        <ToggleSwitch IsChecked="{Binding IsAutoCoinjoinEnabled}" />
-      </DockPanel>
-
       <dv:AdvancedCoinjoinOptionsView DataContext="{Binding CoinjoinAdvancedSettings}" />
-
-    </StackPanel>
   </ContentArea>
 </UserControl>

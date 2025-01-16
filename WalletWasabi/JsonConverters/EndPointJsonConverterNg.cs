@@ -1,6 +1,7 @@
 using System.Net;
 using System.Text.Json;
 using System.Text.Json.Serialization;
+using NBitcoin;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.JsonConverters;
@@ -37,7 +38,7 @@ public class EndPointJsonConverterNg : JsonConverter<EndPoint>
 		}
 		else
 		{
-			var endPointString = value.ToString();
+			var endPointString = value.ToEndpointString();
 			writer.WriteStringValue(endPointString);
 		}
 	}

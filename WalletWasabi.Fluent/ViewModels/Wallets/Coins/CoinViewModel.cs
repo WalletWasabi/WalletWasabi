@@ -13,6 +13,7 @@ public class CoinViewModel : CoinListItem
 	{
 		Labels = labels;
 		Coin = coin;
+		BtcAddress = coin.BtcAddress;
 		Amount = new Amount(coin.Amount);
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;

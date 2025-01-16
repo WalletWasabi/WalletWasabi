@@ -1,14 +1,19 @@
 using NBitcoin;
 using System.Linq;
 using System.Threading.Tasks;
+using NBitcoin.DataEncoders;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -374,7 +379,7 @@ public class TransactionFactoryTests
 		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(20m).Build();
 		var ex = Assert.Throws<OutputTooSmallException>(() => transactionFactory.BuildTransaction(txParameters));
 
-		Assert.Equal(Money.Satoshis(3240), ex.Missing);
+		Assert.Equal(Money.Satoshis(3240), ex.Value.Abs());
 	}
 
 	[Fact]
@@ -831,6 +836,171 @@ public class TransactionFactoryTests
 				Assert.Fail("Main value is not correct.");
 			}
 		}
+	}
+
+	[Fact]
+	public async Task CanPayToSilentPaymentAddresses()
+	{
+		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
+		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.
+		// The latest step is to verify we can compute the private key required to unlock an UTXO received in
+		// as a silent payment.
+
+		var paymentAmount = Money.Coins(0.9m);
+
+		var mnemonic =
+			new Mnemonic("lizard include drift struggle blind impose meadow before tilt leopard abstract valid");
+		var keyManager = ServiceFactory.CreateKeyManager("password", mnemonic: mnemonic);
+
+		// Generates a pubkey to receive funds (1 BTC)
+		var pubkey = keyManager.GetNextReceiveKey(LabelsArray.Empty);
+		var creditingTx = CreateCreditingTransaction(pubkey.GetAssumedScriptPubKey(), Money.Coins(1));
+
+		// Configure a TransactionFactory to use the only UTXO available
+		var coinsView = new CoinsView([
+			new SmartCoin(creditingTx, 0, pubkey)
+		]);
+		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, "password");
+
+		// Create a silent payment address to receive a 0.9 payment
+		using var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData("7e3a1d4b5f8e2c9a0f6b4d3e9a1f0c8b7e5d2a3c4f6e8b7a9d0c1f2e3a4b5d61"));
+		using var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData("3f9a7d2c6b8e1a4f5d0c2e7b9f3a6d4c1b0e8f7a9d5c2b4e7f6a3c9b0d1f8e22"));
+		var silentPaymentAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
+
+		// Uses the TransactionFactory to create a TX that pays to a silent payment address
+		// and verify both the amount and the scriptPubKey are correct.
+		var payment = new PaymentIntent(silentPaymentAddress, MoneyRequest.Create(paymentAmount));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(12m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
+		var paymentOutput = Assert.Single(result.OuterWalletOutputs);
+		Assert.Equal(paymentAmount, paymentOutput.Amount); // The amount is correct
+
+		// Computes the private key required to unlock the paymentOutput
+		var spendingTx = result.Transaction.Transaction;
+		var prevOuts = spendingTx.Inputs.Select(x => x.PrevOut).ToArray();
+		var pubKeys = spendingTx.Inputs
+			.Select(x => SilentPayment.ExtractPubKey(x.ScriptSig, x.WitScript, GetScriptPubKey(transactionFactory.Coins, x.PrevOut)))
+			.DropNulls()
+			.ToArray();
+		var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
+		using var pk = new Key(SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0).sec.ToBytes());
+		Assert.Equal($"1 {pk.PubKey.TaprootInternalKey}", paymentOutput.ScriptPubKey.ToString());
+	}
+
+	[Fact]
+	public async Task CanPayToLabeledSilentPaymentAddresses()
+	{
+		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
+		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.
+		// The latest step is to verify we can compute the private key required to unlock an UTXO received in
+		// as a silent payment.
+
+		var paymentAmount = Money.Coins(0.9m);
+
+		var mnemonic =
+			new Mnemonic("lizard include drift struggle blind impose meadow before tilt leopard abstract valid");
+		var keyManager = ServiceFactory.CreateKeyManager("password", mnemonic: mnemonic);
+
+		// Generates a pubkey to receive funds (1 BTC)
+		var pubkey = keyManager.GetNextReceiveKey(LabelsArray.Empty);
+		var creditingTx = CreateCreditingTransaction(pubkey.GetAssumedScriptPubKey(), Money.Coins(1));
+
+		// Configure a TransactionFactory to use the only UTXO available
+		var coinsView = new CoinsView([
+			new SmartCoin(creditingTx, 0, pubkey)
+		]);
+		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, "password");
+
+		// Create a silent payment address to receive a 0.9 payment
+		using var scanKey = ECPrivKey.Create(Encoders.Hex.DecodeData("7e3a1d4b5f8e2c9a0f6b4d3e9a1f0c8b7e5d2a3c4f6e8b7a9d0c1f2e3a4b5d61"));
+		using var spendKey = ECPrivKey.Create(Encoders.Hex.DecodeData("3f9a7d2c6b8e1a4f5d0c2e7b9f3a6d4c1b0e8f7a9d5c2b4e7f6a3c9b0d1f8e22"));
+		using var label = SilentPayment.CreateLabel(scanKey, 1);
+		var silentPaymentAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
+		var labeledSilentPaymentAddress = silentPaymentAddress.DeriveAddressForLabel(label.CreatePubKey());
+
+		// Uses the TransactionFactory to create a TX that pays to a silent payment address
+		// and verify both the amount and the scriptPubKey are correct.
+		var payment = new PaymentIntent(labeledSilentPaymentAddress, MoneyRequest.Create(paymentAmount));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(12m).Build();
+		var result = transactionFactory.BuildTransaction(txParameters);
+		var paymentOutput = Assert.Single(result.OuterWalletOutputs);
+		Assert.Equal(paymentAmount, paymentOutput.Amount); // The amount is correct
+
+		// Computes the private key required to unlock the paymentOutput
+		var spendingTx = result.Transaction.Transaction;
+		var prevOuts = spendingTx.Inputs.Select(x => x.PrevOut).ToArray();
+		var pubKeys = spendingTx.Inputs
+			.Select(x => SilentPayment.ExtractPubKey(x.ScriptSig, x.WitScript, GetScriptPubKey(transactionFactory.Coins, x.PrevOut)))
+			.DropNulls()
+			.ToArray();
+		var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
+		var tweakData = SilentPayment.TweakData(prevOuts, pubKeys);
+		var outputs = SilentPayment.ExtractSilentPaymentScriptPubKeys([silentPaymentAddress, labeledSilentPaymentAddress], tweakData, spendingTx, scanKey);
+
+		var detectedAddress = Assert.Single(outputs.Keys);
+		Assert.Equal(labeledSilentPaymentAddress, detectedAddress);
+
+		var basePrivateKey = SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0);
+		using var pk = new Key((basePrivateKey.sec + label.sec).ToBytes());
+		Assert.Equal($"1 {pk.PubKey.TaprootInternalKey}", paymentOutput.ScriptPubKey.ToString());
+	}
+
+	[Fact]
+	public void RealMainNetTransaction()
+	{
+		var mnemonic = new Mnemonic("bargain pumpkin blouse crush invest control radar install alien same shield grain");
+		var extKey = mnemonic.DeriveExtKey();
+		var scanKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/1'/0")).PrivateKey.ToBytes());
+		var spendKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/0'/0")).PrivateKey.ToBytes());
+		var tx = Transaction.Parse(
+			"020000000001016ea784410522d6c6c7dd43f9f2f05356200a7ab1f531f7bc5e34b4f84a89d7b4010000000000000080024006000000000000225120b8b5f908697c0c5982609bf577d319f7670c570e55532417cf7690e46fe67f6b6daa0100000000001600142897cab30c29ff293d1b8ef57153c3c3df0a72440247304402207d864ccbf293728f115a9a60e107cffa228e2e9b3a6325246804d2b99c52be2f02205ad685c728fa3c47f19a4863f122aee7f76eaa60101e49001157808af482d0580121024c006af7003e9588c5ca755686ffe0df6c2c107f42d06c213355783a5ed6ac9300000000",
+			Network.Main);
+		var silentPaymentAddress = SilentPaymentAddress.Parse(
+			"sp1qqwegltczx7hry7xtptykt6z70m0akdkne463ghhn33qyyudz2p0jkqa6e5672fm4pj4a24cthu6g4829s6nr3lkjcjxah4gaxr6wd4vhh5970lk7",
+			Network.Main);
+		var gsp = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
+		Assert.Equal(silentPaymentAddress, gsp);
+
+		var prevOuts = tx.Inputs.Select(x => x.PrevOut).ToArray();
+		var prevOutScript = Script.FromHex("00148e66f5ffc5cd985076aa0fe325da4b9a239e7ab7");
+		var pubKeys = tx.Inputs
+			.Select(x => SilentPayment.ExtractPubKey(x.ScriptSig, x.WitScript, prevOutScript))
+			.DropNulls()
+			.ToArray();
+
+		var tweakData = SilentPayment.TweakData(prevOuts, pubKeys);
+		var outputs = SilentPayment.ExtractSilentPaymentScriptPubKeys([silentPaymentAddress], tweakData, tx, scanKey);
+
+		var detectedAddress = Assert.Single(outputs.Keys);
+		Assert.Equal(silentPaymentAddress, detectedAddress);
+
+		var sharedSecret = SilentPayment.ComputeSharedSecretReceiver(prevOuts, pubKeys, scanKey);
+		using var pk = new Key(SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0).sec.ToBytes());
+
+		var singleScript = Assert.Single(outputs[detectedAddress]);
+		Assert.Equal("bc1phz6ljzrf0sx9nqnqn06h05ce7ansc4cw24fjg970w6gwgmlx0a4sdnn5ll", singleScript.GetDestinationAddress(Network.Main).ToString());
+	}
+
+	private static Script GetScriptPubKey(ICoinsView coins, OutPoint outPoint)
+	{
+		if (!coins.TryGetByOutPoint(outPoint, out var smartCoin))
+		{
+			throw new InvalidOperationException("This should never happen");
+		}
+		return smartCoin.ScriptPubKey;
+	}
+
+	private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount)
+	{
+		Transaction tx = Network.Main.CreateTransaction();
+		tx.Version = 1;
+		tx.LockTime = LockTime.Zero;
+		tx.Inputs.Add(OutPoint.Parse("7fcade4a7e9bedf88790a83225c7b1bf1c1dca3190aead94131b873029ab1a20-0"), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+		tx.Inputs.Add(OutPoint.Parse("7fcade4a7e9bedf88790a83225c7b1bf1c1dca3190aead94131b873029ab1a20-1"), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
+		tx.Outputs.Add(amount, scriptPubKey);
+		return new SmartTransaction(tx, Height.Mempool);
 	}
 
 	private static TransactionParametersBuilder CreateBuilder()

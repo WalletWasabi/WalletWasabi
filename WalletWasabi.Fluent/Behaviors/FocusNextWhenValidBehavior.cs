@@ -18,8 +18,8 @@ public class FocusNextWhenValidBehavior : AttachedToVisualTreeBehavior<TextBox>
 			return;
 		}
 
-		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty).Skip(1);
-		var text = AssociatedObject.GetObservable(TextBox.TextProperty).Skip(1);
+		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
+		var text = AssociatedObject.GetObservable(TextBox.TextProperty);
 
 		hasErrors.ToSignal()
 			.Merge(text.ToSignal())

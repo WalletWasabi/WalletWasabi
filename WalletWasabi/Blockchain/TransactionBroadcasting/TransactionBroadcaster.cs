@@ -214,6 +214,9 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 			case BroadcastError.RpcError rpcError:
 				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.RpcErrorMessage}.");
 				break;
+			case BroadcastError.Timeout _:
+				Logger.LogWarning($"The transaction might have been broadcast but the propagation was not confirmed in time.");
+				break;
 			case BroadcastError.SpentError _:
 				Logger.LogError("Failed to broadcast transaction. There are spent inputs.");
 				break;

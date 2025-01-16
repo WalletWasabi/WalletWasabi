@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
@@ -150,6 +151,7 @@ public class App : Application
 			amountProvider,
 			new EditableSearchSourceSource(),
 			torStatusChecker,
-			new HealthMonitor(applicationSettings, torStatusChecker));
+			new HealthMonitor(applicationSettings, torStatusChecker),
+			new ReleaseHighlights());
 	}
 }

@@ -36,31 +36,24 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(
 				onNext: result =>
-				{
-					if (AddressStringParser.TryParse(result.decoded, _network, out Bip21UriParser.Result? parserResult, out string? errorMessage))
-					{
-						Close(DialogResultKind.Normal, result.decoded);
-					}
-					else
-					{
-						// Remember last error message and last QR content.
-						if (errorMessage is not null)
+					AddressParser.Parse(result.decoded, _network).MatchDo(
+						_ => Close(DialogResultKind.Normal, result.decoded),
+						errorMessage =>
 						{
+							// Remember last error message and last QR content.
 							if (!string.IsNullOrEmpty(result.decoded))
 							{
 								ErrorMessage = errorMessage;
 							}
-						}
 
-						if (!string.IsNullOrEmpty(result.decoded))
-						{
-							QrContent = result.decoded;
-						}
+							if (!string.IsNullOrEmpty(result.decoded))
+							{
+								QrContent = result.decoded;
+							}
 
-						// ... but show always the current bitmap.
-						QrImage = result.bitmap;
-					}
-				},
+							// ... but show always the current bitmap.
+							QrImage = result.bitmap;
+						}),
 				onError: error => Dispatcher.UIThread.Post(async () =>
 					{
 						Close();

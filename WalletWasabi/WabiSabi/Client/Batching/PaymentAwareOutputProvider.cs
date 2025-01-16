@@ -1,8 +1,10 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
@@ -11,8 +13,8 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // coinjoin round which include those outputs that are payments.
 public class PaymentAwareOutputProvider : OutputProvider
 {
-	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments)
-		: base(destinationProvider)
+	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments, WasabiRandom? random = null)
+		: base(destinationProvider, random)
 	{
 		_batchedPayments = batchedPayments;
 	}
@@ -61,8 +63,19 @@ public class PaymentAwareOutputProvider : OutputProvider
 			availableValues = availableValues.Append(totalValueUsedForPayment).ToArray();
 		}
 
+		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
+
 		// Decompose the available values and return them.
-		var decomposedOutputs = base.GetOutputs(roundId, roundParameters, availableValues, theirCoinEffectiveValues, availableVsize);
+		AmountDecomposer amountDecomposer = new(
+			roundParameters.MiningFeeRate,
+			roundParameters.CalculateMinReasonableOutputAmount(DestinationProvider.SupportedScriptTypes),
+			roundParameters.AllowedOutputAmounts.Max,
+			availableVsize,
+			DestinationProvider.SupportedScriptTypes,
+			Random);
+
+		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues, bestPaymentSet.TotalAmount > 0).ToArray();
+		var decomposedOutputs = GetTxOuts(outputValues, DestinationProvider);
 		foreach (var txOut in decomposedOutputs)
 		{
 			yield return txOut;

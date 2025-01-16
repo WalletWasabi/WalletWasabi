@@ -39,6 +39,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public DisplayLanguage SelectedDisplayLanguage { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
+	public Version LastVersionHighlightsDisplayed { get; set; }
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
 

@@ -123,7 +123,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
-		&& !KeyManager.IsWatchOnly; // that are not watch-only wallets
+		&& KeyChain is not null; // that are not watch-only wallets and contain a keychain
 
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 

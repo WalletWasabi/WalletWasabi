@@ -95,15 +95,15 @@
 
             <Panel>
               <Button Classes="function"
-                      IsVisible="{Binding CanBuy^}"
-                      Command="{Binding BuyCommand}">
+                      IsVisible="{Binding IsDonateButtonVisible}"
+                      Command="{Binding DonateCommand}">
                 <StackPanel Orientation="Horizontal">
-                  <PathIcon Data="{StaticResource wallet_action_buy}" />
-                  <TextBlock Text="Buy Anything" />
+                  <PathIcon Data="{StaticResource gift}" />
+                  <TextBlock Text="Donate" />
                 </StackPanel>
               </Button>
-              <Ellipse IsHitTestVisible="False" IsVisible="{Binding HasUnreadConversations^}" VerticalAlignment="Top" Margin="0 5 5 0" HorizontalAlignment="Right" Width="8" Height="8" Fill="{StaticResource UnreadBadgeColor}" />
             </Panel>
+
             <Button Classes="transparentFunction">
               <Button.Flyout>
                 <MenuFlyout Placement="Bottom">

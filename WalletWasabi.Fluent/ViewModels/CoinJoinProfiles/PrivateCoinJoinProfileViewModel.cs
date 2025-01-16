@@ -3,12 +3,12 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 
-internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
+// TODO: All of this should be moved outside the Fluent project.
+public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
-	// https://github.com/WalletWasabi/WalletWasabi/pull/10468#issuecomment-1506284198
-	public const int MinAnonScore = 27;
-
-	public const int MaxAnonScore = 76;
+	// TODO: Safety coinjoins should be moved here & be configurable.
+	public const int MinAnonScore = 30;
+	public const int MaxAnonScore = 50;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
 	{
@@ -17,7 +17,7 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public PrivateCoinJoinProfileViewModel()
 	{
-		AnonScoreTarget = GetRandom(MinAnonScore, MaxAnonScore);
+		AnonScoreTarget = GetAnonScoreTarget(MinAnonScore, MaxAnonScore);
 	}
 
 	public override string Title => Lang.Resources.PrivateCoinJoinProfileViewModel_Title;
@@ -30,11 +30,33 @@ internal class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int FeeRateMedianTimeFrameHours => 0;
 
-	private static int GetRandom(int minInclusive, int maxExclusive)
+	/// <summary>
+	/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.
+	/// The goal is to have a good distribution around a specific target with hard min and max.
+	/// (minExclusive + 1) has 100% chance of being selected, (maxExclusive) has a 0% chance (hard limit).
+	/// Average of results is never more than minExclusive + (maxExclusive - minExclusive) * (1.0/3.0).
+	/// </summary>
+	public static int GetAnonScoreTarget(int minExclusive, int maxExclusive)
 	{
-		return SecureRandom.Instance.GetInt(minInclusive, maxExclusive);
+		var ast = minExclusive;
+
+		while (ast < maxExclusive)
+		{
+			var progress = (double)(ast - minExclusive) / (maxExclusive - minExclusive);
+			var probability = 100 * (1 - progress);
+
+			if (SecureRandom.Instance.GetInt(0, 101) > probability)
+			{
+				break;
+			}
+
+			ast++;
+		}
+
+		return ast;
 	}
 
+	// This function is badly designed and creates problems with retro-compatibility.
 	public override bool Equals(object? obj)
 	{
 		if (ReferenceEquals(this, obj))

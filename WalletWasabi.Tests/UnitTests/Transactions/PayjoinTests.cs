@@ -77,7 +77,7 @@ public class PayjoinTests
 
 		var amount = Money.Coins(0.001m);
 		using Key key = new();
-		PaymentIntent payment = new(key.PubKey, amount);
+		PaymentIntent payment = new(key, amount);
 
 		var txParameters = CreateBuilder()
 			.SetPayment(payment)

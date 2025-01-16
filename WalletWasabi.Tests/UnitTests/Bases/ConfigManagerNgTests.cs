@@ -63,7 +63,7 @@ public class ConfigManagerNgTests
 			  "StopLocalBitcoinCoreOnShutdown": true,
 			  "LocalBitcoinCoreDataDir": "{{localBitcoinCoreDataDir}}",
 			  "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
-			  "TestNetBitcoinP2pEndPoint": "127.0.0.1:18333",
+			  "TestNetBitcoinP2pEndPoint": "127.0.0.1:48333",
 			  "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
 			  "JsonRpcServerEnabled": false,
 			  "JsonRpcUser": "",

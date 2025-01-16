@@ -76,9 +76,6 @@ public class Config : ConfigBase
 	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultRegTestBitcoinCoreRpcPort)]
 	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
-	[JsonProperty(PropertyName = "AnnouncerConfig")]
-	public AnnouncerConfig AnnouncerConfig { get; internal set; } = new();
-
 	public EndPoint GetBitcoinP2pEndPoint()
 	{
 		if (Network == Network.Main)

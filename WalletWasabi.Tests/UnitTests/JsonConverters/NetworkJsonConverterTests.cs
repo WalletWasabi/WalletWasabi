@@ -21,7 +21,7 @@ public class NetworkJsonConverterTests
 		TestData testObject = new();
 
 		string json = AssertSerializedEqually(testObject);
-		Assert.Equal("""{"Main":"Main","Test":"TestNet","RegTest":"RegTest","Default":null,"NotAnnotated":null}""", json);
+		Assert.Equal("""{"Main":"Main","Test":"TestNet4","RegTest":"RegTest","Default":null,"NotAnnotated":null}""", json);
 	}
 
 	/// <summary>

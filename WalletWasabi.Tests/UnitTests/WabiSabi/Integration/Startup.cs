@@ -6,8 +6,8 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
-using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;

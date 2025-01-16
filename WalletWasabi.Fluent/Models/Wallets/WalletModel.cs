@@ -55,8 +55,6 @@ public partial class WalletModel : ReactiveObject
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		BuyAnything = new BuyAnythingModel(Wallet);
-
 		Balances = Transactions.TransactionProcessed
 			.Select(_ => Wallet.Coins.TotalAmount())
 			.Select(AmountProvider.Create);
@@ -122,8 +120,6 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<WalletState> State { get; }
 
 	public IAmountProvider AmountProvider { get; }
-
-	public IBuyAnythingModel BuyAnything { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 

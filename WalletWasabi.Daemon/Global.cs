@@ -33,9 +33,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.BuyAnything;
-using WalletWasabi.WebClients.BuyAnything;
-using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
 
@@ -261,17 +258,6 @@ public class Global
 					}
 				}
 
-				bool useTestApi = Network != Network.Main;
-				var apiKey = useTestApi ? "SWSCVTGZRHJOZWF0MTJFTK9ZSG" : "SWSCU3LIYWVHVXRVYJJNDLJZBG";
-				var uri = useTestApi ? new Uri("https://shopinbit.solution360.dev/store-api/") : new Uri("https://shopinbit.com/store-api/");
-				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("long-live-shopinbit"), uri, apiKey);
-
-				BuyAnythingClient buyAnythingClient = new(shopWareApiClient, useTestApi);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient, useTestApi), "BuyAnythingManager");
-				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
-				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
-				await buyAnythingManager.EnsureCountriesAreLoadedAsync(cancel).ConfigureAwait(false);
-
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Start synchronizing filters...");
@@ -311,7 +297,7 @@ public class Global
 			? Config.JsonRpcServerPrefixes.Append($"http://+:37129/").ToArray()
 			: Config.JsonRpcServerPrefixes;
 
-		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes);
+		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes, Config.Network);
 		if (jsonRpcServerConfig.IsEnabled)
 		{
 			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(global: this);

@@ -8,6 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -21,16 +22,18 @@ namespace WalletWasabi.Backend.Controllers;
 [Route("api/v" + Constants.BackendMajorVersion + "/btc/[controller]")]
 public class BatchController : ControllerBase
 {
-	public BatchController(BlockchainController blockchainController, OffchainController offchainController, Global global)
+	public BatchController(BlockchainController blockchainController, OffchainController offchainController, IndexBuilderService indexBuilderService, Config config)
 	{
 		BlockchainController = blockchainController;
 		OffchainController = offchainController;
-		Global = global;
+		IndexBuilderService = indexBuilderService;
+		Config = config;
 	}
 
-	public Global Global { get; }
 	public BlockchainController BlockchainController { get; }
 	public OffchainController OffchainController { get; }
+	public IndexBuilderService IndexBuilderService { get; }
+	public Config Config { get; }
 
 	[HttpGet("synchronize")]
 	[ResponseCache(Duration = 60)]
@@ -43,8 +46,8 @@ public class BatchController : ControllerBase
 			return BadRequest($"Invalid {nameof(bestKnownBlockHash)}.");
 		}
 
-		var numberOfFilters = Global.Config.Network == Network.Main ? 1000 : 10000;
-		(Height bestHeight, IEnumerable<FilterModel> filters) = Global.IndexBuilderService.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
+		var numberOfFilters = Config.Network == Network.Main ? 1000 : 10000;
+		(Height bestHeight, IEnumerable<FilterModel> filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
 
 		var response = new SynchronizeResponse { Filters = [], BestHeight = bestHeight };
 

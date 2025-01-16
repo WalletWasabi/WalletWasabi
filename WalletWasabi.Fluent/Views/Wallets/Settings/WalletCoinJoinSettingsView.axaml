@@ -4,7 +4,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
-             xmlns:wallets="clr-namespace:WalletWasabi.Wallets;assembly=WalletWasabi"
              xmlns:wallets1="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
              x:DataType="vm:WalletCoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
@@ -20,35 +19,35 @@
     <DockPanel>
       <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
       <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-      <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 0 10 0" />
+      <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 3 10 0" />
     </DockPanel>
 
-    <StackPanel>
-      <StackPanel Orientation="Horizontal" Spacing="10">
-        <TextBlock Text="Coinjoin to this wallet:" />
-        <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" Height="17">
-          <ToolTip.Tip>
-            <TextBlock>
-              - Only loaded wallets can be selected.<LineBreak />
-              - Coins from the coinjoin transaction will be received by this wallet. However, this setting resets after Wasabi restarts.<LineBreak />
-              - The selected wallet cannot be changed when a coinjoin is in progress.
-            </TextBlock>
-          </ToolTip.Tip>
-        </PathIcon>
-      </StackPanel>
-      <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" SelectedItem="{Binding SelectedOutputWallet}" HorizontalAlignment="Stretch">
+    <DockPanel>
+      <TextBlock Text="Coinjoin to this wallet:" />
+      <ComboBox ItemsSource="{Binding Wallets}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}"
+                SelectedItem="{Binding SelectedOutputWallet}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="wallets1:IWalletModel">
             <TextBlock Text="{Binding Name}" />
           </DataTemplate>
         </ComboBox.ItemTemplate>
       </ComboBox>
-    </StackPanel>
+      <PathIcon DockPanel.Dock="Right" HorizontalAlignment="Right" Margin="0 2 7 0" Data="{StaticResource warning_regular}"
+                Foreground="{DynamicResource WarningMessageForeground}" Height="17">
+        <ToolTip.Tip>
+          <TextBlock>
+            - Only loaded wallets can be selected.<LineBreak />
+            - Coins from the coinjoin transaction will be received by this wallet. However, this setting resets after Wasabi restarts.<LineBreak />
+            - The selected wallet cannot be changed when a coinjoin is in progress.
+          </TextBlock>
+        </ToolTip.Tip>
+      </PathIcon>
+    </DockPanel>
 
-    <StackPanel ToolTip.Tip="Coinjoin will automatically stop if the wallet balance is less than this.">
+    <DockPanel ToolTip.Tip="Coinjoin will automatically stop if the wallet balance is less than this.">
       <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
-    </StackPanel>
+    </DockPanel>
 
   </StackPanel>
 </UserControl>

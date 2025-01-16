@@ -119,10 +119,10 @@ public class KeyManager
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		new((network.Name, scriptPubKeyType) switch
 		{
-			("TestNet", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
+			("TestNet4", ScriptPubKeyType.Segwit) => "m/84h/1h/0h",
 			("RegTest", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
 			("Main", ScriptPubKeyType.Segwit) => "m/84h/0h/0h",
-			("TestNet", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
+			("TestNet4", ScriptPubKeyType.TaprootBIP86) => "m/86h/1h/0h",
 			("RegTest", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
 			("Main", ScriptPubKeyType.TaprootBIP86) => "m/86h/0h/0h",
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and script type '{scriptPubKeyType}'.")
@@ -446,10 +446,9 @@ public class KeyManager
 		}
 	}
 
-	public IEnumerable<ExtKey> GetSecrets(string password, params Script[] scripts)
+	public IEnumerable<Key> GetSecrets(string password, params Script[] scripts)
 	{
 		ExtKey extKey = GetMasterExtKey(password);
-		var extKeysAndPubs = new List<ExtKey>();
 
 		lock (_criticalStateLock)
 		{
@@ -457,11 +456,9 @@ public class KeyManager
 				scripts.Contains(x.P2wpkhScript)
 				|| scripts.Contains(x.P2Taproot)))
 			{
-				ExtKey ek = extKey.Derive(key.FullKeyPath);
-				extKeysAndPubs.Add(ek);
+				yield return extKey.Derive(key.FullKeyPath).PrivateKey;
 			}
 		}
-		return extKeysAndPubs;
 	}
 
 	private (int PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }

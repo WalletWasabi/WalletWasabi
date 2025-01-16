@@ -19,7 +19,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Fluent.ViewModels.Wallets.Buy;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -40,6 +39,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isSendButtonVisible;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isDonateButtonVisible;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
@@ -65,7 +65,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-		BuyViewModel = new BuyViewModel(UiContext, WalletModel);
 
 		_uiConfig = Services.UiConfig;
 
@@ -79,6 +78,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(sendSearchItem, shouldAdd))
 			.Subscribe();
 
+		var donateSearchItem = CreateDonateItem();
+		this.WhenAnyValue(x => x.IsDonateButtonVisible, x => x.IsSelected, (x, y) => x && y)
+			.Do(shouldAdd => UiContext.EditableSearchSource.Toggle(donateSearchItem, shouldAdd))
+			.Subscribe();
+
 		walletModel.HasBalance
 			.Select(x => !x)
 			.BindTo(this, x => x.IsWalletBalanceZero);
@@ -88,6 +92,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		 this.WhenAnyValue(x => x.IsWalletBalanceZero)
 		 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+
+		 this.WhenAnyValue(x => x.IsSendButtonVisible)
+			 .Subscribe(_ => IsDonateButtonVisible = IsSendButtonVisible && WalletModel.Network == Network.Main);
 
 		 WalletModel.Privacy.IsWalletPrivate
 			 .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -123,14 +130,13 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
+		DonateCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel, donate: true)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
 		SegwitReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.SegWit));
 		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
 			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
 			null;
-
-		BuyCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To(BuyViewModel));
 
 		WalletInfoCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -176,27 +182,12 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Tiles = GetTiles().ToList();
 
-		CanBuy =
-			walletModel.HasBalance
-				.CombineLatest(BuyViewModel.HasNonEmptyOrder)
-				.Select(x => GetIsBuyButtonVisible(x.First, x.Second));
-
-		HasUnreadConversations = BuyViewModel.Orders
-			.ToObservableChangeSet(x => x.OrderNumber)
-			.AutoRefresh(x => x.HasUnreadMessages)
-			.Filter(model => model.HasUnreadMessages)
-			.AsObservableCache()
-			.CountChanged
-			.Select(x => x > 0);
-
 		this.WhenAnyValue(x => x.Settings.PreferPsbtWorkflow)
 			.Do(x => this.RaisePropertyChanged(nameof(PreferPsbtWorkflow)))
 			.Subscribe();
 
 		this.WhenAnyValue(x => x.WalletModel.Name).BindTo(this, x => x.Title);
 	}
-
-	public ICommand BuyCommand { get; set; }
 
 	// TODO: Remove this
 	public Wallet Wallet { get; }
@@ -219,13 +210,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public HistoryViewModel History { get; }
 
-	public BuyViewModel BuyViewModel { get; }
-
-	public IObservable<bool> CanBuy { get; }
-
 	public IEnumerable<ActivatableViewModel> Tiles { get; }
 
 	public ICommand SendCommand { get; private set; }
+	public ICommand DonateCommand { get; private set; }
 
 	public ICommand SendManualControlCommand { get; }
 
@@ -249,7 +237,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public ICommand NavigateToExcludedCoinsCommand { get; }
 
-	public IObservable<bool> HasUnreadConversations { get; }
+	public override string Title
+	{
+		get => _title;
+		protected set => this.RaiseAndSetIfChanged(ref _title, value);
+	}
 
 	public void SelectTransaction(uint256 txid)
 	{
@@ -281,20 +273,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.DisposeWith(disposables);
 	}
 
-	private bool GetIsBuyButtonVisible(bool hasBalance, bool hasNonEmptyOrder)
-	{
-#if DEBUG
-		return true;
-#endif
-
-		if (hasBalance || hasNonEmptyOrder)
-		{
-			return true;
-		}
-
-		return false;
-	}
-
 	private ISearchItem[] CreateSearchItems()
 	{
 		return new ISearchItem[]
@@ -312,6 +290,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private ISearchItem CreateSendItem()
 	{
 		return new ActionableItem(Lang.Resources.SendViewModel_Title, Lang.Resources.SendViewModel_Caption, () => { SendCommand.ExecuteIfCan(); return Task.CompletedTask; }, SearchCategory.Wallet, Lang.Keywords.ConstructKeywords("SendViewModel_Keywords")) { Icon = "wallet_action_send", IsDefault = true, Priority = 1 };
+	}
+
+	private ISearchItem CreateDonateItem()
+	{
+		return new ActionableItem("Donate", "Donate to The Wasabi Wallet Developers", () => { DonateCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", "Donate" }) { Icon = "gift", IsDefault = true, Priority = 4 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
