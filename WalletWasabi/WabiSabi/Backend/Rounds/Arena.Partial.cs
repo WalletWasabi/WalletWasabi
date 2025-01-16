@@ -359,10 +359,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		if (_config.IsCoordinationEnabled is false)
-		{
-			return Task.FromResult(new RoundStateResponse(Array.Empty<RoundState>(), Array.Empty<CoinJoinFeeRateMedian>()));
-		}
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
 		var responseRoundStates = RoundStates.Select(x =>
 		{

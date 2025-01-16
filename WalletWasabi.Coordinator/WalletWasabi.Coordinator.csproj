@@ -1,0 +1,28 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+    <PropertyGroup>
+		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
+		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
+		<Product>WalletWasabiCoordinatorApi</Product>
+		<Copyright>MIT</Copyright>
+		<PackageTags>walletwasabi, wasabiwallet, wasabi, wallet, bitcoin, nbitcoin, tor, zerolink, wabisabi, coinjoin, fungibility, privacy, anonymity</PackageTags>
+		<RepositoryType>Git</RepositoryType>
+		<RepositoryUrl>https://github.com/WalletWasabi/WalletWasabi/</RepositoryUrl>
+		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Coordinator</PathMap>
+		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+		<StaticWebAssetsEnabled>false</StaticWebAssetsEnabled>
+    </PropertyGroup>
+
+	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
+	</ItemGroup>
+
+</Project>

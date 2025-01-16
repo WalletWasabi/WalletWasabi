@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
