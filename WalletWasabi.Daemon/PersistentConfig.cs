@@ -21,7 +21,7 @@ public record PersistentConfig
 
 	public string TestNetCoordinatorUri { get; init; } = "";
 
-	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37127/";
+	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37128/";
 
 	/// <remarks>
 	/// For backward compatibility this was changed to an object.
