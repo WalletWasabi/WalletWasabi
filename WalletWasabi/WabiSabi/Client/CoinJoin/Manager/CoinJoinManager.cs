@@ -502,6 +502,7 @@ public class CoinJoinManager : BackgroundService
 		var destinationProvider = finishedCoinJoin.OutputWallet.OutputProvider.DestinationProvider;
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
+		var forceStop = false;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -527,7 +528,15 @@ public class CoinJoinManager : BackgroundService
 		catch (CoinJoinClientException clientException)
 		{
 			cjClientException = clientException;
-			Logger.LogDebug(clientException);
+			if (cjClientException.CoinjoinError is CoinjoinError.CoordinatorLiedAboutInputs)
+			{
+				Logger.LogError(cjClientException);
+				forceStop = true;
+			}
+			else
+			{
+				Logger.LogDebug(cjClientException);
+			}
 		}
 		catch (InvalidOperationException ioe)
 		{
@@ -580,7 +589,8 @@ public class CoinJoinManager : BackgroundService
 		// When to stop mixing:
 		// - If stop was requested by user.
 		// - If cancellation was requested.
-		if (finishedCoinJoin.IsStopped
+		if (forceStop
+			|| finishedCoinJoin.IsStopped
 			|| cancellationToken.IsCancellationRequested)
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
