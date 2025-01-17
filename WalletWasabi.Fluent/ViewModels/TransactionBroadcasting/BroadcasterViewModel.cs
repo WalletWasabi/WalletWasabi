@@ -1,16 +1,17 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 
 [NavigationMetaData(
-	Title = "Broadcaster",
-	Caption = "Broadcast your transaction here",
-	IconName = "live_regular",
 	Order = 5,
-	Category = "General",
-	Keywords = new[] { "Transaction Id", "Input", "Output", "Amount", "Network", "Fee", "Count", "BTC", "Signed", "Paste", "Import", "Broadcast", "Transaction", },
+	Category = SearchCategory.General,
+	Title = "BroadcasterViewModel_Title",
+	Caption = "BroadcasterViewModel_Caption",
+	Keywords = "BroadcasterViewModel_Keywords",
+	IconName = "live_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class BroadcasterViewModel : TriggerCommandViewModel

@@ -19,7 +19,6 @@ public class ShowErrorDialogViewModel : DialogViewModelBase<bool>
 	}
 
 	public string Message { get; }
-
 	public string Caption { get; }
 
 	public override string Title

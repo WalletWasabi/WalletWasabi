@@ -26,7 +26,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
-[NavigationMetaData(Title = "Transaction Preview")]
+[NavigationMetaData(Title = "TransactionPreviewViewModel_Title")]
 public partial class TransactionPreviewViewModel : RoutableViewModel
 {
 	private readonly Stack<(BuildTransactionResult, TransactionInfo)> _undoHistory;
@@ -73,13 +73,13 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			SkipCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 			NextCommand = ReactiveCommand.CreateFromTask(OnExportPsbtAsync);
 
-			_nextButtonText = "Save PSBT file";
+			_nextButtonText = Lang.Resources.TransactionPreviewViewModel_PSBT_Next;
 		}
 		else
 		{
 			NextCommand = ReactiveCommand.CreateFromTask(OnConfirmAsync);
 
-			_nextButtonText = "Confirm";
+			_nextButtonText = Lang.Resources.TransactionPreviewViewModel_Standard_Next;
 		}
 
 		AdjustFeeCommand = ReactiveCommand.CreateFromTask(OnAdjustFeeAsync);
@@ -126,7 +126,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			catch (Exception ex)
 			{
 				Logger.LogError(ex);
-				await ShowErrorAsync("Transaction Export", ex.ToUserFriendlyString(), "Wasabi was unable to export the PSBT.");
+				await ShowErrorAsync(
+					Lang.Resources.TransactionPreviewViewModel_PSBT_Error_UnableExport_Title,
+					ex.ToUserFriendlyString(),
+					Lang.Resources.TransactionPreviewViewModel_PSBT_Error_UnableExport_Caption);
 			}
 
 			if (saved)
@@ -253,9 +256,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			await ShowErrorAsync(
-				"Transaction Building",
-				"The transaction cannot be sent because its fee is more than the payment amount.",
-				"Wasabi was unable to create your transaction.");
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Title,
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_FeeExceedsPayment_Message,
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Caption);
 
 			return null;
 		}
@@ -280,9 +283,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			}
 
 			await ShowErrorAsync(
-				"Transaction Building",
-				"There are not enough funds to cover the transaction fee.",
-				"Wasabi was unable to create your transaction.");
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Title,
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_InsufficientFundsForFee_Message,
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Caption);
 
 			return null;
 		}
@@ -291,9 +294,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			Logger.LogError(ex);
 
 			await ShowErrorAsync(
-				"Transaction Building",
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Title,
 				ex.ToUserFriendlyString(),
-				"Wasabi was unable to create your transaction.");
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Caption);
 
 			return null;
 		}
@@ -411,9 +414,9 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			Logger.LogError(ex);
 			await ShowErrorAsync(
-				"Transaction",
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Title,
 				ex.ToUserFriendlyString(),
-				"Wasabi was unable to send your transaction.");
+				Lang.Resources.TransactionPreviewViewModel_Standard_Error_Generic_Caption);
 		}
 		finally
 		{

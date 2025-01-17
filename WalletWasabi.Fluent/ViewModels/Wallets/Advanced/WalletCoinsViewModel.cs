@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -9,12 +9,12 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 
 [NavigationMetaData(
-	Title = "Wallet Coins",
-	Caption = "Display wallet coins",
-	IconName = "nav_wallet_24_regular",
 	Order = 0,
-	Category = "Wallet",
-	Keywords = ["Wallet", "Coins", "UTXO"],
+	Category = SearchCategory.Wallet,
+	Title = "WalletCoinsViewModel_Title",
+	Caption = "WalletCoinsViewModel_Caption",
+	Keywords = "WalletCoinsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]

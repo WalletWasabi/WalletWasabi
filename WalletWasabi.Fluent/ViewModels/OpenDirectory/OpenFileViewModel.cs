@@ -23,7 +23,7 @@ public abstract class OpenFileViewModel : TriggerCommandViewModel
 			}
 			catch (Exception ex)
 			{
-				await ShowErrorAsync("Open", ex.ToUserFriendlyString(), "Wasabi was unable to open the file");
+				await ShowErrorAsync(Lang.Resources.OpenFileViewModel_Error_Generic_Title, ex.ToUserFriendlyString(), Lang.Resources.OpenFileViewModel_Error_Generic_Caption);
 			}
 		});
 }

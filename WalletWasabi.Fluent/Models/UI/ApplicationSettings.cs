@@ -64,6 +64,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private TorMode _useTor;
 	[AutoNotify] private bool _terminateTorOnExit;
 	[AutoNotify] private bool _downloadNewVersion;
+	[AutoNotify] private DisplayLanguage _selectedDisplayLanguage;
 
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
@@ -112,6 +113,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_useTor = Config.ObjectToTorMode(_config.UseTor);
 		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
 		_downloadNewVersion = _startupConfig.DownloadNewVersion;
+		_selectedDisplayLanguage = (DisplayLanguage)_startupConfig.DisplayLanguage;
 
 		// Privacy Mode
 		_privacyMode = _uiConfig.PrivacyMode;
@@ -170,6 +172,9 @@ public partial class ApplicationSettings : ReactiveObject
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => ApplyUiConfigChanges())
 			.Subscribe();
+
+		this.WhenAnyValue(x => x.SelectedDisplayLanguage)
+			.Subscribe(_ => Save());
 
 		// Save UiConfig on change without throttling
 		this.WhenAnyValue(x => x.PrivacyMode)
@@ -307,6 +312,7 @@ public partial class ApplicationSettings : ReactiveObject
 			UseTor = UseTor.ToString(),
 			TerminateTorOnExit = TerminateTorOnExit,
 			DownloadNewVersion = DownloadNewVersion,
+			DisplayLanguage = (int)SelectedDisplayLanguage,
 		};
 
 		return result;

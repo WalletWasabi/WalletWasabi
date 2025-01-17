@@ -37,11 +37,11 @@ public class InputsCoinViewModel : InputsCoinListItem
 			}
 		}
 
-		TitleText = $"{TotalInputs} input{(TotalInputs == 1 ? "" : "s")}";
+		TitleText = $"{TotalInputs} {Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(TotalInputs.GetValueOrDefault(), "Words_Input")!)}";
 
 		Tip = Children.Count == TotalInputs ?
-			"All inputs belong to one of your opened wallets" :
-			"Only inputs belonging to one of your opened wallets can be shown.";
+			Lang.Resources.InputsCoinViewModel_Tip_AllInputs :
+			Lang.Resources.InputsCoinViewModel_Tip_SubsetInputs;
 	}
 	public SmartCoin? Coin { get; }
 }

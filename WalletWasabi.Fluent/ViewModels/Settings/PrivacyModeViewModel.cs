@@ -8,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Discreet Mode",
+	Title = "PrivacyModeViewModel_Title",
 	Searchable = false,
 	NavBarPosition = NavBarPosition.Bottom,
 	NavBarSelectionMode = NavBarSelectionMode.Toggle)]

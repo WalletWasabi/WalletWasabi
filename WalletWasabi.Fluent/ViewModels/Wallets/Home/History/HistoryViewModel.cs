@@ -64,7 +64,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private static IColumn<HistoryItemViewModelBase> DateColumn()
 	{
 		return new PrivacyTextColumn<HistoryItemViewModelBase>(
-			"Date / Time",
+			Lang.Resources.Sentences_DateTime,
 			x => x.Transaction.DateString,
 			type: PrivacyCellType.Date,
 			options: new ColumnOptions<HistoryItemViewModelBase>
@@ -81,7 +81,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private static IColumn<HistoryItemViewModelBase> LabelsColumn()
 	{
 		return new TemplateColumn<HistoryItemViewModelBase>(
-			"Labels",
+			Lang.Utils.Plural("Words_Label"),
 			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new LabelsColumnView(), true),
 			null,
 			options: new TemplateColumnOptions<HistoryItemViewModelBase>
@@ -114,7 +114,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private IColumn<HistoryItemViewModelBase> ActionsColumn()
 	{
 		return new TemplateColumn<HistoryItemViewModelBase>(
-			"Actions",
+			Lang.Resources.Words_Actions,
 			new FuncDataTemplate<HistoryItemViewModelBase>((node, ns) => new ActionsColumnView(), true),
 			options: new TemplateColumnOptions<HistoryItemViewModelBase>
 			{
@@ -205,10 +205,10 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		Sortables =
 		[
-			new SortableItem("Status") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
-			new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
-			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
-			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+			new SortableItem(Lang.Resources.Words_Status) { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
+			new SortableItem(Lang.Resources.Words_Date) { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
+			new SortableItem(Lang.Resources.Words_Amount) { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
+			new SortableItem(Lang.Resources.Words_Label) { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
 		];
 	}
 

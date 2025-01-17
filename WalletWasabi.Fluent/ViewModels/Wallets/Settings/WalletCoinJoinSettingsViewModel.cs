@@ -7,6 +7,7 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
@@ -15,12 +16,12 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 [NavigationMetaData(
-	Title = "Coinjoin Settings",
-	Caption = "Display wallet coinjoin settings",
-	IconName = "nav_wallet_24_regular",
 	Order = 1,
-	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Settings", },
+	Category = SearchCategory.Wallet,
+	Title = "WalletCoinJoinSettingsViewModel_Title",
+	Caption = "WalletCoinJoinSettingsViewModel_Caption",
+	Keywords = "WalletCoinJoinSettingsViewModel_Keywords",
+	IconName = "nav_wallet_24_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
@@ -135,8 +136,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
 			{
 				(true, CoinJoinProfileViewModelBase x) => x.Title,
-				(false, _) => "None",
-				_ => "Unknown"
+				(false, _) => Lang.Resources.Words_None,
+				_ => Lang.Resources.Words_Unknown
 			};
 	}
 

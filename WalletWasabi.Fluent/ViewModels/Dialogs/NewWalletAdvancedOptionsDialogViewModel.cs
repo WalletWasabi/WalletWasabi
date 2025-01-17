@@ -4,7 +4,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Advanced options", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "NewWalletAdvancedOptionsDialogViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBase<NewWalletAdvancedOptionsDialogViewModel.Result>
 {
 	public NewWalletAdvancedOptionsDialogViewModel(CoinJoinProfileViewModelBase currentProfile, bool isAutoCoinjoinEnabled)

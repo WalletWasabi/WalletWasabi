@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
@@ -8,17 +9,12 @@ using WalletWasabi.Helpers;
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	Title = "About Wasabi",
-	Caption = "Display Wasabi's current info",
-	IconName = "info_regular",
 	Order = 4,
-	Category = "Help & Support",
-	Keywords = new[]
-	{
-			"About", "Software", "Version", "Source", "Code", "Github", "Website", "Coordinator", "Status", "Stats", "Tor", "Onion",
-			"User", "Support", "Bug", "Report", "FAQ", "Questions,", "Docs", "Documentation", "License", "Advanced", "Information",
-			"Hardware", "Wallet"
-	},
+	Category = SearchCategory.HelpAndSupport,
+	Title = "AboutViewModel_Title",
+	Caption = "AboutViewModel_Caption",
+	Keywords = "AboutViewModel_Keywords",
+	IconName = "info_regular",
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AboutViewModel : RoutableViewModel
@@ -34,56 +30,56 @@ public partial class AboutViewModel : RoutableViewModel
 				new LinkViewModel(UiContext)
 				{
 					Link = DocsLink,
-					Description = "Documentation",
+					Description = Lang.Resources.Words_Documentation,
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = SourceCodeLink,
-					Description = "Source Code (GitHub)",
+					Description = $"{Lang.Resources.Sentences_SourceCode} ({Lang.Resources.Words_GitHub})",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = ClearnetLink,
-					Description = "Website (Clearnet)",
+					Description = $"{Lang.Resources.Words_Website} ({Lang.Resources.Words_Clearnet})",
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = TorLink,
-					Description = "Website (Tor)",
+					Description = $"{Lang.Resources.Words_Website} ({Lang.Resources.Words_Tor})",
 					IsClickable = false
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = StatusPageLink,
-					Description = "Backend Status Page",
+					Description = Lang.Resources.Sentences_BackendStatus,
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = UserSupportLink,
-					Description = "User Support",
+					Description = Lang.Resources.Sentences_UserSupport,
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = BugReportLink,
-					Description = "Bug Report",
+					Description = Lang.Resources.Sentences_BugReport,
 					IsClickable = true
 				},
 				new SeparatorViewModel(),
 				new LinkViewModel(UiContext)
 				{
 					Link = FAQLink,
-					Description = "FAQ",
+					Description = Lang.Resources.Words_FAQ,
 					IsClickable = true
 				},
 			};
@@ -91,7 +87,7 @@ public partial class AboutViewModel : RoutableViewModel
 		License = new LinkViewModel(UiContext)
 		{
 			Link = LicenseLink,
-			Description = "MIT License",
+			Description = Lang.Resources.Sentences_MITLicense,
 			IsClickable = true
 		};
 
@@ -127,7 +123,7 @@ public partial class AboutViewModel : RoutableViewModel
 
 	public static string SourceCodeLink => "https://github.com/WalletWasabi/WalletWasabi/";
 
-	public static string StatusPageLink => "https://stats.uptimerobot.com/YQqGyUL8A7";
+	public static string StatusPageLink => "https://stats.uptimerobot.com/pOhAlrGWM9";
 
 	public static string UserSupportLink => "https://github.com/WalletWasabi/WalletWasabi/discussions/5185";
 

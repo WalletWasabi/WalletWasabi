@@ -13,9 +13,9 @@ public partial class SendSuccessViewModel : RoutableViewModel
 	private SendSuccessViewModel(SmartTransaction finalTransaction, string? title = null, string? caption = null)
 	{
 		_finalTransaction = finalTransaction;
-		Title = title ?? "Payment successful";
+		Title = title ?? Lang.Resources.SendSuccessViewModel_Title;
 
-		Caption = caption ?? "Your transaction has been successfully sent.";
+		Caption = caption ?? Lang.Resources.SendSuccessViewModel_Caption;
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
 
@@ -23,7 +23,6 @@ public partial class SendSuccessViewModel : RoutableViewModel
 	}
 
 	public override string Title { get; protected set; }
-
 	public string? Caption { get; }
 
 	private async Task OnNextAsync()

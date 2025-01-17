@@ -6,7 +6,6 @@
 	<LangVersion>12</LangVersion>
 	<Nullable>enable</Nullable>
 	<Deterministic>true</Deterministic>
-	<InvariantGlobalization>true</InvariantGlobalization>
 	<WarningsAsErrors>false</WarningsAsErrors>
 
 	<!-- Audit both top-level and transitive dependencies for vulnerabilities in NuGet packages. -->

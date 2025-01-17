@@ -2,6 +2,7 @@ using System.Globalization;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -12,14 +13,11 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Coordinator",
-	Caption = "Manage Coordinator settings",
 	Order = 2,
-	Category = "Settings",
-	Keywords =
-	[
-		"Settings", "Bitcoin", "BTC", "Coordinator", "Coordination", "Fee", "Coinjoin", "Rate", "Mining"
-	],
+	Category = SearchCategory.Settings,
+	Title = "CoordinatorTabSettingsViewModel_Title",
+	Caption = "CoordinatorTabSettingsViewModel_Caption",
+	Keywords = "CoordinatorTabSettingsViewModel_Keywords",
 	IconName = "settings_bitcoin_regular")]
 public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 {
@@ -64,7 +62,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		if (!Uri.TryCreate(coordinatorUri, UriKind.Absolute, out _))
 		{
-			errors.Add(ErrorSeverity.Error, "Invalid URI.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.Sentences_InvalidURI);
 			return;
 		}
 
@@ -82,13 +80,13 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		if (!decimal.TryParse(maxCoinJoinMiningFeeRate, out var maxCoinJoinMiningFeeRateDecimal))
 		{
-			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.Sentences_Invalid_number);
 			return;
 		}
 
 		if (maxCoinJoinMiningFeeRateDecimal < 1)
 		{
-			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.CoordinatorTabSettingsViewModel_Error_MiningFeeRateInvalid);
 			return;
 		}
 
@@ -106,13 +104,13 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 		if (!int.TryParse(absoluteMinInputCount, out var absoluteMinInputCountInt))
 		{
-			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.Sentences_Invalid_number);
 			return;
 		}
 
 		if (absoluteMinInputCountInt < Constants.AbsoluteMinInputCount)
 		{
-			errors.Add(ErrorSeverity.Error, $"Absolute min input count should be at least {Constants.AbsoluteMinInputCount}");
+			errors.Add(ErrorSeverity.Error, string.Format(Lang.Resources.Culture, Lang.Resources.CoordinatorTabSettingsViewModel_Error_MiningFeeRateInvalid, Constants.AbsoluteMinInputCount));
 			return;
 		}
 

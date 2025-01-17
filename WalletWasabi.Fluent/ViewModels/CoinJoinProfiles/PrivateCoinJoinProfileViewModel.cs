@@ -20,9 +20,8 @@ public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		AnonScoreTarget = GetAnonScoreTarget(MinAnonScore, MaxAnonScore);
 	}
 
-	public override string Title => "Maximize Privacy";
-
-	public override string Description => "Choice of the paranoid. Optimizes for privacy at all costs.";
+	public override string Title => Lang.Resources.PrivateCoinJoinProfileViewModel_Title;
+	public override string Description => Lang.Resources.PrivateCoinJoinProfileViewModel_Description;
 
 	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;

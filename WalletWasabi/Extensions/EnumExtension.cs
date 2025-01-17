@@ -50,7 +50,26 @@ public static class EnumExtensions
 	{
 		var attribute = value.GetFirstAttribute<FriendlyNameAttribute>();
 
-		return attribute is { } ? attribute.FriendlyName : value.ToString();
+		if (attribute is null)
+		{
+			return value.ToString();
+		}
+
+		if (attribute.IsLocalized)
+		{
+			var localizedValue = Lang.Resources.ResourceManager.GetString($"{value.ToString()}Enum", Lang.Resources.Culture);
+			if (!string.IsNullOrEmpty(localizedValue))
+			{
+				return localizedValue;
+			}
+		}
+
+		if (!string.IsNullOrEmpty(attribute.FriendlyName))
+		{
+			return attribute.FriendlyName;
+		}
+
+		return value.ToString();
 	}
 
 	public static T? GetEnumValueOrDefault<T>(this int value, T defaultValue) where T : Enum

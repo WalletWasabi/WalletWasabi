@@ -1,3 +1,4 @@
+using System.Globalization;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
@@ -7,14 +8,14 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Advanced Recovery Options", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "AdvancedRecoveryOptionsViewModel_Title", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?>
 {
 	[AutoNotify] private string _minGapLimit;
 
 	public AdvancedRecoveryOptionsViewModel(int minGapLimit)
 	{
-		_minGapLimit = minGapLimit.ToString();
+		_minGapLimit = minGapLimit.ToString(CultureInfo.InvariantCulture);
 
 		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
@@ -22,7 +23,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 		EnableBack = false;
 
 		NextCommand = ReactiveCommand.Create(
-			() => Close(result: int.Parse(MinGapLimit)),
+			() => Close(result: int.Parse(MinGapLimit, CultureInfo.InvariantCulture)),
 			this.WhenAnyValue(x => x.MinGapLimit).Select(_ => !Validations.Any));
 	}
 
@@ -33,7 +34,7 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<int?
 		{
 			errors.Add(
 				ErrorSeverity.Error,
-				$"Must be a number between {KeyManager.AbsoluteMinGapLimit} and {KeyManager.MaxGapLimit}.");
+				$"{Lang.Resources.Sentences_MustBeANumberBetween} {KeyManager.AbsoluteMinGapLimit} {Lang.Utils.LowerCaseFirst(Lang.Resources.Words_And)} {KeyManager.MaxGapLimit}.");
 		}
 	}
 }

@@ -1,17 +1,15 @@
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 [NavigationMetaData(
-	Title = "User Guide/Docs",
-	Caption = "Open Wasabi's documentation website",
 	Order = 2,
-	Category = "Help & Support",
-	Keywords = new[]
-	{
-		"User", "Support", "Website", "Docs", "Documentation", "Guide"
-	},
+	Category = SearchCategory.HelpAndSupport,
+	Title = "DocsLinkViewModel_Title",
+	Caption = "DocsLinkViewModel_Caption",
+	Keywords = "DocsLinkViewModel_Keywords",
 	IconName = "book_question_mark_regular")]
 public partial class DocsLinkViewModel : TriggerCommandViewModel
 {

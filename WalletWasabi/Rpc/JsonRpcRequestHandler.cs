@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices.JavaScript;
@@ -29,14 +30,14 @@ public class JsonRpcRequestHandler<TService>
 		_service = service;
 		_metadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
 		_defaultSettings = new()
-    	{
-    		NullValueHandling = NullValueHandling.Ignore,
-    		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
-    		Converters = new JsonConverter[]
-    		{
-    			new Uint256JsonConverter(),
-    			new OutPointAsTxoRefJsonConverter(),
-    			new BitcoinAddressJsonConverter(),
+    	{NullValueHandling = NullValueHandling.Ignore,
+		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+		Culture = CultureInfo.InvariantCulture,
+		Converters = new JsonConverter[]
+		{
+			new Uint256JsonConverter(),
+			new OutPointAsTxoRefJsonConverter(),
+			new BitcoinAddressJsonConverter(),
     			new DestinationJsonConverter(network)
     		}
     	};

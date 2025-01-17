@@ -16,7 +16,7 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-	Title = "Manual Control",
+	Title = "ManualControlDialogViewModel_Title",
 	IconName = "wallet_action_send",
 	NavBarPosition = NavBarPosition.None,
 	Searchable = false,

@@ -28,7 +28,7 @@ public class OutputsCoinViewModel : OutputsCoinListItem
 				coin.IsExpanded = true;
 			}
 		}
-		TitleText = $"{Children.Count} output{(Children.Count == 1 ? "" : "s")}";
+		TitleText = $"{Children.Count} {Lang.Utils.LowerCaseFirst(Lang.Utils.PluralIfNeeded(Children.Count, "Words_Output")!)}";
 		NbDiff = nbDiff;
 	}
 	public TxOut? TxOut { get; }

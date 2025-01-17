@@ -181,7 +181,7 @@ public class NavigationMetaDataGenerator : ISourceGenerator
 				{
 					source.AppendLine(
 						"""
-							public override string Title { get => MetaData.Title!; protected set {} }
+							public override string Title { get => Lang.Utils.GetString(MetaData.Title!); protected set {} }
 						""");
 				}
 			}

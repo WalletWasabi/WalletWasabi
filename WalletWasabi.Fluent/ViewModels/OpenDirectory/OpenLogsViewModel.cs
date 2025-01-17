@@ -1,16 +1,13 @@
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
 [NavigationMetaData(
-	Title = "Logs",
-	Caption = "",
 	Order = 2,
-	Category = "Open",
-	Keywords = new[]
-	{
-			"Browse", "Open", "Logs"
-	},
+	Category = SearchCategory.Open,
+	Title = "OpenLogsViewModel_Title",
+	Keywords = "OpenLogsViewModel_Keywords",
 	IconName = "document_regular")]
 public partial class OpenLogsViewModel : OpenFileViewModel
 {

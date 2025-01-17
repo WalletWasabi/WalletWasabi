@@ -26,7 +26,7 @@ public class ManualCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 	{
 	}
 
-	public override string Title => "Custom";
+	public override string Title => Lang.Resources.ManualCoinJoinProfileViewModel_Title;
 
 	public override string Description => "";
 

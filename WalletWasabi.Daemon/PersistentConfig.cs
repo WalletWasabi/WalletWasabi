@@ -68,6 +68,7 @@ public record PersistentConfig
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
+	public int DisplayLanguage { get; init; } = (int)Models.DisplayLanguage.English;
 	public int ConfigVersion { get; init; }
 
 	public bool DeepEquals(PersistentConfig other)
@@ -100,7 +101,8 @@ public record PersistentConfig
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
-			AbsoluteMinInputCount == other.AbsoluteMinInputCount;
+			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
+			DisplayLanguage == other.DisplayLanguage;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

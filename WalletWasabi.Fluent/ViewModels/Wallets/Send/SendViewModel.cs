@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -31,12 +32,12 @@ using Constants = WalletWasabi.Helpers.Constants;
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 [NavigationMetaData(
-	Title = "Send",
-	Caption = "Display wallet send dialog",
 	IconName = "wallet_action_send",
 	Order = 5,
-	Category = "Wallet",
-	Keywords = new[] { "Wallet", "Send", "Action", },
+	Title = "SendViewModel_Title",
+	Caption = "SendViewModel_Caption",
+	Keywords = "SendViewModel_Keywords",
+	Category = SearchCategory.Wallet,
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = false)]
@@ -263,15 +264,15 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (AmountBtc > Constants.MaximumNumberOfBitcoins)
 		{
-			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.SendViewModel_Error_Amount_LessThanSupply_Message);
 		}
 		else if (AmountBtc > _parameters.AvailableAmountBtc)
 		{
-			errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the amount requested.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.SendViewModel_Error_Amount_InsufficientFunds_Message);
 		}
 		else if (AmountBtc <= 0)
 		{
-			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.SendViewModel_Error_Amount_Negative_Message);
 		}
 		else if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
 		{
@@ -293,7 +294,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (IsPayJoin && _walletModel.IsHardwareWallet)
 		{
-			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
+			errors.Add(ErrorSeverity.Error, Lang.Resources.SendViewModel_Error_Payjoin_HardwareWalletNotPossible_Message);
 		}
 	}
 

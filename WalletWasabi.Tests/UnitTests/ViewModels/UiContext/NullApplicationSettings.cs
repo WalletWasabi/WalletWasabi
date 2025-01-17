@@ -36,6 +36,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public TorMode UseTor { get; set; }
 	public bool TerminateTorOnExit { get; set; }
 	public bool DownloadNewVersion { get; set; }
+	public DisplayLanguage SelectedDisplayLanguage { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
 	public Version LastVersionHighlightsDisplayed { get; set; }

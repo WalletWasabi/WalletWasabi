@@ -29,11 +29,11 @@ public class SettingSelector : IDataTemplate
 			return template.Build(param);
 		}
 
-		return new TextBlock { Text = "Not found" };
+		return new TextBlock { Text = Lang.Resources.Sentences_Not_found };
 	}
 
 	public bool Match(object data)
 	{
-		return data.GetType().Name.Contains("Setting");
+		return data.GetType().Name.Contains(Lang.Resources.Words_Setting);
 	}
 }
