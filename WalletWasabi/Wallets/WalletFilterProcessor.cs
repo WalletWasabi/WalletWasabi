@@ -228,10 +228,15 @@ public class WalletFilterProcessor : BackgroundService
 		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
 	}
 
+	private IEnumerable<byte[]> GetSilentPaymentScriptPubKeysToTest(byte[][] tweakData) =>
+		tweakData.SelectMany(x => _keyManager.GetSilentPaymentSynchronizationScripts(x));
+
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
+		var indexedTweaks = filter.TweakData.Select(x => (BitConverter.ToUInt16(x[0..2]), x[2..]));
+		var sp = GetSilentPaymentScriptPubKeysToTest(indexedTweaks.Select(x => x.Item2).ToArray()).ToArray();
+		var toTestKeys = GetScriptPubKeysToTest(height, syncType).Concat(sp);
 
 		var matchFound = false;
 		if (toTestKeys.Any())
@@ -249,7 +254,12 @@ public class WalletFilterProcessor : BackgroundService
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
 				{
 					Transaction tx = currentBlock.Transactions[i];
-					txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+					SmartTransaction txToProcess = new (tx, height, currentBlock.GetHash(), i, firstSeen: currentBlock.Header.BlockTime, labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash()));
+					if (indexedTweaks.FirstOrDefault(x => x.Item1 == i).Item2 is {} tweakBytes)
+					{
+						txToProcess.SetTweakData(tweakBytes);
+					}
+					txsToProcess.Add(txToProcess);
 				}
 
 				_transactionProcessor.Process(txsToProcess);

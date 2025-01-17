@@ -8,9 +8,6 @@ namespace WalletWasabi.Wallets.SilentPayment;
 
 public static class NBitcoinExtensions
 {
-	public static SilentPaymentBech32Encoder GetSilentPaymentBech32Encoder(this Network network) =>
-		new (Encoders.ASCII.DecodeData(GetHrpForNetwork(network)));
-
 	private static string GetHrpForNetwork(Network network)
 	{
 		if (network == Network.Main)
@@ -39,11 +36,14 @@ public static class NBitcoinExtensions
 			eckey = ECPrivKey.Create(eckey.sec.Negate().ToBytes(), eckey.ctx);
 		}
 		Span<byte> buf = stackalloc byte[32];
-		UnsafeTaprootFullPubKeyAccessor.ComputeTapTweak(null, key.PubKey.TaprootInternalKey, null, buf);
+		UnsafeTaprootFullPubKeyAccessor.ComputeTapTweak(null!, key.PubKey.TaprootInternalKey, null, buf);
 		eckey = eckey.TweakAdd(buf);
 
 		return new Key(eckey.ToBytes());
 	}
+
+	public static SilentPaymentBech32Encoder GetSilentPaymentBech32Encoder(this Network network) =>
+		new (Encoders.ASCII.DecodeData(GetHrpForNetwork(network)));
 }
 
 public class UnsafeTaprootFullPubKeyAccessor

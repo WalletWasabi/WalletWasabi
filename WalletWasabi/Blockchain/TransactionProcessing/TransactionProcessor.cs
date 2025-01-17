@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -201,23 +203,39 @@ public class TransactionProcessor
 
 		IReadOnlyList<SmartCoin> myInputs = Coins.GetMyInputs(tx);
 
+		// Process silent payment
+		var spScripts = tx.TweakData != null
+			? KeyManager.GetSilentPaymentScanData().SelectMany(x => SilentPayment
+						.ExtractSilentPaymentScriptPubKeys([x.Address], tx.TweakData, tx.Transaction, x.ScanSecret)
+						.SelectMany(y => y.Value)).ToArray()
+			: [];
+
 		for (var i = 0U; i < tx.Transaction.Outputs.Count; i++)
 		{
 			// If transaction received to any of the wallet keys:
 			var output = tx.Transaction.Outputs[i];
-			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey))
+			if (KeyManager.TryGetKeyForScriptPubKey(output.ScriptPubKey, out HdPubKey? foundKey) || spScripts.Contains(output.ScriptPubKey))
 			{
-				if (!foundKey.IsInternal)
+				if (foundKey is { })
 				{
-					tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
-				}
+					if (!foundKey.IsInternal)
+					{
+						tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
+					}
 
-				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
-				KeyManager.SetKeyState(KeyState.Used, foundKey);
-				if (couldBeDustAttack)
+					var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
+					KeyManager.SetKeyState(KeyState.Used, foundKey);
+					if (couldBeDustAttack)
+					{
+						result.ReceivedDusts.Add(output);
+						continue;
+					}
+				}
+				else
 				{
-					result.ReceivedDusts.Add(output);
-					continue;
+					var trpubKey = PayToTaprootTemplate.Instance.ExtractScriptPubKeyParameters(output.ScriptPubKey);
+					var ecpk = new ECPubKey(ECXOnlyPubKey.Create(trpubKey.ToBytes()).Q, null);
+					foundKey = KeyManager.GetNextSilentPaymentDummyKey(0, new PubKey(ecpk.ToBytes()), tx.Labels, tx.TweakData);
 				}
 
 				SmartCoin newCoin = new(tx, i, foundKey);

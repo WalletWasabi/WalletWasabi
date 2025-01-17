@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Stores;
 
@@ -56,7 +57,8 @@ public class BlockFilterSqliteStorage : IDisposable
 				                               block_hash BLOB NOT NULL,
 				                               filter_data BLOB NOT NULL,
 				                               previous_block_hash BLOB NOT NULL,
-				                               epoch_block_time INTEGER NOT NULL
+				                               epoch_block_time INTEGER NOT NULL,
+				                               tweak_data BLOB NULL
 				                            );
 				                            CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
 				                            CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
@@ -272,8 +274,9 @@ public class BlockFilterSqliteStorage : IDisposable
 		byte[] filterData = reader.GetFieldValue<byte[]>(ordinal: 2);
 		uint256 prevBlockHash = new(reader.GetFieldValue<byte[]>(ordinal: 3));
 		long blockTime = reader.GetInt64(ordinal: 4);
+		byte[] tweakData = reader.GetFieldValue<byte[]>(ordinal: 5);
 
-		return FilterModel.Create(blockHeight, blockHash, filterData, prevBlockHash, blockTime);
+		return FilterModel.Create(blockHeight, blockHash, filterData, prevBlockHash, blockTime, tweakData);
 	}
 
 	/// <summary>
@@ -286,14 +289,15 @@ public class BlockFilterSqliteStorage : IDisposable
 		{
 			using SqliteCommand insertCommand = _connection.CreateCommand();
 			insertCommand.CommandText = """
-				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
-				VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
+				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time, tweak_data)
+				VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time, $tweak_data)
 				""";
 			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height);
 			insertCommand.Parameters.AddWithValue("$block_hash", filter.Header.BlockHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$filter_data", filter.FilterData);
 			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.PrevHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$epoch_block_time", filter.Header.EpochBlockTime);
+			insertCommand.Parameters.AddWithValue("$tweak_data", ByteHelpers.Combine(filter.TweakData));
 			int result = insertCommand.ExecuteNonQuery();
 
 			return result > 0;

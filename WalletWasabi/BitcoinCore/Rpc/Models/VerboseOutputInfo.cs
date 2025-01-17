@@ -2,7 +2,7 @@ using NBitcoin;
 
 namespace WalletWasabi.BitcoinCore.Rpc.Models;
 
-public class VerboseOutputInfo
+public record VerboseOutputInfo
 {
 	public VerboseOutputInfo(Money value, Script scriptPubKey, string? pubkeyType)
 	{
