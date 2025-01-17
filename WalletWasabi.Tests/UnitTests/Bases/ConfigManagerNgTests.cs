@@ -54,7 +54,7 @@ public class ConfigManagerNgTests
 			  "RegTestBackendUri": "http://localhost:37127/",
 			  "MainNetCoordinatorUri": "",
 			  "TestNetCoordinatorUri": "",
-			  "RegTestCoordinatorUri": "http://localhost:37127/",
+			  "RegTestCoordinatorUri": "http://localhost:37128/",
 			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
