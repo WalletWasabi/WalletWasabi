@@ -23,7 +23,7 @@ namespace WalletWasabi.Fluent.Models.Transactions;
 [AutoInterface]
 public partial class PrivacySuggestionsModel
 {
-	private const decimal MaximumDifferenceTolerance = 0.25m;
+	private const decimal MaximumDifferenceTolerance = 0.15m;
 	private const int ConsolidationTolerance = 10;
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
