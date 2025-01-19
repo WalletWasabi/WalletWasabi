@@ -20,7 +20,7 @@ public class StartupTask
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
-		Logger.LogInfo("Wasabi Backend");
+		Logger.LogInfo("Wasabi Coordinator");
 
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
