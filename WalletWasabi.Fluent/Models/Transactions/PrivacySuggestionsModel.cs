@@ -272,8 +272,8 @@ public partial class PrivacySuggestionsModel
 		// Reporting up-to-date exchange rates would just confuse users.
 		decimal usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
 
-		// Only allow to create 1 more input with BnB. This accounts for the change created.
-		int maxInputCount = transaction.SpentCoins.Count() + 1;
+		// Only allow to create 2 more inputs with BnB.
+		int maxInputCount = transaction.SpentCoins.Count() + 2;
 
 		var pockets = _sendFlow.GetPockets();
 		var spentCoins = transaction.SpentCoins;
@@ -284,7 +284,7 @@ public partial class PrivacySuggestionsModel
 		var coinsInCoinJoin = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
-		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
+		// If the original transaction is using only confirmed coins, BnB can use only them too. Otherwise let unconfirmed coins stay in the list.
 		if (spentCoins.All(x => x.Confirmed))
 		{
 			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
