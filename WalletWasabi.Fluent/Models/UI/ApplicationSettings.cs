@@ -1,3 +1,4 @@
+using System.ComponentModel;
 using System.Globalization;
 using Avalonia.Controls;
 using NBitcoin;
@@ -6,6 +7,8 @@ using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
+using System.Reflection;
+using System.Windows.Input;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
@@ -56,7 +59,7 @@ public partial class ApplicationSettings : ReactiveObject
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
 
-	[AutoNotify] private bool _autoCopy;
+	[AutoNotify] private bool _autocopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
 	[AutoNotify] private bool _runOnSystemStartup;
@@ -104,7 +107,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// General
 		_darkModeEnabled = _uiConfig.DarkModeEnabled;
-		_autoCopy = _uiConfig.Autocopy;
+		_autocopy = _uiConfig.Autocopy;
 		_autoPaste = _uiConfig.AutoPaste;
 		_customChangeAddress = _uiConfig.IsCustomChangeAddress;
 		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
@@ -158,7 +161,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Save UiConfig on change
 		this.WhenAnyValue(
 				x => x.DarkModeEnabled,
-				x => x.AutoCopy,
+				x => x.Autocopy,
 				x => x.AutoPaste,
 				x => x.CustomChangeAddress,
 				x => x.RunOnSystemStartup,
@@ -192,9 +195,24 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
+
+		RunOnSystemStartupCommand = ReactiveCommand.Create(async () =>
+		{
+			try
+			{
+				RunOnSystemStartup = RunOnSystemStartup;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError(ex);
+				RunOnSystemStartup = !RunOnSystemStartup;
+			}
+		});
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
+
+	public ICommand RunOnSystemStartupCommand { get; }
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 
@@ -382,7 +400,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private void ApplyUiConfigChanges()
 	{
 		_uiConfig.DarkModeEnabled = DarkModeEnabled;
-		_uiConfig.Autocopy = AutoCopy;
+		_uiConfig.Autocopy = Autocopy;
 		_uiConfig.AutoPaste = AutoPaste;
 		_uiConfig.IsCustomChangeAddress = CustomChangeAddress;
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
@@ -396,4 +414,72 @@ public partial class ApplicationSettings : ReactiveObject
 	{
 		_uiConfig.PrivacyMode = PrivacyMode;
 	}
+
+	public void ResetToDefault()
+	{
+		var defaultPersistentConfig = new PersistentConfig();
+		var defaultUiConfig = new UiConfig();
+
+		var settingsType = GetType();
+		foreach (var configProperty in typeof(UiConfig).GetProperties())
+		{
+			if (configProperty.Name is "Oobe" or "LastVersionHighlightsDisplayed")
+			{
+				continue;
+			}
+
+			var settingProperty = settingsType.GetProperty(configProperty.Name);
+			var defaultAttr = configProperty.GetCustomAttribute<DefaultValueAttribute>();
+			var defaultValue = defaultAttr is not null ? defaultAttr.Value : configProperty.GetValue(defaultUiConfig);
+			if (settingProperty != null && settingProperty.CanWrite)
+			{
+
+				switch (configProperty.Name)
+				{
+					case "WindowState":
+						settingProperty.SetValue(this,
+							(WindowState)Enum.Parse(typeof(WindowState), (string)defaultValue!));
+						break;
+					default:
+						settingProperty.SetValue(this, defaultValue);
+						break;
+				}
+			}
+		}
+
+		foreach (var configProperty in typeof(PersistentConfig).GetProperties())
+		{
+			if (configProperty.Name.Contains("CoordinatorUri"))
+			{
+				continue;
+			}
+
+			var settingProperty = settingsType.GetProperty(configProperty.Name);
+			if (settingProperty != null && settingProperty.CanWrite)
+			{
+				var defaultValue = configProperty.GetValue(defaultPersistentConfig);
+				switch (configProperty.Name)
+				{
+					case "UseTor":
+						settingProperty.SetValue(this, Config.ObjectToTorMode(defaultValue!));
+						break;
+					case "DustThreshold":
+						settingProperty.SetValue(this, defaultValue!.ToString());
+						break;
+					case "MaxCoinJoinMiningFeeRate":
+						settingProperty.SetValue(this, ((decimal)defaultValue!).ToString(CultureInfo.InvariantCulture));
+						break;
+					case "AbsoluteMinInputCount":
+						settingProperty.SetValue(this, ((int)defaultValue!).ToString(CultureInfo.InvariantCulture));
+						break;
+					default:
+						settingProperty.SetValue(this, defaultValue);
+						break;
+				}
+			}
+		}
+
+		BitcoinP2PEndPoint = defaultPersistentConfig.MainNetBitcoinP2pEndPoint.ToString(defaultPort: -1);
+	}
+
 }

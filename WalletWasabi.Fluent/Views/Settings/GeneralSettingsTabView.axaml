@@ -18,7 +18,7 @@
 
     <DockPanel>
       <TextBlock Text="Run Wasabi when computer starts" />
-      <ToggleSwitch IsChecked="{Binding RunOnSystemStartup}" Command="{Binding StartupCommand}" />
+      <ToggleSwitch IsChecked="{Binding Settings.RunOnSystemStartup}" Command="{Binding RunOnSystemStartupCommand}" />
     </DockPanel>
 
     <DockPanel>
@@ -28,7 +28,7 @@
 
     <DockPanel>
       <TextBlock Text="Auto copy addresses" />
-      <ToggleSwitch IsChecked="{Binding Settings.AutoCopy}" />
+      <ToggleSwitch IsChecked="{Binding Settings.Autocopy}" />
     </DockPanel>
 
     <DockPanel>
@@ -71,5 +71,7 @@
       <TextBlock Text="Auto download new version" />
       <ToggleSwitch IsChecked="{Binding Settings.DownloadNewVersion}" />
     </DockPanel>
+
+    <Button Margin="0 20 0 0" Content="Reset All Settings" Command="{Binding ResetDefaultsCommand}"/>
   </StackPanel>
 </UserControl>
