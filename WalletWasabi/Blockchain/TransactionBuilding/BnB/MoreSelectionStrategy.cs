@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class MoreSelectionStrategy : SelectionStrategy
 {
-	public const double MaxExtraPayment = 1 + (1 - (double) Constants.BnBMaximumDifferenceTolerance);
+	public const double MaxExtraPayment = 1 + (double) Constants.BnBMaximumDifferenceTolerance;
 
 	/// <inheritdoc/>
 	public MoreSelectionStrategy(StrategyParameters parameters, double maxExtraPayment = MaxExtraPayment)

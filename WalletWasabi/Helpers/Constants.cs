@@ -106,7 +106,7 @@ public static class Constants
 	public static readonly FeeRate MinRelayFeeRate = new(1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
 
-	public const decimal BnBMaximumDifferenceTolerance = 0.85m;
+	public const decimal BnBMaximumDifferenceTolerance = 0.15m;
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };

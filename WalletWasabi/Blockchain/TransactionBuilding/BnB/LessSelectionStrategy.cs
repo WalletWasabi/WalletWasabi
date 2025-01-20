@@ -9,7 +9,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class LessSelectionStrategy : SelectionStrategy
 {
-	public const double MinPaymentThreshold = (double) Constants.BnBMaximumDifferenceTolerance;
+	public const double MinPaymentThreshold = 1 - (double) Constants.BnBMaximumDifferenceTolerance;
 
 	/// <inheritdoc/>
 	public LessSelectionStrategy(StrategyParameters parameters, double minPaymentThreshold = MinPaymentThreshold)
