@@ -195,24 +195,9 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
-
-		RunOnSystemStartupCommand = ReactiveCommand.Create(async () =>
-		{
-			try
-			{
-				RunOnSystemStartup = RunOnSystemStartup;
-			}
-			catch (Exception ex)
-			{
-				Logger.LogError(ex);
-				RunOnSystemStartup = !RunOnSystemStartup;
-			}
-		});
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
-
-	public ICommand RunOnSystemStartupCommand { get; }
 
 	public IObservable<bool> IsRestartNeeded => _isRestartNeeded;
 

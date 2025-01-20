@@ -38,8 +38,6 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
-
-	public ICommand RunOnSystemStartupCommand => Settings.RunOnSystemStartupCommand;
 	public ICommand ResetDefaultsCommand { get; }
 
 	public IEnumerable<TorMode> TorModes =>
