@@ -1,3 +1,5 @@
+using WalletWasabi.Helpers;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -7,8 +9,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class LessSelectionStrategy : SelectionStrategy
 {
-	/// <summary>Payments are capped to be at most 25% lower than the original target.</summary>
-	public const double MinPaymentThreshold = 0.75;
+	public const double MinPaymentThreshold = 1 - (double) Constants.BnBMaximumDifferenceTolerance;
 
 	/// <inheritdoc/>
 	public LessSelectionStrategy(StrategyParameters parameters, double minPaymentThreshold = MinPaymentThreshold)
