@@ -14,6 +14,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -23,7 +24,7 @@ namespace WalletWasabi.Fluent.Models.Transactions;
 [AutoInterface]
 public partial class PrivacySuggestionsModel
 {
-	private const decimal MaximumDifferenceTolerance = 0.15m;
+	private const decimal MaximumDifferenceTolerance = 1 - Constants.BnBMaximumDifferenceTolerance;
 	private const int ConsolidationTolerance = 10;
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
