@@ -20,10 +20,10 @@ public record InterlinksLabelsWarning(LabelsArray Labels) : PrivacyWarning(Warni
 public record TransactionKnownAsYoursByWarning(LabelsArray Labels) : PrivacyWarning(WarningSeverity.Critical);
 
 public record NonPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Critical);
+public record LargePercentSpentWarning(int PercentSpent) : PrivacyWarning(WarningSeverity.Critical);
 
 public record SemiPrivateFundsWarning() : PrivacyWarning(WarningSeverity.Warning);
 
-public record ConsolidationWarning(int CoinCount) : PrivacyWarning(WarningSeverity.Warning);
 
 public record CreatesChangeWarning() : PrivacyWarning(WarningSeverity.Info);
 
