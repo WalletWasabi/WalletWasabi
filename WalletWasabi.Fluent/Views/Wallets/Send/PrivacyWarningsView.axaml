@@ -174,6 +174,17 @@
           </Border>
         </DataTemplate>
 
+        <!-- Large Spend warning -->
+        <DataTemplate DataType="{x:Type model:LargePercentSpentWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="{Binding PercentSpent, StringFormat='Transaction spends {0}% of the balance.'}"
+                         ToolTip.Tip="This transaction might reveal inputs before the coinjoin process due to matching amounts." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
         <!-- Creates change warning -->
         <DataTemplate DataType="{x:Type model:CreatesChangeWarning}">
           <Border Classes="warning info">
@@ -181,17 +192,6 @@
               <PathIcon />
               <TextBlock Text="Transaction creates change."
                          ToolTip.Tip="Change can be used to link this transaction with the next transaction that will use it. Use the change avoidance suggestion to send a little more or less if this is OK for the receiver, or coinjoin the change later." />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-
-        <!-- Consolidation warning -->
-        <DataTemplate DataType="{x:Type model:ConsolidationWarning}">
-          <Border Classes="warning">
-            <DockPanel>
-              <PathIcon />
-              <TextBlock Text="{Binding CoinCount, StringFormat='Transaction consolidates over {0} coins.'}"
-                         ToolTip.Tip="This might reduce the privacy of your transaction." />
             </DockPanel>
           </Border>
         </DataTemplate>

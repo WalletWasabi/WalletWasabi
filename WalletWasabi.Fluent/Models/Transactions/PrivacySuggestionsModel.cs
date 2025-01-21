@@ -25,7 +25,9 @@ namespace WalletWasabi.Fluent.Models.Transactions;
 public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = Constants.BnBMaximumDifferenceTolerance;
-	private const int ConsolidationTolerance = 10;
+
+	private const decimal LargePortionSpentTolerance = 0.9m;
+	private static readonly Money LargePortionSpentMinAmount = new (1_000_000L);
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
 	private readonly object _lock = new();
@@ -71,7 +73,7 @@ public partial class PrivacySuggestionsModel
 		{
 			result.Add(VerifyLabels(parameters));
 			result.Add(VerifyPrivacyLevel(parameters));
-			result.Add(VerifyConsolidation(parameters));
+			result.Add(VerifyLargePercentSpent(parameters));
 			result.Add(VerifyUnconfirmedInputs(parameters));
 			result.Add(VerifyCoinjoiningInputs(parameters));
 			foreach (var item in result)
@@ -220,13 +222,24 @@ public partial class PrivacySuggestionsModel
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyConsolidation(Parameters parameters)
+	private IEnumerable<PrivacyItem> VerifyLargePercentSpent(Parameters parameters)
 	{
-		var consolidatedCoins = parameters.Transaction.SpentCoins.Count();
-		if (consolidatedCoins > ConsolidationTolerance)
+		// No need to check this warning if a Red Coin is selected.
+		if(parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate))
 		{
-			yield return new ConsolidationWarning(ConsolidationTolerance);
+			yield break;
 		}
+
+		var spentAmount = parameters.Transaction.SpentCoins.Sum(x => x.Amount);
+		var walletBalance = _wallet.Coins.TotalAmount().Satoshi;
+
+		if (spentAmount <= LargePortionSpentMinAmount || spentAmount <= walletBalance * LargePortionSpentTolerance)
+		{
+			yield break;
+		}
+
+		var spentPercentage = (int)(spentAmount * 100m / walletBalance);
+		yield return new LargePercentSpentWarning(spentPercentage);
 	}
 
 	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(Parameters parameters)
