@@ -8,6 +8,7 @@ public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 {
 	// TODO: Safety coinjoins should be moved here & be configurable.
 	public const int MinAnonScore = 30;
+
 	public const int MaxAnonScore = 50;
 
 	public PrivateCoinJoinProfileViewModel(int anonScoreTarget)
@@ -26,9 +27,6 @@ public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 
 	public override int AnonScoreTarget { get; }
 	public override bool RedCoinIsolation { get; } = true;
-
-	public override CoinjoinSkipFactors SkipFactors { get; } = CoinjoinSkipFactors.PrivacyMaximizing;
-
 	public override int FeeRateMedianTimeFrameHours => 0;
 
 	/// <summary>
@@ -73,12 +71,11 @@ public class PrivateCoinJoinProfileViewModel : CoinJoinProfileViewModelBase
 		return profile.AnonScoreTarget < MaxAnonScore
 			&& profile.AnonScoreTarget >= MinAnonScore
 			&& profile.FeeRateMedianTimeFrameHours == FeeRateMedianTimeFrameHours
-			&& profile.RedCoinIsolation == RedCoinIsolation
-			&& profile.SkipFactors == SkipFactors;
+			&& profile.RedCoinIsolation == RedCoinIsolation;
 	}
 
 	public override int GetHashCode()
 	{
-		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation, SkipFactors);
+		return HashCode.Combine(AnonScoreTarget, FeeRateMedianTimeFrameHours, RedCoinIsolation);
 	}
 }

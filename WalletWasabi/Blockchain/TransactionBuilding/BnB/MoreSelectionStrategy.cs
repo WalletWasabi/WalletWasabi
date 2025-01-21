@@ -1,3 +1,5 @@
+using WalletWasabi.Helpers;
+
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>
@@ -7,8 +9,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 /// </summary>
 public class MoreSelectionStrategy : SelectionStrategy
 {
-	/// <summary>Payments are capped to be at most 25% higher than the original target.</summary>
-	public const double MaxExtraPayment = 1.25;
+	public const double MaxExtraPayment = 1 + (double) Constants.BnBMaximumDifferenceTolerance;
 
 	/// <inheritdoc/>
 	public MoreSelectionStrategy(StrategyParameters parameters, double maxExtraPayment = MaxExtraPayment)
