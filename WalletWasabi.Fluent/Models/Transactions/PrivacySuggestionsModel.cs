@@ -26,7 +26,7 @@ public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = Constants.BnBMaximumDifferenceTolerance;
 
-	private const decimal LargePortionSpentTolerance = 0.95m;
+	private const decimal LargePortionSpentTolerance = 0.9m;
 	private static readonly Money LargePortionSpentMinAmount = new (1_000_000L);
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
