@@ -25,5 +25,8 @@
       </TextBox>
     </DockPanel>
 
+    <DockPanel>
+      <Button Cursor="Hand" Margin="0 30 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}"/>
+    </DockPanel>
   </StackPanel>
 </UserControl>

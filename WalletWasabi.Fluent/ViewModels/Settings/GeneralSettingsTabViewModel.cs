@@ -28,17 +28,11 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 	public GeneralSettingsTabViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
-
-		ResetDefaultsCommand = ReactiveCommand.Create(async () =>
-		{
-			Settings.ResetToDefault();
-		});
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
-	public ICommand ResetDefaultsCommand { get; }
 
 	public IEnumerable<TorMode> TorModes =>
 		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();

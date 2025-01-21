@@ -28,7 +28,7 @@
 
     <DockPanel>
       <TextBlock Text="Auto copy addresses" />
-      <ToggleSwitch IsChecked="{Binding Settings.Autocopy}" />
+      <ToggleSwitch IsChecked="{Binding Settings.AutoCopy}" />
     </DockPanel>
 
     <DockPanel>
@@ -71,7 +71,5 @@
       <TextBlock Text="Auto download new version" />
       <ToggleSwitch IsChecked="{Binding Settings.DownloadNewVersion}" />
     </DockPanel>
-
-    <Button Margin="0 20 0 0" Content="Reset All Settings" Command="{Binding ResetDefaultsCommand}"/>
   </StackPanel>
 </UserControl>
