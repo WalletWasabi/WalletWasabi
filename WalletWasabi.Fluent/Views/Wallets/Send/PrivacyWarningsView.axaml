@@ -163,17 +163,6 @@
           </Border>
         </DataTemplate>
 
-        <!-- Large Spend warning -->
-        <DataTemplate DataType="{x:Type model:LargePercentSpentWarning}">
-          <Border Classes="warning critical">
-            <DockPanel>
-              <PathIcon />
-              <TextBlock Text="{Binding PercentSpent, StringFormat='Transaction spends {0}% of the balance.'}"
-                         ToolTip.Tip="This transaction might reveal inputs before the coinjoin process due to matching amounts." />
-            </DockPanel>
-          </Border>
-        </DataTemplate>
-
         <!-- Semi-private funds Warning -->
         <DataTemplate DataType="{x:Type model:SemiPrivateFundsWarning}">
           <Border Classes="warning">
@@ -181,6 +170,17 @@
               <PathIcon />
               <TextBlock Text="Transaction uses semi-private coins."
                          ToolTip.Tip="This transaction is not private enough because it spends not fully private coins. Coinjoin more to have enough private coins for this transaction." />
+            </DockPanel>
+          </Border>
+        </DataTemplate>
+
+        <!-- Large Spend warning -->
+        <DataTemplate DataType="{x:Type model:LargePercentSpentWarning}">
+          <Border Classes="warning">
+            <DockPanel>
+              <PathIcon />
+              <TextBlock Text="{Binding PercentSpent, StringFormat='Transaction spends {0}% of the balance.'}"
+                         ToolTip.Tip="This transaction might reveal inputs before the coinjoin process due to matching amounts." />
             </DockPanel>
           </Border>
         </DataTemplate>
