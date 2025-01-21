@@ -169,7 +169,7 @@
             <DockPanel>
               <PathIcon />
               <TextBlock Text="{Binding PercentSpent, StringFormat='Transaction spends {0}% of the balance.'}"
-                         ToolTip.Tip="This transaction might reveal inputs involved in the coinjoin process due to matching amounts before and after." />
+                         ToolTip.Tip="This transaction might reveal inputs before the coinjoin process due to matching amounts." />
             </DockPanel>
           </Border>
         </DataTemplate>
