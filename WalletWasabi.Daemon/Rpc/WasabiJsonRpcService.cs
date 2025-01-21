@@ -21,6 +21,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.Exchange;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
 
@@ -195,6 +196,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public JsonRpcResult GetStatus()
 	{
 		var sync = Global.HostedServices.Get<WasabiSynchronizer>();
+		var exchangeRateUpdater = Global.HostedServices.Get<ExchangeRateUpdater>();
 		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new JsonRpcResult
@@ -212,7 +214,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["filtersCount"] = smartHeaderChain.HashCount,
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
-			["exchangeRate"] = sync.UsdExchangeRate,
+			["exchangeRate"] = exchangeRateUpdater.UsdExchangeRate,
 			["peers"] = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
 				x => new JsonRpcResult
 				{

@@ -22,8 +22,6 @@ namespace WalletWasabi.Services;
 
 public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
 {
-	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
@@ -54,13 +52,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	public SynchronizeResponse? LastResponse { get; private set; }
 	public HttpClient HttpClient { get; }
-
-	/// <summary>Gets the Bitcoin price in USD.</summary>
-	public decimal UsdExchangeRate
-	{
-		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-	}
 
 	public TorStatus TorStatus
 	{
@@ -174,12 +165,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 			if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
 				TriggerRound();
-			}
-
-			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-			if (exchangeRate is { Rate: > 0 })
-			{
-				UsdExchangeRate = exchangeRate.Rate;
 			}
 
 			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);

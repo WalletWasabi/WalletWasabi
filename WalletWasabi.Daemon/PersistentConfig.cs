@@ -1,5 +1,4 @@
 using NBitcoin;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Net;
 using WalletWasabi.Exceptions;
@@ -65,6 +64,8 @@ public record PersistentConfig
 
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
+	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
+
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
@@ -100,7 +101,8 @@ public record PersistentConfig
 			EnableGpu == other.EnableGpu &&
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
-			AbsoluteMinInputCount == other.AbsoluteMinInputCount;
+			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
+			ExchangeRateProvider == other.ExchangeRateProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
