@@ -136,6 +136,9 @@ public class Config
 			[ nameof(ExchangeRateProvider)] = (
 				"The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockchainInfo, CoinGecko",
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
+			[ nameof(FeeRateEstimationProvider) ] = (
+				"The mining fee rate provider. Available providers are BlockstreamInfo and MempoolSpace",
+				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -191,6 +194,7 @@ public class Config
 	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
 	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
+	public string FeeRateEstimationProvider => GetEffectiveValue<StringValue, string>(nameof(FeeRateEstimationProvider));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));

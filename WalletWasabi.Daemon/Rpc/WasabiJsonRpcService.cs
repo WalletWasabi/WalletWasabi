@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -523,7 +524,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
-		if (Global.HostedServices.Get<WasabiSynchronizer>().LastAllFeeEstimate is { } nonNullFeeRates)
+		if (Global.HostedServices.Get<FeeRateEstimationUpdater>().FeeEstimates is { } nonNullFeeRates)
 		{
 			return nonNullFeeRates.Estimations;
 		}

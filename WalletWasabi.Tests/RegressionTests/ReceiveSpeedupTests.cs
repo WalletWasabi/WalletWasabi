@@ -2,11 +2,9 @@ using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.Protocol;
 using NBitcoin;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -21,6 +19,7 @@ using Xunit;
 using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Exceptions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Tests.RegressionTests;
@@ -61,7 +60,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -145,7 +144,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Equal(outputToSpend, cpfpInput);
 
 			// CPFP fee rate should be higher than the best fee rate.
-			var feeRate = wallet.FeeProvider.AllFeeEstimate?.GetFeeRate(2);
+			var feeRate = wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(2);
 			Assert.NotNull(feeRate);
 			var cpfpFeeRate = cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
 			Assert.True(feeRate < cpfpFeeRate);
