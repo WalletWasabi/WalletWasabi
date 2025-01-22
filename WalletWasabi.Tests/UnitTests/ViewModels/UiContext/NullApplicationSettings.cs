@@ -30,7 +30,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string MainNetCoordinatorUri { get; set; } = "";
 	public string TestNetCoordinatorUri { get; set; } = "";
 	public bool DarkModeEnabled { get; set; }
-	public bool Autocopy { get; set; }
+	public bool AutoCopy { get; set; }
 	public bool AutoPaste { get; set; }
 	public bool CustomChangeAddress { get; set; }
 	public FeeDisplayUnit SelectedFeeDisplayUnit { get; set; }

@@ -1,4 +1,4 @@
- using System.Globalization;
+using System.Globalization;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
@@ -39,6 +39,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
+
 	[AutoNotify] private bool _startLocalBitcoinCoreOnStartup;
 	[AutoNotify] private string _localBitcoinCoreDataDir;
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
@@ -54,6 +55,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// General
 	[AutoNotify] private bool _darkModeEnabled;
+
 	[AutoNotify] private bool _autoCopy;
 	[AutoNotify] private bool _autoPaste;
 	[AutoNotify] private bool _customChangeAddress;
@@ -65,6 +67,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// Privacy Mode
 	[AutoNotify] private bool _privacyMode;
+
 	[AutoNotify] private bool _oobe;
 	[AutoNotify] private Version _lastVersionHighlightsDisplayed;
 	[AutoNotify] private WindowState _windowState;
@@ -76,6 +79,7 @@ public partial class ApplicationSettings : ReactiveObject
 	{
 		_persistentConfigFilePath = persistentConfigFilePath;
 		_startupConfig = persistentConfig;
+
 		_config = config;
 		_uiConfig = uiConfig;
 
