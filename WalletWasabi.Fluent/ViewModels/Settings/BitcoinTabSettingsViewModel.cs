@@ -41,6 +41,9 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
 			.Subscribe(x => BitcoinP2PEndPoint = x);
+
+		this.WhenAnyValue(x => x.Settings.DustThreshold)
+			.Subscribe(x => DustThreshold = x);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;

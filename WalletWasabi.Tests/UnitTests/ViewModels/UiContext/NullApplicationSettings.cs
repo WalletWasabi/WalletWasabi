@@ -1,5 +1,7 @@
 using System.Reactive.Linq;
+using System.Windows.Input;
 using Avalonia.Controls;
+using Markdown.Avalonia.Utils;
 using NBitcoin;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
@@ -12,6 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
 public class NullApplicationSettings : IApplicationSettings
 {
 	public bool IsOverridden { get; } = false;
+	public ICommand RunOnSystemStartupCommand { get; } = new DefaultHyperlinkCommand();
 	public IObservable<bool> IsRestartNeeded { get; } = Observable.Return(false);
 	public bool EnableGpu { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
@@ -38,7 +41,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool DownloadNewVersion { get; set; }
 	public bool PrivacyMode { get; set; }
 	public bool Oobe { get; set; }
-	public Version LastVersionHighlightsDisplayed { get; set; }
+	public Version LastVersionHighlightsDisplayed { get; set; } = new Version();
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
 
@@ -60,5 +63,10 @@ public class NullApplicationSettings : IApplicationSettings
 	public string GetCoordinatorUri()
 	{
 		return "";
+	}
+
+	public void ResetToDefault()
+	{
+		throw new NotImplementedException();
 	}
 }

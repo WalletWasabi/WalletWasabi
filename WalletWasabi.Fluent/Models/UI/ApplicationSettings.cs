@@ -83,44 +83,54 @@ public partial class ApplicationSettings : ReactiveObject
 		_config = config;
 		_uiConfig = uiConfig;
 
+		ApplyConfigs(persistentConfig, uiConfig);
+		SetupObservables();
+	}
+
+	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
+	{
 		// Advanced
-		_enableGpu = _startupConfig.EnableGpu;
-		_backendUri = _startupConfig.GetBackendUri();
+		EnableGpu = persistentConfig.EnableGpu;
+		BackendUri = persistentConfig.GetBackendUri();
 
 		// Bitcoin
-		_network = config.Network;
-		_startLocalBitcoinCoreOnStartup = _startupConfig.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _startupConfig.DustThreshold.ToString();
+		Network = persistentConfig.Network;
+		StartLocalBitcoinCoreOnStartup = persistentConfig.StartLocalBitcoinCoreOnStartup;
+		LocalBitcoinCoreDataDir = persistentConfig.LocalBitcoinCoreDataDir;
+		StopLocalBitcoinCoreOnShutdown = persistentConfig.StopLocalBitcoinCoreOnShutdown;
+		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		DustThreshold = persistentConfig.DustThreshold.ToString();
 
 		// Coordinator
-		_mainNetCoordinatorUri = _startupConfig.MainNetCoordinatorUri;
-		_testNetCoordinatorUri = _startupConfig.TestNetCoordinatorUri;
-		_regTestCoordinatorUri = _startupConfig.RegTestCoordinatorUri;
-		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
-		_absoluteMinInputCount = _startupConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
+		TestNetCoordinatorUri = persistentConfig.TestNetCoordinatorUri;
+		RegTestCoordinatorUri = persistentConfig.RegTestCoordinatorUri;
+
+		MaxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		AbsoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
 		// General
-		_darkModeEnabled = _uiConfig.DarkModeEnabled;
-		_autoCopy = _uiConfig.Autocopy;
-		_autoPaste = _uiConfig.AutoPaste;
-		_customChangeAddress = _uiConfig.IsCustomChangeAddress;
-		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
-		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = Config.ObjectToTorMode(_config.UseTor);
-		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
-		_downloadNewVersion = _startupConfig.DownloadNewVersion;
+		DarkModeEnabled = uiConfig.DarkModeEnabled;
+		AutoCopy = uiConfig.Autocopy;
+		AutoPaste = uiConfig.AutoPaste;
+		CustomChangeAddress = uiConfig.IsCustomChangeAddress;
+		RunOnSystemStartup = uiConfig.RunOnSystemStartup;
+		HideOnClose = uiConfig.HideOnClose;
+		UseTor = Config.ObjectToTorMode(_config.UseTor);
+		TerminateTorOnExit = persistentConfig.TerminateTorOnExit;
+		DownloadNewVersion = persistentConfig.DownloadNewVersion;
 
 		// Privacy Mode
-		_privacyMode = _uiConfig.PrivacyMode;
+		PrivacyMode = uiConfig.PrivacyMode;
 
-		_oobe = _uiConfig.Oobe;
-		_lastVersionHighlightsDisplayed = _uiConfig.LastVersionHighlightsDisplayed;
+		Oobe = uiConfig.Oobe;
+		LastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
+		WindowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+	}
 
+	private void SetupObservables()
+	{
 		// Save on change
 		var configSaveTrigger1 =
 			this.WhenAnyValue(
@@ -192,6 +202,24 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
+	}
+
+	public void ResetToDefault()
+	{
+		var newPersistentConfig = new PersistentConfig
+		{
+			MainNetCoordinatorUri = MainNetCoordinatorUri,
+			TestNetCoordinatorUri = TestNetCoordinatorUri,
+			RegTestCoordinatorUri = RegTestCoordinatorUri
+		};
+
+		var newUiConfig = new UiConfig
+		{
+			Oobe = Oobe,
+			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed,
+		};
+
+		ApplyConfigs(newPersistentConfig, newUiConfig);
 	}
 
 	public bool IsOverridden => _config.IsOverridden;

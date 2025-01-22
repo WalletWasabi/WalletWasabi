@@ -1,3 +1,5 @@
+using System.Threading.Tasks;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -27,6 +29,12 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 		Settings = settings;
 		_backendUri = settings.BackendUri;
 
+		ResetSettingsCommand = ReactiveCommand.Create(() =>
+		{
+			Settings.ResetToDefault();
+			return Task.CompletedTask;
+		});
+
 		this.ValidateProperty(x => x.BackendUri, ValidateBackendUri);
 
 		this.WhenAnyValue(x => x.Settings.BackendUri)
@@ -36,6 +44,8 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
+
+	public ICommand ResetSettingsCommand { get; }
 
 	private void ValidateBackendUri(IValidationErrors errors)
 	{

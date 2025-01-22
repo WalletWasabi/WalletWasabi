@@ -13,16 +13,16 @@ public class UiConfig : ConfigBase
 {
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
-	private bool _autocopy;
-	private bool _darkModeEnabled;
+	private bool _autocopy = true;
+	private bool _darkModeEnabled = true;
 	private string? _lastSelectedWallet;
 	private string _windowState = "Normal";
 	private bool _runOnSystemStartup;
-	private bool _oobe;
+	private bool _oobe = true;
 	private Version _lastVersionHighlightsDisplayed = new (2, 3, 1);
 	private bool _hideOnClose;
 	private bool _autoPaste;
-	private int _feeTarget;
+	private int _feeTarget = 2;
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
