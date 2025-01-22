@@ -25,6 +25,8 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 	[AutoNotify] private WalletId? _outputWalletId;
+	[AutoNotify] private string _defaultReceiveScriptType;
+	[AutoNotify] private string _defaultSendWorkflow;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -47,6 +49,9 @@ public partial class WalletSettingsModel : ReactiveObject
 			_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
 		}
 
+		_defaultReceiveScriptType = _keyManager.DefaultReceiveScriptType;
+		_defaultSendWorkflow = _keyManager.DefaultSendWorkflow;
+
 		WalletType = WalletHelpers.GetType(_keyManager);
 
 		this.WhenAnyValue(
@@ -57,6 +62,13 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.AnonScoreTarget,
 				x => x.RedCoinIsolation,
 				x => x.FeeRateMedianTimeFrameHours)
+			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		this.WhenAnyValue(
+				x => x.DefaultSendWorkflow,
+				x => x.DefaultReceiveScriptType)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -98,6 +110,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.RedCoinIsolation = RedCoinIsolation;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
+		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
+		_keyManager.DefaultReceiveScriptType = DefaultReceiveScriptType;
 		_isDirty = true;
 	}
 }

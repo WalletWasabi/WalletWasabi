@@ -199,6 +199,12 @@ public class KeyManager
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
+	[JsonProperty(PropertyName = "DefaultReceiveScriptType")]
+	public string DefaultReceiveScriptType { get; set; } = "SegWit";
+
+	[JsonProperty(PropertyName = "DefaultSendWorkflow")]
+	public string DefaultSendWorkflow { get; set; } = "Automatic";
+
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private readonly List<HdPubKey> _hdPubKeys = new();
 
