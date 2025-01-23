@@ -6,8 +6,6 @@ using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -21,7 +19,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
-using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -137,7 +135,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
 
 		this.WhenAnyValue(x => x.Settings.DefaultSendWorkflow)
-			.Subscribe(value => DefaultSendCommand = value == "Automatic" ? SendCommand : SendManualControlCommand);
+			.Subscribe(value => DefaultSendCommand = value == SendWorkflow.Automatic ? SendCommand : SendManualControlCommand);
 
 		SegwitReceiveCommand = ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.SegWit));
 		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
@@ -146,7 +144,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		this.WhenAnyValue(x => x.Settings.DefaultReceiveScriptType)
 			.Subscribe(value =>
-				DefaultReceiveCommand = value == "SegWit" || TaprootReceiveCommand is null
+				DefaultReceiveCommand = value == ScriptType.SegWit || TaprootReceiveCommand is null
 					? SegwitReceiveCommand
 					: TaprootReceiveCommand);
 

@@ -38,7 +38,9 @@ public class KeyManager
 		new HDFingerprintJsonConverter(),
 		new ExtPubKeyJsonConverter(),
 		new KeyPathJsonConverter(),
-		new MoneyBtcJsonConverter()
+		new MoneyBtcJsonConverter(),
+		new ScriptPubKeyTypeJsonConverter(),
+		new SendWorkflowJsonConverter()
 	};
 
 	[JsonConstructor]
@@ -200,10 +202,10 @@ public class KeyManager
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
 
 	[JsonProperty(PropertyName = "DefaultReceiveScriptType")]
-	public string DefaultReceiveScriptType { get; set; } = "SegWit";
+	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;
 
 	[JsonProperty(PropertyName = "DefaultSendWorkflow")]
-	public string DefaultSendWorkflow { get; set; } = "Automatic";
+	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private readonly List<HdPubKey> _hdPubKeys = new();

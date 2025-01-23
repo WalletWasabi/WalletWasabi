@@ -48,4 +48,16 @@ public record ScriptType(string Name, string ShortName)
 			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
 		};
 	}
+
+	public static ScriptType FromEnum(ScriptPubKeyType type)
+	{
+		return type switch
+		{
+			ScriptPubKeyType.Legacy => Unknown,
+			ScriptPubKeyType.Segwit => SegWit,
+			ScriptPubKeyType.SegwitP2SH => Unknown,
+			ScriptPubKeyType.TaprootBIP86 => Taproot,
+			_ => throw new ArgumentOutOfRangeException(nameof(type), type, null)
+		};
+	}
 }

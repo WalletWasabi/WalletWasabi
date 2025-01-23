@@ -8,6 +8,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -28,9 +29,9 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private string _walletName;
 	[AutoNotify] private int _selectedTab;
-	[AutoNotify] private string _defaultReceiveScriptType;
+	[AutoNotify] private ScriptType _defaultReceiveScriptType;
 	[AutoNotify] private bool _isSegWitDefaultReceiveScriptType;
-	[AutoNotify] private string _defaultSendWorkflow;
+	[AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
 	[AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
 
 	public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
@@ -45,11 +46,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		DefaultReceiveScriptType = walletModel.Settings.DefaultReceiveScriptType;
 		this.WhenAnyValue(x => x.DefaultReceiveScriptType)
-			.Subscribe(value => IsSegWitDefaultReceiveScriptType = value == "SegWit");
+			.Subscribe(value => IsSegWitDefaultReceiveScriptType = value == ScriptType.SegWit);
 
 		DefaultSendWorkflow = walletModel.Settings.DefaultSendWorkflow;
 		this.WhenAnyValue(x => x.DefaultSendWorkflow)
-			.Subscribe(value => IsAutomaticDefaultSendWorkflow = value == "Automatic");
+			.Subscribe(value => IsAutomaticDefaultSendWorkflow = value == SendWorkflow.Automatic);
 
 		WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
@@ -96,8 +97,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 	public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
 
-	public IEnumerable<string> ReceiveScriptTypes { get; } = ["SegWit", "Taproot"];
-	public IEnumerable<string> SendWorkflows { get; } = ["Automatic", "Manual"];
+	public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
+	public IEnumerable<SendWorkflow> SendWorkflows { get; } = Enum.GetValues<SendWorkflow>();
 
 	public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
 
