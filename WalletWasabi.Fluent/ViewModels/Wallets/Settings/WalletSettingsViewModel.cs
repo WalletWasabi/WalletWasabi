@@ -96,6 +96,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsWatchOnly { get; }
 
 	public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
+	public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
 	public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
 	public IEnumerable<SendWorkflow> SendWorkflows { get; } = Enum.GetValues<SendWorkflow>();

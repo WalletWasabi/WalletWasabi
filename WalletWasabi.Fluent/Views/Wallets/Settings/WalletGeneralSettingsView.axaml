@@ -34,7 +34,7 @@
       <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
     </DockPanel>
 
-    <DockPanel>
+    <DockPanel IsVisible="{Binding IsDefaultSendWorkflowSettingVisible}">
       <TextBlock Text="Default Send Workflow" />
       <ComboBox ItemsSource="{Binding SendWorkflows}"
                 SelectedItem="{Binding DefaultSendWorkflow}">
