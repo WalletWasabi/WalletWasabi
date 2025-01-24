@@ -114,4 +114,9 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
 		_isDirty = true;
 	}
+
+	public void RescanWallet(int startingHeight = 0)
+	{
+		_keyManager.SetBestHeights(startingHeight, startingHeight);
+	}
 }
