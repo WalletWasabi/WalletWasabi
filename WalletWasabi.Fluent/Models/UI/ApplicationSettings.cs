@@ -45,6 +45,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _dustThreshold;
+	[AutoNotify] private string _exchangeRateProvider;
 
 	// Coordinator
 	[AutoNotify] private string _mainNetCoordinatorUri;
@@ -100,6 +101,7 @@ public partial class ApplicationSettings : ReactiveObject
 		StopLocalBitcoinCoreOnShutdown = persistentConfig.StopLocalBitcoinCoreOnShutdown;
 		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		DustThreshold = persistentConfig.DustThreshold.ToString();
+		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 
 		// Coordinator
 		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
@@ -154,7 +156,8 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.TestNetCoordinatorUri,
 					x => x.RegTestCoordinatorUri,
 					x => x.BackendUri,
-					(_, _, _, _, _, _) => Unit.Default)
+					x => x.ExchangeRateProvider,
+					(_, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -315,7 +318,8 @@ public partial class ApplicationSettings : ReactiveObject
 					Constants.DefaultMaxCoinJoinMiningFeeRate,
 				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
 					absoluteMinInputCount :
-					Constants.DefaultAbsoluteMinInputCount
+					Constants.DefaultAbsoluteMinInputCount,
+				ExchangeRateProvider = ExchangeRateProvider
 			};
 		}
 		else

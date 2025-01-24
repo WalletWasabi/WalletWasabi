@@ -13,10 +13,10 @@ public class ExchangeRateProvider(IHttpClientFactory httpClientFactory)
 {
 	public static readonly ImmutableArray<ExchangeRateProviderInfo> Providers =
 	[
-		("mempoolspace", "https://mempool.space/api/v1/prices", JsonPath(".USD")),
-		("blockchaininfo", "https://blockchain.info/ticker", JsonPath(".USD.buy")),
-		("coingecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price")),
-		("gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"))
+		("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath(".USD")),
+		("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy")),
+		("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price")),
+		("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"))
 	];
 
 	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string userAgent, CancellationToken cancellationToken)

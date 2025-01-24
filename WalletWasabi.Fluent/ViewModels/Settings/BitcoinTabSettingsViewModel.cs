@@ -1,5 +1,5 @@
 using System.Collections.Generic;
-using System.Globalization;
+using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -53,6 +54,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
 
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
+	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
 
 	private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
 	{
