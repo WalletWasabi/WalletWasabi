@@ -14,6 +14,18 @@
       <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
     </DockPanel>
 
+    <DockPanel>
+      <TextBlock Text="Exchange Rate Provider" />
+      <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
+                SelectedItem="{Binding Settings.ExchangeRateProvider}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Fee Rate Estimation Provider" />
+      <ComboBox ItemsSource="{Binding FeeRateEstimationProviders}"
+                SelectedItem="{Binding Settings.FeeRateEstimationProvider}" />
+    </DockPanel>
+
     <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
       <TextBlock Text="Backend URI" />
       <TextBox Text="{Binding BackendUri}">
@@ -24,9 +36,6 @@
         </Interaction.Behaviors>
       </TextBox>
     </DockPanel>
-
-    <DockPanel>
-      <Button Cursor="Hand" Margin="0 30 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}"/>
-    </DockPanel>
+    <Button Cursor="Hand" Margin="0 45 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}"/>
   </StackPanel>
 </UserControl>

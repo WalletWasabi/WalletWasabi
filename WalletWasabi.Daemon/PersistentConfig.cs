@@ -66,6 +66,8 @@ public record PersistentConfig
 
 	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
+	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
+
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
@@ -102,7 +104,8 @@ public record PersistentConfig
 			CoordinatorIdentifier == other.CoordinatorIdentifier &&
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
 			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
-			ExchangeRateProvider == other.ExchangeRateProvider;
+			ExchangeRateProvider == other.ExchangeRateProvider &&
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

@@ -3,8 +3,8 @@ using System.Diagnostics.CodeAnalysis;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Wallets;
@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class TransactionFeeHelper
 {
-	private static readonly AllFeeEstimate TestNetFeeEstimates = new(
+	private static readonly FeeRateEstimations TestNetFeeRateEstimations = new(
 		new Dictionary<int, int>
 		{
 			[1] = 17,
@@ -28,27 +28,18 @@ public static class TransactionFeeHelper
 			[1008] = 1
 		});
 
-	public static async Task<AllFeeEstimate> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
+	public static async Task<FeeRateEstimations> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		var feeProvider = wallet.FeeProvider;
-
-		bool RpcFeeProviderInError() => feeProvider.RpcFeeProvider?.InError ?? true;
-		bool ThirdPartyFeeProviderInError() => feeProvider.ThirdPartyFeeProvider.InError;
-
-		while (!RpcFeeProviderInError() || !ThirdPartyFeeProviderInError())
+		if (TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
-			if (TryGetFeeEstimates(wallet, out var feeEstimates))
-			{
-				return feeEstimates;
-			}
-
-			await Task.Delay(100, cancellationToken);
+			return feeEstimates;
 		}
+
 
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(HybridFeeProvider feeProvider, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimationUpdater feeProvider, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
 	{
 		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
 		{
@@ -80,19 +71,19 @@ public static class TransactionFeeHelper
 		return estimate is not null;
 	}
 
-	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out AllFeeEstimate? estimates)
-		=> TryGetFeeEstimates(wallet.FeeProvider, wallet.Network, out estimates);
+	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out FeeRateEstimations? estimates)
+		=> TryGetFeeEstimates(wallet.FeeRateEstimationUpdater, wallet.Network, out estimates);
 
-	public static bool TryGetFeeEstimates(HybridFeeProvider feeProvider, Network network, [NotNullWhen(true)] out AllFeeEstimate? estimates)
+	public static bool TryGetFeeEstimates(FeeRateEstimationUpdater feeProvider, Network network, [NotNullWhen(true)] out FeeRateEstimations? estimates)
 	{
 		estimates = null;
 
-		if (feeProvider.AllFeeEstimate is null)
+		if (feeProvider.FeeEstimates is null)
 		{
 			return false;
 		}
 
-		estimates = network == Network.TestNet ? TestNetFeeEstimates : feeProvider.AllFeeEstimate;
+		estimates = network == Network.TestNet ? TestNetFeeRateEstimations : feeProvider.FeeEstimates;
 		return true;
 	}
 

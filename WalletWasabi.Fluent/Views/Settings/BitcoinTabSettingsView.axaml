@@ -51,11 +51,5 @@
       <TextBlock Text="Dust Threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </DockPanel>
-
-    <DockPanel>
-      <TextBlock Text="Exchange Rate Provider" />
-      <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
-                SelectedItem="{Binding Settings.ExchangeRateProvider}" />
-    </DockPanel>
   </StackPanel>
 </UserControl>
