@@ -9,9 +9,15 @@
              x:DataType="settings:AdvancedSettingsTabViewModel">
   <StackPanel Classes="settingsLayout">
 
-    <DockPanel ToolTip.Tip="When enabled use a graphics card (GPU) to render user interface. Using a GPU rather than the CPU can improve performance.">
-      <TextBlock Text="Enable GPU" />
-      <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
+    <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
+      <TextBlock Text="Backend URI" />
+      <TextBox Text="{Binding BackendUri}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+          <WhitespacePasteRemovalBehavior />
+          <WhitespaceInputRemovalBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
     </DockPanel>
 
     <DockPanel>
@@ -26,16 +32,11 @@
                 SelectedItem="{Binding Settings.FeeRateEstimationProvider}" />
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
-      <TextBlock Text="Backend URI" />
-      <TextBox Text="{Binding BackendUri}">
-        <Interaction.Behaviors>
-          <TextBoxAutoSelectTextBehavior />
-          <WhitespacePasteRemovalBehavior />
-          <WhitespaceInputRemovalBehavior />
-        </Interaction.Behaviors>
-      </TextBox>
+    <DockPanel ToolTip.Tip="When enabled use a graphics card (GPU) to render user interface. Using a GPU rather than the CPU can improve performance.">
+      <TextBlock Text="Enable GPU" />
+      <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
     </DockPanel>
-    <Button Cursor="Hand" Margin="0 45 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}"/>
+
+    <Button Cursor="Hand" Margin="0 45 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}" />
   </StackPanel>
 </UserControl>
