@@ -39,18 +39,22 @@
             </Button>
 
             <SubActionButton Content="Send"
-                             Command="{Binding SendCommand}"
+                             Command="{Binding DefaultSendCommand}"
                              IsVisible="{Binding IsSendButtonVisible}"
                              Icon="{StaticResource wallet_action_send}">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
-                  <UICommand Name="Automatic" Command="{Binding SendCommand}" IsDefault="True">
+                  <UICommand Name="Automatic"
+                             Command="{Binding SendCommand}"
+                             IsDefault="{Binding Settings.IsAutomaticDefaultSendWorkflow}">
                     <UICommand.Icon>
                       <PathIcon Data="{StaticResource automatic_control}"
                                 Classes="Icon"/>
                     </UICommand.Icon>
                   </UICommand>
-                  <UICommand Name="Manual Control" Command="{Binding SendManualControlCommand}">
+                  <UICommand Name="Manual Control"
+                             Command="{Binding SendManualControlCommand}"
+                             IsDefault="{Binding Settings.IsAutomaticDefaultSendWorkflow, Converter={x:Static BoolConverters.Not}}">
                     <UICommand.Icon>
                       <PathIcon Data="{StaticResource manual_control}"
                                 Classes="Icon" />
@@ -70,20 +74,24 @@
             </Button>
 
             <SubActionButton Content="Receive"
-                             Command="{Binding SegwitReceiveCommand}"
+                             Command="{Binding DefaultReceiveCommand}"
                              VerticalAlignment="Bottom"
                              HorizontalAlignment="Right"
                              Icon="{StaticResource wallet_action_receive}"
                              IsVisible="{Binding SeveralReceivingScriptTypes}">
               <SubActionButton.SubCommands>
                 <UICommandCollection>
-                  <UICommand Name="SegWit Address" Command="{Binding SegwitReceiveCommand}" IsDefault="True">
+                  <UICommand Name="SegWit Address"
+                             Command="{Binding SegwitReceiveCommand}"
+                             IsDefault="{Binding Settings.IsSegWitDefaultReceiveScriptType}">
                     <UICommand.Icon>
                       <PathIcon Data="{StaticResource segwit_short}"
                                 Classes="Icon"/>
                     </UICommand.Icon>
                   </UICommand>
-                  <UICommand Name="Taproot Address" Command="{Binding TaprootReceiveCommand}">
+                  <UICommand Name="Taproot Address"
+                             Command="{Binding TaprootReceiveCommand}"
+                             IsDefault="{Binding Settings.IsSegWitDefaultReceiveScriptType, Converter={x:Static BoolConverters.Not}}">
                     <UICommand.Icon>
                       <PathIcon Data="{StaticResource taproot_short}"
                                 Classes="Icon" />

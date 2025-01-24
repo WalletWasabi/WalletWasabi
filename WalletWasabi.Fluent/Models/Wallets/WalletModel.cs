@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -98,6 +99,8 @@ public partial class WalletModel : ReactiveObject
 	public Network Network => Wallet.Network;
 
 	public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => Wallet.KeyManager.AvailableScriptPubKeyTypes;
+
+	public bool SeveralReceivingScriptTypes => AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
 
 	public IWalletTransactionsModel Transactions { get; }
 
