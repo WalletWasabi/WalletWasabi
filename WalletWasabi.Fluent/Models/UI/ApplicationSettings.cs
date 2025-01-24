@@ -46,6 +46,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
+	[AutoNotify] private string _feeRateEstimationProvider;
 
 	// Coordinator
 	[AutoNotify] private string _mainNetCoordinatorUri;
@@ -102,6 +103,7 @@ public partial class ApplicationSettings : ReactiveObject
 		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		DustThreshold = persistentConfig.DustThreshold.ToString();
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 
 		// Coordinator
 		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
@@ -157,7 +159,8 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.RegTestCoordinatorUri,
 					x => x.BackendUri,
 					x => x.ExchangeRateProvider,
-					(_, _, _, _, _, _, _) => Unit.Default)
+					x => x.FeeRateEstimationProvider,
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -319,7 +322,8 @@ public partial class ApplicationSettings : ReactiveObject
 				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
 					absoluteMinInputCount :
 					Constants.DefaultAbsoluteMinInputCount,
-				ExchangeRateProvider = ExchangeRateProvider
+				ExchangeRateProvider = ExchangeRateProvider,
+				FeeRateEstimationProvider = FeeRateEstimationProvider
 			};
 		}
 		else

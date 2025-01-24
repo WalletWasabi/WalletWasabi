@@ -1,11 +1,15 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -46,6 +50,8 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 	public IApplicationSettings Settings { get; }
 
 	public ICommand ResetSettingsCommand { get; }
+	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
+	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProvider.Providers.Select(x => x.Name);
 
 	private void ValidateBackendUri(IValidationErrors errors)
 	{
