@@ -30,7 +30,7 @@ public class FeeRateEstimationUpdater :  PeriodicRunner
 		var newFeeRateEstimations = await _provider.GetFeeRateEstimationsAsync(_feeRateProviderGetter(), _userAgentPicker(), cancellationToken).ConfigureAwait(false);
 		if (newFeeRateEstimations != FeeEstimates)
 		{
-			Logger.LogInfo($"Fetched fee rate estimations {_feeRateProviderGetter()}.");
+			Logger.LogInfo($"Fetched fee rate estimations from {_feeRateProviderGetter()}.");
 
 			FeeEstimates = newFeeRateEstimations;
 			FeeEstimationsChanged.SafeInvoke(this, FeeEstimates);

@@ -13,7 +13,7 @@ public class FeeRateProvider(IHttpClientFactory httpClientFactory)
 {
 	public static readonly ImmutableArray<FeeRateProviderInfo> Providers = [
 		("BlockstreamInfo", ("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), "/api/fee-estimates", BlockstreamHandler()),
-		("MempoolSpace", ("https://mempool.space", "https://mempool.space"), "/api/v1/fees/recommended", MempoolSpaceHandler()),
+		("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/"), "/api/v1/fees/recommended", MempoolSpaceHandler()),
 
 	];
 

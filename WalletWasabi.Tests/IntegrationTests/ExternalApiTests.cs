@@ -11,11 +11,11 @@ public class ExternalApiTests
 {
 	[Fact]
 	public async Task MempoolSpaceExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("mempoolspace");
+		await AssertProviderAsync("MempoolSpace");
 
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Blockchaininfo");
+		await AssertProviderAsync("BlockchainInfo");
 
 	[Fact]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
