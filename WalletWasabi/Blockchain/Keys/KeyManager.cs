@@ -1,26 +1,30 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
+using System.Text.Json;
+using System.Text.Json.Nodes;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
+using Decode = WalletWasabi.Serialization.Decode;
+using Encode = WalletWasabi.Serialization.Encode;
+using Array = System.Array;
+using Network = NBitcoin.Network;
+using OutPoint = NBitcoin.OutPoint;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-[JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
@@ -31,21 +35,7 @@ public class KeyManager
 	public const int MaxGapLimit = 10_000;
 	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
-	private static readonly JsonConverter[] JsonConverters =
-	{
-		new BitcoinEncryptedSecretNoECJsonConverter(),
-		new ByteArrayJsonConverter(),
-		new HDFingerprintJsonConverter(),
-		new ExtPubKeyJsonConverter(),
-		new KeyPathJsonConverter(),
-		new MoneyBtcJsonConverter(),
-		new ScriptPubKeyTypeJsonConverter(),
-		new SendWorkflowJsonConverter(),
-		new PreferredScriptPubKeyTypeJsonConverter()
-	};
-
-	[JsonConstructor]
-	public KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
+	internal KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
@@ -98,26 +88,6 @@ public class KeyManager
 		_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 	}
 
-	[OnDeserialized]
-	private void OnDeserializedMethod(StreamingContext context)
-	{
-		// This should be impossible but turn auto coinjoin off, just in case.
-		// Otherwise, the user's money can be drained.
-		if (AutoCoinJoin)
-		{
-			AutoCoinJoin = false;
-		}
-		_hdPubKeyCache.AddRangeKeys(_hdPubKeys);
-	}
-
-	[OnSerializing]
-	private void OnSerializingMethod(StreamingContext context)
-	{
-		_hdPubKeys.Clear();
-		_hdPubKeys.AddRange(_hdPubKeyCache.HdPubKeys);
-		MinGapLimit = Math.Max(SegwitExternalKeyGenerator.MinGapLimit, TaprootExternalKeyGenerator?.MinGapLimit ?? 0);
-	}
-
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
 		new((network.Name, scriptPubKeyType) switch
 		{
@@ -143,75 +113,50 @@ public class KeyManager
 	#region Properties
 
 	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
-	[JsonProperty(PropertyName = "EncryptedSecret")]
 	public BitcoinEncryptedSecretNoEC? EncryptedSecret { get; }
 
 	/// <remarks><c>null</c> if the watch-only mode is on.</remarks>
-	[JsonProperty(PropertyName = "ChainCode")]
 	public byte[]? ChainCode { get; }
 
-	[JsonProperty(PropertyName = "MasterFingerprint")]
 	public HDFingerprint? MasterFingerprint { get; private set; }
 
-	[JsonProperty(PropertyName = "ExtPubKey")]
 	public ExtPubKey SegwitExtPubKey { get; }
 
-	[JsonProperty(PropertyName = "TaprootExtPubKey")]
 	public ExtPubKey? TaprootExtPubKey { get; private set; }
 
-	[JsonProperty(PropertyName = "UseTurboSync")]
 	public bool UseTurboSync { get; private set; } = true;
 
-	[JsonProperty(PropertyName = "MinGapLimit")]
 	public int MinGapLimit { get; private set; }
 
-	[JsonProperty(PropertyName = "AccountKeyPath")]
 	public KeyPath SegwitAccountKeyPath { get; private set; }
 
-	[JsonProperty(PropertyName = "TaprootAccountKeyPath")]
 	public KeyPath TaprootAccountKeyPath { get; private set; }
 
-	[JsonProperty(PropertyName = "BlockchainState")]
 	private readonly BlockchainState _blockchainState;
 
-	[JsonProperty(PropertyName = "PreferPsbtWorkflow")]
 	public bool PreferPsbtWorkflow { get; set; }
 
-	[JsonProperty(PropertyName = "AutoCoinJoin")]
 	public bool AutoCoinJoin { get; set; } = DefaultAutoCoinjoin;
 
 	/// <summary>
 	/// Won't coinjoin automatically if the wallet balance is less than this.
 	/// </summary>
-	[JsonProperty(PropertyName = "PlebStopThreshold")]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
 	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
-	[JsonProperty(PropertyName = "Icon")]
 	public string? Icon { get; private set; }
 
-	[JsonProperty(PropertyName = "AnonScoreTarget")]
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
 
-	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
-	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
-	[JsonProperty(PropertyName = "DefaultReceiveScriptType")]
 	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;
 
-	[JsonProperty(PropertyName = "DefaultSendWorkflow")]
-	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
-
-	[JsonProperty(PropertyName = "ChangeScriptPubKeyType")]
 	public PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; } = PreferredScriptPubKeyType.Unspecified.Instance;
 
-	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
-	private readonly List<HdPubKey> _hdPubKeys = new();
+	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
-	[JsonProperty(ItemConverterType = typeof(OutPointJsonConverter), PropertyName = "ExcludedCoinsFromCoinJoin")]
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
@@ -308,8 +253,8 @@ public class KeyManager
 		SafeIoManager safeIoManager = new(filePath);
 		string jsonString = safeIoManager.ReadAllText(Encoding.UTF8);
 
-		KeyManager km = JsonConvert.DeserializeObject<KeyManager>(jsonString, JsonConverters)
-			?? throw new JsonSerializationException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
+		KeyManager km = JsonDecoder.FromString(jsonString, Decoder)
+			?? throw new DataException($"Wallet file at: `{filePath}` is not a valid wallet file or it is corrupted.");
 
 		km.SetFilePath(filePath);
 
@@ -629,7 +574,7 @@ public class KeyManager
 
 		lock (_criticalStateLock)
 		{
-			jsonString = JsonConvert.SerializeObject(this, Formatting.Indented, JsonConverters);
+			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManager);
 		}
 
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
@@ -782,13 +727,73 @@ public class KeyManager
 	#endregion _blockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
-		new(x.ExtPubKey.PubKey, x.KeyPath, LabelsArray.Empty, KeyState.Clean);
+		new(x.ExtPubKey.PubKey, x.KeyPath, Analysis.Clustering.LabelsArray.Empty, KeyState.Clean);
 
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{
 		ExcludedCoinsFromCoinJoin = excludedOutpoints.ToList();
 		ToFile();
 	}
+
+	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
+		Encode.Object([
+			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
+			("ChainCode", Encode.Optional(keyManager.ChainCode, Encode.ChainCode)),
+			("MasterFingerprint", Encode.Optional(keyManager.MasterFingerprint, Encode.HDFingerprint)),
+			("ExtPubKey", Encode.ExtPubKey(keyManager.SegwitExtPubKey)),
+			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
+			("UseTurboSync", Encode.Bool(keyManager.UseTurboSync)),
+			("MinGapLimit", Encode.Int(Math.Max(keyManager.SegwitExternalKeyGenerator.MinGapLimit, keyManager.TaprootExternalKeyGenerator?.MinGapLimit ?? 0))),
+			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
+			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
+			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),
+			("PreferPsbtWorkflow", Encode.Bool(keyManager.PreferPsbtWorkflow)),
+			("AutoCoinJoin", Encode.Bool(keyManager.AutoCoinJoin)),
+			("PlebStopThreshold", Encode.MoneyBitcoins(keyManager.PlebStopThreshold)),
+			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
+			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
+			("FeeRateMedianTimeFrameHours", Encode.Int(keyManager.FeeRateMedianTimeFrameHours)),
+			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
+			("DefaultReceiveScriptType", Encode.ScriptPubKeyType(keyManager.DefaultReceiveScriptType)),
+			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
+			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
+			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
+			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
+		]);
+
+	private static readonly Decoder<KeyManager> Decoder =
+		Decode.Object(get =>
+		{
+			var km = new KeyManager(
+				get.Optional("EncryptedSecret", Decode.BitcoinEncryptedSecretNoEC),
+				get.Optional("ChainCode", Decode.ByteArray),
+				get.Optional("MasterFingerprint", Decode.HDFingerprint),
+
+				get.Required("ExtPubKey", Decode.ExtPubKey),
+				get.Optional("TaprootExtPubKey", Decode.ExtPubKey),
+				get.Optional("MinGapLimit", Decode.Int),
+				get.Required("BlockchainState", Decode.BlockchainState),
+				(string?) "",
+				get.Optional("AccountKeyPath", Decode.KeyPath),
+				get.Optional("TaprootAccountKeyPath", Decode.KeyPath)
+			)
+			{
+				UseTurboSync = get.Required("UseTurboSync", Decode.Bool),
+				PreferPsbtWorkflow = get.Required("PreferPsbtWorkflow", Decode.Bool),
+				AutoCoinJoin = false,
+				PlebStopThreshold = get.Required("PlebStopThreshold", Decode.MoneyBitcoins),
+				Icon = get.Optional("Icon", Decode.String),
+				AnonScoreTarget = get.Required("AnonScoreTarget", Decode.Int),
+				FeeRateMedianTimeFrameHours = get.Required("FeeRateMedianTimeFrameHours", Decode.Int),
+				NonPrivateCoinIsolation = get.Required("RedCoinIsolation", Decode.Bool),
+				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
+				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
+				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
+				ExcludedCoinsFromCoinJoin = get.Required("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint)).ToList()
+			};
+			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
+			return km;
+		});
 }
 
 public static class KeyPathExtensions

@@ -10,17 +10,18 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using NBitcoin.RPC;
+using WalletWasabi.Backend;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Cache;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.Userfacing;
 
 [assembly: ApiController]
@@ -39,19 +40,17 @@ public class Startup(IConfiguration configuration)
 
 		services.AddMemoryCache();
 
-		services.AddMvc(options =>
-			{
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
-			})
-			.AddControllersAsServices();
 
-		services.AddMvc()
-			.AddNewtonsoftJson();
+		services.AddMvc(options => {
+			options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
+			options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.CoordinatorMessage));
+			options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
+		})
+		.AddControllersAsServices();
 
-		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+		services.AddControllers();
 
-		WabiSabiConfig config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadFile(createIfMissing: true);
+		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
 
 		services.AddSingleton<IdempotencyRequestCache>();

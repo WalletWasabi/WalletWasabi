@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using NBitcoin.Secp256k1;
-using Newtonsoft.Json;
 using WabiSabi;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
@@ -11,10 +10,10 @@ using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
@@ -133,36 +132,6 @@ public class SerializationTests
 	}
 
 	[Fact]
-	public void RoundStateMessageSerialization()
-	{
-		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
-		AssertSerialization(RoundState.FromRound(round));
-
-		var state = round.Assert<ConstructionState>();
-		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
-		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
-		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
-		AssertSerialization(RoundState.FromRound(round));
-	}
-
-	[Fact]
-	public void CoinSerialization()
-	{
-		var coin = new Coin(
-			new OutPoint(
-				uint256.One,
-				1234),
-			new TxOut(
-				Money.Coins(1),
-				new Script("0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210")));
-		AssertSerialization(coin);
-
-		var serializedCoin = JsonConvert.SerializeObject(coin, JsonSerializationOptions.Default.Settings);
-		var expectedJson = "{\"Outpoint\":\"0100000000000000000000000000000000000000000000000000000000000000D2040000\",\"TxOut\":{\"ScriptPubKey\":\"0 bf3593d140d512eb607b3ddb5c5ee085f1e3a210\",\"Value\":100000000}}";
-		Assert.Equal(expectedJson, serializedCoin);
-	}
-
-	[Fact]
 	public void RoundStateRequestSerialization()
 	{
 		RoundStateCheckpoint stateCheckpoint = new(uint256.One, 0);
@@ -180,14 +149,24 @@ public class SerializationTests
 		RoundStateResponse response = new(new[] { roundState }, new[] { median });
 
 		AssertSerialization(response);
+
+		var state = round.Assert<ConstructionState>();
+		(var coin, var ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
+		state = state.AddInput(coin, ownershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
+		roundState = RoundState.FromRound(round);
+
+		response = new(new[] { roundState }, new[] { median });
+
+		AssertSerialization(response);
+
 	}
 
 	private static void AssertSerialization<T>(T message)
 	{
-		var serializedMessage = JsonConvert.SerializeObject(message, JsonSerializationOptions.Default.Settings);
-		var deserializedMessage = JsonConvert.DeserializeObject<T>(serializedMessage, JsonSerializationOptions.Default.Settings);
-		var reserializedMessage = JsonConvert.SerializeObject(deserializedMessage, JsonSerializationOptions.Default.Settings);
-
+		var serializedMessage = JsonEncoder.ToString(message, Encode.CoordinatorMessage);
+		var deserializedMessage = Decode.CoordinatorMessage<T>(serializedMessage);
+		var reserializedMessage = JsonEncoder.ToString(deserializedMessage, Encode.CoordinatorMessage);
 		Assert.Equal(reserializedMessage, serializedMessage);
 	}
 
