@@ -91,9 +91,11 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
 	{
-		// Advanced
-		EnableGpu = persistentConfig.EnableGpu;
+		// Connections
 		BackendUri = persistentConfig.GetBackendUri();
+		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
+		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 
 		// Bitcoin
 		Network = persistentConfig.Network;
@@ -102,8 +104,6 @@ public partial class ApplicationSettings : ReactiveObject
 		StopLocalBitcoinCoreOnShutdown = persistentConfig.StopLocalBitcoinCoreOnShutdown;
 		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
 		DustThreshold = persistentConfig.DustThreshold.ToString();
-		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
-		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 
 		// Coordinator
 		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
@@ -120,9 +120,9 @@ public partial class ApplicationSettings : ReactiveObject
 		CustomChangeAddress = uiConfig.IsCustomChangeAddress;
 		RunOnSystemStartup = uiConfig.RunOnSystemStartup;
 		HideOnClose = uiConfig.HideOnClose;
-		UseTor = Config.ObjectToTorMode(_config.UseTor);
 		TerminateTorOnExit = persistentConfig.TerminateTorOnExit;
 		DownloadNewVersion = persistentConfig.DownloadNewVersion;
+		EnableGpu = persistentConfig.EnableGpu;
 
 		// Privacy Mode
 		PrivacyMode = uiConfig.PrivacyMode;

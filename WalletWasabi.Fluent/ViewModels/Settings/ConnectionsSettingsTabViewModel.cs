@@ -15,30 +15,24 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 
 [AppLifetime]
 [NavigationMetaData(
-	Title = "Advanced",
-	Caption = "Manage advanced settings",
+	Title = "Connections",
+	Caption = "Manage connections settings",
 	Order = 3,
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Advanced", "Backend", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
+			"Settings", "Connections", "Backend", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
 			"Tor", "Terminate", "Wasabi", "Shut", "Reset"
 	},
 	IconName = "settings_general_regular")]
-public partial class AdvancedSettingsTabViewModel : RoutableViewModel
+public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _backendUri;
 
-	public AdvancedSettingsTabViewModel(IApplicationSettings settings)
+	public ConnectionsSettingsTabViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
 		_backendUri = settings.BackendUri;
-
-		ResetSettingsCommand = ReactiveCommand.Create(() =>
-		{
-			Settings.ResetToDefault();
-			return Task.CompletedTask;
-		});
 
 		this.ValidateProperty(x => x.BackendUri, ValidateBackendUri);
 
@@ -50,7 +44,6 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 
 	public IApplicationSettings Settings { get; }
 
-	public ICommand ResetSettingsCommand { get; }
 	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProvider.Providers.Select(x => x.Name);
 

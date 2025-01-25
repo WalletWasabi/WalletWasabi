@@ -6,9 +6,9 @@
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
              xmlns:basemodels="using:WalletWasabi.Models"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:Class="WalletWasabi.Fluent.Views.Settings.AdvancedSettingsTabView"
+             x:Class="WalletWasabi.Fluent.Views.Settings.ConnectionsSettingsTabView"
              x:CompileBindings="False"
-             x:DataType="settings:AdvancedSettingsTabViewModel">
+             x:DataType="settings:ConnectionsSettingsTabViewModel">
   <StackPanel Classes="settingsLayout">
 
     <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
@@ -57,7 +57,5 @@
       <TextBlock Text="Terminate Tor when Wasabi shuts down" />
       <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
     </DockPanel>
-
-    <Button Cursor="Hand" Margin="0 45 0 0" Content="Reset All Settings" Command="{Binding ResetSettingsCommand}" />
   </StackPanel>
 </UserControl>
