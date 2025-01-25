@@ -24,14 +24,17 @@
         </Viewbox>
       </QuestionControl.IconContent>
       <StackPanel Spacing="15">
-        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="Resync your wallet to address any issues that occurred during the initial synchronization process."/>
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="Resync your wallet to address any issues that occurred during the synchronization process."/>
         <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="This process restarts the software and will take some time."/>
-        <TextBlock Margin="0 25 0 0" TextWrapping="Wrap" TextAlignment="Center" Text="To speed it up, you can specify a block height to start from (eg: confirmation height of your missing tx):"/>
+        <TextBlock
+          Margin="0 25 0 0"
+          TextWrapping="Wrap"
+          TextAlignment="Center"
+          Text="Optionally, specify a block height to start the resync from:"/>
         <TextBox Text="{Binding StartingHeight}"
                  Watermark="0"
                  MaxWidth="125"
-                 MaxLength="8"
-                 Classes="hasCheckMark">
+                 MaxLength="8">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
           </Interaction.Behaviors>

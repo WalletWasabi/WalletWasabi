@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
@@ -30,15 +31,9 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<int?>
 			return;
 		}
 
-		if (!int.TryParse(StartingHeight, out var parsed))
+		if (!int.TryParse(StartingHeight, out _))
 		{
-			errors.Add(ErrorSeverity.Error, "Must be a number.");
-			return;
-		}
-
-		if(parsed < 0)
-		{
-			errors.Add(ErrorSeverity.Error, "Must be at least 0.");
+			StartingHeight = new string(StartingHeight.Where(char.IsDigit).ToArray());
 		}
 	}
 }
