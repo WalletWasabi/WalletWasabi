@@ -35,7 +35,8 @@
             TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
           <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-          <TextBlock Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
+          <TextBlock Margin="0 10 0 0" Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.6" />
+          <TextBlock Text="{Binding TimeToCatchUp}" TextAlignment="Center" Opacity="0.6" />
         </StackPanel>
 
         <Panel x:Name="WorldMap" Margin="20">
