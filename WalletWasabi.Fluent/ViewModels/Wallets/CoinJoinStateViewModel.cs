@@ -147,7 +147,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 						   _stateMachine.Fire(Trigger.PlebStopChanged);
 					   });
 
-		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromMinutes(Random.Shared.Next(5, 16)) };
+		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Random.Shared.Next(60, 180)) };
 		_autoCoinJoinStartTimer.Tick += async (_, _) =>
 		{
 			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: false, false);
