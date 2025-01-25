@@ -45,5 +45,10 @@
       <TextBlock Text="Auto download new version" />
       <ToggleSwitch IsChecked="{Binding Settings.DownloadNewVersion}" />
     </DockPanel>
+
+    <DockPanel ToolTip.Tip="When enabled use a graphics card (GPU) to render user interface. Using a GPU rather than the CPU can improve performance.">
+      <TextBlock Text="Enable GPU" />
+      <ToggleSwitch IsChecked="{Binding Settings.EnableGpu}" />
+    </DockPanel>
   </StackPanel>
 </UserControl>
