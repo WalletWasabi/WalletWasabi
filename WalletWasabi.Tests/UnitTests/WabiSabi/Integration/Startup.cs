@@ -7,8 +7,9 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Coordinator.Controllers;
-using WalletWasabi.WabiSabi.Models.Serialization;
+using WalletWasabi.Serialization;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -34,15 +35,15 @@ public class Startup
 		services
 			.AddMvc(options =>
 			{
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
+				options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
+				options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.CoordinatorMessage));
 				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 			})
 			.ConfigureApplicationPartManager(manager =>
 			{
 				manager.FeatureProviders.Add(new ControllerProvider(Configuration));
 			})
-			.AddApplicationPart(backendAssembly)
-			.AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+			.AddApplicationPart(backendAssembly);
 	}
 }
 public class ControllerProvider : ControllerFeatureProvider

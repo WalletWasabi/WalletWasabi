@@ -1,5 +1,4 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -11,7 +10,6 @@ namespace WalletWasabi.Blockchain.Analysis.FeesEstimation;
 /// <summary>
 /// Estimates for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 /// </summary>
-[JsonObject(MemberSerialization.OptIn)]
 public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 {
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
@@ -25,7 +23,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// Constructor takes the input confirmation estimations and filters out all confirmation targets that are not <see cref="Constants.ConfirmationTargets">whitelisted</see>.
 	/// </summary>
 	/// <param name="estimations">Map of confirmation targets to fee rates in satoshis (e.g. confirmation target 1 -> 50 sat/vByte).</param>
-	[JsonConstructor]
 	public AllFeeEstimate(IDictionary<int, int> estimations)
 	{
 		Guard.NotNullOrEmpty(nameof(estimations), estimations);
@@ -54,7 +51,6 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
 	/// </summary>
-	[JsonProperty]
 	public Dictionary<int, int> Estimations { get; }
 
 	/// <summary>

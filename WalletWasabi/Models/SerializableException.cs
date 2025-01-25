@@ -1,13 +1,12 @@
 using Newtonsoft.Json;
 using System.Text;
+using WalletWasabi.Serialization;
 
 namespace WalletWasabi.Models;
 
-[JsonObject(MemberSerialization.OptIn)]
 public record SerializableException
 {
-	[JsonConstructor]
-	protected SerializableException(string exceptionType, string message, string stackTrace, SerializableException innerException)
+	public SerializableException(string exceptionType, string message, string stackTrace, SerializableException? innerException)
 	{
 		ExceptionType = exceptionType;
 		Message = message;
@@ -28,27 +27,23 @@ public record SerializableException
 		StackTrace = ex.StackTrace;
 	}
 
-	[JsonProperty(PropertyName = "ExceptionType")]
 	public string? ExceptionType { get; }
 
-	[JsonProperty(PropertyName = "Message")]
 	public string Message { get; }
 
-	[JsonProperty(PropertyName = "StackTrace")]
 	public string? StackTrace { get; }
 
-	[JsonProperty(PropertyName = "InnerException")]
 	public SerializableException? InnerException { get; }
 
 	public static string ToBase64String(SerializableException exception)
 	{
-		return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonConvert.SerializeObject(exception)));
+		return Convert.ToBase64String(Encoding.UTF8.GetBytes(JsonEncoder.ToString(exception, Encode.SerializableException)));
 	}
 
 	public static SerializableException FromBase64String(string base64String)
 	{
 		var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
-		return JsonConvert.DeserializeObject<SerializableException>(json);
+		return JsonDecoder.FromString(json, Decode.SerializableException);
 	}
 
 	public override string ToString()

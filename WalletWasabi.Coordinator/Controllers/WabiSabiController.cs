@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Filters;
+using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;

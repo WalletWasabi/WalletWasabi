@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Formatters;
 using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
@@ -16,11 +17,11 @@ using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Backend;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.Userfacing;
 
 [assembly: ApiController]
@@ -39,19 +40,21 @@ public class Startup(IConfiguration configuration)
 
 		services.AddMemoryCache();
 
-		services.AddMvc(options =>
-			{
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
-			})
-			.AddControllersAsServices();
 
-		services.AddMvc()
-			.AddNewtonsoftJson();
+		services.AddMvc(options => {
+			options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
+			options.InputFormatters.RemoveType<SystemTextJsonInputFormatter>();
+			options.InputFormatters.RemoveType<NewtonsoftJsonInputFormatter>();
+			options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.CoordinatorMessage));
+			options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
+			options.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
+			options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
+		})
+		.AddControllersAsServices();
 
-		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+		services.AddControllers();
 
-		WabiSabiConfig config = new(Path.Combine(dataDir, "Config.json"));
-		config.LoadFile(createIfMissing: true);
+		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
 
 		services.AddSingleton<IdempotencyRequestCache>();

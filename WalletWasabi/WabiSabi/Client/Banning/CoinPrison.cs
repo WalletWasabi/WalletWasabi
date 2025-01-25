@@ -1,11 +1,12 @@
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.Json;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
@@ -57,10 +58,10 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 				Logger.LogDebug("Prisoned coins file is empty.");
 				return new(prisonFilePath, []);
 			}
-			var prisonedCoinRecords = JsonConvert.DeserializeObject<HashSet<PrisonedCoinRecord>>(data)
+			var prisonedCoinRecords = JsonDecoder.FromString(data, Decode.Array(Decode.PrisonedCoinRecord))
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 
-			return new(prisonFilePath, prisonedCoinRecords.ToDictionary(x=> x.Outpoint, x=>x));
+			return new(prisonFilePath, prisonedCoinRecords.ToHashSet().ToDictionary(x=> x.Outpoint, x=>x));
 		}
 		catch (Exception exc)
 		{
@@ -111,7 +112,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		}
 
 		IoHelpers.EnsureFileExists(filePath);
-		string json = JsonConvert.SerializeObject(bannedCoins.Values, Formatting.Indented);
+		string json = JsonEncoder.ToReadableString(bannedCoins.Values, Encode.ClientPrison);
 		File.WriteAllText(filePath, json);
 	}
 }
