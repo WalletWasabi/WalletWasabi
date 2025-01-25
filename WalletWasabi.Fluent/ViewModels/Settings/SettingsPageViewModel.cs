@@ -35,12 +35,18 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		UiContext = uiContext;
 		_selectedTab = 0;
 
-		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+
+		CancelCommand = ReactiveCommand.Create(() =>
+		{
+			UiContext.ApplicationSettings.ResetToDefault();
+			return Task.CompletedTask;
+		});
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
 		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext.ApplicationSettings);
-		AdvancedSettingsTab = new AdvancedSettingsTabViewModel(UiContext.ApplicationSettings);
+		ConnectionsSettingsTab = new ConnectionsSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
 		NextCommand = CancelCommand;
@@ -67,7 +73,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	public GeneralSettingsTabViewModel GeneralSettingsTab { get; }
 	public BitcoinTabSettingsViewModel BitcoinTabSettings { get; }
 	public CoordinatorTabSettingsViewModel CoordinatorTabSettings { get; }
-	public AdvancedSettingsTabViewModel AdvancedSettingsTab { get; }
+	public ConnectionsSettingsTabViewModel ConnectionsSettingsTab { get; }
 
 	public async Task Activate()
 	{
