@@ -18,7 +18,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords =
 	[
-		"Settings", "Bitcoin", "BTC", "Coordinator", "Coordination", "Fee", "Coinjoin", "Rate", "Mining"
+		"Settings", "Coordinator", "URI", "Max", "Coinjoin", "Mining", "Fee", "Rate", "Min", "Input", "Count"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
@@ -34,7 +34,6 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
 		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.AbsoluteMinInputCount, ValidateAbsoluteMinInputCount);
-
 
 		_coordinatorUri = settings.GetCoordinatorUri();
 		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
@@ -9,7 +8,6 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -21,8 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords =
 	[
-		"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-		"P2P", "Endpoint", "Dust", "Threshold", "BTC"
+		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
+		"Stop", "Shutdown", "P2P", "Endpoint", "Dust", "Threshold"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel

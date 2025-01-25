@@ -21,7 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Advanced", "Enable", "GPU", "Backend", "URI"
+			"Settings", "Advanced", "Backend", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
+			"Tor", "Terminate", "Wasabi", "Shut", "Reset"
 	},
 	IconName = "settings_general_regular")]
 public partial class AdvancedSettingsTabViewModel : RoutableViewModel

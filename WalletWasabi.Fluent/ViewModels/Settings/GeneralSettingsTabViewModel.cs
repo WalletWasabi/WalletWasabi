@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -15,8 +12,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "General", "Bitcoin", "Dark", "Mode", "Run", "Wasabi", "Computer", "System", "Start", "Background", "Close",
-			"Auto", "Copy", "Paste", "Addresses", "Custom", "Change", "Address", "Fee", "Display", "Format", "BTC", "sats"
+			"Settings", "General", "Dark", "Mode", "Run", "Computer", "System", "Start", "Background", "Close",
+			"Auto", "Copy", "Paste", "Address", "Download", "New", "Version", "Enable", "GPU"
 	},
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : RoutableViewModel
