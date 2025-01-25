@@ -49,7 +49,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		ConnectionsSettingsTab = new ConnectionsSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
-		NextCommand = CancelCommand;
+		NextCommand = ReactiveCommand.Create(() => Close());
 
 		this.WhenAnyValue(x => x.UiContext.ApplicationSettings.DarkModeEnabled)
 			.Skip(1)
