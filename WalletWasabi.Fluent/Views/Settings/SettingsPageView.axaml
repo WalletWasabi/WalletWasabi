@@ -13,7 +13,7 @@
   <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"
-                 EnableCancel="True"
+                 EnableCancel="{Binding !IsReadOnly}"
                  NextContent="Done"
                  CancelContent="Reset All Settings"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
