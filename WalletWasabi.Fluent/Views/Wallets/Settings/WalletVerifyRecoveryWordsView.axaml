@@ -10,20 +10,27 @@
   <ContentArea Title="{Binding Title}"
                NextContent="Verify" EnableNext="True" EnableBack="True" EnableCancel="True">
     <DockPanel VerticalAlignment="Top">
-      <TagsBox DockPanel.Dock="Left"
-                        ItemCountLimit="24"
-                        SuggestionsAreCaseSensitive="False"
-                        RestrictInputToSuggestions="True"
-                        Items="{Binding Mnemonics}"
-                        Suggestions="{Binding Suggestions}"
-                        Watermark="Type in your recovery words in the correct order"
-                        AllowDuplication="True"
-                        EnableCounter="True"
-                        EnableDelete="False">
-        <Interaction.Behaviors>
-          <FocusOnAttachedBehavior />
-        </Interaction.Behaviors>
-      </TagsBox>
+      <StackPanel Orientation="Vertical" Spacing="20">
+        <TagsBox DockPanel.Dock="Left"
+                 ItemCountLimit="24"
+                 SuggestionsAreCaseSensitive="False"
+                 RestrictInputToSuggestions="True"
+                 Items="{Binding Mnemonics}"
+                 Suggestions="{Binding Suggestions}"
+                 Watermark="Type in your recovery words in the correct order"
+                 AllowDuplication="True"
+                 EnableCounter="True"
+                 EnableDelete="False">
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
+        </TagsBox>
+        <InfoMessage>
+          <DockPanel>
+            <TextBlock Text="Your passphrase is also required to restore your wallet, do not forget it." />
+          </DockPanel>
+        </InfoMessage>
+      </StackPanel>
     </DockPanel>
   </ContentArea>
 </UserControl>
