@@ -25,7 +25,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoinjoinMiningFeeRateTooHighMessage = "Mining fee rate was too high";
 	private const string MinInputCountTooLowMessage = "Min input count was too low";
 	private const string PauseMessage = "Coinjoin is paused";
-	private const string StoppedMessage = "Coinjoin has stopped";
+	private const string StoppedMessage = "Coinjoin is stopped";
 	private const string PressPlayToStartMessage = "Press Play to start";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
 	private const string RoundFinishedMessage = "Round ended, awaiting next round";
