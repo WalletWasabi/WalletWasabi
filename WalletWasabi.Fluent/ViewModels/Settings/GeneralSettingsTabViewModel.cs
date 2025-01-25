@@ -1,9 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
-using WalletWasabi.Logging;
-using System.Windows.Input;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -33,7 +29,4 @@ public partial class GeneralSettingsTabViewModel : RoutableViewModel
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public IApplicationSettings Settings { get; }
-
-	public IEnumerable<TorMode> TorModes =>
-		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
 }

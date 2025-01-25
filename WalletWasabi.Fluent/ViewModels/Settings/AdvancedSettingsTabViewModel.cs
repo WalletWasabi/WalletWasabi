@@ -53,6 +53,9 @@ public partial class AdvancedSettingsTabViewModel : RoutableViewModel
 	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProvider.Providers.Select(x => x.Name);
 
+	public IEnumerable<TorMode> TorModes =>
+		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
+
 	private void ValidateBackendUri(IValidationErrors errors)
 	{
 		var backendUri = BackendUri;

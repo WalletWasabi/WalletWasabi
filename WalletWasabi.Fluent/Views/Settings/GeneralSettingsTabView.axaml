@@ -3,8 +3,6 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
-             xmlns:conv="using:WalletWasabi.Fluent.Converters"
-             xmlns:basemodels="using:WalletWasabi.Models"
              mc:Ignorable="d" d:DesignWidth="650"
              x:Class="WalletWasabi.Fluent.Views.Settings.GeneralSettingsTabView"
              x:CompileBindings="True"
@@ -42,30 +40,6 @@
       <ToggleSwitch IsChecked="{Binding CustomChangeAddress}" />
     </DockPanel>
     -->
-
-    <DockPanel>
-      <TextBlock Text="Network anonymization (Tor)" />
-      <ComboBox ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}">
-        <ComboBox.ItemTemplate>
-          <DataTemplate x:DataType="basemodels:TorMode">
-            <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
-          </DataTemplate>
-        </ComboBox.ItemTemplate>
-        <ComboBox.Styles>
-          <Style Selector="ComboBox /template/ Border#Background">
-            <Setter Property="CornerRadius" Value="30"/>
-          </Style>
-          <Style Selector="ComboBox /template/ Border#HighlightBackground">
-            <Setter Property="CornerRadius" Value="30"/>
-          </Style>
-        </ComboBox.Styles>
-      </ComboBox>
-    </DockPanel>
-
-    <DockPanel IsVisible="{Binding Settings.UseTor, ConverterParameter={x:Static basemodels:TorMode.Enabled}, Converter={x:Static conv:EnumToBoolConverter.Instance}}">
-      <TextBlock Text="Terminate Tor when Wasabi shuts down" />
-      <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
-    </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Auto download new version" />
