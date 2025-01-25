@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using WabiSabi.CredentialRequesting;
 
 namespace WalletWasabi.WabiSabi.Models;

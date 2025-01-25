@@ -57,8 +57,17 @@ public record Result<TValue,TError>
 
 	public bool IsOk => _isSuccess;
 
-	public Result<T, TError> Then<T>(Func<TValue, T> f) =>
+	public Result<T, TError> Map<T>(Func<TValue, T> f) =>
 		Match(v => Result<T, TError>.Ok(f(v)), e => e);
+
+	public Result<TValue, TE> MapError<TE>(Func<TError, TE> f) =>
+		Match(v => v, e => Result<TValue, TE>.Fail(f(e)));
+
+	public Result<T, TError> Then<T>(Func<TValue, Result<T, TError>> f) =>
+		Match(v => f(v), e => e);
+
+	public Result<TValue, TE> ThenError<TE>(Func<TError, TE> f) =>
+		Match(v => v, e => Result<TValue, TE>.Fail(f(e)));
 
 	public static Result<TValue[], TError[]> Sequence(IEnumerable<Result<TValue, TError>> results)
 	{
@@ -83,6 +92,23 @@ public record Result<TValue,TError>
 		Match(
 			_ => throw new InvalidOperationException("Successful result don't have error."),
 			e => e);
+
+	public static Result<TValue, Exception> Safe<TValue>(Func<TValue> func)
+	{
+		try
+		{
+			return Result<TValue, Exception>.Ok(func());
+		}
+		catch (Exception ex)
+		{
+			return Result<TValue, Exception>.Fail(ex);
+		}
+	}
+
+	public TValue? AsNullable () =>
+		_isSuccess
+			? Value
+			: default;
 }
 
 public record Result<TError> : Result<Unit, TError>

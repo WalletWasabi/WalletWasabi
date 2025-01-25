@@ -37,7 +37,7 @@ public class RegTestFixture : IDisposable
 		Thread.Sleep(100);
 		Directory.CreateDirectory(testnetBackendDir);
 		Thread.Sleep(100);
-		var config = new Config(
+		var config = new Config(Path.Combine(testnetBackendDir, "Config.json"),
 			BackendRegTestNode.RpcClient.Network,
 			BackendRegTestNode.RpcClient.CredentialString.ToString(),
 			new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
@@ -46,8 +46,6 @@ public class RegTestFixture : IDisposable
 			new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 			new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
 			BackendRegTestNode.RpcEndPoint);
-		var configFilePath = Path.Combine(testnetBackendDir, "Config.json");
-		config.SetFilePath(configFilePath);
 		config.ToFile();
 
 		var conf = new ConfigurationBuilder()

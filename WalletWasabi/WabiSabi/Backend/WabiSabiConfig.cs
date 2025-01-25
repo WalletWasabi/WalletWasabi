@@ -1,25 +1,21 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.ComponentModel;
-using System.Linq;
+using System.IO;
 using System.Net;
+using System.Text.Json;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
-using WalletWasabi.JsonConverters.Bitcoin;
-using WalletWasabi.JsonConverters.Timing;
-using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Backend.DoSPrevention;
 
 namespace WalletWasabi.WabiSabi.Backend;
 
-[JsonObject(MemberSerialization.OptIn)]
 public class WabiSabiConfig : ConfigBase
 {
-	public WabiSabiConfig() : base()
+	public WabiSabiConfig() : base("./fakeConfig.for.testing.only.json")
 	{
 	}
 
@@ -27,186 +23,95 @@ public class WabiSabiConfig : ConfigBase
 	{
 	}
 
-	[JsonProperty(PropertyName = "Network")]
-	[JsonConverter(typeof(NetworkJsonConverter))]
-	public Network Network { get; private set; } = Network.Main;
+	public Network Network { get; init; } = Network.Main;
 
-	[JsonProperty(PropertyName = "BitcoinCoreRpcEndPoint")]
-	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
-	public EndPoint BitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
+	public EndPoint BitcoinCoreRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
-	[DefaultValue("user:password")]
-	[JsonProperty(PropertyName = "BitcoinRpcConnectionString", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public string BitcoinRpcConnectionString { get; private set; } = "user:password";
+	public string BitcoinRpcConnectionString { get; init; } = "user:password";
 
-	[DefaultValue(108)]
-	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public uint ConfirmationTarget { get; set; } = 108;
+	public uint ConfirmationTarget { get; init; } = 108;
 
-	[DefaultValueMoneyBtc("0.1")]
-	[JsonProperty(PropertyName = "DoSSeverity", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money DoSSeverity { get; set; } = Money.Coins(0.1m);
+	public Money DoSSeverity { get; init; } = Money.Coins(0.1m);
 
-	[DefaultValueTimeSpan("31d 0h 0m 0s")]
-	[JsonProperty(PropertyName = "DoSMinTimeForFailedToVerify", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan DoSMinTimeForFailedToVerify { get; set; } = TimeSpan.FromDays(31);
+	public TimeSpan DoSMinTimeForFailedToVerify { get; init; } = TimeSpan.FromDays(31);
 
-	[DefaultValueTimeSpan("1d 0h 0m 0s")]
-	[JsonProperty(PropertyName = "DoSMinTimeForCheating", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan DoSMinTimeForCheating { get; set; } = TimeSpan.FromDays(1);
+	public TimeSpan DoSMinTimeForCheating { get; init; } = TimeSpan.FromDays(1);
 
-	[DefaultValue(0.2)]
-	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingConfirmation", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingConfirmation { get; set; } = 0.2;
+	public double DoSPenaltyFactorForDisruptingConfirmation { get; init; } = 0.2;
 
-	[DefaultValue(1.0)]
-	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSignalReadyToSign", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingSignalReadyToSign { get; set; } = 1.0;
+	public double DoSPenaltyFactorForDisruptingSignalReadyToSign { get; init; } = 1.0;
 
-	[DefaultValue(1.0)]
-	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingSigning { get; set; } = 1.0;
+	public double DoSPenaltyFactorForDisruptingSigning { get; init; } = 1.0;
 
-	[DefaultValue(3.0)]
-	[JsonProperty(PropertyName = "DoSPenaltyFactorForDisruptingByDoubleSpending", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; set; } = 3.0;
+	public double DoSPenaltyFactorForDisruptingByDoubleSpending { get; init; } = 3.0;
 
-	[DefaultValueTimeSpan("0d 0h 20m 0s")]
-	[JsonProperty(PropertyName = "DoSMinTimeInPrison", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan DoSMinTimeInPrison { get; set; } = TimeSpan.FromMinutes(20);
+	public TimeSpan DoSMinTimeInPrison { get; init; } = TimeSpan.FromMinutes(20);
 
-	[DefaultValueMoneyBtc("0.00005")]
-	[JsonProperty(PropertyName = "MinRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MinRegistrableAmount { get; set; } = Money.Coins(0.00005m);
+	public Money MinRegistrableAmount { get; init; } = Money.Coins(0.00005m);
 
-	/// <summary>
-	/// The width of the range proofs are calculated from this, so don't choose stupid numbers.
-	/// </summary>
-	[DefaultValueMoneyBtc("43000")]
-	[JsonProperty(PropertyName = "MaxRegistrableAmount", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxRegistrableAmount { get; set; } = Money.Coins(43_000m);
+	public Money MaxRegistrableAmount { get; init; } = Money.Coins(43_000m);
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowNotedInputRegistration", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool AllowNotedInputRegistration { get; set; } = true;
 
-	[DefaultValueTimeSpan("0d 1h 0m 0s")]
-	[JsonProperty(PropertyName = "StandardInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan StandardInputRegistrationTimeout { get; set; } = TimeSpan.FromHours(1);
+	public TimeSpan StandardInputRegistrationTimeout { get; init; } = TimeSpan.FromHours(1);
 
-	[DefaultValueTimeSpan("0d 0h 3m 0s")]
-	[JsonProperty(PropertyName = "BlameInputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan BlameInputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
+	public TimeSpan BlameInputRegistrationTimeout { get; init; } = TimeSpan.FromMinutes(3);
 
-	[DefaultValueTimeSpan("0d 0h 1m 0s")]
-	[JsonProperty(PropertyName = "ConnectionConfirmationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan ConnectionConfirmationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-	[DefaultValueTimeSpan("0d 0h 1m 0s")]
-	[JsonProperty(PropertyName = "OutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan OutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-	[DefaultValueTimeSpan("0d 0h 1m 0s")]
-	[JsonProperty(PropertyName = "TransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan TransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-	[DefaultValueTimeSpan("0d 0h 3m 0s")]
-	[JsonProperty(PropertyName = "FailFastOutputRegistrationTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan FailFastOutputRegistrationTimeout { get; set; } = TimeSpan.FromMinutes(3);
 
-	[DefaultValueTimeSpan("0d 0h 1m 0s")]
-	[JsonProperty(PropertyName = "FailFastTransactionSigningTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public TimeSpan FailFastTransactionSigningTimeout { get; set; } = TimeSpan.FromMinutes(1);
 
-	[DefaultValueTimeSpan("0d 0h 5m 0s")]
-	[JsonProperty(PropertyName = "RoundExpiryTimeout", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public TimeSpan RoundExpiryTimeout { get; set; } = TimeSpan.FromMinutes(5);
+	public TimeSpan RoundExpiryTimeout { get; init; } = TimeSpan.FromMinutes(5);
 
-	[DefaultValue(100)]
-	[JsonProperty(PropertyName = "MaxInputCountByRound", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public int MaxInputCountByRound { get; set; } = 100;
 
-	[DefaultValue(0.5)]
-	[JsonProperty(PropertyName = "MinInputCountByRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double MinInputCountByRoundMultiplier { get; set; } = 0.5;
 
 	public int MinInputCountByRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByRoundMultiplier));
 
-	[DefaultValue(0.4)]
-	[JsonProperty(PropertyName = "MinInputCountByBlameRoundMultiplier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public double MinInputCountByBlameRoundMultiplier { get; set; } = 0.4;
 
 	public int MinInputCountByBlameRound => Math.Max(1, (int)(MaxInputCountByRound * MinInputCountByBlameRoundMultiplier));
 
-	[DefaultValue(375)]
-	[JsonProperty(PropertyName = "RoundDestroyerThreshold", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int RoundDestroyerThreshold { get; set; } = 375;
+	public int RoundDestroyerThreshold { get; init; } = 375;
 
-	[JsonProperty(PropertyName = "CoordinatorExtPubKey")]
-	public ExtPubKey CoordinatorExtPubKey { get; private set; } = NBitcoinHelpers.BetterParseExtPubKey(Constants.WabiSabiFallBackCoordinatorExtPubKey);
+	public ExtPubKey CoordinatorExtPubKey { get; init; } = NBitcoinHelpers.BetterParseExtPubKey(Constants.WabiSabiFallBackCoordinatorExtPubKey);
 
-	[DefaultValue(1)]
-	[JsonProperty(PropertyName = "CoordinatorExtPubKeyCurrentDepth", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int CoordinatorExtPubKeyCurrentDepth { get; private set; } = 1;
+	public int CoordinatorExtPubKeyCurrentDepth { get; set; } = 1;
 
-	[DefaultValueMoneyBtc("0.1")]
-	[JsonProperty(PropertyName = "MaxSuggestedAmountBase", DefaultValueHandling = DefaultValueHandling.Populate)]
-	[JsonConverter(typeof(MoneyBtcJsonConverter))]
-	public Money MaxSuggestedAmountBase { get; set; } = Money.Coins(0.1m);
+	public Money MaxSuggestedAmountBase { get; init; } = Money.Coins(0.1m);
 
-	[DefaultValue(1)]
-	[JsonProperty(PropertyName = "RoundParallelization", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public int RoundParallelization { get; set; } = 1;
+	public int RoundParallelization { get; init; } = 1;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancing", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool WW200CompatibleLoadBalancing { get; set; } = false;
+	public bool WW200CompatibleLoadBalancing { get; init; } = false;
 
-	[DefaultValue(0.75)]
-	[JsonProperty(PropertyName = "WW200CompatibleLoadBalancingInputSplit", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public double WW200CompatibleLoadBalancingInputSplit { get; set; } = 0.75;
+	public double WW200CompatibleLoadBalancingInputSplit { get; init; } = 0.75;
 
-	[DefaultValue("CoinJoinCoordinatorIdentifier")]
-	[JsonProperty(PropertyName = "CoordinatorIdentifier", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowP2wpkhInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2wpkhInputs { get; set; } = true;
+	public bool AllowP2wpkhInputs { get; init; } = true;
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowP2trInputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trInputs { get; set; } = true;
+	public bool AllowP2trInputs { get; init; } = true;
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowP2wpkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2wpkhOutputs { get; set; } = true;
+	public bool AllowP2wpkhOutputs { get; init; } = true;
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "AllowP2trOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2trOutputs { get; set; } = true;
+	public bool AllowP2trOutputs { get; init; } = true;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2pkhOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2pkhOutputs { get; set; } = false;
+	public bool AllowP2pkhOutputs { get; init; } = false;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2shOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2shOutputs { get; set; } = false;
+	public bool AllowP2shOutputs { get; init; } = false;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "AllowP2wshOutputs", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool AllowP2wshOutputs { get; set; } = false;
+	public bool AllowP2wshOutputs { get; init; } = false;
 
-	[DefaultValue(false)]
-	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool DelayTransactionSigning { get; set; } = false;
+	public bool DelayTransactionSigning { get; init; } = false;
 
-	[JsonProperty(PropertyName = "AnnouncerConfig")]
-	public AnnouncerConfig AnnouncerConfig { get; internal set; } = new();
+	public AnnouncerConfig AnnouncerConfig { get; set; } = new();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
 
@@ -265,4 +170,29 @@ public class WabiSabiConfig : ConfigBase
 
 		return scriptTypes.ToImmutableSortedSet();
 	}
+
+	public static WabiSabiConfig LoadFile(string filePath)
+	{
+		try
+		{
+			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
+			var decoder = Decode.FromStream(Decode.WabiSabiConfig(filePath));
+			var decodingResult = decoder(cfgFile);
+			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
+		}
+		catch (Exception ex)
+		{
+			var config = new WabiSabiConfig(filePath);
+			config.ToFile();
+			Logger.LogInfo($"{nameof(WabiSabiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogWarning(ex);
+			return config;
+		}
+	}
+
+	protected override string EncodeAsJson() =>
+		Encode.WabiSabiConfig(this).ToJsonString(new JsonSerializerOptions
+		{
+			WriteIndented = true
+		});
 }

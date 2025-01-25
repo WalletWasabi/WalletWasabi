@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
@@ -5,8 +6,6 @@ using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using Microsoft.OpenApi.Models;
 using NBitcoin;
 using NBitcoin.RPC;
@@ -15,23 +14,19 @@ using System.IO;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using WalletWasabi.Backend.Middlewares;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Cache;
-using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Statistics;
-using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
 [assembly: ApiController]
@@ -54,18 +49,13 @@ public class Startup
 		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
 		services.AddMemoryCache();
-
 		services.AddMvc(options =>
 			{
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(BitcoinAddress)));
-				options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
+				options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.BackendMessage));
 			})
 			.AddControllersAsServices();
 
-		services.AddMvc()
-			.AddNewtonsoftJson();
-
-		services.AddControllers().AddNewtonsoftJson(x => x.SerializerSettings.Converters = JsonSerializationOptions.Default.Settings.Converters);
+		services.AddControllers();
 
 		// Register the Swagger generator, defining one or more Swagger documents
 		services.AddSwaggerGen(c =>
@@ -88,8 +78,7 @@ public class Startup
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		string configFilePath = Path.Combine(dataDir, "Config.json");
-		Config config = new(configFilePath);
-		config.LoadFile(createIfMissing: true);
+		Config config = Config.LoadFile(configFilePath);
 		services.AddSingleton(serviceProvider => config );
 
 		services.AddSingleton<IdempotencyRequestCache>();

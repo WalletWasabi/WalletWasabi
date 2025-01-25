@@ -1,13 +1,12 @@
-using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -142,20 +141,11 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	}
 
 	private static string Serialize<T>(T obj)
-		=> JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
+		=> Encode.CoordinatorMessage(obj).ToJsonString();
 
 	private static TResponse Deserialize<TResponse>(string jsonString)
 	{
-		try
-		{
-			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserialization error");
-		}
-		catch
-		{
-			Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
-			throw;
-		}
+		return Decode.CoordinatorMessage<TResponse>(jsonString);
 	}
 
 	private static string GetUriEndPoint(RemoteAction action) =>
