@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -60,6 +61,17 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
 		VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
+		ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			int? heightToResync = await UiContext.Navigate().To().ResyncWallet().GetResultAsync();
+			if (heightToResync is not null)
+			{
+				walletModel.Settings.RescanWallet((int)heightToResync);
+				UiContext.Navigate(MetaData.NavigationTarget).Clear();
+				AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+			}
+		});
+
 		this.WhenAnyValue(x => x.DefaultSendWorkflow)
 			.Skip(1)
 			.Subscribe(value =>
@@ -104,6 +116,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
 
 	public ICommand VerifyRecoveryWordsCommand { get; }
+	public ICommand ResyncWalletCommand { get; }
 
 	private async Task OnRenameWalletAsync()
 	{

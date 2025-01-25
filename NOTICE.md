@@ -23,7 +23,7 @@ This project incorporates code and dependencies from the following open source p
 ## Ginger Wallet
 **License:** MIT License<br/>
 **Copyright:** Copyright (c) 2024 GingerPrivacy<br/>
-**Included:** Settings layout, Markdown integration & parts of Release Highlights feature<br/>
+**Included:** Settings layout, Markdown integration, Parts of Release Highlights feature, Most of the Resync Wallet feature.<br/>
 
 ## HWI (Hardware Wallet Interface)
 **License:** MIT License<br/>

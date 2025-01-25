@@ -1,0 +1,46 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.ResyncWalletView"
+             x:DataType="vm:ResyncWalletViewModel">
+  <UserControl.Styles>
+    <Style Selector="TextBox /template/ DataValidationErrors">
+      <Setter Property="MinHeight" Value="25" />
+    </Style>
+  </UserControl.Styles>
+  <ContentArea Title="{Binding Title}"
+               MaxWidth="550">
+    <QuestionControl YesCommand="{Binding NextCommand}"
+                     YesContent="Continue"
+                     NoCommand="{Binding CancelCommand}"
+                     NoContent="Cancel"
+                     HighlightButton="YesButton">
+      <QuestionControl.IconContent>
+        <Viewbox MaxHeight="100" Margin="0 0 0 20">
+          <PathIcon Data="{StaticResource sync}" Opacity="0.6" />
+        </Viewbox>
+      </QuestionControl.IconContent>
+      <StackPanel Spacing="15">
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="Resync your wallet to address any issues that occurred during the synchronization process."/>
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="This process restarts the software and will take some time."/>
+        <TextBlock
+          Margin="0 25 0 0"
+          TextWrapping="Wrap"
+          TextAlignment="Center"
+          Text="Optionally, specify a block height to start the resync from:"/>
+        <TextBox Text="{Binding StartingHeight}"
+                 Watermark="0"
+                 MaxWidth="125"
+                 MaxLength="8">
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
+        </TextBox>
+      </StackPanel>
+    </QuestionControl>
+  </ContentArea>
+
+</UserControl>

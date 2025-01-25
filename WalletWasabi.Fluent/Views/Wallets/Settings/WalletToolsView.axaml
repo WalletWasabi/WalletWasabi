@@ -7,19 +7,22 @@
              x:DataType="vm:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletToolsView">
+  <StackPanel Classes="settingsLayout" Spacing="20">
 
-  <StackPanel Spacing="20">
-    <TextBlock Classes="h6" Text="Have you checked your wallet backup?" />
-    <InfoMessage>
-      <DockPanel>
-        <Button Margin="50 0" Theme="{StaticResource AccentButton}" Command="{Binding VerifyRecoveryWordsCommand}" Content="Verify Recovery Words" DockPanel.Dock="Right" />
+    <DockPanel>
+      <ToolTip.Tip>
         <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
-      </DockPanel>
-    </InfoMessage>
-    <InfoMessage>
-      <DockPanel>
-        <TextBlock Text="Your passphrase is also required to restore your wallet, do not forget it." />
-      </DockPanel>
-    </InfoMessage>
+      </ToolTip.Tip>
+      <TextBlock Text="Verify Recovery Words" />
+      <Button Theme="{StaticResource AccentButton}" Command="{Binding VerifyRecoveryWordsCommand}" Content="Open" DockPanel.Dock="Right" />
+    </DockPanel>
+
+    <DockPanel>
+      <ToolTip.Tip>
+        <TextBlock Text="If your wallet is missing some confirmed transaction, try to resync." />
+      </ToolTip.Tip>
+      <TextBlock Text="Resync Wallet" />
+      <Button Theme="{StaticResource AccentButton}" Command="{Binding ResyncWalletCommand}" Content="Open" DockPanel.Dock="Right" />
+    </DockPanel>
   </StackPanel>
 </UserControl>
