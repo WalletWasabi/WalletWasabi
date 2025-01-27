@@ -131,6 +131,16 @@
         </Grid>
       </DockPanel>
 
+      <Separator IsVisible="{Binding IsConfirmed}" />
+
+      <!-- Block height -->
+      <PreviewItem Icon="{StaticResource block_height}"
+                     Label="Block height"
+                     CopyableContent="{Binding BlockHeight}"
+                     IsVisible="{Binding IsConfirmed}">
+        <TextBlock Text="{Binding BlockHeight}" />
+      </PreviewItem>
+
       <!-- Labels -->
       <Separator IsVisible="{Binding IsLabelsVisible}" />
       <PreviewItem IsVisible="{Binding IsLabelsVisible}"

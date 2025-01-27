@@ -23,6 +23,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private string? _amountText = "";
+	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string? _dateString;
@@ -74,6 +75,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	{
 		DateString = model.DateToolTipString;
 		Labels = model.Labels;
+		BlockHeight = model.BlockHeight;
 		Confirmations = model.Confirmations;
 		FeeRate = model.FeeRate;
 		IsFeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
