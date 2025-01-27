@@ -54,7 +54,7 @@ public partial class LoadingViewModel : RoutableViewModel
 			_ => $"{Math.Ceiling(hoursRemaining / 8760)} years"
 		};
 
-		StatusText = $"Synchronized: {currentHeight:N0} / {chainTip:N0}";
+		StatusText = $"Synchronized: {currentHeight:N0} / {chainTip:N0} blocks";
 		TimeToCatchUp = $"{remainingTimeString} of Bitcoin history remaining";
 	}
 }
