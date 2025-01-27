@@ -19,19 +19,14 @@ public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
-	private Stopwatch? _stopwatch;
-	private uint _filtersToDownloadCount;
-	private uint _filtersToProcessCount;
-	private uint _filterProcessStartingHeight;
-	private uint _filterProcessCurrentTipHeight;
-	private Subject<(double PercentComplete, TimeSpan TimeRemaining)> _progress;
+	private Subject<(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percent)> _progress;
 	[AutoNotify] private bool _isLoading;
 
 	public WalletLoadWorkflow(Wallet wallet)
 	{
 		_wallet = wallet;
 		_progress = new();
-		_progress.OnNext((0, TimeSpan.Zero));
+		_progress.OnNext((0, 0, 0, 0));
 
 		LoadCompleted =
 			Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
@@ -41,19 +36,15 @@ public partial class WalletLoadWorkflow
 					.ToSignal();
 	}
 
-	public IObservable<(double PercentComplete, TimeSpan TimeRemaining)> Progress => _progress;
+	public IObservable<(uint RemainingFiltersToDownload, uint CurrentHeight, uint ChainTip, double Percent)> Progress => _progress;
 
 	public IObservable<Unit> LoadCompleted { get; }
 
-	private uint TotalCount => _filtersToProcessCount + _filtersToDownloadCount;
-
+	private uint InitialHeight { get; set; }
 	private uint RemainingFiltersToDownload => (uint)Services.SmartHeaderChain.HashesLeft;
 
 	public void Start()
 	{
-		_stopwatch = Stopwatch.StartNew();
-		_disposables.Add(Disposable.Create(_stopwatch.Stop));
-
 		Observable.FromAsync(() => Services.HostedServices.Get<WasabiSynchronizer>().InitialRequestTcs.Task)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(LoadWalletAsync)
@@ -64,9 +55,7 @@ public partial class WalletLoadWorkflow
 				.Subscribe(
 					_ =>
 					{
-						UpdateCurrentTipHeight();
-						var processedCount = GetCurrentProcessedCount();
-						UpdateProgress(processedCount);
+						UpdateProgress();
 					})
 				.DisposeWith(_disposables);
 	}
@@ -117,75 +106,23 @@ public partial class WalletLoadWorkflow
 		// Wait until "client tip height" is initialized.
 		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
-		_filtersToDownloadCount = (uint)Services.SmartHeaderChain.HashesLeft;
+		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight(SyncType.Turbo).Value;
+	}
 
-		uint serverTipHeight = Services.SmartHeaderChain.ServerTipHeight;
-		uint clientTipHeight = Services.SmartHeaderChain.TipHeight;
+	private void UpdateProgress()
+	{
+		var serverTipHeight = Services.SmartHeaderChain.ServerTipHeight;
+		var clientTipHeight = Services.SmartHeaderChain.TipHeight;
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		var startingHeight = SmartHeader.GetStartingHeader(_wallet.Network).Height;
-		var bestHeight = (uint)_wallet.KeyManager.GetBestHeight(SyncType.Complete).Value;
-		_filterProcessStartingHeight = bestHeight < startingHeight ? startingHeight : bestHeight;
-
-		_filtersToProcessCount = tipHeight - _filterProcessStartingHeight;
-		_filterProcessCurrentTipHeight = tipHeight;
-	}
-
-	private uint GetCurrentProcessedCount()
-	{
-		uint downloadedFilters = 0;
-		if (_filtersToDownloadCount > 0)
-		{
-			downloadedFilters = _filtersToDownloadCount - RemainingFiltersToDownload;
-		}
-
-		uint processedFilters = 0;
-		if (_wallet.LastProcessedFilter?.Header?.Height is { } lastProcessedFilterHeight)
-		{
-			processedFilters = lastProcessedFilterHeight - _filterProcessStartingHeight - 1;
-		}
-
-		var processedCount = downloadedFilters + processedFilters;
-
-		return processedCount;
-	}
-
-	private void UpdateCurrentTipHeight()
-	{
-		var smartHeaderChainTipHeight = Services.SmartHeaderChain.TipHeight;
-		if (_filtersToProcessCount == 0 || smartHeaderChainTipHeight == _filterProcessCurrentTipHeight)
+		if (_wallet.LastProcessedFilter is null || tipHeight == 0)
 		{
 			return;
 		}
 
-		_filtersToProcessCount += smartHeaderChainTipHeight - _filterProcessCurrentTipHeight;
-		_filterProcessCurrentTipHeight = smartHeaderChainTipHeight;
-	}
+		var currentheight = _wallet.LastProcessedFilter.Header.Height;
+		var percentProgress = 100 * ((currentheight - InitialHeight) / (double)(tipHeight - InitialHeight));
 
-	private void UpdateProgress(uint processedCount)
-	{
-		if (TotalCount == 0 || processedCount == 0 || processedCount > TotalCount || _stopwatch is null)
-		{
-			return;
-		}
-
-		var percent = (decimal)processedCount / TotalCount * 100;
-		var remainingCount = TotalCount - processedCount;
-		var tempPercent = (uint)Math.Round(percent);
-
-		if (tempPercent == 0)
-		{
-			return;
-		}
-
-		var remainingMilliseconds = (double)_stopwatch.ElapsedMilliseconds / processedCount * remainingCount;
-		var remainingTimeSpan = TimeSpan.FromMilliseconds(remainingMilliseconds);
-
-		if (remainingTimeSpan > TimeSpan.FromHours(1))
-		{
-			remainingTimeSpan = new TimeSpan(remainingTimeSpan.Days, remainingTimeSpan.Hours, remainingTimeSpan.Minutes, seconds: 0);
-		}
-
-		_progress.OnNext((tempPercent, remainingTimeSpan));
+		_progress.OnNext((RemainingFiltersToDownload, currentheight, tipHeight, percentProgress));
 	}
 }
