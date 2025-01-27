@@ -111,6 +111,22 @@ public partial class HistoryViewModel : ActivatableViewModel
 			});
 	}
 
+	private static IColumn<HistoryItemViewModelBase> BalanceColumn()
+	{
+		return new TemplateColumn<HistoryItemViewModelBase>(
+			null,
+			new FuncDataTemplate<HistoryItemViewModelBase>((x, _) => new BalanceColumnView(), true),
+			null,
+			new GridLength(170, GridUnitType.Pixel),
+			new TemplateColumnOptions<HistoryItemViewModelBase>
+			{
+				CanUserResizeColumn = false,
+				CanUserSortColumn = true,
+				CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.Balance),
+				CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.Balance)
+			});
+	}
+
 	private IColumn<HistoryItemViewModelBase> ActionsColumn()
 	{
 		return new TemplateColumn<HistoryItemViewModelBase>(
@@ -147,7 +163,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
-			    cjGroup.Children.FirstOrDefault(x => x.Transaction.Id == txid) is { } child)
+				cjGroup.Children.FirstOrDefault(x => x.Transaction.Id == txid) is { } child)
 			{
 				txnItem.IsExpanded = true;
 				child.IsFlashing = true;
@@ -196,6 +212,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				IndicatorsColumn(),
 				DateColumn(),
 				AmountColumn(),
+				BalanceColumn(),
 				LabelsColumn(),
 				ActionsColumn(),
 			}
@@ -208,7 +225,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 			new SortableItem("Status") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[0], ListSortDirection.Descending)) },
 			new SortableItem("Date") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[1], ListSortDirection.Descending)) },
 			new SortableItem("Amount") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[2], ListSortDirection.Descending)) },
-			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+			new SortableItem("Balance") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[3], ListSortDirection.Descending)) },
+			new SortableItem("Label") { SortByAscendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Ascending)), SortByDescendingCommand = ReactiveCommand.Create(() => Source!.SortBy(Source.Columns[4], ListSortDirection.Descending)) },
 		];
 	}
 
