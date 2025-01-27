@@ -1015,6 +1015,12 @@ Mozilla/5.0 (iPhone; CPU iPhone OS 8_4 like Mac OS X) AppleWebKit/600.1.4 (KHTML
 		var constantUserAgent = GetNew(Random.Shared.Next());
 		return constant
 			? () => constantUserAgent
-			: () => UserAgent.GetNew(Random.Shared.Next());
+			: () => TrimUserAgent(UserAgent.GetNew(Random.Shared.Next()));
+	}
+
+	// On Windows, the \r is not removed from the end of the random User-Agent when the request is sent on clearnet.
+	public static string TrimUserAgent(string userAgent)
+	{
+		return userAgent.Replace("\r", "");
 	}
 }

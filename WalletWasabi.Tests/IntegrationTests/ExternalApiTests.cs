@@ -47,6 +47,7 @@ public class ExternalApiTests
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = new FeeRateProvider(new HttpClientFactory());
 		var userAgent = WebClients.UserAgent.GetNew(Random.Shared.Next());
+		userAgent = WebClients.UserAgent.TrimUserAgent(userAgent);
 		var estimations = await provider.GetFeeRateEstimationsAsync(providerName, userAgent, timeoutCts.Token).ConfigureAwait(false);
 		Assert.NotEmpty(estimations.Estimations);
 	}
