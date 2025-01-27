@@ -8,15 +8,14 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 public partial class ManualCoinJoinSettingsViewModel : ViewModelBase
 {
 	[AutoNotify] private bool _redCoinIsolation;
-	[AutoNotify] private CoinjoinSkipFactors _skipFactors;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
+	[AutoNotify] private bool _newWalletWorkflow;
 
 	public ManualCoinJoinSettingsViewModel(CoinJoinProfileViewModelBase current)
 	{
 		_redCoinIsolation = current.RedCoinIsolation;
-		_skipFactors = current.SkipFactors;
 
 		_anonScoreTarget = current.AnonScoreTarget;
 

@@ -5,10 +5,10 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -40,7 +40,6 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
-		using Backend.Global global = setup.Global;
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
@@ -48,7 +47,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 		// Create the services.
 		// 1. Create connection service.
-		NodesGroup nodes = new(global.Config.Network, requirements: Constants.NodeRequirements);
+		NodesGroup nodes = new(setup.Network, requirements: Constants.NodeRequirements);
 		nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
 
 		// 2. Create mempool service.
@@ -59,7 +58,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		HybridFeeProvider feeProvider = new(synchronizer, null);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -257,7 +256,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction));
 
 			// Nonsense to cancel self spend.
-			txToCancel = wallet.BuildChangelessTransaction(wallet.GetNextReceiveAddress(new[] { "foo " }, ScriptPubKeyType.Segwit).GetAssumedScriptPubKey().GetDestination()!, "foo", new FeeRate(1m), wallet.Coins.Select(x => x.Outpoint));
+			txToCancel = wallet.BuildChangelessTransaction(wallet.GetNextReceiveAddress(new[] { "foo " }, ScriptPubKeyType.Segwit).GetAssumedScriptPubKey(), "foo", new FeeRate(1m), wallet.Coins.Select(x => x.Outpoint));
 			await broadcaster.SendTransactionAsync(txToCancel.Transaction);
 
 			Assert.Equal("Transaction is not cancellable.", Assert.Throws<InvalidOperationException>(() => wallet.CancelTransaction(txToCancel.Transaction)).Message);

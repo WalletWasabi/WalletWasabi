@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
@@ -55,8 +56,6 @@ public partial class WalletModel : ReactiveObject
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
-		BuyAnything = new BuyAnythingModel(Wallet);
-
 		Balances = Transactions.TransactionProcessed
 			.Select(_ => Wallet.Coins.TotalAmount())
 			.Select(AmountProvider.Create);
@@ -101,6 +100,8 @@ public partial class WalletModel : ReactiveObject
 
 	public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => Wallet.KeyManager.AvailableScriptPubKeyTypes;
 
+	public bool SeveralReceivingScriptTypes => AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
+
 	public IWalletTransactionsModel Transactions { get; }
 
 	public IObservable<Amount> Balances { get; }
@@ -122,8 +123,6 @@ public partial class WalletModel : ReactiveObject
 	public IObservable<WalletState> State { get; }
 
 	public IAmountProvider AmountProvider { get; }
-
-	public IBuyAnythingModel BuyAnything { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 

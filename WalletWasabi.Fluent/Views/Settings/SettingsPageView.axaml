@@ -13,7 +13,9 @@
   <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"
+                 EnableCancel="{Binding !IsReadOnly}"
                  NextContent="Done"
+                 CancelContent="Reset All Settings"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
 
@@ -55,9 +57,9 @@
           </ScrollViewer>
         </TabItem>
 
-        <TabItem Header="Advanced">
+        <TabItem Header="Connections">
           <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
-            <v:AdvancedSettingsTabView DataContext="{Binding AdvancedSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
+            <v:ConnectionsSettingsTabView DataContext="{Binding ConnectionsSettingsTab}" IsEnabled="{Binding !IsReadOnly}" />
           </ScrollViewer>
         </TabItem>
 

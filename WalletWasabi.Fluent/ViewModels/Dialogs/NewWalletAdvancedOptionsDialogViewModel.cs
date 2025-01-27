@@ -10,8 +10,10 @@ public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBa
 	public NewWalletAdvancedOptionsDialogViewModel(CoinJoinProfileViewModelBase currentProfile, bool isAutoCoinjoinEnabled)
 	{
 		IsAutoCoinjoinEnabled = isAutoCoinjoinEnabled;
-		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(currentProfile);
-
+		CoinjoinAdvancedSettings = new ManualCoinJoinSettingsViewModel(currentProfile)
+		{
+			NewWalletWorkflow = true
+		};
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;
@@ -22,9 +24,8 @@ public partial class NewWalletAdvancedOptionsDialogViewModel : DialogViewModelBa
 				var isolateRed = CoinjoinAdvancedSettings.RedCoinIsolation;
 				var target = CoinjoinAdvancedSettings.AnonScoreTarget;
 				var hours = (int)Math.Floor(CoinjoinAdvancedSettings.SelectedTimeFrame.TimeFrame.TotalHours);
-				var skipFactors = CoinjoinAdvancedSettings.SkipFactors;
 
-				Close(DialogResultKind.Normal, new Result(new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed, skipFactors)), IsAutoCoinjoinEnabled));
+				Close(DialogResultKind.Normal, new Result(new ManualCoinJoinProfileDialogViewModel.ManualCoinJoinProfileDialogViewModelResult(new ManualCoinJoinProfileViewModel(target, hours, isolateRed)), IsAutoCoinjoinEnabled));
 			});
 	}
 

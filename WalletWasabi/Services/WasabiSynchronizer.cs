@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Models;
@@ -20,10 +19,8 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThirdPartyFeeProvider, IWasabiBackendStatusProvider
+public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
-	private decimal _usdExchangeRate;
-
 	private TorStatus _torStatus;
 
 	private BackendStatus _backendStatus;
@@ -45,8 +42,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	public event EventHandler<SynchronizeResponse>? ResponseArrived;
 
-	public event EventHandler<AllFeeEstimate>? AllFeeEstimateArrived;
-
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
@@ -54,13 +49,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 
 	public SynchronizeResponse? LastResponse { get; private set; }
 	public HttpClient HttpClient { get; }
-
-	/// <summary>Gets the Bitcoin price in USD.</summary>
-	public decimal UsdExchangeRate
-	{
-		get => _usdExchangeRate;
-		private set => RaiseAndSetIfChanged(ref _usdExchangeRate, value);
-	}
 
 	public TorStatus TorStatus
 	{
@@ -91,10 +79,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 	private readonly int _maxFiltersToSync;
 	private readonly SmartHeaderChain _smartHeaderChain;
 	private readonly FilterProcessor _filterProcessor;
-
-	public AllFeeEstimate? LastAllFeeEstimate => LastResponse?.AllFeeEstimate;
-
-	public bool InError => BackendStatus != BackendStatus.Connected;
 
 	#endregion EventsPropertiesMembers
 
@@ -176,20 +160,10 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IThird
 				TriggerRound();
 			}
 
-			ExchangeRate? exchangeRate = response.ExchangeRates.FirstOrDefault();
-			if (exchangeRate is { Rate: > 0 })
-			{
-				UsdExchangeRate = exchangeRate.Rate;
-			}
-
 			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
 
 			LastResponse = response;
 			ResponseArrived?.Invoke(this, response);
-			if (response.AllFeeEstimate is { } allFeeEstimate)
-			{
-				AllFeeEstimateArrived?.Invoke(this, allFeeEstimate);
-			}
 		}
 		catch (HttpRequestException)
 		{

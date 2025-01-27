@@ -37,6 +37,8 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Fluent", "Wall
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Daemon", "WalletWasabi.Daemon\WalletWasabi.Daemon.csproj", "{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Coordinator", "WalletWasabi.Coordinator\WalletWasabi.Coordinator.csproj", "{1D23E39D-8367-4ADB-9445-76B6546096B0}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -106,6 +108,14 @@ Global
 		{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}.Release|Any CPU.Build.0 = Release|Any CPU
 		{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}.Release|x64.ActiveCfg = Release|Any CPU
 		{29599048-B3F1-48B9-AEBB-1A32D64BC4F5}.Release|x64.Build.0 = Release|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Debug|x64.ActiveCfg = Debug|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Debug|x64.Build.0 = Debug|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Release|x64.ActiveCfg = Release|Any CPU
+		{1D23E39D-8367-4ADB-9445-76B6546096B0}.Release|x64.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

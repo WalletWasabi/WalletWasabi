@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
@@ -19,6 +18,7 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Wallets.FilterProcessor;
 using System.Threading;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
@@ -41,6 +41,7 @@ public class WalletBuilder : IAsyncDisposable
 		var httpClientFactory = new HttpClientFactory();
 		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, httpClientFactory);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
+		FeeRateEstimationUpdater = new(TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
 	}
 
 	private IndexStore IndexStore { get; }
@@ -49,6 +50,7 @@ public class WalletBuilder : IAsyncDisposable
 	private MemoryCache Cache { get; }
 	private WasabiSynchronizer Synchronizer { get; }
 	private BlockDownloadService BlockDownloadService { get; }
+	private FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
 	public IEnumerable<FilterModel> Filters { get; }
 	public string DataDir { get; }
 
@@ -63,9 +65,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		HybridFeeProvider feeProvider = new(Synchronizer, null);
-
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, feeProvider, BlockDownloadService);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, FeeRateEstimationUpdater, BlockDownloadService);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
@@ -76,5 +76,6 @@ public class WalletBuilder : IAsyncDisposable
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		BlockDownloadService.Dispose();
 		Cache.Dispose();
+		FeeRateEstimationUpdater.Dispose();
 	}
 }

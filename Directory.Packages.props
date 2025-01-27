@@ -5,6 +5,7 @@
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
+    <PackageVersion Include="Markdown.Avalonia" Version="11.0.3-a1" />
     <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
@@ -29,7 +30,7 @@
     <!-- Version 8.0.3 contains a vulnerability, manually bumped to 8.0.4. -->
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
-    <PackageVersion Include="NBitcoin" Version="7.0.27" />
+    <PackageVersion Include="NBitcoin" Version="7.0.46" />
     <!-- Backend. -->
     <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <!-- UI. -->

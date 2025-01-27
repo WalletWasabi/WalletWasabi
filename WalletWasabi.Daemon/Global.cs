@@ -13,7 +13,6 @@ using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Endpointing;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -31,13 +30,11 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.BlockstreamInfo;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.BuyAnything;
-using WalletWasabi.WebClients.BuyAnything;
-using WalletWasabi.WebClients.ShopWare;
 using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
+using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.FeeRateEstimation;
 
 namespace WalletWasabi.Daemon;
 
@@ -113,6 +110,7 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
+		RegisterExchangeRateProviders();
 		RegisterFeeRateProviders();
 
 		// Block providers.
@@ -140,7 +138,7 @@ public class Global
 			BitcoinStore,
 			wasabiSynchronizer,
 			config.ServiceConfiguration,
-			HostedServices.Get<HybridFeeProvider>(),
+			HostedServices.Get<FeeRateEstimationUpdater>(),
 			_blockDownloadService,
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
 
@@ -260,15 +258,6 @@ public class Global
 						await CreateSleepInhibitorAsync().ConfigureAwait(false);
 					}
 				}
-
-				var apiKey = "SWSCU3LIYWVHVXRVYJJNDLJZBG";
-				var uri = new Uri("https://shopinbit.com/store-api/");
-				ShopWareApiClient shopWareApiClient = new(ExternalSourcesHttpClientFactory.CreateClient("long-live-shopinbit"), uri, apiKey);
-
-				BuyAnythingClient buyAnythingClient = new(shopWareApiClient);
-				HostedServices.Register<BuyAnythingManager>(() => new BuyAnythingManager(DataDir, TimeSpan.FromSeconds(5), buyAnythingClient), "BuyAnythingManager");
-				var buyAnythingManager = HostedServices.Get<BuyAnythingManager>();
-				await buyAnythingManager.EnsureConversationsAreLoadedAsync(cancel).ConfigureAwait(false);
 
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
@@ -392,14 +381,16 @@ public class Global
 	{
 		HostedServices.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode), "Block Notifier");
 		HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), coreNode.RpcClient), "RPC Monitor");
-		HostedServices.Register<RpcFeeProvider>(() => new RpcFeeProvider(TimeSpan.FromMinutes(1), coreNode.RpcClient, HostedServices.Get<RpcMonitor>()), "RPC Fee Provider");
 	}
 
 	private void RegisterFeeRateProviders()
 	{
-		HostedServices.Register<BlockstreamInfoFeeProvider>(() => new BlockstreamInfoFeeProvider(TimeSpan.FromMinutes(3), new(Network, ExternalSourcesHttpClientFactory)) { IsPaused = true }, "Blockstream.info Fee Provider");
-		HostedServices.Register<ThirdPartyFeeProvider>(() => new ThirdPartyFeeProvider(TimeSpan.FromSeconds(1), HostedServices.Get<WasabiSynchronizer>(), HostedServices.Get<BlockstreamInfoFeeProvider>()), "Third Party Fee Provider");
-		HostedServices.Register<HybridFeeProvider>(() => new HybridFeeProvider(HostedServices.Get<ThirdPartyFeeProvider>(), HostedServices.GetOrDefault<RpcFeeProvider>()), "Hybrid Fee Provider");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
+	}
+
+	private void RegisterExchangeRateProviders()
+	{
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
 	}
 
 	private void RegisterCoinJoinComponents(Uri coordinatorUri)

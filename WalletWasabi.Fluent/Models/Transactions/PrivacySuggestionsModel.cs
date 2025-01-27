@@ -14,17 +14,21 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
 [AutoInterface]
 public partial class PrivacySuggestionsModel
 {
-	private const decimal MaximumDifferenceTolerance = 0.25m;
-	private const int ConsolidationTolerance = 10;
+	private const decimal MaximumDifferenceTolerance = Constants.BnBMaximumDifferenceTolerance;
+
+	private const decimal LargePortionSpentTolerance = 0.9m;
+	private static readonly Money LargePortionSpentMinAmount = new (1_000_000L);
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
 	private readonly object _lock = new();
@@ -34,6 +38,7 @@ public partial class PrivacySuggestionsModel
 
 	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
+	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
@@ -43,6 +48,7 @@ public partial class PrivacySuggestionsModel
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
 		_cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
 	}
 
 	/// <summary>
@@ -70,7 +76,7 @@ public partial class PrivacySuggestionsModel
 		{
 			result.Add(VerifyLabels(parameters));
 			result.Add(VerifyPrivacyLevel(parameters));
-			result.Add(VerifyConsolidation(parameters));
+			result.Add(VerifyLargePercentSpent(parameters));
 			result.Add(VerifyUnconfirmedInputs(parameters));
 			result.Add(VerifyCoinjoiningInputs(parameters));
 			foreach (var item in result)
@@ -175,7 +181,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		var usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -219,13 +225,24 @@ public partial class PrivacySuggestionsModel
 		}
 	}
 
-	private IEnumerable<PrivacyItem> VerifyConsolidation(Parameters parameters)
+	private IEnumerable<PrivacyItem> VerifyLargePercentSpent(Parameters parameters)
 	{
-		var consolidatedCoins = parameters.Transaction.SpentCoins.Count();
-		if (consolidatedCoins > ConsolidationTolerance)
+		// No need to check this warning if a Red Coin is selected.
+		if(parameters.Transaction.SpentCoins.Any(x => x.GetPrivacyLevel(_wallet.AnonScoreTarget) == PrivacyLevel.NonPrivate))
 		{
-			yield return new ConsolidationWarning(ConsolidationTolerance);
+			yield break;
 		}
+
+		var spentAmount = parameters.Transaction.SpentCoins.Sum(x => x.Amount);
+		var walletBalance = _wallet.Coins.TotalAmount().Satoshi;
+
+		if (spentAmount <= LargePortionSpentMinAmount || spentAmount <= walletBalance * LargePortionSpentTolerance)
+		{
+			yield break;
+		}
+
+		var spentPercentage = (int)(spentAmount * 100m / walletBalance);
+		yield return new LargePercentSpentWarning(spentPercentage);
 	}
 
 	private IEnumerable<PrivacyItem> VerifyUnconfirmedInputs(Parameters parameters)
@@ -246,7 +263,8 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != parameters.TransactionInfo.Destination.ScriptPubKey);
+		var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
+		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
 
 		if (hasChange)
 		{
@@ -269,10 +287,10 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _wallet.Synchronizer.UsdExchangeRate;
+		decimal usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 
-		// Only allow to create 1 more input with BnB. This accounts for the change created.
-		int maxInputCount = transaction.SpentCoins.Count() + 1;
+		// Only allow to create 2 more inputs with BnB.
+		int maxInputCount = transaction.SpentCoins.Count() + 2;
 
 		var pockets = _sendFlow.GetPockets();
 		var spentCoins = transaction.SpentCoins;
@@ -283,7 +301,7 @@ public partial class PrivacySuggestionsModel
 		var coinsInCoinJoin = _cjManager?.CoinsInCriticalPhase[_wallet.WalletId] ?? [];
 		coinsToUse = spentCoins.Any(coinsInCoinJoin.Contains) ? coinsToUse : coinsToUse.Except(coinsInCoinJoin).ToImmutableArray();
 
-		// If the original transaction only using confirmed coins, BnB can use only them too. Otherwise let unconfirmed oins stay in the list.
+		// If the original transaction is using only confirmed coins, BnB can use only them too. Otherwise let unconfirmed coins stay in the list.
 		if (spentCoins.All(x => x.Confirmed))
 		{
 			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
@@ -338,11 +356,11 @@ public partial class PrivacySuggestionsModel
 			ChangelessTransactionCoinSelector.GetAllStrategyResultsAsync(
 				coinsToUse,
 				transactionInfo.FeeRate,
-				new TxOut(transactionInfo.Amount, transactionInfo.Destination),
+				new TxOut(transactionInfo.Amount, transactionInfo.Destination.GetScriptPubKey()),
 				maxInputCount,
 				cancellationToken);
 
-		await foreach (IEnumerable<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
+		await foreach (IReadOnlyList<SmartCoin> selection in selectionsTask.ConfigureAwait(false))
 		{
 			BuildTransactionResult? transaction = null;
 
@@ -384,6 +402,7 @@ public partial class PrivacySuggestionsModel
 
 		try
 		{
+			// TODO: Verify the subtract fee change
 			txn = _wallet.BuildTransaction(
 				transactionInfo.Destination,
 				transactionInfo.Amount,

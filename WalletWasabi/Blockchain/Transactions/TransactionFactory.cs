@@ -1,11 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using NBitcoin.Policy;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -120,18 +118,18 @@ public class TransactionFactory
 
 		if (payments.TryGetCustomRequest(out DestinationRequest? customChange))
 		{
-			var changeScript = GetScriptPubKey(customChange.Destination);
+			var changeScript = customChange.Destination.GetScriptPubKey();
 			KeyManager.TryGetKeyForScriptPubKey(changeScript, out HdPubKey? hdPubKey);
 			changeHdPubKey = hdPubKey;
 
 			var changeStrategy = payments.ChangeStrategy;
 			if (changeStrategy == ChangeStrategy.Custom)
 			{
-				builder.SetChange(changeScript);
+				builder.SetChange(customChange.Destination);
 			}
 			else if (changeStrategy == ChangeStrategy.AllRemainingCustom)
 			{
-				builder.SendAllRemaining(changeScript);
+				builder.SendAllRemaining(customChange.Destination);
 			}
 			else
 			{
@@ -157,7 +155,7 @@ public class TransactionFactory
 			.Select(t =>
 				(label: t.Labels,
 					destination: t.Destination,
-					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == GetScriptPubKey(t.Destination))?.Value))
+					amount: psbt.Outputs.FirstOrDefault(o => o.ScriptPubKey == t.Destination.GetScriptPubKey())?.Value))
 			.Where(x => x.amount is not null);
 
 		if (!psbt.TryGetFee(out var fee))
@@ -181,7 +179,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(GetScriptPubKey(x.destination))).Sum(x => x.amount);
+			totalOutgoingAmountNoFee = realToSend.Where(x => !changeHdPubKey.ContainsScript(x.destination.GetScriptPubKey())).Sum(x => x.amount);
 		}
 
 		decimal totalOutgoingAmountNoFeeDecimal = totalOutgoingAmountNoFee.ToDecimal(MoneyUnit.BTC);
@@ -220,8 +218,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			IEnumerable<ExtKey> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
+			IEnumerable<Key> signingKeys = KeyManager.GetSecrets(_password, spentCoins.Select(x => x.ScriptPubKey).ToArray());
 			builder = builder.AddKeys(signingKeys.ToArray());
+
 			psbt = builder.SolveSilentPayment(psbt);
 			builder.SignPSBT(psbt);
 
@@ -272,7 +271,7 @@ public class TransactionFactory
 
 		foreach (var coin in smartTransaction.WalletOutputs)
 		{
-			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => GetScriptPubKey(x.Destination) == coin.ScriptPubKey);
+			var foundPaymentRequest = payments.Requests.FirstOrDefault(x => x.Destination.GetScriptPubKey() == coin.ScriptPubKey);
 
 			// If change then we concatenate all the labels.
 			// The foundKeyLabel has already been added previously, so no need to concatenate.
@@ -290,15 +289,6 @@ public class TransactionFactory
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
-
-		static Script GetScriptPubKey(Destination destination) =>
-			destination switch
-			{
-				Destination.Loudly l => l.ScriptPubKey,
-				Destination.Silent s => s.FakeScriptPubKey,
-				_ => throw new ArgumentException("Unknow destination type")
-			};
-
 	}
 
 	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilderWithSilentPaymentSupport builder, PSBT psbt, HdPubKey changeHdPubKey)
@@ -335,7 +325,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
 	private int _substractFeeFrom = 0;
-	private ExtKey[] _keys;
+	private Key[] _keys;
 
 	public bool OptInRBF
 	{
@@ -384,14 +374,36 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		_builder.SubtractFees();
 	}
 
-	public void SetChange(Script changeScript)
+	public void SetChange(Destination destination)
 	{
-		_builder.SetChange(changeScript);
+		switch (destination)
+		{
+			case Destination.Loudly l:
+				_builder.SetChange(l.ScriptPubKey);
+				break;
+			case Destination.Silent s:
+			{
+				_builder.SetChange(s.FakeScriptPubKey);
+				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+				break;
+			}
+		}
 	}
 
-	public void SendAllRemaining(Script script)
+	public void SendAllRemaining(Destination destination)
 	{
-		_builder.SendAllRemaining(script);
+		switch (destination)
+		{
+			case Destination.Loudly l:
+				_builder.SendAllRemaining(l.ScriptPubKey);
+				break;
+			case Destination.Silent s:
+			{
+				_builder.SendAllRemaining(s.FakeScriptPubKey);
+				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+				break;
+			}
+		}
 	}
 
 	public void SendEstimatedFees(FeeRate feeRate)
@@ -409,7 +421,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		return _builder.EstimateSize(tx, virtualSize);
 	}
 
-	public TransactionBuilderWithSilentPaymentSupport AddKeys(ExtKey[] keys)
+	public TransactionBuilderWithSilentPaymentSupport AddKeys(Key[] keys)
 	{
 		_keys = keys;
 		_builder.AddKeys(keys);
@@ -430,21 +442,32 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 	{
 		var keys = _keys;
 
-		Key GetKeyForScriptPubKey(Script spk) =>
-			keys.Select(k => (Key: k.PrivateKey, PubKey: k.GetPublicKey()))
-				.First(x =>
-					x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk ||
-					x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
-				.Key;
+		Key GetKeyForScriptPubKey(Script spk)
+		{
+			foreach (var key in keys)
+			{
+				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86) == spk)
+				{
+					return key.Tweak();
+				}
+				if (key.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit) == spk)
+				{
+					return key;
+				}
+			}
 
-		var spentCoins = psbt.Inputs.Select(x => x.GetCoin()).Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey));
-		using var partialSecret = SilentPayment.ComputePartialSecret(spentCoins);
-		var paymentAddresses = _silentPayments.Select(x => x.Value.ToWip(network));
+			throw new InvalidOperationException("Key not found for script pub key");
+		}
+
+		var spentCoins = psbt.Inputs
+			.Select(x => x.GetCoin())
+			.Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey))
+			.ToArray();
+		var paymentAddresses = _silentPayments.Select(x => x.Value);
 		var scriptPubKeys = SilentPayment
-			.GetPubKeys(paymentAddresses, partialSecret, network)
+			.GetPubKeys(paymentAddresses, spentCoins)
 			.Select(x => (SilentPaymentAddress: x.Key, SilentPaymentPubKey: x.Value.First()))
-			.Select(x => (x.SilentPaymentAddress, XOnlyPubKey: x.SilentPaymentPubKey.PubKey))
-			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.XOnlyPubKey.ToBytes())))
+			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.SilentPaymentPubKey.ToBytes())))
 			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
 
 		var tx = psbt.GetOriginalTransaction();

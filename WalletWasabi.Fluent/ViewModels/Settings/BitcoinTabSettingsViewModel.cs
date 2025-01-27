@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Globalization;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
@@ -20,8 +19,8 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords =
 	[
-		"Settings", "Bitcoin", "Network", "Main", "TestNet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-		"P2P", "Endpoint", "Dust", "Threshold", "BTC"
+		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
+		"Stop", "Shutdown", "P2P", "Endpoint", "Dust", "Threshold"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
@@ -41,6 +40,9 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
 			.Subscribe(x => BitcoinP2PEndPoint = x);
+
+		this.WhenAnyValue(x => x.Settings.DustThreshold)
+			.Subscribe(x => DustThreshold = x);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;

@@ -45,6 +45,8 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
 	[AutoNotify] private string _bitcoinP2PEndPoint;
 	[AutoNotify] private string _dustThreshold;
+	[AutoNotify] private string _exchangeRateProvider;
+	[AutoNotify] private string _feeRateEstimationProvider;
 
 	// Coordinator
 	[AutoNotify] private string _mainNetCoordinatorUri;
@@ -69,6 +71,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private bool _privacyMode;
 
 	[AutoNotify] private bool _oobe;
+	[AutoNotify] private Version _lastVersionHighlightsDisplayed;
 	[AutoNotify] private WindowState _windowState;
 
 	// Non-persistent
@@ -82,43 +85,56 @@ public partial class ApplicationSettings : ReactiveObject
 		_config = config;
 		_uiConfig = uiConfig;
 
-		// Advanced
-		_enableGpu = _startupConfig.EnableGpu;
-		_backendUri = _startupConfig.GetBackendUri();
+		ApplyConfigs(persistentConfig, uiConfig);
+		SetupObservables();
+	}
+
+	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
+	{
+		// Connections
+		BackendUri = persistentConfig.GetBackendUri();
+		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
+		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
 
 		// Bitcoin
-		_network = config.Network;
-		_startLocalBitcoinCoreOnStartup = _startupConfig.StartLocalBitcoinCoreOnStartup;
-		_localBitcoinCoreDataDir = _startupConfig.LocalBitcoinCoreDataDir;
-		_stopLocalBitcoinCoreOnShutdown = _startupConfig.StopLocalBitcoinCoreOnShutdown;
-		_bitcoinP2PEndPoint = _startupConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
-		_dustThreshold = _startupConfig.DustThreshold.ToString();
+		Network = persistentConfig.Network;
+		StartLocalBitcoinCoreOnStartup = persistentConfig.StartLocalBitcoinCoreOnStartup;
+		LocalBitcoinCoreDataDir = persistentConfig.LocalBitcoinCoreDataDir;
+		StopLocalBitcoinCoreOnShutdown = persistentConfig.StopLocalBitcoinCoreOnShutdown;
+		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		DustThreshold = persistentConfig.DustThreshold.ToString();
 
 		// Coordinator
-		_mainNetCoordinatorUri = _startupConfig.MainNetCoordinatorUri;
-		_testNetCoordinatorUri = _startupConfig.TestNetCoordinatorUri;
-		_regTestCoordinatorUri = _startupConfig.RegTestCoordinatorUri;
-		_maxCoinJoinMiningFeeRate = _startupConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
-		_absoluteMinInputCount = _startupConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
+		TestNetCoordinatorUri = persistentConfig.TestNetCoordinatorUri;
+		RegTestCoordinatorUri = persistentConfig.RegTestCoordinatorUri;
+
+		MaxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		AbsoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 
 		// General
-		_darkModeEnabled = _uiConfig.DarkModeEnabled;
-		_autoCopy = _uiConfig.Autocopy;
-		_autoPaste = _uiConfig.AutoPaste;
-		_customChangeAddress = _uiConfig.IsCustomChangeAddress;
-		_runOnSystemStartup = _uiConfig.RunOnSystemStartup;
-		_hideOnClose = _uiConfig.HideOnClose;
-		_useTor = Config.ObjectToTorMode(_config.UseTor);
-		_terminateTorOnExit = _startupConfig.TerminateTorOnExit;
-		_downloadNewVersion = _startupConfig.DownloadNewVersion;
+		DarkModeEnabled = uiConfig.DarkModeEnabled;
+		AutoCopy = uiConfig.Autocopy;
+		AutoPaste = uiConfig.AutoPaste;
+		CustomChangeAddress = uiConfig.IsCustomChangeAddress;
+		RunOnSystemStartup = uiConfig.RunOnSystemStartup;
+		HideOnClose = uiConfig.HideOnClose;
+		TerminateTorOnExit = persistentConfig.TerminateTorOnExit;
+		DownloadNewVersion = persistentConfig.DownloadNewVersion;
+		EnableGpu = persistentConfig.EnableGpu;
 
 		// Privacy Mode
-		_privacyMode = _uiConfig.PrivacyMode;
+		PrivacyMode = uiConfig.PrivacyMode;
 
-		_oobe = _uiConfig.Oobe;
+		Oobe = uiConfig.Oobe;
+		LastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), _uiConfig.WindowState);
+		WindowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+	}
 
+	private void SetupObservables()
+	{
 		// Save on change
 		var configSaveTrigger1 =
 			this.WhenAnyValue(
@@ -142,7 +158,9 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.TestNetCoordinatorUri,
 					x => x.RegTestCoordinatorUri,
 					x => x.BackendUri,
-					(_, _, _, _, _, _) => Unit.Default)
+					x => x.ExchangeRateProvider,
+					x => x.FeeRateEstimationProvider,
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -162,6 +180,7 @@ public partial class ApplicationSettings : ReactiveObject
 				x => x.RunOnSystemStartup,
 				x => x.HideOnClose,
 				x => x.Oobe,
+				x => x.LastVersionHighlightsDisplayed,
 				x => x.WindowState)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
@@ -189,6 +208,24 @@ public partial class ApplicationSettings : ReactiveObject
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
 			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
 			.Subscribe();
+	}
+
+	public void ResetToDefault()
+	{
+		var newPersistentConfig = new PersistentConfig
+		{
+			MainNetCoordinatorUri = MainNetCoordinatorUri,
+			TestNetCoordinatorUri = TestNetCoordinatorUri,
+			RegTestCoordinatorUri = RegTestCoordinatorUri
+		};
+
+		var newUiConfig = new UiConfig
+		{
+			Oobe = Oobe,
+			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed,
+		};
+
+		ApplyConfigs(newPersistentConfig, newUiConfig);
 	}
 
 	public bool IsOverridden => _config.IsOverridden;
@@ -284,7 +321,9 @@ public partial class ApplicationSettings : ReactiveObject
 					Constants.DefaultMaxCoinJoinMiningFeeRate,
 				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
 					absoluteMinInputCount :
-					Constants.DefaultAbsoluteMinInputCount
+					Constants.DefaultAbsoluteMinInputCount,
+				ExchangeRateProvider = ExchangeRateProvider,
+				FeeRateEstimationProvider = FeeRateEstimationProvider
 			};
 		}
 		else
@@ -385,6 +424,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_uiConfig.RunOnSystemStartup = RunOnSystemStartup;
 		_uiConfig.HideOnClose = HideOnClose;
 		_uiConfig.Oobe = Oobe;
+		_uiConfig.LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed;
 		_uiConfig.WindowState = WindowState.ToString();
 	}
 

@@ -403,12 +403,12 @@ public static class NBitcoinExtensions
 
 	public static ScriptType GetScriptType(this Script script)
 	{
-		return TryGetScriptType(script) ?? throw new NotImplementedException($"Unsupported script type.");
+		return TryGetScriptType(script) ?? throw new NotImplementedException("Unknown script type.");
 	}
 
 	public static ScriptType? TryGetScriptType(this Script script)
 	{
-		foreach (ScriptType scriptType in new[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.P2WSH, ScriptType.Taproot })
+		foreach (ScriptType scriptType in new[] { ScriptType.P2WPKH, ScriptType.P2PKH, ScriptType.P2PK, ScriptType.P2WSH, ScriptType.Taproot, ScriptType.P2SH })
 		{
 			if (script.IsScriptType(scriptType))
 			{
@@ -419,8 +419,8 @@ public static class NBitcoinExtensions
 		return null;
 	}
 
-	public static BitcoinSecret GetBitcoinSecret(this ExtKey hdKey, Network network, Script scriptPubKey)
-		=> GetBitcoinSecret(network, hdKey.PrivateKey, scriptPubKey);
+	public static BitcoinSecret GetBitcoinSecret(this Key key, Network network, Script scriptPubKey)
+		=> GetBitcoinSecret(network, key, scriptPubKey);
 
 	public static BitcoinSecret GetBitcoinSecret(Network network, Key privateKey, Script scriptPubKey)
 	{

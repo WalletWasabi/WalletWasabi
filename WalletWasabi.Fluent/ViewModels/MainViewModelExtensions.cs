@@ -34,7 +34,7 @@ public static class MainViewModelExtensions
 		});
 
 
-		AdvancedSettingsTabViewModel.RegisterLazy(() =>
+		ConnectionsSettingsTabViewModel.RegisterLazy(() =>
 		{
 			mainViewModel.SettingsPage.SelectedTab = 3;
 			return mainViewModel.SettingsPage;

@@ -15,13 +15,22 @@ using System.IO;
 using System.Net.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using WalletWasabi.Backend.Middlewares;
+using WalletWasabi.BitcoinCore;
 using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.Blockchain.BlockFilters;
+using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Cache;
+using WalletWasabi.Discoverability;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi;
+using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.WabiSabi.Models.Serialization;
 using WalletWasabi.WebClients;
 
@@ -42,6 +51,7 @@ public class Startup
 	public void ConfigureServices(IServiceCollection services)
 	{
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
+		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
 		services.AddMemoryCache();
 
@@ -76,16 +86,11 @@ public class Startup
 			c.IncludeXmlComments(xmlPath);
 		});
 
-		services.AddLogging(logging => logging.AddFilter((s, level) => level >= Microsoft.Extensions.Logging.LogLevel.Warning));
-
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
-		services.AddSingleton(serviceProvider =>
-		{
-			string configFilePath = Path.Combine(dataDir, "Config.json");
-			Config config = new(configFilePath);
-			config.LoadFile(createIfMissing: true);
-			return config;
-		});
+		string configFilePath = Path.Combine(dataDir, "Config.json");
+		Config config = new(configFilePath);
+		config.LoadFile(createIfMissing: true);
+		services.AddSingleton(serviceProvider => config );
 
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddHttpClient("no-name").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
@@ -93,36 +98,37 @@ public class Startup
 			// See https://github.com/dotnet/runtime/issues/18348#issuecomment-415845645
 			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
 		});
-		services.AddSingleton(serviceProvider =>
+		services.AddSingleton<IRPCClient>(provider =>
 		{
-			Config config = serviceProvider.GetRequiredService<Config>();
 			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
-			IHttpClientFactory httpClientFactory = serviceProvider.GetRequiredService<IHttpClientFactory>();
-
 			RPCClient rpcClient = new(
 					authenticationString: config.BitcoinRpcConnectionString,
 					hostOrUri: host,
 					network: config.Network);
 
-			IMemoryCache memoryCache = serviceProvider.GetRequiredService<IMemoryCache>();
+			IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
 			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
+			return cachedRpc;
+		});
 
-			return new Global(dataDir, cachedRpc, config);
-		});
-		services.AddSingleton(serviceProvider =>
-		{
-			var global = serviceProvider.GetRequiredService<Global>();
-			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-			return coordinator.Arena;
-		});
-		services.AddSingleton(serviceProvider =>
-		{
-			var global = serviceProvider.GetRequiredService<Global>();
-			var coordinator = global.HostedServices.Get<WabiSabiCoordinator>();
-			return coordinator.CoinJoinFeeRateStatStore;
-		});
-		services.AddStartupTask<InitConfigStartupTask>();
+		var network = config.Network;
 
+		services.AddSingleton(_ => network);
+		services.AddBackgroundService<BlockNotifier>();
+		services.AddSingleton<MempoolService>();
+		services.AddSingleton<P2pNode>(s =>
+			new P2pNode(
+				network,
+				config.GetBitcoinP2pEndPoint(),
+				s.GetRequiredService<MempoolService>()));
+		services.AddSingleton<IdempotencyRequestCache>();
+		services.AddSingleton<IndexBuilderService>(s =>
+			new IndexBuilderService(
+				s.GetRequiredService<IRPCClient>(),
+				s.GetRequiredService<BlockNotifier>(),
+				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite")
+				));
+		services.AddStartupTask<StartupTask>();
 		services.AddResponseCompression();
 		services.AddRequestTimeouts(options =>
 			options.DefaultPolicy =
@@ -133,7 +139,7 @@ public class Startup
 	}
 
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
-	public void Configure(IApplicationBuilder app, IWebHostEnvironment env, Global global)
+	public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 	{
 		// Enable middleware to serve generated Swagger as a JSON endpoint.
 		app.UseSwagger();
@@ -152,14 +158,5 @@ public class Startup
 
 		app.UseEndpoints(endpoints => endpoints.MapControllers());
 		app.UseRequestTimeouts();
-
-		var applicationLifetime = app.ApplicationServices.GetRequiredService<IHostApplicationLifetime>();
-		applicationLifetime.ApplicationStopped.Register(() => OnShutdown(global)); // Don't register async, that won't hold up the shutdown
-	}
-
-	private void OnShutdown(Global global)
-	{
-		global.Dispose();
-		Logger.LogSoftwareStopped("Wasabi Backend");
 	}
 }

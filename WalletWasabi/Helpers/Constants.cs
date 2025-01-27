@@ -16,6 +16,8 @@ public static class Constants
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
 	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";
 
+	public const string DonationAddress = "sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3";
+
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
 	/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.
@@ -57,17 +59,17 @@ public static class Constants
 	public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
 	public const int DefaultMainNetBitcoinP2pPort = 8333;
-	public const int DefaultTestNetBitcoinP2pPort = 18333;
+	public const int DefaultTestNetBitcoinP2pPort = 48333;
 	public const int DefaultRegTestBitcoinP2pPort = 18444;
 
 	public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
-	public const int DefaultTestNetBitcoinCoreRpcPort = 18332;
+	public const int DefaultTestNetBitcoinCoreRpcPort = 48332;
 	public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
 
 	public const decimal DefaultDustThreshold = 0.00005m;
 	public const decimal DefaultMaxCoinJoinMiningFeeRate = 150.0m;
 	public const int DefaultAbsoluteMinInputCount = 21;
-	public const int AbsoluteMinInputCount = 5;
+	public const int AbsoluteMinInputCount = 2;
 
 	public const string AlphaNumericCharacters = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
 	public const string CapitalAlphaNumericCharacters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
@@ -94,7 +96,7 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly Version ClientVersion = new(2, 3, 0, 0);
+	public static readonly Version ClientVersion = new(2, 4, 0);
 
 	public static readonly Version HwiVersion = new("3.1.0");
 	public static readonly Version BitcoinCoreVersion = new("23.0");
@@ -103,6 +105,8 @@ public static class Constants
 
 	public static readonly FeeRate MinRelayFeeRate = new(1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
+
+	public const decimal BnBMaximumDifferenceTolerance = 0.15m;
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };

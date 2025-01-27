@@ -4,6 +4,9 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:models="clr-namespace:WalletWasabi.Models;assembly=WalletWasabi"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
              x:DataType="vm:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletGeneralSettingsView">
@@ -29,6 +32,30 @@
     <DockPanel IsVisible="{Binding IsHardwareWallet}">
       <TextBlock Text="PSBT workflow" />
       <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding IsDefaultSendWorkflowSettingVisible}">
+      <TextBlock Text="Default Send Workflow" />
+      <ComboBox ItemsSource="{Binding SendWorkflows}"
+                SelectedItem="{Binding DefaultSendWorkflow}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="models:SendWorkflow">
+            <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding SeveralReceivingScriptTypes}">
+      <TextBlock Text="Default Receive Script Type" />
+      <ComboBox ItemsSource="{Binding ReceiveScriptTypes}"
+                SelectedItem="{Binding DefaultReceiveScriptType}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="wallets:ScriptType">
+            <TextBlock Text="{Binding Converter={x:Static conv:ScriptTypeConverters.ToName}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
     </DockPanel>
 
   </StackPanel>

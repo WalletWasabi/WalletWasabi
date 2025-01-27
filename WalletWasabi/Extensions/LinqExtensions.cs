@@ -177,6 +177,13 @@ public static class LinqExtensions
 			}
 		}
 	}
+
+	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: class =>
+		source.Where(x => x is not null).Select(x => x!);
+
+	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: struct =>
+		source.Where(x => x.HasValue).Select(x => x!.Value);
+
 	public static IEnumerable<T> Singleton<T>(this T item)
 	{
 		yield return item;
@@ -210,5 +217,25 @@ public static class LinqExtensions
 			.Sum();
 
 		return Math.Sqrt(squaresSum / values.Count());
+	}
+
+	public static (IEnumerable<T>, IEnumerable<T>) Partition<T>(this IEnumerable<T> me, Predicate<T> predicate)
+	{
+		var trueList = new List<T>();
+		var falseList = new List<T>();
+
+		foreach (var item in me)
+		{
+			if (predicate(item))
+			{
+				trueList.Add(item);
+			}
+			else
+			{
+				falseList.Add(item);
+			}
+		}
+
+		return (trueList, falseList);
 	}
 }

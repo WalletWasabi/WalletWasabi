@@ -35,7 +35,6 @@ public class WalletGenerator
 		var km = mnemonic is null
 			? KeyManager.CreateNew(out mnemonic, password, Network)
 			: KeyManager.CreateNew(mnemonic, password, Network);
-		km.AutoCoinJoin = true;
 		km.SetBestHeights(height: new Height(TipHeight), turboSyncHeight: new Height(TipHeight));
 		km.SetFilePath(walletFilePath);
 		return (km, mnemonic);

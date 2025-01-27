@@ -9,6 +9,11 @@
 
   <StackPanel Classes="settingsLayout">
 
+    <DockPanel IsVisible="{Binding NewWalletWorkflow}">
+      <TextBlock Text="Automatically start coinjoin" />
+      <ToggleSwitch IsChecked="{Binding IsAutoCoinjoinEnabled}" />
+    </DockPanel>
+
     <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
       <TextBlock Text="Red coin isolation" />
       <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" />

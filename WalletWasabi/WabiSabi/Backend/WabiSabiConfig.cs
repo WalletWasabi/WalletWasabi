@@ -4,7 +4,9 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.ComponentModel;
 using System.Linq;
+using System.Net;
 using WalletWasabi.Bases;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.JsonConverters;
 using WalletWasabi.JsonConverters.Bitcoin;
@@ -24,6 +26,18 @@ public class WabiSabiConfig : ConfigBase
 	public WabiSabiConfig(string filePath) : base(filePath)
 	{
 	}
+
+	[JsonProperty(PropertyName = "Network")]
+	[JsonConverter(typeof(NetworkJsonConverter))]
+	public Network Network { get; private set; } = Network.Main;
+
+	[JsonProperty(PropertyName = "BitcoinCoreRpcEndPoint")]
+	[JsonConverter(typeof(EndPointJsonConverter), Constants.DefaultMainNetBitcoinCoreRpcPort)]
+	public EndPoint BitcoinCoreRpcEndPoint { get; internal set; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
+
+	[DefaultValue("user:password")]
+	[JsonProperty(PropertyName = "BitcoinRpcConnectionString", DefaultValueHandling = DefaultValueHandling.Populate)]
+	public string BitcoinRpcConnectionString { get; private set; } = "user:password";
 
 	[DefaultValue(108)]
 	[JsonProperty(PropertyName = "ConfirmationTarget", DefaultValueHandling = DefaultValueHandling.Populate)]
@@ -191,9 +205,8 @@ public class WabiSabiConfig : ConfigBase
 	[JsonProperty(PropertyName = "DelayTransactionSigning", DefaultValueHandling = DefaultValueHandling.Populate)]
 	public bool DelayTransactionSigning { get; set; } = false;
 
-	[DefaultValue(true)]
-	[JsonProperty(PropertyName = "IsCoordinationEnabled", DefaultValueHandling = DefaultValueHandling.Populate)]
-	public bool IsCoordinationEnabled { get; set; } = true;
+	[JsonProperty(PropertyName = "AnnouncerConfig")]
+	public AnnouncerConfig AnnouncerConfig { get; internal set; } = new();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
 

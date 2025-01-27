@@ -9,6 +9,7 @@ using Avalonia.Threading;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -23,8 +24,9 @@ using WalletWasabi.WebClients.PayJoin;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Userfacing.Bip21;
 using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Wallets.Exchange;
+using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -46,10 +48,13 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly CoinJoinManager? _coinJoinManager;
+	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 	private readonly ClipboardObserver _clipboardObserver;
 
 	private bool _parsingTo;
+	private Address _parsedAddress;
 
+	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
 	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private decimal _exchangeRate;
@@ -57,7 +62,11 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayJoin;
 	[AutoNotify] private string? _payJoinEndPoint;
 	[AutoNotify] private bool _conversionReversed;
+	[AutoNotify] private bool _displaySilentPaymentInfo;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
+	[AutoNotify] private string _defaultLabel;
+	[AutoNotify] private bool _isFixedAddress;
+
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
@@ -71,7 +80,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
 
-		ExchangeRate = _walletModel.AmountProvider.UsdExchangeRate;
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
+		ExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
 
 		Balance =
 			_parameters.IsManual
@@ -79,6 +89,8 @@ public partial class SendViewModel : RoutableViewModel
 			: _walletModel.Balances;
 
 		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
+
+		_defaultLabel = _parameters.Donate ? "Wasabi team" : "";
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -109,7 +121,7 @@ public partial class SendViewModel : RoutableViewModel
 				{
 					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
 					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.Any;
+					var hasError = Validations.AnyErrors;
 
 					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
 				});
@@ -131,6 +143,8 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
+	public bool IsNotInDonationWorkflow => !_parameters.Donate;
+
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }
@@ -148,8 +162,22 @@ public partial class SendViewModel : RoutableViewModel
 			return;
 		}
 
+		if (_parsedAddress is not { } parsedAddress)
+		{
+			return;
+		}
+
 		var amount = new Money(amountBtc, MoneyUnit.BTC);
-		var transactionInfo = new TransactionInfo(BitcoinAddress.Create(To, _walletModel.Network), _walletModel.Settings.AnonScoreTarget)
+		Destination destination = parsedAddress switch
+		{
+			Address.Bitcoin bitcoin => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.Bitcoin bitcoin }  => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.SilentPayment silentPayment }  => new Destination.Silent(silentPayment.Address),
+			Address.SilentPayment silentPayment => new Destination.Silent(silentPayment.Address),
+			_ => throw new ArgumentException("Unknown address type")
+		};
+
+		var transactionInfo = new TransactionInfo(destination, _walletModel.Settings.AnonScoreTarget)
 		{
 			Amount = amount,
 			Recipient = label,
@@ -172,7 +200,7 @@ public partial class SendViewModel : RoutableViewModel
 	{
 		var isAutoPasteEnabled = UiContext.ApplicationSettings.AutoPaste;
 
-		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled)
+		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled && IsNotInDonationWorkflow)
 		{
 			await OnPasteAsync(pasteIfInvalid: false);
 		}
@@ -248,15 +276,25 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
 		}
+		else if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
+		{
+			errors.Add(ErrorSeverity.Warning, "Most wallets don't recognize Silent Payments lower than 1000 sats.");
+		}
 	}
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !AddressStringParser.TryParse(To, _walletModel.Network, out _)))
+		if (!string.IsNullOrEmpty(To))
 		{
-			errors.Add(ErrorSeverity.Error, "Input a valid BTC address or URL.");
+			var parseResult = AddressParser.Parse(To, _walletModel.Network);
+			if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !parseResult.IsOk))
+			{
+				errors.Add(ErrorSeverity.Error, parseResult.Error);
+				return;
+			}
 		}
-		else if (IsPayJoin && _walletModel.IsHardwareWallet)
+
+		if (IsPayJoin && _walletModel.IsHardwareWallet)
 		{
 			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
@@ -289,43 +327,59 @@ public partial class SendViewModel : RoutableViewModel
 			return false;
 		}
 
-		bool result = false;
+		// Reset PayJoinEndPoint by default
+		PayJoinEndPoint = null;
+		IsFixedAmount = false;
 
-		if (AddressStringParser.TryParse(text, _walletModel.Network, out Bip21UriParser.Result? parserResult))
-		{
-			result = true;
+		var isSilentPayment = false;
 
-			PayJoinEndPoint = parserResult.UnknownParameters.TryGetValue("pj", out var endPoint) ? endPoint : null;
+		var result = AddressParser.Parse(text, _walletModel.Network)
+			.Match(
+				success =>
+				{
+					_parsedAddress = success;
+					switch (success)
+					{
+						case Address.Bip21Uri bip21:
+							To = bip21.Address.ToWif(_walletModel.Network);
 
-			if (parserResult.Address is { })
-			{
-				To = parserResult.Address.ToString();
-			}
+							if (bip21.Amount is not null)
+							{
+								AmountBtc = bip21.Amount;
+								IsFixedAmount = true;
+							}
 
-			if (parserResult.Amount is { })
-			{
-				AmountBtc = parserResult.Amount.ToDecimal(MoneyUnit.BTC);
-				IsFixedAmount = true;
-			}
-			else
-			{
-				IsFixedAmount = false;
-			}
+							if (!string.IsNullOrEmpty(bip21.Label))
+							{
+								SuggestionLabels = new SuggestionLabelsViewModel(
+									_walletModel,
+									Intent.Send,
+									3,
+									[bip21.Label]);
+							}
 
-			if (parserResult.Label is { } parsedLabel)
-			{
-				SuggestionLabels = new SuggestionLabelsViewModel(
-				_walletModel,
-				Intent.Send,
-				3,
-				[parsedLabel]);
-			}
-		}
-		else
-		{
-			IsFixedAmount = false;
-			PayJoinEndPoint = null;
-		}
+							if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
+							{
+								PayJoinEndPoint = bip21.PayjoinEndpoint;
+							}
+							return true;
+
+						case Address.Bitcoin bitcoin:
+							To = bitcoin.Address.ToString();
+							return true;
+
+						case Address.SilentPayment silentPayment:
+							To = silentPayment.Address.ToWip(_walletModel.Network);
+							isSilentPayment = true;
+							return true;
+
+						default:
+							return true;
+					}
+				},
+				_ => false);
+
+		DisplaySilentPaymentInfo = isSilentPayment && _parameters.Donate;
 
 		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
@@ -348,13 +402,22 @@ public partial class SendViewModel : RoutableViewModel
 
 		_suggestionLabels.Activate(disposables);
 
-		_walletModel.AmountProvider.BtcToUsdExchangeRates
-								   .BindTo(this, x => x.ExchangeRate)
-								   .DisposeWith(disposables);
+		_exchangeRateUpdater.WhenAnyValue(x => x.UsdExchangeRate)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => ExchangeRate = x)
+			.DisposeWith(disposables);
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
 		base.OnNavigatedTo(inHistory, disposables);
+
+		if (_parameters.Donate)
+		{
+			To = Constants.DonationAddress;
+			Caption = "Donate to The Wasabi Wallet Developers to continue maintaining the software";
+			IsFixedAddress = true;
+			TryParseUrl(_to);
+		}
 	}
 
 	protected override void OnNavigatedFrom(bool isInHistory)

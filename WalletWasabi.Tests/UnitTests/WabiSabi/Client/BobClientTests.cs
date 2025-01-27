@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
@@ -43,7 +44,7 @@ public class BobClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new(config, arena.Rpc);
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new("FeeRateStatSore.txt", config, arena.Rpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;

@@ -3,4 +3,11 @@
   <Style Selector="ComboBoxItem">
     <Setter Property="CornerRadius" Value="8" />
   </Style>
+  <Style Selector="ComboBox">
+    <Setter Property="CornerRadius" Value="100" />
+    <Setter Property="HorizontalContentAlignment" Value="Center" />
+  </Style>
+  <Style Selector="ComboBox /template/ ContentControl">
+    <Setter Property="Padding" Value="20,0,0,0" />
+  </Style>
 </Styles>

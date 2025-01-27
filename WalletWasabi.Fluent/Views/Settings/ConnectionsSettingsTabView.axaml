@@ -1,0 +1,61 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:basemodels="using:WalletWasabi.Models"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:Class="WalletWasabi.Fluent.Views.Settings.ConnectionsSettingsTabView"
+             x:CompileBindings="False"
+             x:DataType="settings:ConnectionsSettingsTabViewModel">
+  <StackPanel Classes="settingsLayout">
+
+    <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
+      <TextBlock Text="Backend URI" />
+      <TextBox Text="{Binding BackendUri}">
+        <Interaction.Behaviors>
+          <TextBoxAutoSelectTextBehavior />
+          <WhitespacePasteRemovalBehavior />
+          <WhitespaceInputRemovalBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Exchange Rate Provider" />
+      <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
+                SelectedItem="{Binding Settings.ExchangeRateProvider}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Fee Rate Estimation Provider" />
+      <ComboBox ItemsSource="{Binding FeeRateEstimationProviders}"
+                SelectedItem="{Binding Settings.FeeRateEstimationProvider}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Network anonymization (Tor)" />
+      <ComboBox ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="basemodels:TorMode">
+            <TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+        <ComboBox.Styles>
+          <Style Selector="ComboBox /template/ Border#Background">
+            <Setter Property="CornerRadius" Value="30" />
+          </Style>
+          <Style Selector="ComboBox /template/ Border#HighlightBackground">
+            <Setter Property="CornerRadius" Value="30" />
+          </Style>
+        </ComboBox.Styles>
+      </ComboBox>
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding Settings.UseTor, ConverterParameter={x:Static basemodels:TorMode.Enabled}, Converter={x:Static conv:EnumToBoolConverter.Instance}}">
+      <TextBlock Text="Terminate Tor when Wasabi shuts down" />
+      <ToggleSwitch IsChecked="{Binding Settings.TerminateTorOnExit}" />
+    </DockPanel>
+  </StackPanel>
+</UserControl>

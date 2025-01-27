@@ -185,6 +185,7 @@ public class SuggestionLabelsViewModelTests
 
 		public WalletId Id => throw new NotSupportedException();
 		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
+		public bool SeveralReceivingScriptTypes { get; }
 
 		public string Name
 		{
@@ -206,7 +207,6 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
-		public IBuyAnythingModel BuyAnything => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 

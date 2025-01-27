@@ -9,14 +9,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -40,7 +39,7 @@ public class Wallet : BackgroundService, IWallet
 		BitcoinStore bitcoinStore,
 		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
-		HybridFeeProvider feeProvider,
+		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
 		CpfpInfoProvider? cpfpInfoProvider)
@@ -51,7 +50,7 @@ public class Wallet : BackgroundService, IWallet
 		BitcoinStore = bitcoinStore;
 		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
-		FeeProvider = feeProvider;
+		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		CpfpInfoProvider = cpfpInfoProvider;
 
 		RuntimeParams.SetDataDir(dataDir);
@@ -98,12 +97,11 @@ public class Wallet : BackgroundService, IWallet
 	public CoinsRegistry Coins { get; }
 
 	public bool RedCoinIsolation => KeyManager.RedCoinIsolation;
-	public CoinjoinSkipFactors CoinjoinSkipFactors => KeyManager.CoinjoinSkipFactors;
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 
-	public HybridFeeProvider FeeProvider { get; }
+	public FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
 	public CpfpInfoProvider? CpfpInfoProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 	public FilterModel? LastProcessedFilter => WalletFilterProcessor.LastProcessedFilter;
@@ -123,7 +121,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public bool IsMixable =>
 		State == WalletState.Started // Only running wallets
-		&& !KeyManager.IsWatchOnly; // that are not watch-only wallets
+		&& KeyChain is not null; // that are not watch-only wallets and contain a keychain
 
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
@@ -178,7 +176,7 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if(CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
+				if (CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
 				{
 					effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 				}
@@ -197,7 +195,7 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if(CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
+					if (CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
 					{
 						effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
 					}
@@ -399,7 +397,6 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
-
 
 			if (CpfpInfoProvider.ShouldRequest(e.Transaction))
 			{

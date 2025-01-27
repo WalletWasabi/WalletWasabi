@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
@@ -9,8 +8,8 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.ViewModels.Dialogs.Announcement;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Fluent.ViewModels.Dialogs.ReleaseHighlights;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar;
@@ -19,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -77,10 +77,11 @@ public partial class MainViewModel : ViewModelBase
 				.OfType<WalletViewModel>();
 
 		IsOobeBackgroundVisible = UiContext.ApplicationSettings.Oobe;
+		var isFirstLaunch = !UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe;
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			if (!UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe)
+			if (isFirstLaunch)
 			{
 				IsOobeBackgroundVisible = true;
 
@@ -95,9 +96,12 @@ public partial class MainViewModel : ViewModelBase
 
 			await Task.Delay(1000);
 
-			foreach (var page in GetAnnouncements())
+			var lastVersionHighlightsDisplayed = UiContext.ApplicationSettings.LastVersionHighlightsDisplayed;
+			UiContext.ApplicationSettings.LastVersionHighlightsDisplayed = Constants.ClientVersion;
+			if (!isFirstLaunch && Constants.ClientVersion > lastVersionHighlightsDisplayed)
 			{
-				await uiContext.Navigate().NavigateDialogAsync(page, navigationMode: NavigationMode.Clear);
+				await uiContext.Navigate().NavigateDialogAsync(new ReleaseHighlightsDialogViewModel(UiContext),
+					navigationMode: NavigationMode.Clear);
 			}
 		});
 
@@ -139,15 +143,6 @@ public partial class MainViewModel : ViewModelBase
 	public WalletNotificationsViewModel Notifications { get; }
 
 	public static MainViewModel Instance { get; private set; }
-
-	private IEnumerable<AnnouncementBase> GetAnnouncements()
-	{
-		var announcements = new List<AnnouncementBase>();
-
-		// Add Announcements here.
-
-		return announcements;
-	}
 
 	public bool IsDialogOpen()
 	{

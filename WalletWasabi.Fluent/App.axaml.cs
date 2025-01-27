@@ -7,6 +7,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
@@ -14,7 +15,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent;
 
@@ -124,7 +125,7 @@ public class App : Application
 
 	private static IAmountProvider CreateAmountProvider()
 	{
-		return new AmountProvider(Services.HostedServices.Get<WasabiSynchronizer>());
+		return new AmountProvider(Services.HostedServices.Get<ExchangeRateUpdater>());
 	}
 
 	private UiContext CreateUiContext()
@@ -150,6 +151,7 @@ public class App : Application
 			amountProvider,
 			new EditableSearchSourceSource(),
 			torStatusChecker,
-			new HealthMonitor(applicationSettings, torStatusChecker));
+			new HealthMonitor(applicationSettings, torStatusChecker),
+			new ReleaseHighlights());
 	}
 }
