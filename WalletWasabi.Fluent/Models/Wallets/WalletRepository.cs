@@ -129,7 +129,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentNullException.ThrowIfNull(device);
 		ArgumentNullException.ThrowIfNull(cancelToken);
 
-		var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+		var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, cancelToken.Value);
 		keyManager.SetIcon(device.WalletType);
 
@@ -159,7 +159,7 @@ public partial class WalletRepository : ReactiveObject
 
 		var keyManager = await Task.Run(() =>
 		{
-			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 
 			var result = KeyManager.Recover(
 				mnemonic,
