@@ -115,20 +115,11 @@ public class WalletManager : IWalletProvider
 			throw new InvalidOperationException($"Invalid name {newWalletName} - {error.Message}");
 		}
 
-		var (currentWalletFilePath, currentWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
-		var (newWalletFilePath, newWalletBackupFilePath) = WalletDirectories.GetWalletFilePaths(newWalletName);
+		var currentWalletFilePath = WalletDirectories.GetWalletFilePaths(wallet.WalletName);
+		var newWalletFilePath = WalletDirectories.GetWalletFilePaths(newWalletName);
 
 		Logger.LogInfo($"Renaming file {currentWalletFilePath} to {newWalletFilePath}");
 		File.Move(currentWalletFilePath, newWalletFilePath);
-
-		try
-		{
-			File.Move(currentWalletBackupFilePath, newWalletBackupFilePath);
-		}
-		catch (Exception e)
-		{
-			Logger.LogWarning($"Could not rename wallet backup file. Reason: {e.Message}");
-		}
 
 		wallet.KeyManager.SetFilePath(newWalletFilePath);
 	}
@@ -243,41 +234,19 @@ public class WalletManager : IWalletProvider
 
 	private Wallet LoadWalletByNameFromDisk(string walletName)
 	{
-		(string walletFullPath, string walletBackupFullPath) = WalletDirectories.GetWalletFilePaths(walletName);
-		Wallet wallet;
+		string walletFullPath = WalletDirectories.GetWalletFilePaths(walletName);
 		try
 		{
-			wallet = _walletFactory.Create(KeyManager.FromFile(walletFullPath));
+			return _walletFactory.Create(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
-			if (!File.Exists(walletBackupFullPath))
-			{
-				throw;
-			}
-
 			Logger.LogWarning($"Wallet got corrupted.\n" +
 				$"Wallet file path: {walletFullPath}\n" +
-				$"Trying to recover it from backup.\n" +
-				$"Backup path: {walletBackupFullPath}\n" +
 				$"Exception: {ex}");
-			if (File.Exists(walletFullPath))
-			{
-				string corruptedWalletBackupPath = $"{walletBackupFullPath}_CorruptedBackup";
-				if (File.Exists(corruptedWalletBackupPath))
-				{
-					File.Delete(corruptedWalletBackupPath);
-					Logger.LogInfo($"Deleted previous corrupted wallet file backup from `{corruptedWalletBackupPath}`.");
-				}
-				File.Move(walletFullPath, corruptedWalletBackupPath);
-				Logger.LogInfo($"Backed up corrupted wallet file to `{corruptedWalletBackupPath}`.");
-			}
-			File.Copy(walletBackupFullPath, walletFullPath);
 
-			wallet = _walletFactory.Create(KeyManager.FromFile(walletFullPath));
+			throw;
 		}
-
-		return wallet;
 	}
 
 	private void AddWallet(Wallet wallet)
@@ -291,7 +260,7 @@ public class WalletManager : IWalletProvider
 			_wallets.Add(wallet);
 		}
 
-		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName).walletFilePath))
+		if (!File.Exists(WalletDirectories.GetWalletFilePaths(wallet.WalletName)))
 		{
 			wallet.KeyManager.ToFile();
 		}
@@ -343,10 +312,6 @@ public class WalletManager : IWalletProvider
 				{
 					if (wallet.State >= WalletState.Initialized)
 					{
-						var keyManager = wallet.KeyManager;
-						string backupWalletFilePath = WalletDirectories.GetWalletFilePaths(Path.GetFileName(keyManager.FilePath)!).walletBackupFilePath;
-						keyManager.ToFile(backupWalletFilePath);
-						Logger.LogInfo($"{nameof(wallet.KeyManager)} backup saved to `{backupWalletFilePath}`.");
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
 					}
