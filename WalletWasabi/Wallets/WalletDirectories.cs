@@ -9,43 +9,33 @@ namespace WalletWasabi.Wallets;
 public class WalletDirectories
 {
 	public const string WalletsDirName = "Wallets";
-	public const string WalletsBackupDirName = "WalletBackups";
 	public const string WalletFileExtension = "json";
 
 	public WalletDirectories(Network network, string workDir)
 	{
 		Network = network;
 		var correctedWorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-		if (network == Network.Main)
-		{
-			WalletsDir = Path.Combine(correctedWorkDir, WalletsDirName);
-			WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName);
-		}
-		else
-		{
-			WalletsDir = Path.Combine(correctedWorkDir, WalletsDirName, network.ToString());
-			WalletsBackupDir = Path.Combine(correctedWorkDir, WalletsBackupDirName, network.ToString());
-		}
+		WalletsDir = network == Network.Main
+			? Path.Combine(correctedWorkDir, WalletsDirName)
+			: Path.Combine(correctedWorkDir, WalletsDirName, network.ToString());
 
 		Directory.CreateDirectory(WalletsDir);
-		Directory.CreateDirectory(WalletsBackupDir);
 	}
 
 	public string WalletsDir { get; }
-	public string WalletsBackupDir { get; }
 
 	public Network Network { get; }
 
-	public (string walletFilePath, string walletBackupFilePath) GetWalletFilePaths(string walletName)
+	public string GetWalletFilePaths(string walletName)
 	{
 		if (!walletName.EndsWith($".{WalletFileExtension}", StringComparison.OrdinalIgnoreCase))
 		{
 			walletName = $"{walletName}.{WalletFileExtension}";
 		}
-		return (Path.Combine(WalletsDir, walletName), Path.Combine(WalletsBackupDir, walletName));
+		return Path.Combine(WalletsDir, walletName);
 	}
 
-	public IEnumerable<FileInfo> EnumerateWalletFiles(bool includeBackupDir = false)
+	public IEnumerable<FileInfo> EnumerateWalletFiles()
 	{
 		var walletsDirInfo = new DirectoryInfo(WalletsDir);
 		var walletsDirExists = walletsDirInfo.Exists;
@@ -53,28 +43,14 @@ public class WalletDirectories
 		var searchOption = SearchOption.TopDirectoryOnly;
 		IEnumerable<FileInfo> result;
 
-		if (includeBackupDir)
+		
+		if (!walletsDirExists)
 		{
-			var backupsDirInfo = new DirectoryInfo(WalletsBackupDir);
-			if (!walletsDirExists && !backupsDirInfo.Exists)
-			{
-				return Enumerable.Empty<FileInfo>();
-			}
-
-			result = walletsDirInfo
-				.EnumerateFiles(searchPattern, searchOption)
-				.Concat(backupsDirInfo.EnumerateFiles(searchPattern, searchOption));
-		}
-		else
-		{
-			if (!walletsDirExists)
-			{
-				return Enumerable.Empty<FileInfo>();
-			}
-
-			result = walletsDirInfo.EnumerateFiles(searchPattern, searchOption);
+			return Enumerable.Empty<FileInfo>();
 		}
 
+		result = walletsDirInfo.EnumerateFiles(searchPattern, searchOption);
+		
 		return result.OrderByDescending(t => t.LastAccessTimeUtc);
 	}
 

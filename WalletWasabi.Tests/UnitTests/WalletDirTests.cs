@@ -14,30 +14,26 @@ namespace WalletWasabi.Tests.UnitTests;
 
 public class WalletDirTests
 {
-	private async Task<(string walletsPath, string walletsBackupPath)> CleanupWalletDirectoriesAsync(string baseDir)
+	private async Task<string> CleanupWalletDirectoriesAsync(string baseDir)
 	{
 		var walletsPath = Path.Combine(baseDir, WalletDirectories.WalletsDirName);
-		var walletsBackupPath = Path.Combine(baseDir, WalletDirectories.WalletsBackupDirName);
 		await IoHelpers.TryDeleteDirectoryAsync(walletsPath);
-		await IoHelpers.TryDeleteDirectoryAsync(walletsBackupPath);
 
-		return (walletsPath, walletsBackupPath);
+		return walletsPath;
 	}
 
 	[Fact]
 	public async Task CreatesWalletDirectoriesAsync()
 	{
 		var baseDir = Common.GetWorkDir();
-		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
+		string walletsPath = await CleanupWalletDirectoriesAsync(baseDir);
 
 		_ = new WalletDirectories(Network.Main, baseDir);
 		Assert.True(Directory.Exists(walletsPath));
-		Assert.True(Directory.Exists(walletsBackupPath));
 
 		// Testing what happens if the directories are already exist.
 		_ = new WalletDirectories(Network.Main, baseDir);
 		Assert.True(Directory.Exists(walletsPath));
-		Assert.True(Directory.Exists(walletsBackupPath));
 	}
 
 	[Fact]
@@ -49,28 +45,24 @@ public class WalletDirTests
 		var mainWd = new WalletDirectories(Network.Main, baseDir);
 		Assert.Equal(Network.Main, mainWd.Network);
 		Assert.Equal(Path.Combine(baseDir, "Wallets"), mainWd.WalletsDir);
-		Assert.Equal(Path.Combine(baseDir, "WalletBackups"), mainWd.WalletsBackupDir);
 
 		var testWd = new WalletDirectories(Network.TestNet, baseDir);
 		Assert.Equal(Network.TestNet, testWd.Network);
 		Assert.Equal(Path.Combine(baseDir, "Wallets", "TestNet4"), testWd.WalletsDir);
-		Assert.Equal(Path.Combine(baseDir, "WalletBackups", "TestNet4"), testWd.WalletsBackupDir);
 
 		var regWd = new WalletDirectories(Network.RegTest, baseDir);
 		Assert.Equal(Network.RegTest, regWd.Network);
 		Assert.Equal(Path.Combine(baseDir, "Wallets", "RegTest"), regWd.WalletsDir);
-		Assert.Equal(Path.Combine(baseDir, "WalletBackups", "RegTest"), regWd.WalletsBackupDir);
 	}
 
 	[Fact]
 	public async Task CorrectWalletDirectoryNameAsync()
 	{
 		var baseDir = Common.GetWorkDir();
-		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
+		string walletsPath = await CleanupWalletDirectoriesAsync(baseDir);
 
 		var walletDirectories = new WalletDirectories(Network.Main, $" {baseDir} ");
 		Assert.Equal(walletsPath, walletDirectories.WalletsDir);
-		Assert.Equal(walletsBackupPath, walletDirectories.WalletsBackupDir);
 	}
 
 	[Fact]
@@ -82,10 +74,9 @@ public class WalletDirTests
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 		string walletName = "FooWallet.json";
 
-		(string walletPath, string walletBackupPath) = walletDirectories.GetWalletFilePaths(walletName);
+		string walletPath = walletDirectories.GetWalletFilePaths(walletName);
 
 		Assert.Equal(Path.Combine(walletDirectories.WalletsDir, walletName), walletPath);
-		Assert.Equal(Path.Combine(walletDirectories.WalletsBackupDir, walletName), walletBackupPath);
 	}
 
 	[Fact]
@@ -98,10 +89,9 @@ public class WalletDirTests
 		string walletName = "FooWallet";
 		string walletFileName = $"{walletName}.json";
 
-		(string walletPath, string walletBackupPath) = walletDirectories.GetWalletFilePaths(walletName);
+		string walletPath = walletDirectories.GetWalletFilePaths(walletName);
 
 		Assert.Equal(Path.Combine(walletDirectories.WalletsDir, walletFileName), walletPath);
-		Assert.Equal(Path.Combine(walletDirectories.WalletsBackupDir, walletFileName), walletBackupPath);
 	}
 
 	[Fact]
@@ -113,24 +103,19 @@ public class WalletDirTests
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
 
 		var wallets = new List<string>();
-		var walletBackups = new List<string>();
 		const int NumberOfWallets = 4;
 		for (int i = 0; i < NumberOfWallets; i++)
 		{
 			var walletFile = Path.Combine(walletDirectories.WalletsDir, $"FooWallet{i}.json");
 			var dummyFile = Path.Combine(walletDirectories.WalletsDir, $"FooWallet{i}.dummy");
-			var backupFile = Path.Combine(walletDirectories.WalletsBackupDir, $"FooWallet{i}.json");
 
 			await File.Create(walletFile).DisposeAsync();
 			await File.Create(dummyFile).DisposeAsync();
-			await File.Create(backupFile).DisposeAsync();
 
 			wallets.Add(walletFile);
-			walletBackups.Add(backupFile);
 		}
 
 		Assert.True(wallets.ToHashSet().SetEquals(walletDirectories.EnumerateWalletFiles().Select(x => x.FullName).ToHashSet()));
-		Assert.True(wallets.Concat(walletBackups).ToHashSet().SetEquals(walletDirectories.EnumerateWalletFiles(true).Select(x => x.FullName).ToHashSet()));
 	}
 
 	[Fact]
@@ -156,23 +141,6 @@ public class WalletDirTests
 		var orderedWallets = new[] { walletFile3, walletFile1, walletFile2 };
 
 		Assert.Equal(orderedWallets, walletDirectories.EnumerateWalletFiles().Select(x => x.FullName));
-	}
-
-	[Fact]
-	public async Task EnumerateMissingDirAsync()
-	{
-		var baseDir = Common.GetWorkDir();
-		(string walletsPath, string walletsBackupPath) = await CleanupWalletDirectoriesAsync(baseDir);
-
-		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
-
-		Assert.Empty(walletDirectories.EnumerateWalletFiles());
-		Directory.Delete(walletsBackupPath);
-		Assert.Empty(walletDirectories.EnumerateWalletFiles());
-		Directory.Delete(walletsPath);
-		Assert.Empty(walletDirectories.EnumerateWalletFiles());
-		Directory.Delete(baseDir);
-		Assert.Empty(walletDirectories.EnumerateWalletFiles());
 	}
 
 	[Fact]

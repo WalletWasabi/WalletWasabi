@@ -14,7 +14,7 @@ public static class ImportWalletHelper
 
 	public static async Task<KeyManager> ImportWalletAsync(WalletManager walletManager, string walletName, string filePath)
 	{
-		var walletFullPath = walletManager.WalletDirectories.GetWalletFilePaths(walletName).walletFilePath;
+		var walletFullPath = walletManager.WalletDirectories.GetWalletFilePaths(walletName);
 
 		string jsonString = await File.ReadAllTextAsync(filePath).ConfigureAwait(false);
 		var jsonWallet = JObject.Parse(jsonString);
