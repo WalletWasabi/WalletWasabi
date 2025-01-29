@@ -11,6 +11,8 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
+using static WalletWasabi.Fluent.ViewModels.Dialogs.ManualCoinJoinSettingsViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -29,6 +31,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private TimeFrameItem[] _timeFrames;
+	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private string? _selectedCoinjoinProfileName;
@@ -45,6 +50,16 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
+		_redCoinIsolation = _wallet.Settings.RedCoinIsolation;
+		_timeFrames = new[]
+		{
+			new TimeFrameItem("Hours", TimeSpan.Zero),
+			new TimeFrameItem("Days", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
+			new TimeFrameItem("Weeks", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
+			new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
+		};
+		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(_wallet.Settings.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
+
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -74,6 +89,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 				}
 			});
 
+		SetRedCoinIsolationCommand = ReactiveCommand.CreateFromTask(() =>
+		{
+			_wallet.Settings.RedCoinIsolation = RedCoinIsolation;
+			_wallet.Settings.Save();
+			return Task.CompletedTask;
+		});
+
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
@@ -99,11 +121,32 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
+		this.WhenAnyValue(x => x.SelectedTimeFrame)
+			.Skip(1)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x =>
+				{
+					_wallet.Settings.FeeRateMedianTimeFrameHours = (int)x.TimeFrame.TotalHours;
+					_wallet.Settings.Save();
+				});
+
+		this.WhenAnyValue(x => x.AnonScoreTarget)
+			.Skip(1)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x =>
+				{
+					_wallet.Settings.AnonScoreTarget = x;
+					_wallet.Settings.Save();
+				});
+
 		Update();
 		ManuallyUpdateOutputWalletList();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
+	public ICommand SetRedCoinIsolationCommand { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
 
