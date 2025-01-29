@@ -21,14 +21,11 @@
       <TextBlock Text="Red coin isolation" />
       <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" Command="{Binding SetRedCoinIsolationCommand}"/>
     </DockPanel>
-
-    <StackPanel Spacing="10" ToolTip.Tip="Minimum anonymity score for a coin to be considered private.">
-      <TextBlock Text="Anonymity score target" />
-      <DockPanel>
-        <TextBlock MinWidth="24" DockPanel.Dock="Right" Text="{Binding AnonScoreTarget}" VerticalAlignment="Center" Margin="10 3 10 0" />
-        <Slider Minimum="2" Maximum="300" Value="{Binding AnonScoreTarget}" />
-      </DockPanel>
-    </StackPanel>
+    
+    <DockPanel>
+      <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300."/>
+      <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300."/>
+    </DockPanel>
 
     <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
       <TextBlock Text="Coinjoin time preference" />

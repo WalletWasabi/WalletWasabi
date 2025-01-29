@@ -9,9 +9,11 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 using static WalletWasabi.Fluent.ViewModels.Dialogs.ManualCoinJoinSettingsViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -30,7 +32,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private string _anonScoreTarget;
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private TimeFrameItem[] _timeFrames;
 	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
@@ -49,7 +51,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
-		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
+		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_redCoinIsolation = _wallet.Settings.RedCoinIsolation;
 		_timeFrames = new[]
 		{
@@ -98,6 +100,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
+		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
+
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
@@ -131,16 +135,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					_wallet.Settings.Save();
 				});
 
-		this.WhenAnyValue(x => x.AnonScoreTarget)
-			.Skip(1)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x =>
-				{
-					_wallet.Settings.AnonScoreTarget = x;
-					_wallet.Settings.Save();
-				});
-
 		Update();
 		ManuallyUpdateOutputWalletList();
 	}
@@ -170,7 +164,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	private void Update()
 	{
 		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
-		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
+		AnonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 
 		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;
 		SelectedCoinjoinProfileName =
@@ -188,5 +182,25 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
 		AutoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		Update();
+	}
+
+	private void ValidateAnonScoreTarget(IValidationErrors errors)
+	{
+		if (int.TryParse(AnonScoreTarget, out int anonScoreTarget))
+		{
+			if (anonScoreTarget < 2 || anonScoreTarget > 300)
+			{
+				errors.Add(ErrorSeverity.Error, "Target must be between 2 and 300");
+			}
+			else
+			{
+				_wallet.Settings.AnonScoreTarget = anonScoreTarget;
+				_wallet.Settings.Save();
+			}
+		}
+		else
+		{
+			errors.Add(ErrorSeverity.Error, "Target must be a number and it must be between 2 and 300");
+		}
 	}
 }
