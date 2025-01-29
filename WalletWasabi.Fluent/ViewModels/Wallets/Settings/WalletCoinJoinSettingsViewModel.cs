@@ -7,6 +7,7 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
@@ -44,6 +45,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 
 	private CompositeDisposable _disposable = new();
+
+	public const int MinAnonScoreForMaximizePrivacySetting = 30;
+	public const int MaxAnonScoreForMaximizePrivacySetting = 50;
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -98,6 +102,12 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			return Task.CompletedTask;
 		});
 
+		SelectMaximizePrivacySettings = ReactiveCommand.CreateFromTask(SetMaximizePrivacySettings);
+
+		SelectSpeedySettings = ReactiveCommand.CreateFromTask(SetSpeedySettings);
+
+		SelectEconomicalSettings = ReactiveCommand.CreateFromTask(SetEconomicalSettings);
+
 		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
@@ -141,6 +151,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetRedCoinIsolationCommand { get; }
+	public ICommand SelectMaximizePrivacySettings {  get; }
+	public ICommand SelectSpeedySettings { get; }
+	public ICommand SelectEconomicalSettings { get; }
 
 	public ICommand SelectCoinjoinProfileCommand { get; }
 
@@ -202,5 +215,58 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Target must be a number and it must be between 2 and 300");
 		}
+	}
+
+	private Task SetMaximizePrivacySettings()
+	{
+		AnonScoreTarget = GetAnonScoreTargetForMaximizePrivacySettings(MinAnonScoreForMaximizePrivacySetting, MaxAnonScoreForMaximizePrivacySetting).ToString();
+		RedCoinIsolation = true;
+		SelectedTimeFrame = TimeFrames.First();
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	private Task SetSpeedySettings()
+	{
+		AnonScoreTarget = "5";
+		RedCoinIsolation = false;
+		SelectedTimeFrame = TimeFrames.First();
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	private Task SetEconomicalSettings()
+	{
+		AnonScoreTarget = "5";
+		RedCoinIsolation = false;
+		SelectedTimeFrame = TimeFrames.First(x => x.Name == "Weeks");
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	/// <summary>
+	/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.
+	/// The goal is to have a good distribution around a specific target with hard min and max.
+	/// (minExclusive + 1) has 100% chance of being selected, (maxExclusive) has a 0% chance (hard limit).
+	/// Average of results is never more than minExclusive + (maxExclusive - minExclusive) * (1.0/3.0).
+	/// </summary>
+	private int GetAnonScoreTargetForMaximizePrivacySettings(int minExclusive, int maxExclusive)
+	{
+		var ast = minExclusive;
+
+		while (ast < maxExclusive)
+		{
+			var progress = (double)(ast - minExclusive) / (maxExclusive - minExclusive);
+			var probability = 100 * (1 - progress);
+
+			if (SecureRandom.Instance.GetInt(0, 101) > probability)
+			{
+				break;
+			}
+
+			ast++;
+		}
+
+		return ast;
 	}
 }

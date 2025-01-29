@@ -34,6 +34,15 @@
                 SelectedItem="{Binding SelectedTimeFrame}" />
     </DockPanel>
 
+
+    <DockPanel>
+      <Button Theme="{StaticResource AccentButton}" Content="Maximize Privacy" Command="{Binding SelectMaximizePrivacySettings}" />
+      <Button Theme="{StaticResource AccentButton}" Content="Speedy" Command="{Binding SelectSpeedySettings}" />
+      <Button Theme="{StaticResource AccentButton}" Content="Economical" Command="{Binding SelectEconomicalSettings}" />
+    </DockPanel>
+    
+    <Separator />
+
     <DockPanel>
       <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
       <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
