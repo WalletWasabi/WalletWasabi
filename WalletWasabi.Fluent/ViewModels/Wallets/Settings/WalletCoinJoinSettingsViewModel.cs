@@ -44,8 +44,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private CompositeDisposable _disposable = new();
 
-	public const int MinAnonScoreForMaximizePrivacySetting = 30;
-	public const int MaxAnonScoreForMaximizePrivacySetting = 50;
+	private const int MinAnonScoreForMaximizePrivacySetting = 30;
+	private const int MaxAnonScoreForMaximizePrivacySetting = 50;
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -71,26 +71,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(
-			async () =>
+			() =>
 			{
-				if (_wallet.Settings.IsCoinjoinProfileSelected)
-				{
-					AutoCoinJoin = !AutoCoinJoin;
-				}
-				else
-				{
-					await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
-				}
-
-				if (_wallet.Settings.IsCoinjoinProfileSelected)
-				{
-					_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
-					_wallet.Settings.Save();
-				}
-				else
-				{
-					AutoCoinJoin = false;
-				}
+				_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
+				_wallet.Settings.Save();
+				return Task.CompletedTask;
 			});
 
 		SetRedCoinIsolationCommand = ReactiveCommand.CreateFromTask(() =>
@@ -209,7 +194,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	{
 		AnonScoreTarget = "5";
 		RedCoinIsolation = false;
-		SelectedTimeFrame = TimeFrames.First(x => x.Name == "Weeks");
+		SelectedTimeFrame = TimeFrames[2];
 		_wallet.Settings.Save();
 		return Task.CompletedTask;
 	}

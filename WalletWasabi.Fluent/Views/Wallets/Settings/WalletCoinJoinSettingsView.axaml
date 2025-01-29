@@ -14,7 +14,7 @@
 
     <DockPanel>
       <TextBlock Text="Automatically start coinjoin" />
-      <ToggleSwitch IsChecked="{Binding AutoCoinJoin, Mode=OneWay}" Command="{Binding SetAutoCoinJoin}" />
+      <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" Command="{Binding SetAutoCoinJoin}" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
