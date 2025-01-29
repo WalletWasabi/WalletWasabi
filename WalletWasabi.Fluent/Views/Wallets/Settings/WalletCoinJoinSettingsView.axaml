@@ -34,7 +34,6 @@
                 SelectedItem="{Binding SelectedTimeFrame}" />
     </DockPanel>
 
-
     <DockPanel>
       <Button Theme="{StaticResource AccentButton}" Content="Maximize Privacy" Command="{Binding SelectMaximizePrivacySettings}" />
       <Button Theme="{StaticResource AccentButton}" Content="Speedy" Command="{Binding SelectSpeedySettings}" />
@@ -42,12 +41,6 @@
     </DockPanel>
     
     <Separator />
-
-    <DockPanel>
-      <TextBlock Text="Coinjoin strategy:" VerticalAlignment="Center" DockPanel.Dock="Left" Margin="0" />
-      <Button Theme="{StaticResource AccentButton}" Content="Change" Command="{Binding SelectCoinjoinProfileCommand}" DockPanel.Dock="Right" />
-      <TextBlock Text="{Binding SelectedCoinjoinProfileName}" VerticalAlignment="Center" MinWidth="120" Margin="10 3 10 0" />
-    </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Coinjoin to this wallet:" />
