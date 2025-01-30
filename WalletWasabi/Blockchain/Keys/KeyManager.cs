@@ -102,7 +102,7 @@ public class KeyManager
 	{
 		// This should be impossible but in any case, coinjoin can only happen,
 		// if a profile is selected. Otherwise, the user's money can be drained.
-		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		if (AutoCoinJoin)
 		{
 			AutoCoinJoin = false;
 		}
@@ -194,9 +194,6 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
-
-	[JsonProperty(PropertyName = "IsCoinjoinProfileSelected")]
-	public bool IsCoinjoinProfileSelected { get; set; } = false;
 
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
 	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
