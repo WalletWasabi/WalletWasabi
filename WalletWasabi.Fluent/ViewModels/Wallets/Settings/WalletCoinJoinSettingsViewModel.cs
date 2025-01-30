@@ -7,7 +7,6 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
@@ -41,9 +40,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 
 	private CompositeDisposable _disposable = new();
-
-	private const int MinAnonScoreForMaximizePrivacySetting = 30;
-	private const int MaxAnonScoreForMaximizePrivacySetting = 50;
 
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
@@ -172,7 +168,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private Task SetMaximizePrivacySettings()
 	{
-		AnonScoreTarget = GetAnonScoreTargetForMaximizePrivacySettings(MinAnonScoreForMaximizePrivacySetting, MaxAnonScoreForMaximizePrivacySetting).ToString();
+		AnonScoreTarget = DefaultAnonScoreTargetHelper.GetDefaultAnonScoreTarget().ToString();
 		RedCoinIsolation = true;
 		SelectedTimeFrame = TimeFrames.First();
 		_wallet.Settings.Save();
@@ -195,32 +191,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		SelectedTimeFrame = TimeFrames[2];
 		_wallet.Settings.Save();
 		return Task.CompletedTask;
-	}
-
-	/// <summary>
-	/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.
-	/// The goal is to have a good distribution around a specific target with hard min and max.
-	/// (minExclusive + 1) has 100% chance of being selected, (maxExclusive) has a 0% chance (hard limit).
-	/// Average of results is never more than minExclusive + (maxExclusive - minExclusive) * (1.0/3.0).
-	/// </summary>
-	private int GetAnonScoreTargetForMaximizePrivacySettings(int minExclusive, int maxExclusive)
-	{
-		var ast = minExclusive;
-
-		while (ast < maxExclusive)
-		{
-			var progress = (double)(ast - minExclusive) / (maxExclusive - minExclusive);
-			var probability = 100 * (1 - progress);
-
-			if (SecureRandom.Instance.GetInt(0, 101) > probability)
-			{
-				break;
-			}
-
-			ast++;
-		}
-
-		return ast;
 	}
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)

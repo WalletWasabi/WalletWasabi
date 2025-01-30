@@ -22,7 +22,6 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
-	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
@@ -190,7 +189,7 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
+	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTargetHelper.GetDefaultAnonScoreTarget();
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
