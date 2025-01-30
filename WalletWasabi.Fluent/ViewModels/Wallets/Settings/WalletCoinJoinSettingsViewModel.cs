@@ -11,11 +11,9 @@ using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using static WalletWasabi.Fluent.ViewModels.Dialogs.ManualCoinJoinSettingsViewModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -223,5 +221,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 
 		return ast;
+	}
+
+	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
+	{
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }

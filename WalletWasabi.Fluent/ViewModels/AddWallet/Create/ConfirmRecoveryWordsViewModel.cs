@@ -146,11 +146,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			var options = _options with { Password = password };
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-
-			IsBusy = false;
-
-			await Navigate().To().CoinJoinProfiles(walletSettings, options).GetResultAsync();
+			Navigate().To().AddedWalletPage(walletSettings, _options!);
 		}
+		else
+		{
+			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(_options);
+			Navigate().To().AddedWalletPage(walletSettings, _options!);
+
+		}
+
+
 	}
 
 	private void OnCancel()
