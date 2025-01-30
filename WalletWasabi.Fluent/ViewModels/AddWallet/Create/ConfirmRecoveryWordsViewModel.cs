@@ -144,7 +144,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			var options = _options with { Password = password };
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-			Navigate().To().AddedWalletPage(walletSettings, _options!);
+			Navigate().To().AddedWalletPage(walletSettings, options!);
 		}
 		else
 		{
