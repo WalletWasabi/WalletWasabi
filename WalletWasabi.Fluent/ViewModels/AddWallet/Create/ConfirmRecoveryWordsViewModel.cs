@@ -141,8 +141,6 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		if (password is { })
 		{
-			IsBusy = true;
-
 			var options = _options with { Password = password };
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
