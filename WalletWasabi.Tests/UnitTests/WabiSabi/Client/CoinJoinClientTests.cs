@@ -1,16 +1,54 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using Xunit;
+using Xunit.Abstractions;
+using InsecureRandom = WalletWasabi.Crypto.Randomness.InsecureRandom;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class CoinJoinClientTests
 {
+	private readonly ITestOutputHelper _testOutputHelper;
+
+	public CoinJoinClientTests(ITestOutputHelper testOutputHelper)
+	{
+		_testOutputHelper = testOutputHelper;
+	}
+
+	[Fact]
+	public void RunSimulation()
+	{
+		int[] spotsToTest = [3, 5, 8, 12, 15];
+		int[] coinsToTest = [2, 5, 10, 20, 30];
+
+		_testOutputHelper.WriteLine("Simulation Results:");
+		_testOutputHelper.WriteLine("Available Spots | Available Coins | 5 Sample Results");
+		_testOutputHelper.WriteLine("------------------------------------------------");
+
+		WasabiRandom rnd = new InsecureRandom();
+		foreach (int spots in spotsToTest)
+		{
+			foreach (int coins in coinsToTest)
+			{
+				_testOutputHelper.WriteLine($"{spots,14} | {coins,14} | ");
+
+				// Run 5 samples for each combination
+				var stringtoDisplay = "";
+				for (var i = 0; i < 5; i++)
+				{
+					stringtoDisplay += $"{CoinJoinCoinSelector.CalculateSemiPrivateTargetCoins(spots, coins, rnd),3}, ";
+				}
+				_testOutputHelper.WriteLine(stringtoDisplay);
+			}
+			_testOutputHelper.WriteLine("------------------------------------------------");
+		}
+	}
 	[Fact]
 	public void SanityCheckTest()
 	{

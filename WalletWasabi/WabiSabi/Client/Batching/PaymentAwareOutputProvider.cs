@@ -16,10 +16,10 @@ public class PaymentAwareOutputProvider : OutputProvider
 	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments, WasabiRandom? random = null)
 		: base(destinationProvider, random)
 	{
-		_batchedPayments = batchedPayments;
+		BatchedPayments = batchedPayments;
 	}
 
-	private readonly PaymentBatch _batchedPayments;
+	public readonly PaymentBatch BatchedPayments;
 
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
@@ -32,7 +32,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = _batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
+		var bestPaymentSet = BatchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
 
 		// Return the payments.
 		foreach (var payment in bestPaymentSet.Payments)
@@ -40,7 +40,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 			yield return payment.ToTxOut();
 		}
 
-		_batchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
+		BatchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
 		availableVsize -= bestPaymentSet.TotalVSize;
 		availableAmount -= bestPaymentSet.TotalAmount;
 
