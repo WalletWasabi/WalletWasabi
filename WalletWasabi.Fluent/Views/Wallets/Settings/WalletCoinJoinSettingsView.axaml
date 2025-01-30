@@ -35,9 +35,10 @@
     </DockPanel>
 
     <DockPanel>
-      <Button Theme="{StaticResource AccentButton}" Content="Maximize Privacy" Command="{Binding SelectMaximizePrivacySettings}" />
-      <Button Theme="{StaticResource AccentButton}" Content="Speedy" Command="{Binding SelectSpeedySettings}" />
-      <Button Theme="{StaticResource AccentButton}" Content="Economical" Command="{Binding SelectEconomicalSettings}" />
+      <TextBlock Text="Pre-sets: " />
+      <Button Theme="{StaticResource AccentButton}" Content="Maximize Privacy" Command="{Binding SelectMaximizePrivacySettings}" Classes="standalone" DockPanel.Dock="Left" />
+      <Button Theme="{StaticResource AccentButton}" Content="Speedy" Command="{Binding SelectSpeedySettings}" Classes="standalone" Margin="130 0"/>
+      <Button Theme="{StaticResource AccentButton}" Content="Economical" Command="{Binding SelectEconomicalSettings}" Classes="standalone" DockPanel.Dock="Right"/>
     </DockPanel>
     
     <Separator />
