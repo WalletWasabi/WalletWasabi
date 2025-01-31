@@ -162,7 +162,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 		else
 		{
-			errors.Add(ErrorSeverity.Error, "Target must be a number and it must be between 2 and 300");
+			errors.Add(ErrorSeverity.Error, "Target must be a number between 2 and 300");
 		}
 	}
 

@@ -139,21 +139,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			"It's a recovery words extension for more security.";
 		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
+		var options = _options;
 		if (password is { })
 		{
-			var options = _options with { Password = password };
-
-			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-			Navigate().To().AddedWalletPage(walletSettings, options!);
-		}
-		else
-		{
-			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(_options);
-			Navigate().To().AddedWalletPage(walletSettings, _options!);
-
+			options = _options with { Password = password };
 		}
 
-
+		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
+		Navigate().To().AddedWalletPage(walletSettings, options!);
 	}
 
 	private void OnCancel()

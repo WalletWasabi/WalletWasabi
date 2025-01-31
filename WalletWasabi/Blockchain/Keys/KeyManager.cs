@@ -99,8 +99,8 @@ public class KeyManager
 	[OnDeserialized]
 	private void OnDeserializedMethod(StreamingContext context)
 	{
-		// This should be impossible but in any case, coinjoin can only happen,
-		// if a profile is selected. Otherwise, the user's money can be drained.
+		// This should be impossible but turn auto coinjoin off, just in case.
+		// Otherwise, the user's money can be drained.
 		if (AutoCoinJoin)
 		{
 			AutoCoinJoin = false;
