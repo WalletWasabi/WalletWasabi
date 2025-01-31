@@ -133,7 +133,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 	public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
 	public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
-	public IEnumerable<PreferredScriptPubKeyType> ChangeScriptTypes { get; } =
+	public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes { get; } =
 	[
 		PreferredScriptPubKeyType.Unspecified.Instance,
 		PreferredScriptPubKeyType.Specified.SegWit,

@@ -208,7 +208,7 @@ public class KeyManager
 	[JsonProperty(PropertyName = "DefaultSendWorkflow")]
 	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
-	[JsonProperty(PropertyName = "ChangeScriptType")]
+	[JsonProperty(PropertyName = "ChangeScriptPubKeyType")]
 	public PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; } = PreferredScriptPubKeyType.Unspecified.Instance;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]

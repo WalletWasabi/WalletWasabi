@@ -12,8 +12,8 @@ public class PreferredScriptPubKeyTypeConverter
 			PreferredScriptPubKeyType.Unspecified s => "SegWit & Taproot",
 			PreferredScriptPubKeyType.Specified s => s.ScriptType switch
 			{
-				ScriptPubKeyType.TaprootBIP86 => "Taproot Only",
-				ScriptPubKeyType.Segwit => "SegWit Only",
+				ScriptPubKeyType.TaprootBIP86 => "Taproot",
+				ScriptPubKeyType.Segwit => "SegWit",
 				_ => s.Name,
 			},
 			_ => throw new ArgumentOutOfRangeException()
