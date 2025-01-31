@@ -58,6 +58,17 @@
       </ComboBox>
     </DockPanel>
 
+    <DockPanel IsVisible="{Binding SeveralReceivingScriptTypes}" ToolTip.Tip="Script Type of the keys used to create change outputs.">
+      <TextBlock Text="Change Script Type" />
+      <ComboBox ItemsSource="{Binding ChangeScriptTypes}"
+                SelectedItem="{Binding ChangeScriptPubKeyType}">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="models:PreferredScriptPubKeyType">
+            <TextBlock Text="{Binding Converter={x:Static conv:PreferredScriptPubKeyTypeConverter.ToName}}" />
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+      </ComboBox>
+    </DockPanel>
   </StackPanel>
 
 </UserControl>
