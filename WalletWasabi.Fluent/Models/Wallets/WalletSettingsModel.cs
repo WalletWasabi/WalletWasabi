@@ -18,7 +18,6 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	[AutoNotify] private bool _isNewWallet;
 	[AutoNotify] private bool _autoCoinjoin;
-	[AutoNotify] private bool _isCoinjoinProfileSelected;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
@@ -37,7 +36,6 @@ public partial class WalletSettingsModel : ReactiveObject
 		IsCoinJoinPaused = isCoinJoinPaused;
 
 		_autoCoinjoin = _keyManager.AutoCoinJoin;
-		_isCoinjoinProfileSelected = _keyManager.IsCoinjoinProfileSelected;
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
@@ -56,7 +54,6 @@ public partial class WalletSettingsModel : ReactiveObject
 
 		this.WhenAnyValue(
 				x => x.AutoCoinjoin,
-				x => x.IsCoinjoinProfileSelected,
 				x => x.PreferPsbtWorkflow,
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
@@ -104,7 +101,6 @@ public partial class WalletSettingsModel : ReactiveObject
 	private void SetValues()
 	{
 		_keyManager.AutoCoinJoin = AutoCoinjoin;
-		_keyManager.IsCoinjoinProfileSelected = IsCoinjoinProfileSelected;
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;

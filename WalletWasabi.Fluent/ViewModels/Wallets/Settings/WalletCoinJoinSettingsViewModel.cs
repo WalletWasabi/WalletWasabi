@@ -9,8 +9,10 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.CoinJoinProfiles;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -28,10 +30,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _autoCoinJoin;
-	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private bool _isCoinjoinProfileSelected;
+	[AutoNotify] private string _anonScoreTarget;
+	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private TimeFrameItem[] _timeFrames;
+	[AutoNotify] private TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private string _plebStopThreshold;
-	[AutoNotify] private string? _selectedCoinjoinProfileName;
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
@@ -44,7 +47,17 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
-		_anonScoreTarget = _wallet.Settings.AnonScoreTarget;
+		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
+		_redCoinIsolation = _wallet.Settings.RedCoinIsolation;
+		_timeFrames = new[]
+		{
+			new TimeFrameItem("Hours", TimeSpan.Zero),
+			new TimeFrameItem("Days", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
+			new TimeFrameItem("Weeks", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
+			new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
+		};
+		_selectedTimeFrame = _timeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(_wallet.Settings.FeeRateMedianTimeFrameHours)) ?? _timeFrames.First();
+
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -52,29 +65,27 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		NextCommand = CancelCommand;
 
 		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(
-			async () =>
+			() =>
 			{
-				if (_wallet.Settings.IsCoinjoinProfileSelected)
-				{
-					AutoCoinJoin = !AutoCoinJoin;
-				}
-				else
-				{
-					await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
-				}
-
-				if (_wallet.Settings.IsCoinjoinProfileSelected)
-				{
-					_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
-					_wallet.Settings.Save();
-				}
-				else
-				{
-					AutoCoinJoin = false;
-				}
+				_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
+				_wallet.Settings.Save();
+				return Task.CompletedTask;
 			});
 
-		SelectCoinjoinProfileCommand = ReactiveCommand.CreateFromTask(SelectCoinjoinProfileAsync);
+		SetRedCoinIsolationCommand = ReactiveCommand.CreateFromTask(() =>
+		{
+			_wallet.Settings.RedCoinIsolation = RedCoinIsolation;
+			_wallet.Settings.Save();
+			return Task.CompletedTask;
+		});
+
+		SelectMaximizePrivacySettings = ReactiveCommand.CreateFromTask(SetMaximizePrivacySettings);
+
+		SelectSpeedySettings = ReactiveCommand.CreateFromTask(SetSpeedySettings);
+
+		SelectEconomicalSettings = ReactiveCommand.CreateFromTask(SetEconomicalSettings);
+
+		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
@@ -99,13 +110,24 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
-		Update();
+		this.WhenAnyValue(x => x.SelectedTimeFrame)
+			.Skip(1)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x =>
+				{
+					_wallet.Settings.FeeRateMedianTimeFrameHours = (int)x.TimeFrame.TotalHours;
+					_wallet.Settings.Save();
+				});
+
 		ManuallyUpdateOutputWalletList();
 	}
 
 	public ICommand SetAutoCoinJoin { get; }
-
-	public ICommand SelectCoinjoinProfileCommand { get; }
+	public ICommand SetRedCoinIsolationCommand { get; }
+	public ICommand SelectMaximizePrivacySettings {  get; }
+	public ICommand SelectSpeedySettings { get; }
+	public ICommand SelectEconomicalSettings { get; }
 
 	public void ManuallyUpdateOutputWalletList()
 	{
@@ -124,26 +146,58 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_wallets = wallets;
 	}
 
-	private void Update()
+	private void ValidateAnonScoreTarget(IValidationErrors errors)
 	{
-		PlebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
-		AnonScoreTarget = _wallet.Settings.AnonScoreTarget;
-
-		IsCoinjoinProfileSelected = _wallet.Settings.IsCoinjoinProfileSelected;
-		SelectedCoinjoinProfileName =
-			(_wallet.Settings.IsCoinjoinProfileSelected,
-					CoinJoinProfilesViewModel.IdentifySelectedProfile(_wallet.Settings)) switch
+		if (int.TryParse(AnonScoreTarget, out int anonScoreTarget))
+		{
+			if (anonScoreTarget < 2 || anonScoreTarget > 300)
 			{
-				(true, CoinJoinProfileViewModelBase x) => x.Title,
-				(false, _) => "None",
-				_ => "Unknown"
-			};
+				errors.Add(ErrorSeverity.Error, "Target must be between 2 and 300");
+			}
+			else
+			{
+				_wallet.Settings.AnonScoreTarget = anonScoreTarget;
+				_wallet.Settings.Save();
+			}
+		}
+		else
+		{
+			errors.Add(ErrorSeverity.Error, "Target must be a number between 2 and 300");
+		}
 	}
 
-	private async Task SelectCoinjoinProfileAsync()
+	private Task SetMaximizePrivacySettings()
 	{
-		await Navigate().To().CoinJoinProfiles(_wallet.Settings).GetResultAsync();
-		AutoCoinJoin = _wallet.Settings.AutoCoinjoin;
-		Update();
+		AnonScoreTarget = DefaultAnonScoreTargetHelper.GetDefaultAnonScoreTarget().ToString();
+		RedCoinIsolation = true;
+		SelectedTimeFrame = TimeFrames.First();
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	private Task SetSpeedySettings()
+	{
+		AnonScoreTarget = "5";
+		RedCoinIsolation = false;
+		SelectedTimeFrame = TimeFrames.First();
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	private Task SetEconomicalSettings()
+	{
+		AnonScoreTarget = "5";
+		RedCoinIsolation = false;
+		SelectedTimeFrame = TimeFrames[2];
+		_wallet.Settings.Save();
+		return Task.CompletedTask;
+	}
+
+	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
+	{
+		public override string ToString()
+		{
+			return Name;
+		}
 	}
 }
