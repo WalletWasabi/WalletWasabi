@@ -47,7 +47,7 @@
     </DockPanel>
 
     <DockPanel IsVisible="{Binding SeveralReceivingScriptTypes}">
-      <TextBlock Text="Default Receive Script Type" />
+      <TextBlock Text="Default Receive Address Type" />
       <ComboBox ItemsSource="{Binding ReceiveScriptTypes}"
                 SelectedItem="{Binding DefaultReceiveScriptType}">
         <ComboBox.ItemTemplate>
@@ -59,7 +59,7 @@
     </DockPanel>
 
     <DockPanel IsVisible="{Binding SeveralReceivingScriptTypes}" ToolTip.Tip="Script Type of the keys used to create change outputs.">
-      <TextBlock Text="Change Script Type" />
+      <TextBlock Text="Change Address Type" />
       <ComboBox ItemsSource="{Binding ChangeScriptPubKeyTypes}"
                 SelectedItem="{Binding ChangeScriptPubKeyType}">
         <ComboBox.ItemTemplate>
