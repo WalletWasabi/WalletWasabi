@@ -40,7 +40,8 @@ public class KeyManager
 		new KeyPathJsonConverter(),
 		new MoneyBtcJsonConverter(),
 		new ScriptPubKeyTypeJsonConverter(),
-		new SendWorkflowJsonConverter()
+		new SendWorkflowJsonConverter(),
+		new PreferredScriptPubKeyTypeJsonConverter()
 	};
 
 	[JsonConstructor]
@@ -206,6 +207,9 @@ public class KeyManager
 
 	[JsonProperty(PropertyName = "DefaultSendWorkflow")]
 	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
+
+	[JsonProperty(PropertyName = "ChangeScriptPubKeyType")]
+	public PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; } = PreferredScriptPubKeyType.Unspecified.Instance;
 
 	[JsonProperty(Order = 999, PropertyName = "HdPubKeys")]
 	private readonly List<HdPubKey> _hdPubKeys = new();
@@ -398,13 +402,21 @@ public class KeyManager
 	public HdPubKey GetNextChangeKey() =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
-			x.IsInternal == true)
+			x.IsInternal &&
+			MatchesChangeScriptPubKeyType(x))
 			.First();
 
 	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
 		GetKeys(x =>
 				x.KeyState == KeyState.Locked &&
 				x.IsInternal == true);
+
+	private bool MatchesChangeScriptPubKeyType(HdPubKey hd) =>
+		ChangeScriptPubKeyType switch {
+			PreferredScriptPubKeyType.Unspecified => true,
+			PreferredScriptPubKeyType.Specified scriptType => hd.FullKeyPath.GetScriptTypeFromKeyPath() == scriptType.ScriptType,
+			_ => throw new ArgumentOutOfRangeException()
+		};
 
 	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{

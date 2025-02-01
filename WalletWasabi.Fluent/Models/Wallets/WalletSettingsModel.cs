@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -26,6 +25,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
+	[AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
 	[AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
@@ -50,6 +50,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		}
 
 		_defaultReceiveScriptType = ScriptType.FromEnum(_keyManager.DefaultReceiveScriptType);
+		_changeScriptPubKeyType = _keyManager.ChangeScriptPubKeyType;
 		_defaultSendWorkflow = _keyManager.DefaultSendWorkflow;
 
 		WalletType = WalletHelpers.GetType(_keyManager);
@@ -68,8 +69,8 @@ public partial class WalletSettingsModel : ReactiveObject
 
 		this.WhenAnyValue(
 				x => x.DefaultSendWorkflow,
-				x => x.DefaultReceiveScriptType)
-			.Skip(1)
+				x => x.DefaultReceiveScriptType,
+				x => x.ChangeScriptPubKeyType)
 			.Do(_ => SetValues())
 			.Subscribe();
 	}
@@ -112,6 +113,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
+		_keyManager.ChangeScriptPubKeyType = ChangeScriptPubKeyType;
 		_isDirty = true;
 	}
 
