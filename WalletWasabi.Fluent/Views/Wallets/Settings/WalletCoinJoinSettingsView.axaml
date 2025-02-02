@@ -5,30 +5,51 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              xmlns:wallets1="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
-             xmlns:dv="clr-namespace:WalletWasabi.Fluent.Views.Dialogs"
              x:DataType="vm:WalletCoinJoinSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletCoinJoinSettingsView"
              x:CompileBindings="True">
 
   <StackPanel Classes="settingsLayout">
-
-    <DockPanel>
-      <TextBlock Text="Pre-sets" />
-      <Button Theme="{StaticResource AccentButton}" Content="Maximize Privacy" Command="{Binding SelectMaximizePrivacySettings}" Classes="standalone" DockPanel.Dock="Left" ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs." />
-      <Button Theme="{StaticResource AccentButton}" Content="Speedy" Command="{Binding SelectSpeedySettings}" Classes="standalone" Margin="130 0" ToolTip.Tip="Getting things done. Geared towards speed and convenience." />
-      <Button Theme="{StaticResource AccentButton}" Content="Economical" Command="{Binding SelectEconomicalSettings}" Classes="standalone" DockPanel.Dock="Right" ToolTip.Tip="For savers. Only participates in coinjoins during the cheapest parts of the week." />
-    </DockPanel>
-
-    <DockPanel>
-      <TextBlock Text="Automatically start coinjoin" />
-      <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" Command="{Binding SetAutoCoinJoin}" />
-    </DockPanel>
+    <StackPanel Margin="0 0 0 30"
+                Opacity="0.9"
+                Spacing="40"
+                HorizontalAlignment="Center"
+                Orientation="Horizontal"
+                Classes="settingsLayout">
+      <Button Theme="{StaticResource AccentButton}"
+              Command="{Binding SelectMaximizePrivacySettings}"
+              Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
+              ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs.">
+        <StackPanel Spacing="10" Orientation="Horizontal">
+          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_privacy}" />
+          <TextBlock Text="Maximize Privacy" />
+        </StackPanel>
+      </Button>
+      <Button Theme="{StaticResource AccentButton}"
+              Command="{Binding SelectSpeedySettings}"
+              Classes.bordered="{Binding SpeedyProfileSelected}"
+              ToolTip.Tip="Getting things done. Geared towards speed and convenience.">
+        <StackPanel Spacing="10" Orientation="Horizontal">
+          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_speed}" />
+          <TextBlock Text="Maximize Speed" />
+        </StackPanel>
+      </Button>
+      <Button Theme="{StaticResource AccentButton}"
+              Command="{Binding SelectEconomicalSettings}"
+              Classes.bordered="{Binding EconomicalProfileSelected}"
+              ToolTip.Tip="For savers. Only participates in coinjoins during the cheapest parts of the week.">
+        <StackPanel Spacing="10" Orientation="Horizontal">
+          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_cost}" />
+          <TextBlock Text="Minimize Costs" />
+        </StackPanel>
+      </Button>
+    </StackPanel>
 
     <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
       <TextBlock Text="Red coin isolation" />
       <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" Command="{Binding SetRedCoinIsolationCommand}"/>
     </DockPanel>
-    
+
     <DockPanel>
       <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300."/>
       <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300."/>
@@ -40,8 +61,13 @@
                 ItemsSource="{Binding TimeFrames}"
                 SelectedItem="{Binding SelectedTimeFrame}" />
     </DockPanel>
-    
+
     <Separator />
+
+    <DockPanel>
+      <TextBlock Text="Automatically start coinjoin" />
+      <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" Command="{Binding SetAutoCoinJoin}" />
+    </DockPanel>
 
     <DockPanel>
       <TextBlock Text="Coinjoin to this wallet:" />

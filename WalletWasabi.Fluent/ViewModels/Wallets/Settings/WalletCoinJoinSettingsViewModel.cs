@@ -13,6 +13,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -38,6 +39,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
+	[AutoNotify] private bool _maximizePrivacyProfileSelected;
+	[AutoNotify] private bool _speedyProfileSelected;
+	[AutoNotify] private bool _economicalProfileSelected;
 
 	private CompositeDisposable _disposable = new();
 
@@ -84,6 +88,24 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		SelectSpeedySettings = ReactiveCommand.CreateFromTask(SetSpeedySettings);
 
 		SelectEconomicalSettings = ReactiveCommand.CreateFromTask(SetEconomicalSettings);
+
+		MaximizePrivacyProfileSelected = IsMaximizePrivacySettings;
+		SpeedyProfileSelected = IsSpeedySettings;
+		EconomicalProfileSelected = IsEconomicalSettings;
+
+		this.WhenAnyValue(
+				x => x.AnonScoreTarget,
+				x => x.PlebStopThreshold,
+				x => x.RedCoinIsolation,
+				x => x.SelectedTimeFrame,
+				(_, _, _, _) => Unit.Default)
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(x =>
+			{
+				MaximizePrivacyProfileSelected = IsMaximizePrivacySettings;
+				SpeedyProfileSelected = IsSpeedySettings;
+				EconomicalProfileSelected = IsEconomicalSettings;
+			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
 
@@ -175,6 +197,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		return Task.CompletedTask;
 	}
 
+	private bool IsMaximizePrivacySettings => int.Parse(AnonScoreTarget) > DefaultAnonScoreTargetHelper.MinExclusive &&
+			int.Parse(AnonScoreTarget) < DefaultAnonScoreTargetHelper.MaxExclusive &&
+			RedCoinIsolation &&
+			SelectedTimeFrame == TimeFrames.First();
+
 	private Task SetSpeedySettings()
 	{
 		AnonScoreTarget = "5";
@@ -184,6 +211,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		return Task.CompletedTask;
 	}
 
+	private bool IsSpeedySettings => AnonScoreTarget == "5" &&
+		       !RedCoinIsolation &&
+		       SelectedTimeFrame == TimeFrames.First();
+
 	private Task SetEconomicalSettings()
 	{
 		AnonScoreTarget = "5";
@@ -192,6 +223,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_wallet.Settings.Save();
 		return Task.CompletedTask;
 	}
+
+	private bool IsEconomicalSettings => AnonScoreTarget == "5" &&
+		       !RedCoinIsolation &&
+		       SelectedTimeFrame == TimeFrames[2];
 
 	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
 	{

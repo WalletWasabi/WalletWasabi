@@ -17,6 +17,10 @@
       <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
       <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
     </Style>
+    <Style Selector="^.bordered">
+      <Setter Property="BorderBrush" Value="Yellow"/>
+      <Setter Property="BorderThickness" Value="1"/>
+    </Style>
   </ControlTheme>
 
   <ControlTheme x:Key="SortButtonBase" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

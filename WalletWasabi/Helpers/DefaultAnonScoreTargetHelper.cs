@@ -3,6 +3,10 @@ using WabiSabi.Crypto.Randomness;
 namespace WalletWasabi.Helpers;
 public static class DefaultAnonScoreTargetHelper
 {
+
+	public const int MinExclusive = 30;
+	public const int MaxExclusive = 51;
+
 	/// <summary>
 	/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.
 	/// The goal is to have a good distribution around a specific target with hard min and max.
@@ -11,8 +15,6 @@ public static class DefaultAnonScoreTargetHelper
 	/// </summary>
 	public static int GetDefaultAnonScoreTarget()
 	{
-		const int MinExclusive = 30;
-		const int MaxExclusive = 51;
 
 		var ast = MinExclusive;
 
