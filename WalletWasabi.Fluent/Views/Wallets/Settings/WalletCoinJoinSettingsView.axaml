@@ -10,37 +10,40 @@
              x:CompileBindings="True">
 
   <StackPanel Classes="settingsLayout">
-    <StackPanel Margin="0 0 0 30"
-                Opacity="0.9"
+    <StackPanel Margin="0 0 0 20"
+                Opacity="0.8"
                 Spacing="40"
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
                 Classes="settingsLayout">
       <Button Theme="{StaticResource AccentButton}"
+              Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
               Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
               ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_privacy}" />
-          <TextBlock Text="Maximize Privacy" />
+          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_privacy}" />
+          <TextBlock Margin="0 2 0 0" Text="Maximize Privacy" />
         </StackPanel>
       </Button>
       <Button Theme="{StaticResource AccentButton}"
+              Height="37"
               Command="{Binding SelectSpeedySettings}"
               Classes.bordered="{Binding SpeedyProfileSelected}"
               ToolTip.Tip="Getting things done. Geared towards speed and convenience.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_speed}" />
-          <TextBlock Text="Maximize Speed" />
+          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_speed}" />
+          <TextBlock Margin="0 2 0 0" Text="Maximize Speed" />
         </StackPanel>
       </Button>
       <Button Theme="{StaticResource AccentButton}"
+              Height="37"
               Command="{Binding SelectEconomicalSettings}"
               Classes.bordered="{Binding EconomicalProfileSelected}"
               ToolTip.Tip="For savers. Only participates in coinjoins during the cheapest parts of the week.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.8" Data="{StaticResource coinjoin_cost}" />
-          <TextBlock Text="Minimize Costs" />
+          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_cost}" />
+          <TextBlock Margin="0 2 0 0" Text="Minimize Costs" />
         </StackPanel>
       </Button>
     </StackPanel>
