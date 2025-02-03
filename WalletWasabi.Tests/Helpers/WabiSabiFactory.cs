@@ -320,7 +320,7 @@ public static class WabiSabiFactory
 			new KeyChain(keyManager, ""),
 			new OutputProvider(new InternalDestinationProvider(keyManager)),
 			roundStateUpdater,
-			keyManager.RedCoinIsolation);
+			keyManager.NonPrivateCoinIsolation);
 	}
 
 	public static CoinJoinClient CreateTestCoinJoinClient(

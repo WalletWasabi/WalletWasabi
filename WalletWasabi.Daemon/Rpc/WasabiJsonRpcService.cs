@@ -142,7 +142,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isWatchOnly"] = activeWallet.KeyManager.IsWatchOnly,
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
-			["isRedCoinIsolation"] = activeWallet.KeyManager.RedCoinIsolation,
+			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
 			["accounts"] = new[] { segwit }
 		};
 

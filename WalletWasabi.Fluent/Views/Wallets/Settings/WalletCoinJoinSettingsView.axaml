@@ -49,8 +49,8 @@
     </StackPanel>
 
     <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
-      <TextBlock Text="Red coin isolation" />
-      <ToggleSwitch IsChecked="{Binding RedCoinIsolation}" Command="{Binding SetRedCoinIsolationCommand}"/>
+      <TextBlock Text="Non-private coin isolation" />
+      <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}"/>
     </DockPanel>
 
     <DockPanel>

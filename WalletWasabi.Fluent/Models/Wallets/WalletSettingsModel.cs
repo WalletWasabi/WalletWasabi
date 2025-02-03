@@ -21,7 +21,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
-	[AutoNotify] private bool _redCoinIsolation;
+	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private int _feeRateMedianTimeFrameHours;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
@@ -39,7 +39,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
-		_redCoinIsolation = _keyManager.RedCoinIsolation;
+		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
 		_feeRateMedianTimeFrameHours = _keyManager.FeeRateMedianTimeFrameHours;
 
 		if (!isNewWallet)
@@ -57,7 +57,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PreferPsbtWorkflow,
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
-				x => x.RedCoinIsolation,
+				x => x.NonPrivateCoinIsolation,
 				x => x.FeeRateMedianTimeFrameHours)
 			.Skip(1)
 			.Do(_ => SetValues())
@@ -104,7 +104,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
-		_keyManager.RedCoinIsolation = RedCoinIsolation;
+		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
 		_keyManager.SetFeeRateMedianTimeFrame(FeeRateMedianTimeFrameHours);
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);

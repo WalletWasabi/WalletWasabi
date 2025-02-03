@@ -196,7 +196,7 @@ public class KeyManager
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
-	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
+	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
 	[JsonProperty(PropertyName = "DefaultReceiveScriptType")]
 	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;

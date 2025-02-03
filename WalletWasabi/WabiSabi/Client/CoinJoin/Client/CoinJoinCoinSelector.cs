@@ -44,7 +44,7 @@ public class CoinJoinCoinSelector
 		new(
 			wallet.ConsolidationMode,
 			wallet.AnonScoreTarget,
-			wallet.RedCoinIsolation ? Constants.SemiPrivateThreshold : 0);
+			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)

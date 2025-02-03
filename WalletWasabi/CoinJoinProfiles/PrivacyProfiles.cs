@@ -20,14 +20,14 @@ public static class PrivacyProfiles
 	public record Speedy : IPrivacyProfile
 	{
 		public int AnonScoreTarget => 5;
-		public bool RedCoinIsolation => false;
+		public bool NonPrivateCoinIsolation => false;
 		public TimeFrameItem TimeFrame => TimeFrames[0];
 	}
 
 	public record Economical : IPrivacyProfile
 	{
 		public int AnonScoreTarget => 5;
-		public bool RedCoinIsolation => false;
+		public bool NonPrivateCoinIsolation => false;
 		public TimeFrameItem TimeFrame => TimeFrames[2];
 	}
 
@@ -37,13 +37,13 @@ public static class PrivacyProfiles
 		private const int MaxExclusive = 51;
 
 		public int AnonScoreTarget => GetAnonScoreTarget();
-		public bool RedCoinIsolation => true;
+		public bool NonPrivateCoinIsolation => true;
 		public TimeFrameItem TimeFrame => TimeFrames[0];
 
 		public bool Equals(int anonScoreTarget, bool redCoinIsolation, TimeSpan timeFrame)
 		{
 			return anonScoreTarget is > MinExclusive and < MaxExclusive &&
-					redCoinIsolation == RedCoinIsolation &&
+					redCoinIsolation == NonPrivateCoinIsolation &&
 					timeFrame == TimeFrame.TimeFrame;
 		}
 
