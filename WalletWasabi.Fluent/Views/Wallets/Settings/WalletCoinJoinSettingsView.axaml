@@ -23,7 +23,7 @@
               ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_privacy}" />
-          <TextBlock Margin="0 2 0 0" Text="Maximize Privacy" />
+          <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
         </StackPanel>
       </Button>
       <Button Theme="{StaticResource AccentButton}"
@@ -33,7 +33,7 @@
               ToolTip.Tip="Getting things done. Geared towards speed and convenience.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_speed}" />
-          <TextBlock Margin="0 2 0 0" Text="Maximize Speed" />
+          <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
         </StackPanel>
       </Button>
       <Button Theme="{StaticResource AccentButton}"
@@ -43,7 +43,7 @@
               ToolTip.Tip="For savers. Only participates in coinjoins during the cheapest parts of the week.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_cost}" />
-          <TextBlock Margin="0 2 0 0" Text="Minimize Costs" />
+          <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
         </StackPanel>
       </Button>
     </StackPanel>
