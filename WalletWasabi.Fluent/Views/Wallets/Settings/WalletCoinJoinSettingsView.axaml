@@ -22,7 +22,7 @@
               Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
               ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_privacy}" />
+          <PathIcon Opacity="0.9" Data="{StaticResource double_shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
         </StackPanel>
       </Button>

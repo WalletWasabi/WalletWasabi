@@ -93,7 +93,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 				var selectedProfile = PrivacyProfiles.Profiles
 					.FirstOrDefault(p =>
 						p.Equals(
-							int.Parse(AnonScoreTarget),
+							int.TryParse(AnonScoreTarget, out var anonScoreTarget) ? anonScoreTarget : 0,
 							NonPrivateCoinIsolation, SelectedTimeFrame.TimeFrame));
 
 				MaximizePrivacyProfileSelected = selectedProfile?.Name == "MaximizePrivacy";
@@ -179,6 +179,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 		else
 		{
+			AnonScoreTarget = new string(AnonScoreTarget.Where(char.IsDigit).ToArray());
 			errors.Add(ErrorSeverity.Error, "Target must be a number between 2 and 300");
 		}
 	}
