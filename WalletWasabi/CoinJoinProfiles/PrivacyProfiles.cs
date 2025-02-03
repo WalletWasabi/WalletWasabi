@@ -10,17 +10,17 @@ public static class PrivacyProfiles
 
 	public static readonly IPrivacyProfile[] Profiles =
 	[
-		new Speedy(),
+		new Default(),
 		new Economical(),
 		new MaximizePrivacy()
 	];
 
-	public static readonly IPrivacyProfile DefaultProfile = Profiles.First(x => x.Name == "Speedy");
+	public static readonly IPrivacyProfile DefaultProfile = Profiles.First(x => x.Name == "Default");
 
-	public record Speedy : IPrivacyProfile
+	public record Default : IPrivacyProfile
 	{
-		public int AnonScoreTarget => 5;
-		public bool NonPrivateCoinIsolation => false;
+		public int AnonScoreTarget => 10;
+		public bool NonPrivateCoinIsolation => true;
 		public TimeFrameItem TimeFrame => TimeFrames[0];
 	}
 
