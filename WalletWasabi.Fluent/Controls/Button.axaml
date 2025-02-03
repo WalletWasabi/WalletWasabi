@@ -19,7 +19,7 @@
     </Style>
     <Style Selector="^.bordered">
       <Setter Property="BorderBrush" Value="Yellow"/>
-      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="BorderThickness" Value="1.5"/>
     </Style>
   </ControlTheme>
 
