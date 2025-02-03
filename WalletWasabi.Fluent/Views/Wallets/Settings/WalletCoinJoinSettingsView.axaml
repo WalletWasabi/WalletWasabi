@@ -11,7 +11,7 @@
 
   <StackPanel Classes="settingsLayout">
     <StackPanel Margin="0 0 0 20"
-                Opacity="0.8"
+                Opacity="0.85"
                 Spacing="40"
                 HorizontalAlignment="Center"
                 Orientation="Horizontal"
@@ -28,9 +28,9 @@
       </Button>
       <Button Theme="{StaticResource AccentButton}"
               Height="37"
-              Command="{Binding SelectSpeedySettings}"
-              Classes.bordered="{Binding SpeedyProfileSelected}"
-              ToolTip.Tip="Getting things done. Geared towards speed and convenience.">
+              Command="{Binding SelectDefaultSettings}"
+              Classes.bordered="{Binding DefaultProfileSelected}"
+              ToolTip.Tip="Well rounded strategy">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
@@ -48,7 +48,7 @@
       </Button>
     </StackPanel>
 
-    <DockPanel ToolTip.Tip="Only allow a single coin with anonymity score 1 into coinjoin registration.">
+    <DockPanel ToolTip.Tip="Only allow a single coin at a time with anonymity score 1 into coinjoin registration.">
       <TextBlock Text="Non-private coin isolation" />
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}"/>
     </DockPanel>

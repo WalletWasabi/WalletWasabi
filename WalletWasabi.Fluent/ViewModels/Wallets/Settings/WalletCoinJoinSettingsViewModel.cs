@@ -34,7 +34,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
-	[AutoNotify] private bool _speedyProfileSelected;
+	[AutoNotify] private bool _defaultProfileSelected;
 	[AutoNotify] private bool _economicalProfileSelected;
 
 	[AutoNotify] private bool _autoCoinJoin;
@@ -79,7 +79,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		SelectMaximizePrivacySettings = ReactiveCommand.CreateFromTask(() => SetProfile("MaximizePrivacy"));
 
-		SelectSpeedySettings = ReactiveCommand.CreateFromTask(() => SetProfile("Speedy"));
+		SelectDefaultSettings = ReactiveCommand.CreateFromTask(() => SetProfile("Default"));
 
 		SelectEconomicalSettings = ReactiveCommand.CreateFromTask(() => SetProfile("Economical"));
 
@@ -98,7 +98,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 				MaximizePrivacyProfileSelected = selectedProfile?.Name == "MaximizePrivacy";
 				EconomicalProfileSelected = selectedProfile?.Name == "Economical";
-				SpeedyProfileSelected = selectedProfile?.Name == "Speedy";
+				DefaultProfileSelected = selectedProfile?.Name == "Default";
 			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
@@ -143,7 +143,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
 	public ICommand SelectMaximizePrivacySettings {  get; }
-	public ICommand SelectSpeedySettings { get; }
+	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }
 
 	public void ManuallyUpdateOutputWalletList()
