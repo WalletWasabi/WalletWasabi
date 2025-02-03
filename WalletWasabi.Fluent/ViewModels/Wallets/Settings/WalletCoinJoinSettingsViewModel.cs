@@ -7,11 +7,11 @@ using System.Windows.Input;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -30,7 +30,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private WalletWasabi.Helpers.CoinJoinProfiles.TimeFrameItem _selectedTimeFrame;
+	[AutoNotify] private WalletWasabi.CoinJoinProfiles.CoinJoinTimeFrames.TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private string _anonScoreTarget;
 	[AutoNotify] private bool _redCoinIsolation;
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
@@ -54,7 +54,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_redCoinIsolation = _wallet.Settings.RedCoinIsolation;
 
-		_selectedTimeFrame = CoinJoinProfiles.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(_wallet.Settings.FeeRateMedianTimeFrameHours)) ?? CoinJoinProfiles.TimeFrames.First();
+		_selectedTimeFrame = CoinJoinTimeFrames.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(_wallet.Settings.FeeRateMedianTimeFrameHours)) ?? CoinJoinTimeFrames.TimeFrames.First();
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -90,7 +90,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ =>
 			{
-				var selectedProfile = CoinJoinProfiles.Profiles
+				var selectedProfile = PrivacyProfiles.Profiles
 					.FirstOrDefault(p =>
 						p.Equals(
 							int.Parse(AnonScoreTarget),
@@ -139,7 +139,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		ManuallyUpdateOutputWalletList();
 	}
 
-	public CoinJoinProfiles.TimeFrameItem[] TimeFrames => CoinJoinProfiles.TimeFrames;
+	public CoinJoinTimeFrames.TimeFrameItem[] TimeFrames => CoinJoinTimeFrames.TimeFrames;
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetRedCoinIsolationCommand { get; }
 	public ICommand SelectMaximizePrivacySettings {  get; }
@@ -167,7 +167,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	{
 		if (int.TryParse(AnonScoreTarget, out var anonScoreTarget))
 		{
-			if (anonScoreTarget is < CoinJoinProfiles.AbsoluteMinAnonScoreTarget or > CoinJoinProfiles.AbsoluteMaxAnonScoreTarget)
+			if (anonScoreTarget is < PrivacyProfiles.AbsoluteMinAnonScoreTarget or > PrivacyProfiles.AbsoluteMaxAnonScoreTarget)
 			{
 				errors.Add(ErrorSeverity.Error, "Target must be between 2 and 300");
 			}
@@ -185,7 +185,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private Task SetProfile(string profileName)
 	{
-		var profile = CoinJoinProfiles.Profiles.FirstOrDefault(p => p.Name == profileName);
+		var profile = PrivacyProfiles.Profiles.FirstOrDefault(p => p.Name == profileName);
 		if (profile is null)
 		{
 			return Task.CompletedTask;
@@ -197,7 +197,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		RedCoinIsolation = profile.RedCoinIsolation;
 		_wallet.Settings.RedCoinIsolation = profile.RedCoinIsolation;
 
-		SelectedTimeFrame = CoinJoinProfiles.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == profile.TimeFrame.TimeFrame) ?? CoinJoinProfiles.TimeFrames.First();
+		SelectedTimeFrame = CoinJoinTimeFrames.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == profile.TimeFrame.TimeFrame) ?? CoinJoinTimeFrames.TimeFrames.First();
 		_wallet.Settings.FeeRateMedianTimeFrameHours = (int)profile.TimeFrame.TimeFrame.TotalHours;
 
 		_wallet.Settings.Save();

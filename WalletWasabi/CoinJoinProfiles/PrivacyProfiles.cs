@@ -1,49 +1,21 @@
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
+using static WalletWasabi.CoinJoinProfiles.CoinJoinTimeFrames;
 
-namespace WalletWasabi.Helpers;
-public static class CoinJoinProfiles
+namespace WalletWasabi.CoinJoinProfiles;
+public static class PrivacyProfiles
 {
-
 	public const int AbsoluteMinAnonScoreTarget = 2;
 	public const int AbsoluteMaxAnonScoreTarget = 300;
 
 	public static readonly IPrivacyProfile[] Profiles =
-		[
-			new Speedy(),
-			new Economical(),
-			new MaximizePrivacy()
-		];
-
-	public static readonly IPrivacyProfile DefaultProfile = Profiles.First(x => x.Name == "Speedy");
-
-	public static readonly TimeFrameItem[] TimeFrames =
 	[
-		new TimeFrameItem("Hours", TimeSpan.Zero),
-		new TimeFrameItem("Days", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[0])),
-		new TimeFrameItem("Weeks", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[1])),
-		new TimeFrameItem("Months", TimeSpan.FromHours(Constants.CoinJoinFeeRateMedianTimeFrames[2]))
+		new Speedy(),
+		new Economical(),
+		new MaximizePrivacy()
 	];
 
-	public record TimeFrameItem(string Name, TimeSpan TimeFrame)
-	{
-		public override string ToString()
-		{
-			return Name;
-		}
-	}
-
-	public interface IPrivacyProfile
-	{
-		string Name => GetType().Name;
-		int AnonScoreTarget { get; }
-		bool RedCoinIsolation { get; }
-		TimeFrameItem TimeFrame { get; }
-		public bool Equals(int anonScoreTarget, bool redCoinIsolation, TimeSpan timeFrame)
-		{
-			return anonScoreTarget == AnonScoreTarget && redCoinIsolation == RedCoinIsolation && timeFrame == TimeFrame.TimeFrame;
-		}
-	}
+	public static readonly IPrivacyProfile DefaultProfile = Profiles.First(x => x.Name == "Speedy");
 
 	public record Speedy : IPrivacyProfile
 	{
@@ -71,8 +43,8 @@ public static class CoinJoinProfiles
 		public bool Equals(int anonScoreTarget, bool redCoinIsolation, TimeSpan timeFrame)
 		{
 			return anonScoreTarget is > MinExclusive and < MaxExclusive &&
-			        redCoinIsolation == RedCoinIsolation &&
-			        timeFrame == TimeFrame.TimeFrame;
+					redCoinIsolation == RedCoinIsolation &&
+					timeFrame == TimeFrame.TimeFrame;
 		}
 
 		/// <summary>
