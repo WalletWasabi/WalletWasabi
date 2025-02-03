@@ -36,7 +36,7 @@ public static class PrivacyProfiles
 		private const int MinExclusive = 29;
 		private const int MaxExclusive = 51;
 
-		public int AnonScoreTarget => GetAnonScoreTarget();
+		public int AnonScoreTarget { get; set; } = GetAnonScoreTarget();
 		public bool NonPrivateCoinIsolation => true;
 		public TimeFrameItem TimeFrame => TimeFrames[0];
 
