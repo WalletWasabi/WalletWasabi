@@ -189,7 +189,7 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTargetHelper.GetDefaultAnonScoreTarget();
+	public int AnonScoreTarget { get; set; } = CoinJoinProfiles.DefaultProfile.AnonScoreTarget;
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
