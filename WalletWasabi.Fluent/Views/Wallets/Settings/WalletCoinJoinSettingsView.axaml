@@ -32,7 +32,7 @@
               Classes.bordered="{Binding SpeedyProfileSelected}"
               ToolTip.Tip="Getting things done. Geared towards speed and convenience.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_speed}" />
+          <PathIcon Opacity="0.9" Data="{StaticResource shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
         </StackPanel>
       </Button>
