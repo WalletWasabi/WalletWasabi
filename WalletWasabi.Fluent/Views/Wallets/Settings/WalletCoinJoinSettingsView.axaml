@@ -55,7 +55,7 @@
 
     <DockPanel>
       <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300."/>
-      <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300."/>
+      <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3"/>
     </DockPanel>
 
     <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
