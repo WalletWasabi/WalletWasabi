@@ -8,6 +8,7 @@ using System.Runtime.Serialization;
 using System.Security;
 using System.Text;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.JsonConverters;
@@ -22,7 +23,6 @@ namespace WalletWasabi.Blockchain.Keys;
 [JsonObject(MemberSerialization.OptIn)]
 public class KeyManager
 {
-	public const int DefaultAnonScoreTarget = 5;
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
 	public const int DefaultFeeRateMedianTimeFrameHours = 0;
@@ -101,9 +101,9 @@ public class KeyManager
 	[OnDeserialized]
 	private void OnDeserializedMethod(StreamingContext context)
 	{
-		// This should be impossible but in any case, coinjoin can only happen,
-		// if a profile is selected. Otherwise, the user's money can be drained.
-		if (AutoCoinJoin && !IsCoinjoinProfileSelected)
+		// This should be impossible but turn auto coinjoin off, just in case.
+		// Otherwise, the user's money can be drained.
+		if (AutoCoinJoin)
 		{
 			AutoCoinJoin = false;
 		}
@@ -191,16 +191,13 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	[JsonProperty(PropertyName = "AnonScoreTarget")]
-	public int AnonScoreTarget { get; set; } = DefaultAnonScoreTarget;
+	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
 
 	[JsonProperty(PropertyName = "FeeRateMedianTimeFrameHours")]
 	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
-	[JsonProperty(PropertyName = "IsCoinjoinProfileSelected")]
-	public bool IsCoinjoinProfileSelected { get; set; } = false;
-
 	[JsonProperty(PropertyName = "RedCoinIsolation")]
-	public bool RedCoinIsolation { get; set; } = DefaultRedCoinIsolation;
+	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
 	[JsonProperty(PropertyName = "DefaultReceiveScriptType")]
 	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;

@@ -27,7 +27,7 @@ public interface IWallet
 	int AnonScoreTarget { get; }
 	bool ConsolidationMode { get; set; }
 	TimeSpan FeeRateMedianTimeFrame { get; }
-	bool RedCoinIsolation { get; }
+	bool NonPrivateCoinIsolation { get; }
 
 	Task<bool> IsWalletPrivateAsync();
 
