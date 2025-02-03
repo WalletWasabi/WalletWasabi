@@ -23,7 +23,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private string? _amountText = "";
-	[AutoNotify] private string? _blockHash;
 	[AutoNotify] private int _blockHeight;
 	[AutoNotify] private int _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
@@ -100,8 +99,6 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 			AmountText = "Amount received";
 		}
 
-		BlockHash = model.BlockHash?.ToString();
-
 		IsConfirmationTimeVisible = ConfirmationTime.HasValue && ConfirmationTime != TimeSpan.Zero;
 		IsLabelsVisible = Labels.HasValue && Labels.Value.Any();
 	}
@@ -117,7 +114,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 		_wallet.Transactions.Cache
 							.Connect()
-							.DoAsync(async _=> await UpdateCurrentTransactionAsync(CancellationToken.None))
+							.DoAsync(async _ => await UpdateCurrentTransactionAsync(CancellationToken.None))
 							.Subscribe()
 							.DisposeWith(disposables);
 	}

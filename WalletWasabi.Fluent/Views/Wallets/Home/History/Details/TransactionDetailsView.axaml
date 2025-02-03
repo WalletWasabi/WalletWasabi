@@ -133,15 +133,6 @@
 
       <Separator IsVisible="{Binding IsConfirmed}" />
 
-      <!-- Block hash -->
-      <PreviewItem Icon="{StaticResource block_id}"
-                     Label="Block hash"
-                     CopyableContent="{Binding BlockHash}"
-                     IsVisible="{Binding IsConfirmed}">
-        <TextBlock Text="{Binding BlockHash}" />
-      </PreviewItem>
-      <Separator IsVisible="{Binding IsConfirmed}" />
-
       <!-- Block height -->
       <PreviewItem Icon="{StaticResource block_height}"
                      Label="Block height"
