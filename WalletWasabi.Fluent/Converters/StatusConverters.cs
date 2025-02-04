@@ -23,6 +23,12 @@ public static class StatusConverters
 			{ } => x.ToString()
 		});
 
+	public static readonly IValueConverter FeeRateToString =
+		new FuncValueConverter<int, string>(x => x == 0 ? "No data" : $"{x} s/vB");
+
+	public static readonly IValueConverter BlockchainTipToString =
+		new FuncValueConverter<uint, string>(x => x == 0 ? "No data" : $"{x:N0}");
+
 	public static readonly IValueConverter RpcStatusStringConverter =
 		new FuncValueConverter<RpcStatus?, string>(status => status is null ? RpcStatus.Unresponsive.ToString() : status.ToString());
 }

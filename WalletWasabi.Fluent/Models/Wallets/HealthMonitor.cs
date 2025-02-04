@@ -7,6 +7,7 @@ using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinCore.Monitoring;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
@@ -24,6 +25,8 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
+	[AutoNotify] private int _priorityFee;
+	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private BackendStatus _backendStatus;
 	[AutoNotify] private bool _backendNotCompatible;
@@ -45,6 +48,30 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 		var synchronizer = Services.HostedServices.Get<WasabiSynchronizer>();
+
+		// Priority Fee
+		var feeRateEstimationUpdater = Services.HostedServices.Get<FeeRateEstimationUpdater>();
+		Observable
+			.FromEventPattern(feeRateEstimationUpdater, nameof(feeRateEstimationUpdater.FeeEstimationsRefreshed))
+			.Select(value =>
+			{
+				return ((FeeRateEstimations)value.EventArgs).Estimations.FirstOrDefault(x => x.Key == 2).Value;
+			})
+			.WhereNotNull()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(priorityFee => PriorityFee = priorityFee);
+
+		// Blockchain Tip
+		var smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
+		Observable
+			.FromEventPattern(smartHeaderChain, nameof(smartHeaderChain.TipHeightUpdated))
+			.Select(value => value.EventArgs)
+			.WhereNotNull()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(blockchainTip =>
+			{
+				BlockchainTip = (uint)blockchainTip;
+			});
 
 		// Tor Status
 		synchronizer.WhenAnyValue(x => x.TorStatus)
