@@ -11,11 +11,11 @@
 
   <StackPanel Classes="settingsLayout">
     <StackPanel Margin="0 0 0 20"
-                Opacity="0.85"
-                Spacing="40"
-                HorizontalAlignment="Center"
-                Orientation="Horizontal"
-                Classes="settingsLayout">
+            Opacity="0.85"
+            Spacing="40"
+            HorizontalAlignment="Center"
+            Orientation="Horizontal"
+            Classes="settingsLayout">
       <Button Theme="{StaticResource AccentButton}"
               Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
@@ -50,12 +50,7 @@
 
     <DockPanel ToolTip.Tip="Only allow a single coin at a time with anonymity score 1 into coinjoin registration.">
       <TextBlock Text="Non-private coin isolation" />
-      <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}"/>
-    </DockPanel>
-
-    <DockPanel>
-      <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300."/>
-      <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3"/>
+      <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
@@ -63,6 +58,11 @@
       <ComboBox HorizontalAlignment="Right"
                 ItemsSource="{Binding TimeFrames}"
                 SelectedItem="{Binding SelectedTimeFrame}" />
+    </DockPanel>
+
+    <DockPanel>
+      <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300." />
+      <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3" />
     </DockPanel>
 
     <Separator />
@@ -98,6 +98,5 @@
       <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
     </DockPanel>
-
   </StackPanel>
 </UserControl>

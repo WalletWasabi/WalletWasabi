@@ -142,7 +142,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public CoinJoinTimeFrames.TimeFrameItem[] TimeFrames => CoinJoinTimeFrames.TimeFrames;
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
-	public ICommand SelectMaximizePrivacySettings {  get; }
+	public ICommand SelectMaximizePrivacySettings { get; }
 	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }
 
@@ -169,7 +169,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		{
 			if (anonScoreTarget is < PrivacyProfiles.AbsoluteMinAnonScoreTarget or > PrivacyProfiles.AbsoluteMaxAnonScoreTarget)
 			{
-				errors.Add(ErrorSeverity.Error, "Target must be between 2 and 300");
+				errors.Add(ErrorSeverity.Error, $"Must be between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
 			}
 			else
 			{
@@ -179,8 +179,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 		else
 		{
-			AnonScoreTarget = new string(AnonScoreTarget.Where(char.IsDigit).ToArray());
-			errors.Add(ErrorSeverity.Error, "Target must be a number between 2 and 300");
+			errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
 		}
 	}
 
