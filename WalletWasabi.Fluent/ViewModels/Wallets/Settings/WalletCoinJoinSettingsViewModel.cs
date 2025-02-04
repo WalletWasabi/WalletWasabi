@@ -142,7 +142,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public CoinJoinTimeFrames.TimeFrameItem[] TimeFrames => CoinJoinTimeFrames.TimeFrames;
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
-	public ICommand SelectMaximizePrivacySettings {  get; }
+	public ICommand SelectMaximizePrivacySettings { get; }
 	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }
 
@@ -179,7 +179,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 		else
 		{
-			AnonScoreTarget = new string(AnonScoreTarget.Where(char.IsDigit).ToArray());
 			errors.Add(ErrorSeverity.Error, "Target must be a number between 2 and 300");
 		}
 	}
