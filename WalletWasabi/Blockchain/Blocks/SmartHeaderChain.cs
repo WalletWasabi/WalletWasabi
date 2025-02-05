@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
@@ -30,6 +31,8 @@ public class SmartHeaderChain
 
 	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private int _hashesCount;
+
+	public event EventHandler<object>? TipHeightUpdated;
 
 	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
 	public SmartHeaderChain(int maxChainSize = Unlimited)
@@ -149,6 +152,8 @@ public class SmartHeaderChain
 				// Intentionally, we do not modify hashes count here.
 				_chain.RemoveFirst();
 			}
+
+			TipHeightUpdated.SafeInvoke(this, (object)_tipHeight);
 		}
 	}
 

@@ -15,6 +15,7 @@ public class FeeRateEstimationUpdater :  PeriodicRunner
 	private readonly UserAgentPicker _userAgentPicker;
 
 	public FeeRateEstimations? FeeEstimates { get; private set; }
+	public event EventHandler<FeeRateEstimations>? FeeEstimationsRefreshed;
 	public event EventHandler<FeeRateEstimations>? FeeEstimationsChanged;
 
 	public FeeRateEstimationUpdater(TimeSpan period, Func<string> feeRateProviderGetter, IHttpClientFactory httpClientFactory)
@@ -35,6 +36,8 @@ public class FeeRateEstimationUpdater :  PeriodicRunner
 			FeeEstimates = newFeeRateEstimations;
 			FeeEstimationsChanged.SafeInvoke(this, FeeEstimates);
 		}
+
+		FeeEstimationsRefreshed.SafeInvoke(this, FeeEstimates);
 
 		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
 	}
