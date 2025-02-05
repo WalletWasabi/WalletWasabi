@@ -95,7 +95,7 @@
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Height" StatusText="{Binding HealthMonitor.BlockchainTip, Converter={x:Static converters:StatusConverters.BlockchainTipToString}}">
+            <StatusItem Title="Chain Tip" StatusText="{Binding HealthMonitor.BlockchainTip, Converter={x:Static converters:StatusConverters.BlockchainTipToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource block_height}" />
               </StatusItem.Icon>
