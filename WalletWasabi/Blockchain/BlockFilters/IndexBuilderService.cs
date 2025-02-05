@@ -131,21 +131,9 @@ public class IndexBuilderService
 								lastIndexFilter = GetLastFilter();
 							}
 
-							uint currentHeight;
-							uint256? currentHash;
-
-							if (lastIndexFilter is not null)
-							{
-								currentHeight = lastIndexFilter.Header.Height;
-								currentHash = lastIndexFilter.Header.BlockHash;
-							}
-							else
-							{
-								currentHash = _startingHeight == 0
-									? uint256.Zero
-									: await _rpcClient.GetBlockHashAsync((int)_startingHeight - 1).ConfigureAwait(false);
-								currentHeight = _startingHeight - 1;
-							}
+							var (currentHeight, currentHeader) = lastIndexFilter is not null
+								? (lastIndexFilter.Header.Height, Header: lastIndexFilter.Header.HeaderOrPrevBlockHash)
+								: (_startingHeight - 1, uint256.Zero);
 
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
 							var tipReached = syncInfo.BlockCount == currentHeight;
@@ -169,18 +157,18 @@ public class IndexBuilderService
 								else
 								{
 									// Knots is catching up give it a 10 seconds
-									await Task.Delay(10000).ConfigureAwait(false);
+									await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
 									continue;
 								}
 							}
 
 							uint nextHeight = currentHeight + 1;
 							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
-							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
+							var blockFilter = await _rpcClient.GetBlockFilterAsync(blockHash).ConfigureAwait(false);
 
 							// Check if we are still on the best chain,
 							// if not rewind filters till we find the fork.
-							if (currentHash != block.PrevBlockHash)
+							if (currentHeader != uint256.Zero && blockFilter.Filter.GetHeader(currentHeader) != blockFilter.Header)
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
@@ -190,9 +178,9 @@ public class IndexBuilderService
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block, _pubKeyTypes);
+							var filter = blockFilter.Filter;
 
-							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
+							var smartHeader = new SmartHeader(blockHash, blockFilter.Header, nextHeight, DateTimeOffset.MinValue);
 							var filterModel = new FilterModel(smartHeader, filter);
 
 							lock (_indexLock)
@@ -231,66 +219,6 @@ public class IndexBuilderService
 				Logger.LogError($"Synchronization attempt failed to start: {ex}");
 			}
 		});
-	}
-
-	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
-	{
-		var scripts = FetchScripts(block, pubKeyTypes);
-
-		if (scripts.Count != 0)
-		{
-			return new GolombRiceFilterBuilder()
-				.SetKey(block.Hash)
-				.SetP(20)
-				.SetM(1 << 20)
-				.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-				.Build();
-		}
-		else
-		{
-			// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
-			// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
-			return CreateDummyEmptyFilter(block.Hash);
-		}
-	}
-
-	private static List<Script> FetchScripts(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
-	{
-		var scripts = new List<Script>();
-
-		foreach (var tx in block.Transactions)
-		{
-			foreach (var input in tx.Inputs)
-			{
-				switch (input)
-				{
-					case VerboseInputInfo.Coinbase:
-						break;
-					case VerboseInputInfo.Full inputInfo:
-						if (pubKeyTypes.Contains(inputInfo.PrevOut.PubkeyType))
-						{
-							scripts.Add(inputInfo.PrevOut.ScriptPubKey);
-						}
-						break;
-					case VerboseInputInfo.None inputInfo:
-						// This happens when the block containing the prevOut can't be found (pruned)
-						// If the block is previous to segwit activation then everything is okay because the scriptPubKey
-						// is not segwit or taproot. However, if the block is after segwit activation, that means that
-						// the scriptPubKey could be segwit or taproot and the filter can be incomplete/broken.
-						throw new InvalidOperationException($"{inputInfo.Outpoint} script information is not available.");
-				}
-			}
-
-			foreach (var output in tx.Outputs)
-			{
-				if (pubKeyTypes.Contains(output.PubkeyType))
-				{
-					scripts.Add(output.ScriptPubKey);
-				}
-			}
-		}
-
-		return scripts;
 	}
 
 	private void ReorgOne()

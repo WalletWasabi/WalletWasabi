@@ -85,7 +85,7 @@ public class IndexBuilderServiceTests
 				});
 			},
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
+			OnGetBlockFilterAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash).Filter)
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
 		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
@@ -101,48 +101,6 @@ public class IndexBuilderServiceTests
 	}
 
 	[Fact]
-	public void IncludeTaprootScriptInFilters()
-	{
-		var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
-
-		var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
-		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot });
-
-		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
-		var allOutputs = txOutputs.Concat(prevTxOutputs);
-
-		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV0Keyhash or RpcPubkeyType.TxWitnessV1Taproot);
-		var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
-
-		static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
-
-		Assert.All(indexableOutputs, x => Assert.True(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-		Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-	}
-
-	[Fact]
-	public void TaprootOnlyScriptInFilters()
-	{
-		var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
-
-		var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
-		var filter = IndexBuilderService.BuildFilterForBlock(block, new[] { RpcPubkeyType.TxWitnessV1Taproot });
-
-		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
-		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
-		var allOutputs = txOutputs.Concat(prevTxOutputs);
-
-		var indexableOutputs = allOutputs.Where(x => x?.PubkeyType is RpcPubkeyType.TxWitnessV1Taproot);
-		var nonIndexableOutputs = allOutputs.Except(indexableOutputs);
-
-		static byte[] ComputeKey(uint256 blockId) => blockId.ToBytes()[0..16];
-
-		Assert.All(indexableOutputs, x => Assert.True(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-		Assert.All(nonIndexableOutputs, x => Assert.False(filter.Match(x?.ScriptPubKey.ToCompressedBytes(), ComputeKey(block.Hash))));
-	}
-
-	[Fact]
 	public async Task SegwitTaprootSynchronizedBitcoinNodeAsync()
 	{
 		var blockchain = GenerateBlockchain().Take(10).ToArray();
@@ -155,7 +113,7 @@ public class IndexBuilderServiceTests
 				InitialBlockDownload = false
 			}),
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
+			OnGetBlockFilterAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash).Filter)
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
 		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
@@ -165,10 +123,10 @@ public class IndexBuilderServiceTests
 		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.False(indexer.IsRunning);  // we are done
 
-		var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
+		var result = indexer.GetFilterLinesExcluding(blockchain[1].Hash, 100, out var found);
 		Assert.True(found);
 		Assert.Equal(9, result.bestHeight.Value);
-		Assert.Equal(9, result.filters.Count());
+		Assert.Equal(8, result.filters.Count());
 	}
 
 	[Fact]
@@ -241,7 +199,7 @@ public class IndexBuilderServiceTests
 				});
 			},
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
+			OnGetBlockFilterAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash).Filter)
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
 		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
@@ -256,45 +214,10 @@ public class IndexBuilderServiceTests
 		Assert.True(called > 1);
 	}
 
-	[Fact]
-	public async Task TaprootSynchronizedBitcoinNodeAsync()
-	{
-		var blockchain = GenerateBlockchain().Take(10).ToArray();
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = (ulong)blockchain.Length - 1,
-				Blocks = (ulong)blockchain.Length - 1,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
-		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
-
-		indexer.Synchronize();
-
-		await Task.Delay(TimeSpan.FromSeconds(5));
-		Assert.False(indexer.IsRunning);  // we are done
-
-		var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
-		Assert.True(found);
-		Assert.Equal(9, result.bestHeight.Value);
-		Assert.Equal(9, result.filters.Count());
-	}
-
-	private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
+	private IEnumerable<(uint256 Hash, BlockFilter Filter)> GenerateBlockchain() =>
 		from height in Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x)
-		select new VerboseBlockInfo(
-			BlockHashFromHeight(height),
-			height,
-			BlockHashFromHeight(height + 1),
-			DateTimeOffset.UtcNow.AddMinutes(height * 10),
-			height,
-			Enumerable.Empty<VerboseTransactionInfo>());
+		select (BlockHashFromHeight(height), new BlockFilter(GolombRiceFilter.Empty, uint256.Zero));
 
 	private static uint256 BlockHashFromHeight(ulong height)
-		=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));
+		=> Hashes.DoubleSHA256(BitConverter.GetBytes(height));
 }

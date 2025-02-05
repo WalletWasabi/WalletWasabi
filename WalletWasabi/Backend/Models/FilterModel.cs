@@ -20,7 +20,7 @@ public class FilterModel
 	{
 		Header = header;
 		FilterData = filterData;
-		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		_filter = new(() => new GolombRiceFilter(filterData), LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public SmartHeader Header { get; }
@@ -79,10 +79,16 @@ public class FilterModel
 		builder.Append(':');
 		builder.Append(Filter);
 		builder.Append(':');
-		builder.Append(Header.PrevHash);
+		builder.Append(Header.HeaderOrPrevBlockHash);
 		builder.Append(':');
 		builder.Append(Header.EpochBlockTime);
 
 		return builder.ToString();
 	}
+}
+
+public static class GolombRiceFilterExtensions
+{
+	public static bool IsBip158(this GolombRiceFilter filter) =>
+		filter is {P: 19, M: 784_931}; // Standard BIP158 filter parameters.
 }

@@ -252,6 +252,11 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
+			if (!IsCorrect(_smartHeaderChain, filter))
+			{
+				throw new InvalidOperationException($"Header doesn't point to previous header.");
+			}
+
 			_smartHeaderChain.AppendTip(filter.Header);
 
 			if (enqueue)
@@ -267,6 +272,50 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
+			return false;
+		}
+	}
+
+	private bool IsCorrect(SmartHeaderChain c, FilterModel m)
+	{
+		// If this is the first filter that we receive then it is correct only if it is starting one.
+		if(c.Tip is not {} tip)
+		{
+			return m.Header == SmartHeader.GetStartingHeader(_network);
+		}
+		if (m.Filter.IsBip158())
+		{
+			// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
+			// was also a bip158-compatible one, and it is the correct one.
+			if (m.Filter.GetHeader(tip.HeaderOrPrevBlockHash) == m.Header.HeaderOrPrevBlockHash || c.HashCount == 1)
+			{
+				return true;
+			}
+
+			// In case the previous filter is Bip158-compatible it should have passed the previous condition so, the
+			// received filter did match.
+			var lastFilter = IndexStorage.FetchLast(1).First();
+			if (lastFilter.Filter.IsBip158())
+			{
+				return false;
+			}
+
+			// If we received a bip158-compatible filter for first time we accept it.
+			return true;
+		}
+		else
+		{
+			if (m.Header.HeaderOrPrevBlockHash == tip.BlockHash)
+			{
+				return true;
+			}
+
+			var lastFilter = IndexStorage.FetchLast(1).First();
+			if (lastFilter.Filter.IsBip158())
+			{
+				throw new InvalidOperationException("The receive filters is not compatible with bip158.");
+			}
+
 			return false;
 		}
 	}

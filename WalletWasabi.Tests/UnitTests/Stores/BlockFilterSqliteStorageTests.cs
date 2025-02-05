@@ -63,7 +63,7 @@ public class BlockFilterSqliteStorageTests
 		Assert.NotSame(filter1, filterLast);
 		Assert.Equal(1u, filterLast.Header.Height);
 		Assert.Equal(new uint256(2), filterLast.Header.BlockHash);
-		Assert.Equal(uint256.One, filterLast.Header.PrevHash);
+		Assert.Equal(uint256.One, filterLast.Header.HeaderOrPrevBlockHash);
 		Assert.Equal(1231006506, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 
@@ -72,7 +72,7 @@ public class BlockFilterSqliteStorageTests
 		Assert.NotNull(filterLast);
 		Assert.Equal(0u, filterLast.Header.Height);
 		Assert.Equal(uint256.One, filterLast.Header.BlockHash);
-		Assert.Equal(uint256.Zero, filterLast.Header.PrevHash);
+		Assert.Equal(uint256.Zero, filterLast.Header.HeaderOrPrevBlockHash);
 		Assert.Equal(1231006505, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 	}

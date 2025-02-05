@@ -25,7 +25,7 @@ public class SmartHeaderChainTests
 		chain.AppendTip(header);
 
 		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
-		Assert.StartsWith("Header doesn't point to previous header.", ex.Message, StringComparison.Ordinal);
+		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
 	}
 
 	/// <summary>
@@ -150,7 +150,7 @@ public class SmartHeaderChainTests
 	/// <remarks>Dummy genesis header.</remarks>
 	private static SmartHeader CreateGenesisHeader()
 	{
-		return new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), prevHash: uint256.Zero, height: 0, BlockTime);
+		return new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), header: uint256.Zero, height: 0, BlockTime);
 	}
 
 	private static SmartHeader CreateSmartHeader(uint256 blockHash, uint256 prevHash, uint height)
