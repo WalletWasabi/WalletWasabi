@@ -76,7 +76,7 @@ public class ConfigManagerNgTests
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "ExchangeRateProvider": "MempoolSpace",
-			  "FeeRateEstimationProvider": "BlockstreamInfo",
+			  "FeeRateEstimationProvider": "MempoolSpace",
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
 			  "ConfigVersion": 0

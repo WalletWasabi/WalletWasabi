@@ -66,7 +66,7 @@ public record PersistentConfig
 
 	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
-	public string  FeeRateEstimationProvider { get; init; } = "BlockstreamInfo";
+	public string  FeeRateEstimationProvider { get; init; } = "MempoolSpace";
 
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
