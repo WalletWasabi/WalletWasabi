@@ -5,6 +5,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
 using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.FeeRateEstimation;
 using FeeRateProviderInfo = (string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndPoint, Func<string, FeeRateEstimations> Extractor);
@@ -31,9 +34,14 @@ public class FeeRateProvider(IHttpClientFactory httpClientFactory)
 		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
 
 		using var response = await httpClient.GetAsync(providerInfo.ApiEndPoint, cancellationToken).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode($"Error requesting fee rate estimations to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-		var estimations = providerInfo.Extractor(json);
-		return estimations;
+		Logger.LogDebug(json);
+		return Result<FeeRateEstimations, Exception>
+			.Catch(() => providerInfo.Extractor(json))
+			.Match(
+				estimations => estimations,
+				ex => throw new InvalidOperationException($"Error parsing fee rate estimations provider response.", ex));
 	}
 
 	private static Func<string, FeeRateEstimations> BlockstreamHandler() =>
