@@ -138,7 +138,10 @@ public class Config
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 			[ nameof(FeeRateEstimationProvider) ] = (
 				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace and BlockstreamInfo",
-				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs))
+				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
+			[ nameof(ExternalTransactionBroadcaster) ] = (
+			"Third party transaction broadvaster. Available broadcastetrs are (default) MempoolSpace and BlockstreamInfo",
+			GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -195,6 +198,7 @@ public class Config
 	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
 	public string FeeRateEstimationProvider => GetEffectiveValue<StringValue, string>(nameof(FeeRateEstimationProvider));
+	public string ExternalTransactionBroadcaster => GetEffectiveValue<StringValue, string>(nameof(ExternalTransactionBroadcaster));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));

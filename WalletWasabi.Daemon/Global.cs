@@ -151,7 +151,7 @@ public class Global
 		}
 		broadcasters.AddRange([
 			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
-			new BackendBroadcaster(BackendHttpClientFactory)
+			new ThirdPartyTransactionBroadcaster(config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory)
 		]);
 
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);

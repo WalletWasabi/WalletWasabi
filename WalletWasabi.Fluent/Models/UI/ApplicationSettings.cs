@@ -47,6 +47,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
 	[AutoNotify] private string _feeRateEstimationProvider;
+	[AutoNotify] private string _externalTransactionBroadcaster;
 
 	// Coordinator
 	[AutoNotify] private string _mainNetCoordinatorUri;
@@ -96,6 +97,7 @@ public partial class ApplicationSettings : ReactiveObject
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
+		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
 
 		// Bitcoin
 		Network = persistentConfig.Network;
@@ -323,7 +325,8 @@ public partial class ApplicationSettings : ReactiveObject
 					absoluteMinInputCount :
 					Constants.DefaultAbsoluteMinInputCount,
 				ExchangeRateProvider = ExchangeRateProvider,
-				FeeRateEstimationProvider = FeeRateEstimationProvider
+				FeeRateEstimationProvider = FeeRateEstimationProvider,
+				ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
 			};
 		}
 		else
