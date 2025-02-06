@@ -22,7 +22,10 @@ We want to thank you for believing in Wasabi and for your support, whether throu
 
 To show our gratitude, we've designed this release for you, our community. We've finally addressed some of the oldest bugs and feature requests that have been long-awaited!
 
-Listing all the improvements would be too lengthy, but they include more settings, better-designed settings (specifically for CoinJoin), and various UI enhancements.
+Listing all the improvements would be too lengthy, but here are some examples:
+- More & better-designed settings (specifically for Coinjoin)
+- Randomly skipping rounds was disabled
+- Change avoidance suggestions are now more precise
 
 We expect these improvements to significantly enhance the overall experience of using Wasabi as your daily Bitcoin wallet.
 
