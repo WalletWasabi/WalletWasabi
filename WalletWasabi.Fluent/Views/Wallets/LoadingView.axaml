@@ -24,14 +24,14 @@
         </DockPanel.Styles>
 
         <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-          <TextBlock Text="Downloading and processing Bitcoin network data" TextAlignment="Center" FontSize="22"
+          <TextBlock Text="Downloading and processing Bitcoin data" TextAlignment="Center" FontSize="22"
                      DockPanel.Dock="Bottom" />
           <TextBlock
-            Text="Wasabi does this without any third party knowing about your balance and financial activity."
+            Text="This is done without any third party knowing your balance or transactions."
             TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
           <TextBlock
-            Text="This process will be longer on first launch, with larger wallets, or after long gaps between synchronizations."
+            Text="It is slower on first launch, with larger wallets, or after long gaps between synchronizations."
             TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
 
           <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />

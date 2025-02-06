@@ -20,7 +20,7 @@
               Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
               Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
-              ToolTip.Tip="Choice of the paranoid. Optimizes for privacy at all costs.">
+              ToolTip.Tip="Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource double_shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
@@ -40,7 +40,7 @@
               Height="37"
               Command="{Binding SelectEconomicalSettings}"
               Classes.bordered="{Binding EconomicalProfileSelected}"
-              ToolTip.Tip="For savers. Only participates in coinjoins during the cheapest parts of the week.">
+              ToolTip.Tip="Only participate in coinjoins during the cheapest parts of the week.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_cost}" />
           <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
@@ -48,7 +48,7 @@
       </Button>
     </StackPanel>
 
-    <DockPanel ToolTip.Tip="Only allow a single coin at a time with anonymity score 1 into coinjoin registration.">
+    <DockPanel ToolTip.Tip="Out of the registered coins into coinjoin only one can be non-private (anonymity score 1).">
       <TextBlock Text="Non-private coin isolation" />
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
@@ -61,7 +61,7 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score for a coin to be considered private. Choose your target between 2 and 300." />
+      <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score to consider a coin private." />
       <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3" />
     </DockPanel>
 
