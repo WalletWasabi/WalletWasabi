@@ -15,6 +15,9 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
+using System.Collections.Immutable;
+using System.Text;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -28,6 +31,8 @@ public abstract record BroadcastOk
 	public record BroadcastByNetwork(EndPoint[] Nodes) : BroadcastOk;
 
 	public record BroadcastByBackend : BroadcastOk;
+
+	public record BroadcastByThirdParty : BroadcastOk;
 }
 
 public abstract record BroadcastError
@@ -91,6 +96,58 @@ public class BackendBroadcaster(IHttpClientFactory httpClientFactory) : IBroadca
 			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
 	}
+}
+
+public class ThirdPartyTransactionBroadcaster : IBroadcaster
+{
+	public static readonly ImmutableArray<ThirdPartyBroadcasterInfo> Providers =
+	[
+		new("BlockstreamInfo", ("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), "/api/tx"),
+		new("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"), "/api/tx")
+	];
+
+	public ThirdPartyTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
+	{
+		SelectedBroadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		Network = network;
+		HttpClientFactory = httpClientFactory;
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+	}
+
+	public Network Network { get; }
+	public IHttpClientFactory HttpClientFactory { get; }
+
+	private UserAgentPicker _userAgentGetter;
+
+	private ThirdPartyBroadcasterInfo SelectedBroadcaster { get; init; }
+
+	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
+	{
+		Logger.LogInfo($"Trying to broadcast transaction via '{SelectedBroadcaster.Name}' API. TxID: {tx.GetHash()}.");
+		try
+		{	
+			string domian = HttpClientFactory is OnionHttpClientFactory ? SelectedBroadcaster.ApiDomain.Onion : SelectedBroadcaster.ApiDomain.ClearNet;
+			Uri url = Network == Network.Main ? new Uri(domian) : new Uri($"{domian}/{Network.Name.ToLower()}");
+
+			using var httpClient = HttpClientFactory.CreateClient($"{SelectedBroadcaster.Name}-transaction-broadcaster");
+			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
+
+			using var response = await httpClient.PostAsync($"{url}{SelectedBroadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
+			if (response.StatusCode != HttpStatusCode.OK)
+			{
+				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByThirdParty());
+		}
+		catch (Exception ex)
+		{
+			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
+		}
+	}
+
+	public record ThirdPartyBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
 public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes) : IBroadcaster
