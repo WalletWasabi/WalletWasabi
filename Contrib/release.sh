@@ -285,7 +285,7 @@ if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   ${INSTALL_DIR}/${BACKEND_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
 
   echo "#!/usr/bin/env sh
-  ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}d
+  ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 
   # Remove execution to everything except for executables and their wrapper scripts
   sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${BACKEND_EXECUTABLE_NAME}
