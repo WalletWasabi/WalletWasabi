@@ -1,7 +1,7 @@
 ## Release Highlights
 #### 💪 3rd Party Providers for Fee & Exchange Rate<br/>
 #### 👨‍🔧 Quality of Life Features<br/>
-#### 📦 Backend and Coordinator packaged for Linux
+#### 📦 Backend and Coordinator packaged for Linux<br/>
 
 ## Release Summary
 Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and improve the user interface to reduce frustration.
