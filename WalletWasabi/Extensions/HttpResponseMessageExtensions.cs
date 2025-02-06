@@ -66,4 +66,20 @@ public static class HttpResponseMessageExtensions
 
 		throw new HttpRequestException($"{me.StatusCode.ToReasonString()}{errorMessage}");
 	}
+
+	public static void EnsureSuccessStatusCode(this HttpResponseMessage me, string contextMessage)
+	{
+		if (!me.IsSuccessStatusCode)
+		{
+			var error = (int) me.StatusCode switch
+			{
+				429 => "The server rejected the request because it is getting too many request from the same IP address",
+				>= 400 and < 500 => "The server could not understand the request. This means that the API changed",
+				>= 500 and < 600 => "The server is failing and cannot handle the request",
+				_ => ""
+			};
+
+			throw new HttpRequestException($"{contextMessage}. {error}. {(int)me.StatusCode} {me.ReasonPhrase}");
+		}
+	}
 }
