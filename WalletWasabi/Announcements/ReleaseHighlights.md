@@ -4,15 +4,15 @@
 #### 📦 Backend and Coordinator packaged for Linux<br/>
 
 ## Release Summary
-Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and improve the user interface to reduce frustration.
+Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and contains small but insightful improvements to the interface.
 
-### 💪 3rd Party Providers for Fee & Exchange Rate
+### 💪 3rd Party Providers for Fee Estimations & Exchange Rate
 
 Fee rate estimations and exchange rate providers are now configurable.
 
 Previously, this information was provided by Wasabi's backend. This change aligns with our long-term goal of completely removing dependence on the backend.
 
-After this release, Wasabi will be significantly closer to achieving that goal, with most basic wallet features functioning without an active backend connection. You can read more about the remaining steps [here](https://github.com/orgs/WalletWasabi/discussions/13661).
+After this release, Wasabi will be significantly closer to achieving that goal, with most basic wallet features functioning without an active backend connection. You can read more about the remaining steps on [GitHub](https://github.com/orgs/WalletWasabi/discussions/13661).
 
 ### 👨‍🔧 Quality of Life Features
 
@@ -26,13 +26,13 @@ Listing all the improvements would be too lengthy, but here are some examples:
 - Randomly skipping rounds was removed
 - Coinjoin settings & profiles are now all in a single tab
 - More information in the status icon
-- Resync button now available in Tools
-Etc...
+- Resync button now available in Tools<br>
+And much more...
 
-We expect these improvements to significantly enhance the overall experience of using Wasabi as your daily Bitcoin wallet. Take a tour or read release details on GitHub to see all of them!
+We expect these improvements to significantly enhance the overall experience of using Wasabi as your daily Bitcoin wallet. Take a tour or read the release details on GitHub to see all of them!
 
 ### 📦 Backend and Coordinator packaged for Linux
 
-The Debian package now includes two extra binaries: one for the backend (Wallet API) and one for the coordinator (Coinjoin API). This update simplifies the deployment process for Linux users, making it straightforward to set up their backend servers and coordinators.
+The Debian package now includes two extra binaries: one for the backend (Wallet API) and one for the coordinator (Coinjoin API).
 
 This makes it easier for community members to run a backend and/or a coordinator, private or publicly accessible, which lowers the barrier to contributing to the resiliency of Wasabi's infrastructure against potential attacks and technical failures.
