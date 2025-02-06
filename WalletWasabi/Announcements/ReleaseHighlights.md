@@ -1,6 +1,7 @@
 ## Release Highlights
 #### 💪 3rd Party Providers for Fee & Exchange Rate<br/>
 #### 👨‍🔧 Quality of Life Features<br/>
+#### 📦 Backend and Coordinator packaged for Linux
 
 ## Release Summary
 Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and improve the user interface to reduce frustration.
@@ -24,3 +25,9 @@ To show our gratitude, we've designed this release for you, our community. We've
 Listing all the improvements would be too lengthy, but they include more settings, better-designed settings (specifically for CoinJoin), and various UI enhancements.
 
 We expect these improvements to significantly enhance the overall experience of using Wasabi as your daily Bitcoin wallet.
+
+### 📦 Backend and Coordinator packaged for Linux
+
+The Debian package now includes two extra binaries: one for the backend (Wallet API) and one for the coordinator (Coinjoin API). This update simplifies the deployment process for Linux users, making it straightforward to set up their backend servers and coordinators.
+
+This ease of use lowers the barrier to contributing to the resiliency of Wasabi's infrastructure against potential attacks and technical failures. It also makes it possible to create private Wasabi infrastructures with private coordinators and backends.
