@@ -17,7 +17,7 @@ jobs:
         run: sudo bash -x ./Contrib/release.sh debian
 
       - name: Upload debian package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-for-debian
           path: ./packages/*.deb  # Adjust the path to your generated files
@@ -25,7 +25,7 @@ jobs:
           if-no-files-found: error
 
       - name: Upload zip & tar package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-zip-tar
           path: |
@@ -69,7 +69,7 @@ jobs:
         SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
 
     - name: Upload windows installer
-      uses: actions/upload-artifact@v3
+      uses: actions/upload-artifact@v4
       with:
         name: packages-for-windows
         path: ./packages/*  # Adjust the path to your generated files
@@ -103,7 +103,7 @@ jobs:
           MAC_P12_PASSWORD: ${{ secrets.MAC_P12_PASSWORD }}
 
       - name: Upload zip & dmg package
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: packages-zip-dmg
           path: ./packages/*
@@ -119,22 +119,22 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
       - name: Download package for Debian
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages-for-debian
           path: ./packages
       - name: Download compressed packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages-zip-tar
           path: ./packages
       - name: Download windows packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages-for-windows
           path: ./packages
       - name: Download zip & dmg packages
-        uses: actions/download-artifact@v3
+        uses: actions/download-artifact@v4
         with:
           name: packages-zip-dmg
           path: ./packages
