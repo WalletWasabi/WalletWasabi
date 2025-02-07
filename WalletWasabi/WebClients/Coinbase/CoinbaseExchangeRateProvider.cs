@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Serialization;
 
 namespace WalletWasabi.WebClients.Coinbase;
 
@@ -23,8 +22,28 @@ public class CoinbaseExchangeRateProvider : IExchangeRateProvider
 
 		using var response = await httpClient.GetAsync("/v2/exchange-rates?currency=BTC", cancellationToken).ConfigureAwait(false);
 		using var content = response.Content;
-		var exchangeRate = await content.ReadAsJsonAsync(Decode.CoinbaseExchangeRate).ConfigureAwait(false);
+		var wrapper = await content.ReadAsJsonAsync<DataWrapper>().ConfigureAwait(false);
 
-		return [exchangeRate];
+		var exchangeRates = new List<ExchangeRate>
+		{
+			new ExchangeRate { Rate = wrapper.Data.Rates.USD, Ticker = "USD" }
+		};
+
+		return exchangeRates;
+	}
+
+	private class DataWrapper
+	{
+		public required CoinbaseExchangeRate Data { get; init; }
+
+		public class CoinbaseExchangeRate
+		{
+			public required ExchangeRates Rates { get; init; }
+
+			public class ExchangeRates
+			{
+				public decimal USD { get; init; }
+			}
+		}
 	}
 }

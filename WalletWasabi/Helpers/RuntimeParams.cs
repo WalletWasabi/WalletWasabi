@@ -1,10 +1,9 @@
+using Newtonsoft.Json;
 using Nito.AsyncEx;
 using System.IO;
 using System.Text;
-using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
-using WalletWasabi.Serialization;
 
 namespace WalletWasabi.Helpers;
 
@@ -13,6 +12,11 @@ public class RuntimeParams
 	private static RuntimeParams? InternalInstance = null;
 	private static string FileDir;
 
+	private RuntimeParams()
+	{
+	}
+
+	[JsonProperty(PropertyName = "NetworkNodeTimeout")]
 	public int NetworkNodeTimeout { get; set; } = 16;
 
 	#region Business logic
@@ -54,7 +58,7 @@ public class RuntimeParams
 					Directory.CreateDirectory(FileDir);
 				}
 
-				string jsonString = JsonEncoder.ToReadableString(this, Encode.RuntimeParams);
+				string jsonString = JsonConvert.SerializeObject(this, Formatting.Indented);
 				await File.WriteAllTextAsync(
 					FilePath,
 					jsonString,
@@ -78,7 +82,7 @@ public class RuntimeParams
 			}
 
 			string jsonString = await File.ReadAllTextAsync(FilePath, Encoding.UTF8).ConfigureAwait(false);
-			InternalInstance = JsonDecoder.FromString(jsonString, Decode.RuntimeParams)
+			InternalInstance = JsonConvert.DeserializeObject<RuntimeParams>(jsonString)
 				?? throw new InvalidOperationException($"Couldn't deserialize {typeof(RuntimeParams)} from {FilePath}.");
 			return;
 		}

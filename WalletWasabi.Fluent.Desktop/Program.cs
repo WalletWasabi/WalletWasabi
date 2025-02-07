@@ -202,6 +202,9 @@ public static class WasabiAppExtensions
 	{
 		Directory.CreateDirectory(dataDir);
 
-		return UiConfig.LoadFile(Path.Combine(dataDir, "UiConfig.json"));
+		UiConfig uiConfig = new(Path.Combine(dataDir, "UiConfig.json"));
+		uiConfig.LoadFile(createIfMissing: true);
+
+		return uiConfig;
 	}
 }

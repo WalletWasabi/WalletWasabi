@@ -1,10 +1,9 @@
 using NBitcoin;
+using Newtonsoft.Json.Linq;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Text;
-using System.Text.Json;
-using System.Text.Json.Nodes;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
@@ -17,7 +16,7 @@ public static class HwiParser
 	public static bool TryParseErrors(string text, IEnumerable<HwiOption> options, [NotNullWhen(true)] out HwiException? error)
 	{
 		error = null;
-		if (TryParseJToken(text, out var token) && TryParseError(token, out HwiException? e))
+		if (JsonHelpers.TryParseJToken(text, out JToken? token) && TryParseError(token, out HwiException? e))
 		{
 			error = e;
 		}
@@ -45,17 +44,23 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	public static bool TryParseError(JsonNode token, [NotNullWhen(true)] out HwiException? error)
+	public static bool TryParseError(JToken token, [NotNullWhen(true)] out HwiException? error)
 	{
 		error = null;
-		if (token is JsonArray)
+		if (token is JArray)
 		{
 			return false;
 		}
 
-		var err = token["error"]?.GetValue<string>() ?? "";
-		var codeToken = token["code"];
-		var successToken = token["success"];
+		JToken? errToken = token["error"];
+		JToken? codeToken = token["code"];
+		JToken? successToken = token["success"];
+
+		string err = "";
+		if (errToken is { })
+		{
+			err = Guard.Correct(errToken.Value<string>());
+		}
 
 		HwiErrorCode? code = null;
 
@@ -79,7 +84,7 @@ public static class HwiParser
 		{
 			error = new HwiException(HwiErrorCode.UnknownError, err);
 		}
-		else if (successToken is { } && successToken.GetValue<bool>() == false)
+		else if (successToken is { } && successToken.Value<bool>() == false)
 		{
 			error = new HwiException(HwiErrorCode.UnknownError, "");
 		}
@@ -87,13 +92,13 @@ public static class HwiParser
 		return error is not null;
 	}
 
-	private static bool TryParseErrorCode(JsonNode codeToken, [NotNullWhen(true)] out HwiErrorCode? code)
+	private static bool TryParseErrorCode(JToken codeToken, [NotNullWhen(true)] out HwiErrorCode? code)
 	{
 		code = default;
 
 		try
 		{
-			var codeInt = codeToken.GetValue<int>();
+			var codeInt = codeToken.Value<int>();
 			if (Enum.IsDefined(typeof(HwiErrorCode), codeInt))
 			{
 				code = (HwiErrorCode)codeInt;
@@ -108,7 +113,7 @@ public static class HwiParser
 		return false;
 	}
 
-	private static bool TryParseHardwareWalletVendor(JsonNode? token, out HardwareWalletModels vendor)
+	private static bool TryParseHardwareWalletVendor(JToken? token, out HardwareWalletModels vendor)
 	{
 		vendor = HardwareWalletModels.Unknown;
 
@@ -119,7 +124,7 @@ public static class HwiParser
 
 		try
 		{
-			var typeString = token.GetValue<string>();
+			var typeString = token.Value<string>();
 
 			// In trezor case: "trezor_safe 3" -> "trezor_safe_3".
 			var normalizedTypeString = typeString?.Replace(" ", "_");
@@ -140,11 +145,10 @@ public static class HwiParser
 
 	public static IEnumerable<HwiEnumerateEntry> ParseHwiEnumerateResponse(string responseString)
 	{
-        var jArray = JsonNode.Parse(responseString) as JsonArray
-            ?? throw new FormatException("Response is not a valid JSON array.");
+		var jArray = JArray.Parse(responseString);
 
 		var response = new List<HwiEnumerateEntry>();
-		foreach (var json in jArray)
+		foreach (JObject json in jArray)
 		{
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
@@ -155,7 +159,7 @@ public static class HwiParser
 
 	public static ExtPubKey ParseExtPubKey(string json)
 	{
-		if (TryParseJToken(json, out var token))
+		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			string? extPubKeyString = token["xpub"]?.ToString().Trim()
 				?? throw new ArgumentNullException("xpub is null.");
@@ -176,7 +180,7 @@ public static class HwiParser
 			network = Network.TestNet;
 		}
 
-		if (TryParseJToken(json, out var token))
+		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			string? addressString = token["address"]?.ToString().Trim()
 				?? throw new ArgumentNullException("Address is null.");
@@ -206,7 +210,7 @@ public static class HwiParser
 			network = Network.TestNet;
 		}
 
-		if (TryParseJToken(json, out var token))
+		if (JsonHelpers.TryParseJToken(json, out JToken? token))
 		{
 			string? psbtString = token["psbt"]?.ToString()?.Trim()
 				?? throw new ArgumentNullException("PSBT string is null.");
@@ -219,18 +223,18 @@ public static class HwiParser
 		}
 	}
 
-	private static HwiEnumerateEntry ParseHwiEnumerateEntry(JsonNode json)
+	private static HwiEnumerateEntry ParseHwiEnumerateEntry(JObject json)
 	{
-        var modelToken = json["model"]
-            ?? throw new ArgumentNullException($"'modelToken' can't be null;");
+		JToken? modelToken = json["model"]
+			?? throw new ArgumentNullException($"{nameof(modelToken)} can't be null;");
 
-        var pathString = json["path"]?.GetValue<string>()?.Trim()
-            ?? throw new ArgumentNullException($"Path can't be null;");
+		var pathString = json["path"]?.ToString().Trim()
+			?? throw new ArgumentNullException($"Path can't be null;");
 
-        var serialNumberString = json["serial_number"]?.ToString()?.Trim();
-        var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
-        var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
-        var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim();
+		var serialNumberString = json["serial_number"]?.ToString()?.Trim();
+		var fingerprintString = json["fingerprint"]?.ToString()?.Trim();
+		var needsPinSentString = json["needs_pin_sent"]?.ToString()?.Trim();
+		var needsPassphraseSentString = json["needs_passphrase_sent"]?.ToString()?.Trim();
 
 		HDFingerprint? fingerprint = null;
 		if (fingerprintString is { })
@@ -394,19 +398,4 @@ public static class HwiParser
 	{
 		return me.ToString().ToLowerInvariant();
 	}
-
-	public static bool TryParseJToken(string text, [NotNullWhen(true)] out JsonNode? token)
-	{
-		token = null;
-		try
-		{
-			token = JsonNode.Parse(text);
-			return true;
-		}
-		catch (JsonException)
-		{
-			return false;
-		}
-	}
-
 }

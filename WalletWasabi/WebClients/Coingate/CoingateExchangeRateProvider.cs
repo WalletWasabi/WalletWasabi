@@ -23,6 +23,11 @@ public class CoingateExchangeRateProvider : IExchangeRateProvider
 			.ConfigureAwait(false);
 		var rate = decimal.Parse(response);
 
-		return [new ExchangeRate {Ticker = "USD", Rate = rate}];
+		var exchangeRates = new List<ExchangeRate>
+		{
+			new ExchangeRate { Rate = rate, Ticker = "USD" }
+		};
+
+		return exchangeRates;
 	}
 }

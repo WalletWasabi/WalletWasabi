@@ -16,7 +16,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 
 		context.Result = exception switch
 		{
-			WabiSabiProtocolException e => new ObjectResult(new Error(
+			WabiSabiProtocolException e => new JsonResult(new Error(
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: e.ErrorCode.ToString(),
 				Description: e.Message,
@@ -24,7 +24,7 @@ public class ExceptionTranslateAttribute : ExceptionFilterAttribute
 			{
 				StatusCode = (int)HttpStatusCode.InternalServerError
 			},
-			WabiSabiCryptoException e => new ObjectResult(new Error(
+			WabiSabiCryptoException e => new JsonResult(new Error(
 				Type: ProtocolConstants.ProtocolViolationType,
 				ErrorCode: WabiSabiProtocolErrorCode.CryptoException.ToString(),
 				Description: e.Message,
