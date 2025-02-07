@@ -1,13 +1,12 @@
-using Newtonsoft.Json;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -120,7 +119,8 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 
 	private async Task<string> SendWithRetriesAsync<TRequest>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
-		using var response = await SendWithRetriesAsync(action, Serialize(request), cancellationToken, retryTimeout).ConfigureAwait(false);
+		var jsonRequest = JsonEncoder.ToString(request, Encode.CoordinatorMessage);
+		using var response = await SendWithRetriesAsync(action, jsonRequest, cancellationToken, retryTimeout).ConfigureAwait(false);
 
 		if (!response.IsSuccessStatusCode)
 		{
@@ -138,24 +138,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	private async Task<TResponse> SendAndReceiveAsync<TRequest, TResponse>(RemoteAction action, TRequest request, CancellationToken cancellationToken, TimeSpan? retryTimeout = null) where TRequest : class
 	{
 		var jsonString = await SendWithRetriesAsync(action, request, cancellationToken, retryTimeout).ConfigureAwait(false);
-		return Deserialize<TResponse>(jsonString);
-	}
-
-	private static string Serialize<T>(T obj)
-		=> JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings);
-
-	private static TResponse Deserialize<TResponse>(string jsonString)
-	{
-		try
-		{
-			return JsonConvert.DeserializeObject<TResponse>(jsonString, JsonSerializationOptions.Default.Settings)
-				?? throw new InvalidOperationException("Deserialization error");
-		}
-		catch
-		{
-			Logger.LogDebug($"Failed to deserialize {typeof(TResponse)} from JSON '{jsonString}'");
-			throw;
-		}
+		return Decode.CoordinatorMessage<TResponse>(jsonString);
 	}
 
 	private static string GetUriEndPoint(RemoteAction action) =>

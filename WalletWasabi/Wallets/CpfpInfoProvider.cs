@@ -1,23 +1,18 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Diagnostics.CodeAnalysis;
-using System.Linq;
+using System.Data;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
 using Nito.AsyncEx;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Tor.Http;
-using WalletWasabi.WabiSabi.Models.Serialization;
-using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.Serialization;
 
 namespace WalletWasabi.Wallets;
 
@@ -104,7 +99,7 @@ public class CpfpInfoProvider : BackgroundService
 			{
 				await FetchCpfpInfoAsync(transaction, cancel).ConfigureAwait(false);
 			}
-			catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException or JsonException)
+			catch (Exception ex) when (ex is HttpRequestException or OperationCanceledException)
 			{
 				if (cancel.IsCancellationRequested)
 				{
@@ -205,8 +200,8 @@ public class CpfpInfoProvider : BackgroundService
 
 		var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-		return JsonConvert.DeserializeObject<CpfpInfo>(stringResponse, JsonSerializationOptions.Default.Settings) ??
-		       throw new JsonException("Deserialization error");;
+		return JsonDecoder.FromString(stringResponse, Decode.CpfpInfo) ??
+		       throw new DataException("Deserialization error");;
 	}
 
 	private record CachedCpfpInfo(CpfpInfo CpfpInfo, SmartTransaction Transaction, DateTimeOffset TimeLastUpdate);

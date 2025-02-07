@@ -1,16 +1,13 @@
 using NBitcoin;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Helpers;
-using WalletWasabi.JsonConverters;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys;
 
-[JsonObject(MemberSerialization.OptIn)]
 public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
 	public const int DefaultHighAnonymitySet = int.MaxValue;
@@ -64,19 +61,12 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
 	}
 
-	[JsonProperty(Order = 1)]
-	[JsonConverter(typeof(PubKeyJsonConverter))]
 	public PubKey PubKey { get; }
 
-	[JsonProperty(Order = 2)]
-	[JsonConverter(typeof(KeyPathJsonConverter))]
 	public KeyPath FullKeyPath { get; }
 
-	[JsonProperty(Order = 3, PropertyName = "Label")]
-	[JsonConverter(typeof(LabelsArrayJsonConverter))]
 	public LabelsArray Labels { get; private set; }
 
-	[JsonProperty(Order = 4)]
 	public KeyState KeyState { get; private set; }
 
 	/// <summary>Height of the block where all coins associated with the key were spent, or <c>null</c> if not yet spent.</summary>

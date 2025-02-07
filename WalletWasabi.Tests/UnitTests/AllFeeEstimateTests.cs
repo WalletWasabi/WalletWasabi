@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -27,8 +28,8 @@ public class AllFeeEstimateTests
 			{ 19, 1 }
 		};
 		var allFee = new AllFeeEstimate(estimations);
-		var serialized = JsonConvert.SerializeObject(allFee);
-		var deserialized = JsonConvert.DeserializeObject<AllFeeEstimate>(serialized);
+		var serialized = JsonEncoder.ToString(allFee, Encode.AllFeeEstimate);
+		var deserialized = JsonDecoder.FromString(serialized, Decode.AllFeeEstimate);
 
 		Assert.NotNull(deserialized);
 		Assert.Equal(estimations[2], deserialized.Estimations[2]);
