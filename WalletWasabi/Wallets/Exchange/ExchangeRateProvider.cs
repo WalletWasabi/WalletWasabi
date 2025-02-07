@@ -1,10 +1,12 @@
 using System.Collections.Immutable;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string, decimal> Extractor);
 
 namespace WalletWasabi.Wallets.Exchange;
@@ -33,9 +35,14 @@ public class ExchangeRateProvider(IHttpClientFactory httpClientFactory)
 		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", userAgent);
 
 		using var response = await httpClient.GetAsync(url.PathAndQuery, cancellationToken).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode($"Error requesting exchange rate to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-		var rate = providerInfo.Extractor(json);
-		return new ExchangeRate("USD", rate);
+		Logger.LogDebug(json);
+		return Result<decimal, Exception>
+			.Catch(() => providerInfo.Extractor(json))
+			.Match(
+				rate => new ExchangeRate("USD", rate),
+				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));
 	}
 
 	private static Func<string, decimal> JsonPath(string xpath) =>

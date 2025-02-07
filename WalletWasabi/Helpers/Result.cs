@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Userfacing.Bip21;
 
 namespace WalletWasabi.Helpers;
 
@@ -83,6 +82,18 @@ public record Result<TValue,TError>
 		Match(
 			_ => throw new InvalidOperationException("Successful result don't have error."),
 			e => e);
+
+	public static Result<T, Exception> Catch<T>(Func<T> func)
+	{
+		try
+		{
+			return func();
+		}
+		catch (Exception e)
+		{
+			return Result<T, Exception>.Fail(e);
+		}
+	}
 }
 
 public record Result<TError> : Result<Unit, TError>

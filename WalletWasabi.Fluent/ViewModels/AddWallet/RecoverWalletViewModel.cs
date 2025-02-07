@@ -73,7 +73,6 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			options = options with { Password = password, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 			Navigate().To().AddedWalletPage(walletSettings, options!);
-
 		}
 		catch (Exception ex)
 		{

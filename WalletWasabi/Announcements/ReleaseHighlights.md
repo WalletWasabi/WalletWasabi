@@ -1,49 +1,43 @@
 ## Release Highlights
-#### 🤫 Send to Silent Payment addresses<br/>
-#### 🎁 Donation Button<br/>
-#### 🧪 ~~TestNet 3~~ -> TestNet 4<br/>
-#### 📝 Release Notes in the client<br/>
+#### 💪 3rd Party Providers for Fee & Exchange Rate<br/>
+#### 👨‍🔧 Quality of Life Features<br/>
+#### 📦 Backend and Coordinator packaged for Linux<br/>
 
 ## Release Summary
-Wasabi Wallet v2.4.0 brings send to Silent Payment addresses!
-
-### 🤫 Send to Silent Payment addresses
-
-Silent Payments are privately reusable static addresses. While sending Bitcoin to them is as easy as sending to regular addresses, it is not possible for an observer to link several payments to the same Silent Payments address.
-
-They are useful to send an address to multiple persons at the same time (tips, donations...) or to make multiple payments between the same entities (salary, rent...).
-
-Wasabi is now one of the first wallet to support send to Silent Payment addresses, and we hope that more wallets will join! We are working on allowing receiving, please bear with us!
-
-### 🎁 Donation Button
-
-Wasabi is Free Open Source Software (FOSS).
-No service is provided, and therefore it doesn't generate any revenue.
-
-However, maintaining and improving the software requires ongoing effort, such as maintenance, continuous improvement, bug fixes, testing, documentation, regular updates etc...
-
-While Wasabi is one of the best tools available to use Bitcoin privately, achieving flawless financial-sovereign privacy is still a work in progress.
-There are many features yet to be implemented, and your support can help make them a reality.
-
-Additionally, contributors cover static costs, such as server expenses and release management, using their personal funds.
-
-A donate button has been added on the main screen.<br/>
-It uses Silent Payments, so it's a great way to test that new feature!
-
-By donating, you’re directly supporting the developers who work tirelessly to maintain and improve Wasabi Wallet and make Bitcoin privacy accessible for everyone.
-
-#### 🧪 ~~TestNet 3~~ -> TestNet 4
-
-Instead of TestNet 3, Wasabi now uses TestNet 4.
-
-This new network has slightly different mechanisms that mitigates some of the problems that were undermining TestNet 3 to the point that it is basically unusable.
-
-While using the test network will be much more enjoyable now, coins from TestNet 3 don't exist on this new network. You must use a faucet and get yourself TestNet 4 coins.
-
-### 📝 Release Notes in the client
-
-If you've reached this far, you've probably noticed that the release notes highlights are now available in the client! They are displayed every first launch after an update.
-
-Full release notes are still available on GitHub.
+Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and contains small but insightful improvements to the interface.
 
 
+### v2.5.1
+
+v2.5.1 Fixes a bug with the recovery workflow introduced in v2.5.0
+
+### 💪 3rd Party Providers for Fee Estimations & Exchange Rate
+
+Fee rate estimations and exchange rate providers are now configurable.
+
+Previously, this information was provided by Wasabi's backend. This change aligns with our long-term goal of completely removing dependence on the backend.
+
+After this release, Wasabi will be significantly closer to achieving that goal, with most basic wallet features functioning without an active backend connection. You can read more about the remaining steps on [GitHub](https://github.com/orgs/WalletWasabi/discussions/13661).
+
+### 👨‍🔧 Quality of Life Features
+
+In the last version, we introduced a donation button to gauge community interest in funding Wasabi's future. We have been overwhelmed by the support and interest shown by our community, including long-time users and privacy enthusiasts.
+
+We want to thank you for believing in Wasabi and for your support, whether through using the software, providing feedback, contributing financially, or contributing to the open-source project in any form.
+
+To show our gratitude, we've designed this release for you, our community. We've finally addressed some of the oldest bugs and feature requests that have been long-awaited!
+
+Listing all the improvements would be too lengthy, but here are some examples:
+- Randomly skipping rounds was removed
+- Coinjoin settings & profiles are now all in a single tab
+- More information in the status icon
+- Resync button now available in Tools<br>
+And much more...
+
+We expect these improvements to significantly enhance the overall experience of using Wasabi as your daily Bitcoin wallet. Take a tour or read the release details on GitHub to see all of them!
+
+### 📦 Backend and Coordinator packaged for Linux
+
+The Debian package now includes two extra binaries: one for the backend (Wallet API) and one for the coordinator (Coinjoin API).
+
+This makes it easier for community members to run a backend and/or a coordinator, private or publicly accessible, which lowers the barrier to contributing to the resiliency of Wasabi's infrastructure against potential attacks and technical failures.

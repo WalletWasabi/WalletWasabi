@@ -24,13 +24,13 @@
         </Viewbox>
       </QuestionControl.IconContent>
       <StackPanel Spacing="15">
-        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="Resync your wallet to address any issues that occurred during the synchronization process."/>
-        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="This process restarts the software and will take some time."/>
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="This fixes any issues that occurred during the synchronization process." />
+        <TextBlock TextWrapping="Wrap" TextAlignment="Center" Text="It restarts the software and will take some time." />
         <TextBlock
           Margin="0 25 0 0"
           TextWrapping="Wrap"
           TextAlignment="Center"
-          Text="Optionally, specify a block height to start the resync from:"/>
+          Text="Optionally, specify a block height to resync from:" />
         <TextBox Text="{Binding StartingHeight}"
                  Watermark="0"
                  MaxWidth="125"
@@ -42,5 +42,4 @@
       </StackPanel>
     </QuestionControl>
   </ContentArea>
-
 </UserControl>
