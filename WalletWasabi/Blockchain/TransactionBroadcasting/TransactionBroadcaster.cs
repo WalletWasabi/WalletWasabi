@@ -32,7 +32,7 @@ public abstract record BroadcastOk
 
 	public record BroadcastByBackend : BroadcastOk;
 
-	public record BroadcastByThirdParty : BroadcastOk;
+	public record BroadcastByExternalParty : BroadcastOk;
 }
 
 public abstract record BroadcastError
@@ -98,15 +98,15 @@ public class BackendBroadcaster(IHttpClientFactory httpClientFactory) : IBroadca
 	}
 }
 
-public class ThirdPartyTransactionBroadcaster : IBroadcaster
+public class ExternalTransactionBroadcaster : IBroadcaster
 {
-	public static readonly ImmutableArray<ThirdPartyBroadcasterInfo> Providers =
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> Providers =
 	[
 		new("BlockstreamInfo", ("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), "/api/tx"),
 		new("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"), "/api/tx")
 	];
 
-	public ThirdPartyTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
+	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
 	{
 		Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
 		Network = network;
@@ -119,7 +119,7 @@ public class ThirdPartyTransactionBroadcaster : IBroadcaster
 
 	private UserAgentPicker _userAgentGetter;
 
-	private ThirdPartyBroadcasterInfo Broadcaster { get; init; }
+	private ExternalBroadcasterInfo Broadcaster { get; init; }
 
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
@@ -136,7 +136,7 @@ public class ThirdPartyTransactionBroadcaster : IBroadcaster
 			using var response = await httpClient.PostAsync($"{url}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
 
-			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByThirdParty());
+			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty());
 		}
 		catch (Exception ex)
 		{
@@ -144,7 +144,7 @@ public class ThirdPartyTransactionBroadcaster : IBroadcaster
 		}
 	}
 
-	public record ThirdPartyBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
+	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
 public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes) : IBroadcaster
