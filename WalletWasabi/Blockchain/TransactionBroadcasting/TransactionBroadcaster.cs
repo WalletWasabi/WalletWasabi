@@ -108,7 +108,7 @@ public class ThirdPartyTransactionBroadcaster : IBroadcaster
 
 	public ThirdPartyTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
 	{
-		SelectedBroadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
 		Network = network;
 		HttpClientFactory = httpClientFactory;
 		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
@@ -119,25 +119,22 @@ public class ThirdPartyTransactionBroadcaster : IBroadcaster
 
 	private UserAgentPicker _userAgentGetter;
 
-	private ThirdPartyBroadcasterInfo SelectedBroadcaster { get; init; }
+	private ThirdPartyBroadcasterInfo Broadcaster { get; init; }
 
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		Logger.LogInfo($"Trying to broadcast transaction via '{SelectedBroadcaster.Name}' API. TxID: {tx.GetHash()}.");
+		Logger.LogInfo($"Trying to broadcast transaction via '{Broadcaster.Name}' API. TxID: {tx.GetHash()}.");
 		try
 		{	
-			string domian = HttpClientFactory is OnionHttpClientFactory ? SelectedBroadcaster.ApiDomain.Onion : SelectedBroadcaster.ApiDomain.ClearNet;
+			string domian = HttpClientFactory is OnionHttpClientFactory ? Broadcaster.ApiDomain.Onion : Broadcaster.ApiDomain.ClearNet;
 			Uri url = Network == Network.Main ? new Uri(domian) : new Uri($"{domian}/{Network.Name.ToLower()}");
 
-			using var httpClient = HttpClientFactory.CreateClient($"{SelectedBroadcaster.Name}-transaction-broadcaster");
+			using var httpClient = HttpClientFactory.CreateClient($"{Broadcaster.Name}-{tx.GetHash()}");
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
 
-			using var response = await httpClient.PostAsync($"{url}{SelectedBroadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync(cancellationToken).ConfigureAwait(false);
-			}
+			using var response = await httpClient.PostAsync($"{url}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
+			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
 
 			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByThirdParty());
 		}
