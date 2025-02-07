@@ -6,6 +6,11 @@
 ## Release Summary
 Wasabi Wallet v2.5.0 continues to enhance Wasabi's resilience and contains small but insightful improvements to the interface.
 
+
+### v2.5.1
+
+v2.5.1 Fixes a bug with the recovery workflow introduced in v2.5.0
+
 ### 💪 3rd Party Providers for Fee Estimations & Exchange Rate
 
 Fee rate estimations and exchange rate providers are now configurable.
