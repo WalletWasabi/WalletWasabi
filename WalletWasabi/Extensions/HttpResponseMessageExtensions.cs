@@ -2,9 +2,11 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Serialization;
+using Newtonsoft.Json;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Extensions;
 
@@ -29,7 +31,13 @@ public static class HttpResponseMessageExtensions
 		if (me.Content is not null)
 		{
 			var contentString = await me.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-			var error = JsonDecoder.FromString(contentString, Decode.Optional(Decode.Error));
+			var error = JsonConvert.DeserializeObject<Error>(
+				contentString,
+				new JsonSerializerSettings()
+				{
+					Converters = JsonSerializationOptions.Default.Settings.Converters,
+					Error = (_, e) => e.ErrorContext.Handled = true // Try to deserialize an Error object
+				});
 			var innerException = error switch
 			{
 				{ Type: ProtocolConstants.ProtocolViolationType } => Enum.TryParse<WabiSabiProtocolErrorCode>(error.ErrorCode, out var code)

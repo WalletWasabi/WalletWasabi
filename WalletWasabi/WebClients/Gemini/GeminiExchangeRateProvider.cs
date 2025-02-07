@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Serialization;
 
 namespace WalletWasabi.WebClients.Gemini;
 
@@ -23,13 +22,18 @@ public class GeminiExchangeRateProvider : IExchangeRateProvider
 
 		using var response = await httpClient.GetAsync("/v1/pubticker/btcusd", cancellationToken).ConfigureAwait(false);
 		using var content = response.Content;
-		var exchangeRate = await content.ReadAsJsonAsync(Decode.GeminiExchangeRateInfo).ConfigureAwait(false);
+		var data = await content.ReadAsJsonAsync<GeminiExchangeRateInfo>().ConfigureAwait(false);
 
-		return [exchangeRate];
+		var exchangeRates = new List<ExchangeRate>
+		{
+			new ExchangeRate { Rate = data.Bid, Ticker = "USD" }
+		};
+
+		return exchangeRates;
 	}
-}
 
-public class GeminiExchangeRateInfo
-{
-	public decimal Bid { get; set; }
+	private class GeminiExchangeRateInfo
+	{
+		public decimal Bid { get; set; }
+	}
 }

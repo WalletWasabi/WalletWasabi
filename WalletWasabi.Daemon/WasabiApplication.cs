@@ -103,13 +103,13 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		PersistentConfig persistentConfig = PersistentConfigManager.LoadFile(ConfigFilePath);
+		PersistentConfig persistentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(ConfigFilePath, createIfMissing: true);
 
 		var newConfig = persistentConfig.Migrate();
 		if (!persistentConfig.DeepEquals(newConfig))
 		{
 			persistentConfig = newConfig;
-			PersistentConfigManager.ToFile(ConfigFilePath, persistentConfig);
+			ConfigManagerNg.ToFile(ConfigFilePath, persistentConfig);
 		}
 
 		return persistentConfig;

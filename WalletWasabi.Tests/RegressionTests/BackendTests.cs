@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Serialization;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -43,7 +42,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		using var response = await BackendApiHttpClient.GetAsync($"api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 
-		var exchangeRates = await response.Content.ReadAsJsonAsync(Decode.Array(Decode.ExchangeRate));
+		var exchangeRates = await response.Content.ReadAsJsonAsync<List<ExchangeRate>>();
 		Assert.Single(exchangeRates);
 
 		var rate = exchangeRates[0];
@@ -74,7 +73,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		using var response = await BackendApiHttpClient.PostAsync($"api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-		Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync(Decode.String));
+		Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync<string>());
 
 		Logger.TurnOn();
 	}

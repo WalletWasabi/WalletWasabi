@@ -1,20 +1,13 @@
+using Newtonsoft.Json;
 using System.Collections.Generic;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Backend.Models.Responses;
 
 public class FiltersResponse
 {
-	public FiltersResponse()
-	{
-	}
-
-	public FiltersResponse(int bestHeight, FilterModel[] filters)
-	{
-		BestHeight = bestHeight;
-		Filters = filters;
-	}
-
 	public int BestHeight { get; set; }
 
+	[JsonProperty(ItemConverterType = typeof(FilterModelJsonConverter))] // Do not use the default jsonifyer, because that's too much data.
 	public IEnumerable<FilterModel> Filters { get; set; } = new List<FilterModel>();
 }

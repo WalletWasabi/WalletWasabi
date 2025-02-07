@@ -1,4 +1,5 @@
 using NBitcoin;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using WalletWasabi.Extensions;
@@ -21,13 +22,16 @@ public record SigningState : MultipartyTransactionState
 	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
 	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 
+	[JsonIgnore]
 	public IEnumerable<Coin> UnsignedInputs => SortedInputs.Where((_, i) => !IsInputSigned(i));
 
+	[JsonIgnore]
 	public List<Coin> SortedInputs => Inputs
 			.OrderByDescending(x => x.Amount)
 			.ThenBy(x => x.Outpoint.ToBytes(), ByteArrayComparer.Comparer)
 			.ToList();
 
+	[JsonIgnore]
 	public List<TxOut> SortedOutputs => Outputs
 			.GroupBy(x => x.ScriptPubKey)
 			.Select(x => new TxOut(x.Sum(y => y.Value), x.Key))

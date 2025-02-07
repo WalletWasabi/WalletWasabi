@@ -8,8 +8,10 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using System.Net;
-using WalletWasabi.Serialization;
+using Newtonsoft.Json;
+using SQLitePCL;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Models.Serialization;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -219,10 +221,10 @@ public class RoundStateUpdaterTests
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
 		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 
-	private static HttpResponseMessage Ok(RoundStateResponse rsr)
+	private static HttpResponseMessage Ok<T>(T obj)
 	{
 		HttpResponseMessage response = new(HttpStatusCode.OK);
-		response.Content = new StringContent(Encode.RoundStateResponse(rsr).ToJsonString());
+		response.Content = new StringContent(JsonConvert.SerializeObject(obj, JsonSerializationOptions.Default.Settings));
 		return response;
 	}
 

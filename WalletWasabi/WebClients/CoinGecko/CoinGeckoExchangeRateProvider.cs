@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Http.Headers;
 using System.Threading;
@@ -8,7 +7,6 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Interfaces;
-using WalletWasabi.Serialization;
 
 namespace WalletWasabi.WebClients.CoinGecko;
 
@@ -27,8 +25,13 @@ public class CoinGeckoExchangeRateProvider : IExchangeRateProvider
 		httpClient.DefaultRequestHeaders.UserAgent.Add(new ProductInfoHeaderValue("WasabiWallet", Constants.ClientVersion.ToString()));
 		using var response = await httpClient.GetAsync("api/v3/coins/markets?vs_currency=usd&ids=bitcoin", cancellationToken).ConfigureAwait(false);
 		using var content = response.Content;
-		var rates = await content.ReadAsJsonAsync(Decode.Array(Decode.CoinGeckoExchangeRate)).ConfigureAwait(false);
+		var rates = await content.ReadAsJsonAsync<CoinGeckoExchangeRate[]>().ConfigureAwait(false);
 
-		return rates.Take(1);
+		var exchangeRates = new List<ExchangeRate>
+			{
+				new ExchangeRate { Rate = rates[0].Rate, Ticker = "USD" }
+			};
+
+		return exchangeRates;
 	}
 }

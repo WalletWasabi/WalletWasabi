@@ -1,4 +1,5 @@
 using NBitcoin;
+using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
@@ -24,21 +25,31 @@ public abstract record MultipartyTransactionState
 		Events = builder.ToImmutable();
 	}
 
+	[JsonIgnore]
 	public RoundParameters Parameters => Events.OfType<RoundCreated>().Single().RoundParameters;
 
+	[JsonIgnore]
 	public IEnumerable<Coin> Inputs => Events.OfType<InputAdded>().Select(x => x.Coin);
+	[JsonIgnore]
 	public IEnumerable<TxOut> Outputs => Events.OfType<OutputAdded>().Select(x => x.Output);
 
+	[JsonIgnore]
 	public Money Balance => Inputs.Sum(x => x.Amount) - Outputs.Sum(x => x.Value);
+	[JsonIgnore]
 	public int EstimatedInputsVsize => Inputs.Sum(x => x.TxOut.ScriptPubKey.EstimateInputVsize());
+	[JsonIgnore]
 	public int OutputsVsize => Outputs.Sum(x => x.ScriptPubKey.EstimateOutputVsize());
 
+	[JsonIgnore]
 	public int EstimatedVsize => MultipartyTransactionParameters.SharedOverhead + EstimatedInputsVsize + OutputsVsize;
 
+	[JsonIgnore]
 	public Money EstimatedCost => Parameters.MiningFeeRate.GetFee(EstimatedVsize - UnpaidSharedOverhead);
 
+	[JsonIgnore]
 	public int UnpaidSharedOverhead { get; init; } = MultipartyTransactionParameters.SharedOverhead;
 
+	[JsonIgnore]
 	public FeeRate EffectiveFeeRate => new(Balance, EstimatedVsize - UnpaidSharedOverhead);
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;

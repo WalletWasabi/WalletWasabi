@@ -11,7 +11,6 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 
@@ -52,7 +51,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync(Decode.SynchronizeResponse).ConfigureAwait(false);
+		var ret = await content.ReadAsJsonAsync<SynchronizeResponse>().ConfigureAwait(false);
 
 		return ret;
 	}
@@ -81,7 +80,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
+		var ret = await content.ReadAsJsonAsync<FiltersResponse>().ConfigureAwait(false);
 
 		return ret;
 	}
@@ -112,7 +111,7 @@ public class WasabiClient
 			}
 
 			using HttpContent content = response.Content;
-			var retString = await content.ReadAsJsonAsync(Decode.Array(Decode.String)).ConfigureAwait(false);
+			var retString = await content.ReadAsJsonAsync<IEnumerable<string>>().ConfigureAwait(false);
 			var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
 
 			lock (TransactionCacheLock)
@@ -139,7 +138,7 @@ public class WasabiClient
 
 	public async Task BroadcastAsync(string hex, CancellationToken cancellationToken)
 	{
-		using var content = new StringContent($"\"{hex}\"", Encoding.UTF8, "application/json");
+		using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
 		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
@@ -174,9 +173,9 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var strings = await content.ReadAsJsonAsync(Decode.Array(Decode.String)).ConfigureAwait(false);
+		var strings = await content.ReadAsJsonAsync<ISet<string>>().ConfigureAwait(false);
 
-		return strings.ToHashSet();
+		return strings;
 	}
 
 	#endregion blockchain
@@ -193,7 +192,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var resp = await content.ReadAsJsonAsync(Decode.VersionsResponse).ConfigureAwait(false);
+		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
 
 		return ushort.Parse(resp.BackendMajorVersion);
 	}
