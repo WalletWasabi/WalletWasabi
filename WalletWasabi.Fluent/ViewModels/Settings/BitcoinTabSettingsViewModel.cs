@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Keywords =
 	[
 		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-		"Stop", "Shutdown", "P2P", "Endpoint", "Dust", "Threshold"
+		"Stop", "Shutdown", "P2P", "Endpoint", "Dust", "Attack", "Limit"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
@@ -86,7 +86,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			if (!decimal.TryParse(dustThreshold, out var dust) || dust < 0)
 			{
 				error = true;
-				errors.Add(ErrorSeverity.Error, "Invalid dust threshold.");
+				errors.Add(ErrorSeverity.Error, "Invalid dust attack limit.");
 			}
 
 			if (!error)
