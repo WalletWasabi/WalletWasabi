@@ -47,8 +47,8 @@
         </TextBox>
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="Coins received from others to already used addresses won't appear below this amount. To prevent potential dust attacks.">
-      <TextBlock Text="Dust Threshold" />
+    <DockPanel ToolTip.Tip="Payments (from others) below this value won't appear if you have already received coins to the same address.">
+      <TextBlock Text="Dust Attack Limit" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding DustThreshold}" CurrencyCode="BTC" />
     </DockPanel>
   </StackPanel>
