@@ -101,12 +101,6 @@ public class KeyManager
 	[OnDeserialized]
 	private void OnDeserializedMethod(StreamingContext context)
 	{
-		// This should be impossible but turn auto coinjoin off, just in case.
-		// Otherwise, the user's money can be drained.
-		if (AutoCoinJoin)
-		{
-			AutoCoinJoin = false;
-		}
 		_hdPubKeyCache.AddRangeKeys(_hdPubKeys);
 	}
 
@@ -409,7 +403,8 @@ public class KeyManager
 				x.IsInternal == true);
 
 	private bool MatchesChangeScriptPubKeyType(HdPubKey hd) =>
-		ChangeScriptPubKeyType switch {
+		ChangeScriptPubKeyType switch
+		{
 			PreferredScriptPubKeyType.Unspecified => true,
 			PreferredScriptPubKeyType.Specified scriptType => hd.FullKeyPath.GetScriptTypeFromKeyPath() == scriptType.ScriptType,
 			_ => throw new ArgumentOutOfRangeException()
