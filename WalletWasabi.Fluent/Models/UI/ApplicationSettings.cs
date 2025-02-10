@@ -162,7 +162,8 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.BackendUri,
 					x => x.ExchangeRateProvider,
 					x => x.FeeRateEstimationProvider,
-					(_, _, _, _, _, _, _, _) => Unit.Default)
+					x => x.ExternalTransactionBroadcaster,
+					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable

@@ -140,8 +140,8 @@ public class Config
 				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace and BlockstreamInfo",
 				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
 			[ nameof(ExternalTransactionBroadcaster) ] = (
-			"Third party transaction broadvaster. Available broadcastetrs are (default) MempoolSpace and BlockstreamInfo",
-			GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs))
+				"Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
+				GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
