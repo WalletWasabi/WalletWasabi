@@ -106,15 +106,27 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		new("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"), "/api/tx")
 	];
 
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> TestNet4Providers =
+	[
+		new("MempoolSpace", ("https://mempool.space/testnet4", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"), "/api/tx")
+	];
+
 	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
 	{
-		Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
-		Network = network;
+		if (network == Network.Main)
+		{
+			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		}
+		else
+		{
+			// TODO: Figure out RegTest solution
+			Broadcaster = TestNet4Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		}
+
 		HttpClientFactory = httpClientFactory;
 		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}
 
-	public Network Network { get; }
 	public IHttpClientFactory HttpClientFactory { get; }
 
 	private UserAgentPicker _userAgentGetter;
@@ -125,18 +137,25 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	{
 		Logger.LogInfo($"Trying to broadcast transaction via '{Broadcaster.Name}' API. TxID: {tx.GetHash()}.");
 		try
-		{	
-			string domian = HttpClientFactory is OnionHttpClientFactory ? Broadcaster.ApiDomain.Onion : Broadcaster.ApiDomain.ClearNet;
-			Uri url = Network == Network.Main ? new Uri(domian) : new Uri($"{domian}/{Network.Name.ToLower()}");
+		{
+			Uri requestUri = HttpClientFactory is OnionHttpClientFactory ? new Uri(Broadcaster.ApiDomain.Onion) : new Uri(Broadcaster.ApiDomain.ClearNet);
 
 			using var httpClient = HttpClientFactory.CreateClient($"{Broadcaster.Name}-{tx.GetHash()}");
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
 
-			using var response = await httpClient.PostAsync($"{url}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
+			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
 
 			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty());
+		}
+		catch (HttpRequestException ex)
+		{
+			if (RpcErrorTools.IsSpentError(ex.Message))
+			{
+				return BroadcastingResult.Fail(new BroadcastError.SpentError());
+			}
+			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
 		catch (Exception ex)
 		{
