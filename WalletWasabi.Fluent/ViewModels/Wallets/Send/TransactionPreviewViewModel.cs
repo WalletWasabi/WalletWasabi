@@ -96,6 +96,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				});
 
 		ChangeCoinsCommand = ReactiveCommand.CreateFromTask(OnChangeCoinsAsync);
+		CopyHexCommand = ReactiveCommand.CreateFromTask(CopyTxHexAsync);
 	}
 
 	public TransactionSummaryViewModel CurrentTransactionSummary { get; }
@@ -113,6 +114,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	public ICommand ChangeCoinsCommand { get; }
 
 	public ICommand UndoCommand { get; }
+	public ICommand CopyHexCommand { get; }
+
 
 	private async Task OnExportPsbtAsync()
 	{
@@ -540,5 +543,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		{
 			UpdateTransaction(CurrentTransactionSummary, transaction);
 		}
+	}
+
+	private async Task CopyTxHexAsync()
+	{
+		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+		var hex = transaction.Transaction.Transaction.ToHex();
+		await UiContext.Clipboard.SetTextAsync(hex);
 	}
 }

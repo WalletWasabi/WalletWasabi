@@ -28,6 +28,8 @@
                ToolTip.Tip="Your privacy is being protected with payjoin."
                IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
 
+        <Button Cursor="Hand" Command="{Binding CopyHexCommand}" Content="Copy Hex" />
+        
         <Button Command="{Binding UndoCommand}" Classes="plain" Padding="10 0 10 10"
                 ToolTip.Tip="Undo last modification" IsVisible="{Binding CanUndo}">
           <Viewbox Height="20">
