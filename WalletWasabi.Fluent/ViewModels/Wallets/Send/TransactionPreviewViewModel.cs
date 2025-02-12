@@ -547,8 +547,12 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task CopyTxHexAsync()
 	{
-		var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
-		var hex = transaction.Transaction.Transaction.ToHex();
+		if (Transaction is null)
+		{
+			return;
+		}
+
+		var hex = Transaction.Transaction.Transaction.ToHex();
 		await UiContext.Clipboard.SetTextAsync(hex);
 	}
 }
