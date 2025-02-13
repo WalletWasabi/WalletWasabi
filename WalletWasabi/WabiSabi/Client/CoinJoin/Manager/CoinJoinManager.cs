@@ -81,9 +81,9 @@ public class CoinJoinManager : BackgroundService
 
 		if (overridePlebStop && !IsUnderPlebStop(coinCandidates, wallet.PlebStopThreshold))
 		{
-			// Turn off overriding if we went above the threshold meanwhile.
+			// Turn off overriding if we reached or exceeded the threshold meanwhile.
 			overridePlebStop = false;
-			wallet.LogDebug("Do not override PlebStop anymore we are above the threshold.");
+			wallet.LogDebug("Do not override PlebStop anymore, confirmed balance no longer below the threshold.");
 		}
 
 		await _commandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
