@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -12,7 +13,7 @@ public interface IWallet
 {
 	string WalletName { get; }
 	WalletId WalletId { get; }
-	bool IsUnderPlebStop { get; }
+	Money PlebStopThreshold { get; }
 	bool IsMixable { get; }
 
 	/// <summary>

@@ -36,10 +36,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingRoundMessage = "Awaiting a round";
 	private const string PlebStopMessage = "Coinjoin may be uneconomical";
 	private const string PlebStopMessageBelow = "Add more funds or press Play to bypass";
+	private const string PlebStopMessageBelowUnconfirmed = "Wait confirmation or press Play to bypass";
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
-	private const string BackendNotConnected = "Awaiting connection";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
 	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
@@ -69,6 +69,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
+
+	private CoinjoinError? _lastPlebStopActivatedEvent;
 
 	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, IWalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
 	{
@@ -293,7 +295,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				StopVisible = false;
 
 				CurrentStatus = PlebStopMessage;
-				LeftText = PlebStopMessageBelow;
+				LeftText = _lastPlebStopActivatedEvent is CoinjoinError.NotEnoughConfirmedUnprivateBalance
+					? PlebStopMessageBelowUnconfirmed
+					: PlebStopMessageBelow;
 			})
 			.OnExit(() => LeftText = "");
 	}
@@ -360,8 +364,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartErrorEventArgs start:
-				if (start.Error is CoinjoinError.NotEnoughUnprivateBalance)
+				if (start.Error is CoinjoinError.NotEnoughUnprivateBalance or CoinjoinError.NotEnoughConfirmedUnprivateBalance)
 				{
+					_lastPlebStopActivatedEvent = start.Error;
 					_stateMachine.Fire(Trigger.PlebStopActivated);
 					break;
 				}
@@ -374,7 +379,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
 					CoinjoinError.AllCoinsPrivate => AllPrivateMessage,
 					CoinjoinError.UserWasntInRound => RoundFinishedMessage,
-					CoinjoinError.BackendNotSynchronized => BackendNotConnected,
 					CoinjoinError.CoinsRejected => CoinsRejectedMessage,
 					CoinjoinError.OnlyImmatureCoinsAvailable => OnlyImmatureCoinsAvailableMessage,
 					CoinjoinError.OnlyExcludedCoinsAvailable => OnlyExcludedCoinsAvailableMessage,

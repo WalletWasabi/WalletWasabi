@@ -125,7 +125,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
-	public bool IsUnderPlebStop => Coins.Confirmed().TotalAmount() <= KeyManager.PlebStopThreshold;
+	public Money PlebStopThreshold => KeyManager.PlebStopThreshold;
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
