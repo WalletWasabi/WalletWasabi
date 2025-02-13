@@ -196,7 +196,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					walletToStart.LogTrace("PlebStop preventing coinjoin.");
 
-					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
+					throw new CoinJoinClientException(CoinjoinError.ConfirmedBalanceBelowPlebStop);
 				}
 
 				if (_wasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
