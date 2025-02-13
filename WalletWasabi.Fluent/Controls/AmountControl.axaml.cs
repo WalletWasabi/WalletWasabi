@@ -1,5 +1,6 @@
 using Avalonia;
 using Avalonia.Controls.Primitives;
+using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.Controls;
@@ -47,7 +48,7 @@ public class AmountControl : TemplatedControl
 
 	private void UpdateDerivedProperties(Amount? amount)
 	{
-		IsPositive = amount is not null && amount.Btc > 0;
-		IsNegative = amount is null || amount.Btc <= 0;
+		IsPositive = amount is not null && amount.Btc > Money.Zero;
+		IsNegative = amount is null || amount.Btc <= Money.Zero;
 	}
 }
