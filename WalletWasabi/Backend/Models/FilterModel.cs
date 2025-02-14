@@ -20,7 +20,7 @@ public class FilterModel
 	{
 		Header = header;
 		FilterData = filterData;
-		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		_filter = new(() => new GolombRiceFilter(filterData), LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public SmartHeader Header { get; }
@@ -79,7 +79,7 @@ public class FilterModel
 		builder.Append(':');
 		builder.Append(Filter);
 		builder.Append(':');
-		builder.Append(Header.PrevHash);
+		builder.Append(Header.Header);
 		builder.Append(':');
 		builder.Append(Header.EpochBlockTime);
 
