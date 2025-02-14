@@ -360,7 +360,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				break;
 
 			case StartErrorEventArgs start:
-				if (start.Error is CoinjoinError.NotEnoughUnprivateBalance)
+				if (start.Error is CoinjoinError.ConfirmedBalanceBelowPlebStop)
 				{
 					_stateMachine.Fire(Trigger.PlebStopActivated);
 					break;

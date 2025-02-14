@@ -77,9 +77,9 @@ public class CoinJoinManager : BackgroundService
 	{
 		if (overridePlebStop && !wallet.IsUnderPlebStop)
 		{
-			// Turn off overriding if we went above the threshold meanwhile.
+			// Turn off overriding if we reached or exceeded the threshold meanwhile.
 			overridePlebStop = false;
-			wallet.LogDebug("Do not override PlebStop anymore we are above the threshold.");
+			wallet.LogDebug("Do not override PlebStop anymore, confirmed balance no longer below the threshold.");
 		}
 
 		await _commandChannel.Writer.WriteAsync(new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop), cancellationToken).ConfigureAwait(false);
@@ -196,7 +196,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					walletToStart.LogTrace("PlebStop preventing coinjoin.");
 
-					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
+					throw new CoinJoinClientException(CoinjoinError.ConfirmedBalanceBelowPlebStop);
 				}
 
 				if (_wasabiBackendStatusProvide.LastResponse is not { } synchronizerResponse)
@@ -794,4 +794,4 @@ public class CoinJoinManager : BackgroundService
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 }
 
-public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);
+public record CoinJoinConfiguration(string CoordinatorIdentifier, decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);

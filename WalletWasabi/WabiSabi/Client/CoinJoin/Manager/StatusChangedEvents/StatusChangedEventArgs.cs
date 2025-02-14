@@ -20,7 +20,7 @@ public enum CoinjoinError
 	NoCoinsEligibleToMix,
 	AutoConjoinDisabled,
 	UserInSendWorkflow,
-	NotEnoughUnprivateBalance,
+	ConfirmedBalanceBelowPlebStop,
 	BackendNotSynchronized,
 	AllCoinsPrivate,
 	UserWasntInRound,

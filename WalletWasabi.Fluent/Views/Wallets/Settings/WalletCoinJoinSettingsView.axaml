@@ -94,7 +94,7 @@
       </PathIcon>
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="Coinjoin will automatically stop if the wallet balance is less than this.">
+    <DockPanel ToolTip.Tip="Coinjoin will automatically stop if the confirmed wallet balance is below this.">
       <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
     </DockPanel>
