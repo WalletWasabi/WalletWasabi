@@ -20,7 +20,7 @@ public static class PrivacyProfiles
 	public record Default : IPrivacyProfile
 	{
 		public int AnonScoreTarget => 10;
-		public bool NonPrivateCoinIsolation => true;
+		public bool NonPrivateCoinIsolation => false;
 		public TimeFrameItem TimeFrame => TimeFrames[0];
 	}
 
