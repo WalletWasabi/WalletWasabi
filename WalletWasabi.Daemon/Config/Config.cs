@@ -140,8 +140,8 @@ public class Config
 				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace and BlockstreamInfo",
 				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
 			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = (
-				"The number of days that wallet transactions will be remembered by Wasabi before drop them",
-				GetLongValue("DropUnconfirmedTransactionsAfterDays", PersistentConfig.DropUnconfirmedTransactionsAfterDays, cliArgs))
+				"The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
+				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).

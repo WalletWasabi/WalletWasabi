@@ -68,7 +68,7 @@ public record PersistentConfig
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
 
-	public int DropUnconfirmedTransactionsAfterDays { get; init; } = Constants.DefaultDaysBeforeDroppingTransactions;
+	public int MaxDaysInMempool { get; init; } = Constants.DefaultMaxDaysInMempool;
 
 	public int ConfigVersion { get; init; }
 
@@ -105,7 +105,7 @@ public record PersistentConfig
 			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
 			ExchangeRateProvider == other.ExchangeRateProvider &&
 			FeeRateEstimationProvider == other.FeeRateEstimationProvider &&
-			DropUnconfirmedTransactionsAfterDays == other.DropUnconfirmedTransactionsAfterDays;
+			MaxDaysInMempool == other.MaxDaysInMempool;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()
