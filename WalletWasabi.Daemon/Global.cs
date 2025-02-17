@@ -17,7 +17,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.CoinJoin.Client;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Rpc;
@@ -180,7 +179,6 @@ public class Global
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
-	public CoinJoinProcessor? CoinJoinProcessor { get; set; }
 	private readonly SpecificNodeBlockProvider _specificNodeBlockProvider;
 	private readonly BlockDownloadService _blockDownloadService;
 	private readonly P2PNodesManager _p2PNodesManager;
@@ -262,8 +260,6 @@ public class Global
 				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
 
 				Logger.LogInfo("Start synchronizing filters...");
-
-				CoinJoinProcessor = new CoinJoinProcessor(Network, HostedServices.Get<WasabiSynchronizer>(), WalletManager, BitcoinCoreNode?.RpcClient);
 
 				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
 
@@ -474,12 +470,6 @@ public class Global
 				{
 					await specificNodeBlockProvider.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(SpecificNodeBlockProvider)} is disposed.");
-				}
-
-				if (CoinJoinProcessor is { } coinJoinProcessor)
-				{
-					coinJoinProcessor.Dispose();
-					Logger.LogInfo($"{nameof(CoinJoinProcessor)} is disposed.");
 				}
 
 				if (HostedServices is { } backgroundServices)

@@ -9,6 +9,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.JsonConverters;
+using WalletWasabi.Rpc.JsonConverters;
 
 namespace WalletWasabi.Rpc;
 
