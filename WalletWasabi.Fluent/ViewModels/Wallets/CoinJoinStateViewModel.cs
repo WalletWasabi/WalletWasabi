@@ -35,8 +35,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingForBlameRoundMessage = "Awaiting the blame round";
 	private const string WaitingRoundMessage = "Awaiting a round";
 	private const string PlebStopMessage = "Coinjoin may be uneconomical";
-	private const string PlebStopMessageBelow = "Add more funds or press Play to bypass";
-	private const string PlebStopMessageBelowUnconfirmed = "Wait confirmation or press Play to bypass";
+	private const string PlebStopMessageBelow = "Add more funds or click to continue";
+	private const string PlebStopMessageBelowUnconfirmed = "Wait for confirmation or click to continue";
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
