@@ -67,6 +67,9 @@ public record PersistentConfig
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
+
+	public int MaxDaysInMempool { get; init; } = Constants.DefaultMaxDaysInMempool;
+
 	public int ConfigVersion { get; init; }
 
 	public bool DeepEquals(PersistentConfig other)
@@ -101,7 +104,8 @@ public record PersistentConfig
 			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
 			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
 			ExchangeRateProvider == other.ExchangeRateProvider &&
-			FeeRateEstimationProvider == other.FeeRateEstimationProvider;
+			FeeRateEstimationProvider == other.FeeRateEstimationProvider &&
+			MaxDaysInMempool == other.MaxDaysInMempool;
 	}
 
 	public EndPoint GetBitcoinP2pEndPoint()

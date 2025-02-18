@@ -138,7 +138,10 @@ public class Config
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 			[ nameof(FeeRateEstimationProvider) ] = (
 				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace and BlockstreamInfo",
-				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs))
+				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
+			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = (
+				"The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
+				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -157,7 +160,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold);
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
 	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
@@ -195,6 +198,7 @@ public class Config
 	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
 	public string FeeRateEstimationProvider => GetEffectiveValue<StringValue, string>(nameof(FeeRateEstimationProvider));
+	public int DropUnconfirmedTransactionsAfterDays => GetEffectiveValue<IntValue, int>(nameof(DropUnconfirmedTransactionsAfterDays));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
 	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
