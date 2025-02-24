@@ -74,7 +74,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 			DestinationProvider.SupportedScriptTypes,
 			Random);
 
-		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues, bestPaymentSet.TotalAmount > 0).ToArray();
+		var outputValues = amountDecomposer.Decompose(availableValues.Sum(), allCoinEffectiveValues, bestPaymentSet.TotalAmount > Money.Zero).ToArray();
 		var decomposedOutputs = GetTxOuts(outputValues, DestinationProvider);
 		foreach (var txOut in decomposedOutputs)
 		{

@@ -247,9 +247,9 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				try
 				{
-					PersistentConfig currentConfig = ConfigManagerNg.LoadFile<PersistentConfig>(_persistentConfigFilePath);
+					PersistentConfig currentConfig = PersistentConfigManager.LoadFile(_persistentConfigFilePath);
 					PersistentConfig newConfig = ApplyChanges(currentConfig);
-					ConfigManagerNg.ToFile(_persistentConfigFilePath, newConfig);
+					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}

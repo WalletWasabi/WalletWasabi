@@ -11,6 +11,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Http;
 
@@ -51,7 +52,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync<SynchronizeResponse>().ConfigureAwait(false);
+		var ret = await content.ReadAsJsonAsync(Decode.SynchronizeResponse).ConfigureAwait(false);
 
 		return ret;
 	}
@@ -80,7 +81,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync<FiltersResponse>().ConfigureAwait(false);
+		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
 		return ret;
 	}
@@ -111,7 +112,7 @@ public class WasabiClient
 			}
 
 			using HttpContent content = response.Content;
-			var retString = await content.ReadAsJsonAsync<IEnumerable<string>>().ConfigureAwait(false);
+			var retString = await content.ReadAsJsonAsync(Decode.Array(Decode.String)).ConfigureAwait(false);
 			var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
 
 			lock (TransactionCacheLock)
@@ -138,7 +139,7 @@ public class WasabiClient
 
 	public async Task BroadcastAsync(string hex, CancellationToken cancellationToken)
 	{
-		using var content = new StringContent($"'{hex}'", Encoding.UTF8, "application/json");
+		using var content = new StringContent($"\"{hex}\"", Encoding.UTF8, "application/json");
 		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
 
 		if (response.StatusCode != HttpStatusCode.OK)
@@ -157,31 +158,6 @@ public class WasabiClient
 		await BroadcastAsync(transaction.Transaction, cancellationToken).ConfigureAwait(false);
 	}
 
-	/// <summary>
-	/// Gets mempool hashes, but strips the last x characters of each hash.
-	/// </summary>
-	/// <param name="compactness">1 to 64</param>
-	public async Task<ISet<string>> GetMempoolHashesAsync(int compactness, CancellationToken cancel = default)
-	{
-		using HttpResponseMessage response = await _httpClient.GetAsync(
-			$"api/v{ApiVersion}/btc/blockchain/mempool-hashes?compactness={compactness}",
-			cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var strings = await content.ReadAsJsonAsync<ISet<string>>().ConfigureAwait(false);
-
-		return strings;
-	}
-
-	#endregion blockchain
-
-	#region software
-
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync("api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
@@ -192,7 +168,7 @@ public class WasabiClient
 		}
 
 		using HttpContent content = response.Content;
-		var resp = await content.ReadAsJsonAsync<VersionsResponse>().ConfigureAwait(false);
+		var resp = await content.ReadAsJsonAsync(Decode.VersionsResponse).ConfigureAwait(false);
 
 		return ushort.Parse(resp.BackendMajorVersion);
 	}

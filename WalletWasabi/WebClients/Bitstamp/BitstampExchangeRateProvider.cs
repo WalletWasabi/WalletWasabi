@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Interfaces;
+using WalletWasabi.Serialization;
 
 namespace WalletWasabi.WebClients.Bitstamp;
 
@@ -22,13 +23,8 @@ public class BitstampExchangeRateProvider : IExchangeRateProvider
 
 		using var response = await httpClient.GetAsync("api/v2/ticker/btcusd", cancellationToken).ConfigureAwait(false);
 		using var content = response.Content;
-		var rate = await content.ReadAsJsonAsync<BitstampExchangeRate>().ConfigureAwait(false);
+		var exchangeRate = await content.ReadAsJsonAsync(Decode.BitstampExchangeRate).ConfigureAwait(false);
 
-		var exchangeRates = new List<ExchangeRate>
-			{
-				new ExchangeRate { Rate = rate.Rate, Ticker = "USD" }
-			};
-
-		return exchangeRates;
+		return [exchangeRate];
 	}
 }

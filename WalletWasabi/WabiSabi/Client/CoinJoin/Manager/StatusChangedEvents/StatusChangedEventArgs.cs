@@ -31,7 +31,8 @@ public enum CoinjoinError
 	UneconomicalRound,
 	MiningFeeRateTooHigh,
 	MinInputCountTooLow,
-	CoordinatorLiedAboutInputs
+	CoordinatorLiedAboutInputs,
+	NotEnoughConfirmedUnprivateBalance
 }
 
 public class StatusChangedEventArgs : EventArgs

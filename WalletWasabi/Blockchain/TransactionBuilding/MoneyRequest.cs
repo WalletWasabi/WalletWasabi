@@ -10,7 +10,7 @@ public abstract record MoneyRequest(bool SubtractFee)
 	{
 		public Value(Money amount, bool subtractFee) : base(subtractFee)
 		{
-			Amount = amount > 0
+			Amount = amount > Money.Zero
 				? amount
 				: throw new ArgumentOutOfRangeException(nameof(amount), amount.ToString(false), "Must be positive.");
 		}

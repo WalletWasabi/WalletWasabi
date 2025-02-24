@@ -125,7 +125,7 @@ public class Wallet : BackgroundService, IWallet
 
 	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
 
-	public bool IsUnderPlebStop => Coins.TotalAmount() <= KeyManager.PlebStopThreshold;
+	public Money PlebStopThreshold => KeyManager.PlebStopThreshold;
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
@@ -310,7 +310,7 @@ public class Wallet : BackgroundService, IWallet
 			await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
 
 			await LoadWalletStateAsync(cancel).ConfigureAwait(false);
-			await LoadDummyMempoolAsync().ConfigureAwait(false);
+			LoadDummyMempool();
 			LoadExcludedCoins();
 
 			await base.StartAsync(cancel).ConfigureAwait(false);
@@ -452,8 +452,6 @@ public class Wallet : BackgroundService, IWallet
 			{
 				await CpfpInfoProvider.UpdateCacheAsync(CancellationToken.None).ConfigureAwait(false);
 			}
-
-			await BitcoinStore.MempoolService.TryPerformMempoolCleanupAsync(Synchronizer.HttpClient).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -499,7 +497,7 @@ public class Wallet : BackgroundService, IWallet
 		await WalletFilterProcessor.ProcessAsync(syncType, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task LoadDummyMempoolAsync()
+	private void LoadDummyMempool()
 	{
 		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
 		{
@@ -509,37 +507,24 @@ public class Wallet : BackgroundService, IWallet
 		// Only clean the mempool if we're fully synchronized.
 		if (BitcoinStore.SmartHeaderChain.HashesLeft == 0)
 		{
-			try
+			var txsToProcess = new List<SmartTransaction>();
+			foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
 			{
-				var client = new WasabiClient(Synchronizer.HttpClient);
-				var compactness = 10;
-
-				var mempoolHashes = await client.GetMempoolHashesAsync(compactness).ConfigureAwait(false);
-
-				var txsToProcess = new List<SmartTransaction>();
-				foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+				var txid = tx.GetHash();
+				if (DateTimeOffset.UtcNow - tx.FirstSeen < TimeSpan.FromDays(ServiceConfiguration.DropUnconfirmedTransactionsAfterDays))
 				{
-					uint256 txid = tx.GetHash();
-					if (mempoolHashes.Contains(txid.ToString()[..compactness]))
+					txsToProcess.Add(tx);
+				}
+				else
+				{
+					if (BitcoinStore.TransactionStore.MempoolStore.TryRemove(txid, out _))
 					{
-						txsToProcess.Add(tx);
-						Logger.LogInfo($"'{WalletName}': Transaction was successfully tested against the backend's mempool hashes: {txid}.");
-					}
-					else
-					{
-						BitcoinStore.TransactionStore.MempoolStore.TryRemove(txid, out _);
+						Logger.LogInfo($"Transaction {txid} dropped after {ServiceConfiguration.DropUnconfirmedTransactionsAfterDays} days being unconfirmed.");
 					}
 				}
-
-				TransactionProcessor.Process(txsToProcess);
 			}
-			catch (Exception ex)
-			{
-				// When there's a connection failure do not clean the transactions, add them to processing.
-				TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
 
-				Logger.LogWarning(ex);
-			}
+			TransactionProcessor.Process(txsToProcess);
 		}
 		else
 		{
