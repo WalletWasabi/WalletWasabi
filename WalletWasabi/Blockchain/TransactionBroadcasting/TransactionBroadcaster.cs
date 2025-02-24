@@ -119,8 +119,8 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		}
 		else
 		{
-			// TODO: Figure out RegTest solution
-			Broadcaster = TestNet4Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+			// TODO: Rework CoreNode integration for Regtest, find more Testnet4 provider
+			Broadcaster = TestNet4Providers.First();
 		}
 
 		HttpClientFactory = httpClientFactory;
