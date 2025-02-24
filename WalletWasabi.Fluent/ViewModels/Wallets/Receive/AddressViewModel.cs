@@ -39,7 +39,6 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	}
 
 	private IAddress Address { get; }
-	private bool AddressHasBeenShortened => Address.Text != AddressText;
 
 	public ICommand CopyAddressCommand { get; }
 

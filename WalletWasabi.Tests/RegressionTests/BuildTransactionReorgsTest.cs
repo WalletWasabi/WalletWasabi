@@ -61,7 +61,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
+		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo", new HttpClientFactory());
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -274,14 +274,5 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
-	}
-
-	private static MemoryCache CreateMemoryCache()
-	{
-		return new MemoryCache(new MemoryCacheOptions
-		{
-			SizeLimit = 1_000,
-			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-		});
 	}
 }

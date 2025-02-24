@@ -324,7 +324,6 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 {
 	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
-	private int _substractFeeFrom = 0;
 	private Key[] _keys;
 
 	public bool OptInRBF
@@ -332,6 +331,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		get => _builder.OptInRBF;
 		set => _builder.OptInRBF = value;
 	}
+
 	public Func<OutPoint, ICoin> CoinFinder
 	{
 		get => _builder.CoinFinder;
@@ -360,12 +360,13 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			case Destination.Loudly l:
 				_builder.Send(l.ScriptPubKey, amount);
 				break;
+
 			case Destination.Silent s:
-			{
-				_builder.Send(s.FakeScriptPubKey, amount);
-				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-				break;
-			}
+				{
+					_builder.Send(s.FakeScriptPubKey, amount);
+					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+					break;
+				}
 		}
 	}
 
@@ -381,12 +382,13 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			case Destination.Loudly l:
 				_builder.SetChange(l.ScriptPubKey);
 				break;
+
 			case Destination.Silent s:
-			{
-				_builder.SetChange(s.FakeScriptPubKey);
-				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-				break;
-			}
+				{
+					_builder.SetChange(s.FakeScriptPubKey);
+					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+					break;
+				}
 		}
 	}
 
@@ -397,12 +399,13 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			case Destination.Loudly l:
 				_builder.SendAllRemaining(l.ScriptPubKey);
 				break;
+
 			case Destination.Silent s:
-			{
-				_builder.SendAllRemaining(s.FakeScriptPubKey);
-				_silentPayments.Add(s.FakeScriptPubKey, s.Address);
-				break;
-			}
+				{
+					_builder.SendAllRemaining(s.FakeScriptPubKey);
+					_silentPayments.Add(s.FakeScriptPubKey, s.Address);
+					break;
+				}
 		}
 	}
 
@@ -488,4 +491,3 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		return newPsbt;
 	}
 }
-
