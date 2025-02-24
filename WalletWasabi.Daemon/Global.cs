@@ -406,14 +406,9 @@ public class Global
 
 		broadcasters.AddRange([
 			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
-			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory)
+			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
+			new BackendBroadcaster(BackendHttpClientFactory)	// TODO: Rework CoreNode integration and remove BackendBroadcaster.
 		]);
-
-		// TODO: Replace and remove BackendBroadcaster and broadcast TX to Node on Regtest.
-		if(Config.Network == Network.RegTest)
-		{
-			broadcasters.Add(new BackendBroadcaster(BackendHttpClientFactory));
-		}
 
 		return broadcasters;
 	}
