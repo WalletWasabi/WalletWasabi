@@ -119,7 +119,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		}
 		else
 		{
-			// TODO: Rework CoreNode integration for Regtest, find more Testnet4 provider
+			// TODO: Rework Full Node integration for Regtest, find more Testnet4 provider
 			Broadcaster = TestNet4Providers.First();
 		}
 
