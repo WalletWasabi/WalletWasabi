@@ -1,12 +1,9 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -59,25 +56,6 @@ public class Startup
 			.AddControllersAsServices();
 
 		services.AddControllers();
-
-		// Register the Swagger generator, defining one or more Swagger documents
-		services.AddSwaggerGen(c =>
-		{
-			c.SwaggerDoc(
-				$"v{Constants.BackendMajorVersion}",
-				new OpenApiInfo
-				{
-					Version = $"v{Constants.BackendMajorVersion}",
-					Title = "Wasabi Wallet API",
-					Description = "Privacy focused Bitcoin Web API.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md") }
-				});
-
-			// Set the comments path for the Swagger JSON and UI.
-			var basePath = AppContext.BaseDirectory;
-			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
-			c.IncludeXmlComments(xmlPath);
-		});
 
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		string configFilePath = Path.Combine(dataDir, "Config.json");
