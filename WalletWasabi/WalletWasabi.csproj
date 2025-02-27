@@ -10,17 +10,6 @@
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
 	</PropertyGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net8.0\WalletWasabi.xml</DocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<DocumentationFile></DocumentationFile>
-		<DebugType>none</DebugType>
-		<DebugSymbols>false</DebugSymbols>
-		<ErrorReport>none</ErrorReport>
-	</PropertyGroup>
-
 	<Target Name="WriteMetadata" BeforeTargets="PrepareForBuild">
 		<ItemGroup>
 			<AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
