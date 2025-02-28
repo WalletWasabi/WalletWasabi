@@ -142,17 +142,8 @@ public class Global
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
-		var p2p = HostedServices.Get<P2pNetwork>();
-		var broadcasters = new List<IBroadcaster>();
-		if (BitcoinCoreNode?.RpcClient is not null)
-		{
-			broadcasters.Add(new RpcBroadcaster(BitcoinCoreNode.RpcClient));
-		}
-		broadcasters.AddRange([
-			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
-			new BackendBroadcaster(BackendHttpClientFactory)
-		]);
 
+		var broadcasters = CreateBroadcasters();
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
@@ -402,6 +393,24 @@ public class Global
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, CoordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
+	}
+
+	private List<IBroadcaster> CreateBroadcasters()
+	{
+		var p2p = HostedServices.Get<P2pNetwork>();
+		var broadcasters = new List<IBroadcaster>();
+		if (BitcoinCoreNode?.RpcClient is not null)
+		{
+			broadcasters.Add(new RpcBroadcaster(BitcoinCoreNode.RpcClient));
+		}
+
+		broadcasters.AddRange([
+			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
+			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
+			new BackendBroadcaster(BackendHttpClientFactory)	// TODO: Rework Full Node integration and remove BackendBroadcaster.
+		]);
+
+		return broadcasters;
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
