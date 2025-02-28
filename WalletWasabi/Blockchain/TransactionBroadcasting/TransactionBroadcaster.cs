@@ -334,7 +334,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				}
 				break;
 			case BroadcastOk.BroadcastByExternalParty apiName:
-				Logger.LogInfo($"Transaction is successfully broadcast {txId} by {apiName}.");
+				Logger.LogInfo($"Transaction is successfully broadcast {txId} by {apiName.ExternalApiName}.");
 				break;
 		}
 	}
