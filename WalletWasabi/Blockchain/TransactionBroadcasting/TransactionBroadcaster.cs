@@ -32,7 +32,7 @@ public abstract record BroadcastOk
 
 	public record BroadcastByBackend : BroadcastOk;
 
-	public record BroadcastByExternalParty : BroadcastOk;
+	public record BroadcastByExternalParty(string ExternalApiName) : BroadcastOk;
 }
 
 public abstract record BroadcastError
@@ -147,7 +147,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
 
-			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty());
+			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty(Broadcaster.Name));
 		}
 		catch (HttpRequestException ex)
 		{
@@ -332,6 +332,9 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				{
 					Logger.LogInfo($"Transaction is successfully progagated {txId} confirmed by {propagator}.");
 				}
+				break;
+			case BroadcastOk.BroadcastByExternalParty apiName:
+				Logger.LogInfo($"Transaction is successfully broadcast {txId} by {apiName}.");
 				break;
 		}
 	}
