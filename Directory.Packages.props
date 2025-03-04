@@ -31,8 +31,6 @@
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
     <PackageVersion Include="NBitcoin" Version="7.0.46" />
-    <!-- Backend. -->
-    <PackageVersion Include="Swashbuckle.AspNetCore" Version="6.5.0" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.0.2" />
