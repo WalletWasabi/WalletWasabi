@@ -76,6 +76,8 @@ public class Global
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com")), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
+		HostedServices.Register<NostrUpdateManager>(() => new NostrUpdateManager(TimeSpan.FromSeconds(10), TorSettings.SocksEndpoint), "Nostr Update Manager");
+
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
