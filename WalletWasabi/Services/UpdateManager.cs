@@ -13,7 +13,9 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.WebClients;
 using WalletWasabi.WebClients.Wasabi;
+using static WalletWasabi.WebClients.WasabiNostrClient;
 
 namespace WalletWasabi.Services;
 
@@ -21,11 +23,12 @@ public class UpdateManager : PeriodicRunner
 {
 	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
 
-	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiNostrClient nostrClient)
 		: base(period)
 	{
 		_installerDir = Path.Combine(dataDir, "Installer");
 		_githubHttpClient = githubHttpClient;
+		_wasabiNostrClient = nostrClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 	}
@@ -36,6 +39,7 @@ public class UpdateManager : PeriodicRunner
 
 	private readonly string _installerDir;
 	private readonly HttpClient _githubHttpClient;
+	private readonly WasabiNostrClient _wasabiNostrClient;
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private readonly bool _downloadNewVersion;
@@ -47,10 +51,22 @@ public class UpdateManager : PeriodicRunner
 	{
 		try
 		{
-			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
-			Version availableMajorVersion = new(result.LatestClientVersion.Major,  result.LatestClientVersion.Minor,  result.LatestClientVersion.Build);
+			await _wasabiNostrClient.CheckNostrConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = Helpers.Constants.ClientVersion < availableMajorVersion;
+			NostrUpdateInfo? nostrUpdateInfo = null;
+			while (await _wasabiNostrClient.NostrUpdateChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+			{
+				nostrUpdateInfo = await _wasabiNostrClient.NostrUpdateChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			if (nostrUpdateInfo is null)
+			{
+				return;
+			}
+
+			Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
+
+			bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
 
 			if (!updateAvailable)
 			{
@@ -60,16 +76,20 @@ public class UpdateManager : PeriodicRunner
 			}
 
 			UpdateStatus updateStatus = new()
-				{ClientVersion = availableMajorVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
+				{ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
 
 			if (_downloadNewVersion)
 			{
-				(result.InstallerDownloadUrl, result.InstallerFileName) = GetAssetToDownload(result.AssetDownloadLinks);
-				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
+				ReleaseInfo releaseInfo = await GetLatestReleaseFromGithubAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
+				(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
+
+				Logger.LogInfo($"Trying to download new version: {nostrUpdateInfo.Version}");
+
+				string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
 				InstallerPath = installerPath;
-				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
+				Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
 				updateStatus.IsReadyToInstall = true;
-				updateStatus.ClientVersion = newVersion;
+				updateStatus.ClientVersion = availableVersion;
 				updateStatus.ClientUpToDate = false;
 			}
 
@@ -97,7 +117,7 @@ public class UpdateManager : PeriodicRunner
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
-	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
+	private async Task<string> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
 	{
 		var sha256SumsFilePath = Path.Combine(_installerDir, "SHA256SUMS.asc");
 
@@ -111,8 +131,6 @@ public class UpdateManager : PeriodicRunner
 			if (!File.Exists(installerFilePath))
 			{
 				EnsureToRemoveCorruptedFiles();
-
-				Logger.LogInfo($"Trying to download new version: {info.LatestClientVersion}");
 
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
@@ -133,7 +151,7 @@ public class UpdateManager : PeriodicRunner
 			throw;
 		}
 
-		return (installerFilePath, info.LatestClientVersion);
+		return installerFilePath;
 	}
 
 	private async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash, CancellationToken cancellationToken)
@@ -173,20 +191,13 @@ public class UpdateManager : PeriodicRunner
 		File.Move(tmpFilePath, filePath);
 	}
 
-	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(CancellationToken cancellationToken)
+	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(string downloadURL, CancellationToken cancellationToken)
 	{
-		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
+		using HttpRequestMessage message = new(HttpMethod.Get, downloadURL);
 		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
 		var response = await _githubHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
-
-		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException($"Endpoint gave back wrong json data or it's changed.\n{jsonResponse}");
-
-		// Make sure there are no non-numeric characters (besides '.') in the version string.
-		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
-
-		Version githubVersion = new(softwareVersion);
 
 		// Get all asset names and download URLs to find the correct one.
 		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
@@ -196,7 +207,7 @@ public class UpdateManager : PeriodicRunner
 			assetDownloadLinks.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
 		}
 
-		return new ReleaseInfo(githubVersion, assetDownloadLinks);
+		return new ReleaseInfo(assetDownloadLinks);
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, List<string> assetDownloadLinks, CancellationToken cancellationToken)
@@ -345,8 +356,9 @@ public class UpdateManager : PeriodicRunner
 		}
 	}
 
-	private record ReleaseInfo(Version LatestClientVersion, List<string> AssetDownloadLinks)
+	private record ReleaseInfo(List<string> AssetDownloadLinks)
 	{
+		public Version Version { get; set; } = new(0, 0, 0);
 		public string InstallerDownloadUrl { get; set; } = "";
 		public string InstallerFileName { get; set; } = "";
 	}
