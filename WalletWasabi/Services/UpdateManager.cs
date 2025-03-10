@@ -31,6 +31,7 @@ public class UpdateManager : PeriodicRunner
 		_wasabiNostrClient = nostrClient;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}
 
 	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
@@ -40,6 +41,7 @@ public class UpdateManager : PeriodicRunner
 	private readonly string _installerDir;
 	private readonly HttpClient _githubHttpClient;
 	private readonly WasabiNostrClient _wasabiNostrClient;
+	private UserAgentPicker _userAgentGetter;
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private readonly bool _downloadNewVersion;
@@ -129,6 +131,7 @@ public class UpdateManager : PeriodicRunner
 
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
+				_githubHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 				using HttpResponseMessage response = await _githubHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
@@ -189,7 +192,7 @@ public class UpdateManager : PeriodicRunner
 	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(string downloadURL, CancellationToken cancellationToken)
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, downloadURL);
-		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
+		_githubHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 		var response = await _githubHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
 
 		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
@@ -214,6 +217,7 @@ public class UpdateManager : PeriodicRunner
 		try
 		{
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
+			_githubHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using HttpResponseMessage sha256Response = await _githubHttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
@@ -221,6 +225,7 @@ public class UpdateManager : PeriodicRunner
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
+			_githubHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using HttpResponseMessage signatureResponse = await _githubHttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
