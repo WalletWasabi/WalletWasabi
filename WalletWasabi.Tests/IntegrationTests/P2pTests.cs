@@ -112,11 +112,10 @@ public class P2pTests
 		});
 
 		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfig, Common.TorSocks5Endpoint);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			[specificNodeBlockProvider],
+			[],
 			new P2PBlockProvider(network, nodes, Common.TorSettings.TorMode == TorMode.Enabled));
 		await blockDownloadService.StartAsync(CancellationToken.None);
 

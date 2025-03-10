@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
+using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -90,58 +90,11 @@ public class P2pBasedTests
 	}
 
 	[Fact]
-	public async Task TrustedNotifierNotifiesTxAsync()
-	{
-		var coreNode = await TestNodeBuilder.CreateAsync();
-		try
-		{
-			var rpc = coreNode.RpcClient;
-			var walletName = "wallet";
-			await rpc.CreateWalletAsync(walletName);
-
-			await rpc.GenerateAsync(101);
-			var network = rpc.Network;
-
-			var dir = Common.GetWorkDir();
-
-			using Key k = new();
-			var addr = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
-			var notifier = coreNode.MempoolService;
-
-			var txNum = 10;
-			EventsAwaiter<SmartTransaction> txEventAwaiter = new(
-				h => notifier.TransactionReceived += h,
-				h => notifier.TransactionReceived -= h,
-				txNum);
-
-			List<Task<uint256>> txTasks = new();
-			var batch = rpc.PrepareBatch();
-			for (int i = 0; i < txNum; i++)
-			{
-				txTasks.Add(batch.SendToAddressAsync(addr, Money.Coins(1)));
-			}
-			await batch.SendBatchAsync();
-
-			var arrivedTxs = await txEventAwaiter.WaitAsync(TimeSpan.FromSeconds(21));
-
-			var hashes = await Task.WhenAll(txTasks);
-			foreach (var hash in arrivedTxs.Select(x => x.GetHash()))
-			{
-				Assert.Contains(hash, hashes);
-			}
-		}
-		finally
-		{
-			await coreNode.TryStopAsync();
-		}
-	}
-
-	[Fact]
 	public async Task BlockNotifierTestsAsync()
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, coreNode.P2pNode,TimeSpan.FromSeconds(7) ), "Block Notifier");
+		services.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, TimeSpan.FromSeconds(7) ), "Block Notifier");
 
 		await services.StartAllAsync();
 		try

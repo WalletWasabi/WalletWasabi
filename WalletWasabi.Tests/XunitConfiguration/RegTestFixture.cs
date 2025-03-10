@@ -9,9 +9,9 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend;
-using WalletWasabi.BitcoinCore;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
@@ -40,9 +40,6 @@ public class RegTestFixture : IDisposable
 		var config = new Config(Path.Combine(testnetBackendDir, "Config.json"),
 			BackendRegTestNode.RpcClient.Network,
 			BackendRegTestNode.RpcClient.CredentialString.ToString(),
-			new IPEndPoint(IPAddress.Loopback, Network.Main.DefaultPort),
-			new IPEndPoint(IPAddress.Loopback, Network.TestNet.DefaultPort),
-			BackendRegTestNode.P2pEndPoint,
 			new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 			new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
 			BackendRegTestNode.RpcEndPoint);

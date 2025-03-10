@@ -16,35 +16,23 @@
     </DockPanel>
 
     <DockPanel>
-      <TextBlock Text="Run Bitcoin Knots on startup" />
-      <ToggleSwitch IsChecked="{Binding Settings.StartLocalBitcoinCoreOnStartup}" />
+      <TextBlock Text="Connect to Bitcoin Node RPC" />
+      <ToggleSwitch IsChecked="{Binding Settings.UseBitcoinRpc}" />
     </DockPanel>
-
-    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Stop Bitcoin Knots on shutdown" />
-      <ToggleSwitch IsChecked="{Binding Settings.StopLocalBitcoinCoreOnShutdown}" />
-    </DockPanel>
-
-    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Local Bitcoin Core/Knots version" />
-      <Label Content="{Binding BitcoinCoreVersion}" />
-    </DockPanel>
-
-    <DockPanel IsVisible="{Binding Settings.StartLocalBitcoinCoreOnStartup}">
-      <TextBlock Text="Bitcoin Core/Knots Data Folder" />
-      <TextBox Text="{Binding Settings.LocalBitcoinCoreDataDir}" />
-    </DockPanel>
-
-    <DockPanel IsVisible="{Binding !Settings.StartLocalBitcoinCoreOnStartup}"
-                ToolTip.Tip="Wasabi will download blocks from a full node you control.">
-      <TextBlock Text="Bitcoin P2P Endpoint" />
-        <TextBox Text="{Binding BitcoinP2PEndPoint}">
+    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}"
+      ToolTip.Tip="Wasabi will download blocks from a full node you control.">
+      <TextBlock Text="Bitcoin RPC Endpoint" />
+        <TextBox Text="{Binding BitcoinRpcEndPoint}">
           <Interaction.Behaviors>
             <TextBoxAutoSelectTextBehavior />
             <WhitespacePasteRemovalBehavior />
             <WhitespaceInputRemovalBehavior />
           </Interaction.Behaviors>
         </TextBox>
+    </DockPanel>
+    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
+      <TextBlock Text="Bitcoin RPC CredentialString" />
+      <TextBox Text="{Binding Settings.BitcoinRpcCredentialString}" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="Payments (from others) below this value won't appear if you have already received coins to the same address.">

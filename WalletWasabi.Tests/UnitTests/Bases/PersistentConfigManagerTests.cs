@@ -26,13 +26,10 @@ public class PersistentConfigManagerTests
 		string expectedLocalBitcoinCoreDataDir = nameof(PersistentConfigManagerTests);
 
 		// Create config and store it.
-		PersistentConfig actualConfig = new() { LocalBitcoinCoreDataDir = expectedLocalBitcoinCoreDataDir };
+		PersistentConfig actualConfig = new();
 
 		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig);
 		PersistentConfig readConfig = PersistentConfigManager.LoadFile(configPath);
-
-		// Is the content of each config the same?
-		Assert.Equal(expectedLocalBitcoinCoreDataDir, readConfig.LocalBitcoinCoreDataDir);
 
 		// Objects are supposed to be equal by value-equality rules.
 		Assert.True(actualConfig.DeepEquals(readConfig));
@@ -60,12 +57,11 @@ public class PersistentConfigManagerTests
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
 			  "DownloadNewVersion": true,
-			  "StartLocalBitcoinCoreOnStartup": false,
-			  "StopLocalBitcoinCoreOnShutdown": true,
-			  "LocalBitcoinCoreDataDir": "{{localBitcoinCoreDataDir}}",
-			  "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
-			  "TestNetBitcoinP2pEndPoint": "127.0.0.1:48333",
-			  "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
+			  "UseBitcoinRpc": false,
+			  "BitcoinRpcCredentialString": "",
+			  "MainNetBitcoinRpcEndPoint": "127.0.0.1:8332",
+			  "TestNetBitcoinRpcEndPoint": "127.0.0.1:48332",
+			  "RegTestBitcoinRpcEndPoint": "127.0.0.1:18443",
 			  "JsonRpcServerEnabled": false,
 			  "JsonRpcUser": "",
 			  "JsonRpcPassword": "",

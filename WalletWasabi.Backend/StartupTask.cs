@@ -3,8 +3,7 @@ using NBitcoin;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -14,13 +13,11 @@ namespace WalletWasabi.Backend;
 
 public class StartupTask
 {
-	private P2pNode P2PNode { get; }
 	private IndexBuilderService IndexBuilderService { get; }
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(Config config, IRPCClient rpc, P2pNode p2pNode, IndexBuilderService indexBuilderService)
+	public StartupTask(Config config, IRPCClient rpc, IndexBuilderService indexBuilderService)
 	{
-		P2PNode = p2pNode;
 		IndexBuilderService = indexBuilderService;
 		RpcClient = rpc;
 	}
@@ -34,7 +31,6 @@ public class StartupTask
 
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancellationToken).ConfigureAwait(false);
-		await P2PNode.ConnectAsync(cancellationToken).ConfigureAwait(false);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}

@@ -21,10 +21,9 @@ public class P2pNetwork : BackgroundService
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public P2pNetwork(Network network, EndPoint fullNodeP2pEndPoint, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
+	public P2pNetwork(Network network, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
 	{
 		_network = network;
-		_fullNodeP2PEndPoint = fullNodeP2pEndPoint;
 		_bitcoinStore = bitcoinStore;
 		_addressManagerFilePath = Path.Combine(workDir, $"_addressManager{_network}.dat");
 
@@ -104,10 +103,8 @@ public class P2pNetwork : BackgroundService
 	}
 
 	private readonly Network _network;
-	private readonly EndPoint _fullNodeP2PEndPoint;
 	private readonly BitcoinStore _bitcoinStore;
 	public NodesGroup Nodes { get; }
-	private Node? RegTestMempoolServingNode { get; set; }
 	private readonly string _addressManagerFilePath;
 	private readonly AddressManager _addressManager;
 
@@ -118,13 +115,14 @@ public class P2pNetwork : BackgroundService
 		{
 			try
 			{
-				Node node = await Node.ConnectAsync(Network.RegTest, _fullNodeP2PEndPoint).ConfigureAwait(false);
+				var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
+				Node node = await Node.ConnectAsync(Network.RegTest, localNodelEndpoint).ConfigureAwait(false);
+				node.Behaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
+				node.VersionHandshake(stoppingToken);
+				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 
 				Nodes.ConnectedNodes.Add(node);
 
-				RegTestMempoolServingNode = await Node.ConnectAsync(Network.RegTest, _fullNodeP2PEndPoint).ConfigureAwait(false);
-
-				RegTestMempoolServingNode.Behaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
 			}
 			catch (SocketException ex)
 			{
@@ -133,13 +131,6 @@ public class P2pNetwork : BackgroundService
 		}
 
 		Nodes.Connect();
-
-		var regTestMempoolServingNode = RegTestMempoolServingNode;
-		if (regTestMempoolServingNode is not null)
-		{
-			regTestMempoolServingNode.VersionHandshake(stoppingToken);
-			Logger.LogInfo("Start connecting to mempool serving regtest node...");
-		}
 	}
 
 	private void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
@@ -167,12 +158,6 @@ public class P2pNetwork : BackgroundService
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();
-
-		if (RegTestMempoolServingNode is { } regTestMempoolServingNode)
-		{
-			regTestMempoolServingNode.Disconnect();
-			Logger.LogInfo($"{nameof(RegTestMempoolServingNode)} is disposed.");
-		}
 
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}

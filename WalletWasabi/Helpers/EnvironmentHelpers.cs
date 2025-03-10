@@ -67,48 +67,6 @@ public static class EnvironmentHelpers
 		return directory;
 	}
 
-	/// <summary>
-	/// Gets Bitcoin <c>datadir</c> parameter from:
-	/// <list type="bullet">
-	/// <item><c>APPDATA</c> environment variable on Windows, and</item>
-	/// <item><c>HOME</c> environment variable on other platforms.</item>
-	/// </list>
-	/// </summary>
-	/// <returns><c>datadir</c> or empty string.</returns>
-	/// <seealso href="https://en.bitcoin.it/wiki/Data_directory"/>
-	public static string GetDefaultBitcoinCoreDataDirOrEmptyString()
-	{
-		string directory = "";
-
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			var localAppData = Environment.GetEnvironmentVariable("APPDATA");
-			if (!string.IsNullOrEmpty(localAppData))
-			{
-				directory = Path.Combine(localAppData, "Bitcoin");
-			}
-			else
-			{
-				Logger.LogDebug($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
-			}
-		}
-		else
-		{
-			var home = Environment.GetEnvironmentVariable("HOME");
-			if (!string.IsNullOrEmpty(home))
-			{
-				directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
-					? Path.Combine(home, "Library", "Application Support", "Bitcoin")
-					: Path.Combine(home, ".bitcoin"); // Linux
-			}
-			else
-			{
-				Logger.LogDebug($"Could not find suitable default {Constants.BuiltinBitcoinNodeName} datadir.");
-			}
-		}
-
-		return directory;
-	}
 
 	// This method removes the path and file extension.
 	//

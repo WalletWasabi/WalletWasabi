@@ -30,17 +30,15 @@ public record PersistentConfig
 
 	public bool DownloadNewVersion { get; init; } = true;
 
-	public bool StartLocalBitcoinCoreOnStartup { get; init; }
+	public bool UseBitcoinRpc { get; init; }
 
-	public bool StopLocalBitcoinCoreOnShutdown { get; init; } = true;
+	public string BitcoinRpcCredentialString { get; init; } = "";
 
-	public string LocalBitcoinCoreDataDir { get; init; } = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString();
+	public EndPoint MainNetBitcoinRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
-	public EndPoint MainNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultMainNetBitcoinP2PEndPoint;
+	public EndPoint TestNetBitcoinRpcEndPoint { get; init; } = Constants.DefaultTestNetBitcoinCoreRpcEndPoint;
 
-	public EndPoint TestNetBitcoinP2pEndPoint { get; init; } = Constants.DefaultTestNetBitcoinP2PEndPoint;
-
-	public EndPoint RegTestBitcoinP2pEndPoint { get; init; } = Constants.DefaultRegTestBitcoinP2PEndPoint;
+	public EndPoint RegTestBitcoinRpcEndPoint { get; init; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
 	public bool JsonRpcServerEnabled { get; init; }
 
@@ -88,12 +86,11 @@ public record PersistentConfig
 			useTorIsEqual &&
 			TerminateTorOnExit == other.TerminateTorOnExit &&
 			DownloadNewVersion == other.DownloadNewVersion &&
-			StartLocalBitcoinCoreOnStartup == other.StartLocalBitcoinCoreOnStartup &&
-			StopLocalBitcoinCoreOnShutdown == other.StopLocalBitcoinCoreOnShutdown &&
-			LocalBitcoinCoreDataDir == other.LocalBitcoinCoreDataDir &&
-			MainNetBitcoinP2pEndPoint.Equals(other.MainNetBitcoinP2pEndPoint) &&
-			TestNetBitcoinP2pEndPoint.Equals(other.TestNetBitcoinP2pEndPoint) &&
-			RegTestBitcoinP2pEndPoint.Equals(other.RegTestBitcoinP2pEndPoint) &&
+			UseBitcoinRpc.Equals(other.UseBitcoinRpc) &&
+			BitcoinRpcCredentialString.Equals(other.BitcoinRpcCredentialString) &&
+			MainNetBitcoinRpcEndPoint.Equals(other.MainNetBitcoinRpcEndPoint) &&
+			TestNetBitcoinRpcEndPoint.Equals(other.TestNetBitcoinRpcEndPoint) &&
+			RegTestBitcoinRpcEndPoint.Equals(other.RegTestBitcoinRpcEndPoint) &&
 			JsonRpcServerEnabled == other.JsonRpcServerEnabled &&
 			JsonRpcUser == other.JsonRpcUser &&
 			JsonRpcPassword == other.JsonRpcPassword &&
@@ -108,19 +105,19 @@ public record PersistentConfig
 			MaxDaysInMempool == other.MaxDaysInMempool;
 	}
 
-	public EndPoint GetBitcoinP2pEndPoint()
+	public EndPoint GetBitcoinRpcEndPoint()
 	{
 		if (Network == Network.Main)
 		{
-			return MainNetBitcoinP2pEndPoint;
+			return MainNetBitcoinRpcEndPoint;
 		}
 		if (Network == Network.TestNet)
 		{
-			return TestNetBitcoinP2pEndPoint;
+			return TestNetBitcoinRpcEndPoint;
 		}
 		if (Network == Network.RegTest)
 		{
-			return RegTestBitcoinP2pEndPoint;
+			return RegTestBitcoinRpcEndPoint;
 		}
 		throw new NotSupportedNetworkException(Network);
 	}
