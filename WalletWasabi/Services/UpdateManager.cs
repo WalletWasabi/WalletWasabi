@@ -53,47 +53,42 @@ public class UpdateManager : PeriodicRunner
 		{
 			await _wasabiNostrClient.CheckNostrConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-			NostrUpdateInfo? nostrUpdateInfo = null;
 			while (await _wasabiNostrClient.NostrUpdateChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
 			{
-				nostrUpdateInfo = await _wasabiNostrClient.NostrUpdateChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				NostrUpdateInfo nostrUpdateInfo = await _wasabiNostrClient.NostrUpdateChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+
+				Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
+
+				bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
+
+				//TODO: Move this somewhere
+				if (!updateAvailable)
+				{
+					// After updating Wasabi, remove old installer file.
+					Cleanup();
+					return;
+				}
+
+				UpdateStatus updateStatus = new()
+				{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };
+
+				if (_downloadNewVersion)
+				{
+					ReleaseInfo releaseInfo = await GetLatestReleaseFromGithubAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
+					(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
+
+					Logger.LogInfo($"Trying to download new version: {nostrUpdateInfo.Version}");
+
+					string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
+					InstallerPath = installerPath;
+					Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
+					updateStatus.IsReadyToInstall = true;
+					updateStatus.ClientVersion = availableVersion;
+					updateStatus.ClientUpToDate = false;
+				}
+
+				UpdateAvailableToGet?.Invoke(this, updateStatus);
 			}
-
-			if (nostrUpdateInfo is null)
-			{
-				return;
-			}
-
-			Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
-
-			bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
-
-			if (!updateAvailable)
-			{
-				// After updating Wasabi, remove old installer file.
-				Cleanup();
-				return;
-			}
-
-			UpdateStatus updateStatus = new()
-				{ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
-
-			if (_downloadNewVersion)
-			{
-				ReleaseInfo releaseInfo = await GetLatestReleaseFromGithubAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
-				(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
-
-				Logger.LogInfo($"Trying to download new version: {nostrUpdateInfo.Version}");
-
-				string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
-				InstallerPath = installerPath;
-				Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
-				updateStatus.IsReadyToInstall = true;
-				updateStatus.ClientVersion = availableVersion;
-				updateStatus.ClientUpToDate = false;
-			}
-
-			UpdateAvailableToGet?.Invoke(this, updateStatus);
 		}
 		catch (OperationCanceledException ex)
 		{
