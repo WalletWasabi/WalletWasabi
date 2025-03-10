@@ -7,6 +7,7 @@ using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -44,12 +45,14 @@ public class WasabiNostrClient
 				{
 					if (eventTag.TagIdentifier == "Version")
 					{
+						Logger.LogInfo("Version: " + eventTag.Data.First());
 						Version version = new(eventTag.Data.First());
 						newVersion = version;
 					}
 
 					if (eventTag.TagIdentifier == "DownloadLink")
 					{
+						Logger.LogInfo("DownloadLink: " + eventTag.Data.First());
 						downloadLink = eventTag.Data.First();
 					}
 				}
@@ -72,7 +75,7 @@ public class WasabiNostrClient
 
 				string[] relayUrls = ["wss://relay.primal.net"];
 				Uri[] uris = relayUrls.Select(x => new Uri(x)).ToArray();
-				NostrWebClient = CreateNostrClient(uris, _torEndpoint);
+				NostrWebClient = NostrClientFactory.Create(uris, _torEndpoint);
 				NostrWebClient.EventsReceived += OnNostrEventsReceived;
 
 				await NostrWebClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
@@ -88,34 +91,5 @@ public class WasabiNostrClient
 			}
 		}
 	}
-
-	public static INostrClient CreateNostrClient(Uri[] relays, EndPoint? torEndpoint = null)
-	{
-		var webProxy = torEndpoint is IPEndPoint endpoint
-			? new WebProxy($"socks5://{endpoint.Address}:{endpoint.Port}")
-			: torEndpoint is DnsEndPoint endpoint2
-				? new WebProxy($"socks5://{endpoint2.Host}:{endpoint2.Port}")
-				: null;
-		return Create(relays, webProxy);
-	}
-
-	public static INostrClient Create(Uri[] relays, WebProxy? proxy = null)
-	{
-		void ConfigureSocket(WebSocket socket)
-		{
-			if (socket is ClientWebSocket clientWebSocket && proxy != null)
-			{
-				clientWebSocket.Options.Proxy = proxy;
-			}
-		}
-
-		return relays.Length switch
-		{
-			0 => throw new ArgumentException("At least one relay is required.", nameof(relays)),
-			1 => new NostrClient(relays.First(), ConfigureSocket),
-			_ => new CompositeNostrClient(relays, ConfigureSocket)
-		};
-	}
-
 	public record NostrUpdateInfo(Version Version, string DownloadLink);
 }
