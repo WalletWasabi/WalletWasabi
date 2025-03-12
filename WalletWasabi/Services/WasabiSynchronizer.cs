@@ -76,85 +76,81 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		var wasabiClient = new WasabiClient(HttpClient);
+		ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 		try
 		{
-			ushort lastUsedApiVersion = WasabiClient.ApiVersion;
-			try
+			if (_smartHeaderChain.TipHash is null)
 			{
-				if (_smartHeaderChain.TipHash is null)
-				{
-					return;
-				}
-
-				var response = await wasabiClient
-					.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
-					.ConfigureAwait(false);
-
-				UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
-				OnSynchronizeRequestFinished();
-
-				// If it's not fully synced or reorg happened.
-				if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-				{
-					TriggerRound();
-				}
-
-				await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
-
-				LastResponse = response;
+				return;
 			}
-			catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
+
+			var response = await wasabiClient
+				.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+				.ConfigureAwait(false);
+
+			UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
+			OnSynchronizeRequestFinished();
+
+			// If it's not fully synced or reorg happened.
+			if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
-				//TODO: check the source is the proxy
-				UpdateStatus(
-					BackendStatus.NotConnected,
-					innerEx.SocketErrorCode == SocketError.ConnectionRefused
-						? TorStatus.NotRunning
-						: TorStatus.Running,
-					false);
-				OnSynchronizeRequestFinished();
-				throw;
+				TriggerRound();
 			}
-			catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
-			{
-				TorStatus = TorStatus.Running;
-				BackendStatus = BackendStatus.NotConnected;
 
-				// Backend API version might be updated meanwhile. Trying to update the versions.
-				bool backendCompatible;
-				try
-				{
-					backendCompatible = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
-				}
-				catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
-				{
-					// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
-					BackendNotCompatible = true;
-					return;
-				}
+			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
 
-				// If the backend is compatible and the Api version updated then we just used the wrong API.
-				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-				{
-					// Next request will be fine, do not throw exception.
-					TriggerRound();
-					return;
-				}
-
-				BackendNotCompatible = !backendCompatible;
-				throw;
-			}
-			catch (Exception)
-			{
-				UpdateStatus(BackendStatus.NotConnected, TorStatus.Running, false);
-				OnSynchronizeRequestFinished();
-				throw;
-			}
+			LastResponse = response;
 		}
-		catch (HttpRequestException)
+		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{
+			//TODO: check the source is the proxy
+			UpdateStatus(
+				BackendStatus.NotConnected,
+				innerEx.SocketErrorCode == SocketError.ConnectionRefused
+					? TorStatus.NotRunning
+					: TorStatus.Running,
+				false);
+			OnSynchronizeRequestFinished();
+
 			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
+			throw;
+		}
+		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
+		{
+			TorStatus = TorStatus.Running;
+			BackendStatus = BackendStatus.NotConnected;
+
+			// Backend API version might be updated meanwhile. Trying to update the versions.
+			bool backendCompatible;
+			try
+			{
+				backendCompatible = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			}
+			catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
+			{
+				// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
+				BackendNotCompatible = true;
+				return;
+			}
+
+			// If the backend is compatible and the Api version updated then we just used the wrong API.
+			if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+			{
+				// Next request will be fine, do not throw exception.
+				TriggerRound();
+				return;
+			}
+
+			BackendNotCompatible = !backendCompatible;
+			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
+			TriggerRound();
+			throw;
+		}
+		catch (Exception)
+		{
+			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running, false);
+			OnSynchronizeRequestFinished();
 			throw;
 		}
 	}
