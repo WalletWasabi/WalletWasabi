@@ -84,7 +84,7 @@ public class P2pBasedTests
 		}
 		finally
 		{
-			node.Disconnect();
+			node.DisconnectAsync();
 			await coreNode.TryStopAsync();
 		}
 	}

@@ -87,8 +87,8 @@ public class P2pBehavior : NodeBehavior
 				entry.ConfirmPropagationOnce(remoteSocketEndpoint);
 			}
 
-			// If we already processed it or we're in trusted node mode, then don't ask for it.
-			if (MempoolService.TrustedNodeMode || MempoolService.IsProcessed(inv.Hash))
+			// If we already processed it, then don't ask for it.
+			if (MempoolService.IsProcessed(inv.Hash))
 			{
 				return false;
 			}
@@ -126,7 +126,7 @@ public class P2pBehavior : NodeBehavior
 		}
 	}
 
-	protected virtual void ProcessTx(TxPayload payload)
+	private void ProcessTx(TxPayload payload)
 	{
 		Transaction transaction = payload.Object;
 		transaction.PrecomputeHash(false, true);
