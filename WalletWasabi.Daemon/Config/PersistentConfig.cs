@@ -205,7 +205,7 @@ public record PersistentConfig
 			, config.GetSettingOrNull("rpcuser", network)
 			, config.GetSettingOrNull("rpcpassword", network)) switch
 			{
-				({ } cookieFilePath, null, null) => cookieFilePath,
+				({ } cookieFilePath, null, null) => $"cookiefile={cookieFilePath}",
 				(null, { } rpcUser, { } rpcPassword) => $"{rpcUser}:{rpcPassword}",
 				_ => null
 			};

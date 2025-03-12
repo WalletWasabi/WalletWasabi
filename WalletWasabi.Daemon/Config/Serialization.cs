@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Text.Json.Nodes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
@@ -58,6 +59,8 @@ public static class PersistentConfigDecode
 			Decode.String
 		]);
 
+	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
+
 	public static readonly Decoder<PersistentConfig> PersistentConfig =
 		Object(get => new PersistentConfig
 		{
@@ -72,16 +75,13 @@ public static class PersistentConfigDecode
 			TerminateTorOnExit = get.Required("TerminateTorOnExit", Decode.Bool),
 			TorBridges = get.Required("TorBridges", Decode.Array(Decode.String)),
 			DownloadNewVersion = get.Required("DownloadNewVersion", Decode.Bool),
-			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool),
+			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool, false),
 			MainNetBitcoinRpcCredentialString = get.Optional("MainNetBitcoinRpcCredentialString", Decode.String) ?? "",
 			TestNetBitcoinRpcCredentialString = get.Optional("TestNetBitcoinRpcCredentialString", Decode.String) ?? "",
 			RegTestBitcoinRpcCredentialString = get.Optional("RegTestBitcoinRpcCredentialString", Decode.String) ?? "",
-			MainNetBitcoinRpcEndPoint = get.Optional("MainNetBitcoinRpcEndPoint", Decode.EndPoint)
-			                            ?? get.Required("MainNetBitcoinP2pEndPoint", Decode.EndPoint),
-			TestNetBitcoinRpcEndPoint = get.Optional("TestNetBitcoinRpcEndPoint", Decode.EndPoint)
-			                            ?? get.Required("TestNetBitcoinP2pEndPoint", Decode.EndPoint),
-			RegTestBitcoinRpcEndPoint = get.Optional("RegTestBitcoinRpcEndPoint", Decode.EndPoint)
-			                            ?? get.Required("RegTestBitcoinP2pEndPoint", Decode.EndPoint),
+			MainNetBitcoinRpcEndPoint = get.Optional("MainNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
+			TestNetBitcoinRpcEndPoint = get.Optional("TestNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
+			RegTestBitcoinRpcEndPoint = get.Optional("RegTestBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
 			JsonRpcServerEnabled = get.Required("JsonRpcServerEnabled", Decode.Bool),
 			JsonRpcUser = get.Required("JsonRpcUser", Decode.String),
 			JsonRpcPassword = get.Required("JsonRpcPassword", Decode.String),
