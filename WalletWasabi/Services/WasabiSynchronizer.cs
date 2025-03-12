@@ -78,8 +78,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		var wasabiClient = new WasabiClient(HttpClient);
 		try
 		{
-			SynchronizeResponse response;
-
 			ushort lastUsedApiVersion = WasabiClient.ApiVersion;
 			try
 			{
@@ -88,12 +86,22 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 					return;
 				}
 
-				response = await wasabiClient
+				var response = await wasabiClient
 					.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
 				UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
 				OnSynchronizeRequestFinished();
+
+				// If it's not fully synced or reorg happened.
+				if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+				{
+					TriggerRound();
+				}
+
+				await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+
+				LastResponse = response;
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 			{
@@ -142,16 +150,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 				OnSynchronizeRequestFinished();
 				throw;
 			}
-
-			// If it's not fully synced or reorg happened.
-			if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
-			{
-				TriggerRound();
-			}
-
-			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
-
-			LastResponse = response;
 		}
 		catch (HttpRequestException)
 		{
