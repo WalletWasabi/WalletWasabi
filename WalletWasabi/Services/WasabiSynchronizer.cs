@@ -40,8 +40,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 
 	public event EventHandler<bool>? SynchronizeRequestFinished;
 
-	public event EventHandler<SynchronizeResponse>? ResponseArrived;
-
 	public event PropertyChangedEventHandler? PropertyChanged;
 
 	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
@@ -59,13 +57,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 	public BackendStatus BackendStatus
 	{
 		get => _backendStatus;
-		private set
-		{
-			if (RaiseAndSetIfChanged(ref _backendStatus, value))
-			{
-				BackendStatusChangedAt = DateTimeOffset.UtcNow;
-			}
-		}
+		private set => RaiseAndSetIfChanged(ref _backendStatus, value);
 	}
 
 	public bool BackendNotCompatible
@@ -74,8 +66,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		private set => RaiseAndSetIfChanged(ref _backendNotCompatible, value);
 	}
 
-	private DateTimeOffset BackendStatusChangedAt { get; set; } = DateTimeOffset.UtcNow;
-	public TimeSpan BackendStatusChangedSince => DateTimeOffset.UtcNow - BackendStatusChangedAt;
 	private readonly int _maxFiltersToSync;
 	private readonly SmartHeaderChain _smartHeaderChain;
 	private readonly FilterProcessor _filterProcessor;
@@ -163,7 +153,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
 
 			LastResponse = response;
-			ResponseArrived?.Invoke(this, response);
 		}
 		catch (HttpRequestException)
 		{
