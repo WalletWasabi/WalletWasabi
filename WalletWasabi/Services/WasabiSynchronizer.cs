@@ -1,6 +1,7 @@
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Data;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -91,19 +92,18 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 					.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 					.ConfigureAwait(false);
 
-				// NOT GenSocksServErr
-				BackendStatus = BackendStatus.Connected;
-				BackendNotCompatible = false;
-				TorStatus = TorStatus.Running;
+				UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
 				OnSynchronizeRequestFinished();
 			}
 			catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 			{
 				//TODO: check the source is the proxy
-				TorStatus = innerEx.SocketErrorCode == SocketError.ConnectionRefused
-					? TorStatus.NotRunning
-					: TorStatus.Running;
-				BackendStatus = BackendStatus.NotConnected;
+				UpdateStatus(
+					BackendStatus.NotConnected,
+					innerEx.SocketErrorCode == SocketError.ConnectionRefused
+						? TorStatus.NotRunning
+						: TorStatus.Running,
+					false);
 				OnSynchronizeRequestFinished();
 				throw;
 			}
@@ -138,8 +138,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 			}
 			catch (Exception)
 			{
-				TorStatus = TorStatus.Running;
-				BackendStatus = BackendStatus.NotConnected;
+				UpdateStatus(BackendStatus.NotConnected, TorStatus.Running, false);
 				OnSynchronizeRequestFinished();
 				throw;
 			}
@@ -160,6 +159,13 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 			TriggerRound();
 			throw;
 		}
+	}
+
+	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus, bool backendNotCompatible)
+	{
+		BackendStatus = backendStatus;
+		TorStatus = torStatus;
+		BackendNotCompatible = backendNotCompatible;
 	}
 
 	private void OnSynchronizeRequestFinished()
