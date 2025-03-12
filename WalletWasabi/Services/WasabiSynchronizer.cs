@@ -20,25 +20,19 @@ using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
+public class WasabiSynchronizer(
+	TimeSpan period,
+	int maxFiltersToSync,
+	BitcoinStore bitcoinStore,
+	IHttpClientFactory httpClientFactory)
+	: PeriodicRunner(period), INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
 	private TorStatus _torStatus;
 	private BackendStatus _backendStatus;
 	private bool _backendNotCompatible;
-	private readonly int _maxFiltersToSync;
-	private readonly SmartHeaderChain _smartHeaderChain;
-	private readonly FilterProcessor _filterProcessor;
-	private readonly HttpClient _httpClient;
-
-	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, IHttpClientFactory httpClientFactory) : base(period)
-	{
-		_maxFiltersToSync = maxFiltersToSync;
-
-		LastResponse = null;
-		_smartHeaderChain = bitcoinStore.SmartHeaderChain;
-		_filterProcessor = new FilterProcessor(bitcoinStore);
-		_httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
-	}
+	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
+	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
+	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 
 	#region EventsPropertiesMembers
 
@@ -49,7 +43,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
-	public SynchronizeResponse? LastResponse { get; private set; }
+	public SynchronizeResponse? LastResponse { get; private set; } = null;
 
 	public TorStatus TorStatus
 	{
@@ -84,14 +78,14 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		try
 		{
 			var response = await wasabiClient
-				.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+				.GetSynchronizeAsync(_smartHeaderChain.TipHash, maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 				.ConfigureAwait(false);
 
 			UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
 			OnSynchronizeRequestFinished();
 
 			// If it's not fully synced or reorg happened.
-			if (response.Filters.Count() == _maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+			if (response.Filters.Count() == maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
 			{
 				TriggerRound();
 			}
