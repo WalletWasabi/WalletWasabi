@@ -1,7 +1,6 @@
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.ComponentModel;
-using System.Data;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
@@ -68,12 +67,13 @@ public class WasabiSynchronizer(
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var wasabiClient = new WasabiClient(_httpClient);
-		var lastUsedApiVersion = WasabiClient.ApiVersion;
+		// Don't attempt synchronization without a valid tip hash
 		if (_smartHeaderChain.TipHash is null)
 		{
 			return;
 		}
+		var wasabiClient = new WasabiClient(_httpClient);
+		var lastUsedApiVersion = WasabiClient.ApiVersion;
 
 		try
 		{
@@ -85,20 +85,21 @@ public class WasabiSynchronizer(
 			OnSynchronizeRequestFinished();
 
 			// If it's not fully synced or reorg happened.
-			if (response.Filters.Count() == maxFiltersToSync || response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound)
+			if (NeedsContinuedSynchronization(response))
 			{
 				TriggerRound();
 			}
 
-			await _filterProcessor.ProcessAsync((uint)response.BestHeight, response.FiltersResponseState, response.Filters).ConfigureAwait(false);
+			await ProcessFiltersAsync(response).ConfigureAwait(false);
 
 			LastResponse = response;
 		}
 		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{
+			bool isConnectionRefused = innerEx.SocketErrorCode == SocketError.ConnectionRefused;
 			UpdateStatus(
 				BackendStatus.NotConnected,
-				innerEx.SocketErrorCode == SocketError.ConnectionRefused
+				isConnectionRefused
 					? TorStatus.NotRunning
 					: TorStatus.Running,
 				false);
@@ -110,20 +111,8 @@ public class WasabiSynchronizer(
 		}
 		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
 		{
-			TorStatus = TorStatus.Running;
-			BackendStatus = BackendStatus.NotConnected;
-
 			// Backend API version might be updated meanwhile. Trying to update the versions.
-			bool backendCompatible;
-			try
-			{
-				backendCompatible = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
-			}
-			catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
-			{
-				// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
-				backendCompatible = false;
-			}
+			var backendCompatible = await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
 
 			UpdateStatus( BackendStatus.NotConnected, TorStatus.Running, !backendCompatible);
 
@@ -147,11 +136,40 @@ public class WasabiSynchronizer(
 		}
 	}
 
+	private static async Task<bool> CheckBackendCompatibilityAsync(WasabiClient wasabiClient, CancellationToken cancel)
+	{
+		bool backendCompatible;
+		try
+		{
+			backendCompatible = await wasabiClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+		}
+		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
+		{
+			// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
+			backendCompatible = false;
+		}
+
+		return backendCompatible;
+	}
+
 	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus, bool backendNotCompatible)
 	{
 		BackendStatus = backendStatus;
 		TorStatus = torStatus;
 		BackendNotCompatible = backendNotCompatible;
+	}
+
+	private bool NeedsContinuedSynchronization(SynchronizeResponse response)
+	{
+		return response.Filters.Count() == maxFiltersToSync ||
+		       response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound;
+	}
+
+	private async Task ProcessFiltersAsync(SynchronizeResponse response)
+	{
+		await _filterProcessor
+			.ProcessAsync((uint) response.BestHeight, response.FiltersResponseState, response.Filters)
+			.ConfigureAwait(false);
 	}
 
 	private void OnSynchronizeRequestFinished()
