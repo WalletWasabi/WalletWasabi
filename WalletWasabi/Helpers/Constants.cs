@@ -80,7 +80,6 @@ public static class Constants
 	public const string SilentPlistName = "com.wasabiwallet.startup.plist";
 
 	public const string AppName = "Wasabi Wallet";
-	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
 
 	public static readonly EndPoint DefaultMainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinCoreRpcPort);
 	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);

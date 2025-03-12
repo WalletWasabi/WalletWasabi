@@ -49,10 +49,10 @@ public class StartupTask
 
 			if (blocks != headers)
 			{
-				throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} is not fully synchronized.");
+				throw new NotSupportedException($"Bitcoin Node is not fully synchronized.");
 			}
 
-			Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
+			Logger.LogInfo($"Bitcoin Node is fully synchronized.");
 
 			if (RpcClient.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 			{
@@ -62,7 +62,7 @@ public class StartupTask
 					var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, key.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest), cancellationToken);
 					if (generateBlocksResponse is null)
 					{
-						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
+						throw new NotSupportedException($"Bitcoin Node cannot generate blocks on the {Network.RegTest}.");
 					}
 
 					blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
@@ -77,7 +77,7 @@ public class StartupTask
 		}
 		catch (WebException)
 		{
-			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file.");
+			Logger.LogError($"Bitcoin Node is not running, or incorrect RPC credentials, or network is given in the config file.");
 			throw;
 		}
 	}

@@ -79,9 +79,15 @@ public class Config
 			[ nameof(UseBitcoinRpc)] = (
 				"Connect to bitcoin node rpc server",
 				GetBoolValue("UseBitcoinRpc", PersistentConfig.UseBitcoinRpc, cliArgs)),
-			[ nameof(BitcoinRpcCredentialString)] = (
+			[ nameof(MainNetBitcoinRpcCredentialString)] = (
 				"Credentials for authenticating against the bitcoin node rpc server",
-				GetStringValue("BitcoinRpcCredentialString", PersistentConfig.BitcoinRpcCredentialString, cliArgs)),
+				GetStringValue("MainNetBitcoinRpcCredentialString", PersistentConfig.MainNetBitcoinRpcCredentialString, cliArgs)),
+			[ nameof(TestNetBitcoinRpcCredentialString)] = (
+				"Credentials for authenticating against the bitcoin node rpc server",
+				GetStringValue("TestNetBitcoinRpcCredentialString", PersistentConfig.TestNetBitcoinRpcCredentialString, cliArgs)),
+			[ nameof(RegTestBitcoinRpcCredentialString)] = (
+				"Credentials for authenticating against the bitcoin node rpc server",
+				GetStringValue("RegTestBitcoinRpcCredentialString", PersistentConfig.RegTestBitcoinRpcCredentialString, cliArgs)),
 			[ nameof(MainNetBitcoinRpcEndPoint)] = (
 				"-",
 				GetEndPointValue("MainNetBitcoinRpcEndPoint", PersistentConfig.MainNetBitcoinRpcEndPoint, cliArgs)),
@@ -179,7 +185,9 @@ public class Config
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool UseBitcoinRpc => GetEffectiveValue<BoolValue, bool>(nameof(UseBitcoinRpc));
-	public string BitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcCredentialString));
+	public string MainNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(MainNetBitcoinRpcCredentialString));
+	public string TestNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(TestNetBitcoinRpcCredentialString));
+	public string RegTestBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(RegTestBitcoinRpcCredentialString));
 	public EndPoint MainNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(MainNetBitcoinRpcEndPoint));
 	public EndPoint TestNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(TestNetBitcoinRpcEndPoint));
 	public EndPoint RegTestBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(RegTestBitcoinRpcEndPoint));
@@ -224,15 +232,32 @@ public class Config
 		{
 			return MainNetBitcoinRpcEndPoint;
 		}
-
 		if (Network == Network.TestNet)
 		{
 			return TestNetBitcoinRpcEndPoint;
 		}
-
 		if (Network == Network.RegTest)
 		{
 			return RegTestBitcoinRpcEndPoint;
+		}
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public string GetBitcoinRpcCredentialString()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinRpcCredentialString;
+		}
+
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinRpcCredentialString;
+		}
+
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinRpcCredentialString;
 		}
 
 		throw new NotSupportedNetworkException(Network);

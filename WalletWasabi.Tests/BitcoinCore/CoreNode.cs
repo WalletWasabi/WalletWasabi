@@ -247,7 +247,7 @@ public class CoreNode
 		{
 			coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 			await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-			Logger.LogInfo($"Started {Constants.BuiltinBitcoinNodeName}.");
+			Logger.LogInfo($"Started Bitcoin Node.");
 		}
 
 		return coreNode;

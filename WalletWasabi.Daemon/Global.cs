@@ -116,9 +116,7 @@ public class Global
 		if (config.UseBitcoinRpc)
 		{
 			var bitcoinRpcEndPoint = config.GetBitcoinRpcEndPoint();
-			var credentialString = string.IsNullOrEmpty(config.BitcoinRpcCredentialString)
-				? null
-				: config.BitcoinRpcCredentialString;
+			var credentialString = config.GetBitcoinRpcCredentialString();
 			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToString(), Network));
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient), "RPC Monitor");
 		}

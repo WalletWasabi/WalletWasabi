@@ -199,4 +199,30 @@ public static class EnvironmentHelpers
 		var fluentExecutable = Path.Combine(fullBaseDir, assemblyName);
 		return RuntimeInformation.IsOSPlatform(OSPlatform.Windows) ? $"{fluentExecutable}.exe" : $"{fluentExecutable}";
 	}
+
+	public static string GetDefaultBitcoinDataDir()
+	{
+		string directory = "";
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			var localAppData = Environment.GetEnvironmentVariable("APPDATA");
+			if (!string.IsNullOrEmpty(localAppData))
+			{
+				directory = Path.Combine(localAppData, "Bitcoin");
+			}
+		}
+		else
+		{
+			var home = Environment.GetEnvironmentVariable("HOME");
+			if (!string.IsNullOrEmpty(home))
+			{
+				directory = RuntimeInformation.IsOSPlatform(OSPlatform.OSX)
+					? Path.Combine(home, "Library", "Application Support", "Bitcoin")
+					: Path.Combine(home, ".bitcoin"); // Linux
+			}
+		}
+
+		return directory;
+	}
 }

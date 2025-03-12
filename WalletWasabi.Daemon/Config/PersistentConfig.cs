@@ -1,8 +1,11 @@
+using System.IO;
 using NBitcoin;
 using System.Linq;
 using System.Net;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
 
@@ -32,7 +35,9 @@ public record PersistentConfig
 
 	public bool UseBitcoinRpc { get; init; }
 
-	public string BitcoinRpcCredentialString { get; init; } = "";
+	public string MainNetBitcoinRpcCredentialString { get; init; } = "";
+	public string TestNetBitcoinRpcCredentialString { get; init; } = "";
+	public string RegTestBitcoinRpcCredentialString { get; init; } = "";
 
 	public EndPoint MainNetBitcoinRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
@@ -87,7 +92,9 @@ public record PersistentConfig
 			TerminateTorOnExit == other.TerminateTorOnExit &&
 			DownloadNewVersion == other.DownloadNewVersion &&
 			UseBitcoinRpc.Equals(other.UseBitcoinRpc) &&
-			BitcoinRpcCredentialString.Equals(other.BitcoinRpcCredentialString) &&
+			MainNetBitcoinRpcCredentialString.Equals(other.MainNetBitcoinRpcCredentialString) &&
+			TestNetBitcoinRpcCredentialString.Equals(other.TestNetBitcoinRpcCredentialString) &&
+			RegTestBitcoinRpcCredentialString.Equals(other.RegTestBitcoinRpcCredentialString) &&
 			MainNetBitcoinRpcEndPoint.Equals(other.MainNetBitcoinRpcEndPoint) &&
 			TestNetBitcoinRpcEndPoint.Equals(other.TestNetBitcoinRpcEndPoint) &&
 			RegTestBitcoinRpcEndPoint.Equals(other.RegTestBitcoinRpcEndPoint) &&
@@ -122,6 +129,26 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
+	public string GetBitcoinRpcCredentialString()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinRpcCredentialString;
+		}
+
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinRpcCredentialString;
+		}
+
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinRpcCredentialString;
+		}
+
+		throw new NotSupportedNetworkException(Network);
+	}
+
 	public string GetBackendUri()
 	{
 		if (Network == Network.Main)
@@ -142,18 +169,13 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public PersistentConfig Migrate()
-	{
-		if (ConfigVersion == 0)
+	public PersistentConfig Migrate() =>
+		MigrateMaxCoordinationFeeRate()
+		.MigrateOldDefaultBackendUris()
+		.MigrateP2pToRpcConnection() with
 		{
-			return MigrateMaxCoordinationFeeRate().MigrateOldDefaultBackendUris() with
-			{
-				ConfigVersion = 1
-			};
-		}
-
-		return this;
-	}
+			ConfigVersion = 2
+		};
 
 	private PersistentConfig MigrateMaxCoordinationFeeRate() => this;
 
@@ -169,5 +191,50 @@ public record PersistentConfig
 		}
 
 		return this;
+	}
+
+	private PersistentConfig MigrateP2pToRpcConnection()
+	{
+		if (ConfigVersion >= 2)
+		{
+			return this;
+		}
+
+		static string? GetRpcCredentialString(BitcoinConfig config, string network) =>
+			( config.GetSettingOrNull("rpccookiefile", network)
+			, config.GetSettingOrNull("rpcuser", network)
+			, config.GetSettingOrNull("rpcpassword", network)) switch
+			{
+				({ } cookieFilePath, null, null) => cookieFilePath,
+				(null, { } rpcUser, { } rpcPassword) => $"{rpcUser}:{rpcPassword}",
+				_ => null
+			};
+		static EndPoint GetRpcEndpoint(BitcoinConfig config, string network, int defaultPort) =>
+			(config.GetSettingOrNull("rpcbind", network), config.GetSettingOrNull("rpcport", network)) switch
+			{
+				({} host, {} port) when EndPointParser.TryParse($"{host}:{port}", defaultPort, out var endPoint) => endPoint,
+				({} host, null) when EndPointParser.TryParse(host, defaultPort, out var endPoint) => endPoint,
+				(null, {} port) when int.TryParse(port, out var intPort) => new IPEndPoint(IPAddress.Loopback, intPort),
+				_ => new IPEndPoint(IPAddress.Loopback, defaultPort)
+			};
+
+		var defaultBitcoinDataDir = Network.GetDefaultDataFolder("bitcoin");
+		if (string.IsNullOrWhiteSpace(defaultBitcoinDataDir))
+		{
+			return this;
+		}
+		string configPath = Path.Combine(defaultBitcoinDataDir, "bitcoin.conf");
+		var config = BitcoinConfig.Parse(File.ReadAllText(configPath));
+
+		return this with
+		{
+			MainNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "main", Network.Main.RPCPort),
+			TestNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "testnet4", Network.TestNet.RPCPort),
+			RegTestBitcoinRpcEndPoint = GetRpcEndpoint(config, "regtest", Network.RegTest.RPCPort),
+
+			MainNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "main") ?? "",
+			TestNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "testnet4") ?? "",
+			RegTestBitcoinRpcCredentialString = GetRpcCredentialString(config, "regtest") ?? "",
+		};
 	}
 }

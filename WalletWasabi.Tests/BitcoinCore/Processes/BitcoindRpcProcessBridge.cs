@@ -89,7 +89,7 @@ public class BitcoindRpcProcessBridge
 					// Don't log extensively.
 					if (exceptionInfo.IsFirst)
 					{
-						Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is not yet ready... Reason: {exceptionInfo.Exception.Message}");
+						Logger.LogInfo($"Bitcoin Node is not yet ready... Reason: {exceptionInfo.Exception.Message}");
 					}
 
 					if (Process is { } p && p.HasExited)

@@ -28,7 +28,9 @@ public static class PersistentConfigEncode
 			("TorBridges", Array(cfg.TorBridges.Select(String))),
 			("DownloadNewVersion", Bool(cfg.DownloadNewVersion)),
 			("UseBitcoinRpc", Bool(cfg.UseBitcoinRpc)),
-			("BitcoinRpcCredentialString", String(cfg.BitcoinRpcCredentialString)),
+			("MainNetBitcoinRpcCredentialString", String(cfg.MainNetBitcoinRpcCredentialString)),
+			("TestNetBitcoinRpcCredentialString", String(cfg.TestNetBitcoinRpcCredentialString)),
+			("RegTestBitcoinRpcCredentialString", String(cfg.RegTestBitcoinRpcCredentialString)),
 			("MainNetBitcoinRpcEndPoint", EndPoint(cfg.MainNetBitcoinRpcEndPoint, Constants.DefaultMainNetBitcoinCoreRpcPort)),
 			("TestNetBitcoinRpcEndPoint", EndPoint(cfg.TestNetBitcoinRpcEndPoint, Constants.DefaultTestNetBitcoinCoreRpcPort)),
 			("RegTestBitcoinRpcEndPoint", EndPoint(cfg.RegTestBitcoinRpcEndPoint, Constants.DefaultRegTestBitcoinCoreRpcPort)),
@@ -71,7 +73,9 @@ public static class PersistentConfigDecode
 			TorBridges = get.Required("TorBridges", Decode.Array(Decode.String)),
 			DownloadNewVersion = get.Required("DownloadNewVersion", Decode.Bool),
 			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool),
-			BitcoinRpcCredentialString = get.Optional("BitcoinRpcCredentialString", Decode.String) ?? "",
+			MainNetBitcoinRpcCredentialString = get.Optional("MainNetBitcoinRpcCredentialString", Decode.String) ?? "",
+			TestNetBitcoinRpcCredentialString = get.Optional("TestNetBitcoinRpcCredentialString", Decode.String) ?? "",
+			RegTestBitcoinRpcCredentialString = get.Optional("RegTestBitcoinRpcCredentialString", Decode.String) ?? "",
 			MainNetBitcoinRpcEndPoint = get.Optional("MainNetBitcoinRpcEndPoint", Decode.EndPoint)
 			                            ?? get.Required("MainNetBitcoinP2pEndPoint", Decode.EndPoint),
 			TestNetBitcoinRpcEndPoint = get.Optional("TestNetBitcoinRpcEndPoint", Decode.EndPoint)

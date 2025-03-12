@@ -100,7 +100,7 @@ public partial class ApplicationSettings : ReactiveObject
 		Network = persistentConfig.Network;
 		UseBitcoinRpc = persistentConfig.UseBitcoinRpc;
 		BitcoinRpcEndPoint = persistentConfig.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
-		BitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
+		BitcoinRpcCredentialString = persistentConfig.GetBitcoinRpcCredentialString();
 		DustThreshold = persistentConfig.DustThreshold.ToString();
 
 		// Coordinator
@@ -139,12 +139,13 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.EnableGpu,
 					x => x.Network,
 					x => x.UseBitcoinRpc,
+					x => x.BitcoinRpcCredentialString,
 					x => x.BitcoinRpcEndPoint,
 					x => x.DustThreshold,
 					x => x.UseTor,
 					x => x.TerminateTorOnExit,
 					x => x.DownloadNewVersion,
-					(_, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 		var configSaveTrigger2 =
 			this.WhenAnyValue(
@@ -261,15 +262,15 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				if (Network == Network.Main)
 				{
-					result = result with { MainNetBitcoinRpcEndPoint = endPoint };
+					result = result with { MainNetBitcoinRpcEndPoint = endPoint, MainNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else if (Network == Network.TestNet)
 				{
-					result = result with { TestNetBitcoinRpcEndPoint = endPoint };
+					result = result with { TestNetBitcoinRpcEndPoint = endPoint, TestNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else if (Network == Network.RegTest)
 				{
-					result = result with { RegTestBitcoinRpcEndPoint = endPoint };
+					result = result with { RegTestBitcoinRpcEndPoint = endPoint, RegTestBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else
 				{
@@ -322,6 +323,7 @@ public partial class ApplicationSettings : ReactiveObject
 			};
 
 			BitcoinRpcEndPoint = result.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
+			BitcoinRpcCredentialString = result.GetBitcoinRpcCredentialString();
 			BackendUri = result.GetBackendUri();
 		}
 
