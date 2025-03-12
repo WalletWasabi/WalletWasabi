@@ -68,7 +68,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="The reported balance might not be accurate, and some other features may not be available, because Wasabi was unable to connect to the server. Retrying to connect."
+                       Text="Wasabi was unable to connect to the server. Retrying..."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
@@ -80,7 +80,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="This version of Wasabi is not compatible with the backend it tries to connect to. Update if available or change the backend provider."
+                       Text="Wasabi is not compatible with the specified backend. Update or change the backend provider."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>

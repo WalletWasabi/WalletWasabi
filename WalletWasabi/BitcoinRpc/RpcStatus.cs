@@ -10,21 +10,21 @@ public class RpcStatus : IEquatable<RpcStatus>
 			var diff = headers - blocks;
 			if (peersCount == 0)
 			{
-				Status = "Full node is connecting...";
+				Status = "is connecting...";
 			}
 			else if (diff == 0)
 			{
 				Synchronized = true;
-				Status = "Full node is synchronized";
+				Status = "is synchronized";
 			}
 			else
 			{
-				Status = $"Full node is downloading {diff} blocks...";
+				Status = $"is synchronizing...";
 			}
 		}
 		else
 		{
-			Status = "Full node is unresponsive";
+			Status = "is unresponsive";
 		}
 
 		Success = success;
