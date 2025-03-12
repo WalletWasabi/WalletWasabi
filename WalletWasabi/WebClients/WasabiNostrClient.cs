@@ -1,3 +1,4 @@
+using NBitcoin;
 using NNostr.Client;
 using NNostr.Client.Protocols;
 using System.Collections.Generic;
@@ -26,6 +27,7 @@ public class WasabiNostrClient
 
 	public INostrClient? NostrWebClient { get; set; }
 	public Channel<NostrUpdateInfo> NostrUpdateChannel { get; set; }
+	private Dictionary<string, NostrEvent> Events { get; } = new();
 
 	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
 	{
@@ -34,14 +36,14 @@ public class WasabiNostrClient
 			Version? newVersion = null;
 			string? downloadLink = null;
 
-			foreach (NostrEvent nostrEvents in args.events)
+			foreach (NostrEvent nostrEvent in args.events)
 			{
-				Logger.LogInfo(nostrEvents.Id);
-				Logger.LogInfo("Content: " + nostrEvents.Content);
-				Logger.LogInfo("Kind: " + nostrEvents.Kind.ToString());
-				Logger.LogInfo("Created at: " + nostrEvents.CreatedAt.ToString());
+				Logger.LogInfo(nostrEvent.Id);
+				Logger.LogInfo("Content: " + nostrEvent.Content);
+				Logger.LogInfo("Kind: " + nostrEvent.Kind.ToString());
+				Logger.LogInfo("Created at: " + nostrEvent.CreatedAt.ToString());
 
-				foreach (var eventTag in nostrEvents.Tags)
+				foreach (var eventTag in nostrEvent.Tags)
 				{
 					if (eventTag.TagIdentifier == "Version")
 					{
@@ -56,12 +58,17 @@ public class WasabiNostrClient
 						downloadLink = eventTag.Data.First();
 					}
 				}
+
+				if (newVersion is not null && downloadLink is not null)
+				{
+					if (Events.TryAdd(nostrEvent.Id, nostrEvent))
+					{
+						NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
+					}
+				}
 			}
 
-			if (newVersion is not null && downloadLink is not null)
-			{
-				NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
-			}
+			
 		}
 	}
 
