@@ -23,9 +23,12 @@ namespace WalletWasabi.Services;
 public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasabiBackendStatusProvider
 {
 	private TorStatus _torStatus;
-
 	private BackendStatus _backendStatus;
 	private bool _backendNotCompatible;
+	private readonly int _maxFiltersToSync;
+	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly FilterProcessor _filterProcessor;
+	private readonly HttpClient _httpClient;
 
 	public WasabiSynchronizer(TimeSpan period, int maxFiltersToSync, BitcoinStore bitcoinStore, IHttpClientFactory httpClientFactory) : base(period)
 	{
@@ -34,7 +37,7 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		LastResponse = null;
 		_smartHeaderChain = bitcoinStore.SmartHeaderChain;
 		_filterProcessor = new FilterProcessor(bitcoinStore);
-		HttpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
+		_httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 	}
 
 	#region EventsPropertiesMembers
@@ -47,7 +50,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public SynchronizeResponse? LastResponse { get; private set; }
-	public HttpClient HttpClient { get; }
 
 	public TorStatus TorStatus
 	{
@@ -67,23 +69,20 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		private set => RaiseAndSetIfChanged(ref _backendNotCompatible, value);
 	}
 
-	private readonly int _maxFiltersToSync;
-	private readonly SmartHeaderChain _smartHeaderChain;
-	private readonly FilterProcessor _filterProcessor;
 
 	#endregion EventsPropertiesMembers
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		var wasabiClient = new WasabiClient(HttpClient);
-		ushort lastUsedApiVersion = WasabiClient.ApiVersion;
+		var wasabiClient = new WasabiClient(_httpClient);
+		var lastUsedApiVersion = WasabiClient.ApiVersion;
+		if (_smartHeaderChain.TipHash is null)
+		{
+			return;
+		}
+
 		try
 		{
-			if (_smartHeaderChain.TipHash is null)
-			{
-				return;
-			}
-
 			var response = await wasabiClient
 				.GetSynchronizeAsync(_smartHeaderChain.TipHash, _maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 				.ConfigureAwait(false);
@@ -103,7 +102,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		}
 		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{
-			//TODO: check the source is the proxy
 			UpdateStatus(
 				BackendStatus.NotConnected,
 				innerEx.SocketErrorCode == SocketError.ConnectionRefused
@@ -130,9 +128,10 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 			catch (HttpRequestException) when (ex.Message.Contains("Not Found"))
 			{
 				// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
-				BackendNotCompatible = true;
-				return;
+				backendCompatible = false;
 			}
+
+			UpdateStatus( BackendStatus.NotConnected, TorStatus.Running, !backendCompatible);
 
 			// If the backend is compatible and the Api version updated then we just used the wrong API.
 			if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
@@ -142,7 +141,6 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 				return;
 			}
 
-			BackendNotCompatible = !backendCompatible;
 			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
 			throw;
@@ -172,15 +170,12 @@ public class WasabiSynchronizer : PeriodicRunner, INotifyPropertyChanged, IWasab
 		SynchronizeRequestFinished?.Invoke(this, isBackendConnected);
 	}
 
-	protected bool RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
+	private void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
 	{
-		if (EqualityComparer<T>.Default.Equals(field, value))
+		if (!EqualityComparer<T>.Default.Equals(field, value))
 		{
-			return false;
+			field = value;
+			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 		}
-
-		field = value;
-		PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		return true;
 	}
 }
