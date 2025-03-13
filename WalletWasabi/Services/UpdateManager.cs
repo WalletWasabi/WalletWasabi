@@ -6,9 +6,11 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -21,8 +23,6 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager : PeriodicRunner
 {
-	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
-
 	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiNostrClient nostrClient)
 		: base(period)
 	{
@@ -63,7 +63,6 @@ public class UpdateManager : PeriodicRunner
 
 				bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
 
-				//TODO: Move this somewhere
 				if (!updateAvailable)
 				{
 					// After updating Wasabi, remove old installer file.
@@ -76,11 +75,11 @@ public class UpdateManager : PeriodicRunner
 
 				if (_downloadNewVersion)
 				{
-					ReleaseInfo releaseInfo = await GetLatestReleaseFromGithubAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
+					ReleaseInfo releaseInfo = await GetDownloadLinksFromNostrDownloadLinkAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
 					(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
 
-					Logger.LogInfo($"Trying to download new version: {nostrUpdateInfo.Version}");
-
+					Logger.LogInfo($"Trying to download new version: {availableVersion}");
+					
 					string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
 					InstallerPath = installerPath;
 					Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
@@ -189,23 +188,37 @@ public class UpdateManager : PeriodicRunner
 		File.Move(tmpFilePath, filePath);
 	}
 
-	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(string downloadURL, CancellationToken cancellationToken)
+	private async Task<ReleaseInfo> GetDownloadLinksFromNostrDownloadLinkAsync(string downloadURL, CancellationToken cancellationToken)
 	{
 		using HttpRequestMessage message = new(HttpMethod.Get, downloadURL);
 		_githubHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 		var response = await _githubHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+		var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-		// Get all asset names and download URLs to find the correct one.
-		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
-		List<string> assetDownloadLinks = new();
-		foreach (JToken asset in assetsInfo)
-		{
-			assetDownloadLinks.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
-		}
+		List<string> assetDownloadLinks = ExtractDownloadLinksFromHtml(content);
 
 		return new ReleaseInfo(assetDownloadLinks);
+	}
+
+	private static List<string> ExtractDownloadLinksFromHtml(string html)
+	{
+		var rows = html.Split("\n");
+		List<string> relevantRows = rows.Where(row => row.Contains("<a href=")).ToList();
+
+		List<string> assetDownloadLinks = new();
+		foreach (var row in relevantRows)
+		{
+			string regex = "href=\"(.*)\"";
+			Match match = Regex.Match(row, regex);
+			if (match.Success)
+			{
+				string link = match.Groups[1].Value;
+				assetDownloadLinks.Add(link);
+			}
+		}
+
+		return assetDownloadLinks;
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, List<string> assetDownloadLinks, CancellationToken cancellationToken)
