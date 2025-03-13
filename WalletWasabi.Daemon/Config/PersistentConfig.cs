@@ -200,13 +200,15 @@ public record PersistentConfig
 			return this;
 		}
 
-		static string? GetRpcCredentialString(BitcoinConfig config, string network) =>
-			( config.GetSettingOrNull("rpccookiefile", network)
-			, config.GetSettingOrNull("rpcuser", network)
-			, config.GetSettingOrNull("rpcpassword", network)) switch
+		static string? GetRpcCredentialString(BitcoinConfig config, string network, string bitcoindatadir) =>
+			( config.GetSettingOrNull("rpcuser", network)
+			, config.GetSettingOrNull("rpcpassword", network)
+			, config.GetSettingOrNull("rpccookiefile", network)
+			) switch
 			{
-				({ } cookieFilePath, null, null) => $"cookiefile={cookieFilePath}",
-				(null, { } rpcUser, { } rpcPassword) => $"{rpcUser}:{rpcPassword}",
+				({ } rpcUser, { } rpcPassword, _) => $"{rpcUser}:{rpcPassword}",
+				( _, null, { } cookieFilePath) => $"cookiefile={cookieFilePath}",
+				( _, null, _) => $"cookiefile={bitcoindatadir}/.cookie",
 				_ => null
 			};
 		static EndPoint GetRpcEndpoint(BitcoinConfig config, string network, int defaultPort) =>
@@ -232,9 +234,9 @@ public record PersistentConfig
 			TestNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "testnet4", Network.TestNet.RPCPort),
 			RegTestBitcoinRpcEndPoint = GetRpcEndpoint(config, "regtest", Network.RegTest.RPCPort),
 
-			MainNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "main") ?? "",
-			TestNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "testnet4") ?? "",
-			RegTestBitcoinRpcCredentialString = GetRpcCredentialString(config, "regtest") ?? "",
+			MainNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "main", defaultBitcoinDataDir) ?? "",
+			TestNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "testnet4", defaultBitcoinDataDir) ?? "",
+			RegTestBitcoinRpcCredentialString = GetRpcCredentialString(config, "regtest", defaultBitcoinDataDir) ?? "",
 		};
 	}
 }
