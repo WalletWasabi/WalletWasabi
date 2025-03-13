@@ -1,21 +1,18 @@
-using NBitcoin;
 using NNostr.Client;
 using NNostr.Client.Protocols;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
-using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients;
 public class WasabiNostrClient
 {
-	private const string DefaultPublicKey = "npub1l0p8r79n24ez6ahh93utyyu268hj7cg3gdsql4526rwlc6qhxx3sxy0yeu";
+	private const string DefaultPublicKey = "npub1l0p8r79n24ez6ahh93utyyu268hj7cg3gdsql4526rwlc6qhxx3sxy0yeu"; // Change this to Official Wasabi Nostr PubKey
 	private EndPoint _torEndpoint;
 	private string? _nostrSubscriptionID;
 
@@ -38,23 +35,16 @@ public class WasabiNostrClient
 
 			foreach (NostrEvent nostrEvent in args.events)
 			{
-				Logger.LogInfo(nostrEvent.Id);
-				Logger.LogInfo("Content: " + nostrEvent.Content);
-				Logger.LogInfo("Kind: " + nostrEvent.Kind.ToString());
-				Logger.LogInfo("Created at: " + nostrEvent.CreatedAt.ToString());
-
 				foreach (var eventTag in nostrEvent.Tags)
 				{
 					if (eventTag.TagIdentifier == "Version")
 					{
-						Logger.LogInfo("Version: " + eventTag.Data.First());
 						Version version = new(eventTag.Data.First());
 						newVersion = version;
 					}
 
 					if (eventTag.TagIdentifier == "DownloadLink")
 					{
-						Logger.LogInfo("DownloadLink: " + eventTag.Data.First());
 						downloadLink = eventTag.Data.First();
 					}
 				}
@@ -63,6 +53,7 @@ public class WasabiNostrClient
 				{
 					if (Events.TryAdd(nostrEvent.Id, nostrEvent))
 					{
+						Logger.LogInfo($"New release event received. ID: {nostrEvent.Id} Version: {newVersion} Download link: {downloadLink}");
 						NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
 					}
 				}
