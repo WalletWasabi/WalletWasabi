@@ -188,7 +188,7 @@
 
     <!-- Bitcoin Core Synchronizing -->
     <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreSynchronizing}}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreSynchronizingOrConnecting}}"
       Data="{StaticResource arrow_sync_regular}"
       Classes.rotate="{Binding $self.IsVisible}" />
 

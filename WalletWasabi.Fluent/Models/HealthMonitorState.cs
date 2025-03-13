@@ -8,5 +8,5 @@ public enum HealthMonitorState
 	UpdateAvailable,
 	ConnectionIssueDetected,
 	BitcoinCoreIssueDetected,
-	BitcoinCoreSynchronizing,
+	BitcoinCoreSynchronizingOrConnecting,
 }

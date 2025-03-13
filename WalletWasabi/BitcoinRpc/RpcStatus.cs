@@ -34,6 +34,7 @@ public class RpcStatus : IEquatable<RpcStatus>
 	}
 
 	public static RpcStatus Unresponsive { get; } = new RpcStatus(false, 0, 0, 0);
+	public static RpcStatus Connecting { get; } = new RpcStatus(true, 0, 0, 0);
 
 	public string Status { get; }
 	public bool Success { get; }

@@ -32,7 +32,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _backendNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
-	[AutoNotify] private bool _isBitcoinCoreSynchronizing;
+	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
 	[AutoNotify] private RpcStatus? _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
@@ -162,7 +162,7 @@ public partial class HealthMonitor : ReactiveObject
 				x => x.UpdateAvailable,
 				x => x.IsConnectionIssueDetected,
 				x => x.IsBitcoinCoreIssueDetected,
-				x => x.IsBitcoinCoreSynchronizing,
+				x => x.IsBitcoinCoreSynchronizingOrConnecting,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -205,9 +205,9 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.ConnectionIssueDetected;
 		}
 
-		if (IsBitcoinCoreSynchronizing)
+		if (IsBitcoinCoreSynchronizingOrConnecting)
 		{
-			return HealthMonitorState.BitcoinCoreSynchronizing;
+			return HealthMonitorState.BitcoinCoreSynchronizingOrConnecting;
 		}
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
@@ -235,14 +235,14 @@ public partial class HealthMonitor : ReactiveObject
 					.Do(x =>
 					{
 						BitcoinRpcStatus = x;
-						IsBitcoinCoreSynchronizing = x is { Success: true, Synchronized: false };
+						IsBitcoinCoreSynchronizingOrConnecting = x is { Success: true, Synchronized: false };
 						IsBitcoinCoreIssueDetected = x is { Success: false };
 					})
 					.Subscribe()
 					.DisposeWith(Disposables);
 
 				BitcoinRpcStatus = rpcMonitor.RpcStatus;
-				IsBitcoinCoreSynchronizing = BitcoinRpcStatus is { Success: true, Synchronized: false };
+				IsBitcoinCoreSynchronizingOrConnecting = BitcoinRpcStatus is { Success: true, Synchronized: false };
 				IsBitcoinCoreIssueDetected = BitcoinRpcStatus is { Success: false };
 
 				return;
