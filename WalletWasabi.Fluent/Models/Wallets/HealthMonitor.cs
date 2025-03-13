@@ -185,9 +185,14 @@ public partial class HealthMonitor : ReactiveObject
 
 	private HealthMonitorState GetState()
 	{
-		if (IsBitcoinCoreSynchronizing)
+		if (CheckForUpdates && UpdateAvailable)
 		{
-			return HealthMonitorState.BitcoinCoreSynchronizing;
+			return HealthMonitorState.UpdateAvailable;
+		}
+
+		if (BackendNotCompatible)
+		{
+			return HealthMonitorState.BackendNotCompatible;
 		}
 
 		if (IsBitcoinCoreIssueDetected)
@@ -200,14 +205,9 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.ConnectionIssueDetected;
 		}
 
-		if (BackendNotCompatible)
+		if (IsBitcoinCoreSynchronizing)
 		{
-			return HealthMonitorState.BackendNotCompatible;
-		}
-
-		if (CheckForUpdates && UpdateAvailable)
-		{
-			return HealthMonitorState.UpdateAvailable;
+			return HealthMonitorState.BitcoinCoreSynchronizing;
 		}
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
