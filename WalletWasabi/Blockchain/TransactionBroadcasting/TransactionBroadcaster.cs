@@ -3,6 +3,7 @@ using NBitcoin.Protocol;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
@@ -60,6 +61,15 @@ public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
 		catch (RPCException ex)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.RpcError(ex.RPCCodeMessage));
+		}
+		catch (SocketException se) when (se.SocketErrorCode == SocketError.ConnectionRefused)
+		{
+			return BroadcastingResult.Fail(
+				new BroadcastError.RpcError("Failed to connect to Bitcoin RPC. Connection refused."));
+		}
+		catch (Exception ex)
+		{
+			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
 	}
 }
