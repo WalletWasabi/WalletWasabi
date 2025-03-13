@@ -386,7 +386,7 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public record ScriptPubKeySpendingInfo(byte[] CompressedScriptPubKey, Height? LatestSpendingHeight);
+	public record ScriptPubKeySpendingInfo(byte[] ScriptPubKey, Height? LatestSpendingHeight);
 
 	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos(bool isBIP158)
 	{

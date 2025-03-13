@@ -181,7 +181,7 @@ public class IndexBuilderService
 							var filter = blockFilter.Filter;
 
 							var smartHeader = new SmartHeader(blockHash, blockFilter.Header, nextHeight, DateTimeOffset.MinValue);
-							var filterModel = new FilterModel(smartHeader, filter);
+							var filterModel = new FilterModel(smartHeader, filter, isBip158: true);
 
 							lock (_indexLock)
 							{

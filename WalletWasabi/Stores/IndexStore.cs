@@ -279,10 +279,14 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	private bool IsCorrect(SmartHeaderChain c, FilterModel m)
 	{
 		// If this is the first filter that we receive then it is correct only if it is starting one.
-		if(c.Tip is not {} tip)
+		if (c.Tip is not {} tip)
 		{
-			return m.Header == SmartHeader.GetStartingHeader(_network);
+			return true;
 		}
+		//if(c.Tip is not {} tip )
+		//{
+		//	return m.Header == SmartHeader.GetStartingHeader(_network);
+		//}
 		if (m.Filter.IsBip158())
 		{
 			// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
