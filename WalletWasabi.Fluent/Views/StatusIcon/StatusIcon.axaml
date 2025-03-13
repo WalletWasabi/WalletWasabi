@@ -199,9 +199,22 @@
       Foreground="Gold"
       VerticalAlignment="Center" HorizontalAlignment="Right" />
 
+    <!-- Bitcoin Core Connection issue -->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreIssueDetected}}"
+      Data="{StaticResource warning_filled}"
+      Foreground="Gold"
+      VerticalAlignment="Center" HorizontalAlignment="Right" />
+
     <!-- Loading -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Loading}}"
+      Data="{StaticResource arrow_sync_regular}"
+      Classes.rotate="{Binding $self.IsVisible}" />
+
+    <!-- Bitcoin Core Synchronizing -->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreSynchronizing}}"
       Data="{StaticResource arrow_sync_regular}"
       Classes.rotate="{Binding $self.IsVisible}" />
   </Panel>

@@ -31,6 +31,8 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private BackendStatus _backendStatus;
 	[AutoNotify] private bool _backendNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
+	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
+	[AutoNotify] private bool _isBitcoinCoreSynchronizing;
 	[AutoNotify] private RpcStatus? _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
@@ -159,6 +161,8 @@ public partial class HealthMonitor : ReactiveObject
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
 				x => x.IsConnectionIssueDetected,
+				x => x.IsBitcoinCoreIssueDetected,
+				x => x.IsBitcoinCoreSynchronizing,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -181,6 +185,16 @@ public partial class HealthMonitor : ReactiveObject
 
 	private HealthMonitorState GetState()
 	{
+		if (IsBitcoinCoreSynchronizing)
+		{
+			return HealthMonitorState.BitcoinCoreSynchronizing;
+		}
+
+		if (IsBitcoinCoreIssueDetected)
+		{
+			return HealthMonitorState.BitcoinCoreIssueDetected;
+		}
+
 		if (IsConnectionIssueDetected)
 		{
 			return HealthMonitorState.ConnectionIssueDetected;
@@ -216,11 +230,21 @@ public partial class HealthMonitor : ReactiveObject
 			if (rpcMonitor is { })
 			{
 				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-						  .ObserveOn(RxApp.MainThreadScheduler)
-						  .Select(x => x.EventArgs)
-						  .BindTo(this, x => x.BitcoinRpcStatus)
-						  .DisposeWith(Disposables);
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Select(x => x.EventArgs)
+					.Do(x =>
+					{
+						BitcoinRpcStatus = x;
+						IsBitcoinCoreSynchronizing = x is { Success: true, Synchronized: false };
+						IsBitcoinCoreIssueDetected = x is { Success: false };
+					})
+					.Subscribe()
+					.DisposeWith(Disposables);
+
 				BitcoinRpcStatus = rpcMonitor.RpcStatus;
+				IsBitcoinCoreSynchronizing = BitcoinRpcStatus is { Success: true, Synchronized: false };
+				IsBitcoinCoreIssueDetected = BitcoinRpcStatus is { Success: false };
+
 				return;
 			}
 
