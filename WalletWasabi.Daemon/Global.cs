@@ -113,10 +113,10 @@ public class Global
 		// Block providers.
 		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
 
-		if (config.UseBitcoinRpc)
+		var credentialString = config.GetBitcoinRpcCredentialString();
+		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
 			var bitcoinRpcEndPoint = config.GetBitcoinRpcEndPoint();
-			var credentialString = config.GetBitcoinRpcCredentialString();
 			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToString(), Network));
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient), "RPC Monitor");
 		}

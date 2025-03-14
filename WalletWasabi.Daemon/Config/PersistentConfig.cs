@@ -5,6 +5,7 @@ using System.Net;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
@@ -225,18 +226,28 @@ public record PersistentConfig
 		{
 			return this;
 		}
-		string configPath = Path.Combine(defaultBitcoinDataDir, "bitcoin.conf");
-		var config = BitcoinConfig.Parse(File.ReadAllText(configPath));
 
-		return this with
+		try
 		{
-			MainNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "main", Network.Main.RPCPort),
-			TestNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "testnet4", Network.TestNet.RPCPort),
-			RegTestBitcoinRpcEndPoint = GetRpcEndpoint(config, "regtest", Network.RegTest.RPCPort),
+			var configPath = Path.Combine(defaultBitcoinDataDir, "bitcoin.conf");
+			var bitcoinConfig = File.ReadAllText(configPath);
+			var config = BitcoinConfig.Parse(bitcoinConfig);
 
-			MainNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "main", defaultBitcoinDataDir) ?? "",
-			TestNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "testnet4", defaultBitcoinDataDir) ?? "",
-			RegTestBitcoinRpcCredentialString = GetRpcCredentialString(config, "regtest", defaultBitcoinDataDir) ?? "",
-		};
+			return this with
+			{
+				MainNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "main", Network.Main.RPCPort),
+				TestNetBitcoinRpcEndPoint = GetRpcEndpoint(config, "testnet4", Network.TestNet.RPCPort),
+				RegTestBitcoinRpcEndPoint = GetRpcEndpoint(config, "regtest", Network.RegTest.RPCPort),
+
+				MainNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "main", defaultBitcoinDataDir) ?? "",
+				TestNetBitcoinRpcCredentialString = GetRpcCredentialString(config, "testnet4", defaultBitcoinDataDir) ?? "",
+				RegTestBitcoinRpcCredentialString = GetRpcCredentialString(config, "regtest", defaultBitcoinDataDir) ?? "",
+			};
+		}
+		catch (IOException e)
+		{
+			Logger.LogError("It was not possible to read the bitcoin's config file.", e);
+			return this;
+		}
 	}
 }
