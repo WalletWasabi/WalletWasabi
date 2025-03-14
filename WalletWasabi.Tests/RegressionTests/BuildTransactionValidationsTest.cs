@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Exceptions;
@@ -66,11 +66,10 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 		var workDir = Helpers.Common.GetWorkDir();
 
 		using MemoryCache cache = CreateMemoryCache();
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			[specificNodeBlockProvider],
+			[],
 			new P2PBlockProvider(network, nodes, false));
 
 		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);

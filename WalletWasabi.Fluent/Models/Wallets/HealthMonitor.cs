@@ -5,7 +5,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Extensions;
@@ -21,7 +21,7 @@ public partial interface IHealthMonitor : IDisposable
 }
 
 [AutoInterface]
-public partial class HealthMonitor : ReactiveObject, IDisposable
+public partial class HealthMonitor : ReactiveObject
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
@@ -31,7 +31,9 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 	[AutoNotify] private BackendStatus _backendStatus;
 	[AutoNotify] private bool _backendNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
-	[AutoNotify] private RpcStatus? _bitcoinCoreStatus;
+	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
+	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
+	[AutoNotify] private RpcStatus? _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
 	[AutoNotify] private HealthMonitorState _state;
@@ -44,7 +46,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = applicationSettings.UseTor;
-		UseBitcoinCore = applicationSettings.StartLocalBitcoinCoreOnStartup;
+		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 		var synchronizer = Services.HostedServices.Get<WasabiSynchronizer>();
@@ -122,15 +124,15 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 				  .DisposeWith(Disposables);
 
 		// Bitcoin Core Status
-		if (UseBitcoinCore)
+		if (UseBitcoinRpc)
 		{
 			Task.Run(WaitForRpcMonitorAsync);
 		}
 
 		// Is P2P Connected
 		// The source of the p2p connection comes from if we use Core for it or the network.
-		this.WhenAnyValue(x => x.BitcoinCoreStatus, x => x.Peers)
-			.Select((s, p) => UseBitcoinCore ? BitcoinCoreStatus?.Success is true : Peers >= 1)
+		this.WhenAnyValue(x => x.Peers)
+			.Select((s, p) => Peers >= 1)
 			.BindTo(this, x => x.IsP2pConnected)
 			.DisposeWith(Disposables);
 
@@ -156,9 +158,11 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 				x => x.BackendStatus,
 				x => x.BackendNotCompatible,
 				x => x.Peers,
-				x => x.BitcoinCoreStatus,
+				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
 				x => x.IsConnectionIssueDetected,
+				x => x.IsBitcoinCoreIssueDetected,
+				x => x.IsBitcoinCoreSynchronizingOrConnecting,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -170,7 +174,7 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 	public ICollection<Issue> TorIssues => _torIssues.Value;
 
 	public TorMode UseTor { get; }
-	public bool UseBitcoinCore { get; }
+	public bool UseBitcoinRpc { get; }
 
 	private CompositeDisposable Disposables { get; } = new();
 
@@ -181,9 +185,9 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 
 	private HealthMonitorState GetState()
 	{
-		if (IsConnectionIssueDetected)
+		if (CheckForUpdates && UpdateAvailable)
 		{
-			return HealthMonitorState.ConnectionIssueDetected;
+			return HealthMonitorState.UpdateAvailable;
 		}
 
 		if (BackendNotCompatible)
@@ -191,9 +195,19 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			return HealthMonitorState.BackendNotCompatible;
 		}
 
-		if (CheckForUpdates && UpdateAvailable)
+		if (IsBitcoinCoreIssueDetected)
 		{
-			return HealthMonitorState.UpdateAvailable;
+			return HealthMonitorState.BitcoinCoreIssueDetected;
+		}
+
+		if (IsConnectionIssueDetected)
+		{
+			return HealthMonitorState.ConnectionIssueDetected;
+		}
+
+		if (IsBitcoinCoreSynchronizingOrConnecting)
+		{
+			return HealthMonitorState.BitcoinCoreSynchronizingOrConnecting;
 		}
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
@@ -216,11 +230,21 @@ public partial class HealthMonitor : ReactiveObject, IDisposable
 			if (rpcMonitor is { })
 			{
 				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-						  .ObserveOn(RxApp.MainThreadScheduler)
-						  .Select(x => x.EventArgs)
-						  .BindTo(this, x => x.BitcoinCoreStatus)
-						  .DisposeWith(Disposables);
-				BitcoinCoreStatus = rpcMonitor.RpcStatus;
+					.ObserveOn(RxApp.MainThreadScheduler)
+					.Select(x => x.EventArgs)
+					.Do(x =>
+					{
+						BitcoinRpcStatus = x;
+						IsBitcoinCoreSynchronizingOrConnecting = x is { Success: true, Synchronized: false };
+						IsBitcoinCoreIssueDetected = x is { Success: false };
+					})
+					.Subscribe()
+					.DisposeWith(Disposables);
+
+				BitcoinRpcStatus = rpcMonitor.RpcStatus;
+				IsBitcoinCoreSynchronizingOrConnecting = BitcoinRpcStatus is { Success: true, Synchronized: false };
+				IsBitcoinCoreIssueDetected = BitcoinRpcStatus is { Success: false };
+
 				return;
 			}
 

@@ -23,8 +23,6 @@ public class MempoolService
 	/// <summary>Guards <see cref="_broadcastStore"/>.</summary>
 	private readonly object _broadcastStoreLock = new();
 
-	public bool TrustedNodeMode { get; set; }
-
 	public bool TryAddToBroadcastStore(SmartTransaction transaction)
 	{
 		lock (_broadcastStoreLock)

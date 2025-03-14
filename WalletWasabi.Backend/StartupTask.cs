@@ -3,8 +3,7 @@ using NBitcoin;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -14,13 +13,11 @@ namespace WalletWasabi.Backend;
 
 public class StartupTask
 {
-	private P2pNode P2PNode { get; }
 	private IndexBuilderService IndexBuilderService { get; }
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(Config config, IRPCClient rpc, P2pNode p2pNode, IndexBuilderService indexBuilderService)
+	public StartupTask(Config config, IRPCClient rpc, IndexBuilderService indexBuilderService)
 	{
-		P2PNode = p2pNode;
 		IndexBuilderService = indexBuilderService;
 		RpcClient = rpc;
 	}
@@ -34,7 +31,6 @@ public class StartupTask
 
 		// Make sure RPC works.
 		await AssertRpcNodeFullyInitializedAsync(cancellationToken).ConfigureAwait(false);
-		await P2PNode.ConnectAsync(cancellationToken).ConfigureAwait(false);
 		IndexBuilderService.Synchronize();
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
@@ -59,10 +55,10 @@ public class StartupTask
 
 			if (blocks != headers)
 			{
-				throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} is not fully synchronized.");
+				throw new NotSupportedException("Bitcoin Node is not fully synchronized.");
 			}
 
-			Logger.LogInfo($"{Constants.BuiltinBitcoinNodeName} is fully synchronized.");
+			Logger.LogInfo("Bitcoin Node is fully synchronized.");
 
 			if (RpcClient.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
 			{
@@ -72,7 +68,7 @@ public class StartupTask
 					var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, key.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest), cancellationToken);
 					if (generateBlocksResponse is null)
 					{
-						throw new NotSupportedException($"{Constants.BuiltinBitcoinNodeName} cannot generate blocks on the {Network.RegTest}.");
+						throw new NotSupportedException($"Bitcoin Node cannot generate blocks on the {Network.RegTest}.");
 					}
 
 					blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
@@ -87,7 +83,7 @@ public class StartupTask
 		}
 		catch (WebException)
 		{
-			Logger.LogError($"{Constants.BuiltinBitcoinNodeName} is not running, or incorrect RPC credentials, or network is given in the config file.");
+			Logger.LogError($"Bitcoin Node is not running, or incorrect RPC credentials, or network is given in the config file.");
 			throw;
 		}
 	}

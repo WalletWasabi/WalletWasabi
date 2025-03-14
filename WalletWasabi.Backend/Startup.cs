@@ -11,8 +11,7 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using WalletWasabi.Backend.Middlewares;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -86,11 +85,6 @@ public class Startup
 		services.AddSingleton(_ => network);
 		services.AddBackgroundService<BlockNotifier>();
 		services.AddSingleton<MempoolService>();
-		services.AddSingleton<P2pNode>(s =>
-			new P2pNode(
-				network,
-				config.GetBitcoinP2pEndPoint(),
-				s.GetRequiredService<MempoolService>()));
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(

@@ -42,30 +42,9 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 		yield return new ContentSearchItem(content: Setting(selector: x => x.HideOnClose), name: "Run in background when closed", category: "Settings", keywords: new List<string>() { "hide", "tray" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 4 };
 		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 5 };
 		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
-
-		yield return ContentSearchItemNode.Create(
-			searchSource: _uiContext.EditableSearchSource,
-			setting: Setting(selector: x => x.StartLocalBitcoinCoreOnStartup),
-			name: "Run Bitcoin Knots on startup",
-			category: "Settings",
-			isDefault: false,
-			keywords: new List<string>(),
-			icon: "nav_settings_regular",
-			priority: 7,
-			isEnabled,
-			nestedItemConfiguration: new NestedItemConfiguration<bool>(
-				isDisplayed: isVisible => isVisible,
-				item: new ContentSearchItem(
-					content: Setting(selector: x => x.StopLocalBitcoinCoreOnShutdown),
-					name: "Stop Bitcoin Knots on shutdown",
-					category: "Settings",
-					keywords: new List<string>(),
-					icon: "nav_settings_regular",
-					isEnabled)
-				{
-					IsDefault = false,
-					Priority = 8
-				}));
+		yield return new ContentSearchItem(content: Setting(selector: x => x.UseBitcoinRpc), name: "Connect to the specified Bitcoin Node RPC server endpoint", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 7};
+		yield return new ContentSearchItem(content: Setting(selector: x => x.BitcoinRpcEndPoint), name: "Bitcoin Node RPC Server endpoint to connect to", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 8};
+		yield return new ContentSearchItem(content: Setting(selector: x => x.BitcoinRpcCredentialString), name: "Bitcoin Node RPC Server credentials", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 9};
 	}
 
 	private Setting<ApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<ApplicationSettings, TProperty>> selector)

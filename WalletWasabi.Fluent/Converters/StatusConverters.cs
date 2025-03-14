@@ -1,5 +1,5 @@
 using Avalonia.Data.Converters;
-using WalletWasabi.BitcoinCore.Monitoring;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Converters;

@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;

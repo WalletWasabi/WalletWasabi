@@ -20,26 +20,26 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Keywords =
 	[
 		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
-		"Stop", "Shutdown", "P2P", "Endpoint", "Dust", "Attack", "Limit"
+		"Stop", "Shutdown", "Rpc", "Endpoint", "Dust", "Attack", "Limit"
 	],
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _bitcoinP2PEndPoint;
+	[AutoNotify] private string _bitcoinRpcEndPoint;
 	[AutoNotify] private string _dustThreshold;
 
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
 
-		this.ValidateProperty(x => x.BitcoinP2PEndPoint, ValidateBitcoinP2PEndPoint);
+		this.ValidateProperty(x => x.BitcoinRpcEndPoint, ValidateBitcoinRpcEndPoint);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-		_bitcoinP2PEndPoint = settings.BitcoinP2PEndPoint;
+		_bitcoinRpcEndPoint = settings.BitcoinRpcEndPoint;
 		_dustThreshold = settings.DustThreshold;
 
-		this.WhenAnyValue(x => x.Settings.BitcoinP2PEndPoint)
-			.Subscribe(x => BitcoinP2PEndPoint = x);
+		this.WhenAnyValue(x => x.Settings.BitcoinRpcEndPoint)
+			.Subscribe(x => BitcoinRpcEndPoint = x);
 
 		this.WhenAnyValue(x => x.Settings.DustThreshold)
 			.Subscribe(x => DustThreshold = x);
@@ -53,17 +53,17 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
 
-	private void ValidateBitcoinP2PEndPoint(IValidationErrors errors)
+	private void ValidateBitcoinRpcEndPoint(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(BitcoinP2PEndPoint))
+		if (!string.IsNullOrWhiteSpace(BitcoinRpcEndPoint))
 		{
-			if (!EndPointParser.TryParse(BitcoinP2PEndPoint, Settings.Network.DefaultPort, out _))
+			if (!EndPointParser.TryParse(BitcoinRpcEndPoint, Settings.Network.DefaultPort, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 			}
 			else
 			{
-				Settings.BitcoinP2PEndPoint = BitcoinP2PEndPoint;
+				Settings.BitcoinRpcEndPoint = BitcoinRpcEndPoint;
 			}
 		}
 	}

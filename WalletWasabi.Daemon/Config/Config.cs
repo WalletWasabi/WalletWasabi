@@ -76,24 +76,27 @@ public class Config
 			[ nameof(DownloadNewVersion)] = (
 				"Automatically download any new released version of Wasabi",
 				GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs)),
-			[ nameof(StartLocalBitcoinCoreOnStartup)] = (
-				"Start a local bitcoin node when Wasabi starts",
-				GetBoolValue("StartLocalBitcoinCoreOnStartup", PersistentConfig.StartLocalBitcoinCoreOnStartup, cliArgs)),
-			[ nameof(StopLocalBitcoinCoreOnShutdown)] = (
-				"Stop the local bitcoin node when Wasabi is closed",
-				GetBoolValue("StopLocalBitcoinCoreOnShutdown", PersistentConfig.StopLocalBitcoinCoreOnShutdown, cliArgs)),
-			[ nameof(LocalBitcoinCoreDataDir)] = (
-				"The path of the data directory to be used by the local bitcoin node",
-				GetStringValue("LocalBitcoinCoreDataDir", PersistentConfig.LocalBitcoinCoreDataDir, cliArgs)),
-			[ nameof(MainNetBitcoinP2pEndPoint)] = (
+			[ nameof(UseBitcoinRpc)] = (
+				"Connect to bitcoin node rpc server",
+				GetBoolValue("UseBitcoinRpc", PersistentConfig.UseBitcoinRpc, cliArgs)),
+			[ nameof(MainNetBitcoinRpcCredentialString)] = (
+				"Credentials for authenticating against the bitcoin node rpc server",
+				GetStringValue("MainNetBitcoinRpcCredentialString", PersistentConfig.MainNetBitcoinRpcCredentialString, cliArgs)),
+			[ nameof(TestNetBitcoinRpcCredentialString)] = (
+				"Credentials for authenticating against the bitcoin node rpc server",
+				GetStringValue("TestNetBitcoinRpcCredentialString", PersistentConfig.TestNetBitcoinRpcCredentialString, cliArgs)),
+			[ nameof(RegTestBitcoinRpcCredentialString)] = (
+				"Credentials for authenticating against the bitcoin node rpc server",
+				GetStringValue("RegTestBitcoinRpcCredentialString", PersistentConfig.RegTestBitcoinRpcCredentialString, cliArgs)),
+			[ nameof(MainNetBitcoinRpcEndPoint)] = (
 				"-",
-				GetEndPointValue("MainNetBitcoinP2pEndPoint", PersistentConfig.MainNetBitcoinP2pEndPoint, cliArgs)),
-			[ nameof(TestNetBitcoinP2pEndPoint)] = (
+				GetEndPointValue("MainNetBitcoinRpcEndPoint", PersistentConfig.MainNetBitcoinRpcEndPoint, cliArgs)),
+			[ nameof(TestNetBitcoinRpcEndPoint)] = (
 				"-",
-				GetEndPointValue("TestNetBitcoinP2pEndPoint", PersistentConfig.TestNetBitcoinP2pEndPoint, cliArgs)),
-			[ nameof(RegTestBitcoinP2pEndPoint)] = (
+				GetEndPointValue("TestNetBitcoinRpcEndPoint", PersistentConfig.TestNetBitcoinRpcEndPoint, cliArgs)),
+			[ nameof(RegTestBitcoinRpcEndPoint)] = (
 				"-",
-				GetEndPointValue("RegTestBitcoinP2pEndPoint", PersistentConfig.RegTestBitcoinP2pEndPoint, cliArgs)),
+				GetEndPointValue("RegTestBitcoinRpcEndPoint", PersistentConfig.RegTestBitcoinRpcEndPoint, cliArgs)),
 			[ nameof(JsonRpcServerEnabled)] = (
 				"Start the Json RPC Server and accept requests",
 				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
@@ -160,7 +163,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinP2pEndPoint(), DustThreshold, DropUnconfirmedTransactionsAfterDays);
+		ServiceConfiguration = new ServiceConfiguration(GetBitcoinRpcEndPoint(), DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
 	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
@@ -181,12 +184,13 @@ public class Config
 	public string[] TorBridges => GetEffectiveValue<StringArrayValue, string[]>(nameof(TorBridges));
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
-	public bool StartLocalBitcoinCoreOnStartup => GetEffectiveValue<BoolValue, bool>(nameof(StartLocalBitcoinCoreOnStartup));
-	public bool StopLocalBitcoinCoreOnShutdown => GetEffectiveValue<BoolValue, bool>(nameof(StopLocalBitcoinCoreOnShutdown));
-	public string LocalBitcoinCoreDataDir => GetEffectiveValue<StringValue, string>(nameof(LocalBitcoinCoreDataDir));
-	public EndPoint MainNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(MainNetBitcoinP2pEndPoint));
-	public EndPoint TestNetBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(TestNetBitcoinP2pEndPoint));
-	public EndPoint RegTestBitcoinP2pEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(RegTestBitcoinP2pEndPoint));
+	public bool UseBitcoinRpc => GetEffectiveValue<BoolValue, bool>(nameof(UseBitcoinRpc));
+	public string MainNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(MainNetBitcoinRpcCredentialString));
+	public string TestNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(TestNetBitcoinRpcCredentialString));
+	public string RegTestBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(RegTestBitcoinRpcCredentialString));
+	public EndPoint MainNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(MainNetBitcoinRpcEndPoint));
+	public EndPoint TestNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(TestNetBitcoinRpcEndPoint));
+	public EndPoint RegTestBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(RegTestBitcoinRpcEndPoint));
 	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>(nameof(JsonRpcServerEnabled));
 	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
 	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
@@ -222,21 +226,38 @@ public class Config
 	/// </remarks>
 	public bool IsOverridden { get; }
 
-	public EndPoint GetBitcoinP2pEndPoint()
+	public EndPoint GetBitcoinRpcEndPoint()
 	{
 		if (Network == Network.Main)
 		{
-			return MainNetBitcoinP2pEndPoint;
+			return MainNetBitcoinRpcEndPoint;
+		}
+		if (Network == Network.TestNet)
+		{
+			return TestNetBitcoinRpcEndPoint;
+		}
+		if (Network == Network.RegTest)
+		{
+			return RegTestBitcoinRpcEndPoint;
+		}
+		throw new NotSupportedNetworkException(Network);
+	}
+
+	public string GetBitcoinRpcCredentialString()
+	{
+		if (Network == Network.Main)
+		{
+			return MainNetBitcoinRpcCredentialString;
 		}
 
 		if (Network == Network.TestNet)
 		{
-			return TestNetBitcoinP2pEndPoint;
+			return TestNetBitcoinRpcCredentialString;
 		}
 
 		if (Network == Network.RegTest)
 		{
-			return RegTestBitcoinP2pEndPoint;
+			return RegTestBitcoinRpcCredentialString;
 		}
 
 		throw new NotSupportedNetworkException(Network);

@@ -68,7 +68,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="The reported balance might not be accurate, and some other features may not be available, because Wasabi was unable to connect to the server. Retrying to connect."
+                       Text="Wasabi was unable to connect to the server. Retrying..."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
@@ -80,7 +80,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="This version of Wasabi is not compatible with the backend it tries to connect to. Update if available or change the backend provider."
+                       Text="Wasabi is not compatible with the specified backend. Update or change the backend provider."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
@@ -123,9 +123,9 @@
               </StatusItem.Icon>
             </StatusItem>
             <StatusItem
-              Title="{Binding BitcoinCoreName}"
-              StatusText="{Binding HealthMonitor.BitcoinCoreStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
-              IsVisible="{Binding HealthMonitor.UseBitcoinCore}">
+              Title="Bitcoin RPC"
+              StatusText="{Binding HealthMonitor.BitcoinRpcStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
+              IsVisible="{Binding HealthMonitor.UseBitcoinRpc}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
               </StatusItem.Icon>
@@ -175,22 +175,22 @@
       </Flyout>
     </FlyoutBase.AttachedFlyout>
 
-    <!--Update available-->
-    <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.UpdateAvailable}}"
-      Data="{StaticResource arrow_clockwise_with_elipse}"
-      Foreground="Goldenrod" />
-
-    <!--Critical update available-->
-    <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}"
-      Data="{StaticResource backend_not_compatible}"
-      Foreground="{DynamicResource SystemErrorTextColor}" />
-
     <!-- Ready -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Ready}}"
       Data="{StaticResource checkmark_circle_filled}" />
+
+    <!-- Loading -->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Loading}}"
+      Data="{StaticResource arrow_sync_regular}"
+      Classes.rotate="{Binding $self.IsVisible}" />
+
+    <!-- Bitcoin Core Synchronizing -->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreSynchronizingOrConnecting}}"
+      Data="{StaticResource arrow_sync_regular}"
+      Classes.rotate="{Binding $self.IsVisible}" />
 
     <!-- Connection issue -->
     <PathIcon
@@ -199,10 +199,24 @@
       Foreground="Gold"
       VerticalAlignment="Center" HorizontalAlignment="Right" />
 
-    <!-- Loading -->
+    <!-- Bitcoin Core Connection issue -->
     <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Loading}}"
-      Data="{StaticResource arrow_sync_regular}"
-      Classes.rotate="{Binding $self.IsVisible}" />
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreIssueDetected}}"
+      Data="{StaticResource warning_filled}"
+      Foreground="Gold"
+      VerticalAlignment="Center" HorizontalAlignment="Right" />
+
+    <!--Critical update available-->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}"
+      Data="{StaticResource backend_not_compatible}"
+      Foreground="{DynamicResource SystemErrorTextColor}" />
+
+    <!--Update available-->
+    <PathIcon
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.UpdateAvailable}}"
+      Data="{StaticResource arrow_clockwise_with_elipse}"
+      Foreground="Goldenrod" />
+
   </Panel>
 </UserControl>

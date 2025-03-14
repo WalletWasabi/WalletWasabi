@@ -12,11 +12,11 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public abstract class P2pBehavior : NodeBehavior
+public class P2pBehavior : NodeBehavior
 {
 	private const int MaxInvSize = 50000;
 
-	protected P2pBehavior(MempoolService mempoolService)
+	public P2pBehavior(MempoolService mempoolService)
 	{
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
@@ -78,7 +78,26 @@ public abstract class P2pBehavior : NodeBehavior
 		}
 	}
 
-	protected abstract bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint);
+	private bool ProcessInventoryVector(InventoryVector inv, EndPoint remoteSocketEndpoint)
+	{
+		if (inv.Type.HasFlag(InventoryType.MSG_TX))
+		{
+			if (MempoolService.TryGetFromBroadcastStore(inv.Hash, out TransactionBroadcastEntry? entry)) // If we have the transaction then adjust confirmation.
+			{
+				entry.ConfirmPropagationOnce(remoteSocketEndpoint);
+			}
+
+			// If we already processed it, then don't ask for it.
+			if (MempoolService.IsProcessed(inv.Hash))
+			{
+				return false;
+			}
+
+			return true;
+		}
+
+		return false;
+	}
 
 	private async Task ProcessGetDataAsync(Node node, GetDataPayload payload)
 	{
@@ -107,11 +126,13 @@ public abstract class P2pBehavior : NodeBehavior
 		}
 	}
 
-	protected virtual void ProcessTx(TxPayload payload)
+	private void ProcessTx(TxPayload payload)
 	{
 		Transaction transaction = payload.Object;
 		transaction.PrecomputeHash(false, true);
 		OnTransactionArrived.SafeInvoke(this, transaction);
 		MempoolService.Process(transaction);
 	}
+
+	public override object Clone() => new P2pBehavior(MempoolService);
 }

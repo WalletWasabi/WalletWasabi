@@ -1,5 +1,5 @@
 using System.Text;
-using WalletWasabi.BitcoinCore.Configuration;
+using WalletWasabi.Tests.BitcoinCore.Configuration;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
