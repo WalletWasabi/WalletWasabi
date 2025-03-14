@@ -64,7 +64,6 @@ public class MockNode
 
 		var startingFilter = StartingFilters.GetStartingFilter(Network);
 		filters.Add(startingFilter);
-
 		foreach (var block in BlockChain.Values)
 		{
 			var inputScriptPubKeys = block.Transactions
@@ -80,16 +79,15 @@ public class MockNode
 			var entries = scripts.Select(x => x.ToCompressedBytes()).DefaultIfEmpty(IndexBuilderService.DummyScript[0]);
 
 			var filter = new GolombRiceFilterBuilder()
-				.SetKey(block.GetHash())
 				.SetP(20)
 				.SetM(1 << 20)
+				.SetKey(block.GetHash())
 				.AddEntries(entries)
 				.Build();
 
 			var tipFilter = filters.Last();
 
 			var smartHeader = new SmartHeader(block.GetHash(), tipFilter.Header.BlockHash, tipFilter.Header.Height + 1, DateTimeOffset.UtcNow);
-
 			filters.Add(new FilterModel(smartHeader, filter));
 		}
 

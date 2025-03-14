@@ -64,8 +64,9 @@ public class StartupTask
 			{
 				if (blocks < 101)
 				{
-					using Key key = new();
-					var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, key.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest), cancellationToken);
+					using var key = new Key();
+					var address = key.GetAddress(ScriptPubKeyType.TaprootBIP86, RpcClient.Network);
+					var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, address, cancellationToken);
 					if (generateBlocksResponse is null)
 					{
 						throw new NotSupportedException($"Bitcoin Node cannot generate blocks on the {Network.RegTest}.");

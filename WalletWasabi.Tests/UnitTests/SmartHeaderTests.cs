@@ -16,8 +16,7 @@ public class SmartHeaderTests
 		new SmartHeader(uint256.Zero, uint256.One, 1, blockTime);
 
 		Assert.Throws<ArgumentNullException>(() => new SmartHeader(blockHash: null!, uint256.One, 1, blockTime));
-		Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, prevHash: null!, 1, blockTime));
-		Assert.Throws<InvalidOperationException>(() => new SmartHeader(uint256.Zero, uint256.Zero, 1, blockTime));
+		Assert.Throws<ArgumentNullException>(() => new SmartHeader(uint256.Zero, header: null!, 1, blockTime));
 	}
 
 	[Fact]
@@ -28,32 +27,32 @@ public class SmartHeaderTests
 		var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
 
 		var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
-		var expectedPrevHashMain = new uint256("000000000000000000cbeff0b533f8e1189cf09dfbebf57a8ebe349362811b80");
+		var expectedHeaderMain = new uint256("000000000000000000cbeff0b533f8e1189cf09dfbebf57a8ebe349362811b80");
 		uint expectedHeightMain = 481824;
 		var expectedTimeMain = DateTimeOffset.FromUnixTimeSeconds(1503539857);
 
 		var expectedHashTest = new uint256("00000000da84f2bafbbc53dee25a72ae507ff4914b867c565be350b0da8bf043");
-		var expectedPrevHashTest = uint256.Zero;
+		var expectedHeaderTest = uint256.Zero;
 		uint expectedHeightTest = 0;
 		var expectedTimeTest = DateTimeOffset.FromUnixTimeSeconds(1714777860);
 
 		var expectedHashReg = Network.RegTest.GenesisHash;
-		var expectedPrevHashReg = uint256.Zero;
+		var expectedHeaderReg = uint256.Zero;
 		uint expectedHeightReg = 0;
 		var expectedTimeReg = Network.RegTest.GetGenesis().Header.BlockTime;
 
 		Assert.Equal(expectedHashMain, startingMain.BlockHash);
-		Assert.Equal(expectedPrevHashMain, startingMain.PrevHash);
+		Assert.Equal(expectedHeaderMain, startingMain.HeaderOrPrevBlockHash);
 		Assert.Equal(expectedHeightMain, startingMain.Height);
 		Assert.Equal(expectedTimeMain, startingMain.BlockTime);
 
 		Assert.Equal(expectedHashTest, startingTest.BlockHash);
-		Assert.Equal(expectedPrevHashTest, startingTest.PrevHash);
+		Assert.Equal(expectedHeaderTest, startingTest.HeaderOrPrevBlockHash);
 		Assert.Equal(expectedHeightTest, startingTest.Height);
 		Assert.Equal(expectedTimeTest, startingTest.BlockTime);
 
 		Assert.Equal(expectedHashReg, startingReg.BlockHash);
-		Assert.Equal(expectedPrevHashReg, startingReg.PrevHash);
+		Assert.Equal(expectedHeaderReg, startingReg.HeaderOrPrevBlockHash);
 		Assert.Equal(expectedHeightReg, startingReg.Height);
 		Assert.Equal(expectedTimeReg, startingReg.BlockTime);
 	}
