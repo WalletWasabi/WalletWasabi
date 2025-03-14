@@ -122,31 +122,11 @@ public class IndexBuilderService
 					{
 						try
 						{
+							var (currentHeight, currentHash) = GetLastFilter()?.Header is {BlockHash: var curBlockHash, Height: var curHeight}
+								? (curHeight, curBlockHash)
+								: (_startingHeight - 1, uint256.Zero);
+
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
-
-							FilterModel? lastIndexFilter;
-
-							lock (_indexLock)
-							{
-								lastIndexFilter = GetLastFilter();
-							}
-
-							uint currentHeight;
-							uint256? currentHash;
-
-							if (lastIndexFilter is not null)
-							{
-								currentHeight = lastIndexFilter.Header.Height;
-								currentHash = lastIndexFilter.Header.BlockHash;
-							}
-							else
-							{
-								currentHash = _startingHeight == 0
-									? uint256.Zero
-									: await _rpcClient.GetBlockHashAsync((int)_startingHeight - 1).ConfigureAwait(false);
-								currentHeight = _startingHeight - 1;
-							}
-
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
 							var tipReached = syncInfo.BlockCount == currentHeight;
 							var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
@@ -168,8 +148,8 @@ public class IndexBuilderService
 								}
 								else
 								{
-									// Knots is catching up give it a 10 seconds
-									await Task.Delay(10000).ConfigureAwait(false);
+									// Bitcoin Node is catching up give it a 10 seconds
+									await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
 									continue;
 								}
 							}
