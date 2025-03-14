@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend.Models;
 
@@ -9,18 +10,24 @@ public class FilterModel
 {
 	private readonly Lazy<GolombRiceFilter> _filter;
 
-	public FilterModel(SmartHeader header, GolombRiceFilter filter)
+	public FilterModel(SmartHeader header, GolombRiceFilter filter, bool isBip158 = false)
 	{
 		Header = header;
 		_filter = new(filter);
-		FilterData = filter.ToBytes();
+		FilterData = isBip158
+			? ByteHelpers.Combine(filter.ToBytes(), [0x86, 0x68])
+			: filter.ToBytes();
 	}
 
 	private FilterModel(SmartHeader header, byte[] filterData)
 	{
 		Header = header;
 		FilterData = filterData;
-		_filter = new(() => new GolombRiceFilter(filterData, 20, 1 << 20), LazyThreadSafetyMode.ExecutionAndPublication);
+		var isBip158 = filterData is [.., 0x86, 0x68];
+		_filter = new(() => isBip158
+			? new GolombRiceFilter(filterData)
+			: new GolombRiceFilter(filterData, 20, 1 << 20)
+			, LazyThreadSafetyMode.ExecutionAndPublication);
 	}
 
 	public SmartHeader Header { get; }
@@ -79,10 +86,16 @@ public class FilterModel
 		builder.Append(':');
 		builder.Append(Filter);
 		builder.Append(':');
-		builder.Append(Header.PrevHash);
+		builder.Append(Header.HeaderOrPrevBlockHash);
 		builder.Append(':');
 		builder.Append(Header.EpochBlockTime);
 
 		return builder.ToString();
 	}
+}
+
+public static class GolombRiceFilterExtensions
+{
+	public static bool IsBip158(this GolombRiceFilter filter) =>
+		filter is {P: 19, M: 784_931}; // Standard BIP158 filter parameters.
 }

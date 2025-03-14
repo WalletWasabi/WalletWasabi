@@ -207,8 +207,9 @@ public class WalletFilterProcessor : BackgroundService
 	/// </summary>
 	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
 	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
+	/// <param name="isBip158"></param>
 	/// <returns>Keys to test against this filter.</returns>
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType, bool isBip158)
 	{
 		bool ScriptAlreadySpent(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
 			spendingInfo.LatestSpendingHeight is { } spendingHeight && spendingHeight < filterHeight;
@@ -216,7 +217,8 @@ public class WalletFilterProcessor : BackgroundService
 		bool ScriptNotSpentAtTheMoment(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
 			!ScriptAlreadySpent(spendingInfo);
 
-		var scriptsSpendingInfo = _keyManager.UnsafeGetSynchronizationInfos();
+		// Wasabi doesn't build bip158 filters and also uses the compact representation of the scriptPubKeys
+		var scriptsSpendingInfo = _keyManager.UnsafeGetSynchronizationInfos(isBip158);
 		var scriptPubKeyAccordingSyncType = syncType switch
 		{
 			SyncType.Complete => scriptsSpendingInfo,
@@ -225,13 +227,14 @@ public class WalletFilterProcessor : BackgroundService
 			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
 		};
 
-		return scriptPubKeyAccordingSyncType.Select(x => x.CompressedScriptPubKey);
+		return scriptPubKeyAccordingSyncType.Select(x => x.ScriptPubKey);
 	}
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
-		var toTestKeys = GetScriptPubKeysToTest(height, syncType);
+
+		var toTestKeys = GetScriptPubKeysToTest(height, syncType, filter.Filter.IsBip158());
 
 		var matchFound = false;
 		if (toTestKeys.Any())

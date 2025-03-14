@@ -92,7 +92,7 @@ public class IndexBuilderServiceTests
 
 		indexer.Synchronize();
 
-		await Task.Delay(TimeSpan.FromSeconds(10));
+		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();
