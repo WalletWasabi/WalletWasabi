@@ -221,7 +221,7 @@ public record PersistentConfig
 				_ => new IPEndPoint(IPAddress.Loopback, defaultPort)
 			};
 
-		var defaultBitcoinDataDir = Network.GetDefaultDataFolder("bitcoin");
+		var defaultBitcoinDataDir = EnvironmentHelpers.GetDefaultBitcoinDataDir();
 		if (string.IsNullOrWhiteSpace(defaultBitcoinDataDir))
 		{
 			return this;
