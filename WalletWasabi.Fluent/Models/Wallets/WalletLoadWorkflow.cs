@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
@@ -21,12 +22,20 @@ public partial class WalletLoadWorkflow
 	private readonly Wallet _wallet;
 	private Subject<(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percent)> _progress;
 	[AutoNotify] private bool _isLoading;
+	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public WalletLoadWorkflow(Wallet wallet)
 	{
 		_wallet = wallet;
 		_progress = new();
 		_progress.OnNext((0, 0, 0, 0));
+
+		Services.EventBus.AsObservable<BackendConnectionStateChanged>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(e => e.BackendStatus == BackendStatus.Connected)
+			.Take(1)
+			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
+			.DisposeWith(_disposables);
 
 		LoadCompleted =
 			Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
@@ -45,8 +54,9 @@ public partial class WalletLoadWorkflow
 
 	public void Start()
 	{
-		Observable.FromAsync(() => Services.HostedServices.Get<WasabiSynchronizer>().InitialRequestTcs.Task)
+		Observable.FromAsync(() => InitialRequestTcs.Task)
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Take(1)
 			.SubscribeAsync(LoadWalletAsync)
 			.DisposeWith(_disposables);
 
@@ -67,11 +77,6 @@ public partial class WalletLoadWorkflow
 
 	private async Task LoadWalletAsync(bool isBackendAvailable)
 	{
-		if (IsLoading)
-		{
-			return;
-		}
-
 		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);

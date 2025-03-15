@@ -58,6 +58,7 @@ public class Global
 			owningProcessId: Environment.ProcessId,
 			log: Config.LogModes.Contains(LogMode.File));
 
+		EventBus = new EventBus();
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -78,7 +79,7 @@ public class Global
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory), "Wasabi Synchronizer");
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory, EventBus), "Wasabi Synchronizer");
 		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser());
@@ -183,7 +184,6 @@ public class Global
 	public IRPCClient? BitcoinRpcClient { get; }
 	public UpdateManager UpdateManager { get; }
 	public HostedServices HostedServices { get; }
-
 	public Network Network => Config.Network;
 
 	public IMemoryCache Cache { get; private set; }
@@ -191,6 +191,8 @@ public class Global
 	public JsonRpcServer? RpcServer { get; private set; }
 
 	public Uri? OnionServiceUri { get; private set; }
+
+	public EventBus EventBus { get; }
 
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly IndexStore _indexStore;

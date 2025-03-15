@@ -202,14 +202,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		return new JsonRpcResult
 		{
-			["torStatus"] = sync.TorStatus switch
-			{
-				TorStatus.NotRunning => "Not running",
-				TorStatus.Running => "Running",
-				_ => "Turned off"
-			},
+			//["torStatus"] = sync.TorStatus switch
+			//{
+			//	TorStatus.NotRunning => "Not running",
+			//	TorStatus.Running => "Running",
+			//	_ => "Turned off"
+			//},
 			["onionService"] = Global.OnionServiceUri?.ToString() ?? "Unavailable",
-			["backendStatus"] = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
+			//["backendStatus"] = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
 			["bestBlockchainHeight"] = smartHeaderChain.TipHeight.ToString(),
 			["bestBlockchainHash"] = smartHeaderChain.TipHash?.ToString() ?? "",
 			["filtersCount"] = smartHeaderChain.HashCount,

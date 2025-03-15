@@ -46,6 +46,7 @@ public static class Services
 
 	public static UpdateManager UpdateManager { get; private set; } = null!;
 
+	public static EventBus EventBus { get; private set; } = null;
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>
@@ -81,6 +82,7 @@ public static class Services
 		UpdateManager = global.UpdateManager;
 		Config = global.Config;
 		TerminateService = terminateService;
+		EventBus = global.EventBus;
 
 		IsInitialized = true;
 	}

@@ -1,10 +1,7 @@
 using NBitcoin.RPC;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -23,47 +20,16 @@ public class WasabiSynchronizer(
 	TimeSpan period,
 	int maxFiltersToSync,
 	BitcoinStore bitcoinStore,
-	IHttpClientFactory httpClientFactory)
-	: PeriodicRunner(period), INotifyPropertyChanged, IWasabiBackendStatusProvider
+	IHttpClientFactory httpClientFactory,
+	EventBus? eventBus = null)
+	: PeriodicRunner(period), IWasabiBackendStatusProvider
 {
-	private TorStatus _torStatus;
-	private BackendStatus _backendStatus;
-	private bool _backendNotCompatible;
+	private readonly EventBus _eventBus = eventBus ?? new EventBus();
 	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
 	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 
-	#region EventsPropertiesMembers
-
-	public event EventHandler<bool>? SynchronizeRequestFinished;
-
-	public event PropertyChangedEventHandler? PropertyChanged;
-
-	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
-	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
-
-	public SynchronizeResponse? LastResponse { get; private set; } = null;
-
-	public TorStatus TorStatus
-	{
-		get => _torStatus;
-		private set => RaiseAndSetIfChanged(ref _torStatus, value);
-	}
-
-	public BackendStatus BackendStatus
-	{
-		get => _backendStatus;
-		private set => RaiseAndSetIfChanged(ref _backendStatus, value);
-	}
-
-	public bool BackendNotCompatible
-	{
-		get => _backendNotCompatible;
-		private set => RaiseAndSetIfChanged(ref _backendNotCompatible, value);
-	}
-
-
-	#endregion EventsPropertiesMembers
+	public SynchronizeResponse? LastResponse { get; private set; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -81,8 +47,7 @@ public class WasabiSynchronizer(
 				.GetSynchronizeAsync(_smartHeaderChain.TipHash, maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 				.ConfigureAwait(false);
 
-			UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
-			OnSynchronizeRequestFinished();
+			UpdateStatus(BackendStatus.Connected, TorStatus.Running);
 
 			// If it's not fully synced or reorg happened.
 			if (NeedsContinuedSynchronization(response))
@@ -97,13 +62,7 @@ public class WasabiSynchronizer(
 		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{
 			bool isConnectionRefused = innerEx.SocketErrorCode == SocketError.ConnectionRefused;
-			UpdateStatus(
-				BackendStatus.NotConnected,
-				isConnectionRefused
-					? TorStatus.NotRunning
-					: TorStatus.Running,
-				false);
-			OnSynchronizeRequestFinished();
+			UpdateStatus(BackendStatus.NotConnected, isConnectionRefused ? TorStatus.NotRunning : TorStatus.Running);
 
 			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
@@ -113,8 +72,12 @@ public class WasabiSynchronizer(
 		{
 			// Backend API version might be updated meanwhile. Trying to update the versions.
 			var backendCompatible = await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
+			if (!backendCompatible)
+			{
+				_eventBus.Publish(new BackendIncompatibilityDetected());
+			}
 
-			UpdateStatus( BackendStatus.NotConnected, TorStatus.Running, !backendCompatible);
+			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running);
 
 			// If the backend is compatible and the Api version updated then we just used the wrong API.
 			if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
@@ -130,8 +93,7 @@ public class WasabiSynchronizer(
 		}
 		catch (Exception)
 		{
-			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running, false);
-			OnSynchronizeRequestFinished();
+			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running);
 			throw;
 		}
 	}
@@ -152,11 +114,10 @@ public class WasabiSynchronizer(
 		return backendCompatible;
 	}
 
-	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus, bool backendNotCompatible)
+	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus)
 	{
-		BackendStatus = backendStatus;
-		TorStatus = torStatus;
-		BackendNotCompatible = backendNotCompatible;
+		_eventBus.Publish(new BackendConnectionStateChanged(backendStatus));
+		_eventBus.Publish(new TorConnectionStateChanged(torStatus));
 	}
 
 	private bool NeedsContinuedSynchronization(SynchronizeResponse response)
@@ -170,24 +131,5 @@ public class WasabiSynchronizer(
 		await _filterProcessor
 			.ProcessAsync((uint) response.BestHeight, response.FiltersResponseState, response.Filters)
 			.ConfigureAwait(false);
-	}
-
-	private void OnSynchronizeRequestFinished()
-	{
-		var isBackendConnected = BackendStatus is BackendStatus.Connected;
-
-		// One time trigger for the UI about the first request.
-		InitialRequestTcs.TrySetResult(isBackendConnected);
-
-		SynchronizeRequestFinished?.Invoke(this, isBackendConnected);
-	}
-
-	private void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (!EqualityComparer<T>.Default.Equals(field, value))
-		{
-			field = value;
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
 	}
 }
