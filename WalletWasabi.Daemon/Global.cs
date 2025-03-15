@@ -73,7 +73,7 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com")), "Update Manager");
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);

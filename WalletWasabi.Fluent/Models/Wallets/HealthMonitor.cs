@@ -131,20 +131,17 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Update Available
-		if (Services.UpdateManager is { })
-		{
-			Observable.FromEventPattern<UpdateManager.UpdateStatus>(Services.UpdateManager, nameof(Services.UpdateManager.UpdateAvailableToGet))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					var updateStatus = e.EventArgs;
+		Services.EventBus.AsObservable<NewSoftwareVersionAvailable>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(e =>
+			{
+				var updateStatus = e.UpdateStatus;
 
-					UpdateAvailable = !updateStatus.ClientUpToDate;
-					IsReadyToInstall = updateStatus.IsReadyToInstall;
-					ClientVersion = updateStatus.ClientVersion;
-				})
-				.DisposeWith(Disposables);
-		}
+				UpdateAvailable = !updateStatus.ClientUpToDate;
+				IsReadyToInstall = updateStatus.IsReadyToInstall;
+				ClientVersion = updateStatus.ClientVersion;
+			})
+			.DisposeWith(Disposables);
 
 		// State
 		this.WhenAnyValue(
