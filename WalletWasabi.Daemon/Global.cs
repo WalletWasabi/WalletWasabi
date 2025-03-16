@@ -108,8 +108,8 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
-		RegisterExchangeRateProviders();
-		RegisterFeeRateProviders();
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
 
 		// Block providers.
 		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
@@ -335,16 +335,6 @@ public class Global
 		}
 	}
 
-	private void RegisterFeeRateProviders()
-	{
-		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
-	}
-
-	private void RegisterExchangeRateProviders()
-	{
-		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
-	}
-
 	private void RegisterCoinJoinComponents(Uri coordinatorUri)
 	{
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
@@ -357,7 +347,7 @@ public class Global
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, CoordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, coinJoinConfiguration, CoinPrison, EventBus), "CoinJoin Manager");
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)

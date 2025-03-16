@@ -51,13 +51,8 @@ public partial class HealthMonitor : ReactiveObject
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 
 		// Priority Fee
-		var feeRateEstimationUpdater = Services.HostedServices.Get<FeeRateEstimationUpdater>();
-		Observable
-			.FromEventPattern(feeRateEstimationUpdater, nameof(feeRateEstimationUpdater.FeeEstimationsRefreshed))
-			.Select(value =>
-			{
-				return ((FeeRateEstimations)value.EventArgs).Estimations.FirstOrDefault(x => x.Key == 2).Value;
-			})
+		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+			.Select(e => e.AllFeeEstimate.Estimations.FirstOrDefault(x => x.Key == 2).Value)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(priorityFee => PriorityFee = priorityFee);

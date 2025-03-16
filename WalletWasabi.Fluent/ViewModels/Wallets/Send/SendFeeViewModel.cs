@@ -11,6 +11,7 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -98,10 +99,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		var feeProvider = _wallet.FeeRateEstimationUpdater;
-
-		Observable
-			.FromEventPattern(feeProvider, nameof(feeProvider.FeeEstimationsChanged))
+		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
 			.Select(_ =>
 			{
 				TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var estimates);

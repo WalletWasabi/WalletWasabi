@@ -22,14 +22,12 @@ public class WasabiSynchronizer(
 	BitcoinStore bitcoinStore,
 	IHttpClientFactory httpClientFactory,
 	EventBus? eventBus = null)
-	: PeriodicRunner(period), IWasabiBackendStatusProvider
+	: PeriodicRunner(period)
 {
 	private readonly EventBus _eventBus = eventBus ?? new EventBus();
 	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
 	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
-
-	public SynchronizeResponse? LastResponse { get; private set; }
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -57,7 +55,7 @@ public class WasabiSynchronizer(
 
 			await ProcessFiltersAsync(response).ConfigureAwait(false);
 
-			LastResponse = response;
+			_eventBus.Publish(new ServerTipHeightChanged(response.BestHeight));
 		}
 		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{

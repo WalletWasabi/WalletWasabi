@@ -31,7 +31,7 @@ public class Amount
 	public Amount(Money money, IAmountProvider exchangeRateProvider)
 	{
 		Btc = money;
-		Usd = exchangeRateProvider.BtcToUsdExchangeRates.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
+		Usd = exchangeRateProvider.BtcToUsdExchangeRate.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
 		HasUsdBalance = Usd.Select(x => x != 0m);
 	}
 
