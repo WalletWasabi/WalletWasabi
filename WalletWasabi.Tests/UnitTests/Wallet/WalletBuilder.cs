@@ -28,6 +28,7 @@ public class WalletBuilder : IAsyncDisposable
 	public WalletBuilder(MockNode node, [CallerMemberName] string callerName = "NN")
 	{
 		DataDir = Common.GetWorkDir(nameof(WalletSynchronizationTests), callerName);
+		EventBus = new EventBus();
 
 		SmartHeaderChain smartHeaderChain = new();
 		IndexStore = new IndexStore(Path.Combine(DataDir, "indexStore"), node.Network, smartHeaderChain);
@@ -38,17 +39,15 @@ public class WalletBuilder : IAsyncDisposable
 		var blockRepositoryMock = new MockFileSystemBlockRepository(node.BlockChain);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
-		var httpClientFactory = new HttpClientFactory();
-		Synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, BitcoinStore, httpClientFactory);
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
-		FeeRateEstimationUpdater = new(TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
+		FeeRateEstimationUpdater = new(TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), EventBus);
 	}
 
+	private EventBus EventBus { get; }
 	private IndexStore IndexStore { get; }
 	private AllTransactionStore TransactionStore { get; }
 	private BitcoinStore BitcoinStore { get; }
 	private MemoryCache Cache { get; }
-	private WasabiSynchronizer Synchronizer { get; }
 	private BlockDownloadService BlockDownloadService { get; }
 	private FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
 	public IEnumerable<FilterModel> Filters { get; }
@@ -65,14 +64,13 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, Synchronizer, serviceConfiguration, FeeRateEstimationUpdater, BlockDownloadService);
+		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, serviceConfiguration, FeeRateEstimationUpdater, BlockDownloadService);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
 	public async ValueTask DisposeAsync()
 	{
 		await IndexStore.DisposeAsync().ConfigureAwait(false);
-		await Synchronizer.StopAsync(CancellationToken.None).ConfigureAwait(false);
 		await TransactionStore.DisposeAsync().ConfigureAwait(false);
 		BlockDownloadService.Dispose();
 		Cache.Dispose();

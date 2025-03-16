@@ -1,6 +1,5 @@
 using System.Linq;
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 
@@ -97,18 +96,3 @@ public record BackendConnectionStateChanged(BackendStatus BackendStatus);
 public record TorConnectionStateChanged(TorStatus TorStatus);
 public record BackendIncompatibilityDetected();
 
-public static class EventBusExtensions
-{
-	public static IObservable<TEvent> AsObservable<TEvent>(this EventBus eventBus) where TEvent : notnull
-	{
-		return Observable.Create<TEvent>(observer =>
-		{
-			var subscription = eventBus.Subscribe<TEvent>(eventItem =>
-			{
-				observer.OnNext(eventItem);
-			});
-
-			return subscription;
-		});
-	}
-}

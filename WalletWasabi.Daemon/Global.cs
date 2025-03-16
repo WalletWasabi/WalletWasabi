@@ -136,7 +136,6 @@ public class Global
 			DataDir,
 			config.Network,
 			BitcoinStore,
-			wasabiSynchronizer,
 			config.ServiceConfiguration,
 			HostedServices.Get<FeeRateEstimationUpdater>(),
 			_blockDownloadService,

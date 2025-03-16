@@ -21,10 +21,9 @@ public class WasabiSynchronizer(
 	int maxFiltersToSync,
 	BitcoinStore bitcoinStore,
 	IHttpClientFactory httpClientFactory,
-	EventBus? eventBus = null)
+	EventBus eventBus)
 	: PeriodicRunner(period)
 {
-	private readonly EventBus _eventBus = eventBus ?? new EventBus();
 	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
 	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
@@ -55,7 +54,7 @@ public class WasabiSynchronizer(
 
 			await ProcessFiltersAsync(response).ConfigureAwait(false);
 
-			_eventBus.Publish(new ServerTipHeightChanged(response.BestHeight));
+			eventBus.Publish(new ServerTipHeightChanged(response.BestHeight));
 		}
 		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
 		{
@@ -72,7 +71,7 @@ public class WasabiSynchronizer(
 			var backendCompatible = await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
 			if (!backendCompatible)
 			{
-				_eventBus.Publish(new BackendIncompatibilityDetected());
+				eventBus.Publish(new BackendIncompatibilityDetected());
 			}
 
 			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running);
@@ -114,8 +113,8 @@ public class WasabiSynchronizer(
 
 	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus)
 	{
-		_eventBus.Publish(new BackendConnectionStateChanged(backendStatus));
-		_eventBus.Publish(new TorConnectionStateChanged(torStatus));
+		eventBus.Publish(new BackendConnectionStateChanged(backendStatus));
+		eventBus.Publish(new TorConnectionStateChanged(torStatus));
 	}
 
 	private bool NeedsContinuedSynchronization(SynchronizeResponse response)
