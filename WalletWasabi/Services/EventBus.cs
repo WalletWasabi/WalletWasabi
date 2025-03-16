@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -94,5 +95,8 @@ public record ServerTipHeightChanged(int Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
 public record BackendConnectionStateChanged(BackendStatus BackendStatus);
 public record TorConnectionStateChanged(TorStatus TorStatus);
+
+public record TorNetworkStatusChanged(Issue[] ReportedIssues);
 public record BackendIncompatibilityDetected();
+
 
