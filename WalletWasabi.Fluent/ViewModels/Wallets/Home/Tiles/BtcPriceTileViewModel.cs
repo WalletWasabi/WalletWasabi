@@ -6,7 +6,7 @@ public class BtcPriceTileViewModel : ActivatableViewModel
 {
 	public BtcPriceTileViewModel(IAmountProvider amountProvider)
 	{
-		UsdPerBtc = amountProvider.BtcToUsdExchangeRates;
+		UsdPerBtc = amountProvider.BtcToUsdExchangeRate;
 	}
 
 	public IObservable<decimal> UsdPerBtc { get; }
