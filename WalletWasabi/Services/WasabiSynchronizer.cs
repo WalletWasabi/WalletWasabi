@@ -1,7 +1,6 @@
 using NBitcoin.RPC;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -9,9 +8,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Models;
 using WalletWasabi.Stores;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Services;
@@ -35,7 +32,7 @@ public class WasabiSynchronizer(
 		{
 			return;
 		}
-		var wasabiClient = new WasabiClient(_httpClient);
+		var wasabiClient = new WasabiClient(_httpClient, eventBus);
 		var lastUsedApiVersion = WasabiClient.ApiVersion;
 
 		try
@@ -43,8 +40,6 @@ public class WasabiSynchronizer(
 			var response = await wasabiClient
 				.GetSynchronizeAsync(_smartHeaderChain.TipHash, maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
 				.ConfigureAwait(false);
-
-			UpdateStatus(BackendStatus.Connected, TorStatus.Running);
 
 			// If it's not fully synced or reorg happened.
 			if (NeedsContinuedSynchronization(response))
@@ -56,41 +51,29 @@ public class WasabiSynchronizer(
 
 			eventBus.Publish(new ServerTipHeightChanged(response.BestHeight));
 		}
-		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
+		catch (HttpRequestException ex)
 		{
-			bool isConnectionRefused = innerEx.SocketErrorCode == SocketError.ConnectionRefused;
-			UpdateStatus(BackendStatus.NotConnected, isConnectionRefused ? TorStatus.NotRunning : TorStatus.Running);
-
-			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
-			TriggerRound();
-			throw;
-		}
-		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
-		{
-			// Backend API version might be updated meanwhile. Trying to update the versions.
-			var backendCompatible = await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
-			if (!backendCompatible)
+			if (ex.Message.Contains("Not Found"))
 			{
-				eventBus.Publish(new BackendIncompatibilityDetected());
-			}
+				// Backend API version might be updated meanwhile. Trying to update the versions.
+				var backendCompatible =
+					await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
+				if (!backendCompatible)
+				{
+					eventBus.Publish(new BackendIncompatibilityDetected());
+				}
 
-			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running);
-
-			// If the backend is compatible and the Api version updated then we just used the wrong API.
-			if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-			{
-				// Next request will be fine, do not throw exception.
-				TriggerRound();
-				return;
+				// If the backend is compatible and the Api version updated then we just used the wrong API.
+				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+				{
+					// Next request will be fine, do not throw exception.
+					TriggerRound();
+					return;
+				}
 			}
 
 			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
-			throw;
-		}
-		catch (Exception)
-		{
-			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running);
 			throw;
 		}
 	}
@@ -109,12 +92,6 @@ public class WasabiSynchronizer(
 		}
 
 		return backendCompatible;
-	}
-
-	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus)
-	{
-		eventBus.Publish(new BackendConnectionStateChanged(backendStatus));
-		eventBus.Publish(new TorConnectionStateChanged(torStatus));
 	}
 
 	private bool NeedsContinuedSynchronization(SynchronizeResponse response)

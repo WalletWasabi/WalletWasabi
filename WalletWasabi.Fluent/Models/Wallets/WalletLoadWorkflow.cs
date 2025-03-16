@@ -30,9 +30,9 @@ public partial class WalletLoadWorkflow
 		_progress = new();
 		_progress.OnNext((0, 0, 0, 0));
 
-		Services.EventBus.AsObservable<BackendConnectionStateChanged>()
+		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(e => e.BackendStatus == BackendStatus.Connected)
+			.Select(e => e.IsBackendAvailable)
 			.Take(1)
 			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
 			.DisposeWith(_disposables);

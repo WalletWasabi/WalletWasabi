@@ -309,7 +309,7 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			TorManager = new TorProcessManager(TorSettings);
+			TorManager = new TorProcessManager(TorSettings, EventBus);
 			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 

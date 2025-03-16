@@ -72,15 +72,20 @@ public partial class HealthMonitor : ReactiveObject
 		// Tor Status
 		Services.EventBus.AsObservable<TorConnectionStateChanged>()
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(status => UseTor != TorMode.Disabled ? status.TorStatus : TorStatus.TurnedOff)
+							 .Select(status => (UseTor, status.IsTorRunning) switch
+							 {
+								 (TorMode.Disabled, _) => TorStatus.TurnedOff,
+								 (_, true) => TorStatus.Running,
+								 (_, false) => TorStatus.NotRunning
+							 })
 							 .BindTo(this, x => x.TorStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend Status
-		Services.EventBus.AsObservable<BackendConnectionStateChanged>()
+		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(x => x.BackendStatus)
-							 .Do(backendStatus => IsConnectionIssueDetected = backendStatus != BackendStatus.Connected)
+							 .Select(x => x.IsBackendAvailable)
+							 .Do(isBackendAvailable => IsConnectionIssueDetected = !isBackendAvailable)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
 
