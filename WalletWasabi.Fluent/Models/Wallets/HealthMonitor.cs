@@ -84,8 +84,8 @@ public partial class HealthMonitor : ReactiveObject
 		// Backend Status
 		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(x => x.IsBackendAvailable)
-							 .Do(isBackendAvailable => IsConnectionIssueDetected = !isBackendAvailable)
+							 .Do(x => IsConnectionIssueDetected = !x.IsBackendAvailable)
+							 .Select(x => x.IsBackendAvailable ? BackendStatus.Connected : BackendStatus.NotConnected)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
 

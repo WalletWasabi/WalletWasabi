@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
 
@@ -22,7 +23,6 @@ public class WasabiSynchronizer(
 	: PeriodicRunner(period)
 {
 	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
-	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 
 	protected override async Task ActionAsync(CancellationToken cancel)
@@ -37,19 +37,51 @@ public class WasabiSynchronizer(
 
 		try
 		{
-			var response = await wasabiClient
-				.GetSynchronizeAsync(_smartHeaderChain.TipHash, maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+			var response = await wasabiClient.GetFiltersAsync(_smartHeaderChain.TipHash, maxFiltersToSync, cancel)
 				.ConfigureAwait(false);
 
-			// If it's not fully synced or reorg happened.
-			if (NeedsContinuedSynchronization(response))
+			switch (response)
 			{
-				TriggerRound();
+				case WasabiClient.FiltersResponse.AlreadyOnBestBlock:
+					// Already synchronized. Nothing to do.
+					return;
+				case WasabiClient.FiltersResponse.BestBlockUnknown:
+					// Reorg happened. Rollback the latest index.
+					FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
+
+					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
+					break;
+				case WasabiClient.FiltersResponse.NewFiltersAvailable newFiltersAvailable:
+					var hashChain = bitcoinStore.SmartHeaderChain;
+					hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
+					eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
+					var filters = newFiltersAvailable.Filters;
+					var firstFilter = filters.First();
+					if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
+					{
+						// We have a problem.
+						// We have wrong filters, the heights are not in sync with the server's.
+						Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
+						                FormatInconsistencyDetails(hashChain, firstFilter));
+
+						await bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					}
+					else
+					{
+						await bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+
+						Logger.LogInfo(filters.Length == 1
+							? $"Downloaded filter for block {firstFilter.Header.Height}."
+							: $"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
+					}
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(response));
 			}
 
-			await ProcessFiltersAsync(response).ConfigureAwait(false);
+			TriggerRound();
 
-			eventBus.Publish(new ServerTipHeightChanged(response.BestHeight));
 		}
 		catch (HttpRequestException ex)
 		{
@@ -94,16 +126,21 @@ public class WasabiSynchronizer(
 		return backendCompatible;
 	}
 
-	private bool NeedsContinuedSynchronization(SynchronizeResponse response)
+	private static string FormatInconsistencyDetails(SmartHeaderChain hashChain, FilterModel firstFilter)
 	{
-		return response.Filters.Count() == maxFiltersToSync ||
-		       response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound;
-	}
-
-	private async Task ProcessFiltersAsync(SynchronizeResponse response)
-	{
-		await _filterProcessor
-			.ProcessAsync((uint) response.BestHeight, response.FiltersResponseState, response.Filters)
-			.ConfigureAwait(false);
+		return string.Join(
+			Environment.NewLine,
+			[
+				$"  Local Chain:",
+				$"    Tip Height: {hashChain.TipHeight}",
+				$"    Tip Hash: {hashChain.TipHash}",
+				$"    Hashes Left: {hashChain.HashesLeft}",
+				$"    Hash Count: {hashChain.HashCount}",
+				$"  Server:",
+				$"    Server Tip Height: {hashChain.ServerTipHeight}",
+				$"  First Filter:",
+				$"    Block Hash: {firstFilter.Header.BlockHash}",
+				$"    Height: {firstFilter.Header.Height}"
+			]);
 	}
 }

@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Net;
@@ -5,9 +7,11 @@ using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
@@ -45,7 +49,16 @@ public class WasabiClient
 		return ret;
 	}
 
-	public async Task<FiltersResponse?> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
+	public abstract record FiltersResponse
+	{
+		public record AlreadyOnBestBlock : FiltersResponse;
+
+		public record BestBlockUnknown : FiltersResponse;
+
+		public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
+	}
+
+	public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync(
 			$"api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
@@ -53,7 +66,14 @@ public class WasabiClient
 
 		if (response.StatusCode == HttpStatusCode.NoContent)
 		{
-			return null;
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.AlreadyOnBestBlock();
+		}
+
+		if (response.StatusCode == HttpStatusCode.NotFound)
+		{
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.BestBlockUnknown();
 		}
 
 		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
@@ -61,7 +81,7 @@ public class WasabiClient
 		using HttpContent content = response.Content;
 		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
-		return ret;
+		return new FiltersResponse.NewFiltersAvailable(ret.BestHeight, ret.Filters.ToArray());
 	}
 
 	public async Task BroadcastAsync(SmartTransaction transaction, CancellationToken cancellationToken)
