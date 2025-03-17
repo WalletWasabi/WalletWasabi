@@ -17,10 +17,6 @@
     Documentation
   </a>
   <span> | </span>
-  <a href="https://wasabiwallet.io/swagger/index.html">
-    API
-  </a>
-  <span> | </span>
   <a href="https://github.com/WalletWasabi/WalletWasabi/discussions/5185">
     Support
   </a>

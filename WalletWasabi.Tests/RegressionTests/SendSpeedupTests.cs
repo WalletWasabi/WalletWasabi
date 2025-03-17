@@ -4,7 +4,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -70,11 +70,10 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 		var workDir = Common.GetWorkDir();
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			[specificNodeBlockProvider],
+			[],
 			new P2PBlockProvider(network, nodes, false));
 
 		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);

@@ -6,5 +6,7 @@ public enum HealthMonitorState
 	Ready,
 	BackendNotCompatible,
 	UpdateAvailable,
-	ConnectionIssueDetected
+	ConnectionIssueDetected,
+	BitcoinCoreIssueDetected,
+	BitcoinCoreSynchronizingOrConnecting,
 }

@@ -4,28 +4,23 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
-public class SmartHeader
+public record SmartHeader
 {
-	public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, DateTimeOffset blockTime)
-		: this(blockHash, prevHash, height, blockTime.ToUnixTimeSeconds())
+	public SmartHeader(uint256 blockHash, uint256 header, uint height, DateTimeOffset blockTime)
+		: this(blockHash, header, height, blockTime.ToUnixTimeSeconds())
 	{
 	}
 
-	public SmartHeader(uint256 blockHash, uint256 prevHash, uint height, long epochBlockTime)
+	public SmartHeader(uint256 blockHash, uint256 header, uint height, long epochBlockTime)
 	{
 		BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
-		PrevHash = Guard.NotNull(nameof(prevHash), prevHash);
-		if (blockHash == prevHash)
-		{
-			throw new InvalidOperationException($"{nameof(blockHash)} cannot be equal to {nameof(prevHash)}. Value: {blockHash}.");
-		}
-
+		HeaderOrPrevBlockHash = Guard.NotNull(nameof(header), header);
 		Height = height;
 		EpochBlockTime = epochBlockTime;
 	}
 
 	public uint256 BlockHash { get; }
-	public uint256 PrevHash { get; }
+	public uint256 HeaderOrPrevBlockHash { get; }
 	public uint Height { get; }
 
 	/// <summary>Timestamp in seconds.</summary>

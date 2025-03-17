@@ -9,7 +9,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using NBitcoin;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Backend;

@@ -4,8 +4,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
@@ -13,16 +12,10 @@ namespace WalletWasabi.Blockchain.Blocks;
 
 public class BlockNotifier : PeriodicRunner
 {
-	public BlockNotifier(IRPCClient rpcClient, P2pNode? p2pNode = null, TimeSpan? period = null) : base(period ?? TimeSpan.FromSeconds(7))
+	public BlockNotifier(IRPCClient rpcClient, TimeSpan? period = null) : base(period ?? TimeSpan.FromSeconds(7))
 	{
 		RpcClient = Guard.NotNull(nameof(rpcClient), rpcClient);
-		P2pNode = p2pNode;
 		_processedBlocks = new List<uint256>();
-
-		if (p2pNode is { })
-		{
-			p2pNode.BlockInv += P2pNode_BlockInv;
-		}
 	}
 
 	public event EventHandler<Block>? OnBlock;
@@ -34,7 +27,6 @@ public class BlockNotifier : PeriodicRunner
 
 	private readonly List<uint256> _processedBlocks;
 
-	public P2pNode? P2pNode { get; }
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
 	private uint256? LastInv { get; set; } = null;
@@ -218,14 +210,5 @@ public class BlockNotifier : PeriodicRunner
 		{
 			OnReorg?.Invoke(this, toRemove);
 		}
-	}
-
-	public override void Dispose()
-	{
-		if (P2pNode is { })
-		{
-			P2pNode.BlockInv -= P2pNode_BlockInv;
-		}
-		base.Dispose();
 	}
 }

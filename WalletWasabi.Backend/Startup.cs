@@ -1,12 +1,9 @@
-using System.Collections.Generic;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Mvc.ModelBinding;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.OpenApi.Models;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -14,8 +11,7 @@ using System.Net.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
 using Microsoft.AspNetCore.Mvc.Formatters;
 using WalletWasabi.Backend.Middlewares;
-using WalletWasabi.BitcoinCore;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -60,25 +56,6 @@ public class Startup
 
 		services.AddControllers();
 
-		// Register the Swagger generator, defining one or more Swagger documents
-		services.AddSwaggerGen(c =>
-		{
-			c.SwaggerDoc(
-				$"v{Constants.BackendMajorVersion}",
-				new OpenApiInfo
-				{
-					Version = $"v{Constants.BackendMajorVersion}",
-					Title = "Wasabi Wallet API",
-					Description = "Privacy focused Bitcoin Web API.",
-					License = new OpenApiLicense { Name = "Use under MIT.", Url = new Uri("https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md") }
-				});
-
-			// Set the comments path for the Swagger JSON and UI.
-			var basePath = AppContext.BaseDirectory;
-			var xmlPath = Path.Combine(basePath, "WalletWasabi.Backend.xml");
-			c.IncludeXmlComments(xmlPath);
-		});
-
 		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		string configFilePath = Path.Combine(dataDir, "Config.json");
 		Config config = Config.LoadFile(configFilePath);
@@ -108,11 +85,6 @@ public class Startup
 		services.AddSingleton(_ => network);
 		services.AddBackgroundService<BlockNotifier>();
 		services.AddSingleton<MempoolService>();
-		services.AddSingleton<P2pNode>(s =>
-			new P2pNode(
-				network,
-				config.GetBitcoinP2pEndPoint(),
-				s.GetRequiredService<MempoolService>()));
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(
@@ -133,12 +105,6 @@ public class Startup
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]
 	public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
 	{
-		// Enable middleware to serve generated Swagger as a JSON endpoint.
-		app.UseSwagger();
-
-		// Enable middleware to serve swagger-ui (HTML, JS, CSS, etc.), specifying the Swagger JSON endpoint.
-		app.UseSwaggerUI(c => c.SwaggerEndpoint($"/swagger/v{Constants.BackendMajorVersion}/swagger.json", $"Wasabi Wallet API V{Constants.BackendMajorVersion}"));
-
 		app.UseRouting();
 
 		// So to correctly handle HEAD requests.

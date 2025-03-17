@@ -132,11 +132,6 @@ public class SmartHeaderChain
 			{
 				SmartHeader lastHeader = _chain.Last!.Value;
 
-				if (lastHeader.BlockHash != tip.PrevHash)
-				{
-					throw new InvalidOperationException($"Header doesn't point to previous header. Actual: {lastHeader.PrevHash}. Expected: {tip.PrevHash}.");
-				}
-
 				if (lastHeader.Height != tip.Height - 1)
 				{
 					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {tip.Height - 1}.");

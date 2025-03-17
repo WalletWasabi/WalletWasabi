@@ -18,10 +18,9 @@ public class NullApplicationSettings : IApplicationSettings
 	public IObservable<bool> IsRestartNeeded { get; } = Observable.Return(false);
 	public bool EnableGpu { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
-	public bool StartLocalBitcoinCoreOnStartup { get; set; }
-	public string LocalBitcoinCoreDataDir { get; set; } = "";
-	public bool StopLocalBitcoinCoreOnShutdown { get; set; }
-	public string BitcoinP2PEndPoint { get; set; } = "";
+	public bool UseBitcoinRpc { get; set; }
+	public string BitcoinRpcEndPoint { get; set; } = "";
+	public string BitcoinRpcCredentialString { get; set; } = "";
 	public string RegTestCoordinatorUri { get; set; } = "";
 	public string MaxCoinJoinMiningFeeRate { get; set; } = "";
 	public string AbsoluteMinInputCount { get; set; } = "";

@@ -1,7 +1,7 @@
 using NBitcoin;
 using System.Net;
-using WalletWasabi.BitcoinCore.Configuration;
-using WalletWasabi.BitcoinCore.Configuration.Whitening;
+using WalletWasabi.Tests.BitcoinCore.Configuration;
+using WalletWasabi.Tests.BitcoinCore.Configuration.Whitening;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;

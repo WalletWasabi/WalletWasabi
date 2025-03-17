@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Net.Http;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
 
