@@ -59,6 +59,7 @@ public class Global
 			log: Config.LogModes.Contains(LogMode.File));
 
 		EventBus = new EventBus();
+		Status = new StatusContainer(EventBus);
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -156,6 +157,8 @@ public class Global
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
+
+	public StatusContainer Status { get; }
 
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -391,6 +394,8 @@ public class Global
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
+
+				Status.Dispose();
 
 				if (CoinPrison is { } coinPrison)
 				{

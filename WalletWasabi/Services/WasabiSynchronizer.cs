@@ -1,16 +1,14 @@
-using NBitcoin.RPC;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
+using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Services;
 
@@ -42,17 +40,17 @@ public class WasabiSynchronizer(
 
 			switch (response)
 			{
-				case WasabiClient.FiltersResponse.AlreadyOnBestBlock:
+				case FiltersResponse.AlreadyOnBestBlock:
 					// Already synchronized. Nothing to do.
 					return;
-				case WasabiClient.FiltersResponse.BestBlockUnknown:
+				case FiltersResponse.BestBlockUnknown:
 					// Reorg happened. Rollback the latest index.
 					FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
 						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
 					break;
-				case WasabiClient.FiltersResponse.NewFiltersAvailable newFiltersAvailable:
+				case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
 					var hashChain = bitcoinStore.SmartHeaderChain;
 					hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
 					eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));

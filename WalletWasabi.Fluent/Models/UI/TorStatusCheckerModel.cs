@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Linq;
-using DynamicData.Alias;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;

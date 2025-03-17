@@ -196,26 +196,24 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
-		var sync = Global.HostedServices.Get<WasabiSynchronizer>();
-		var exchangeRateUpdater = Global.HostedServices.Get<ExchangeRateUpdater>();
 		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
 
 		return new JsonRpcResult
 		{
-			//["torStatus"] = sync.TorStatus switch
-			//{
-			//	TorStatus.NotRunning => "Not running",
-			//	TorStatus.Running => "Running",
-			//	_ => "Turned off"
-			//},
+			["torStatus"] = (Global.Config.UseTor, Global.Status.IsTorRunning) switch
+			{
+				(TorMode.Disabled, _) => "Turned off",
+				(_, true) => "Running",
+				(_, false) => "Not running"
+			},
 			["onionService"] = Global.OnionServiceUri?.ToString() ?? "Unavailable",
-			//["backendStatus"] = sync.BackendStatus == BackendStatus.Connected ? "Connected" : "Disconnected",
+			["backendStatus"] = Global.Status.IsBackendAvailable ? "Connected" : "Disconnected",
 			["bestBlockchainHeight"] = smartHeaderChain.TipHeight.ToString(),
 			["bestBlockchainHash"] = smartHeaderChain.TipHash?.ToString() ?? "",
 			["filtersCount"] = smartHeaderChain.HashCount,
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
-			//["exchangeRate"] = exchangeRateUpdater.UsdExchangeRate,
+			["exchangeRate"] = Global.Status.UsdExchangeRate,
 			["peers"] = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
 				x => new JsonRpcResult
 				{
@@ -524,7 +522,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getfeerates", initializable: false)]
 	public object GetFeeRate()
 	{
-		if (Global.HostedServices.Get<FeeRateEstimationUpdater>().FeeEstimates is { } nonNullFeeRates)
+		if (Global.Status.FeeRates is { } nonNullFeeRates)
 		{
 			return nonNullFeeRates.Estimations;
 		}
