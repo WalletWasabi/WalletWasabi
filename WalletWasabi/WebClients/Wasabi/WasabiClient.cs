@@ -18,6 +18,15 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
+public abstract record FiltersResponse
+{
+	public record AlreadyOnBestBlock : FiltersResponse;
+
+	public record BestBlockUnknown : FiltersResponse;
+
+	public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
+}
+
 public class WasabiClient
 {
 	public WasabiClient(HttpClient httpClient, EventBus? eventBus = null)
@@ -30,33 +39,6 @@ public class WasabiClient
 	private readonly EventBus _eventBus;
 
 	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.BackendMajorVersion);
-
-	public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
-	{
-		string relativeUri = $"api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
-		if (estimateMode is { })
-		{
-			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
-		}
-
-		using HttpResponseMessage response = await _httpClient.GetAsync(relativeUri, cancellationToken: cancel).ConfigureAwait(false);
-
-		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync(Decode.SynchronizeResponse).ConfigureAwait(false);
-
-		return ret;
-	}
-
-	public abstract record FiltersResponse
-	{
-		public record AlreadyOnBestBlock : FiltersResponse;
-
-		public record BestBlockUnknown : FiltersResponse;
-
-		public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
-	}
 
 	public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{

@@ -45,7 +45,8 @@ public partial class HealthMonitor : ReactiveObject
 	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
-		UseTor = applicationSettings.UseTor;
+		UseTor = Services.Config.UseTor;
+		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
@@ -113,7 +114,8 @@ public partial class HealthMonitor : ReactiveObject
 				  .Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
 				  .Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
 				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Select(_ => TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				  .Select(_ =>
+					  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 				  .BindTo(this, x => x.Peers)
 				  .DisposeWith(Disposables);
 
