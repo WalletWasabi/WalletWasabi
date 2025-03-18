@@ -1,21 +1,19 @@
-using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Services;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AutoInterface]
 public partial class AmountProvider : ReactiveObject
 {
+	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 	[AutoNotify] private decimal _usdExchangeRate;
 
 	public AmountProvider()
 	{
-		BtcToUsdExchangeRate = Services.EventBus
-			.AsObservable<ExchangeRateChanged>()
-			.Select(e => e.UsdBtcRate);
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
+		BtcToUsdExchangeRate = this.WhenAnyValue(provider => provider._exchangeRateUpdater.UsdExchangeRate);
 
 		BtcToUsdExchangeRate.BindTo(this, x => x.UsdExchangeRate);
 	}

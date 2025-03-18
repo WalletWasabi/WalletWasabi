@@ -42,6 +42,9 @@ public class WasabiSynchronizer(
 			{
 				case FiltersResponse.AlreadyOnBestBlock:
 					// Already synchronized. Nothing to do.
+					var tip = _smartHeaderChain.ServerTipHeight;
+					_smartHeaderChain.SetServerTipHeight(tip);
+					eventBus.Publish(new ServerTipHeightChanged((int) tip));
 					return;
 				case FiltersResponse.BestBlockUnknown:
 					// Reorg happened. Rollback the latest index.
