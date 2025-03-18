@@ -67,9 +67,8 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
-		var node = RegTestFixture.BackendRegTestNode;
-
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
 
 		try
 		{
