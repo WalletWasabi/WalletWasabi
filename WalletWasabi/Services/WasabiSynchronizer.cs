@@ -42,7 +42,7 @@ public class WasabiSynchronizer(
 			{
 				case FiltersResponse.AlreadyOnBestBlock:
 					// Already synchronized. Nothing to do.
-					var tip = _smartHeaderChain.ServerTipHeight;
+					var tip = _smartHeaderChain.TipHeight;
 					_smartHeaderChain.SetServerTipHeight(tip);
 					eventBus.Publish(new ServerTipHeightChanged((int) tip));
 					return;
