@@ -71,7 +71,7 @@ public class WasabiNostrClient
 			{
 				string defaultPubKeyHex = NIP19.FromNIP19Npub(DefaultPublicKey).ToHex();
 
-				string[] relayUrls = ["wss://relay.primal.net"];
+				string[] relayUrls = ["wss://relay.primal.net", "wss://nos.lol", "wss://relay.damus.io"];
 				Uri[] uris = relayUrls.Select(x => new Uri(x)).ToArray();
 				NostrWebClient = NostrClientFactory.Create(uris, _torEndpoint);
 				NostrWebClient.EventsReceived += OnNostrEventsReceived;
