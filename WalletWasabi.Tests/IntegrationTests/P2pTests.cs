@@ -102,7 +102,8 @@ public class P2pTests
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory, eventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, eventBus);
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), eventBus);
 
 		using MemoryCache cache = new(new MemoryCacheOptions

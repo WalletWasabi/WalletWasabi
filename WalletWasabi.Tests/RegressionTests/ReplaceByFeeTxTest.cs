@@ -51,7 +51,8 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 4. Create key manager service.

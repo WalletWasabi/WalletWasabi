@@ -16,6 +16,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Rpc;
@@ -77,11 +78,6 @@ public class Global
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
-		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
-		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory, EventBus), "Wasabi Synchronizer");
-
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
 
 		Cache = new MemoryCache(new MemoryCacheOptions
@@ -121,17 +117,30 @@ public class Global
 		// Block providers.
 		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
 
+		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
+		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+		ICompactFilterProvider filtersProvider =
+			new WebApiFilterProvider(maxFiltersToSync, BackendHttpClientFactory, EventBus);
+
 		var credentialString = config.GetBitcoinRpcCredentialString();
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
 			var bitcoinRpcEndPoint = config.GetBitcoinRpcEndPoint();
 			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToString(), Network));
-			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient), "RPC Monitor");
+			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient, EventBus), "RPC Monitor");
+
+			var supportsBlockFilters = BitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
+			if (supportsBlockFilters)
+			{
+				filtersProvider = new BitcoinRpcFilterProvider(BitcoinRpcClient, EventBus);
+			}
+
 			var rpcFeeProvider = FeeRateProviders.RpcAsync(BitcoinRpcClient);
 			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		}
 
 		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
 
 		_blockDownloadService = new BlockDownloadService(
 			fileSystemBlockRepository: BitcoinStore.BlockRepository,
