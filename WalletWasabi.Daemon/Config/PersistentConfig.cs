@@ -67,6 +67,7 @@ public record PersistentConfig
 	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
 
 	public string  FeeRateEstimationProvider { get; init; } = "MempoolSpace";
+	public string ExternalTransactionBroadcaster { get; init; } = "MempoolSpace";
 
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
 
@@ -110,6 +111,7 @@ public record PersistentConfig
 			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
 			ExchangeRateProvider == other.ExchangeRateProvider &&
 			FeeRateEstimationProvider == other.FeeRateEstimationProvider &&
+			ExternalTransactionBroadcaster == other.ExternalTransactionBroadcaster &&
 			MaxDaysInMempool == other.MaxDaysInMempool;
 	}
 

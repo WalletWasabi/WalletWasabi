@@ -76,6 +76,7 @@ public class PersistentConfigManagerTests
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "ExchangeRateProvider": "MempoolSpace",
 			  "FeeRateEstimationProvider": "MempoolSpace",
+			  "ExternalTransactionBroadcaster": "MempoolSpace",
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
 			  "ConfigVersion": 0

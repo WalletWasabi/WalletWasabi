@@ -28,6 +28,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string DustThreshold { get; set; } = "";
 	public string ExchangeRateProvider { get; set; } = "";
 	public string FeeRateEstimationProvider { get; set; } = "";
+	public string ExternalTransactionBroadcaster { get; set; } = "";
 	public string MainNetCoordinatorUri { get; set; } = "";
 	public string TestNetCoordinatorUri { get; set; } = "";
 	public bool DarkModeEnabled { get; set; }

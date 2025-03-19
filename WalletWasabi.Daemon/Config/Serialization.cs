@@ -44,6 +44,7 @@ public static class PersistentConfigEncode
 			("CoordinatorIdentifier", String(cfg.CoordinatorIdentifier)),
 			("ExchangeRateProvider", String(cfg.ExchangeRateProvider)),
 			("FeeRateEstimationProvider", String(cfg.FeeRateEstimationProvider)),
+			("ExternalTransactionBroadcaster", String(cfg.ExternalTransactionBroadcaster)),
 			("MaxCoinJoinMiningFeeRate", Decimal(cfg.MaxCoinJoinMiningFeeRate)),
 			("AbsoluteMinInputCount", Int(cfg.AbsoluteMinInputCount)),
 			("ConfigVersion", Int(cfg.ConfigVersion))
@@ -90,6 +91,7 @@ public static class PersistentConfigDecode
 			EnableGpu = get.Required("EnableGpu", Decode.Bool),
 			ExchangeRateProvider = get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
 			FeeRateEstimationProvider = get.Optional("FeeRateEstimationProvider", Decode.String) ?? "BlockstreamInfo",
+			ExternalTransactionBroadcaster = get.Optional("ExternalTransactionBroadcaster", Decode.String) ?? "MempoolSpace",
 			CoordinatorIdentifier = get.Required("CoordinatorIdentifier", Decode.String),
 			MaxCoinJoinMiningFeeRate = get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
 			AbsoluteMinInputCount = get.Required("AbsoluteMinInputCount", Decode.Int),

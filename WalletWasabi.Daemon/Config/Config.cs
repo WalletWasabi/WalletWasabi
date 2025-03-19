@@ -142,6 +142,9 @@ public class Config
 			[ nameof(FeeRateEstimationProvider) ] = (
 				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace and BlockstreamInfo",
 				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
+			[ nameof(ExternalTransactionBroadcaster) ] = (
+				"Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
+				GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs)),
 			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = (
 				"The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
 				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs))
@@ -202,6 +205,7 @@ public class Config
 	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
 	public string FeeRateEstimationProvider => GetEffectiveValue<StringValue, string>(nameof(FeeRateEstimationProvider));
+	public string ExternalTransactionBroadcaster => GetEffectiveValue<StringValue, string>(nameof(ExternalTransactionBroadcaster));
 	public int DropUnconfirmedTransactionsAfterDays => GetEffectiveValue<IntValue, int>(nameof(DropUnconfirmedTransactionsAfterDays));
 
 	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
