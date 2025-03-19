@@ -13,6 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Backend.PostRequests;
 using WalletWasabi.WabiSabi.Client.Banning;
@@ -21,7 +22,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -31,21 +31,19 @@ public class CoinJoinManager : BackgroundService
 		IWalletProvider walletProvider,
 		RoundStateUpdater roundStatusUpdater,
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
-		IWasabiBackendStatusProvider wasabiBackendStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
-		CoinPrison coinPrison)
+		CoinPrison coinPrison,
+		EventBus eventBus)
 	{
-		_wasabiBackendStatusProvider = wasabiBackendStatusProvider;
 		_walletProvider = walletProvider;
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusUpdater = roundStatusUpdater;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
+		_serverTipHeightChangeSubscription = eventBus.Subscribe<ServerTipHeightChanged>(h => _serverTipHeight = h.Height);
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
-
-	private readonly IWasabiBackendStatusProvider _wasabiBackendStatusProvider;
 
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	private readonly IWalletProvider _walletProvider;
@@ -54,6 +52,7 @@ public class CoinJoinManager : BackgroundService
 	private readonly CoinPrison _coinPrison;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
+	private int _serverTipHeight;
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
@@ -70,6 +69,7 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<WalletId, CoinJoinClientStateHolder>.Empty;
 
 	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
+	private readonly IDisposable _serverTipHeightChangeSubscription;
 
 	private static bool IsUnderPlebStop(SmartCoin[] coinCandidates, Money plebStopThreshold) => coinCandidates.Sum(x => x.Amount) < plebStopThreshold;
 
@@ -321,9 +321,9 @@ private async Task<CoinSelectionResult> GetCoinSelectionAsync(IWallet wallet)
     }
 
     var bannedCoins = coinCandidates.Where(x => _coinPrison.IsBanned(x.Outpoint)).ToArray();
-    var immatureCoins = _wasabiBackendStatusProvider.LastResponse is { } synchronizeResponse ?
-	    coinCandidates.Where(x => x.Transaction.IsImmature(synchronizeResponse.BestHeight)).ToArray() :
-	    [];
+    var immatureCoins = _serverTipHeight > 0
+	    ? coinCandidates.Where(x => x.Transaction.IsImmature(_serverTipHeight)).ToArray()
+	    : [];
     var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
     var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
 
@@ -812,6 +812,12 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 		}
 
 		NotifyCoinJoinStatusChanged(wallet, e);
+	}
+
+	public override void Dispose()
+	{
+		_serverTipHeightChangeSubscription.Dispose();
+		base.Dispose();
 	}
 
 	private record CoinJoinCommand(IWallet Wallet);

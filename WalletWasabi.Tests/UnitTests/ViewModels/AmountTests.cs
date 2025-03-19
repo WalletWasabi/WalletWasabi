@@ -15,7 +15,7 @@ public class AmountTests
 	public void BtcShouldMatch()
 	{
 		var money = Money.FromUnit(1, MoneyUnit.BTC);
-		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRates == Observable.Empty<decimal>()));
+		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRate == Observable.Empty<decimal>()));
 		Assert.Equal(money, btcAmount.Btc);
 	}
 
@@ -26,7 +26,7 @@ public class AmountTests
 		var exchangeRates = new[] { 1m, 2m, 3m };
 		var money = Money.FromUnit(2, MoneyUnit.BTC);
 		using var rates = new Subject<decimal>();
-		var exchangeProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRates == rates);
+		var exchangeProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRate == rates);
 		var destination = new List<decimal>();
 		var sut = new Amount(money, exchangeProvider);
 		using var usdValues = sut.Usd.Dump(destination);

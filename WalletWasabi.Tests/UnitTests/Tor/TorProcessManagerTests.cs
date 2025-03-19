@@ -6,6 +6,7 @@ using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Microservices;
+using WalletWasabi.Services;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
@@ -16,8 +17,6 @@ namespace WalletWasabi.Tests.UnitTests.Tor;
 /// <summary>Tests for <see cref="TorProcessManager"/> class.</summary>
 public class TorProcessManagerTests
 {
-	private static readonly IPEndPoint DummyTorControlEndpoint = new(IPAddress.Loopback, 7777);
-
 	/// <summary>
 	/// Simulates: Tor OS process is fully started. The process crashes after 2 seconds.
 	/// Then we simulate then user asked to cancel TorProcessManager as the application shuts down.
@@ -42,7 +41,7 @@ public class TorProcessManagerTests
 		mockProcess.Setup(p => p.Dispose());
 
 		// Mock TorProcessManager.
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings) { CallBase = true };
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(false);
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
@@ -90,7 +89,7 @@ public class TorProcessManagerTests
 		mockProcess.SetupGet(p => p.Handle).Returns(IntPtr.Zero); // Any value is fine.
 		mockProcess.Setup(p => p.Dispose());
 
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings) { CallBase = true };
+		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 

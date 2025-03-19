@@ -45,20 +45,15 @@ public partial class HealthMonitor : ReactiveObject
 	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
-		UseTor = applicationSettings.UseTor;
+		UseTor = Services.Config.UseTor;
+		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
-		var synchronizer = Services.HostedServices.Get<WasabiSynchronizer>();
 
 		// Priority Fee
-		var feeRateEstimationUpdater = Services.HostedServices.Get<FeeRateEstimationUpdater>();
-		Observable
-			.FromEventPattern(feeRateEstimationUpdater, nameof(feeRateEstimationUpdater.FeeEstimationsRefreshed))
-			.Select(value =>
-			{
-				return ((FeeRateEstimations)value.EventArgs).Estimations.FirstOrDefault(x => x.Key == 2).Value;
-			})
+		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+			.Select(e => e.AllFeeEstimate.Estimations.FirstOrDefault(x => x.Key == 2).Value)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(priorityFee => PriorityFee = priorityFee);
@@ -76,30 +71,30 @@ public partial class HealthMonitor : ReactiveObject
 			});
 
 		// Tor Status
-		synchronizer.WhenAnyValue(x => x.TorStatus)
+		Services.EventBus.AsObservable<TorConnectionStateChanged>()
 							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(status => UseTor != TorMode.Disabled ? status : TorStatus.TurnedOff)
+							 .Select(status => (UseTor, status.IsTorRunning) switch
+							 {
+								 (TorMode.Disabled, _) => TorStatus.TurnedOff,
+								 (_, true) => TorStatus.Running,
+								 (_, false) => TorStatus.NotRunning
+							 })
 							 .BindTo(this, x => x.TorStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend Status
-		synchronizer.WhenAnyValue(x => x.BackendStatus)
+		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
 							 .ObserveOn(RxApp.MainThreadScheduler)
+							 .Do(x => IsConnectionIssueDetected = !x.IsBackendAvailable)
+							 .Select(x => x.IsBackendAvailable ? BackendStatus.Connected : BackendStatus.NotConnected)
 							 .BindTo(this, x => x.BackendStatus)
 							 .DisposeWith(Disposables);
 
 		// Backend compatibility
-		synchronizer.WhenAnyValue(x => x.BackendNotCompatible)
+		Services.EventBus.AsObservable<BackendIncompatibilityDetected>()
 			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(_ => true)
 			.BindTo(this, x => x.BackendNotCompatible)
-			.DisposeWith(Disposables);
-
-		// Backend Connection Issues flag
-		Observable.FromEventPattern<bool>(synchronizer, nameof(synchronizer.SynchronizeRequestFinished))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => x.EventArgs)
-			.Do(isBackendConnected => IsConnectionIssueDetected = !isBackendConnected)
-			.Subscribe()
 			.DisposeWith(Disposables);
 
 		// Tor Issues
@@ -117,9 +112,10 @@ public partial class HealthMonitor : ReactiveObject
 		// Peers
 		Observable.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
 				  .Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
-				  .Merge(synchronizer.WhenAnyValue(x => x.TorStatus).ToSignal())))
+				  .Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
 				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Select(_ => synchronizer.TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				  .Select(_ =>
+					  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 				  .BindTo(this, x => x.Peers)
 				  .DisposeWith(Disposables);
 
@@ -137,20 +133,17 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Update Available
-		if (Services.UpdateManager is { })
-		{
-			Observable.FromEventPattern<UpdateManager.UpdateStatus>(Services.UpdateManager, nameof(Services.UpdateManager.UpdateAvailableToGet))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(e =>
-				{
-					var updateStatus = e.EventArgs;
+		Services.EventBus.AsObservable<NewSoftwareVersionAvailable>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(e =>
+			{
+				var updateStatus = e.UpdateStatus;
 
-					UpdateAvailable = !updateStatus.ClientUpToDate;
-					IsReadyToInstall = updateStatus.IsReadyToInstall;
-					ClientVersion = updateStatus.ClientVersion;
-				})
-				.DisposeWith(Disposables);
-		}
+				UpdateAvailable = !updateStatus.ClientUpToDate;
+				IsReadyToInstall = updateStatus.IsReadyToInstall;
+				ClientVersion = updateStatus.ClientVersion;
+			})
+			.DisposeWith(Disposables);
 
 		// State
 		this.WhenAnyValue(

@@ -10,15 +10,15 @@ public partial class AmountProvider : ReactiveObject
 	private readonly ExchangeRateUpdater _exchangeRateUpdater;
 	[AutoNotify] private decimal _usdExchangeRate;
 
-	public AmountProvider(ExchangeRateUpdater exchangeRateUpdater)
+	public AmountProvider()
 	{
-		_exchangeRateUpdater = exchangeRateUpdater;
-		BtcToUsdExchangeRates = this.WhenAnyValue(provider => provider._exchangeRateUpdater.UsdExchangeRate);
+		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
+		BtcToUsdExchangeRate = this.WhenAnyValue(provider => provider._exchangeRateUpdater.UsdExchangeRate);
 
-		BtcToUsdExchangeRates.BindTo(this, x => x.UsdExchangeRate);
+		BtcToUsdExchangeRate.BindTo(this, x => x.UsdExchangeRate);
 	}
 
-	public IObservable<decimal> BtcToUsdExchangeRates { get; }
+	public IObservable<decimal> BtcToUsdExchangeRate { get; }
 
 	public Amount Create(Money? money)
 	{

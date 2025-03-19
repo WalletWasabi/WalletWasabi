@@ -69,7 +69,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		var node = RegTestFixture.BackendRegTestNode;
 
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
 
 		try
 		{

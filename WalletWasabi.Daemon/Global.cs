@@ -58,6 +58,8 @@ public class Global
 			owningProcessId: Environment.ProcessId,
 			log: Config.LogModes.Contains(LogMode.File));
 
+		EventBus = new EventBus();
+		Status = new StatusContainer(EventBus);
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -72,16 +74,15 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com")), "Update Manager");
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory), "Wasabi Synchronizer");
-		WasabiSynchronizer wasabiSynchronizer = HostedServices.Get<WasabiSynchronizer>();
+		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, maxFiltersToSync, BitcoinStore, BackendHttpClientFactory, EventBus), "Wasabi Synchronizer");
 
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser());
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -107,8 +108,8 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
-		RegisterExchangeRateProviders();
-		RegisterFeeRateProviders();
+		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
 
 		// Block providers.
 		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
@@ -135,7 +136,6 @@ public class Global
 			DataDir,
 			config.Network,
 			BitcoinStore,
-			wasabiSynchronizer,
 			config.ServiceConfiguration,
 			HostedServices.Get<FeeRateEstimationUpdater>(),
 			_blockDownloadService,
@@ -157,6 +157,8 @@ public class Global
 
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
+
+	public StatusContainer Status { get; }
 
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -183,7 +185,6 @@ public class Global
 	public IRPCClient? BitcoinRpcClient { get; }
 	public UpdateManager UpdateManager { get; }
 	public HostedServices HostedServices { get; }
-
 	public Network Network => Config.Network;
 
 	public IMemoryCache Cache { get; private set; }
@@ -191,6 +192,8 @@ public class Global
 	public JsonRpcServer? RpcServer { get; private set; }
 
 	public Uri? OnionServiceUri { get; private set; }
+
+	public EventBus EventBus { get; }
 
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly IndexStore _indexStore;
@@ -309,7 +312,7 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			TorManager = new TorProcessManager(TorSettings);
+			TorManager = new TorProcessManager(TorSettings, EventBus);
 			await TorManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
 
@@ -333,16 +336,6 @@ public class Global
 		}
 	}
 
-	private void RegisterFeeRateProviders()
-	{
-		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
-	}
-
-	private void RegisterExchangeRateProviders()
-	{
-		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory), "Exchange rate updater");
-	}
-
 	private void RegisterCoinJoinComponents(Uri coordinatorUri)
 	{
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
@@ -355,7 +348,7 @@ public class Global
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, CoordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, HostedServices.Get<WasabiSynchronizer>(), coinJoinConfiguration, CoinPrison), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, coinJoinConfiguration, CoinPrison, EventBus), "CoinJoin Manager");
 	}
 
 	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
@@ -401,6 +394,8 @@ public class Global
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
+
+				Status.Dispose();
 
 				if (CoinPrison is { } coinPrison)
 				{

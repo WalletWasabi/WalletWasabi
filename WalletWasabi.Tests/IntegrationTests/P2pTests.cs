@@ -55,6 +55,7 @@ public class P2pTests
 			throw new NotSupportedNetworkException(network);
 		}
 
+		var eventBus = new EventBus();
 		var dataDir = Common.GetWorkDir();
 
 		SmartHeaderChain smartHeaderChain = new();
@@ -101,10 +102,9 @@ public class P2pTests
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory, eventBus);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), eventBus);
 
-		ServiceConfiguration serviceConfig = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,
@@ -120,7 +120,7 @@ public class P2pTests
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));

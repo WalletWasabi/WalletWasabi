@@ -49,8 +49,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 2. Create wasabi synchronizer service.
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), setup.EventBus);
 
 		// 3. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
@@ -71,7 +71,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			[],
 			new P2PBlockProvider(network, nodes, false));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, setup.ServiceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, setup.ServiceConfiguration, feeProvider, blockDownloadService);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 

@@ -1,21 +1,14 @@
-using NBitcoin.RPC;
-using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
-using System.Net.Sockets;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Bases;
-using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Models;
+using WalletWasabi.Logging;
 using WalletWasabi.Stores;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WebClients.Wasabi;
+using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Services;
 
@@ -23,47 +16,12 @@ public class WasabiSynchronizer(
 	TimeSpan period,
 	int maxFiltersToSync,
 	BitcoinStore bitcoinStore,
-	IHttpClientFactory httpClientFactory)
-	: PeriodicRunner(period), INotifyPropertyChanged, IWasabiBackendStatusProvider
+	IHttpClientFactory httpClientFactory,
+	EventBus eventBus)
+	: PeriodicRunner(period)
 {
-	private TorStatus _torStatus;
-	private BackendStatus _backendStatus;
-	private bool _backendNotCompatible;
 	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
-	private readonly FilterProcessor _filterProcessor = new(bitcoinStore);
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
-
-	#region EventsPropertiesMembers
-
-	public event EventHandler<bool>? SynchronizeRequestFinished;
-
-	public event PropertyChangedEventHandler? PropertyChanged;
-
-	/// <summary>Task completion source that is completed once a first synchronization request succeeds or fails.</summary>
-	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
-
-	public SynchronizeResponse? LastResponse { get; private set; } = null;
-
-	public TorStatus TorStatus
-	{
-		get => _torStatus;
-		private set => RaiseAndSetIfChanged(ref _torStatus, value);
-	}
-
-	public BackendStatus BackendStatus
-	{
-		get => _backendStatus;
-		private set => RaiseAndSetIfChanged(ref _backendStatus, value);
-	}
-
-	public bool BackendNotCompatible
-	{
-		get => _backendNotCompatible;
-		private set => RaiseAndSetIfChanged(ref _backendNotCompatible, value);
-	}
-
-
-	#endregion EventsPropertiesMembers
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
@@ -72,66 +30,83 @@ public class WasabiSynchronizer(
 		{
 			return;
 		}
-		var wasabiClient = new WasabiClient(_httpClient);
+		var wasabiClient = new WasabiClient(_httpClient, eventBus);
 		var lastUsedApiVersion = WasabiClient.ApiVersion;
 
 		try
 		{
-			var response = await wasabiClient
-				.GetSynchronizeAsync(_smartHeaderChain.TipHash, maxFiltersToSync, EstimateSmartFeeMode.Conservative, cancel)
+			var response = await wasabiClient.GetFiltersAsync(_smartHeaderChain.TipHash, maxFiltersToSync, cancel)
 				.ConfigureAwait(false);
 
-			UpdateStatus(BackendStatus.Connected, TorStatus.Running, false);
-			OnSynchronizeRequestFinished();
-
-			// If it's not fully synced or reorg happened.
-			if (NeedsContinuedSynchronization(response))
+			switch (response)
 			{
-				TriggerRound();
+				case FiltersResponse.AlreadyOnBestBlock:
+					// Already synchronized. Nothing to do.
+					var tip = _smartHeaderChain.TipHeight;
+					_smartHeaderChain.SetServerTipHeight(tip);
+					eventBus.Publish(new ServerTipHeightChanged((int) tip));
+					return;
+				case FiltersResponse.BestBlockUnknown:
+					// Reorg happened. Rollback the latest index.
+					FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
+
+					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
+					break;
+				case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
+					var hashChain = bitcoinStore.SmartHeaderChain;
+					hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
+					eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
+					var filters = newFiltersAvailable.Filters;
+					var firstFilter = filters.First();
+					if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
+					{
+						// We have a problem.
+						// We have wrong filters, the heights are not in sync with the server's.
+						Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
+						                FormatInconsistencyDetails(hashChain, firstFilter));
+
+						await bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					}
+					else
+					{
+						await bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+
+						Logger.LogInfo(filters.Length == 1
+							? $"Downloaded filter for block {firstFilter.Header.Height}."
+							: $"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
+					}
+					break;
+				default:
+					throw new ArgumentOutOfRangeException(nameof(response));
 			}
 
-			await ProcessFiltersAsync(response).ConfigureAwait(false);
+			TriggerRound();
 
-			LastResponse = response;
 		}
-		catch (HttpRequestException ex) when (ex.InnerException is SocketException innerEx)
+		catch (HttpRequestException ex)
 		{
-			bool isConnectionRefused = innerEx.SocketErrorCode == SocketError.ConnectionRefused;
-			UpdateStatus(
-				BackendStatus.NotConnected,
-				isConnectionRefused
-					? TorStatus.NotRunning
-					: TorStatus.Running,
-				false);
-			OnSynchronizeRequestFinished();
+			if (ex.Message.Contains("Not Found"))
+			{
+				// Backend API version might be updated meanwhile. Trying to update the versions.
+				var backendCompatible =
+					await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
+				if (!backendCompatible)
+				{
+					eventBus.Publish(new BackendIncompatibilityDetected());
+				}
+
+				// If the backend is compatible and the Api version updated then we just used the wrong API.
+				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
+				{
+					// Next request will be fine, do not throw exception.
+					TriggerRound();
+					return;
+				}
+			}
 
 			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
 			TriggerRound();
-			throw;
-		}
-		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
-		{
-			// Backend API version might be updated meanwhile. Trying to update the versions.
-			var backendCompatible = await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
-
-			UpdateStatus( BackendStatus.NotConnected, TorStatus.Running, !backendCompatible);
-
-			// If the backend is compatible and the Api version updated then we just used the wrong API.
-			if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
-			{
-				// Next request will be fine, do not throw exception.
-				TriggerRound();
-				return;
-			}
-
-			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
-			TriggerRound();
-			throw;
-		}
-		catch (Exception)
-		{
-			UpdateStatus(BackendStatus.NotConnected, TorStatus.Running, false);
-			OnSynchronizeRequestFinished();
 			throw;
 		}
 	}
@@ -152,42 +127,21 @@ public class WasabiSynchronizer(
 		return backendCompatible;
 	}
 
-	private void UpdateStatus(BackendStatus backendStatus, TorStatus torStatus, bool backendNotCompatible)
+	private static string FormatInconsistencyDetails(SmartHeaderChain hashChain, FilterModel firstFilter)
 	{
-		BackendStatus = backendStatus;
-		TorStatus = torStatus;
-		BackendNotCompatible = backendNotCompatible;
-	}
-
-	private bool NeedsContinuedSynchronization(SynchronizeResponse response)
-	{
-		return response.Filters.Count() == maxFiltersToSync ||
-		       response.FiltersResponseState == FiltersResponseState.BestKnownHashNotFound;
-	}
-
-	private async Task ProcessFiltersAsync(SynchronizeResponse response)
-	{
-		await _filterProcessor
-			.ProcessAsync((uint) response.BestHeight, response.FiltersResponseState, response.Filters)
-			.ConfigureAwait(false);
-	}
-
-	private void OnSynchronizeRequestFinished()
-	{
-		var isBackendConnected = BackendStatus is BackendStatus.Connected;
-
-		// One time trigger for the UI about the first request.
-		InitialRequestTcs.TrySetResult(isBackendConnected);
-
-		SynchronizeRequestFinished?.Invoke(this, isBackendConnected);
-	}
-
-	private void RaiseAndSetIfChanged<T>(ref T field, T value, [CallerMemberName] string? propertyName = null)
-	{
-		if (!EqualityComparer<T>.Default.Equals(field, value))
-		{
-			field = value;
-			PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
-		}
+		return string.Join(
+			Environment.NewLine,
+			[
+				$"  Local Chain:",
+				$"    Tip Height: {hashChain.TipHeight}",
+				$"    Tip Hash: {hashChain.TipHash}",
+				$"    Hashes Left: {hashChain.HashesLeft}",
+				$"    Hash Count: {hashChain.HashCount}",
+				$"  Server:",
+				$"    Server Tip Height: {hashChain.ServerTipHeight}",
+				$"  First Filter:",
+				$"    Block Hash: {firstFilter.Header.BlockHash}",
+				$"    Height: {firstFilter.Header.Height}"
+			]);
 	}
 }
