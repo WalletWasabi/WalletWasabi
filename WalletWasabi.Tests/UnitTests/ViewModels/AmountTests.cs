@@ -35,6 +35,6 @@ public class AmountTests
 		rates.Inject(exchangeRates);
 
 		// ASSERT
-		Assert.Equal(exchangeRates.Select(rate => rate * sut.Btc.ToDecimal(MoneyUnit.BTC)), destination);
+		Assert.Equal([0, 2, 4, 6], destination);
 	}
 }
