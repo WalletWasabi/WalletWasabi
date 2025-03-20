@@ -25,7 +25,7 @@ namespace WalletWasabi.Services;
 
 public class UpdateManager : PeriodicRunner
 {
-	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiNostrClient nostrClient)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiNostrClient nostrClient, EventBus eventBus)
 		: base(period)
 	{
 		_installerDir = Path.Combine(dataDir, "Installer");
