@@ -30,30 +30,17 @@ public class WasabiNostrClient
 	{
 		if (args.subscriptionId == _nostrSubscriptionID)
 		{
-			Version? newVersion = null;
-			string? downloadLink = null;
-
 			foreach (NostrEvent nostrEvent in args.events)
 			{
-				foreach (var eventTag in nostrEvent.Tags)
-				{
-					if (eventTag.TagIdentifier == "Version")
-					{
-						Version version = new(eventTag.Data.First());
-						newVersion = version;
-					}
+				var version = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "Version")?.Data.FirstOrDefault();
+				var downloadLink = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "DownloadLink")?.Data.FirstOrDefault();
 
-					if (eventTag.TagIdentifier == "DownloadLink")
-					{
-						downloadLink = eventTag.Data.First();
-					}
-				}
-
-				if (newVersion is not null && downloadLink is not null)
+				if (version is not null && downloadLink is not null)
 				{
 					if (Events.TryAdd(nostrEvent.Id, nostrEvent))
 					{
-						Logger.LogInfo($"New release event received. ID: {nostrEvent.Id} Version: {newVersion} Download link: {downloadLink}");
+						Logger.LogInfo($"New release event received. ID: {nostrEvent.Id} Version: {version} Download link: {downloadLink}");
+						Version newVersion = new(version);
 						NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
 					}
 				}
