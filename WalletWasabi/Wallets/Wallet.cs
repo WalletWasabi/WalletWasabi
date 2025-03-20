@@ -37,7 +37,6 @@ public class Wallet : BackgroundService, IWallet
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
-		WasabiSynchronizer syncer,
 		ServiceConfiguration serviceConfiguration,
 		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
@@ -48,7 +47,6 @@ public class Wallet : BackgroundService, IWallet
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
-		Synchronizer = syncer;
 		ServiceConfiguration = serviceConfiguration;
 		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		CpfpInfoProvider = cpfpInfoProvider;
@@ -90,7 +88,6 @@ public class Wallet : BackgroundService, IWallet
 
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
-	public WasabiSynchronizer Synchronizer { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public string WalletName => KeyManager.WalletName;
 

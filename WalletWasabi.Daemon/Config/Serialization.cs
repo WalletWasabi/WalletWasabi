@@ -1,4 +1,5 @@
 using System.Linq;
+using System.Net;
 using System.Text.Json.Nodes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
@@ -27,12 +28,13 @@ public static class PersistentConfigEncode
 			("TerminateTorOnExit", Bool(cfg.TerminateTorOnExit)),
 			("TorBridges", Array(cfg.TorBridges.Select(String))),
 			("DownloadNewVersion", Bool(cfg.DownloadNewVersion)),
-			("StartLocalBitcoinCoreOnStartup", Bool(cfg.StartLocalBitcoinCoreOnStartup)),
-			("StopLocalBitcoinCoreOnShutdown", Bool(cfg.StopLocalBitcoinCoreOnShutdown)),
-			("LocalBitcoinCoreDataDir", String(cfg.LocalBitcoinCoreDataDir)),
-			("MainNetBitcoinP2pEndPoint", EndPoint(cfg.MainNetBitcoinP2pEndPoint, Constants.DefaultMainNetBitcoinP2pPort)),
-			("TestNetBitcoinP2pEndPoint", EndPoint(cfg.TestNetBitcoinP2pEndPoint, Constants.DefaultTestNetBitcoinP2pPort)),
-			("RegTestBitcoinP2pEndPoint", EndPoint(cfg.RegTestBitcoinP2pEndPoint, Constants.DefaultRegTestBitcoinP2pPort)),
+			("UseBitcoinRpc", Bool(cfg.UseBitcoinRpc)),
+			("MainNetBitcoinRpcCredentialString", String(cfg.MainNetBitcoinRpcCredentialString)),
+			("TestNetBitcoinRpcCredentialString", String(cfg.TestNetBitcoinRpcCredentialString)),
+			("RegTestBitcoinRpcCredentialString", String(cfg.RegTestBitcoinRpcCredentialString)),
+			("MainNetBitcoinRpcEndPoint", EndPoint(cfg.MainNetBitcoinRpcEndPoint, Constants.DefaultMainNetBitcoinCoreRpcPort)),
+			("TestNetBitcoinRpcEndPoint", EndPoint(cfg.TestNetBitcoinRpcEndPoint, Constants.DefaultTestNetBitcoinCoreRpcPort)),
+			("RegTestBitcoinRpcEndPoint", EndPoint(cfg.RegTestBitcoinRpcEndPoint, Constants.DefaultRegTestBitcoinCoreRpcPort)),
 			("JsonRpcServerEnabled", Bool(cfg.JsonRpcServerEnabled)),
 			("JsonRpcUser", String(cfg.JsonRpcUser)),
 			("JsonRpcPassword", String(cfg.JsonRpcPassword)),
@@ -57,6 +59,8 @@ public static class PersistentConfigDecode
 			Decode.String
 		]);
 
+	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
+
 	public static readonly Decoder<PersistentConfig> PersistentConfig =
 		Object(get => new PersistentConfig
 		{
@@ -71,12 +75,13 @@ public static class PersistentConfigDecode
 			TerminateTorOnExit = get.Required("TerminateTorOnExit", Decode.Bool),
 			TorBridges = get.Required("TorBridges", Decode.Array(Decode.String)),
 			DownloadNewVersion = get.Required("DownloadNewVersion", Decode.Bool),
-			StartLocalBitcoinCoreOnStartup = get.Required("StartLocalBitcoinCoreOnStartup", Decode.Bool),
-			StopLocalBitcoinCoreOnShutdown = get.Required("StopLocalBitcoinCoreOnShutdown", Decode.Bool),
-			LocalBitcoinCoreDataDir = get.Required("LocalBitcoinCoreDataDir", Decode.String),
-			MainNetBitcoinP2pEndPoint = get.Required("MainNetBitcoinP2pEndPoint", Decode.EndPoint),
-			TestNetBitcoinP2pEndPoint = get.Required("TestNetBitcoinP2pEndPoint", Decode.EndPoint),
-			RegTestBitcoinP2pEndPoint = get.Required("RegTestBitcoinP2pEndPoint", Decode.EndPoint),
+			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool, false),
+			MainNetBitcoinRpcCredentialString = get.Optional("MainNetBitcoinRpcCredentialString", Decode.String) ?? "",
+			TestNetBitcoinRpcCredentialString = get.Optional("TestNetBitcoinRpcCredentialString", Decode.String) ?? "",
+			RegTestBitcoinRpcCredentialString = get.Optional("RegTestBitcoinRpcCredentialString", Decode.String) ?? "",
+			MainNetBitcoinRpcEndPoint = get.Optional("MainNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
+			TestNetBitcoinRpcEndPoint = get.Optional("TestNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
+			RegTestBitcoinRpcEndPoint = get.Optional("RegTestBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
 			JsonRpcServerEnabled = get.Required("JsonRpcServerEnabled", Decode.Bool),
 			JsonRpcUser = get.Required("JsonRpcUser", Decode.String),
 			JsonRpcPassword = get.Required("JsonRpcPassword", Decode.String),

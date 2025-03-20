@@ -58,10 +58,6 @@ public static class Constants
 
 	public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
 
-	public const int DefaultMainNetBitcoinP2pPort = 8333;
-	public const int DefaultTestNetBitcoinP2pPort = 48333;
-	public const int DefaultRegTestBitcoinP2pPort = 18444;
-
 	public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
 	public const int DefaultTestNetBitcoinCoreRpcPort = 48332;
 	public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
@@ -84,11 +80,6 @@ public static class Constants
 	public const string SilentPlistName = "com.wasabiwallet.startup.plist";
 
 	public const string AppName = "Wasabi Wallet";
-	public const string BuiltinBitcoinNodeName = "Bitcoin Knots";
-
-	public static readonly EndPoint DefaultMainNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinP2pPort);
-	public static readonly EndPoint DefaultTestNetBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinP2pPort);
-	public static readonly EndPoint DefaultRegTestBitcoinP2PEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinP2pPort);
 
 	public static readonly EndPoint DefaultMainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinCoreRpcPort);
 	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);

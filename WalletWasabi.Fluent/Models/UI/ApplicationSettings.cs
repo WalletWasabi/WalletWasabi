@@ -40,10 +40,9 @@ public partial class ApplicationSettings : ReactiveObject
 	// Bitcoin
 	[AutoNotify] private Network _network;
 
-	[AutoNotify] private bool _startLocalBitcoinCoreOnStartup;
-	[AutoNotify] private string _localBitcoinCoreDataDir;
-	[AutoNotify] private bool _stopLocalBitcoinCoreOnShutdown;
-	[AutoNotify] private string _bitcoinP2PEndPoint;
+	[AutoNotify] private bool _useBitcoinRpc;
+	[AutoNotify] private string _bitcoinRpcEndPoint;
+	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
 	[AutoNotify] private string _feeRateEstimationProvider;
@@ -99,10 +98,9 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Bitcoin
 		Network = persistentConfig.Network;
-		StartLocalBitcoinCoreOnStartup = persistentConfig.StartLocalBitcoinCoreOnStartup;
-		LocalBitcoinCoreDataDir = persistentConfig.LocalBitcoinCoreDataDir;
-		StopLocalBitcoinCoreOnShutdown = persistentConfig.StopLocalBitcoinCoreOnShutdown;
-		BitcoinP2PEndPoint = persistentConfig.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+		UseBitcoinRpc = persistentConfig.UseBitcoinRpc;
+		BitcoinRpcEndPoint = persistentConfig.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
+		BitcoinRpcCredentialString = persistentConfig.GetBitcoinRpcCredentialString();
 		DustThreshold = persistentConfig.DustThreshold.ToString();
 
 		// Coordinator
@@ -140,15 +138,14 @@ public partial class ApplicationSettings : ReactiveObject
 			this.WhenAnyValue(
 					x => x.EnableGpu,
 					x => x.Network,
-					x => x.StartLocalBitcoinCoreOnStartup,
-					x => x.LocalBitcoinCoreDataDir,
-					x => x.StopLocalBitcoinCoreOnShutdown,
-					x => x.BitcoinP2PEndPoint,
+					x => x.UseBitcoinRpc,
+					x => x.BitcoinRpcCredentialString,
+					x => x.BitcoinRpcEndPoint,
 					x => x.DustThreshold,
 					x => x.UseTor,
 					x => x.TerminateTorOnExit,
 					x => x.DownloadNewVersion,
-					(_, _, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 		var configSaveTrigger2 =
 			this.WhenAnyValue(
@@ -192,12 +189,6 @@ public partial class ApplicationSettings : ReactiveObject
 			.Skip(1)
 			.Do(_ => ApplyUiConfigPrivacyModeChange())
 			.Subscribe();
-
-		// Set Default BitcoinCoreDataDir if required
-		this.WhenAnyValue(x => x.StartLocalBitcoinCoreOnStartup)
-			.Skip(1)
-			.Where(value => value && string.IsNullOrEmpty(LocalBitcoinCoreDataDir))
-			.Subscribe(_ => LocalBitcoinCoreDataDir = EnvironmentHelpers.GetDefaultBitcoinCoreDataDirOrEmptyString());
 
 		// Apply RunOnSystemStartup
 		this.WhenAnyValue(x => x.RunOnSystemStartup)
@@ -267,19 +258,19 @@ public partial class ApplicationSettings : ReactiveObject
 		// Bitcoin
 		if (Network == config.Network)
 		{
-			if (EndPointParser.TryParse(BitcoinP2PEndPoint, Network.DefaultPort, out EndPoint? endPoint))
+			if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 			{
 				if (Network == Network.Main)
 				{
-					result = result with { MainNetBitcoinP2pEndPoint = endPoint };
+					result = result with { MainNetBitcoinRpcEndPoint = endPoint, MainNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else if (Network == Network.TestNet)
 				{
-					result = result with { TestNetBitcoinP2pEndPoint = endPoint };
+					result = result with { TestNetBitcoinRpcEndPoint = endPoint, TestNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else if (Network == Network.RegTest)
 				{
-					result = result with { RegTestBitcoinP2pEndPoint = endPoint };
+					result = result with { RegTestBitcoinRpcEndPoint = endPoint, RegTestBitcoinRpcCredentialString = BitcoinRpcCredentialString};
 				}
 				else
 				{
@@ -310,9 +301,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 			result = result with
 			{
-				StartLocalBitcoinCoreOnStartup = StartLocalBitcoinCoreOnStartup,
-				StopLocalBitcoinCoreOnShutdown = StopLocalBitcoinCoreOnShutdown,
-				LocalBitcoinCoreDataDir = Guard.Correct(LocalBitcoinCoreDataDir),
+				UseBitcoinRpc = UseBitcoinRpc,
 				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
 					Money.Coins(threshold) :
 					Money.Coins(Constants.DefaultDustThreshold),
@@ -333,7 +322,8 @@ public partial class ApplicationSettings : ReactiveObject
 				Network = Network
 			};
 
-			BitcoinP2PEndPoint = result.GetBitcoinP2pEndPoint().ToString(defaultPort: -1);
+			BitcoinRpcEndPoint = result.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
+			BitcoinRpcCredentialString = result.GetBitcoinRpcCredentialString();
 			BackendUri = result.GetBackendUri();
 		}
 

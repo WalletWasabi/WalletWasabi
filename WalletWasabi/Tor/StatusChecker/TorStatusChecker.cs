@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Logging;
-using WalletWasabi.Tor.Http;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Tor.StatusChecker;
 
@@ -14,16 +14,16 @@ namespace WalletWasabi.Tor.StatusChecker;
 public class TorStatusChecker : PeriodicRunner
 {
 	private readonly XmlIssueListParser _parser;
+	private readonly EventBus _eventBus;
 	private static readonly Uri TorStatusUri = new("https://status.torproject.org/index.xml");
 
-	public TorStatusChecker(TimeSpan period, HttpClient httpClient, XmlIssueListParser parser)
+	public TorStatusChecker(TimeSpan period, HttpClient httpClient, XmlIssueListParser parser, EventBus eventBus)
 		: base(period)
 	{
 		_parser = parser;
+		_eventBus = eventBus;
 		_httpClient = httpClient;
 	}
-
-	public event EventHandler<Issue[]>? StatusEvent;
 
 	private readonly HttpClient _httpClient;
 
@@ -39,7 +39,7 @@ public class TorStatusChecker : PeriodicRunner
 			var issues = _parser.Parse(xml);
 
 			// Fire event.
-			StatusEvent?.Invoke(this, issues.ToArray());
+			_eventBus.Publish(new TorNetworkStatusChanged(issues.ToArray()));
 		}
 		catch (Exception ex)
 		{

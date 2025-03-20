@@ -6,7 +6,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -60,8 +60,8 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory);
-		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo", new HttpClientFactory());
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory, setup.EventBus);
+		using FeeRateEstimationUpdater feeProvider = new(TimeSpan.Zero, () => "BlockstreamInfo", new HttpClientFactory(), setup.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -69,14 +69,13 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		// 5. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();
 
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, null);
 
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			[specificNodeBlockProvider],
+			[],
 			new P2PBlockProvider(network, nodes, false));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 

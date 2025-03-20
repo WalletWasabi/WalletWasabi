@@ -1,7 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -31,7 +31,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(1), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(1), 1000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
 		try
 		{
 			await synchronizer.StartAsync(CancellationToken.None);

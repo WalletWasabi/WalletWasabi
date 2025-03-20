@@ -12,7 +12,7 @@ public class AmountExtensionsTests
 	[Fact]
 	public void DifferenceShouldBeExpected()
 	{
-		var exchangeRateProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRates == Observable.Return(1m));
+		var exchangeRateProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRate == Observable.Return(1m));
 		var previous = new Amount(Money.FromUnit(221, MoneyUnit.Satoshi), exchangeRateProvider);
 		var current = new Amount(Money.FromUnit(110, MoneyUnit.Satoshi), exchangeRateProvider);
 

@@ -51,7 +51,7 @@ public partial class StatusIconViewModel : ViewModelBase
 
 	public ICommand AskMeLaterCommand { get; }
 
-	public string BitcoinCoreName => Constants.BuiltinBitcoinNodeName;
+	public string BitcoinCoreName => "Bitcoin Node";
 
 	private string GetVersionText()
 	{

@@ -3,7 +3,7 @@ using NBitcoin.Protocol;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
@@ -51,8 +51,8 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 3. Create wasabi synchronizer service.
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, RegTestFixture.BackendHttpClientFactory);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory());
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), setup.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -60,14 +60,12 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		// 5. Create wallet service.
 		var workDir = Common.GetWorkDir();
 
-		await using SpecificNodeBlockProvider specificNodeBlockProvider = new(network, serviceConfiguration, null);
-
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
-			[specificNodeBlockProvider],
+			[],
 			new P2PBlockProvider(network, nodes, false));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, synchronizer, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(workDir, network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;

@@ -1,70 +1,46 @@
-using NBitcoin;
-using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
+using NBitcoin.RPC;
 using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.Http;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
+public abstract record FiltersResponse
+{
+	public record AlreadyOnBestBlock : FiltersResponse;
+
+	public record BestBlockUnknown : FiltersResponse;
+
+	public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
+}
+
 public class WasabiClient
 {
-	public WasabiClient(HttpClient httpClient)
+	public WasabiClient(HttpClient httpClient, EventBus? eventBus = null)
 	{
 		_httpClient = httpClient;
+		_eventBus = eventBus ?? new EventBus();
 	}
 
 	private readonly HttpClient _httpClient;
+	private readonly EventBus _eventBus;
 
-	public static Dictionary<uint256, Transaction> TransactionCache { get; } = new();
-	private static Queue<uint256> TransactionIdQueue { get; } = new();
-	public static object TransactionCacheLock { get; } = new();
 	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.BackendMajorVersion);
 
-	#region batch
-
-	/// <remarks>
-	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
-	/// </remarks>
-	public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
-	{
-		string relativeUri = $"api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
-		if (estimateMode is { })
-		{
-			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
-		}
-
-		using HttpResponseMessage response = await _httpClient.GetAsync(relativeUri, cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync(Decode.SynchronizeResponse).ConfigureAwait(false);
-
-		return ret;
-	}
-
-	#endregion batch
-
-	#region blockchain
-
-	/// <remarks>
-	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
-	/// </remarks>
-	public async Task<FiltersResponse?> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
+	public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync(
 			$"api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
@@ -72,100 +48,37 @@ public class WasabiClient
 
 		if (response.StatusCode == HttpStatusCode.NoContent)
 		{
-			return null;
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.AlreadyOnBestBlock();
 		}
 
-		if (response.StatusCode != HttpStatusCode.OK)
+		if (response.StatusCode == HttpStatusCode.NotFound)
 		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.BestBlockUnknown();
 		}
+
+		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
 
 		using HttpContent content = response.Content;
 		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
-		return ret;
-	}
-
-	public async Task<IEnumerable<Transaction>> GetTransactionsAsync(Network network, IEnumerable<uint256> txHashes, CancellationToken cancel)
-	{
-		var allTxs = new List<Transaction>();
-		var txHashesToQuery = new List<uint256>();
-		lock (TransactionCacheLock)
-		{
-			var cachedTxs = TransactionCache.Where(x => txHashes.Contains(x.Key));
-			allTxs.AddRange(cachedTxs.Select(x => x.Value));
-			txHashesToQuery.AddRange(txHashes.Except(cachedTxs.Select(x => x.Key)));
-		}
-
-		foreach (IEnumerable<uint256> chunk in txHashesToQuery.ChunkBy(10))
-		{
-			cancel.ThrowIfCancellationRequested();
-
-			using HttpRequestMessage request = new(
-				HttpMethod.Get,
-				$"api/v{ApiVersion}/btc/blockchain/transaction-hexes?&transactionIds={string.Join("&transactionIds=", chunk.Select(x => x.ToString()))}");
-			using HttpResponseMessage response = await _httpClient.SendAsync(request, cancel).ConfigureAwait(false);
-
-			if (response.StatusCode != HttpStatusCode.OK)
-			{
-				await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-			}
-
-			using HttpContent content = response.Content;
-			var retString = await content.ReadAsJsonAsync(Decode.Array(Decode.String)).ConfigureAwait(false);
-			var ret = retString.Select(x => Transaction.Parse(x, network)).ToList();
-
-			lock (TransactionCacheLock)
-			{
-				foreach (var tx in ret)
-				{
-					tx.PrecomputeHash(false, true);
-					if (TransactionCache.TryAdd(tx.GetHash(), tx))
-					{
-						TransactionIdQueue.Enqueue(tx.GetHash());
-						if (TransactionCache.Count > 1000) // No more than 1000 txs in cache
-						{
-							var toRemove = TransactionIdQueue.Dequeue();
-							TransactionCache.Remove(toRemove);
-						}
-					}
-				}
-			}
-			allTxs.AddRange(ret);
-		}
-
-		return allTxs.ToDependencyGraph().OrderByDependency();
-	}
-
-	public async Task BroadcastAsync(string hex, CancellationToken cancellationToken)
-	{
-		using var content = new StringContent($"\"{hex}\"", Encoding.UTF8, "application/json");
-		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(CancellationToken.None).ConfigureAwait(false);
-		}
-	}
-
-	public async Task BroadcastAsync(Transaction transaction, CancellationToken cancellationToken)
-	{
-		await BroadcastAsync(transaction.ToHex(), cancellationToken).ConfigureAwait(false);
+		return new FiltersResponse.NewFiltersAvailable(ret.BestHeight, ret.Filters.ToArray());
 	}
 
 	public async Task BroadcastAsync(SmartTransaction transaction, CancellationToken cancellationToken)
 	{
-		await BroadcastAsync(transaction.Transaction, cancellationToken).ConfigureAwait(false);
+		using var content = new StringContent($"\"{transaction.Transaction.ToHex()}\"", Encoding.UTF8, "application/json");
+		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
+
+		await CheckErrorsAsync(response, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync("api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
+		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
 
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync(Decode.VersionsResponse).ConfigureAwait(false);
@@ -199,5 +112,12 @@ public class WasabiClient
 		return backendCompatible;
 	}
 
-	#endregion software
+	private async Task CheckErrorsAsync(HttpResponseMessage response, CancellationToken cancel)
+	{
+		_eventBus.Publish(new BackendAvailabilityStateChanged(response.StatusCode == HttpStatusCode.OK));
+		if (response.StatusCode != HttpStatusCode.OK)
+		{
+			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
+		}
+	}
 }

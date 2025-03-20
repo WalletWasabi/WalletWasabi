@@ -25,24 +25,11 @@
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>
 
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|AnyCPU'">
-		<DocumentationFile>bin\Debug\net8.0\WalletWasabi.Backend.xml</DocumentationFile>
-	</PropertyGroup>
-
-	<PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|AnyCPU'">
-		<!-- Needed for Swagger! -->
-		<DocumentationFile>bin\Release\net8.0\WalletWasabi.Backend.xml</DocumentationFile>
-		<DebugType>none</DebugType>
-		<DebugSymbols>false</DebugSymbols>
-		<ErrorReport>none</ErrorReport>
-	</PropertyGroup>
-
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
 
 	<ItemGroup>
-		<PackageReference Include="Swashbuckle.AspNetCore" />
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.NewtonsoftJson" />
 	</ItemGroup>
 

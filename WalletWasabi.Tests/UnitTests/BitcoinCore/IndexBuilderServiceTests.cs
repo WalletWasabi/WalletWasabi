@@ -5,8 +5,8 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinCore.Rpc;
-using WalletWasabi.BitcoinCore.Rpc.Models;
+using WalletWasabi.BitcoinRpc;
+using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
@@ -92,7 +92,7 @@ public class IndexBuilderServiceTests
 
 		indexer.Synchronize();
 
-		await Task.Delay(TimeSpan.FromSeconds(10));
+		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.True(indexer.IsRunning);  // It is still working
 
 		var lastFilter = indexer.GetLastFilter();

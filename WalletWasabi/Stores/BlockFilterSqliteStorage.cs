@@ -292,7 +292,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height);
 			insertCommand.Parameters.AddWithValue("$block_hash", filter.Header.BlockHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$filter_data", filter.FilterData);
-			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.PrevHash.ToBytes(lendian: true));
+			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.HeaderOrPrevBlockHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$epoch_block_time", filter.Header.EpochBlockTime);
 			int result = insertCommand.ExecuteNonQuery();
 
@@ -343,7 +343,7 @@ public class BlockFilterSqliteStorage : IDisposable
 			blockHeightParameter.Value = filter.Header.Height;
 			blockHashParameter.Value = filter.Header.BlockHash.ToBytes(lendian: true);
 			filterDataParameter.Value = filter.FilterData;
-			prevBlockHashParameter.Value = filter.Header.PrevHash.ToBytes(lendian: true);
+			prevBlockHashParameter.Value = filter.Header.HeaderOrPrevBlockHash.ToBytes(lendian: true);
 			epochBlockTimeParameter.Value = filter.Header.EpochBlockTime;
 
 			command.ExecuteNonQuery();

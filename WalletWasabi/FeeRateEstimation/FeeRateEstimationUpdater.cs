@@ -2,8 +2,8 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.FeeRateEstimation;
@@ -11,19 +11,19 @@ namespace WalletWasabi.FeeRateEstimation;
 public class FeeRateEstimationUpdater :  PeriodicRunner
 {
 	private readonly Func<string> _feeRateProviderGetter;
+	private readonly EventBus _eventBus;
 	private readonly FeeRateProvider _provider;
 	private readonly UserAgentPicker _userAgentPicker;
 
 	public FeeRateEstimations? FeeEstimates { get; private set; }
-	public event EventHandler<FeeRateEstimations>? FeeEstimationsRefreshed;
-	public event EventHandler<FeeRateEstimations>? FeeEstimationsChanged;
 
-	public FeeRateEstimationUpdater(TimeSpan period, Func<string> feeRateProviderGetter, IHttpClientFactory httpClientFactory)
+	public FeeRateEstimationUpdater(TimeSpan period, Func<string> feeRateProviderGetter, IHttpClientFactory httpClientFactory, EventBus eventBus)
 		: base(period)
 	{
 		_provider = new FeeRateProvider(httpClientFactory);
 		_feeRateProviderGetter = feeRateProviderGetter;
 		_userAgentPicker = UserAgent.GenerateUserAgentPicker(false);
+		_eventBus = eventBus;
 	}
 
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
@@ -34,10 +34,8 @@ public class FeeRateEstimationUpdater :  PeriodicRunner
 			Logger.LogInfo($"Fetched fee rate estimations from {_feeRateProviderGetter()}.");
 
 			FeeEstimates = newFeeRateEstimations;
-			FeeEstimationsChanged.SafeInvoke(this, FeeEstimates);
+			_eventBus.Publish(new MiningFeeRatesChanged(newFeeRateEstimations));
 		}
-
-		FeeEstimationsRefreshed.SafeInvoke(this, FeeEstimates);
 
 		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
 	}

@@ -125,7 +125,7 @@ public class App : Application
 
 	private static IAmountProvider CreateAmountProvider()
 	{
-		return new AmountProvider(Services.HostedServices.Get<ExchangeRateUpdater>());
+		return new AmountProvider();
 	}
 
 	private UiContext CreateUiContext()

@@ -31,12 +31,11 @@ public class UpdateManager : PeriodicRunner
 		_installerDir = Path.Combine(dataDir, "Installer");
 		_externalHttpClient = githubHttpClient;
 		_wasabiNostrClient = nostrClient;
+		_eventBus = eventBus;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}
-
-	public event EventHandler<UpdateStatus>? UpdateAvailableToGet;
 
 	private string InstallerPath { get; set; } = "";
 
@@ -44,9 +43,10 @@ public class UpdateManager : PeriodicRunner
 	private readonly HttpClient _externalHttpClient;
 	private readonly WasabiNostrClient _wasabiNostrClient;
 	private UserAgentPicker _userAgentGetter;
+    private readonly EventBus _eventBus;
 
-	/// <summary>Whether to download the new installer in the background or not.</summary>
-	private readonly bool _downloadNewVersion;
+    /// <summary>Whether to download the new installer in the background or not.</summary>
+    private readonly bool _downloadNewVersion;
 
 	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
@@ -92,8 +92,8 @@ public class UpdateManager : PeriodicRunner
 					updateStatus.ClientUpToDate = false;
 				}
 
-				UpdateAvailableToGet?.Invoke(this, updateStatus);
-			}
+                _eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+            }
 		}
 		catch (OperationCanceledException ex)
 		{

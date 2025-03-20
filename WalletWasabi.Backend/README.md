@@ -1,9 +1,5 @@
 # API Specification
 
-**ATTENTION:** This document describes the initial specification. The actual implementation may differ significantly. You can find up to date documentation here:
-- TestNet: http://testwnp3fugjln6vh5vpj7mvq3lkqqwjj3c2aafyu7laxz42kgwh2rad.onion/swagger
-- Main: http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/swagger
-
 ## HTTP
 
   Requests and Responses are in JSON.
