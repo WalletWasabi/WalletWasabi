@@ -1,4 +1,6 @@
 using Newtonsoft.Json.Linq;
+using NNostr.Client;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -69,6 +71,8 @@ public class UpdateManager : PeriodicRunner
 					Cleanup();
 					return;
 				}
+
+				Logger.LogInfo($"New release event received. Version: {availableVersion} Download link: {nostrUpdateInfo.DownloadLink}");
 
 				UpdateStatus updateStatus = new()
 				{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };

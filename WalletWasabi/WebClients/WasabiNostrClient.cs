@@ -39,7 +39,6 @@ public class WasabiNostrClient
 				{
 					if (Events.TryAdd(nostrEvent.Id, nostrEvent))
 					{
-						Logger.LogInfo($"New release event received. ID: {nostrEvent.Id} Version: {version} Download link: {downloadLink}");
 						Version newVersion = new(version);
 						NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
 					}
