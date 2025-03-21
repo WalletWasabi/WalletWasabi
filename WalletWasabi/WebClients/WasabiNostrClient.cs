@@ -4,7 +4,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Logging;
@@ -19,33 +18,29 @@ public class WasabiNostrClient
 	public WasabiNostrClient(EndPoint endPoint)
 	{
 		_torEndpoint = endPoint;
-		NostrUpdateChannel = Channel.CreateUnbounded<NostrUpdateInfo>();
 	}
 
 	public INostrClient? NostrWebClient { get; set; }
-	public Channel<NostrUpdateInfo> NostrUpdateChannel { get; set; }
 	private Dictionary<string, NostrEvent> Events { get; } = new();
+	private object EventsLock { get; } = new();
 
 	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
 	{
 		if (args.subscriptionId == _nostrSubscriptionID)
 		{
-			foreach (NostrEvent nostrEvent in args.events)
+			lock (EventsLock)
 			{
-				var version = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "Version")?.Data.FirstOrDefault();
-				var downloadLink = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "DownloadLink")?.Data.FirstOrDefault();
-
-				if (version is not null && downloadLink is not null)
+				foreach (NostrEvent nostrEvent in args.events)
 				{
-					if (Events.TryAdd(nostrEvent.Id, nostrEvent))
+					var version = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "Version")?.Data.FirstOrDefault();
+					var downloadLink = nostrEvent.Tags.FirstOrDefault(x => x.TagIdentifier == "DownloadLink")?.Data.FirstOrDefault();
+
+					if (version is not null && downloadLink is not null)
 					{
-						Version newVersion = new(version);
-						NostrUpdateChannel.Writer.TryWrite(new NostrUpdateInfo(newVersion, downloadLink));
+						Events.TryAdd(nostrEvent.Id, nostrEvent);
 					}
 				}
 			}
-
-			
 		}
 	}
 
@@ -75,5 +70,25 @@ public class WasabiNostrClient
 			}
 		}
 	}
+
+	public NostrUpdateInfo? GetLatestUpdateInfo()
+	{
+		lock (EventsLock)
+		{
+			var latestEvent = Events.Values.OrderByDescending(ev => ev.CreatedAt).FirstOrDefault();
+
+			if (latestEvent is null)
+			{
+				return null;
+			}
+
+			// Nostr events must have these two tags in order to save them in Events property.
+			string version = latestEvent.Tags.First(x => x.TagIdentifier == "Version").Data.First();
+			string downloadLink = latestEvent.Tags.First(x => x.TagIdentifier == "DownloadLink").Data.First();
+
+			return new NostrUpdateInfo(new Version(version), downloadLink);
+		}
+	}
+
 	public record NostrUpdateInfo(Version Version, string DownloadLink);
 }

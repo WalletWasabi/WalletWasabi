@@ -57,43 +57,46 @@ public class UpdateManager : PeriodicRunner
 		{
 			await _wasabiNostrClient.CheckNostrConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-			while (await _wasabiNostrClient.NostrUpdateChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
+			NostrUpdateInfo? nostrUpdateInfo = _wasabiNostrClient.GetLatestUpdateInfo();
+
+			if (nostrUpdateInfo is null)
 			{
-				NostrUpdateInfo nostrUpdateInfo = await _wasabiNostrClient.NostrUpdateChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				return;
+			}
 
-				Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
+			Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
 
-				bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
+			bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
 
-				if (!updateAvailable)
-				{
-					// After updating Wasabi, remove old installer file.
-					Cleanup();
-					return;
-				}
+			if (Helpers.Constants.ClientVersion == availableVersion || !updateAvailable)
+			{
+				// After updating Wasabi, remove old installer file.
+				Cleanup();
+				return;
+			}
 
-				Logger.LogInfo($"New release event received. Version: {availableVersion} Download link: {nostrUpdateInfo.DownloadLink}");
+			Logger.LogInfo($"New release event received. Version: {availableVersion} Download link: {nostrUpdateInfo.DownloadLink}");
 
-				UpdateStatus updateStatus = new()
-				{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };
+			UpdateStatus updateStatus = new()
+			{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };
 
-				if (_downloadNewVersion)
-				{
-					ReleaseInfo releaseInfo = await GetDownloadLinksFromNostrDownloadLinkAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
-					(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
+			if (_downloadNewVersion)
+			{
+				ReleaseInfo releaseInfo = await GetDownloadLinksFromNostrDownloadLinkAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
+				(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
 
-					Logger.LogInfo($"Trying to download new version: {availableVersion}");
-					
-					string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
-					InstallerPath = installerPath;
-					Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
-					updateStatus.IsReadyToInstall = true;
-					updateStatus.ClientVersion = availableVersion;
-					updateStatus.ClientUpToDate = false;
-				}
+				Logger.LogInfo($"Trying to download new version: {availableVersion}");
+				
+				string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
+				InstallerPath = installerPath;
+				Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
+				updateStatus.IsReadyToInstall = true;
+				updateStatus.ClientVersion = availableVersion;
+				updateStatus.ClientUpToDate = false;
+			}
 
-                _eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
-            }
+            _eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+            
 		}
 		catch (OperationCanceledException ex)
 		{
