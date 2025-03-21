@@ -50,7 +50,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		switch (options)
 		{
 			case WalletCreationOptions.AddNewWallet add:
-				Navigate().To().RecoveryWords(add);
+				Navigate().To().WalletBackupType(add);
 				break;
 
 			case WalletCreationOptions.ConnectToHardwareWallet chw:
