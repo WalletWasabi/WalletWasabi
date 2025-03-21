@@ -76,7 +76,7 @@ public class Global
 		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
 		var wasabiNostrClient = new WasabiNostrClient(TorSettings.SocksEndpoint);
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-wasabiwallet.io"), wasabiNostrClient, EventBus), "Update Manager");
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromMinutes(30), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-update-manager"), wasabiNostrClient, EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
