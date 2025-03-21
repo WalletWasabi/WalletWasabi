@@ -1,4 +1,6 @@
 using Newtonsoft.Json.Linq;
+using NNostr.Client;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -6,39 +8,45 @@ using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Tor.Http;
+using WalletWasabi.WebClients;
 using WalletWasabi.WebClients.Wasabi;
+using static WalletWasabi.WebClients.WasabiNostrClient;
 
 namespace WalletWasabi.Services;
 
 public class UpdateManager : PeriodicRunner
 {
-	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
-
-	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, EventBus eventBus)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, WasabiNostrClient nostrClient, EventBus eventBus)
 		: base(period)
 	{
 		_installerDir = Path.Combine(dataDir, "Installer");
-		_githubHttpClient = githubHttpClient;
+		_externalHttpClient = githubHttpClient;
+		_wasabiNostrClient = nostrClient;
 		_eventBus = eventBus;
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}
 
 	private string InstallerPath { get; set; } = "";
 
 	private readonly string _installerDir;
-	private readonly HttpClient _githubHttpClient;
-	private readonly EventBus _eventBus;
+	private readonly HttpClient _externalHttpClient;
+	private readonly WasabiNostrClient _wasabiNostrClient;
+	private UserAgentPicker _userAgentGetter;
+    private readonly EventBus _eventBus;
 
-	/// <summary>Whether to download the new installer in the background or not.</summary>
-	private readonly bool _downloadNewVersion;
+    /// <summary>Whether to download the new installer in the background or not.</summary>
+    private readonly bool _downloadNewVersion;
 
 	/// <summary>Install new version on shutdown or not.</summary>
 	public bool DoUpdateOnClose { get; set; }
@@ -47,32 +55,48 @@ public class UpdateManager : PeriodicRunner
 	{
 		try
 		{
-			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
-			Version availableMajorVersion = new(result.LatestClientVersion.Major,  result.LatestClientVersion.Minor,  result.LatestClientVersion.Build);
+			await _wasabiNostrClient.CheckNostrConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-			bool updateAvailable = Helpers.Constants.ClientVersion < availableMajorVersion;
+			NostrUpdateInfo? nostrUpdateInfo = _wasabiNostrClient.GetLatestUpdateInfo();
 
-			if (!updateAvailable)
+			if (nostrUpdateInfo is null)
+			{
+				return;
+			}
+
+			Version availableVersion = new(nostrUpdateInfo.Version.Major, nostrUpdateInfo.Version.Minor, nostrUpdateInfo.Version.Build);
+
+			bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
+
+			if (Helpers.Constants.ClientVersion == availableVersion || !updateAvailable)
 			{
 				// After updating Wasabi, remove old installer file.
 				Cleanup();
 				return;
 			}
 
+			Logger.LogInfo($"New release event received. Version: {availableVersion} Download link: {nostrUpdateInfo.DownloadLink}");
+
 			UpdateStatus updateStatus = new()
-				{ClientVersion = availableMajorVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
+			{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };
 
 			if (_downloadNewVersion)
 			{
-				(result.InstallerDownloadUrl, result.InstallerFileName) = GetAssetToDownload(result.AssetDownloadLinks);
-				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
+				ReleaseInfo releaseInfo = await GetDownloadLinksFromNostrDownloadLinkAsync(nostrUpdateInfo.DownloadLink, cancellationToken).ConfigureAwait(false);
+				(releaseInfo.InstallerDownloadUrl, releaseInfo.InstallerFileName) = GetAssetToDownload(releaseInfo.AssetDownloadLinks);
+
+				Logger.LogInfo($"Trying to download new version: {availableVersion}");
+				
+				string installerPath = await GetInstallerAsync(releaseInfo, cancellationToken).ConfigureAwait(false);
 				InstallerPath = installerPath;
-				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
+				Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
 				updateStatus.IsReadyToInstall = true;
-				updateStatus.ClientVersion = newVersion;
+				updateStatus.ClientVersion = availableVersion;
 				updateStatus.ClientUpToDate = false;
 			}
-			_eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+
+            _eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+            
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -96,7 +120,7 @@ public class UpdateManager : PeriodicRunner
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
-	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
+	private async Task<string> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
 	{
 		var sha256SumsFilePath = Path.Combine(_installerDir, "SHA256SUMS.asc");
 
@@ -111,11 +135,10 @@ public class UpdateManager : PeriodicRunner
 			{
 				EnsureToRemoveCorruptedFiles();
 
-				Logger.LogInfo($"Trying to download new version: {info.LatestClientVersion}");
-
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
-				using HttpResponseMessage response = await _githubHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+				_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+				using HttpResponseMessage response = await _externalHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogInfo("Installer downloaded, copying...");
@@ -132,7 +155,7 @@ public class UpdateManager : PeriodicRunner
 			throw;
 		}
 
-		return (installerFilePath, info.LatestClientVersion);
+		return installerFilePath;
 	}
 
 	private async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash, CancellationToken cancellationToken)
@@ -172,30 +195,37 @@ public class UpdateManager : PeriodicRunner
 		File.Move(tmpFilePath, filePath);
 	}
 
-	private async Task<ReleaseInfo> GetLatestReleaseFromGithubAsync(CancellationToken cancellationToken)
+	private async Task<ReleaseInfo> GetDownloadLinksFromNostrDownloadLinkAsync(string downloadURL, CancellationToken cancellationToken)
 	{
-		using HttpRequestMessage message = new(HttpMethod.Get, ReleaseURL);
-		message.Headers.UserAgent.Add(new("WalletWasabi", "2.0"));
-		var response = await _githubHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
+		using HttpRequestMessage message = new(HttpMethod.Get, downloadURL);
+		_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+		var response = await _externalHttpClient.SendAsync(message, cancellationToken).ConfigureAwait(false);
 
-		JObject jsonResponse = JObject.Parse(await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false));
+		var content = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-		string softwareVersion = jsonResponse["tag_name"]?.ToString() ?? throw new InvalidDataException($"Endpoint gave back wrong json data or it's changed.\n{jsonResponse}");
+		List<string> assetDownloadLinks = ExtractDownloadLinksFromHtml(content);
 
-		// Make sure there are no non-numeric characters (besides '.') in the version string.
-		softwareVersion = string.Concat(softwareVersion.Where(c => char.IsDigit(c) || c == '.').ToArray());
+		return new ReleaseInfo(assetDownloadLinks);
+	}
 
-		Version githubVersion = new(softwareVersion);
+	private static List<string> ExtractDownloadLinksFromHtml(string html)
+	{
+		var rows = html.Split("\n");
+		List<string> relevantRows = rows.Where(row => row.Contains("<a href=")).ToList();
 
-		// Get all asset names and download URLs to find the correct one.
-		List<JToken> assetsInfo = jsonResponse["assets"]?.Children().ToList() ?? throw new InvalidDataException("Missing assets from response.");
 		List<string> assetDownloadLinks = new();
-		foreach (JToken asset in assetsInfo)
+		foreach (var row in relevantRows)
 		{
-			assetDownloadLinks.Add(asset["browser_download_url"]?.ToString() ?? throw new InvalidDataException("Missing download url from response."));
+			string regex = "href=\"(.*)\"";
+			Match match = Regex.Match(row, regex);
+			if (match.Success)
+			{
+				string link = match.Groups[1].Value;
+				assetDownloadLinks.Add(link);
+			}
 		}
 
-		return new ReleaseInfo(githubVersion, assetDownloadLinks);
+		return assetDownloadLinks;
 	}
 
 	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, List<string> assetDownloadLinks, CancellationToken cancellationToken)
@@ -207,14 +237,16 @@ public class UpdateManager : PeriodicRunner
 		try
 		{
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
-			using HttpResponseMessage sha256Response = await _githubHttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
+			_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+			using HttpResponseMessage sha256Response = await _externalHttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(sha256SumsFilePath);
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
-			using HttpResponseMessage signatureResponse = await _githubHttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
+			_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+			using HttpResponseMessage signatureResponse = await _externalHttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
 			IoHelpers.EnsureContainingDirectoryExists(wasabiSigFilePath);
@@ -344,8 +376,9 @@ public class UpdateManager : PeriodicRunner
 		}
 	}
 
-	private record ReleaseInfo(Version LatestClientVersion, List<string> AssetDownloadLinks)
+	private record ReleaseInfo(List<string> AssetDownloadLinks)
 	{
+		public Version Version { get; set; } = new(0, 0, 0);
 		public string InstallerDownloadUrl { get; set; } = "";
 		public string InstallerFileName { get; set; } = "";
 	}
