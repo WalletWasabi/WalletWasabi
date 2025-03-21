@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:WalletWasabi.Fluent.Models"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:CompileBindings="True"
+             x:DataType="create:WalletBackupTypeViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.WalletBackupTypeView">
+  <ContentArea Title="{Binding Title}"
+                 Caption="Select to optimal backup type for your wallet."
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue" FocusNext="True"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <ListBox
+      ItemsSource="{Binding WalletBackupTypes}"
+      SelectedItem="{Binding WalletBackupType}"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center">
+      <ListBox.Styles>
+        <!-- TODO: Style the ListBoxItem -->
+        <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
+          <!-- TODO: Add help text -->
+          <Setter Property="(ToolTip.Tip)"
+                  Value="{Binding Description}" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="models:WalletBackupType">
+          <RadioButton
+            ToolTip.Tip="{Binding Description}"
+            IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
+            Content="{Binding Description}" />
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </ContentArea>
+</UserControl>
