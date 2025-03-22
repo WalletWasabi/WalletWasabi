@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Moq;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Transactions;
@@ -83,21 +82,7 @@ public class ReceiveAddressViewModelTests
 
 		public bool IsSelected { get; set; }
 
-		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
-		{
-			throw new NotSupportedException();
-		}
-
 		public void Rename(string newWalletName) => throw new NotSupportedException();
-
-		public void Dispose()
-		{
-		}
-
-		public Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
-		{
-			throw new NotImplementedException();
-		}
 
 		public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 		{

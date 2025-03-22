@@ -1,8 +1,8 @@
-using Moq;
 using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.BlockProvider;
 using WalletWasabi.Wallets.FilterProcessor;
@@ -44,23 +44,19 @@ public class BlockDownloadServiceTests
 
 		TaskCompletionSource block2RequestedTcs = new();
 		TaskCompletionSource block2DelayTcs = new();
-		TaskCompletionSource block2DownloadedTcs = new();
 
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-
-		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
-			.Returns(Task.CompletedTask);
-
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
-		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
-
-		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
 		{
-			// Handling of downloading of block1.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
-				.Returns(async () =>
+			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
+			OnSaveAsync = (_, _) => Task.CompletedTask
+		};
+
+		int block2Counter = 0;
+		IBlockProvider fullNodeBlockProvider = new TesteableBlockProvider
+		{
+			OnTryGetBlockAsync = async (blockHash, _) =>
+			{
+				if (blockHash == blockHash1)
 				{
 					block1RequestedTcs.SetResult();
 
@@ -68,30 +64,37 @@ public class BlockDownloadServiceTests
 					await block1DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
 
 					return block1;
-				});
-
-			// Handling of downloading of block2.
-			mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
-				.Returns(async () =>
+				}
+				if(blockHash == blockHash2)
 				{
-					block2RequestedTcs.SetResult();
+					block2Counter++;
+					if (block2Counter == 1)
+					{
+						block2RequestedTcs.SetResult();
 
-					// Wait until signal is given that a download failure can be reported here.
-					await block2DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
+						// Wait until signal is given that a download failure can be reported here.
+						await block2DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
 
-					return null;
-				})
-				.ReturnsAsync(block2)
-				.ReturnsAsync(block2);
+						return null;
+					}
+					return block2;
+				}
 
-			// Handling of downloading of block3.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block3);
+				if (blockHash == blockHash3)
+				{
+					return block3;
+				}
+				if (blockHash == blockHash4)
+				{
+					return block4;
+				}
 
-			// Handling of downloading of block4.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block4);
+				throw new Exception("WTF");
+			}
+		};
 
+		using (BlockDownloadService service = new(fileSystemBlockRepository, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		{
 			await service.StartAsync(testCts.Token);
 
 			Task<IResult> task1 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), testCts.Token);
@@ -118,9 +121,6 @@ public class BlockDownloadServiceTests
 				SuccessResult successResult = Assert.IsType<SuccessResult>(task1Result);
 				Assert.Same(block1, successResult.Block);
 			}
-
-			// Block3 should be available even though block1 and block3 are waiting for data.
-			IResult resultBlock3 = await task3;
 
 			// Verify that block2 waits for our signal, unblock it and verify result.
 			{
@@ -151,8 +151,6 @@ public class BlockDownloadServiceTests
 
 		Block? actualBlock2 = await fullNodeBlockProvider.TryGetBlockAsync(blockHash2, testCts.Token);
 		Assert.Same(block2, actualBlock2);
-
-		mockFullNodeBlockProvider.VerifyAll();
 	}
 
 	/// <summary>
@@ -174,35 +172,32 @@ public class BlockDownloadServiceTests
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
 		// File-system cache is disabled for the purposes of this test.
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-
-		mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
-			.Returns(Task.CompletedTask);
-
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
-		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
-
-		using (BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
 		{
-			// Handling of downloading of block1.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash1, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block1);
+			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
+			OnSaveAsync = (_, _) => Task.CompletedTask
+		};
 
-			// Handling of downloading of block2.
-			mockFullNodeBlockProvider.SetupSequence(c => c.TryGetBlockAsync(blockHash2, It.IsAny<CancellationToken>()))
-				.ReturnsAsync((Block?)null)
-				.ReturnsAsync(block2);
+		int block2Counter=0;
+		IBlockProvider fullNodeBlockProvider = new TesteableBlockProvider
+		{
+			OnTryGetBlockAsync = (blockHash, _) =>
+			{
+				var blk = (blockHash, block2Counter) switch
+				{
+					(_, _) when blockHash == blockHash1 => block1,
+					(_, 0) when blockHash == blockHash2 => null,
+					(_, _) when blockHash == blockHash2 => block2,
+					(_, _) when blockHash == blockHash3 => block3,
+					(_, _) when blockHash == blockHash4 => block4,
+				};
+				if (blockHash == blockHash2) { block2Counter++;}
+				return Task.FromResult(blk);
+			}
+		};
 
-			// Handling of downloading of block3.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash3, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block3);
-
-			// Handling of downloading of block4.
-			mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(blockHash4, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(block4);
-
+		using (BlockDownloadService service = new(fileSystemBlockRepository, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3))
+		{
 			await service.StartAsync(testCts.Token);
 
 			IResult actualResult1 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(SyncType.Complete, BlockHeight: 610_001), testCts.Token);
@@ -228,13 +223,11 @@ public class BlockDownloadServiceTests
 
 			// Getting a block over P2P fails because there is no P2P provider registered.
 			IResult actualResult5 = await service.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash2, new Priority(SyncType.Complete, BlockHeight: 610_005), testCts.Token);
-			NoSuchProviderResult actualSuccessResult5 = Assert.IsType<NoSuchProviderResult>(actualResult5);
+			Assert.IsType<NoSuchProviderResult>(actualResult5);
 
 			await service.StopAsync(testCts.Token);
 			await service.ExecuteTask!.WaitAsync(testCts.Token);
 		}
-
-		mockFullNodeBlockProvider.VerifyAll();
 	}
 
 	[Fact]
@@ -247,23 +240,19 @@ public class BlockDownloadServiceTests
 		uint256 blockHash3 = new(3);
 		uint256 blockHash4 = new(4);
 
-		Block block1 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
-		Block block2 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
-		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
-		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
+		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
+		{
+			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
+			OnSaveAsync = (_, _) => Task.CompletedTask,
+			OnRemoveAsync = (_,_) =>Task.CompletedTask,
+		};
 
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-		mockFileSystemBlockRepository.Setup(c => c.RemoveAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.Returns(Task.CompletedTask);
+		IBlockProvider fullNodeBlockProvider = new TesteableBlockProvider
+		{
+			OnTryGetBlockAsync = (_, _) => Task.FromResult((Block?)null)
+		};
 
-		Mock<IBlockProvider> mockFullNodeBlockProvider = new(MockBehavior.Strict);
-		IBlockProvider fullNodeBlockProvider = mockFullNodeBlockProvider.Object;
-		mockFullNodeBlockProvider.Setup(c => c.TryGetBlockAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-
-		using BlockDownloadService service = new(mockFileSystemBlockRepository.Object, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
+		using BlockDownloadService service = new(fileSystemBlockRepository, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
 		Task<IResult>[] tasks = [

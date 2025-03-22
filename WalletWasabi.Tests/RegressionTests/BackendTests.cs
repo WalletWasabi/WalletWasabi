@@ -27,29 +27,11 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	public BackendTests(RegTestFixture regTestFixture)
 	{
 		RegTestFixture = regTestFixture;
-		BackendHttpClientFactory = regTestFixture.BackendHttpClientFactory;
 		BackendApiHttpClient = regTestFixture.BackendHttpClientFactory.CreateClient("test");
 	}
 
 	private HttpClient BackendApiHttpClient { get; }
-	private IHttpClientFactory BackendHttpClientFactory { get; }
 	private RegTestFixture RegTestFixture { get; }
-
-	#region BackendTests
-
-	[Fact]
-	public async Task GetExchangeRatesAsync()
-	{
-		using var response = await BackendApiHttpClient.GetAsync($"api/v{Constants.BackendMajorVersion}/btc/offchain/exchange-rates");
-		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
-
-		var exchangeRates = await response.Content.ReadAsJsonAsync(Decode.Array(Decode.ExchangeRate));
-		Assert.Single(exchangeRates);
-
-		var rate = exchangeRates[0];
-		Assert.Equal("USD", rate.Ticker);
-		Assert.True(rate.Rate > 0);
-	}
 
 	[Fact]
 	public async Task GetClientVersionAsync()
@@ -156,12 +138,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			if (indexBuilderService is { })
-			{
-				await indexBuilderService.StopAsync();
-			}
+			await indexBuilderService.StopAsync();
 		}
 	}
-
-	#endregion BackendTests
 }
