@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
+using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -40,6 +41,11 @@ public class WalletGenerator
 		return (km, mnemonic);
 	}
 
+	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Share? share = null)
+	{
+		// TODO:
+		throw new NotImplementedException();
+	}
 	public static string GetWalletFilePath(string walletName, string walletsDir)
 	{
 		if (!ValidateWalletName(walletName))
