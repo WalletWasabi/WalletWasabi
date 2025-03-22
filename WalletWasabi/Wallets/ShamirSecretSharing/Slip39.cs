@@ -28,7 +28,8 @@ public record Shamir
 	/// <summary>
 	/// Generates SLIP-39 shares from a given seed.
 	/// </summary>
-	/// <param name="group">A tuple that represent (groupThreshold, shareCount).</param>
+	/// <param name="threshold">Number of shares necessary to recombine the see.</param>
+	/// <param name="shares">Number of shares in which the seed will be splitted.</param>
 	/// <param name="seed">The secret to be split into shares.</param>
 	/// <param name="passphrase">The passphrase used for encryption.</param>
 	/// <param name="iterationExponent">Exponent to determine the number of iterations for the encryption algorithm.</param>
@@ -36,13 +37,14 @@ public record Shamir
 	/// <returns>A list of shares that can be used to reconstruct the secret.</returns>
 	/// <exception cref="ArgumentException">Thrown when inputs do not meet the required constraints.</exception>
 	public static Share[] Generate(
-		Group group,
+		uint8 threshold,
+		uint8 shares,
 		uint8[] seed,
 		string passphrase = "",
 		uint8 iterationExponent = 0,
 		bool extendable = true)
 	{
-		return Generate(1, [group], seed, passphrase, iterationExponent, extendable);
+		return Generate(1, [(threshold, shares)], seed, passphrase, iterationExponent, extendable);
 	}
 
 	/// <summary>
