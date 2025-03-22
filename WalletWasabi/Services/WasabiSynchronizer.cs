@@ -1,9 +1,13 @@
+using System.Collections.Generic;
+using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Bases;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -12,77 +16,33 @@ using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Services;
 
-public class WasabiSynchronizer(
-	TimeSpan period,
-	int maxFiltersToSync,
-	BitcoinStore bitcoinStore,
-	IHttpClientFactory httpClientFactory,
-	EventBus eventBus)
-	: PeriodicRunner(period)
+
+using FilterFetchingResult = Helpers.Result<FiltersResponse,FilterFetchingError>;
+
+public enum FilterFetchingError
 {
-	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
+	Continue,
+	ContinueAfter30Seconds
+}
+
+public interface ICompactFilterProvider
+{
+	Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken);
+}
+
+public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpClientFactory, EventBus eventBus) : ICompactFilterProvider
+{
 	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
-		// Don't attempt synchronization without a valid tip hash
-		if (_smartHeaderChain.TipHash is null)
-		{
-			return;
-		}
 		var wasabiClient = new WasabiClient(_httpClient, eventBus);
 		var lastUsedApiVersion = WasabiClient.ApiVersion;
 
 		try
 		{
-			var response = await wasabiClient.GetFiltersAsync(_smartHeaderChain.TipHash, maxFiltersToSync, cancel)
+			return await wasabiClient.GetFiltersAsync(fromHash, maxFiltersToSync, cancellationToken)
 				.ConfigureAwait(false);
-
-			switch (response)
-			{
-				case FiltersResponse.AlreadyOnBestBlock:
-					// Already synchronized. Nothing to do.
-					var tip = _smartHeaderChain.TipHeight;
-					_smartHeaderChain.SetServerTipHeight(tip);
-					eventBus.Publish(new ServerTipHeightChanged((int) tip));
-					return;
-				case FiltersResponse.BestBlockUnknown:
-					// Reorg happened. Rollback the latest index.
-					FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
-						?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
-
-					Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
-					break;
-				case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
-					var hashChain = bitcoinStore.SmartHeaderChain;
-					hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
-					eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
-					var filters = newFiltersAvailable.Filters;
-					var firstFilter = filters.First();
-					if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
-					{
-						// We have a problem.
-						// We have wrong filters, the heights are not in sync with the server's.
-						Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
-						                FormatInconsistencyDetails(hashChain, firstFilter));
-
-						await bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
-					}
-					else
-					{
-						await bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
-
-						Logger.LogInfo(filters.Length == 1
-							? $"Downloaded filter for block {firstFilter.Header.Height}."
-							: $"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
-					}
-					break;
-				default:
-					throw new ArgumentOutOfRangeException(nameof(response));
-			}
-
-			TriggerRound();
-
 		}
 		catch (HttpRequestException ex)
 		{
@@ -90,7 +50,7 @@ public class WasabiSynchronizer(
 			{
 				// Backend API version might be updated meanwhile. Trying to update the versions.
 				var backendCompatible =
-					await CheckBackendCompatibilityAsync(wasabiClient, cancel).ConfigureAwait(false);
+					await CheckBackendCompatibilityAsync(wasabiClient, cancellationToken).ConfigureAwait(false);
 				if (!backendCompatible)
 				{
 					eventBus.Publish(new BackendIncompatibilityDetected());
@@ -100,14 +60,11 @@ public class WasabiSynchronizer(
 				if (backendCompatible && lastUsedApiVersion != WasabiClient.ApiVersion)
 				{
 					// Next request will be fine, do not throw exception.
-					TriggerRound();
-					return;
+					return FilterFetchingResult.Fail(FilterFetchingError.Continue);
 				}
 			}
 
-			await Task.Delay(3000, cancel).ConfigureAwait(false); // Retry sooner in case of connection error.
-			TriggerRound();
-			throw;
+			return FilterFetchingResult.Fail(FilterFetchingError.ContinueAfter30Seconds);
 		}
 	}
 
@@ -126,6 +83,115 @@ public class WasabiSynchronizer(
 
 		return backendCompatible;
 	}
+}
+
+public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, EventBus eventBus) : ICompactFilterProvider
+{
+	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	{
+		var filters = new List<FilterModel>();
+		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+		var stopAtHeight = fromHeight + nbOfFiltersToFetch;
+		for (var height = fromHeight+1; height <= stopAtHeight; height++)
+		{
+			var blockHash = await bitcoinRpcClient.GetBlockHashAsync((int)height, cancellationToken).ConfigureAwait(false);
+			var filterResponse = await bitcoinRpcClient.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
+
+			var filter = new FilterModel(
+				new SmartHeader(blockHash, filterResponse.Header, (uint)height, DateTimeOffset.UtcNow),
+				filterResponse.Filter,
+				isBip158: true);
+
+			filters.Add(filter);
+		}
+
+		return filters.Count == 0
+			? new FiltersResponse.AlreadyOnBestBlock()
+			: new FiltersResponse.NewFiltersAvailable(currentHeight, filters.ToArray());
+	}
+}
+
+public class WasabiSynchronizer(TimeSpan period, ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus)
+	: PeriodicRunner(period)
+{
+	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
+
+	protected override async Task ActionAsync(CancellationToken cancel)
+	{
+		// Don't attempt synchronization without a valid tip hash
+		if (_smartHeaderChain.TipHash is null)
+		{
+			return;
+		}
+
+		var response =  await filtersProvider.GetFiltersAsync(_smartHeaderChain.TipHash, _smartHeaderChain.TipHeight, cancel)
+			.ConfigureAwait(false);
+
+		if (response.IsOk)
+		{
+			var isSynchronized = await ProcessFiltersAsync(response.Value).ConfigureAwait(false);
+			if (isSynchronized)
+			{
+				return;
+			}
+		}
+		else
+		{
+			var continueAfterSeconds = response.Error == FilterFetchingError.ContinueAfter30Seconds ? 30 : 0;
+			await Task.Delay(TimeSpan.FromSeconds(continueAfterSeconds), cancel).ConfigureAwait(false);
+		}
+		TriggerRound();
+	}
+
+	private async Task<bool> ProcessFiltersAsync(FiltersResponse response)
+	{
+		switch (response)
+		{
+			case FiltersResponse.AlreadyOnBestBlock:
+				// Already synchronized. Nothing to do.
+				var tip = _smartHeaderChain.TipHeight;
+				_smartHeaderChain.SetServerTipHeight(tip);
+				eventBus.Publish(new ServerTipHeightChanged((int) tip));
+				return true;
+			case FiltersResponse.BestBlockUnknown:
+				// Reorg happened. Rollback the latest index.
+				FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+				                            ?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
+
+				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
+				break;
+			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
+				var hashChain = bitcoinStore.SmartHeaderChain;
+				hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
+				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
+				var filters = newFiltersAvailable.Filters;
+				var firstFilter = filters.First();
+				if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
+				{
+					// We have a problem.
+					// We have wrong filters, the heights are not in sync with the server's.
+					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" +
+					                FormatInconsistencyDetails(hashChain, firstFilter));
+
+					await bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+				}
+				else
+				{
+					await bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+
+					Logger.LogInfo(filters.Length == 1
+						? $"Downloaded filter for block {firstFilter.Header.Height}."
+						: $"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
+				}
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(response));
+		}
+
+		return false;
+	}
+
 
 	private static string FormatInconsistencyDetails(SmartHeaderChain hashChain, FilterModel firstFilter)
 	{

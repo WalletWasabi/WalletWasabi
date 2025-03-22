@@ -209,19 +209,20 @@ public static class RPCClientExtensions
 		return feeRateByConfirmationTarget;
 	}
 
-	public static async Task<RpcStatus> GetRpcStatusAsync(this IRPCClient rpc, CancellationToken cancel)
+
+	public static async Task<bool> SupportsBlockFiltersAsync(this IRPCClient rpc, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var bci = await rpc.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
-			var pi = await rpc.GetPeersInfoAsync(cancel).ConfigureAwait(false);
-
-			return RpcStatus.Responsive(bci.Headers, bci.Blocks, pi.Length);
+			var blockHash = await rpc.GetBestBlockHashAsync(cancellationToken).ConfigureAwait(false);
+			await rpc.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			return true;
 		}
-		catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
+		catch (Exception e)
 		{
-			Logger.LogTrace(ex);
-			return RpcStatus.Unresponsive;
+			Logger.LogWarning("Bitcoin RPC interface failed to fetch block filters");
+			Logger.LogWarning(e);
+			return false;
 		}
 	}
 
