@@ -142,7 +142,17 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		var options = _options;
 		if (password is { })
 		{
-			options = _options with { Password = password };
+			// TODO: Validate WalletBackup must be not null at this point.
+			if (options.WalletBackup is not null)
+			{
+				options = options with
+				{
+					WalletBackup = options.WalletBackup with
+					{
+						Password = password
+					}
+				};
+			}
 		}
 
 		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);

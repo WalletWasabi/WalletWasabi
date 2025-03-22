@@ -101,10 +101,11 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
 	{
-		var (walletName, password, mnemonic) = options;
+		var (walletName, walletBackup) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
-		ArgumentNullException.ThrowIfNull(password);
+		ArgumentNullException.ThrowIfNull(walletBackup);
+		ArgumentNullException.ThrowIfNull(walletBackup.Password);
 
 		var (keyManager, _) = await Task.Run(
 				() =>
@@ -115,7 +116,21 @@ public partial class WalletRepository : ReactiveObject
 					{
 						TipHeight = Services.SmartHeaderChain.TipHeight
 					};
-					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
+
+					return walletBackup switch
+					{
+						RecoveryWordsBackup recoveryWordsBackup =>
+							walletGenerator.GenerateWallet(
+								walletName,
+								recoveryWordsBackup.Password!,
+								recoveryWordsBackup.Mnemonic),
+						MultiShareBackup multiShareBackup =>
+							walletGenerator.GenerateWallet(
+								walletName,
+								multiShareBackup.Password!,
+								multiShareBackup.Share),
+						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
+					};
 				});
 
 		return new WalletSettingsModel(keyManager, true);
@@ -150,25 +165,52 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, password, mnemonic, minGapLimit) = options;
+		var (walletName, walletBackup, minGapLimit) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
-		ArgumentNullException.ThrowIfNull(password);
-		ArgumentNullException.ThrowIfNull(mnemonic);
+
+		switch (walletBackup)
+		{
+			case RecoveryWordsBackup recoveryWordsBackup:
+				ArgumentNullException.ThrowIfNull(recoveryWordsBackup.Password);
+				ArgumentNullException.ThrowIfNull(recoveryWordsBackup.Mnemonic);
+				break;
+			case MultiShareBackup multiShareBackup:
+				ArgumentNullException.ThrowIfNull(multiShareBackup.Password);
+				ArgumentNullException.ThrowIfNull(multiShareBackup.Share);
+				break;
+			default:
+				throw new ArgumentOutOfRangeException(nameof(walletBackup));
+		}
+
 		ArgumentNullException.ThrowIfNull(minGapLimit);
 
 		var keyManager = await Task.Run(() =>
 		{
 			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 
-			var result = KeyManager.Recover(
-				mnemonic,
-				password,
-				Services.WalletManager.Network,
-				AccountKeyPath,
-				null,
-				"", // Make sure it is not saved into a file yet.
-				minGapLimit.Value);
+			var result = walletBackup switch
+			{
+				RecoveryWordsBackup recoveryWordsBackup =>
+					KeyManager.Recover(
+						recoveryWordsBackup.Mnemonic!,
+						recoveryWordsBackup.Password!,
+						Services.WalletManager.Network,
+						AccountKeyPath,
+						null,
+						"", // Make sure it is not saved into a file yet.
+						minGapLimit.Value),
+				MultiShareBackup multiShareBackup =>
+					KeyManager.Recover(
+						multiShareBackup.Share!,
+						multiShareBackup.Password!,
+						Services.WalletManager.Network,
+						AccountKeyPath,
+						null,
+						"", // Make sure it is not saved into a file yet.
+						minGapLimit.Value),
+				_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
+			};
 
 			// Set the filepath but we will only write the file later when the Ui workflow is done.
 			result.SetFilePath(walletFilePath);
