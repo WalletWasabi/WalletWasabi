@@ -15,6 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.Slip39;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 using Decode = WalletWasabi.Serialization.Decode;
 using Encode = WalletWasabi.Serialization.Encode;
@@ -238,6 +239,12 @@ public class KeyManager
 		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, minGapLimit, new BlockchainState(network), filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 		km.AssertCleanKeysIndexed();
 		return km;
+	}
+
+	public static KeyManager Recover(Share share, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	{
+		// TODO:
+		throw new NotImplementedException();
 	}
 
 	public static KeyManager FromFile(string filePath)
