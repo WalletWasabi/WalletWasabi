@@ -45,7 +45,7 @@ public static class Services
 
 	public static UpdateManager UpdateManager { get; private set; } = null!;
 
-	public static EventBus EventBus { get; private set; } = null;
+	public static EventBus EventBus { get;  set; } = null;
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>

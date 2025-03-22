@@ -3,6 +3,7 @@ using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
@@ -332,7 +333,7 @@ public static class WabiSabiFactory
 	{
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
-		var mock = new Mock<CoinJoinClient>(
+		var coinjoinClient = new TesteableCoinJoinClient(
 			apiClientFactory,
 			keyChain,
 			outputProvider,
@@ -343,13 +344,7 @@ public static class WabiSabiFactory
 			TimeSpan.Zero,
 			TimeSpan.Zero);
 
-		// Overwrite Maximum Request Delay parameter but still use the original method.
-		mock.Setup(m => m.GetScheduledDates(It.IsAny<int>(), It.IsAny<DateTimeOffset>(), It.IsAny<DateTimeOffset>(), It.IsNotIn(TimeSpan.FromSeconds(1))))
-			.Returns((int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay) => mock.Object.GetScheduledDates(howMany, startTime, endTime, TimeSpan.FromSeconds(1)));
-
-		mock.CallBase = true;
-
-		return mock.Object;
+		return coinjoinClient;
 	}
 
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
@@ -403,5 +398,18 @@ public static class WabiSabiFactory
 			DoSPenaltyFactorForDisruptingSigning = 1.5d,
 			DoSPenaltyFactorForDisruptingByDoubleSpending = 3.0d
 		};
+	}
+}
+
+public class TesteableCoinJoinClient : CoinJoinClient
+{
+	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateUpdater roundStatusUpdater, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider, TimeSpan feeRateMedianTimeFrame = default, TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusUpdater, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, feeRateMedianTimeFrame, doNotRegisterInLastMinuteTimeLimit)
+	{
+	}
+
+	internal override ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime,
+		TimeSpan maximumRequestDelay)
+	{
+		return base.GetScheduledDates(howMany, startTime, endTime, TimeSpan.FromSeconds(1));
 	}
 }
