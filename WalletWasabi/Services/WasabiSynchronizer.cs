@@ -99,9 +99,8 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, EventBus even
 			var filterResponse = await bitcoinRpcClient.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
 
 			var filter = new FilterModel(
-				new SmartHeader(blockHash, filterResponse.Header, (uint)height, DateTimeOffset.UtcNow),
-				filterResponse.Filter,
-				isBip158: true);
+				new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
+				filterResponse.Filter);
 
 			filters.Add(filter);
 		}
