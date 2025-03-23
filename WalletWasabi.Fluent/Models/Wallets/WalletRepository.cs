@@ -128,7 +128,7 @@ public partial class WalletRepository : ReactiveObject
 							walletGenerator.GenerateWallet(
 								walletName,
 								multiShareBackup.Password!,
-								multiShareBackup.Share),
+								multiShareBackup.Shares),
 						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
 					};
 				});
@@ -177,7 +177,7 @@ public partial class WalletRepository : ReactiveObject
 				break;
 			case MultiShareBackup multiShareBackup:
 				ArgumentNullException.ThrowIfNull(multiShareBackup.Password);
-				ArgumentNullException.ThrowIfNull(multiShareBackup.Share);
+				ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(walletBackup));
@@ -202,7 +202,7 @@ public partial class WalletRepository : ReactiveObject
 						minGapLimit.Value),
 				MultiShareBackup multiShareBackup =>
 					KeyManager.Recover(
-						multiShareBackup.Share!,
+						multiShareBackup.Shares!,
 						multiShareBackup.Password!,
 						Services.WalletManager.Network,
 						AccountKeyPath,

@@ -241,7 +241,7 @@ public class KeyManager
 		return km;
 	}
 
-	public static KeyManager Recover(Share share, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	public static KeyManager Recover(Share[] shares, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 	{
 		// TODO:
 		throw new NotImplementedException();

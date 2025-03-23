@@ -41,7 +41,7 @@ public class WalletGenerator
 		return (km, mnemonic);
 	}
 
-	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Share? share = null)
+	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Share[]? shares = null)
 	{
 		// TODO:
 		throw new NotImplementedException();
