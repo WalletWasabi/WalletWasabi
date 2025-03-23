@@ -215,7 +215,7 @@ public class IdempotencyRequestCacheTests
 	public async Task CancelledFirstRequestAsync()
 	{
 		// To cancel cache request processing.
-		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(1));
+		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromSeconds(2));
 
 		using MemoryCache memoryCache = new(new MemoryCacheOptions());
 		IdempotencyRequestCache cache = new(memoryCache);

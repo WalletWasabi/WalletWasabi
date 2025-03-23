@@ -94,7 +94,7 @@ public class P2pBasedTests
 	{
 		var coreNode = await TestNodeBuilder.CreateAsync();
 		using HostedServices services = new();
-		services.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, TimeSpan.FromSeconds(7) ), "Block Notifier");
+		services.Register<BlockNotifier>(() => new BlockNotifier(coreNode.RpcClient, TimeSpan.FromSeconds(5) ), "Block Notifier");
 
 		await services.StartAllAsync();
 		try
@@ -116,10 +116,11 @@ public class P2pBasedTests
 			var blockNum = 10;
 			EventsAwaiter<Block> blockEventsAwaiter = new(h => notifier.OnBlock += h, h => notifier.OnBlock -= h, blockNum);
 
-			var hashes = (await rpc.GenerateAsync(blockNum)).ToArray();
+			var initialBlockGenerationTask = rpc.GenerateAsync(blockNum);
 
 			var arrivedBlocks = (await blockEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
 
+			var hashes = await initialBlockGenerationTask;
 			for (int i = 0; i < hashes.Length; i++)
 			{
 				var expected = hashes[i];
@@ -138,7 +139,7 @@ public class P2pBasedTests
 
 			var reorgedHashes = hashes.TakeLast(reorgNum).ToArray();
 			await rpc.InvalidateBlockAsync(reorgedHashes[0]);
-			var newHashes = (await rpc.GenerateAsync(newBlockNum)).ToArray();
+			var reorgBlockGenerationTask = rpc.GenerateAsync(newBlockNum);
 
 			var reorgedHeaders = (await reorgEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
 			var newBlocks = (await blockEventsAwaiter.WaitAsync(TimeSpan.FromSeconds(21))).ToArray();
@@ -151,6 +152,7 @@ public class P2pBasedTests
 				Assert.Equal(expected, actual);
 			}
 
+			var newHashes = await reorgBlockGenerationTask;
 			for (int i = 0; i < newHashes.Length; i++)
 			{
 				var expected = newHashes[i];

@@ -284,24 +284,27 @@ public class RpcBasedTests
 			txs = await rpc.GetRawTransactionsAsync(new[] { txid }, CancellationToken.None);
 			Assert.Single(txs);
 
-			List<uint256> txids = new();
+			List<Task<uint256>> txidTasks1 = new();
 			for (int i = 0; i < 2; i++)
 			{
-				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
-				txids.Add(txid2);
+				var txid2 = rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
+				txidTasks1.Add(txid2);
 			}
 
-			txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+			var txids1 = await Task.WhenAll(txidTasks1);
+
+			txs = await rpc.GetRawTransactionsAsync(txids1, CancellationToken.None);
 			Assert.Equal(2, txs.Count());
 
-			txids = new();
+			List<Task<uint256>> txidTasks2 = new();
 			for (int i = 0; i < 20; i++)
 			{
-				var txid2 = await rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
-				txids.Add(txid2);
+				var txid2 = rpc.SendToAddressAsync(BitcoinFactory.CreateBitcoinAddress(Network.RegTest), Money.Coins(1));
+				txidTasks2.Add(txid2);
 			}
 
-			txs = await rpc.GetRawTransactionsAsync(txids, CancellationToken.None);
+			var txids2 = await Task.WhenAll(txidTasks2);
+			txs = await rpc.GetRawTransactionsAsync(txids2, CancellationToken.None);
 			Assert.Equal(20, txs.Count());
 		}
 		finally

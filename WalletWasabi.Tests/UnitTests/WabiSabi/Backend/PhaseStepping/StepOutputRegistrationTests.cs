@@ -287,8 +287,9 @@ public class StepOutputRegistrationTests
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		var aliceClient1a = await task1a;
-		var aliceClient1b = await task1b;
+		var aliceClients1 = await Task.WhenAll(task1a, task1b);
+		var aliceClient1a = aliceClients1[0];
+		var aliceClient1b = aliceClients1[1];
 
 		// Arena will create another round - to have at least one in input reg.
 		await arena.TriggerAndWaitRoundAsync(token);
@@ -303,8 +304,9 @@ public class StepOutputRegistrationTests
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		var aliceClient2a = await task2a;
-		var aliceClient2b = await task2b;
+		var aliceClients2 = await Task.WhenAll(task2a, task2b);
+		var aliceClient2a = aliceClients2[0];
+		var aliceClient2b = aliceClients2[1];
 
 		while (Phase.OutputRegistration != round1.Phase || Phase.OutputRegistration != round2.Phase)
 		{
@@ -373,17 +375,19 @@ public class StepOutputRegistrationTests
 
 		await Task.Delay(100);
 
-		await aliceClient1a.ReadyToSignAsync(token);
-		await aliceClient1b.ReadyToSignAsync(token);
+		var registration1a = aliceClient1a.ReadyToSignAsync(token);
+		var registration1b = aliceClient1b.ReadyToSignAsync(token);
+
+		await Task.WhenAll(registration1a, registration1b);
 
 		while (Phase.TransactionSigning != round1.Phase)
 		{
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		await Task.Delay(100);
-
 		bob2aCts.Cancel();
+
+		await Task.Delay(100);
 
 		// We should never get an exception here. Otherwise it would indicate that output was registered twice.
 		await bob2a;
