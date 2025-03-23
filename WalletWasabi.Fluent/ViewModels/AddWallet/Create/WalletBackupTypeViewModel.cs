@@ -42,6 +42,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 			case WalletBackupType.MultiShare:
 				// TODO: Add wallet backup type to options
 				// TODO: Navigate to Multi-share Backup
+				Navigate().To().MultiShareOptions(options);
 				break;
 			default:
 				throw new ArgumentOutOfRangeException();
