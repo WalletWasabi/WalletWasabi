@@ -298,7 +298,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 			// In case the previous filter is Bip158-compatible it should have passed the previous condition so, the
 			// received filter did match.
-			var lastFilter = IndexStorage.FetchLast(1).First();
+			var lastFilter = IndexStorage.Fetch(tip.Height, 1).First();
 			if (lastFilter.Filter.IsBip158())
 			{
 				return false;
