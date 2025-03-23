@@ -42,6 +42,11 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 			case WalletBackupType.MultiShare:
 				// TODO: Add wallet backup type to options
 				// TODO: Navigate to Multi-share Backup
+				options = options with
+				{
+					WalletBackup = new MultiShareBackup(new MultiShareBackupSettings())
+				};
+
 				Navigate().To().MultiShareOptions(options);
 				break;
 			default:
