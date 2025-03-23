@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:CompileBindings="True"
+             x:DataType="create:ConfirmMultiShareViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmMultiShareView">
+  <ContentArea Title="{Binding Title}"
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue" FocusNext="True"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <ContentArea.Caption>
+      <MultiBinding StringFormat="Share #{0} of {1}'">
+        <Binding Path="CurrentShare" />
+        <Binding Path="TotalShares" />
+      </MultiBinding>
+    </ContentArea.Caption>
+
+    <!-- TODO: -->
+
+  </ContentArea>
+</UserControl>
