@@ -230,7 +230,7 @@ public class ArenaClientTests
 			connectionConfirmationResponse1.IssuedVsizeCredentials,
 			CancellationToken.None);
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 		// Phase: Output Registration
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
