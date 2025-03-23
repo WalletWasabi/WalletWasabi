@@ -1,9 +1,8 @@
-using Moq;
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Stores;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
 
@@ -29,11 +28,21 @@ public class BlockFilterIteratorTests
 		FilterModel filter3 = FilterModel.Create(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006506);
 		FilterModel filter4 = FilterModel.Create(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006506);
 
-		Mock<IIndexStore> mockIndexStore = new(MockBehavior.Strict);
-		mockIndexStore.Setup(c => c.FetchBatchAsync(610_001, 3, It.IsAny<CancellationToken>()))
-			.ReturnsAsync(new FilterModel[] { filter1, filter2, filter3 });
+		var indexStore = new TesteableIndexStore
+		{
+			OnFetchBatchAsync = (fromHeight, count, _) =>
+			{
+				var filters = (fromHeight, count) switch
+				{
+					(610_001, 3) => new[] {filter1, filter2, filter3},
+					(610_004, 3) => new[] {filter4},
+					_ => throw new ArgumentException()
+				};
+				return Task.FromResult<FilterModel[]>(filters);
+			}
+		};
 
-		BlockFilterIterator filterIterator = new(mockIndexStore.Object, maxNumberFiltersInMemory: 3);
+		BlockFilterIterator filterIterator = new(indexStore, maxNumberFiltersInMemory: 3);
 
 		// Iterator needs to do a database lookup.
 		{
@@ -42,8 +51,6 @@ public class BlockFilterIteratorTests
 
 			// The internal cache should not contain the filter anymore.
 			Assert.False(filterIterator.Cache.ContainsKey(610_001));
-
-			mockIndexStore.Verify(c => c.FetchBatchAsync(610_001, 3, It.IsAny<CancellationToken>()));
 		}
 
 		// No database lookup is needed for block 610_001 as that one should be cached now.
@@ -64,19 +71,12 @@ public class BlockFilterIteratorTests
 
 		// Iterator needs to do a database lookup, but now that lookup returns only 1 record and not 3 (we are close to the blockchain tip).
 		{
-			mockIndexStore.Setup(c => c.FetchBatchAsync(610_004, 3, It.IsAny<CancellationToken>()))
-				.ReturnsAsync(new FilterModel[] { filter4 });
-
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_004, testCts.Token);
 			Assert.Equal(filter4, actualFilter);
 			Assert.False(filterIterator.Cache.ContainsKey(610_004));
 
 			// Cache is empty again because we have got only 1 record from the index store.
 			Assert.Empty(filterIterator.Cache);
-
-			mockIndexStore.Verify(c => c.FetchBatchAsync(610_004, 3, It.IsAny<CancellationToken>()));
 		}
-
-		mockIndexStore.VerifyAll();
 	}
 }

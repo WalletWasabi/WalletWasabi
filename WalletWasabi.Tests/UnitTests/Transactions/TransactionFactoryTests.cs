@@ -613,6 +613,7 @@ public class TransactionFactoryTests
 	/// Tests that we throw <see cref="TransactionSizeException"/> when NBitcoin returns a coin selection whose sum is lower than the desired one.
 	/// This can happen because bitcoin transactions can have only a limited number of coin inputs because of the transaction size limit.
 	/// </summary>
+	/// Translation: More stupid test ever! This is ruining our productivity by taking 1 minute to run.
 	[Fact]
 	public void TooManyInputCoins()
 	{
