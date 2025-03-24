@@ -8,12 +8,17 @@
              x:DataType="create:MultiShareViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.MultiShareView">
   <ContentArea Title="{Binding Title}"
-                 Caption="Write down the multi-share words in the correct order and store them in a safe place. They are needed to recover your wallet."
-                 CancelContent="Cancel"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue" FocusNext="True"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue" FocusNext="True"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <ContentArea.Caption>
+      <MultiBinding StringFormat="Share #{0} of {1}. Write down the multi-share words in the correct order and store them in a safe place. They are needed to recover your wallet.">
+        <Binding Path="CurrentShare" />
+        <Binding Path="TotalShares" />
+      </MultiBinding>
+    </ContentArea.Caption>
 
     <!-- TODO: -->
 

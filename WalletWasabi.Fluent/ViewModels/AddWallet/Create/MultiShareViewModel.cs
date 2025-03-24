@@ -8,12 +8,18 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Multi-share")]
 public partial class MultiShareViewModel : RoutableViewModel
 {
+	[AutoNotify] private byte _currentShare;
+	[AutoNotify] private byte _totalShares;
+
 	private MultiShareViewModel(WalletCreationOptions.AddNewWallet options)
 	{
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
 		ArgumentNullException.ThrowIfNull(multiShareBackup);
 		ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
+
+		_currentShare = multiShareBackup.CurrentShare;
+		_totalShares = multiShareBackup.Settings.Shares;
 
 		// TODO:
 
