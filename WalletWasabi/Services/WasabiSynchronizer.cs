@@ -158,7 +158,7 @@ public class WasabiSynchronizer(TimeSpan period, ICompactFilterProvider filtersP
 				FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
 				                            ?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
-				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}.");
+				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}  Height {reorgedFilter.Header.Height}.");
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
 				var hashChain = bitcoinStore.SmartHeaderChain;
