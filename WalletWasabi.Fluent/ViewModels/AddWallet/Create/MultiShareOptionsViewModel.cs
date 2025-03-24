@@ -51,7 +51,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 			}
 		};
 
-		Navigate().To().ConfirmMultiShare(options);
+		Navigate().To().MultiShare(options);
 	}
 
 	private void OnCancel()
