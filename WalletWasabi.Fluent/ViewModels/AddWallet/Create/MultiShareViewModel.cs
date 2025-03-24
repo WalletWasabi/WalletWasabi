@@ -34,8 +34,35 @@ public partial class MultiShareViewModel : RoutableViewModel
 
 	private void OnNext(WalletCreationOptions.AddNewWallet options)
 	{
-		// TODO:
-		Navigate().To().ConfirmMultiShare(options);
+		if (options.SelectedWalletBackup is not MultiShareBackup multiShareBackup)
+		{
+			throw new ArgumentOutOfRangeException(nameof(options));
+		}
+
+		if (_currentShare < multiShareBackup.Settings.Shares)
+		{
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					CurrentShare = ++_currentShare
+				}
+			};
+
+			Navigate().To().MultiShare(options);
+		}
+		else
+		{
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					CurrentShare = 1
+				}
+			};
+
+			Navigate().To().ConfirmMultiShare(options);
+		}
 	}
 
 	private void OnCancel()
