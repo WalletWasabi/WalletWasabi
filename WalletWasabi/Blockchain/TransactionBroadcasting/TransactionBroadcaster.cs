@@ -31,8 +31,6 @@ public abstract record BroadcastOk
 
 	public record BroadcastByNetwork(EndPoint[] Nodes) : BroadcastOk;
 
-	public record BroadcastByBackend : BroadcastOk;
-
 	public record BroadcastByExternalParty(string ExternalApiName) : BroadcastOk;
 }
 
@@ -79,35 +77,6 @@ public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
 	}
 }
 
-public class BackendBroadcaster(IHttpClientFactory httpClientFactory) : IBroadcaster
-{
-	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
-	{
-		Logger.LogInfo($"Trying to broadcast transaction via backend API:{tx.GetHash()}.");
-		try
-		{
-			var wasabiClient = new WasabiClient(httpClientFactory.CreateClient($"satoshi-broadcast-{tx.GetHash()}"));
-			await wasabiClient.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false);
-			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByBackend());
-		}
-		catch (HttpRequestException ex)
-		{
-			if (RpcErrorTools.IsSpentError(ex.Message))
-			{
-				// If there is only one coin then that's the one that is already spent (what about full-RBF?).
-				if (tx.Transaction.Inputs.Count == 1)
-				{
-					OutPoint input = tx.Transaction.Inputs[0].PrevOut;
-					return BroadcastingResult.Fail(new BroadcastError.SpentInputError(input));
-				}
-
-				return BroadcastingResult.Fail(new BroadcastError.SpentError());
-			}
-			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
-		}
-	}
-}
-
 public class ExternalTransactionBroadcaster : IBroadcaster
 {
 	public static readonly ImmutableArray<ExternalBroadcasterInfo> Providers =
@@ -129,7 +98,6 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		}
 		else
 		{
-			// TODO: Rework Full Node integration for Regtest, find more Testnet4 provider
 			Broadcaster = TestNet4Providers.First();
 		}
 
@@ -307,7 +275,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogError($"Failed to broadcast transaction. Input {spentInputError.SpentOutpoint} is already spent.");
 				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.SpentOutpoint))
 				{
-					coin.SpentAccordingToBackend = true;
+					coin.SpentAccordingToNetwork = true;
 				}
 				break;
 			case BroadcastError.NotEnoughP2pNodes _:
@@ -331,9 +299,6 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 	{
 		switch (ok)
 		{
-			case BroadcastOk.BroadcastByBackend:
-				Logger.LogInfo($"Transaction is successfully broadcast {txId} by backend.");
-				break;
 			case BroadcastOk.BroadcastByRpc:
 				Logger.LogInfo($"Transaction is successfully broadcast {txId} by local node RPC interface.");
 				break;
