@@ -200,6 +200,13 @@ public class KeyManager
 		return CreateNew(seed, password, network, filePath);
 	}
 
+	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
+	{
+		// TODO:
+		shares = Shamir.Generate(2, 5, RandomUtils.GetBytes(256 / 8));
+		return CreateNew(shares, password, network, filePath);
+	}
+
 	public static KeyManager CreateNew(Share[] shares, string password, Network network, string? filePath = null)
 	{
 		password ??= "";
