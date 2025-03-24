@@ -15,6 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.Slip39;
 using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 using Decode = WalletWasabi.Serialization.Decode;
 using Encode = WalletWasabi.Serialization.Encode;
@@ -195,8 +196,20 @@ public class KeyManager
 	public static KeyManager CreateNew(Mnemonic mnemonic, string password, Network network, string? filePath = null)
 	{
 		password ??= "";
+		var seed = mnemonic.DeriveSeed(password);
+		return CreateNew(seed, password, network, filePath);
+	}
 
-		ExtKey extKey = mnemonic.DeriveExtKey(password);
+	public static KeyManager CreateNew(Share[] shares, string password, Network network, string? filePath = null)
+	{
+		password ??= "";
+		var seed = Shamir.Combine(shares, password);
+		return CreateNew(seed, password, network, filePath);
+	}
+
+	private static KeyManager CreateNew(byte[] seed, string password, Network network, string? filePath = null)
+	{
+		var extKey = ExtKey.CreateFromSeed(seed);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
@@ -209,6 +222,7 @@ public class KeyManager
 
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
+
 
 	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
@@ -224,8 +238,20 @@ public class KeyManager
 	{
 		Guard.NotNull(nameof(mnemonic), mnemonic);
 		password ??= "";
+		var seed = mnemonic.DeriveSeed(password);
+		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit);
+	}
 
-		ExtKey extKey = mnemonic.DeriveExtKey(password);
+	public static KeyManager Recover(Share[] shares, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	{
+		password ??= "";
+		var seed = Shamir.Combine(shares, password);
+		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit);
+	}
+
+	private static KeyManager Recover(byte[] seed, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	{
+		ExtKey extKey = ExtKey.CreateFromSeed(seed);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
