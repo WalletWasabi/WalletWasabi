@@ -18,17 +18,6 @@ public class FilterModel
 		FilterData = filter.ToBytes();
 	}
 
-	private FilterModel(SmartHeader header, byte[] filterData)
-	{
-		Header = header;
-		FilterData = filterData;
-		var isBip158 = header.HeaderOrPrevBlockHash > MinimunValidBlockHash;
-		_filter = new(() => isBip158
-			? new GolombRiceFilter(filterData)
-			: new GolombRiceFilter(filterData, 20, 1 << 20)
-			, LazyThreadSafetyMode.ExecutionAndPublication);
-	}
-
 	public SmartHeader Header { get; }
 
 	public byte[] FilterData { get; }
@@ -39,10 +28,12 @@ public class FilterModel
 	// is constructed.This ensures the key is deterministic while still varying from block to block.
 	public byte[] FilterKey => Header.BlockHash.ToBytes()[..16];
 
-	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
-	{
-		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filterData);
-	}
+	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 headerOrPrevBlockHash, long blockTime) =>
+		new (
+			new SmartHeader(blockHash, headerOrPrevBlockHash, blockHeight, blockTime),
+			headerOrPrevBlockHash > MinimunValidBlockHash
+				? new GolombRiceFilter(filterData)
+				: new GolombRiceFilter(filterData, 20, 1 << 20));
 
 	public static FilterModel FromLine(string line)
 	{
