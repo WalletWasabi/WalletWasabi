@@ -14,7 +14,7 @@
                EnableNext="True" NextContent="Continue" FocusNext="True"
                ScrollViewer.HorizontalScrollBarVisibility="Auto">
     <ContentArea.Caption>
-      <MultiBinding StringFormat="Share #{0} of {1}'">
+      <MultiBinding StringFormat="Share #{0} of {1}">
         <Binding Path="CurrentShare" />
         <Binding Path="TotalShares" />
       </MultiBinding>
