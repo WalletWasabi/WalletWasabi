@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:CompileBindings="True"
+             x:DataType="create:MultiShareViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.MultiShareView">
+  <ContentArea Title="{Binding Title}"
+                 Caption="Write down the multi-share words in the correct order and store them in a safe place. They are needed to recover your wallet."
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue" FocusNext="True"
+                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+
+    <!-- TODO: -->
+
+  </ContentArea>
+</UserControl>
