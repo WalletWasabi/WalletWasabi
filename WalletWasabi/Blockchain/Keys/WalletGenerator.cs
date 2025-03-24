@@ -41,11 +41,21 @@ public class WalletGenerator
 		return (km, mnemonic);
 	}
 
-	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Share[]? shares = null)
+	public (KeyManager,  Share[]) GenerateWallet(string walletName, string password, Share[]? shares = null)
 	{
-		// TODO:
-		throw new NotImplementedException();
+		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
+
+		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
+		PasswordHelper.Guard(password);
+
+		var km = shares is null
+			? KeyManager.CreateNew(out shares, password, Network)
+			: KeyManager.CreateNew(shares, password, Network);
+		km.SetBestHeights(height: new Height(TipHeight), turboSyncHeight: new Height(TipHeight));
+		km.SetFilePath(walletFilePath);
+		return (km, shares);
 	}
+
 	public static string GetWalletFilePath(string walletName, string walletsDir)
 	{
 		if (!ValidateWalletName(walletName))
