@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -12,6 +11,7 @@ using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.BlockProvider;
 using WalletWasabi.Wallets.FilterProcessor;
@@ -44,11 +44,12 @@ public class BlockDownloadTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(10));
 
-		Mock<IFileSystemBlockRepository> mockFileSystemBlockRepository = new(MockBehavior.Strict);
-		_ = mockFileSystemBlockRepository.Setup(c => c.TryGetAsync(It.IsAny<uint256>(), It.IsAny<CancellationToken>()))
-			.ReturnsAsync((Block?)null);
-		_ = mockFileSystemBlockRepository.Setup(c => c.SaveAsync(It.IsAny<Block>(), It.IsAny<CancellationToken>()))
-			.Returns(Task.CompletedTask);
+		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
+		{
+			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
+			OnSaveAsync = (_, _) => Task.CompletedTask,
+			OnRemoveAsync = (_,_) =>Task.CompletedTask,
+		};
 
 		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 		await RuntimeParams.LoadAsync();
@@ -70,7 +71,7 @@ public class BlockDownloadTests
 		}
 
 		P2PBlockProvider p2PBlockProvider = new(Network.Main, nodes, isTorEnabled: false);
-		using BlockDownloadService blockDownloadService = new(mockFileSystemBlockRepository.Object, trustedFullNodeBlockProviders: [], p2PBlockProvider);
+		using BlockDownloadService blockDownloadService = new(fileSystemBlockRepository, trustedFullNodeBlockProviders: [], p2PBlockProvider);
 
 		try
 		{

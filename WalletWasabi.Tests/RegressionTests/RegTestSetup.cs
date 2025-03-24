@@ -15,11 +15,13 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -33,6 +35,7 @@ public class RegTestSetup : IAsyncDisposable
 		RegTestFixture = regTestFixture;
 		ServiceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
+		EventBus = new EventBus();
 		SmartHeaderChain smartHeaderChain = new();
 		IndexStore = new IndexStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
@@ -48,6 +51,7 @@ public class RegTestSetup : IAsyncDisposable
 	public IRPCClient RpcClient => RegTestFixture.BackendRegTestNode.RpcClient;
 	public Network Network => RpcClient.Network;
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public EventBus EventBus { get; }
 	public string Password { get; } = "password";
 
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
@@ -77,18 +81,15 @@ public class RegTestSetup : IAsyncDisposable
 		while (true)
 		{
 			var client = new WasabiClient(RegTestFixture.BackendHttpClientFactory.CreateClient("test"));
-			FiltersResponse? filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
+			var filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
 			Assert.NotNull(filtersResponse);
 
-			var filterCount = filtersResponse!.Filters.Count();
-			if (filterCount >= 101)
+			if (filtersResponse is FiltersResponse.NewFiltersAvailable {Filters.Length: >= 101})
 			{
 				break;
 			}
-			else
-			{
-				await Task.Delay(100).ConfigureAwait(false);
-			}
+
+			await Task.Delay(100).ConfigureAwait(false);
 		}
 	}
 

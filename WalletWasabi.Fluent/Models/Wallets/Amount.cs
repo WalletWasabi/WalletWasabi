@@ -1,3 +1,4 @@
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using NBitcoin;
 using WalletWasabi.Fluent.Helpers;
@@ -31,7 +32,9 @@ public class Amount
 	public Amount(Money money, IAmountProvider exchangeRateProvider)
 	{
 		Btc = money;
-		Usd = exchangeRateProvider.BtcToUsdExchangeRates.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
+		Usd = exchangeRateProvider.BtcToUsdExchangeRate
+			.StartWith(exchangeRateProvider.UsdExchangeRate)
+			.Select(x => x * Btc.ToDecimal(MoneyUnit.BTC));
 		HasUsdBalance = Usd.Select(x => x != 0m);
 	}
 

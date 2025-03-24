@@ -146,13 +146,32 @@ public static partial class Decode
 			};
 		};
 
+	public static Decoder<T> Index<T>(int index, Decoder<T> decoder) =>
+		value =>
+		{
+			if (value.ValueKind == JsonValueKind.Array)
+			{
+				var len = value.GetArrayLength();
+				if (index < value.GetArrayLength())
+				{
+					return decoder(value[index]);
+				}
+
+				return Result<T, string>.Fail($"Index {index} requested for an array of length {len}");
+			}
+
+			return Result<T, string>.Fail("Can't get the index of a non-array element");
+		};
+
 	public static Decoder<T[]> Array<T>(Decoder<T> decoder) =>
 		value =>
 		{
 			if (value.ValueKind == JsonValueKind.Array)
 			{
 				List<T> list = [];
-				foreach (var t in value.EnumerateArray().Select(elem => decoder(elem)))
+				foreach (var t in value.EnumerateArray().Select(
+					         elem => decoder(elem)
+					         ))
 				{
 					if (!t.IsOk)
 					{
@@ -179,6 +198,17 @@ public static partial class Decode
 			return Result<Dictionary<string, T>, string>.Ok(value.EnumerateObject()
 				.ToDictionary(x => x.Name, x => decoder(x.Value).Value));
 		};
+
+	public static Decoder<(D0 d0,D1 d1,D2 d2, D3 d3)> Tuple4<D0, D1, D2, D3>(
+		Decoder<D0> decoder0,
+		Decoder<D1> decoder1,
+		Decoder<D2> decoder2,
+		Decoder<D3> decoder3) =>
+		Index(0, decoder0)
+			.AndThen(v0 => Index(1, decoder1)
+				.AndThen(v1 => Index(2, decoder2)
+					.AndThen(v2 => Index(3, decoder3)
+						.AndThen(v3 => Succeed((v0, v1, v2, v3))))));
 
 	public static Decoder<T> Field<T>(string fieldName, Decoder<T> decoder) =>
 		value =>

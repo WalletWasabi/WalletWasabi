@@ -188,8 +188,7 @@ public class ArenaClientTests
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
 
-		var inputRegistrationResponse = await aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
-		var aliceId = inputRegistrationResponse.Value;
+		var inputRegistrationResponseTask = aliceArenaClient.RegisterInputAsync(round.Id, outpoint, ownershipProof, CancellationToken.None);
 
 		var amountsToRequest = new[]
 		{
@@ -206,7 +205,9 @@ public class ArenaClientTests
 		// Phase: Input Registration
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
-		var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
+		var inputRegistrationResponse = await inputRegistrationResponseTask;
+		var aliceId = inputRegistrationResponse.Value;
+		var connectionConfirmationResponse1Task = aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -219,7 +220,8 @@ public class ArenaClientTests
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 		// Phase: Connection Confirmation
-		var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
+		var connectionConfirmationResponse1 = await connectionConfirmationResponse1Task;
+		var connectionConfirmationResponse2Task = aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -228,7 +230,7 @@ public class ArenaClientTests
 			connectionConfirmationResponse1.IssuedVsizeCredentials,
 			CancellationToken.None);
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(1));
+		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 		// Phase: Output Registration
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
@@ -239,6 +241,7 @@ public class ArenaClientTests
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 
+		var connectionConfirmationResponse2 = await connectionConfirmationResponse2Task;
 		var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 			round.Id,
 			amountsToRequest,
@@ -257,20 +260,21 @@ public class ArenaClientTests
 		Credential zeroVsizeCred1 = reissuanceResponse.IssuedVsizeCredentials.ElementAt(2);
 		Credential zeroVsizeCred2 = reissuanceResponse.IssuedVsizeCredentials.ElementAt(3);
 
-		await bobArenaClient.RegisterOutputAsync(
+		var bobOutputRegistration1 = bobArenaClient.RegisterOutputAsync(
 			round.Id,
 			destinationKey1.PubKey.GetScriptPubKey(scriptPubKeyType),
 			new[] { amountCred1, zeroAmountCred1 },
 			new[] { vsizeCred1, zeroVsizeCred1 },
 			CancellationToken.None);
 
-		await bobArenaClient.RegisterOutputAsync(
+		var bobOutputRegistration2 = bobArenaClient.RegisterOutputAsync(
 			round.Id,
 			destinationKey2.PubKey.GetScriptPubKey(scriptPubKeyType),
 			new[] { amountCred2, zeroAmountCred2 },
 			new[] { vsizeCred2, zeroVsizeCred2 },
 			CancellationToken.None);
 
+		await Task.WhenAll(bobOutputRegistration1, bobOutputRegistration2);
 		await aliceArenaClient.ReadyToSignAsync(round.Id, aliceId, CancellationToken.None);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));

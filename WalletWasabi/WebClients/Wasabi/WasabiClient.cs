@@ -1,61 +1,44 @@
+using System.Collections.Generic;
+using System.Linq;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.WebClients.Wasabi;
 
+public abstract record FiltersResponse
+{
+	public record AlreadyOnBestBlock : FiltersResponse;
+
+	public record BestBlockUnknown : FiltersResponse;
+
+	public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
+}
+
 public class WasabiClient
 {
-	public WasabiClient(HttpClient httpClient)
+	public WasabiClient(HttpClient httpClient, EventBus? eventBus = null)
 	{
 		_httpClient = httpClient;
+		_eventBus = eventBus ?? new EventBus();
 	}
 
 	private readonly HttpClient _httpClient;
+	private readonly EventBus _eventBus;
 
 	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.BackendMajorVersion);
 
-	#region batch
-
-	/// <remarks>
-	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
-	/// </remarks>
-	public async Task<SynchronizeResponse> GetSynchronizeAsync(uint256 bestKnownBlockHash, int count, EstimateSmartFeeMode? estimateMode = null, CancellationToken cancel = default)
-	{
-		string relativeUri = $"api/v{ApiVersion}/btc/batch/synchronize?bestKnownBlockHash={bestKnownBlockHash}&maxNumberOfFilters={count}";
-		if (estimateMode is { })
-		{
-			relativeUri = $"{relativeUri}&estimateSmartFeeMode={estimateMode}";
-		}
-
-		using HttpResponseMessage response = await _httpClient.GetAsync(relativeUri, cancellationToken: cancel).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
-
-		using HttpContent content = response.Content;
-		var ret = await content.ReadAsJsonAsync(Decode.SynchronizeResponse).ConfigureAwait(false);
-
-		return ret;
-	}
-
-	#endregion batch
-
-	#region blockchain
-
-	/// <remarks>
-	/// Throws OperationCancelledException if <paramref name="cancel"/> is set.
-	/// </remarks>
-	public async Task<FiltersResponse?> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
+	public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync(
 			$"api/v{ApiVersion}/btc/blockchain/filters?bestKnownBlockHash={bestKnownBlockHash}&count={count}",
@@ -63,28 +46,29 @@ public class WasabiClient
 
 		if (response.StatusCode == HttpStatusCode.NoContent)
 		{
-			return null;
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.AlreadyOnBestBlock();
 		}
 
-		if (response.StatusCode != HttpStatusCode.OK)
+		if (response.StatusCode == HttpStatusCode.NotFound)
 		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
+			_eventBus.Publish(new BackendAvailabilityStateChanged(true));
+			return new FiltersResponse.BestBlockUnknown();
 		}
+
+		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
 
 		using HttpContent content = response.Content;
 		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
-		return ret;
+		return new FiltersResponse.NewFiltersAvailable(ret.BestHeight, ret.Filters.ToArray());
 	}
 
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
 	{
 		using HttpResponseMessage response = await _httpClient.GetAsync("api/software/versions", cancellationToken: cancel).ConfigureAwait(false);
 
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
-		}
+		await CheckErrorsAsync(response, cancel).ConfigureAwait(false);
 
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync(Decode.VersionsResponse).ConfigureAwait(false);
@@ -118,5 +102,12 @@ public class WasabiClient
 		return backendCompatible;
 	}
 
-	#endregion software
+	private async Task CheckErrorsAsync(HttpResponseMessage response, CancellationToken cancel)
+	{
+		_eventBus.Publish(new BackendAvailabilityStateChanged(response.StatusCode == HttpStatusCode.OK));
+		if (response.StatusCode != HttpStatusCode.OK)
+		{
+			await response.ThrowRequestExceptionFromContentAsync(cancel).ConfigureAwait(false);
+		}
+	}
 }

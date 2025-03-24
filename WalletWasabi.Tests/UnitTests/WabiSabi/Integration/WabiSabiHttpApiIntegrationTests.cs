@@ -310,21 +310,21 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
 					MaxInputCountByRound = 2 * inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(5 * inputCount),
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
+					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(10),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
 
-		await Task.Delay(1000);
+		await Task.Delay(100);
 
 		// Create the coinjoin client
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(app.CreateClient());
 
 		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(1), apiClient);
-		await roundStateUpdater.StartAsync(CancellationToken.None);
+		roundStateUpdater.StartAsync(CancellationToken.None);
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
@@ -347,8 +347,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager1, roundStateUpdater);
 		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => nonSigningApiClient, keyManager2, roundStateUpdater);
 
-		var coinJoinTask = Task.Run(async () => await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token).ConfigureAwait(false), cts.Token);
-		var badCoinsTask = Task.Run(async () => await badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token).ConfigureAwait(false), cts.Token);
+		var coinJoinTask = coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
+		var badCoinsTask = badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token);
 
 		// BadCoinsTask will throw.
 		await Task.WhenAll(new Task[] { badCoinsTask, coinJoinTask });

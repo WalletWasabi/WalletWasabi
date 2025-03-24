@@ -638,7 +638,7 @@ public class CoinJoinClient
 
 	private async Task ReadyToSignAsync(IEnumerable<AliceClient> aliceClients, DateTimeOffset readyToSignEndTime, CancellationToken cancellationToken)
 	{
-		var scheduledDates = readyToSignEndTime.GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, MaximumRequestDelay);
+		var scheduledDates = GetScheduledDates(aliceClients.Count(), DateTimeOffset.UtcNow, readyToSignEndTime, MaximumRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,

@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Moq;
@@ -15,7 +14,7 @@ public class AmountTests
 	public void BtcShouldMatch()
 	{
 		var money = Money.FromUnit(1, MoneyUnit.BTC);
-		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRates == Observable.Empty<decimal>()));
+		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRate == Observable.Empty<decimal>()));
 		Assert.Equal(money, btcAmount.Btc);
 	}
 
@@ -26,7 +25,7 @@ public class AmountTests
 		var exchangeRates = new[] { 1m, 2m, 3m };
 		var money = Money.FromUnit(2, MoneyUnit.BTC);
 		using var rates = new Subject<decimal>();
-		var exchangeProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRates == rates);
+		var exchangeProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRate == rates);
 		var destination = new List<decimal>();
 		var sut = new Amount(money, exchangeProvider);
 		using var usdValues = sut.Usd.Dump(destination);
@@ -35,6 +34,6 @@ public class AmountTests
 		rates.Inject(exchangeRates);
 
 		// ASSERT
-		Assert.Equal(exchangeRates.Select(rate => rate * sut.Btc.ToDecimal(MoneyUnit.BTC)), destination);
+		Assert.Equal([0, 2, 4, 6], destination);
 	}
 }

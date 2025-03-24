@@ -27,6 +27,7 @@ public class ProcessStartInfoFactory
 			FileName = processPath,
 			Arguments = arguments,
 			RedirectStandardOutput = !openConsole,
+			RedirectStandardError = !openConsole,
 			UseShellExecute = openConsole,
 			CreateNoWindow = !openConsole,
 			WindowStyle = ProcessWindowStyle.Normal

@@ -6,12 +6,12 @@ using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -28,13 +28,14 @@ public class TorProcessManager : IAsyncDisposable
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
 	/// <summary>For tests.</summary>
-	public TorProcessManager(TorSettings settings)
+	public TorProcessManager(TorSettings settings, EventBus eventBus)
 	{
 		TorProcess = null;
 		TorControlClient = null;
 		_loopCts = new();
 		LoopTask = null;
 		_settings = settings;
+		_eventBus = eventBus;
 	}
 
 	/// <summary>Guards <see cref="TorProcess"/> and <see cref="TorControlClient"/>.</summary>
@@ -46,6 +47,7 @@ public class TorProcessManager : IAsyncDisposable
 	private readonly CancellationTokenSource _loopCts;
 
 	private readonly TorSettings _settings;
+	private readonly EventBus _eventBus;
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
@@ -193,10 +195,14 @@ public class TorProcessManager : IAsyncDisposable
 			var response = new byte[2];
 			await tcp.Client.SendAsync(msg, cancellationToken).ConfigureAwait(false);
 			var read = await tcp.Client.ReceiveAsync(response, cancellationToken).ConfigureAwait(false);
-			return read == 2 && response is [0x05, 0x00];
+			var isTorRunning = read == 2 && response is [0x05, 0x00];
+
+			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
+			return isTorRunning;
 		}
 		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
 		{
+			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
 	}
