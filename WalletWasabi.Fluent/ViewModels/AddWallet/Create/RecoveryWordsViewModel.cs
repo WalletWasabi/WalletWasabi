@@ -12,7 +12,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 {
 	private RecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options)
 	{
-		var recoveryWordsBackup = options.WalletBackup as RecoveryWordsBackup;
+		var recoveryWordsBackup = options.SelectedWalletBackup as RecoveryWordsBackup;
 
 		ArgumentNullException.ThrowIfNull(recoveryWordsBackup);
 		ArgumentNullException.ThrowIfNull(recoveryWordsBackup.Mnemonic);

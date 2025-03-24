@@ -1,28 +1,37 @@
 using NBitcoin;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.Models;
 
 public abstract record WalletCreationOptions(string? WalletName = null)
 {
-	public record AddNewWallet(string? WalletName = null, WalletBackup? WalletBackup = null)
+	public record AddNewWallet(string? WalletName = null, WalletBackup? SelectedWalletBackup = null, WalletBackup[]? WalletBackups = null)
 		: WalletCreationOptions(WalletName)
 	{
-		public AddNewWallet WithNewMnemonic()
+		public AddNewWallet WithNewWalletBackups()
 		{
-			if (WalletBackup is not null && WalletBackup is not RecoveryWordsBackup)
-			{
-				throw new ArgumentException("Cannot create a new mnemonic with a non-recovery words backup.");
-			}
-
-			var recoveryWordsBackup = WalletBackup as RecoveryWordsBackup ?? new RecoveryWordsBackup();
-
-			recoveryWordsBackup = recoveryWordsBackup with
+			var recoveryWordsBackup = new RecoveryWordsBackup
 			{
 				Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve)
 			};
 
-			return this with { WalletBackup = recoveryWordsBackup };
+			var multiShareBackupSettings = new MultiShareBackupSettings();
+
+			var multiShareBackup = new MultiShareBackup(new MultiShareBackupSettings())
+			{
+				// TODO:
+				Shares = Shamir.Generate(
+					multiShareBackupSettings.Threshold,
+					multiShareBackupSettings.Shares,
+					RandomUtils.GetBytes(256 / 8))
+			};
+
+			return this with
+			{
+				SelectedWalletBackup = recoveryWordsBackup,
+				WalletBackups = [recoveryWordsBackup, multiShareBackup]
+			};
 		}
 	}
 

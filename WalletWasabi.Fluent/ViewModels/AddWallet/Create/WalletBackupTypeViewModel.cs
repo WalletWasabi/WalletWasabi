@@ -34,17 +34,19 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 		switch (_walletBackupType)
 		{
 			case WalletBackupType.RecoveryWords:
-				// TODO: Add wallet backup type to options
-				// TODO: Maybe call AddNewWallet.WithNewMnemonic() here instead in AddWalletPageViewModel.OnCreateWallet()
-				//       and initialize WalletBackup = new RecoveryWordsBackup(...) here.
+				var recoveryWordsBackup = options.WalletBackups?.FirstOrDefault(x => x is RecoveryWordsBackup);
+				options = options with
+				{
+					SelectedWalletBackup = recoveryWordsBackup
+				};
+
 				Navigate().To().RecoveryWords(options);
 				break;
 			case WalletBackupType.MultiShare:
-				// TODO: Add wallet backup type to options
-				// TODO: Navigate to Multi-share Backup
+				var multiShareBackup = options.WalletBackups?.FirstOrDefault(x => x is MultiShareBackup);
 				options = options with
 				{
-					WalletBackup = new MultiShareBackup(new MultiShareBackupSettings())
+					SelectedWalletBackup = multiShareBackup
 				};
 
 				Navigate().To().MultiShareOptions(options);

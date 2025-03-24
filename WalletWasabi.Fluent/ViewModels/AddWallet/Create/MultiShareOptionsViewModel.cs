@@ -13,11 +13,11 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 	private MultiShareOptionsViewModel(WalletCreationOptions.AddNewWallet options)
 	{
-		var multiShareBackup = options.WalletBackup as MultiShareBackup;
+		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
 		ArgumentNullException.ThrowIfNull(multiShareBackup);
 		// TODO:
-		// ArgumentNullException.ThrowIfNull(multiShareBackup.Share);
+		// ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
 		ArgumentNullException.ThrowIfNull(multiShareBackup.Settings);
 
 		_shares = multiShareBackup.Settings.Shares;
@@ -35,7 +35,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 	private void OnNext(WalletCreationOptions.AddNewWallet options)
 	{
-		if (options.WalletBackup is not MultiShareBackup multiShareBackup)
+		if (options.SelectedWalletBackup is not MultiShareBackup multiShareBackup)
 		{
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
@@ -44,7 +44,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 		options = options with
 		{
-			WalletBackup = multiShareBackup with
+			SelectedWalletBackup = multiShareBackup with
 			{
 				Settings = new MultiShareBackupSettings(_threshold, _shares),
 				CurrentShare = 1

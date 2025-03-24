@@ -19,7 +19,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	{
 		_options = options;
 
-		var multiShareBackup = options.WalletBackup as MultiShareBackup;
+		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
 		ArgumentNullException.ThrowIfNull(multiShareBackup);
 		// TODO:
@@ -58,7 +58,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	{
 		var options = _options;
 
-		if (options.WalletBackup is not MultiShareBackup multiShareBackup)
+		if (options.SelectedWalletBackup is not MultiShareBackup multiShareBackup)
 		{
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
@@ -67,7 +67,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		{
 			options = options with
 			{
-				WalletBackup = multiShareBackup with
+				SelectedWalletBackup = multiShareBackup with
 				{
 					CurrentShare = ++_currentShare
 				}
@@ -87,7 +87,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			{
 				options = options with
 				{
-					WalletBackup = multiShareBackup with
+					SelectedWalletBackup = multiShareBackup with
 					{
 						Password = password
 					}

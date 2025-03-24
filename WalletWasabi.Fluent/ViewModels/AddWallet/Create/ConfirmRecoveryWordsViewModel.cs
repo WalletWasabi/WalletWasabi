@@ -136,7 +136,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	{
 		var options = _options;
 
-		if (options.WalletBackup is not RecoveryWordsBackup recoveryWordsBackup)
+		if (options.SelectedWalletBackup is not RecoveryWordsBackup recoveryWordsBackup)
 		{
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
@@ -150,7 +150,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		{
 			options = options with
 			{
-				WalletBackup = recoveryWordsBackup with
+				SelectedWalletBackup = recoveryWordsBackup with
 				{
 					Password = password
 				}

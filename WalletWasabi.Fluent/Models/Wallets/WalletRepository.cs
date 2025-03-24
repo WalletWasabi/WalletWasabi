@@ -101,13 +101,13 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
 	{
-		var (walletName, walletBackup) = options;
+		var (walletName, walletBackup, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(walletBackup);
 		ArgumentNullException.ThrowIfNull(walletBackup.Password);
 
-		var (keyManager, _) = await Task.Run(
+		var keyManager = await Task.Run(
 				() =>
 				{
 					var walletGenerator = new WalletGenerator(
@@ -123,12 +123,12 @@ public partial class WalletRepository : ReactiveObject
 							walletGenerator.GenerateWallet(
 								walletName,
 								recoveryWordsBackup.Password!,
-								recoveryWordsBackup.Mnemonic),
+								recoveryWordsBackup.Mnemonic).Item1,
 						MultiShareBackup multiShareBackup =>
 							walletGenerator.GenerateWallet(
 								walletName,
 								multiShareBackup.Password!,
-								multiShareBackup.Shares),
+								multiShareBackup.Shares).Item1,
 						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
 					};
 				});
