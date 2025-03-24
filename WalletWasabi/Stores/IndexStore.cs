@@ -313,7 +313,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			var previousFilter = IndexStorage.Fetch(tip.Height, 1).First();
 			if (previousFilter.Filter.IsBip158())
 			{
-				throw new InvalidOperationException("The received filter is not Wasabi filter while the previous one is a standard bip158 and it os not possible to verify the chain.");
+				throw new InvalidOperationException("The received filter is not Wasabi filter while the previous one is a standard bip158 and it is not possible to verify the chain.");
 			}
 
 			return false;
