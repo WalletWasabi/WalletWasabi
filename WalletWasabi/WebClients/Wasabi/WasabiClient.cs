@@ -2,11 +2,9 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -77,27 +75,6 @@ public class WasabiClient
 		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
 		return ret;
-	}
-
-	public async Task BroadcastAsync(string hex, CancellationToken cancellationToken)
-	{
-		using var content = new StringContent($"\"{hex}\"", Encoding.UTF8, "application/json");
-		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
-
-		if (response.StatusCode != HttpStatusCode.OK)
-		{
-			await response.ThrowRequestExceptionFromContentAsync(CancellationToken.None).ConfigureAwait(false);
-		}
-	}
-
-	public async Task BroadcastAsync(Transaction transaction, CancellationToken cancellationToken)
-	{
-		await BroadcastAsync(transaction.ToHex(), cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task BroadcastAsync(SmartTransaction transaction, CancellationToken cancellationToken)
-	{
-		await BroadcastAsync(transaction.Transaction, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)
