@@ -223,7 +223,6 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-
 	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
 		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(), filePath);
