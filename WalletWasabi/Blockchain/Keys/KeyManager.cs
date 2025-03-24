@@ -266,12 +266,6 @@ public class KeyManager
 		return km;
 	}
 
-	public static KeyManager Recover(Share[] shares, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
-	{
-		// TODO:
-		throw new NotImplementedException();
-	}
-
 	public static KeyManager FromFile(string filePath)
 	{
 		filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
