@@ -44,10 +44,8 @@ public class Startup(IConfiguration configuration)
 		services.AddMvc(options => {
 			options.InputFormatters.Insert(0, new WasabiJsonInputFormatter(Decode.CoordinatorMessageFromStreamAsync));
 			options.InputFormatters.RemoveType<SystemTextJsonInputFormatter>();
-			options.InputFormatters.RemoveType<NewtonsoftJsonInputFormatter>();
 			options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.CoordinatorMessage));
 			options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
-			options.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
 			options.ModelMetadataDetailsProviders.Add(new SuppressChildValidationMetadataProvider(typeof(Script)));
 		})
 		.AddControllersAsServices();

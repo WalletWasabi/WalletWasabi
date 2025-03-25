@@ -48,9 +48,7 @@ public class Startup
 			{
 				options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.BackendMessage));
 				options.InputFormatters.RemoveType<SystemTextJsonInputFormatter>();
-				options.InputFormatters.RemoveType<NewtonsoftJsonInputFormatter>();
 				options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
-				options.OutputFormatters.RemoveType<NewtonsoftJsonOutputFormatter>();
 			})
 			.AddControllersAsServices();
 
