@@ -35,6 +35,12 @@
     </DockPanel>
 
     <DockPanel>
+      <TextBlock Text="External Transaction Broadcaster" />
+      <ComboBox ItemsSource="{Binding ExternalBroadcastProviders}"
+                SelectedItem="{Binding Settings.ExternalTransactionBroadcaster}" />
+    </DockPanel>
+
+    <DockPanel>
       <TextBlock Text="Network anonymization (Tor)" />
       <ComboBox ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor}">
         <ComboBox.ItemTemplate>
