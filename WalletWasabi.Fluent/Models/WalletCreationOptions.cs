@@ -21,10 +21,29 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 			var multiShareBackup = new MultiShareBackup(new MultiShareBackupSettings())
 			{
 				// TODO:
+#if true
 				Shares = Shamir.Generate(
 					multiShareBackupSettings.Threshold,
 					multiShareBackupSettings.Shares,
 					RandomUtils.GetBytes(256 / 8))
+#else
+				// TODO: Debug code
+				Shares = Shamir.Generate(
+					groupThreshold: 2,
+					groups:
+					[
+						// Alice group shares. 1 is enough to reconstruct a group share,
+						// therefore she needs at least two group shares to be reconstructed,
+						(1, 1),
+						(1, 1),
+						// 3 of 5 Friends' shares are required to reconstruct this group share
+						(3, 5),
+						// 2 of 6 Family's shares are required to reconstruct this group share
+						(2, 6),
+					],
+					seed: "ABCDEFGHIJKLMNOP"u8.ToArray(),
+					passphrase: "TREZOR")
+#endif
 			};
 
 			return this with
