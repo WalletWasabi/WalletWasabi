@@ -26,6 +26,7 @@
         </Style>
         <!-- TODO: Style the ListBoxItem -->
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
+          <Setter Property="Padding" Value="12,0,12,0" />
           <!-- TODO: Add help text -->
           <Setter Property="(ToolTip.Tip)"
                   Value="{Binding Description}" />
@@ -45,10 +46,27 @@
       </ListBox.Styles>
       <ListBox.ItemTemplate>
         <DataTemplate x:DataType="models:WalletBackupType">
-          <RadioButton
-            ToolTip.Tip="{Binding Description}"
-            IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
-            Content="{Binding Description}" />
+          <Border CornerRadius="12"
+                  Padding="16"
+                  Margin="0"
+                  Classes.IsSelected="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}">
+            <Border.Styles>
+              <Style Selector="Border">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+              <Style Selector="Border.IsSelected">
+                <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+            </Border.Styles>
+            <RadioButton
+              ToolTip.Tip="{Binding Description}"
+              IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
+              Content="{Binding Description}" />
+          </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
     </ListBox>
