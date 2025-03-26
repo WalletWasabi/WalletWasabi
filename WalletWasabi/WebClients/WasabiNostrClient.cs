@@ -80,7 +80,7 @@ public class WasabiNostrClient
 
 	public async Task<NostrUpdateInfo?> GetLatestUpdateInfoAsync(CancellationToken cancel)
 	{
-		var delay = TimeSpan.FromSeconds(5);
+		var delay = TimeSpan.FromSeconds(30);
 		bool wait = false;
 		do
 		{
