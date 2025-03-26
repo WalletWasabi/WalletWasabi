@@ -21,11 +21,26 @@
       HorizontalAlignment="Center"
       VerticalAlignment="Center">
       <ListBox.Styles>
+        <Style Selector="ListBox">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
         <!-- TODO: Style the ListBoxItem -->
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
           <!-- TODO: Add help text -->
           <Setter Property="(ToolTip.Tip)"
                   Value="{Binding Description}" />
+        </Style>
+        <Style Selector="ListBoxItem > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:pointerover > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
         </Style>
       </ListBox.Styles>
       <ListBox.ItemTemplate>
