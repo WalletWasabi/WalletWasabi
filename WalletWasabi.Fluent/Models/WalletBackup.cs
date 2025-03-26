@@ -11,7 +11,7 @@ public record RecoveryWordsBackup(
 
 public record MultiShareBackupSettings(
 	byte Threshold = 2,
-	byte Shares = 5);
+	byte Shares = 3);
 
 public record MultiShareBackup(
 	MultiShareBackupSettings Settings,
