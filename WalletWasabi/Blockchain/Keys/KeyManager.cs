@@ -203,7 +203,7 @@ public class KeyManager
 	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
 	{
 		// TODO:
-		shares = Shamir.Generate(2, 5, RandomUtils.GetBytes(256 / 8));
+		shares = Shamir.Generate(2, 3, RandomUtils.GetBytes(256 / 8));
 		return CreateNew(shares, password, network, filePath);
 	}
 
