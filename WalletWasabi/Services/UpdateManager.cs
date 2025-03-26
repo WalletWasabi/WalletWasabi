@@ -57,7 +57,7 @@ public class UpdateManager : PeriodicRunner
 		{
 			await _wasabiNostrClient.CheckNostrConnectionAsync(cancellationToken).ConfigureAwait(false);
 
-			NostrUpdateInfo? nostrUpdateInfo = _wasabiNostrClient.GetLatestUpdateInfo();
+			NostrUpdateInfo? nostrUpdateInfo = await _wasabiNostrClient.GetLatestUpdateInfoAsync(cancellationToken).ConfigureAwait(false);
 
 			if (nostrUpdateInfo is null)
 			{

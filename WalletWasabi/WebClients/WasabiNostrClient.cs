@@ -23,6 +23,8 @@ public class WasabiNostrClient
 	public INostrClient? NostrWebClient { get; set; }
 	private Dictionary<string, NostrEvent> Events { get; } = new();
 	private object EventsLock { get; } = new();
+	private DateTimeOffset? LastEventReceived { get; set; } = null;
+	private object LastEventReceivedLock { get; } = new();
 
 	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
 	{
@@ -38,6 +40,11 @@ public class WasabiNostrClient
 					if (version is not null && downloadLink is not null)
 					{
 						Events.TryAdd(nostrEvent.Id, nostrEvent);
+
+						lock (LastEventReceivedLock)
+						{
+							LastEventReceived = DateTimeOffset.Now;
+						}
 					}
 				}
 			}
@@ -71,8 +78,28 @@ public class WasabiNostrClient
 		}
 	}
 
-	public NostrUpdateInfo? GetLatestUpdateInfo()
+	public async Task<NostrUpdateInfo?> GetLatestUpdateInfoAsync(CancellationToken cancel)
 	{
+		var delay = TimeSpan.FromSeconds(5);
+		bool wait = false;
+		do
+		{
+			DateTimeOffset? lastEventTime;
+			lock (LastEventReceivedLock)
+			{
+				lastEventTime = LastEventReceived;
+			}
+
+			// If we didn't receive any event or the latest event was recceived less than 5 seconds ago, wait a little. Other events might arrive in the meantime.
+			wait = lastEventTime is null || lastEventTime + delay >= DateTimeOffset.UtcNow;
+
+			if (wait)
+			{
+				await Task.Delay(delay, cancel).ConfigureAwait(false);
+			}
+
+		} while (wait);
+
 		lock (EventsLock)
 		{
 			var latestEvent = Events.Values.OrderByDescending(ev => ev.CreatedAt).FirstOrDefault();
