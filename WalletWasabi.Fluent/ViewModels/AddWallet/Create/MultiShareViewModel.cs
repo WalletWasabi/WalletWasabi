@@ -8,8 +8,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Multi-share")]
 public partial class MultiShareViewModel : RoutableViewModel
 {
-	[AutoNotify] private byte _currentShare;
-	[AutoNotify] private byte _totalShares;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
 
 	private MultiShareViewModel(WalletCreationOptions.AddNewWallet options)
 	{

@@ -12,8 +12,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 {
 	private readonly WalletCreationOptions.AddNewWallet _options;
 
-	[AutoNotify] private byte _currentShare;
-	[AutoNotify] private byte _totalShares;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
 
 	private ConfirmMultiShareViewModel(WalletCreationOptions.AddNewWallet options)
 	{
