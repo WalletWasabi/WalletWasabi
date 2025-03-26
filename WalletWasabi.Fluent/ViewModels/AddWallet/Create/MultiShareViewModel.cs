@@ -1,7 +1,9 @@
+using System.Collections.Generic;
 using System.Reactive.Disposables;
 using ReactiveUI;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
@@ -21,7 +23,7 @@ public partial class MultiShareViewModel : RoutableViewModel
 		_currentShare = multiShareBackup.CurrentShare;
 		_totalShares = multiShareBackup.Settings.Shares;
 
-		// TODO:
+		MnemonicWords = CreateList(multiShareBackup.Shares[_currentShare - 1]);
 
 		EnableBack = true;
 
@@ -30,7 +32,7 @@ public partial class MultiShareViewModel : RoutableViewModel
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 	}
 
-	// TODO:
+	public List<RecoveryWordViewModel> MnemonicWords { get; }
 
 	private void OnNext(WalletCreationOptions.AddNewWallet options)
 	{
@@ -76,5 +78,19 @@ public partial class MultiShareViewModel : RoutableViewModel
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 
 		base.OnNavigatedTo(isInHistory, disposables);
+	}
+
+	private List<RecoveryWordViewModel> CreateList(Share share)
+	{
+		var result = new List<RecoveryWordViewModel>();
+
+		var words = share.ToMnemonic(WordList.Wordlist).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+		for (int i = 0; i < words.Length; i++)
+		{
+			result.Add(new RecoveryWordViewModel(i + 1, words[i]));
+		}
+
+		return result;
 	}
 }
