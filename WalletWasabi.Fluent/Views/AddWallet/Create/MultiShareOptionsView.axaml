@@ -24,7 +24,7 @@
                      Increment="1"
                      FormatString="G2"
                      ClipValueToMinMax="True"
-                     MinWidth="125" />
+                     MinWidth="350" />
       <!-- Number of shares necessary to recombine the seed. -->
       <Label Content="Threshold:" />
       <NumericUpDown Value="{Binding Threshold}"
@@ -33,7 +33,7 @@
                      Increment="1"
                      FormatString="G2"
                      ClipValueToMinMax="True"
-                     MinWidth="125" />
+                     MinWidth="350" />
     </StackPanel>
   </ContentArea>
 </UserControl>
