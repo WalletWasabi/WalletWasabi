@@ -20,12 +20,18 @@
       SelectedItem="{Binding WalletBackupType}"
       HorizontalAlignment="Center"
       VerticalAlignment="Center">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="8" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
       <ListBox.Styles>
         <Style Selector="ListBox">
           <Setter Property="Background" Value="Transparent" />
         </Style>
         <!-- TODO: Style the ListBoxItem -->
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
+          <Setter Property="Cursor" Value="Hand" />
           <Setter Property="Padding" Value="12,0,12,0" />
           <!-- TODO: Add help text -->
           <Setter Property="(ToolTip.Tip)"
@@ -49,11 +55,17 @@
           <Border CornerRadius="12"
                   Padding="16"
                   Margin="0"
-                  Classes.IsSelected="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}">
+                  Classes.IsSelected="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
+                  Classes.IsPointerOver="{Binding $parent[ListBoxItem].IsPointerOver, Mode=TwoWay}">
             <Border.Styles>
               <Style Selector="Border">
                 <Setter Property="Background" Value="Transparent" />
                 <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+              <Style Selector="Border.IsPointerOver">
+                <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextControlBackground}" />
                 <Setter Property="BorderThickness" Value="1" />
               </Style>
               <Style Selector="Border.IsSelected">
