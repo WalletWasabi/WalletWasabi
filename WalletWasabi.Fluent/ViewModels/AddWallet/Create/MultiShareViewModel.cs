@@ -98,8 +98,9 @@ public partial class MultiShareViewModel : RoutableViewModel
 		var result = new List<RecoveryWordViewModel>();
 
 		// TODO: System.IO.EndOfStreamException: There is not more bits to read.
-		// var words = share.ToMnemonic(WordList.Wordlist).Split(' ', StringSplitOptions.RemoveEmptyEntries);
-		var words = Array.Empty<string>();
+		var words = share.ToMnemonic(WordList.Wordlist).Split(' ', StringSplitOptions.RemoveEmptyEntries);
+		// TODO: Debug code
+		// var words = Array.Empty<string>();
 
 		for (int i = 0; i < words.Length; i++)
 		{
