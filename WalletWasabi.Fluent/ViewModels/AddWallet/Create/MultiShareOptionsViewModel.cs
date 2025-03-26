@@ -84,11 +84,16 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		}
 
 		// TODO: Validate shares and threshold
+		var shares = Shamir.Generate(
+			_threshold,
+			_shares,
+			RandomUtils.GetBytes(256 / 8));
 
 		options = options with
 		{
 			SelectedWalletBackup = multiShareBackup with
 			{
+				Shares = shares,
 				Settings = new MultiShareBackupSettings(_threshold, _shares),
 				CurrentShare = 1
 			}
