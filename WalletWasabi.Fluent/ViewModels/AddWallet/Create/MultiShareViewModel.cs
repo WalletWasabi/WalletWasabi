@@ -41,6 +41,11 @@ public partial class MultiShareViewModel : RoutableViewModel
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
+		if (multiShareBackup.Shares is null)
+		{
+			throw new ArgumentNullException(nameof(options));
+		}
+
 		if (_currentShare < multiShareBackup.Settings.Shares)
 		{
 			options = options with
@@ -63,7 +68,15 @@ public partial class MultiShareViewModel : RoutableViewModel
 				}
 			};
 
-			Navigate().To().ConfirmMultiShare(options);
+			var wordsDictionary = new Dictionary<int, List<RecoveryWordViewModel>>();
+
+			for (var i = 0; i < _totalShares; i++)
+			{
+				var words = CreateList(multiShareBackup.Shares[i]);
+				wordsDictionary[i] = words;
+			}
+
+			Navigate().To().ConfirmMultiShare(options, wordsDictionary);
 		}
 	}
 
