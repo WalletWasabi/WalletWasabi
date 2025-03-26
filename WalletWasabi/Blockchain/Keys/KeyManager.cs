@@ -35,6 +35,11 @@ public class KeyManager
 	public const int MaxGapLimit = 10_000;
 	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
+	public const int MinShamirShares = 1;
+	public const int MaxShamirShares = 16;
+	public const int MinShamirThreshold = 1;
+	public const int MaxShamirThreshold = 16;
+
 	internal KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;

@@ -1,7 +1,11 @@
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
@@ -16,8 +20,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
 		ArgumentNullException.ThrowIfNull(multiShareBackup);
-		// TODO:
-		// ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
+		ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
 		ArgumentNullException.ThrowIfNull(multiShareBackup.Settings);
 
 		_shares = multiShareBackup.Settings.Shares;
@@ -25,12 +28,52 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		// TODO: Add validation
-		NextCommand = ReactiveCommand.Create(() => OnNext(options));
+		var nextCommandCanExecute =
+			this.WhenAnyValue(
+					x => x.Threshold,
+					x => x.Shares)
+				.Select(_ => !Validations.Any);
 
-		// TODO: Add validation
+		NextCommand = ReactiveCommand.Create(() => OnNext(options), nextCommandCanExecute);
 
 		CancelCommand = ReactiveCommand.Create(OnCancel);
+
+		this.ValidateProperty(x => x.Shares, ValidateShares);
+		this.ValidateProperty(x => x.Threshold, ValidateThreshold);
+	}
+
+	private void ValidateShares(IValidationErrors errors)
+	{
+		if (Shares is < KeyManager.MinShamirShares or > KeyManager.MaxShamirShares)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"Must be a number between {KeyManager.MinShamirShares} and {KeyManager.MaxShamirShares}.");
+		}
+
+		if (Shares < Threshold)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"{nameof(Shares)} value can not be lower then {nameof(Threshold)} value.");
+		}
+	}
+
+	private void ValidateThreshold(IValidationErrors errors)
+	{
+		if (Threshold is < KeyManager.MinShamirThreshold or > KeyManager.MaxShamirThreshold)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"Must be a number between {KeyManager.MinShamirThreshold} and {KeyManager.MaxShamirThreshold}.");
+		}
+
+		if (Threshold > Shares)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"{nameof(Threshold)} value can not be bigger then {nameof(Shares)} value.");
+		}
 	}
 
 	private void OnNext(WalletCreationOptions.AddNewWallet options)
