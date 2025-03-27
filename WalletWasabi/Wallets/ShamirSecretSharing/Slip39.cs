@@ -603,7 +603,7 @@ public record Share(
 	{
 		var words = new List<uint16>();
 		var reader = new BitStreamReader(bytes);
-		while (!reader.EndOdStream)
+		while (reader.CanRead(10))
 		{
 			words.Add(reader.ReadUint16(10));
 		}
