@@ -57,8 +57,6 @@ public class IndexBuilderService
 	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
 	private readonly BlockFilterSqliteStorage _indexStorage;
-
-	/// <remarks>Guards <see cref="Index"/>.</remarks>
 	private readonly object _indexLock = new();
 	private readonly uint _startingHeight;
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
