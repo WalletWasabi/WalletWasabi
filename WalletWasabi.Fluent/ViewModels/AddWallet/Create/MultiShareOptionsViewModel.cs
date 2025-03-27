@@ -86,10 +86,29 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		}
 
 		// TODO: Validate shares and threshold
+#if false
 		var shares = Shamir.Generate(
 			_threshold,
 			_shares,
 			KeyManager.GenerateShamirEntropy());
+#else
+		// TODO: Debug code
+		var shares = Shamir.Generate(
+			groupThreshold: 2,
+			groups:
+			[
+				// Alice group shares. 1 is enough to reconstruct a group share,
+				// therefore she needs at least two group shares to be reconstructed,
+				(1, 1),
+				(1, 1),
+				// 3 of 5 Friends' shares are required to reconstruct this group share
+				(3, 5),
+				// 2 of 6 Family's shares are required to reconstruct this group share
+				(2, 6),
+			],
+			seed: "ABCDEFGHIJKLMNOP"u8.ToArray(),
+			passphrase: "TREZOR");
+#endif
 
 		options = options with
 		{
