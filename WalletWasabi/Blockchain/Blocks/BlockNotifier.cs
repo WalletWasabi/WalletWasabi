@@ -29,28 +29,10 @@ public class BlockNotifier : PeriodicRunner
 
 	public uint256 BestBlockHash { get; private set; } = uint256.Zero;
 
-	private uint256? LastInv { get; set; } = null;
-	private readonly object _lastInvLock = new();
 
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
-		uint256 bestBlockHash;
-		uint256? lastInv;
-		lock (_lastInvLock)
-		{
-			lastInv = LastInv;
-		}
-
-		// If we did not yet process our last inv, then we can take this as the best known block hash, so we don't need the RPC command.
-		// Otherwise make the RPC command.
-		if (lastInv is { } && !_processedBlocks.Contains(lastInv))
-		{
-			bestBlockHash = lastInv;
-		}
-		else
-		{
-			bestBlockHash = await RpcClient.GetBestBlockHashAsync(cancel).ConfigureAwait(false);
-		}
+		var bestBlockHash = await RpcClient.GetBestBlockHashAsync(cancel).ConfigureAwait(false);
 
 		// If there's no new block.
 		if (bestBlockHash == BestBlockHash)
@@ -123,7 +105,6 @@ public class BlockNotifier : PeriodicRunner
 		await HandleMissedBlocksAsync(arrivedBlock, cancel).ConfigureAwait(false);
 
 		BestBlockHash = bestBlockHash;
-		return;
 	}
 
 	private async Task HandleMissedBlocksAsync(Block arrivedBlock, CancellationToken cancellationToken)
