@@ -14,16 +14,15 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="Continue" FocusNext="True"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto">
-    <Grid>
-      <Grid.RowDefinitions>
-        <RowDefinition MinHeight="70" Height="*" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
-      </Grid.RowDefinitions>
+    <DockPanel>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <InfoMessage Opacity="0.5"
+                   HorizontalAlignment="Center"
+                   DockPanel.Dock="Bottom">
+        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
+      </InfoMessage>
+
+      <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
         <ItemsControl ItemsSource="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
@@ -52,11 +51,7 @@
         </Grid>
       </Panel>
 
-      <InfoMessage Opacity="0.5"
-                     HorizontalAlignment="Center"
-                     Grid.Row="4">
-        <TextBlock Text="You will not be able to see these words again once the wallet is created." />
-      </InfoMessage>
-    </Grid>
+    </DockPanel>
+
   </ContentArea>
 </UserControl>
