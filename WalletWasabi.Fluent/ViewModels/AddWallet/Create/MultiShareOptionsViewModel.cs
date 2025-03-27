@@ -89,7 +89,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		var shares = Shamir.Generate(
 			_threshold,
 			_shares,
-			RandomUtils.GetBytes(256 / 8));
+			KeyManager.GenerateShamirEntropy());
 
 		options = options with
 		{

@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Wallets.Slip39;
 
@@ -24,7 +25,7 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 				Shares = Shamir.Generate(
 					multiShareBackupSettings.Threshold,
 					multiShareBackupSettings.Shares,
-					RandomUtils.GetBytes(256 / 8))
+					KeyManager.GenerateShamirEntropy())
 			};
 
 			return this with

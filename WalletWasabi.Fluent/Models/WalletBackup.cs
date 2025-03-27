@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.Models;
@@ -10,8 +11,8 @@ public record RecoveryWordsBackup(
 	Mnemonic? Mnemonic = null) : WalletBackup(Password);
 
 public record MultiShareBackupSettings(
-	byte Threshold = 2,
-	byte Shares = 3);
+	byte Threshold = KeyManager.DefaultShamirThreshold,
+	byte Shares = KeyManager.DefaultShamirShares);
 
 public record MultiShareBackup(
 	MultiShareBackupSettings Settings,
