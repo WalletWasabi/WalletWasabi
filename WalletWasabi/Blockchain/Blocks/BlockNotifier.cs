@@ -32,15 +32,6 @@ public class BlockNotifier : PeriodicRunner
 	private uint256? LastInv { get; set; } = null;
 	private readonly object _lastInvLock = new();
 
-	private void P2pNode_BlockInv(object? sender, uint256 blockHash)
-	{
-		lock (_lastInvLock)
-		{
-			LastInv = blockHash;
-		}
-		TriggerRound();
-	}
-
 	protected override async Task ActionAsync(CancellationToken cancel)
 	{
 		uint256 bestBlockHash;
