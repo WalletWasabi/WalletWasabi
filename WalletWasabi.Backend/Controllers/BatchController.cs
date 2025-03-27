@@ -47,7 +47,7 @@ public class BatchController : ControllerBase
 		}
 
 		var numberOfFilters = Config.Network == Network.Main ? 1000 : 10000;
-		(Height bestHeight, IEnumerable<FilterModel> filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, numberOfFilters, out bool found);
+		(Height bestHeight, IEnumerable<FilterModel> filters, bool found) = await IndexBuilderService.GetFilterLinesExcludingAsync(knownHash, numberOfFilters);
 
 		var response = new SynchronizeResponse { Filters = [], BestHeight = bestHeight };
 

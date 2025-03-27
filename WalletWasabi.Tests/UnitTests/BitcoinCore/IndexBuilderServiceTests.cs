@@ -144,8 +144,8 @@ public class IndexBuilderServiceTests
 		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.False(indexer.IsRunning);  // we are done
 
-		var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
-		Assert.True(found);
+		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
+		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());
 	}
@@ -258,8 +258,8 @@ public class IndexBuilderServiceTests
 		await Task.Delay(TimeSpan.FromSeconds(5));
 		Assert.False(indexer.IsRunning);  // we are done
 
-		var result = indexer.GetFilterLinesExcluding(blockchain[0].Hash, 100, out var found);
-		Assert.True(found);
+		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
+		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());
 	}

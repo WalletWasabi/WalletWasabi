@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
@@ -37,7 +38,7 @@ public class IndexBuilderService
 	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
 	private readonly BlockFilterSqliteStorage _indexStorage;
-	private readonly object _indexLock = new();
+	private readonly AsyncLock _indexLock = new();
 	private readonly uint _startingHeight;
 
 	private readonly TimeSpan _syncRetryDelay = TimeSpan.FromSeconds(10);
@@ -98,8 +99,13 @@ public class IndexBuilderService
 					{
 						try
 						{
-							var (currentHeight, currentHash) = GetLastFilter()?.Header is {BlockHash: var curBlockHash, Height: var curHeight}
-								? (curHeight, curBlockHash)
+							FilterModel? lastFilter;
+							using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
+							{
+								lastFilter = GetLastFilter();
+							}
+							var (currentHeight, currentHash) = lastFilter is not null
+								? (lastFilter.Header.Height, lastFilter.Header.BlockHash)
 								: (_startingHeight - 1, uint256.Zero);
 
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
@@ -140,7 +146,7 @@ public class IndexBuilderService
 							{
 								Logger.LogWarning("Reorg observed on the network.");
 
-								ReorgOne();
+								await ReorgOneAsync().ConfigureAwait(false);
 
 								// Skip the current block.
 								continue;
@@ -151,7 +157,7 @@ public class IndexBuilderService
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
 
-							lock (_indexLock)
+							using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
 							{
 								_indexStorage.TryAppend(filterModel);
 							}
@@ -253,9 +259,9 @@ public class IndexBuilderService
 		return scripts;
 	}
 
-	private void ReorgOne()
+	private async Task ReorgOneAsync()
 	{
-		lock (_indexLock)
+		using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
 		{
 			if(_indexStorage.TryRemoveLast(out var removedFilter))
 			{
@@ -309,10 +315,11 @@ public class IndexBuilderService
 			.Build();
 	}
 
-	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
+	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count)
 	{
-		lock (_indexLock)
+		using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
 		{
+			var found = false;
 			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
 			uint bestHeight;
 			if (filterModels.Count > 0)
@@ -325,14 +332,13 @@ public class IndexBuilderService
 				var lastFilter = GetLastFilter();
 				if (lastFilter is null)
 				{
-					found = false;
-					return (new Height(HeightType.Unknown), []);
+					return (new Height(HeightType.Unknown), [], false);
 				}
 
 				found = lastFilter.Header.BlockHash == bestKnownBlockHash;
 				bestHeight = lastFilter.Header.Height;
 			}
-			return (new Height(bestHeight), filterModels);
+			return (new Height(bestHeight), filterModels, found);
 		}
 	}
 
