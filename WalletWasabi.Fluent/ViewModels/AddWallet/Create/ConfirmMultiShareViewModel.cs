@@ -76,7 +76,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 				.WhenValueChanged(x => x.IsConfirmed)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
-		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
 
 		SetSkip();
 
@@ -149,7 +149,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task OnNextAsync()
+	private async Task OnNextAsync(bool skip = false)
 	{
 		var options = _options;
 
@@ -158,24 +158,13 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
-		if (_currentShare < multiShareBackup.Settings.Shares)
-		{
-			options = options with
-			{
-				SelectedWalletBackup = multiShareBackup with
-				{
-					CurrentShare = ++_currentShare
-				}
-			};
-
-			Navigate().To().ConfirmMultiShare(options, _wordsDictionary);
-		}
-		else
+		if (_currentShare >= multiShareBackup.Settings.Shares || skip)
 		{
 			var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
 			                    "It's needed to open and to recover your wallet.\n" +
 			                    "It's a recovery words extension for more security.";
-			var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
+			var password = await Navigate().To()
+				.CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
 			if (password is { })
 			{
@@ -191,6 +180,18 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			// TODO: Implement new wallet creation with Shares.
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 			Navigate().To().AddedWalletPage(walletSettings, options);
+		}
+		else
+		{
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					CurrentShare = ++_currentShare
+				}
+			};
+
+			Navigate().To().ConfirmMultiShare(options, _wordsDictionary);
 		}
 	}
 
@@ -209,7 +210,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		if (IsSkipEnabled)
 		{
-			SkipCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
+			SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(true));
 		}
 	}
 }
