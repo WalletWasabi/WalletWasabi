@@ -62,8 +62,6 @@ public class IndexBuilderService
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 
-	private readonly RpcPubkeyType[] _pubKeyTypes = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
-
 	public void Synchronize()
 	{
 		Task.Run(async () =>
@@ -142,7 +140,7 @@ public class IndexBuilderService
 								continue;
 							}
 
-							var filter = BuildFilterForBlock(block, _pubKeyTypes);
+							var filter = BuildFilterForBlock(block);
 
 							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
 							var filterModel = new FilterModel(smartHeader, filter);
@@ -184,9 +182,9 @@ public class IndexBuilderService
 		});
 	}
 
-	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
+	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
 	{
-		var scripts = FetchScripts(block, pubKeyTypes);
+		var scripts = FetchScripts(block);
 
 		if (scripts.Count != 0)
 		{
@@ -205,8 +203,9 @@ public class IndexBuilderService
 		}
 	}
 
-	private static List<Script> FetchScripts(VerboseBlockInfo block, RpcPubkeyType[] pubKeyTypes)
+	private static List<Script> FetchScripts(VerboseBlockInfo block)
 	{
+		var pubKeyTypes = new[] { RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot };
 		var scripts = new List<Script>();
 
 		foreach (var tx in block.Transactions)
