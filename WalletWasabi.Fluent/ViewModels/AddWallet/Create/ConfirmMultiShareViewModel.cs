@@ -36,7 +36,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		_currentShare = multiShareBackup.CurrentShare;
 		_totalShares = multiShareBackup.Settings.Shares;
 
-		var words = wordsDictionary[_currentShare];
+		var words = wordsDictionary[_currentShare - 1];
 
 		_wordsDictionary = wordsDictionary;
 
