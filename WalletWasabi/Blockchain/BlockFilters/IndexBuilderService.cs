@@ -64,31 +64,6 @@ public class IndexBuilderService
 
 	private readonly RpcPubkeyType[] _pubKeyTypes = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
 
-	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
-	{
-		try
-		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
-
-			File.Delete(_indexFilePath);
-			throw;
-		}
-	}
-
-	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
-	{
-		return new GolombRiceFilterBuilder()
-			.SetKey(blockHash)
-			.SetP(20)
-			.SetM(1 << 20)
-			.AddEntries(DummyScript)
-			.Build();
-	}
-
 	public void Synchronize()
 	{
 		Task.Run(async () =>
@@ -298,6 +273,31 @@ public class IndexBuilderService
 		{
 			Logger.LogError(ex);
 		}
+	}
+
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
+	{
+		try
+		{
+			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
+
+			File.Delete(_indexFilePath);
+			throw;
+		}
+	}
+
+	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
+	{
+		return new GolombRiceFilterBuilder()
+			.SetKey(blockHash)
+			.SetP(20)
+			.SetM(1 << 20)
+			.AddEntries(DummyScript)
+			.Build();
 	}
 
 	public (Height bestHeight, IEnumerable<FilterModel> filters) GetFilterLinesExcluding(uint256 bestKnownBlockHash, int count, out bool found)
