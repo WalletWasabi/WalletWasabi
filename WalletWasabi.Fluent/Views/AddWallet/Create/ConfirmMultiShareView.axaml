@@ -85,19 +85,22 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+              <StackPanel Orientation="Horizontal" Margin="15 0 15 0" Width="85">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="32" />
                 <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
-                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="32" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
+        <!-- TODO: Automatically generated separators based of number of columns for words -->
+        <!--
         <Grid ColumnDefinitions="*,1,*,1,*">
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
+        -->
       </Panel>
     </Grid>
 
