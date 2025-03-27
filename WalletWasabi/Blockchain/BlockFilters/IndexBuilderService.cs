@@ -30,6 +30,7 @@ public class IndexBuilderService
 	// Service state fields
 	private long _serviceStatus;
 	private long _workerCount;
+	private readonly CancellationTokenSource _cts = new();
 	private readonly IRPCClient _rpcClient;
 	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
@@ -79,7 +80,7 @@ public class IndexBuilderService
 				Interlocked.Increment(ref _workerCount);
 				while (Interlocked.Read(ref _workerCount) != 1)
 				{
-					await Task.Delay(100).ConfigureAwait(false);
+					await Task.Delay(100, _cts.Token).ConfigureAwait(false);
 				}
 
 				if (IsStopping)
@@ -91,7 +92,7 @@ public class IndexBuilderService
 				{
 					Interlocked.Exchange(ref _serviceStatus, Running);
 
-					while (IsRunning)
+					while (IsRunning && !_cts.IsCancellationRequested)
 					{
 						try
 						{
@@ -122,14 +123,14 @@ public class IndexBuilderService
 								else
 								{
 									// Bitcoin Node is catching up give it a 10 seconds
-									await Task.Delay(_syncRetryDelay).ConfigureAwait(false);
+									await Task.Delay(_syncRetryDelay, _cts.Token).ConfigureAwait(false);
 									continue;
 								}
 							}
 
 							uint nextHeight = currentHeight + 1;
-							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight).ConfigureAwait(false);
-							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash).ConfigureAwait(false);
+							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, _cts.Token).ConfigureAwait(false);
+							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash, _cts.Token).ConfigureAwait(false);
 
 							// Check if we are still on the best chain,
 							// if not rewind filters till we find the fork.
@@ -163,12 +164,16 @@ public class IndexBuilderService
 								Logger.LogDebug($"Created filter for block: {nextHeight}.");
 							}
 						}
+						catch (OperationCanceledException) // Do not log because it was requested by the user
+						{
+							throw;
+						}
 						catch (Exception ex)
 						{
 							Logger.LogError(ex);
 
 							// Pause the while loop for a while to not flood logs in case of permanent error.
-							await Task.Delay(1000).ConfigureAwait(false);
+							await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
 						}
 					}
 				}
@@ -259,7 +264,7 @@ public class IndexBuilderService
 
 	private async Task<SyncInfo> GetSyncInfoAsync()
 	{
-		var bcinfo = await _rpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+		var bcinfo = await _rpcClient.GetBlockchainInfoAsync(_cts.Token).ConfigureAwait(false);
 		var pbcinfo = new SyncInfo(bcinfo);
 		return pbcinfo;
 	}
@@ -345,11 +350,17 @@ public class IndexBuilderService
 			_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
 		}
 
+		// Cancel ongoing operations
+		if (!_cts.IsCancellationRequested)
+		{
+			await _cts.CancelAsync().ConfigureAwait(false);
+		}
+
 		Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
 
 		while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
 		{
-			await Task.Delay(50).ConfigureAwait(false);
+			await Task.Delay(50, _cts.Token).ConfigureAwait(false);
 		}
 	}
 }
