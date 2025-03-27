@@ -86,7 +86,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		}
 
 		// TODO: Validate shares and threshold
-#if false
+#if true
 		var shares = Shamir.Generate(
 			_threshold,
 			_shares,
