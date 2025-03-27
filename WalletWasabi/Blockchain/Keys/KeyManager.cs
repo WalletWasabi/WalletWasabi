@@ -219,7 +219,7 @@ public class KeyManager
 			DefaultShamirThreshold,
 			DefaultShamirShares,
 			GenerateShamirEntropy());
-		return CreateNew(shares, password, network, filePath);
+		return CreateNew(shares.Take(DefaultShamirThreshold).ToArray(), password, network, filePath);
 	}
 
 	public static KeyManager CreateNew(Share[] shares, string password, Network network, string? filePath = null)
