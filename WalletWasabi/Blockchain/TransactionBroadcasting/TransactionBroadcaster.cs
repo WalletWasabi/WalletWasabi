@@ -16,6 +16,9 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
+using System.Collections.Immutable;
+using System.Text;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -28,7 +31,7 @@ public abstract record BroadcastOk
 
 	public record BroadcastByNetwork(EndPoint[] Nodes) : BroadcastOk;
 
-	public record BroadcastByBackend : BroadcastOk;
+	public record BroadcastByExternalParty(string ExternalApiName) : BroadcastOk;
 }
 
 public abstract record BroadcastError
@@ -74,33 +77,71 @@ public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
 	}
 }
 
-public class BackendBroadcaster(IHttpClientFactory httpClientFactory) : IBroadcaster
+public class ExternalTransactionBroadcaster : IBroadcaster
 {
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> Providers =
+	[
+		new("BlockstreamInfo", ("https://blockstream.info", "http://explorerzydxu5ecjrkwceayqybizmpjjznk5izmitf2modhcusuqlid.onion"), "/api/tx"),
+		new("MempoolSpace", ("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"), "/api/tx")
+	];
+
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> TestNet4Providers =
+	[
+		new("MempoolSpace", ("https://mempool.space/testnet4", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"), "/api/tx")
+	];
+
+	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
+	{
+		if (network == Network.Main)
+		{
+			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		}
+		else
+		{
+			Broadcaster = TestNet4Providers.First();
+		}
+
+		HttpClientFactory = httpClientFactory;
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+	}
+
+	public IHttpClientFactory HttpClientFactory { get; }
+
+	private UserAgentPicker _userAgentGetter;
+
+	private ExternalBroadcasterInfo Broadcaster { get; init; }
+
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		Logger.LogInfo($"Trying to broadcast transaction via backend API:{tx.GetHash()}.");
+		Logger.LogInfo($"Trying to broadcast transaction via '{Broadcaster.Name}' API. TxID: {tx.GetHash()}.");
 		try
 		{
-			var wasabiClient = new WasabiClient(httpClientFactory.CreateClient($"satoshi-broadcast-{tx.GetHash()}"));
-			await wasabiClient.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false);
-			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByBackend());
+			Uri requestUri = HttpClientFactory is OnionHttpClientFactory ? new Uri(Broadcaster.ApiDomain.Onion) : new Uri(Broadcaster.ApiDomain.ClearNet);
+
+			using var httpClient = HttpClientFactory.CreateClient($"{Broadcaster.Name}-{tx.GetHash()}");
+			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
+
+			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
+			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
+
+			return BroadcastingResult.Ok(new BroadcastOk.BroadcastByExternalParty(Broadcaster.Name));
 		}
 		catch (HttpRequestException ex)
 		{
 			if (RpcErrorTools.IsSpentError(ex.Message))
 			{
-				// If there is only one coin then that's the one that is already spent (what about full-RBF?).
-				if (tx.Transaction.Inputs.Count == 1)
-				{
-					OutPoint input = tx.Transaction.Inputs[0].PrevOut;
-					return BroadcastingResult.Fail(new BroadcastError.SpentInputError(input));
-				}
-
 				return BroadcastingResult.Fail(new BroadcastError.SpentError());
 			}
 			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
+		catch (Exception ex)
+		{
+			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
+		}
 	}
+
+	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
 public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes) : IBroadcaster
@@ -234,7 +275,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogError($"Failed to broadcast transaction. Input {spentInputError.SpentOutpoint} is already spent.");
 				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.SpentOutpoint))
 				{
-					coin.SpentAccordingToBackend = true;
+					coin.SpentAccordingToNetwork = true;
 				}
 				break;
 			case BroadcastError.NotEnoughP2pNodes _:
@@ -258,9 +299,6 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 	{
 		switch (ok)
 		{
-			case BroadcastOk.BroadcastByBackend:
-				Logger.LogInfo($"Transaction is successfully broadcast {txId} by backend.");
-				break;
 			case BroadcastOk.BroadcastByRpc:
 				Logger.LogInfo($"Transaction is successfully broadcast {txId} by local node RPC interface.");
 				break;
@@ -269,6 +307,9 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				{
 					Logger.LogInfo($"Transaction is successfully progagated {txId} confirmed by {propagator}.");
 				}
+				break;
+			case BroadcastOk.BroadcastByExternalParty apiName:
+				Logger.LogInfo($"Transaction is successfully broadcast {txId} by {apiName.ExternalApiName}.");
 				break;
 		}
 	}

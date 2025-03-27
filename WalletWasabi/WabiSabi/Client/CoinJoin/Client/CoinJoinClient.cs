@@ -472,7 +472,7 @@ public class CoinJoinClient
 						break;
 
 					case WabiSabiProtocolErrorCode.InputSpent:
-						coin.SpentAccordingToBackend = true;
+						coin.SpentAccordingToNetwork = true;
 						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
 						break;
 
@@ -488,7 +488,7 @@ public class CoinJoinClient
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						coin.SpentAccordingToBackend = false;
+						coin.SpentAccordingToNetwork = false;
 						Logger.LogWarning($"{coin.Coin.Outpoint} cannot be registered in the blame round.");
 						break;
 

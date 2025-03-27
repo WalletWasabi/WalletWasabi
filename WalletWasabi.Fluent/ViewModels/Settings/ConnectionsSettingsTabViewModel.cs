@@ -2,7 +2,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -34,6 +36,15 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 		Settings = settings;
 		_backendUri = settings.BackendUri;
 
+		if (settings.Network == Network.Main)
+		{
+			ExternalBroadcastProviders = ExternalTransactionBroadcaster.Providers.Select(x => x.Name);
+		}
+		else
+		{
+			ExternalBroadcastProviders = ExternalTransactionBroadcaster.TestNet4Providers.Select(x => x.Name);
+		}
+
 		this.ValidateProperty(x => x.BackendUri, ValidateBackendUri);
 
 		this.WhenAnyValue(x => x.Settings.BackendUri)
@@ -46,6 +57,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProvider.Providers.Select(x => x.Name);
+	public IEnumerable<string> ExternalBroadcastProviders { get; }
 
 	public IEnumerable<TorMode> TorModes =>
 		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();

@@ -4,12 +4,10 @@ using NBitcoin;
 using NBitcoin.RPC;
 using System.Net;
 using System.Net.Http;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Backend.Models.Responses;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -64,14 +62,6 @@ public class WasabiClient
 		var ret = await content.ReadAsJsonAsync(Decode.FiltersResponse).ConfigureAwait(false);
 
 		return new FiltersResponse.NewFiltersAvailable(ret.BestHeight, ret.Filters.ToArray());
-	}
-
-	public async Task BroadcastAsync(SmartTransaction transaction, CancellationToken cancellationToken)
-	{
-		using var content = new StringContent($"\"{transaction.Transaction.ToHex()}\"", Encoding.UTF8, "application/json");
-		using HttpResponseMessage response = await _httpClient.PostAsync($"api/v{ApiVersion}/btc/blockchain/broadcast", content, cancellationToken).ConfigureAwait(false);
-
-		await CheckErrorsAsync(response, cancellationToken).ConfigureAwait(false);
 	}
 
 	public async Task<ushort> GetBackendMajorVersionAsync(CancellationToken cancel)

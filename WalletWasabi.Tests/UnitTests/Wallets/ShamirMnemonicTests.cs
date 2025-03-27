@@ -14,6 +14,29 @@ public class ShamirMnemonicTests
 	private static readonly byte[] MS = "ABCDEFGHIJKLMNOP"u8.ToArray();
 
 	[Fact]
+	public void GenerateMnemonicsAndRecover()
+	{
+		var shares = Shamir.Generate(
+			threshold: 2,
+			shares: 3,
+			seed: MS,
+			passphrase: "TREZOR");
+
+		var mnemonics = shares.Select(x => x.ToMnemonic(WordList.Wordlist)).ToArray();
+
+		var recoverdSeed12 = Shamir.Combine(
+			mnemonics.Take(2).Select(Share.FromMnemonic).ToArray(),
+			passphrase: "TREZOR");
+		Assert.Equal(MS, recoverdSeed12);
+
+		var recoverdSeed23 = Shamir.Combine(
+			mnemonics.Skip(1).Select(Share.FromMnemonic).ToArray(),
+			passphrase: "TREZOR");
+
+		Assert.Equal(MS, recoverdSeed23);
+	}
+
+	[Fact]
 	public void TestBasicSharingRandom()
 	{
 		byte[] secret = new byte[16];
