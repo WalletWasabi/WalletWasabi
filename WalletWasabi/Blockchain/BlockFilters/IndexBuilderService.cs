@@ -31,6 +31,8 @@ public class IndexBuilderService
 	private long _serviceStatus;
 	private long _workerCount;
 	private readonly CancellationTokenSource _cts = new();
+
+	// Dependencies
 	private readonly IRPCClient _rpcClient;
 	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
@@ -345,10 +347,7 @@ public class IndexBuilderService
 
 	public async Task StopAsync()
 	{
-		if (_blockNotifier is { })
-		{
-			_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
-		}
+		_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
 
 		// Cancel ongoing operations
 		if (!_cts.IsCancellationRequested)
