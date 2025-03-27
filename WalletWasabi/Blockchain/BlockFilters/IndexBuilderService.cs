@@ -37,6 +37,9 @@ public class IndexBuilderService
 	private readonly object _indexLock = new();
 	private readonly uint _startingHeight;
 
+	private readonly TimeSpan _syncRetryDelay = TimeSpan.FromSeconds(10);
+	private readonly TimeSpan _blockchainInfoRefreshInterval = TimeSpan.FromMinutes(5);
+
 	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
@@ -99,7 +102,7 @@ public class IndexBuilderService
 							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
 							var coreNotSynced = !syncInfo.IsCoreSynchronized;
 							var tipReached = syncInfo.BlockCount == currentHeight;
-							var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > TimeSpan.FromMinutes(5);
+							var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > _blockchainInfoRefreshInterval;
 							if (coreNotSynced || tipReached || isTimeToRefresh)
 							{
 								syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
@@ -119,7 +122,7 @@ public class IndexBuilderService
 								else
 								{
 									// Bitcoin Node is catching up give it a 10 seconds
-									await Task.Delay(TimeSpan.FromSeconds(10)).ConfigureAwait(false);
+									await Task.Delay(_syncRetryDelay).ConfigureAwait(false);
 									continue;
 								}
 							}
