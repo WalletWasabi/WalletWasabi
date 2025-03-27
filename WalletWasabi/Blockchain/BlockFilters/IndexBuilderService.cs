@@ -47,7 +47,7 @@ public class IndexBuilderService
 			File.Delete(_indexFilePath); // RegTest is not a global ledger, better to delete it.
 		}
 
-		IndexStorage = CreateBlockFilterSqliteStorage();
+		_indexStorage = CreateBlockFilterSqliteStorage();
 		_blockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
@@ -56,14 +56,13 @@ public class IndexBuilderService
 	private readonly IRPCClient _rpcClient;
 	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
-	private BlockFilterSqliteStorage IndexStorage { get; set; }
+	private readonly BlockFilterSqliteStorage _indexStorage;
 
 	/// <remarks>Guards <see cref="Index"/>.</remarks>
 	private readonly object _indexLock = new();
 	private readonly uint _startingHeight;
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
-	public DateTimeOffset LastFilterBuildTime { get; set; }
 
 	private readonly RpcPubkeyType[] _pubKeyTypes = [RpcPubkeyType.TxWitnessV0Keyhash, RpcPubkeyType.TxWitnessV1Taproot];
 
@@ -177,7 +176,7 @@ public class IndexBuilderService
 
 							lock (_indexLock)
 							{
-								IndexStorage.TryAppend(filterModel);
+								_indexStorage.TryAppend(filterModel);
 							}
 
 							// If not close to the tip, just log debug.
@@ -189,7 +188,6 @@ public class IndexBuilderService
 							{
 								Logger.LogDebug($"Created filter for block: {nextHeight}.");
 							}
-							LastFilterBuildTime = DateTimeOffset.UtcNow;
 						}
 						catch (Exception ex)
 						{
@@ -277,7 +275,7 @@ public class IndexBuilderService
 	{
 		lock (_indexLock)
 		{
-			if(IndexStorage.TryRemoveLast(out var removedFilter))
+			if(_indexStorage.TryRemoveLast(out var removedFilter))
 			{
 				Logger.LogInfo($"REORG invalid block: {removedFilter.Header.BlockHash}");
 			}
@@ -308,11 +306,11 @@ public class IndexBuilderService
 	{
 		lock (_indexLock)
 		{
-			var filterModels = IndexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
+			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
 			uint bestHeight;
 			if (filterModels.Count > 0)
 			{
-				bestHeight = (uint)IndexStorage.GetBestHeight();
+				bestHeight = (uint)_indexStorage.GetBestHeight();
 				found = true;
 			}
 			else
@@ -335,7 +333,7 @@ public class IndexBuilderService
 	{
 		lock (_indexLock)
 		{
-			var lastFilterList = IndexStorage.FetchLast(1).ToList();
+			var lastFilterList = _indexStorage.FetchLast(1).ToList();
 			return lastFilterList.Count == 0 ? null : lastFilterList[0];
 		}
 	}
