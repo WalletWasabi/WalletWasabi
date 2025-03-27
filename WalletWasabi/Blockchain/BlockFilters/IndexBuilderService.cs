@@ -18,17 +18,24 @@ namespace WalletWasabi.Blockchain.BlockFilters;
 
 public class IndexBuilderService
 {
+    // Service status constants
 	private const long NotStarted = 0;
 	private const long Running = 1;
 	private const long Stopping = 2;
 	private const long Stopped = 3;
 
-	/// <summary>
-	/// 0: Not started, 1: Running, 2: Stopping, 3: Stopped
-	/// </summary>
-	private long _serviceStatus;
+	// Script used for dummy filters
+	public static readonly byte[][] DummyScript = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
+	// Service state fields
+	private long _serviceStatus;
 	private long _workerCount;
+	private readonly IRPCClient _rpcClient;
+	private readonly BlockNotifier _blockNotifier;
+	private readonly string _indexFilePath;
+	private readonly BlockFilterSqliteStorage _indexStorage;
+	private readonly object _indexLock = new();
+	private readonly uint _startingHeight;
 
 	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
 	{
@@ -51,14 +58,7 @@ public class IndexBuilderService
 		_blockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
-	public static byte[][] DummyScript { get; } = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-	private readonly IRPCClient _rpcClient;
-	private readonly BlockNotifier _blockNotifier;
-	private readonly string _indexFilePath;
-	private readonly BlockFilterSqliteStorage _indexStorage;
-	private readonly object _indexLock = new();
-	private readonly uint _startingHeight;
 	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
 	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
 
