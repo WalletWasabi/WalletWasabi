@@ -4,6 +4,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
@@ -27,15 +28,14 @@ public class IndexBuilderServiceTests
 				InitialBlockDownload = false
 			}),
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
-
-		indexer.Synchronize();
+		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
-		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
 		// There is only starting filter
 		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -55,16 +55,17 @@ public class IndexBuilderServiceTests
 				});
 			}
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
+		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		indexer.Synchronize();
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
-		await Task.Delay(TimeSpan.FromSeconds(2));
-		Assert.True(indexer.IsRunning);  // It is still working
 		// There is only starting filter
 		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
+
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -87,17 +88,17 @@ public class IndexBuilderServiceTests
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		using var indexer = new IndexBuilderService(rpc, "filters.txt");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		indexer.Synchronize();
-
-		await Task.Delay(TimeSpan.FromSeconds(5));
-		Assert.True(indexer.IsRunning);  // It is still working
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		var lastFilter = indexer.GetLastFilter();
 		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
+
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -136,18 +137,19 @@ public class IndexBuilderServiceTests
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
 
-		indexer.Synchronize();
+		using var indexer = new IndexBuilderService(rpc, "filters.txt");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		await Task.Delay(TimeSpan.FromSeconds(5));
-		Assert.False(indexer.IsRunning);  // we are done
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
 		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());
+
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -162,15 +164,15 @@ public class IndexBuilderServiceTests
 				InitialBlockDownload = false
 			}),
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
-
-		indexer.Synchronize();
+		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
 		// There is only starting filter
 		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -191,15 +193,16 @@ public class IndexBuilderServiceTests
 			}
 		};
 		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.sqlite");
+		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		indexer.Synchronize();
-
-		await Task.Delay(TimeSpan.FromSeconds(2));
-		Assert.True(indexer.IsRunning);  // It is still working
+		await Task.Delay(TimeSpan.FromSeconds(1));
 		// There is only starting filter
 		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
+
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -222,17 +225,16 @@ public class IndexBuilderServiceTests
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		using var indexer = new IndexBuilderService(rpc, "filters.txt");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		indexer.Synchronize();
-
-		await Task.Delay(TimeSpan.FromSeconds(10));
-		Assert.True(indexer.IsRunning);  // It is still working
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		var lastFilter = indexer.GetLastFilter();
 		Assert.Equal(9, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
@@ -250,18 +252,17 @@ public class IndexBuilderServiceTests
 			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
 			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
 		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		var indexer = new IndexBuilderService(rpc, blockNotifier, "filters.txt");
+		using var indexer = new IndexBuilderService(rpc, "filters.txt");
+		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
-		indexer.Synchronize();
-
-		await Task.Delay(TimeSpan.FromSeconds(5));
-		Assert.False(indexer.IsRunning);  // we are done
-
+		await Task.Delay(TimeSpan.FromSeconds(1));
 		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
 		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());
+
+		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
+		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>

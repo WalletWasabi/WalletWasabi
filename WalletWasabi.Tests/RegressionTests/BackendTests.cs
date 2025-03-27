@@ -84,12 +84,10 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		using var blockNotifier = new BlockNotifier(rpc);
-		IndexBuilderService indexBuilderService = new(rpc, blockNotifier, "filters.txt");
+		IndexBuilderService indexBuilderService = new(rpc, "filters.txt");
+		var startIndexingService = indexBuilderService.StartAsync(CancellationToken.None);
 		try
 		{
-			indexBuilderService.Synchronize();
-
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
@@ -146,7 +144,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			await indexBuilderService.StopAsync();
+			await startIndexingService;
+			await indexBuilderService.StopAsync(CancellationToken.None);
 		}
 	}
 }

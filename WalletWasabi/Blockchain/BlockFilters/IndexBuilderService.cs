@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Hosting;
 using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
@@ -17,25 +18,13 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
-public class IndexBuilderService
+public class IndexBuilderService : BackgroundService
 {
-    // Service status constants
-	private const long NotStarted = 0;
-	private const long Running = 1;
-	private const long Stopping = 2;
-	private const long Stopped = 3;
-
 	// Script used for dummy filters
 	public static readonly byte[][] DummyScript = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
-	// Service state fields
-	private long _serviceStatus;
-	private long _workerCount;
-	private readonly CancellationTokenSource _cts = new();
-
 	// Dependencies
 	private readonly IRPCClient _rpcClient;
-	private readonly BlockNotifier _blockNotifier;
 	private readonly string _indexFilePath;
 	private readonly BlockFilterSqliteStorage _indexStorage;
 	private readonly AsyncLock _indexLock = new();
@@ -44,15 +33,12 @@ public class IndexBuilderService
 	private readonly TimeSpan _syncRetryDelay = TimeSpan.FromSeconds(10);
 	private readonly TimeSpan _blockchainInfoRefreshInterval = TimeSpan.FromMinutes(5);
 
-	public IndexBuilderService(IRPCClient rpc, BlockNotifier blockNotifier, string indexFilePath)
+	public IndexBuilderService(IRPCClient rpc, string indexFilePath)
 	{
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
-		_blockNotifier = Guard.NotNull(nameof(blockNotifier), blockNotifier);
 
 		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 		_startingHeight = SmartHeader.GetStartingHeader(_rpcClient.Network).Height;
-
-		_serviceStatus = NotStarted;
 
 		IoHelpers.EnsureContainingDirectoryExists(_indexFilePath);
 
@@ -62,140 +48,90 @@ public class IndexBuilderService
 		}
 
 		_indexStorage = CreateBlockFilterSqliteStorage();
-		_blockNotifier.OnBlock += BlockNotifier_OnBlock;
 	}
 
-
-	public bool IsRunning => Interlocked.Read(ref _serviceStatus) == Running;
-	private bool IsStopping => Interlocked.Read(ref _serviceStatus) >= Stopping;
-
-	public void Synchronize()
+	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		Task.Run(async () =>
+		while (!stoppingToken.IsCancellationRequested)
 		{
 			try
 			{
-				if (Interlocked.Read(ref _workerCount) >= 2)
+				FilterModel? lastFilter;
+				using (await _indexLock.LockAsync(stoppingToken).ConfigureAwait(false))
 				{
-					return;
+					lastFilter = GetLastFilter();
+				}
+				var (currentHeight, currentHash) = lastFilter is not null
+					? (lastFilter.Header.Height, lastFilter.Header.BlockHash)
+					: (_startingHeight - 1, uint256.Zero);
+
+				SyncInfo syncInfo = await GetSyncInfoAsync(stoppingToken).ConfigureAwait(false);
+				var coreNotSynced = !syncInfo.IsCoreSynchronized;
+				var tipReached = syncInfo.BlockCount == currentHeight;
+				var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > _blockchainInfoRefreshInterval;
+				if (coreNotSynced || tipReached || isTimeToRefresh)
+				{
+					syncInfo = await GetSyncInfoAsync(stoppingToken).ConfigureAwait(false);
 				}
 
-				Interlocked.Increment(ref _workerCount);
-				while (Interlocked.Read(ref _workerCount) != 1)
+				// If wasabi filter height is the same as core we may be done.
+				if (syncInfo.BlockCount == currentHeight)
 				{
-					await Task.Delay(100, _cts.Token).ConfigureAwait(false);
+					var timeTowait = syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload
+						? _blockchainInfoRefreshInterval // Check that core is fully synced
+						: _syncRetryDelay; // Bitcoin Node is catching up give it a 10 seconds
+					await Task.Delay(timeTowait, stoppingToken).ConfigureAwait(false);
+					continue;
 				}
 
-				if (IsStopping)
+				uint nextHeight = currentHeight + 1;
+				uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, stoppingToken).ConfigureAwait(false);
+				VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash, stoppingToken ).ConfigureAwait(false);
+
+				// Check if we are still on the best chain,
+				// if not rewind filters till we find the fork.
+				if (currentHash != block.PrevBlockHash)
 				{
-					return;
+					Logger.LogWarning("Reorg observed on the network.");
+
+					await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
+
+					// Skip the current block.
+					continue;
 				}
 
-				try
+				var filter = BuildFilterForBlock(block);
+
+				var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
+				var filterModel = new FilterModel(smartHeader, filter);
+
+				using (await _indexLock.LockAsync(stoppingToken).ConfigureAwait(false))
 				{
-					Interlocked.Exchange(ref _serviceStatus, Running);
-
-					while (IsRunning && !_cts.IsCancellationRequested)
-					{
-						try
-						{
-							FilterModel? lastFilter;
-							using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
-							{
-								lastFilter = GetLastFilter();
-							}
-							var (currentHeight, currentHash) = lastFilter is not null
-								? (lastFilter.Header.Height, lastFilter.Header.BlockHash)
-								: (_startingHeight - 1, uint256.Zero);
-
-							SyncInfo syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
-							var coreNotSynced = !syncInfo.IsCoreSynchronized;
-							var tipReached = syncInfo.BlockCount == currentHeight;
-							var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > _blockchainInfoRefreshInterval;
-							if (coreNotSynced || tipReached || isTimeToRefresh)
-							{
-								syncInfo = await GetSyncInfoAsync().ConfigureAwait(false);
-							}
-
-							// If wasabi filter height is the same as core we may be done.
-							if (syncInfo.BlockCount == currentHeight)
-							{
-								// Check that core is fully synced
-								if (syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload)
-								{
-									// Mark the process as not-started, so it can be started again
-									// and finally block can mark it as stopped.
-									Interlocked.Exchange(ref _serviceStatus, NotStarted);
-									return;
-								}
-								else
-								{
-									// Bitcoin Node is catching up give it a 10 seconds
-									await Task.Delay(_syncRetryDelay, _cts.Token).ConfigureAwait(false);
-									continue;
-								}
-							}
-
-							uint nextHeight = currentHeight + 1;
-							uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, _cts.Token).ConfigureAwait(false);
-							VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash, _cts.Token).ConfigureAwait(false);
-
-							// Check if we are still on the best chain,
-							// if not rewind filters till we find the fork.
-							if (currentHash != block.PrevBlockHash)
-							{
-								Logger.LogWarning("Reorg observed on the network.");
-
-								await ReorgOneAsync().ConfigureAwait(false);
-
-								// Skip the current block.
-								continue;
-							}
-
-							var filter = BuildFilterForBlock(block);
-
-							var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
-							var filterModel = new FilterModel(smartHeader, filter);
-
-							using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
-							{
-								_indexStorage.TryAppend(filterModel);
-							}
-
-							// If not close to the tip, just log debug.
-							if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
-							{
-								Logger.LogInfo($"Created filter for block: {nextHeight}.");
-							}
-							else
-							{
-								Logger.LogDebug($"Created filter for block: {nextHeight}.");
-							}
-						}
-						catch (OperationCanceledException) // Do not log because it was requested by the user
-						{
-							throw;
-						}
-						catch (Exception ex)
-						{
-							Logger.LogError(ex);
-
-							// Pause the while loop for a while to not flood logs in case of permanent error.
-							await Task.Delay(1000, _cts.Token).ConfigureAwait(false);
-						}
-					}
+					_indexStorage.TryAppend(filterModel);
 				}
-				finally
+
+				// If not close to the tip, just log debug.
+				if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
 				{
-					Interlocked.CompareExchange(ref _serviceStatus, Stopped, Stopping); // If IsStopping, make it stopped.
-					Interlocked.Decrement(ref _workerCount);
+					Logger.LogInfo($"Created filter for block: {nextHeight}.");
 				}
+				else
+				{
+					Logger.LogDebug($"Created filter for block: {nextHeight}.");
+				}
+			}
+			catch (OperationCanceledException) // Do not log because it was requested by the user
+			{
+				throw;
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"Synchronization attempt failed to start: {ex}");
+				Logger.LogError(ex);
+
+				// Pause the while loop for a while to not flood logs in case of permanent error.
+				await Task.Delay(1_000, stoppingToken).ConfigureAwait(false);
 			}
-		});
+		}
 	}
 
 	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
@@ -259,9 +195,9 @@ public class IndexBuilderService
 		return scripts;
 	}
 
-	private async Task ReorgOneAsync()
+	private async Task ReorgOneAsync(CancellationToken cancellationToken)
 	{
-		using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			if(_indexStorage.TryRemoveLast(out var removedFilter))
 			{
@@ -270,24 +206,11 @@ public class IndexBuilderService
 		}
 	}
 
-	private async Task<SyncInfo> GetSyncInfoAsync()
+	private async Task<SyncInfo> GetSyncInfoAsync(CancellationToken cancellationToken)
 	{
-		var bcinfo = await _rpcClient.GetBlockchainInfoAsync(_cts.Token).ConfigureAwait(false);
+		var bcinfo = await _rpcClient.GetBlockchainInfoAsync(cancellationToken).ConfigureAwait(false);
 		var pbcinfo = new SyncInfo(bcinfo);
 		return pbcinfo;
-	}
-
-	private void BlockNotifier_OnBlock(object? sender, Block e)
-	{
-		try
-		{
-			// Run sync every time a block notification arrives. Synchronizer will stop when it finishes.
-			Synchronize();
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-		}
 	}
 
 	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
@@ -315,9 +238,9 @@ public class IndexBuilderService
 			.Build();
 	}
 
-	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count)
+	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
 	{
-		using (await _indexLock.LockAsync(_cts.Token).ConfigureAwait(false))
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var found = false;
 			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
@@ -344,28 +267,14 @@ public class IndexBuilderService
 
 	public FilterModel? GetLastFilter()
 	{
-		lock (_indexLock)
-		{
-			var lastFilterList = _indexStorage.FetchLast(1).ToList();
-			return lastFilterList.Count == 0 ? null : lastFilterList[0];
-		}
+		// Note: This method should be called with the lock already acquired
+		var lastFilterList = _indexStorage.FetchLast(1).ToList();
+		return lastFilterList.Count == 0 ? null : lastFilterList[0];
 	}
 
-	public async Task StopAsync()
+	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		_blockNotifier.OnBlock -= BlockNotifier_OnBlock;
-
-		// Cancel ongoing operations
-		if (!_cts.IsCancellationRequested)
-		{
-			await _cts.CancelAsync().ConfigureAwait(false);
-		}
-
-		Interlocked.CompareExchange(ref _serviceStatus, Stopping, Running); // If running, make it stopping.
-
-		while (Interlocked.CompareExchange(ref _serviceStatus, Stopped, NotStarted) == 2)
-		{
-			await Task.Delay(50, _cts.Token).ConfigureAwait(false);
-		}
+		// Then stop the background service
+		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }
