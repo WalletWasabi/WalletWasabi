@@ -1,10 +1,10 @@
 using System.Collections.Concurrent;
 using NBitcoin;
-using NBitcoin.Crypto;
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
@@ -38,15 +38,8 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task UnsynchronizedBitcoinNodeAsync()
 	{
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 0,
-				Blocks = 0,
-				InitialBlockDownload = false
-			}),
-		};
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 0));
+		var rpc = node.Rpc;
 		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
@@ -60,19 +53,18 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task StalledBitcoinNodeAsync()
 	{
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 0));
+		var rpc = node.Rpc;
 		var called = 0;
-		var rpc = new MockRpcClient
+		rpc.OnGetBlockchainInfoAsync = () =>
 		{
-			OnGetBlockchainInfoAsync = () =>
+			called++;
+			return Task.FromResult(new BlockchainInfo
 			{
-				called++;
-				return Task.FromResult(new BlockchainInfo
-				{
-					Headers = 10_000,
-					Blocks = 0,
-					InitialBlockDownload = true
-				});
-			}
+				Headers = 10_000,
+				Blocks = 0,
+				InitialBlockDownload = true
+			});
 		};
 		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
@@ -90,22 +82,18 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task SynchronizingBitcoinNodeAsync()
 	{
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
+		var rpc = node.Rpc;
 		var called = 0;
-		var blockchain = GenerateBlockchain().Take(10).ToArray();
-		var rpc = new MockRpcClient
+		rpc.OnGetBlockchainInfoAsync = () =>
 		{
-			OnGetBlockchainInfoAsync = () =>
+			called++;
+			return Task.FromResult(new BlockchainInfo
 			{
-				called++;
-				return Task.FromResult(new BlockchainInfo
-				{
-					Headers = (ulong)blockchain.Length,
-					Blocks = (ulong)called,
-					InitialBlockDownload = true
-				});
-			},
-			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
+				Headers = (ulong) node.BlockChain.Count,
+				Blocks = (ulong) called,
+				InitialBlockDownload = true
+			});
 		};
 		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
@@ -144,25 +132,14 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task SynchronizedBitcoinNodeAsync()
 	{
-		var blockchain = GenerateBlockchain().Take(10).ToArray();
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = (ulong)blockchain.Length - 1,
-				Blocks = (ulong)blockchain.Length - 1,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
-		};
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
 
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
-		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
+		var result = await indexer.GetFilterLinesExcludingAsync(node.BlockChain.Keys.First(), 100);
 		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
 		Assert.Equal(9, result.filters.Count());
@@ -171,64 +148,34 @@ public class IndexBuilderServiceTests
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
-	private IEnumerable<VerboseBlockInfo> GenerateBlockchain() =>
-		from height in Enumerable.Range(0, int.MaxValue).Select(x => (ulong)x)
-		select new VerboseBlockInfo(
-			BlockHashFromHeight(height),
-			height,
-			BlockHashFromHeight(height + 1),
-			DateTimeOffset.UtcNow.AddMinutes(height * 10),
-			height,
-			Enumerable.Empty<VerboseTransactionInfo>());
-
-	private static uint256 BlockHashFromHeight(ulong height)
-		=> height == 0 ? uint256.Zero : Hashes.DoubleSHA256(BitConverter.GetBytes(height));
-
 	[Fact]
 	public async Task ProcessNewBlocksAsync()
 	{
-		// Setup mock RPC client with a series of blocks
-		var blockHashes = new Dictionary<uint, uint256>();
-		var blocks = new Dictionary<uint256, VerboseBlockInfo>();
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
 
-		// Genesis block
-		var genesisBlockHash = Network.RegTest.GenesisHash;
-		blockHashes[0] = genesisBlockHash;
-
-		// Create 10 blocks
-		for (uint i = 1; i <= 10; i++)
-		{
-			// Create block hash
-			var blockHash = new uint256(i);
-			blockHashes[i] = blockHash;
-
-			// Create block data with previous hash
-			blocks[blockHash] = CreateMockBlock(blockHash, blockHashes[i - 1], i);
-		}
-
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 10,
-				Blocks = 10,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = height => Task.FromResult(blockHashes.ContainsKey((uint)height) ? blockHashes[(uint)height] : uint256.Zero),
-			OnGetVerboseBlockAsync = hash => Task.FromResult(blocks.ContainsKey(hash) ? blocks[hash] : null)
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for processing
 		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		// Check that all blocks were processed
+		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
+		Assert.Equal((uint)9, lastFilter.Header.Height);
+		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
+
+		// Generate a new block
+		await node.GenerateBlockAsync(CancellationToken.None);
+		await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+		// Check that the new block was processed
+		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
+		lastFilter = indexer.GetLastFilter();
+		Assert.NotNull(lastFilter);
 		Assert.Equal((uint)10, lastFilter.Header.Height);
-		Assert.Equal(blockHashes[10], lastFilter.Header.BlockHash);
+		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -237,76 +184,37 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task HandleReorgAsync()
 	{
-		// Initial chain setup with 5 blocks
-		var blockHashes = new Dictionary<uint, uint256>();
-		var blocks = new Dictionary<uint256, VerboseBlockInfo>();
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 5));
 
-		// Genesis block
-		var genesisBlockHash = Network.RegTest.GenesisHash;
-		blockHashes[0] = genesisBlockHash;
-
-		// Create 5 blocks
-		for (uint i = 1; i <= 5; i++)
-		{
-			var blockHash = new uint256(i);
-			blockHashes[i] = blockHash;
-			blocks[blockHash] = CreateMockBlock(blockHash, blockHashes[i - 1], i);
-		}
-
-		// Create a fork starting at block 3
-		var forkHashes = new Dictionary<uint, uint256>();
-		for (uint i = 0; i <= 2; i++)
-		{
-			forkHashes[i] = blockHashes[i]; // Same up to block 2
-		}
-
-		// Different blocks for 3, 4, 5
-		for (uint i = 3; i <= 7; i++)
-		{
-			var blockHash = new uint256(i * 1000); // Different hash pattern
-			forkHashes[i] = blockHash;
-
-			// For block 3, the prev hash is block 2
-			var prevHash = i == 3 ? forkHashes[2] : forkHashes[i - 1];
-
-			blocks[blockHash] = CreateMockBlock(blockHash, prevHash, i);
-		}
-
-		var chainInfo = new BlockchainInfo { Headers = 5, Blocks = 5, InitialBlockDownload = false };
-		var heights = new Dictionary<uint, uint256>(blockHashes);
-
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(chainInfo),
-			OnGetBlockHashAsync = height => Task.FromResult(heights.ContainsKey((uint)height) ? heights[(uint)height] : uint256.Zero),
-			OnGetVerboseBlockAsync = hash => Task.FromResult(blocks.ContainsKey(hash) ? blocks[hash] : null)
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for initial processing
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
 		// Verify initial state
+		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var firstLastFilter = indexer.GetLastFilter();
 		Assert.NotNull(firstLastFilter);
-		Assert.Equal((uint)5, firstLastFilter.Header.Height);
-		Assert.Equal(blockHashes[5], firstLastFilter.Header.BlockHash);
+		Assert.Equal((uint)4, firstLastFilter.Header.Height);
+		Assert.Equal(bestBlockHash, firstLastFilter.Header.BlockHash);
 
 		// Simulate reorg by changing the chain
-		heights = new Dictionary<uint, uint256>(forkHashes);
-		chainInfo.Headers = 7;
-		chainInfo.Blocks = 7;
+		node.BlockChain.Remove(bestBlockHash);
+		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
+		node.BlockChain.Remove(bestBlockHash);
+		using Key dummyKey = new();
+		await node.Rpc.GenerateToAddressAsync(4, dummyKey.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest));
 
 		// Give time for reorg processing
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
 		// Verify post-reorg state
+		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var secondLastFilter = indexer.GetLastFilter();
 		Assert.NotNull(secondLastFilter);
-		Assert.Equal((uint)7, secondLastFilter.Header.Height);
-		Assert.Equal(forkHashes[7], secondLastFilter.Header.BlockHash);
+		Assert.Equal((uint)6, secondLastFilter.Header.Height);
+		Assert.Equal(bestBlockHash, secondLastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -315,55 +223,34 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task SyncPausesWhenUpToDateAsync()
 	{
-		// Setup mock with 5 blocks
-		var blockHashes = new Dictionary<uint, uint256>();
-		var blocks = new Dictionary<uint256, VerboseBlockInfo>();
-
-		// Genesis block
-		var genesisBlockHash = Network.RegTest.GenesisHash;
-		blockHashes[0] = genesisBlockHash;
-
-		for (uint i = 1; i <= 5; i++)
-		{
-			var blockHash = new uint256(i);
-			blockHashes[i] = blockHash;
-			blocks[blockHash] = CreateMockBlock(blockHash, blockHashes[i - 1], i);
-		}
-
-		var chainInfo = new BlockchainInfo { Headers = 5, Blocks = 5, InitialBlockDownload = false };
-		int blockchainInfoCallCount = 0;
-
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () =>
-			{
-				blockchainInfoCallCount++;
-				return Task.FromResult(chainInfo);
-			},
-			OnGetBlockHashAsync = height => Task.FromResult(blockHashes.ContainsKey((uint)height) ? blockHashes[(uint)height] : uint256.Zero),
-			OnGetVerboseBlockAsync = hash => Task.FromResult(blocks.ContainsKey(hash) ? blocks[hash] : null)
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
+		var indexBuilderOptions = _options with {DelayAfterEverythingIsDone = TimeSpan.FromSeconds(10)};
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, indexBuilderOptions);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for processing
-		await Task.Delay(TimeSpan.FromSeconds(0.5));
+		await Task.Delay(TimeSpan.FromSeconds(1));
 
-		// New block appears
-		var newBlockHash = new uint256(6);
-		blockHashes[6] = newBlockHash;
-		blocks[newBlockHash] = CreateMockBlock(newBlockHash, blockHashes[5], 6);
-		chainInfo.Headers = 6;
-		chainInfo.Blocks = 6;
-
-		// Wait for processing of new block
-		await Task.Delay(TimeSpan.FromSeconds(0.5));
-
-		// Verify new block was processed
+		// Check that all blocks were processed
+		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
-		Assert.Equal((uint)6, lastFilter.Header.Height);
+		Assert.Equal((uint)9, lastFilter.Header.Height);
+		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
+
+		bool neverCalled = true;
+		var continuation = node.Rpc.OnGetBlockchainInfoAsync;
+		node.Rpc.OnGetBlockchainInfoAsync = () =>
+		{
+			neverCalled = false;
+			return continuation();
+		};
+		// Generate a new block
+		await node.GenerateBlockAsync(CancellationToken.None);
+		await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+		// The service is still sleeping
+		Assert.True(neverCalled);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -373,50 +260,27 @@ public class IndexBuilderServiceTests
 	public async Task GetFilterLinesExcludingReturnsCorrectFiltersAsync()
 	{
 		// Setup mock with 10 blocks
-		var blockHashes = new Dictionary<uint, uint256>();
-		var blocks = new Dictionary<uint256, VerboseBlockInfo>();
-
-		// Genesis block
-		var genesisBlockHash = Network.RegTest.GenesisHash;
-		blockHashes[0] = genesisBlockHash;
-
-		for (uint i = 1; i <= 10; i++)
-		{
-			var blockHash = new uint256(i);
-			blockHashes[i] = blockHash;
-			blocks[blockHash] = CreateMockBlock(blockHash, blockHashes[i - 1], i);
-		}
-
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 10,
-				Blocks = 10,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = height => Task.FromResult(blockHashes.ContainsKey((uint)height) ? blockHashes[(uint)height] : uint256.Zero),
-			OnGetVerboseBlockAsync = hash => Task.FromResult(blocks.ContainsKey(hash) ? blocks[hash] : null)
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for processing
 		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		// Test GetFilterLinesExcludingAsync
-		var result = await indexer.GetFilterLinesExcludingAsync(blockHashes[5], 3);
+		var blockHash = await node.Rpc.GetBlockHashAsync(5);
+		var result = await indexer.GetFilterLinesExcludingAsync(blockHash, 3);
 
 		// Check results
 		Assert.True(result.found);
-		Assert.Equal(new Height((uint)10), result.bestHeight);
+		Assert.Equal(new Height((uint)9), result.bestHeight);
 		Assert.Equal(3, result.filters.Count()); // Should have filters for blocks 6, 7, 8
 
 		// Verify the first filter is for block 6
+		blockHash = await node.Rpc.GetBlockHashAsync(6);
 		var firstFilter = result.filters.First();
 		Assert.Equal((uint)6, firstFilter.Header.Height);
-		Assert.Equal(blockHashes[6], firstFilter.Header.BlockHash);
+		Assert.Equal(blockHash, firstFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -425,65 +289,56 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task IndexBuilderHandlesRpcErrorsGracefullyAsync()
 	{
-		bool shouldFail = false;
-		var blockHashes = new Dictionary<uint, uint256>();
-		var blocks = new Dictionary<uint256, VerboseBlockInfo>();
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 2));
 
-		// Genesis block
-		var genesisBlockHash = Network.RegTest.GenesisHash;
-		blockHashes[0] = genesisBlockHash;
-		blockHashes[1] = new uint256(1);
-		blockHashes[2] = new uint256(2);
-		blocks[blockHashes[1]] = CreateMockBlock(blockHashes[1], blockHashes[0], 1);
-		blocks[blockHashes[2]] = CreateMockBlock(blockHashes[2], blockHashes[1], 2);
-
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 2,
-				Blocks = 2,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = height =>
-			{
-				if (shouldFail)
-				{
-					throw new RPCException(RPCErrorCode.RPC_INVALID_PARAMETER, "Test error", new RPCResponse(null!));
-				}
-				return Task.FromResult(blockHashes.ContainsKey((uint)height) ? blockHashes[(uint)height] : uint256.Zero);
-			},
-			OnGetVerboseBlockAsync = hash =>
-			{
-				if (shouldFail)
-				{
-					throw new Exception("Test error");
-				}
-
-				return Task.FromResult(blocks.ContainsKey(hash) ? blocks[hash] : null);
-			}
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for initial processing
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
-		// Start failing RPC calls
-		shouldFail = true;
+		// Make GetBlockchainInfo rpc calls to fail
+		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync;
+		node.Rpc.OnGetBlockchainInfoAsync = () =>
+			throw new RPCException(RPCErrorCode.RPC_OUT_OF_MEMORY, "", new RPCResponse(null!));
+
+		// Give time to hit errors
+		await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+		// Make GetBlock rpc calls to fail
+		node.Rpc.OnGetBlockchainInfoAsync = onGetBlockchainInfoAsyncFunc; // Restore previous behaviour
+		var onGetBlockAsyncFunc = node.Rpc.OnGetBlockAsync;
+		node.Rpc.OnGetBlockAsync = _ => throw new HttpRequestException("some error");
+
+		// Give time to hit errors
+		await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+		// Make GetBlockHash rpc calls to fail
+		node.Rpc.OnGetBlockAsync = onGetBlockAsyncFunc; // Restore previous behaviour
+		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync;
+		node.Rpc.OnGetBlockHashAsync = _ => throw new TimeoutException();
 
 		// Give time to hit errors
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
 		// Stop failing
-		shouldFail = false;
-
-		// Give time to recover
-		await Task.Delay(TimeSpan.FromSeconds(0.5));
+		node.Rpc.OnGetBlockHashAsync = onGetBlockHashAsyncFunc;
 
 		// Service should still be running
 		Assert.Null(indexingStartTask.Exception);
+
+		// Generate a new block
+		var latestBlockHashes = await node.GenerateBlockAsync(CancellationToken.None);
+		var latestBlockHash = latestBlockHashes[0];
+		await Task.Delay(TimeSpan.FromSeconds(0.5));
+
+		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
+		Assert.Equal(bestBlockHash, latestBlockHash);
+
+		var lastFilter = indexer.GetLastFilter();
+		Assert.NotNull(lastFilter);
+		Assert.Equal((uint)2, lastFilter.Header.Height);
+		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -492,17 +347,8 @@ public class IndexBuilderServiceTests
 	[Fact]
 	public async Task DisposalCleansUpResourcesAsync()
 	{
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 0,
-				Blocks = 0,
-				InitialBlockDownload = false
-			}),
-		};
-
-		using var indexer = new IndexBuilderService(rpc, _filtersPath, _options);
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 1));
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, _options);
 
 		try
 		{
@@ -524,6 +370,266 @@ public class IndexBuilderServiceTests
 		}
 	}
 
+	[Fact]
+	public async Task ConcurrentAccessIsThreadSafeAsync()
+	{
+		// Setup mock with 5 blocks
+		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 500));
+
+		// Track how many times the blockchain info is requested
+		int blockchainInfoRequestCount = 0;
+
+		// Add delay to RPC calls to increase chance of concurrency issues
+		var random = new Random(1234);
+
+		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync;
+		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync;
+		var onGetVerboseBlockAsyncFunc = node.Rpc.OnGetVerboseBlockAsync;
+
+		node.Rpc.OnGetBlockchainInfoAsync = async () =>
+		{
+			blockchainInfoRequestCount++;
+			// Random delay to simulate network latency
+			await Task.Delay(random.Next(5, 20));
+			return await onGetBlockchainInfoAsyncFunc();
+		};
+		node.Rpc.OnGetBlockHashAsync = async height =>
+		{
+			// Random delay to simulate network latency
+			await Task.Delay(random.Next(5, 20));
+			return await onGetBlockHashAsyncFunc(height);
+		};
+		node.Rpc.OnGetVerboseBlockAsync = async hash =>
+		{
+			// Random delay to simulate network latency
+			await Task.Delay(random.Next(5, 20));
+			return await onGetVerboseBlockAsyncFunc(hash);
+		};
+
+		// Create the indexer service
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+
+		// Start the indexer
+		var indexingTask = indexer.StartAsync(CancellationToken.None);
+
+		// Prepare concurrent access tasks
+		var concurrentTasks = new List<Task>();
+		var exceptions = new ConcurrentQueue<Exception>();
+		var readResults = new ConcurrentBag<(uint256 hash, uint height)>();
+
+		// Track number of successful read/write operations
+		int successfulReads = 0;
+		int successfulWrites = 0;
+
+		// Create a CancellationTokenSource that will stop all tasks after a timeout
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+
+		// Add concurrent reader tasks
+		for (uint i = 0; i < 5; i++)
+		{
+			concurrentTasks.Add(Task.Run(async () =>
+			{
+				try
+				{
+					while (!cts.Token.IsCancellationRequested)
+					{
+						// Random delay between reads
+						await Task.Delay(random.Next(10, 100), cts.Token);
+
+						// Get last filter
+						var lastFilter = indexer.GetLastFilter();
+						if (lastFilter != null)
+						{
+							readResults.Add((lastFilter.Header.BlockHash, lastFilter.Header.Height));
+							Interlocked.Increment(ref successfulReads);
+						}
+
+						// Get some filters from an older point
+						if (random.Next(5) == 0 && lastFilter != null && lastFilter.Header.Height > 2)
+						{
+							var height = random.Next(1, (int) lastFilter.Header.Height - 1);
+							var startingBlockHash = await node.Rpc.GetBlockHashAsync(height);
+							var filterLines = await indexer.GetFilterLinesExcludingAsync(startingBlockHash, 3, cts.Token);
+
+							// Verify the returned data is consistent
+							if (filterLines.found && filterLines.filters.Any())
+							{
+								// Check continuity of heights
+								var heights = filterLines.filters.Select(f => f.Header.Height).ToList();
+								for (int j = 1; j < heights.Count; j++)
+								{
+									if (heights[j] != heights[j - 1] + 1)
+									{
+										throw new Exception($"Non-continuous heights found: {heights[j - 1]} and {heights[j]}");
+									}
+								}
+
+								// Check that the last filter's prev hash matches the previous filter's hash
+								for (int j = 1; j < filterLines.filters.Count(); j++)
+								{
+									var prevFilter = filterLines.filters.ElementAt(j - 1);
+									var currentFilter = filterLines.filters.ElementAt(j);
+
+									if (currentFilter.Header.HeaderOrPrevBlockHash != prevFilter.Header.BlockHash)
+									{
+										throw new Exception($"Chain broken between heights {prevFilter.Header.Height} and {currentFilter.Header.Height}");
+									}
+								}
+
+								Interlocked.Increment(ref successfulReads);
+							}
+						}
+					}
+				}
+				catch (OperationCanceledException)
+				{
+					// Expected when cancellation is requested
+				}
+				catch (Exception ex)
+				{
+					exceptions.Enqueue(ex);
+				}
+			}, cts.Token));
+		}
+
+		// Add a task that simulates new blocks arriving
+		concurrentTasks.Add(Task.Run(async () =>
+		{
+			try
+			{
+				// Start with 5 blocks and add more over time
+				uint currentHeight = 5;
+
+				while (!cts.Token.IsCancellationRequested && currentHeight < 100)
+				{
+					// Delay between adding new blocks
+					await Task.Delay(random.Next(100, 500), cts.Token);
+
+					// Increment the blockchain height
+					await node.GenerateBlockAsync(cts.Token);
+
+					Interlocked.Increment(ref successfulWrites);
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected when cancellation is requested
+			}
+			catch (Exception ex)
+			{
+				exceptions.Enqueue(ex);
+			}
+		}, cts.Token));
+
+		// Add a task that occasionally checks the consistency
+		concurrentTasks.Add(Task.Run(async () =>
+		{
+			try
+			{
+				while (!cts.Token.IsCancellationRequested)
+				{
+					// Check consistency every so often
+					await Task.Delay(random.Next(300, 600), cts.Token);
+
+					var lastFilter = indexer.GetLastFilter();
+					if (lastFilter != null && lastFilter.Header.Height > 1)
+					{
+						// Use GetFilterLinesExcluding to get the entire chain
+						var allFilters = await indexer.GetFilterLinesExcludingAsync(
+							StartingFilters.GetStartingFilter(node.Network).Header.BlockHash,
+							100,
+							cts.Token);
+
+						if (allFilters.found && allFilters.filters.Any())
+						{
+							// Get the highest height filter
+							var highestFilter = allFilters.filters.OrderByDescending(f => f.Header.Height).First();
+
+							// Make sure it matches what GetLastFilter returned
+							if (highestFilter.Header.Height != lastFilter.Header.Height ||
+								highestFilter.Header.BlockHash != lastFilter.Header.BlockHash)
+							{
+								throw new Exception($"Inconsistency: GetLastFilter returned height {lastFilter.Header.Height} but GetFilterLinesExcluding highest filter is {highestFilter.Header.Height}");
+							}
+
+							// Check continuity throughout the chain
+							var filters = allFilters.filters.OrderBy(f => f.Header.Height).ToList();
+							for (int i = 1; i < filters.Count; i++)
+							{
+								if (filters[i].Header.Height != filters[i - 1].Header.Height + 1)
+								{
+									throw new Exception($"Height gap in filter chain between {filters[i - 1].Header.Height} and {filters[i].Header.Height}");
+								}
+
+								if (filters[i].Header.HeaderOrPrevBlockHash != filters[i - 1].Header.BlockHash)
+								{
+									throw new Exception($"Hash chain broken between {filters[i - 1].Header.Height} and {filters[i].Header.Height}");
+								}
+							}
+
+							Interlocked.Increment(ref successfulReads);
+						}
+					}
+				}
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected when cancellation is requested
+			}
+			catch (Exception ex)
+			{
+				exceptions.Enqueue(ex);
+			}
+		}, cts.Token));
+
+		// Wait for all tasks to complete
+		try
+		{
+			await Task.WhenAll(concurrentTasks);
+		}
+		catch (OperationCanceledException)
+		{
+			// Expected due to cancellation
+		}
+
+		// Stop the indexer
+		await indexer.StopAsync(CancellationToken.None);
+		await indexingTask;
+
+		// Output statistics
+		_testOutputHelper.WriteLine($"Blockchain info requested: {blockchainInfoRequestCount} times");
+		_testOutputHelper.WriteLine($"Successful reads: {successfulReads}");
+		_testOutputHelper.WriteLine($"Successful writes (block height increases): {successfulWrites}");
+		_testOutputHelper.WriteLine($"Distinct block heights seen: {readResults.Select(r => r.height).Distinct().Count()}");
+
+		// Assert that concurrent access didn't cause exceptions
+		Assert.Empty(exceptions);
+
+		// Assert we had substantial concurrent activity
+		Assert.True(successfulReads >= 10, "Should have performed at least 10 successful reads");
+		Assert.True(blockchainInfoRequestCount >= 5, "Should have made at least 5 blockchain info requests");
+
+		// Verify filter chain integrity
+		var finalFilter = indexer.GetLastFilter();
+		Assert.NotNull(finalFilter);
+
+		// Use service API to get all filters
+		var allFilters = await indexer.GetFilterLinesExcludingAsync(
+			StartingFilters.GetStartingFilter(node.Network).Header.BlockHash,
+			100,
+			CancellationToken.None);
+
+		// Verify chain integrity
+		var orderedFilters = allFilters.filters.OrderBy(f => f.Header.Height).ToList();
+		for (int i = 1; i < orderedFilters.Count; i++)
+		{
+			// Each filter should have a height exactly one more than the previous
+			Assert.Equal(orderedFilters[i - 1].Header.Height + 1, orderedFilters[i].Header.Height);
+
+			// Each filter's prev hash should match the previous filter's hash
+			Assert.Equal(orderedFilters[i - 1].Header.BlockHash, orderedFilters[i].Header.HeaderOrPrevBlockHash);
+		}
+	}
 	private static VerboseBlockInfo CreateMockBlock(uint256 hash, uint256 prevHash, uint height)
 	{
 		var blockHash = new uint256(height * 1000);
@@ -545,7 +651,7 @@ public class IndexBuilderServiceTests
 			prevBlockHash: prevHash,
 			confirmations: 10 - height + 1,
 			height: height,
-			blockTime: DateTimeOffset.UtcNow - TimeSpan.FromMinutes(10 - height),
+			blockTime: DateTimeOffset.UtcNow, // - TimeSpan.FromMinutes(10 - height),
 			transactions: [tx]);
 	}
 
