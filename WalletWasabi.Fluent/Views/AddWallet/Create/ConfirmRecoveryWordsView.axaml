@@ -17,19 +17,14 @@
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.HorizontalScrollBarVisibility="Auto"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <Grid x:Name="Layout">
-      <Grid.RowDefinitions>
-        <RowDefinition MinHeight="70" Height="*" />
-        <RowDefinition Height="16" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
-      </Grid.RowDefinitions>
+
+    <DockPanel>
 
       <ItemsControl ItemsSource="{Binding AvailableWords}"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
                     Margin="30 0"
-                    MaxWidth="475">
+                    MaxWidth="475"
+                    DockPanel.Dock="Top">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -64,7 +59,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
         <ItemsControl ItemsSource="{Binding ConfirmationWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
@@ -79,9 +74,11 @@
           <ItemsControl.ItemTemplate>
             <DataTemplate>
               <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
                 <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
-                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="42" />
+                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>
@@ -92,6 +89,7 @@
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
       </Panel>
-    </Grid>
+
+    </DockPanel>
   </ContentArea>
 </UserControl>
