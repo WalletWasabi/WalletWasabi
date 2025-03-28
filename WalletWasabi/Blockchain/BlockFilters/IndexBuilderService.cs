@@ -86,7 +86,7 @@ public class IndexBuilderService : BackgroundService
 				// if not rewind filters till we find the fork.
 				if (currentHash != block.PrevBlockHash)
 				{
-					Logger.LogWarning("Reorg observed on the network.");
+					Logger.LogWarning($"Reorg observed on the network. Expected prev hash {currentHash} but got {block.PrevBlockHash}");
 
 					await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
 
@@ -126,21 +126,13 @@ public class IndexBuilderService : BackgroundService
 	{
 		var scripts = FetchScripts(block);
 
-		if (scripts.Count != 0)
-		{
-			return new GolombRiceFilterBuilder()
-				.SetKey(block.Hash)
-				.SetP(20)
-				.SetM(1 << 20)
-				.AddEntries(scripts.Select(x => x.ToCompressedBytes()))
-				.Build();
-		}
-		else
-		{
-			// We cannot have empty filters, because there was a bug in GolombRiceFilterBuilder that evaluates empty filters to true.
-			// And this must be fixed in a backwards compatible way, so we create a fake filter with a random scp instead.
-			return CreateDummyEmptyFilter(block.Hash);
-		}
+		var entries = scripts.Count == 0 ? DummyScript : scripts.Select(x => x.ToCompressedBytes());
+		return new GolombRiceFilterBuilder()
+			.SetKey(block.Hash)
+			.SetP(20)
+			.SetM(1 << 20)
+			.AddEntries(entries)
+			.Build();
 	}
 
 	private static List<Script> FetchScripts(VerboseBlockInfo block)
