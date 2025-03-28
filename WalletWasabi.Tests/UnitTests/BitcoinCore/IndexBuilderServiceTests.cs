@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
@@ -17,7 +16,7 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 public class IndexBuilderServiceTests
 {
 	[Fact]
-	public async Task SegwitTaprootUnsynchronizedBitcoinNodeAsync()
+	public async Task UnsynchronizedBitcoinNodeAsync()
 	{
 		var rpc = new MockRpcClient
 		{
@@ -39,7 +38,7 @@ public class IndexBuilderServiceTests
 	}
 
 	[Fact]
-	public async Task SegwitTaprootStalledBitcoinNodeAsync()
+	public async Task StalledBitcoinNodeAsync()
 	{
 		var called = 0;
 		var rpc = new MockRpcClient
@@ -62,14 +61,14 @@ public class IndexBuilderServiceTests
 
 		// There is only starting filter
 		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
-		Assert.True(called > 1);
+		Assert.Equal(1, called);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
 
 	[Fact]
-	public async Task SegwitTaprootSynchronizingBitcoinNodeAsync()
+	public async Task SynchronizingBitcoinNodeAsync()
 	{
 		var called = 0;
 		var blockchain = GenerateBlockchain().Take(10).ToArray();
@@ -81,7 +80,7 @@ public class IndexBuilderServiceTests
 				return Task.FromResult(new BlockchainInfo
 				{
 					Headers = (ulong)blockchain.Length,
-					Blocks = (ulong)called - 1,
+					Blocks = (ulong)called,
 					InitialBlockDownload = true
 				});
 			},
@@ -123,7 +122,7 @@ public class IndexBuilderServiceTests
 	}
 
 	[Fact]
-	public async Task SegwitTaprootSynchronizedBitcoinNodeAsync()
+	public async Task SynchronizedBitcoinNodeAsync()
 	{
 		var blockchain = GenerateBlockchain().Take(10).ToArray();
 		var rpc = new MockRpcClient
@@ -143,119 +142,6 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(1));
 
-		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
-		Assert.True(result.found);
-		Assert.Equal(9, result.bestHeight.Value);
-		Assert.Equal(9, result.filters.Count());
-
-		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
-		await Task.WhenAll(indexingStartTask, indexingStopTask);
-	}
-
-	[Fact]
-	public async Task TaprootUnsynchronizedBitcoinNodeAsync()
-	{
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = 0,
-				Blocks = 0,
-				InitialBlockDownload = false
-			}),
-		};
-		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
-		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
-
-		await Task.Delay(TimeSpan.FromSeconds(1));
-		//// Assert.False(indexer.IsRunning);     // <------------ ERROR: it should have stopped but there is a bug for RegTest
-		// There is only starting filter
-		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
-		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
-		await Task.WhenAll(indexingStartTask, indexingStopTask);
-	}
-
-	[Fact]
-	public async Task TaprootStalledBitcoinNodeAsync()
-	{
-		var called = 0;
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () =>
-			{
-				called++;
-				return Task.FromResult(new BlockchainInfo
-				{
-					Headers = 10_000,
-					Blocks = 0,
-					InitialBlockDownload = true
-				});
-			}
-		};
-		using var blockNotifier = new BlockNotifier(rpc);
-		using var indexer = new IndexBuilderService(rpc, "filters.sqlite");
-		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
-
-		await Task.Delay(TimeSpan.FromSeconds(1));
-		// There is only starting filter
-		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
-		Assert.True(called > 1);
-
-		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
-		await Task.WhenAll(indexingStartTask, indexingStopTask);
-	}
-
-	[Fact]
-	public async Task TaprootSynchronizingBitcoinNodeAsync()
-	{
-		var called = 0;
-		var blockchain = GenerateBlockchain().Take(10).ToArray();
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () =>
-			{
-				called++;
-				return Task.FromResult(new BlockchainInfo
-				{
-					Headers = (ulong)blockchain.Length,
-					Blocks = (ulong)called - 1,
-					InitialBlockDownload = true
-				});
-			},
-			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
-		};
-		using var indexer = new IndexBuilderService(rpc, "filters.txt");
-		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
-
-		await Task.Delay(TimeSpan.FromSeconds(1));
-
-		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter!.Header.Height);
-		Assert.True(called > 1);
-		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
-		await Task.WhenAll(indexingStartTask, indexingStopTask);
-	}
-
-	[Fact]
-	public async Task TaprootSynchronizedBitcoinNodeAsync()
-	{
-		var blockchain = GenerateBlockchain().Take(10).ToArray();
-		var rpc = new MockRpcClient
-		{
-			OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
-			{
-				Headers = (ulong)blockchain.Length - 1,
-				Blocks = (ulong)blockchain.Length - 1,
-				InitialBlockDownload = false
-			}),
-			OnGetBlockHashAsync = (height) => Task.FromResult(blockchain[height].Hash),
-			OnGetVerboseBlockAsync = (hash) => Task.FromResult(blockchain.Single(x => x.Hash == hash))
-		};
-		using var indexer = new IndexBuilderService(rpc, "filters.txt");
-		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
-
-		await Task.Delay(TimeSpan.FromSeconds(1));
 		var result = await indexer.GetFilterLinesExcludingAsync(blockchain[0].Hash, 100);
 		Assert.True(result.found);
 		Assert.Equal(9, result.bestHeight.Value);
