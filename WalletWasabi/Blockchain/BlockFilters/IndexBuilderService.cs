@@ -78,9 +78,9 @@ public class IndexBuilderService : BackgroundService
 					continue;
 				}
 
-				uint nextHeight = currentHeight + 1;
-				uint256 blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, stoppingToken).ConfigureAwait(false);
-				VerboseBlockInfo block = await _rpcClient.GetVerboseBlockAsync(blockHash, stoppingToken ).ConfigureAwait(false);
+				var nextHeight = currentHeight + 1;
+				var blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, stoppingToken).ConfigureAwait(false);
+				var block = await _rpcClient.GetVerboseBlockAsync(blockHash, stoppingToken ).ConfigureAwait(false);
 
 				// Check if we are still on the best chain,
 				// if not rewind filters till we find the fork.
