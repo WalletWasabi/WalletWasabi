@@ -48,9 +48,9 @@ public class MockNode
 			Task.FromResult(BlockChain.Count == 0 ? Network.RegTest.GenesisHash : BlockChain.Last().Key);
 		Rpc.OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
 		{
-			Headers = (uint) BlockChain.Count,
-			Blocks = (uint) BlockChain.Count,
-			BestBlockHash = BlockChain.Count == 0 ? Network.RegTest.GenesisHash : BlockChain.Last().Key,
+			Headers = (uint) BlockChain.Count - 1,
+			Blocks = (uint) BlockChain.Count - 1,
+			BestBlockHash = BlockChain.Count == 1 ? Network.RegTest.GenesisHash : BlockChain.Last().Key,
 			InitialBlockDownload = false
 		});
 
@@ -77,6 +77,7 @@ public class MockNode
 	{
 		options ??= new MockNodeOptions(101);
 		var node = new MockNode();
+		node.BlockChain[Network.RegTest.GenesisHash] = Network.RegTest.GetGenesis();
 		await node.Wallet.GenerateAsync(options.BlockToGenerate, CancellationToken.None).ConfigureAwait(false);
 		return node;
 	}

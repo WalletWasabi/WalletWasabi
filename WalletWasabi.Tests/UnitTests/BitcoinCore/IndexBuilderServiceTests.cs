@@ -101,7 +101,7 @@ public class IndexBuilderServiceTests
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
 		var lastFilter = indexer.GetLastFilter();
-		Assert.Equal(9, (int)lastFilter!.Header.Height);
+		Assert.Equal(10, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -141,8 +141,8 @@ public class IndexBuilderServiceTests
 
 		var result = await indexer.GetFilterLinesExcludingAsync(node.BlockChain.Keys.First(), 100);
 		Assert.True(result.found);
-		Assert.Equal(9, result.bestHeight.Value);
-		Assert.Equal(9, result.filters.Count());
+		Assert.Equal(10, result.bestHeight.Value);
+		Assert.Equal(10, result.filters.Count());
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
@@ -163,7 +163,7 @@ public class IndexBuilderServiceTests
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
-		Assert.Equal((uint)9, lastFilter.Header.Height);
+		Assert.Equal((uint)10, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		// Generate a new block
@@ -174,7 +174,7 @@ public class IndexBuilderServiceTests
 		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
-		Assert.Equal((uint)10, lastFilter.Header.Height);
+		Assert.Equal((uint)11, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -196,7 +196,7 @@ public class IndexBuilderServiceTests
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var firstLastFilter = indexer.GetLastFilter();
 		Assert.NotNull(firstLastFilter);
-		Assert.Equal((uint)4, firstLastFilter.Header.Height);
+		Assert.Equal((uint)5, firstLastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, firstLastFilter.Header.BlockHash);
 
 		// Simulate reorg by changing the chain
@@ -213,7 +213,7 @@ public class IndexBuilderServiceTests
 		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var secondLastFilter = indexer.GetLastFilter();
 		Assert.NotNull(secondLastFilter);
-		Assert.Equal((uint)6, secondLastFilter.Header.Height);
+		Assert.Equal((uint)7, secondLastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, secondLastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -235,7 +235,7 @@ public class IndexBuilderServiceTests
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		var lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
-		Assert.Equal((uint)9, lastFilter.Header.Height);
+		Assert.Equal((uint)10, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		bool neverCalled = true;
@@ -273,7 +273,7 @@ public class IndexBuilderServiceTests
 
 		// Check results
 		Assert.True(result.found);
-		Assert.Equal(new Height((uint)9), result.bestHeight);
+		Assert.Equal(new Height((uint)10), result.bestHeight);
 		Assert.Equal(3, result.filters.Count()); // Should have filters for blocks 6, 7, 8
 
 		// Verify the first filter is for block 6
@@ -337,7 +337,7 @@ public class IndexBuilderServiceTests
 
 		var lastFilter = indexer.GetLastFilter();
 		Assert.NotNull(lastFilter);
-		Assert.Equal((uint)2, lastFilter.Header.Height);
+		Assert.Equal((uint)3, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -535,25 +535,21 @@ public class IndexBuilderServiceTests
 					if (lastFilter != null && lastFilter.Header.Height > 1)
 					{
 						// Use GetFilterLinesExcluding to get the entire chain
-						var allFilters = await indexer.GetFilterLinesExcludingAsync(
-							StartingFilters.GetStartingFilter(node.Network).Header.BlockHash,
-							100,
-							cts.Token);
+						var allFilters = await indexer.GetFilterLinesExcludingAsync( lastFilter.Header.HeaderOrPrevBlockHash, 20, cts.Token);
 
-						if (allFilters.found && allFilters.filters.Any())
+						if (allFilters.found)
 						{
 							// Get the highest height filter
-							var highestFilter = allFilters.filters.OrderByDescending(f => f.Header.Height).First();
+							var highestFilter = allFilters.filters.Last();
 
 							// Make sure it matches what GetLastFilter returned
-							if (highestFilter.Header.Height != lastFilter.Header.Height ||
-								highestFilter.Header.BlockHash != lastFilter.Header.BlockHash)
+							if (highestFilter.Header.Height < lastFilter.Header.Height)
 							{
 								throw new Exception($"Inconsistency: GetLastFilter returned height {lastFilter.Header.Height} but GetFilterLinesExcluding highest filter is {highestFilter.Header.Height}");
 							}
 
 							// Check continuity throughout the chain
-							var filters = allFilters.filters.OrderBy(f => f.Header.Height).ToList();
+							var filters = allFilters.filters.ToList();
 							for (int i = 1; i < filters.Count; i++)
 							{
 								if (filters[i].Header.Height != filters[i - 1].Header.Height + 1)

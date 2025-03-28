@@ -75,7 +75,7 @@ public class IndexBuilderService : BackgroundService
 				var blockchainInfo = await _rpcClient.GetBlockchainInfoAsync(stoppingToken).ConfigureAwait(false);
 
 				// If wasabi filter height is the same as core we may be done.
-				if (blockchainInfo.BestBlockHash == currentHash)
+				if (blockchainInfo.Blocks == currentHeight)
 				{
 					var timeToWait = blockchainInfo.IsSynchronized() && !blockchainInfo.InitialBlockDownload
 						? _options.DelayAfterEverythingIsDone // Check that core is fully synced
