@@ -24,19 +24,13 @@
       </MultiBinding>
     </ContentArea.Caption>
 
-    <Grid x:Name="Layout">
-      <Grid.RowDefinitions>
-        <RowDefinition MinHeight="70" Height="*" />
-        <RowDefinition Height="16" />
-        <RowDefinition Height="Auto" />
-        <RowDefinition Height="*" />
-        <RowDefinition Height="20" />
-      </Grid.RowDefinitions>
+    <DockPanel>
 
       <ItemsControl ItemsSource="{Binding AvailableWords}"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Margin="30 0"
-                    MaxWidth="475">
+                    Margin="0 0"
+                    MaxWidth="475"
+                    DockPanel.Dock="Top">
         <ItemsControl.ItemsPanel>
           <ItemsPanelTemplate>
             <WrapPanel />
@@ -71,7 +65,7 @@
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
-      <Panel Grid.Row="2" VerticalAlignment="Center" HorizontalAlignment="Center">
+      <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
         <ItemsControl ItemsSource="{Binding ConfirmationWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
@@ -80,7 +74,7 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="230" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
@@ -102,7 +96,8 @@
         </Grid>
         -->
       </Panel>
-    </Grid>
+
+    </DockPanel>
 
   </ContentArea>
 </UserControl>
