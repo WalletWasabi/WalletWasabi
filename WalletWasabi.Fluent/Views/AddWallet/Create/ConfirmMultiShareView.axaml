@@ -17,9 +17,11 @@
                ScrollViewer.HorizontalScrollBarVisibility="Auto"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <ContentArea.Caption>
-      <MultiBinding StringFormat="Share #{0} of {1}. Click the recovery word #{2}" FallbackValue=' '>
+      <MultiBinding StringFormat="Share #{0} of {1} - Page #{2} of {3}. Click the recovery word #{4}" FallbackValue=' '>
         <Binding Path="CurrentShare" />
         <Binding Path="TotalShares" />
+        <Binding Path="CurrentSharePage" />
+        <Binding Path="TotalCurrenSharePages" />
         <Binding Path="CurrentWord.Index" />
       </MultiBinding>
     </ContentArea.Caption>
@@ -28,7 +30,7 @@
 
       <ItemsControl ItemsSource="{Binding AvailableWords}"
                     VerticalAlignment="Center" HorizontalAlignment="Center"
-                    Margin="0 0"
+                    Margin="30 0"
                     MaxWidth="475"
                     DockPanel.Dock="Top">
         <ItemsControl.ItemsPanel>
@@ -74,15 +76,17 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="230" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="15 0 15 0" Width="85">
-                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}" Height="32" />
+              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="85">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
                 <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
-                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}" Height="32" />
+                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
               </StackPanel>
             </DataTemplate>
           </ItemsControl.ItemTemplate>

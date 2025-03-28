@@ -14,12 +14,32 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Multi-share")]
 public partial class ConfirmMultiShareViewModel : RoutableViewModel
 {
+	private static readonly Dictionary<int, byte> WordsPerPageMap = new()
+	{
+		[12] = 12,
+		[18] = 9,
+		[20] = 10,
+		[24] = 12,
+		[33] = 11,
+	};
+
+	private static readonly Dictionary<int, byte> TotalPagesMap = new()
+	{
+		[12] = 1,
+		[18] = 2,
+		[20] = 2,
+		[24] = 2,
+		[33] = 3,
+	};
+
 	private readonly WalletCreationOptions.AddNewWallet _options;
 	private readonly Dictionary<int, List<RecoveryWordViewModel>> _wordsDictionary;
 	private readonly List<RecoveryWordViewModel> _words;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentSharePage;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalCurrenSharePages;
 
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
@@ -42,7 +62,18 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		_options = options;
 		_availableWords = new List<RecoveryWordViewModel>();
-		_words = words.OrderBy(x => x.Index).ToList();
+
+		// Paginate recovery words.
+		var wordsPerPage = WordsPerPageMap[words.Count];
+		_currentSharePage = multiShareBackup.CurrentSharePage;
+		_totalCurrenSharePages = TotalPagesMap[words.Count];
+		var wordsToSkip = wordsPerPage * (_currentSharePage - 1);
+
+		_words = words
+			.Skip(wordsToSkip)
+			.Take(wordsPerPage)
+			.OrderBy(x => x.Index)
+			.ToList();
 		_currentWord = words.First();
 	}
 
@@ -158,7 +189,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
-		if (_currentShare >= multiShareBackup.Settings.Shares || skip)
+		if ((_currentShare >= multiShareBackup.Settings.Shares && _currentSharePage >= _totalCurrenSharePages)
+		    || skip)
 		{
 			var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
 			                    "It's needed to open and to recover your wallet.\n" +
@@ -187,7 +219,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			{
 				SelectedWalletBackup = multiShareBackup with
 				{
-					CurrentShare = ++_currentShare
+					CurrentShare = _currentSharePage == _totalCurrenSharePages ? ++_currentShare : _currentShare,
+					CurrentSharePage = (byte)(_currentSharePage == _totalCurrenSharePages ? 1 : ++_currentSharePage)
 				}
 			};
 

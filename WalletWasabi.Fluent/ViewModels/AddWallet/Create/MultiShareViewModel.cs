@@ -64,7 +64,8 @@ public partial class MultiShareViewModel : RoutableViewModel
 			{
 				SelectedWalletBackup = multiShareBackup with
 				{
-					CurrentShare = 1
+					CurrentShare = 1,
+					CurrentSharePage = 1
 				}
 			};
 
