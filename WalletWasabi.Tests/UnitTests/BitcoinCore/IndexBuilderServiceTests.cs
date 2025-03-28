@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
@@ -10,7 +11,9 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.UnitTests.Wallet;
 using Xunit;
+using Xunit.Abstractions;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 
@@ -18,10 +21,15 @@ public class IndexBuilderServiceTests
 {
 	private readonly string _testDirectory;
 	private readonly string _filtersPath;
-	private readonly IndexBuilderServiceOptions _options = new(TimeSpan.FromMilliseconds(50), TimeSpan.FromMilliseconds(50));
+	private readonly ITestOutputHelper _testOutputHelper;
+	private readonly IndexBuilderServiceOptions _options = new(
+		DelayForNodeToCatchUp: TimeSpan.FromMilliseconds(50),
+		DelayAfterEverythingIsDone: TimeSpan.FromMilliseconds(50),
+		DelayInCaseOfError: TimeSpan.FromMilliseconds(50));
 
-	public IndexBuilderServiceTests()
+	public IndexBuilderServiceTests(ITestOutputHelper testOutputHelper)
 	{
+		_testOutputHelper = testOutputHelper;
 		_testDirectory = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
 		Directory.CreateDirectory(_testDirectory);
 		_filtersPath = Path.Combine(_testDirectory, "filters.sqlite");

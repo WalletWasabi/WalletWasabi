@@ -19,7 +19,11 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
-public record IndexBuilderServiceOptions(TimeSpan SyncRetryDelay, TimeSpan BlockchainInfoRefreshInterval);
+// Parameters for controlling the service behavior
+public record IndexBuilderServiceOptions(
+	TimeSpan DelayForNodeToCatchUp,
+	TimeSpan DelayAfterEverythingIsDone,
+	TimeSpan DelayInCaseOfError);
 
 public class IndexBuilderService : BackgroundService
 {
@@ -36,7 +40,7 @@ public class IndexBuilderService : BackgroundService
 
 	public IndexBuilderService(IRPCClient rpc, string indexFilePath, IndexBuilderServiceOptions? options = null)
 	{
-		_options = options ?? new IndexBuilderServiceOptions(TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(2));
+		_options = options ?? new IndexBuilderServiceOptions(TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
@@ -73,10 +77,10 @@ public class IndexBuilderService : BackgroundService
 				// If wasabi filter height is the same as core we may be done.
 				if (blockchainInfo.Blocks == currentHeight)
 				{
-					var timeTowait = blockchainInfo.IsSynchronized() && !blockchainInfo.InitialBlockDownload
-						? _options.BlockchainInfoRefreshInterval // Check that core is fully synced
-						: _options.SyncRetryDelay; // Bitcoin Node is catching up give it a 10 seconds
-					await Task.Delay(timeTowait, stoppingToken).ConfigureAwait(false);
+					var timeToWait = blockchainInfo.IsSynchronized() && !blockchainInfo.InitialBlockDownload
+						? _options.DelayAfterEverythingIsDone // Check that core is fully synced
+						: _options.DelayForNodeToCatchUp; // Bitcoin Node is catching up give some time
+					await Task.Delay(timeToWait, stoppingToken).ConfigureAwait(false);
 					continue;
 				}
 
@@ -108,7 +112,7 @@ public class IndexBuilderService : BackgroundService
 
 				// If not close to the tip, just log debug.
 				var logLevel = blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0 ? LogLevel.Info : LogLevel.Debug;
-				Logger.Log(logLevel, $"Created filter for block: {nextHeight}.");
+				Logger.Log(logLevel, $"Created filter for block: {nextHeight}  {blockHash}.");
 			}
 			catch (OperationCanceledException) // Do not log because it was requested by the user
 			{
@@ -119,7 +123,7 @@ public class IndexBuilderService : BackgroundService
 				Logger.LogError(ex);
 
 				// Pause the while loop for a while to not flood logs in case of permanent error.
-				await Task.Delay(1_000, stoppingToken).ConfigureAwait(false);
+				await Task.Delay(_options.DelayInCaseOfError, stoppingToken).ConfigureAwait(false);
 			}
 		}
 	}
@@ -232,7 +236,7 @@ public class IndexBuilderService : BackgroundService
 
 	public FilterModel? GetLastFilter()
 	{
-		// Note: This method should be called with the lock already acquired
+		// Note: This method should be called with the lock already acquired (for tests it is okay)
 		var lastFilterList = _indexStorage.FetchLast(1).ToList();
 		return lastFilterList.Count == 0 ? null : lastFilterList[0];
 	}
