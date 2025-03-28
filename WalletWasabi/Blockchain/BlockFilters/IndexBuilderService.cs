@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
+using NBitcoin.RPC;
 using Nito.AsyncEx;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
@@ -65,19 +66,12 @@ public class IndexBuilderService : BackgroundService
 					? (lastFilter.Header.Height, lastFilter.Header.BlockHash)
 					: (_startingHeight - 1, uint256.Zero);
 
-				SyncInfo syncInfo = await GetSyncInfoAsync(stoppingToken).ConfigureAwait(false);
-				var coreNotSynced = !syncInfo.IsCoreSynchronized;
-				var tipReached = syncInfo.BlockCount == currentHeight;
-				var isTimeToRefresh = DateTimeOffset.UtcNow - syncInfo.BlockchainInfoUpdated > _blockchainInfoRefreshInterval;
-				if (coreNotSynced || tipReached || isTimeToRefresh)
-				{
-					syncInfo = await GetSyncInfoAsync(stoppingToken).ConfigureAwait(false);
-				}
+				var blockchainInfo = await _rpcClient.GetBlockchainInfoAsync(stoppingToken).ConfigureAwait(false);
 
 				// If wasabi filter height is the same as core we may be done.
-				if (syncInfo.BlockCount == currentHeight)
+				if (blockchainInfo.Blocks == currentHeight)
 				{
-					var timeTowait = syncInfo.IsCoreSynchronized && !syncInfo.InitialBlockDownload
+					var timeTowait = blockchainInfo.IsSynchronized() && !blockchainInfo.InitialBlockDownload
 						? _blockchainInfoRefreshInterval // Check that core is fully synced
 						: _syncRetryDelay; // Bitcoin Node is catching up give it a 10 seconds
 					await Task.Delay(timeTowait, stoppingToken).ConfigureAwait(false);
@@ -111,7 +105,7 @@ public class IndexBuilderService : BackgroundService
 				}
 
 				// If not close to the tip, just log debug.
-				if (syncInfo.BlockCount - nextHeight <= 3 || nextHeight % 100 == 0)
+				if (blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0)
 				{
 					Logger.LogInfo($"Created filter for block: {nextHeight}.");
 				}
@@ -206,13 +200,6 @@ public class IndexBuilderService : BackgroundService
 		}
 	}
 
-	private async Task<SyncInfo> GetSyncInfoAsync(CancellationToken cancellationToken)
-	{
-		var bcinfo = await _rpcClient.GetBlockchainInfoAsync(cancellationToken).ConfigureAwait(false);
-		var pbcinfo = new SyncInfo(bcinfo);
-		return pbcinfo;
-	}
-
 	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
 	{
 		try
@@ -277,4 +264,10 @@ public class IndexBuilderService : BackgroundService
 		// Then stop the background service
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
+}
+
+public static class BlockchainInfoExtensions
+{
+	public static bool IsSynchronized(this BlockchainInfo me) =>
+		me.Blocks == me.Headers;
 }
