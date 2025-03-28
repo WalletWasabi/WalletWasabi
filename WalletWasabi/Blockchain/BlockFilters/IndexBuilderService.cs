@@ -215,26 +215,16 @@ public class IndexBuilderService : BackgroundService
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			var found = false;
 			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
-			uint bestHeight;
 			if (filterModels.Count > 0)
 			{
-				bestHeight = (uint)_indexStorage.GetBestHeight();
-				found = true;
+				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
 			}
-			else
-			{
-				var lastFilter = GetLastFilter();
-				if (lastFilter is null)
-				{
-					return (new Height(HeightType.Unknown), [], false);
-				}
 
-				found = lastFilter.Header.BlockHash == bestKnownBlockHash;
-				bestHeight = lastFilter.Header.Height;
-			}
-			return (new Height(bestHeight), filterModels, found);
+			var lastFilter = GetLastFilter();
+			return  lastFilter is null
+				? (new Height(HeightType.Unknown), [], false)
+				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
 		}
 	}
 
