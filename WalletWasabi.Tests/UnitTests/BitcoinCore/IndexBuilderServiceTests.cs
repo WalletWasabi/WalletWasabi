@@ -45,7 +45,8 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 		// There is only starting filter
-		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
+		Assert.True(lastFilter?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
 		await Task.WhenAll(indexingStartTask, indexingStopTask);
 	}
@@ -72,7 +73,8 @@ public class IndexBuilderServiceTests
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
 		// There is only starting filter
-		Assert.True(indexer.GetLastFilter()?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
+		Assert.True(lastFilter?.Header.BlockHash.Equals(StartingFilters.GetStartingFilter(rpc.Network).Header.BlockHash));
 		Assert.True(called > 1);
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -100,7 +102,7 @@ public class IndexBuilderServiceTests
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
 
-		var lastFilter = indexer.GetLastFilter();
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.Equal(10, (int)lastFilter!.Header.Height);
 		Assert.True(called > 1);
 
@@ -161,7 +163,7 @@ public class IndexBuilderServiceTests
 
 		// Check that all blocks were processed
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
-		var lastFilter = indexer.GetLastFilter();
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(lastFilter);
 		Assert.Equal((uint)10, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
@@ -172,7 +174,7 @@ public class IndexBuilderServiceTests
 
 		// Check that the new block was processed
 		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
-		lastFilter = indexer.GetLastFilter();
+		lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(lastFilter);
 		Assert.Equal((uint)11, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
@@ -194,7 +196,7 @@ public class IndexBuilderServiceTests
 
 		// Verify initial state
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
-		var firstLastFilter = indexer.GetLastFilter();
+		var firstLastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(firstLastFilter);
 		Assert.Equal((uint)5, firstLastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, firstLastFilter.Header.BlockHash);
@@ -211,7 +213,8 @@ public class IndexBuilderServiceTests
 
 		// Verify post-reorg state
 		bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
-		var secondLastFilter = indexer.GetLastFilter();
+		var secondLastFilter =  await indexer.GetLastFilterAsync(CancellationToken.None);
+
 		Assert.NotNull(secondLastFilter);
 		Assert.Equal((uint)7, secondLastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, secondLastFilter.Header.BlockHash);
@@ -233,7 +236,7 @@ public class IndexBuilderServiceTests
 
 		// Check that all blocks were processed
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
-		var lastFilter = indexer.GetLastFilter();
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(lastFilter);
 		Assert.Equal((uint)10, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
@@ -335,7 +338,7 @@ public class IndexBuilderServiceTests
 		var bestBlockHash = await node.Rpc.GetBestBlockHashAsync();
 		Assert.Equal(bestBlockHash, latestBlockHash);
 
-		var lastFilter = indexer.GetLastFilter();
+		var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(lastFilter);
 		Assert.Equal((uint)3, lastFilter.Header.Height);
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
@@ -437,7 +440,7 @@ public class IndexBuilderServiceTests
 						await Task.Delay(random.Next(10, 100), cts.Token);
 
 						// Get last filter
-						var lastFilter = indexer.GetLastFilter();
+						var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 						if (lastFilter != null)
 						{
 							readResults.Add((lastFilter.Header.BlockHash, lastFilter.Header.Height));
@@ -531,7 +534,7 @@ public class IndexBuilderServiceTests
 					// Check consistency every so often
 					await Task.Delay(random.Next(300, 600), cts.Token);
 
-					var lastFilter = indexer.GetLastFilter();
+					var lastFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 					if (lastFilter != null && lastFilter.Header.Height > 1)
 					{
 						// Use GetFilterLinesExcluding to get the entire chain
@@ -606,7 +609,7 @@ public class IndexBuilderServiceTests
 		Assert.True(blockchainInfoRequestCount >= 5, "Should have made at least 5 blockchain info requests");
 
 		// Verify filter chain integrity
-		var finalFilter = indexer.GetLastFilter();
+		var finalFilter = await indexer.GetLastFilterAsync(CancellationToken.None);
 		Assert.NotNull(finalFilter);
 
 		// Use service API to get all filters
@@ -624,45 +627,6 @@ public class IndexBuilderServiceTests
 
 			// Each filter's prev hash should match the previous filter's hash
 			Assert.Equal(orderedFilters[i - 1].Header.BlockHash, orderedFilters[i].Header.HeaderOrPrevBlockHash);
-		}
-	}
-	private static VerboseBlockInfo CreateMockBlock(uint256 hash, uint256 prevHash, uint height)
-	{
-		var blockHash = new uint256(height * 1000);
-		// Create single coinbase transaction
-		var tx = new VerboseTransactionInfo(
-			blockInfo: new TransactionBlockInfo(blockHash, DateTimeOffset.UtcNow, height),
-			id: blockHash,
-			inputs: [new VerboseInputInfo.Coinbase("I'm rich!")],
-			outputs:
-			[
-				new VerboseOutputInfo(
-					value: 50_000_000_000,
-					scriptPubKey: new Script(),
-					pubkeyType: "wpkh")
-			]);
-
-		return new VerboseBlockInfo(
-			hash: hash,
-			prevBlockHash: prevHash,
-			confirmations: 10 - height + 1,
-			height: height,
-			blockTime: DateTimeOffset.UtcNow, // - TimeSpan.FromMinutes(10 - height),
-			transactions: [tx]);
-	}
-
-	public void Dispose()
-	{
-		try
-		{
-			if (Directory.Exists(_testDirectory))
-			{
-				Directory.Delete(_testDirectory, true);
-			}
-		}
-		catch
-		{
-			// Best effort cleanup
 		}
 	}
 }

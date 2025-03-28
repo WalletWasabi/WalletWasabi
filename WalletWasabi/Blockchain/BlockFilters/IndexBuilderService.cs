@@ -59,15 +59,12 @@ public class IndexBuilderService : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		var lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
+
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			try
 			{
-				FilterModel? lastFilter;
-				using (await _indexLock.LockAsync(stoppingToken).ConfigureAwait(false))
-				{
-					lastFilter = GetLastFilter();
-				}
 				var (currentHeight, currentHash) = lastFilter is not null
 					? (lastFilter.Header.Height, lastFilter.Header.BlockHash)
 					: (_startingHeight - 1, uint256.Zero);
@@ -95,6 +92,7 @@ public class IndexBuilderService : BackgroundService
 					Logger.LogWarning($"Reorg observed on the network. Expected prev hash {currentHash} but got {block.PrevBlockHash}");
 
 					await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
+					lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
 
 					// Skip the current block.
 					continue;
@@ -113,6 +111,8 @@ public class IndexBuilderService : BackgroundService
 				// If not close to the tip, just log debug.
 				var logLevel = blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0 ? LogLevel.Info : LogLevel.Debug;
 				Logger.Log(logLevel, $"Created filter for block: {nextHeight}  {blockHash}.");
+
+				lastFilter = filterModel;
 			}
 			catch (OperationCanceledException) // Do not log because it was requested by the user
 			{
@@ -227,14 +227,22 @@ public class IndexBuilderService : BackgroundService
 				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
 			}
 
-			var lastFilter = GetLastFilter();
+			var lastFilter = GetLastFilterNoLock();
 			return  lastFilter is null
 				? (new Height(HeightType.Unknown), [], false)
 				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
 		}
 	}
 
-	public FilterModel? GetLastFilter()
+	public async Task<FilterModel?> GetLastFilterAsync(CancellationToken cancellationToken)
+	{
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			return GetLastFilterNoLock();
+		}
+	}
+
+	private FilterModel? GetLastFilterNoLock()
 	{
 		// Note: This method should be called with the lock already acquired (for tests it is okay)
 		var lastFilterList = _indexStorage.FetchLast(1).ToList();
