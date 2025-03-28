@@ -105,14 +105,8 @@ public class IndexBuilderService : BackgroundService
 				}
 
 				// If not close to the tip, just log debug.
-				if (blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0)
-				{
-					Logger.LogInfo($"Created filter for block: {nextHeight}.");
-				}
-				else
-				{
-					Logger.LogDebug($"Created filter for block: {nextHeight}.");
-				}
+				var logLevel = blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0 ? LogLevel.Info : LogLevel.Debug;
+				Logger.Log(logLevel, $"Created filter for block: {nextHeight}.");
 			}
 			catch (OperationCanceledException) // Do not log because it was requested by the user
 			{
