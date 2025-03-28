@@ -18,4 +18,5 @@ public record MultiShareBackup(
 	MultiShareBackupSettings Settings,
 	string? Password = "",
 	Share[]? Shares = null,
-	byte CurrentShare = 0) : WalletBackup(Password);
+	byte CurrentShare = 0,
+	byte CurrentSharePage = 0) : WalletBackup(Password);
