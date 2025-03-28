@@ -19,6 +19,8 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
+public record IndexBuilderServiceOptions(TimeSpan SyncRetryDelay, TimeSpan BlockchainInfoRefreshInterval);
+
 public class IndexBuilderService : BackgroundService
 {
 	// Script used for dummy filters
@@ -30,16 +32,16 @@ public class IndexBuilderService : BackgroundService
 	private readonly BlockFilterSqliteStorage _indexStorage;
 	private readonly AsyncLock _indexLock = new();
 	private readonly uint _startingHeight;
+	private readonly IndexBuilderServiceOptions _options;
 
-	private readonly TimeSpan _syncRetryDelay = TimeSpan.FromSeconds(10);
-	private readonly TimeSpan _blockchainInfoRefreshInterval = TimeSpan.FromMinutes(5);
-
-	public IndexBuilderService(IRPCClient rpc, string indexFilePath)
+	public IndexBuilderService(IRPCClient rpc, string indexFilePath, IndexBuilderServiceOptions? options = null)
 	{
+		_options = options ?? new IndexBuilderServiceOptions(TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(2));
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
 		_startingHeight = SmartHeader.GetStartingHeader(_rpcClient.Network).Height;
+
 
 		IoHelpers.EnsureContainingDirectoryExists(_indexFilePath);
 
@@ -72,8 +74,8 @@ public class IndexBuilderService : BackgroundService
 				if (blockchainInfo.Blocks == currentHeight)
 				{
 					var timeTowait = blockchainInfo.IsSynchronized() && !blockchainInfo.InitialBlockDownload
-						? _blockchainInfoRefreshInterval // Check that core is fully synced
-						: _syncRetryDelay; // Bitcoin Node is catching up give it a 10 seconds
+						? _options.BlockchainInfoRefreshInterval // Check that core is fully synced
+						: _options.SyncRetryDelay; // Bitcoin Node is catching up give it a 10 seconds
 					await Task.Delay(timeTowait, stoppingToken).ConfigureAwait(false);
 					continue;
 				}
