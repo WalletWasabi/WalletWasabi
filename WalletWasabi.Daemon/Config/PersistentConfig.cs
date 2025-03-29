@@ -64,9 +64,8 @@ public record PersistentConfig
 
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 
-	public string ExchangeRateProvider { get; init; } = "MempoolSpace";
-
-	public string  FeeRateEstimationProvider { get; init; } = "MempoolSpace";
+	public string ExchangeRateProvider { get; init; } = Constants.DefaultExchangeRateProvider;
+	public string  FeeRateEstimationProvider { get; init; } = Constants.DefaultFeeRateEstimationProvider;
 	public string ExternalTransactionBroadcaster { get; init; } = "MempoolSpace";
 
 	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
