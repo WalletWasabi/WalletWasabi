@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
@@ -23,10 +24,10 @@ public class BlockFilterIteratorTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
-		FilterModel filter1 = FilterModel.Create(blockHeight: 610_001, blockHash: uint256.One, filterData: DummyFilterData, prevBlockHash: uint256.Zero, blockTime: 1231006505);
-		FilterModel filter2 = FilterModel.Create(blockHeight: 610_002, blockHash: new uint256(2), filterData: DummyFilterData, prevBlockHash: uint256.One, blockTime: 1231006506);
-		FilterModel filter3 = FilterModel.Create(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, prevBlockHash: new uint256(2), blockTime: 1231006506);
-		FilterModel filter4 = FilterModel.Create(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, prevBlockHash: new uint256(3), blockTime: 1231006506);
+		FilterModel filter1 = CreateFilterModel(blockHeight: 610_001, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
+		FilterModel filter2 = CreateFilterModel(blockHeight: 610_002, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
+		FilterModel filter3 = CreateFilterModel(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(2), blockTime: 1231006506);
+		FilterModel filter4 = CreateFilterModel(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006506);
 
 		var indexStore = new TesteableIndexStore
 		{
@@ -79,4 +80,9 @@ public class BlockFilterIteratorTests
 			Assert.Empty(filterIterator.Cache);
 		}
 	}
+
+	private static FilterModel CreateFilterModel(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 headerOrPrevBlockHash, long blockTime) =>
+		new (
+			new SmartHeader(blockHash, headerOrPrevBlockHash, blockHeight, blockTime),
+			new GolombRiceFilter(filterData, 20, 1 << 20));
 }

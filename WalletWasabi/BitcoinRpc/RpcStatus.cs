@@ -1,63 +1,31 @@
+using NBitcoin;
+
 namespace WalletWasabi.BitcoinRpc;
 
-public class RpcStatus : IEquatable<RpcStatus>
+public abstract record RpcStatus
 {
-	private RpcStatus(bool success, ulong headers, ulong blocks, int peersCount)
+	public record Unresponsive : RpcStatus
 	{
-		Synchronized = false;
-		if (success)
-		{
-			var diff = headers - blocks;
-			if (peersCount == 0)
-			{
-				Status = "is connecting...";
-			}
-			else if (diff == 0)
-			{
-				Synchronized = true;
-				Status = "is synchronized";
-			}
-			else
-			{
-				Status = $"is synchronizing...";
-			}
-		}
-		else
-		{
-			Status = "is unresponsive";
-		}
-
-		Success = success;
-		Headers = headers;
-		Blocks = blocks;
-		PeersCount = peersCount;
+		public override string? ToString() => "is unresponsive";
 	}
 
-	public static RpcStatus Unresponsive { get; } = new RpcStatus(false, 0, 0, 0);
-	public static RpcStatus Connecting { get; } = new RpcStatus(true, 0, 0, 0);
+	public record Responsive(
+		ulong Headers,
+		ulong Blocks,
+		int PeersCount,
+		uint256 BestBlockHash,
+		bool Pruned,
+		bool InitialBlockDownload) : RpcStatus
+	{
+		public override string? ToString() =>
+			(PeersCount, Synchronized) switch
+			{
+				(0, _) => "is connecting...",
+				(_, true) => "is synchronized",
+				(_, false) => "is synchronizing..."
+			};
+	}
 
-	public string Status { get; }
-	public bool Success { get; }
-	public ulong Headers { get; }
-	public ulong Blocks { get; }
-	public int PeersCount { get; }
-	public bool Synchronized { get; }
+	public bool Synchronized => this is Responsive r && r.Blocks == r.Headers;
 
-	public static RpcStatus Responsive(ulong headers, ulong blocks, int peersCount) => new(true, headers, blocks, peersCount);
-
-	public override string ToString() => Status;
-
-	#region EqualityAndComparison
-
-	public override bool Equals(object? obj) => Equals(obj as RpcStatus);
-
-	public bool Equals(RpcStatus? other) => this == other;
-
-	public override int GetHashCode() => Status.GetHashCode();
-
-	public static bool operator ==(RpcStatus? x, RpcStatus? y) => y?.Status == x?.Status;
-
-	public static bool operator !=(RpcStatus? x, RpcStatus? y) => !(x == y);
-
-	#endregion EqualityAndComparison
 }

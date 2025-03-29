@@ -283,10 +283,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			return true;
 		}
-		//if(c.Tip is not {} tip )
-		//{
-		//	return m.Header == SmartHeader.GetStartingHeader(_network);
-		//}
 		if (m.Filter.IsBip158())
 		{
 			// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
@@ -298,8 +294,8 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 			// In case the previous filter is Bip158-compatible it should have passed the previous condition so, the
 			// received filter did match.
-			var lastFilter = IndexStorage.FetchLast(1).First();
-			if (lastFilter.Filter.IsBip158())
+			var previousFilter = IndexStorage.Fetch(tip.Height, 1).First();
+			if (previousFilter.Filter.IsBip158())
 			{
 				return false;
 			}
@@ -307,17 +303,17 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			// If we received a bip158-compatible filter for first time we accept it.
 			return true;
 		}
-		else
+		else // Non-standard Wasabi Filter
 		{
 			if (m.Header.HeaderOrPrevBlockHash == tip.BlockHash)
 			{
 				return true;
 			}
 
-			var lastFilter = IndexStorage.FetchLast(1).First();
-			if (lastFilter.Filter.IsBip158())
+			var previousFilter = IndexStorage.Fetch(tip.Height, 1).First();
+			if (previousFilter.Filter.IsBip158())
 			{
-				throw new InvalidOperationException("The received filter is not compatible with bip158.");
+				throw new InvalidOperationException("The received filter is not Wasabi filter while the previous one is a standard bip158 and it is not possible to verify the chain.");
 			}
 
 			return false;

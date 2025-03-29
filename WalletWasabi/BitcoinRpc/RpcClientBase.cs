@@ -264,6 +264,5 @@ public class RpcClientBase : IRPCClient
 	{
 		return Rpc.CreateWalletAsync(walletNameOrPath, options, cancellationToken);
 	}
-
 	#endregion For Testing Only
 }
