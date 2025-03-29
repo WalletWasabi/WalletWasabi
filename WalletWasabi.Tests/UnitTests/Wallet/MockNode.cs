@@ -105,18 +105,16 @@ public class MockNode
 				.Select(output => output.ScriptPubKey);
 
 			var scripts = inputScriptPubKeys.Union(outputScriptPubKeys);
-			var entries = scripts.Select(x => x.ToCompressedBytes()).DefaultIfEmpty(IndexBuilderService.DummyScript[0]);
+			var entries = scripts.Select(x => x.ToBytes()).DefaultIfEmpty(IndexBuilderService.DummyScript[0]);
 
 			var filter = new GolombRiceFilterBuilder()
-				.SetP(20)
-				.SetM(1 << 20)
 				.SetKey(block.GetHash())
 				.AddEntries(entries)
 				.Build();
 
 			var tipFilter = filters.Last();
-
-			var smartHeader = new SmartHeader(block.GetHash(), tipFilter.Header.BlockHash, tipFilter.Header.Height + 1, DateTimeOffset.UtcNow);
+			var header = filter.GetHeader(tipFilter.Header.HeaderOrPrevBlockHash);
+			var smartHeader = new SmartHeader(block.GetHash(), header, tipFilter.Header.Height + 1, DateTimeOffset.UtcNow);
 			filters.Add(new FilterModel(smartHeader, filter));
 		}
 

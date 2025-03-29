@@ -4,10 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
@@ -72,23 +70,23 @@ public partial class HealthMonitor : ReactiveObject
 
 		// Tor Status
 		Services.EventBus.AsObservable<TorConnectionStateChanged>()
-							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Select(status => (UseTor, status.IsTorRunning) switch
-							 {
-								 (TorMode.Disabled, _) => TorStatus.TurnedOff,
-								 (_, true) => TorStatus.Running,
-								 (_, false) => TorStatus.NotRunning
-							 })
-							 .BindTo(this, x => x.TorStatus)
-							 .DisposeWith(Disposables);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(status => (UseTor, status.IsTorRunning) switch
+			{
+				(TorMode.Disabled, _) => TorStatus.TurnedOff,
+				(_, true) => TorStatus.Running,
+				(_, false) => TorStatus.NotRunning
+			})
+			.BindTo(this, x => x.TorStatus)
+			.DisposeWith(Disposables);
 
 		// Backend Status
 		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
-							 .ObserveOn(RxApp.MainThreadScheduler)
-							 .Do(x => IsConnectionIssueDetected = !x.IsBackendAvailable)
-							 .Select(x => x.IsBackendAvailable ? BackendStatus.Connected : BackendStatus.NotConnected)
-							 .BindTo(this, x => x.BackendStatus)
-							 .DisposeWith(Disposables);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(x => IsConnectionIssueDetected = !x.IsBackendAvailable)
+			.Select(x => x.IsBackendAvailable ? BackendStatus.Connected : BackendStatus.NotConnected)
+			.BindTo(this, x => x.BackendStatus)
+			.DisposeWith(Disposables);
 
 		// Backend compatibility
 		Services.EventBus.AsObservable<BackendIncompatibilityDetected>()
@@ -100,30 +98,36 @@ public partial class HealthMonitor : ReactiveObject
 		// Tor Issues
 		var issues =
 			torStatusChecker.Issues
-							.Select(r => r.Where(issue => !issue.Resolved).ToList())
-							.ObserveOn(RxApp.MainThreadScheduler)
-							.Publish();
+			.Select(r => r.Where(issue => !issue.Resolved).ToList())
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Publish();
 
 		_torIssues = issues.ToProperty(this, m => m.TorIssues);
 
 		issues.Connect()
-			  .DisposeWith(Disposables);
+			.DisposeWith(Disposables);
 
 		// Peers
 		Observable.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
-				  .Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
-				  .Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Select(_ =>
-					  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
-				  .BindTo(this, x => x.Peers)
-				  .DisposeWith(Disposables);
+			.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
+			.Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(_ =>
+				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+			.BindTo(this, x => x.Peers)
+			.DisposeWith(Disposables);
 
 		// Bitcoin Core Status
-		if (UseBitcoinRpc)
-		{
-			Task.Run(WaitForRpcMonitorAsync);
-		}
+		Services.EventBus.AsObservable<RpcStatusChanged>()
+			.Select(x => x.Status)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x =>
+			{
+				BitcoinRpcStatus = x;
+				IsBitcoinCoreSynchronizingOrConnecting = x is RpcStatus.Responsive { Synchronized: false };
+				IsBitcoinCoreIssueDetected = x is RpcStatus.Unresponsive;
+			})
+			.DisposeWith(Disposables);
 
 		// Is P2P Connected
 		// The source of the p2p connection comes from if we use Core for it or the network.
@@ -208,40 +212,10 @@ public partial class HealthMonitor : ReactiveObject
 		{
 			return HealthMonitorState.Ready;
 		}
-
-		return HealthMonitorState.Loading;
-	}
-
-	/// <summary>
-	/// Loops until the RpcMonitor Service is online and then binds the BitcoinCoreStatus property
-	/// </summary>
-	private async Task WaitForRpcMonitorAsync()
-	{
-		while (!Disposables.IsDisposed)
+		if (UseBitcoinRpc && (BitcoinRpcStatus?.Synchronized ?? false))
 		{
-			var rpcMonitor = Services.HostedServices.GetOrDefault<RpcMonitor>();
-			if (rpcMonitor is { })
-			{
-				Observable.FromEventPattern<RpcStatus>(rpcMonitor, nameof(rpcMonitor.RpcStatusChanged))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Select(x => x.EventArgs)
-					.Do(x =>
-					{
-						BitcoinRpcStatus = x;
-						IsBitcoinCoreSynchronizingOrConnecting = x is { Success: true, Synchronized: false };
-						IsBitcoinCoreIssueDetected = x is { Success: false };
-					})
-					.Subscribe()
-					.DisposeWith(Disposables);
-
-				BitcoinRpcStatus = rpcMonitor.RpcStatus;
-				IsBitcoinCoreSynchronizingOrConnecting = BitcoinRpcStatus is { Success: true, Synchronized: false };
-				IsBitcoinCoreIssueDetected = BitcoinRpcStatus is { Success: false };
-
-				return;
-			}
-
-			await Task.Delay(TimeSpan.FromSeconds(1));
+			return HealthMonitorState.Ready;
 		}
+		return HealthMonitorState.Loading;
 	}
 }

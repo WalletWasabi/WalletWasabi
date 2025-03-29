@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Text;
 using System.Threading;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Backend.Models;
 
@@ -10,24 +9,13 @@ public class FilterModel
 {
 	private readonly Lazy<GolombRiceFilter> _filter;
 
-	public FilterModel(SmartHeader header, GolombRiceFilter filter, bool isBip158 = false)
+	private static readonly uint256 MinimunValidBlockHash =
+		uint256.Parse("0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
 		_filter = new(filter);
-		FilterData = isBip158
-			? ByteHelpers.Combine(filter.ToBytes(), [0x86, 0x68])
-			: filter.ToBytes();
-	}
-
-	private FilterModel(SmartHeader header, byte[] filterData)
-	{
-		Header = header;
-		FilterData = filterData;
-		var isBip158 = filterData is [.., 0x86, 0x68];
-		_filter = new(() => isBip158
-			? new GolombRiceFilter(filterData)
-			: new GolombRiceFilter(filterData, 20, 1 << 20)
-			, LazyThreadSafetyMode.ExecutionAndPublication);
+		FilterData = filter.ToBytes();
 	}
 
 	public SmartHeader Header { get; }
@@ -40,10 +28,12 @@ public class FilterModel
 	// is constructed.This ensures the key is deterministic while still varying from block to block.
 	public byte[] FilterKey => Header.BlockHash.ToBytes()[..16];
 
-	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 prevBlockHash, long blockTime)
-	{
-		return new FilterModel(new SmartHeader(blockHash, prevBlockHash, blockHeight, blockTime), filterData);
-	}
+	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 headerOrPrevBlockHash, long blockTime) =>
+		new (
+			new SmartHeader(blockHash, headerOrPrevBlockHash, blockHeight, blockTime),
+			headerOrPrevBlockHash > MinimunValidBlockHash
+				? new GolombRiceFilter(filterData)
+				: new GolombRiceFilter(filterData, 20, 1 << 20));
 
 	public static FilterModel FromLine(string line)
 	{

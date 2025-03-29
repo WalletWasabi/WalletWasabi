@@ -213,4 +213,9 @@ public class MockRpcClient : IRPCClient
 	{
 		throw new NotImplementedException();
 	}
+
+	public Task<bool> SupportsBlockFiltersAsync(CancellationToken cancellationToken)
+	{
+		throw new NotImplementedException();
+	}
 }

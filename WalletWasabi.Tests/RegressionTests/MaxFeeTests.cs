@@ -60,9 +60,9 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.BackendHttpClientFactory;
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, httpClientFactory, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
+		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
-
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
