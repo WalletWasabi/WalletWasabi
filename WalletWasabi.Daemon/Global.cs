@@ -109,7 +109,13 @@ public class Global
 			friendlyName: "Bitcoin P2P Network");
 
 		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
-		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), ()=> Config.FeeRateEstimationProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
+
+		FeeRateProvider feeRateProvider = config.FeeRateEstimationProvider.ToLower() switch
+		{
+			"mempoolspace" => FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory),
+			"blockstreaminfo" => FeeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory),
+			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'")
+		};
 
 		// Block providers.
 		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
@@ -120,7 +126,11 @@ public class Global
 			var bitcoinRpcEndPoint = config.GetBitcoinRpcEndPoint();
 			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToString(), Network));
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient), "RPC Monitor");
+			var rpcFeeProvider = FeeRateProviders.RpcAsync(BitcoinRpcClient);
+			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		}
+
+		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
 
 		_blockDownloadService = new BlockDownloadService(
 			fileSystemBlockRepository: BitcoinStore.BlockRepository,

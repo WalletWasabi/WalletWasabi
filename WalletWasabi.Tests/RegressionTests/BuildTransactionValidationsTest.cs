@@ -57,7 +57,7 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), 10000, bitcoinStore, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), setup.EventBus);
+		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);

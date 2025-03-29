@@ -40,7 +40,7 @@ public class WalletBuilder : IAsyncDisposable
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, new MempoolService(), smartHeaderChain, blockRepositoryMock);
 		Cache = new MemoryCache(new MemoryCacheOptions());
 		BlockDownloadService = new(BitcoinStore.BlockRepository, trustedFullNodeBlockProviders: [], p2pBlockProvider: null);
-		FeeRateEstimationUpdater = new(TimeSpan.Zero, ()=>"BlockstreamInfo", new HttpClientFactory(), EventBus);
+		FeeRateEstimationUpdater = new(TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), EventBus);
 	}
 
 	private EventBus EventBus { get; }
