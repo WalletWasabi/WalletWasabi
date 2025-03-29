@@ -1538,7 +1538,7 @@ public class TransactionProcessorTests
 
 	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore)
 	{
-		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
+		var keyManager = KeyManager.CreateNew(mnemonic: out _, "password", Network.Main);
 
 		return new TransactionProcessor(
 			transactionStore,

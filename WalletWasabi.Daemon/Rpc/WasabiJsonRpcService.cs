@@ -95,7 +95,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
 		walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
-		var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password);
+		// TODO: Add support for multi-share wallet backup
+		var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password, mnemonic: null);
 		Global.WalletManager.AddWallet(keyManager);
 		return mnemonic.ToString();
 	}

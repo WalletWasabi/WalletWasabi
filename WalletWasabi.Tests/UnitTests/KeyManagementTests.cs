@@ -21,7 +21,7 @@ public class KeyManagementTests
 		string password = "password";
 		var manager = KeyManager.CreateNew(out Mnemonic mnemonic, password, Network.Main);
 		var manager2 = KeyManager.CreateNew(out Mnemonic mnemonic2, "", Network.Main);
-		var manager3 = KeyManager.CreateNew(out _, "P@ssw0rdé", Network.Main);
+		var manager3 = KeyManager.CreateNew(mnemonic: out _, "P@ssw0rdé", Network.Main);
 
 		Assert.Equal(12, mnemonic.ToString().Split(' ').Length);
 		Assert.Equal(12, mnemonic2.ToString().Split(' ').Length);
@@ -99,7 +99,7 @@ public class KeyManagementTests
 	public void CanHandleGap()
 	{
 		string password = "password";
-		var manager = KeyManager.CreateNew(out _, password, Network.Main);
+		var manager = KeyManager.CreateNew(mnemonic: out _, password, Network.Main);
 
 		var lastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
 		manager.SetKeyState(KeyState.Used, lastKey);
@@ -120,7 +120,7 @@ public class KeyManagementTests
 		Assert.Throws<FileNotFoundException>(() => KeyManager.FromFile(filePath));
 		Logger.TurnOn();
 
-		var manager = KeyManager.CreateNew(out _, password, Network.Main, filePath);
+		var manager = KeyManager.CreateNew(mnemonic: out _, password, Network.Main, filePath);
 		KeyManager.FromFile(filePath);
 
 		manager.ToFile();
@@ -159,7 +159,7 @@ public class KeyManagementTests
 	public void CanSerializeHeightCorrectly()
 	{
 		var filePath = "wallet-serialization.json";
-		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		var manager = KeyManager.CreateNew(mnemonic: out _, "", Network.Main, filePath);
 		manager.SetBestHeight(10_000);
 		manager.ToFile();
 
@@ -174,7 +174,7 @@ public class KeyManagementTests
 	{
 		string password = "password";
 		var network = Network.Main;
-		var manager = KeyManager.CreateNew(out _, password, network);
+		var manager = KeyManager.CreateNew(mnemonic: out _, password, network);
 
 		var k1 = manager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, true);
 		Assert.Equal(LabelsArray.Empty, k1.Labels);
@@ -198,7 +198,7 @@ public class KeyManagementTests
 	{
 		string password = "password";
 		var network = Network.Main;
-		var manager = KeyManager.CreateNew(out _, password, network);
+		var manager = KeyManager.CreateNew(mnemonic: out _, password, network);
 
 		var labels = new LabelsArray("who-knows");
 		var segwitKey = manager.GetNextReceiveKey(labels, ScriptPubKeyType.Segwit);
@@ -210,7 +210,7 @@ public class KeyManagementTests
 	[Fact]
 	public void AlternatesScriptTypeForChange()
 	{
-		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
+		var keyManager = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
 		var keysForChange = Enumerable
 			.Range(0, 10)
 			.Select(_ =>
