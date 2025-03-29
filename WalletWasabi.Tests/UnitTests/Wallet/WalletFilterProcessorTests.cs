@@ -77,7 +77,7 @@ public class WalletFilterProcessorTests
 		using var realWallet = await builder.CreateRealWalletBasedOnTestWalletAsync(wallet, 2000);
 
 		// Process all but the last 4 which will be processed through events during the synchronization.
-		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(allFilters.Take(allFilters.Count - 4).Where(x => x.Header.Height > 101));
+		await realWallet.BitcoinStore.IndexStore.AddNewFiltersAsync(allFilters.Take(allFilters.Count - 4).Where(x => x.Header.Height > 102));
 
 		realWallet.BitcoinStore.IndexStore.NewFilters += (_, filters) => Wallet_NewFiltersEmulator(realWallet.WalletFilterProcessor);
 

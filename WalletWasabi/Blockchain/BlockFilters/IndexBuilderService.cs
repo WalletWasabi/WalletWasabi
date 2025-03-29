@@ -89,7 +89,7 @@ public class IndexBuilderService : BackgroundService
 				// if not rewind filters till we find the fork.
 				if (currentHash != block.PrevBlockHash)
 				{
-					Logger.LogWarning($"Reorg observed on the network. Expected prev hash {currentHash} but got {block.PrevBlockHash}");
+					Logger.LogWarning($"Reorg invalid block hash {currentHash} but got {block.PrevBlockHash} at {nextHeight}.");
 
 					await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
 					lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
@@ -185,9 +185,9 @@ public class IndexBuilderService : BackgroundService
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			if(_indexStorage.TryRemoveLast(out var removedFilter))
+			if(!_indexStorage.TryRemoveLast(out var removedFilter))
 			{
-				Logger.LogInfo($"REORG invalid block: {removedFilter.Header.BlockHash}");
+				Logger.LogInfo($"Failed to remove filter for REORG invalid block: {removedFilter.Header.BlockHash}");
 			}
 		}
 	}
