@@ -132,7 +132,7 @@ public class Global
 			var supportsBlockFilters = BitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
 			if (supportsBlockFilters)
 			{
-				filtersProvider = new BitcoinRpcFilterProvider(BitcoinRpcClient, EventBus);
+				filtersProvider = new BitcoinRpcFilterProvider(BitcoinRpcClient);
 			}
 
 			var rpcFeeProvider = FeeRateProviders.RpcAsync(BitcoinRpcClient);

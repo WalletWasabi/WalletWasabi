@@ -5,6 +5,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
@@ -85,7 +86,7 @@ public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpC
 	}
 }
 
-public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, EventBus eventBus) : ICompactFilterProvider
+public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFilterProvider
 {
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
@@ -93,21 +94,37 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, EventBus even
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
 		var stopAtHeight = fromHeight + nbOfFiltersToFetch;
-		for (var height = fromHeight+1; height <= stopAtHeight; height++)
+
+		try
 		{
-			var blockHash = await bitcoinRpcClient.GetBlockHashAsync((int)height, cancellationToken).ConfigureAwait(false);
-			var filterResponse = await bitcoinRpcClient.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			var realBlockHash = await bitcoinRpcClient.GetBlockHashAsync((int) fromHeight, cancellationToken) .ConfigureAwait(false);
+			if (realBlockHash != fromHash)
+			{
+				return new FiltersResponse.BestBlockUnknown();
+			}
 
-			var filter = new FilterModel(
-				new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
-				filterResponse.Filter);
+			for (var height = fromHeight + 1; height <= stopAtHeight; height++)
+			{
+				var blockHash = await bitcoinRpcClient.GetBlockHashAsync((int) height, cancellationToken)
+					.ConfigureAwait(false);
+				var filterResponse = await bitcoinRpcClient.GetBlockFilterAsync(blockHash, cancellationToken)
+					.ConfigureAwait(false);
 
-			filters.Add(filter);
+				var filter = new FilterModel(
+					new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
+					filterResponse.Filter);
+
+				filters.Add(filter);
+			}
+
+			return filters.Count == 0
+				? new FiltersResponse.AlreadyOnBestBlock()
+				: new FiltersResponse.NewFiltersAvailable(currentHeight, filters.ToArray());
 		}
-
-		return filters.Count == 0
-			? new FiltersResponse.AlreadyOnBestBlock()
-			: new FiltersResponse.NewFiltersAvailable(currentHeight, filters.ToArray());
+		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
+		{
+			return new FiltersResponse.BestBlockUnknown();
+		}
 	}
 }
 
