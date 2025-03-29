@@ -19,7 +19,7 @@ public class ExchangeRateProvider(IHttpClientFactory httpClientFactory)
 		("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy")),
 		("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price")),
 		("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid")),
-		("None", "", JsonPath("")),
+		("None", "", _ => 0),
 	];
 
 	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string userAgent, CancellationToken cancellationToken)
