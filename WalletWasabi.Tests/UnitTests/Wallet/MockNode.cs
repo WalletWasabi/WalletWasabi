@@ -3,12 +3,15 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
+public record MockNodeOptions(int BlockToGenerate);
 public class MockNode
 {
 	private MockNode()
@@ -26,6 +29,30 @@ public class MockNode
 				.ToArray());
 
 		Rpc.OnGetBlockAsync = (blockHash) => Task.FromResult(BlockChain[blockHash]);
+		Rpc.OnGetBlockHashAsync = (height) => Task.FromResult(BlockChain.Keys.ElementAt(height));
+		Rpc.OnGetVerboseBlockAsync = (blockHash) =>
+		{
+			var block = BlockChain[blockHash];
+			var height = BlockChain.TakeWhile(x => x.Key != blockHash).Count();
+			var blockInfo = new VerboseBlockInfo(
+				block.Header.HashPrevBlock,
+				(uint)height,
+				blockHash,
+				DateTimeOffset.UtcNow.AddMinutes(height * 10),
+				(uint)height,
+				[]);
+
+			return Task.FromResult(blockInfo);
+		};
+		Rpc.OnGetBestBlockHashAsync = () =>
+			Task.FromResult(BlockChain.Count == 0 ? Network.RegTest.GenesisHash : BlockChain.Last().Key);
+		Rpc.OnGetBlockchainInfoAsync = () => Task.FromResult(new BlockchainInfo
+		{
+			Headers = (uint) BlockChain.Count - 1,
+			Blocks = (uint) BlockChain.Count - 1,
+			BestBlockHash = BlockChain.Count == 1 ? Network.RegTest.GenesisHash : BlockChain.Last().Key,
+			InitialBlockDownload = false
+		});
 
 		Rpc.OnGetRawTransactionAsync = (txHash, _) => Task.FromResult(
 			BlockChain.Values
@@ -46,10 +73,12 @@ public class MockNode
 	public Dictionary<uint256, Transaction> Mempool { get; }
 	public TestWallet Wallet { get; }
 
-	public static async Task<MockNode> CreateNodeAsync()
+	public static async Task<MockNode> CreateNodeAsync(MockNodeOptions? options = null)
 	{
+		options ??= new MockNodeOptions(101);
 		var node = new MockNode();
-		await node.Wallet.GenerateAsync(101, CancellationToken.None).ConfigureAwait(false);
+		node.BlockChain[Network.RegTest.GenesisHash] = Network.RegTest.GetGenesis();
+		await node.Wallet.GenerateAsync(options.BlockToGenerate, CancellationToken.None).ConfigureAwait(false);
 		return node;
 	}
 
@@ -113,6 +142,6 @@ public class MockNode
 		return block;
 	}
 
-	public async Task GenerateBlockAsync(CancellationToken cancel) =>
+	public async Task<uint256[]> GenerateBlockAsync(CancellationToken cancel) =>
 		await Rpc.GenerateToAddressAsync(1, Wallet.GetNextDestination().ScriptPubKey.GetDestinationAddress(Network)!, cancel).ConfigureAwait(false);
 }

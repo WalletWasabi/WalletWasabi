@@ -191,7 +191,7 @@ public class BlockchainController : ControllerBase
 	[ProducesResponseType(400)]
 	[ProducesResponseType(404)]
 	[ResponseCache(Duration = 60)]
-	public IActionResult GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count)
+	public async Task<IActionResult> GetFilters([FromQuery, Required] string bestKnownBlockHash, [FromQuery, Required] int count, CancellationToken cancellationToken)
 	{
 		if (count <= 0)
 		{
@@ -200,7 +200,7 @@ public class BlockchainController : ControllerBase
 
 		var knownHash = new uint256(bestKnownBlockHash);
 
-		var (bestHeight, filters) = IndexBuilderService.GetFilterLinesExcluding(knownHash, count, out bool found);
+		var (bestHeight, filters, found) = await IndexBuilderService.GetFilterLinesExcludingAsync(knownHash, count, cancellationToken);
 
 		if (!found)
 		{
