@@ -42,11 +42,7 @@ public static class FeeRateProviders
 			httpClientFactory, PickRandomUserAgent(), MempoolSpaceHandler(), cancellationToken);
 
 	public static FeeRateProvider NoneAsync() =>
-		async _ =>
-		{
-			await Task.CompletedTask.ConfigureAwait(false);
-			return new FeeRateEstimations(new Dictionary<int, int>());
-		};
+		_ => Task.FromResult(new FeeRateEstimations(new Dictionary<int, int> ()));
 
 	public static FeeRateProvider RpcAsync(IRPCClient rpcClient) =>
 		async cancellationToken =>
