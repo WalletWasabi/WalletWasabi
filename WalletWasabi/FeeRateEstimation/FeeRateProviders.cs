@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
@@ -23,6 +24,7 @@ public static class FeeRateProviders
 	[
 		"BlockstreamInfo",
 		"MempoolSpace",
+		"None"
 	];
 
 	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker(false);
@@ -38,6 +40,9 @@ public static class FeeRateProviders
 			("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/"),
 			"/api/v1/fees/recommended",
 			httpClientFactory, PickRandomUserAgent(), MempoolSpaceHandler(), cancellationToken);
+
+	public static FeeRateProvider NoneAsync() =>
+		_ => Task.FromResult(new FeeRateEstimations(new Dictionary<int, int> ()));
 
 	public static FeeRateProvider RpcAsync(IRPCClient rpcClient) =>
 		async cancellationToken =>

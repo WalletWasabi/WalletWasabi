@@ -85,6 +85,9 @@ public static class Constants
 	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);
 	public static readonly EndPoint DefaultRegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinCoreRpcPort);
 
+	public static readonly string DefaultExchangeRateProvider = "MempoolSpace";
+	public static readonly string DefaultFeeRateEstimationProvider = "MempoolSpace";
+
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
 	public static readonly Version ClientVersion = new(2, 5, 1);

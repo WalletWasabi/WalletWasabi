@@ -114,7 +114,8 @@ public class Global
 		{
 			"mempoolspace" => FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory),
 			"blockstreaminfo" => FeeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory),
-			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'")
+			"" or "none" => FeeRateProviders.NoneAsync(),
+			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'. Default: '{Constants.DefaultFeeRateEstimationProvider}'")
 		};
 
 		// Block providers.
