@@ -19,17 +19,18 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
+public delegate Task<Result<FilterModel, uint256>> BlockFilterGenerator(
+	IRPCClient rpc, uint256 blockHash, uint blockHeight, uint256 expectedPrevHash, CancellationToken cancellationToken);
+
 // Parameters for controlling the service behavior
 public record IndexBuilderServiceOptions(
 	TimeSpan DelayForNodeToCatchUp,
 	TimeSpan DelayAfterEverythingIsDone,
-	TimeSpan DelayInCaseOfError);
+	TimeSpan DelayInCaseOfError,
+	BlockFilterGenerator GeneratorBlockFilter);
 
 public class IndexBuilderService : BackgroundService
 {
-	// Script used for dummy filters
-	public static readonly byte[][] DummyScript = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
-
 	// Dependencies
 	private readonly IRPCClient _rpcClient;
 	private readonly string _indexFilePath;
@@ -38,9 +39,13 @@ public class IndexBuilderService : BackgroundService
 	private readonly uint _startingHeight;
 	private readonly IndexBuilderServiceOptions _options;
 
+	private static readonly IndexBuilderServiceOptions DefaultIndexBuilderOptions =
+		new (TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1),
+			LegacyWasabiFilterGenerator.GenerateBlockFilterAsync);
+
 	public IndexBuilderService(IRPCClient rpc, string indexFilePath, IndexBuilderServiceOptions? options = null)
 	{
-		_options = options ?? new IndexBuilderServiceOptions(TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
+		_options = options ?? DefaultIndexBuilderOptions;
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
@@ -83,36 +88,33 @@ public class IndexBuilderService : BackgroundService
 
 				var nextHeight = currentHeight + 1;
 				var blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, stoppingToken).ConfigureAwait(false);
-				var block = await _rpcClient.GetVerboseBlockAsync(blockHash, stoppingToken ).ConfigureAwait(false);
 
-				// Check if we are still on the best chain,
-				// if not rewind filters till we find the fork.
-				if (currentHash != block.PrevBlockHash)
-				{
-					Logger.LogWarning($"Reorg invalid block hash {currentHash} but got {block.PrevBlockHash} at {nextHeight}.");
+				var blockFilterResult = await _options.GeneratorBlockFilter(_rpcClient, blockHash, nextHeight, currentHash, stoppingToken).ConfigureAwait(false);
+				lastFilter = await blockFilterResult.Match(
+					async filterModel =>
+					{
+						using (await _indexLock.LockAsync(stoppingToken).ConfigureAwait(false))
+						{
+							_indexStorage.TryAppend(filterModel);
+						}
 
-					await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
-					lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
+						// If not close to the tip, just log debug.
+						var logLevel = blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0
+							? LogLevel.Info
+							: LogLevel.Debug;
+						Logger.Log(logLevel, $"Created filter for block: {nextHeight}  {blockHash}.");
 
-					// Skip the current block.
-					continue;
-				}
+						return filterModel;
+					},
+					async realPrevBlockHash =>
+					{
+						Logger.LogWarning(
+							$"Reorg invalid block hash {currentHash} but got {realPrevBlockHash} at {nextHeight}.");
 
-				var filter = BuildFilterForBlock(block);
-
-				var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, nextHeight, block.BlockTime);
-				var filterModel = new FilterModel(smartHeader, filter);
-
-				using (await _indexLock.LockAsync(stoppingToken).ConfigureAwait(false))
-				{
-					_indexStorage.TryAppend(filterModel);
-				}
-
-				// If not close to the tip, just log debug.
-				var logLevel = blockchainInfo.Blocks - nextHeight <= 3 || nextHeight % 100 == 0 ? LogLevel.Info : LogLevel.Debug;
-				Logger.Log(logLevel, $"Created filter for block: {nextHeight}  {blockHash}.");
-
-				lastFilter = filterModel;
+						await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
+						lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
+						return lastFilter ?? throw new InvalidOperationException("There is no blocks in available!");
+					}).ConfigureAwait(false);
 			}
 			catch (OperationCanceledException) // Do not log because it was requested by the user
 			{
@@ -127,6 +129,90 @@ public class IndexBuilderService : BackgroundService
 			}
 		}
 	}
+
+	private async Task ReorgOneAsync(CancellationToken cancellationToken)
+	{
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			if(!_indexStorage.TryRemoveLast(out var removedFilter))
+			{
+				Logger.LogInfo($"Failed to remove filter for REORG invalid block: {removedFilter.Header.BlockHash}");
+			}
+		}
+	}
+
+	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
+	{
+		try
+		{
+			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
+		}
+		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
+		{
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
+
+			File.Delete(_indexFilePath);
+			throw;
+		}
+	}
+
+	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
+	{
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
+			if (filterModels.Count > 0)
+			{
+				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
+			}
+
+			var lastFilter = GetLastFilterNoLock();
+			return  lastFilter is null
+				? (new Height(HeightType.Unknown), [], false)
+				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
+		}
+	}
+
+	public async Task<FilterModel?> GetLastFilterAsync(CancellationToken cancellationToken)
+	{
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
+		{
+			return GetLastFilterNoLock();
+		}
+	}
+
+	private FilterModel? GetLastFilterNoLock()
+	{
+		// Note: This method should be called with the lock already acquired (for tests it is okay)
+		var lastFilterList = _indexStorage.FetchLast(1).ToList();
+		return lastFilterList.Count == 0 ? null : lastFilterList[0];
+	}
+
+	public override async Task StopAsync(CancellationToken cancellationToken)
+	{
+		// Then stop the background service
+		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+	}
+}
+
+public static class LegacyWasabiFilterGenerator
+{
+	public static async Task<Result<FilterModel,uint256>> GenerateBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedPrevHash, CancellationToken cancellationToken)
+	{
+		var block = await rpcClient.GetVerboseBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+		if (expectedPrevHash != block.PrevBlockHash)
+		{
+			return Result<FilterModel, uint256>.Fail(block.PrevBlockHash);
+		}
+
+		var filter = BuildFilterForBlock(block);
+		var smartHeader = new SmartHeader(block.Hash, block.PrevBlockHash, blockHeight, block.BlockTime);
+		var filterModel = new FilterModel(smartHeader, filter);
+		return filterModel;
+	}
+
+	// Script used for dummy filters
+	public static readonly byte[][] DummyScript = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
 
 	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
 	{
@@ -181,32 +267,6 @@ public class IndexBuilderService : BackgroundService
 		return scripts;
 	}
 
-	private async Task ReorgOneAsync(CancellationToken cancellationToken)
-	{
-		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			if(!_indexStorage.TryRemoveLast(out var removedFilter))
-			{
-				Logger.LogInfo($"Failed to remove filter for REORG invalid block: {removedFilter.Header.BlockHash}");
-			}
-		}
-	}
-
-	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
-	{
-		try
-		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: _indexFilePath, startingFilter: StartingFilters.GetStartingFilter(_rpcClient.Network));
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_indexFilePath}'.");
-
-			File.Delete(_indexFilePath);
-			throw;
-		}
-	}
-
 	public static GolombRiceFilter CreateDummyEmptyFilter(uint256 blockHash)
 	{
 		return new GolombRiceFilterBuilder()
@@ -215,44 +275,6 @@ public class IndexBuilderService : BackgroundService
 			.SetM(1 << 20)
 			.AddEntries(DummyScript)
 			.Build();
-	}
-
-	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
-	{
-		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
-			if (filterModels.Count > 0)
-			{
-				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
-			}
-
-			var lastFilter = GetLastFilterNoLock();
-			return  lastFilter is null
-				? (new Height(HeightType.Unknown), [], false)
-				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
-		}
-	}
-
-	public async Task<FilterModel?> GetLastFilterAsync(CancellationToken cancellationToken)
-	{
-		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-		{
-			return GetLastFilterNoLock();
-		}
-	}
-
-	private FilterModel? GetLastFilterNoLock()
-	{
-		// Note: This method should be called with the lock already acquired (for tests it is okay)
-		var lastFilterList = _indexStorage.FetchLast(1).ToList();
-		return lastFilterList.Count == 0 ? null : lastFilterList[0];
-	}
-
-	public override async Task StopAsync(CancellationToken cancellationToken)
-	{
-		// Then stop the background service
-		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }
 

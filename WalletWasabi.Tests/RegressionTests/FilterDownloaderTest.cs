@@ -78,7 +78,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 				var filter = filters[i];
 				Assert.Equal(i, (int)filter.Header.Height);
 				Assert.Equal(expectedHash, filter.Header.BlockHash);
-				Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
+				Assert.Equal(LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 			}
 		}
 		finally

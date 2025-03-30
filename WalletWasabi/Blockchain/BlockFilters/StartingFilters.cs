@@ -20,7 +20,7 @@ public static class StartingFilters
 		}
 		else if (network == Network.RegTest)
 		{
-			GolombRiceFilter filter = IndexBuilderService.CreateDummyEmptyFilter(startingHeader.BlockHash);
+			GolombRiceFilter filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(startingHeader.BlockHash);
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter}:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
 		}
 		else

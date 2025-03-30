@@ -25,7 +25,9 @@ public class IndexBuilderServiceTests
 	private readonly IndexBuilderServiceOptions _options = new(
 		DelayForNodeToCatchUp: TimeSpan.FromMilliseconds(50),
 		DelayAfterEverythingIsDone: TimeSpan.FromMilliseconds(50),
-		DelayInCaseOfError: TimeSpan.FromMilliseconds(50));
+		DelayInCaseOfError: TimeSpan.FromMilliseconds(50),
+		LegacyWasabiFilterGenerator.GenerateBlockFilterAsync
+		);
 
 	public IndexBuilderServiceTests(ITestOutputHelper testOutputHelper)
 	{
@@ -116,7 +118,7 @@ public class IndexBuilderServiceTests
 		var getBlockRpcRawResponse = File.ReadAllText("./UnitTests/Data/VerboseBlock.json");
 
 		var block = RpcParser.ParseVerboseBlockResponse(getBlockRpcRawResponse);
-		var filter = IndexBuilderService.BuildFilterForBlock(block);
+		var filter = LegacyWasabiFilterGenerator.BuildFilterForBlock(block);
 
 		var txOutputs = block.Transactions.SelectMany(x => x.Outputs);
 		var prevTxOutputs = block.Transactions.SelectMany(x => x.Inputs.OfType<VerboseInputInfo.Full>().Select(y => y.PrevOut));
