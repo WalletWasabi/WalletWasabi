@@ -42,7 +42,9 @@ public class RegTestFixture : IDisposable
 			IndexerRegTestNode.RpcClient.CredentialString.ToString(),
 			new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 			new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
-			IndexerRegTestNode.RpcEndPoint);
+			IndexerRegTestNode.RpcEndPoint,
+			Constants.DefaultFilterType
+			);
 		config.ToFile();
 
 		var conf = new ConfigurationBuilder()
