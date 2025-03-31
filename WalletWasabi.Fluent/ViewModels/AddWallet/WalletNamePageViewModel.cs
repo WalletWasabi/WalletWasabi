@@ -58,7 +58,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 				break;
 
 			case WalletCreationOptions.RecoverWallet rec:
-				Navigate().To().RecoverWallet(rec);
+				Navigate().To().WalletBackupType(rec);
 				break;
 
 			case WalletCreationOptions.ImportWallet imp:

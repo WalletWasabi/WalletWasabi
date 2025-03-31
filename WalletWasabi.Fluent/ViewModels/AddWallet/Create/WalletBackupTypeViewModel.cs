@@ -13,7 +13,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 	[AutoNotify] private WalletBackupType _walletBackupType;
 	[AutoNotify] private List<WalletBackupType> _walletBackupTypes;
 
-	private WalletBackupTypeViewModel(WalletCreationOptions.AddNewWallet options)
+	private WalletBackupTypeViewModel(WalletCreationOptions options)
 	{
 		_walletBackupTypes = [
 			new WalletBackupType.RecoveryWords(),
@@ -29,28 +29,66 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 		CancelCommand = ReactiveCommand.Create(OnCancel);
 	}
 
-	private void OnNext(WalletCreationOptions.AddNewWallet options)
+	private void OnNext(WalletCreationOptions options)
 	{
 		switch (_walletBackupType)
 		{
 			case WalletBackupType.RecoveryWords:
-				var recoveryWordsBackup = options.WalletBackups?.FirstOrDefault(x => x is RecoveryWordsBackup);
-				options = options with
+			{
+				switch (options)
 				{
-					SelectedWalletBackup = recoveryWordsBackup
-				};
+					case WalletCreationOptions.AddNewWallet add:
+					{
+						var recoveryWordsBackup = add.WalletBackups?.FirstOrDefault(x => x is RecoveryWordsBackup);
+						add = add with
+						{
+							SelectedWalletBackup = recoveryWordsBackup
+						};
 
-				Navigate().To().RecoveryWords(options);
+						Navigate().To().RecoveryWords(add);
+						break;
+					}
+					case WalletCreationOptions.RecoverWallet rec:
+					{
+						Navigate().To().RecoverWallet(rec);
+						break;
+					}
+					default:
+					{
+						throw new ArgumentOutOfRangeException();
+					}
+				}
 				break;
+			}
 			case WalletBackupType.MultiShare:
-				var multiShareBackup = options.WalletBackups?.FirstOrDefault(x => x is MultiShareBackup);
-				options = options with
+			{
+				switch (options)
 				{
-					SelectedWalletBackup = multiShareBackup
-				};
+					case WalletCreationOptions.AddNewWallet add:
+					{
+						var multiShareBackup = add.WalletBackups?.FirstOrDefault(x => x is MultiShareBackup);
+						add = add with
+						{
+							SelectedWalletBackup = multiShareBackup
+						};
 
-				Navigate().To().MultiShareOptions(options);
+						Navigate().To().MultiShareOptions(add);
+						break;
+					}
+					case WalletCreationOptions.RecoverWallet rec:
+					{
+						// TODO:
+						break;
+					}
+					default:
+					{
+						throw new ArgumentOutOfRangeException();
+					}
+				}
+
+
 				break;
+			}
 			default:
 				throw new ArgumentOutOfRangeException();
 		}
