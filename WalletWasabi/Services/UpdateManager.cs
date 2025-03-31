@@ -13,7 +13,8 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.Tor.Http;
-using WalletWasabi.WebClients.Wasabi;
+using WalletWasabi.WebClients;
+using static WalletWasabi.WebClients.WasabiNostrClient;
 
 namespace WalletWasabi.Services;
 
@@ -21,12 +22,14 @@ public class UpdateManager : PeriodicRunner
 {
 	private const string ReleaseURL = "https://api.github.com/repos/WalletWasabi/WalletWasabi/releases/latest";
 
-	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, EventBus eventBus)
+	public UpdateManager(TimeSpan period, string dataDir, bool downloadNewVersion, HttpClient githubHttpClient, EventBus eventBus, WasabiNostrClient nostrClient)
 		: base(period)
 	{
 		_installerDir = Path.Combine(dataDir, "Installer");
 		_githubHttpClient = githubHttpClient;
 		_eventBus = eventBus;
+		_nostrClient = nostrClient;
+
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
 	}
@@ -36,6 +39,7 @@ public class UpdateManager : PeriodicRunner
 	private readonly string _installerDir;
 	private readonly HttpClient _githubHttpClient;
 	private readonly EventBus _eventBus;
+	private readonly WasabiNostrClient _nostrClient;
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private readonly bool _downloadNewVersion;
@@ -47,36 +51,39 @@ public class UpdateManager : PeriodicRunner
 	{
 		try
 		{
-			var result = await GetLatestReleaseFromGithubAsync(cancellationToken).ConfigureAwait(false);
-			Version availableMajorVersion = new(result.LatestClientVersion.Major,  result.LatestClientVersion.Minor,  result.LatestClientVersion.Build);
-
-			bool updateAvailable = Helpers.Constants.ClientVersion < availableMajorVersion;
-
-			if (!updateAvailable)
+			while (await _nostrClient.UpdateChannel.Reader.WaitToReadAsync(cancellationToken).ConfigureAwait(false))
 			{
-				// After updating Wasabi, remove old installer file.
-				Cleanup();
-				return;
-			}
+				NostrUpdateAssets nostrUpdateAssets = await _nostrClient.UpdateChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+				Version availableVersion = new(nostrUpdateAssets.Version.Major, nostrUpdateAssets.Version.Minor, nostrUpdateAssets.Version.Build);
 
-			UpdateStatus updateStatus = new()
-				{ClientVersion = availableMajorVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false};
+				bool updateAvailable = Helpers.Constants.ClientVersion < availableVersion;
+				if (Helpers.Constants.ClientVersion == availableVersion || !updateAvailable)
+				{
+					// After updating Wasabi, remove old installer file.
+					Cleanup();
+					return;
+				}
 
-			if (_downloadNewVersion)
-			{
-				(result.InstallerDownloadUrl, result.InstallerFileName) = GetAssetToDownload(result.AssetDownloadLinks);
-				(string installerPath, Version newVersion) = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
-				InstallerPath = installerPath;
-				Logger.LogInfo($"Version {newVersion} downloaded successfully.");
-				updateStatus.IsReadyToInstall = true;
-				updateStatus.ClientVersion = newVersion;
-				updateStatus.ClientUpToDate = false;
-			}
-			_eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+				UpdateStatus updateStatus = new()
+				{ ClientVersion = availableVersion, ClientUpToDate = !updateAvailable, IsReadyToInstall = false };
+
+				if (_downloadNewVersion)
+				{
+					(Asset asset,string filename, Uri sha256sumsUrl, Uri wasabiSigUrl) result = GetAssetToDownload(nostrUpdateAssets.Assets);
+					string installerPath = await GetInstallerAsync(result, cancellationToken).ConfigureAwait(false);
+					InstallerPath = installerPath;
+					Logger.LogInfo($"Version {availableVersion} downloaded successfully.");
+					updateStatus.IsReadyToInstall = true;
+					updateStatus.ClientVersion = availableVersion;
+					updateStatus.ClientUpToDate = false;
+				}
+				_eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+			}		
 		}
 		catch (OperationCanceledException ex)
 		{
 			Logger.LogTrace("Getting new update was canceled.", ex);
+			Cleanup();
 		}
 		catch (InvalidOperationException ex)
 		{
@@ -96,14 +103,14 @@ public class UpdateManager : PeriodicRunner
 	/// <summary>
 	/// Get or download installer for the newest release.
 	/// </summary>
-	private async Task<(string filePath, Version newVersion)> GetInstallerAsync(ReleaseInfo info, CancellationToken cancellationToken)
+	private async Task<string> GetInstallerAsync((Asset Asset, string FileName, Uri sha256sumsUrl, Uri wasabiSigUrl) asset, CancellationToken cancellationToken)
 	{
 		var sha256SumsFilePath = Path.Combine(_installerDir, "SHA256SUMS.asc");
 
 		// This will throw InvalidOperationException in case of invalid signature.
-		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, info.AssetDownloadLinks, cancellationToken).ConfigureAwait(false);
+		await DownloadAndValidateWasabiSignatureAsync(sha256SumsFilePath, asset.sha256sumsUrl, asset.wasabiSigUrl, cancellationToken).ConfigureAwait(false);
 
-		var installerFilePath = Path.Combine(_installerDir, info.InstallerFileName);
+		var installerFilePath = Path.Combine(_installerDir, asset.FileName);
 
 		try
 		{
@@ -111,10 +118,10 @@ public class UpdateManager : PeriodicRunner
 			{
 				EnsureToRemoveCorruptedFiles();
 
-				Logger.LogInfo($"Trying to download new version: {info.LatestClientVersion}");
+				Logger.LogInfo($"Trying to download new version.");
 
 				// Get file stream and copy it to downloads folder to access.
-				using HttpRequestMessage request = new(HttpMethod.Get, info.InstallerDownloadUrl);
+				using HttpRequestMessage request = new(HttpMethod.Get, asset.Asset.DownloadUri);
 				using HttpResponseMessage response = await _githubHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
@@ -123,7 +130,7 @@ public class UpdateManager : PeriodicRunner
 				using MemoryStream stream = new(installerFileBytes);
 				await CopyStreamContentToFileAsync(stream, installerFilePath, cancellationToken).ConfigureAwait(false);
 			}
-			string expectedHash = await GetHashFromSha256SumsFileAsync(info.InstallerFileName, sha256SumsFilePath).ConfigureAwait(false);
+			string expectedHash = await GetHashFromSha256SumsFileAsync(asset.FileName, sha256SumsFilePath).ConfigureAwait(false);
 			await VerifyInstallerHashAsync(installerFilePath, expectedHash, cancellationToken).ConfigureAwait(false);
 		}
 		catch (IOException)
@@ -132,7 +139,7 @@ public class UpdateManager : PeriodicRunner
 			throw;
 		}
 
-		return (installerFilePath, info.LatestClientVersion);
+		return installerFilePath;
 	}
 
 	private async Task VerifyInstallerHashAsync(string installerFilePath, string expectedHash, CancellationToken cancellationToken)
@@ -198,11 +205,9 @@ public class UpdateManager : PeriodicRunner
 		return new ReleaseInfo(githubVersion, assetDownloadLinks);
 	}
 
-	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, List<string> assetDownloadLinks, CancellationToken cancellationToken)
+	private async Task DownloadAndValidateWasabiSignatureAsync(string sha256SumsFilePath, Uri sha256SumsUrl, Uri wasabiSigUrl, CancellationToken cancellationToken)
 	{
 		var wasabiSigFilePath = Path.Combine(_installerDir, "SHA256SUMS.wasabisig");
-		string sha256SumsUrl = assetDownloadLinks.First(url => url.Contains("SHA256SUMS.asc"));
-		string wasabiSigUrl = assetDownloadLinks.First(url => url.Contains("SHA256SUMS.wasabisig"));
 
 		try
 		{
@@ -243,23 +248,26 @@ public class UpdateManager : PeriodicRunner
 		}
 	}
 
-	private (string url, string fileName) GetAssetToDownload(List<string> assetDownloadLinks)
+	private (Asset asset, string fileName, Uri sha256sumsUrl, Uri wasabiSigUrl) GetAssetToDownload(List<Asset> assets)
 	{
+		Uri sha256SumsUrl = assets.First(asset => asset.Name.Equals("SHA256SUMS.asc")).DownloadUri;
+		Uri wasabiSigUrl = assets.First(asset => asset.Name.Equals("SHA256SUMS.wasabisig")).DownloadUri;
+
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var url = assetDownloadLinks.First(url => url.Contains(".msi"));
-			return (url, url.Split("/").Last());
+			Asset msiAsset = assets.First(asset => asset.Name.Equals(".msi"));
+			return (msiAsset, msiAsset.DownloadUri.ToString().Split("/").Last(), sha256SumsUrl, wasabiSigUrl);
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
 		{
 			var cpu = RuntimeInformation.ProcessArchitecture;
 			if (cpu.ToString() == "Arm64")
 			{
-				var arm64url = assetDownloadLinks.First(url => url.Contains("arm64.dmg"));
-				return (arm64url, arm64url.Split("/").Last());
+				Asset arm64Asset = assets.First(asset => asset.Name.Equals("arm64.dmg"));
+				return (arm64Asset, arm64Asset.DownloadUri.ToString().Split("/").Last(), sha256SumsUrl, wasabiSigUrl);
 			}
-			var url = assetDownloadLinks.First(url => url.Contains(".dmg") && !url.Contains("arm64"));
-			return (url, url.Split("/").Last());
+			Asset dmgAsset = assets.First(asset => asset.Name.Equals(".dmg"));
+			return (dmgAsset, dmgAsset.DownloadUri.ToString().Split("/").Last(), sha256SumsUrl, wasabiSigUrl);
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{
