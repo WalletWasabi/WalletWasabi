@@ -6,15 +6,16 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 

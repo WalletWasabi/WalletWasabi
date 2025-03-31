@@ -22,7 +22,7 @@ public partial class AboutAdvancedInfoViewModel : DialogViewModelBase<System.Rea
 
 	public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
 
-	public string CurrentBackendMajorVersion => WasabiClient.ApiVersion.ToString();
+	public string CurrentBackendMajorVersion => IndexerClient.ApiVersion.ToString();
 
 	protected override void OnDialogClosed()
 	{

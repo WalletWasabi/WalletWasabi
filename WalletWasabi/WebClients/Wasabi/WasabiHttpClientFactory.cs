@@ -121,7 +121,7 @@ public class CoordinatorHttpClientFactory : IHttpClientFactory
 	}
 }
 
-public class BackendHttpClientFactory(Uri baseAddress, IHttpClientFactory internalHttpClientFactory)
+public class IndexerHttpClientFactory(Uri baseAddress, IHttpClientFactory internalHttpClientFactory)
 	: IHttpClientFactory
 {
 	public HttpClient CreateClient(string name)

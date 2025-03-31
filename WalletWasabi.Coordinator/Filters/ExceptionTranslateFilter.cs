@@ -3,7 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Filters;
 using WabiSabi.Crypto;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Coordinator.Filters;

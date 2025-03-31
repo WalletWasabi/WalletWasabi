@@ -4,14 +4,14 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.Extensions;
 using System.Net.Http;
 using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;

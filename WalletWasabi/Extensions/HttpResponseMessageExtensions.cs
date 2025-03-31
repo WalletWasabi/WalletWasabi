@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 
 namespace WalletWasabi.Extensions;
 

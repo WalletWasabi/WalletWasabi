@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client;

@@ -73,7 +73,7 @@ public class Global
 		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, blocks);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
-		BackendHttpClientFactory = new BackendHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
+		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
@@ -140,7 +140,7 @@ public class Global
 		}
 
 		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
-		HostedServices.Register<WasabiSynchronizer>(() => new WasabiSynchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
+		HostedServices.Register<Synchronizer>(() => new Synchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
 
 		_blockDownloadService = new BlockDownloadService(
 			fileSystemBlockRepository: BitcoinStore.BlockRepository,

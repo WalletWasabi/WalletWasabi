@@ -4,8 +4,8 @@ using System.Collections.Immutable;
 using WalletWasabi.Extensions;
 using System.Linq;
 using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 

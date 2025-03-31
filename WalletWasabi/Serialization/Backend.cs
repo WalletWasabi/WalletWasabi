@@ -72,12 +72,6 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<ExchangeRate> ExchangeRate =
-		Object(get => new ExchangeRate {
-			Ticker = get.Required("ticker", String),
-			Rate = get.Required("rate", Decimal)
-		});
-
 	public static readonly Decoder<AllFeeEstimate> AllFeeEstimate =
 		Object(get => new AllFeeEstimate(
 			get.Required("estimations", Dictionary(Int)).ToDictionary(x => int.Parse(x.Key), x => x.Value)
@@ -91,13 +85,4 @@ public static partial class Decode
 			get.Required("bestHeight", Int),
 			get.Required("filters", Array(Filter))
 		));
-
-	public static readonly Decoder<SynchronizeResponse> SynchronizeResponse =
-		Object(get => new SynchronizeResponse {
-			FiltersResponseState = get.Required("filtersResponseState", Int.Map(x => (FiltersResponseState)x)),
-			Filters = get.Required("filters", Array(Filter)),
-			BestHeight = get.Required("bestHeight", Int),
-			AllFeeEstimate = get.Optional("allFeeEstimate", AllFeeEstimate ),
-			ExchangeRates = get.Required("exchangeRates", Array(ExchangeRate))
-		});
 }

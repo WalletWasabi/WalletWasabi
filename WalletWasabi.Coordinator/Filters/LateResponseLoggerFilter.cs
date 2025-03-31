@@ -1,6 +1,6 @@
 using Microsoft.AspNetCore.Mvc.Filters;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 
 namespace WalletWasabi.Coordinator.Filters;
 

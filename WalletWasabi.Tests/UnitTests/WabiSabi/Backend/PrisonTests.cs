@@ -3,7 +3,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;

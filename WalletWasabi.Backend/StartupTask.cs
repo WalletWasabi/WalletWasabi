@@ -7,7 +7,6 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Statistics;
 
 namespace WalletWasabi.Backend;
 

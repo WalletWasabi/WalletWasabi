@@ -18,15 +18,16 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Tests.UnitTests.WabiSabi;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.Helpers;
 

@@ -1,4 +1,4 @@
-using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 
 namespace WalletWasabi.WabiSabi.Models;
 

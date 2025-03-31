@@ -9,8 +9,8 @@ using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.JsonConverters.ReflectionUtils;
@@ -610,7 +610,7 @@ public static partial class Decode
 		));
 
 	private static readonly Decoder<EmptyExceptionData> EmptyExceptionData =
-		Succeed(WabiSabi.Backend.Models.EmptyExceptionData.Instance);
+		Succeed(WabiSabi.Coordinator.Models.EmptyExceptionData.Instance);
 
 	public static readonly Decoder<ExceptionData> ExceptionData =
 		Field("Type", String).AndThen(t => t switch

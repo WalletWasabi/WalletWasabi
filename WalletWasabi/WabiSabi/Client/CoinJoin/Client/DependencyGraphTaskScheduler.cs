@@ -9,8 +9,8 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Models;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 

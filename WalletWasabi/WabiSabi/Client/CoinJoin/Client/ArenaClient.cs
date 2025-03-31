@@ -7,7 +7,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Backend.PostRequests;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
