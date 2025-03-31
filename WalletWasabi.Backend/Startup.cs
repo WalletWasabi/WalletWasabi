@@ -87,7 +87,10 @@ public class Startup
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(
 				s.GetRequiredService<IRPCClient>(),
-				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite")
+				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite"),
+				config.FilterType == "legacy"
+					? LegacyWasabiFilterGenerator.GenerateBlockFilterAsync
+					: BitcoinRpcBip158FilterFetcher.FetchBlockFilterAsync
 				));
 		services.AddStartupTask<StartupTask>();
 		services.AddResponseCompression();

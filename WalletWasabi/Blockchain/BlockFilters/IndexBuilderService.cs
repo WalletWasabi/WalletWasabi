@@ -26,11 +26,12 @@ public delegate Task<Result<FilterModel, uint256>> BlockFilterGenerator(
 public record IndexBuilderServiceOptions(
 	TimeSpan DelayForNodeToCatchUp,
 	TimeSpan DelayAfterEverythingIsDone,
-	TimeSpan DelayInCaseOfError,
-	BlockFilterGenerator GeneratorBlockFilter);
+	TimeSpan DelayInCaseOfError);
 
 public class IndexBuilderService : BackgroundService
 {
+	private readonly BlockFilterGenerator? _generatorBlockFilter;
+
 	// Dependencies
 	private readonly IRPCClient _rpcClient;
 	private readonly string _indexFilePath;
@@ -40,12 +41,13 @@ public class IndexBuilderService : BackgroundService
 	private readonly IndexBuilderServiceOptions _options;
 
 	private static readonly IndexBuilderServiceOptions DefaultIndexBuilderOptions =
-		new (TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1),
-			LegacyWasabiFilterGenerator.GenerateBlockFilterAsync);
+		new (TimeSpan.FromSeconds(10), TimeSpan.FromMinutes(1), TimeSpan.FromSeconds(1));
 
-	public IndexBuilderService(IRPCClient rpc, string indexFilePath, IndexBuilderServiceOptions? options = null)
+	public IndexBuilderService(IRPCClient rpc, string indexFilePath, BlockFilterGenerator? generatorBlockFilter = null, IndexBuilderServiceOptions? options = null)
 	{
+		_generatorBlockFilter = generatorBlockFilter ?? LegacyWasabiFilterGenerator.GenerateBlockFilterAsync;
 		_options = options ?? DefaultIndexBuilderOptions;
+
 		_rpcClient = Guard.NotNull(nameof(rpc), rpc);
 
 		_indexFilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(indexFilePath), indexFilePath);
@@ -89,7 +91,7 @@ public class IndexBuilderService : BackgroundService
 				var nextHeight = currentHeight + 1;
 				var blockHash = await _rpcClient.GetBlockHashAsync((int)nextHeight, stoppingToken).ConfigureAwait(false);
 
-				var blockFilterResult = await _options.GeneratorBlockFilter(_rpcClient, blockHash, nextHeight, currentHash, stoppingToken).ConfigureAwait(false);
+				var blockFilterResult = await _generatorBlockFilter(_rpcClient, blockHash, nextHeight, currentHash, stoppingToken).ConfigureAwait(false);
 				lastFilter = await blockFilterResult.Match(
 					async filterModel =>
 					{
@@ -192,6 +194,22 @@ public class IndexBuilderService : BackgroundService
 	{
 		// Then stop the background service
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+	}
+}
+
+public static class BitcoinRpcBip158FilterFetcher
+{
+	public static async Task<Result<FilterModel, uint256>> FetchBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedHeader, CancellationToken cancellationToken)
+	{
+		var blockFilter = await rpcClient.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
+
+		if (expectedHeader != uint256.Zero && blockFilter.Filter.GetHeader(expectedHeader) != blockFilter.Header)
+		{
+			Logger.LogWarning("Reorg observed on the network.");
+		}
+		var smartHeader = new SmartHeader(blockHash, blockFilter.Header, blockHeight, DateTimeOffset.MinValue);
+		var filterModel = new FilterModel(smartHeader, blockFilter.Filter);
+		return filterModel;
 	}
 }
 

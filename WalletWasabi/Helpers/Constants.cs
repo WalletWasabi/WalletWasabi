@@ -158,4 +158,6 @@ public static class Constants
 	public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 		? ClientSupportBackendVersionMin
 		: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+
+	public static readonly string DefaultFilterType = "legacy";
 }
