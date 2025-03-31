@@ -2,6 +2,7 @@ using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Services;
@@ -45,18 +46,27 @@ public class EventBus
 
 	public void Publish<TEvent>(TEvent eventItem) where TEvent : notnull
 	{
-		List<Subscription>? allSubscriptions;
+		Subscription[] allSubscriptions;
 		lock (_syncObj)
 		{
-			if (!_subscriptions.TryGetValue(typeof(TEvent), out allSubscriptions))
+			if (!_subscriptions.TryGetValue(typeof(TEvent), out var subscriptions))
 			{
 				return;
 			}
+
+			allSubscriptions = subscriptions.ToArray();
 		}
 
 		foreach (var subscription in allSubscriptions)
 		{
-			subscription.Invoke(eventItem);
+			try
+			{
+				subscription.Invoke(eventItem);
+			}
+			catch (Exception ex)
+			{
+				Logger.LogError($"Error in event subscriber: {ex}");
+			}
 		}
 	}
 
