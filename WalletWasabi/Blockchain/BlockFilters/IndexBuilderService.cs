@@ -19,7 +19,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.BlockFilters;
 
-public delegate Task<Result<FilterModel, uint256>> BlockFilterGenerator(
+public delegate Task<Result<FilterModel, string>> BlockFilterGenerator(
 	IRPCClient rpc, uint256 blockHash, uint blockHeight, uint256 expectedPrevHash, CancellationToken cancellationToken);
 
 // Parameters for controlling the service behavior
@@ -108,10 +108,9 @@ public class IndexBuilderService : BackgroundService
 
 						return filterModel;
 					},
-					async realPrevBlockHash =>
+					async errorMessage =>
 					{
-						Logger.LogWarning(
-							$"Reorg invalid block hash {currentHash} but got {realPrevBlockHash} at {nextHeight}.");
+						Logger.LogWarning(errorMessage);
 
 						await ReorgOneAsync(stoppingToken).ConfigureAwait(false);
 						lastFilter = await GetLastFilterAsync(stoppingToken).ConfigureAwait(false);
@@ -199,13 +198,13 @@ public class IndexBuilderService : BackgroundService
 
 public static class BitcoinRpcBip158FilterFetcher
 {
-	public static async Task<Result<FilterModel, uint256>> FetchBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedHeader, CancellationToken cancellationToken)
+	public static async Task<Result<FilterModel, string>> FetchBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedHeader, CancellationToken cancellationToken)
 	{
 		var blockFilter = await rpcClient.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
 
 		if (expectedHeader != uint256.Zero && blockFilter.Filter.GetHeader(expectedHeader) != blockFilter.Header)
 		{
-			Logger.LogWarning("Reorg observed on the network.");
+			return Result<FilterModel, string>.Fail($"Reorg invalid block hash {blockHash} at {blockHeight}.");
 		}
 		var smartHeader = new SmartHeader(blockHash, blockFilter.Header, blockHeight, DateTimeOffset.MinValue);
 		var filterModel = new FilterModel(smartHeader, blockFilter.Filter);
@@ -215,12 +214,12 @@ public static class BitcoinRpcBip158FilterFetcher
 
 public static class LegacyWasabiFilterGenerator
 {
-	public static async Task<Result<FilterModel,uint256>> GenerateBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedPrevHash, CancellationToken cancellationToken)
+	public static async Task<Result<FilterModel,string>> GenerateBlockFilterAsync(IRPCClient rpcClient, uint256 blockHash, uint blockHeight, uint256 expectedPrevHash, CancellationToken cancellationToken)
 	{
 		var block = await rpcClient.GetVerboseBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 		if (expectedPrevHash != block.PrevBlockHash)
 		{
-			return Result<FilterModel, uint256>.Fail(block.PrevBlockHash);
+			return Result<FilterModel, string>.Fail($"Reorg invalid block hash {blockHash} but got {block.PrevBlockHash} at {blockHeight}.");
 		}
 
 		var filter = BuildFilterForBlock(block);
