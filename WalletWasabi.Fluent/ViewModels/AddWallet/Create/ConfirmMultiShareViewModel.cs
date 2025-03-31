@@ -198,16 +198,18 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			var password = await Navigate().To()
 				.CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
-			if (password is { })
+			if (password is null)
 			{
-				options = options with
-				{
-					SelectedWalletBackup = multiShareBackup with
-					{
-						Password = password
-					}
-				};
+				return;
 			}
+
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					Password = password
+				}
+			};
 
 			// TODO: Implement new wallet creation with Shares.
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
