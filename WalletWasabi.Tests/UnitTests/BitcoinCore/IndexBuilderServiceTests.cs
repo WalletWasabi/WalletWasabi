@@ -40,7 +40,7 @@ public class IndexBuilderServiceTests
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 0));
 		var rpc = node.Rpc;
-		using var indexer = new IndexBuilderService(rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
@@ -67,7 +67,7 @@ public class IndexBuilderServiceTests
 				InitialBlockDownload = true
 			});
 		};
-		using var indexer = new IndexBuilderService(rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
@@ -97,7 +97,7 @@ public class IndexBuilderServiceTests
 				InitialBlockDownload = true
 			});
 		};
-		using var indexer = new IndexBuilderService(rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
@@ -136,7 +136,7 @@ public class IndexBuilderServiceTests
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
 
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		await Task.Delay(TimeSpan.FromSeconds(0.5));
@@ -155,7 +155,7 @@ public class IndexBuilderServiceTests
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
 
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for processing
@@ -188,7 +188,7 @@ public class IndexBuilderServiceTests
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 5));
 
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for initial processing
@@ -264,7 +264,7 @@ public class IndexBuilderServiceTests
 	{
 		// Setup mock with 10 blocks
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 10));
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for processing
@@ -294,7 +294,7 @@ public class IndexBuilderServiceTests
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 2));
 
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 		var indexingStartTask = indexer.StartAsync(CancellationToken.None);
 
 		// Give time for initial processing
@@ -351,7 +351,7 @@ public class IndexBuilderServiceTests
 	public async Task DisposalCleansUpResourcesAsync()
 	{
 		var node = await MockNode.CreateNodeAsync(new MockNodeOptions(BlockToGenerate: 1));
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 
 		try
 		{
@@ -410,7 +410,7 @@ public class IndexBuilderServiceTests
 		};
 
 		// Create the indexer service
-		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath);
+		using var indexer = new IndexBuilderService(node.Rpc, _filtersPath, options: _options);
 
 		// Start the indexer
 		var indexingTask = indexer.StartAsync(CancellationToken.None);
