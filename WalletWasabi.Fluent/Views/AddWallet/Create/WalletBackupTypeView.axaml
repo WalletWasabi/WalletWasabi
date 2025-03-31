@@ -9,7 +9,7 @@
              x:DataType="create:WalletBackupTypeViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.WalletBackupTypeView">
   <ContentArea Title="{Binding Title}"
-               Caption="Select to optimal backup type for your wallet."
+               Caption="Select  your wallet backup type."
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
