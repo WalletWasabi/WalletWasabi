@@ -34,6 +34,7 @@ using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Daemon;
 
@@ -75,7 +76,8 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
+		WasabiNostr = new WasabiNostrClient(TorSettings.SocksEndpoint);
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus, WasabiNostr), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
@@ -183,6 +185,7 @@ public class Global
 
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public IHttpClientFactory BackendHttpClientFactory { get; }
+	public WasabiNostrClient WasabiNostr { get; }
 	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 
 	public string ConfigFilePath { get; }
@@ -253,6 +256,7 @@ public class Global
 					throw;
 				}
 
+				await WasabiNostr.InitializeNostrConnectionAsync(cancel).ConfigureAwait(false);
 				await _blockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
@@ -424,6 +428,7 @@ public class Global
 				}
 
 				Status.Dispose();
+				WasabiNostr.Dispose();
 
 				if (CoinPrison is { } coinPrison)
 				{

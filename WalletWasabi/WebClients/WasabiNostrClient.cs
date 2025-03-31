@@ -37,7 +37,7 @@ public class WasabiNostrClient : IDisposable
 					{
 						List<Asset> assets = new List<Asset>();
 						Version version = new Version(nostrEvent.Tags.First(tag => tag.TagIdentifier == "version").Data.First()) ?? throw new InvalidCastException("Version tag of nostr event couldn't be casted.");
-						/*
+
 						Asset arm64 = new("arm64.dmg", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == "arm64.dmg").Data.First()));
 						Asset arm64Asc = new("arm64.dmg.asc", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == "arm64.dmg.asc").Data.First()));
 						assets.Add(arm64);
@@ -74,16 +74,11 @@ public class WasabiNostrClient : IDisposable
 						assets.Add (linuxDeb);
 						assets.Add(linuxDebAsc);
 
-						
-
-						
-						*/
-
 						Asset msi = new(".msi", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == ".msi").Data.First()));
 						Asset msiAsc = new(".msi.asc", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == ".msi.asc").Data.First()));
 						assets.Add(msi);
 						assets.Add(msiAsc);
-						/*
+						
 						Asset winX64 = new("win-x64.zip", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == "win-x64.zip").Data.First()));
 						Asset winX64Asc = new("win-x64.zip.asc", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == "win-x64.zip.asc").Data.First()));
 						assets.Add(winX64);
@@ -94,8 +89,7 @@ public class WasabiNostrClient : IDisposable
 						Asset sha256sumsWasabisig = new("SHA256SUMS.wasabisig", new Uri(nostrEvent.Tags.First(tag => tag.TagIdentifier == "SHA256SUMS.wasabisig").Data.First()));
 						assets.Add(sha256sums);
 						assets.Add(sha256sumsAsc);
-						assets.Add(sha256sumsWasabisig);
-						*/
+						assets.Add(sha256sumsWasabisig);					
 
 						NostrUpdateAssets newUpdate = new(version, assets);
 						UpdateChannel.Writer.TryWrite(newUpdate);
@@ -123,7 +117,7 @@ public class WasabiNostrClient : IDisposable
 			await NostrWebClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
 
 			_nostrSubscriptionID = Guid.NewGuid().ToString();
-			await NostrWebClient.CreateSubscription(_nostrSubscriptionID, [new() { Kinds = [1], Authors = [defaultPubKeyHex] }], cancel).ConfigureAwait(false);
+			await NostrWebClient.CreateSubscription(_nostrSubscriptionID, [new() { Kinds = [1], Authors = [defaultPubKeyHex], Limit = 1 }], cancel).ConfigureAwait(false);
 
 		}
 		catch (Exception ex)
