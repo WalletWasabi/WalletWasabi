@@ -30,8 +30,10 @@ public class StartupTask
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 		// Make sure RPC works.
-		await AssertRpcNodeFullyInitializedAsync(cancellationToken).ConfigureAwait(false);
-		IndexBuilderService.Synchronize();
+		var assertRpcNodeTask = AssertRpcNodeFullyInitializedAsync(cancellationToken);
+		var startIndexingService = IndexBuilderService.StartAsync(cancellationToken);
+		await Task.WhenAll(assertRpcNodeTask, startIndexingService).ConfigureAwait(false);
+
 		Logger.LogInfo($"{nameof(IndexBuilderService)} is successfully initialized and started synchronization.");
 	}
 

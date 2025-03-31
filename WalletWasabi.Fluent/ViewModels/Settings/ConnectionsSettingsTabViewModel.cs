@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
-using System.Windows.Input;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -56,7 +54,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 	public IApplicationSettings Settings { get; }
 
 	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
-	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProvider.Providers.Select(x => x.Name);
+	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;
 	public IEnumerable<string> ExternalBroadcastProviders { get; }
 
 	public IEnumerable<TorMode> TorModes =>

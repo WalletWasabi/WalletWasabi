@@ -87,7 +87,6 @@ public class Startup
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(
 				s.GetRequiredService<IRPCClient>(),
-				s.GetRequiredService<BlockNotifier>(),
 				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite")
 				));
 		services.AddStartupTask<StartupTask>();

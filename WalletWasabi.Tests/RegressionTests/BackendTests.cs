@@ -84,16 +84,14 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
 		IRPCClient rpc = setup.RpcClient;
-		using var blockNotifier = new BlockNotifier(rpc);
-		IndexBuilderService indexBuilderService = new(rpc, blockNotifier, "filters.txt");
+		IndexBuilderService indexBuilderService = new(rpc, "filters.txt");
+		var startIndexingService = indexBuilderService.StartAsync(CancellationToken.None);
 		try
 		{
-			indexBuilderService.Synchronize();
-
 			// Test initial synchronization.
 			var times = 0;
 			uint256 firstHash = await rpc.GetBlockHashAsync(0);
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 101, out _).filters.Count() != 101)
+			while ((await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 101)).filters.Count() != 101)
 			{
 				if (times > 500) // 30 sec
 				{
@@ -106,29 +104,37 @@ public class BackendTests : IClassFixture<RegTestFixture>
 			// Test later synchronization.
 			await rpc.GenerateAsync(10);
 			times = 0;
-			while (indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found5).filters.Count() != 111)
+			var filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111);
+			while (filterResponse.filters.Count() != 111)
 			{
-				Assert.True(found5);
+				Assert.True(filterResponse.found);
 				if (times > 500) // 30 sec
 				{
 					throw new TimeoutException($"{nameof(IndexBuilderService)} test timed out.");
 				}
 				await Task.Delay(100);
 				times++;
+				filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111);
 			}
 
 			// Test correct number of filters is received.
 			var hundredthHash = await rpc.GetBlockHashAsync(100);
-			Assert.Equal(11, indexBuilderService.GetFilterLinesExcluding(hundredthHash, 11, out bool found).filters.Count());
-			Assert.True(found);
+			filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(hundredthHash, 11);
+			Assert.Equal(11, filterResponse.filters.Count());
+			Assert.True(filterResponse.found);
 			var bestHash = await rpc.GetBestBlockHashAsync();
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(bestHash, 1, out bool found2).filters);
-			Assert.Empty(indexBuilderService.GetFilterLinesExcluding(uint256.Zero, 1, out bool found3).filters);
-			Assert.False(found3);
+
+			filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(bestHash, 1);
+			Assert.Empty(filterResponse.filters);
+
+			filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(uint256.Zero, 1);
+			Assert.Empty(filterResponse.filters);
+			Assert.False(filterResponse.found);
 
 			// Test filter block hashes are correct.
-			var filters = indexBuilderService.GetFilterLinesExcluding(firstHash, 111, out bool found4).filters.ToArray();
-			Assert.True(found4);
+			filterResponse = await indexBuilderService.GetFilterLinesExcludingAsync(firstHash, 111);
+			Assert.True(filterResponse.found);
+			var filters = filterResponse.filters.ToArray();
 			for (int i = 0; i < 111; i++)
 			{
 				var expectedHash = await rpc.GetBlockHashAsync(i + 1);
@@ -138,7 +144,8 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			await indexBuilderService.StopAsync();
+			await startIndexingService;
+			await indexBuilderService.StopAsync(CancellationToken.None);
 		}
 	}
 }
