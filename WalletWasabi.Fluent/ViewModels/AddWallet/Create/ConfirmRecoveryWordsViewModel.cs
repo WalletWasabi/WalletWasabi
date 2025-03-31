@@ -151,18 +151,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (password is { })
+		options = options with
 		{
-			options = options with
+			SelectedWalletBackup = recoveryWordsBackup with
 			{
-				SelectedWalletBackup = recoveryWordsBackup with
-				{
-					Password = password
-				}
-			};
-		}
+				Password = password
+			}
+		};
 
-		var options = _options with { Password = password };
 		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 		Navigate().To().AddedWalletPage(walletSettings, options!);
 	}
