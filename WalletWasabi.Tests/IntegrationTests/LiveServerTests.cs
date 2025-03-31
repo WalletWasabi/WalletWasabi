@@ -44,16 +44,16 @@ public class LiveServerTests : IAsyncLifetime
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
-		WasabiClient client = MakeWasabiClient(network);
-		var backendMajorVersion = await client.GetBackendMajorVersionAsync(ctsTimeout.Token);
+		IndexerClient client = MakeIndexerClient(network);
+		var backendMajorVersion = await client.GetIndexerMajorVersionAsync(ctsTimeout.Token);
 		Assert.Equal(4, backendMajorVersion);
 	}
 
-	private WasabiClient MakeWasabiClient(Network network)
+	private IndexerClient MakeIndexerClient(Network network)
 	{
 		HttpClient httpClient = HttpClientFactory.CreateClient();
 		httpClient.BaseAddress =LiveServerTestsFixture.UriMappings[network];
-		return new WasabiClient(httpClient);
+		return new IndexerClient(httpClient);
 	}
 
 	public static IEnumerable<object[]> GetNetworks()

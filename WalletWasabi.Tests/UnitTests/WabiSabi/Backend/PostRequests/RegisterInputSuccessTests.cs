@@ -5,12 +5,13 @@ using System.Linq;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.Models;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.WabiSabi.Coordinator.Models;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests;
 

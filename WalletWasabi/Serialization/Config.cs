@@ -5,7 +5,7 @@ using NBitcoin;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Backend;
+using WalletWasabi.WabiSabi.Coordinator;
 
 namespace WalletWasabi.Serialization;
 

@@ -24,7 +24,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string RegTestCoordinatorUri { get; set; } = "";
 	public string MaxCoinJoinMiningFeeRate { get; set; } = "";
 	public string AbsoluteMinInputCount { get; set; } = "";
-	public string BackendUri { get; set; } = "";
+	public string IndexerUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
 	public string ExchangeRateProvider { get; set; } = "";
 	public string FeeRateEstimationProvider { get; set; } = "";

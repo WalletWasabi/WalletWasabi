@@ -35,7 +35,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// Advanced
 	[AutoNotify] private bool _enableGpu;
-	[AutoNotify] private string _backendUri;
+	[AutoNotify] private string _indexerUri;
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
@@ -92,7 +92,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
 	{
 		// Connections
-		BackendUri = persistentConfig.GetBackendUri();
+		IndexerUri = persistentConfig.GetIndexerUri();
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
@@ -156,7 +156,7 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.MainNetCoordinatorUri,
 					x => x.TestNetCoordinatorUri,
 					x => x.RegTestCoordinatorUri,
-					x => x.BackendUri,
+					x => x.IndexerUri,
 					x => x.ExchangeRateProvider,
 					x => x.FeeRateEstimationProvider,
 					x => x.ExternalTransactionBroadcaster,
@@ -287,15 +287,15 @@ public partial class ApplicationSettings : ReactiveObject
 
 			if (Network == Network.Main)
 			{
-				result = result with { MainNetBackendUri = BackendUri };
+				result = result with { MainNetIndexerUri = IndexerUri };
 			}
 			else if (Network == Network.TestNet)
 			{
-				result = result with { TestNetBackendUri = BackendUri };
+				result = result with { TestNetIndexerUri = IndexerUri };
 			}
 			else if (Network == Network.RegTest)
 			{
-				result = result with { RegTestBackendUri = BackendUri };
+				result = result with { RegTestIndexerUri = IndexerUri };
 			}
 			else
 			{
@@ -328,7 +328,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 			BitcoinRpcEndPoint = result.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
 			BitcoinRpcCredentialString = result.GetBitcoinRpcCredentialString();
-			BackendUri = result.GetBackendUri();
+			IndexerUri = result.GetIndexerUri();
 		}
 
 		// General

@@ -27,10 +27,10 @@ public class RegTestFixture : IDisposable
 	{
 		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
 		RuntimeParams.LoadAsync().GetAwaiter().GetResult();
-		BackendRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
+		IndexerRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 		var walletName = "wallet";
-		BackendRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
+		IndexerRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
 		var testnetBackendDir = Path.Combine(Common.DataDir, "RegTests", "Backend");
 		IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
@@ -38,50 +38,46 @@ public class RegTestFixture : IDisposable
 		Directory.CreateDirectory(testnetBackendDir);
 		Thread.Sleep(100);
 		var config = new Config(Path.Combine(testnetBackendDir, "Config.json"),
-			BackendRegTestNode.RpcClient.Network,
-			BackendRegTestNode.RpcClient.CredentialString.ToString(),
+			IndexerRegTestNode.RpcClient.Network,
+			IndexerRegTestNode.RpcClient.CredentialString.ToString(),
 			new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
 			new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
-			BackendRegTestNode.RpcEndPoint);
+			IndexerRegTestNode.RpcEndPoint);
 		config.ToFile();
 
 		var conf = new ConfigurationBuilder()
 			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetBackendDir) })
 			.Build();
-		BackendEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
-		BackendEndPointUri = new Uri(BackendEndPoint);
-		BackendEndPointApiUri = new Uri(BackendEndPointUri, $"api/v{Constants.BackendMajorVersion}/");
+		IndexerEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
+		IndexerEndPointUri = new Uri(IndexerEndPoint);
 
-		BackendHost = Host.CreateDefaultBuilder()
+		IndexerHost = Host.CreateDefaultBuilder()
 				.ConfigureWebHostDefaults(webBuilder => webBuilder
 						.UseStartup<Startup>()
 						.UseConfiguration(conf)
-						.UseUrls(BackendEndPoint))
+						.UseUrls(IndexerEndPoint))
 				.Build();
 
-		var hostInitializationTask = BackendHost.RunWithTasksAsync();
-		Logger.LogInfo($"Started Backend webhost: {BackendEndPoint}");
+		var hostInitializationTask = IndexerHost.RunWithTasksAsync();
+		Logger.LogInfo($"Started Indexer webhost: {IndexerEndPoint}");
 
-		BackendHttpClientFactory = new BackendHttpClientFactory(BackendEndPointUri, new HttpClientFactory());
+		IndexerHttpClientFactory = new IndexerHttpClientFactory(IndexerEndPointUri, new HttpClientFactory());
 
 		// Wait for server to initialize
 		var delayTask = Task.Delay(3000);
 		Task.WaitAny(delayTask, hostInitializationTask);
 	}
 
-	/// <summary>String representation of backend URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
-	public string BackendEndPoint { get; }
+	/// <summary>String representation of indexer URI: <c>http://localhost:RANDOM_PORT</c>.</summary>
+	public string IndexerEndPoint { get; }
 
 	/// <summary>URI in form: <c>http://localhost:RANDOM_PORT</c>.</summary>
-	public Uri BackendEndPointUri { get; }
+	public Uri IndexerEndPointUri { get; }
 
-	/// <summary>URI in form: <c>http://localhost:RANDOM_PORT/api/vAPI_VERSION</c>.</summary>
-	public Uri BackendEndPointApiUri { get; }
+	public IHost IndexerHost { get; }
+	public CoreNode IndexerRegTestNode { get; }
 
-	public IHost BackendHost { get; }
-	public CoreNode BackendRegTestNode { get; }
-
-	public IHttpClientFactory BackendHttpClientFactory { get; }
+	public IHttpClientFactory IndexerHttpClientFactory { get; }
 
 	protected virtual void Dispose(bool disposing)
 	{
@@ -89,9 +85,9 @@ public class RegTestFixture : IDisposable
 		{
 			if (disposing)
 			{
-				BackendHost.StopAsync().GetAwaiter().GetResult();
-				BackendHost.Dispose();
-				BackendRegTestNode.TryStopAsync().GetAwaiter().GetResult();
+				IndexerHost.StopAsync().GetAwaiter().GetResult();
+				IndexerHost.Dispose();
+				IndexerRegTestNode.TryStopAsync().GetAwaiter().GetResult();
 			}
 
 			_disposedValue = true;

@@ -5,7 +5,7 @@ using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 

@@ -39,13 +39,13 @@ public class Config
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
 			[ nameof(MainNetBackendUri)] = (
 				"The backend server's URL to connect to when the Bitcoin network is main",
-				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetBackendUri, cliArgs)),
+				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetIndexerUri, cliArgs)),
 			[ nameof(TestNetBackendUri)] = (
 				"The backend server's URL to connect to when the Bitcoin network is testnet",
-				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetBackendUri, cliArgs)),
+				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetIndexerUri, cliArgs)),
 			[ nameof(RegTestBackendUri)] = (
 				"The backend server's URL to connect to when the Bitcoin network is regtest",
-				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestBackendUri, cliArgs)),
+				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestIndexerUri, cliArgs)),
 			[ nameof(MainNetCoordinatorUri)] = (
 				"The coordinator server's URL to connect to when the Bitcoin network is main",
 				GetStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),

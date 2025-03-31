@@ -26,7 +26,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private int _priorityFee;
 	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
-	[AutoNotify] private BackendStatus _backendStatus;
+	[AutoNotify] private IndexerStatus _indexerStatus;
 	[AutoNotify] private bool _backendNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
@@ -80,16 +80,16 @@ public partial class HealthMonitor : ReactiveObject
 			.BindTo(this, x => x.TorStatus)
 			.DisposeWith(Disposables);
 
-		// Backend Status
-		Services.EventBus.AsObservable<BackendAvailabilityStateChanged>()
+		// Indexer Status
+		Services.EventBus.AsObservable<IndexerAvailabilityStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(x => IsConnectionIssueDetected = !x.IsBackendAvailable)
-			.Select(x => x.IsBackendAvailable ? BackendStatus.Connected : BackendStatus.NotConnected)
-			.BindTo(this, x => x.BackendStatus)
+			.Do(x => IsConnectionIssueDetected = !x.IsIndexerAvailable)
+			.Select(x => x.IsIndexerAvailable ? IndexerStatus.Connected : IndexerStatus.NotConnected)
+			.BindTo(this, x => x.IndexerStatus)
 			.DisposeWith(Disposables);
 
-		// Backend compatibility
-		Services.EventBus.AsObservable<BackendIncompatibilityDetected>()
+		// Indexer compatibility
+		Services.EventBus.AsObservable<IndexerIncompatibilityDetected>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => true)
 			.BindTo(this, x => x.BackendNotCompatible)
@@ -152,7 +152,7 @@ public partial class HealthMonitor : ReactiveObject
 		// State
 		this.WhenAnyValue(
 				x => x.TorStatus,
-				x => x.BackendStatus,
+				x => x.IndexerStatus,
 				x => x.BackendNotCompatible,
 				x => x.Peers,
 				x => x.BitcoinRpcStatus,
@@ -208,7 +208,7 @@ public partial class HealthMonitor : ReactiveObject
 		}
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
-		if (torConnected && BackendStatus == BackendStatus.Connected && IsP2pConnected)
+		if (torConnected && IndexerStatus == IndexerStatus.Connected && IsP2pConnected)
 		{
 			return HealthMonitorState.Ready;
 		}

@@ -3,13 +3,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend.Rounds;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using System.Net;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

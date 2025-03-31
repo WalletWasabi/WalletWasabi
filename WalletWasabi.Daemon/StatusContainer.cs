@@ -10,13 +10,13 @@ public class StatusContainer : IDisposable
 	public decimal UsdExchangeRate { get; private set; }
 	public FeeRateEstimations? FeeRates { get; private set; }
 	public int BestHeight { get; private set; }
-	public bool IsBackendAvailable { get; private set; }
+	public bool IsIndexerAvailable { get; private set; }
 
 	private readonly IDisposable _torConnectionSubscription;
 	private readonly IDisposable _feeRateSubscription;
 	private readonly IDisposable _exchangeRateSubscription;
 	private readonly IDisposable _bestHeightSubscription;
-	private readonly IDisposable _backendConnectionStatusSubscription;
+	private readonly IDisposable _indexerConnectionStatusSubscription;
 
 	public StatusContainer(EventBus eventBus)
 	{
@@ -32,8 +32,8 @@ public class StatusContainer : IDisposable
 		_bestHeightSubscription =
 			eventBus.Subscribe<ServerTipHeightChanged>(e => BestHeight = e.Height);
 
-		_backendConnectionStatusSubscription =
-			eventBus.Subscribe<BackendAvailabilityStateChanged>(e => IsBackendAvailable = e.IsBackendAvailable);
+		_indexerConnectionStatusSubscription =
+			eventBus.Subscribe<IndexerAvailabilityStateChanged>(e => IsIndexerAvailable = e.IsIndexerAvailable);
 	}
 
 
@@ -43,6 +43,6 @@ public class StatusContainer : IDisposable
 		_feeRateSubscription.Dispose();
 		_exchangeRateSubscription.Dispose();
 		_bestHeightSubscription.Dispose();
-		_backendConnectionStatusSubscription.Dispose();
+		_indexerConnectionStatusSubscription.Dispose();
 	}
 }

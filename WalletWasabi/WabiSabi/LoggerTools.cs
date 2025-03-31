@@ -1,6 +1,6 @@
 using System.Runtime.CompilerServices;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 

@@ -33,7 +33,7 @@ public class RegTestSetup : IAsyncDisposable
 	public RegTestSetup(RegTestFixture regTestFixture, string dir)
 	{
 		RegTestFixture = regTestFixture;
-		ServiceConfiguration = new ServiceConfiguration(regTestFixture.BackendRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration = new ServiceConfiguration(regTestFixture.IndexerRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
 
 		EventBus = new EventBus();
 		SmartHeaderChain smartHeaderChain = new();
@@ -48,7 +48,7 @@ public class RegTestSetup : IAsyncDisposable
 	public IndexStore IndexStore { get; }
 	public BitcoinStore BitcoinStore { get; }
 	public AllTransactionStore TransactionStore { get; }
-	public IRPCClient RpcClient => RegTestFixture.BackendRegTestNode.RpcClient;
+	public IRPCClient RpcClient => RegTestFixture.IndexerRegTestNode.RpcClient;
 	public Network Network => RpcClient.Network;
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public EventBus EventBus { get; }
@@ -80,7 +80,7 @@ public class RegTestSetup : IAsyncDisposable
 
 		while (true)
 		{
-			var client = new WasabiClient(RegTestFixture.BackendHttpClientFactory.CreateClient("test"));
+			var client = new IndexerClient(RegTestFixture.IndexerHttpClientFactory.CreateClient("test"));
 			var filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
 			Assert.NotNull(filtersResponse);
 

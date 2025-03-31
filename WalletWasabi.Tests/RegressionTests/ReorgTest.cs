@@ -29,14 +29,14 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 	private async Task WaitForIndexesToSyncAsync(TimeSpan timeout, BitcoinStore bitcoinStore)
 	{
-		var bestHash = await RegTestFixture.BackendRegTestNode.RpcClient.GetBestBlockHashAsync();
+		var bestHash = await RegTestFixture.IndexerRegTestNode.RpcClient.GetBestBlockHashAsync();
 
 		var times = 0;
 		while (bitcoinStore.SmartHeaderChain.TipHash != bestHash)
 		{
 			if (times > timeout.TotalSeconds)
 			{
-				throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Filter was not downloaded.");
+				throw new TimeoutException($"{nameof(Synchronizer)} test timed out. Filter was not downloaded.");
 			}
 			await Task.Delay(TimeSpan.FromSeconds(1));
 			times++;
@@ -67,8 +67,8 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
-		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
+		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
 
 		try
 		{

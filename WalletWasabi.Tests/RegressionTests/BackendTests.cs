@@ -27,7 +27,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	public BackendTests(RegTestFixture regTestFixture)
 	{
 		RegTestFixture = regTestFixture;
-		BackendApiHttpClient = regTestFixture.BackendHttpClientFactory.CreateClient("test");
+		BackendApiHttpClient = regTestFixture.IndexerHttpClientFactory.CreateClient("test");
 	}
 
 	private HttpClient BackendApiHttpClient { get; }
@@ -36,7 +36,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task GetClientVersionAsync()
 	{
-		WasabiClient client = new(BackendApiHttpClient);
+		IndexerClient client = new(BackendApiHttpClient);
 		var backendCompatible = await client.CheckUpdatesAsync(CancellationToken.None);
 		Assert.True(backendCompatible);
 	}

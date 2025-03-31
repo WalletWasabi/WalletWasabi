@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Backend.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;

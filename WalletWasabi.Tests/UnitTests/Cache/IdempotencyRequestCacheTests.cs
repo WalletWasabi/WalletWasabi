@@ -5,7 +5,7 @@ using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Cache;
-using WalletWasabi.WabiSabi.Backend.Models;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Cache;
