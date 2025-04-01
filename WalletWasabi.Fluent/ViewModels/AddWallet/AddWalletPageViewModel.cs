@@ -47,9 +47,6 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnCreateWallet()
 	{
-		// TODO: WithNewMnemonic() and maybe WindNewShare() should be moved after wallet backup type?
-		//       or we should initialize all possible backup types here and not just mnemonic.
-		// Maybe we should move to WalletBackupTypeViewModel.OnNext
 		var options = new WalletCreationOptions.AddNewWallet().WithNewWalletBackups();
 		Navigate().To().WalletNamePage(options);
 	}
