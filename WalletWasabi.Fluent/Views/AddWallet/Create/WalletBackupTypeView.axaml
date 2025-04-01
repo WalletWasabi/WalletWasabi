@@ -29,11 +29,9 @@
         <Style Selector="ListBox">
           <Setter Property="Background" Value="Transparent" />
         </Style>
-        <!-- TODO: Style the ListBoxItem -->
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
           <Setter Property="Cursor" Value="Hand" />
           <Setter Property="Padding" Value="12,0,12,0" />
-          <!-- TODO: Add help text -->
           <Setter Property="(ToolTip.Tip)"
                   Value="{Binding Description}" />
         </Style>
