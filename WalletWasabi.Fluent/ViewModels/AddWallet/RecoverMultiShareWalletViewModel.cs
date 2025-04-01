@@ -182,8 +182,6 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		// TODO: Initialize current share mnemonics.
-
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: enableCancel, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
 	}
