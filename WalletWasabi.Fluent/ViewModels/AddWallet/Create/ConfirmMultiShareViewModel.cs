@@ -211,7 +211,6 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 				}
 			};
 
-			// TODO: Implement new wallet creation with Shares.
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
