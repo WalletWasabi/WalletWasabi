@@ -20,7 +20,6 @@
       </MultiBinding>
     </ContentArea.Caption>
 
-    <!-- TODO: -->
     <DockPanel>
 
       <InfoMessage Opacity="0.5"
@@ -52,15 +51,7 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <!-- TODO: Automatically generated separators based of number of columns for words -->
-        <!--
-        <Grid ColumnDefinitions="*,1,*,1,*">
-          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
-          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
-        </Grid>
-        -->
       </Panel>
-
 
     </DockPanel>
 
