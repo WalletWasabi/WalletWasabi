@@ -1,0 +1,54 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:recoverWallet="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="recoverWallet:RecoverMultiShareWalletViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.RecoverMultiShareWalletView">
+  <ContentArea x:Name="RecoveryPageRoot"
+               Title="{Binding Title}"
+               Caption="{Binding Caption}"
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue"
+               IsBusy="{Binding IsBusy}">
+    <DockPanel>
+      <DockPanel DockPanel.Dock="Top">
+        <PathIcon Name="IconCheckmark"
+                  Margin="15 0 0 0"
+                  Classes="checkMark"
+                  VerticalAlignment="Center"
+                  DockPanel.Dock="Right"
+                  Opacity="{Binding IsMnemonicsValid}" />
+        <TagsBox DockPanel.Dock="Left"
+                   ItemCountLimit="33"
+                   SuggestionsAreCaseSensitive="False"
+                   RestrictInputToSuggestions="True"
+                   Items="{Binding Mnemonics}"
+                   Suggestions="{Binding Suggestions}"
+                   Watermark="Type in your recovery words in the correct order"
+                   AllowDuplication="True"
+                   EnableCounter="True"
+                   EnableDelete="False">
+          <TagsBox.Styles>
+            <Style Selector="TagsBox AutoCompleteBox">
+              <Setter Property="MinimumPrefixLength" Value="0" />
+            </Style>
+          </TagsBox.Styles>
+          <Interaction.Behaviors>
+            <FocusOnAttachedBehavior />
+          </Interaction.Behaviors>
+        </TagsBox>
+      </DockPanel>
+      <Button Classes="h8 plain activeHyperLink" Margin="0 10 0 0"
+              DockPanel.Dock="Bottom"
+              HorizontalAlignment="Center"
+              VerticalAlignment="Bottom"
+              Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
+              Content="Advanced Recovery Options" />
+    </DockPanel>
+  </ContentArea>
+</UserControl>

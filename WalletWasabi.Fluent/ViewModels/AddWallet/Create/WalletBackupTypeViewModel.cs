@@ -77,7 +77,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 					}
 					case WalletCreationOptions.RecoverWallet rec:
 					{
-						// TODO:
+						Navigate().To().RecoverMultiShareWallet(rec);
 						break;
 					}
 					default:
