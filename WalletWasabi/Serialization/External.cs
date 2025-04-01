@@ -8,17 +8,17 @@ public static partial class Decode
 {
 	public static readonly Decoder<RelativeCpfpInfo> RelativeCpfpInfo =
 		Object(get => new RelativeCpfpInfo(
-			get.Required("TxId", UInt256),
-			get.Required("Fee", Int64),
-			get.Required("Weight", Int64)
+			get.Required("txid", UInt256),
+			get.Required("fee", Int64),
+			get.Required("weight", Int64)
 		));
 
 	public static readonly Decoder<CpfpInfo> CpfpInfo =
 		Object(get => new CpfpInfo(
-			get.Required("Ancestors", Array(RelativeCpfpInfo)).ToList(),
-			get.Required("Fee", Decimal),
-			get.Required("EffectiveFeePerVSize", Decimal),
-			get.Required("AdjustedVSize", Decimal)
+			get.Required("ancestors", Array(RelativeCpfpInfo)).ToList(),
+			get.Required("fee", Decimal),
+			get.Required("effectiveFeePerVsize", Decimal),
+			get.Required("adjustedVsize", Decimal)
 		));
 
 	public static readonly Decoder<ExchangeRate> BitstampExchangeRate =
