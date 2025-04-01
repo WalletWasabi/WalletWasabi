@@ -21,7 +21,6 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 
 			var multiShareBackup = new MultiShareBackup(new MultiShareBackupSettings())
 			{
-				// TODO:
 				Shares = Shamir.Generate(
 					multiShareBackupSettings.Threshold,
 					multiShareBackupSettings.Shares,
