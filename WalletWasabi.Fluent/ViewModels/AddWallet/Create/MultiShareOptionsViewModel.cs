@@ -13,8 +13,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Multi-share Options")]
 public partial class MultiShareOptionsViewModel : RoutableViewModel
 {
-	[AutoNotify] private byte _shares;
-	[AutoNotify] private byte _threshold;
+	[AutoNotify] private byte? _shares;
+	[AutoNotify] private byte? _threshold;
 
 	private MultiShareOptionsViewModel(WalletCreationOptions.AddNewWallet options)
 	{
@@ -29,11 +29,18 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		var nextCommandCanExecute =
-			this.WhenAnyValue(
-					x => x.Threshold,
-					x => x.Shares)
-				.Select(_ => !Validations.Any);
+		var nextCommandCanExecute = this.WhenAnyValue(
+				x => x.Threshold,
+				x => x.Shares,
+				delegate
+				{
+					// This will fire validations before return canExecute value.
+					this.RaisePropertyChanged(nameof(Threshold));
+					this.RaisePropertyChanged(nameof(Shares));
+
+					return !Validations.Any;
+				})
+			.ObserveOn(RxApp.MainThreadScheduler);
 
 		NextCommand = ReactiveCommand.Create(() => OnNext(options), nextCommandCanExecute);
 
@@ -45,6 +52,13 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 	private void ValidateShares(IValidationErrors errors)
 	{
+		if (Shares is null)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"The {nameof(Shares)} cannot be empty");
+		}
+
 		if (Shares is < KeyManager.MinShamirShares or > KeyManager.MaxShamirShares)
 		{
 			errors.Add(
@@ -62,6 +76,13 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 	private void ValidateThreshold(IValidationErrors errors)
 	{
+		if (Threshold is null)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"The {nameof(Threshold)} cannot be empty");
+		}
+
 		if (Threshold is < KeyManager.MinShamirThreshold or > KeyManager.MaxShamirThreshold)
 		{
 			errors.Add(
@@ -84,10 +105,15 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
+		if (_threshold is null || _shares is null)
+		{
+			return;
+		}
+
 		// TODO: Validate shares and threshold
 		var shares = Shamir.Generate(
-			_threshold,
-			_shares,
+			_threshold.Value,
+			_shares.Value,
 			KeyManager.GenerateShamirEntropy());
 
 		options = options with
@@ -95,7 +121,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 			SelectedWalletBackup = multiShareBackup with
 			{
 				Shares = shares,
-				Settings = new MultiShareBackupSettings(_threshold, _shares),
+				Settings = new MultiShareBackupSettings(_threshold.Value, _shares.Value),
 				CurrentShare = 1
 			}
 		};
