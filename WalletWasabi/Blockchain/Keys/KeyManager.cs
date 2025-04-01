@@ -214,7 +214,6 @@ public class KeyManager
 
 	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
 	{
-		// TODO:
 		shares = Shamir.Generate(
 			DefaultShamirThreshold,
 			DefaultShamirShares,
