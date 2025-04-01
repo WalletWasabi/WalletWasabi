@@ -18,11 +18,12 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
-using WalletWasabi.WabiSabi.Backend;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
-using WalletWasabi.WabiSabi.Backend.Rounds;
-using WalletWasabi.WabiSabi.Backend.Statistics;
 using WalletWasabi.Userfacing;
+using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.WabiSabi.Coordinator.Statistics;
+using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 [assembly: ApiController]
 

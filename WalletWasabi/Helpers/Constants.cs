@@ -9,8 +9,8 @@ public static class Constants
 	public const string ClientSupportBackendVersionMin = "4";
 	public const string ClientSupportBackendVersionMax = "4";
 
-	public const string BackendUri = "https://api.wasabiwallet.io/";
-	public const string TestnetBackendUri = "https://api.wasabiwallet.co/";
+	public const string IndexerUri = "https://api.wasabiwallet.io/";
+	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
 	public const string BackendMajorVersion = "4";
 
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
@@ -158,4 +158,6 @@ public static class Constants
 	public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
 		? ClientSupportBackendVersionMin
 		: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
+
+	public static readonly string DefaultFilterType = "legacy";
 }

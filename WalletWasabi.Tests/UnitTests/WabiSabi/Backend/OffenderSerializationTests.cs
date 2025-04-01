@@ -1,7 +1,7 @@
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Backend.DoSPrevention;
+using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;

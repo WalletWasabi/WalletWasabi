@@ -31,8 +31,8 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		IRPCClient rpc = setup.RpcClient;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
-		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(1), filterProvider, bitcoinStore, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
+		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(1), filterProvider, bitcoinStore, setup.EventBus);
 		try
 		{
 			await synchronizer.StartAsync(CancellationToken.None);
@@ -45,7 +45,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 			{
 				if (times > 500) // 30 sec
 				{
-					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Needed filters: {blockCount}, got only: {filterCount}.");
+					throw new TimeoutException($"{nameof(Synchronizer)} test timed out. Needed filters: {blockCount}, got only: {filterCount}.");
 				}
 				await Task.Delay(100);
 				times++;
@@ -54,13 +54,13 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 			Assert.Equal(blockCount, bitcoinStore.SmartHeaderChain.HashCount);
 
 			// Test later synchronization.
-			await RegTestFixture.BackendRegTestNode.GenerateAsync(10);
+			await RegTestFixture.IndexerRegTestNode.GenerateAsync(10);
 			times = 0;
 			while ((filterCount = bitcoinStore.SmartHeaderChain.HashCount) < blockCount + 10)
 			{
 				if (times > 500) // 30 sec
 				{
-					throw new TimeoutException($"{nameof(WasabiSynchronizer)} test timed out. Needed filters: {blockCount + 10}, got only: {filterCount}.");
+					throw new TimeoutException($"{nameof(Synchronizer)} test timed out. Needed filters: {blockCount + 10}, got only: {filterCount}.");
 				}
 				await Task.Delay(100);
 				times++;
@@ -78,7 +78,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 				var filter = filters[i];
 				Assert.Equal(i, (int)filter.Header.Height);
 				Assert.Equal(expectedHash, filter.Header.BlockHash);
-				Assert.Equal(IndexBuilderService.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
+				Assert.Equal(LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
 			}
 		}
 		finally

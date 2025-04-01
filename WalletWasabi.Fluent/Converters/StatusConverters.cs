@@ -15,11 +15,11 @@ public static class StatusConverters
 			{ } => x.ToString()
 		});
 
-	public static readonly IValueConverter BackendStatusToString =
-		new FuncValueConverter<BackendStatus, string>(x => x switch
+	public static readonly IValueConverter IndexerStatusToString =
+		new FuncValueConverter<IndexerStatus, string>(x => x switch
 		{
-			BackendStatus.Connected => "is connected",
-			BackendStatus.NotConnected => "is not connected",
+			IndexerStatus.Connected => "is connected",
+			IndexerStatus.NotConnected => "is not connected",
 			{ } => x.ToString()
 		});
 

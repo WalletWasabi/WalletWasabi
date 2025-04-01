@@ -12,6 +12,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -143,7 +144,7 @@ public class SerializationTests
 	[Fact]
 	public void RoundStateResponseSerialization()
 	{
-		var round = WabiSabiFactory.CreateRound(new WalletWasabi.WabiSabi.Backend.WabiSabiConfig());
+		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
 		CoinJoinFeeRateMedian median = new(TimeSpan.FromHours(24), new FeeRate(120m));
 		RoundStateResponse response = new(new[] { roundState }, new[] { median });

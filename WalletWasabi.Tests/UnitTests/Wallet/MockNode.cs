@@ -105,7 +105,7 @@ public class MockNode
 				.Select(output => output.ScriptPubKey);
 
 			var scripts = inputScriptPubKeys.Union(outputScriptPubKeys);
-			var entries = scripts.Select(x => x.ToBytes()).DefaultIfEmpty(IndexBuilderService.DummyScript[0]);
+			var entries = scripts.Select(x => x.ToBytes()).DefaultIfEmpty(LegacyWasabiFilterGenerator.DummyScript[0]);
 
 			var filter = new GolombRiceFilterBuilder()
 				.SetKey(block.GetHash())

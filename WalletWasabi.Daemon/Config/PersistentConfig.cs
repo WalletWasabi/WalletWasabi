@@ -14,11 +14,11 @@ public record PersistentConfig
 {
 	public Network Network { get; init; } = Network.Main;
 
-	public string MainNetBackendUri { get; init; } = Constants.BackendUri;
+	public string MainNetIndexerUri { get; init; } = Constants.IndexerUri;
 
-	public string TestNetBackendUri { get; init; } = Constants.TestnetBackendUri;
+	public string TestNetIndexerUri { get; init; } = Constants.TestnetIndexerUri;
 
-	public string RegTestBackendUri { get; init; } = "http://localhost:37127/";
+	public string RegTestIndexerUri { get; init; } = "http://localhost:37127/";
 
 	public string MainNetCoordinatorUri { get; init; } = "";
 
@@ -83,9 +83,9 @@ public record PersistentConfig
 		return
 			ConfigVersion == other.ConfigVersion &&
 			Network == other.Network &&
-			MainNetBackendUri == other.MainNetBackendUri &&
-			TestNetBackendUri == other.TestNetBackendUri &&
-			RegTestBackendUri == other.RegTestBackendUri &&
+			MainNetIndexerUri == other.MainNetIndexerUri &&
+			TestNetIndexerUri == other.TestNetIndexerUri &&
+			RegTestIndexerUri == other.RegTestIndexerUri &&
 			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
 			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
 			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
@@ -151,21 +151,21 @@ public record PersistentConfig
 		throw new NotSupportedNetworkException(Network);
 	}
 
-	public string GetBackendUri()
+	public string GetIndexerUri()
 	{
 		if (Network == Network.Main)
 		{
-			return MainNetBackendUri;
+			return MainNetIndexerUri;
 		}
 
 		if (Network == Network.TestNet)
 		{
-			return TestNetBackendUri;
+			return TestNetIndexerUri;
 		}
 
 		if (Network == Network.RegTest)
 		{
-			return RegTestBackendUri;
+			return RegTestIndexerUri;
 		}
 
 		throw new NotSupportedNetworkException(Network);
@@ -183,12 +183,12 @@ public record PersistentConfig
 
 	private PersistentConfig MigrateOldDefaultBackendUris()
 	{
-		if (MainNetBackendUri == "https://wasabiwallet.io/" || TestNetBackendUri == "https://wasabiwallet.co/")
+		if (MainNetIndexerUri == "https://wasabiwallet.io/" || TestNetIndexerUri == "https://wasabiwallet.co/")
 		{
 			return this with
 			{
-				MainNetBackendUri = "https://api.wasabiwallet.io/",
-				TestNetBackendUri = "https://api.wasabiwallet.co/",
+				MainNetIndexerUri = "https://api.wasabiwallet.io/",
+				TestNetIndexerUri = "https://api.wasabiwallet.co/",
 			};
 		}
 

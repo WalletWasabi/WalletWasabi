@@ -21,7 +21,9 @@ public class Config : ConfigBase
 		string bitcoinRpcConnectionString,
 		EndPoint mainNetBitcoinCoreRpcEndPoint,
 		EndPoint testNetBitcoinCoreRpcEndPoint,
-		EndPoint regTestBitcoinCoreRpcEndPoint)
+		EndPoint regTestBitcoinCoreRpcEndPoint,
+		string filterType)
+
 	: base(filePath)
 	{
 		Network = Guard.NotNull(nameof(network), network);
@@ -30,12 +32,13 @@ public class Config : ConfigBase
 		MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
 		TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
 		RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
+
+		FilterType = filterType;
 	}
 
 	public Network Network { get; } = Network.Main;
 
 	public string BitcoinRpcConnectionString { get; } = "user:password";
-
 
 	public EndPoint MainNetBitcoinCoreRpcEndPoint { get; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
@@ -43,6 +46,7 @@ public class Config : ConfigBase
 
 	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
 
+	public string FilterType { get; } = Constants.DefaultFilterType;
 
 	public EndPoint GetBitcoinCoreRpcEndPoint()
 	{

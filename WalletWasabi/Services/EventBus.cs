@@ -103,10 +103,10 @@ public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record ServerTipHeightChanged(int Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
-public record BackendAvailabilityStateChanged(bool IsBackendAvailable);
+public record IndexerAvailabilityStateChanged(bool IsIndexerAvailable);
 public record TorConnectionStateChanged(bool IsTorRunning);
 
 public record TorNetworkStatusChanged(Issue[] ReportedIssues);
-public record BackendIncompatibilityDetected();
+public record IndexerIncompatibilityDetected();
 
 public record RpcStatusChanged(RpcStatus Status);

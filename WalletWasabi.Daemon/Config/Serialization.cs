@@ -18,9 +18,9 @@ public static class PersistentConfigEncode
 	public static JsonNode PersistentConfig(PersistentConfig cfg) =>
 		Object([
 			("Network", Network(cfg.Network)),
-			("MainNetBackendUri", String(cfg.MainNetBackendUri)),
-			("TestNetBackendUri", String(cfg.TestNetBackendUri)),
-			("RegTestBackendUri", String(cfg.RegTestBackendUri)),
+			("MainNetBackendUri", String(cfg.MainNetIndexerUri)),
+			("TestNetBackendUri", String(cfg.TestNetIndexerUri)),
+			("RegTestBackendUri", String(cfg.RegTestIndexerUri)),
 			("MainNetCoordinatorUri", String(cfg.MainNetCoordinatorUri)),
 			("TestNetCoordinatorUri", String(cfg.TestNetCoordinatorUri)),
 			("RegTestCoordinatorUri", String(cfg.RegTestCoordinatorUri)),
@@ -66,9 +66,9 @@ public static class PersistentConfigDecode
 		Object(get => new PersistentConfig
 		{
 			Network = get.Required("Network", Decode.Network),
-			MainNetBackendUri = get.Required("MainNetBackendUri", Decode.String),
-			TestNetBackendUri = get.Required("TestNetBackendUri", Decode.String),
-			RegTestBackendUri = get.Required("RegTestBackendUri", Decode.String),
+			MainNetIndexerUri = get.Required("MainNetBackendUri", Decode.String),
+			TestNetIndexerUri = get.Required("TestNetBackendUri", Decode.String),
+			RegTestIndexerUri = get.Required("RegTestBackendUri", Decode.String),
 			MainNetCoordinatorUri = get.Required("MainNetCoordinatorUri", Decode.String),
 			TestNetCoordinatorUri = get.Required("TestNetCoordinatorUri", Decode.String),
 			RegTestCoordinatorUri = get.Required("RegTestCoordinatorUri", Decode.String),

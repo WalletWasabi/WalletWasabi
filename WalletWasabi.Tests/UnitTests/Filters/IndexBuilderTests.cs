@@ -14,7 +14,7 @@ public class IndexBuilderTests
 		var blockHash = new byte[32];
 		rnd.NextBytes(blockHash);
 
-		var filter = IndexBuilderService.CreateDummyEmptyFilter(new uint256(blockHash));
+		var filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(new uint256(blockHash));
 
 		var scriptPubKeys = Enumerable.Range(0, 1000).Select(x =>
 		{
@@ -24,6 +24,6 @@ public class IndexBuilderTests
 		});
 		var key = blockHash[0..16];
 		Assert.False(filter.MatchAny(scriptPubKeys, key));
-		Assert.True(filter.MatchAny(IndexBuilderService.DummyScript, key));
+		Assert.True(filter.MatchAny(LegacyWasabiFilterGenerator.DummyScript, key));
 	}
 }

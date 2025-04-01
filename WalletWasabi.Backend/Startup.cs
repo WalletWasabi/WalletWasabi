@@ -80,6 +80,12 @@ public class Startup
 
 		var network = config.Network;
 
+		BlockFilterGenerator blockFilterGenerator = config.FilterType switch
+		{
+			"legacy" => LegacyWasabiFilterGenerator.GenerateBlockFilterAsync,
+			"bip158" => BitcoinRpcBip158FilterFetcher.FetchBlockFilterAsync,
+			var filterType => throw new ArgumentException($"Invalid '{filterType}'. Only 'legacy' and 'bip158' filter types are allowed.")
+		};
 		services.AddSingleton(_ => network);
 		services.AddBackgroundService<BlockNotifier>();
 		services.AddSingleton<MempoolService>();
@@ -87,8 +93,8 @@ public class Startup
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(
 				s.GetRequiredService<IRPCClient>(),
-				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite")
-				));
+				Path.Combine(dataDir, "IndexBuilderService", $"Index{network}.sqlite"),
+				blockFilterGenerator));
 		services.AddStartupTask<StartupTask>();
 		services.AddResponseCompression();
 		services.AddRequestTimeouts(options =>

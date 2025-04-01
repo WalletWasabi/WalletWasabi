@@ -43,14 +43,14 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		// Create the services.
 		// 1. Create connection service.
 		NodesGroup nodes = new(setup.Network, requirements: Constants.NodeRequirements);
-		nodes.ConnectedNodes.Add(await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync());
+		nodes.ConnectedNodes.Add(await RegTestFixture.IndexerRegTestNode.CreateNewP2pNodeAsync());
 
-		Node node = await RegTestFixture.BackendRegTestNode.CreateNewP2pNodeAsync();
+		Node node = await RegTestFixture.IndexerRegTestNode.CreateNewP2pNodeAsync();
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 2. Create wasabi synchronizer service.
-		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.BackendHttpClientFactory, setup.EventBus);
-		using WasabiSynchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
+		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
+		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 3. Create key manager service.
