@@ -25,6 +25,7 @@ public class UpdateManager : PeriodicRunner
 		_externalHttpClient = externalHttpClient;
 		_eventBus = eventBus;
 		_nostrClient = nostrClient;
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		_downloadNewVersion = downloadNewVersion && (RuntimeInformation.IsOSPlatform(OSPlatform.OSX) || RuntimeInformation.IsOSPlatform(OSPlatform.Windows));
@@ -36,6 +37,7 @@ public class UpdateManager : PeriodicRunner
 	private readonly HttpClient _externalHttpClient;
 	private readonly EventBus _eventBus;
 	private readonly WasabiNostrClient _nostrClient;
+	private readonly UserAgentPicker _userAgentGetter;
 
 	/// <summary>Whether to download the new installer in the background or not.</summary>
 	private readonly bool _downloadNewVersion;
@@ -118,6 +120,7 @@ public class UpdateManager : PeriodicRunner
 
 				// Get file stream and copy it to downloads folder to access.
 				using HttpRequestMessage request = new(HttpMethod.Get, asset.Asset.DownloadUri);
+				_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 				using HttpResponseMessage response = await _externalHttpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 				byte[] installerFileBytes = await response.Content.ReadAsByteArrayAsync(cancellationToken).ConfigureAwait(false);
 
@@ -182,6 +185,7 @@ public class UpdateManager : PeriodicRunner
 		try
 		{
 			using HttpRequestMessage sha256Request = new(HttpMethod.Get, sha256SumsUrl);
+			_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using HttpResponseMessage sha256Response = await _externalHttpClient.SendAsync(sha256Request, cancellationToken).ConfigureAwait(false);
 			string sha256Content = await sha256Response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
@@ -189,6 +193,7 @@ public class UpdateManager : PeriodicRunner
 			File.WriteAllText(sha256SumsFilePath, sha256Content);
 
 			using HttpRequestMessage signatureRequest = new(HttpMethod.Get, wasabiSigUrl);
+			_externalHttpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 			using HttpResponseMessage signatureResponse = await _externalHttpClient.SendAsync(signatureRequest, cancellationToken).ConfigureAwait(false);
 			string signatureContent = await signatureResponse.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
