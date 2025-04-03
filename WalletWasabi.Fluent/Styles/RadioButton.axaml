@@ -11,6 +11,66 @@
     </Border>
   </Design.PreviewWith>
 
+  <Styles.Resources>
+    <ControlTheme x:Key="VerticallyCenteredRadioButton" TargetType="RadioButton" BasedOn="{StaticResource {x:Type RadioButton}}">
+      <Setter Property="Template">
+        <ControlTemplate TargetType="RadioButton">
+          <Border
+              Name="RootBorder"
+              Background="{TemplateBinding Background}"
+              BorderBrush="{TemplateBinding BorderBrush}"
+              BorderThickness="{TemplateBinding BorderThickness}"
+              CornerRadius="{TemplateBinding CornerRadius}">
+            <Grid ColumnDefinitions="20,*">
+              <!-- NOTE: Only difference from Fluent theme is VerticalAlignment="Center" -->
+              <Grid Height="32" VerticalAlignment="Center">
+
+                <Ellipse
+                    Name="OuterEllipse"
+                    Width="20"
+                    Height="20"
+                    Fill="{DynamicResource RadioButtonOuterEllipseFill}"
+                    Stroke="{DynamicResource RadioButtonOuterEllipseStroke}"
+                    StrokeThickness="{DynamicResource RadioButtonBorderThemeThickness}"
+                    UseLayoutRounding="False" />
+
+                <Ellipse
+                    Name="CheckOuterEllipse"
+                    Width="20"
+                    Height="20"
+                    Fill="{DynamicResource RadioButtonOuterEllipseCheckedFill}"
+                    Opacity="0"
+                    Stroke="{DynamicResource RadioButtonOuterEllipseCheckedStroke}"
+                    StrokeThickness="{DynamicResource RadioButtonBorderThemeThickness}"
+                    UseLayoutRounding="False" />
+
+                <Ellipse
+                    Name="CheckGlyph"
+                    Width="8"
+                    Height="8"
+                    Fill="{DynamicResource RadioButtonCheckGlyphFill}"
+                    Opacity="0"
+                    Stroke="{DynamicResource RadioButtonCheckGlyphStroke}"
+                    UseLayoutRounding="False" />
+              </Grid>
+
+              <ContentPresenter
+                  Name="PART_ContentPresenter"
+                  Grid.Column="1"
+                  Margin="{TemplateBinding Padding}"
+                  HorizontalAlignment="{TemplateBinding HorizontalContentAlignment}"
+                  VerticalAlignment="{TemplateBinding VerticalContentAlignment}"
+                  Content="{TemplateBinding Content}"
+                  ContentTemplate="{TemplateBinding ContentTemplate}"
+                  Foreground="{TemplateBinding Foreground}"
+                  RecognizesAccessKey="True" />
+            </Grid>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+  </Styles.Resources>
+
   <Style Selector="RadioButton.text">
     <Setter Property="Padding" Value="0" />
     <Setter Property="FontSize" Value="10" />
