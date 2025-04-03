@@ -32,8 +32,7 @@
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
           <Setter Property="Cursor" Value="Hand" />
           <Setter Property="Padding" Value="12,0,12,0" />
-          <Setter Property="(ToolTip.Tip)"
-                  Value="{Binding Description}" />
+          <Setter Property="(ToolTip.Tip)" Value="{Binding ToolTipText}" />
         </Style>
         <Style Selector="ListBoxItem > ContentPresenter">
           <Setter Property="Background" Value="Transparent" />
@@ -73,9 +72,28 @@
               </Style>
             </Border.Styles>
             <RadioButton
-              ToolTip.Tip="{Binding Description}"
-              IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
-              Content="{Binding Description}" />
+              Background="Transparent"
+              Theme="{DynamicResource VerticallyCenteredRadioButton}"
+              IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}">
+              <DockPanel Margin="7,0,7,0"
+                         VerticalAlignment="Center">
+                <InfoMessage DockPanel.Dock="Right"
+                             VerticalAlignment="Center"
+                             Margin="14,0,0,0"
+                             ToolTip.Tip="{Binding ToolTipText}" />
+                <DockPanel>
+                  <TextBlock Text="{Binding Description}"
+                             Classes="h5"
+                             Margin="0,0,0,7"
+                             DockPanel.Dock="Top" />
+                  <TextBlock Text="{Binding HelpText}"
+                             Classes="h8"
+                             TextWrapping="Wrap"
+                             Opacity="0.6"
+                             MaxWidth="400" />
+                </DockPanel>
+              </DockPanel>
+            </RadioButton>
           </Border>
         </DataTemplate>
       </ListBox.ItemTemplate>
