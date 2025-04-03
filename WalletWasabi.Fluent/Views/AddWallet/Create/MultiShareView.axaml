@@ -33,7 +33,7 @@
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
-              <Setter Property="Height" Value="32" />
+              <Setter Property="Height" Value="30" />
             </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
