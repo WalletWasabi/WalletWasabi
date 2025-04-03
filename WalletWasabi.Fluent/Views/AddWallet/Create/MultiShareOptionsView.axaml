@@ -17,23 +17,39 @@
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
       <!-- Number of shares in which the seed will be split. -->
-      <Label Content="Shares:" />
-      <NumericUpDown Value="{Binding Shares}"
-                     Minimum="1"
-                     Maximum="16"
-                     Increment="1"
-                     FormatString="G2"
-                     ClipValueToMinMax="True"
-                     MinWidth="350" />
+      <Label Content="Shares:"
+             Target="SharesNumericUpDown" />
+      <DockPanel VerticalAlignment="Center">
+        <InfoMessage DockPanel.Dock="Right"
+                     VerticalAlignment="Center"
+                     Margin="14,0,0,0"
+                     ToolTip.Tip="This sets the total number of pieces (or 'shares') your secret will be split into. Each share can be given to a different trusted party." />
+        <NumericUpDown Value="{Binding Shares}"
+                       Minimum="1"
+                       Maximum="16"
+                       Increment="1"
+                       FormatString="G2"
+                       ClipValueToMinMax="True"
+                       MinWidth="350"
+                       Name="SharesNumericUpDown" />
+      </DockPanel>
       <!-- Number of shares necessary to recombine the seed. -->
-      <Label Content="Threshold:" />
-      <NumericUpDown Value="{Binding Threshold}"
-                     Minimum="1"
-                     Maximum="16"
-                     Increment="1"
-                     FormatString="G2"
-                     ClipValueToMinMax="True"
-                     MinWidth="350" />
+      <Label Content="Threshold:"
+             Target="ThresholdNumericUpDown" />
+      <DockPanel VerticalAlignment="Center">
+        <InfoMessage DockPanel.Dock="Right"
+                     VerticalAlignment="Center"
+                     Margin="14,0,0,0"
+                     ToolTip.Tip="This sets the minimum number of shares required to reconstruct the secret. For example, if you set 3 shares and a threshold of 2, any 2 out of the 3 shares will be enough to recover the original secret." />
+        <NumericUpDown Value="{Binding Threshold}"
+                       Minimum="1"
+                       Maximum="16"
+                       Increment="1"
+                       FormatString="G2"
+                       ClipValueToMinMax="True"
+                       MinWidth="350"
+                       Name="ThresholdNumericUpDown" />
+      </DockPanel>
     </StackPanel>
   </ContentArea>
 </UserControl>
