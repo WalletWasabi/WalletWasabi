@@ -33,7 +33,7 @@ public class WalletGenerator
 	public Network Network { get; private set; }
 	public uint TipHeight { get; set; }
 
-	public (KeyManager, Mnemonic) GenerateWallet(string walletName, string password, Mnemonic? mnemonic = null)
+	public (KeyManager KeyManager, Mnemonic Mnemonic) GenerateWallet(string walletName, string password, Mnemonic? mnemonic = null)
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
@@ -48,7 +48,7 @@ public class WalletGenerator
 		return (km, mnemonic);
 	}
 
-	public (KeyManager,  Share[]) GenerateWallet(string walletName, string password, Share[]? shares = null)
+	public (KeyManager KeyManager,  Share[] Shares) GenerateWallet(string walletName, string password, Share[]? shares = null)
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
