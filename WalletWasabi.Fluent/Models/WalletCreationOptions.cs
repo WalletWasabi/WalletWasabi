@@ -24,7 +24,7 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 				Shares = Shamir.Generate(
 					multiShareBackupSettings.Threshold,
 					multiShareBackupSettings.Shares,
-					KeyManager.GenerateShamirEntropy())
+					WalletGenerator.GenerateShamirEntropy())
 			};
 
 			return this with

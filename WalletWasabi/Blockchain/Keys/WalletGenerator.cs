@@ -9,6 +9,13 @@ namespace WalletWasabi.Blockchain.Keys;
 
 public class WalletGenerator
 {
+	public const byte DefaultShamirShares = 3;
+	public const byte DefaultShamirThreshold = 2;
+	public const int MinShamirShares = 1;
+	public const int MaxShamirShares = 16;
+	public const int MinShamirThreshold = 1;
+	public const int MaxShamirThreshold = 16;
+
 	private static readonly string[] ReservedFileNames = new string[]
 	{
 			"CON", "PRN", "AUX", "NUL",
@@ -49,7 +56,7 @@ public class WalletGenerator
 		PasswordHelper.Guard(password);
 
 		var km = shares is null
-			? KeyManager.CreateNew(out shares, password, Network)
+			? CreateNew(out shares, password, Network)
 			: KeyManager.CreateNew(shares, password, Network);
 		km.SetBestHeights(height: new Height(TipHeight), turboSyncHeight: new Height(TipHeight));
 		km.SetFilePath(walletFilePath);
@@ -82,5 +89,19 @@ public class WalletGenerator
 		var isValid = !walletName.Any(c => invalidChars.Contains(c)) && !walletName.EndsWith('.');
 		var isReserved = ReservedFileNames.Any(w => walletName.ToUpper() == w || walletName.ToUpper().StartsWith(w + "."));
 		return isValid && !isReserved;
+	}
+
+	public static byte[] GenerateShamirEntropy()
+	{
+		return RandomUtils.GetBytes(256 / 8);
+	}
+
+	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
+	{
+		shares = Shamir.Generate(
+			DefaultShamirThreshold,
+			DefaultShamirShares,
+			GenerateShamirEntropy());
+		return KeyManager.CreateNew(shares.Take(DefaultShamirThreshold).ToArray(), password, network, filePath);
 	}
 }

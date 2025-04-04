@@ -35,13 +35,6 @@ public class KeyManager
 	public const int MaxGapLimit = 10_000;
 	public static readonly Money DefaultPlebStopThreshold = Money.Coins(0.01m);
 
-	public const byte DefaultShamirShares = 3;
-	public const byte DefaultShamirThreshold = 2;
-	public const int MinShamirShares = 1;
-	public const int MaxShamirShares = 16;
-	public const int MinShamirThreshold = 1;
-	public const int MaxShamirThreshold = 16;
-
 	internal KeyManager(BitcoinEncryptedSecretNoEC? encryptedSecret, byte[]? chainCode, HDFingerprint? masterFingerprint, ExtPubKey extPubKey, ExtPubKey? taprootExtPubKey, int? minGapLimit, BlockchainState blockchainState, string? filePath = null, KeyPath? segwitAccountKeyPath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		EncryptedSecret = encryptedSecret;
@@ -205,20 +198,6 @@ public class KeyManager
 		password ??= "";
 		var seed = mnemonic.DeriveSeed(password);
 		return CreateNew(seed, password, network, filePath);
-	}
-
-	public static byte[] GenerateShamirEntropy()
-	{
-		return RandomUtils.GetBytes(256 / 8);
-	}
-
-	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
-	{
-		shares = Shamir.Generate(
-			DefaultShamirThreshold,
-			DefaultShamirShares,
-			GenerateShamirEntropy());
-		return CreateNew(shares.Take(DefaultShamirThreshold).ToArray(), password, network, filePath);
 	}
 
 	public static KeyManager CreateNew(Share[] shares, string password, Network network, string? filePath = null)

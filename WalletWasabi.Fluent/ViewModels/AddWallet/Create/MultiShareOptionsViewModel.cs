@@ -59,11 +59,11 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 				$"The {nameof(Shares)} cannot be empty");
 		}
 
-		if (Shares is < KeyManager.MinShamirShares or > KeyManager.MaxShamirShares)
+		if (Shares is < WalletGenerator.MinShamirShares or > WalletGenerator.MaxShamirShares)
 		{
 			errors.Add(
 				ErrorSeverity.Error,
-				$"Must be a number between {KeyManager.MinShamirShares} and {KeyManager.MaxShamirShares}.");
+				$"Must be a number between {WalletGenerator.MinShamirShares} and {WalletGenerator.MaxShamirShares}.");
 		}
 
 		if (Shares < Threshold)
@@ -83,11 +83,11 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 				$"The {nameof(Threshold)} cannot be empty");
 		}
 
-		if (Threshold is < KeyManager.MinShamirThreshold or > KeyManager.MaxShamirThreshold)
+		if (Threshold is < WalletGenerator.MinShamirThreshold or > WalletGenerator.MaxShamirThreshold)
 		{
 			errors.Add(
 				ErrorSeverity.Error,
-				$"Must be a number between {KeyManager.MinShamirThreshold} and {KeyManager.MaxShamirThreshold}.");
+				$"Must be a number between {WalletGenerator.MinShamirThreshold} and {WalletGenerator.MaxShamirThreshold}.");
 		}
 
 		if (Threshold > Shares)
@@ -113,7 +113,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		var shares = Shamir.Generate(
 			_threshold.Value,
 			_shares.Value,
-			KeyManager.GenerateShamirEntropy());
+			WalletGenerator.GenerateShamirEntropy());
 
 		options = options with
 		{

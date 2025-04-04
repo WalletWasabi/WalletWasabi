@@ -11,8 +11,8 @@ public record RecoveryWordsBackup(
 	Mnemonic? Mnemonic = null) : WalletBackup(Password);
 
 public record MultiShareBackupSettings(
-	byte Threshold = KeyManager.DefaultShamirThreshold,
-	byte Shares = KeyManager.DefaultShamirShares);
+	byte Threshold = WalletGenerator.DefaultShamirThreshold,
+	byte Shares = WalletGenerator.DefaultShamirShares);
 
 public record MultiShareBackup(
 	MultiShareBackupSettings Settings,
