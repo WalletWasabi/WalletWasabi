@@ -48,7 +48,7 @@ public class WalletGenerator
 		return (km, mnemonic);
 	}
 
-	public (KeyManager KeyManager,  Share[] Shares) GenerateWallet(string walletName, string password, Share[]? shares = null)
+	public (KeyManager KeyManager, Share[] Shares) GenerateWallet(string walletName, string password, Share[]? shares = null)
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
