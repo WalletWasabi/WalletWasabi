@@ -119,12 +119,12 @@ public partial class WalletRepository : ReactiveObject
 						RecoveryWordsBackup recoveryWordsBackup =>
 							walletGenerator.GenerateWallet(
 								walletName,
-								recoveryWordsBackup.Password!,
+								recoveryWordsBackup.Password,
 								recoveryWordsBackup.Mnemonic).KeyManager,
 						MultiShareBackup multiShareBackup =>
 							walletGenerator.GenerateWallet(
 								walletName,
-								multiShareBackup.Password!,
+								multiShareBackup.Password,
 								multiShareBackup.Shares?.Take(multiShareBackup.Settings.Threshold).ToArray()).KeyManager,
 						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
 					};

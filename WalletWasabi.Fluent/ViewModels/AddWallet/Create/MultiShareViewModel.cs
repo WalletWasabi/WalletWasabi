@@ -18,7 +18,6 @@ public partial class MultiShareViewModel : RoutableViewModel
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
 		ArgumentNullException.ThrowIfNull(multiShareBackup);
-		ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
 
 		_currentShare = multiShareBackup.CurrentShare;
 		_totalShares = multiShareBackup.Settings.Shares;
