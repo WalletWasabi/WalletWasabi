@@ -50,7 +50,7 @@ public class PasswordTests
 		string original = "    w¾3AÍ-dCdï×¾M\\Øò¹ãÔÕýÈÝÁÐ9oEp¨}r:SR¦·ßNó±¥*W!¢ê#ikÇå<ðtÇf·a\\]§,à±H7«®È4nèNmæo4.qØ-¾ûda¯ºíö¾,¥¢½\\¹õèKeÁìÍSÈ@r±ØÙ2[r©UQÞ¶xN\"?:Ö@°&\n";
 
 		// Creating a wallet with buggy password.
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, Guard.Correct(buggy), Network.Main); // Every wallet was created with Guard.Correct before.
+		var keyManager = KeyManager.CreateNew(out _, Guard.Correct(buggy), Network.Main); // Every wallet was created with Guard.Correct before.
 
 		Logger.TurnOff();
 
@@ -93,7 +93,7 @@ public class PasswordTests
 		Assert.True(PasswordHelper.IsTrimmable(buggy, out buggy));
 
 		// Creating a wallet with buggy password.
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, buggy!, Network.Main);
+		var keyManager = KeyManager.CreateNew(out _, buggy!, Network.Main);
 
 		Assert.True(PasswordHelper.IsTrimmable(original, out original));
 

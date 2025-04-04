@@ -62,7 +62,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 4. Create key manager service.
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, password, network);
+		var keyManager = KeyManager.CreateNew(out _, password, network);
 
 		// 5. Create wallet service.
 		var workDir = Common.GetWorkDir();

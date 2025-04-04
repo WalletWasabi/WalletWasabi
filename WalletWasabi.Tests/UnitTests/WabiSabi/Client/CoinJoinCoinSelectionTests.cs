@@ -43,7 +43,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNothingFromFullyPrivateSetOfCoins()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
@@ -81,7 +81,7 @@ public class CoinJoinCoinSelectionTests
 	{
 		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys, because they are external keys.
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: false), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
@@ -102,7 +102,7 @@ public class CoinJoinCoinSelectionTests
 	{
 		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys.
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
@@ -123,7 +123,7 @@ public class CoinJoinCoinSelectionTests
 	{
 		// Although all coins have reached the desired anonymity set, they are not sufficiently distanced from external keys.
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
@@ -152,7 +152,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void SelectNothingFromTooSmallCoin()
 	{
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = new[] { BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00017423m), anonymitySet: 1) };
 		var roundParams = WabiSabiFactory.CreateRoundParameters(new()
 		{
@@ -177,7 +177,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void SelectNothingFromTooSmallSetOfCoins()
 	{
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = new[]
 		{
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
@@ -206,7 +206,7 @@ public class CoinJoinCoinSelectionTests
 	[Fact]
 	public void SelectSomethingFromJustEnoughSetOfCoins()
 	{
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = new[]
 		{
 			BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.00008711m + 0.00006900m), anonymitySet: 1),
@@ -236,7 +236,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNonPrivateCoinFromOneNonPrivateCoinInBigSetOfCoinsConsolidationMode()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
@@ -263,7 +263,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNonPrivateCoinFromOneCoinSetOfCoins()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
@@ -288,7 +288,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectMoreNonPrivateCoinFromTwoCoinsSetOfCoins()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
@@ -313,7 +313,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectTwoNonPrivateCoinsFromTwoCoinsSetOfCoinsConsolidationMode()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Empty<SmartCoin>()
 			.Prepend(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1))
@@ -338,7 +338,7 @@ public class CoinJoinCoinSelectionTests
 	public void SelectNothingFromFullyPrivateAndBelowMinAllowedSetOfCoins()
 	{
 		const int AnonymitySet = 10;
-		var km = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))

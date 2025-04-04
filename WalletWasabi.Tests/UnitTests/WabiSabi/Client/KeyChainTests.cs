@@ -13,7 +13,7 @@ public class KeyChainTests
 	[Fact]
 	public void SignTransactionTest()
 	{
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, "", Network.Main);
+		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
 		var destinationProvider = new InternalDestinationProvider(keyManager);
 		var keyChain = new KeyChain(keyManager,"");
 

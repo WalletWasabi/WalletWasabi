@@ -100,7 +100,7 @@ public class P2pTests
 
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
-		KeyManager keyManager = KeyManager.CreateNew(mnemonic: out _, "password", network);
+		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
 		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, eventBus);

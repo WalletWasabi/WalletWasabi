@@ -53,7 +53,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, setup.Password, network);
+		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
 
 		// Mine some coins, make a few bech32 transactions then make it confirm.
 		await rpc.GenerateAsync(1);

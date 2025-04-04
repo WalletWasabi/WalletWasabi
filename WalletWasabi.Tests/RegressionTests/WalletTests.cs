@@ -54,7 +54,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 3. Create key manager service.
-		var keyManager = KeyManager.CreateNew(mnemonic: out _, setup.Password, network);
+		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
 
 		// 4. Create wallet service.
 		var workDir = Helpers.Common.GetWorkDir();

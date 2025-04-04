@@ -17,7 +17,7 @@ public class CoinsRegistryTests
 {
 	public CoinsRegistryTests()
 	{
-		KeyManager = KeyManager.CreateNew(mnemonic: out _, password: "password", Network.Main);
+		KeyManager = KeyManager.CreateNew(out _, password: "password", Network.Main);
 	}
 
 	private KeyManager KeyManager { get; }
