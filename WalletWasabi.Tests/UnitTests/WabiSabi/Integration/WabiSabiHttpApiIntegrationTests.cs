@@ -274,8 +274,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
-		KeyManager keyManager1 = KeyManager.CreateNew(out _, password: "", Network.Main);
-		KeyManager keyManager2 = KeyManager.CreateNew(out _, password: "", Network.Main);
+		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
 		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
 		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
