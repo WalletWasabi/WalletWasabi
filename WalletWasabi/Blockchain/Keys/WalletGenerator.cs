@@ -55,9 +55,13 @@ public class WalletGenerator
 		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
 		PasswordHelper.Guard(password);
 
-		var km = shares is null
-			? CreateNew(out shares, password, Network)
-			: KeyManager.CreateNew(shares, password, Network);
+		shares ??= Shamir.Generate(
+			DefaultShamirThreshold,
+			DefaultShamirShares,
+			GenerateShamirEntropy()).Take(DefaultShamirThreshold).ToArray();
+
+		var km = KeyManager.CreateNew(shares, password, Network);
+
 		km.SetBestHeights(height: new Height(TipHeight), turboSyncHeight: new Height(TipHeight));
 		km.SetFilePath(walletFilePath);
 		return (km, shares);
@@ -94,14 +98,5 @@ public class WalletGenerator
 	public static byte[] GenerateShamirEntropy()
 	{
 		return RandomUtils.GetBytes(256 / 8);
-	}
-
-	public static KeyManager CreateNew(out Share[] shares, string password, Network network, string? filePath = null)
-	{
-		shares = Shamir.Generate(
-			DefaultShamirThreshold,
-			DefaultShamirShares,
-			GenerateShamirEntropy());
-		return KeyManager.CreateNew(shares.Take(DefaultShamirThreshold).ToArray(), password, network, filePath);
 	}
 }
