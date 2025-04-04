@@ -7,12 +7,12 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Discoverability;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients;
 public class WasabiNostrClient : IDisposable
 {
-	private const string DefaultPublicKey = "npub1l0p8r79n24ez6ahh93utyyu268hj7cg3gdsql4526rwlc6qhxx3sxy0yeu"; // Change this to Official Wasabi Nostr PubKey
 	private EndPoint _torEndpoint;
 	private string? _nostrSubscriptionID;
 
@@ -107,7 +107,7 @@ public class WasabiNostrClient : IDisposable
 	{
 		try
 		{
-			string defaultPubKeyHex = NIP19.FromNIP19Npub(DefaultPublicKey).ToHex();
+			string defaultPubKeyHex = NIP19.FromNIP19Npub(Constants.NostrPubKey).ToHex();
 
 			string[] relayUrls = ["wss://relay.primal.net", "wss://nos.lol", "wss://relay.damus.io"];
 			Uri[] uris = relayUrls.Select(x => new Uri(x)).ToArray();
@@ -117,7 +117,7 @@ public class WasabiNostrClient : IDisposable
 			await NostrWebClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
 
 			_nostrSubscriptionID = Guid.NewGuid().ToString();
-			await NostrWebClient.CreateSubscription(_nostrSubscriptionID, [new() { Kinds = [1], Authors = [defaultPubKeyHex], Limit = 1 }], cancel).ConfigureAwait(false);
+			await NostrWebClient.CreateSubscription(_nostrSubscriptionID, [new() { Kinds = [1], Authors = [defaultPubKeyHex], Limit = 1, Since = Constants.LatestReleaseDate }], cancel).ConfigureAwait(false);
 
 		}
 		catch (Exception ex)

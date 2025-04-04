@@ -18,6 +18,8 @@ public static class Constants
 
 	public const string DonationAddress = "sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3";
 
+	public const string NostrPubKey = "npub1l0p8r79n24ez6ahh93utyyu268hj7cg3gdsql4526rwlc6qhxx3sxy0yeu"; // Change this to Official Wasabi Nostr PubKey
+
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
 	/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.
@@ -89,6 +91,8 @@ public static class Constants
 	public static readonly string DefaultFeeRateEstimationProvider = "MempoolSpace";
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
+
+	public static readonly DateTimeOffset LatestReleaseDate = new DateTimeOffset(year: 2025, month: 3, day: 28, hour: 1, minute: 0, second: 0, offset: TimeSpan.Zero);
 
 	public static readonly Version ClientVersion = new(2, 5, 1);
 
