@@ -38,7 +38,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 					this.RaisePropertyChanged(nameof(Threshold));
 					this.RaisePropertyChanged(nameof(Shares));
 
-					return !Validations.Any;
+					return OptionsAreValid() && !Validations.Any;
 				})
 			.ObserveOn(RxApp.MainThreadScheduler);
 
@@ -48,6 +48,20 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 		this.ValidateProperty(x => x.Shares, ValidateShares);
 		this.ValidateProperty(x => x.Threshold, ValidateThreshold);
+	}
+
+	private bool OptionsAreValid()
+	{
+		if (_threshold is null || _shares is null)
+		{
+			return false;
+		}
+
+		return !(_threshold > WalletGenerator.MaxShamirThreshold)
+		       && !(_threshold < WalletGenerator.MinShamirThreshold)
+		       && !(_shares < WalletGenerator.MinShamirShares)
+		       && !(_shares > WalletGenerator.MaxShamirShares)
+		       && (_threshold != 1 || !(_shares > 1));
 	}
 
 	private void ValidateShares(IValidationErrors errors)
@@ -96,6 +110,13 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 				ErrorSeverity.Error,
 				$"{nameof(Threshold)} value can not be bigger then {nameof(Shares)} value.");
 		}
+
+		if (Threshold == 1 && Shares > 1)
+		{
+			errors.Add(
+				ErrorSeverity.Error,
+				$"Can only generate one share for {nameof(Threshold)} equal 1.");
+		}
 	}
 
 	private void OnNext(WalletCreationOptions.AddNewWallet options)
@@ -103,6 +124,11 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 		if (options.SelectedWalletBackup is not MultiShareBackup multiShareBackup)
 		{
 			throw new ArgumentOutOfRangeException(nameof(options));
+		}
+
+		if (!OptionsAreValid())
+		{
+			return;
 		}
 
 		if (_threshold is null || _shares is null)
