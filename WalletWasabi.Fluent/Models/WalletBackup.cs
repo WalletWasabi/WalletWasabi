@@ -4,11 +4,11 @@ using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.Models;
 
-public abstract record WalletBackup(string? Password = "");
+public abstract record WalletBackup(string Password);
 
 public record RecoveryWordsBackup(
-	string? Password = "",
-	Mnemonic? Mnemonic = null) : WalletBackup(Password);
+	string Password,
+	Mnemonic Mnemonic) : WalletBackup(Password);
 
 public record MultiShareBackupSettings(
 	byte Threshold = WalletGenerator.DefaultShamirThreshold,
@@ -16,7 +16,7 @@ public record MultiShareBackupSettings(
 
 public record MultiShareBackup(
 	MultiShareBackupSettings Settings,
-	string? Password = "",
-	Share[]? Shares = null,
+	string Password,
+	Share[] Shares,
 	byte CurrentShare = 0,
 	byte CurrentSharePage = 0) : WalletBackup(Password);

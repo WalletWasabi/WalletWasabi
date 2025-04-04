@@ -165,22 +165,8 @@ public partial class WalletRepository : ReactiveObject
 		var (walletName, walletBackup, minGapLimit) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
-
-		switch (walletBackup)
-		{
-			case RecoveryWordsBackup recoveryWordsBackup:
-				ArgumentNullException.ThrowIfNull(recoveryWordsBackup.Password);
-				ArgumentNullException.ThrowIfNull(recoveryWordsBackup.Mnemonic);
-				break;
-			case MultiShareBackup multiShareBackup:
-				ArgumentNullException.ThrowIfNull(multiShareBackup.Password);
-				ArgumentNullException.ThrowIfNull(multiShareBackup.Shares);
-				break;
-			default:
-				throw new ArgumentOutOfRangeException(nameof(walletBackup));
-		}
-
 		ArgumentNullException.ThrowIfNull(minGapLimit);
+		ArgumentNullException.ThrowIfNull(walletBackup);
 
 		var keyManager = await Task.Run(() =>
 		{
@@ -190,8 +176,8 @@ public partial class WalletRepository : ReactiveObject
 			{
 				RecoveryWordsBackup recoveryWordsBackup =>
 					KeyManager.Recover(
-						recoveryWordsBackup.Mnemonic!,
-						recoveryWordsBackup.Password!,
+						recoveryWordsBackup.Mnemonic,
+						recoveryWordsBackup.Password,
 						Services.WalletManager.Network,
 						AccountKeyPath,
 						null,
@@ -199,8 +185,8 @@ public partial class WalletRepository : ReactiveObject
 						minGapLimit.Value),
 				MultiShareBackup multiShareBackup =>
 					KeyManager.Recover(
-						multiShareBackup.Shares!,
-						multiShareBackup.Password!,
+						multiShareBackup.Shares,
+						multiShareBackup.Password,
 						Services.WalletManager.Network,
 						AccountKeyPath,
 						null,

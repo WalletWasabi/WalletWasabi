@@ -12,20 +12,19 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 	{
 		public AddNewWallet WithNewWalletBackups()
 		{
-			var recoveryWordsBackup = new RecoveryWordsBackup
-			{
-				Mnemonic = new Mnemonic(Wordlist.English, WordCount.Twelve)
-			};
+			var recoveryWordsBackup = new RecoveryWordsBackup(
+				Password: "",
+				Mnemonic: new Mnemonic(Wordlist.English, WordCount.Twelve));
 
 			var multiShareBackupSettings = new MultiShareBackupSettings();
 
-			var multiShareBackup = new MultiShareBackup(new MultiShareBackupSettings())
-			{
-				Shares = Shamir.Generate(
+			var multiShareBackup = new MultiShareBackup(
+				Settings: new MultiShareBackupSettings(),
+				Shares: Shamir.Generate(
 					multiShareBackupSettings.Threshold,
 					multiShareBackupSettings.Shares,
-					WalletGenerator.GenerateShamirEntropy())
-			};
+					WalletGenerator.GenerateShamirEntropy()),
+				Password: "");
 
 			return this with
 			{
