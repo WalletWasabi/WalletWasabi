@@ -30,7 +30,7 @@
                        Increment="1"
                        FormatString="G2"
                        ClipValueToMinMax="True"
-                       MinWidth="350"
+                       MinWidth="420"
                        Name="SharesNumericUpDown" />
       </DockPanel>
       <!-- Number of shares necessary to recombine the seed. -->
@@ -47,7 +47,7 @@
                        Increment="1"
                        FormatString="G2"
                        ClipValueToMinMax="True"
-                       MinWidth="350"
+                       MinWidth="420"
                        Name="ThresholdNumericUpDown" />
       </DockPanel>
     </StackPanel>
