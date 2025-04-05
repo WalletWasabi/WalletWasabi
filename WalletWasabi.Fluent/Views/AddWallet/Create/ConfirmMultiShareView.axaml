@@ -4,19 +4,27 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
-             x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
+             x:DataType="create:ConfirmMultiShareViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmMultiShareView">
   <ContentArea Title="{Binding Title}"
-                 Caption="{Binding CurrentWord.Index, StringFormat='Click the recovery word #{0}', FallbackValue=' '}"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True"
-                 NextContent="Continue"
-                 EnableSkip="{Binding IsSkipEnabled}"
-                 IsBusy="{Binding IsBusy}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True"
+               NextContent="Continue"
+               EnableSkip="{Binding IsSkipEnabled}"
+               IsBusy="{Binding IsBusy}"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.Caption>
+      <MultiBinding StringFormat="Share #{0} of {1} - Page #{2} of {3}. Click the recovery word #{4}" FallbackValue=' '>
+        <Binding Path="CurrentShare" />
+        <Binding Path="TotalShares" />
+        <Binding Path="CurrentSharePage" />
+        <Binding Path="TotalCurrenSharePages" />
+        <Binding Path="CurrentWord.Index" />
+      </MultiBinding>
+    </ContentArea.Caption>
 
     <DockPanel>
 
@@ -73,7 +81,7 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="80">
+              <StackPanel Orientation="Horizontal" Margin="50 0 50 0" Width="85">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}"
                            Height="42" />
                 <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
@@ -88,8 +96,10 @@
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
         </Grid>
+
       </Panel>
 
     </DockPanel>
+
   </ContentArea>
 </UserControl>

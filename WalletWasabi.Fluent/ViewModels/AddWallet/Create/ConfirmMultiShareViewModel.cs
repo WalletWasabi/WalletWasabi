@@ -11,21 +11,67 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 
-[NavigationMetaData(Title = "Confirm Recovery Words")]
-public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
+[NavigationMetaData(Title = "Confirm Multi-share")]
+public partial class ConfirmMultiShareViewModel : RoutableViewModel
 {
-	private readonly List<RecoveryWordViewModel> _words;
+	private static readonly Dictionary<int, byte> WordsPerPageMap = new()
+	{
+		[12] = 12,
+		[18] = 9,
+		[20] = 10,
+		[24] = 12,
+		[33] = 11,
+	};
+
+	private static readonly Dictionary<int, byte> TotalPagesMap = new()
+	{
+		[12] = 1,
+		[18] = 2,
+		[20] = 2,
+		[24] = 2,
+		[33] = 3,
+	};
+
 	private readonly WalletCreationOptions.AddNewWallet _options;
+	private readonly Dictionary<int, List<RecoveryWordViewModel>> _wordsDictionary;
+	private readonly List<RecoveryWordViewModel> _words;
+
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentSharePage;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalCurrenSharePages;
 
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
 
-	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
+	private ConfirmMultiShareViewModel(WalletCreationOptions.AddNewWallet options, Dictionary<int, List<RecoveryWordViewModel>> wordsDictionary)
 	{
+		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
+
+		ArgumentNullException.ThrowIfNull(multiShareBackup);
+
+		_currentShare = multiShareBackup.CurrentShare;
+		_totalShares = multiShareBackup.Settings.Shares;
+
+		var words = wordsDictionary[_currentShare - 1];
+
+		_wordsDictionary = wordsDictionary;
+
 		_options = options;
 		_availableWords = new List<RecoveryWordViewModel>();
-		_words = words.OrderBy(x => x.Index).ToList();
+
+		// Paginate recovery words.
+		var wordsPerPage = WordsPerPageMap[words.Count];
+		_currentSharePage = multiShareBackup.CurrentSharePage;
+		_totalCurrenSharePages = TotalPagesMap[words.Count];
+		var wordsToSkip = wordsPerPage * (_currentSharePage - 1);
+
+		_words = words
+			.Skip(wordsToSkip)
+			.Take(wordsPerPage)
+			.OrderBy(x => x.Index)
+			.ToList();
 		_currentWord = words.First();
 	}
 
@@ -55,11 +101,11 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		var nextCommandCanExecute =
 			confirmationWordsSourceList
-			.Connect()
-			.WhenValueChanged(x => x.IsConfirmed)
-			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
+				.Connect()
+				.WhenValueChanged(x => x.IsConfirmed)
+				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
-		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
 
 		SetSkip();
 
@@ -132,35 +178,53 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		}
 	}
 
-	private async Task OnNextAsync()
+	private async Task OnNextAsync(bool skip = false)
 	{
 		var options = _options;
 
-		if (options.SelectedWalletBackup is not RecoveryWordsBackup recoveryWordsBackup)
+		if (options.SelectedWalletBackup is not MultiShareBackup multiShareBackup)
 		{
 			throw new ArgumentOutOfRangeException(nameof(options));
 		}
 
-		var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
-			"It's needed to open and to recover your wallet.\n" +
-			"It's a recovery words extension for more security.";
-		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
-
-		if (password is null)
+		if ((_currentShare >= multiShareBackup.Settings.Shares && _currentSharePage >= _totalCurrenSharePages)
+		    || skip)
 		{
-			return;
-		}
+			var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
+			                    "It's needed to open and to recover your wallet.\n" +
+			                    "It's a recovery words extension for more security.";
+			var password = await Navigate().To()
+				.CreatePasswordDialog("Add Passphrase", dialogCaption, enableEmpty: true).GetResultAsync();
 
-		options = options with
-		{
-			SelectedWalletBackup = recoveryWordsBackup with
+			if (password is null)
 			{
-				Password = password
+				return;
 			}
-		};
 
-		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-		Navigate().To().AddedWalletPage(walletSettings, options!);
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					Password = password
+				}
+			};
+
+			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
+			Navigate().To().AddedWalletPage(walletSettings, options);
+		}
+		else
+		{
+			options = options with
+			{
+				SelectedWalletBackup = multiShareBackup with
+				{
+					CurrentShare = _currentSharePage == _totalCurrenSharePages ? ++_currentShare : _currentShare,
+					CurrentSharePage = (byte)(_currentSharePage == _totalCurrenSharePages ? 1 : ++_currentSharePage)
+				}
+			};
+
+			Navigate().To().ConfirmMultiShare(options, _wordsDictionary);
+		}
 	}
 
 	private void OnCancel()
@@ -178,7 +242,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 		if (IsSkipEnabled)
 		{
-			SkipCommand = ReactiveCommand.CreateFromTask(OnNextAsync);
+			SkipCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(true));
 		}
 	}
 }
