@@ -64,7 +64,6 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 			.Subscribe(x =>
 			{
 				Share = x;
-				// TODO: Try to combine shares.
 				IsMnemonicsValid = x is not null;
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
