@@ -32,7 +32,6 @@
         <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
           <Setter Property="Cursor" Value="Hand" />
           <Setter Property="Padding" Value="12,0,12,0" />
-          <Setter Property="(ToolTip.Tip)" Value="{Binding ToolTipText}" />
         </Style>
         <Style Selector="ListBoxItem > ContentPresenter">
           <Setter Property="Background" Value="Transparent" />
