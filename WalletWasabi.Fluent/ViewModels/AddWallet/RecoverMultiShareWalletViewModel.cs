@@ -57,8 +57,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 		}
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
-			// Share.MIN_MNEMONIC_LENGTH_WORDS is 20 so we do not accept 12 or 18 words.
-			.Select(x => x.Count is 20 or 24 or 33
+			.Select(x => IsMnemonicsCountValid(x)
 				? ToShare()
 				: null)
 			.Subscribe(x =>
@@ -151,10 +150,24 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 		}
 	}
 
+	private bool IsMnemonicsCountValid(IReadOnlyCollection<string> mnemonics)
+	{
+		// Share.MIN_MNEMONIC_LENGTH_WORDS is 20 so we do not accept 12 or 18 words.
+		return mnemonics.Count is 20 or 24 or 33;
+	}
+
 	private void ValidateMnemonics(IValidationErrors errors)
 	{
+		const string InvalidSetErrorMessageText = "Invalid set. Make sure you typed all your recovery words in the correct order.";
+
 		if (Share is null)
 		{
+			if (IsMnemonicsCountValid(Mnemonics))
+			{
+				errors.Add(ErrorSeverity.Error, InvalidSetErrorMessageText);
+				return;
+			}
+
 			ClearValidations();
 			return;
 		}
@@ -169,7 +182,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 			return;
 		}
 
-		errors.Add(ErrorSeverity.Error, "Invalid set. Make sure you typed all your recovery words in the correct order.");
+		errors.Add(ErrorSeverity.Error, InvalidSetErrorMessageText);
 	}
 
 	private string GetTagsAsConcatString(IEnumerable<string> tags)
