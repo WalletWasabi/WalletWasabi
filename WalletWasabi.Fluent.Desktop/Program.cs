@@ -21,6 +21,7 @@ using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -66,9 +67,9 @@ public class Program
 				throw app.TerminateService.GracefulCrashException;
 			}
 
-			if (Services.UpdateManager is {} updateManager && exitCode == ExitCode.Ok && updateManager.DoUpdateOnClose)
+			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: var installerFilePath}})
 			{
-				updateManager.StartInstallingNewVersion();
+				Installer.StartInstallingNewVersion(installerFilePath);
 			}
 
 			return (int)exitCode;

@@ -7,15 +7,18 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
+using NNostr.Client;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -34,7 +37,6 @@ using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Daemon;
 
@@ -61,7 +63,7 @@ public class Global
 			log: Config.LogModes.Contains(LogMode.File));
 
 		EventBus = new EventBus();
-		Status = new StatusContainer(EventBus);
+		Status = new StatusContainer(EventBus, installOnClose: Config.DownloadNewVersion);
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -76,8 +78,15 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		WasabiNostr = new WasabiNostrClient(TorSettings.SocksEndpoint);
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus, WasabiNostr), "Update Manager");
+		string[] relayUrls = ["wss://relay.primal.net", "wss://nos.lol", "wss://relay.damus.io"];
+		NostrClient = NostrClientFactory.Create(relayUrls.Select(x => new Uri(x)).ToArray(), TorSettings.SocksEndpoint);
+
+		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
+		var installerDownloader = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
+			? ReleaseDownloader.ForLinux()
+			: ReleaseDownloader.ForWindowsAndMac(ExternalSourcesHttpClientFactory, EventBus);
+
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), NostrClient, installerDownloader, EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
@@ -185,7 +194,7 @@ public class Global
 
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public IHttpClientFactory BackendHttpClientFactory { get; }
-	public WasabiNostrClient WasabiNostr { get; }
+	public INostrClient NostrClient { get; }
 	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 
 	public string ConfigFilePath { get; }
@@ -256,7 +265,6 @@ public class Global
 					throw;
 				}
 
-				await WasabiNostr.InitializeNostrConnectionAsync(cancel).ConfigureAwait(false);
 				await _blockDownloadService.StartAsync(cancel).ConfigureAwait(false);
 
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
@@ -428,7 +436,7 @@ public class Global
 				}
 
 				Status.Dispose();
-				WasabiNostr.Dispose();
+				NostrClient.Dispose();
 
 				if (CoinPrison is { } coinPrison)
 				{
