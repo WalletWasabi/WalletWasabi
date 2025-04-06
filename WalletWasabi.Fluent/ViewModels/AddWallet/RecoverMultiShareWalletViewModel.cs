@@ -26,6 +26,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Share? _share;
 	[AutoNotify] private bool _isMnemonicsValid;
+	[AutoNotify] private bool _showAdvancedRecoveryOptions;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte? _currentShare;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte? _requiredShares;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _caption;
@@ -56,6 +57,14 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 			}
 		}
 
+		if (_shares is not null && _shares.Length > 0)
+		{
+			var share = _shares[0];
+			var sharesLength = _shares is null ? 1 : _shares.Length + 1;
+			var threshold = share.MemberThreshold;
+			ShowAdvancedRecoveryOptions = sharesLength >= threshold;
+		}
+
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => IsMnemonicsCountValid(x)
 				? ToShare()
@@ -64,6 +73,22 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 			{
 				Share = x;
 				IsMnemonicsValid = x is not null;
+
+				if (_shares is null)
+				{
+					var share = Share;
+					if (share is not null)
+					{
+						var sharesLength = _shares is null ? 1 : _shares.Length + 1;
+						var threshold = share.MemberThreshold;
+						ShowAdvancedRecoveryOptions = sharesLength >= threshold;
+					}
+					else
+					{
+						ShowAdvancedRecoveryOptions = false;
+					}
+				}
+
 				this.RaisePropertyChanged(nameof(Mnemonics));
 			});
 
