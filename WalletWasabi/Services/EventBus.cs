@@ -103,6 +103,9 @@ public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record ServerTipHeightChanged(int Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
+public record NewSoftwareVersionInstallerAvailable(string InstallerPath);
+
+public record InstallOnClosedPreferenceChanged(bool InstallOnClose);
 public record IndexerAvailabilityStateChanged(bool IsIndexerAvailable);
 public record TorConnectionStateChanged(bool IsTorRunning);
 
