@@ -79,17 +79,19 @@
                 <InfoMessage DockPanel.Dock="Right"
                              VerticalAlignment="Center"
                              Margin="14,0,0,0"
-                             ToolTip.Tip="{Binding ToolTipText}" />
+                             ToolTip.Tip="{Binding Options.ToolTipText}"
+                             IsVisible="{Binding Options.ToolTipText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 <DockPanel>
-                  <TextBlock Text="{Binding Description}"
+                  <TextBlock Text="{Binding Options.Description}"
                              Classes="h5"
                              Margin="0,0,0,7"
                              DockPanel.Dock="Top" />
-                  <TextBlock Text="{Binding HelpText}"
+                  <TextBlock Text="{Binding Options.HelpText}"
                              Classes="h8"
                              TextWrapping="Wrap"
                              Opacity="0.6"
-                             MaxWidth="400" />
+                             MaxWidth="400"
+                             IsVisible="{Binding Options.HelpText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
                 </DockPanel>
               </DockPanel>
             </RadioButton>

@@ -15,10 +15,44 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 
 	private WalletBackupTypeViewModel(WalletCreationOptions options)
 	{
-		_walletBackupTypes = [
-			new WalletBackupType.RecoveryWords(),
-			new WalletBackupType.MultiShare()
-		];
+		switch (options)
+		{
+			case WalletCreationOptions.AddNewWallet:
+			{
+				_walletBackupTypes =
+				[
+					new WalletBackupType.RecoveryWords(
+						new WalletBackupTypeOptions(
+							Description: "Recovery words Backup",
+							HelpText: "Back up your wallet using a set of secret words. Write them down and store them safely — you’ll need them to recover your wallet.",
+							ToolTipText: "Creates a BIP39 mnemonic phrase (typically 12 or 24 words) that encodes the wallet's seed. This phrase can regenerate your private keys and restore access to your funds on compatible wallets.")),
+					new WalletBackupType.MultiShare(new WalletBackupTypeOptions(
+						Description: "Multi-share Backup",
+						HelpText: "Split your wallet backup into multiple parts. You’ll need some of them to restore your wallet, adding an extra layer of protection.",
+						ToolTipText: "Uses Shamir's Secret Sharing (SLIP-0039) to divide the wallet secret into multiple shares. A defined number of these shares are required to reconstruct the wallet’s master secret."))
+				];
+
+				break;
+			}
+			case WalletCreationOptions.RecoverWallet:
+			{
+				_walletBackupTypes =
+				[
+					new WalletBackupType.RecoveryWords(
+						new WalletBackupTypeOptions(
+							Description: "Single mnemonic phrase (BIP39)")),
+					new WalletBackupType.MultiShare(
+						new WalletBackupTypeOptions(
+							Description: "Parts of Shamir's Secret Sharing (SLIP-0039)"))
+				];
+
+				break;
+			}
+			default:
+			{
+				throw new ArgumentOutOfRangeException();
+			}
+		}
 
 		_walletBackupType = _walletBackupTypes.First();
 
