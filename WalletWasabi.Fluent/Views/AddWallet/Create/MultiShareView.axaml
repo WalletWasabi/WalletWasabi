@@ -43,7 +43,7 @@
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="15 0 15 0" Width="85">
+              <StackPanel Orientation="Horizontal" Margin="5 0 5 0" Width="113">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
