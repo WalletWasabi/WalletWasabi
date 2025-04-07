@@ -125,7 +125,7 @@ public partial class WalletRepository : ReactiveObject
 							walletGenerator.GenerateWallet(
 								walletName,
 								multiShareBackup.Password,
-								multiShareBackup.Shares?.Take(multiShareBackup.Settings.Threshold).ToArray()).KeyManager,
+								multiShareBackup.Shares.Take(multiShareBackup.Settings.Threshold).ToArray()).KeyManager,
 						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
 					};
 				});
