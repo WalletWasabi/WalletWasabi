@@ -270,7 +270,7 @@ public static class PlatformInformation
 			return false;
 		}
 
-		if (File.Exists("/etc/os-release"))
+		if (!File.Exists("/etc/os-release"))
 		{
 			return false;
 		}
