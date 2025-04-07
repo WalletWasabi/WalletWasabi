@@ -74,6 +74,12 @@
               Background="Transparent"
               Theme="{DynamicResource VerticallyCenteredRadioButton}"
               IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}">
+              <Interaction.Behaviors>
+                <!-- We need to focus ListBoxItem as RadioButton handles Enter key events -->
+                <EventTriggerBehavior EventName="Click">
+                  <FocusControlAction TargetControl="{Binding $parent[ListBoxItem]}" />
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
               <DockPanel Margin="7,0,7,0"
                          VerticalAlignment="Center">
                 <InfoMessage DockPanel.Dock="Right"
