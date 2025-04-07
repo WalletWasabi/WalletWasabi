@@ -149,10 +149,10 @@ public static class ReleaseDownloader
 
 		Task<string> DownloadFileAsync(Uri uri) => DownloadAsync(httpClientFactory, uri, installDirectory, cancellationToken);
 
-		Result<(string FileName, Uri Uri), string> Find(string ending) =>
-			releaseInfo.Assets.Select(x => (x.Key, x.Value)).FirstOrDefault(x => x.Key.EndsWith(ending)) is {} found
+		Result<(string FileName, Uri Uri), string> Find(string filename) =>
+			releaseInfo.Assets.Select(x => (x.Key, x.Value)).FirstOrDefault(x => x.Key.EndsWith(filename)) is {} found
 			? found
-			: Result<(string, Uri), string>.Fail($"The is not file ending with '{ending}'.");
+			: Result<(string, Uri), string>.Fail($"There is no file '{filename}'.");
 	}
 
 	private static async Task<string> DownloadAsync(IHttpClientFactory httpClientFactory, Uri uri, DirectoryInfo installDirectory, CancellationToken cancellationToken)
