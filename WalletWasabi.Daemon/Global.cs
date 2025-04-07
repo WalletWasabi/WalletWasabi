@@ -78,13 +78,13 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		string[] relayUrls = ["wss://relay.primal.net", "wss://nos.lol", "wss://relay.damus.io"];
-		NostrClient = NostrClientFactory.Create(relayUrls.Select(x => new Uri(x)).ToArray(), TorSettings.SocksEndpoint);
+		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
+		NostrClient = NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
-		var installerDownloader = RuntimeInformation.IsOSPlatform(OSPlatform.Linux)
-			? ReleaseDownloader.ForLinux()
-			: ReleaseDownloader.ForWindowsAndMac(ExternalSourcesHttpClientFactory, EventBus);
+		var installerDownloader = RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
+			? ReleaseDownloader.ForUnsupportedLinuxDistributions()
+			: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
 
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), NostrClient, installerDownloader, EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();

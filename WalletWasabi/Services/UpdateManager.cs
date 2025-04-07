@@ -93,10 +93,10 @@ public static class ReleaseDownloader
 {
 	private static readonly UserAgentPicker _userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 
-	public static AsyncReleaseDownloader ForWindowsAndMac(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
+	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
 		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(httpClientFactory, eventBus, releaseInfo, cancellationToken);
 
-	public static AsyncReleaseDownloader ForLinux() =>
+	public static AsyncReleaseDownloader ForUnsupportedLinuxDistributions() =>
 		(_, _) =>
 		{
 			Logger.LogInfo("For Linux, get the correct update manually.");
@@ -115,12 +115,12 @@ public static class ReleaseDownloader
 		await Task.WhenAll(sha256SumsTask, sha256SumsAscTask, sha256SumsWasTask).ConfigureAwait(false);
 
 		// Verify signatures
-		await VerifySha256SumsFileAsync(sha256SumsTask.Result, sha256SumsWasTask.Result, cancellationToken).ConfigureAwait(false);
+		await VerifySha256SumsFileAsync(sha256SumsAscTask.Result, sha256SumsWasTask.Result, cancellationToken).ConfigureAwait(false);
 
 		Logger.LogInfo("Trying to download new version.");
 
 		// Find appropriate installer for current platform
-		var assetToDownloadResult = Find(GetInstallerExtension());
+		var assetToDownloadResult = Find(GetInstallerName(releaseInfo.Version));
 		if (!assetToDownloadResult.IsOk)
 		{
 			Logger.LogError(assetToDownloadResult.Error);
@@ -159,7 +159,10 @@ public static class ReleaseDownloader
 	{
 		var httpClient = httpClientFactory.CreateClient($"{uri.Host}-installers");
 		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
-		var contentStream = await httpClient.GetStreamAsync(uri, cancellationToken).ConfigureAwait(false);
+		using var request = new HttpRequestMessage(HttpMethod.Get, uri);
+		var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+		response.EnsureSuccessStatusCode();
+		var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
 		var filePath = Path.Combine(installDirectory.FullName, uri.Segments[^1]);
 		await using var fileStream = new FileStream(filePath, FileMode.Create);
 		await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
@@ -199,26 +202,17 @@ public static class ReleaseDownloader
 		}
 	}
 
-	private static string GetInstallerExtension()
-	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+	private static string GetInstallerName(Version version) =>
+		(PlatformInformation.GetOsPlatform(), RuntimeInformation.ProcessArchitecture) switch
 		{
-			return ".msi";
-		}
+			(OS.Windows, _) => $"Wasabi-{version}.msi",
+			(OS.OSX, Architecture.Arm64) => $"Wasabi-{version}-arm64.dmg",
+			(OS.OSX, _) => $"Wasabi-{version}.dmg",
+			(OS.Linux, _) when PlatformInformation.IsDebianBasedOS() => $"Wasabi-{version}.deb",
+			(OS.Linux, Architecture.X64) => $"Wasabi-{version}-linux-x64.tar.gz",
+			_ => throw new NotSupportedException($"Unsupported platform: '{RuntimeInformation.OSDescription}'.")
+		};
 
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			return RuntimeInformation.ProcessArchitecture == Architecture.Arm64
-				? "arm64.dmg"
-				: ".dmg";
-		}
-
-		throw new NotSupportedException($"Unsupported platform: '{RuntimeInformation.OSDescription}'.");
-	}
-}
-
-public static class LinuxReleaseDownloader
-{
 }
 
 public static class Installer
