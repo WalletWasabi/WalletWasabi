@@ -92,8 +92,6 @@ public static class Constants
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
-	public static readonly DateTimeOffset LatestReleaseDate = new DateTimeOffset(year: 2025, month: 3, day: 28, hour: 1, minute: 0, second: 0, offset: TimeSpan.Zero);
-
 	public static readonly Version ClientVersion = new(2, 5, 1);
 
 	public static readonly Version HwiVersion = new("3.1.0");
