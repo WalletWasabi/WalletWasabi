@@ -3,6 +3,7 @@ using NNostr.Client.Protocols;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
+using System.Net.WebSockets;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -11,37 +12,37 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.WebClients;
 
-public class WasabiNostrClient(INostrClient nostrClient)
+public class WasabiNostrClient : IDisposable
 {
-	private readonly string _nostrSubscriptionID = Guid.NewGuid().ToString();
 	private readonly Channel<ReleaseInfo> _updateChannel = Channel.CreateUnbounded<ReleaseInfo>();
 	private readonly Dictionary<string, NostrEvent> _events = new();
+	private readonly INostrClient _nostrClient;
+	private string _nostrSubscriptionID;
+
+	public WasabiNostrClient(INostrClient nostrClient)
+	{
+		_nostrClient = nostrClient;
+		_nostrClient.EventsReceived += OnNostrEventsReceived;
+	}
 
 	public ChannelReader<ReleaseInfo> EventsReader => _updateChannel.Reader;
 
 	public async Task ConnectAnsSubscribeAsync(CancellationToken cancel)
 	{
-		nostrClient.EventsReceived += OnNostrEventsReceived;
-		nostrClient.EoseReceived += OnEndOfStoredEvents;
-
-		await nostrClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
+		await _nostrClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
 
 		var nostrSubscriptionFilter = new NostrSubscriptionFilter {
 			Kinds = [1],
 			Authors = [NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex()],
 			Limit = 1};
-		await nostrClient.CreateSubscription(_nostrSubscriptionID, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
-	}
 
-	private void OnEndOfStoredEvents(object? sender, string e)
-	{
-		nostrClient.EventsReceived -= OnNostrEventsReceived;
-		_updateChannel.Writer.TryComplete();
+		_nostrSubscriptionID = Guid.NewGuid().ToString();
+		await _nostrClient.CreateSubscription(_nostrSubscriptionID, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken)
 	{
-		await nostrClient.Disconnect().ConfigureAwait(false);
+		await _nostrClient.Disconnect().ConfigureAwait(false);
 	}
 
 	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
@@ -72,8 +73,31 @@ public class WasabiNostrClient(INostrClient nostrClient)
 				Logger.LogError($"Invalid Nostr Event received. ID: {nostrEvent.Id}");
 			}
 		}
+
+		CheckAllClientsFinished((INostrClient)sender!);
 	}
 
+	private void CheckAllClientsFinished(INostrClient individualClient)
+	{
+		individualClient.Disconnect();
+
+		if (_nostrClient is CompositeNostrClient multiClient)
+		{
+			if (multiClient.States.All(s => s.Value is WebSocketState.Closed or WebSocketState.Aborted))
+			{
+				_updateChannel.Writer.TryComplete();
+			}
+		}
+		else
+		{
+			_updateChannel.Writer.TryComplete();
+		}
+	}
+
+	public void Dispose()
+	{
+		_nostrClient.EventsReceived -= OnNostrEventsReceived;
+	}
 }
 
 public record ReleaseInfo(Version Version, ImmutableDictionary<string, Uri> Assets);

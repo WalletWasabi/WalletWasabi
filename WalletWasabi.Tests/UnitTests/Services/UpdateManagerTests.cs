@@ -18,14 +18,14 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		using var testClient = new TesteabletNostrClient([
+		var nostrClientFactory = () => new TesteabletNostrClient([
 			new ReleaseInfo(new Version(1, 0, 0), emptyTags),
 			new ReleaseInfo(new Version(3, 5, 8), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 1), emptyTags)
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), testClient, doNothingDownloader, eventBus);
+		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
@@ -52,14 +52,14 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		using var testClient = new TesteabletNostrClient([
+		var nostrClientFactory = () => new TesteabletNostrClient([
 			new ReleaseInfo(new Version(1, 0, 0), emptyTags),
 			new ReleaseInfo(new Version(3, 5, 8), emptyTags),
 			new ReleaseInfo(new Version(3, 4, 0), emptyTags)
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), testClient, doNothingDownloader, eventBus);
+		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
@@ -86,14 +86,14 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		using var testClient = new TesteabletNostrClient([
+		var nostrClientFactory = () => new TesteabletNostrClient([
 			new ReleaseInfo(new Version(0, 1, 0), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 0), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 1), emptyTags)
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), testClient, doNothingDownloader, eventBus);
+		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
 
@@ -114,10 +114,10 @@ public class UpdateManagerTests
 	{
 		// Arrange
 		var eventBus = new EventBus();
-		using var testClient = new TesteabletNostrClient([]);
+		var nostrClientFactory = () => new TesteabletNostrClient([]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), testClient, doNothingDownloader, eventBus);
+		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
 

@@ -25,29 +25,29 @@ public delegate Task AsyncReleaseDownloader(ReleaseInfo releaseInfo, Cancellatio
 /// </summary>
 public class UpdateManager(
 	TimeSpan period,
-	INostrClient nostrClient,
+	Func<INostrClient> nostrClientFactory,
 	AsyncReleaseDownloader releaseDownloader,
 	EventBus eventBus)
 	: PeriodicRunner(period)
 {
-	private readonly WasabiNostrClient _nostrClient = new(nostrClient);
-
 	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
+		using var nostrClient = nostrClientFactory();
+		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
 		try
 		{
 			// Connect to Nostr relays and check for release version updates
-			await _nostrClient.ConnectAnsSubscribeAsync(cancellationToken).ConfigureAwait(false);
-			await ProcessReleaseEventsAsync(cancellationToken).ConfigureAwait(false);
+			await wasabiNostrClient.ConnectAnsSubscribeAsync(cancellationToken).ConfigureAwait(false);
+			await ProcessReleaseEventsAsync(wasabiNostrClient, cancellationToken).ConfigureAwait(false);
 		}
 		finally
 		{
 			// Ensure we disconnect regardless of the outcome
-			await _nostrClient.DisconnectAsync(cancellationToken).ConfigureAwait(false);
+			await wasabiNostrClient.DisconnectAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
-	private async Task ProcessReleaseEventsAsync(CancellationToken cancellationToken)
+	private async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, CancellationToken cancellationToken)
 	{
 		using var sixtySeconds = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, sixtySeconds.Token);
@@ -55,7 +55,7 @@ public class UpdateManager(
 		try
 		{
 			// Read all the events as an array
-			var releases = await _nostrClient.EventsReader
+			var releases = await wasabiNostrClient.EventsReader
 				.ReadAllAsync(linkedCancellationTokenSource.Token)
 				.ToArrayAsync(linkedCancellationTokenSource.Token)
 				.ConfigureAwait(false);
