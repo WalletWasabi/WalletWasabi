@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Security.Cryptography;
 using System.Threading.Tasks;
 using DynamicData;
 using DynamicData.Binding;
@@ -14,6 +15,8 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Confirm Multi-share")]
 public partial class ConfirmMultiShareViewModel : RoutableViewModel
 {
+	private const int WordsToConfirmPerPage = 3;
+
 	private static readonly Dictionary<int, byte> WordsPerPageMap = new()
 	{
 		[12] = 12,
@@ -35,6 +38,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	private readonly WalletCreationOptions.AddNewWallet _options;
 	private readonly Dictionary<int, List<RecoveryWordViewModel>> _wordsDictionary;
 	private readonly List<RecoveryWordViewModel> _words;
+	private readonly HashSet<int> _wordIndexesToConfirm;
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
@@ -72,7 +76,14 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			.Take(wordsPerPage)
 			.OrderBy(x => x.Index)
 			.ToList();
-		_currentWord = words.First();
+
+		_wordIndexesToConfirm = GetRandomIndexes(
+			array: _words.Select(x => x.Index).ToArray(),
+			count: WordsToConfirmPerPage);
+
+		ConfirmNotRequiredWords(_words);
+
+		_currentWord = _words.First(x => !x.IsConfirmed);
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -111,10 +122,14 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		confirmationWordsSourceList.AddRange(_words);
 
+		ConfirmNotRequiredWords(_words);
+
 		AvailableWords = confirmationWordsSourceList.Items
 			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
 			.OrderBy(x => x.Word)
 			.ToList();
+
+		ConfirmNotRequiredWords(AvailableWords);
 
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>()
 			.DisposeWith(disposables);
@@ -131,6 +146,31 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		var enableCancel = UiContext.WalletRepository.HasWallet;
 		SetupCancel(enableCancel: false, enableCancelOnEscape: enableCancel, enableCancelOnPressed: false);
+	}
+
+	private void ConfirmNotRequiredWords(IEnumerable<RecoveryWordViewModel> words)
+	{
+		foreach (var word in words.Where(word => !_wordIndexesToConfirm.Contains(word.Index)))
+		{
+			word.SelectedWord = word.Word;
+			word.IsConfirmed = true;
+		}
+	}
+
+	private static HashSet<int> GetRandomIndexes(int[] array, int count)
+	{
+		if (count > array.Length)
+		{
+			throw new ArgumentException("Count cannot be greater than array length.");
+		}
+
+		for (var i = array.Length - 1; i > 0; i--)
+		{
+			var j = RandomNumberGenerator.GetInt32(0, i + 1);
+			(array[i], array[j]) = (array[j], array[i]);
+		}
+
+		return array.Take(count).ToHashSet();
 	}
 
 	private void SetNextWord()
