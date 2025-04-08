@@ -83,14 +83,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		ConfirmNotRequiredWords(_words);
 
-		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
-		{
-			_currentWord = nextWord;
-		}
-		else
-		{
-			_currentWord = _words.Last();
-		}
+		SetCurrentWord();
+
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -178,6 +172,18 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		}
 
 		return array.Take(count).ToHashSet();
+	}
+
+	private void SetCurrentWord()
+	{
+		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
+		{
+			_currentWord = nextWord;
+		}
+		else
+		{
+			_currentWord = _words.Last();
+		}
 	}
 
 	private void SetNextWord()
