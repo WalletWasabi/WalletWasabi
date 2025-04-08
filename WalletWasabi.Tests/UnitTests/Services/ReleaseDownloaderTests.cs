@@ -40,7 +40,8 @@ public class ReleaseDownloaderTests
 		var releaseInfo = new ReleaseInfo(Version.Parse("2.5.1"), assets.ToImmutableDictionary(x => x.Item1, x => x.Item2));
 		await asyncDownloader(releaseInfo, CancellationToken.None);
 
-		var installerPath = await installerObstainedTask.Task;
+		// Wait for the installer. Throws TimeoutException in case the installer is not found
+		var installerPath = await installerObstainedTask.Task.WaitAsync(TimeSpan.FromMilliseconds(100));
 		var installerContent = File.ReadAllText(installerPath);
 		Assert.Equal("binary file", installerContent);
 	}

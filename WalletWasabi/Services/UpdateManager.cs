@@ -120,16 +120,25 @@ public static class ReleaseDownloader
 		Logger.LogInfo("Trying to download new version.");
 
 		// Find appropriate installer for current platform
-		var assetToDownloadResult = Find(GetInstallerName(releaseInfo.Version));
-		if (!assetToDownloadResult.IsOk)
+		var installerFileName = GetInstallerName(releaseInfo.Version);
+		var installerUriResult = GetInstallerUri(installerFileName);
+		if (!installerUriResult.IsOk)
 		{
-			Logger.LogError(assetToDownloadResult.Error);
+			Logger.LogError(installerUriResult.Error);
 			installDirectory.Delete(true);
 			return;
 		}
 
-		var asset = assetToDownloadResult.Value;
-		var installerFilePath = await DownloadFileAsync(asset.Uri).ConfigureAwait(false);
+		var installerUri = installerUriResult.Value;
+
+		if (!installerUri.Scheme.StartsWith("http") || !installerUri.IsAbsoluteUri)
+		{
+			Logger.LogError($"Can't download installer file '{installerFileName}' from '{installerUri}'. Only absolute http url are supported.");
+			installDirectory.Delete(true);
+			return;
+		}
+
+		var installerFilePath = await DownloadFileAsync(installerUri).ConfigureAwait(false);
 
 		Logger.LogInfo($"Installer downloaded to: {installerFilePath}");
 
@@ -137,8 +146,8 @@ public static class ReleaseDownloader
 		var lines = await File.ReadAllLinesAsync(sha256SumsTask.Result, cancellationToken).ConfigureAwait(false);
 		var installerHash = lines.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
 			.Select(a => (Hash: a[0], FileName: a[1]))
-			.FirstOrDefault(a => a.FileName == asset.FileName)
-			.Hash ?? throw new InvalidOperationException($"{asset.FileName} was not found.");;
+			.FirstOrDefault(a => a.FileName == installerFileName)
+			.Hash ?? throw new InvalidOperationException($"{installerFileName} was not found.");;
 
 		await VerifyInstallerHashAsync(installerFilePath, installerHash, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo("Installer verified successfully");
@@ -149,10 +158,10 @@ public static class ReleaseDownloader
 
 		Task<string> DownloadFileAsync(Uri uri) => DownloadAsync(httpClientFactory, uri, installDirectory, cancellationToken);
 
-		Result<(string FileName, Uri Uri), string> Find(string filename) =>
-			releaseInfo.Assets.Select(x => (x.Key, x.Value)).FirstOrDefault(x => x.Key.EndsWith(filename)) is {} found
-			? found
-			: Result<(string, Uri), string>.Fail($"There is no file '{filename}'.");
+		Result<Uri, string> GetInstallerUri(string filename) =>
+			releaseInfo.Assets.TryGetValue(filename, out var uri)
+			? uri
+			: Result<Uri, string>.Fail($"There is no file '{filename}'.");
 	}
 
 	private static async Task<string> DownloadAsync(IHttpClientFactory httpClientFactory, Uri uri, DirectoryInfo installDirectory, CancellationToken cancellationToken)
