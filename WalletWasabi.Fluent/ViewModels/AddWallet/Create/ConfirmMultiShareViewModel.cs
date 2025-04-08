@@ -135,8 +135,6 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			.OrderBy(x => x.Word)
 			.ToList();
 
-		ConfirmNotRequiredWords(AvailableWords);
-
 		var availableWordsSourceList = new SourceList<RecoveryWordViewModel>()
 			.DisposeWith(disposables);
 
@@ -148,6 +146,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			.DisposeWith(disposables);
 
 		availableWordsSourceList.AddRange(AvailableWords);
+
+		ConfirmNotRequiredWords(AvailableWords);
 
 		SetNextWord();
 
