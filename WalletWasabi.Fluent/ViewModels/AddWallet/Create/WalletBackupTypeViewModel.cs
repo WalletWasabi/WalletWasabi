@@ -25,7 +25,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 						new WalletBackupTypeOptions(
 							Description: "Recovery words Backup",
 							HelpText: "Back up your wallet using a set of secret words. Write them down and store them safely — you’ll need them to recover your wallet.",
-							ToolTipText: "Creates a BIP39 mnemonic phrase (typically 12 or 24 words) that encodes the wallet's seed. This phrase can regenerate your private keys and restore access to your funds on compatible wallets.")),
+							ToolTipText: "Creates a BIP39 mnemonic phrase (12 words) that encodes the wallet's seed. This phrase can regenerate your private keys and restore access to your funds on compatible wallets.")),
 					new WalletBackupType.MultiShare(new WalletBackupTypeOptions(
 						Description: "Multi-share Backup",
 						HelpText: "Split your wallet backup into multiple parts. You’ll need some of them to restore your wallet, adding an extra layer of protection.",
