@@ -81,6 +81,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			array: _words.Select(x => x.Index).ToArray(),
 			count: WordsToConfirmPerPage);
 
+		ResetWords();
+
 		ConfirmNotRequiredWords(_words);
 
 		SetCurrentWord();
@@ -93,6 +95,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
+
+		ResetWords();
 
 		ConfirmationWords.Clear();
 
@@ -172,6 +176,14 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		}
 
 		return array.Take(count).ToHashSet();
+	}
+
+	private void ResetWords()
+	{
+		foreach (var word in _words)
+		{
+			word.Reset();
+		}
 	}
 
 	private void SetCurrentWord()
