@@ -82,7 +82,7 @@ public class Global
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
-		AsyncReleaseDownloader installerDownloader = !Config.DownloadNewVersion
+		var installerDownloader = !Config.DownloadNewVersion
 			? ReleaseDownloader.AutoDownloadOff()
 			: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
 				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
