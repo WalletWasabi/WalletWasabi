@@ -248,8 +248,8 @@ public static class ReleaseDownloader
 			(OS.Windows, _) => $"Wasabi-{version}.msi",
 			(OS.OSX, Architecture.Arm64) => $"Wasabi-{version}-arm64.dmg",
 			(OS.OSX, _) => $"Wasabi-{version}.dmg",
-			(OS.Linux, _) => $"Wasabi-{version}.msi",
-			//(OS.Linux, Architecture.X64) => $"Wasabi-{version}-linux-x64.tar.gz",
+			(OS.Linux, _) when PlatformInformation.IsDebianBasedOS() => $"Wasabi-{version}.deb",
+			(OS.Linux, Architecture.X64) => $"Wasabi-{version}-linux-x64.tar.gz",
 			_ => throw new NotSupportedException($"Unsupported platform: '{RuntimeInformation.OSDescription}'.")
 		};
 
