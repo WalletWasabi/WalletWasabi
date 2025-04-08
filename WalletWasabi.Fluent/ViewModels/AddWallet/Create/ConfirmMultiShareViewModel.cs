@@ -119,6 +119,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 			confirmationWordsSourceList
 				.Connect()
 				.WhenValueChanged(x => x.IsConfirmed)
+				.ObserveOn(RxApp.MainThreadScheduler)
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
@@ -142,6 +143,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		availableWordsSourceList
 			.Connect()
 			.WhenPropertyChanged(x => x.IsSelected)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => OnWordSelectionChanged(x.Sender))
 			.DisposeWith(disposables);
 
