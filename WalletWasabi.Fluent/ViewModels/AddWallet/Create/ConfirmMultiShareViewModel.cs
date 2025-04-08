@@ -157,10 +157,20 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 	private void ConfirmNotRequiredWords(IEnumerable<RecoveryWordViewModel> words)
 	{
-		foreach (var word in words.Where(word => !_wordIndexesToConfirm.Contains(word.Index)))
+		foreach (var word in words)
 		{
-			word.SelectedWord = word.Word;
-			word.IsConfirmed = true;
+			if (!_wordIndexesToConfirm.Contains(word.Index))
+			{
+				word.SelectedWord = word.Word;
+				word.IsConfirmed = true;
+				word.IsEnabled = false;
+			}
+			else
+			{
+				word.SelectedWord = null;
+				word.IsConfirmed = false;
+				word.IsEnabled = true;
+			}
 		}
 	}
 
