@@ -14,6 +14,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
 using WalletWasabi.WebClients;
+using static WalletWasabi.Services.UpdateManager;
 
 namespace WalletWasabi.Services;
 
@@ -155,7 +156,11 @@ public static class ReleaseDownloader
 		await VerifyInstallerHashAsync(installerFilePath, installerHash, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo("Installer verified successfully");
 
-		// Notify that there is an installer ready
+		// Notify UI that there is an installer ready.
+		var updateStatus = new UpdateStatus(ClientVersion: releaseInfo.Version, ClientUpToDate: false, IsReadyToInstall: true);
+		eventBus.Publish(new NewSoftwareVersionAvailable(updateStatus));
+
+		// Set installer file path, so on exit we can launch the installer.
 		eventBus.Publish(new NewSoftwareVersionInstallerAvailable(installerFilePath));
 		return;
 
