@@ -113,7 +113,7 @@ public static class ReleaseDownloader
 	// Downloads and verifies a new Wasabi release version
 	private static async Task DownloadNewWasabiReleaseVersionAsync(IHttpClientFactory httpClientFactory, EventBus eventBus, ReleaseInfo releaseInfo, CancellationToken cancellationToken)
 	{
-		var installDirectory = Directory.CreateTempSubdirectory("wasabi-install");
+		var installDirectory = GetInstallDirectory(releaseInfo);
 
 		// Download signature files in parallel
 		var sha256SumsTask    = DownloadFileAsync(releaseInfo.Assets["SHA256SUMS"]);
@@ -150,11 +150,7 @@ public static class ReleaseDownloader
 		Logger.LogInfo($"Installer downloaded to: {installerFilePath}");
 
 		// Verify installer hash match the expected one
-		var lines = await File.ReadAllLinesAsync(sha256SumsTask.Result, cancellationToken).ConfigureAwait(false);
-		var installerHash = lines.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
-			.Select(a => (Hash: a[0], FileName: a[1]))
-			.FirstOrDefault(a => a.FileName == installerFileName)
-			.Hash ?? throw new InvalidOperationException($"{installerFileName} was not found.");;
+		var installerHash = await GetExpectedInstallerHashAsync().ConfigureAwait(false);
 
 		await VerifyInstallerHashAsync(installerFilePath, installerHash, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo("Installer verified successfully");
@@ -163,23 +159,46 @@ public static class ReleaseDownloader
 		eventBus.Publish(new NewSoftwareVersionInstallerAvailable(installerFilePath));
 		return;
 
-		Task<string> DownloadFileAsync(Uri uri) => DownloadAsync(httpClientFactory, uri, installDirectory, cancellationToken);
+		Task<string> DownloadFileAsync(Uri uri)
+		{
+			var filePath = Path.Combine(installDirectory.FullName, uri.Segments[^1]);
+			return File.Exists(filePath)
+				? Task.FromResult(filePath)
+				: DownloadAsync(httpClientFactory, uri, filePath, cancellationToken);
+		}
 
 		Result<Uri, string> GetInstallerUri(string filename) =>
 			releaseInfo.Assets.TryGetValue(filename, out var uri)
 			? uri
 			: Result<Uri, string>.Fail($"There is no file '{filename}'.");
+
+		async Task<string> GetExpectedInstallerHashAsync()
+		{
+			var lines = await File.ReadAllLinesAsync(sha256SumsTask.Result, cancellationToken).ConfigureAwait(false);
+			var s = lines.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+				.Select(a => (Hash: a[0], FileName: a[1]))
+				.FirstOrDefault(a => a.FileName == installerFileName)
+				.Hash ?? throw new InvalidOperationException($"{installerFileName} was not found.");
+			return s;
+		}
 	}
 
-	private static async Task<string> DownloadAsync(IHttpClientFactory httpClientFactory, Uri uri, DirectoryInfo installDirectory, CancellationToken cancellationToken)
+	private static DirectoryInfo GetInstallDirectory(ReleaseInfo releaseInfo)
 	{
+		var installDirectoryPath = Path.Combine(Path.GetTempPath(), $"wasabi-installer{releaseInfo.Version}");
+		var installDirectory = Directory.CreateDirectory(installDirectoryPath);
+		return installDirectory;
+	}
+
+	private static async Task<string> DownloadAsync(IHttpClientFactory httpClientFactory, Uri uri, string filePath, CancellationToken cancellationToken)
+	{
+		File.Delete(filePath);
 		var httpClient = httpClientFactory.CreateClient($"{uri.Host}-installers");
 		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
 		using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 		var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
 		var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-		var filePath = Path.Combine(installDirectory.FullName, uri.Segments[^1]);
 		await using var fileStream = new FileStream(filePath, FileMode.Create);
 		await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
 		return filePath;
