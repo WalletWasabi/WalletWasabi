@@ -14,9 +14,6 @@ namespace WalletWasabi.Tests.UnitTests.Bases;
 /// </summary>
 public class PersistentConfigManagerTests
 {
-	/// <summary>
-	/// Tests <see cref="PersistentConfigManager.ToFile{T}(string, T)"/> and <see cref="PersistentConfigManager.LoadFile{TResponse}(string, bool)"/>.
-	/// </summary>
 	[Fact]
 	public async Task ToFileAndLoadFileTestAsync()
 	{
@@ -29,10 +26,10 @@ public class PersistentConfigManagerTests
 		PersistentConfig actualConfig = new();
 
 		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig);
-		PersistentConfig readConfig = PersistentConfigManager.LoadFile(configPath);
+		var readConfig = PersistentConfigManager.LoadFile(configPath) as PersistentConfig;
 
 		// Objects are supposed to be equal by value-equality rules.
-		Assert.True(actualConfig.DeepEquals(readConfig));
+		Assert.Equal(actualConfig, readConfig);
 
 		// Check that JSON strings are equal as well.
 		{
@@ -47,23 +44,15 @@ public class PersistentConfigManagerTests
 			=> $$"""
 			{
 			  "Network": "Main",
-			  "MainNetBackendUri": "https://api.wasabiwallet.io/",
-			  "TestNetBackendUri": "https://api.wasabiwallet.co/",
-			  "RegTestBackendUri": "http://localhost:37127/",
-			  "MainNetCoordinatorUri": "",
-			  "TestNetCoordinatorUri": "",
-			  "RegTestCoordinatorUri": "http://localhost:37128/",
+			  "BackendUri": "https://api.wasabiwallet.io/",
+			  "CoordinatorUri": "",
 			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
 			  "DownloadNewVersion": true,
 			  "UseBitcoinRpc": false,
-			  "MainNetBitcoinRpcCredentialString": "",
-			  "TestNetBitcoinRpcCredentialString": "",
-			  "RegTestBitcoinRpcCredentialString": "",
-			  "MainNetBitcoinRpcEndPoint": "127.0.0.1:8332",
-			  "TestNetBitcoinRpcEndPoint": "127.0.0.1:48332",
-			  "RegTestBitcoinRpcEndPoint": "127.0.0.1:18443",
+			  "BitcoinRpcCredentialString": "",
+			  "BitcoinRpcEndPoint": "127.0.0.1:8332",
 			  "JsonRpcServerEnabled": false,
 			  "JsonRpcUser": "",
 			  "JsonRpcPassword": "",

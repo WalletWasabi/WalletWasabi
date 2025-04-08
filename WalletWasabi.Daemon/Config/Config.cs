@@ -37,24 +37,12 @@ public class Config
 			[ nameof(Network)] = (
 				"The Bitcoin network to use: main, testnet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
-			[ nameof(MainNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is main",
-				GetStringValue("MainNetBackendUri", PersistentConfig.MainNetIndexerUri, cliArgs)),
-			[ nameof(TestNetBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is testnet",
-				GetStringValue("TestNetBackendUri", PersistentConfig.TestNetIndexerUri, cliArgs)),
-			[ nameof(RegTestBackendUri)] = (
-				"The backend server's URL to connect to when the Bitcoin network is regtest",
-				GetStringValue("RegTestBackendUri", PersistentConfig.RegTestIndexerUri, cliArgs)),
-			[ nameof(MainNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is main",
-				GetStringValue("MainNetCoordinatorUri", PersistentConfig.MainNetCoordinatorUri, cliArgs)),
-			[ nameof(TestNetCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is testnet",
-				GetStringValue("TestNetCoordinatorUri", PersistentConfig.TestNetCoordinatorUri, cliArgs)),
-			[ nameof(RegTestCoordinatorUri)] = (
-				"The coordinator server's URL to connect to when the Bitcoin network is regtest",
-				GetStringValue("RegTestCoordinatorUri", PersistentConfig.RegTestCoordinatorUri, cliArgs)),
+			[ nameof(BackendUri)] = (
+				"The backend server's URL to connect to",
+				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
+			[ nameof(CoordinatorUri)] = (
+				"The coordinator server's URL to connect to",
+				GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
@@ -79,24 +67,12 @@ public class Config
 			[ nameof(UseBitcoinRpc)] = (
 				"Connect to bitcoin node rpc server",
 				GetBoolValue("UseBitcoinRpc", PersistentConfig.UseBitcoinRpc, cliArgs)),
-			[ nameof(MainNetBitcoinRpcCredentialString)] = (
+			[ nameof(BitcoinRpcCredentialString)] = (
 				"Credentials for authenticating against the bitcoin node rpc server",
-				GetStringValue("MainNetBitcoinRpcCredentialString", PersistentConfig.MainNetBitcoinRpcCredentialString, cliArgs)),
-			[ nameof(TestNetBitcoinRpcCredentialString)] = (
-				"Credentials for authenticating against the bitcoin node rpc server",
-				GetStringValue("TestNetBitcoinRpcCredentialString", PersistentConfig.TestNetBitcoinRpcCredentialString, cliArgs)),
-			[ nameof(RegTestBitcoinRpcCredentialString)] = (
-				"Credentials for authenticating against the bitcoin node rpc server",
-				GetStringValue("RegTestBitcoinRpcCredentialString", PersistentConfig.RegTestBitcoinRpcCredentialString, cliArgs)),
-			[ nameof(MainNetBitcoinRpcEndPoint)] = (
+				GetStringValue("BitcoinRpcCredentialString", PersistentConfig.BitcoinRpcCredentialString, cliArgs)),
+			[ nameof(BitcoinRpcEndPoint)] = (
 				"-",
-				GetEndPointValue("MainNetBitcoinRpcEndPoint", PersistentConfig.MainNetBitcoinRpcEndPoint, cliArgs)),
-			[ nameof(TestNetBitcoinRpcEndPoint)] = (
-				"-",
-				GetEndPointValue("TestNetBitcoinRpcEndPoint", PersistentConfig.TestNetBitcoinRpcEndPoint, cliArgs)),
-			[ nameof(RegTestBitcoinRpcEndPoint)] = (
-				"-",
-				GetEndPointValue("RegTestBitcoinRpcEndPoint", PersistentConfig.RegTestBitcoinRpcEndPoint, cliArgs)),
+				GetEndPointValue("BitcoinRpcEndPoint", PersistentConfig.BitcoinRpcEndPoint, cliArgs)),
 			[ nameof(JsonRpcServerEnabled)] = (
 				"Start the Json RPC Server and accept requests",
 				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
@@ -166,7 +142,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(GetBitcoinRpcEndPoint(), DustThreshold, DropUnconfirmedTransactionsAfterDays);
+		ServiceConfiguration = new ServiceConfiguration(BitcoinRpcEndPoint, DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
 	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
@@ -174,12 +150,8 @@ public class Config
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
 
-	public string MainNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(MainNetBackendUri));
-	public string TestNetBackendUri => GetEffectiveValue<StringValue, string>(nameof(TestNetBackendUri));
-	public string RegTestBackendUri => GetEffectiveValue<StringValue, string>(nameof(RegTestBackendUri));
-	public string MainNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(MainNetCoordinatorUri));
-	public string TestNetCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(TestNetCoordinatorUri));
-	public string RegTestCoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(RegTestCoordinatorUri));
+	public string BackendUri => GetEffectiveValue<StringValue, string>(nameof(BackendUri));
+	public string CoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(CoordinatorUri));
 	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
@@ -188,12 +160,8 @@ public class Config
 	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool UseBitcoinRpc => GetEffectiveValue<BoolValue, bool>(nameof(UseBitcoinRpc));
-	public string MainNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(MainNetBitcoinRpcCredentialString));
-	public string TestNetBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(TestNetBitcoinRpcCredentialString));
-	public string RegTestBitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(RegTestBitcoinRpcCredentialString));
-	public EndPoint MainNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(MainNetBitcoinRpcEndPoint));
-	public EndPoint TestNetBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(TestNetBitcoinRpcEndPoint));
-	public EndPoint RegTestBitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(RegTestBitcoinRpcEndPoint));
+	public string BitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcCredentialString));
+	public EndPoint BitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(BitcoinRpcEndPoint));
 	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>(nameof(JsonRpcServerEnabled));
 	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
 	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
@@ -230,81 +198,13 @@ public class Config
 	/// </remarks>
 	public bool IsOverridden { get; }
 
-	public EndPoint GetBitcoinRpcEndPoint()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetBitcoinRpcEndPoint;
-		}
-		if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinRpcEndPoint;
-		}
-		if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinRpcEndPoint;
-		}
-		throw new NotSupportedNetworkException(Network);
-	}
-
-	public string GetBitcoinRpcCredentialString()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetBitcoinRpcCredentialString;
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinRpcCredentialString;
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinRpcCredentialString;
-		}
-
-		throw new NotSupportedNetworkException(Network);
-	}
-
-	public Uri GetBackendUri()
-	{
-		if (Network == Network.Main)
-		{
-			return new Uri(MainNetBackendUri);
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return new Uri(TestNetBackendUri);
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return new Uri(RegTestBackendUri);
-		}
-
-		throw new NotSupportedNetworkException(Network);
-	}
-
-	private Uri GetCoordinatorUri()
-	{
-		var result = Network switch
-		{
-			{ } n when n == Network.Main => MainNetCoordinatorUri,
-			{ } n when n == Network.TestNet => TestNetCoordinatorUri,
-			{ } n when n == Network.RegTest => RegTestCoordinatorUri,
-			_ => throw new NotSupportedNetworkException(Network)
-		};
-
-		return new Uri(result);
-	}
+	public EndPoint GetBitcoinRpcEndPoint() => BitcoinRpcEndPoint;
 
 	public bool TryGetCoordinatorUri([NotNullWhen(true)] out Uri? coordinatorUri)
 	{
 		try
 		{
-			coordinatorUri = GetCoordinatorUri();
+			coordinatorUri = new Uri(CoordinatorUri);
 			return coordinatorUri.Host != "api.wasabiwallet.io";
 		}
 		catch (Exception e) when (e is UriFormatException or ArgumentException or NotSupportedNetworkException)
@@ -523,7 +423,7 @@ public class Config
 		return false;
 	}
 
-	private static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
+	public static bool GetCliArgsValue(string key, string[] cliArgs, [NotNullWhen(true)] out string? cliArgsValue)
 	{
 		if (ArgumentHelpers.TryGetValue(key, cliArgs, out cliArgsValue))
 		{
