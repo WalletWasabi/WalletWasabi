@@ -84,10 +84,9 @@ public class Global
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		AsyncReleaseDownloader installerDownloader = !Config.DownloadNewVersion
 			? ReleaseDownloader.AutoDownloadOff()
-			: (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
+			: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
 				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
-				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus));
-
+				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
 
 		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), nostrClientFactory, installerDownloader, EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
