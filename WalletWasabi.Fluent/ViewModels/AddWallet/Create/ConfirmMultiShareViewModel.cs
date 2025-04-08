@@ -186,6 +186,10 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		{
 			CurrentWord = nextWord;
 		}
+		else
+		{
+			CurrentWord = ConfirmationWords.Last();
+		}
 
 		EnableAvailableWords(true);
 	}
