@@ -16,7 +16,7 @@ public static class PersistentConfigManager
 		return jsonString;
 	}
 
-	public static PersistentConfig LoadFile(string filePath)
+	public static IPersistentConfig LoadFile(string filePath)
 	{
 		try
 		{

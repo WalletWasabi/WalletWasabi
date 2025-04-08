@@ -29,8 +29,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public string ExchangeRateProvider { get; set; } = "";
 	public string FeeRateEstimationProvider { get; set; } = "";
 	public string ExternalTransactionBroadcaster { get; set; } = "";
-	public string MainNetCoordinatorUri { get; set; } = "";
-	public string TestNetCoordinatorUri { get; set; } = "";
+	public string CoordinatorUri { get; set; } = "";
 	public bool DarkModeEnabled { get; set; }
 	public bool AutoCopy { get; set; }
 	public bool AutoPaste { get; set; }
@@ -60,11 +59,6 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool TrySetCoordinatorUri(string uri, Network? network = null)
 	{
 		return false;
-	}
-
-	public string GetCoordinatorUri()
-	{
-		return "";
 	}
 
 	public void ResetToDefault()

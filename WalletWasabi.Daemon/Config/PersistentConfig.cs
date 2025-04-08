@@ -1,30 +1,24 @@
+using System;
 using System.IO;
 using NBitcoin;
 using System.Linq;
 using System.Net;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
 
-public record PersistentConfig
+public interface IPersistentConfig;
+
+public record PersistentConfig : IPersistentConfig
 {
 	public Network Network { get; init; } = Network.Main;
 
-	public string MainNetIndexerUri { get; init; } = Constants.IndexerUri;
+	public string IndexerUri { get; init; } = Constants.IndexerUri;
 
-	public string TestNetIndexerUri { get; init; } = Constants.TestnetIndexerUri;
-
-	public string RegTestIndexerUri { get; init; } = "http://localhost:37127/";
-
-	public string MainNetCoordinatorUri { get; init; } = "";
-
-	public string TestNetCoordinatorUri { get; init; } = "";
-
-	public string RegTestCoordinatorUri { get; init; } = "http://localhost:37128/";
+	public string CoordinatorUri { get; init; } = "";
 
 	public string UseTor { get; init; } = "Enabled";
 
@@ -36,15 +30,9 @@ public record PersistentConfig
 
 	public bool UseBitcoinRpc { get; init; }
 
-	public string MainNetBitcoinRpcCredentialString { get; init; } = "";
-	public string TestNetBitcoinRpcCredentialString { get; init; } = "";
-	public string RegTestBitcoinRpcCredentialString { get; init; } = "";
+	public string BitcoinRpcCredentialString { get; init; } = "";
 
-	public EndPoint MainNetBitcoinRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
-
-	public EndPoint TestNetBitcoinRpcEndPoint { get; init; } = Constants.DefaultTestNetBitcoinCoreRpcEndPoint;
-
-	public EndPoint RegTestBitcoinRpcEndPoint { get; init; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
+	public EndPoint BitcoinRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
 
 	public bool JsonRpcServerEnabled { get; init; }
 
@@ -73,105 +61,52 @@ public record PersistentConfig
 	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
 
 	public int MaxDaysInMempool { get; init; } = Constants.DefaultMaxDaysInMempool;
-
 	public int ConfigVersion { get; init; }
 
-	public bool DeepEquals(PersistentConfig other)
-	{
-		bool useTorIsEqual = Config.ObjectToTorMode(UseTor) == Config.ObjectToTorMode(other.UseTor);
-
-		return
-			ConfigVersion == other.ConfigVersion &&
-			Network == other.Network &&
-			MainNetIndexerUri == other.MainNetIndexerUri &&
-			TestNetIndexerUri == other.TestNetIndexerUri &&
-			RegTestIndexerUri == other.RegTestIndexerUri &&
-			MainNetCoordinatorUri == other.MainNetCoordinatorUri &&
-			TestNetCoordinatorUri == other.TestNetCoordinatorUri &&
-			RegTestCoordinatorUri == other.RegTestCoordinatorUri &&
-			useTorIsEqual &&
-			TerminateTorOnExit == other.TerminateTorOnExit &&
-			DownloadNewVersion == other.DownloadNewVersion &&
-			UseBitcoinRpc.Equals(other.UseBitcoinRpc) &&
-			MainNetBitcoinRpcCredentialString.Equals(other.MainNetBitcoinRpcCredentialString) &&
-			TestNetBitcoinRpcCredentialString.Equals(other.TestNetBitcoinRpcCredentialString) &&
-			RegTestBitcoinRpcCredentialString.Equals(other.RegTestBitcoinRpcCredentialString) &&
-			MainNetBitcoinRpcEndPoint.Equals(other.MainNetBitcoinRpcEndPoint) &&
-			TestNetBitcoinRpcEndPoint.Equals(other.TestNetBitcoinRpcEndPoint) &&
-			RegTestBitcoinRpcEndPoint.Equals(other.RegTestBitcoinRpcEndPoint) &&
-			JsonRpcServerEnabled == other.JsonRpcServerEnabled &&
-			JsonRpcUser == other.JsonRpcUser &&
-			JsonRpcPassword == other.JsonRpcPassword &&
-			JsonRpcServerPrefixes.SequenceEqual(other.JsonRpcServerPrefixes) &&
-			DustThreshold == other.DustThreshold &&
-			EnableGpu == other.EnableGpu &&
-			CoordinatorIdentifier == other.CoordinatorIdentifier &&
-			MaxCoinJoinMiningFeeRate == other.MaxCoinJoinMiningFeeRate &&
-			AbsoluteMinInputCount == other.AbsoluteMinInputCount &&
-			ExchangeRateProvider == other.ExchangeRateProvider &&
-			FeeRateEstimationProvider == other.FeeRateEstimationProvider &&
-			ExternalTransactionBroadcaster == other.ExternalTransactionBroadcaster &&
-			MaxDaysInMempool == other.MaxDaysInMempool;
-	}
-
-	public EndPoint GetBitcoinRpcEndPoint()
-	{
-		if (Network == Network.Main)
+	public string GetConfigFileName() =>
+		Network switch
 		{
-			return MainNetBitcoinRpcEndPoint;
-		}
-		if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinRpcEndPoint;
-		}
-		if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinRpcEndPoint;
-		}
-		throw new NotSupportedNetworkException(Network);
-	}
+			_ when Network == Network.Main => "Config.json",
+			_ when Network == Network.TestNet => "Config.TestNet.json",
+			_ when Network == Network.RegTest => "Config.RegTest.json",
+			_ => throw new NotSupportedException("Unsupported network")
+		};
+}
 
-	public string GetBitcoinRpcCredentialString()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetBitcoinRpcCredentialString;
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinRpcCredentialString;
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinRpcCredentialString;
-		}
-
-		throw new NotSupportedNetworkException(Network);
-	}
-
-	public string GetIndexerUri()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetIndexerUri;
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return TestNetIndexerUri;
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return RegTestIndexerUri;
-		}
-
-		throw new NotSupportedNetworkException(Network);
-	}
-
-	public PersistentConfig Migrate() =>
+public record PersistentConfigPrev2_5_1(
+	string MainNetIndexerUri,
+	string TestNetIndexerUri,
+	string RegTestIndexerUri,
+	string MainNetCoordinatorUri,
+	string TestNetCoordinatorUri,
+	string RegTestCoordinatorUri,
+	string UseTor,
+	bool TerminateTorOnExit,
+	string[] TorBridges,
+	bool DownloadNewVersion,
+	bool UseBitcoinRpc,
+	string MainNetBitcoinRpcCredentialString,
+	string TestNetBitcoinRpcCredentialString,
+	string RegTestBitcoinRpcCredentialString,
+	EndPoint MainNetBitcoinRpcEndPoint,
+	EndPoint TestNetBitcoinRpcEndPoint,
+	EndPoint RegTestBitcoinRpcEndPoint,
+	bool JsonRpcServerEnabled,
+	string JsonRpcUser,
+	string JsonRpcPassword,
+	string[] JsonRpcServerPrefixes,
+	Money DustThreshold,
+	bool EnableGpu,
+	string CoordinatorIdentifier,
+	string ExchangeRateProvider,
+	string FeeRateEstimationProvider,
+	string ExternalTransactionBroadcaster,
+	decimal MaxCoinJoinMiningFeeRate,
+	int AbsoluteMinInputCount,
+	int MaxDaysInMempool,
+	int ConfigVersion) : IPersistentConfig
+{
+	public PersistentConfigPrev2_5_1 Migrate() =>
 		MigrateMaxCoordinationFeeRate()
 		.MigrateOldDefaultBackendUris()
 		.MigrateP2pToRpcConnection() with
@@ -179,9 +114,9 @@ public record PersistentConfig
 			ConfigVersion = 2
 		};
 
-	private PersistentConfig MigrateMaxCoordinationFeeRate() => this;
+	private PersistentConfigPrev2_5_1 MigrateMaxCoordinationFeeRate() => this;
 
-	private PersistentConfig MigrateOldDefaultBackendUris()
+	private PersistentConfigPrev2_5_1 MigrateOldDefaultBackendUris()
 	{
 		if (MainNetIndexerUri == "https://wasabiwallet.io/" || TestNetIndexerUri == "https://wasabiwallet.co/")
 		{
@@ -195,7 +130,7 @@ public record PersistentConfig
 		return this;
 	}
 
-	private PersistentConfig MigrateP2pToRpcConnection()
+	private PersistentConfigPrev2_5_1 MigrateP2pToRpcConnection()
 	{
 		if (ConfigVersion >= 2)
 		{

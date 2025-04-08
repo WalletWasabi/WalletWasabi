@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
@@ -15,7 +16,6 @@ public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
 	public Global? Global { get; private set; }
-	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -24,7 +24,6 @@ public class WasabiApplication
 	{
 		AppConfig = wasabiAppBuilder;
 
-		ConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
 		Directory.CreateDirectory(Config.DataDir);
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 
@@ -99,20 +98,88 @@ public class WasabiApplication
 	}
 
 	private Global CreateGlobal()
-		=> new(Config.DataDir, ConfigFilePath, Config);
+		=> new(Config.DataDir, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
-		PersistentConfig persistentConfig = PersistentConfigManager.LoadFile(ConfigFilePath);
-
-		var newConfig = persistentConfig.Migrate();
-		if (!persistentConfig.DeepEquals(newConfig))
+		MigrateConfigFiles();
+		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
+		var network = Network.GetNetwork(networkName ?? "mainnet");
+		var configFileName = networkName switch
 		{
-			persistentConfig = newConfig;
-			PersistentConfigManager.ToFile(ConfigFilePath, persistentConfig);
+			_ when network == Network.Main => "Config.json",
+			_ when network == Network.TestNet =>  "Config.TestNet.json",
+			_ when network == Network.RegTest =>  "Config.RegTest.json",
+			_ => throw new NotSupportedException($"Network '{networkName}' is not supported."),
+		};
+		var configFilePath = Path.Combine(Config.DataDir, configFileName);
+		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
+
+		if (persistentConfig is PersistentConfig config)
+		{
+			var configForNetwork = config with { Network = network };
+			return configForNetwork;
 		}
 
-		return persistentConfig;
+		throw new InvalidOperationException("Unknown configuration type");
+	}
+
+	private void MigrateConfigFiles()
+	{
+		var configFilePath = Path.Combine(Config.DataDir, "Config.json");
+		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
+
+		if (persistentConfig is PersistentConfigPrev2_5_1 oldConfig)
+		{
+			oldConfig = oldConfig.Migrate();
+			var mainConfig = new PersistentConfig
+			{
+				AbsoluteMinInputCount = oldConfig.AbsoluteMinInputCount,
+				BitcoinRpcCredentialString = oldConfig.MainNetBitcoinRpcCredentialString,
+				BitcoinRpcEndPoint = oldConfig.MainNetBitcoinRpcEndPoint,
+				ConfigVersion = 3,
+				CoordinatorUri = oldConfig.MainNetCoordinatorUri,
+				CoordinatorIdentifier = oldConfig.CoordinatorIdentifier,
+				DownloadNewVersion = oldConfig.DownloadNewVersion,
+				DustThreshold = oldConfig.DustThreshold,
+				EnableGpu = oldConfig.EnableGpu,
+				ExchangeRateProvider = oldConfig.ExchangeRateProvider,
+				UseTor = oldConfig.UseTor,
+				FeeRateEstimationProvider = oldConfig.FeeRateEstimationProvider,
+				ExternalTransactionBroadcaster = oldConfig.ExternalTransactionBroadcaster,
+				UseBitcoinRpc = oldConfig.UseBitcoinRpc,
+				JsonRpcUser = oldConfig.JsonRpcUser,
+				JsonRpcPassword = oldConfig.JsonRpcPassword,
+				JsonRpcServerEnabled = oldConfig.JsonRpcServerEnabled,
+				JsonRpcServerPrefixes = oldConfig.JsonRpcServerPrefixes,
+				TerminateTorOnExit = oldConfig.TerminateTorOnExit,
+				IndexerUri = oldConfig.MainNetIndexerUri,
+				TorBridges = oldConfig.TorBridges,
+				MaxCoinJoinMiningFeeRate = oldConfig.MaxCoinJoinMiningFeeRate
+			};
+			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
+			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
+
+			var testConfig = mainConfig with
+			{
+				IndexerUri = oldConfig.TestNetIndexerUri,
+				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
+				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
+				BitcoinRpcEndPoint = oldConfig.TestNetBitcoinRpcEndPoint,
+			};
+			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
+			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
+
+			var regtestConfig = mainConfig with
+			{
+				IndexerUri = oldConfig.RegTestIndexerUri,
+				CoordinatorUri = oldConfig.RegTestCoordinatorUri,
+				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
+				BitcoinRpcEndPoint = oldConfig.RegTestBitcoinRpcEndPoint,
+			};
+			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
+			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);
+		}
 	}
 
 	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

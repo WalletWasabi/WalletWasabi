@@ -115,7 +115,7 @@ public class App : Application
 
 	private static IApplicationSettings CreateApplicationSettings()
 	{
-		return new ApplicationSettings(Services.PersistentConfigFilePath, Services.PersistentConfig, Services.Config, Services.UiConfig);
+		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
 	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
