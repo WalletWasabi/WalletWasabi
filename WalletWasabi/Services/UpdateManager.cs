@@ -103,6 +103,13 @@ public static class ReleaseDownloader
 			return Task.CompletedTask;
 		};
 
+	public static AsyncReleaseDownloader AutoDownloadOff() =>
+		(_, _) =>
+		{
+			Logger.LogInfo("Auto Download is turned off. Get the correct update manually.");
+			return Task.CompletedTask;
+		};
+
 	// Downloads and verifies a new Wasabi release version
 	private static async Task DownloadNewWasabiReleaseVersionAsync(IHttpClientFactory httpClientFactory, EventBus eventBus, ReleaseInfo releaseInfo, CancellationToken cancellationToken)
 	{
