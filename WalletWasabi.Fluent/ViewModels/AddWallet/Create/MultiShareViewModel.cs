@@ -47,11 +47,13 @@ public partial class MultiShareViewModel : RoutableViewModel
 
 		if (_currentShare < multiShareBackup.Settings.Shares)
 		{
+			var nextShare = (byte)(_currentShare + 1);
+
 			options = options with
 			{
 				SelectedWalletBackup = multiShareBackup with
 				{
-					CurrentShare = ++_currentShare
+					CurrentShare = nextShare
 				}
 			};
 

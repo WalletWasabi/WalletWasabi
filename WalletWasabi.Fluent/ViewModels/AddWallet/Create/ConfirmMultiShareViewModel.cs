@@ -83,7 +83,14 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		ConfirmNotRequiredWords(_words);
 
-		_currentWord = _words.First(x => !x.IsConfirmed);
+		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
+		{
+			_currentWord = nextWord;
+		}
+		else
+		{
+			_currentWord = _words.Last();
+		}
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -191,7 +198,10 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		}
 		else
 		{
-			CurrentWord.SelectedWord = null;
+			if (!CurrentWord.IsConfirmed)
+			{
+				CurrentWord.SelectedWord = null;
+			}
 		}
 
 		if (CurrentWord.IsConfirmed)
@@ -254,12 +264,16 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		}
 		else
 		{
+			var isLastSharePage = _currentSharePage == _totalCurrenSharePages;
+			var nextShare = (byte)(isLastSharePage ? _currentShare + 1 : _currentShare);
+			var nextSharePage = (byte)(isLastSharePage ? 1 : _currentSharePage + 1);
+
 			options = options with
 			{
 				SelectedWalletBackup = multiShareBackup with
 				{
-					CurrentShare = _currentSharePage == _totalCurrenSharePages ? ++_currentShare : _currentShare,
-					CurrentSharePage = (byte)(_currentSharePage == _totalCurrenSharePages ? 1 : ++_currentSharePage)
+					CurrentShare = nextShare,
+					CurrentSharePage = nextSharePage
 				}
 			};
 
