@@ -145,7 +145,8 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 			{
 				Shares = shares,
 				Settings = new MultiShareBackupSettings(_threshold.Value, _shares.Value),
-				CurrentShare = 1
+				CurrentShare = 1,
+				CurrentSharePage = 1
 			}
 		};
 
