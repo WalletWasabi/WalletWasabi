@@ -134,6 +134,13 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
+		var options = _options;
+
+		if (options.SelectedWalletBackup is not RecoveryWordsBackup recoveryWordsBackup)
+		{
+			throw new ArgumentOutOfRangeException(nameof(options));
+		}
+
 		var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
 			"It's needed to open and to recover your wallet.\n" +
 			"It's a recovery words extension for more security.";
@@ -144,7 +151,14 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		var options = _options with { Password = password };
+		options = options with
+		{
+			SelectedWalletBackup = recoveryWordsBackup with
+			{
+				Password = password
+			}
+		};
+
 		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 		Navigate().To().AddedWalletPage(walletSettings, options!);
 	}

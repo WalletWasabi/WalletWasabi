@@ -3,18 +3,15 @@ using NBitcoin;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -101,12 +98,13 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
 	{
-		var (walletName, password, mnemonic) = options;
+		var (walletName, walletBackup, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
-		ArgumentNullException.ThrowIfNull(password);
+		ArgumentNullException.ThrowIfNull(walletBackup);
+		ArgumentNullException.ThrowIfNull(walletBackup.Password);
 
-		var (keyManager, _) = await Task.Run(
+		var keyManager = await Task.Run(
 				() =>
 				{
 					var walletGenerator = new WalletGenerator(
@@ -115,7 +113,21 @@ public partial class WalletRepository : ReactiveObject
 					{
 						TipHeight = Services.SmartHeaderChain.TipHeight
 					};
-					return walletGenerator.GenerateWallet(walletName, password, mnemonic);
+
+					return walletBackup switch
+					{
+						RecoveryWordsBackup recoveryWordsBackup =>
+							walletGenerator.GenerateWallet(
+								walletName,
+								recoveryWordsBackup.Password,
+								recoveryWordsBackup.Mnemonic).KeyManager,
+						MultiShareBackup multiShareBackup =>
+							walletGenerator.GenerateWallet(
+								walletName,
+								multiShareBackup.Password,
+								multiShareBackup.Shares.Take(multiShareBackup.Settings.Threshold).ToArray()).KeyManager,
+						_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
+					};
 				});
 
 		return new WalletSettingsModel(keyManager, true);
@@ -150,25 +162,38 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, password, mnemonic, minGapLimit) = options;
+		var (walletName, walletBackup, minGapLimit) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
-		ArgumentNullException.ThrowIfNull(password);
-		ArgumentNullException.ThrowIfNull(mnemonic);
 		ArgumentNullException.ThrowIfNull(minGapLimit);
+		ArgumentNullException.ThrowIfNull(walletBackup);
 
 		var keyManager = await Task.Run(() =>
 		{
 			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
 
-			var result = KeyManager.Recover(
-				mnemonic,
-				password,
-				Services.WalletManager.Network,
-				AccountKeyPath,
-				null,
-				"", // Make sure it is not saved into a file yet.
-				minGapLimit.Value);
+			var result = walletBackup switch
+			{
+				RecoveryWordsBackup recoveryWordsBackup =>
+					KeyManager.Recover(
+						recoveryWordsBackup.Mnemonic,
+						recoveryWordsBackup.Password,
+						Services.WalletManager.Network,
+						AccountKeyPath,
+						null,
+						"", // Make sure it is not saved into a file yet.
+						minGapLimit.Value),
+				MultiShareBackup multiShareBackup =>
+					KeyManager.Recover(
+						multiShareBackup.Shares,
+						multiShareBackup.Password,
+						Services.WalletManager.Network,
+						AccountKeyPath,
+						null,
+						"", // Make sure it is not saved into a file yet.
+						minGapLimit.Value),
+				_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
+			};
 
 			// Set the filepath but we will only write the file later when the Ui workflow is done.
 			result.SetFilePath(walletFilePath);
