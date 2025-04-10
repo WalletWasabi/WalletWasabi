@@ -1,3 +1,4 @@
+using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -35,6 +36,18 @@ public partial class HistoryViewModel : ActivatableViewModel
 	private HistoryViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
+
+		_wallet.Transactions.Cache.Connect()
+			.Transform(x => CreateViewModel(x))
+			.Sort(
+				SortExpressionComparer<HistoryItemViewModelBase>
+					.Ascending(x => x.Transaction.IsConfirmed)
+					.ThenByDescending(x => x.Transaction.OrderIndex))
+			.Bind(Transactions)
+		.Subscribe();
+
+		_wallet.Transactions.IsEmpty
+			.BindTo(this, x => x.IsTransactionHistoryEmpty);
 	}
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
@@ -165,20 +178,6 @@ public partial class HistoryViewModel : ActivatableViewModel
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		base.OnActivated(disposables);
-
-		_wallet.Transactions.Cache.Connect()
-			.Transform(x => CreateViewModel(x))
-			.Sort(
-				SortExpressionComparer<HistoryItemViewModelBase>
-					.Ascending(x => x.Transaction.IsConfirmed)
-					.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(Transactions)
-			.Subscribe()
-			.DisposeWith(disposables);
-
-		_wallet.Transactions.IsEmpty
-			.BindTo(this, x => x.IsTransactionHistoryEmpty)
-			.DisposeWith(disposables);
 
 		// [Column]			[View]						[Header]		[Width]		[MinWidth]		[MaxWidth]	[CanUserSort]
 		// Indicators		IndicatorsColumnView		-				Auto		80				-			true
