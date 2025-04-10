@@ -57,7 +57,7 @@ public class Config
 				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
 			[nameof(TorBridges)] = (
 				"Tor is started with the set of specified bridges",
-				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges, cliArgs)),
+				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges.ToArray(), cliArgs)),
 			[nameof(TerminateTorOnExit)] = (
 				"Stop the Tor process when Wasabi is closed",
 				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
@@ -84,7 +84,7 @@ public class Config
 				GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs)),
 			[ nameof(JsonRpcServerPrefixes)] = (
 				"The Json RPC server prefixes",
-				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes, cliArgs)),
+				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes.ToArray(), cliArgs)),
 			[ nameof(RpcOnionEnabled)] = (
 				"Publish the Json RPC Server as a Tor Onion service",
 				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),

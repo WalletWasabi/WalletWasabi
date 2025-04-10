@@ -1,3 +1,4 @@
+using System;
 using System.Linq;
 using System.Net;
 using System.Text.Json.Nodes;
@@ -52,6 +53,9 @@ public static class PersistentConfigDecode
 			Decode.String
 		]);
 
+	public static Decoder<ValueList<T>> ValueList<T>(Decoder<T> decoder) where T : IEquatable<T> =>
+		Array(decoder).Map(x => new ValueList<T>(x));
+
 	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
 
 	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_5_1 =
@@ -61,7 +65,7 @@ public static class PersistentConfigDecode
 			CoordinatorUri = get.Required("CoordinatorUri", Decode.String),
 			UseTor = get.Required("UseTor", UseTor),
 			TerminateTorOnExit = get.Required("TerminateTorOnExit", Decode.Bool),
-			TorBridges = get.Required("TorBridges", Decode.Array(Decode.String)),
+			TorBridges = get.Required("TorBridges", ValueList(Decode.String)),
 			DownloadNewVersion = get.Required("DownloadNewVersion", Decode.Bool),
 			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool, false),
 			BitcoinRpcCredentialString = get.Optional("BitcoinRpcCredentialString", Decode.String) ?? "",
@@ -69,7 +73,7 @@ public static class PersistentConfigDecode
 			JsonRpcServerEnabled = get.Required("JsonRpcServerEnabled", Decode.Bool),
 			JsonRpcUser = get.Required("JsonRpcUser", Decode.String),
 			JsonRpcPassword = get.Required("JsonRpcPassword", Decode.String),
-			JsonRpcServerPrefixes = get.Required("JsonRpcServerPrefixes", Decode.Array(Decode.String)),
+			JsonRpcServerPrefixes = get.Required("JsonRpcServerPrefixes", ValueList(Decode.String)),
 			DustThreshold = get.Required("DustThreshold", Decode.MoneyBitcoins),
 			EnableGpu = get.Required("EnableGpu", Decode.Bool),
 			ExchangeRateProvider = get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
