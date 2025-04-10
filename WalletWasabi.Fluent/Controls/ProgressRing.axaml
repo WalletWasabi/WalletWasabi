@@ -13,28 +13,34 @@
         <Panel>
 
           <ProgressRingArc StrokeThickness="{TemplateBinding StrokeThickness}"
-                             SegmentColor="{TemplateBinding Background}" />
+                           SegmentColor="{TemplateBinding Background}" />
 
           <ProgressRingArc StrokeThickness="{TemplateBinding StrokeThickness}"
-                             SegmentColor="{TemplateBinding Foreground}"
-                             Percentage="{TemplateBinding Percentage}"
-                             IsVisible="{Binding !IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}" />
+                           SegmentColor="{TemplateBinding Foreground}"
+                           Percentage="{TemplateBinding Percentage}"
+                           StrokeBorderThickness="{TemplateBinding StrokeBorderThickness}"
+                           StrokeBorderBrush="{TemplateBinding StrokeBorderBrush}"
+                           IsVisible="{Binding !IsIndeterminate, RelativeSource={RelativeSource TemplatedParent}}" />
 
           <Panel IsVisible="{TemplateBinding IsIndeterminate}">
             <Panel.RenderTransform>
               <RotateTransform Angle="180" />
             </Panel.RenderTransform>
             <ProgressRingArc Classes.IndeterminateRing="{TemplateBinding IsVisible}"
-                               Percentage="0.20"
-                               StrokeThickness="{TemplateBinding StrokeThickness}"
-                               SegmentColor="{TemplateBinding Foreground}" />
+                             Percentage="0.20"
+                             StrokeThickness="{TemplateBinding StrokeThickness}"
+                             StrokeBorderThickness="{TemplateBinding StrokeBorderThickness}"
+                             StrokeBorderBrush="{TemplateBinding StrokeBorderBrush}"
+                             SegmentColor="{TemplateBinding Foreground}" />
           </Panel>
 
           <ProgressRingArc IsVisible="{TemplateBinding IsIndeterminate}"
-                             Classes.IndeterminateRing="{TemplateBinding IsVisible}"
-                             Percentage="0.20"
-                             StrokeThickness="{TemplateBinding StrokeThickness}"
-                             SegmentColor="{TemplateBinding Foreground}" />
+                           Classes.IndeterminateRing="{TemplateBinding IsVisible}"
+                           Percentage="0.20"
+                           StrokeBorderThickness="{TemplateBinding StrokeBorderThickness}"
+                           StrokeBorderBrush="{TemplateBinding StrokeBorderBrush}"
+                           StrokeThickness="{TemplateBinding StrokeThickness}"
+                           SegmentColor="{TemplateBinding Foreground}" />
         </Panel>
       </ControlTemplate>
     </Setter>

@@ -6,15 +6,35 @@
     <Setter Property="Template">
       <ControlTemplate>
         <DataValidationErrors>
-          <Panel>
-            <Path
-              Stroke="{TemplateBinding SegmentColor}"
-              Margin="{TemplateBinding PathFigureMargin}"
-              StrokeLineCap="Round"
-              Width="{TemplateBinding PathFigureWidth}"
-              Height="{TemplateBinding PathFigureHeight}"
-              StrokeThickness="{TemplateBinding StrokeThickness}"
-              RenderTransformOrigin="25,25">
+          <Panel IsVisible="{TemplateBinding ShowArc}">
+            <Path Stroke="{TemplateBinding StrokeBorderBrush}"
+                  IsVisible="{TemplateBinding ShowSegmentBorder}"
+                  Margin="{TemplateBinding PathFigureMargin}"
+                  StrokeLineCap="Round"
+                  Width="{TemplateBinding PathFigureWidth}"
+                  Height="{TemplateBinding PathFigureHeight}"
+                  StrokeThickness="{TemplateBinding StrokeThickness}"
+                  RenderTransformOrigin="25,25">
+              <Path.Data>
+                <PathGeometry>
+                  <PathFigure IsClosed="False"
+                              StartPoint="{Binding PathFigureStartPoint, RelativeSource={RelativeSource TemplatedParent}}">
+                    <ArcSegment Size="{Binding ArcSegmentSize, RelativeSource={RelativeSource TemplatedParent}}"
+                                IsLargeArc="{Binding ArcSegmentIsLargeArc, RelativeSource={RelativeSource TemplatedParent}}"
+                                SweepDirection="Clockwise"
+                                Point="{Binding ArcSegmentPoint, RelativeSource={RelativeSource TemplatedParent}}" />
+                  </PathFigure>
+                </PathGeometry>
+              </Path.Data>
+            </Path>
+
+            <Path Stroke="{TemplateBinding SegmentColor}"
+                  Margin="{TemplateBinding PathFigureMargin}"
+                  StrokeLineCap="Round"
+                  Width="{TemplateBinding PathFigureWidth}"
+                  Height="{TemplateBinding PathFigureHeight}"
+                  StrokeThickness="{TemplateBinding StrokeActualThickness}"
+                  RenderTransformOrigin="25,25">
               <Path.Data>
                 <PathGeometry>
                   <PathFigure IsClosed="False"

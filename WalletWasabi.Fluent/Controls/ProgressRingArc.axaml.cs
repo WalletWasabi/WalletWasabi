@@ -19,7 +19,22 @@ public class ProgressRingArc : TemplatedControl
 		AvaloniaProperty.Register<ProgressRingArc, IBrush>(nameof(SegmentColor));
 
 	public static readonly StyledProperty<int> StrokeThicknessProperty =
-		AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeThickness), 5);
+		AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeThickness), 6);
+
+	public static readonly StyledProperty<int> StrokeActualThicknessProperty =
+		AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeActualThickness));
+
+	public static readonly StyledProperty<int> StrokeBorderThicknessProperty =
+		AvaloniaProperty.Register<ProgressRingArc, int>(nameof(StrokeBorderThickness));
+
+	public static readonly StyledProperty<bool> ShowSegmentBorderProperty =
+		AvaloniaProperty.Register<ProgressRingArc, bool>(nameof(ShowSegmentBorder));
+
+	public static readonly StyledProperty<bool> ShowArcProperty =
+		AvaloniaProperty.Register<ProgressRingArc, bool>(nameof(ShowArc));
+
+	public static readonly StyledProperty<IBrush> StrokeBorderBrushProperty =
+		AvaloniaProperty.Register<ProgressRing, IBrush>(nameof(StrokeBorderBrush));
 
 	public static readonly StyledProperty<double> PercentageProperty =
 		AvaloniaProperty.Register<ProgressRingArc, double>(
@@ -79,10 +94,40 @@ public class ProgressRingArc : TemplatedControl
 		set => SetValue(StrokeThicknessProperty, value);
 	}
 
+	public int StrokeActualThickness
+	{
+		get => GetValue(StrokeActualThicknessProperty);
+		set => SetValue(StrokeActualThicknessProperty, value);
+	}
+
+	public int StrokeBorderThickness
+	{
+		get => GetValue(StrokeBorderThicknessProperty);
+		set => SetValue(StrokeBorderThicknessProperty, value);
+	}
+
+	private bool ShowSegmentBorder
+	{
+		get => GetValue(ShowSegmentBorderProperty);
+		set => SetValue(ShowSegmentBorderProperty, value);
+	}
+
+	private bool ShowArc
+	{
+		get => GetValue(ShowArcProperty);
+		set => SetValue(ShowArcProperty, value);
+	}
+
 	public double Percentage
 	{
 		get => GetValue(PercentageProperty);
 		set => SetValue(PercentageProperty, value);
+	}
+
+	public IBrush StrokeBorderBrush
+	{
+		get => GetValue(StrokeBorderBrushProperty);
+		set => SetValue(StrokeBorderBrushProperty, value);
 	}
 
 	public int PathFigureWidth
@@ -133,8 +178,13 @@ public class ProgressRingArc : TemplatedControl
 
 		if (e.Property == SegmentColorProperty ||
 			e.Property == StrokeThicknessProperty ||
+			e.Property == PercentageProperty ||
+			e.Property == StrokeBorderThicknessProperty ||
 			e.Property == PercentageProperty)
 		{
+			ShowArc = Percentage > 0;
+			ShowSegmentBorder = StrokeBorderThickness != 0;
+			StrokeActualThickness = StrokeThickness - StrokeBorderThickness;
 			RenderArc();
 		}
 	}
@@ -149,6 +199,11 @@ public class ProgressRingArc : TemplatedControl
 
 	private void RenderArc()
 	{
+		if (!ShowArc)
+		{
+			return;
+		}
+
 		var angle = Percentage * 360;
 
 		var startPoint = new Point(_radius, 0);
