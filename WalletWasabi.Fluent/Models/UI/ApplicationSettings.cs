@@ -78,6 +78,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
+		_persistentConfigFilePath = Services.PersistentConfigFilePath;
 		_startupConfig = persistentConfig;
 
 		_config = config;
@@ -255,44 +256,31 @@ public partial class ApplicationSettings : ReactiveObject
 		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
-		if (Network == config.Network)
+		if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 		{
-			if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
-			{
-				result = result with { BitcoinRpcEndPoint = endPoint, BitcoinRpcCredentialString = BitcoinRpcCredentialString};
-			}
-
-			result = result with { CoordinatorUri = CoordinatorUri };
-			result = result with { IndexerUri = IndexerUri };
-
-			result = result with
-			{
-				UseBitcoinRpc = UseBitcoinRpc,
-				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
-					Money.Coins(threshold) :
-					Money.Coins(Constants.DefaultDustThreshold),
-				MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
-					maxCoinjoinMiningFeeRate :
-					Constants.DefaultMaxCoinJoinMiningFeeRate,
-				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
-					absoluteMinInputCount :
-					Constants.DefaultAbsoluteMinInputCount,
-				ExchangeRateProvider = ExchangeRateProvider,
-				FeeRateEstimationProvider = FeeRateEstimationProvider,
-				ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
-			};
+			result = result with { BitcoinRpcEndPoint = endPoint, BitcoinRpcCredentialString = BitcoinRpcCredentialString};
 		}
-		else
+
+		result = result with { CoordinatorUri = CoordinatorUri };
+		result = result with { IndexerUri = IndexerUri };
+
+		result = result with
 		{
-			result = result with
-			{
-				Network = Network
-			};
-
-			BitcoinRpcEndPoint = result.BitcoinRpcEndPoint.ToString(defaultPort: -1);
-			BitcoinRpcCredentialString = result.BitcoinRpcCredentialString;
-			IndexerUri = result.IndexerUri;
-		}
+			Network = Network,
+			UseBitcoinRpc = UseBitcoinRpc,
+			DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
+				Money.Coins(threshold) :
+				Money.Coins(Constants.DefaultDustThreshold),
+			MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
+				maxCoinjoinMiningFeeRate :
+				Constants.DefaultMaxCoinJoinMiningFeeRate,
+			AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
+				absoluteMinInputCount :
+				Constants.DefaultAbsoluteMinInputCount,
+			ExchangeRateProvider = ExchangeRateProvider,
+			FeeRateEstimationProvider = FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
+		};
 
 		// General
 		result = result with
