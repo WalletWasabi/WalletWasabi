@@ -1,5 +1,4 @@
 using System.IO;
-using System.Text.Json;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
@@ -43,7 +42,6 @@ public class PersistentConfigManagerTests
 		static string GetConfigString(string localBitcoinCoreDataDir)
 			=> $$"""
 			{
-			  "Network": "Main",
 			  "BackendUri": "https://api.wasabiwallet.io/",
 			  "CoordinatorUri": "",
 			  "UseTor": "Enabled",
@@ -68,6 +66,7 @@ public class PersistentConfigManagerTests
 			  "ExternalTransactionBroadcaster": "MempoolSpace",
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
+			  "MaxDaysInMempool": 30,
 			  "ConfigVersion": 0
 			}
 			""";

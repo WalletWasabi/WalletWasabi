@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -151,10 +152,10 @@ public class WasabiApplication
 				JsonRpcUser = oldConfig.JsonRpcUser,
 				JsonRpcPassword = oldConfig.JsonRpcPassword,
 				JsonRpcServerEnabled = oldConfig.JsonRpcServerEnabled,
-				JsonRpcServerPrefixes = oldConfig.JsonRpcServerPrefixes,
+				JsonRpcServerPrefixes = new ValueList<string>(oldConfig.JsonRpcServerPrefixes),
 				TerminateTorOnExit = oldConfig.TerminateTorOnExit,
 				IndexerUri = oldConfig.MainNetIndexerUri,
-				TorBridges = oldConfig.TorBridges,
+				TorBridges = new ValueList<string>(oldConfig.TorBridges),
 				MaxCoinJoinMiningFeeRate = oldConfig.MaxCoinJoinMiningFeeRate
 			};
 			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");

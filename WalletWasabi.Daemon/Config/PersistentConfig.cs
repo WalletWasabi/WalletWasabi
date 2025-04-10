@@ -1,7 +1,6 @@
 using System;
 using System.IO;
 using NBitcoin;
-using System.Linq;
 using System.Net;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
@@ -24,7 +23,7 @@ public record PersistentConfig : IPersistentConfig
 
 	public bool TerminateTorOnExit { get; init; }
 
-	public string[] TorBridges { get; init; } = [];
+	public ValueList<string> TorBridges { get; init; } = ValueList<string>.Empty;
 
 	public bool DownloadNewVersion { get; init; } = true;
 
@@ -40,11 +39,11 @@ public record PersistentConfig : IPersistentConfig
 
 	public string JsonRpcPassword { get; init; } = "";
 
-	public string[] JsonRpcServerPrefixes { get; init; } =
+	public ValueList<string> JsonRpcServerPrefixes { get; init; } = new(
 	[
 		"http://127.0.0.1:37128/",
 		"http://localhost:37128/"
-	];
+	]);
 
 	public Money DustThreshold { get; init; } = Money.Coins(Constants.DefaultDustThreshold);
 
