@@ -36,7 +36,7 @@ public class Config
 		{
 			[ nameof(Network)] = (
 				"The Bitcoin network to use: main, testnet, or regtest",
-				GetNetworkValue("Network", PersistentConfig.Network.ToString(), cliArgs)),
+				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
 			[ nameof(BackendUri)] = (
 				"The backend server's URL to connect to",
 				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
@@ -130,7 +130,7 @@ public class Config
 		foreach (string optionName in Data.Keys)
 		{
 			// It is allowed to override the log level.
-			if (!string.Equals(optionName, nameof(LogLevel)))
+			if (!string.Equals(optionName, nameof(LogLevel)) && !string.Equals(optionName, nameof(Network)) )
 			{
 				(_, IValue optionValue) = Data[optionName];
 
