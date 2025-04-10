@@ -226,3 +226,75 @@ public static class EnvironmentHelpers
 		return directory;
 	}
 }
+
+public enum OS
+{
+	Windows,
+	Linux,
+	OSX,
+	FreeBSD
+}
+
+public static class PlatformInformation
+{
+	public static OS GetOsPlatform()
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			return OS.Windows;
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
+		{
+			return OS.OSX;
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			return OS.Linux;
+		}
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.FreeBSD))
+		{
+			return OS.FreeBSD;
+		}
+
+		throw new NotSupportedException("Unknown OS platform.");
+	}
+
+
+	public static bool IsDebianBasedOS()
+	{
+		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+		{
+			return false;
+		}
+
+		if (!File.Exists("/etc/os-release"))
+		{
+			return false;
+		}
+
+		var osReleaseContent = File.ReadAllText("/etc/os-release");
+
+		// Check for Debian as base
+		if (osReleaseContent.Contains("ID_LIKE=debian") ||
+			osReleaseContent.Contains("ID=debian"))
+		{
+			return true;
+		}
+
+		// Check for known Debian derivatives
+		var debianDerivatives = new[] {"ubuntu", "linuxmint", "elementary", "pop", "zorin"};
+		foreach (var derivative in debianDerivatives)
+		{
+			if (osReleaseContent.Contains($"ID={derivative}") ||
+				osReleaseContent.Contains($"ID_LIKE=") && osReleaseContent.Contains(derivative))
+			{
+				return true;
+			}
+		}
+
+		return false;
+	}
+}

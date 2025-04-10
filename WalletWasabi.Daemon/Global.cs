@@ -7,15 +7,18 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
+using NNostr.Client;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -60,7 +63,7 @@ public class Global
 			log: Config.LogModes.Contains(LogMode.File));
 
 		EventBus = new EventBus();
-		Status = new StatusContainer(EventBus);
+		Status = new StatusContainer(EventBus, installOnClose: Config.DownloadNewVersion);
 		HostedServices = new HostedServices();
 
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
@@ -75,7 +78,17 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
 
-		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), DataDir, Config.DownloadNewVersion, ExternalSourcesHttpClientFactory.CreateClient("long-live-github.com"), EventBus), "Update Manager");
+		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
+		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
+
+		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
+		var installerDownloader = !Config.DownloadNewVersion
+			? ReleaseDownloader.AutoDownloadOff()
+			: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
+				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
+				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
+
+		HostedServices.Register<UpdateManager>(() => new UpdateManager(TimeSpan.FromDays(1), nostrClientFactory, installerDownloader, EventBus), "Update Manager");
 		UpdateManager = HostedServices.Get<UpdateManager>();
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
