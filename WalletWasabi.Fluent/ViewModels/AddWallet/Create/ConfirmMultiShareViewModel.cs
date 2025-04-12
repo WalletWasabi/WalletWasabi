@@ -88,7 +88,6 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		ConfirmNotRequiredWords(_words);
 
 		SetCurrentWord();
-
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
