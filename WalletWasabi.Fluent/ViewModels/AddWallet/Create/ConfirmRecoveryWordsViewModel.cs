@@ -160,7 +160,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		};
 
 		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-		Navigate().To().AddedWalletPage(walletSettings, options!);
+		Navigate().To().AddedWalletPage(walletSettings, options);
 	}
 
 	private void OnCancel()
