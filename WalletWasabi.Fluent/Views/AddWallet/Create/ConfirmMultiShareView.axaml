@@ -8,6 +8,7 @@
              x:DataType="create:ConfirmMultiShareViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmMultiShareView">
   <ContentArea Title="{Binding Title}"
+               Caption="{Binding Caption}"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
                EnableNext="True"
@@ -16,16 +17,6 @@
                IsBusy="{Binding IsBusy}"
                ScrollViewer.HorizontalScrollBarVisibility="Auto"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <ContentArea.Caption>
-      <MultiBinding StringFormat="Share #{0} of {1} - Page #{2} of {3}. Click the recovery word #{4}" FallbackValue=' '>
-        <Binding Path="CurrentShare" />
-        <Binding Path="TotalShares" />
-        <Binding Path="CurrentSharePage" />
-        <Binding Path="TotalCurrenSharePages" />
-        <Binding Path="CurrentWord.Index" />
-      </MultiBinding>
-    </ContentArea.Caption>
-
     <DockPanel>
 
       <ItemsControl ItemsSource="{Binding AvailableWords}"

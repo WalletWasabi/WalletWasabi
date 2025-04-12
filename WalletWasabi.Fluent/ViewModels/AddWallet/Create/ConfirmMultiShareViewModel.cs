@@ -48,6 +48,8 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _caption = "";
 
 	private ConfirmMultiShareViewModel(WalletCreationOptions.AddNewWallet options, Dictionary<int, List<RecoveryWordViewModel>> wordsDictionary)
 	{
@@ -123,6 +125,26 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 				.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(), nextCommandCanExecute);
+
+		nextCommandCanExecute.Do(x => AllWordsConfirmed = x)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		this.WhenAnyValue(
+				x => x.CurrentShare,
+				x => x.TotalShares,
+				x => x.CurrentSharePage,
+				x => x.TotalCurrenSharePages,
+				x => x.CurrentWord,
+				x => x.AllWordsConfirmed)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ =>
+			{
+				var currentWordMessage = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";
+
+				Caption = $"Share #{CurrentShare} of {TotalShares} - Page #{CurrentSharePage} of {TotalCurrenSharePages}. {currentWordMessage}";
+			})
+			.DisposeWith(disposables);
 
 		SetSkip();
 
