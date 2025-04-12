@@ -20,6 +20,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _caption = "";
 
 	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
 	{
@@ -60,6 +62,20 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+
+		nextCommandCanExecute.Do(x => AllWordsConfirmed = x)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		this.WhenAnyValue(
+				x => x.CurrentWord,
+				x => x.AllWordsConfirmed)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ =>
+			{
+				Caption = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";
+			})
+			.DisposeWith(disposables);
 
 		SetSkip();
 
