@@ -5,15 +5,21 @@
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
-             x:DataType="create:RecoveryWordsViewModel"
-             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
+             x:DataType="create:MultiShareViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.MultiShareView">
   <ContentArea Title="{Binding Title}"
-                 Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
-                 CancelContent="Cancel"
-                 EnableCancel="{Binding EnableCancel}"
-                 EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue" FocusNext="True"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue" FocusNext="True"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <ContentArea.Caption>
+      <MultiBinding StringFormat="Share #{0} of {1}. Write down the multi-share words in the correct order and store them in a safe place. They are needed to recover your wallet.">
+        <Binding Path="CurrentShare" />
+        <Binding Path="TotalShares" />
+      </MultiBinding>
+    </ContentArea.Caption>
+
     <DockPanel>
 
       <InfoMessage Opacity="0.5"
@@ -27,17 +33,17 @@
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
-              <Setter Property="Height" Value="42" />
+              <Setter Property="Height" Value="30" />
             </Style>
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="230" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="40 0 40 0" Width="80">
+              <StackPanel Orientation="Horizontal" Margin="5 0 5 0" Width="113">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
@@ -45,10 +51,6 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid ColumnDefinitions="*,1,*,1,*">
-          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
-          <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
-        </Grid>
       </Panel>
 
     </DockPanel>

@@ -47,7 +47,7 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	private void OnCreateWallet()
 	{
-		var options = new WalletCreationOptions.AddNewWallet().WithNewMnemonic();
+		var options = new WalletCreationOptions.AddNewWallet().WithNewWalletBackups();
 		Navigate().To().WalletNamePage(options);
 	}
 

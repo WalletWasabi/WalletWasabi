@@ -57,7 +57,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, _, _, _) = options;
+		var (walletName, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", "If you used a passphrase when you created your wallet you must type it below, otherwise leave this empty.").GetResultAsync();
@@ -70,7 +70,8 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 		try
 		{
-			options = options with { Password = password, Mnemonic = currentMnemonics, MinGapLimit = MinGapLimit };
+			var recoveryWordsBackup = new RecoveryWordsBackup(password, currentMnemonics);
+			options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit };
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 			Navigate().To().AddedWalletPage(walletSettings, options!);
 		}

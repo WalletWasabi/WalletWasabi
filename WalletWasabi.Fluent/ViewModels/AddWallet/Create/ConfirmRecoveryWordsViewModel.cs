@@ -20,6 +20,8 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private bool _isSkipEnabled;
 	[AutoNotify] private RecoveryWordViewModel _currentWord;
 	[AutoNotify] private List<RecoveryWordViewModel> _availableWords;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _caption = "";
 
 	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
 	{
@@ -60,6 +62,20 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			.Select(_ => confirmationWordsSourceList.Items.All(x => x.IsConfirmed));
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+
+		nextCommandCanExecute.Do(x => AllWordsConfirmed = x)
+			.Subscribe()
+			.DisposeWith(disposables);
+
+		this.WhenAnyValue(
+				x => x.CurrentWord,
+				x => x.AllWordsConfirmed)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ =>
+			{
+				Caption = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";
+			})
+			.DisposeWith(disposables);
 
 		SetSkip();
 
@@ -134,6 +150,13 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 
 	private async Task OnNextAsync()
 	{
+		var options = _options;
+
+		if (options.SelectedWalletBackup is not RecoveryWordsBackup recoveryWordsBackup)
+		{
+			throw new ArgumentOutOfRangeException(nameof(options));
+		}
+
 		var dialogCaption = "Store your passphrase safely, it cannot be reset if lost.\n" +
 			"It's needed to open and to recover your wallet.\n" +
 			"It's a recovery words extension for more security.";
@@ -144,9 +167,16 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 			return;
 		}
 
-		var options = _options with { Password = password };
+		options = options with
+		{
+			SelectedWalletBackup = recoveryWordsBackup with
+			{
+				Password = password
+			}
+		};
+
 		var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
-		Navigate().To().AddedWalletPage(walletSettings, options!);
+		Navigate().To().AddedWalletPage(walletSettings, options);
 	}
 
 	private void OnCancel()

@@ -22,6 +22,7 @@
       </Viewbox>
     </ExperimentalAcrylicBorder>
     <Dialog DataContext="{Binding FullScreen}"
+            IsVisible="{Binding IsDialogOpen, Mode=TwoWay}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
@@ -32,7 +33,7 @@
               EnableCancelOnEscape="{Binding CurrentPage.EnableCancelOnEscape, FallbackValue=True}"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
+              IncreasedWidthThreshold="840" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <Dialog.Styles>
         <Style Selector="Dialog /template/ Panel#PART_Overlay">
           <Setter Property="Background" Value="{DynamicResource RegionColor}" />
@@ -45,6 +46,7 @@
       <ContentControl Content="{Binding CurrentPage}" />
     </Dialog>
     <Dialog DataContext="{Binding DialogScreen}"
+            IsVisible="{Binding IsDialogOpen, Mode=TwoWay}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"
@@ -56,10 +58,11 @@
               HorizontalAlignment="Stretch" VerticalAlignment="Stretch"
               HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
               MaxContentWidth="800" MaxContentHeight="700"
-              IncreasedWidthThreshold="740" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
+              IncreasedWidthThreshold="840" IncreasedHeightThreshold="580" FullScreenHeightThreshold="580">
       <ContentControl Content="{Binding CurrentPage}" />
     </Dialog>
     <Dialog DataContext="{Binding CompactDialogScreen}"
+            IsVisible="{Binding IsDialogOpen, Mode=TwoWay}"
               IsDialogOpen="{Binding IsDialogOpen, Mode=TwoWay}"
               ShowAlert="{Binding ShowAlert, Mode=TwoWay}"
               IsActive="{Binding CurrentPage.IsActive}"

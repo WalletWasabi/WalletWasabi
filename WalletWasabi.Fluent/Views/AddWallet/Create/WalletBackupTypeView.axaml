@@ -1,0 +1,109 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:models="using:WalletWasabi.Fluent.Models"
+             xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:CompileBindings="True"
+             x:DataType="create:WalletBackupTypeViewModel"
+             x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.WalletBackupTypeView">
+  <ContentArea Title="{Binding Title}"
+               Caption="Select your wallet backup type."
+               CancelContent="Cancel"
+               EnableCancel="{Binding EnableCancel}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True" NextContent="Continue" FocusNext="True"
+               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+    <ListBox
+      ItemsSource="{Binding WalletBackupTypes}"
+      SelectedItem="{Binding WalletBackupType}"
+      HorizontalAlignment="Center"
+      VerticalAlignment="Center">
+      <ListBox.ItemsPanel>
+        <ItemsPanelTemplate>
+          <StackPanel Spacing="8" />
+        </ItemsPanelTemplate>
+      </ListBox.ItemsPanel>
+      <ListBox.Styles>
+        <Style Selector="ListBox">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem" x:DataType="models:WalletBackupType">
+          <Setter Property="Cursor" Value="Hand" />
+          <Setter Property="Padding" Value="12,0,12,0" />
+        </Style>
+        <Style Selector="ListBoxItem > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:pointerover > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected:pointerover > ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemTemplate>
+        <DataTemplate x:DataType="models:WalletBackupType">
+          <Border CornerRadius="12"
+                  Padding="16"
+                  Margin="0"
+                  Classes.IsSelected="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}"
+                  Classes.IsPointerOver="{Binding $parent[ListBoxItem].IsPointerOver, Mode=TwoWay}">
+            <Border.Styles>
+              <Style Selector="Border">
+                <Setter Property="Background" Value="Transparent" />
+                <Setter Property="BorderBrush" Value="Transparent" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+              <Style Selector="Border.IsPointerOver">
+                <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextControlBackground}" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+              <Style Selector="Border.IsSelected">
+                <Setter Property="Background" Value="{DynamicResource TextControlBackground}" />
+                <Setter Property="BorderBrush" Value="{DynamicResource TextControlBorderBrush}" />
+                <Setter Property="BorderThickness" Value="1" />
+              </Style>
+            </Border.Styles>
+            <RadioButton
+              Background="Transparent"
+              Theme="{DynamicResource VerticallyCenteredRadioButton}"
+              IsChecked="{Binding $parent[ListBoxItem].IsSelected, Mode=TwoWay}">
+              <Interaction.Behaviors>
+                <!-- We need to focus ListBoxItem as RadioButton handles Enter key events -->
+                <EventTriggerBehavior EventName="Click">
+                  <FocusControlAction TargetControl="{Binding $parent[ListBoxItem]}" />
+                </EventTriggerBehavior>
+              </Interaction.Behaviors>
+              <DockPanel Margin="7,0,7,0"
+                         VerticalAlignment="Center">
+                <InfoMessage DockPanel.Dock="Right"
+                             VerticalAlignment="Center"
+                             Margin="14,0,0,0"
+                             ToolTip.Tip="{Binding Options.ToolTipText}"
+                             IsVisible="{Binding Options.ToolTipText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                <DockPanel>
+                  <TextBlock Text="{Binding Options.Description}"
+                             Classes="h5"
+                             Margin="0,0,0,7"
+                             DockPanel.Dock="Top" />
+                  <TextBlock Text="{Binding Options.HelpText}"
+                             Classes="h8"
+                             TextWrapping="Wrap"
+                             Opacity="0.6"
+                             MaxWidth="400"
+                             IsVisible="{Binding Options.HelpText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                </DockPanel>
+              </DockPanel>
+            </RadioButton>
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </ContentArea>
+</UserControl>
