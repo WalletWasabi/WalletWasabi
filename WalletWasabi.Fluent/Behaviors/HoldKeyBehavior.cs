@@ -31,11 +31,11 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 		set => SetValue(IsKeyPressedProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		if (AssociatedObject.GetVisualRoot() is not InputElement ie)
+		if (AssociatedObject?.GetVisualRoot() is not InputElement ie)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var ups = ie.OnEvent(InputElement.KeyDownEvent);
@@ -55,10 +55,9 @@ public class HoldKeyBehavior : AttachedToVisualTreeBehavior<InputElement>
 			.Select(x => x.IsPressed)
 			.StartWith(false);
 
-		targetKeyIsPressed
+		return targetKeyIsPressed
 			.Merge(windowDeactivated)
 			.Do(isPressed => IsKeyPressed = isPressed)
-			.Subscribe()
-			.DisposeWith(disposable);
+			.Subscribe();
 	}
 }

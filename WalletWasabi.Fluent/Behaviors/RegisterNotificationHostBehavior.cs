@@ -7,13 +7,15 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class RegisterNotificationHostBehavior : AttachedToVisualTreeBehavior<Visual>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		NotificationHelpers.SetNotificationManager(AssociatedObject);
+
+		return Disposable.Empty;
 	}
 }

@@ -22,12 +22,14 @@ public class ShowSliderThumbToolTipBehavior : DisposingBehavior<Control>
 		set => SetValue(SliderProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
 		if (AssociatedObject is null || Slider is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
+
+		var disposables = new CompositeDisposable();
 
 		Observable
 			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerPressed))
@@ -47,6 +49,8 @@ public class ShowSliderThumbToolTipBehavior : DisposingBehavior<Control>
 		Slider.AddHandler(InputElement.PointerPressedEvent, PointerPressed, RoutingStrategies.Tunnel);
 		Slider.AddHandler(InputElement.PointerReleasedEvent, PointerReleased, RoutingStrategies.Tunnel);
 		Slider.AddHandler(InputElement.PointerCaptureLostEvent, PointerCaptureLost, RoutingStrategies.Tunnel);
+
+		return disposables;
 	}
 
 	protected override void OnDetaching()

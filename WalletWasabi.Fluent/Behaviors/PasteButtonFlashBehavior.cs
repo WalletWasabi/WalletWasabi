@@ -36,9 +36,11 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 		set => SetValue(CurrentAddressProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
+
+		var disposables = new CompositeDisposable();
 
 		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
 		{
@@ -71,6 +73,8 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 			.Where(x => x)
 			.Subscribe(_ => AssociatedObject.Classes.Remove(FlashAnimation))
 			.DisposeWith(disposables);
+
+		return disposables;
 	}
 
 	private async Task CheckClipboardForValidAddressAsync(bool forceCheck = false)

@@ -20,12 +20,14 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<Avaloni
 
 	private const string PositiveAmountClass = "PositiveAmount";
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
+
+		var disposable = new CompositeDisposable();
 
 		Observable
 			.FromEventPattern<TreeDataGridRowEventArgs>(
@@ -42,6 +44,8 @@ public class HistoryItemTypeClassBehavior : AttachedToVisualTreeBehavior<Avaloni
 			.Select(x => x.EventArgs.Row)
 			.Subscribe(RemoveClasses)
 			.DisposeWith(disposable);
+
+		return disposable;
 	}
 
 	private void AddClasses(TreeDataGridRow row)

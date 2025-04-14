@@ -10,24 +10,23 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 internal class TextBoxAutoSelectTextBehavior : AttachedToVisualTreeBehavior<TextBox>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var gotFocus = AssociatedObject.OnEvent(InputElement.GotFocusEvent);
 		var lostFocus = AssociatedObject.OnEvent(InputElement.LostFocusEvent);
 		var isFocused = gotFocus.Select(_ => true).Merge(lostFocus.Select(_ => false));
 
-		isFocused
+		return isFocused
 			.Throttle(TimeSpan.FromSeconds(0.1))
 			.DistinctUntilChanged()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Where(focused => focused)
 			.Do(_ => AssociatedObject.SelectAll())
-			.Subscribe()
-			.DisposeWith(disposable);
+			.Subscribe();
 	}
 }

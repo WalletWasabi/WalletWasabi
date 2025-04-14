@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.LogicalTree;
 using ReactiveUI;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia.Xaml.Interactions.Custom;
 
@@ -19,9 +18,9 @@ internal class FocusNextItemBehavior : DisposingBehavior<Control>
 		set => SetValue(IsFocusedProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
-		this.WhenAnyValue(x => x.IsFocused)
+		return this.WhenAnyValue(x => x.IsFocused)
 			.Where(x => x == false)
 			.Subscribe(
 				_ =>
@@ -34,7 +33,7 @@ internal class FocusNextItemBehavior : DisposingBehavior<Control>
 						{
 							var nextToFocus = item.FindLogicalDescendantOfType<TextBox>();
 
-							if (nextToFocus.IsEnabled)
+							if (nextToFocus is not null && nextToFocus.IsEnabled)
 							{
 								nextToFocus.Focus();
 								return;
@@ -43,7 +42,6 @@ internal class FocusNextItemBehavior : DisposingBehavior<Control>
 
 						parentControl.Focus();
 					}
-				})
-			.DisposeWith(disposables);
+				});
 	}
 }

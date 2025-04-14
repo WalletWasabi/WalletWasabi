@@ -11,17 +11,17 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class FocusNextWhenValidBehavior : AttachedToVisualTreeBehavior<TextBox>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var hasErrors = AssociatedObject.GetObservable(DataValidationErrors.HasErrorsProperty);
 		var text = AssociatedObject.GetObservable(TextBox.TextProperty);
 
-		hasErrors.ToSignal()
+		return hasErrors.ToSignal()
 			.Merge(text.ToSignal())
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -35,7 +35,6 @@ public class FocusNextWhenValidBehavior : AttachedToVisualTreeBehavior<TextBox>
 				{
 					nextFocus.Focus();
 				}
-			})
-			.DisposeWith(disposables);
+			});
 	}
 }

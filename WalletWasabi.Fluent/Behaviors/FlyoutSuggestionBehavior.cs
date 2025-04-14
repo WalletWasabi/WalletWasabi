@@ -54,7 +54,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 
 	public StringComparer EqualityComparer { get; set; } = StringComparer.InvariantCulture;
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		var targets = this
 			.WhenAnyValue(x => x.Target)
@@ -86,6 +86,8 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.Do(x => _flyout.Content = CreateSuggestion(x.TextBox, x.NewText))
 			.Select(_ => true);
 
+		var disposable = new CompositeDisposable();
+
 		targets
 			.Subscribe(target => FlyoutHelpers.ShowFlyout(target, _flyout, showOnGotFocus.Merge(hideOnLostFocus).Merge(hideOnTextChange), disposable))
 			.DisposeWith(disposable);
@@ -96,6 +98,8 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 			.Do(x => _flyout.Placement = x)
 			.Subscribe()
 			.DisposeWith(disposable);
+
+		return disposable;
 	}
 
 	private Suggestion CreateSuggestion(TextBox? textBox, string content)

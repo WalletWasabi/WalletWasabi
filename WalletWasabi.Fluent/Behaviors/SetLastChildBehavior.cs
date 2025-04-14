@@ -12,30 +12,31 @@ namespace WalletWasabi.Fluent.Behaviors;
 /// </remark>
 public class SetLastChildBehavior : AttachedToVisualTreeBehavior<Avalonia.Controls.TreeDataGrid>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		if (AssociatedObject is { Rows: { } rows })
+		if (AssociatedObject is not { Rows: { } rows })
 		{
-			Observable.FromEventPattern(rows, nameof(rows.CollectionChanged))
-				.Select(_ => AssociatedObject.RowsPresenter?.Items)
-				.WhereNotNull()
-				.Do(items =>
-				{
-					var castedList = items.Select(x => x.Model as ITreeDataGridExpanderItem).ToArray();
-
-					for (var i = 0; i < castedList.Length; i++)
-					{
-						var currentItem = castedList[i];
-						var nextItem = i + 1 < castedList.Length ? castedList[i + 1] : null;
-
-						if (currentItem is { IsChild: true })
-						{
-							currentItem.IsLastChild = nextItem is null or { IsChild: false };
-						}
-					}
-				})
-				.Subscribe()
-				.DisposeWith(disposable);
+			return Disposable.Empty;
 		}
+
+		return Observable.FromEventPattern(rows, nameof(rows.CollectionChanged))
+			.Select(_ => AssociatedObject.RowsPresenter?.Items)
+			.WhereNotNull()
+			.Do(items =>
+			{
+				var castedList = items.Select(x => x.Model as ITreeDataGridExpanderItem).ToArray();
+
+				for (var i = 0; i < castedList.Length; i++)
+				{
+					var currentItem = castedList[i];
+					var nextItem = i + 1 < castedList.Length ? castedList[i + 1] : null;
+
+					if (currentItem is { IsChild: true })
+					{
+						currentItem.IsLastChild = nextItem is null or { IsChild: false };
+					}
+				}
+			})
+			.Subscribe();
 	}
 }

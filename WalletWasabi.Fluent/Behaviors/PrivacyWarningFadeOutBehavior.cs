@@ -24,14 +24,14 @@ public class PrivacyWarningFadeOutBehavior : AttachedToVisualTreeBehavior<Contro
 		set => SetValue(PreviewWarningsProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject?.DataContext is not PrivacyWarning current)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
-		this.WhenAnyValue(x => x.PreviewWarnings)
+		return this.WhenAnyValue(x => x.PreviewWarnings)
 			.WhereNotNull()
 			.Do(_ =>
 			{
@@ -45,7 +45,6 @@ public class PrivacyWarningFadeOutBehavior : AttachedToVisualTreeBehavior<Contro
 					AssociatedObject.Classes.Remove(FadeOutClassName);
 				}
 			})
-			.Subscribe()
-			.DisposeWith(disposable);
+			.Subscribe();
 	}
 }

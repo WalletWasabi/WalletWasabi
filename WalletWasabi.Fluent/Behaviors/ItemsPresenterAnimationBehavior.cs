@@ -28,14 +28,14 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 		set => SetValue(ItemDurationProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
-		Observable
+		return Observable
 			.FromEventPattern<ContainerPreparedEventArgs>(AssociatedObject, nameof(ItemsControl.ContainerPrepared))
 			.Select(x => x.EventArgs)
 			.Subscribe(e =>
@@ -80,7 +80,6 @@ public class ItemsControlAnimationBehavior : AttachedToVisualTreeBehavior<ItemsC
 					}
 				};
 				animation.RunAsync(v);
-			})
-			.DisposeWith(disposable);
+			});
 	}
 }

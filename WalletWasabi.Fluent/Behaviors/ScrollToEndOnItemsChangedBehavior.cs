@@ -1,6 +1,5 @@
 using System.Collections.Specialized;
 using System.Linq;
-using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -23,7 +22,7 @@ public class ScrollToEndOnItemsChangedBehavior : AttachedToVisualTreeBehavior<It
 		set => SetValue(ScrollViewerProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		var contextChanges = this.WhenAnyValue(x => x.AssociatedObject, x => x.AssociatedObject!.DataContext, (control, _) => control)
 			.Select(control => control?.Items?.Cast<object>().LastOrDefault());
@@ -43,13 +42,12 @@ public class ScrollToEndOnItemsChangedBehavior : AttachedToVisualTreeBehavior<It
 			.Where(pattern => pattern.EventArgs.Action == NotifyCollectionChangedAction.Reset)
 			.Select(_ => AssociatedObject?.Items.Cast<object>().LastOrDefault());
 
-		newItemFromAdds
+		return newItemFromAdds
 			.Merge(newItemFromResets)
 			.Merge(contextChanges)
 			.WhereNotNull()
 			.Do(ScrollTo)
-			.Subscribe()
-			.DisposeWith(disposable);
+			.Subscribe();
 	}
 
 	private void ScrollTo(object obj)

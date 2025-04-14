@@ -38,14 +38,18 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		set => SetValue(EnableScaleProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
+		var disposables = new CompositeDisposable();
+
 		AnimateImplicit(AssociatedObject, OpacityDuration, EnableScale, ScaleDuration, disposables);
+
+		return disposables;
 	}
 
 	private static void AnimateImplicit(Control control, TimeSpan opacityDuration, bool enableScale, TimeSpan scaleDuration, CompositeDisposable disposables)
@@ -86,7 +90,7 @@ public class DialogTransitionAttachedBehavior : AttachedToVisualTreeBehavior<Con
 		compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0);
 
 		control.GetObservable(Visual.BoundsProperty)
-			.Subscribe(x => compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0))
+			.Subscribe(_ => compositionVisual.CenterPoint = new Vector3((float)control.Bounds.Width / 2, (float)control.Bounds.Height / 2, 0))
 			.DisposeWith(disposables);
 
 		var implicitAnimation = compositor.CreateImplicitAnimationCollection();
