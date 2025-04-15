@@ -1,6 +1,5 @@
 using Avalonia;
 using Avalonia.Controls;
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
@@ -11,11 +10,11 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var ownerTextBox =
@@ -23,13 +22,13 @@ public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon
 
 		if (ownerTextBox is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var hasErrors = ownerTextBox.GetObservable(DataValidationErrors.HasErrorsProperty);
 		var text = ownerTextBox.GetObservable(TextBox.TextProperty);
 
-		hasErrors.ToSignal()
+		return hasErrors.ToSignal()
 			.Merge(text.ToSignal())
 			.Subscribe(_ =>
 			{
@@ -39,7 +38,6 @@ public class CheckMarkVisibilityBehavior : AttachedToVisualTreeBehavior<PathIcon
 						!DataValidationErrors.GetHasErrors(ownerTextBox) &&
 						!string.IsNullOrEmpty(ownerTextBox.Text);
 				}
-			})
-			.DisposeWith(disposable);
+			});
 	}
 }

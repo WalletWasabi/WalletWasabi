@@ -15,44 +15,52 @@ public class ContextFlyoutWorkaroundBehavior : DisposingBehavior<Window>
 {
 	private readonly List<FlyoutBase> _openFlyouts = new();
 
-	protected override void OnAttached(CompositeDisposable disposables)
+
+	protected override IDisposable OnAttachedOverride()
 	{
-		if (AssociatedObject is { })
+		if (AssociatedObject is null)
 		{
-			FlyoutBase.IsOpenProperty.Changed
-				.Subscribe(FlyoutOpenChanged)
-				.DisposeWith(disposables);
-
-			AssociatedObject
-				.WhenAnyValue(x => x.IsActive, x => x.IsPointerOver, (isActive, isPointerOver) => !isActive && !isPointerOver)
-				.Where(x => x)
-				.Subscribe(_ => CloseFlyouts())
-				.DisposeWith(disposables);
-
-			AssociatedObject
-				.GetObservable(Visual.BoundsProperty)
-				.Subscribe(_ => CloseFlyouts())
-				.DisposeWith(disposables);
-
-			Observable
-				.FromEventPattern<PixelPointEventArgs>(
-					handler =>
-					{
-						if (AssociatedObject is not null)
-						{
-							AssociatedObject.PositionChanged += handler;
-						}
-					},
-					handler =>
-					{
-						if (AssociatedObject is not null)
-						{
-							AssociatedObject.PositionChanged -= handler;
-						}
-					})
-				.Subscribe(_ => CloseFlyouts())
-				.DisposeWith(disposables);
+			return Disposable.Empty;
 		}
+
+		var disposables = new CompositeDisposable();
+
+		FlyoutBase.IsOpenProperty.Changed
+			.Subscribe(FlyoutOpenChanged)
+			.DisposeWith(disposables);
+
+		AssociatedObject
+			.WhenAnyValue(x => x.IsActive, x => x.IsPointerOver,
+				(isActive, isPointerOver) => !isActive && !isPointerOver)
+			.Where(x => x)
+			.Subscribe(_ => CloseFlyouts())
+			.DisposeWith(disposables);
+
+		AssociatedObject
+			.GetObservable(Visual.BoundsProperty)
+			.Subscribe(_ => CloseFlyouts())
+			.DisposeWith(disposables);
+
+		Observable
+			.FromEventPattern<PixelPointEventArgs>(
+				handler =>
+				{
+					if (AssociatedObject is not null)
+					{
+						AssociatedObject.PositionChanged += handler;
+					}
+				},
+				handler =>
+				{
+					if (AssociatedObject is not null)
+					{
+						AssociatedObject.PositionChanged -= handler;
+					}
+				})
+			.Subscribe(_ => CloseFlyouts())
+			.DisposeWith(disposables);
+
+		return disposables;
 	}
 
 	protected void CloseFlyouts()

@@ -26,14 +26,14 @@ public class DynamicHeightBehavior : DisposingBehavior<Control>
 		set => SetValue(HideThresholdHeightProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
 		if (AssociatedObject?.Parent is not Control parent)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
-		parent.WhenAnyValue(x => x.Bounds)
+		return parent.WhenAnyValue(x => x.Bounds)
 			.Subscribe(bounds =>
 			{
 				var newHeight = bounds.Height * HeightMultiplier;
@@ -47,7 +47,6 @@ public class DynamicHeightBehavior : DisposingBehavior<Control>
 					AssociatedObject.IsVisible = true;
 					AssociatedObject.Height = newHeight;
 				}
-			})
-			.DisposeWith(disposables);
+			});
 	}
 }

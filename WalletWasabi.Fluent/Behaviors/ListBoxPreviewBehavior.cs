@@ -35,12 +35,14 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 		set => SetValue(DelayProperty, value);
 	}
 
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
+
+		var disposables = new CompositeDisposable();
 
 		Observable.FromEventPattern(AssociatedObject, nameof(AssociatedObject.PointerExited))
 			.Subscribe(_ => ClearPreviewItem(0))
@@ -67,6 +69,8 @@ public class ListBoxPreviewBehavior : DisposingBehavior<ListBox>
 				}
 			})
 			.DisposeWith(disposables);
+
+		return disposables;
 	}
 
 	private void ClearPreviewItem(int delay)

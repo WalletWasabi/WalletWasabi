@@ -10,10 +10,12 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ShowFlyoutOnPointerOverBehavior : AttachedToVisualTreeBehavior<Control>
 {
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject is { } target && FlyoutBase.GetAttachedFlyout(target) is { } flyout)
 		{
+			var disposable = new CompositeDisposable();
+
 			var showFlyout = Observable
 				.FromEventPattern(target, nameof(AssociatedObject.PointerMoved))
 				.Throttle(TimeSpan.FromMicroseconds(100))
@@ -21,6 +23,10 @@ public class ShowFlyoutOnPointerOverBehavior : AttachedToVisualTreeBehavior<Cont
 				.Select(_ => target.IsPointerOver);
 
 			FlyoutHelpers.ShowFlyout(target, flyout, showFlyout, disposable, windowActivityRequired: false);
+
+			return disposable;
 		}
+
+		return Disposable.Empty;
 	}
 }

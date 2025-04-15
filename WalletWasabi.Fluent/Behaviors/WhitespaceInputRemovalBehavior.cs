@@ -11,18 +11,20 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class WhitespaceInputRemovalBehavior : DisposingBehavior<TextBox>
 {
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
-		if (AssociatedObject != null)
+		if (AssociatedObject is null)
 		{
-			AssociatedObject.OnEvent(InputElement.TextInputEvent, RoutingStrategies.Tunnel)
-				.Select(x => x.EventArgs)
-				.Do(x => Filter(x, x.Text))
-				.Subscribe();
+			return Disposable.Empty;
 		}
+
+		return AssociatedObject.OnEvent(InputElement.TextInputEvent, RoutingStrategies.Tunnel)
+			.Select(x => x.EventArgs)
+			.Do(x => Filter(x, x.Text))
+			.Subscribe();
 	}
 
-	private void Filter(TextInputEventArgs textInputEventArgs, string? objText)
+	private static void Filter(TextInputEventArgs textInputEventArgs, string? objText)
 	{
 		textInputEventArgs.Text = objText?.WithoutWhitespace();
 	}

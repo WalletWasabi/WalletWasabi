@@ -5,27 +5,23 @@ using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs;
-using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
 public class CoordinatorConnectionStringBehavior : DisposingBehavior<Window>
 {
-
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
 		var uiContext = UiContext.Default;
 
-		Observable
+		return Observable
 			.FromEventPattern(AssociatedObject, nameof(AssociatedObject.Activated))
 			.Where(_ => !uiContext.ApplicationSettings.Oobe)
 			.SelectMany(async _ =>
@@ -69,7 +65,6 @@ public class CoordinatorConnectionStringBehavior : DisposingBehavior<Window>
 						caption: "");
 				}
 			})
-			.Subscribe()
-			.DisposeWith(disposables);
+			.Subscribe();
 	}
 }

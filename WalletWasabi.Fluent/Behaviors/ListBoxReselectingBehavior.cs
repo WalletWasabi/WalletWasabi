@@ -11,19 +11,18 @@ namespace WalletWasabi.Fluent.Behaviors;
 
 public class ListBoxReselectingBehavior : DisposingBehavior<ListBox>
 {
-	protected override void OnAttached(CompositeDisposable disposables)
+	protected override IDisposable OnAttachedOverride()
 	{
 		if (AssociatedObject is null)
 		{
-			return;
+			return Disposable.Empty;
 		}
 
-		ItemsCollectionChanged()
+		return ItemsCollectionChanged()
 			.Where(IsSelectionMoving)
 			.Select(x => x.EventArgs.NewStartingIndex)
 			.Do(SetSelectedIndex)
-			.Subscribe()
-			.DisposeWith(disposables);
+			.Subscribe();
 	}
 
 	private IObservable<EventPattern<NotifyCollectionChangedEventArgs>> ItemsCollectionChanged()

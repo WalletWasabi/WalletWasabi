@@ -51,15 +51,19 @@ public class ShowWalletCoinsOnKeyCombinationBehavior : AttachedToVisualTreeBehav
 		set => SetValue(WalletProperty, value);
 	}
 
-	protected override void OnAttachedToVisualTree(CompositeDisposable disposable)
+	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
 		if (AssociatedObject?.GetVisualRoot() is not InputElement inputRoot)
 		{
-			return;
+			return Disposable.Empty;
 		}
+
+		var disposable = new CompositeDisposable();
 
 		inputRoot.AddDisposableHandler(InputElement.KeyDownEvent, OnKeyDown).DisposeWith(disposable);
 		inputRoot.AddDisposableHandler(InputElement.KeyUpEvent, OnKeyUp).DisposeWith(disposable);
+
+		return disposable;
 	}
 
 	private void OnKeyUp(object? sender, KeyEventArgs e)
