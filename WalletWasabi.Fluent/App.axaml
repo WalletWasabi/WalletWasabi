@@ -40,14 +40,13 @@
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="/Assets/WasabiLogo.ico" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
-        <!-- TODO: This is temporary workaround until https://github.com/WalletWasabi/WalletWasabi/issues/8151 is fixed. -->
-        <!--<NativeMenu.Menu>
+        <NativeMenu.Menu>
           <NativeMenu>
             <NativeMenuItem Header="{Binding IsMainWindowShown, Converter={StaticResource ShowHideBoolConverter}}" Command="{Binding ShowHideCommand}" />
             <NativeMenuItemSeparator />
             <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
           </NativeMenu>
-        </NativeMenu.Menu>-->
+        </NativeMenu.Menu>
       </TrayIcon>
     </TrayIcons>
   </TrayIcon.Icons>
