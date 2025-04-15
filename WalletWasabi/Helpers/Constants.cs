@@ -18,7 +18,7 @@ public static class Constants
 
 	public const string DonationAddress = "sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3";
 
-	public const string WasabiTeamNostrPubKey = "npub17hnvwvdts0jz6vu9k65xscscd25geysva9rcjzkc853vhl76sw6sv7cqkx"; // Change this to Official Wasabi Nostr PubKey
+	public const string WasabiTeamNostrPubKey = "npub129hpcwy3h7uhpzwzts6utkt2p5st7lf4qpzp3d2j0p6z56lvkpgspngzeq";
 
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
