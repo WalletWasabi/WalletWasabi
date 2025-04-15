@@ -16,6 +16,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using Unit = System.Reactive.Unit;
 
@@ -200,7 +201,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
-			.Do(x => Services.UpdateManager.DoUpdateOnClose = x)
+			.Do(x => Services.EventBus.Publish(new InstallOnClosedPreferenceChanged(x)))
 			.Subscribe();
 	}
 

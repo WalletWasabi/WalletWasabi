@@ -28,7 +28,7 @@ public class RoundStateUpdaterTests
 
 		// The coordinator creates two rounds.
 		// Each line represents a response for each request.
-		var mockHttpClientFactory = CreateMockHttpClientFactory([
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.InputRegistration }),
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(1)}),
 			RoundStateResponseBuilder(roundState1 with { Phase = Phase.OutputRegistration, CoinjoinState = roundState1.CoinjoinState.GetStateFrom(2)}, roundState2 with { Phase = Phase.InputRegistration }),
@@ -105,7 +105,7 @@ public class RoundStateUpdaterTests
 
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
-		var mockHttpClientFactory = CreateMockHttpClientFactory([
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
 			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration}),
 			() => throw new Exception(),
 			() => throw new OperationCanceledException(),
@@ -154,7 +154,7 @@ public class RoundStateUpdaterTests
 
 		// Each line represents a response for each request.
 		// Exceptions, Problems, Errors everywhere!!!
-		var mockHttpClientFactory = CreateMockHttpClientFactory([
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
 			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration}),
 			() => throw new Exception(),
 			() => throw new OperationCanceledException(),
@@ -196,7 +196,7 @@ public class RoundStateUpdaterTests
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
-		var mockHttpClientFactory = CreateMockHttpClientFactory([
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
 			RoundStateResponseBuilder(roundState with {Phase = Phase.InputRegistration})
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
@@ -217,29 +217,6 @@ public class RoundStateUpdaterTests
 	}
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
-		() => Ok(new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>()));
-
-	private static HttpResponseMessage Ok(RoundStateResponse rsr)
-	{
-		HttpResponseMessage response = new(HttpStatusCode.OK);
-		response.Content = new StringContent(Encode.RoundStateResponse(rsr).ToJsonString());
-		return response;
-	}
-
-
-	private MockHttpClientFactory CreateMockHttpClientFactory(params Func<HttpResponseMessage>[] responses)
-	{
-		var mockHttpClientHandler = new MockHttpClientHandler();
-		var mockHttpClient = new MockHttpClient();
-		var mockHttpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-
-		var callCounter = 0;
-		mockHttpClient.OnSendAsync = _ =>
-		{
-			var responseFn = responses[callCounter];
-			callCounter++;
-			return Task.FromResult(responseFn());
-		};
-		return mockHttpClientFactory;
-	}
+		() => HttpResponseMessageEx.Ok(
+			Encode.RoundStateResponse( new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>() )).ToJsonString());
 }
