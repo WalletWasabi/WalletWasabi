@@ -156,8 +156,8 @@ public class ContentArea : ContentControl
 	}
 	public object SubActionContent
 	{
-		get => GetValue(NextContentProperty);
-		set => SetValue(NextContentProperty, value);
+		get => GetValue(SubActionContentProperty);
+		set => SetValue(SubActionContentProperty, value);
 	}
 
 	protected override bool RegisterContentPresenter(ContentPresenter presenter)
