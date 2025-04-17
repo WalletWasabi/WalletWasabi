@@ -304,14 +304,16 @@ public class CoinJoinClient
 				throw new CoinJoinClientException(CoinjoinError.UserWasntInRound, "No inputs participated in this round.");
 			}
 
+			var outputScripts = outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList();
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: signedCoins,
-					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
+					OutputScripts: outputScripts,
 					UnsignedCoinJoin: unsignedCoinJoin!),
-				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(signedCoins),
-				_ => new FailedCoinJoinResult()
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(outputScripts, signedCoins),
+				_ => new FailedCoinJoinResult(outputScripts)
 			};
 		}
 		finally
