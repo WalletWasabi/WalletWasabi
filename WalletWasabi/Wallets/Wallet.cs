@@ -120,8 +120,6 @@ public class Wallet : BackgroundService, IWallet
 		State == WalletState.Started // Only running wallets
 		&& KeyChain is not null; // that are not watch-only wallets and contain a keychain
 
-	public TimeSpan FeeRateMedianTimeFrame => TimeSpan.FromHours(KeyManager.FeeRateMedianTimeFrameHours);
-
 	public Money PlebStopThreshold => KeyManager.PlebStopThreshold;
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();

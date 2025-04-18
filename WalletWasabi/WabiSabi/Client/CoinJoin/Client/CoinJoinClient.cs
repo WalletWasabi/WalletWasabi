@@ -43,7 +43,6 @@ public class CoinJoinClient
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
-		TimeSpan feeRateMedianTimeFrame = default,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
@@ -53,7 +52,6 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
-		_feeRateMedianTimeFrame = feeRateMedianTimeFrame;
 		_secureRandom = new SecureRandom();
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -71,7 +69,6 @@ public class CoinJoinClient
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
-	private readonly TimeSpan _feeRateMedianTimeFrame;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -122,11 +119,6 @@ public class CoinJoinClient
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the minimum input count was too low.");
 		}
 
-		if (!roundState.IsBlame && !IsRoundEconomic(roundState.CoinjoinState.Parameters.MiningFeeRate, _roundStatusUpdater.CoinJoinFeeRateMedians, _feeRateMedianTimeFrame))
-		{
-			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: the round is not economic.");
-		}
-
 		if (roundState.CoinjoinState.Parameters.MiningFeeRate.SatoshiPerByte > _coinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 		{
 			throw new InvalidOperationException($"Blame Round ({roundState.Id}): Abandoning: " +
@@ -153,12 +145,6 @@ public class CoinJoinClient
 
 			if (!currentRoundState.IsBlame)
 			{
-				if (!IsRoundEconomic(roundParameters.MiningFeeRate, _roundStatusUpdater.CoinJoinFeeRateMedians, _feeRateMedianTimeFrame))
-				{
-					string roundSkippedMessage = "Uneconomical round skipped.";
-					currentRoundState.LogInfo(roundSkippedMessage);
-					throw new CoinJoinClientException(CoinjoinError.UneconomicalRound, roundSkippedMessage);
-				}
 				if (roundParameters.MiningFeeRate.SatoshiPerByte > _coinJoinConfiguration.MaxCoinJoinMiningFeeRate)
 				{
 					string roundSkippedMessage = $"Mining fee rate was {roundParameters.MiningFeeRate} but max allowed is {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}.";
@@ -703,21 +689,7 @@ public class CoinJoinClient
 
 	internal static bool IsRoundEconomic(FeeRate roundFeeRate, Dictionary<TimeSpan, FeeRate> coinJoinFeeRateMedians, TimeSpan feeRateMedianTimeFrame)
 	{
-		if (feeRateMedianTimeFrame == default)
-		{
-			return true;
-		}
-
-		if (coinJoinFeeRateMedians.ContainsKey(feeRateMedianTimeFrame))
-		{
-			// Round is not economic if any TimeFrame lower than _feeRateMedianTimeFrame has a FeeRate lower than current round's FeeRate.
-			// 0.5 satoshi difference is allowable, to avoid rounding errors.
-			return coinJoinFeeRateMedians
-				.Where(x => x.Key <= feeRateMedianTimeFrame)
-				.All(lowerTimeFrame => roundFeeRate.SatoshiPerByte <= lowerTimeFrame.Value.SatoshiPerByte + 0.5m);
-		}
-
-		throw new InvalidOperationException($"Could not find median fee rate for time frame: {feeRateMedianTimeFrame}.");
+		return true;
 	}
 
 	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)

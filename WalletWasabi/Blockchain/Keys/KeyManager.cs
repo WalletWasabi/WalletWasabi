@@ -29,7 +29,6 @@ public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
-	public const int DefaultFeeRateMedianTimeFrameHours = 0;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -146,8 +145,6 @@ public class KeyManager
 	public string? Icon { get; private set; }
 
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
-
-	public int FeeRateMedianTimeFrameHours { get; private set; } = DefaultFeeRateMedianTimeFrameHours;
 
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
@@ -726,16 +723,6 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void SetFeeRateMedianTimeFrame(int hours)
-	{
-		if (hours != 0 && !Constants.CoinJoinFeeRateMedianTimeFrames.Contains(hours))
-		{
-			throw new ArgumentOutOfRangeException(nameof(hours), $"Hours can be only one of {string.Join(",", Constants.CoinJoinFeeRateMedianTimeFrames)}.");
-		}
-
-		FeeRateMedianTimeFrameHours = hours;
-	}
-
 	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
 	{
 		lock (_criticalStateLock)
@@ -783,7 +770,6 @@ public class KeyManager
 			("PlebStopThreshold", Encode.MoneyBitcoins(keyManager.PlebStopThreshold)),
 			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
 			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
-			("FeeRateMedianTimeFrameHours", Encode.Int(keyManager.FeeRateMedianTimeFrameHours)),
 			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
 			("DefaultReceiveScriptType", Encode.ScriptPubKeyType(keyManager.DefaultReceiveScriptType)),
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
@@ -816,7 +802,6 @@ public class KeyManager
 				PlebStopThreshold = get.Required("PlebStopThreshold", Decode.MoneyBitcoins),
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Required("AnonScoreTarget", Decode.Int),
-				FeeRateMedianTimeFrameHours = get.Required("FeeRateMedianTimeFrameHours", Decode.Int),
 				NonPrivateCoinIsolation = get.Required("RedCoinIsolation", Decode.Bool),
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,

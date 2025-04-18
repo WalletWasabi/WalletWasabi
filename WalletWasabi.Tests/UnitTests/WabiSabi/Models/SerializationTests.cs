@@ -146,8 +146,7 @@ public class SerializationTests
 	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
-		CoinJoinFeeRateMedian median = new(TimeSpan.FromHours(24), new FeeRate(120m));
-		RoundStateResponse response = new(new[] { roundState }, new[] { median });
+		RoundStateResponse response = new([roundState], []);
 
 		AssertSerialization(response);
 
@@ -157,10 +156,9 @@ public class SerializationTests
 		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		roundState = RoundState.FromRound(round);
 
-		response = new(new[] { roundState }, new[] { median });
+		response = new([roundState], []);
 
 		AssertSerialization(response);
-
 	}
 
 	private static void AssertSerialization<T>(T message)
