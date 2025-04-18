@@ -561,12 +561,6 @@ public static partial class Decode
 			get.Required("coinjoinState", MultipartyTransactionState)
 		));
 
-	private static readonly Decoder<CoinJoinFeeRateMedian> CoinJoinFeeRateMedian =
-		Object(get => new CoinJoinFeeRateMedian(
-			get.Required("timeFrame", TimeSpan),
-			get.Required("medianFeeRate", FeeRate )
-		));
-
 	private static readonly Decoder<RoundStateCheckpoint> RoundStateCheckpoint =
 		Object(get => new RoundStateCheckpoint(
 			get.Required("RoundId", UInt256),
@@ -581,22 +575,7 @@ public static partial class Decode
 	public static readonly Decoder<RoundStateResponse> RoundStateResponse =
 		Object(get => new RoundStateResponse(
 			get.Required("roundStates", Array(RoundState)),
-			get.Required("coinJoinFeeRateMedians", Array(CoinJoinFeeRateMedian))
-		));
-
-	public static readonly Decoder<HumanMonitorRoundResponse> HumanMonitorRoundResponseDecoder =
-		Object(get => new HumanMonitorRoundResponse(
-			get.Required("RoundId", UInt256),
-			get.Required("IsBlameRound", Bool),
-			get.Required("InputCount", Int),
-			get.Required("MaxSuggestedAmount", Decimal),
-			get.Required("InputRegistrationRemaining", TimeSpan),
-			get.Required("Phase", String)
-		));
-
-	public static readonly Decoder<HumanMonitorResponse> HumanMonitorResponseDecoder =
-		Object(get => new HumanMonitorResponse(
-			get.Required("roundStates", Array(HumanMonitorRoundResponseDecoder))
+			[]
 		));
 
 	private static readonly Decoder<InputBannedExceptionData> InputBannedExceptionData =

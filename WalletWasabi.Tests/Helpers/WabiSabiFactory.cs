@@ -342,7 +342,6 @@ public static class WabiSabiFactory
 			coinSelector,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
 			new LiquidityClueProvider(),
-			TimeSpan.Zero,
 			TimeSpan.Zero);
 
 		return coinjoinClient;
@@ -404,7 +403,7 @@ public static class WabiSabiFactory
 
 public class TesteableCoinJoinClient : CoinJoinClient
 {
-	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateUpdater roundStatusUpdater, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider, TimeSpan feeRateMedianTimeFrame = default, TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusUpdater, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, feeRateMedianTimeFrame, doNotRegisterInLastMinuteTimeLimit)
+	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateUpdater roundStatusUpdater, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusUpdater, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
 	{
 	}
 

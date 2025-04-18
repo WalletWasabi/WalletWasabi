@@ -22,7 +22,6 @@ public class RoundStateUpdater : PeriodicRunner
 
 	private readonly IWabiSabiApiRequestHandler _arenaRequestHandler;
 	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
-	public Dictionary<TimeSpan, FeeRate> CoinJoinFeeRateMedians { get; private set; } = new();
 
 	private readonly List<RoundStateAwaiter> _awaiters = new();
 	private readonly object _awaitersLock = new();
@@ -54,8 +53,6 @@ public class RoundStateUpdater : PeriodicRunner
 
 		var response = await _arenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
 		RoundState[] roundStates = response.RoundStates;
-
-		CoinJoinFeeRateMedians = response.CoinJoinFeeRateMedians.ToDictionary(a => a.TimeFrame, a => a.MedianFeeRate);
 
 		var updatedRoundStates = roundStates
 			.Where(rs => RoundStates.ContainsKey(rs.Id))

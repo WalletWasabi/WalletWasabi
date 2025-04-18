@@ -53,13 +53,6 @@
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="Only coinjoin when the fee rate is below the median of this time period.">
-      <TextBlock Text="Coinjoin time preference" />
-      <ComboBox HorizontalAlignment="Right"
-                ItemsSource="{Binding TimeFrames}"
-                SelectedItem="{Binding SelectedTimeFrame}" />
-    </DockPanel>
-
     <DockPanel>
       <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score to consider a coin private." />
       <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3" />

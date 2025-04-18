@@ -30,7 +30,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
 
-	[AutoNotify] private WalletWasabi.CoinJoinProfiles.CoinJoinTimeFrames.TimeFrameItem _selectedTimeFrame;
 	[AutoNotify] private string _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
@@ -53,8 +52,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
-
-		_selectedTimeFrame = CoinJoinTimeFrames.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == TimeSpan.FromHours(_wallet.Settings.FeeRateMedianTimeFrameHours)) ?? CoinJoinTimeFrames.TimeFrames.First();
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -85,8 +82,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(
 				x => x.AnonScoreTarget,
-				x => x.NonPrivateCoinIsolation,
-				x => x.SelectedTimeFrame)
+				x => x.NonPrivateCoinIsolation)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ =>
 			{
@@ -94,7 +90,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					.FirstOrDefault(p =>
 						p.Equals(
 							int.TryParse(AnonScoreTarget, out var anonScoreTarget) ? anonScoreTarget : 0,
-							NonPrivateCoinIsolation, SelectedTimeFrame.TimeFrame));
+							NonPrivateCoinIsolation));
 
 				MaximizePrivacyProfileSelected = selectedProfile?.Name == "MaximizePrivacy";
 				EconomicalProfileSelected = selectedProfile?.Name == "Economical";
@@ -126,20 +122,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
-		this.WhenAnyValue(x => x.SelectedTimeFrame)
-			.Skip(1)
-			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x =>
-				{
-					_wallet.Settings.FeeRateMedianTimeFrameHours = (int)x.TimeFrame.TotalHours;
-					_wallet.Settings.Save();
-				});
-
 		ManuallyUpdateOutputWalletList();
 	}
 
-	public CoinJoinTimeFrames.TimeFrameItem[] TimeFrames => CoinJoinTimeFrames.TimeFrames;
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
 	public ICommand SelectMaximizePrivacySettings { get; }
@@ -196,9 +181,6 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
 		_wallet.Settings.NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
-
-		SelectedTimeFrame = CoinJoinTimeFrames.TimeFrames.FirstOrDefault(tf => tf.TimeFrame == profile.TimeFrame.TimeFrame) ?? CoinJoinTimeFrames.TimeFrames.First();
-		_wallet.Settings.FeeRateMedianTimeFrameHours = (int)profile.TimeFrame.TimeFrame.TotalHours;
 
 		_wallet.Settings.Save();
 		return Task.CompletedTask;
