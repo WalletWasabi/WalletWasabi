@@ -53,6 +53,10 @@ jobs:
       run: |
         choco install windows-sdk-10-version-1903-all
 
+    - name: Install Azure CLI
+      run: |
+        choco install azure-cli
+
     - name: Set up environment
       shell: bash
       env:
