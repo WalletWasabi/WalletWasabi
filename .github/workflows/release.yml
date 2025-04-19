@@ -56,7 +56,9 @@ jobs:
     - name: Set up environment
       shell: bash
       env:
-        SIGNING_CERTIFICATE: ${{ secrets.SIGNING_CERTIFICATE }}
+        AZURE_TS_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
+        AZURE_TS_SECRET: ${{ secrets.AZURE_TS_SECRET }}
+        AZURE_TS_APP_ID: ${{ secrets.AZURE_TS_APP_ID }}
       run: |
         echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
 

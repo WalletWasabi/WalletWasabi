@@ -338,9 +338,47 @@ mkdir -p "$BUILD_INSTALLER_DIR"
 # Remove unwanted file
 rm $PACKAGES_DIR/*.wixpdb
 
-# Sign the installer
-SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/signtool.exe"
-"$SIGNTOOL" Sign -d 'Wasabi Wallet' -f 'Certificate.pfx'  -p "$SIGNING_CERTIFICATE_PASSWORD" -t 'http://timestamp.digicert.com' -v "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+  # Ensure Azure CLI is installed (keeping your original line)
+  winget install -e --id Microsoft.AzureCLI --accept-package-agreements --accept-source-agreements
+
+  # Define paths (using your existing variables)
+  AZ="C:\Program Files\Microsoft SDKs\Azure\CLI2\wbin\az.cmd"
+  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/signtool.exe"
+
+  echo "Logging into Azure..."
+  "$AZ" login --service-principal -u $AZURE_TS_APP_ID -p $AZURE_TS_SECRET --tenant $AZURE_TS_TENANT_ID
+
+  AZURE_RESOURCE_GROUP="WasabiWallet"
+  AZURE_CODESIGN_ACCOUNT_NAME="WasabiWallet"
+  AZURE_CERT_PROFILE_NAME="WasabiWallet"
+
+  echo "Retrieving Azure Certificate Profile ID..."
+  CERT_PROFILE_ID=$("$AZ" codesigning certificate profile show \
+    --resource-group "$AZURE_RESOURCE_GROUP" \
+    --account-name "$AZURE_CODESIGN_ACCOUNT_NAME" \
+    --name "$AZURE_CERT_PROFILE_NAME" \
+    --query "id" -o tsv)
+
+  if [ -z "$CERT_PROFILE_ID" ]; then
+    echo "Error: Could not retrieve Certificate Profile ID. Check Azure variables/permissions."
+    exit 1;
+  else
+     echo "Using Certificate Profile ID: $CERT_PROFILE_ID"
+  fi
+
+  echo "Signing $PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi with Azure Trusted Signing..."
+  "$SIGNTOOL" sign \
+      /fd sha256 \
+      /tr http://timestamp.digicert.com \
+      /td sha256 \
+      /du "https://www.wasabiwallet.io" \
+      /d "Wasabi Wallet" \
+      /csp "Azure Code Signing Provider" \
+      /kc "$CERT_PROFILE_ID" \
+      /v \
+      "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+
+  "$AZ" logout
 fi
 
 #------------------------------------------------------------------------------------#
