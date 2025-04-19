@@ -53,22 +53,15 @@ jobs:
       run: |
         choco install windows-sdk-10-version-1903-all
 
-    - name: Set up environment
-      shell: bash
-      env:
-        AZURE_TS_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
-        AZURE_TS_SECRET: ${{ secrets.AZURE_TS_SECRET }}
-        AZURE_TS_APP_ID: ${{ secrets.AZURE_TS_APP_ID }}
-      run: |
-        echo "$SIGNING_CERTIFICATE" | base64 -d > Certificate.pfx
-
     - name: Build Windows Installer
       shell: bash
       run: |
         set -x
         ./Contrib/release.sh wininstaller
       env:
-        SIGNING_CERTIFICATE_PASSWORD: ${{ secrets.SIGNING_CERTIFICATE_PASSWORD }}
+        AZURE_TS_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
+        AZURE_TS_SECRET: ${{ secrets.AZURE_TS_SECRET }}
+        AZURE_TS_APP_ID: ${{ secrets.AZURE_TS_APP_ID }}
 
     - name: Upload windows installer
       uses: actions/upload-artifact@v4
