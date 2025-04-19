@@ -6,6 +6,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
 using static WalletWasabi.Serialization.Encode;
 using static WalletWasabi.Serialization.Decode;
+using Network = NBitcoin.Network;
 
 namespace WalletWasabi.Daemon;
 
@@ -59,32 +60,32 @@ public static class PersistentConfigDecode
 	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
 
 	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_5_1 =
-		Object(get => new PersistentConfig
-		{
-			IndexerUri = get.Required("BackendUri", Decode.String),
-			CoordinatorUri = get.Required("CoordinatorUri", Decode.String),
-			UseTor = get.Required("UseTor", UseTor),
-			TerminateTorOnExit = get.Required("TerminateTorOnExit", Decode.Bool),
-			TorBridges = get.Required("TorBridges", ValueList(Decode.String)),
-			DownloadNewVersion = get.Required("DownloadNewVersion", Decode.Bool),
-			UseBitcoinRpc = get.Optional("UseBitcoinRpc", Decode.Bool, false),
-			BitcoinRpcCredentialString = get.Optional("BitcoinRpcCredentialString", Decode.String) ?? "",
-			BitcoinRpcEndPoint = get.Optional("BitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
-			JsonRpcServerEnabled = get.Required("JsonRpcServerEnabled", Decode.Bool),
-			JsonRpcUser = get.Required("JsonRpcUser", Decode.String),
-			JsonRpcPassword = get.Required("JsonRpcPassword", Decode.String),
-			JsonRpcServerPrefixes = get.Required("JsonRpcServerPrefixes", ValueList(Decode.String)),
-			DustThreshold = get.Required("DustThreshold", Decode.MoneyBitcoins),
-			EnableGpu = get.Required("EnableGpu", Decode.Bool),
-			ExchangeRateProvider = get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
-			FeeRateEstimationProvider = get.Optional("FeeRateEstimationProvider", Decode.String) ?? "BlockstreamInfo",
-			ExternalTransactionBroadcaster = get.Optional("ExternalTransactionBroadcaster", Decode.String) ?? "MempoolSpace",
-			CoordinatorIdentifier = get.Required("CoordinatorIdentifier", Decode.String),
-			MaxCoinJoinMiningFeeRate = get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
-			AbsoluteMinInputCount = get.Required("AbsoluteMinInputCount", Decode.Int),
-			MaxDaysInMempool = get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
-			ConfigVersion = get.Required("ConfigVersion", Decode.Int)
-		});
+		Object(get => new PersistentConfig(
+			Network: Network.Main, // Network is not part of the config
+			IndexerUri : get.Required("BackendUri", Decode.String),
+			CoordinatorUri : get.Required("CoordinatorUri", Decode.String),
+			UseTor : get.Required("UseTor", UseTor),
+			TerminateTorOnExit : get.Required("TerminateTorOnExit", Decode.Bool),
+			TorBridges : get.Required("TorBridges", ValueList(Decode.String)),
+			DownloadNewVersion : get.Required("DownloadNewVersion", Decode.Bool),
+			UseBitcoinRpc : get.Optional("UseBitcoinRpc", Decode.Bool, false),
+			BitcoinRpcCredentialString : get.Optional("BitcoinRpcCredentialString", Decode.String) ?? "",
+			BitcoinRpcEndPoint : get.Optional("BitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
+			JsonRpcServerEnabled : get.Required("JsonRpcServerEnabled", Decode.Bool),
+			JsonRpcUser : get.Required("JsonRpcUser", Decode.String),
+			JsonRpcPassword : get.Required("JsonRpcPassword", Decode.String),
+			JsonRpcServerPrefixes : get.Required("JsonRpcServerPrefixes", ValueList(Decode.String)),
+			DustThreshold : get.Required("DustThreshold", Decode.MoneyBitcoins),
+			EnableGpu : get.Required("EnableGpu", Decode.Bool),
+			ExchangeRateProvider : get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
+			FeeRateEstimationProvider : get.Optional("FeeRateEstimationProvider", Decode.String) ?? "BlockstreamInfo",
+			ExternalTransactionBroadcaster : get.Optional("ExternalTransactionBroadcaster", Decode.String) ?? "MempoolSpace",
+			CoordinatorIdentifier : get.Required("CoordinatorIdentifier", Decode.String),
+			MaxCoinJoinMiningFeeRate : get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
+			AbsoluteMinInputCount : get.Required("AbsoluteMinInputCount", Decode.Int),
+			MaxDaysInMempool : get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
+			ConfigVersion : get.Required("ConfigVersion", Decode.Int)
+		));
 
 	public static readonly Decoder<PersistentConfigPrev2_5_1> PersistentConfigPrev2_5_1 =
 		Object(get => new PersistentConfigPrev2_5_1(

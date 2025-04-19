@@ -11,57 +11,33 @@ namespace WalletWasabi.Daemon;
 
 public interface IPersistentConfig;
 
-public record PersistentConfig : IPersistentConfig
+public record PersistentConfig(
+	Network Network,
+	string IndexerUri,
+	string CoordinatorUri,
+	string UseTor,
+	bool TerminateTorOnExit,
+	ValueList<string> TorBridges,
+	bool DownloadNewVersion,
+	bool UseBitcoinRpc,
+	string BitcoinRpcCredentialString,
+	EndPoint BitcoinRpcEndPoint,
+	bool JsonRpcServerEnabled,
+	string JsonRpcUser,
+	string JsonRpcPassword,
+	ValueList<string> JsonRpcServerPrefixes,
+	Money DustThreshold,
+	bool EnableGpu,
+	string CoordinatorIdentifier,
+	string ExchangeRateProvider,
+	string FeeRateEstimationProvider,
+	string ExternalTransactionBroadcaster,
+	decimal MaxCoinJoinMiningFeeRate,
+	int AbsoluteMinInputCount,
+	int MaxDaysInMempool,
+	int ConfigVersion
+	) : IPersistentConfig
 {
-	public Network Network { get; init; } = Network.Main;
-
-	public string IndexerUri { get; init; } = Constants.IndexerUri;
-
-	public string CoordinatorUri { get; init; } = "";
-
-	public string UseTor { get; init; } = "Enabled";
-
-	public bool TerminateTorOnExit { get; init; }
-
-	public ValueList<string> TorBridges { get; init; } = ValueList<string>.Empty;
-
-	public bool DownloadNewVersion { get; init; } = true;
-
-	public bool UseBitcoinRpc { get; init; }
-
-	public string BitcoinRpcCredentialString { get; init; } = "";
-
-	public EndPoint BitcoinRpcEndPoint { get; init; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
-
-	public bool JsonRpcServerEnabled { get; init; }
-
-	public string JsonRpcUser { get; init; } = "";
-
-	public string JsonRpcPassword { get; init; } = "";
-
-	public ValueList<string> JsonRpcServerPrefixes { get; init; } = new(
-	[
-		"http://127.0.0.1:37128/",
-		"http://localhost:37128/"
-	]);
-
-	public Money DustThreshold { get; init; } = Money.Coins(Constants.DefaultDustThreshold);
-
-	public bool EnableGpu { get; init; } = true;
-
-	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
-
-	public string ExchangeRateProvider { get; init; } = Constants.DefaultExchangeRateProvider;
-	public string  FeeRateEstimationProvider { get; init; } = Constants.DefaultFeeRateEstimationProvider;
-	public string ExternalTransactionBroadcaster { get; init; } = "MempoolSpace";
-
-	public decimal MaxCoinJoinMiningFeeRate { get; init; } = Constants.DefaultMaxCoinJoinMiningFeeRate;
-
-	public int AbsoluteMinInputCount { get; init; } = Constants.DefaultAbsoluteMinInputCount;
-
-	public int MaxDaysInMempool { get; init; } = Constants.DefaultMaxDaysInMempool;
-	public int ConfigVersion { get; init; }
-
 	public string GetConfigFileName() =>
 		Network switch
 		{

@@ -7,6 +7,10 @@ namespace WalletWasabi.Helpers;
 public class ValueList<T>(T[] items) : IEnumerable<T>, IEquatable<ValueList<T>>
 	where T : IEquatable<T>
 {
+	public ValueList() : this(Array.Empty<T>())
+	{
+	}
+
 	public static ValueList<T> Empty { get; } = new([]);
 
 	public bool Equals(ValueList<T>? other) =>

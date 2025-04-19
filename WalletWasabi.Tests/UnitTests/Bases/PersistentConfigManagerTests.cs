@@ -22,7 +22,7 @@ public class PersistentConfigManagerTests
 		string expectedLocalBitcoinCoreDataDir = nameof(PersistentConfigManagerTests);
 
 		// Create config and store it.
-		PersistentConfig actualConfig = new();
+		PersistentConfig actualConfig = PersistentConfigManager.DefaultMainNetConfig;
 
 		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig);
 		var readConfig = PersistentConfigManager.LoadFile(configPath) as PersistentConfig;
@@ -67,7 +67,7 @@ public class PersistentConfigManagerTests
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
 			  "MaxDaysInMempool": 30,
-			  "ConfigVersion": 0
+			  "ConfigVersion": 2
 			}
 			""";
 

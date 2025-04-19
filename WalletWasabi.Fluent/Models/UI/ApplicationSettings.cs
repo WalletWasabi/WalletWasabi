@@ -201,10 +201,14 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public void ResetToDefault()
 	{
-		var newPersistentConfig = new PersistentConfig
+		var defaultConfig = _startupConfig.Network switch
 		{
-			CoordinatorUri = CoordinatorUri,
+			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
+			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
+			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
 		};
+
+		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
 
 		var newUiConfig = new UiConfig
 		{

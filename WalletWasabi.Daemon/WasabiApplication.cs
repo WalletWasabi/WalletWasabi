@@ -103,6 +103,7 @@ public class WasabiApplication
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
+		CreateConfigFiles();
 		MigrateConfigFiles();
 		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
 		var network = Network.GetNetwork(networkName ?? "mainnet");
@@ -125,6 +126,25 @@ public class WasabiApplication
 		throw new InvalidOperationException("Unknown configuration type");
 	}
 
+	private void CreateConfigFiles()
+	{
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.json"),
+			PersistentConfigManager.DefaultMainNetConfig);
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.TestNet.json"),
+			PersistentConfigManager.DefaultTestNetConfig);
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.RegTest.json"),
+			PersistentConfigManager.DefaultRegTestConfig);
+		return;
+
+		static void CreateConfigFileIfNotExists(string filePath, PersistentConfig config)
+		{
+			if (!File.Exists(filePath))
+			{
+				PersistentConfigManager.ToFile(filePath, config);
+			}
+		}
+	}
+
 	private void MigrateConfigFiles()
 	{
 		var configFilePath = Path.Combine(Config.DataDir, "Config.json");
@@ -133,36 +153,38 @@ public class WasabiApplication
 		if (persistentConfig is PersistentConfigPrev2_5_1 oldConfig)
 		{
 			oldConfig = oldConfig.Migrate();
-			var mainConfig = new PersistentConfig
-			{
-				AbsoluteMinInputCount = oldConfig.AbsoluteMinInputCount,
-				BitcoinRpcCredentialString = oldConfig.MainNetBitcoinRpcCredentialString,
-				BitcoinRpcEndPoint = oldConfig.MainNetBitcoinRpcEndPoint,
-				ConfigVersion = 3,
-				CoordinatorUri = oldConfig.MainNetCoordinatorUri,
-				CoordinatorIdentifier = oldConfig.CoordinatorIdentifier,
-				DownloadNewVersion = oldConfig.DownloadNewVersion,
-				DustThreshold = oldConfig.DustThreshold,
-				EnableGpu = oldConfig.EnableGpu,
-				ExchangeRateProvider = oldConfig.ExchangeRateProvider,
-				UseTor = oldConfig.UseTor,
-				FeeRateEstimationProvider = oldConfig.FeeRateEstimationProvider,
-				ExternalTransactionBroadcaster = oldConfig.ExternalTransactionBroadcaster,
-				UseBitcoinRpc = oldConfig.UseBitcoinRpc,
-				JsonRpcUser = oldConfig.JsonRpcUser,
-				JsonRpcPassword = oldConfig.JsonRpcPassword,
-				JsonRpcServerEnabled = oldConfig.JsonRpcServerEnabled,
-				JsonRpcServerPrefixes = new ValueList<string>(oldConfig.JsonRpcServerPrefixes),
-				TerminateTorOnExit = oldConfig.TerminateTorOnExit,
-				IndexerUri = oldConfig.MainNetIndexerUri,
-				TorBridges = new ValueList<string>(oldConfig.TorBridges),
-				MaxCoinJoinMiningFeeRate = oldConfig.MaxCoinJoinMiningFeeRate
-			};
+			var mainConfig = new PersistentConfig(
+				Network: Network.Main,
+				AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
+				BitcoinRpcCredentialString : oldConfig.MainNetBitcoinRpcCredentialString,
+				BitcoinRpcEndPoint : oldConfig.MainNetBitcoinRpcEndPoint,
+				ConfigVersion : 3,
+				CoordinatorUri : oldConfig.MainNetCoordinatorUri,
+				CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
+				DownloadNewVersion : oldConfig.DownloadNewVersion,
+				DustThreshold : oldConfig.DustThreshold,
+				EnableGpu : oldConfig.EnableGpu,
+				ExchangeRateProvider : oldConfig.ExchangeRateProvider,
+				UseTor : oldConfig.UseTor,
+				FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
+				ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
+				UseBitcoinRpc : oldConfig.UseBitcoinRpc,
+				JsonRpcUser : oldConfig.JsonRpcUser,
+				JsonRpcPassword : oldConfig.JsonRpcPassword,
+				JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
+				JsonRpcServerPrefixes : new ValueList<string>(oldConfig.JsonRpcServerPrefixes),
+				TerminateTorOnExit : oldConfig.TerminateTorOnExit,
+				IndexerUri : oldConfig.MainNetIndexerUri,
+				TorBridges : new ValueList<string>(oldConfig.TorBridges),
+				MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
+				MaxDaysInMempool: oldConfig.MaxDaysInMempool
+			);
 			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
 			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
 
 			var testConfig = mainConfig with
 			{
+				Network	= Network.TestNet,
 				IndexerUri = oldConfig.TestNetIndexerUri,
 				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
@@ -173,6 +195,7 @@ public class WasabiApplication
 
 			var regtestConfig = mainConfig with
 			{
+				Network = Network.RegTest,
 				IndexerUri = oldConfig.RegTestIndexerUri,
 				CoordinatorUri = oldConfig.RegTestCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,

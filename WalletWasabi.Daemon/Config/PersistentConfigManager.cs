@@ -1,7 +1,9 @@
 using System;
 using System.IO;
 using System.Text;
+using NBitcoin;
 using WalletWasabi.Daemon;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 
@@ -9,6 +11,51 @@ namespace WalletWasabi.Bases;
 
 public static class PersistentConfigManager
 {
+	public static readonly PersistentConfig DefaultMainNetConfig = new (
+		Network : Network.Main,
+		IndexerUri : Constants.IndexerUri,
+		CoordinatorUri : string.Empty,
+		UseTor : "Enabled",
+		TerminateTorOnExit : false,
+		TorBridges : [],
+		DownloadNewVersion : true,
+		UseBitcoinRpc : false,
+		BitcoinRpcCredentialString : string.Empty,
+		BitcoinRpcEndPoint : Constants.DefaultMainNetBitcoinCoreRpcEndPoint,
+		JsonRpcServerEnabled : false,
+		JsonRpcUser : string.Empty,
+		JsonRpcPassword : string.Empty,
+		JsonRpcServerPrefixes : new (["http://127.0.0.1:37128/", "http://localhost:37128/"]),
+		DustThreshold : Money.Coins(Constants.DefaultDustThreshold),
+		EnableGpu : true,
+		CoordinatorIdentifier : "CoinJoinCoordinatorIdentifier",
+		ExchangeRateProvider : Constants.DefaultExchangeRateProvider,
+		FeeRateEstimationProvider : Constants.DefaultFeeRateEstimationProvider,
+		ExternalTransactionBroadcaster : Constants.DefaultExternalTransactionBroadcaster,
+		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
+		AbsoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
+		MaxDaysInMempool : Constants.DefaultMaxDaysInMempool,
+		ConfigVersion : 2);
+
+	public static readonly PersistentConfig DefaultTestNetConfig = DefaultMainNetConfig with
+	{
+		Network = Network.TestNet,
+		IndexerUri = Constants.TestnetIndexerUri,
+		CoordinatorUri = "https://walletwasabi.co/",
+		BitcoinRpcCredentialString = string.Empty,
+		BitcoinRpcEndPoint = Constants.DefaultTestNetBitcoinCoreRpcEndPoint,
+		JsonRpcServerEnabled = true,
+		AbsoluteMinInputCount = Constants.AbsoluteMinInputCount,
+	};
+
+	public static readonly PersistentConfig DefaultRegTestConfig = DefaultTestNetConfig with
+	{
+		Network = Network.RegTest,
+		IndexerUri = "http://localhost:37127/",
+		CoordinatorUri = "https://localhost:37127/",
+		BitcoinRpcEndPoint = Constants.DefaultRegTestBitcoinCoreRpcEndPoint,
+	};
+
 	public static string ToFile(string filePath, PersistentConfig obj)
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
@@ -27,8 +74,15 @@ public static class PersistentConfigManager
 		}
 		catch (Exception ex)
 		{
-			var config = new PersistentConfig();
-			File.WriteAllTextAsync(filePath, JsonEncoder.ToReadableString(config, PersistentConfigEncode.PersistentConfig));
+			var config = Path.GetFileName(filePath) switch
+			{
+				"Config.json" => DefaultMainNetConfig,
+				"Config.TestNet.json" => DefaultTestNetConfig,
+				"Config.RegTest.json" => DefaultRegTestConfig,
+				_ => throw new ArgumentException($"The file '{filePath}' is not a valid config file name.")
+			};
+
+			ToFile(filePath, config);
 			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
 			Logger.LogWarning(ex);
 			return config;
