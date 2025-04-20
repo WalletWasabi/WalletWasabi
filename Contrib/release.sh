@@ -364,14 +364,14 @@ rm $PACKAGES_DIR/*.wixpdb
 
   echo "Signing $PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi with Azure Trusted Signing..."
   "$SIGNTOOL" sign \
-      /fd sha256 \
-      /tr http://timestamp.digicert.com \
-      /td sha256 \
-      /du "https://www.wasabiwallet.io" \
-      /d "Wasabi Wallet" \
-      /csp "Azure Code Signing Provider" \
-      /kc "$CERT_PROFILE_ID" \
-      /v \
+      -fd sha256 \
+      -tr http://timestamp.digicert.com \
+      -td sha256 \
+      -du "https://www.wasabiwallet.io" \
+      -d "Wasabi Wallet" \
+      -csp "Azure Code Signing Provider" \
+      -kc "$CERT_PROFILE_ID" \
+      -v \
       "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 
   az logout
