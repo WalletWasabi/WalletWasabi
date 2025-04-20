@@ -341,8 +341,10 @@ rm $PACKAGES_DIR/*.wixpdb
   # Define paths (using your existing variables)
   SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/signtool.exe"
 
+
   echo "Logging into Azure..."
   az login --service-principal -u $AZURE_TS_APP_ID -p $AZURE_TS_SECRET --tenant $AZURE_TS_TENANT_ID
+  az codesigning signing-provider install
   az extension add --name trustedsigning
   AZURE_RESOURCE_GROUP="WasabiWallet"
   AZURE_CODESIGN_ACCOUNT_NAME="WasabiWallet"
@@ -365,7 +367,7 @@ rm $PACKAGES_DIR/*.wixpdb
   echo "Signing $PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi with Azure Trusted Signing..."
   "$SIGNTOOL" sign \
       -fd sha256 \
-      -tr http://timestamp.digicert.com \
+      -tr 'http://timestamp.digicert.com' \
       -td sha256 \
       -du "https://www.wasabiwallet.io" \
       -d "Wasabi Wallet" \
