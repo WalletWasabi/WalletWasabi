@@ -24,7 +24,6 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _coordinatorUri;
-	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
 	public CoordinatorTabSettingsViewModel(IApplicationSettings settings)
@@ -32,11 +31,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		Settings = settings;
 
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
-		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.AbsoluteMinInputCount, ValidateAbsoluteMinInputCount);
 
 		_coordinatorUri = settings.GetCoordinatorUri();
-		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 		_absoluteMinInputCount = settings.AbsoluteMinInputCount;
 
 		this.WhenAnyValue(
@@ -46,10 +43,6 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 				x => x.Settings.Network)
 			.ToSignal()
 			.Subscribe(x => CoordinatorUri = Settings.GetCoordinatorUri());
-
-		this.WhenAnyValue(x => x.Settings.MaxCoinJoinMiningFeeRate)
-			.ToSignal()
-			.Subscribe(x => MaxCoinJoinMiningFeeRate = Settings.MaxCoinJoinMiningFeeRate);
 
 		this.WhenAnyValue(x => x.Settings.AbsoluteMinInputCount)
 			.ToSignal()
@@ -76,30 +69,6 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		}
 
 		Settings.TrySetCoordinatorUri(coordinatorUri);
-	}
-
-	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
-	{
-		var maxCoinJoinMiningFeeRate = MaxCoinJoinMiningFeeRate;
-
-		if (string.IsNullOrEmpty(maxCoinJoinMiningFeeRate))
-		{
-			return;
-		}
-
-		if (!decimal.TryParse(maxCoinJoinMiningFeeRate, out var maxCoinJoinMiningFeeRateDecimal))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid number.");
-			return;
-		}
-
-		if (maxCoinJoinMiningFeeRateDecimal < 1)
-		{
-			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
-			return;
-		}
-
-		Settings.MaxCoinJoinMiningFeeRate = maxCoinJoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private void ValidateAbsoluteMinInputCount(IValidationErrors errors)

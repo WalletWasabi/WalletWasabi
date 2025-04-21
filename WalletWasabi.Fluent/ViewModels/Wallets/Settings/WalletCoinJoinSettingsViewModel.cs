@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
@@ -8,6 +9,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.CoinJoinProfiles;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
@@ -35,6 +37,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
 	[AutoNotify] private bool _defaultProfileSelected;
 	[AutoNotify] private bool _economicalProfileSelected;
+	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private string _plebStopThreshold;
@@ -47,11 +50,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
 		UiContext = uiContext;
+		ApplicationSettings = uiContext.ApplicationSettings;
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
+		_maxCoinJoinMiningFeeRate = uiContext.ApplicationSettings.MaxCoinJoinMiningFeeRate;
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -98,6 +103,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
+		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
+
+		this.WhenAnyValue(x => x.ApplicationSettings.MaxCoinJoinMiningFeeRate)
+			.ToSignal()
+			.Subscribe(x => MaxCoinJoinMiningFeeRate = ApplicationSettings.MaxCoinJoinMiningFeeRate);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
@@ -130,6 +140,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	public ICommand SelectMaximizePrivacySettings { get; }
 	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }
+	public IApplicationSettings ApplicationSettings { get; }
 
 	public void ManuallyUpdateOutputWalletList()
 	{
@@ -166,6 +177,29 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
 		}
+	}
+	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)
+	{
+		var maxCoinJoinMiningFeeRate = MaxCoinJoinMiningFeeRate;
+
+		if (string.IsNullOrEmpty(maxCoinJoinMiningFeeRate))
+		{
+			return;
+		}
+
+		if (!decimal.TryParse(maxCoinJoinMiningFeeRate, out var maxCoinJoinMiningFeeRateDecimal))
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid number.");
+			return;
+		}
+
+		if (maxCoinJoinMiningFeeRateDecimal < 1)
+		{
+			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
+			return;
+		}
+
+		UiContext.ApplicationSettings.MaxCoinJoinMiningFeeRate = maxCoinJoinMiningFeeRateDecimal.ToString(CultureInfo.InvariantCulture);
 	}
 
 	private Task SetProfile(string profileName)
