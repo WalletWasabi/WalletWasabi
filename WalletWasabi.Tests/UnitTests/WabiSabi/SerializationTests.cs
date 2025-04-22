@@ -8,6 +8,7 @@ using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
+using WalletWasabi.WabiSabi.Models;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi;
@@ -83,5 +84,14 @@ public class SerializationTests
 		var reserializedResponseMessage = JsonEncoder.ToString(deserializedResponseMessage!, Encode.CredentialsResponse);
 
 		Assert.Equal(serializedResponseMessage, reserializedResponseMessage);
+	}
+
+
+	[Fact]
+	public void BtcPayServerCoordinatorCompatibility()
+	{
+		var jsonString = """{"RoundStates":[{"Id":"c9fe80f588809feabf11043bf3e5952e9a6e861b68f3ca451b34507243545bd4","BlameOf":"0000000000000000000000000000000000000000000000000000000000000000","AmountCredentialIssuerParameters":{"Cw":"0354CB0724F653CC56C94C13ED949DE33378D3B88086E39932D42E27535B063AE6","I":"036018B97A215A680837671734CDC4CD8355AA56C45CA48E71CE7A6B51ACC856D6"},"VsizeCredentialIssuerParameters":{"Cw":"0332E8D9DD6116F49991044A97EF59E9AB081628B1E03ABA9BA3C71FCAF8354D40","I":"0358F51C185A8931BC5DAA1C85B5D63F0FD0C0481EE2EED8E92D4F4585A3F8307B"},"Phase":0,"EndRoundState":0,"InputRegistrationStart":"2025-04-22T14:10:12.970806+00:00","InputRegistrationTimeout":"0d 1h 0m 0s","CoinjoinState":{"Type":"ConstructionState","Events":[{"Type":"RoundCreated","RoundParameters":{"Network":"Main","MiningFeeRate":2000,"CoordinationFeeRate":{"Rate":0.0,"PlebsDontPayThreshold":0},"MaxSuggestedAmount":4300000000000,"MinInputCountByRound":21,"MaxInputCountByRound":210,"AllowedInputAmounts":{"Min":5000,"Max":4300000000000},"AllowedOutputAmounts":{"Min":5000,"Max":4300000000000},"AllowedInputTypes":[4,7],"AllowedOutputTypes":[0,1,2,3,4,5,6,7],"StandardInputRegistrationTimeout":"0d 1h 0m 0s","ConnectionConfirmationTimeout":"0d 0h 1m 0s","OutputRegistrationTimeout":"0d 0h 2m 10s","TransactionSigningTimeout":"0d 0h 2m 10s","BlameInputRegistrationTimeout":"0d 0h 3m 30s","MinAmountCredentialValue":5000,"MaxAmountCredentialValue":4300000000000,"InitialInputVsizeAllocation":99985,"MaxVsizeCredentialValue":255,"MaxVsizeAllocationPerAlice":255,"CoordinationIdentifier":"CoinJoinCoordinatorIdentifier","DelayTransactionSigning":false,"MaxTransactionSize":100000,"MinRelayTxFee":1000}}]},"InputRegistrationEnd":"2025-04-22T15:10:12.970806+00:00","IsBlame":false}],"CoinJoinFeeRateMedians":[{"TimeFrame":"1d 0h 0m 0s","MedianFeeRate":2000},{"TimeFrame":"7d 0h 0m 0s","MedianFeeRate":2000},{"TimeFrame":"30d 0h 0m 0s","MedianFeeRate":2000}]}""";
+		var status = Decode.CoordinatorMessage<RoundStateResponse>(jsonString);
+		Assert.NotNull(status);
 	}
 }
