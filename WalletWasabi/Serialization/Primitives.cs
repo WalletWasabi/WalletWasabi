@@ -4,7 +4,6 @@ using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
@@ -218,7 +217,9 @@ public static partial class Decode
 				return Result<T, string>.Fail($"It is not an object. Try to access field '{fieldName}'");
 			}
 
-			if (!value.TryGetProperty(fieldName, out var p))
+			// this is because some coordinators serialize the message in pascal case
+			var pascalCasedFieldName = string.Join("", fieldName[..1].ToUpperInvariant().Concat(fieldName[1..]));
+			if (!value.TryGetProperty(fieldName, out var p) && !value.TryGetProperty(pascalCasedFieldName, out p) )
 			{
 				return Result<T, string>.Fail($"Object does not contain a property called '{fieldName}'");
 			}
