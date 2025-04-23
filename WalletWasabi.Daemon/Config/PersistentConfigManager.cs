@@ -72,20 +72,31 @@ public static class PersistentConfigManager
 			var decodingResult = decoder(cfgFile);
 			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
 		}
+		catch (FileNotFoundException)
+		{
+			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
+
+			ToFile(filePath, defaultConfig);
+			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
+			return defaultConfig;
+		}
 		catch (Exception ex)
 		{
-			var config = Path.GetFileName(filePath) switch
+			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
+
+			ToFile(filePath, defaultConfig);
+			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogWarning(ex);
+			return defaultConfig;
+		}
+
+		PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
+			Path.GetFileName(configFilePath) switch
 			{
 				"Config.json" => DefaultMainNetConfig,
 				"Config.TestNet.json" => DefaultTestNetConfig,
 				"Config.RegTest.json" => DefaultRegTestConfig,
-				_ => throw new ArgumentException($"The file '{filePath}' is not a valid config file name.")
+				_ => throw new ArgumentException($"The file '{configFilePath}' is not a valid config file name.")
 			};
-
-			ToFile(filePath, config);
-			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
-			Logger.LogWarning(ex);
-			return config;
-		}
 	}
 }
