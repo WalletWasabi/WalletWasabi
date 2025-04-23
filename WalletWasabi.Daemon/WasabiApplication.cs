@@ -150,7 +150,7 @@ public class WasabiApplication
 		var configFilePath = Path.Combine(Config.DataDir, "Config.json");
 		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
-		if (persistentConfig is PersistentConfigPrev2_5_1 oldConfig)
+		if (persistentConfig is PersistentConfigPrev2_6_0 oldConfig)
 		{
 			oldConfig = oldConfig.Migrate();
 			var mainConfig = new PersistentConfig(

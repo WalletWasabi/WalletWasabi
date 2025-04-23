@@ -59,7 +59,7 @@ public static class PersistentConfigDecode
 
 	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
 
-	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_5_1 =
+	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_6_0 =
 		Object(get => new PersistentConfig(
 			Network: Network.Main, // Network is not part of the config
 			IndexerUri : get.Required("BackendUri", Decode.String),
@@ -87,8 +87,8 @@ public static class PersistentConfigDecode
 			ConfigVersion : get.Required("ConfigVersion", Decode.Int)
 		));
 
-	public static readonly Decoder<PersistentConfigPrev2_5_1> PersistentConfigPrev2_5_1 =
-		Object(get => new PersistentConfigPrev2_5_1(
+	public static readonly Decoder<PersistentConfigPrev2_6_0> PersistentConfigPrev2_6_0 =
+		Object(get => new PersistentConfigPrev2_6_0(
 			get.Required("MainNetBackendUri", Decode.String),
 			get.Required("TestNetBackendUri", Decode.String),
 			get.Required("RegTestBackendUri", Decode.String),
@@ -124,7 +124,7 @@ public static class PersistentConfigDecode
 
 	public static readonly Decoder<IPersistentConfig> PersistentConfig =
 		OneOf([
-			PersistentConfigPrev2_5_1.Map(IPersistentConfig (x) => x),
-			PersistentConfigPost2_5_1.Map(IPersistentConfig (x) => x)
+			PersistentConfigPrev2_6_0.Map(IPersistentConfig (x) => x),
+			PersistentConfigPost2_6_0.Map(IPersistentConfig (x) => x)
 		]);
 }
