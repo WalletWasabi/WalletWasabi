@@ -54,13 +54,8 @@ jobs:
         choco install windows-sdk-10.1
 
     - name: Install TrustedSigningClientTools
-      shell: powershell
       run: |
-        $tempFile = "$env:TEMP\TrustedSigningClientTools.msi"
-        $logFile = "$env:TEMP\TrustedSigningClientTools.log"
-        Invoke-WebRequest -Uri "https://download.microsoft.com/download/6d9cb638-4d5f-438d-9f21-23f0f4405944/TrustedSigningClientTools.msi" -OutFile $tempFile
-        Start-Process msiexec.exe -ArgumentList "/i `"$tempFile`" /quiet /l*v `"$logFile`"" -Wait
-        Get-Content -Path $logFile
+        winget install -e --id Microsoft.Azure.TrustedSigningClientTools
 
     - name: Build Windows Installer
       shell: bash
@@ -68,9 +63,9 @@ jobs:
         set -x
         ./Contrib/release.sh wininstaller
       env:
-        AZURE_TS_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
-        AZURE_TS_SECRET: ${{ secrets.AZURE_TS_SECRET }}
-        AZURE_TS_APP_ID: ${{ secrets.AZURE_TS_APP_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_TS_SECRET }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_TS_APP_ID }}
 
     - name: Upload windows installer
       uses: actions/upload-artifact@v4

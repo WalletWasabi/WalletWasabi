@@ -339,14 +339,8 @@ mkdir -p "$BUILD_INSTALLER_DIR"
 rm $PACKAGES_DIR/*.wixpdb
 
   # Define paths (using your existing variables)
-  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.18362.0/x64/signtool.exe"
+  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe"
 
-
-  echo "Logging into Azure..."
-  az login --service-principal -u "$AZURE_TS_APP_ID" -p "$AZURE_TS_SECRET" --tenant "$AZURE_TS_TENANT_ID"
-  az extension add --name trustedsigning
-
-  DLIB="C:\Users\runneradmin\AppData\Local\Microsoft\MicrosoftTrustedSigningClientTools\Azure.CodeSigning.Dlib.dll"
   METADATA=metadata.json
   echo '
   {
@@ -355,9 +349,8 @@ rm $PACKAGES_DIR/*.wixpdb
     "CertificateProfileName": "WasabiWallet"
   }' > $METADATA
 
-  "$SIGNTOOL" sign -v -debug -fd SHA256 -tr "http://timestamp.acs.microsoft.com" -td SHA256 -dlib "$DLIB" -dmdf "$METADATA" "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
-
-  az logout
+  DLIB="$APPDATA/../Local/Microsoft/MicrosoftTrustedSigningClientTools/Azure.CodeSigning.Dlib.dll"
+  "$SIGNTOOL" Sign -v -debug -tr 'http://timestamp.digicert.com' -d "Wasabi Wallet" -fd SHA256 -td SHA256 -dlib "$DLIB" -dmdf "$METADATA"  "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 fi
 
 #------------------------------------------------------------------------------------#
