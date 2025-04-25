@@ -344,37 +344,19 @@ rm $PACKAGES_DIR/*.wixpdb
 
   echo "Logging into Azure..."
   az login --service-principal -u $AZURE_TS_APP_ID -p $AZURE_TS_SECRET --tenant $AZURE_TS_TENANT_ID
-  az codesigning signing-provider install
   az extension add --name trustedsigning
-  AZURE_RESOURCE_GROUP="WasabiWallet"
-  AZURE_CODESIGN_ACCOUNT_NAME="WasabiWallet"
-  AZURE_CERT_PROFILE_NAME="WasabiWallet"
 
-  echo "Retrieving Azure Certificate Profile ID..."
-  CERT_PROFILE_ID=$(az trustedsigning certificate-profile show \
-    --resource-group "$AZURE_RESOURCE_GROUP" \
-    --account-name "$AZURE_CODESIGN_ACCOUNT_NAME" \
-    --name "$AZURE_CERT_PROFILE_NAME" \
-    --query "id" -o tsv)
+  DLIB="%LOCALAPPDATA%\Microsoft\MicrosoftTrustedSigningClientTools\Azure.CodeSigning.Dlib.dll"
+  METADATA=metadata.json
+  powershell -Command "@'
+  {
+    `"Endpoint`": `"https://eus.codesigning.azure.net`",
+    `"CodeSigningAccountName`": `"WasabiWallet`",
+    `"CertificateProfileName`": `"WasabiWallet`"
+  }
+  '@ | Out-File -Encoding utf8 %METADATA%"
 
-  if [ -z "$CERT_PROFILE_ID" ]; then
-    echo "Error: Could not retrieve Certificate Profile ID. Check Azure variables/permissions."
-    exit 1;
-  else
-     echo "Using Certificate Profile ID: $CERT_PROFILE_ID"
-  fi
-
-  echo "Signing $PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi with Azure Trusted Signing..."
-  "$SIGNTOOL" sign \
-      -fd sha256 \
-      -tr 'http://timestamp.digicert.com' \
-      -td sha256 \
-      -du "https://www.wasabiwallet.io" \
-      -d "Wasabi Wallet" \
-      -csp "Azure Code Signing Provider" \
-      -kc "$CERT_PROFILE_ID" \
-      -v \
-      "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+  "$SIGNTOOL" sign -v -debug -fd SHA256 -tr "http://timestamp.acs.microsoft.com" -td SHA256 -dlib "$DLIB" -dmdf "$METADATA" "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 
   az logout
 fi
