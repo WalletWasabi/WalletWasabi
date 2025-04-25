@@ -339,7 +339,7 @@ mkdir -p "$BUILD_INSTALLER_DIR"
 rm $PACKAGES_DIR/*.wixpdb
 
   # Define paths (using your existing variables)
-  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.22621.0/x64/signtool.exe"
+  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe"
 
   METADATA=metadata.json
   echo '
