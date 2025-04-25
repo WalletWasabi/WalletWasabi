@@ -59,8 +59,6 @@ public static partial class Decode
 				BackendMajorVersion = get.Required("BackendMajorVersion", String),
 				ClientVersion = get.Required("ClientVersion", String),
 				CommitHash = get.Required("CommitHash", String),
-				Ww1LegalDocumentsVersion = get.Required("Ww1LegalDocumentsVersion", String),
-				Ww2LegalDocumentsVersion = get.Required("Ww2LegalDocumentsVersion", String)
 			});
 
 	public static Decoder<T> Catch<T>(this Decoder<T> decoder) =>
