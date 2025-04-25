@@ -343,10 +343,10 @@ rm $PACKAGES_DIR/*.wixpdb
 
 
   echo "Logging into Azure..."
-  az login --service-principal -u $AZURE_TS_APP_ID -p $AZURE_TS_SECRET --tenant $AZURE_TS_TENANT_ID
+  az login --service-principal -u "$AZURE_TS_APP_ID" -p "$AZURE_TS_SECRET" --tenant "$AZURE_TS_TENANT_ID"
   az extension add --name trustedsigning
 
-  DLIB="%LOCALAPPDATA%\Microsoft\MicrosoftTrustedSigningClientTools\Azure.CodeSigning.Dlib.dll"
+  DLIB="$LOCALAPPDATA\Microsoft\MicrosoftTrustedSigningClientTools\Azure.CodeSigning.Dlib.dll"
   METADATA=metadata.json
   echo '
   {
