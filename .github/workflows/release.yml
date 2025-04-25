@@ -53,6 +53,9 @@ jobs:
       run: |
         choco install windows-sdk-10-version-1903-all
 
+    - name: Install Trusted Signing Tools
+      run: choco install trusted-signing-client-tools -y --force
+
     - name: Build Windows Installer
       shell: bash
       run: |
