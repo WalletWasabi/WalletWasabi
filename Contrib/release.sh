@@ -348,13 +348,12 @@ rm $PACKAGES_DIR/*.wixpdb
 
   DLIB="%LOCALAPPDATA%\Microsoft\MicrosoftTrustedSigningClientTools\Azure.CodeSigning.Dlib.dll"
   METADATA=metadata.json
-  powershell -Command "@'
+  echo '
   {
-    `"Endpoint`": `"https://eus.codesigning.azure.net`",
-    `"CodeSigningAccountName`": `"WasabiWallet`",
-    `"CertificateProfileName`": `"WasabiWallet`"
-  }
-  '@ | Out-File -Encoding utf8 %METADATA%"
+    "Endpoint": "https://eus.codesigning.azure.net",
+    "CodeSigningAccountName": "WasabiWallet",
+    "CertificateProfileName": "WasabiWallet"
+  }' > $METADATA
 
   "$SIGNTOOL" sign -v -debug -fd SHA256 -tr "http://timestamp.acs.microsoft.com" -td SHA256 -dlib "$DLIB" -dmdf "$METADATA" "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 
