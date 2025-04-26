@@ -14,8 +14,8 @@ public static partial class Encode
 		Object([
 			("clientVersion", String(version.ClientVersion)),
 			("BackenMajordVersion", String(version.BackendMajorVersion)),
-			("LegalDocumentsVersion", String(version.Ww1LegalDocumentsVersion)),
-			("ww2LegalDocumentsVersion", String(version.Ww2LegalDocumentsVersion)),
+			("LegalDocumentsVersion", String("3.0")),
+			("ww2LegalDocumentsVersion", String("2.0")),
 			("commitHash", String(version.CommitHash)),
 		]);
 
