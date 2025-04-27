@@ -31,7 +31,4 @@ public static class RpcErrorTools
 	{
 		return new[] { SpentError1, SpentError2, SpentError3 }.Any(x => error.Contains(x, StringComparison.OrdinalIgnoreCase));
 	}
-
-	public static bool IsTooLongMempoolChainError(string error)
-		=> error.Contains(TooLongMempoolChainError, StringComparison.OrdinalIgnoreCase);
 }

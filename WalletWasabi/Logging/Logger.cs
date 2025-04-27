@@ -383,16 +383,6 @@ public static class Logger
 	/// </summary>
 	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Info, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
 
-	/// <summary>
-	/// Logs <paramref name="message"/> with <paramref name="exception"/> using <see cref="Exception.ToString()"/> concatenated to it at <see cref="LogLevel.Info"/> level.
-	///
-	/// <para>For tracking the general flow of the application.</para>
-	/// These logs typically have some long-term value.
-	/// Example: "Request received for path /api/my-controller"
-	/// </summary>
-	public static void LogInfo(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(message, exception, LogLevel.Info, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
 	#endregion InfoLoggingMethods
 
 	#region WarningLoggingMethods

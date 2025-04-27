@@ -70,8 +70,6 @@ public interface IRPCClient
 
 	Task SendBatchAsync(CancellationToken cancellationToken = default);
 
-	Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default);
-
 	Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default);
 
 	Task<BlockFilter> GetBlockFilterAsync(uint256 blockId, CancellationToken cancellationToken = default);

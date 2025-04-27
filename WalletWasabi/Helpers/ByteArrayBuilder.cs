@@ -18,29 +18,6 @@ public class ByteArrayBuilder
 
 	public int Length { get; set; }
 
-	public ByteArrayBuilder Append(byte b)
-	{
-		if (GetUnusedBufferLength() == 0)
-		{
-			_buffer = IncreaseCapacity(_buffer, _buffer.Length * 2);
-		}
-		_buffer[Length] = b;
-		Length++;
-		return this;
-	}
-
-	public ByteArrayBuilder Append(byte[] buffer)
-	{
-		var unusedBufferLength = GetUnusedBufferLength();
-		if (unusedBufferLength < buffer.Length)
-		{
-			_buffer = IncreaseCapacity(_buffer, _buffer.Length + buffer.Length);
-		}
-		Array.Copy(buffer, 0, _buffer, Length, buffer.Length);
-		Length += buffer.Length;
-		return this;
-	}
-
 	public byte[] ToArray()
 	{
 		var unusedBufferLength = GetUnusedBufferLength();
@@ -74,12 +51,5 @@ public class ByteArrayBuilder
 	private int GetUnusedBufferLength()
 	{
 		return _buffer.Length - Length;
-	}
-
-	private static byte[] IncreaseCapacity(byte[] buffer, int targetLength)
-	{
-		var result = new byte[targetLength];
-		Array.Copy(buffer, result, buffer.Length);
-		return result;
 	}
 }

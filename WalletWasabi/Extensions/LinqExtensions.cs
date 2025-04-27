@@ -59,9 +59,6 @@ public static class LinqExtensions
 		return list.ToList().Shuffle(random);
 	}
 
-	public static bool NotNullAndNotEmpty<T>(this IEnumerable<T> source)
-		=> source?.Any() is true;
-
 	/// <summary>
 	/// Generates all possible combinations of input <paramref name="items"/> with <paramref name="ofLength"/> length.
 	/// </summary>
@@ -206,17 +203,6 @@ public static class LinqExtensions
 
 		var sorted = me.Order().ToArray();
 		return sorted[sorted.Length / 2];
-	}
-
-	public static double StdDev(this IEnumerable<double> values)
-	{
-		var mean = values.Average();
-		var squaresSum = values
-			.Select(x => x - mean)
-			.Select(x => x * x)
-			.Sum();
-
-		return Math.Sqrt(squaresSum / values.Count());
 	}
 
 	public static (IEnumerable<T>, IEnumerable<T>) Partition<T>(this IEnumerable<T> me, Predicate<T> predicate)

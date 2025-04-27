@@ -14,7 +14,6 @@ public static class PasswordHelper
 {
 	public const int MaxPasswordLength = 150;
 	public const string CompatibilityPasswordWarnMessage = "Compatibility passphrase was used! Please consider generating a new wallet to ensure recoverability!";
-	public const string TrimWarnMessage = "Leading and trailing white spaces will be removed!";
 	public const string MatchingMessage = "Passphrases don't match.";
 	public const string WhitespaceMessage = "Leading and trailing white spaces are not allowed!";
 	public static readonly string PasswordTooLongMessage = $"Passphrase is too long.";
@@ -141,18 +140,5 @@ public static class PasswordHelper
 		}
 
 		throw resultException ?? new InvalidOperationException(); // Throw the last exception - Invalid password.
-	}
-
-	public static void ValidatePassword(IValidationErrors errors, string password)
-	{
-		if (IsTrimmable(password, out _))
-		{
-			errors.Add(ErrorSeverity.Warning, TrimWarnMessage);
-		}
-
-		if (IsTooLong(password, out _))
-		{
-			errors.Add(ErrorSeverity.Error, PasswordTooLongMessage);
-		}
 	}
 }

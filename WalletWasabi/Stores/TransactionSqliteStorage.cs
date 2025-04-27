@@ -400,26 +400,6 @@ public class TransactionSqliteStorage : IDisposable
 		}
 	}
 
-	public IEnumerable<uint256> GetAllTxids()
-	{
-		using SqliteTransaction transaction = _connection.BeginTransaction();
-		using SqliteCommand command = _connection.CreateCommand();
-
-		command.CommandText = $$"""
-			SELECT txid
-			FROM "transaction"
-			ORDER BY block_height, block_index, first_seen
-			""";
-
-		using SqliteDataReader reader = command.ExecuteReader();
-
-		while (reader.Read())
-		{
-			uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0), lendian: false);
-			yield return txid;
-		}
-	}
-
 	private SmartTransaction ReadRow(SqliteDataReader reader)
 	{
 		uint256 txid = new(reader.GetFieldValue<byte[]>(ordinal: 0), lendian: false);

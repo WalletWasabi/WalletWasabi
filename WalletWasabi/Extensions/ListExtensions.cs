@@ -10,11 +10,6 @@ public static class ListExtensions
 		me.RemoveAt(0);
 	}
 
-	public static void RemoveLast<T>(this List<T> me)
-	{
-		me.RemoveAt(me.Count - 1);
-	}
-
 	public static int BinarySearchIndexOf<T, TKey>(this IList<T> list, TKey value) where T : IComparable<TKey>
 	{
 		Guard.NotNull(nameof(list), list);

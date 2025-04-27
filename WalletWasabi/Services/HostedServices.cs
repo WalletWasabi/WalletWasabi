@@ -122,14 +122,6 @@ public class HostedServices : IDisposable
 		}
 	}
 
-	public bool Any<T>() where T : class, IHostedService
-	{
-		lock (_servicesLock)
-		{
-			return AnyNoLock<T>();
-		}
-	}
-
 	private bool AnyNoLock<T>() where T : class, IHostedService => _services.Any(x => x.Service is T);
 
 	#region IDisposable Support

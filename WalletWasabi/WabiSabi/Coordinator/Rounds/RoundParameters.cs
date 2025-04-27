@@ -50,7 +50,6 @@ public record RoundParameters
 
 	public Network Network { get; init; }
 	public FeeRate MiningFeeRate { get; init; }
-	public CoordinationFeeRate CoordinationFeeRate => CoordinationFeeRate.Zero; // for serialization compatibility
 	public Money MaxSuggestedAmount { get; init; }
 	public int MinInputCountByRound { get; init; }
 	public int MaxInputCountByRound { get; init; }

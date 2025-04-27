@@ -135,11 +135,6 @@ public class MockRpcClient : IRPCClient
 		return Task.CompletedTask;
 	}
 
-	public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
-	{
-		throw new NotImplementedException();
-	}
-
 	public Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
 		return OnGetVerboseBlockAsync?.Invoke(blockId) ?? NotImplementedTask<VerboseBlockInfo>(nameof(GetVerboseBlockAsync));

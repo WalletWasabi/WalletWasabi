@@ -1,6 +1,5 @@
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
-using static WalletWasabi.CoinJoinProfiles.CoinJoinTimeFrames;
 
 namespace WalletWasabi.CoinJoinProfiles;
 public static class PrivacyProfiles
@@ -34,15 +33,8 @@ public static class PrivacyProfiles
 		private const int MinExclusive = 29;
 		private const int MaxExclusive = 51;
 
-		public int AnonScoreTarget { get; set; } = GetAnonScoreTarget();
+		public int AnonScoreTarget { get; } = GetAnonScoreTarget();
 		public bool NonPrivateCoinIsolation => true;
-		public TimeFrameItem TimeFrame => TimeFrames[0];
-
-		public bool Equals(int anonScoreTarget, bool redCoinIsolation, TimeSpan timeFrame)
-		{
-			return anonScoreTarget is > MinExclusive and < MaxExclusive &&
-					redCoinIsolation == NonPrivateCoinIsolation;
-		}
 
 		/// <summary>
 		/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.

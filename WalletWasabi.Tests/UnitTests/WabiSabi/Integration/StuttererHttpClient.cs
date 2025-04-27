@@ -1,10 +1,7 @@
-using Microsoft.AspNetCore.Hosting;
-using NBitcoin;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;

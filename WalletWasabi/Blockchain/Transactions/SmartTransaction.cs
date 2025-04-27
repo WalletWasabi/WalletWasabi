@@ -308,17 +308,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		return false;
 	}
 
-	public bool TryRemoveWalletInput(SmartCoin input)
-	{
-		if (_walletInputsInternal.Remove(input))
-		{
-			ForeignInputsCache = null;
-			WalletVirtualInputsCache = null;
-			return true;
-		}
-		return false;
-	}
-
 	public bool TryRemoveWalletOutput(SmartCoin output)
 	{
 		if (_walletOutputsInternal.Remove(output))
@@ -424,29 +413,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public void SetCancellation()
 	{
 		IsCancellation = true;
-	}
-
-	/// <summary>First looks at height, then block index, then mempool FirstSeen.</summary>
-	public static IComparer<SmartTransaction> GetBlockchainComparer()
-	{
-		return Comparer<SmartTransaction>.Create((a, b) =>
-		{
-			var heightCompareResult = a.Height.CompareTo(b.Height);
-			if (heightCompareResult != 0)
-			{
-				return heightCompareResult;
-			}
-
-			// If mempool this should be 0, so they should be equal so no worry about it.
-			var blockIndexCompareResult = a.BlockIndex.CompareTo(b.BlockIndex);
-			if (blockIndexCompareResult != 0)
-			{
-				return blockIndexCompareResult;
-			}
-
-			var firstSeenCompareResult = a.FirstSeen.CompareTo(b.FirstSeen);
-			return firstSeenCompareResult;
-		});
 	}
 
 	public void SetUnconfirmed()

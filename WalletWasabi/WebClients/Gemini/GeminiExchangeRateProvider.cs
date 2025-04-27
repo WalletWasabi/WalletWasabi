@@ -28,8 +28,3 @@ public class GeminiExchangeRateProvider : IExchangeRateProvider
 		return [exchangeRate];
 	}
 }
-
-public class GeminiExchangeRateInfo
-{
-	public decimal Bid { get; set; }
-}

@@ -9,7 +9,6 @@ using System.Net.Http;
 using System.Net;
 using System.Text;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using System.Net.Mime;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;

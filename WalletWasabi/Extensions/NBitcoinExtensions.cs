@@ -53,17 +53,6 @@ public static class NBitcoinExtensions
 		}
 	}
 
-	public static string ToHex(this IBitcoinSerializable me)
-	{
-		return ByteHelpers.ToHex(me.ToBytes());
-	}
-
-	public static void FromHex(this IBitcoinSerializable me, string hex)
-	{
-		Guard.NotNullOrEmptyOrWhitespace(nameof(hex), hex);
-		me.FromBytes(ByteHelpers.FromHex(hex));
-	}
-
 	/// <summary>
 	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
 	/// </summary>
@@ -127,11 +116,6 @@ public static class NBitcoinExtensions
 			unsignedSmartTransaction.FirstSeen);
 	}
 
-	public static void SortByAmount(this TxOutList list)
-	{
-		list.Sort((x, y) => x.Value.CompareTo(y.Value));
-	}
-
 	/// <param name="startWithM">The keypath will start with m/ or not.</param>
 	/// <param name="format">Either h or ', eg.: m/84h/0h/0 or m/84'/0'/0</param>
 	public static string ToString(this KeyPath me, bool startWithM, string format)
@@ -163,16 +147,6 @@ public static class NBitcoinExtensions
 		var newAddress = new BitcoinWitPubKeyAddress(me.Hash, desiredNetwork);
 
 		return newAddress;
-	}
-
-	public static void SortByAmount(this TxInList list, IEnumerable<Coin> coins)
-	{
-		var map = new Dictionary<TxIn, Coin>();
-		foreach (var coin in coins)
-		{
-			map.Add(list.Single(x => x.PrevOut == coin.Outpoint), coin);
-		}
-		list.Sort((x, y) => map[x].Amount.CompareTo(map[y].Amount));
 	}
 
 	public static IEnumerable<TransactionDependencyNode> ToDependencyGraph(this IEnumerable<Transaction> txs)

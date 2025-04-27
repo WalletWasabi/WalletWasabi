@@ -255,11 +255,6 @@ public class RpcClientBase : IRPCClient
 		await Rpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public Task<EstimateSmartFeeResponse> TryEstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default)
-	{
-		return Rpc.TryEstimateSmartFeeAsync(confirmationTarget, estimateMode: estimateMode, cancellationToken);
-	}
-
 	public Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null, CancellationToken cancellationToken = default)
 	{
 		return Rpc.CreateWalletAsync(walletNameOrPath, options, cancellationToken);

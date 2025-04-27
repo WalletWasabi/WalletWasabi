@@ -19,9 +19,6 @@ public class Slip21Node
 
 	public Key Key => new(_data[KEY_SIZE..]);
 
-	public static Slip21Node FromSeed(string seed) =>
-		FromSeed(Encoding.ASCII.GetBytes(seed));
-
 	public static Slip21Node FromSeed(byte[] seed) =>
 		new(HMACSHA512(Encoding.ASCII.GetBytes("Symmetric key seed"), seed));
 
