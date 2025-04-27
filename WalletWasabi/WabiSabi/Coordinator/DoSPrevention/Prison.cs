@@ -40,9 +40,6 @@ public class Prison
 	public void DoubleSpent(OutPoint outPoint, Money value, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundId, value, RoundDisruptionMethod.DoubleSpent)));
 
-	public void DoubleSpent(OutPoint outPoint, Money value, IEnumerable<uint256> roundIds) =>
-		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new RoundDisruption(roundIds, value, RoundDisruptionMethod.DoubleSpent)));
-
 	public void InheritPunishment(OutPoint outpoint, OutPoint[] ancestors) =>
 		Punish(new Offender(outpoint, DateTimeOffset.UtcNow, new Inherited(ancestors)));
 

@@ -14,6 +14,4 @@ public static class RandomString
 	}
 
 	public static string AlphaNumeric(int length, bool secureRandom = false) => FromCharacters(length, Constants.AlphaNumericCharacters, secureRandom);
-
-	public static string CapitalAlphaNumeric(int length, bool secureRandom = false) => FromCharacters(length, Constants.CapitalAlphaNumericCharacters, secureRandom);
 }

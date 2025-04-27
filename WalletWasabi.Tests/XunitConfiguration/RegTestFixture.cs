@@ -13,7 +13,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tor.Http;
 using WalletWasabi.WebClients.Wasabi;
 using Constants = WalletWasabi.Helpers.Constants;
 

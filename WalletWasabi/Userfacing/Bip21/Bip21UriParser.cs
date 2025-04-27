@@ -142,18 +142,7 @@ public class Bip21UriParser
 	/// <summary>
 	/// Successful result of parsing a BIP21 URI string.
 	/// </summary>
-	public record Result(Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters)
-	{
-		/// <summary>
-		/// Special constructor for <c>bitcoin:address</c> cases.
-		/// </summary>
-		public Result(Uri uri, Network network, Address address)
-			: this(uri, network, address, Amount: null, Label: null, Message: null, UnknownParameters: new())
-		{
-		}
-
-		public bool PayJoinUrlFound => UnknownParameters.TryGetValue("pj", out _);
-	}
+	public record Result( Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters);
 
 	/// <summary>
 	/// Error result of parsing a BIP21 URI string.
@@ -161,11 +150,5 @@ public class Bip21UriParser
 	/// <param name="Code">Unique code of the error.</param>
 	/// <param name="Message">Generic message of the error (with no user-provided data).</param>
 	/// <param name="Details">Optionally, context information. For example, if the address part of a BIP21 URI string is malformed, the string is to stored here.</param>
-	public record Error(int Code, string Message, string? Details = null)
-	{
-		public bool IsOfSameType(Error otherError)
-		{
-			return Code == otherError.Code && Message == otherError.Message;
-		}
-	}
+	public record Error(int Code, string Message, string? Details = null);
 }

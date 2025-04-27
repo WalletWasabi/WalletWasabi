@@ -172,16 +172,5 @@ public class SafeIoManager : IoManager
 		return filePath;
 	}
 
-	/// <summary>
-	/// Open text file and read a specified amount of data. This method is useful when you want async/await read/write
-	/// but in a performant way.
-	/// </summary>
-	/// <returns>The StreamReader where you can use ReadLineAsync() for example.</returns>
-	/// <param name="bufferSize">Size of the bytes to handle sync way. The default is 1Mb.</param>
-	public StreamReader OpenText(int bufferSize = Constants.BigFileReadWriteBufferSize)
-	{
-		return OpenText(GetSafestFilePath(), bufferSize);
-	}
-
 	#endregion IoOperations
 }

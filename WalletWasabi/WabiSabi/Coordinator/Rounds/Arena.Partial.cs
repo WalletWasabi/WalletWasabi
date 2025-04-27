@@ -291,7 +291,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		{
 			var round = GetRound(request.RoundId, Phase.TransactionSigning);
 
-			var state = round.Assert<SigningState>().AddWitness((int)request.InputIndex, request.Witness);
+			var state = round.AddWitness((int)request.InputIndex, request.Witness);
 
 			// at this point all of the witnesses have been verified and the state can be updated
 			round.CoinjoinState = state;
@@ -371,15 +371,6 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		}).ToArray();
 		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
 	}
-
-	public (uint256 RoundId, FeeRate MiningFeeRate)[] GetRoundsContainingOutpoints(IEnumerable<OutPoint> outPoints) =>
-		Rounds
-		.Where(r => r.Phase != Phase.Ended && r.Phase >= Phase.ConnectionConfirmation)
-		.SelectMany(r => r.CoinjoinState.Inputs.Select(a => (RoundId: r.Id, MiningFeeRate: r.Parameters.MiningFeeRate, Coin: a)))
-		.Where(x => outPoints.Any(outpoint => outpoint == x.Coin.Outpoint))
-		.Select(x => (x.RoundId, x.MiningFeeRate))
-		.Distinct()
-		.ToArray();
 
 	private void CheckCoinIsNotBanned(OutPoint input, Round round)
 	{

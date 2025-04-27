@@ -49,19 +49,6 @@ public static class Guard
 		}
 	}
 
-	public static T Same<T>(string parameterName, T expected, T actual)
-	{
-		AssertCorrectParameterName(parameterName);
-		T expected2 = NotNull(nameof(expected), expected);
-
-		if (!expected2.Equals(actual))
-		{
-			throw new ArgumentException($"Parameter must be {expected2}. Actual: {actual}.", parameterName);
-		}
-
-		return actual;
-	}
-
 	public static IEnumerable<T> NotNullOrEmpty<T>(string parameterName, IEnumerable<T> value)
 	{
 		NotNull(parameterName, value);
@@ -71,28 +58,6 @@ public static class Guard
 			throw new ArgumentException("Parameter cannot be empty.", parameterName);
 		}
 
-		return value;
-	}
-
-	public static T[] NotNullOrEmpty<T>(string parameterName, T[] value)
-	{
-		NotNull(parameterName, value);
-
-		if (value.Length == 0)
-		{
-			throw new ArgumentException("Parameter cannot be empty.", parameterName);
-		}
-
-		return value;
-	}
-
-	public static IDictionary<TKey, TValue> NotNullOrEmpty<TKey, TValue>(string parameterName, IDictionary<TKey, TValue> value)
-	{
-		NotNull(parameterName, value);
-		if (!value.Any())
-		{
-			throw new ArgumentException("Parameter cannot be empty.", parameterName);
-		}
 		return value;
 	}
 

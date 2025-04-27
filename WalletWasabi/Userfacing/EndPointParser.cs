@@ -122,21 +122,4 @@ public static class EndPointParser
 	{
 		return ushort.TryParse(port, out p);
 	}
-
-	public static Result<EndPoint, string> Parse(string endpoint)
-	{
-		if(endpoint.Split(":", StringSplitOptions.RemoveEmptyEntries) is [var hostPart, var portPart])
-		{
-			if (ushort.TryParse(portPart, out var port))
-			{
-				return IPAddress.TryParse(hostPart, out var ipAddress)
-					? new IPEndPoint(ipAddress, port)
-					: hostPart == "localhost"
-						? new IPEndPoint(IPAddress.Loopback, port)
-						: new DnsEndPoint(hostPart, port);
-			}
-		}
-
-		return Result<EndPoint, string>.Fail($"Format error for endpoint '{endpoint}'");
-	}
 }

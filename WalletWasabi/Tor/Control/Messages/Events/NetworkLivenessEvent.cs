@@ -17,10 +17,6 @@ public record NetworkLivenessEvent : IAsyncEvent
 		Status = status;
 	}
 
-	public bool IsUp => Status == StatusUp;
-
-	public bool IsDown => Status == StatusDown;
-
 	public string Status { get; }
 
 	/// <exception cref="TorControlReplyParseException"/>

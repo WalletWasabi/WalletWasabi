@@ -11,7 +11,6 @@ public abstract class PreferredScriptPubKeyType
 	{
 		public static readonly Unspecified Instance = new ();
 
-		public string Name { get; } = "Random";
 		private Unspecified() { }
 	}
 

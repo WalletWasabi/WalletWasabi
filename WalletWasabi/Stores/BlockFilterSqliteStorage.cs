@@ -307,54 +307,6 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <summary>
 	/// Append filters in bulk to the table.
 	/// </summary>
-	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
-	public void BulkAppend(IReadOnlyList<FilterModel> filters)
-	{
-		using SqliteTransaction transaction = _connection.BeginTransaction();
-
-		using SqliteCommand command = _connection.CreateCommand();
-		command.CommandText = """
-			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
-			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
-			""";
-
-		SqliteParameter blockHeightParameter = command.CreateParameter();
-		blockHeightParameter.ParameterName = "$block_height";
-		command.Parameters.Add(blockHeightParameter);
-
-		SqliteParameter blockHashParameter = command.CreateParameter();
-		blockHashParameter.ParameterName = "$block_hash";
-		command.Parameters.Add(blockHashParameter);
-
-		SqliteParameter filterDataParameter = command.CreateParameter();
-		filterDataParameter.ParameterName = "$filter_data";
-		command.Parameters.Add(filterDataParameter);
-
-		SqliteParameter prevBlockHashParameter = command.CreateParameter();
-		prevBlockHashParameter.ParameterName = "$previous_block_hash";
-		command.Parameters.Add(prevBlockHashParameter);
-
-		SqliteParameter epochBlockTimeParameter = command.CreateParameter();
-		epochBlockTimeParameter.ParameterName = "$epoch_block_time";
-		command.Parameters.Add(epochBlockTimeParameter);
-
-		foreach (FilterModel filter in filters)
-		{
-			blockHeightParameter.Value = filter.Header.Height;
-			blockHashParameter.Value = filter.Header.BlockHash.ToBytes(lendian: true);
-			filterDataParameter.Value = filter.FilterData;
-			prevBlockHashParameter.Value = filter.Header.HeaderOrPrevBlockHash.ToBytes(lendian: true);
-			epochBlockTimeParameter.Value = filter.Header.EpochBlockTime;
-
-			command.ExecuteNonQuery();
-		}
-
-		transaction.Commit();
-	}
-
-	/// <summary>
-	/// Append filters in bulk to the table.
-	/// </summary>
 	/// <param name="filters">Raw filter lines from old mature index file.</param>
 	/// <remarks>The method is meant for migration purposes.</remarks>
 	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>

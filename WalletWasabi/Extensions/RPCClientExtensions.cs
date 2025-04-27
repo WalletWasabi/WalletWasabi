@@ -272,42 +272,4 @@ public static class RPCClientExtensions
 		// If there are common elements, then there's unconfirmed.
 		return transactionHashes.Intersect(unconfirmedTransactionHashes);
 	}
-
-	/// <summary>
-	/// Recursively gathers all the dependents of the mempool transactions provided.
-	/// </summary>
-	/// <param name="transactionHashes">Mempool transactions to gather their dependents.</param>
-	/// <param name="includingProvided">Should it include in the result the unconfirmed ones from the provided transactionHashes.</param>
-	/// <param name="likelyProvidedManyConfirmedOnes">If many provided transactionHashes are not confirmed then it optimizes by doing a check in the beginning of which ones are unconfirmed.</param>
-	/// <returns>All the dependents of the provided transactionHashes.</returns>
-	public static async Task<ISet<uint256>> GetAllDependentsAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, bool includingProvided, bool likelyProvidedManyConfirmedOnes, CancellationToken cancellationToken)
-	{
-		IEnumerable<uint256> workingTxHashes = likelyProvidedManyConfirmedOnes // If confirmed txIds are provided, then do a big check first.
-			? await rpc.GetUnconfirmedAsync(transactionHashes, cancellationToken).ConfigureAwait(false)
-			: transactionHashes;
-
-		var hashSet = new HashSet<uint256>();
-		foreach (var txId in workingTxHashes)
-		{
-			// Go through all the txIds provided and getmempoolentry to get the dependents and the confirmation status.
-			var entry = await rpc.GetMempoolEntryAsync(txId, throwIfNotFound: false, cancellationToken).ConfigureAwait(false);
-			if (entry is { })
-			{
-				// If we asked to include the provided transaction hashes into the result then check which ones are confirmed and do so.
-				if (includingProvided)
-				{
-					hashSet.Add(txId);
-				}
-
-				// Get all the dependents of all the dependents except the ones we already know of.
-				var except = entry.Depends.Except(hashSet);
-				var dependentsOfDependents = await rpc.GetAllDependentsAsync(except, includingProvided: true, likelyProvidedManyConfirmedOnes: false, cancellationToken).ConfigureAwait(false);
-
-				// Add them to the hashset.
-				hashSet.UnionWith(dependentsOfDependents);
-			}
-		}
-
-		return hashSet;
-	}
 }
