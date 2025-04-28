@@ -14,7 +14,7 @@
                            UseOpacity="True"
                            MaxPrivacyChars="11">
       <LabelsItemsPresenter ItemsSource="{Binding Labels}"
-                            InfiniteWidthMeasure="True"
+                            InfiniteWidthMeasure="False"
                             HorizontalAlignment="Left"
                             VerticalAlignment="Center" />
     </PrivacyContentControl>
