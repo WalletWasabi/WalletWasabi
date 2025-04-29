@@ -97,6 +97,6 @@ public class WalletGenerator
 
 	public static byte[] GenerateShamirEntropy()
 	{
-		return RandomUtils.GetBytes(256 / 8);
+		return RandomUtils.GetBytes(128 / 8);
 	}
 }
