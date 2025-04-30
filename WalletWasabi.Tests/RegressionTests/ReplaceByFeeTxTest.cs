@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.Protocol;
 using System.Linq;
@@ -12,7 +13,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using WalletWasabi.Tests.Helpers;
 
@@ -52,7 +52,6 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
 		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -62,7 +61,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 
 		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, blockProvider, setup.EventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
@@ -77,7 +76,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
 			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
-			await feeProvider.StartAsync(CancellationToken.None);
+			setup.EventBus.Publish(new MiningFeeRatesChanged(new FeeRateEstimations(new Dictionary<int, int>{ {2, 10}})));
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
 			{
@@ -126,7 +125,6 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		{
 			await wallet.StopAsync(CancellationToken.None);
 			await synchronizer.StopAsync(CancellationToken.None);
-			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
