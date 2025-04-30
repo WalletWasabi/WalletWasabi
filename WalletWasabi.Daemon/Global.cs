@@ -76,6 +76,8 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
 
+		Ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 32, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10));
+
 		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
@@ -86,15 +88,11 @@ public class Global
 				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
 				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
 
-		Ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 32, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10));
-
 		var wasabiVersionUpdater = Spawn("UpdateManager",
 			Periodically(
 				TimeSpan.FromHours(12),
 				UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus)));
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
-
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), EventBus);
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -241,7 +239,6 @@ public class Global
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	private readonly P2PNodesManager _p2PNodesManager;
 	private TorProcessManager? TorManager { get; set; }
-	public TorStatusChecker TorStatusChecker { get; set; }
 	public IRPCClient? BitcoinRpcClient { get; }
 	public HostedServices HostedServices { get; }
 	public Network Network => Config.Network;
@@ -386,7 +383,11 @@ public class Global
 				}
 			}
 
-			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
+			var torStatusHttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject");
+			var torStatusChecker = Spawn("TorStatusChecker",
+				Periodically(TimeSpan.FromHours(1),
+					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)));
+			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
 		}
 	}
 
@@ -494,12 +495,6 @@ public class Global
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
-				}
-
-				if (TorStatusChecker is { } torStatusChecker)
-				{
-					torStatusChecker.Dispose();
-					Logger.LogInfo($"{nameof(TorStatusChecker)} is stopped.");
 				}
 
 				if (TorManager is { } torManager)
