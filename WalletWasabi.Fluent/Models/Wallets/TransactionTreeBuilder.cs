@@ -346,7 +346,7 @@ public class TransactionTreeBuilder
 			return TextHelpers.GetConfirmationText(confirmations);
 		}
 
-		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimationUpdater, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
+		var friendlyString = await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken) is { } estimate
 			? TextHelpers.TimeSpanToFriendlyString(estimate)
 			: "";
 

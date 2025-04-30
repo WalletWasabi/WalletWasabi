@@ -128,7 +128,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
@@ -286,7 +286,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);

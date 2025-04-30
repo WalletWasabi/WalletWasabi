@@ -188,7 +188,13 @@ public class Global
 			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		}
 
-		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
+		var feeRateUpdater = Spawn("FeeRateUpdater",
+			Periodically(
+				TimeSpan.FromMinutes(15),
+				FeeRateEstimations.Empty,
+				FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus)));
+		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
+
 		HostedServices.Register<Synchronizer>(() => new Synchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
 
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
@@ -210,7 +216,6 @@ public class Global
 			config.Network,
 			BitcoinStore,
 			config.ServiceConfiguration,
-			HostedServices.Get<FeeRateEstimationUpdater>(),
 			blockProvider,
 			EventBus,
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());

@@ -2,7 +2,6 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using System.Collections.Generic;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
@@ -19,7 +18,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using WalletWasabi.Tests.Helpers;
 
@@ -62,7 +60,6 @@ public class SendTests : IClassFixture<RegTestFixture>
 		var httpClientFactory = RegTestFixture.IndexerHttpClientFactory;
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
 		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), setup.EventBus);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -74,7 +71,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 
 		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, blockProvider, setup.EventBus);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 
@@ -93,8 +90,6 @@ public class SendTests : IClassFixture<RegTestFixture>
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
-			await feeProvider.StartAsync(CancellationToken.None);
 
 			// Start wallet and filter processing service
 			using var wallet = await walletManager.AddAndStartWalletAsync(keyManager);
@@ -511,7 +506,6 @@ public class SendTests : IClassFixture<RegTestFixture>
 			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			await synchronizer.StopAsync(CancellationToken.None);
-			await feeProvider.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}

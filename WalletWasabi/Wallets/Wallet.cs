@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -24,29 +21,28 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
+	private readonly IDisposable _feeRateSubscription;
 
 	public Wallet(
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
 		ServiceConfiguration serviceConfiguration,
-		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
-		CpfpInfoProvider? cpfpInfoProvider)
+		CpfpInfoProvider? cpfpInfoProvider,
+		EventBus eventBus)
 	{
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		ServiceConfiguration = serviceConfiguration;
-		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		CpfpInfoProvider = cpfpInfoProvider;
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
@@ -57,6 +53,8 @@ public class Wallet : BackgroundService, IWallet
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 		WalletId = new WalletId(Guid.NewGuid());
+		_feeRateSubscription =
+			eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -85,6 +83,7 @@ public class Wallet : BackgroundService, IWallet
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public FeeRateEstimations FeeRateEstimations { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
 	public CoinsRegistry Coins { get; }
@@ -94,7 +93,6 @@ public class Wallet : BackgroundService, IWallet
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 
-	public FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
 	public CpfpInfoProvider? CpfpInfoProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 
@@ -335,7 +333,7 @@ public class Wallet : BackgroundService, IWallet
 			if (prevState < WalletState.Stopping)
 			{
 				await base.StopAsync(cancel).ConfigureAwait(false);
-
+				_feeRateSubscription.Dispose();
 				if (prevState >= WalletState.Initialized)
 				{
 					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
