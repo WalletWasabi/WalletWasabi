@@ -16,7 +16,7 @@
     <ToolTip.Tip>
       <DockPanel>
         <TextBlock DockPanel.Dock="Top" Text="Tor network is having issues:" />
-        <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details" />
+        <TextBlock DockPanel.Dock="Bottom" Text="Click this icon for details on the Tor website" />
         <ItemsControl Margin="8" ItemsSource="{Binding HealthMonitor.TorIssues}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="tor:Issue">
