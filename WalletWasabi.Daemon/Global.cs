@@ -11,7 +11,6 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
-using NNostr.Client;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
@@ -36,6 +35,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Daemon;
 
@@ -76,23 +76,23 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
 
-		if (config.UseTor != TorMode.Disabled)
-		{
-			Uri[] relayUrls = [new("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
-			var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
+		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
+		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
-			// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
-			var installerDownloader = !Config.DownloadNewVersion
-				? ReleaseDownloader.AutoDownloadOff()
-				: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
-					? ReleaseDownloader.ForUnsupportedLinuxDistributions()
-					: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
+		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
+		var installerDownloader = !Config.DownloadNewVersion
+			? ReleaseDownloader.AutoDownloadOff()
+			: RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && !PlatformInformation.IsDebianBasedOS()
+				? ReleaseDownloader.ForUnsupportedLinuxDistributions()
+				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
 
-			HostedServices.Register<UpdateManager>(
-				() => new UpdateManager(TimeSpan.FromDays(1), nostrClientFactory, installerDownloader, EventBus),
-				"Update Manager");
-			UpdateManager = HostedServices.Get<UpdateManager>();
-		}
+		Ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 32, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10));
+
+		var wasabiVersionUpdater = Spawn("UpdateManager",
+			Periodically(
+				TimeSpan.FromHours(12),
+				UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus)));
+		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
 
 		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), EventBus);
 
@@ -228,6 +228,7 @@ public class Global
 	/// <summary>Cancellation token to cancel <see cref="InitializeNoWalletAsync(TerminateService)"/> processing.</summary>
 	private readonly CancellationTokenSource _stoppingCts = new();
 
+	public Timer Ticker { get; }
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
 	public BitcoinStore BitcoinStore { get; }
@@ -242,7 +243,6 @@ public class Global
 	private TorProcessManager? TorManager { get; set; }
 	public TorStatusChecker TorStatusChecker { get; set; }
 	public IRPCClient? BitcoinRpcClient { get; }
-	public UpdateManager? UpdateManager { get; }
 	public HostedServices HostedServices { get; }
 	public Network Network => Config.Network;
 
