@@ -97,7 +97,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
 
-		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimationUpdater, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
+		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
 	}
 
 	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(TransactionModel model, CancellationToken cancellationToken) => await TryEstimateConfirmationTimeAsync(model.Id, cancellationToken);
