@@ -39,9 +39,9 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimationUpdater feeProvider, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
 	{
-		if (TryGetFeeEstimates(feeProvider, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
+		if (TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
 		{
 			return estimate;
 		}
@@ -72,18 +72,13 @@ public static class TransactionFeeHelper
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out FeeRateEstimations? estimates)
-		=> TryGetFeeEstimates(wallet.FeeRateEstimationUpdater, wallet.Network, out estimates);
+		=> TryGetFeeEstimates(wallet.FeeRateEstimations, wallet.Network, out estimates);
 
-	public static bool TryGetFeeEstimates(FeeRateEstimationUpdater feeProvider, Network network, [NotNullWhen(true)] out FeeRateEstimations? estimates)
+	public static bool TryGetFeeEstimates(FeeRateEstimations feeRateEstimations, Network network, [NotNullWhen(true)] out FeeRateEstimations? estimates)
 	{
 		estimates = null;
 
-		if (feeProvider.FeeEstimates is null)
-		{
-			return false;
-		}
-
-		estimates = network == Network.TestNet ? TestNetFeeRateEstimations : feeProvider.FeeEstimates;
+		estimates = network == Network.TestNet ? TestNetFeeRateEstimations : feeRateEstimations;
 		return true;
 	}
 
