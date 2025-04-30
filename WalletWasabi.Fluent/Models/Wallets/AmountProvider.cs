@@ -3,6 +3,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -23,6 +24,8 @@ public partial class AmountProvider : ReactiveObject
 		BtcToUsdExchangeRate.Subscribe(x =>
 			UsdExchangeRate = x
 			);
+
+		UsdExchangeRate = Services.Status.UsdExchangeRate;
 	}
 
 	public IObservable<decimal> BtcToUsdExchangeRate { get; }

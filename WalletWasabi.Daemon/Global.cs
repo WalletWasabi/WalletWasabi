@@ -118,7 +118,12 @@ public class Global
 			},
 			friendlyName: "Bitcoin P2P Network");
 
-		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
+		var exchangeFeeRateUpdater = Spawn("ExchangeFeeRateUpdater",
+			Periodically(
+				TimeSpan.FromMinutes(20),
+				0m,
+				ExchangeRateUpdater.CreateExchangeRateUpdater(()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus)));
+		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
 
 		var mempoolSpaceFeeProvider = FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
 		var blockstreamInfoFeeProvider = FeeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
