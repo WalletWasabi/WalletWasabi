@@ -176,7 +176,11 @@ public class Global
 				internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 			}
 			BitcoinRpcClient = new RpcClientBase(internalRpcClient);
-			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient, EventBus), "RPC Monitor");
+			var rpcMonitor = Spawn("RpcMonitor",
+				Periodically(
+					TimeSpan.FromSeconds(7),
+					RpcMonitor.CreateChecker(BitcoinRpcClient, EventBus)));
+			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 
 			var supportsBlockFilters = BitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
 			if (supportsBlockFilters)
