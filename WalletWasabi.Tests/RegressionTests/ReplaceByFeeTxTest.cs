@@ -16,6 +16,7 @@ using WalletWasabi.Wallets;
 using Xunit;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Extensions;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -52,7 +53,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 
 		// 3. Create wasabi synchronizer service.
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
+		using var synchronizer = Spawn("Synchronizer", Continuously<Unit>(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -76,7 +77,6 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		{
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			setup.EventBus.Publish(new MiningFeeRatesChanged(new FeeRateEstimations(new Dictionary<int, int>{ {2, 10}})));
 
 			using (var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30)))
@@ -125,7 +125,6 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		finally
 		{
 			await wallet.StopAsync(CancellationToken.None);
-			await synchronizer.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}

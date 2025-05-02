@@ -20,6 +20,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.FeeRateEstimation;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -59,7 +60,7 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.IndexerHttpClientFactory;
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
-		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
+		using var synchronizer = Spawn("Synchronizer", Continuously<Unit>(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -86,7 +87,6 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			nodes.Connect(); // Start connection service.
 			node.VersionHandshake(); // Start mempool service.
-			await synchronizer.StartAsync(CancellationToken.None); // Start wasabi synchronizer service.
 			setup.EventBus.Publish(new MiningFeeRatesChanged(new FeeRateEstimations(new Dictionary<int, int>{ {2, 10}})));
 
 			// Start wallet and filter processing service
@@ -543,7 +543,6 @@ public class SendSpeedupTests : IClassFixture<RegTestFixture>
 		{
 			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
-			await synchronizer.StopAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();
 		}
