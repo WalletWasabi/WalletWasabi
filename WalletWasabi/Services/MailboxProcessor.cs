@@ -197,6 +197,16 @@ public static class Workers
 				}
 			}
 		};
+
+	public static Func<Mailbox<TMsg>, CancellationToken, Task> Continuously<TMsg>(
+		Func<CancellationToken, Task> handler) =>
+		async (_, cancellationToken) =>
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				await handler(cancellationToken).ConfigureAwait(false);
+			}
+		};
 }
 
 public static class EventBusExtensions
