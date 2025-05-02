@@ -13,6 +13,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -38,6 +39,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 			{
 				throw new TimeoutException($"{nameof(Synchronizer)} test timed out. Filter was not downloaded.");
 			}
+
 			await Task.Delay(TimeSpan.FromSeconds(1));
 			times++;
 		}
@@ -61,83 +63,80 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		var tx2 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 		key = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		var tx3 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
-		var tx4 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network), Money.Coins(0.1m));
-		var tx5 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network), Money.Coins(0.1m));
+		var tx4 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.Legacy, network),
+			Money.Coins(0.1m));
+		var tx5 = await rpc.SendToAddressAsync(key.PubKey.GetAddress(ScriptPubKeyType.SegwitP2SH, network),
+			Money.Coins(0.1m));
 		var tx1 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m), replaceable: true);
 
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, setup.EventBus);
+		using var synchronizer = Spawn("Synchronizer", Continuously<Unit>(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 
-		try
+		var reorgAwaiter = new EventsAwaiter<FilterModel>(
+			h => bitcoinStore.IndexStore.Reorged += h,
+			h => bitcoinStore.IndexStore.Reorged -= h,
+			2);
+
+		// Test initial synchronization.
+		await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
+
+		var tip = await rpc.GetBestBlockHashAsync();
+		Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
+		var tipBlock = await rpc.GetBlockHeaderAsync(tip);
+		Assert.Equal(tipBlock.HashPrevBlock,
+			bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray()[
+				bitcoinStore.SmartHeaderChain.HashCount - 2]);
+
+		// Test synchronization after fork.
+		await rpc.InvalidateBlockAsync(tip); // Reorg 1
+		tip = await rpc.GetBestBlockHashAsync();
+		await rpc.InvalidateBlockAsync(tip); // Reorg 2
+		var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
+
+		await rpc.GenerateAsync(5);
+		await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
+
+		var hashes = bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray();
+		Assert.DoesNotContain(tip, hashes);
+		Assert.DoesNotContain(tipBlock.HashPrevBlock, hashes);
+
+		tip = await rpc.GetBestBlockHashAsync();
+		Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
+
+		FilterModel[] filters =
+			await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
+		var filterTip = filters.Last();
+		Assert.Equal(tip, filterTip.Header.BlockHash);
+
+		// Test filter block hashes are correct after fork.
+		var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
+
+		for (int i = 0; i < blockCountIncludingGenesis; i++)
 		{
-			await synchronizer.StartAsync(CancellationToken.None);
-
-			var reorgAwaiter = new EventsAwaiter<FilterModel>(
-				h => bitcoinStore.IndexStore.Reorged += h,
-				h => bitcoinStore.IndexStore.Reorged -= h,
-				2);
-
-			// Test initial synchronization.
-			await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
-
-			var tip = await rpc.GetBestBlockHashAsync();
-			Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
-			var tipBlock = await rpc.GetBlockHeaderAsync(tip);
-			Assert.Equal(tipBlock.HashPrevBlock, bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray()[bitcoinStore.SmartHeaderChain.HashCount - 2]);
-
-			// Test synchronization after fork.
-			await rpc.InvalidateBlockAsync(tip); // Reorg 1
-			tip = await rpc.GetBestBlockHashAsync();
-			await rpc.InvalidateBlockAsync(tip); // Reorg 2
-			var tx1bumpRes = await rpc.BumpFeeAsync(tx1); // RBF it
-
-			await rpc.GenerateAsync(5);
-			await WaitForIndexesToSyncAsync(TimeSpan.FromSeconds(90), bitcoinStore);
-
-			var hashes = bitcoinStore.SmartHeaderChain.GetChain().Select(x => x.header.BlockHash).ToArray();
-			Assert.DoesNotContain(tip, hashes);
-			Assert.DoesNotContain(tipBlock.HashPrevBlock, hashes);
-
-			tip = await rpc.GetBestBlockHashAsync();
-			Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
-
-			FilterModel[] filters = await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
-			var filterTip = filters.Last();
-			Assert.Equal(tip, filterTip.Header.BlockHash);
-
-			// Test filter block hashes are correct after fork.
-			var blockCountIncludingGenesis = await rpc.GetBlockCountAsync() + 1;
-
-			for (int i = 0; i < blockCountIncludingGenesis; i++)
+			var expectedHash = await rpc.GetBlockHashAsync(i);
+			var filter = filters[i];
+			Assert.Equal(i, (int) filter.Header.Height);
+			Assert.Equal(expectedHash, filter.Header.BlockHash);
+			if (i < 101) // Later other tests may fill the filter.
 			{
-				var expectedHash = await rpc.GetBlockHashAsync(i);
-				var filter = filters[i];
-				Assert.Equal(i, (int)filter.Header.Height);
-				Assert.Equal(expectedHash, filter.Header.BlockHash);
-				if (i < 101) // Later other tests may fill the filter.
-				{
-					Assert.Equal(LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(expectedHash).ToString(), filter.Filter.ToString());
-				}
+				Assert.Equal(LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(expectedHash).ToString(),
+					filter.Filter.ToString());
 			}
-
-			// Test the serialization, too.
-			tip = await rpc.GetBestBlockHashAsync();
-			var blockHash = tip;
-			for (var i = 0; i < hashes.Length; i++)
-			{
-				var block = await rpc.GetBlockHeaderAsync(blockHash);
-				Assert.Equal(blockHash, hashes[hashes.Length - i - 1]);
-				blockHash = block.HashPrevBlock;
-			}
-
-			// Assert reorg happened exactly as many times as we reorged.
-			await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(10));
 		}
-		finally
+
+		// Test the serialization, too.
+		tip = await rpc.GetBestBlockHashAsync();
+		var blockHash = tip;
+		for (var i = 0; i < hashes.Length; i++)
 		{
-			await synchronizer.StopAsync(CancellationToken.None);
+			var block = await rpc.GetBlockHeaderAsync(blockHash);
+			Assert.Equal(blockHash, hashes[hashes.Length - i - 1]);
+			blockHash = block.HashPrevBlock;
 		}
+
+		// Assert reorg happened exactly as many times as we reorged.
+		await reorgAwaiter.WaitAsync(TimeSpan.FromSeconds(10));
 	}
 }
