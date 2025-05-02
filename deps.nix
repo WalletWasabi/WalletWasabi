@@ -8,7 +8,7 @@
   (fetchNuGet { pname = "Avalonia.BuildServices"; version = "0.0.31"; hash = "sha256-wgtodGf644CsUZEBIpFKcUjYHTbnu7mZmlr8uHIxeKA="; })
   (fetchNuGet { pname = "Avalonia.Controls.ColorPicker"; version = "11.2.7"; hash = "sha256-xTG0LUEgI+gs+nwSyijAZ8pLR6u1PkAcBRWLC4LAwZ4="; })
   (fetchNuGet { pname = "Avalonia.Controls.DataGrid"; version = "11.2.7"; hash = "sha256-hxi7u+d/CkqBqHkJo0hbSnHYM9CLTmd3G4Z5gJQtKR4="; })
-  (fetchNuGet { pname = "Avalonia.Controls.TreeDataGrid"; version = "11.1.1"; hash = "sha256-pEh7qGLhkirOW81xqy8iRMmFpOgdyTFpWpUHrkHgmcM="; })
+  (fetchNuGet { pname = "Avalonia.Controls.TreeDataGrid"; version = "11.1.0"; hash = "sha256-WU0vs7a3BTQQiJn+fBhs+o+iKt5aukIVjpfH5LyyWwc="; })
   (fetchNuGet { pname = "Avalonia.Desktop"; version = "11.2.7"; hash = "sha256-j9o9OuaNhOKrkUfY5I2kp8N+aDP/xcTD2Es48o64INs="; })
   (fetchNuGet { pname = "Avalonia.Diagnostics"; version = "11.2.7"; hash = "sha256-zCT+HFN2z9TFFuzfMD0Bw3D6UgW5Kp2OZsAf733+jP0="; })
   (fetchNuGet { pname = "Avalonia.Fonts.Inter"; version = "11.2.7"; hash = "sha256-HJPHFEHUmvuAl4oeC0U+RGKt55qg7wdYooFVZm/rmTc="; })
