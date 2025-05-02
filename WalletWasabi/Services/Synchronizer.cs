@@ -128,46 +128,48 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 	}
 }
 
-public class Synchronizer(TimeSpan period, ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus)
-	: PeriodicRunner(period)
+public static class Synchronizer
 {
-	private readonly SmartHeaderChain _smartHeaderChain = bitcoinStore.SmartHeaderChain;
+	public static Func<CancellationToken, Task> CreateFilterGenerator(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
+		cancellationToken => GenerateCompactFiltersAsync(filtersProvider, bitcoinStore, eventBus, cancellationToken);
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	private static async Task GenerateCompactFiltersAsync(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
 	{
+		var smartHeaderChain = bitcoinStore.SmartHeaderChain;
+
 		// Don't attempt synchronization without a valid tip hash
-		if (_smartHeaderChain.TipHash is null)
+		if (smartHeaderChain.TipHash is null)
 		{
+			await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken).ConfigureAwait(false);
 			return;
 		}
 
-		var response =  await filtersProvider.GetFiltersAsync(_smartHeaderChain.TipHash, _smartHeaderChain.TipHeight, cancel)
+		var response =  await filtersProvider.GetFiltersAsync(smartHeaderChain.TipHash, smartHeaderChain.TipHeight, cancellationToken)
 			.ConfigureAwait(false);
 
 		if (response.IsOk)
 		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value).ConfigureAwait(false);
+			var isSynchronized = await ProcessFiltersAsync(response.Value, bitcoinStore, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
-				return;
+				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
 			}
 		}
 		else
 		{
 			var continueAfterSeconds = response.Error == FilterFetchingError.ContinueAfter30Seconds ? 30 : 0;
-			await Task.Delay(TimeSpan.FromSeconds(continueAfterSeconds), cancel).ConfigureAwait(false);
+			await Task.Delay(TimeSpan.FromSeconds(continueAfterSeconds), cancellationToken).ConfigureAwait(false);
 		}
-		TriggerRound();
 	}
 
-	private async Task<bool> ProcessFiltersAsync(FiltersResponse response)
+	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, BitcoinStore bitcoinStore, EventBus eventBus )
 	{
 		switch (response)
 		{
 			case FiltersResponse.AlreadyOnBestBlock:
 				// Already synchronized. Nothing to do.
-				var tip = _smartHeaderChain.TipHeight;
-				_smartHeaderChain.SetServerTipHeight(tip);
+				var tip = bitcoinStore.SmartHeaderChain.TipHeight;
+				bitcoinStore.SmartHeaderChain.SetServerTipHeight(tip);
 				eventBus.Publish(new ServerTipHeightChanged((int) tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
