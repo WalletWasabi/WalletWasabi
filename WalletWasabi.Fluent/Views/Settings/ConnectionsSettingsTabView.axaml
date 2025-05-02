@@ -12,7 +12,7 @@
   <StackPanel Classes="settingsLayout">
 
     <DockPanel ToolTip.Tip="The client will connect to this backend. The backend provides the block filters to synchronize the wallet.">
-      <TextBlock Text="Indexer URI" />
+      <TextBlock Text="Backend URI" />
       <TextBox Text="{Binding IndexerUri}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />

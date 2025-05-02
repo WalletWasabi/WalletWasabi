@@ -110,7 +110,7 @@
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Indexer"
+            <StatusItem Title="Backend"
                           StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource connector_regular}" />
