@@ -13,7 +13,7 @@
       <ToolTip.Tip>
         <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
       </ToolTip.Tip>
-      <TextBlock Text="Verify Recovery Words" />
+      <TextBlock Text="Verify Recovery Words (BIP 39 Only)" />
       <Button Theme="{StaticResource AccentButton}" Command="{Binding VerifyRecoveryWordsCommand}" Content="Open" DockPanel.Dock="Right" />
     </DockPanel>
 
