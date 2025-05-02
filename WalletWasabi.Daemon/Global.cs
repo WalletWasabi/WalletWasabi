@@ -76,7 +76,7 @@ public class Global
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
 
-		Ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 32, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(10));
+		Ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 
 		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
@@ -199,7 +199,10 @@ public class Global
 				FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus)));
 		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
 
-		HostedServices.Register<Synchronizer>(() => new Synchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
+		var synchronizer = Spawn("Synchronizer",
+			Continuously<Unit>(
+				Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
+				));
 
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(_p2PNodesManager);
