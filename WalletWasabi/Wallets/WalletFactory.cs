@@ -3,6 +3,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets.FilterProcessor;
 
@@ -17,12 +18,13 @@ public record WalletFactory(
 	ServiceConfiguration ServiceConfiguration,
 	FeeRateEstimationUpdater FeeRateEstimationUpdater,
 	BlockDownloadService BlockDownloadService,
+	EventBus EventBus,
     CpfpInfoProvider? CpfpInfoProvider = null)
 {
 	public Wallet Create(KeyManager keyManager)
 	{
 		TransactionProcessor transactionProcessor = new(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
-		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockDownloadService);
+		WalletFilterProcessor walletFilterProcessor = new(keyManager, BitcoinStore, transactionProcessor, BlockDownloadService, EventBus);
 
 		return new(Network, keyManager, BitcoinStore, ServiceConfiguration, FeeRateEstimationUpdater, transactionProcessor, walletFilterProcessor, CpfpInfoProvider);
 	}

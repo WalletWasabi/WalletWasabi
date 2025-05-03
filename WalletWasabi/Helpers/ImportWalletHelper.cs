@@ -31,7 +31,7 @@ public static class ImportWalletHelper
 			km.SetIcon(WalletType.Coldcard);
 		}
 
-		km.SetBestHeights(height: 0, turboSyncHeight: 0);
+		km.SetBestHeight(0);
 		return km;
 	}
 

@@ -111,6 +111,6 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	public void RescanWallet(int startingHeight = 0)
 	{
-		_keyManager.SetBestHeights(startingHeight, startingHeight);
+		_keyManager.SetBestHeight(startingHeight);
 	}
 }

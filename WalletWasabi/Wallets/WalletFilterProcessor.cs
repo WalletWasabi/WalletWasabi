@@ -9,9 +9,9 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Wallets.BlockProvider;
@@ -22,83 +22,27 @@ namespace WalletWasabi.Wallets;
 /// <summary>
 /// Service that keeps processing block filters.
 /// </summary>
-/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/issues/10219">TurboSync specification.</seealso>
 public class WalletFilterProcessor : BackgroundService
 {
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
-	private FilterModel? _lastProcessedFilter;
-
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockDownloadService blockDownloadService)
+	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockDownloadService blockDownloadService, EventBus eventBus)
 	{
 		_keyManager = keyManager;
 		_bitcoinStore = bitcoinStore;
 		_transactionProcessor = transactionProcessor;
 		_blockDownloadService = blockDownloadService;
-
-		FilterIteratorsBySyncType = new()
-		{
-			{ SyncType.Turbo, new BlockFilterIterator(_bitcoinStore.IndexStore) },
-			{ SyncType.NonTurbo, new BlockFilterIterator(_bitcoinStore.IndexStore) },
-			{ SyncType.Complete, new BlockFilterIterator(_bitcoinStore.IndexStore) },
-		};
+		_eventBus = eventBus;
+		_blockFilterIterator = new(_bitcoinStore.IndexStore);
 	}
-
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
-	private PriorityQueue<SyncRequest, Priority> SynchronizationRequests { get; } = new(Priority.Comparer);
-
-	/// <remarks>Guards <see cref="SynchronizationRequests"/> and <see cref="_lastProcessedFilter"/>.</remarks>
-	private readonly object _lock = new();
-
-	private readonly SemaphoreSlim _synchronizationRequestsSemaphore = new(initialCount: 0);
 
 	private readonly KeyManager _keyManager;
 	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionProcessor _transactionProcessor;
 	private readonly BlockDownloadService _blockDownloadService;
-
-	public FilterModel? LastProcessedFilter
-	{
-		get
-		{
-			lock (_lock)
-			{
-				return _lastProcessedFilter;
-			}
-		}
-		set
-		{
-			lock (_lock)
-			{
-				_lastProcessedFilter = value;
-			}
-		}
-	}
-
-	/// <remarks>Internal only to allow modifications in tests.</remarks>
-	internal Dictionary<SyncType, BlockFilterIterator> FilterIteratorsBySyncType { get; }
+	private readonly EventBus _eventBus;
+	private readonly BlockFilterIterator _blockFilterIterator;
 
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private readonly AsyncLock _reorgLock = new();
-
-	public async Task ProcessAsync(IEnumerable<SyncType> syncTypes, CancellationToken cancellationToken)
-	{
-		var tasks = syncTypes.Select(syncType => ProcessAsync(syncType, cancellationToken)).ToList();
-		await Task.WhenAll(tasks).ConfigureAwait(false);
-	}
-
-	public async Task ProcessAsync(SyncType syncType, CancellationToken cancellationToken)
-	{
-		SyncRequest request = new(syncType, new TaskCompletionSource());
-		Priority priority = new(request.SyncType);
-
-		lock (_lock)
-		{
-			SynchronizationRequests.Enqueue(request, priority);
-			_synchronizationRequestsSemaphore.Release(releaseCount: 1);
-		}
-
-		await request.Tcs.Task.WaitAsync(cancellationToken).ConfigureAwait(false);
-	}
 
 	/// <inheritdoc />
 	/// <summary>Used for filter synchronization.</summary>
@@ -106,77 +50,26 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		try
 		{
-			while (true)
+			while (!cancellationToken.IsCancellationRequested)
 			{
-				await _synchronizationRequestsSemaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
-
-				SyncRequest? request;
-
-				lock (_lock)
+				using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
-					if (!SynchronizationRequests.TryPeek(out request, out _))
+					Height lastHeight = _keyManager.GetBestHeight();
+
+					if (lastHeight == _bitcoinStore.SmartHeaderChain.TipHeight)
 					{
+						await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
 						continue;
 					}
-				}
 
-				try
-				{
-					bool reachedBlockChainTip;
-					using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
-					{
-						Height lastHeight = _keyManager.GetBestHeight(request.SyncType);
+					uint currentHeight = (uint)lastHeight.Value + 1;
+					FilterModel filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
+					var matchFound = await ProcessFilterModelAsync(filter, cancellationToken).ConfigureAwait(false);
+					_eventBus.Publish(new FilterProcessed(filter));
 
-						if (lastHeight == _bitcoinStore.SmartHeaderChain.TipHeight)
-						{
-							lock (_lock)
-							{
-								request.Tcs.SetResult();
-								SynchronizationRequests.Dequeue();
-							}
-							continue;
-						}
-
-						uint currentHeight = (uint)lastHeight.Value + 1;
-
-						FilterModel filter = await FilterIteratorsBySyncType[request.SyncType].GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
-						var matchFound = await ProcessFilterModelAsync(filter, request.SyncType, cancellationToken).ConfigureAwait(false);
-
-						reachedBlockChainTip = currentHeight == _bitcoinStore.SmartHeaderChain.TipHeight;
-						bool storeToDisk = matchFound || reachedBlockChainTip;
-						_keyManager.SetBestHeight(request.SyncType, new Height(currentHeight), storeToDisk);
-					}
-
-					if (reachedBlockChainTip)
-					{
-						lock (_lock)
-						{
-							request.Tcs.SetResult();
-							SynchronizationRequests.Dequeue();
-						}
-					}
-					else
-					{
-						_synchronizationRequestsSemaphore.Release(1);
-					}
-				}
-				catch (Exception ex)
-				{
-					if (!request.Tcs.TrySetException(ex))
-					{
-						Logger.LogWarning($"Tried to set exception for {request.SyncType.FriendlyName()} but status was already {request.Tcs.Task.Status}.");
-					}
-
-					throw;
-				}
-
-				// Clear all caches once not needed.
-				if (_synchronizationRequestsSemaphore.CurrentCount == 0)
-				{
-					foreach (SyncType syncType in Enum.GetValues<SyncType>())
-					{
-						await FilterIteratorsBySyncType[syncType].ClearAsync(cancellationToken).ConfigureAwait(false);
-					}
+					var reachedBlockChainTip = currentHeight == _bitcoinStore.SmartHeaderChain.TipHeight;
+					bool storeToDisk = matchFound || reachedBlockChainTip;
+					_keyManager.SetBestHeight(new Height(currentHeight), storeToDisk);
 				}
 			}
 		}
@@ -190,51 +83,24 @@ public class WalletFilterProcessor : BackgroundService
 			TerminateService.Instance?.SignalGracefulCrash(ex);
 			throw;
 		}
-		finally
-		{
-			lock (_lock)
-			{
-				while (SynchronizationRequests.TryDequeue(out var request, out _))
-				{
-					request.Tcs.TrySetCanceled(cancellationToken);
-				}
-			}
-		}
 	}
 
 	/// <summary>
 	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
 	/// </summary>
-	/// <param name="filterHeight">Height of the filter that needs to be tested.</param>
-	/// <param name="syncType">First sync of TurboSync, second one, or complete synchronization.</param>
 	/// <param name="isBip158"></param>
 	/// <returns>Keys to test against this filter.</returns>
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(Height filterHeight, SyncType syncType, bool isBip158)
+	private IEnumerable<byte[]> GetScriptPubKeysToTest(bool isBip158)
 	{
-		bool ScriptAlreadySpent(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
-			spendingInfo.LatestSpendingHeight is { } spendingHeight && spendingHeight < filterHeight;
-
-		bool ScriptNotSpentAtTheMoment(KeyManager.ScriptPubKeySpendingInfo spendingInfo) =>
-			!ScriptAlreadySpent(spendingInfo);
-
 		// Wasabi doesn't build bip158 filters and also uses the compact representation of the scriptPubKeys
-		var scriptsSpendingInfo = _keyManager.UnsafeGetSynchronizationInfos(isBip158);
-		var scriptPubKeyAccordingSyncType = syncType switch
-		{
-			SyncType.Complete => scriptsSpendingInfo,
-			SyncType.Turbo => scriptsSpendingInfo.Where(ScriptNotSpentAtTheMoment),
-			SyncType.NonTurbo => scriptsSpendingInfo.Where(ScriptAlreadySpent),
-			_ => throw new ArgumentOutOfRangeException(nameof(syncType), syncType, null)
-		};
-
-		return scriptPubKeyAccordingSyncType.Select(x => x.ScriptPubKey);
+		return _keyManager.UnsafeGetSynchronizationInfos(isBip158);
 	}
 
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, SyncType syncType, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancel)
 	{
 		var height = new Height(filter.Header.Height);
 
-		var toTestKeys = GetScriptPubKeysToTest(height, syncType, filter.Filter.IsBip158());
+		var toTestKeys = GetScriptPubKeysToTest(filter.Filter.IsBip158());
 
 		var matchFound = false;
 		if (toTestKeys.Any())
@@ -245,7 +111,7 @@ public class WalletFilterProcessor : BackgroundService
 			if (matchFound)
 			{
 				// Wait until downloaded.
-				Block currentBlock = await KeepTryingToGetBlockAsync(filter.Header.BlockHash, new Priority(syncType, filter.Header.Height), cancel)
+				Block currentBlock = await KeepTryingToGetBlockAsync(filter.Header.BlockHash, new Priority(filter.Header.Height), cancel)
 					.ConfigureAwait(false);
 
 				var txsToProcess = new List<SmartTransaction>();
@@ -258,8 +124,6 @@ public class WalletFilterProcessor : BackgroundService
 				_transactionProcessor.Process(txsToProcess);
 			}
 		}
-
-		LastProcessedFilter = filter;
 		return matchFound;
 	}
 
@@ -275,10 +139,7 @@ public class WalletFilterProcessor : BackgroundService
 				_keyManager.SetMaxBestHeight(new Height(newBestHeight));
 				_transactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				_bitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-				foreach (SyncType syncType in Enum.GetValues<SyncType>())
-				{
-					await FilterIteratorsBySyncType[syncType].RemoveNewerThanAsync(newBestHeight, CancellationToken.None).ConfigureAwait(false);
-				}
+				await _blockFilterIterator.RemoveNewerThanAsync(newBestHeight, CancellationToken.None).ConfigureAwait(false);
 				await _blockDownloadService.RemoveBlocksAsync(invalidFilter.Header.Height).ConfigureAwait(false);
 			}
 		}
@@ -323,12 +184,4 @@ public class WalletFilterProcessor : BackgroundService
 		_bitcoinStore.IndexStore.Reorged -= ReorgedAsync;
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
-
-	public override void Dispose()
-	{
-		_synchronizationRequestsSemaphore.Dispose();
-		base.Dispose();
-	}
-
-	public record SyncRequest(SyncType SyncType, TaskCompletionSource Tcs);
 }
