@@ -1,43 +1,35 @@
 ## Release Highlights
-#### 💥 Support for Standard BIP 158 Block Filters<br/>
-#### 🔐 Create & Recover SLIP 39 Shares<br/>
-#### 💻 Full Node Integration Rework<br/>
-#### 💪 Nostr Update Manager<br/>
-#### 🤯 And more…<br/>
+#### 💥 Support for Standard BIP 158 Block Filters
+#### 💻 Full Node Integration Rework
+#### 🔐 Create & Recover SLIP 39 Shares
+#### 💪 Nostr Update Manager
+#### 🤯 And more…
 
 ## Release Summary
-Wasabi Wallet v2.6.0 - Prometheus continues to enhance Wasabi's resilience, implements SLIP 39 (Multi-Shares Backup), reworks the full node integration, etc...
+
+Wasabi Wallet v2.6.0 "Prometheus" marks a significant milestone in our survival strategy, delivering major improvements in resiliency by eliminating dependency on centralized infrastructure while making it harder to stop.
 
 ### 💥 Support for Standard BIP 158 Block Filters
-Wasabi’s client can now synchronize wallets using standard BIP 158 block filters, alongside the custom filters our backend provides.
 
-This means the client can sync without our backend by fetching BIP 158 filters directly from a specified Bitcoin Node.
-
-While further improvements are planned (like P2P filter fetching), this is a giant step for Wasabi’s resiliency, allowing clients to be fully sovereign and independent of specific servers.
+Wasabi can now synchronize using BIP 158 filters without requiring a backend/indexer. You can connect directly to your own node, significantly enhancing synchronization speed and resilience. This improvement allows clients to operate fully sovereign and independent of specific servers.
 
 ### 🔐 Create & Recover SLIP 39 Shares
 
-In addition to BIP 39, users can now create and recover wallets with multiple parts using SLIP 39.
+You can now create and recover wallets with multiple shares backups using SLIP 39 just specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
 
-You can specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
-
-This offers much more flexibility for backups, as individual shares can be compromised without endangering funds.
-
-While it sounds similar to multi-sig, this feature is purely cryptographic and uses Shamir Secret Sharing and has no on-chain footprint.
+This offers additional flexibility for backups, as individual shares can be compromised without endangering funds.
 
 Special thanks to Trezor (SatoshiLabs) for sponsoring this amazing feature.
 
 ### 💻 Full Node Integration Rework
-The previous, often frustrating integration with Bitcoin Knots (limited to that implementation, same machine, and non-standard) has been removed.
 
-In its place, we've introduced a complete and standard integration with any Bitcoin Node implementation via the Bitcoin RPC Interface.
+The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi or require modifications to the node's configuration.
 
-Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties.
+Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties for getting blocks, fee estimations, block filters, and broadcasting transactions.
 
 ### 💪 Nostr Update Manager
-Previously, Wasabi checked GitHub for new updates (an improvement over relying on our backend).
 
-In this release, we're introducing a cutting-edge mechanism using the censorship-resistant Nostr network to receive update information and download locations.
+We're introducing a cutting-edge mechanism using the censorship-resistant Nostr network to receive update information and download locations instead of relying on GitHub's goodwill.
 
 This considerably improves resiliency, allowing updates even if GitHub is inaccessible. Naturally, the manager still verifies that displayed updates are signed by our secure certificate.
 
@@ -49,9 +41,9 @@ We've also been busy under the hood with several miscellaneous improvements:
 - Changed our Windows Code Signing Certificate, now using Azure Trusted Signing.
 - Fixed numerous bugs, improved our codebase, and enhanced our CI pipeline.
 - Provided the option to avoid using any third-party Exchange Rate and Fee Rate providers (Wasabi can work without them).
-- Rebuilt all JSON Serialization mechanisms using standard dotnet converters.
+- Rebuilt all JSON Serialization mechanisms avoiding default .NET converters. Serialization is now stricter.
 
-### 🔮 A Glimpse on Tomorrow
+### 🔮 A Glimpse of Tomorrow
 This new version brings us closer to our ultimate goal: ensuring Wasabi is future-proof.
 
 Our main focus areas for survival are:
