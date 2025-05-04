@@ -15,7 +15,7 @@ public class ReleaseHighlights
 	private string Details { get; set; } = "";
 
 
-	public string Title => $"Wasabi Wallet v{Constants.ClientVersion} - What's new?";
+	public string Title => $"Wasabi Wallet v{Constants.ClientVersion}{(Constants.VersionName.Length > 0 ? " - " + Constants.VersionName : string.Empty)}: What's new?";
 	public string Caption { get; private set; } = "";
 
 	public string MarkdownText => $"""
