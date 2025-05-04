@@ -13,6 +13,12 @@ Wasabi Wallet v2.6.0 "Prometheus" marks a significant milestone in our survival 
 
 Wasabi can now synchronize using BIP 158 filters without requiring a backend/indexer. You can connect directly to your own node, significantly enhancing synchronization speed and resilience. This improvement allows clients to operate fully sovereign and independent of specific servers.
 
+### 💻 Full Node Integration Rework
+
+The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi or require modifications to the node's configuration.
+
+Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties for getting blocks, fee estimations, block filters, and broadcasting transactions.
+
 ### 🔐 Create & Recover SLIP 39 Shares
 
 You can now create and recover wallets with multiple shares backups using SLIP 39 just specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
@@ -20,12 +26,6 @@ You can now create and recover wallets with multiple shares backups using SLIP 3
 This offers additional flexibility for backups, as individual shares can be compromised without endangering funds.
 
 Special thanks to Trezor (SatoshiLabs) for sponsoring this amazing feature.
-
-### 💻 Full Node Integration Rework
-
-The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi or require modifications to the node's configuration.
-
-Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties for getting blocks, fee estimations, block filters, and broadcasting transactions.
 
 ### 💪 Nostr Update Manager
 
