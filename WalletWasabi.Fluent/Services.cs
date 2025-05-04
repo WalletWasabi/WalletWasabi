@@ -43,8 +43,6 @@ public static class Services
 
 	public static Config Config { get; set; } = null!;
 
-	public static UpdateManager UpdateManager { get; private set; } = null!;
-
 	public static EventBus EventBus { get;  set; } = null;
 	public static bool IsInitialized { get; private set; }
 
@@ -61,7 +59,6 @@ public static class Services
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
 		Guard.NotNull(nameof(global.TransactionBroadcaster), global.TransactionBroadcaster);
 		Guard.NotNull(nameof(global.HostedServices), global.HostedServices);
-		Guard.NotNull(nameof(global.UpdateManager), global.UpdateManager);
 		Guard.NotNull(nameof(uiConfig), uiConfig);
 		Guard.NotNull(nameof(terminateService), terminateService);
 
@@ -76,7 +73,6 @@ public static class Services
 		HostedServices = global.HostedServices;
 		UiConfig = uiConfig;
 		SingleInstanceChecker = singleInstanceChecker;
-		UpdateManager = global.UpdateManager;
 		Config = global.Config;
 		TerminateService = terminateService;
 		EventBus = global.EventBus;
