@@ -312,10 +312,10 @@ public static partial class Encode
 
 	public static JsonNode Error(Error e) =>
 		Object([
-			("Type", String(e.Type)),
-			("ErrorCode", String(e.ErrorCode)),
-			("Description", String(e.Description)),
-			("ExceptionData", ExceptionData(e.ExceptionData) ),
+			("type", String(e.Type)),
+			("errorCode", String(e.ErrorCode)),
+			("description", String(e.Description)),
+			("exceptionData", ExceptionData(e.ExceptionData) ),
 		]);
 
 	public static JsonNode CoordinatorMessage<T>(T obj) =>
@@ -602,10 +602,10 @@ public static partial class Decode
 
 	public static readonly Decoder<Error> Error =
 		Object(get => new Error(
-			get.Required("Type", String),
-			get.Required("ErrorCode", String),
-			get.Required("Description", String),
-			get.Required("ExceptionData", ExceptionData)
+			get.Required("type", String),
+			get.Required("errorCode", String),
+			get.Required("description", String),
+			get.Required("exceptionData", ExceptionData)
 		));
 
 	public static async Task<Result<object, string>> CoordinatorMessageFromStreamAsync(Stream json, Type modelType)
