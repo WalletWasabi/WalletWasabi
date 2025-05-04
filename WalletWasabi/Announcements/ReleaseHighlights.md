@@ -15,13 +15,13 @@ Wasabi can now synchronize using BIP 158 filters without requiring a backend/ind
 
 ### 💻 Full Node Integration Rework
 
-The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi or require modifications to the node's configuration.
+The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi, or require modifications to the node's configuration.
 
 Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties for getting blocks, fee estimations, block filters, and broadcasting transactions.
 
 ### 🔐 Create & Recover SLIP 39 Shares
 
-You can now create and recover wallets with multiple shares backups using SLIP 39 just specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
+You can now create and recover wallets with multiple share backups using SLIP 39. Simply specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
 
 This offers additional flexibility for backups, as individual shares can be compromised without endangering funds.
 
