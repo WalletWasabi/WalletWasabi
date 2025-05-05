@@ -15,9 +15,9 @@
       },
       "Avalonia.Controls.TreeDataGrid": {
         "type": "Direct",
-        "requested": "[11.1.1, )",
-        "resolved": "11.1.1",
-        "contentHash": "PAkASZ1mpkQGwalxh21o/KPAaWQ5HuTsJUcKbpM9R9gvzLLvN4GC7ee3dBxcoXL5lkQge3GMwTu47QcdjQPkBg==",
+        "requested": "[11.1.0, )",
+        "resolved": "11.1.0",
+        "contentHash": "GfSvNy+8spTynyA2x86XCZGTMzm0kMIoZrBuqbFzuFL87PA6zXg3LCQ1RD6nKqPO6c4jQacgaX9a7ld9rBLdPA==",
         "dependencies": {
           "Avalonia": "11.0.0",
           "System.Reactive": "5.0.0"
