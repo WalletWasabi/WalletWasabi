@@ -60,6 +60,8 @@ public static class PersistentConfigManager
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+		var networkFilePath = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, ".network");
+		File.WriteAllText(networkFilePath, obj.Network.ToString());
 		return jsonString;
 	}
 

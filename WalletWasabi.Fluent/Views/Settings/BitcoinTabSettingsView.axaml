@@ -10,6 +10,12 @@
   <StackPanel Classes="settingsLayout">
 
     <DockPanel>
+      <TextBlock Text="Network" />
+      <ComboBox ItemsSource="{Binding Networks}"
+                SelectedItem="{Binding Settings.Network}" />
+    </DockPanel>
+
+    <DockPanel>
       <TextBlock Text="Connect to Bitcoin Node RPC" />
       <ToggleSwitch IsChecked="{Binding Settings.UseBitcoinRpc}" />
     </DockPanel>
