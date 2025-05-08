@@ -24,8 +24,6 @@ public class RegTestFixture : IDisposable
 
 	public RegTestFixture()
 	{
-		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
-		RuntimeParams.LoadAsync().GetAwaiter().GetResult();
 		IndexerRegTestNode = TestNodeBuilder.CreateAsync(callerFilePath: "RegTests", callerMemberName: "BitcoinCoreData").GetAwaiter().GetResult();
 
 		var walletName = "wallet";
