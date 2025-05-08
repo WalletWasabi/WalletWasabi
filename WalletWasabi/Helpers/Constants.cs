@@ -89,6 +89,7 @@ public static class Constants
 
 	public static readonly string DefaultExchangeRateProvider = "MempoolSpace";
 	public static readonly string DefaultFeeRateEstimationProvider = "MempoolSpace";
+	public static readonly string DefaultExternalTransactionBroadcaster= "MempoolSpace";
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 

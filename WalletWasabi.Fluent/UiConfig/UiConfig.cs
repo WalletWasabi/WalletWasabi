@@ -168,6 +168,13 @@ public class UiConfig : ConfigBase
 			var decodingResult = decoder(cfgFile);
 			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
 		}
+		catch (FileNotFoundException)
+		{
+			var config = new UiConfig(filePath);
+			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
+			Logging.Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
+			return config;
+		}
 		catch (Exception ex)
 		{
 			var config = new UiConfig(filePath);
