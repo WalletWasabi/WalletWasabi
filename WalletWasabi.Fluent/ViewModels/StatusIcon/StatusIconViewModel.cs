@@ -53,6 +53,8 @@ public partial class StatusIconViewModel : ViewModelBase
 
 	public string BitcoinCoreName => "Bitcoin Node";
 
+	public bool IsTorDisabled => HealthMonitor.TorStatus == WalletWasabi.Models.TorStatus.TurnedOff;
+
 	private string GetVersionText()
 	{
 		if (HealthMonitor.IsReadyToInstall)

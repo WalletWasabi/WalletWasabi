@@ -109,6 +109,12 @@
                 </Panel>
               </StatusItem.Icon>
             </StatusItem>
+            
+            <StatusItem Title="Update Checker" StatusText="Wasabi won't look for updates while Tor is disabled." IsVisible="{Binding IsTorDisabled}">
+              <StatusItem.Icon>
+                <PathIcon Data="{StaticResource warning_filled}" />
+              </StatusItem.Icon>
+            </StatusItem>
 
             <StatusItem Title="Backend"
                           StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
