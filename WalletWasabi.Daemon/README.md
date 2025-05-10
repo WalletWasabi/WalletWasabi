@@ -11,16 +11,16 @@ All configuration options available via `Config.json` file are also available as
 ### Command Line and Environment variables
 
 * Command line switches have the form `--switch_name=value` where _switch_name_ is the same name that is used in the config file (case insensitive).
-* Environment variables have the form `WASABI-SWITCHNAME` where _SWITCHNAME_ is the same name that is used in the config file.
+* Environment variables have the form `WASABI_SWITCHNAME` where _SWITCHNAME_ is the same name that is used in the config file.
 
 A few examples:
 
 | Config file                | Command line                | Environment variable             |
 |----------------------------|-----------------------------|----------------------------------|
-| Network: "TestNet"         | --network=testnet           | WASABI-NETWORK=testnet           |
-| JsonRpcServerEnabled: true | --jsonrpcserverenabled=true | WASABI-JSONRPCSERVERENABLED=true |
-| UseTor: true               | --usetor=true               | WASABI-USETOR=true               |
-| DustThreshold: "0.00005"   | --dustthreshold=0.00005     | WASABI-DUSTTHRESHOLD=0.00005     |
+| Network: "TestNet"         | --network=testnet           | WASABI_NETWORK=testnet           |
+| JsonRpcServerEnabled: true | --jsonrpcserverenabled=true | WASABI_JSONRPCSERVERENABLED=true |
+| UseTor: true               | --usetor=true               | WASABI_USETOR=true               |
+| DustThreshold: "0.00005"   | --dustthreshold=0.00005     | WASABI_DUSTTHRESHOLD=0.00005     |
 
 ### Values precedence
 
@@ -48,7 +48,7 @@ $ wasabi.daemon --usetor=false --datadir="$HOME/temp/wasabi-1" --network=testnet
 Run Wasabi Daemon and connect to the testnet Bitcoin network.
 
 ```bash
-$ WASABI-NETWORK=testnet wasabi.daemon
+$ WASABI_NETWORK=testnet wasabi.daemon
 ```
 
 Run Wasabi and open two wallets: AliceWallet and BobWallet
