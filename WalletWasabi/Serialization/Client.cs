@@ -1,11 +1,9 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Runtime.InteropServices.JavaScript;
 using System.Text.Json.Nodes;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 
@@ -50,11 +48,6 @@ public static partial class Encode
 			("Network", Network(s.Network)),
 			("Height", WalletHeight(s.Height)),
 			("TurboSyncHeight", WalletHeight(s.TurboSyncHeight))
-		]);
-
-	public static JsonNode RuntimeParams(RuntimeParams p) =>
-		Object([
-			("NetworkNodeTimeout", Int(p.NetworkNodeTimeout))
 		]);
 
 	public static JsonNode PreferredScriptPubKeyType(PreferredScriptPubKeyType t) =>
@@ -163,11 +156,6 @@ public static partial class Decode
 			"Manual" => Models.SendWorkflow.Manual,
 			_ => throw new Exception($"Unknown SendWorkflow value '{s}'")
 		}).Catch();
-
-	public static readonly Decoder<RuntimeParams> RuntimeParams =
-		Object(get => new RuntimeParams{
-			NetworkNodeTimeout = get.Required("NetworkNodeTimeout", Int)
-		});
 
 	public static readonly Decoder<SerializableException> SerializableException =
 		Object(get => new SerializableException(

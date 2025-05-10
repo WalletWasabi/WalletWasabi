@@ -51,9 +51,6 @@ public class BlockDownloadTests
 			OnRemoveAsync = (_,_) =>Task.CompletedTask,
 		};
 
-		RuntimeParams.SetDataDir(Path.Combine(Common.DataDir, "RegTests", "Backend"));
-		await RuntimeParams.LoadAsync();
-
 		string addressManagerFilePath = Path.Combine(Config.DataDir, "BitcoinP2pNetwork", $"AddressManager{Network.Main}.dat");
 		AddressManager addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
 		AddressManagerBehavior addressManagerBehavior = new(addressManager)

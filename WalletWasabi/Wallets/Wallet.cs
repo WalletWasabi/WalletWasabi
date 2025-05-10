@@ -33,7 +33,6 @@ public class Wallet : BackgroundService, IWallet
 	private volatile WalletState _state;
 
 	public Wallet(
-		string dataDir,
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
@@ -43,15 +42,12 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor walletFilterProcessor,
 		CpfpInfoProvider? cpfpInfoProvider)
 	{
-		Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		ServiceConfiguration = serviceConfiguration;
 		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		CpfpInfoProvider = cpfpInfoProvider;
-
-		RuntimeParams.SetDataDir(dataDir);
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
@@ -278,8 +274,6 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			State = WalletState.Starting;
-
-			await RuntimeParams.LoadAsync().ConfigureAwait(false);
 
 			await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
 

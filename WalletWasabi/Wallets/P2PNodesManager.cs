@@ -19,7 +19,9 @@ public class P2PNodesManager
 
 	private readonly Network _network;
 	private readonly NodesGroup _nodes;
-	private int NodeTimeouts { get; set; }
+	private int _timeoutsCounter;
+	private int _currentTimeoutSeconds = 16;
+
 	public uint ConnectedNodesCount => (uint)_nodes.ConnectedNodes.Count;
 
 	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
@@ -51,8 +53,8 @@ public class P2PNodesManager
 	{
 		// More permissive timeout if few nodes are connected to avoid exhaustion.
 		return _nodes.ConnectedNodes.Count < 3
-			? Math.Min(RuntimeParams.Instance.NetworkNodeTimeout * 1.5, 600)
-			: RuntimeParams.Instance.NetworkNodeTimeout;
+			? Math.Min(_currentTimeoutSeconds * 1.5, 600)
+			: _currentTimeoutSeconds;
 	}
 
 	/// <summary>
@@ -62,24 +64,24 @@ public class P2PNodesManager
 	{
 		if (increaseDecrease)
 		{
-			NodeTimeouts++;
+			_timeoutsCounter++;
 		}
 		else
 		{
-			NodeTimeouts--;
+			_timeoutsCounter--;
 		}
 
-		var timeout = RuntimeParams.Instance.NetworkNodeTimeout;
+		var timeout = _currentTimeoutSeconds;
 
 		// If it times out 2 times in a row then increase the timeout.
-		if (NodeTimeouts >= 2)
+		if (_timeoutsCounter >= 2)
 		{
-			NodeTimeouts = 0;
+			_timeoutsCounter = 0;
 			timeout = (int)Math.Round(timeout * 1.5);
 		}
-		else if (NodeTimeouts <= -3) // If it does not time out 3 times in a row, lower the timeout.
+		else if (_timeoutsCounter <= -3) // If it does not time out 3 times in a row, lower the timeout.
 		{
-			NodeTimeouts = 0;
+			_timeoutsCounter = 0;
 			timeout = (int)Math.Round(timeout * 0.7);
 		}
 
@@ -95,14 +97,7 @@ public class P2PNodesManager
 			timeout = 600;
 		}
 
-		if (timeout == RuntimeParams.Instance.NetworkNodeTimeout)
-		{
-			return;
-		}
-
-		RuntimeParams.Instance.NetworkNodeTimeout = timeout;
-		await RuntimeParams.Instance.SaveAsync().ConfigureAwait(false);
-
+		_currentTimeoutSeconds = timeout;
 		Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 	}
 }

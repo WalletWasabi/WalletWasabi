@@ -171,7 +171,6 @@ public class Global
 		}
 
 		WalletFactory walletFactory = new(
-			DataDir,
 			config.Network,
 			BitcoinStore,
 			config.ServiceConfiguration,
