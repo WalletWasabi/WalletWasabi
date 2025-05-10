@@ -228,9 +228,13 @@ public record PersistentConfig
 			return this;
 		}
 
+		var configPath = Path.Combine(defaultBitcoinDataDir, "bitcoin.conf");
+		if (!File.Exists(configPath))
+		{
+			return this;
+		}
 		try
 		{
-			var configPath = Path.Combine(defaultBitcoinDataDir, "bitcoin.conf");
 			var bitcoinConfig = File.ReadAllText(configPath);
 			var config = BitcoinConfig.Parse(bitcoinConfig);
 
