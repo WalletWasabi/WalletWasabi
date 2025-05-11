@@ -755,16 +755,10 @@
           "Avalonia.Xaml.Behaviors": "[11.2.7, )",
           "DynamicData": "[8.4.1, )",
           "Markdown.Avalonia": "[11.0.3-a1, )",
+          "Microsoft.Extensions.Caching.Memory": "[8.0.1, )",
           "QRackers": "[1.1.0, )",
           "System.Private.Uri": "[4.3.2, )",
           "System.Runtime": "[4.3.1, )",
-          "Wasabi Wallet Daemon": "[1.0.0, )"
-        }
-      },
-      "Wasabi Wallet Daemon": {
-        "type": "Project",
-        "dependencies": {
-          "Microsoft.Extensions.Caching.Memory": "[8.0.1, )",
           "WalletWasabi": "[1.0.0, )"
         }
       },
