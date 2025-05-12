@@ -34,7 +34,6 @@ public class P2pTests
 	[InlineData("main")]
 	public async Task TestServicesAsync(string networkString)
 	{
-		await RuntimeParams.LoadAsync();
 		var network = Network.GetNetwork(networkString);
 		var blocksToDownload = new List<uint256>();
 
@@ -121,7 +120,7 @@ public class P2pTests
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(dataDir, network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));

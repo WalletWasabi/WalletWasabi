@@ -74,7 +74,7 @@ public class CancelTests : IClassFixture<RegTestFixture>
 			[],
 			new P2PBlockProvider(network, nodes, false));
 
-		WalletFactory walletFactory = new(workDir, network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 

@@ -64,7 +64,7 @@ public class WalletBuilder : IAsyncDisposable
 
 		var serviceConfiguration = new ServiceConfiguration(new UriEndPoint(new Uri("http://www.nomatter.dontcare")), Money.Coins(WalletWasabi.Helpers.Constants.DefaultDustThreshold));
 
-		WalletFactory walletFactory = new(DataDir, Network.RegTest, BitcoinStore, serviceConfiguration, FeeRateEstimationUpdater, BlockDownloadService);
+		WalletFactory walletFactory = new(Network.RegTest, BitcoinStore, serviceConfiguration, FeeRateEstimationUpdater, BlockDownloadService);
 		return walletFactory.CreateAndInitialize(keyManager);
 	}
 
