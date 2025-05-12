@@ -45,10 +45,9 @@ public class Global
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="_stoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
-	public Global(string dataDir, string configFilePath, Config config)
+	public Global(string dataDir, Config config)
 	{
 		DataDir = dataDir;
-		ConfigFilePath = configFilePath;
 		Config = config;
 		TorSettings = new TorSettings(
 			DataDir,
@@ -76,7 +75,7 @@ public class Global
 		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, blocks);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
-		BackendHttpClientFactory = new IndexerHttpClientFactory(Config.GetBackendUri(), BuildHttpClientFactory());
+		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
 
 		if (config.UseTor != TorMode.Disabled)
 		{
@@ -140,10 +139,10 @@ public class Global
 		ICompactFilterProvider filtersProvider =
 			new WebApiFilterProvider(maxFiltersToSync, BackendHttpClientFactory, EventBus);
 
-		var credentialString = config.GetBitcoinRpcCredentialString();
+		var credentialString = config.BitcoinRpcCredentialString;
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
-			var bitcoinRpcEndPoint = config.GetBitcoinRpcEndPoint();
+			var bitcoinRpcEndPoint = config.BitcoinRpcEndPoint;
 			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToString(), Network));
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient, EventBus), "RPC Monitor");
 
@@ -201,8 +200,6 @@ public class Global
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public IHttpClientFactory BackendHttpClientFactory { get; }
 	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
-
-	public string ConfigFilePath { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }

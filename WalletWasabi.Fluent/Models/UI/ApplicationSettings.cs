@@ -50,9 +50,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _externalTransactionBroadcaster;
 
 	// Coordinator
-	[AutoNotify] private string _mainNetCoordinatorUri;
-	[AutoNotify] private string _testNetCoordinatorUri;
-	[AutoNotify] private string _regTestCoordinatorUri;
+	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
@@ -78,9 +76,9 @@ public partial class ApplicationSettings : ReactiveObject
 	// Non-persistent
 	[AutoNotify] private bool _doUpdateOnClose;
 
-	public ApplicationSettings(string persistentConfigFilePath, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_persistentConfigFilePath = persistentConfigFilePath;
+		_persistentConfigFilePath = Services.PersistentConfigFilePath;
 		_startupConfig = persistentConfig;
 
 		_config = config;
@@ -93,7 +91,7 @@ public partial class ApplicationSettings : ReactiveObject
 	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
 	{
 		// Connections
-		IndexerUri = persistentConfig.GetIndexerUri();
+		IndexerUri = persistentConfig.IndexerUri;
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
@@ -102,14 +100,12 @@ public partial class ApplicationSettings : ReactiveObject
 		// Bitcoin
 		Network = persistentConfig.Network;
 		UseBitcoinRpc = persistentConfig.UseBitcoinRpc;
-		BitcoinRpcEndPoint = persistentConfig.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
-		BitcoinRpcCredentialString = persistentConfig.GetBitcoinRpcCredentialString();
+		BitcoinRpcEndPoint = persistentConfig.BitcoinRpcEndPoint.ToString(defaultPort: -1);
+		BitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
 		DustThreshold = persistentConfig.DustThreshold.ToString();
 
 		// Coordinator
-		MainNetCoordinatorUri = persistentConfig.MainNetCoordinatorUri;
-		TestNetCoordinatorUri = persistentConfig.TestNetCoordinatorUri;
-		RegTestCoordinatorUri = persistentConfig.RegTestCoordinatorUri;
+		CoordinatorUri = persistentConfig.CoordinatorUri;
 
 		MaxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
 		AbsoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
@@ -154,14 +150,12 @@ public partial class ApplicationSettings : ReactiveObject
 			this.WhenAnyValue(
 					x => x.MaxCoinJoinMiningFeeRate,
 					x => x.AbsoluteMinInputCount,
-					x => x.MainNetCoordinatorUri,
-					x => x.TestNetCoordinatorUri,
-					x => x.RegTestCoordinatorUri,
+					x => x.CoordinatorUri,
 					x => x.IndexerUri,
 					x => x.ExchangeRateProvider,
 					x => x.FeeRateEstimationProvider,
 					x => x.ExternalTransactionBroadcaster,
-					(_, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -207,12 +201,14 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public void ResetToDefault()
 	{
-		var newPersistentConfig = new PersistentConfig
+		var defaultConfig = _startupConfig.Network switch
 		{
-			MainNetCoordinatorUri = MainNetCoordinatorUri,
-			TestNetCoordinatorUri = TestNetCoordinatorUri,
-			RegTestCoordinatorUri = RegTestCoordinatorUri
+			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
+			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
+			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
 		};
+
+		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
 
 		var newUiConfig = new UiConfig
 		{
@@ -229,7 +225,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{
-		return !_startupConfig.DeepEquals(config);
+		return _startupConfig != config;
 	}
 
 	private void Save()
@@ -239,8 +235,12 @@ public partial class ApplicationSettings : ReactiveObject
 			{
 				try
 				{
-					PersistentConfig currentConfig = PersistentConfigManager.LoadFile(_persistentConfigFilePath);
-					PersistentConfig newConfig = ApplyChanges(currentConfig);
+					var loadedConfig = PersistentConfigManager.LoadFile(_persistentConfigFilePath);
+					if (loadedConfig is not PersistentConfig currentConfig)
+					{
+						throw new NotSupportedException("Only configuration files after v2.5.1 are supported.");
+					}
+					var newConfig = ApplyChanges(currentConfig);
 					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
@@ -260,77 +260,31 @@ public partial class ApplicationSettings : ReactiveObject
 		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
-		if (Network == config.Network)
+		if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
 		{
-			if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
-			{
-				if (Network == Network.Main)
-				{
-					result = result with { MainNetBitcoinRpcEndPoint = endPoint, MainNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
-				}
-				else if (Network == Network.TestNet)
-				{
-					result = result with { TestNetBitcoinRpcEndPoint = endPoint, TestNetBitcoinRpcCredentialString = BitcoinRpcCredentialString};
-				}
-				else if (Network == Network.RegTest)
-				{
-					result = result with { RegTestBitcoinRpcEndPoint = endPoint, RegTestBitcoinRpcCredentialString = BitcoinRpcCredentialString};
-				}
-				else
-				{
-					throw new NotSupportedNetworkException(Network);
-				}
-			}
-
-			result = result with { MainNetCoordinatorUri = MainNetCoordinatorUri };
-			result = result with { TestNetCoordinatorUri = TestNetCoordinatorUri };
-			result = result with { RegTestCoordinatorUri = RegTestCoordinatorUri };
-
-			if (Network == Network.Main)
-			{
-				result = result with { MainNetIndexerUri = IndexerUri };
-			}
-			else if (Network == Network.TestNet)
-			{
-				result = result with { TestNetIndexerUri = IndexerUri };
-			}
-			else if (Network == Network.RegTest)
-			{
-				result = result with { RegTestIndexerUri = IndexerUri };
-			}
-			else
-			{
-				throw new NotSupportedNetworkException(Network);
-			}
-
-			result = result with
-			{
-				UseBitcoinRpc = UseBitcoinRpc,
-				DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
-					Money.Coins(threshold) :
-					Money.Coins(Constants.DefaultDustThreshold),
-				MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
-					maxCoinjoinMiningFeeRate :
-					Constants.DefaultMaxCoinJoinMiningFeeRate,
-				AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
-					absoluteMinInputCount :
-					Constants.DefaultAbsoluteMinInputCount,
-				ExchangeRateProvider = ExchangeRateProvider,
-				FeeRateEstimationProvider = FeeRateEstimationProvider,
-				ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
-			};
+			result = result with { BitcoinRpcEndPoint = endPoint, BitcoinRpcCredentialString = BitcoinRpcCredentialString};
 		}
-		else
+
+		result = result with { CoordinatorUri = CoordinatorUri };
+		result = result with { IndexerUri = IndexerUri };
+
+		result = result with
 		{
-			result = result with
-			{
-				Network = Network
-			};
-
-			BitcoinRpcEndPoint = result.GetBitcoinRpcEndPoint().ToString(defaultPort: -1);
-			BitcoinRpcCredentialString = result.GetBitcoinRpcCredentialString();
-			IndexerUri = result.GetIndexerUri();
-		}
+			Network = Network,
+			UseBitcoinRpc = UseBitcoinRpc,
+			DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
+				Money.Coins(threshold) :
+				Money.Coins(Constants.DefaultDustThreshold),
+			MaxCoinJoinMiningFeeRate = decimal.TryParse(MaxCoinJoinMiningFeeRate, out var maxCoinjoinMiningFeeRate) ?
+				maxCoinjoinMiningFeeRate :
+				Constants.DefaultMaxCoinJoinMiningFeeRate,
+			AbsoluteMinInputCount = int.TryParse(AbsoluteMinInputCount, out var absoluteMinInputCount) ?
+				absoluteMinInputCount :
+				Constants.DefaultAbsoluteMinInputCount,
+			ExchangeRateProvider = ExchangeRateProvider,
+			FeeRateEstimationProvider = FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
+		};
 
 		// General
 		result = result with
@@ -352,62 +306,13 @@ public partial class ApplicationSettings : ReactiveObject
 			return false;
 		}
 
-		if (!TrySetCoordinatorUri(coordinatorConnectionString.CoordinatorUri.ToString(), coordinatorConnectionString.Network))
-		{
-			return false;
-		}
+		CoordinatorUri = coordinatorConnectionString.CoordinatorUri.ToString();
 
 		AbsoluteMinInputCount = coordinatorConnectionString.AbsoluteMinInputCount.ToString();
 
 		// TODO: Save Name and ReadMoreUri to display it after.
 
 		return true;
-	}
-
-	public bool TrySetCoordinatorUri(string uri, Network? network = null)
-	{
-		network ??= Network;
-
-		if (network == Network.Main)
-		{
-			MainNetCoordinatorUri = uri;
-			return true;
-		}
-
-		if (network == Network.TestNet)
-		{
-			TestNetCoordinatorUri = uri;
-			return true;
-		}
-
-		if (network == Network.RegTest)
-		{
-			RegTestCoordinatorUri = uri;
-			return true;
-		}
-
-		Logger.LogWarning($"Coordinator URI didn't change due to unknown network: {network}");
-		return false;
-	}
-
-	public string GetCoordinatorUri()
-	{
-		if (Network == Network.Main)
-		{
-			return MainNetCoordinatorUri;
-		}
-
-		if (Network == Network.TestNet)
-		{
-			return TestNetCoordinatorUri;
-		}
-
-		if (Network == Network.RegTest)
-		{
-			return RegTestCoordinatorUri;
-		}
-
-		throw new NotSupportedNetworkException(Network);
 	}
 
 	private void ApplyUiConfigChanges()

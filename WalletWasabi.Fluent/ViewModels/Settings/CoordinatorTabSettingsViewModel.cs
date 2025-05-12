@@ -35,17 +35,15 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.ValidateProperty(x => x.MaxCoinJoinMiningFeeRate, ValidateMaxCoinJoinMiningFeeRate);
 		this.ValidateProperty(x => x.AbsoluteMinInputCount, ValidateAbsoluteMinInputCount);
 
-		_coordinatorUri = settings.GetCoordinatorUri();
+		_coordinatorUri = settings.CoordinatorUri;
 		_maxCoinJoinMiningFeeRate = settings.MaxCoinJoinMiningFeeRate;
 		_absoluteMinInputCount = settings.AbsoluteMinInputCount;
 
 		this.WhenAnyValue(
-				x => x.Settings.MainNetCoordinatorUri,
-				x => x.Settings.TestNetCoordinatorUri,
-				x => x.Settings.RegTestCoordinatorUri,
+				x => x.Settings.CoordinatorUri,
 				x => x.Settings.Network)
 			.ToSignal()
-			.Subscribe(x => CoordinatorUri = Settings.GetCoordinatorUri());
+			.Subscribe(x => CoordinatorUri = Settings.CoordinatorUri);
 
 		this.WhenAnyValue(x => x.Settings.MaxCoinJoinMiningFeeRate)
 			.ToSignal()
@@ -75,7 +73,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		Settings.TrySetCoordinatorUri(coordinatorUri);
+		Settings.CoordinatorUri = coordinatorUri;
 	}
 
 	private void ValidateMaxCoinJoinMiningFeeRate(IValidationErrors errors)

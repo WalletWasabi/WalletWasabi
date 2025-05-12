@@ -1,3 +1,4 @@
+using System.IO;
 using System.Net.Http;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -25,7 +26,7 @@ public static class Services
 
 	public static IHttpClientFactory HttpClientFactory { get; private set; } = null!;
 
-	public static string PersistentConfigFilePath { get; private set; } = null!;
+	public static string PersistentConfigFilePath => Path.Combine(DataDir, PersistentConfig.GetConfigFileName());
 
 	public static PersistentConfig PersistentConfig { get; private set; } = null!;
 
@@ -66,7 +67,6 @@ public static class Services
 		TorSettings = global.TorSettings;
 		BitcoinStore = global.BitcoinStore;
 		HttpClientFactory = global.ExternalSourcesHttpClientFactory;
-		PersistentConfigFilePath = global.ConfigFilePath;
 		PersistentConfig = global.Config.PersistentConfig;
 		WalletManager = global.WalletManager;
 		TransactionBroadcaster = global.TransactionBroadcaster;
