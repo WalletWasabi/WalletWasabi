@@ -106,7 +106,7 @@ public class WasabiApplication
 		CreateConfigFiles();
 		MigrateConfigFiles();
 
-		var networkFilePath = Path.Combine(Config.DataDir, ".network");
+		var networkFilePath = Path.Combine(Config.DataDir, "network");
 		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
 		networkName ??= File.ReadAllText(networkFilePath);
 		var network = Network.GetNetwork(networkName ?? "mainnet");
