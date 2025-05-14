@@ -1,19 +1,16 @@
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System.IO;
-using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using WalletWasabi.Fluent.CrashReport;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
+using WalletWasabi.Fluent.CrashReport;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using WalletWasabi.Services;
 
@@ -33,7 +30,7 @@ public class Program
 			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 			{
 				// Show the exception.
-				BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
+				CrashReporterAppBuilder.BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
 				return 1;
 			}
 		}
@@ -113,33 +110,4 @@ public class Program
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
-
-	/// <summary>
-	/// Sets up and initializes the crash reporting UI.
-	/// </summary>
-	/// <param name="serializableException">The serializable exception</param>
-	private static AppBuilder BuildCrashReporterApp(SerializableException serializableException)
-	{
-		var result = AppBuilder
-			.Configure(() => new CrashReportApp(serializableException))
-			.UseReactiveUI();
-
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-		{
-			result
-				.UseWin32()
-				.UseSkia();
-		}
-		else
-		{
-			result.UsePlatformDetect();
-		}
-
-		return result
-			.With(new Win32PlatformOptions { RenderingMode = new[] { Win32RenderingMode.Software } })
-			.With(new X11PlatformOptions { RenderingMode = new[] { X11RenderingMode.Software }, WmClass = "Wasabi Wallet Crash Report" })
-			.With(new AvaloniaNativePlatformOptions { RenderingMode = new[] { AvaloniaNativeRenderingMode.Software } })
-			.With(new MacOSPlatformOptions { ShowInDock = true })
-			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
-	}
 }
