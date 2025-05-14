@@ -74,14 +74,14 @@ public static class WasabiFluentAppBuilder
 	{
 		return AppBuilder
 			.Configure(() => new App(
-				backendInitialiseAsync: async () => await BackendInitialise(app, stopLoadingCts, uiConfig),
+				backendInitialiseAsync: async () => await BackendInitialiseAsync(app, stopLoadingCts, uiConfig),
 				startInBg: runGuiInBackground))
 			.UseReactiveUI()
 			.SetupAppBuilder()
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
 	}
 
-	private static async Task BackendInitialise(WasabiApplication app, CancellationTokenSource stopLoadingCts, UiConfig uiConfig)
+	private static async Task BackendInitialiseAsync(WasabiApplication app, CancellationTokenSource stopLoadingCts, UiConfig uiConfig)
 	{
 		// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
 		await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
