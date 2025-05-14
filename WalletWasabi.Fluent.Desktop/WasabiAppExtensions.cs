@@ -24,17 +24,7 @@ public static class WasabiAppExtensions
 
 	private static Task AfterStarting(WasabiApplication app)
 	{
-		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-		{
-			if (Debugger.IsAttached)
-			{
-				Debugger.Break();
-			}
-
-			Logger.LogError(ex);
-
-			RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
-		});
+		SetupExceptionHandler();
 
 		Logger.LogInfo("Wasabi GUI started.");
 		bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
@@ -68,6 +58,21 @@ public static class WasabiAppExtensions
 		}
 
 		return Task.CompletedTask;
+	}
+
+	private static void SetupExceptionHandler()
+	{
+		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+		{
+			if (Debugger.IsAttached)
+			{
+				Debugger.Break();
+			}
+
+			Logger.LogError(ex);
+
+			RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
+		});
 	}
 
 	private static UiConfig LoadOrCreateUiConfig(string dataDir)
