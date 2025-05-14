@@ -1,15 +1,10 @@
-using System.Diagnostics;
 using Avalonia;
 using Avalonia.ReactiveUI;
 using System.IO;
-using System.Reactive;
-using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
-using ReactiveUI;
-using System.Linq;
 using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
@@ -20,7 +15,6 @@ using System.Net.Sockets;
 using System.Collections.ObjectModel;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
-using System.Threading;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Desktop;
@@ -142,67 +136,5 @@ public class Program
 			.With(new AvaloniaNativePlatformOptions { RenderingMode = new[] { AvaloniaNativeRenderingMode.Software } })
 			.With(new MacOSPlatformOptions { ShowInDock = true })
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(Theme.Dark));
-	}
-}
-
-public static class WasabiAppExtensions
-{
-	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
-	{
-		return await app.RunAsync(
-			afterStarting: () =>
-			{
-				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-				{
-					if (Debugger.IsAttached)
-					{
-						Debugger.Break();
-					}
-
-					Logger.LogError(ex);
-
-					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
-				});
-
-				Logger.LogInfo("Wasabi GUI started.");
-				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
-				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
-
-				using CancellationTokenSource stopLoadingCts = new();
-
-				AppBuilder appBuilder = AppBuilder
-					.Configure(() => new App(
-						backendInitialiseAsync: async () =>
-						{
-							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
-
-							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground))
-					.UseReactiveUI()
-					.SetupAppBuilder()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
-
-				if (app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					Logger.LogDebug("Skip starting Avalonia UI as requested the application to stop.");
-					stopLoadingCts.Cancel();
-				}
-				else
-				{
-					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
-				}
-
-				return Task.CompletedTask;
-			});
-	}
-
-	private static UiConfig LoadOrCreateUiConfig(string dataDir)
-	{
-		Directory.CreateDirectory(dataDir);
-
-		return UiConfig.LoadFile(Path.Combine(dataDir, "UiConfig.json"));
 	}
 }
