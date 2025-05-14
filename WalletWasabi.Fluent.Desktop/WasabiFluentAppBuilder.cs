@@ -54,7 +54,7 @@ public static class WasabiFluentAppBuilder
 
 		using CancellationTokenSource stopLoadingCts = new();
 
-		var appBuilder = BuildAppBuilder(app, stopLoadingCts, uiConfig, runGuiInBackground);
+		var appBuilder = BuildDesktopAppBuilder(app, stopLoadingCts, uiConfig, runGuiInBackground);
 
 		if (app.TerminateService.CancellationToken.IsCancellationRequested)
 		{
@@ -69,15 +69,14 @@ public static class WasabiFluentAppBuilder
 		return Task.CompletedTask;
 	}
 
-	private static AppBuilder BuildAppBuilder(WasabiApplication app, CancellationTokenSource stopLoadingCts, UiConfig uiConfig,
+	private static AppBuilder BuildDesktopAppBuilder(WasabiApplication app, CancellationTokenSource stopLoadingCts, UiConfig uiConfig,
 		bool runGuiInBackground)
 	{
 		return AppBuilder
 			.Configure(() => new App(
 				backendInitialiseAsync: async () => await BackendInitialiseAsync(app, stopLoadingCts, uiConfig),
 				startInBg: runGuiInBackground))
-			.UseReactiveUI()
-			.SetupAppBuilder()
+			.SetupDesktopAppBuilder()
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
 	}
 
