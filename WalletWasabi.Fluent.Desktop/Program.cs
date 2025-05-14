@@ -46,27 +46,7 @@ public class Program
 
 		try
 		{
-			var app = WasabiAppBuilder
-				.Create("Wasabi GUI", args)
-				.EnsureSingleInstance()
-				.OnUnhandledExceptions(LogUnhandledException)
-				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
-				.OnTermination(TerminateApplication)
-				.Build();
-
-			var exitCode = await app.RunAsGuiAsync();
-
-			if (app.TerminateService.GracefulCrashException is not null)
-			{
-				throw app.TerminateService.GracefulCrashException;
-			}
-
-			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: var installerFilePath}})
-			{
-				Installer.StartInstallingNewVersion(installerFilePath);
-			}
-
-			return (int)exitCode;
+			return await RunAsync(args);
 		}
 		catch (Exception ex)
 		{
@@ -74,6 +54,31 @@ public class Program
 			Logger.LogCritical(ex);
 			return 1;
 		}
+	}
+
+	private static async Task<int> RunAsync(string[] args)
+	{
+		var app = WasabiAppBuilder
+			.Create("Wasabi GUI", args)
+			.EnsureSingleInstance()
+			.OnUnhandledExceptions(LogUnhandledException)
+			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+			.OnTermination(TerminateApplication)
+			.Build();
+
+		var exitCode = await app.RunAsGuiAsync();
+
+		if (app.TerminateService.GracefulCrashException is not null)
+		{
+			throw app.TerminateService.GracefulCrashException;
+		}
+
+		if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: var installerFilePath}})
+		{
+			Installer.StartInstallingNewVersion(installerFilePath);
+		}
+
+		return (int)exitCode;
 	}
 
 	/// <summary>
