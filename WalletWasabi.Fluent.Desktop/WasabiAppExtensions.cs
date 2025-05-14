@@ -28,8 +28,7 @@ public static class WasabiAppExtensions
 
 		Logger.LogInfo("Wasabi GUI started.");
 		bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
-		UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-		Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
+		var uiConfig = InitializeDependencies(app);
 
 		using CancellationTokenSource stopLoadingCts = new();
 
@@ -73,6 +72,13 @@ public static class WasabiAppExtensions
 
 			RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
 		});
+	}
+
+	private static UiConfig InitializeDependencies(WasabiApplication app)
+	{
+		UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
+		Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
+		return uiConfig;
 	}
 
 	private static UiConfig LoadOrCreateUiConfig(string dataDir)
