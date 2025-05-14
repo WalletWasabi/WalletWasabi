@@ -25,7 +25,7 @@
         <TagsBox DockPanel.Dock="Left"
                    ItemCountLimit="24"
                    SuggestionsAreCaseSensitive="False"
-                   RestrictInputToSuggestions="True"
+                   RestrictInputToSuggestions="False"
                    Items="{Binding Mnemonics}"
                    Suggestions="{Binding Suggestions}"
                    Watermark="Type in your recovery words in the correct order"
