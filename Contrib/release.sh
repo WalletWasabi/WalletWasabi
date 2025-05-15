@@ -1,5 +1,4 @@
-#! /usr/bin/env nix-shell
-#! nix-shell -i bash -p zip
+#!/usr/bin/env bash
 
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
