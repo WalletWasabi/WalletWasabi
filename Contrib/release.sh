@@ -1,4 +1,5 @@
-#!/usr/bin/env bash
+#! /usr/bin/env nix-shell
+#! nix-shell -i bash -p zip
 
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
@@ -262,10 +263,10 @@ Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;"
 # Write the content to the file
 DEBIAN_DESKTOP="${DEBIAN_USR}/share/applications/${EXECUTABLE_NAME}.desktop"
 echo "${DEBIAN_DESKTOP_CONTENT}" > $DEBIAN_DESKTOP
-sudo chmod 0644 $DEBIAN_DESKTOP
+chmod 0644 $DEBIAN_DESKTOP
 
 # Copy the build to into the debian package structure
-cp -r $BUILD_DIR/linux-x64 $DEBIAN_BIN/wasabiwallet
+cp -a $BUILD_DIR/linux-x64 $DEBIAN_BIN/wasabiwallet
 
 # Create wrapper scripts
 echo "#!/usr/bin/env sh
@@ -275,9 +276,11 @@ echo "#!/usr/bin/env sh
 ${INSTALL_DIR}/${EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
 
 # Remove execution to everything except for executables and their wrapper scripts
-sudo chmod -R 0655 ${DEBIAN_BIN}/wasabiwallet
-sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
-sudo chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
+chmod 0755 ${DEBIAN_BIN}/wasabiwallet
+find ${DEBIAN_BIN}/wasabiwallet -type f -exec chmod 655 {} \;
+find ${DEBIAN_BIN}/wasabiwallet -type d -not -path ${DEBIAN_BIN}/wasabiwallet -exec chmod 755 {} \;
+chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
+chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 
 if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   # Create wrapper scripts
@@ -288,10 +291,10 @@ if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 
   # Remove execution to everything except for executables and their wrapper scripts
-  sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${BACKEND_EXECUTABLE_NAME}
-  sudo chmod 0755 ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
-  sudo chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${COORDINATOR_EXECUTABLE_NAME}
-  sudo chmod 0755 ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${BACKEND_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${COORDINATOR_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 
 fi
 
@@ -426,7 +429,7 @@ AAD//wMAmAcQvToAAAA=' | base64 -d > "$DMG_PATH/.fseventsd/000000000081abf1"
 echo '5D4F6D41-8967-4D1E-9953-35A263D5EFDF' > "$DMG_PATH/.fseventsd/fseventsd-uuid"
 
 # Give read/write to owner, read to group and others and, remove write to group and others
-sudo chmod -R u+rwX,go+rX,go-w "$APP_PATH"
+chmod -R u+rwX,go+rX,go-w "$APP_PATH"
 
 ENTITLEMENTS_PATH="$OSX_BUILD_DIR/entitlements.plist"
 echo '
@@ -475,7 +478,7 @@ while IFS= read -r -d '' file; do
 done < <(find "$APP_PATH" -type f -print0)
 
 EXECUTABLES=("${OTHER_EXECUTABLES[@]}" "${WASSABEED_EXECUTABLE[@]}" "${WASSABEE_EXECUTABLE[@]}")
-sudo chmod u+x "${EXECUTABLES[@]}"
+chmod u+x "${EXECUTABLES[@]}"
 
 CERT_PATH="MacCertificate.cer"
 P12_PATH="MacP12.p12"
