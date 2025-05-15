@@ -164,7 +164,7 @@ public class KeyManagementTests
 		manager.ToFile();
 
 		var sameManager = KeyManager.FromFile(filePath);
-		Assert.Equal(new Height(9_899), sameManager.GetBestHeight(SyncType.Complete));
+		Assert.Equal(new Height(9_899), sameManager.GetBestHeight());
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}

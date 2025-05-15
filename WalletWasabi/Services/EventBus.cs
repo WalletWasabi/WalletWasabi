@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
@@ -113,3 +114,4 @@ public record TorNetworkStatusChanged(Issue[] ReportedIssues);
 public record IndexerIncompatibilityDetected();
 
 public record RpcStatusChanged(RpcStatus Status);
+public record FilterProcessed(FilterModel Filter);

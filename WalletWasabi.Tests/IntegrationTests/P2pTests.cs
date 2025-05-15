@@ -120,7 +120,7 @@ public class P2pTests
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, eventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
@@ -143,7 +143,7 @@ public class P2pTests
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
-				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, hash, new Priority(SyncType.Complete), cts.Token));
+				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, hash, new Priority(), cts.Token));
 			}
 
 			await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));

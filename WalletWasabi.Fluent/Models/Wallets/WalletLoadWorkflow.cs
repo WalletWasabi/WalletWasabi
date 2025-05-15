@@ -1,15 +1,11 @@
 using ReactiveUI;
-using System.Diagnostics;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
@@ -20,6 +16,7 @@ public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
+	private uint _lastestProcessBlockHeight;
 	private Subject<(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percent)> _progress;
 	[AutoNotify] private bool _isLoading;
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
@@ -35,6 +32,14 @@ public partial class WalletLoadWorkflow
 			.Select(e => true)
 			.Take(1)
 			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
+			.DisposeWith(_disposables);
+
+		Services.EventBus.AsObservable<FilterProcessed>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(x => x.Filter.Header.Height)
+			.Sample(TimeSpan.FromSeconds(1))
+			.StartWith((uint)_wallet.KeyManager.GetBestHeight().Value)
+			.Subscribe(x => _lastestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
 		LoadCompleted =
@@ -111,7 +116,7 @@ public partial class WalletLoadWorkflow
 		// Wait until "client tip height" is initialized.
 		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
 
-		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight(SyncType.Turbo).Value;
+		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
 	}
 
 	private void UpdateProgress()
@@ -120,14 +125,13 @@ public partial class WalletLoadWorkflow
 		var clientTipHeight = Services.SmartHeaderChain.TipHeight;
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		if (_wallet.LastProcessedFilter is null || tipHeight == 0)
+		if (_lastestProcessBlockHeight == 0 || tipHeight == 0)
 		{
 			return;
 		}
 
-		var currentheight = _wallet.LastProcessedFilter.Header.Height;
+		var currentheight = _lastestProcessBlockHeight;
 		var percentProgress = 100 * ((currentheight - InitialHeight) / (double)(tipHeight - InitialHeight));
-
 		_progress.OnNext((RemainingFiltersToDownload, currentheight, tipHeight, percentProgress));
 	}
 }

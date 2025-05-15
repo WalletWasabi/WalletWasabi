@@ -47,7 +47,6 @@ public static partial class Encode
 		Object([
 			("Network", Network(s.Network)),
 			("Height", WalletHeight(s.Height)),
-			("TurboSyncHeight", WalletHeight(s.TurboSyncHeight))
 		]);
 
 	public static JsonNode PreferredScriptPubKeyType(PreferredScriptPubKeyType t) =>
@@ -125,8 +124,7 @@ public static partial class Decode
 	public static readonly Decoder<BlockchainState> BlockchainState =
 		Object(get => new BlockchainState(
 			get.Required("Network", Network),
-			get.Required("Height", WalletHeight),
-			get.Required("TurboSyncHeight", WalletHeight)
+			get.Required("Height", WalletHeight)
 			));
 
 	public static readonly Decoder<BitcoinEncryptedSecretNoEC> BitcoinEncryptedSecretNoEC =

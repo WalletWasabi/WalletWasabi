@@ -224,7 +224,6 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx0);
 
 		Assert.True(transactionProcessor.Coins.HasUnspentCoin(hdPubKey));
-		Assert.Null(hdPubKey.LatestSpendingHeight);
 
 		SmartCoin coinA = Assert.Single(transactionProcessor.Coins);
 		Script changeScript = transactionProcessor.NewKey("B").P2wpkhScript;
@@ -235,7 +234,6 @@ public class TransactionProcessorTests
 
 		SmartCoin changeCoinB = Assert.Single(transactionProcessor.Coins);
 		Assert.False(transactionProcessor.Coins.HasUnspentCoin(hdPubKey));
-		Assert.Equal(new Height(55555), hdPubKey.LatestSpendingHeight);
 	}
 
 	[Fact]

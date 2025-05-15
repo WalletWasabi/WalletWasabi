@@ -123,8 +123,6 @@ public class KeyManager
 
 	public ExtPubKey? TaprootExtPubKey { get; private set; }
 
-	public bool UseTurboSync { get; private set; } = true;
-
 	public int MinGapLimit { get; private set; }
 
 	public KeyPath SegwitAccountKeyPath { get; private set; }
@@ -409,13 +407,11 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public record ScriptPubKeySpendingInfo(byte[] ScriptPubKey, Height? LatestSpendingHeight);
-
-	public IEnumerable<ScriptPubKeySpendingInfo> UnsafeGetSynchronizationInfos(bool isBIP158)
+	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos(bool isBIP158)
 	{
 		lock (_criticalStateLock)
 		{
-			return _hdPubKeyCache.Select(x => new ScriptPubKeySpendingInfo(GetScriptPubKeyBytes(x), x.HdPubKey.LatestSpendingHeight));
+			return _hdPubKeyCache.Select(x => GetScriptPubKeyBytes(x));
 		}
 
 		byte[] GetScriptPubKeyBytes(HdPubKeyInfo hdPubKeyInfo) =>
@@ -613,11 +609,11 @@ public class KeyManager
 
 	#region _blockchainState
 
-	public Height GetBestHeight(SyncType syncType)
+	public Height GetBestHeight()
 	{
 		lock (_criticalStateLock)
 		{
-			return syncType == SyncType.Turbo ? _blockchainState.TurboSyncHeight : _blockchainState.Height;
+			return _blockchainState.Height;
 		}
 	}
 
@@ -626,53 +622,15 @@ public class KeyManager
 		return _blockchainState.Network;
 	}
 
-	public void SetBestHeight(SyncType syncType, Height height, bool toFile = true)
-	{
-		if (syncType == SyncType.Turbo)
-		{
-			// Only keys in TurboSync subset (external + internal that didn't receive or fully spent coins) were tested, update TurboSyncHeight.
-			SetBestTurboSyncHeight(height, toFile);
-		}
-		else
-		{
-			// All keys were tested at this height, update the Height.
-			SetBestHeight(height, toFile);
-		}
-	}
-
 	public void SetBestHeight(Height height, bool toFile = true)
 	{
 		lock (_criticalStateLock)
 		{
 			_blockchainState.Height = height;
-			EnsureTurboSyncHeightConsistency(false);
 			if (toFile)
 			{
 				ToFile();
 			}
-		}
-	}
-
-	public void SetBestTurboSyncHeight(Height height, bool toFile = true)
-	{
-		lock (_criticalStateLock)
-		{
-			_blockchainState.TurboSyncHeight = height;
-
-			if (toFile)
-			{
-				ToFile();
-			}
-		}
-	}
-
-	public void SetBestHeights(Height height, Height turboSyncHeight)
-	{
-		lock (_criticalStateLock)
-		{
-			SetBestTurboSyncHeight(turboSyncHeight, false);
-			SetBestHeight(height, false);
-			ToFile();
 		}
 	}
 
@@ -681,33 +639,10 @@ public class KeyManager
 		lock (_criticalStateLock)
 		{
 			var prevHeight = _blockchainState.Height;
-			var prevTurboSyncHeight = _blockchainState.TurboSyncHeight;
 			if (newHeight < prevHeight)
 			{
-				SetBestHeights(newHeight, newHeight);
+				SetBestHeight(newHeight);
 				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
-			}
-			else if (newHeight < prevTurboSyncHeight)
-			{
-				SetBestTurboSyncHeight(newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) turbo sync height has been set back by {prevTurboSyncHeight - (int)newHeight}. From {prevTurboSyncHeight} to {newHeight}.");
-			}
-		}
-	}
-
-	public void EnsureTurboSyncHeightConsistency(bool toFile = true)
-	{
-		lock (_criticalStateLock)
-		{
-			if (_blockchainState.TurboSyncHeight < _blockchainState.Height)
-			{
-				// TurboSyncHeight can't be behind BestHeight
-				_blockchainState.TurboSyncHeight = _blockchainState.Height;
-			}
-
-			if (toFile)
-			{
-				ToFile();
 			}
 		}
 	}
@@ -731,7 +666,7 @@ public class KeyManager
 			if (lastNetwork is null || lastNetwork != expectedNetwork)
 			{
 				_blockchainState.Network = expectedNetwork;
-				SetBestHeights(0, 0);
+				SetBestHeight(0);
 
 				if (lastNetwork is { })
 				{
@@ -760,7 +695,6 @@ public class KeyManager
 			("MasterFingerprint", Encode.Optional(keyManager.MasterFingerprint, Encode.HDFingerprint)),
 			("ExtPubKey", Encode.ExtPubKey(keyManager.SegwitExtPubKey)),
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
-			("UseTurboSync", Encode.Bool(keyManager.UseTurboSync)),
 			("MinGapLimit", Encode.Int(Math.Max(keyManager.SegwitExternalKeyGenerator.MinGapLimit, keyManager.TaprootExternalKeyGenerator?.MinGapLimit ?? 0))),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
@@ -796,7 +730,6 @@ public class KeyManager
 				get.Optional("TaprootAccountKeyPath", Decode.KeyPath)
 			)
 			{
-				UseTurboSync = get.Required("UseTurboSync", Decode.Bool),
 				PreferPsbtWorkflow = get.Required("PreferPsbtWorkflow", Decode.Bool),
 				AutoCoinJoin = get.Required("AutoCoinJoin", Decode.Bool),
 				PlebStopThreshold = get.Required("PlebStopThreshold", Decode.MoneyBitcoins),
