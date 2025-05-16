@@ -9,6 +9,10 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<RuntimeIdentifiers>win-x64;linux-x64;linux-arm64;osx-x64;osx-arm64</RuntimeIdentifiers>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
