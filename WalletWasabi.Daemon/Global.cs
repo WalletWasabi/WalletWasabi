@@ -143,7 +143,12 @@ public class Global
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
 			var bitcoinRpcEndPoint = config.BitcoinRpcEndPoint;
-			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToEndpointString(), Network));
+			var internalRpcClient = new RPCClient(credentialString, bitcoinRpcEndPoint.ToEndpointString(), Network);
+			if (bitcoinRpcEndPoint.IsTor() && Config.UseTor != TorMode.Disabled)
+			{
+				internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+			}
+			BitcoinRpcClient = new RpcClientBase(internalRpcClient);
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient, EventBus), "RPC Monitor");
 
 			var supportsBlockFilters = BitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
