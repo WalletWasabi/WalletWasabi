@@ -215,18 +215,18 @@ public class BlockDownloadService : BackgroundService
 
 	private async Task HandleSingleBlockTaskAsync(Request request, CancellationToken cancellationToken)
 	{
-		RequestResponse response = await DownloadSingleBlockAsync(request, cancellationToken).ConfigureAwait(false);
+		var response = await DownloadSingleBlockAsync(request, cancellationToken).ConfigureAwait(false);
 
-		if (response.Result.IsOk)
+		if (response.IsOk)
 		{
-			request.Tcs.TrySetResult(response.Result);
+			request.Tcs.TrySetResult(response);
 		}
 		else
 		{
 			Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
 
 			// The block might have been removed concurrently if a reorg occurred.
-			if (!request.Tcs.TrySetResult(response.Result))
+			if (!request.Tcs.TrySetResult(response))
 			{
 				var opResult = await request.Tcs.Task.ConfigureAwait(false);
 				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
@@ -237,7 +237,7 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Downloads a single block from a block source, or gets the block from the file-system cache if available.
 	/// </summary>
-	private async Task<RequestResponse> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
+	private async Task<DownloadResult> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
 		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
 
@@ -247,7 +247,7 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await _fileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(DownloadResult.Ok(block));
+				return block;
 			}
 
 			DownloadResult? successResult = null;
@@ -258,7 +258,7 @@ public class BlockDownloadService : BackgroundService
 				// Try to get the block from a trusted node, whether it's integrated or distant.
 				if (_trustedFullNodeBlockProviders.Length == 0)
 				{
-					return new RequestResponse(DownloadResult.Fail(DownloadError.NoSuchProvider));
+					return DownloadResult.Fail(DownloadError.NoSuchProvider);
 				}
 
 				foreach (IBlockProvider blockProvider in _trustedFullNodeBlockProviders)
@@ -267,7 +267,7 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = DownloadResult.Ok(block);
+						successResult = block;
 						break;
 					}
 				}
@@ -282,7 +282,7 @@ public class BlockDownloadService : BackgroundService
 				// Try to get the block from the P2P Network.
 				if (_p2PBlockProvider is null)
 				{
-					return new RequestResponse(DownloadResult.Fail(DownloadError.NoSuchProvider));
+					return DownloadResult.Fail(DownloadError.NoSuchProvider);
 				}
 
 				P2pBlockResponse response = await _p2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
@@ -290,7 +290,7 @@ public class BlockDownloadService : BackgroundService
 				if (response.Block is not null)
 				{
 					block = response.Block;
-					successResult = DownloadResult.Ok(block);
+					successResult = block;
 				}
 				else
 				{
@@ -313,19 +313,19 @@ public class BlockDownloadService : BackgroundService
 
 			if (successResult is not null)
 			{
-				return new RequestResponse(successResult);
+				return successResult;
 			}
 
 			if (failed)
 			{
-				return new RequestResponse(DownloadResult.Fail(DownloadError.Failure));
+				return DownloadResult.Fail(DownloadError.Failure);
 			}
 
 			throw new UnreachableException();
 		}
 		catch (OperationCanceledException)
 		{
-			return new RequestResponse(DownloadResult.Fail(DownloadError.Canceled));
+			return DownloadResult.Fail(DownloadError.Canceled);
 		}
 		catch (Exception ex)
 		{
@@ -336,6 +336,4 @@ public class BlockDownloadService : BackgroundService
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
 	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<DownloadResult> Tcs);
-	private record RequestResponse(DownloadResult Result);
-
 }
