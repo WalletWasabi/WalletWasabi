@@ -158,10 +158,10 @@ public class WalletFilterProcessor : BackgroundService
 	/// </summary>
 	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		ISourceRequest[] sourceRequests = [TrustedFullNodeSourceRequest.Instance, P2pSourceRequest.Automatic];
+		BlockSource[] sourceRequests = [BlockSource.TrustedNode, BlockSource.P2pNetwork];
 		while (true)
 		{
-			foreach (ISourceRequest sourceRequest in sourceRequests)
+			foreach (var sourceRequest in sourceRequests)
 			{
 				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority.BlockHeight, cancellationToken)
 					.ConfigureAwait(false);

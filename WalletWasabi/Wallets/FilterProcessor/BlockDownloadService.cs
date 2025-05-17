@@ -63,9 +63,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<DownloadResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, uint blockHeight, CancellationToken cancellationToken)
+	public async Task<DownloadResult> TryGetBlockAsync(BlockSource source, uint256 blockHash, uint blockHeight, CancellationToken cancellationToken)
 	{
-		Request request = new(sourceRequest, blockHash, blockHeight, new TaskCompletionSource<DownloadResult>());
+		Request request = new(source, blockHash, blockHeight, new TaskCompletionSource<DownloadResult>());
 		Enqueue(request);
 
 		try
@@ -253,7 +253,7 @@ public class BlockDownloadService : BackgroundService
 			DownloadResult? successResult = null;
 			bool failed = false;
 
-			if (request.SourceRequest is TrustedFullNodeSourceRequest)
+			if (request.BlockSource == BlockSource.TrustedNode)
 			{
 				// Try to get the block from a trusted node, whether it's integrated or distant.
 				if (_trustedFullNodeBlockProviders.Length == 0)
@@ -277,7 +277,7 @@ public class BlockDownloadService : BackgroundService
 					failed = true;
 				}
 			}
-			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
+			else if (request.BlockSource == BlockSource.P2pNetwork)
 			{
 				// Try to get the block from the P2P Network.
 				if (_p2PBlockProvider is null)
@@ -335,5 +335,5 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, uint BlockHeight, TaskCompletionSource<DownloadResult> Tcs);
+	internal record Request(BlockSource BlockSource, uint256 BlockHash, uint BlockHeight, TaskCompletionSource<DownloadResult> Tcs);
 }
