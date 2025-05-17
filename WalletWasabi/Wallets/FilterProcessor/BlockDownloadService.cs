@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Wallets.BlockProvider;
+using DownloadResult = WalletWasabi.Helpers.Result<NBitcoin.Block,WalletWasabi.Wallets.FilterProcessor.DownloadError>;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
 
@@ -30,12 +31,6 @@ public class BlockDownloadService : BackgroundService
 		_p2PBlockProvider = p2pBlockProvider;
 		MaximumParallelTasks = maximumParallelTasks;
 	}
-
-	/// <summary>Result object describing if/how object was downloaded using the block downloading service.</summary>
-	public interface IResult;
-
-	/// <summary>Denotes a failure of getting a block.</summary>
-	public interface IFailureResult : IResult;
 
 	private readonly IFileSystemBlockRepository _fileSystemBlockRepository;
 	private readonly IBlockProvider[] _trustedFullNodeBlockProviders;
@@ -68,9 +63,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<IResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, CancellationToken cancellationToken)
+	public async Task<DownloadResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		Request request = new(sourceRequest, blockHash, priority, new TaskCompletionSource<IResult>());
+		Request request = new(sourceRequest, blockHash, priority, new TaskCompletionSource<DownloadResult>());
 		Enqueue(request);
 
 		try
@@ -79,7 +74,7 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (OperationCanceledException)
 		{
-			request.Tcs.TrySetResult(CanceledResult.Instance);
+			request.Tcs.TrySetResult(DownloadResult.Fail(DownloadError.Canceled));
 		}
 
 		// Now the task is guaranteed to return a result.
@@ -126,7 +121,7 @@ public class BlockDownloadService : BackgroundService
 				else
 				{
 					// The block might have been downloaded by now so just try to set the result.
-					request.Tcs.TrySetResult(new ReorgOccurredResult());
+					request.Tcs.TrySetResult(DownloadResult.Fail(DownloadError.ReorgOccurred));
 					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
@@ -212,7 +207,7 @@ public class BlockDownloadService : BackgroundService
 			{
 				while (BlocksToDownloadRequests.TryDequeue(out Request? request, out _))
 				{
-					request.Tcs.TrySetResult(CanceledResult.Instance);
+					request.Tcs.TrySetResult(DownloadResult.Fail(DownloadError.Canceled));
 				}
 			}
 		}
@@ -222,7 +217,7 @@ public class BlockDownloadService : BackgroundService
 	{
 		RequestResponse response = await DownloadSingleBlockAsync(request, cancellationToken).ConfigureAwait(false);
 
-		if (response.Result is SuccessResult)
+		if (response.Result.IsOk)
 		{
 			request.Tcs.TrySetResult(response.Result);
 		}
@@ -233,7 +228,7 @@ public class BlockDownloadService : BackgroundService
 			// The block might have been removed concurrently if a reorg occurred.
 			if (!request.Tcs.TrySetResult(response.Result))
 			{
-				IResult opResult = await request.Tcs.Task.ConfigureAwait(false);
+				var opResult = await request.Tcs.Task.ConfigureAwait(false);
 				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
 			}
 		}
@@ -252,10 +247,10 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await _fileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(new SuccessResult(block));
+				return new RequestResponse(DownloadResult.Ok(block));
 			}
 
-			SuccessResult? successResult = null;
+			DownloadResult? successResult = null;
 			bool failed = false;
 
 			if (request.SourceRequest is TrustedFullNodeSourceRequest)
@@ -263,7 +258,7 @@ public class BlockDownloadService : BackgroundService
 				// Try to get the block from a trusted node, whether it's integrated or distant.
 				if (_trustedFullNodeBlockProviders.Length == 0)
 				{
-					return new RequestResponse(NoSuchProviderResult.Instance);
+					return new RequestResponse(DownloadResult.Fail(DownloadError.NoSuchProvider));
 				}
 
 				foreach (IBlockProvider blockProvider in _trustedFullNodeBlockProviders)
@@ -272,7 +267,7 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = new(block);
+						successResult = DownloadResult.Ok(block);
 						break;
 					}
 				}
@@ -287,7 +282,7 @@ public class BlockDownloadService : BackgroundService
 				// Try to get the block from the P2P Network.
 				if (_p2PBlockProvider is null)
 				{
-					return new RequestResponse(NoSuchProviderResult.Instance);
+					return new RequestResponse(DownloadResult.Fail(DownloadError.NoSuchProvider));
 				}
 
 				P2pBlockResponse response = await _p2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
@@ -295,7 +290,7 @@ public class BlockDownloadService : BackgroundService
 				if (response.Block is not null)
 				{
 					block = response.Block;
-					successResult = new(block);
+					successResult = DownloadResult.Ok(block);
 				}
 				else
 				{
@@ -323,14 +318,14 @@ public class BlockDownloadService : BackgroundService
 
 			if (failed)
 			{
-				return new RequestResponse(new FailureResult());
+				return new RequestResponse(DownloadResult.Fail(DownloadError.Failure));
 			}
 
 			throw new UnreachableException();
 		}
 		catch (OperationCanceledException)
 		{
-			return new RequestResponse(CanceledResult.Instance);
+			return new RequestResponse(DownloadResult.Fail(DownloadError.Canceled));
 		}
 		catch (Exception ex)
 		{
@@ -340,34 +335,7 @@ public class BlockDownloadService : BackgroundService
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<IResult> Tcs);
-	private record RequestResponse(IResult Result);
+	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<DownloadResult> Tcs);
+	private record RequestResponse(DownloadResult Result);
 
-	/// <summary>Block was downloaded successfully.</summary>
-	/// <param name="SourceData">Source data for the bitcoin block.</param>
-	public record SuccessResult(Block Block) : IResult;
-
-	/// <summary>Block could not be get because a blockchain reorg occurred.</summary>
-	/// <remarks>
-	/// The result announces that getting a certain block does not really makes sense because it got evicted by other nodes.
-	/// <para>There is a chance that one downloads given block sooner than a reorg is announced so that possibility must be taken into account by the caller.</para>
-	/// </remarks>
-	public record ReorgOccurredResult : IFailureResult;
-
-	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
-	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
-	public record FailureResult : IFailureResult;
-
-	/// <summary>Block could not be get because specified block providing source was not registered.</summary>
-	/// <remarks>Re-trying won't help. If no trusted full node is set, then this won't change.</remarks>
-	public record NoSuchProviderResult : IFailureResult
-	{
-		public static readonly NoSuchProviderResult Instance = new();
-	}
-
-	/// <summary>Block could not be get because the service is shutting down.</summary>
-	public record CanceledResult : IFailureResult
-	{
-		public static readonly CanceledResult Instance = new();
-	}
 }

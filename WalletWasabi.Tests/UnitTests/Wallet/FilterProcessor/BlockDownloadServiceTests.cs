@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.BlockProvider;
@@ -97,10 +98,10 @@ public class BlockDownloadServiceTests
 		{
 			await service.StartAsync(testCts.Token);
 
-			Task<IResult> task1 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(BlockHeight: 610_001), testCts.Token);
-			Task<IResult> task2 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
-			Task<IResult> task3 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(BlockHeight: 610_003), testCts.Token);
-			Task<IResult> task4 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash4, new Priority(BlockHeight: 610_004), testCts.Token);
+			var task1 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(BlockHeight: 610_001), testCts.Token);
+			var task2 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
+			var task3 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(BlockHeight: 610_003), testCts.Token);
+			var task4 = service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash4, new Priority(BlockHeight: 610_004), testCts.Token);
 
 			// Downloading of the block1 waits for our signal.
 			{
@@ -117,9 +118,9 @@ public class BlockDownloadServiceTests
 				block1DelayTcs.SetResult();
 
 				// Block2 should be available even though block1 and block3 are waiting for data.
-				IResult task1Result = await task1;
-				SuccessResult successResult = Assert.IsType<SuccessResult>(task1Result);
-				Assert.Same(block1, successResult.Block);
+				var task1Result = await task1;
+				Assert.True(task1Result.IsOk);
+				Assert.Same(block1, task1Result.Value);
 			}
 
 			// Verify that block2 waits for our signal, unblock it and verify result.
@@ -128,20 +129,20 @@ public class BlockDownloadServiceTests
 				await block2RequestedTcs.Task.WaitAsync(testCts.Token);
 				block2DelayTcs.SetResult();
 
-				IResult task2Result = await task2;
+				var task2Result = await task2;
 
-				FailureResult failureResult = Assert.IsType<FailureResult>(task2Result);
+				Assert.Equal(DownloadError.Failure, task2Result.Error);
 			}
 
 			// All tasks should provide data now.
-			Task<IResult>[] tasks = [task1, task2, task3, task4];
+			Task<Result<Block, DownloadError>>[] tasks = [task1, task2, task3, task4];
 			await Task.WhenAll(tasks);
 
 			// Second attempt to download block2 should succeed.
 			{
-				IResult task2Result = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
-				SuccessResult successResult = Assert.IsType<SuccessResult>(task2Result);
-				Assert.Same(block2, successResult.Block);
+				var task2Result = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
+				Assert.True(task2Result.IsOk);
+				Assert.Same(block2, task2Result.Value);
 			}
 
 			await service.StopAsync(testCts.Token);
@@ -199,29 +200,30 @@ public class BlockDownloadServiceTests
 		{
 			await service.StartAsync(testCts.Token);
 
-			IResult actualResult1 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(BlockHeight: 610_001), testCts.Token);
-			SuccessResult actualSuccessResult1 = Assert.IsType<SuccessResult>(actualResult1);
-			Assert.Same(block1, actualSuccessResult1.Block);
+			var actualResult1 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(BlockHeight: 610_001), testCts.Token);
+			Assert.True(actualResult1.IsOk);
+			Assert.Same(block1, actualResult1.Value);
 
-			IResult actualResult2 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
-			FailureResult actualFailureResult2 = Assert.IsType<FailureResult>(actualResult2);
+			var actualResult2 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
+			Assert.False(actualResult2.IsOk);
 
-			IResult actualResult3 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(BlockHeight: 610_003), testCts.Token);
-			SuccessResult actualSuccessResult3 = Assert.IsType<SuccessResult>(actualResult3);
-			Assert.Same(block3, actualSuccessResult3.Block);
+			var actualResult3 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(BlockHeight: 610_003), testCts.Token);
+			Assert.True(actualResult3.IsOk);
+			Assert.Same(block3, actualResult3.Value);
 
-			IResult actualResult4 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash4, new Priority(BlockHeight: 610_004), testCts.Token);
-			SuccessResult actualSuccessResult4 = Assert.IsType<SuccessResult>(actualResult4);
-			Assert.Same(block4, actualSuccessResult4.Block);
+			var actualResult4 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash4, new Priority(BlockHeight: 610_004), testCts.Token);
+			Assert.True(actualResult4.IsOk);
+			Assert.Same(block4, actualResult4.Value);
 
 			// Second attempt to get block2.
 			actualResult2 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
-			SuccessResult actualSuccessResult2 = Assert.IsType<SuccessResult>(actualResult2);
-			Assert.Same(block2, actualSuccessResult2.Block);
+			Assert.True(actualResult2.IsOk);
+			Assert.Same(block2, actualResult2.Value);
 
 			// Getting a block over P2P fails because there is no P2P provider registered.
-			IResult actualResult5 = await service.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash2, new Priority(BlockHeight: 610_005), testCts.Token);
-			Assert.IsType<NoSuchProviderResult>(actualResult5);
+			var actualResult5 = await service.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash2, new Priority(BlockHeight: 610_005), testCts.Token);
+			Assert.False(actualResult5.IsOk);
+			Assert.Equal(DownloadError.NoSuchProvider, actualResult5.Error);
 
 			await service.StopAsync(testCts.Token);
 			await service.ExecuteTask!.WaitAsync(testCts.Token);
@@ -253,7 +255,7 @@ public class BlockDownloadServiceTests
 		using BlockDownloadService service = new(fileSystemBlockRepository, [fullNodeBlockProvider], p2pBlockProvider: null, maximumParallelTasks: 3);
 
 		// Intentionally, tested before the service is started just to smoke test that the queue is modified.
-		Task<IResult>[] tasks = [
+		Task<Result<Block, DownloadError>>[] tasks = [
 			service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash1, new Priority(610_001), testCts.Token),
 			service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(610_002), testCts.Token),
 			service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(610_003), testCts.Token),
@@ -278,16 +280,18 @@ public class BlockDownloadServiceTests
 
 		await Task.WhenAll(tasks);
 
-		foreach (Task<IResult> blockDownloadTask in tasks.SkipLast(1))
+		foreach (var blockDownloadTask in tasks.SkipLast(1))
 		{
-			IResult result = await blockDownloadTask;
-			Assert.IsType<FailureResult>(result);
+			var result = await blockDownloadTask;
+			Assert.False(result.IsOk);
+			Assert.Equal(DownloadError.Failure, result.Error);
 		}
 
-		foreach (Task<IResult> blockDownloadTask in tasks.Skip(3))
+		foreach (var blockDownloadTask in tasks.Skip(3))
 		{
-			IResult result = await blockDownloadTask;
-			Assert.IsType<ReorgOccurredResult>(result);
+			var result = await blockDownloadTask;
+			Assert.False(result.IsOk);
+			Assert.Equal(DownloadError.ReorgOccurred, result.Error);
 		}
 
 		await service.StopAsync(testCts.Token);

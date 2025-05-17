@@ -76,11 +76,11 @@ public class BlockDownloadTests
 
 			Stopwatch stopwatch = Stopwatch.StartNew();
 
-			List<Task<IResult>> tasks = [];
+			List<Task<Result<Block, DownloadError>>> tasks = [];
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
-				Task<IResult> taskCompletionSource = blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, new Priority(height), testCts.Token);
+				var taskCompletionSource = blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, new Priority(height), testCts.Token);
 				tasks.Add(taskCompletionSource);
 			}
 
@@ -88,9 +88,9 @@ public class BlockDownloadTests
 
 			uint blockHeight = HeightToBlockHash.First().Key;
 
-			foreach (Task<IResult> task in tasks)
+			foreach (var task in tasks)
 			{
-				IResult result = await task;
+				var result = await task;
 				Logger.LogInfo($"Block #{blockHeight} finished with result: {result}");
 
 				blockHeight++;

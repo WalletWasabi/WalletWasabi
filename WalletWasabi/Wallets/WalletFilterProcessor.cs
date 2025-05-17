@@ -163,16 +163,21 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			foreach (ISourceRequest sourceRequest in sourceRequests)
 			{
-				BlockDownloadService.IResult result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority, cancellationToken)
+				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority, cancellationToken)
 					.ConfigureAwait(false);
 
-				switch (result)
-				{
-					case BlockDownloadService.SuccessResult successFullNodeResult:
-						return successFullNodeResult.Block;
-					case BlockDownloadService.CanceledResult:
-						throw new OperationCanceledException();
-				}
+				return result.Match(
+					block => block,
+					error => error switch
+					{
+						DownloadError.Canceled => throw new OperationCanceledException()
+						/*
+						DownloadError.ReorgOccurred => ????,
+						DownloadError.Failure => ????,
+						DownloadError.NoSuchProvider => ????,
+						_ => throw new ArgumentOutOfRangeException(nameof(error), error, null)
+						*/
+					});
 			}
 		}
 	}
