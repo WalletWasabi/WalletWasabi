@@ -298,7 +298,7 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			foreach (ISourceRequest sourceRequest in sourceRequests)
 			{
-				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority, cancellationToken)
+				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority.BlockHeight, cancellationToken)
 					.ConfigureAwait(false);
 
 				return result.Match(
