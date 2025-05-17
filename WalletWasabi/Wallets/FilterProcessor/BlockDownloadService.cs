@@ -250,8 +250,6 @@ public class BlockDownloadService : BackgroundService
 				return block;
 			}
 
-			DownloadResult? successResult = null;
-
 			if (request.BlockSource == BlockSource.TrustedNode)
 			{
 				// Try to get the block from a trusted node, whether it's integrated or distant.
@@ -266,14 +264,8 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = block;
 						break;
 					}
-				}
-
-				if (successResult is null)
-				{
-					return DownloadResult.Fail(DownloadError.Failure);
 				}
 			}
 			else if (request.BlockSource == BlockSource.P2pNetwork)
@@ -284,38 +276,24 @@ public class BlockDownloadService : BackgroundService
 					return DownloadResult.Fail(DownloadError.NoSuchProvider);
 				}
 
-				var downloadedBlock = await _p2PBlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+				block = await _p2PBlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
+			}
 
-				if (downloadedBlock is not null)
-				{
-					block = downloadedBlock;
-					successResult = block;
-				}
-				else
-				{
-					return DownloadResult.Fail(DownloadError.Failure);
-				}
+			if(block is null)
+			{
+				return DownloadResult.Fail(DownloadError.Failure);
 			}
 
 			// Store the block to the file-system.
-			if (block is not null)
+			try
 			{
-				try
-				{
-					await _fileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Failed to cache block {request.BlockHash} (height: {request.BlockHeight})", ex);
-				}
+				await _fileSystemBlockRepository.SaveAsync(block, cancellationToken).ConfigureAwait(false);
 			}
-
-			if (successResult is not null)
+			catch (Exception ex)
 			{
-				return successResult;
+				Logger.LogError($"Failed to cache block {request.BlockHash} (height: {request.BlockHeight})", ex);
 			}
-
-			throw new UnreachableException();
+			return block;
 		}
 		catch (OperationCanceledException)
 		{
