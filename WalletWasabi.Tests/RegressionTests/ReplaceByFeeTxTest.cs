@@ -64,7 +64,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[],
-			new P2PBlockProvider(network, nodes, false));
+			new P2PBlockProvider(network, nodes));
 
 		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);

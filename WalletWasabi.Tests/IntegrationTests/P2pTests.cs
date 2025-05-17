@@ -116,7 +116,7 @@ public class P2pTests
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[],
-			new P2PBlockProvider(network, nodes, Common.TorSettings.TorMode == TorMode.Enabled));
+			new P2PBlockProvider(network, nodes));
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
