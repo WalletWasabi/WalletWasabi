@@ -51,7 +51,7 @@ public interface ISourceData
 /// Number of connected peers at the moment when we downloaded the bitcoin block.
 /// The number of connected peers can change at any moment.
 /// </param>
-public record P2pSourceData(P2pSourceDataStatusCode StatusCode, Node? Node, uint ConnectedNodes) : ISourceData
+public record P2pSourceData : ISourceData
 {
 	public Source Source => Source.P2P;
 }
