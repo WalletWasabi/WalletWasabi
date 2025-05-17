@@ -36,22 +36,3 @@ public enum P2pSourceDataStatusCode
 	/// <remarks>This covers for example networking errors.</remarks>
 	Failure
 }
-
-public interface ISourceData
-{
-	Source Source { get; }
-}
-
-/// <summary>
-/// Source data for a bitcoin block downloaded over the P2P Network.
-/// </summary>
-/// <param name="StatusCode">Description of the P2P operation result.</param>
-/// <param name="Node">Node from which we downloaded some bitcoin block, or <c>null</c> if there was no node available.</param>
-/// <param name="ConnectedNodes">
-/// Number of connected peers at the moment when we downloaded the bitcoin block.
-/// The number of connected peers can change at any moment.
-/// </param>
-public record P2pSourceData : ISourceData
-{
-	public Source Source => Source.P2P;
-}
