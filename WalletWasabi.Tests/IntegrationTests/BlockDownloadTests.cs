@@ -80,7 +80,7 @@ public class BlockDownloadTests
 
 			foreach ((uint height, uint256 blockHash) in HeightToBlockHash)
 			{
-				var taskCompletionSource = blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, new Priority(height), testCts.Token);
+				var taskCompletionSource = blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, blockHash, height, testCts.Token);
 				tasks.Add(taskCompletionSource);
 			}
 

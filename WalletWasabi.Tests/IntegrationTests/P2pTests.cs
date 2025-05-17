@@ -143,7 +143,7 @@ public class P2pTests
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
-				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, hash, new Priority(), cts.Token));
+				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, hash, 0, cts.Token));
 			}
 
 			await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));

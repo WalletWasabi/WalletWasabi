@@ -47,7 +47,7 @@ public class BlockDownloadService : BackgroundService
 	/// Guarded by <see cref="_lock"/>.
 	/// <para>Internal for testing purposes.</para>
 	/// </remarks>
-	internal PriorityQueue<Request, Priority> BlocksToDownloadRequests { get; } = new(Priority.Comparer);
+	internal PriorityQueue<Request, uint> BlocksToDownloadRequests { get; } = new();
 
 	/// <remarks>Guards <see cref="BlocksToDownloadRequests"/>.</remarks>
 	private readonly object _lock = new();
@@ -63,9 +63,9 @@ public class BlockDownloadService : BackgroundService
 	/// </list>
 	/// </returns>
 	/// <remarks>The method does not throw exceptions.</remarks>
-	public async Task<DownloadResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, Priority priority, CancellationToken cancellationToken)
+	public async Task<DownloadResult> TryGetBlockAsync(ISourceRequest sourceRequest, uint256 blockHash, uint blockHeight, CancellationToken cancellationToken)
 	{
-		Request request = new(sourceRequest, blockHash, priority, new TaskCompletionSource<DownloadResult>());
+		Request request = new(sourceRequest, blockHash, blockHeight, new TaskCompletionSource<DownloadResult>());
 		Enqueue(request);
 
 		try
@@ -86,7 +86,7 @@ public class BlockDownloadService : BackgroundService
 		lock (_lock)
 		{
 			int count = BlocksToDownloadRequests.Count;
-			BlocksToDownloadRequests.Enqueue(request, request.Priority);
+			BlocksToDownloadRequests.Enqueue(request, request.BlockHeight);
 
 			if (count == 0 && _requestAvailableSemaphore.CurrentCount == 0)
 			{
@@ -104,19 +104,19 @@ public class BlockDownloadService : BackgroundService
 	/// </remarks>
 	public async Task RemoveBlocksAsync(uint maxBlockHeight)
 	{
-		PriorityQueue<Request, Priority> tempQueue = new(Priority.Comparer);
+		PriorityQueue<Request, uint> tempQueue = new();
 
 		List<uint256> toRemoveFromCache = [];
 
 		lock (_lock)
 		{
-			List<(Request Element, Priority Priority)> items = BlocksToDownloadRequests.UnorderedItems.ToList();
+			var items = BlocksToDownloadRequests.UnorderedItems.ToList();
 
-			foreach ((Request request, Priority priority) in items)
+			foreach (var (request, blockHeight) in items)
 			{
-				if (priority.BlockHeight <= maxBlockHeight)
+				if (blockHeight <= maxBlockHeight)
 				{
-					tempQueue.Enqueue(request, priority);
+					tempQueue.Enqueue(request, blockHeight);
 				}
 				else
 				{
@@ -223,13 +223,13 @@ public class BlockDownloadService : BackgroundService
 		}
 		else
 		{
-			Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.Priority.BlockHeight}) failed.");
+			Logger.LogDebug($"Attempt to download block {request.BlockHash} (height: {request.BlockHeight}) failed.");
 
 			// The block might have been removed concurrently if a reorg occurred.
 			if (!request.Tcs.TrySetResult(response))
 			{
 				var opResult = await request.Tcs.Task.ConfigureAwait(false);
-				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.Priority.BlockHeight}). Result is already: {opResult}");
+				Logger.LogDebug($"Failed to set result for block '{request.BlockHash}' (height: {request.BlockHeight}). Result is already: {opResult}");
 			}
 		}
 	}
@@ -239,7 +239,7 @@ public class BlockDownloadService : BackgroundService
 	/// </summary>
 	private async Task<DownloadResult> DownloadSingleBlockAsync(Request request, CancellationToken cancellationToken)
 	{
-		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.Priority.BlockHeight}).");
+		Logger.LogTrace($"Trying to download {request.BlockHash} (height: {request.BlockHeight}).");
 
 		try
 		{
@@ -307,7 +307,7 @@ public class BlockDownloadService : BackgroundService
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Failed to cache block {request.BlockHash} (height: {request.Priority.BlockHeight})", ex);
+					Logger.LogError($"Failed to cache block {request.BlockHash} (height: {request.BlockHeight})", ex);
 				}
 			}
 
@@ -329,11 +329,11 @@ public class BlockDownloadService : BackgroundService
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {request.Priority.BlockHeight})", ex);
+			Logger.LogError($"Exception thrown while getting block {request.BlockHash} (height: {request.BlockHeight})", ex);
 			throw new UnreachableException("Unexpected exception occurred", ex);
 		}
 	}
 
 	/// <param name="Tcs">By design, this task completion source is not supposed to be ended by </param>
-	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, Priority Priority, TaskCompletionSource<DownloadResult> Tcs);
+	internal record Request(ISourceRequest SourceRequest, uint256 BlockHash, uint BlockHeight, TaskCompletionSource<DownloadResult> Tcs);
 }
