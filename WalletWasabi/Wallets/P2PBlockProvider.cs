@@ -4,14 +4,13 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets.BlockProvider;
 
 namespace WalletWasabi.Wallets;
 
 /// <summary>
 /// P2P block provider is a blocks provider getting the blocks from bitcoin nodes using the P2P bitcoin protocol.
 /// </summary>
-public class P2PBlockProvider : IP2PBlockProvider
+public class P2PBlockProvider : IBlockProvider
 {
 	public P2PBlockProvider(P2PNodesManager p2PNodesManager)
 	{
@@ -19,7 +18,7 @@ public class P2PBlockProvider : IP2PBlockProvider
 	}
 
 	/// <remarks>For tests only.</remarks>
-	internal P2PBlockProvider(Network network, NodesGroup nodes, bool isTorEnabled)
+	internal P2PBlockProvider(Network network, NodesGroup nodes)
 		: this(new P2PNodesManager(network, nodes))
 	{
 	}
@@ -34,28 +33,14 @@ public class P2PBlockProvider : IP2PBlockProvider
 	/// <returns>Requested block, or <c>null</c> if the block could not get downloaded for any reason.</returns>
 	public async Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
-		P2pBlockResponse blockWithSourceData = await TryGetBlockWithSourceDataAsync(blockHash, P2pSourceRequest.Automatic, cancellationToken).ConfigureAwait(false);
-		return blockWithSourceData.Block;
-	}
+		var node = await _p2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
 
-	/// <inheritdoc/>
-	public async Task<P2pBlockResponse> TryGetBlockWithSourceDataAsync(uint256 blockHash, P2pSourceRequest sourceRequest, CancellationToken cancellationToken)
-	{
-		Node? node = sourceRequest.Node;
-
-		if (node is null)
+		if (node is null || !node.IsConnected)
 		{
-			node = await _p2PNodesManager.GetNodeAsync(cancellationToken).ConfigureAwait(false);
-
-			if (node is null || !node.IsConnected)
-			{
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.NoPeerAvailable, Node: null, _p2PNodesManager.ConnectedNodesCount));
-			}
+			return null;
 		}
 
-		double timeout = sourceRequest.Timeout ?? _p2PNodesManager.GetCurrentTimeout();
-
-		uint connectedNodes = _p2PNodesManager.ConnectedNodesCount;
+		double timeout = _p2PNodesManager.GetCurrentTimeout();
 
 		// Download block from the selected node.
 		try
@@ -73,14 +58,13 @@ public class P2PBlockProvider : IP2PBlockProvider
 			{
 				_p2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.InvalidBlockProvided, node, connectedNodes));
+				return null;
 			}
-
 			_p2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}. Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
 
 			await _p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
-			return new P2pBlockResponse(block, new P2pSourceData(P2pSourceDataStatusCode.Success, node, connectedNodes));
+			return block;
 		}
 		catch (Exception ex)
 		{
@@ -89,15 +73,13 @@ public class P2PBlockProvider : IP2PBlockProvider
 				await _p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 				_p2PNodesManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Cancelled, node, connectedNodes));
 			}
 			else
 			{
 				Logger.LogDebug(ex);
 				_p2PNodesManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
-
-				return new P2pBlockResponse(Block: null, new P2pSourceData(P2pSourceDataStatusCode.Failure, node, connectedNodes));
 			}
+			return null;
 		}
 	}
 }
