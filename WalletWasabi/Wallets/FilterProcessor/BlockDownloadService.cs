@@ -257,7 +257,7 @@ public class BlockDownloadService : BackgroundService
 			}
 
 			SuccessResult? successResult = null;
-			ISourceData? failureSourceData = null;
+			bool failed = false;
 
 			if (request.SourceRequest is TrustedFullNodeSourceRequest)
 			{
@@ -280,7 +280,7 @@ public class BlockDownloadService : BackgroundService
 
 				if (successResult is null)
 				{
-					failureSourceData = EmptySourceData.TrustedFullNode;
+					failed = true;
 				}
 			}
 			else if (request.SourceRequest is P2pSourceRequest p2pSourceRequest)
@@ -300,7 +300,7 @@ public class BlockDownloadService : BackgroundService
 				}
 				else
 				{
-					failureSourceData = response.SourceData;
+					failed = true;
 				}
 			}
 
@@ -322,7 +322,7 @@ public class BlockDownloadService : BackgroundService
 				return new RequestResponse(successResult);
 			}
 
-			if (failureSourceData is not null)
+			if (failed)
 			{
 				return new RequestResponse(new FailureResult());
 			}
