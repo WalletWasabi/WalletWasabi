@@ -55,14 +55,6 @@ public class BlockDownloadService : BackgroundService
 	/// <summary>
 	/// Attempts to get given block from the given source. It can take a long time to get the result because priority of block download is taken into account.
 	/// </summary>
-	/// <returns>One of the following result objects:
-	/// <list type="bullet">
-	/// <item><see cref="SuccessResult"/> when the block was downloaded successfully.</item>
-	/// <item><see cref="CanceledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
-	/// <item><see cref="FailureResult"/> when the block download failed for some reason.</item>
-	/// </list>
-	/// </returns>
-	/// <remarks>The method does not throw exceptions.</remarks>
 	public async Task<DownloadResult> TryGetBlockAsync(BlockSource source, uint256 blockHash, uint blockHeight, CancellationToken cancellationToken)
 	{
 		Request request = new(source, blockHash, blockHeight, new TaskCompletionSource<DownloadResult>());
@@ -197,12 +189,13 @@ public class BlockDownloadService : BackgroundService
 		{
 			// This shouldn't happen.
 			Logger.LogError(ex);
-			TerminateService.Instance?.SignalGracefulCrash(ex);
+			TerminateService.Instance?.SignalGracefulCrash(ex); // TODO: fix this
 			throw;
 		}
 		finally
 		{
 			// Mark everything as cancelled because the service is shutting down (either gracefully or forcibly).
+			// TODO: Fix this please
 			lock (_lock)
 			{
 				while (BlocksToDownloadRequests.TryDequeue(out Request? request, out _))
@@ -219,6 +212,7 @@ public class BlockDownloadService : BackgroundService
 
 		if (response.IsOk)
 		{
+			// TODO: fix this. it returns `response` regardless of whether it is okay or not
 			request.Tcs.TrySetResult(response);
 		}
 		else
