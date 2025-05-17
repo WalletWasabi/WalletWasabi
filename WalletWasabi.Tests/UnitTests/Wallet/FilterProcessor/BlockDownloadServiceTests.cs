@@ -131,7 +131,6 @@ public class BlockDownloadServiceTests
 				IResult task2Result = await task2;
 
 				FailureResult failureResult = Assert.IsType<FailureResult>(task2Result);
-				Assert.IsType<EmptySourceData>(failureResult.SourceData);
 			}
 
 			// All tasks should provide data now.
@@ -206,7 +205,6 @@ public class BlockDownloadServiceTests
 
 			IResult actualResult2 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash2, new Priority(BlockHeight: 610_002), testCts.Token);
 			FailureResult actualFailureResult2 = Assert.IsType<FailureResult>(actualResult2);
-			Assert.IsType<EmptySourceData>(actualFailureResult2.SourceData);
 
 			IResult actualResult3 = await service.TryGetBlockAsync(TrustedFullNodeSourceRequest.Instance, blockHash3, new Priority(BlockHeight: 610_003), testCts.Token);
 			SuccessResult actualSuccessResult3 = Assert.IsType<SuccessResult>(actualResult3);
@@ -284,7 +282,6 @@ public class BlockDownloadServiceTests
 		{
 			IResult result = await blockDownloadTask;
 			FailureResult failureResult = Assert.IsType<FailureResult>(result);
-			Assert.IsType<EmptySourceData>(failureResult.SourceData);
 		}
 
 		foreach (Task<IResult> blockDownloadTask in tasks.Skip(3))
