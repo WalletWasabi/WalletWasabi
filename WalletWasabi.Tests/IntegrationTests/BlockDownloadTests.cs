@@ -67,7 +67,7 @@ public class BlockDownloadTests
 			await Task.Delay(1000, testCts.Token);
 		}
 
-		P2PBlockProvider p2PBlockProvider = new(Network.Main, nodes, isTorEnabled: false);
+		P2PBlockProvider p2PBlockProvider = new(Network.Main, nodes);
 		using BlockDownloadService blockDownloadService = new(fileSystemBlockRepository, trustedFullNodeBlockProviders: [], p2PBlockProvider);
 
 		try
