@@ -63,7 +63,6 @@ public class BlockDownloadService : BackgroundService
 	/// <returns>One of the following result objects:
 	/// <list type="bullet">
 	/// <item><see cref="SuccessResult"/> when the block was downloaded successfully.</item>
-	/// <item><see cref="ReorgOccurredResult"/> when the block was not downloaded because a reorg occurred and as such block downloading does not make sense.</item>
 	/// <item><see cref="CanceledResult"/> when cancelled using the cancellation token or if the service is shutting down.</item>
 	/// <item><see cref="FailureResult"/> when the block download failed for some reason.</item>
 	/// </list>
@@ -127,7 +126,7 @@ public class BlockDownloadService : BackgroundService
 				else
 				{
 					// The block might have been downloaded by now so just try to set the result.
-					request.Tcs.TrySetResult(new ReorgOccurredResult(NewBlockchainHeight: maxBlockHeight));
+					request.Tcs.TrySetResult(new ReorgOccurredResult());
 					toRemoveFromCache.Add(request.BlockHash);
 				}
 			}
@@ -353,7 +352,7 @@ public class BlockDownloadService : BackgroundService
 	/// The result announces that getting a certain block does not really makes sense because it got evicted by other nodes.
 	/// <para>There is a chance that one downloads given block sooner than a reorg is announced so that possibility must be taken into account by the caller.</para>
 	/// </remarks>
-	public record ReorgOccurredResult(uint NewBlockchainHeight) : IFailureResult;
+	public record ReorgOccurredResult : IFailureResult;
 
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>

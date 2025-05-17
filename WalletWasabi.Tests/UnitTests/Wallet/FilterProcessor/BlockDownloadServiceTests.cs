@@ -281,14 +281,13 @@ public class BlockDownloadServiceTests
 		foreach (Task<IResult> blockDownloadTask in tasks.SkipLast(1))
 		{
 			IResult result = await blockDownloadTask;
-			FailureResult failureResult = Assert.IsType<FailureResult>(result);
+			Assert.IsType<FailureResult>(result);
 		}
 
 		foreach (Task<IResult> blockDownloadTask in tasks.Skip(3))
 		{
 			IResult result = await blockDownloadTask;
-			ReorgOccurredResult reorgResult = Assert.IsType<ReorgOccurredResult>(result);
-			Assert.Equal(610_003u, reorgResult.NewBlockchainHeight);
+			Assert.IsType<ReorgOccurredResult>(result);
 		}
 
 		await service.StopAsync(testCts.Token);
