@@ -139,7 +139,7 @@ public class P2pTests
 
 			nodes.Connect();
 
-			var downloadTasks = new List<Task<BlockDownloadService.IResult>>();
+			var downloadTasks = new List<Task<Result<Block, DownloadError>>>();
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
