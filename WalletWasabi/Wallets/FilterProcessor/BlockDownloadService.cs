@@ -253,7 +253,7 @@ public class BlockDownloadService : BackgroundService
 			Block? block = await _fileSystemBlockRepository.TryGetAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 			if (block is not null)
 			{
-				return new RequestResponse(new SuccessResult(block, EmptySourceData.FileSystemCache));
+				return new RequestResponse(new SuccessResult(block));
 			}
 
 			SuccessResult? successResult = null;
@@ -273,7 +273,7 @@ public class BlockDownloadService : BackgroundService
 
 					if (block is not null)
 					{
-						successResult = new(block, EmptySourceData.TrustedFullNode);
+						successResult = new(block);
 						break;
 					}
 				}
@@ -296,7 +296,7 @@ public class BlockDownloadService : BackgroundService
 				if (response.Block is not null)
 				{
 					block = response.Block;
-					successResult = new(block, response.SourceData);
+					successResult = new(block);
 				}
 				else
 				{
@@ -324,7 +324,7 @@ public class BlockDownloadService : BackgroundService
 
 			if (failureSourceData is not null)
 			{
-				return new RequestResponse(new FailureResult(failureSourceData));
+				return new RequestResponse(new FailureResult());
 			}
 
 			throw new UnreachableException();
@@ -346,7 +346,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <summary>Block was downloaded successfully.</summary>
 	/// <param name="SourceData">Source data for the bitcoin block.</param>
-	public record SuccessResult(Block Block, ISourceData SourceData) : IResult;
+	public record SuccessResult(Block Block) : IResult;
 
 	/// <summary>Block could not be get because a blockchain reorg occurred.</summary>
 	/// <remarks>
@@ -357,7 +357,7 @@ public class BlockDownloadService : BackgroundService
 
 	/// <summary>Block could not be get for an unknown reason from any block providing source.</summary>
 	/// <remarks>Trying to get the block later might help or it might not. There is no guarantee.</remarks>
-	public record FailureResult(ISourceData SourceData) : IFailureResult;
+	public record FailureResult : IFailureResult;
 
 	/// <summary>Block could not be get because specified block providing source was not registered.</summary>
 	/// <remarks>Re-trying won't help. If no trusted full node is set, then this won't change.</remarks>
