@@ -251,7 +251,6 @@ public class BlockDownloadService : BackgroundService
 			}
 
 			DownloadResult? successResult = null;
-			bool failed = false;
 
 			if (request.BlockSource == BlockSource.TrustedNode)
 			{
@@ -274,7 +273,7 @@ public class BlockDownloadService : BackgroundService
 
 				if (successResult is null)
 				{
-					failed = true;
+					return DownloadResult.Fail(DownloadError.Failure);
 				}
 			}
 			else if (request.BlockSource == BlockSource.P2pNetwork)
@@ -294,7 +293,7 @@ public class BlockDownloadService : BackgroundService
 				}
 				else
 				{
-					failed = true;
+					return DownloadResult.Fail(DownloadError.Failure);
 				}
 			}
 
@@ -314,11 +313,6 @@ public class BlockDownloadService : BackgroundService
 			if (successResult is not null)
 			{
 				return successResult;
-			}
-
-			if (failed)
-			{
-				return DownloadResult.Fail(DownloadError.Failure);
 			}
 
 			throw new UnreachableException();
