@@ -23,7 +23,7 @@ public class BlockDownloadService : BackgroundService
 	public BlockDownloadService(
 		IFileSystemBlockRepository fileSystemBlockRepository,
 		IBlockProvider[] trustedFullNodeBlockProviders,
-		IP2PBlockProvider? p2pBlockProvider,
+		IBlockProvider? p2pBlockProvider,
 		int maximumParallelTasks = MaxParallelTasks)
 	{
 		_fileSystemBlockRepository = fileSystemBlockRepository;
@@ -36,7 +36,7 @@ public class BlockDownloadService : BackgroundService
 	private readonly IBlockProvider[] _trustedFullNodeBlockProviders;
 
 	/// <remarks><c>null</c> means that no P2P provider is available.</remarks>
-	private readonly IP2PBlockProvider? _p2PBlockProvider;
+	private readonly IBlockProvider? _p2PBlockProvider;
 	public int MaximumParallelTasks { get; }
 
 	/// <summary>Signals that there is a block-download request or multiple block-download requests.</summary>
@@ -285,11 +285,11 @@ public class BlockDownloadService : BackgroundService
 					return DownloadResult.Fail(DownloadError.NoSuchProvider);
 				}
 
-				P2pBlockResponse response = await _p2PBlockProvider.TryGetBlockWithSourceDataAsync(request.BlockHash, p2pSourceRequest, cancellationToken).ConfigureAwait(false);
+				var downloadedBlock = await _p2PBlockProvider.TryGetBlockAsync(request.BlockHash, cancellationToken).ConfigureAwait(false);
 
-				if (response.Block is not null)
+				if (downloadedBlock is not null)
 				{
-					block = response.Block;
+					block = downloadedBlock;
 					successResult = block;
 				}
 				else
