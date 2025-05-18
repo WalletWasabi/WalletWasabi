@@ -436,6 +436,8 @@ public class Wallet : BackgroundService, IWallet
 			}
 			lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;
 		}
+
+		await WalletFilterProcessor.InitialSynchronizationFinished.ConfigureAwait(false);
 	}
 
 	private void LoadDummyMempool()

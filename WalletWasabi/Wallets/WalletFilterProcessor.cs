@@ -32,6 +32,7 @@ public class WalletFilterProcessor : BackgroundService
 		_blockDownloadService = blockDownloadService;
 		_eventBus = eventBus;
 		_blockFilterIterator = new(_bitcoinStore.IndexStore);
+		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
 
 	private readonly KeyManager _keyManager;
@@ -40,7 +41,9 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly BlockDownloadService _blockDownloadService;
 	private readonly EventBus _eventBus;
 	private readonly BlockFilterIterator _blockFilterIterator;
+	private readonly TaskCompletionSource _initialSynchronizationFinished;
 
+	public Task InitialSynchronizationFinished => _initialSynchronizationFinished.Task;
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private readonly AsyncLock _reorgLock = new();
 
@@ -58,6 +61,7 @@ public class WalletFilterProcessor : BackgroundService
 
 					if (lastHeight == _bitcoinStore.SmartHeaderChain.TipHeight)
 					{
+						_initialSynchronizationFinished.TrySetResult();
 						await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
 						continue;
 					}
