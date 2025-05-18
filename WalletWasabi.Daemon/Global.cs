@@ -175,6 +175,7 @@ public class Global
 			config.ServiceConfiguration,
 			HostedServices.Get<FeeRateEstimationUpdater>(),
 			_blockDownloadService,
+			EventBus,
 			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
@@ -253,9 +254,6 @@ public class Global
 				try
 				{
 					await bitcoinStoreInitTask.ConfigureAwait(false);
-
-					// Make sure that TurboSyncHeight is not higher than BestHeight
-					WalletManager.EnsureTurboSyncHeightConsistency();
 
 					// Make sure that the height of the wallets will not be better than the current height of the filters.
 					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);

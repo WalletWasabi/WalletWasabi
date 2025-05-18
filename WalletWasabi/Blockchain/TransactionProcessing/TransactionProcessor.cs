@@ -263,12 +263,6 @@ public class TransactionProcessor
 			}
 		}
 
-		if (tx.Confirmed)
-		{
-			// Update for TurboSync - save spending height for internal keys if there is a spender tx and no more coins left on the key.
-			SaveInternalKeysLatestSpendingHeight(tx.Height, myInputs.Select(x => x.HdPubKey).Where(x => x.IsInternal).Distinct());
-		}
-
 		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)
 		{
 			TransactionStore.AddOrUpdate(tx);
@@ -283,29 +277,6 @@ public class TransactionProcessor
 		output.Value <= DustThreshold // the value received is under the dust threshold
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.IsUsed(hdPubKey); // the destination address has already been used (address reuse)
-
-	private void SaveInternalKeysLatestSpendingHeight(Height txHeight, IEnumerable<HdPubKey> internalKeys)
-	{
-		foreach (var spenderKey in internalKeys)
-		{
-			if (Coins.HasUnspentCoin(spenderKey))
-			{
-				// The key still has unspent coins.
-				continue;
-			}
-
-			// All the coins on this key were spent. Mark it as retired and store the block height.
-			if (spenderKey.LatestSpendingHeight is null)
-			{
-				spenderKey.LatestSpendingHeight = txHeight;
-			}
-			else if ((Height)spenderKey.LatestSpendingHeight < txHeight)
-			{
-				// Key spent its coins earlier in history but was reused and spent again.
-				spenderKey.LatestSpendingHeight = txHeight;
-			}
-		}
-	}
 
 	public void UndoBlock(Height blockHeight)
 	{

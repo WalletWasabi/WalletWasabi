@@ -366,14 +366,6 @@ public class WalletManager : IWalletProvider
 		IsInitialized = true;
 	}
 
-	public void EnsureTurboSyncHeightConsistency()
-	{
-		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
-		{
-			km.EnsureTurboSyncHeightConsistency();
-		}
-	}
-
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
