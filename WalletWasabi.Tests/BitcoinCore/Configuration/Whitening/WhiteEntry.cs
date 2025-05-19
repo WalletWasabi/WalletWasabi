@@ -11,7 +11,7 @@ public abstract class WhiteEntry
 	public string Permissions { get; private set; } = "";
 	public EndPoint? EndPoint { get; private set; } = null;
 
-	public static bool TryParse<T>(string value, Network network, [NotNullWhen(true)] out T? whiteEntry) where T : WhiteEntry, new()
+	public static bool TryParse<T>(string value, [NotNullWhen(true)] out T? whiteEntry) where T : WhiteEntry, new()
 	{
 		whiteEntry = null;
 
@@ -19,7 +19,7 @@ public abstract class WhiteEntry
 		var parts = value?.Split('@');
 		if (parts is { })
 		{
-			if (EndPointParser.TryParse(parts.LastOrDefault(), network.DefaultPort, out EndPoint? endPoint))
+			if (EndPointParser.TryParse(parts.LastOrDefault(), out EndPoint? endPoint))
 			{
 				whiteEntry = new T
 				{

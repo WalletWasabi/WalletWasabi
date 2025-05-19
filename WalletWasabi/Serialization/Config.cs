@@ -80,7 +80,7 @@ public static partial class Decode
 	public static readonly Decoder<EndPoint> EndPoint =
 		String.AndThen(s =>
 		{
-			if (EndPointParser.TryParse(s, 80, out EndPoint? endPoint))
+			if (EndPointParser.TryParse(s, out EndPoint? endPoint))
 			{
 				return Succeed(endPoint);
 			}

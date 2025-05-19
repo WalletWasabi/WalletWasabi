@@ -1,8 +1,5 @@
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using System.Net;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Userfacing;
 
@@ -37,89 +34,66 @@ public static class EndPointParser
 		return endPointString;
 	}
 
-	/// <param name="defaultPort">If invalid and it's needed to use, then this function returns false.</param>
-	public static bool TryParse(string? endPointString, int defaultPort, [NotNullWhen(true)] out EndPoint? endPoint)
+	public static bool TryParse(string endPointString, [NotNullWhen(true)] out EndPoint? endPoint)
 	{
-		endPoint = null;
-
 		try
 		{
-			if (string.IsNullOrWhiteSpace(endPointString))
-			{
-				return false;
-			}
-
-			endPointString = Guard.Correct(endPointString);
-			endPointString = endPointString.TrimEnd(':', '/');
-			endPointString = endPointString.TrimStart("bitcoin-p2p://", StringComparison.OrdinalIgnoreCase);
-			endPointString = endPointString.TrimStart("tcp://", StringComparison.OrdinalIgnoreCase);
-
-			var parts = endPointString.Split(':', StringSplitOptions.RemoveEmptyEntries).Select(x => x.Trim().TrimEnd('/').TrimEnd()).ToArray();
-
-			if (parts.Length == 0)
-			{
-				return false;
-			}
-
-			ushort p;
-			int port;
-
-			if (parts.Length == 1)
-			{
-				if (IsValidPort(defaultPort.ToString(), out p))
-				{
-					port = p;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else if (parts.Length == 2)
-			{
-				var portString = parts[1];
-
-				if (IsValidPort(portString, out p))
-				{
-					port = p;
-				}
-				else
-				{
-					return false;
-				}
-			}
-			else
-			{
-				return false;
-			}
-
-			var host = parts[0];
-
-			if (host == "localhost")
-			{
-				host = IPAddress.Loopback.ToString();
-			}
-
-			if (IPAddress.TryParse(host, out IPAddress? addr))
-			{
-				endPoint = new IPEndPoint(addr, port);
-			}
-			else
-			{
-				endPoint = new DnsEndPoint(host, port);
-			}
-
+			endPoint = Parse(endPointString);
 			return true;
 		}
-		catch
+		catch (Exception)
 		{
+			endPoint = null;
 			return false;
 		}
 	}
 
-	// Checks a port is a number within the valid port range (0 - 65535).
-	private static bool IsValidPort(string port, out ushort p)
+	public static EndPoint Parse(string endpointString)
 	{
-		return ushort.TryParse(port, out p);
+		ArgumentException.ThrowIfNullOrWhiteSpace(endpointString, nameof(endpointString));
+		if (IPEndPoint.TryParse(endpointString, out var ipEndPoint))
+		{
+			return ipEndPoint;
+		}
+
+		if (TyrParseDnsEndPoint(endpointString, out var dnsEndPoint))
+		{
+			return dnsEndPoint;
+		}
+		throw new FormatException("The string doesn't represent a valid endpoint");
+	}
+
+	public static bool TyrParseDnsEndPoint(string endPointString, [NotNullWhen(true)] out DnsEndPoint? endPoint)
+	{
+		try
+		{
+			endPoint = ParseDnsEndPoint(endPointString);
+			return true;
+		}
+		catch (Exception)
+		{
+			endPoint = null;
+			return false;
+		}
+	}
+
+	public static DnsEndPoint ParseDnsEndPoint(string endpointString)
+	{
+		ArgumentException.ThrowIfNullOrWhiteSpace(endpointString, nameof(endpointString));
+
+		var parts = endpointString.Split(':');
+		if (parts.Length != 2)
+		{
+			throw new FormatException("Endpoint must be in the format 'host:port' or 'ip:port'");
+		}
+
+		var hostOrIp = parts[0].Trim();
+
+		if (!uint.TryParse(parts[1].Trim(), out var port))
+		{
+			throw new FormatException("Port must be a valid 16 bits integer");
+		}
+
+		return new DnsEndPoint(hostOrIp, (int) port);
 	}
 }

@@ -109,9 +109,6 @@ public class ConfigTranslatorTests
 		ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
 		Assert.NotNull(ipEndPoint);
 		Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
-
-		// Default port.
-		Assert.Equal(8333, ipEndPoint.Port);
 		Assert.Equal("", whiteBind.Permissions);
 
 		config.AddOrUpdate("whitebind=foo@127.0.0.1");
@@ -120,7 +117,6 @@ public class ConfigTranslatorTests
 		ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
 		Assert.NotNull(ipEndPoint);
 		Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
-		Assert.Equal(8333, ipEndPoint.Port);
 		Assert.Equal("foo", whiteBind.Permissions);
 
 		config.AddOrUpdate("whitebind=foo,boo@127.0.0.1");
@@ -129,7 +125,6 @@ public class ConfigTranslatorTests
 		ipEndPoint = whiteBind!.EndPoint as IPEndPoint;
 		Assert.NotNull(ipEndPoint);
 		Assert.Equal(IPAddress.Loopback, ipEndPoint!.Address);
-		Assert.Equal(8333, ipEndPoint.Port);
 		Assert.Equal("foo,boo", whiteBind.Permissions);
 
 		config.AddOrUpdate("main.whitebind=@@@");

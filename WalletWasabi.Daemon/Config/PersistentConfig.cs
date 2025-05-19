@@ -126,8 +126,8 @@ public record PersistentConfigPrev2_6_0(
 		static EndPoint GetRpcEndpoint(BitcoinConfig config, string network, int defaultPort) =>
 			(config.GetSettingOrNull("rpcbind", network), config.GetSettingOrNull("rpcport", network)) switch
 			{
-				({} host, {} port) when EndPointParser.TryParse($"{host}:{port}", defaultPort, out var endPoint) => endPoint,
-				({} host, null) when EndPointParser.TryParse(host, defaultPort, out var endPoint) => endPoint,
+				({} host, {} port) when EndPointParser.TryParse($"{host}:{port}", out var endPoint) => endPoint,
+				({} host, null) when EndPointParser.TryParse($"{host}:{defaultPort}", out var endPoint) => endPoint,
 				(null, {} port) when int.TryParse(port, out var intPort) => new IPEndPoint(IPAddress.Loopback, intPort),
 				_ => new IPEndPoint(IPAddress.Loopback, defaultPort)
 			};

@@ -57,7 +57,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	{
 		if (!string.IsNullOrWhiteSpace(BitcoinRpcEndPoint))
 		{
-			if (!EndPointParser.TryParse(BitcoinRpcEndPoint, Settings.Network.DefaultPort, out _))
+			if (!EndPointParser.TryParse(BitcoinRpcEndPoint, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 			}

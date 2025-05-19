@@ -260,7 +260,7 @@ public partial class ApplicationSettings : ReactiveObject
 		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
-		if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
+		if (EndPointParser.TryParse(BitcoinRpcEndPoint, out EndPoint? endPoint))
 		{
 			result = result with { BitcoinRpcEndPoint = endPoint, BitcoinRpcCredentialString = BitcoinRpcCredentialString};
 		}

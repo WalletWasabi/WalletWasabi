@@ -221,7 +221,7 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			if (!EndPointParser.TryParse(overrideValue, 0, out var endpoint))
+			if (!EndPointParser.TryParse(overrideValue, out var endpoint))
 			{
 				throw new ArgumentNullException(key, "Not a valid endpoint");
 			}
