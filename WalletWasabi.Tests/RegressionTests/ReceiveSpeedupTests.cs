@@ -74,7 +74,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[],
-			new P2PBlockProvider(network, nodes, false));
+			new P2PBlockProvider(network, nodes));
 
 		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);

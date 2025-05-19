@@ -116,7 +116,7 @@ public class P2pTests
 		using BlockDownloadService blockDownloadService = new(
 			bitcoinStore.BlockRepository,
 			[],
-			new P2PBlockProvider(network, nodes, Common.TorSettings.TorMode == TorMode.Enabled));
+			new P2PBlockProvider(network, nodes));
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
 		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
@@ -139,11 +139,11 @@ public class P2pTests
 
 			nodes.Connect();
 
-			var downloadTasks = new List<Task<BlockDownloadService.IResult>>();
+			var downloadTasks = new List<Task<Result<Block, DownloadError>>>();
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
-				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(P2pSourceRequest.Automatic, hash, new Priority(), cts.Token));
+				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(BlockSource.P2pNetwork, hash, 0, cts.Token));
 			}
 
 			await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));

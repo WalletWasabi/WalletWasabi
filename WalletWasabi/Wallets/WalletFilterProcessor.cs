@@ -158,21 +158,26 @@ public class WalletFilterProcessor : BackgroundService
 	/// </summary>
 	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
 	{
-		ISourceRequest[] sourceRequests = [TrustedFullNodeSourceRequest.Instance, P2pSourceRequest.Automatic];
+		BlockSource[] sourceRequests = [BlockSource.TrustedNode, BlockSource.P2pNetwork];
 		while (true)
 		{
-			foreach (ISourceRequest sourceRequest in sourceRequests)
+			foreach (var sourceRequest in sourceRequests)
 			{
-				BlockDownloadService.IResult result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority, cancellationToken)
+				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority.BlockHeight, cancellationToken)
 					.ConfigureAwait(false);
 
-				switch (result)
-				{
-					case BlockDownloadService.SuccessResult successFullNodeResult:
-						return successFullNodeResult.Block;
-					case BlockDownloadService.CanceledResult:
-						throw new OperationCanceledException();
-				}
+				return result.Match(
+					block => block,
+					error => error switch
+					{
+						DownloadError.Canceled => throw new OperationCanceledException()
+						/*
+						DownloadError.ReorgOccurred => ????,
+						DownloadError.Failure => ????,
+						DownloadError.NoSuchProvider => ????,
+						_ => throw new ArgumentOutOfRangeException(nameof(error), error, null)
+						*/
+					});
 			}
 		}
 	}
