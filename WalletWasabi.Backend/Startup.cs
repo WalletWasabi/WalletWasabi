@@ -87,7 +87,6 @@ public class Startup
 			var filterType => throw new ArgumentException($"Invalid '{filterType}'. Only 'legacy' and 'bip158' filter types are allowed.")
 		};
 		services.AddSingleton(_ => network);
-		services.AddBackgroundService<BlockNotifier>();
 		services.AddSingleton<MempoolService>();
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IndexBuilderService>(s =>
