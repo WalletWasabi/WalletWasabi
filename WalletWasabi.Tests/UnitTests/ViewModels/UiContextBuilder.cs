@@ -44,7 +44,6 @@ public class UiContextBuilder
 			TransactionBroadcaster,
 			Mock.Of<IAmountProvider>(),
 			new EditableSearchSourceSource(),
-			Mock.Of<ITorStatusCheckerModel>(),
 			Mock.Of<IHealthMonitor>(),
 			Mock.Of<ReleaseHighlights>());
 
