@@ -27,7 +27,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
-using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -94,8 +93,6 @@ public class Global
 				"Update Manager");
 			UpdateManager = HostedServices.Get<UpdateManager>();
 		}
-
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
@@ -207,7 +204,6 @@ public class Global
 	private readonly BlockDownloadService _blockDownloadService;
 	private readonly P2PNodesManager _p2PNodesManager;
 	private TorProcessManager? TorManager { get; set; }
-	public TorStatusChecker TorStatusChecker { get; set; }
 	public IRPCClient? BitcoinRpcClient { get; }
 	public UpdateManager? UpdateManager { get; }
 	public HostedServices HostedServices { get; }
@@ -354,8 +350,6 @@ public class Global
 					Logger.LogInfo("Anonymous access RPC server cannot be exposed as onion service.");
 				}
 			}
-
-			HostedServices.Register<TorStatusChecker>(() => TorStatusChecker, "Tor Network Checker");
 		}
 	}
 
@@ -461,12 +455,6 @@ public class Global
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
 					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
-				}
-
-				if (TorStatusChecker is { } torStatusChecker)
-				{
-					torStatusChecker.Dispose();
-					Logger.LogInfo($"{nameof(TorStatusChecker)} is stopped.");
 				}
 
 				if (TorManager is { } torManager)
