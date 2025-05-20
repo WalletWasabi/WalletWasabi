@@ -215,21 +215,6 @@ public class Config
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
 		Data.Select(x => (x.Key, x.Value.Hint));
 
-	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
-	{
-		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
-		{
-			if (!EndPointParser.TryParse(overrideValue, 0, out var endpoint))
-			{
-				throw new ArgumentNullException(key, "Not a valid endpoint");
-			}
-
-			return new EndPointValue(value, endpoint, valueSource.Value);
-		}
-
-		return new EndPointValue(value, value, ValueSource.Disk);
-	}
-
 	private MoneyValue GetMoneyValue(string key, Money value, string[] cliArgs)
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
@@ -505,5 +490,4 @@ public class Config
 	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
-	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;
 }

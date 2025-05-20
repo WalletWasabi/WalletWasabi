@@ -1,10 +1,17 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Net;
+using NBitcoin;
 
 namespace WalletWasabi.Extensions;
 
 public static class SystemNetExtensions
 {
+	public static string ToUriString(this EndPoint endpoint, string schema)
+		=> $"{schema}://{endpoint.ToEndpointString()}";
+
+	public static Uri ToUri(this EndPoint endpoint, string schema)
+		=> new(endpoint.ToUriString(schema));
+
 	/// <summary>
 	/// Tries to get port from <paramref name="endPoint"/> which must be either <see cref="DnsEndPoint"/> or <see cref="IPEndPoint"/>.
 	/// </summary>

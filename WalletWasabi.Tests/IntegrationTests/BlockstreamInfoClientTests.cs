@@ -3,6 +3,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.Extensions;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tor;
@@ -17,7 +18,7 @@ public class BlockstreamInfoClientTests : IAsyncLifetime
 	public BlockstreamInfoClientTests()
 	{
 		ClearnetHttpClientFactory = new HttpClientFactory();
-		TorHttpClientFactory = new OnionHttpClientFactory(new Uri($"socks5://{Common.TorSocks5Endpoint}"));
+		TorHttpClientFactory = new OnionHttpClientFactory(Common.TorSocks5Endpoint.ToUri("socks5"));
 
 		TorProcessManager = new(Common.TorSettings, new EventBus());
 	}

@@ -19,7 +19,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public bool EnableGpu { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
 	public bool UseBitcoinRpc { get; set; }
-	public string BitcoinRpcEndPoint { get; set; } = "";
+	public string BitcoinRpcUri { get; set; } = "";
 	public string BitcoinRpcCredentialString { get; set; } = "";
 	public string RegTestCoordinatorUri { get; set; } = "";
 	public string MaxCoinJoinMiningFeeRate { get; set; } = "";

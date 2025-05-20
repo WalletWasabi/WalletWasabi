@@ -161,7 +161,7 @@ public class WasabiApplication
 				Network: Network.Main,
 				AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
 				BitcoinRpcCredentialString : oldConfig.MainNetBitcoinRpcCredentialString,
-				BitcoinRpcUri : oldConfig.MainNetBitcoinRpcEndPoint.ToEndpointString(),
+				BitcoinRpcUri : oldConfig.MainNetBitcoinRpcEndPoint.ToUriString("http"),
 				ConfigVersion : 3,
 				CoordinatorUri : oldConfig.MainNetCoordinatorUri,
 				CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
@@ -192,7 +192,7 @@ public class WasabiApplication
 				IndexerUri = oldConfig.TestNetIndexerUri,
 				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
-				BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToEndpointString(),
+				BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToUriString("http"),
 			};
 			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
 			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
@@ -203,7 +203,7 @@ public class WasabiApplication
 				IndexerUri = oldConfig.RegTestIndexerUri,
 				CoordinatorUri = oldConfig.RegTestCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
-				BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToEndpointString(),
+				BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToUriString("http"),
 			};
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
 			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);

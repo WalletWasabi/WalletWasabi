@@ -32,7 +32,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	{
 		Settings = settings;
 
-		this.ValidateProperty(x => x.BitcoinRpcUri, ValidateBitcoinRpcEndPoint);
+		this.ValidateProperty(x => x.BitcoinRpcUri, ValidateBitcoinRpcUri);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinRpcUri = settings.BitcoinRpcUri;
@@ -53,13 +53,13 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
 
-	private void ValidateBitcoinRpcEndPoint(IValidationErrors errors)
+	private void ValidateBitcoinRpcUri(IValidationErrors errors)
 	{
 		if (!string.IsNullOrWhiteSpace(BitcoinRpcUri))
 		{
 			if (!Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out _))
 			{
-				errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
+				errors.Add(ErrorSeverity.Error, "Invalid bitcoin rpc uri.");
 			}
 			else
 			{

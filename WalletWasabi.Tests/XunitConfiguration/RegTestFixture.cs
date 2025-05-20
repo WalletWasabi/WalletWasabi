@@ -37,9 +37,9 @@ public class RegTestFixture : IDisposable
 		var config = new Config(Path.Combine(testnetBackendDir, "Config.json"),
 			IndexerRegTestNode.RpcClient.Network,
 			IndexerRegTestNode.RpcClient.CredentialString.ToString(),
-			new IPEndPoint(IPAddress.Loopback, Network.Main.RPCPort),
-			new IPEndPoint(IPAddress.Loopback, Network.TestNet.RPCPort),
-			IndexerRegTestNode.RpcEndPoint,
+			$"http://localhost:{Network.Main.RPCPort}",
+			$"http://localhost:{Network.TestNet.RPCPort}",
+			$"http://{IndexerRegTestNode.RpcEndPoint}",
 			Constants.DefaultFilterType
 			);
 		config.ToFile();

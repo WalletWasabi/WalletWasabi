@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
@@ -18,7 +19,7 @@ public class LiveServerTests : IAsyncLifetime
 	public LiveServerTests(LiveServerTestsFixture liveServerTestsFixture)
 	{
 		LiveServerTestsFixture = liveServerTestsFixture;
-		HttpClientFactory = new OnionHttpClientFactory(new Uri($"socks5://{Common.TorSocks5Endpoint}"));
+		HttpClientFactory = new OnionHttpClientFactory(Common.TorSocks5Endpoint.ToUri("socks5"));
 		TorProcessManager = new(Common.TorSettings, new EventBus());
 	}
 
