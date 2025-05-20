@@ -22,7 +22,7 @@
     <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}"
       ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin RPC Endpoint" />
-        <TextBox Text="{Binding BitcoinRpcEndPoint}">
+        <TextBox Text="{Binding BitcoinRpcUri}">
           <Interaction.Behaviors>
             <TextBoxAutoSelectTextBehavior />
             <WhitespacePasteRemovalBehavior />

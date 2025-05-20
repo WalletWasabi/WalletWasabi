@@ -33,7 +33,7 @@ public class RegTestSetup : IAsyncDisposable
 	public RegTestSetup(RegTestFixture regTestFixture, string dir)
 	{
 		RegTestFixture = regTestFixture;
-		ServiceConfiguration = new ServiceConfiguration(regTestFixture.IndexerRegTestNode.P2pEndPoint, Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration = new ServiceConfiguration(regTestFixture.IndexerRegTestNode.P2pEndPoint.ToEndpointString(), Money.Coins(Constants.DefaultDustThreshold));
 
 		EventBus = new EventBus();
 		SmartHeaderChain smartHeaderChain = new();

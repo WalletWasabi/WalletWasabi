@@ -119,7 +119,7 @@ public class P2pTests
 			new P2PBlockProvider(network, nodes, Common.TorSettings.TorMode == TorMode.Enabled));
 		await blockDownloadService.StartAsync(CancellationToken.None);
 
-		ServiceConfiguration serviceConfiguration = new(new IPEndPoint(IPAddress.Loopback, network.DefaultPort), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfiguration = new($"{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
 		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, eventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 

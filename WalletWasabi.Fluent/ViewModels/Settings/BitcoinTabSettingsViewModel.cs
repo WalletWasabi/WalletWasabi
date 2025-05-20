@@ -25,21 +25,21 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_bitcoin_regular")]
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _bitcoinRpcEndPoint;
+	[AutoNotify] private string _bitcoinRpcUri;
 	[AutoNotify] private string _dustThreshold;
 
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
 
-		this.ValidateProperty(x => x.BitcoinRpcEndPoint, ValidateBitcoinRpcEndPoint);
+		this.ValidateProperty(x => x.BitcoinRpcUri, ValidateBitcoinRpcEndPoint);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
-		_bitcoinRpcEndPoint = settings.BitcoinRpcEndPoint;
+		_bitcoinRpcUri = settings.BitcoinRpcUri;
 		_dustThreshold = settings.DustThreshold;
 
-		this.WhenAnyValue(x => x.Settings.BitcoinRpcEndPoint)
-			.Subscribe(x => BitcoinRpcEndPoint = x);
+		this.WhenAnyValue(x => x.Settings.BitcoinRpcUri)
+			.Subscribe(x => BitcoinRpcUri = x);
 
 		this.WhenAnyValue(x => x.Settings.DustThreshold)
 			.Subscribe(x => DustThreshold = x);
@@ -55,15 +55,15 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	private void ValidateBitcoinRpcEndPoint(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(BitcoinRpcEndPoint))
+		if (!string.IsNullOrWhiteSpace(BitcoinRpcUri))
 		{
-			if (!EndPointParser.TryParse(BitcoinRpcEndPoint, Settings.Network.DefaultPort, out _))
+			if (!Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out _))
 			{
 				errors.Add(ErrorSeverity.Error, "Invalid endpoint.");
 			}
 			else
 			{
-				Settings.BitcoinRpcEndPoint = BitcoinRpcEndPoint;
+				Settings.BitcoinRpcUri = BitcoinRpcUri;
 			}
 		}
 	}

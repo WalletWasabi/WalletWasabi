@@ -21,7 +21,7 @@ public record PersistentConfig(
 	bool DownloadNewVersion,
 	bool UseBitcoinRpc,
 	string BitcoinRpcCredentialString,
-	EndPoint BitcoinRpcEndPoint,
+	string BitcoinRpcUri,
 	bool JsonRpcServerEnabled,
 	string JsonRpcUser,
 	string JsonRpcPassword,
