@@ -10,7 +10,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -21,8 +20,6 @@ public partial interface IHealthMonitor : IDisposable
 [AutoInterface]
 public partial class HealthMonitor : ReactiveObject
 {
-	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
-
 	[AutoNotify] private int _priorityFee;
 	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
@@ -40,7 +37,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
 
-	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
+	public HealthMonitor(IApplicationSettings applicationSettings)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = Services.Config.UseTor;
@@ -93,18 +90,6 @@ public partial class HealthMonitor : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => true)
 			.BindTo(this, x => x.BackendNotCompatible)
-			.DisposeWith(Disposables);
-
-		// Tor Issues
-		var issues =
-			torStatusChecker.Issues
-			.Select(r => r.Where(issue => !issue.Resolved).ToList())
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Publish();
-
-		_torIssues = issues.ToProperty(this, m => m.TorIssues);
-
-		issues.Connect()
 			.DisposeWith(Disposables);
 
 		// Peers
@@ -167,9 +152,6 @@ public partial class HealthMonitor : ReactiveObject
 			.BindTo(this, x => x.State)
 			.DisposeWith(Disposables);
 	}
-
-	public ICollection<Issue> TorIssues => _torIssues.Value;
-
 	public TorMode UseTor { get; }
 	public bool UseBitcoinRpc { get; }
 

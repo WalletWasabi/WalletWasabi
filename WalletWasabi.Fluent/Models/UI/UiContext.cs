@@ -31,7 +31,6 @@ public class UiContext
 		ITransactionBroadcasterModel transactionBroadcaster,
 		IAmountProvider amountProvider,
 		IEditableSearchSource editableSearchSource,
-		ITorStatusCheckerModel torStatusChecker,
 		IHealthMonitor healthMonitor,
 		ReleaseHighlights releaseHighlights)
 	{
@@ -47,7 +46,6 @@ public class UiContext
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
 		AmountProvider = amountProvider ?? throw new ArgumentNullException(nameof(amountProvider));
 		EditableSearchSource = editableSearchSource ?? throw new ArgumentNullException(nameof(editableSearchSource));
-		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
 		HealthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
 		ReleaseHighlights = releaseHighlights ?? throw new ArgumentNullException(nameof(releaseHighlights));
 	}
@@ -64,7 +62,6 @@ public class UiContext
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
 	public IAmountProvider AmountProvider { get; }
 	public IEditableSearchSource EditableSearchSource { get; }
-	public ITorStatusCheckerModel TorStatusChecker { get; }
 	public IHealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
 	public MainViewModel? MainViewModel { get; private set; }

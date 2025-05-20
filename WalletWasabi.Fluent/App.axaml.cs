@@ -133,7 +133,6 @@ public class App : Application
 		var amountProvider = CreateAmountProvider();
 
 		var applicationSettings = CreateApplicationSettings();
-		var torStatusChecker = new TorStatusCheckerModel();
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
@@ -150,8 +149,7 @@ public class App : Application
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSourceSource(),
-			torStatusChecker,
-			new HealthMonitor(applicationSettings, torStatusChecker),
+			new HealthMonitor(applicationSettings),
 			new ReleaseHighlights());
 	}
 }
