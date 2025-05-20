@@ -29,8 +29,6 @@ public partial class StatusIconViewModel : ViewModelBase
 
 		AskMeLaterCommand = ReactiveCommand.Create(() => HealthMonitor.CheckForUpdates = false);
 
-		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://status.torproject.org"));
-
 		this.WhenAnyValue(
 				x => x.HealthMonitor.UpdateAvailable,
 				x => x.HealthMonitor.IsReadyToInstall,
@@ -42,9 +40,6 @@ public partial class StatusIconViewModel : ViewModelBase
 	}
 
 	public IHealthMonitor HealthMonitor { get; }
-
-	public ICommand OpenTorStatusSiteCommand { get; }
-
 	public ICommand UpdateCommand { get; }
 
 	public ICommand ManualUpdateCommand { get; }

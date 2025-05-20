@@ -104,8 +104,7 @@
             <StatusItem Title="Tor" StatusText="{Binding HealthMonitor.TorStatus, Converter={x:Static converters:StatusConverters.TorStatusToString}}">
               <StatusItem.Icon>
                 <Panel>
-                  <PathIcon Data="{StaticResource tor_icon}" IsVisible="{Binding !HealthMonitor.TorIssues.Count, FallbackValue=True}" />
-                  <st:TorIssues IsVisible="{Binding HealthMonitor.TorIssues.Count, FallbackValue=False}" />
+                  <PathIcon Data="{StaticResource tor_icon}" />
                 </Panel>
               </StatusItem.Icon>
             </StatusItem>
