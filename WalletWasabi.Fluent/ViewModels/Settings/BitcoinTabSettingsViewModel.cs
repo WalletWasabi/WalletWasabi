@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using NBitcoin;
+using NBitcoin.RPC;
 using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -7,7 +8,6 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
 
@@ -26,6 +26,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 {
 	[AutoNotify] private string _bitcoinRpcUri;
+	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
 
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
@@ -33,13 +34,18 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 		Settings = settings;
 
 		this.ValidateProperty(x => x.BitcoinRpcUri, ValidateBitcoinRpcUri);
+		this.ValidateProperty(x => x.BitcoinRpcCredentialString, ValidateBitcoinRpcCredentialString);
 		this.ValidateProperty(x => x.DustThreshold, ValidateDustThreshold);
 
 		_bitcoinRpcUri = settings.BitcoinRpcUri;
+		_bitcoinRpcCredentialString = settings.BitcoinRpcCredentialString;
 		_dustThreshold = settings.DustThreshold;
 
 		this.WhenAnyValue(x => x.Settings.BitcoinRpcUri)
 			.Subscribe(x => BitcoinRpcUri = x);
+
+		this.WhenAnyValue(x => x.Settings.BitcoinRpcCredentialString)
+			.Subscribe(x => BitcoinRpcCredentialString = x);
 
 		this.WhenAnyValue(x => x.Settings.DustThreshold)
 			.Subscribe(x => DustThreshold = x);
@@ -64,6 +70,21 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			else
 			{
 				Settings.BitcoinRpcUri = BitcoinRpcUri;
+			}
+		}
+	}
+
+	private void ValidateBitcoinRpcCredentialString(IValidationErrors errors)
+	{
+		if (!string.IsNullOrWhiteSpace(BitcoinRpcCredentialString))
+		{
+			if (!RPCCredentialString.TryParse(BitcoinRpcCredentialString, out _))
+			{
+				errors.Add(ErrorSeverity.Error, "Invalid bitcoin rpc credential string.");
+			}
+			else
+			{
+				Settings.BitcoinRpcCredentialString = BitcoinRpcCredentialString;
 			}
 		}
 	}
