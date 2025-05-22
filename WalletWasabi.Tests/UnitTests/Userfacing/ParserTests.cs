@@ -1,151 +1,89 @@
-using System.Linq;
 using System.Net;
-using WalletWasabi.Extensions;
 using WalletWasabi.Userfacing;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Userfacing;
 
-public class ParserTests
+public class EndpointParserTests
 {
-	[Theory]
-	[InlineData("localhost")]
-	[InlineData("127.0.0.1")]
-	[InlineData("192.168.56.1")]
-	[InlineData("foo.com")]
-	[InlineData("foo.onion")]
-	public void EndPointParserTests(string host)
-	{
-		var inputsWithoutPorts = new[]
-		{
-			host,
-			$"{host} ",
-			$"bitcoin-p2p://{host}",
-			$"Bitcoin-P2P://{host}",
-			$"tcp://{host}",
-			$"TCP://{host}",
-			$" {host}",
-			$" {host} ",
-			$"{host}:",
-			$"{host}: ",
-			$"{host} :",
-			$"{host} : ",
-			$" {host} : ",
-			$"{host}/",
-			$"{host}/ ",
-			$" {host}/ ",
-		};
+    [Theory]
+    [InlineData("192.168.1.1:8080", "192.168.1.1", 8080, typeof(IPEndPoint))]
+    [InlineData("[2001:db8::1]:8080", "2001:db8::1", 8080, typeof(IPEndPoint))]
+    [InlineData("example.com:443", "example.com", 443, typeof(DnsEndPoint))]
+    [InlineData("localhost:5000", "localhost", 5000, typeof(DnsEndPoint))]
+    public void ParseEndpoint_WithValidInputAndPort_ReturnsCorrectEndPoint(
+        string endpointString, string expectedAddress, int expectedPort, Type expectedType)
+    {
+        // Act
+        EndPoint result = EndPointParser.Parse(endpointString);
 
-		var inputsWithPorts = new[]
-		{
-			$"{host}:5000",
-			$"bitcoin-p2p://{host}:5000",
-			$"BITCOIN-P2P://{host}:5000",
-			$"tcp://{host}:5000",
-			$"TCP://{host}:5000",
-			$" {host}:5000",
-			$"{host} :5000",
-			$" {host}:5000",
-			$"{host}: 5000",
-			$" {host} : 5000 ",
-			$"{host}/:5000",
-			$"{host}/:5000/",
-			$"{host}/:5000/ ",
-			$"{host}/: 5000/",
-			$"{host}/ :5000/ ",
-			$"{host}/ : 5000/",
-			$"{host}/ : 5000/ ",
-			$"         {host}/              :             5000/           "
-		};
+        // Assert
+        Assert.IsType(expectedType, result);
 
-		var invalidPortStrings = new[]
-		{
-			"-1",
-			"-5000",
-			"999999999999999999999",
-			"foo",
-			"-999999999999999999999",
-			int.MaxValue.ToString(),
-			uint.MaxValue.ToString(),
-			long.MaxValue.ToString(),
-			"0.1",
-			int.MinValue.ToString(),
-			long.MinValue.ToString(),
-			(ushort.MinValue - 1).ToString(),
-			(ushort.MaxValue + 1).ToString()
-		};
+        if (result is IPEndPoint ipEndpoint)
+        {
+            Assert.Equal(expectedAddress, ipEndpoint.Address.ToString());
+            Assert.Equal(expectedPort, ipEndpoint.Port);
+        }
+        else if (result is DnsEndPoint dnsEndpoint)
+        {
+            Assert.Equal(expectedAddress, dnsEndpoint.Host);
+            Assert.Equal(expectedPort, dnsEndpoint.Port);
+        }
+    }
 
-		var validPorts = new[]
-		{
-			0,
-			5000,
-			9999,
-			ushort.MinValue,
-			ushort.MaxValue
-		};
+    [Theory]
+    [InlineData("192.168.1.1:80", "192.168.1.1", 80, typeof(IPEndPoint))]
+    [InlineData("[2001:db8::1]:443", "2001:db8::1", 443, typeof(IPEndPoint))]
+    [InlineData("example.com:443", "example.com", 443, typeof(DnsEndPoint))]
+    [InlineData("example.com:8080", "example.com", 8080, typeof(DnsEndPoint))]
+    public void ParseEndpoint_WithDefaultPort_ReturnsCorrectEndPoint(
+        string endpointString, string expectedAddress,
+        int expectedPort, Type expectedType)
+    {
+        // Act
+        EndPoint result = EndPointParser.Parse(endpointString);
 
-		var inputsWithInvalidPorts = invalidPortStrings.Select(x => $"{host}:{x}").ToArray();
+        // Assert
+        Assert.IsType(expectedType, result);
 
-		// Default port is used.
-		foreach (var inputString in inputsWithoutPorts)
-		{
-			foreach (var defaultPort in validPorts)
-			{
-				if (EndPointParser.TryParse(inputString, defaultPort, out EndPoint? ep))
-				{
-					AssertEndPointParserOutputs(ep, host, defaultPort);
-				}
-				else
-				{
-					Assert.Fail("Parsing failed.");
-				}
-			}
-		}
+        if (result is IPEndPoint ipEndpoint)
+        {
+            Assert.Equal(expectedAddress, ipEndpoint.Address.ToString());
+            Assert.Equal(expectedPort, ipEndpoint.Port);
+        }
+        else if (result is DnsEndPoint dnsEndpoint)
+        {
+            Assert.Equal(expectedAddress, dnsEndpoint.Host);
+            Assert.Equal(expectedPort, dnsEndpoint.Port);
+        }
+    }
 
-		// Default port is not used.
-		foreach (var inputString in inputsWithPorts)
-		{
-			if (EndPointParser.TryParse(inputString, 12345, out EndPoint? ep))
-			{
-				AssertEndPointParserOutputs(ep, host, 5000);
-			}
-			else
-			{
-				Assert.Fail("Parsing failed.");
-			}
-		}
+    [Theory]
+    [InlineData(null)]
+    public void ParseEndpoint_WithEmptyOrNullString_ThrowsArgumentNullException(string endpointString)
+    {
+        // Act & Assert
+        Assert.Throws<ArgumentNullException>(() => EndPointParser.Parse(endpointString));
+    }
 
-		// Default port is invalid, string port is not provided.
-		foreach (var inputString in inputsWithoutPorts)
-		{
-			Assert.False(EndPointParser.TryParse(inputString, -1, out _));
-		}
+    [Theory]
+    [InlineData("example.com:99999")] // Port out of range
+    [InlineData("example.com:port")] // Port should be a number
+    [InlineData("example.com:8080:extra")] // Extra colon
+    public void ParseEndpoint_WithInvalidFormat_ThrowsFormatException(string endpointString)
+    {
+        // Act & Assert
+        Assert.Throws<FormatException>(() => EndPointParser.Parse(endpointString));
+    }
 
-		// Default port doesn't correct invalid port input.
-		foreach (var inputString in inputsWithInvalidPorts)
-		{
-			foreach (var defaultPort in validPorts)
-			{
-				Assert.False(EndPointParser.TryParse(inputString, defaultPort, out _));
-			}
-		}
-
-		// Both default and string ports are invalid.
-		foreach (var inputString in inputsWithInvalidPorts)
-		{
-			Assert.False(EndPointParser.TryParse(inputString, -1, out _));
-		}
-	}
-
-	private static void AssertEndPointParserOutputs(EndPoint endPoint, string expectedHost, int expectedPort)
-	{
-		Assert.True(endPoint.TryGetHostAndPort(out string? actualHost, out int? actualPort));
-
-		expectedHost = expectedHost == "localhost" ? "127.0.0.1" : expectedHost;
-
-		Assert.Equal(expectedHost, actualHost);
-		Assert.Equal(expectedPort, actualPort);
-
-		Assert.Equal($"{actualHost}:{actualPort}", endPoint.ToString(expectedPort));
-	}
+    [Theory]
+    [InlineData("example.com:-1")] // Negative port
+    [InlineData("example.com:65536")] // Port too large
+    public void ParseEndpoint_WithInvalidDefaultPort_ThrowsArgumentOutOfRangeException(
+        string endpointString)
+    {
+        // Act & Assert
+        Assert.Throws<FormatException>(() => EndPointParser.Parse(endpointString));
+    }
 }

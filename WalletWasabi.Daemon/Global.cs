@@ -142,8 +142,13 @@ public class Global
 		var credentialString = config.BitcoinRpcCredentialString;
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
-			var bitcoinRpcEndPoint = config.BitcoinRpcEndPoint;
-			BitcoinRpcClient = new RpcClientBase(new RPCClient(credentialString, bitcoinRpcEndPoint.ToEndpointString(), Network));
+			var bitcoinRpcUri = config.BitcoinRpcUri;
+			var internalRpcClient = new RPCClient(credentialString, bitcoinRpcUri, Network);
+			if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
+			{
+				internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+			}
+			BitcoinRpcClient = new RpcClientBase(internalRpcClient);
 			HostedServices.Register<RpcMonitor>(() => new RpcMonitor(TimeSpan.FromSeconds(7), BitcoinRpcClient, EventBus), "RPC Monitor");
 
 			var supportsBlockFilters = BitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
@@ -226,7 +231,7 @@ public class Global
 
 	private HttpClientFactory BuildHttpClientFactory() =>
 		Config.UseTor != TorMode.Disabled
-			? new OnionHttpClientFactory(new Uri($"socks5://{TorSettings.SocksEndpoint.ToEndpointString()}"))
+			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"))
 			: new HttpClientFactory();
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{

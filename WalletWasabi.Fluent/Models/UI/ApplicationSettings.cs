@@ -42,7 +42,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private Network _network;
 
 	[AutoNotify] private bool _useBitcoinRpc;
-	[AutoNotify] private string _bitcoinRpcEndPoint;
+	[AutoNotify] private string _bitcoinRpcUri;
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
@@ -100,7 +100,7 @@ public partial class ApplicationSettings : ReactiveObject
 		// Bitcoin
 		Network = persistentConfig.Network;
 		UseBitcoinRpc = persistentConfig.UseBitcoinRpc;
-		BitcoinRpcEndPoint = persistentConfig.BitcoinRpcEndPoint.ToString(defaultPort: -1);
+		BitcoinRpcUri = persistentConfig.BitcoinRpcUri;
 		BitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
 		DustThreshold = persistentConfig.DustThreshold.ToString();
 
@@ -139,7 +139,7 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.Network,
 					x => x.UseBitcoinRpc,
 					x => x.BitcoinRpcCredentialString,
-					x => x.BitcoinRpcEndPoint,
+					x => x.BitcoinRpcUri,
 					x => x.DustThreshold,
 					x => x.UseTor,
 					x => x.TerminateTorOnExit,
@@ -260,9 +260,9 @@ public partial class ApplicationSettings : ReactiveObject
 		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
-		if (EndPointParser.TryParse(BitcoinRpcEndPoint, Network.DefaultPort, out EndPoint? endPoint))
+		if (Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out var uri))
 		{
-			result = result with { BitcoinRpcEndPoint = endPoint, BitcoinRpcCredentialString = BitcoinRpcCredentialString};
+			result = result with { BitcoinRpcUri = uri.ToString(), BitcoinRpcCredentialString = BitcoinRpcCredentialString};
 		}
 
 		result = result with { CoordinatorUri = CoordinatorUri };

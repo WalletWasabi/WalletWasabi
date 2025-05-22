@@ -67,7 +67,7 @@ public class Startup
 		});
 		services.AddSingleton<IRPCClient>(provider =>
 		{
-			string host = config.GetBitcoinCoreRpcEndPoint().ToString(config.Network.RPCPort);
+			string host = config.GetBitcoinRpcUri();
 			RPCClient rpcClient = new(
 					authenticationString: config.BitcoinRpcConnectionString,
 					hostOrUri: host,

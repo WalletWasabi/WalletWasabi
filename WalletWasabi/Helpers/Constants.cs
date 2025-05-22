@@ -58,11 +58,9 @@ public static class Constants
 	public const int OneDayConfirmationTarget = 144;
 	public const int SevenDaysConfirmationTarget = 1008;
 
-	public const int BigFileReadWriteBufferSize = 1 * 1024 * 1024;
-
-	public const int DefaultMainNetBitcoinCoreRpcPort = 8332;
-	public const int DefaultTestNetBitcoinCoreRpcPort = 48332;
-	public const int DefaultRegTestBitcoinCoreRpcPort = 18443;
+	public const int DefaultMainNetBitcoinRpcPort = 8332;
+	public const int DefaultTestNetBitcoinRpcPort = 48332;
+	public const int DefaultRegTestBitcoinCorePort = 18443;
 
 	public const decimal DefaultDustThreshold = 0.00005m;
 	public const decimal DefaultMaxCoinJoinMiningFeeRate = 150.0m;
@@ -83,9 +81,9 @@ public static class Constants
 
 	public const string AppName = "Wasabi Wallet";
 
-	public static readonly EndPoint DefaultMainNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultMainNetBitcoinCoreRpcPort);
-	public static readonly EndPoint DefaultTestNetBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultTestNetBitcoinCoreRpcPort);
-	public static readonly EndPoint DefaultRegTestBitcoinCoreRpcEndPoint = new IPEndPoint(IPAddress.Loopback, DefaultRegTestBitcoinCoreRpcPort);
+	public static readonly string DefaultMainNetBitcoinRpcUri = $"http://localhost:{DefaultMainNetBitcoinRpcPort}";
+	public static readonly string DefaultTestNetBitcoinRpcUri = $"http://localhost:{DefaultTestNetBitcoinRpcPort}";
+	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";
 
 	public static readonly string DefaultExchangeRateProvider = "MempoolSpace";
 	public static readonly string DefaultFeeRateEstimationProvider = "MempoolSpace";

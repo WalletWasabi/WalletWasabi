@@ -19,9 +19,9 @@ public class Config : ConfigBase
 		string filePath,
 		Network network,
 		string bitcoinRpcConnectionString,
-		EndPoint mainNetBitcoinCoreRpcEndPoint,
-		EndPoint testNetBitcoinCoreRpcEndPoint,
-		EndPoint regTestBitcoinCoreRpcEndPoint,
+		string mainNetBitcoinRpcUri,
+		string testNetBitcoinRpcUri,
+		string regTestBitcoinRpcUri,
 		string filterType)
 
 	: base(filePath)
@@ -29,9 +29,9 @@ public class Config : ConfigBase
 		Network = Guard.NotNull(nameof(network), network);
 		BitcoinRpcConnectionString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinRpcConnectionString), bitcoinRpcConnectionString);
 
-		MainNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(mainNetBitcoinCoreRpcEndPoint), mainNetBitcoinCoreRpcEndPoint);
-		TestNetBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(testNetBitcoinCoreRpcEndPoint), testNetBitcoinCoreRpcEndPoint);
-		RegTestBitcoinCoreRpcEndPoint = Guard.NotNull(nameof(regTestBitcoinCoreRpcEndPoint), regTestBitcoinCoreRpcEndPoint);
+		MainNetBitcoinRpcUri = Guard.NotNull(nameof(mainNetBitcoinRpcUri), mainNetBitcoinRpcUri);
+		TestNetBitcoinRpcUri = Guard.NotNull(nameof(testNetBitcoinRpcUri), testNetBitcoinRpcUri);
+		RegTestBitcoinRpcUri = Guard.NotNull(nameof(regTestBitcoinRpcUri), regTestBitcoinRpcUri);
 
 		FilterType = filterType;
 	}
@@ -40,33 +40,22 @@ public class Config : ConfigBase
 
 	public string BitcoinRpcConnectionString { get; } = "user:password";
 
-	public EndPoint MainNetBitcoinCoreRpcEndPoint { get; } = Constants.DefaultMainNetBitcoinCoreRpcEndPoint;
+	public string MainNetBitcoinRpcUri { get; } = Constants.DefaultMainNetBitcoinRpcUri;
 
-	public EndPoint TestNetBitcoinCoreRpcEndPoint { get; } = Constants.DefaultTestNetBitcoinCoreRpcEndPoint;
+	public string TestNetBitcoinRpcUri { get; } = Constants.DefaultTestNetBitcoinRpcUri;
 
-	public EndPoint RegTestBitcoinCoreRpcEndPoint { get; } = Constants.DefaultRegTestBitcoinCoreRpcEndPoint;
+	public string RegTestBitcoinRpcUri { get; } = Constants.DefaultRegTestBitcoinRpcUri;
 
 	public string FilterType { get; } = Constants.DefaultFilterType;
 
-	public EndPoint GetBitcoinCoreRpcEndPoint()
-	{
-		if (Network == Network.Main)
+	public string GetBitcoinRpcUri() =>
+		Network switch
 		{
-			return MainNetBitcoinCoreRpcEndPoint;
-		}
-		else if (Network == Network.TestNet)
-		{
-			return TestNetBitcoinCoreRpcEndPoint;
-		}
-		else if (Network == Network.RegTest)
-		{
-			return RegTestBitcoinCoreRpcEndPoint;
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(Network);
-		}
-	}
+			_ when Network == Network.Main => MainNetBitcoinRpcUri,
+			_ when Network == Network.TestNet => TestNetBitcoinRpcUri,
+			_ when Network == Network.RegTest => RegTestBitcoinRpcUri,
+			_ => throw new NotSupportedNetworkException(Network)
+		};
 
 	public static Config LoadFile(string filePath)
 	{

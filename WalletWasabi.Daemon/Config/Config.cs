@@ -70,9 +70,9 @@ public class Config
 			[ nameof(BitcoinRpcCredentialString)] = (
 				"Credentials for authenticating against the bitcoin node rpc server",
 				GetStringValue("BitcoinRpcCredentialString", PersistentConfig.BitcoinRpcCredentialString, cliArgs)),
-			[ nameof(BitcoinRpcEndPoint)] = (
+			[ nameof(BitcoinRpcUri)] = (
 				"-",
-				GetEndPointValue("BitcoinRpcEndPoint", PersistentConfig.BitcoinRpcEndPoint, cliArgs)),
+				GetUriStringValue("BitcoinRpcEndPoint", PersistentConfig.BitcoinRpcUri, cliArgs)),
 			[ nameof(JsonRpcServerEnabled)] = (
 				"Start the Json RPC Server and accept requests",
 				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
@@ -142,7 +142,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(BitcoinRpcEndPoint, DustThreshold, DropUnconfirmedTransactionsAfterDays);
+		ServiceConfiguration = new ServiceConfiguration(BitcoinRpcUri, DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
 	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
@@ -161,7 +161,7 @@ public class Config
 	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
 	public bool UseBitcoinRpc => GetEffectiveValue<BoolValue, bool>(nameof(UseBitcoinRpc));
 	public string BitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcCredentialString));
-	public EndPoint BitcoinRpcEndPoint => GetEffectiveValue<EndPointValue, EndPoint>(nameof(BitcoinRpcEndPoint));
+	public string BitcoinRpcUri => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcUri));
 	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>(nameof(JsonRpcServerEnabled));
 	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
 	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
@@ -198,8 +198,6 @@ public class Config
 	/// </remarks>
 	public bool IsOverridden { get; }
 
-	public EndPoint GetBitcoinRpcEndPoint() => BitcoinRpcEndPoint;
-
 	public bool TryGetCoordinatorUri([NotNullWhen(true)] out Uri? coordinatorUri)
 	{
 		try
@@ -216,21 +214,6 @@ public class Config
 
 	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
 		Data.Select(x => (x.Key, x.Value.Hint));
-
-	private EndPointValue GetEndPointValue(string key, EndPoint value, string[] cliArgs)
-	{
-		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
-		{
-			if (!EndPointParser.TryParse(overrideValue, 0, out var endpoint))
-			{
-				throw new ArgumentNullException(key, "Not a valid endpoint");
-			}
-
-			return new EndPointValue(value, endpoint, valueSource.Value);
-		}
-
-		return new EndPointValue(value, value, ValueSource.Disk);
-	}
 
 	private MoneyValue GetMoneyValue(string key, Money value, string[] cliArgs)
 	{
@@ -312,6 +295,17 @@ public class Config
 		return new StringValue(value, value, ValueSource.Disk);
 	}
 
+	private static StringValue GetUriStringValue(string key, string value, string[] cliArgs)
+	{
+		value = value.StartsWith("http") ? value : $"http://{value}";
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			overrideValue = overrideValue.StartsWith("http") ? overrideValue : $"http://{overrideValue}";
+			return new StringValue(value, overrideValue, valueSource.Value);
+		}
+
+		return new StringValue(value, value, ValueSource.Disk);
+	}
 	private static NullableStringValue GetNullableStringValue(string key, string? value, string[] cliArgs)
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
@@ -496,5 +490,4 @@ public class Config
 	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;
-	private record EndPointValue(EndPoint Value, EndPoint EffectiveValue, ValueSource ValueSource) : ITypedValue<EndPoint>;
 }

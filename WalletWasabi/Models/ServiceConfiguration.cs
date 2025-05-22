@@ -7,16 +7,19 @@ namespace WalletWasabi.Models;
 public class ServiceConfiguration
 {
 	public ServiceConfiguration(
-		EndPoint bitcoinCoreEndPoint,
+		string bitcoinRpcUri,
 		Money dustThreshold,
 		int dropUnconfirmedTransactionsAfterDays = Constants.DefaultMaxDaysInMempool)
 	{
-		BitcoinCoreEndPoint = Guard.NotNull(nameof(bitcoinCoreEndPoint), bitcoinCoreEndPoint);
-		DustThreshold = Guard.NotNull(nameof(dustThreshold), dustThreshold);
+		ArgumentException.ThrowIfNullOrWhiteSpace(bitcoinRpcUri);
+		ArgumentNullException.ThrowIfNull(dustThreshold);
+
+		BitcoinRpcUri = new Uri(bitcoinRpcUri);
+		DustThreshold = dustThreshold;
 		DropUnconfirmedTransactionsAfterDays = dropUnconfirmedTransactionsAfterDays;
 	}
 
-	public EndPoint BitcoinCoreEndPoint { get; set; }
+	public Uri BitcoinRpcUri { get; set; }
 	public Money DustThreshold { get; set; }
 	public int DropUnconfirmedTransactionsAfterDays { get; }
 }

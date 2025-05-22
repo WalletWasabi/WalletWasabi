@@ -50,7 +50,7 @@ public class PersistentConfigManagerTests
 			  "DownloadNewVersion": true,
 			  "UseBitcoinRpc": false,
 			  "BitcoinRpcCredentialString": "",
-			  "BitcoinRpcEndPoint": "127.0.0.1:8332",
+			  "BitcoinRpcEndPoint": "http://localhost:8332",
 			  "JsonRpcServerEnabled": false,
 			  "JsonRpcUser": "",
 			  "JsonRpcPassword": "",

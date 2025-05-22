@@ -43,7 +43,7 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 		yield return new ContentSearchItem(content: Setting(selector: x => x.RunOnSystemStartup), name: "Run Wasabi when computer starts", category: "Settings", keywords: new List<string>() { "startup", "boot" }, icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 5 };
 		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
 		yield return new ContentSearchItem(content: Setting(selector: x => x.UseBitcoinRpc), name: "Connect to the specified Bitcoin Node RPC server endpoint", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 7};
-		yield return new ContentSearchItem(content: Setting(selector: x => x.BitcoinRpcEndPoint), name: "Bitcoin Node RPC Server endpoint to connect to", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 8};
+		yield return new ContentSearchItem(content: Setting(selector: x => x.BitcoinRpcUri), name: "Bitcoin Node RPC Server uri to connect to", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 8};
 		yield return new ContentSearchItem(content: Setting(selector: x => x.BitcoinRpcCredentialString), name: "Bitcoin Node RPC Server credentials", category: "Settings",  keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 9};
 	}
 

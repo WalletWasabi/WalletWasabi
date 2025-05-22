@@ -30,7 +30,7 @@ public static partial class Encode
 	public static JsonNode WabiSabiConfig(WabiSabiConfig cfg) =>
 		Object([
 			("Network", Network(cfg.Network)),
-			("BitcoinCoreRpcEndPoint", EndPoint(cfg.BitcoinCoreRpcEndPoint, Constants.DefaultMainNetBitcoinCoreRpcPort)),
+			("BitcoinCoreRpcEndPoint", String(cfg.BitcoinRpcUri)),
 			("BitcoinRpcConnectionString", String(cfg.BitcoinRpcConnectionString)),
 			("ConfirmationTarget", UInt(cfg.ConfirmationTarget)),
 			("DoSSeverity", MoneyBitcoins(cfg.DoSSeverity)),
@@ -80,7 +80,7 @@ public static partial class Decode
 	public static readonly Decoder<EndPoint> EndPoint =
 		String.AndThen(s =>
 		{
-			if (EndPointParser.TryParse(s, 80, out EndPoint? endPoint))
+			if (EndPointParser.TryParse(s, out EndPoint? endPoint))
 			{
 				return Succeed(endPoint);
 			}
@@ -107,7 +107,7 @@ public static partial class Decode
 		Object(get => new WabiSabiConfig(filePath)
 		{
 			Network = get.Required("Network", Network),
-			BitcoinCoreRpcEndPoint = get.Required("BitcoinCoreRpcEndPoint", EndPoint),
+			BitcoinRpcUri = get.Required("BitcoinCoreRpcEndPoint", String),
 			BitcoinRpcConnectionString = get.Required("BitcoinRpcConnectionString", String),
 			ConfirmationTarget = get.Required("ConfirmationTarget", UInt),
 			DoSSeverity = get.Required("DoSSeverity", MoneyBitcoins),

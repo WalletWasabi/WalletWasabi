@@ -88,7 +88,7 @@ public class CoreNode
 			coreNodeParams.RpcEndPointStrategy.EndPoint.TryGetPort(out rpcPort);
 		}
 
-		if (!EndPointParser.TryParse($"{rpcHost}:{rpcPort}", coreNodeParams.Network.RPCPort, out EndPoint? rpcEndPoint))
+		if (!EndPointParser.TryParse($"{rpcHost}:{rpcPort ?? coreNodeParams.Network.RPCPort}", out EndPoint? rpcEndPoint))
 		{
 			throw new InvalidOperationException($"Failed to get RPC endpoint on {rpcHost}:{rpcPort}.");
 		}

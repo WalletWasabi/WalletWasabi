@@ -59,7 +59,7 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IRPCClient>(provider =>
 		{
-			string host = config.BitcoinCoreRpcEndPoint.ToString(config.Network.RPCPort);
+			string host = config.BitcoinRpcUri;
 			RPCClient rpcClient = new(
 					authenticationString: config.BitcoinRpcConnectionString,
 					hostOrUri: host,

@@ -21,7 +21,7 @@ public static class PersistentConfigManager
 		DownloadNewVersion : true,
 		UseBitcoinRpc : false,
 		BitcoinRpcCredentialString : string.Empty,
-		BitcoinRpcEndPoint : Constants.DefaultMainNetBitcoinCoreRpcEndPoint,
+		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri.ToString(),
 		JsonRpcServerEnabled : false,
 		JsonRpcUser : string.Empty,
 		JsonRpcPassword : string.Empty,
@@ -43,7 +43,7 @@ public static class PersistentConfigManager
 		IndexerUri = Constants.TestnetIndexerUri,
 		CoordinatorUri = "https://walletwasabi.co/",
 		BitcoinRpcCredentialString = string.Empty,
-		BitcoinRpcEndPoint = Constants.DefaultTestNetBitcoinCoreRpcEndPoint,
+		BitcoinRpcUri = Constants.DefaultTestNetBitcoinRpcUri,
 		JsonRpcServerEnabled = true,
 		AbsoluteMinInputCount = Constants.AbsoluteMinInputCount,
 	};
@@ -53,7 +53,7 @@ public static class PersistentConfigManager
 		Network = Network.RegTest,
 		IndexerUri = "http://localhost:37127/",
 		CoordinatorUri = "https://localhost:37127/",
-		BitcoinRpcEndPoint = Constants.DefaultRegTestBitcoinCoreRpcEndPoint,
+		BitcoinRpcUri = Constants.DefaultRegTestBitcoinRpcUri,
 	};
 
 	public static string ToFile(string filePath, PersistentConfig obj)

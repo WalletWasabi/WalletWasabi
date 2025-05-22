@@ -1,5 +1,6 @@
 using Avalonia.Data.Converters;
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Converters;
@@ -30,5 +31,5 @@ public static class StatusConverters
 		new FuncValueConverter<uint, string>(x => x == 0 ? "No data" : $"{x:N0}");
 
 	public static readonly IValueConverter RpcStatusStringConverter =
-		new FuncValueConverter<RpcStatus?, string>(status => status is null ? new RpcStatus.Unresponsive().ToString() : status.ToString());
+		new FuncValueConverter<Result<ConnectedRpcStatus,string>, string>(status => status.Match(s => s.ToString(), e => e));
 }
