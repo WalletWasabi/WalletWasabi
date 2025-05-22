@@ -5,6 +5,7 @@ using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Helpers;
@@ -31,7 +32,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
-	[AutoNotify] private Result<WalletWasabi.BitcoinRpc.ConnectedRpcStatus, string> _bitcoinRpcStatus;
+	[AutoNotify] private Result<ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
 	[AutoNotify] private HealthMonitorState _state;
@@ -39,6 +40,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
+	[AutoNotify] private bool _canUseBitcoinRpc;
 
 	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
 	{
@@ -46,6 +48,7 @@ public partial class HealthMonitor : ReactiveObject
 		UseTor = Services.Config.UseTor;
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
+		CanUseBitcoinRpc = UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
 
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 
@@ -212,7 +215,7 @@ public partial class HealthMonitor : ReactiveObject
 		{
 			return HealthMonitorState.Ready;
 		}
-		if (UseBitcoinRpc && BitcoinRpcStatus.Match(x => x.Synchronized, _ => false))
+		if (CanUseBitcoinRpc && BitcoinRpcStatus.Match(x => x.Synchronized, _ => false))
 		{
 			return HealthMonitorState.Ready;
 		}

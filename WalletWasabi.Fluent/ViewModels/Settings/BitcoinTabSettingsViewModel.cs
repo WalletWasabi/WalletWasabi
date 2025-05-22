@@ -76,16 +76,13 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	private void ValidateBitcoinRpcCredentialString(IValidationErrors errors)
 	{
-		if (!string.IsNullOrWhiteSpace(BitcoinRpcCredentialString))
+		if (string.IsNullOrWhiteSpace(BitcoinRpcCredentialString) || RPCCredentialString.TryParse(BitcoinRpcCredentialString, out _))
 		{
-			if (!RPCCredentialString.TryParse(BitcoinRpcCredentialString, out _))
-			{
-				errors.Add(ErrorSeverity.Error, "Invalid bitcoin rpc credential string.");
-			}
-			else
-			{
-				Settings.BitcoinRpcCredentialString = BitcoinRpcCredentialString;
-			}
+			Settings.BitcoinRpcCredentialString = BitcoinRpcCredentialString;
+		}
+		else
+		{
+			errors.Add(ErrorSeverity.Error, "Invalid bitcoin rpc credential string.");
 		}
 	}
 
