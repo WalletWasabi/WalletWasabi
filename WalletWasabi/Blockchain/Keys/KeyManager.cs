@@ -730,16 +730,16 @@ public class KeyManager
 				get.Optional("TaprootAccountKeyPath", Decode.KeyPath)
 			)
 			{
-				PreferPsbtWorkflow = get.Required("PreferPsbtWorkflow", Decode.Bool),
-				AutoCoinJoin = get.Required("AutoCoinJoin", Decode.Bool),
-				PlebStopThreshold = get.Required("PlebStopThreshold", Decode.MoneyBitcoins),
+				PreferPsbtWorkflow = get.Optional("PreferPsbtWorkflow", Decode.Bool, false),
+				AutoCoinJoin = get.Optional("AutoCoinJoin", Decode.Bool, false),
+				PlebStopThreshold = get.Optional("PlebStopThreshold", Decode.MoneyBitcoins) ?? DefaultPlebStopThreshold,
 				Icon = get.Optional("Icon", Decode.String),
-				AnonScoreTarget = get.Required("AnonScoreTarget", Decode.Int),
-				NonPrivateCoinIsolation = get.Required("RedCoinIsolation", Decode.Bool),
+				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
+				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
-				ExcludedCoinsFromCoinJoin = get.Required("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint)).ToList()
+				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;
