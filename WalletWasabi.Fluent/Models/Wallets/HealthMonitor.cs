@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
@@ -31,7 +31,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
-	[AutoNotify] private RpcStatus? _bitcoinRpcStatus;
+	[AutoNotify] private Result<WalletWasabi.BitcoinRpc.ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
 	[AutoNotify] private HealthMonitorState _state;
@@ -124,8 +124,8 @@ public partial class HealthMonitor : ReactiveObject
 			.Subscribe(x =>
 			{
 				BitcoinRpcStatus = x;
-				IsBitcoinCoreSynchronizingOrConnecting = x is RpcStatus.Responsive { Synchronized: false };
-				IsBitcoinCoreIssueDetected = x is RpcStatus.Unresponsive;
+				IsBitcoinCoreSynchronizingOrConnecting = x.Match(r => !r.Synchronized, _ => false);
+				IsBitcoinCoreIssueDetected = !x.IsOk;
 			})
 			.DisposeWith(Disposables);
 
@@ -212,7 +212,7 @@ public partial class HealthMonitor : ReactiveObject
 		{
 			return HealthMonitorState.Ready;
 		}
-		if (UseBitcoinRpc && (BitcoinRpcStatus?.Synchronized ?? false))
+		if (UseBitcoinRpc && BitcoinRpcStatus.Match(x => x.Synchronized, _ => false))
 		{
 			return HealthMonitorState.Ready;
 		}
