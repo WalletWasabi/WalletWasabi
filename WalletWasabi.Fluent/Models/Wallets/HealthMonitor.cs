@@ -101,7 +101,7 @@ public partial class HealthMonitor : ReactiveObject
 		// Tor Issues
 		var issues =
 			torStatusChecker.Issues
-			.Select(r => r.Where(issue => !issue.Resolved).ToList())
+			.Select(r => r.Where(issue => !issue.Resolved && !issue.Title.Contains("BridgeDB")).ToList())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Publish();
 
