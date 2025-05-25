@@ -13,7 +13,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -67,12 +67,9 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		using BlockDownloadService blockDownloadService = new(
-			bitcoinStore.BlockRepository,
-			[],
-			new P2PBlockProvider(network, nodes));
+		var blockProvider = new P2PBlockProvider(network, nodes);
 
-		WalletFactory walletFactory = new(network, bitcoinStore, setup.ServiceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, setup.ServiceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
@@ -98,8 +95,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			var blockCount = await rpc.GetBlockCountAsync();
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), blockCount);
 
-			Assert.Equal(1, await blockRepository.CountAsync(testDeadlineCts.Token));
-
 			Assert.Single(wallet.Coins);
 			var firstCoin = wallet.Coins.Single();
 			Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
@@ -122,7 +117,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(1);
 
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
-			Assert.Equal(3, await blockRepository.CountAsync(testDeadlineCts.Token));
 
 			Assert.Equal(3, wallet.Coins.Count());
 			firstCoin = wallet.Coins.OrderBy(x => x.Height).First();
@@ -174,7 +168,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(3);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
-			Assert.Equal(4, await blockRepository.CountAsync(testDeadlineCts.Token));
 
 			Assert.Equal(4, wallet.Coins.Count());
 			Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));

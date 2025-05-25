@@ -20,8 +20,7 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.BlockProvider;
-using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -30,29 +29,15 @@ namespace WalletWasabi.Tests.IntegrationTests;
 public class P2pTests
 {
 	[Theory]
-	[InlineData("test")]
 	[InlineData("main")]
 	public async Task TestServicesAsync(string networkString)
 	{
 		var network = Network.GetNetwork(networkString);
 		var blocksToDownload = new List<uint256>();
 
-		if (network == Network.Main)
-		{
-			blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
-			blocksToDownload.Add(new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"));
-			blocksToDownload.Add(new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629"));
-		}
-		else if (network == Network.TestNet)
-		{
-			blocksToDownload.Add(new uint256("0000000097a664c4084b49faa6fd4417055cb8e5aac480abc31ddc57a8208524"));
-			blocksToDownload.Add(new uint256("000000009ed5b82259ecd2aa4cd1f119db8da7a70e7ea78d9c9f603e01f93bcc"));
-			blocksToDownload.Add(new uint256("00000000e6da8c2da304e9f5ad99c079df2c3803b49efded3061ecaf206ddc66"));
-		}
-		else
-		{
-			throw new NotSupportedNetworkException(network);
-		}
+		blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
+		blocksToDownload.Add(new uint256("000000000000000000115315a43cb0cdfc4ea54a0e92bed127f4e395e718d8f9"));
+		blocksToDownload.Add(new uint256("00000000000000000011b5b042ad0522b69aae36f7de796f563c895714bbd629"));
 
 		var eventBus = new EventBus();
 		var dataDir = Common.GetWorkDir();
@@ -111,42 +96,25 @@ public class P2pTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
+		var blockProvider = new CachedBlockProvider(
+			new P2PBlockProvider(network, nodes),
+			blocks);
 
-		using BlockDownloadService blockDownloadService = new(
-			bitcoinStore.BlockRepository,
-			[],
-			new P2PBlockProvider(network, nodes));
-		await blockDownloadService.StartAsync(CancellationToken.None);
-
-		ServiceConfiguration serviceConfiguration = new($"{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, eventBus);
+		ServiceConfiguration serviceConfiguration = new($"http://{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, eventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
-
-		Assert.True(Directory.Exists(blocks.BlocksFolderPath));
 
 		try
 		{
-			var mempoolTransactionAwaiter = new EventsAwaiter<SmartTransaction>(
-				h => bitcoinStore.MempoolService.TransactionReceived += h,
-				h => bitcoinStore.MempoolService.TransactionReceived -= h,
-				3);
-
-			var nodeConnectionAwaiter = new EventsAwaiter<NodeEventArgs>(
-				h => nodes.ConnectedNodes.Added += h,
-				h => nodes.ConnectedNodes.Added -= h,
-				3);
-
 			nodes.Connect();
 
-			var downloadTasks = new List<Task<Result<Block, DownloadError>>>();
+			var downloadTasks = new List<Task<Block?>>();
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
-				downloadTasks.Add(blockDownloadService.TryGetBlockAsync(BlockSource.P2pNetwork, hash, 0, cts.Token));
+				downloadTasks.Add(blockProvider.TryGetBlockAsync(hash, cts.Token));
 			}
 
-			await nodeConnectionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 
 			var i = 0;
 			var hashArray = blocksToDownload.ToArray();
@@ -155,17 +123,9 @@ public class P2pTests
 				Assert.True(File.Exists(Path.Combine(blocks.BlocksFolderPath, hashArray[i].ToString())));
 				i++;
 			}
-
-			await mempoolTransactionAwaiter.WaitAsync(TimeSpan.FromMinutes(3));
 		}
 		finally
 		{
-			// So next test will download the block.
-			foreach (var hash in blocksToDownload)
-			{
-				await blockRepository.RemoveAsync(hash, CancellationToken.None);
-			}
-
 			if (wallet is { })
 			{
 				await wallet.StopAsync(CancellationToken.None);

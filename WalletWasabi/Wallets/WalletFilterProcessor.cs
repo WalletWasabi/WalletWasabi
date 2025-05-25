@@ -14,22 +14,19 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
-using WalletWasabi.Wallets.BlockProvider;
+using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
 
-/// <summary>
-/// Service that keeps processing block filters.
-/// </summary>
 public class WalletFilterProcessor : BackgroundService
 {
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockDownloadService blockDownloadService, EventBus eventBus)
+	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider, EventBus eventBus)
 	{
 		_keyManager = keyManager;
 		_bitcoinStore = bitcoinStore;
 		_transactionProcessor = transactionProcessor;
-		_blockDownloadService = blockDownloadService;
+		_blockProvider = blockProvider;
 		_eventBus = eventBus;
 		_blockFilterIterator = new(_bitcoinStore.IndexStore);
 		_initialSynchronizationFinished = new TaskCompletionSource();
@@ -38,7 +35,7 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly KeyManager _keyManager;
 	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionProcessor _transactionProcessor;
-	private readonly BlockDownloadService _blockDownloadService;
+	private readonly IBlockProvider _blockProvider;
 	private readonly EventBus _eventBus;
 	private readonly BlockFilterIterator _blockFilterIterator;
 	private readonly TaskCompletionSource _initialSynchronizationFinished;
@@ -115,9 +112,11 @@ public class WalletFilterProcessor : BackgroundService
 			if (matchFound)
 			{
 				// Wait until downloaded.
-				Block currentBlock = await KeepTryingToGetBlockAsync(filter.Header.BlockHash, new Priority(filter.Header.Height), cancel)
-					.ConfigureAwait(false);
-
+				var currentBlock = await _blockProvider.TryGetBlockAsync(filter.Header.BlockHash, cancel).ConfigureAwait(false);
+				if (currentBlock == null)
+				{
+					//
+				}
 				var txsToProcess = new List<SmartTransaction>();
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
 				{
@@ -144,7 +143,6 @@ public class WalletFilterProcessor : BackgroundService
 				_transactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				_bitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				await _blockFilterIterator.RemoveNewerThanAsync(newBestHeight, CancellationToken.None).ConfigureAwait(false);
-				await _blockDownloadService.RemoveBlocksAsync(invalidFilter.Header.Height).ConfigureAwait(false);
 			}
 		}
 		catch (Exception ex)
@@ -153,31 +151,6 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	/// <summary>
-	/// Attempt to get the bitcoin block from a full node as a primary source of data, or use P2P as a fallback.
-	/// </summary>
-	private async Task<Block> KeepTryingToGetBlockAsync(uint256 blockHash, Priority priority, CancellationToken cancellationToken)
-	{
-		BlockSource[] sourceRequests = [BlockSource.TrustedNode, BlockSource.P2pNetwork];
-		while (true)
-		{
-			foreach (var sourceRequest in sourceRequests)
-			{
-				var result = await _blockDownloadService.TryGetBlockAsync(sourceRequest, blockHash, priority.BlockHeight, cancellationToken)
-					.ConfigureAwait(false);
-
-				if (result.IsOk)
-				{
-					return result.Value;
-				}
-
-				if (result.Error is DownloadError.Canceled)
-				{
-					throw new OperationCanceledException();
-				}
-			}
-		}
-	}
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{

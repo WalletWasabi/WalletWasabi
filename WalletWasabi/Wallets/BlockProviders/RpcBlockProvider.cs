@@ -4,7 +4,7 @@ using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Wallets;
+namespace WalletWasabi.Wallets.BlockProviders;
 
 public class RpcBlockProvider : IBlockProvider
 {

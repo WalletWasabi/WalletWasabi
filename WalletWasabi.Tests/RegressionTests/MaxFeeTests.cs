@@ -19,7 +19,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.FilterProcessor;
+using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -72,12 +72,9 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 
-		using BlockDownloadService blockDownloadService = new(
-			bitcoinStore.BlockRepository,
-			[],
-			new P2PBlockProvider(network, nodes));
+		var blockProvider = new P2PBlockProvider(network, nodes);
 
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 

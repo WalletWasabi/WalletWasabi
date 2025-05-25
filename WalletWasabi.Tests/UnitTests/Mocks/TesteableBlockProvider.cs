@@ -2,6 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.BlockProviders;
 
 namespace WalletWasabi.Tests.UnitTests.Mocks;
 
