@@ -61,7 +61,7 @@ public class TorStatusChecker : PeriodicRunner
 			.Where(system => system.Status != "ok" || system.UnresolvedIssues.Count != 0)
 			.Select(system =>
 			{
-				bool isResolved = system.UnresolvedIssues.Any(issue => !issue.Resolved);
+				bool isResolved = !system.UnresolvedIssues.Any(issue => issue.Resolved is false);
 				return new Issue(system.Name, resolved: isResolved);
 			})
 			.ToArray();
