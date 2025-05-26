@@ -95,7 +95,7 @@ public class Global
 			UpdateManager = HostedServices.Get<UpdateManager>();
 		}
 
-		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), new XmlIssueListParser(), EventBus);
+		TorStatusChecker = new TorStatusChecker(TimeSpan.FromHours(6), ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject"), EventBus);
 
 		Cache = new MemoryCache(new MemoryCacheOptions
 		{
