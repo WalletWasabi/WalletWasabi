@@ -59,11 +59,10 @@ public class TorStatusChecker : PeriodicRunner
 		var issues = systemsStatus.Systems
 			.Where(system => systemNames.Contains(system.Name))
 			.Where(system => system.Status != "ok" || system.UnresolvedIssues.Count != 0)
-			.Select(system =>
-			{
-				bool isResolved = !system.UnresolvedIssues.Any(issue => issue.Resolved is false);
-				return new Issue(system.Name, resolved: isResolved);
-			})
+			.SelectMany(system =>
+				system.UnresolvedIssues
+					.Where(issue => !issue.Resolved)
+					.Select(issue => new Issue(system.Name, issue.Title, resolved: false)))
 			.ToArray();
 
 		return issues;
