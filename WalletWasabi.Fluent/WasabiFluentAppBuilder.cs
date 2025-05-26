@@ -9,20 +9,23 @@ using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
-using Avalonia.ReactiveUI;
 using Avalonia.Threading;
 using ReactiveUI;
 using WalletWasabi.Daemon;
-using WalletWasabi.Fluent.Desktop.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Fluent.Desktop;
+namespace WalletWasabi.Fluent;
+
+public interface IWalletWasabiAppBuilder
+{
+	AppBuilder SetupAppBuilder(AppBuilder appBuilder);
+}
 
 public static class WasabiFluentAppBuilder
 {
-	public static async Task<int> RunAsync(string[] args)
+	public static async Task<int> RunAsync(string[] args, IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
 		var app = WasabiAppBuilder
 			.Create("Wasabi GUI", args)
@@ -32,7 +35,7 @@ public static class WasabiFluentAppBuilder
 			.OnTermination(TerminateApplication)
 			.Build();
 
-		var exitCode = await app.RunAsync(afterStarting: () => AfterStarting(app));
+		var exitCode = await app.RunAsync(afterStarting: () => AfterStarting(app, walletWasabiAppBuilder));
 
 		if (app.TerminateService.GracefulCrashException is not null)
 		{
@@ -44,7 +47,9 @@ public static class WasabiFluentAppBuilder
 		return (int)exitCode;
 	}
 
-	private static Task AfterStarting(WasabiApplication app)
+	private static Task AfterStarting(
+		WasabiApplication app,
+		IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
 		SetupExceptionHandler();
 
@@ -54,7 +59,7 @@ public static class WasabiFluentAppBuilder
 
 		using CancellationTokenSource stopLoadingCts = new();
 
-		var appBuilder = BuildDesktopAppBuilder(app, stopLoadingCts, uiConfig, runGuiInBackground);
+		var appBuilder = BuildDesktopAppBuilder(app, stopLoadingCts, uiConfig, runGuiInBackground, walletWasabiAppBuilder);
 
 		if (app.TerminateService.CancellationToken.IsCancellationRequested)
 		{
@@ -69,14 +74,20 @@ public static class WasabiFluentAppBuilder
 		return Task.CompletedTask;
 	}
 
-	private static AppBuilder BuildDesktopAppBuilder(WasabiApplication app, CancellationTokenSource stopLoadingCts, UiConfig uiConfig,
-		bool runGuiInBackground)
+	private static AppBuilder BuildDesktopAppBuilder(
+		WasabiApplication app,
+		CancellationTokenSource stopLoadingCts,
+		UiConfig uiConfig,
+		bool runGuiInBackground,
+		IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
-		return AppBuilder
+		var appBuilder = AppBuilder
 			.Configure(() => new App(
 				backendInitialiseAsync: async () => await BackendInitialiseAsync(app, stopLoadingCts, uiConfig),
-				startInBg: runGuiInBackground))
-			.SetupDesktopAppBuilder()
+				startInBg: runGuiInBackground));
+
+		return walletWasabiAppBuilder
+			.SetupAppBuilder(appBuilder)
 			.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
 	}
 

@@ -38,7 +38,7 @@ public class Program
 
 		try
 		{
-			return await WasabiFluentAppBuilder.RunAsync(args);
+			return await WasabiFluentAppBuilder.RunAsync(args, new DesktopWalletWasabiAppBuilder());
 		}
 		catch (Exception ex)
 		{
@@ -49,5 +49,10 @@ public class Program
 	}
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
-	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).SetupDesktopAppBuilder();
+	private static AppBuilder BuildAvaloniaApp()
+	{
+		var walletWasabiAppBuilder = new DesktopWalletWasabiAppBuilder();
+		var appBuilder = AppBuilder.Configure(() => new App());
+		return walletWasabiAppBuilder.SetupAppBuilder(appBuilder);
+	}
 }

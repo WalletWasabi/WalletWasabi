@@ -7,9 +7,9 @@ using Avalonia.ReactiveUI;
 
 namespace WalletWasabi.Fluent.Desktop.Extensions;
 
-public static class AppBuilderExtension
+public class DesktopWalletWasabiAppBuilder : IWalletWasabiAppBuilder
 {
-	public static AppBuilder SetupDesktopAppBuilder(this AppBuilder appBuilder)
+	public AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
 		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
 
