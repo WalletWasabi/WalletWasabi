@@ -20,7 +20,7 @@
         <ItemsControl Margin="8" ItemsSource="{Binding HealthMonitor.TorIssues}">
           <ItemsControl.ItemTemplate>
             <DataTemplate x:DataType="tor:Issue">
-              <TextBlock Text="{Binding Title, StringFormat='{}· {0}'}" />
+              <TextBlock Text="{Binding IssueTitle, StringFormat='{}· {0}'}" />
             </DataTemplate>
           </ItemsControl.ItemTemplate>
         </ItemsControl>
