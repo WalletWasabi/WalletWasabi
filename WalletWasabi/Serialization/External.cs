@@ -53,34 +53,16 @@ public static partial class Decode
 		});
 
 	public static readonly Decoder<TorIssue> TorIssueDecoder =
-		Object(get => new TorIssue
-		{
-			Is = get.Required("is", String),
-			Title = get.Required("title", String),
-			CreatedAt = get.Required("createdAt", String),
-			LastMod = get.Required("lastMod", String),
-			Permalink = get.Required("permalink", String),
-			Severity = get.Required("severity", String),
-			Resolved = get.Required("resolved", Bool),
-			Informational = get.Required("informational", Bool),
-			ResolvedAt = get.Required("resolvedAt", String),
-			Affected = get.Required("affected", Array(String)).ToList(),
-			Filename = get.Required("filename", String)
-		});
+		Object(get => new TorIssue(
+			get.Required("title", String),
+			get.Required("resolved", Bool),
+			get.Required("affected", Array(String)).ToList()));
 
 	public static readonly Decoder<SystemItem> TorSystemItemDecoder =
-		Object(get => new SystemItem
-		{
-			Name = get.Required("name", String),
-			Description = get.Required("description", String),
-			Category = get.Required("category", String),
-			Status = get.Required("status", String),
-			UnresolvedIssues = get.Required("unresolvedIssues", Array(TorIssueDecoder)).ToList()
-		});
+		Object(get => new SystemItem(
+			get.Required("name", String), get.Required("status", String),
+			get.Required("unresolvedIssues", Array(TorIssueDecoder)).ToList()));
 
 	public static readonly Decoder<TorNetworkStatus> TorStatus =
-		Object(get => new TorNetworkStatus
-		{
-			Systems = get.Required("systems", Array(TorSystemItemDecoder)).ToList()
-		});
+		Object(get => new TorNetworkStatus(get.Required("systems", Array(TorSystemItemDecoder)).ToList()));
 }
