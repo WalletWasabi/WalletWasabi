@@ -18,11 +18,6 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent;
 
-public interface IWalletWasabiAppBuilder
-{
-	AppBuilder SetupAppBuilder(AppBuilder appBuilder);
-}
-
 public static class WasabiFluentAppBuilder
 {
 	public static async Task<int> RunAsync(string[] args, IWalletWasabiAppBuilder walletWasabiAppBuilder)
