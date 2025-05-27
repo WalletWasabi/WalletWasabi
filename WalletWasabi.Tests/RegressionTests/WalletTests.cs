@@ -56,10 +56,6 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
 
 		// 4. Create wallet service.
-		var workDir = Helpers.Common.GetWorkDir();
-
-		IFileSystemBlockRepository blockRepository = bitcoinStore.BlockRepository;
-
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
 			SizeLimit = 1_000,

@@ -33,12 +33,6 @@ public class BlockDownloadServiceTests
 		TaskCompletionSource block2RequestedTcs = new();
 		TaskCompletionSource block2DelayTcs = new();
 
-		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
-		{
-			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
-			OnSaveAsync = (_, _) => Task.CompletedTask
-		};
-
 		int block2Counter = 0;
 		BlockProvider fullNodeBlockProvider = async (blockHash, _ ) =>
 		{
@@ -78,7 +72,7 @@ public class BlockDownloadServiceTests
 			throw new Exception("WTF");
 		};
 
-		var tryGetBlock = BlockProviders.CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
+		var tryGetBlock = fullNodeBlockProvider;
 
 		var task1 = tryGetBlock(blockHash1, testCts.Token);
 		var task2 = tryGetBlock(blockHash2, testCts.Token);
@@ -143,13 +137,6 @@ public class BlockDownloadServiceTests
 		Block block3 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 		Block block4 = Network.Main.Consensus.ConsensusFactory.CreateBlock();
 
-		// File-system cache is disabled for the purposes of this test.
-		var fileSystemBlockRepository = new TesteableFileSystemBlockRepository
-		{
-			OnTryGetBlockAsync = (_, _) => Task.FromResult<Block?>(null),
-			OnSaveAsync = (_, _) => Task.CompletedTask
-		};
-
 		int block2Counter=0;
 		BlockProvider fullNodeBlockProvider =
 			(blockHash, _) =>
@@ -166,7 +153,7 @@ public class BlockDownloadServiceTests
 				return Task.FromResult(blk);
 			};
 
-		var tryGetBlock = BlockProviders.CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
+		var tryGetBlock = fullNodeBlockProvider;
 
 		var returnedBlock1 = await tryGetBlock(blockHash1, testCts.Token);
 		Assert.Same(block1, returnedBlock1);
