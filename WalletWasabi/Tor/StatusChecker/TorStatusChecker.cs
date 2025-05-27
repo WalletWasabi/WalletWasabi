@@ -15,6 +15,7 @@ namespace WalletWasabi.Tor.StatusChecker;
 /// </summary>
 public class TorStatusChecker : PeriodicRunner
 {
+	public static readonly string[] RelevantSystems = { "v3 Onion Services", "Directory Authorities", "DNS" };
 	private readonly EventBus _eventBus;
 	private static readonly Uri TorStatusUri = new("https://status.torproject.org/index.json");
 
@@ -54,16 +55,14 @@ public class TorStatusChecker : PeriodicRunner
 	/// </summary>
 	private Issue[] CheckForTorIssues(TorNetworkStatus systemsStatus)
 	{
-		string[] systemNames = { "v3 Onion Service", "Directory Authorities", "DNS" };
-
 		var issues = systemsStatus.Systems
-			.Where(system => systemNames.Contains(system.Name))
+			.Where(system => RelevantSystems.Contains(system.Name))
 			.Where(system => system.Status != "ok" || system.UnresolvedIssues.Count != 0)
 			.SelectMany(system =>
 				system.UnresolvedIssues
 					.Where(issue => !issue.Resolved)
 					.Select(issue => new Issue(system.Name, issue.Title, resolved: false)))
-			.ToArray();
+					.ToArray();
 
 		return issues;
 	}
