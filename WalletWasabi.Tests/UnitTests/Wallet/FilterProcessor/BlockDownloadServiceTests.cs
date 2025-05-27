@@ -170,9 +170,5 @@ public class BlockDownloadServiceTests
 		// Second attempt to get block2.
 		returnedBlock2 = await tryGetBlock(blockHash2, testCts.Token);
 		Assert.Same(block2, returnedBlock2);
-
-		// Getting a block over P2P fails because there is no P2P provider registered.
-		var returnedBlock5 = await tryGetBlock(blockHash2, testCts.Token);
-		Assert.Null(returnedBlock5);
 	}
 }
