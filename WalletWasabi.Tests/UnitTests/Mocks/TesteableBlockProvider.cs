@@ -2,11 +2,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.BlockProviders;
 
 namespace WalletWasabi.Tests.UnitTests.Mocks;
 
-class TesteableBlockProvider : IBlockProvider
+class TesteableBlockProvider
 {
 	public Func<uint256, CancellationToken, Task<Block?>> OnTryGetBlockAsync { get; set; }
 	public Task<Block?> TryGetBlockAsync(uint256 blockHash, CancellationToken cancellationToken) =>

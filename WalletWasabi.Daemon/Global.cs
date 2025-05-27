@@ -36,7 +36,6 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Wallets.BlockProviders;
 
 namespace WalletWasabi.Daemon;
 
@@ -164,16 +163,15 @@ public class Global
 		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
 		HostedServices.Register<Synchronizer>(() => new Synchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
 
-		var fileSystemBlockProvider = new FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2pBlockProvider = new P2PBlockProvider(_p2PNodesManager);
-		IBlockProvider[] blockProviders = BitcoinRpcClient is { } rpc
-			? [fileSystemBlockProvider, new RpcBlockProvider(rpc), p2pBlockProvider]
-			: [fileSystemBlockProvider, p2pBlockProvider];
+		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(_p2PNodesManager);
+		BlockProvider[] blockProviders = BitcoinRpcClient is { } rpc
+			? [fileSystemBlockProvider, BlockProviders.RpcBlockProvider(rpc), p2PBlockProvider]
+			: [fileSystemBlockProvider, p2PBlockProvider];
 
-		var blockProvider = new CachedBlockProvider(
-			new ComposedBlockProvider(blockProviders),
-			fileSystemBlockRepository
-			);
+		var blockProvider = BlockProviders.CachedBlockProvider(
+			BlockProviders.ComposedBlockProvider(blockProviders),
+			fileSystemBlockRepository);
 
 		if (Network != Network.RegTest)
 		{

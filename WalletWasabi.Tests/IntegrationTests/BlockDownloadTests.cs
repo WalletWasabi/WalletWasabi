@@ -8,7 +8,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Daemon;
 using WalletWasabi.Logging;
-using WalletWasabi.Wallets.BlockProviders;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.IntegrationTests;
@@ -49,14 +49,14 @@ public class BlockDownloadTests
 			await Task.Delay(1000, testCts.Token);
 		}
 
-		P2PBlockProvider p2PBlockProvider = new(Network.Main, nodes);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
 		Stopwatch stopwatch = Stopwatch.StartNew();
 		var tasks = new List<Task<Block?>>();
 
 		foreach (uint256 blockHash in HeightToBlockHash)
 		{
-			var taskCompletionSource = p2PBlockProvider.TryGetBlockAsync(blockHash, testCts.Token);
+			var taskCompletionSource = p2PBlockProvider(blockHash, testCts.Token);
 			tasks.Add(taskCompletionSource);
 		}
 

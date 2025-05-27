@@ -20,7 +20,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -96,8 +95,8 @@ public class P2pTests
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		var blockProvider = new CachedBlockProvider(
-			new P2PBlockProvider(network, nodes),
+		var blockProvider = BlockProviders.CachedBlockProvider(
+			BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes)),
 			blocks);
 
 		ServiceConfiguration serviceConfiguration = new($"http://{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
@@ -112,7 +111,7 @@ public class P2pTests
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			foreach (var hash in blocksToDownload)
 			{
-				downloadTasks.Add(blockProvider.TryGetBlockAsync(hash, cts.Token));
+				downloadTasks.Add(blockProvider(hash, cts.Token));
 			}
 
 

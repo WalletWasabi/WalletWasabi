@@ -13,7 +13,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -67,7 +66,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		var blockProvider = new P2PBlockProvider(network, nodes);
+		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
 		WalletFactory walletFactory = new(network, bitcoinStore, setup.ServiceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);

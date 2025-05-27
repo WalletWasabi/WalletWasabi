@@ -5,7 +5,6 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Wallets.BlockProviders;
 
 namespace WalletWasabi.Wallets;
 
@@ -17,7 +16,7 @@ public record WalletFactory(
 	BitcoinStore BitcoinStore,
 	ServiceConfiguration ServiceConfiguration,
 	FeeRateEstimationUpdater FeeRateEstimationUpdater,
-	IBlockProvider BlockProvider,
+	BlockProvider BlockProvider,
 	EventBus EventBus,
     CpfpInfoProvider? CpfpInfoProvider = null)
 {

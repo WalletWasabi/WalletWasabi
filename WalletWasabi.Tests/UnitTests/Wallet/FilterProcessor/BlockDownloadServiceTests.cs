@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.UnitTests.Mocks;
-using WalletWasabi.Wallets.BlockProviders;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
@@ -40,53 +40,50 @@ public class BlockDownloadServiceTests
 		};
 
 		int block2Counter = 0;
-		var fullNodeBlockProvider = new TesteableBlockProvider
+		BlockProvider fullNodeBlockProvider = async (blockHash, _ ) =>
 		{
-			OnTryGetBlockAsync = async (blockHash, _) =>
+			if (blockHash == blockHash1)
 			{
-				if (blockHash == blockHash1)
-				{
-					block1RequestedTcs.SetResult();
+				block1RequestedTcs.SetResult();
 
-					// Wait until signal is given that "block is downloaded".
-					await block1DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
+				// Wait until signal is given that "block is downloaded".
+				await block1DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
 
-					return block1;
-				}
-				if(blockHash == blockHash2)
-				{
-					block2Counter++;
-					if (block2Counter == 1)
-					{
-						block2RequestedTcs.SetResult();
-
-						// Wait until signal is given that a download failure can be reported here.
-						await block2DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
-
-						return null;
-					}
-					return block2;
-				}
-
-				if (blockHash == blockHash3)
-				{
-					return block3;
-				}
-				if (blockHash == blockHash4)
-				{
-					return block4;
-				}
-
-				throw new Exception("WTF");
+				return block1;
 			}
+			if(blockHash == blockHash2)
+			{
+				block2Counter++;
+				if (block2Counter == 1)
+				{
+					block2RequestedTcs.SetResult();
+
+					// Wait until signal is given that a download failure can be reported here.
+					await block2DelayTcs.Task.WaitAsync(testCts.Token).ConfigureAwait(false);
+
+					return null;
+				}
+				return block2;
+			}
+
+			if (blockHash == blockHash3)
+			{
+				return block3;
+			}
+			if (blockHash == blockHash4)
+			{
+				return block4;
+			}
+
+			throw new Exception("WTF");
 		};
 
-		var service = new CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
+		var tryGetBlock = BlockProviders.CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
 
-		var task1 = service.TryGetBlockAsync(blockHash1, testCts.Token);
-		var task2 = service.TryGetBlockAsync(blockHash2, testCts.Token);
-		var task3 = service.TryGetBlockAsync(blockHash3, testCts.Token);
-		var task4 = service.TryGetBlockAsync(blockHash4, testCts.Token);
+		var task1 = tryGetBlock(blockHash1, testCts.Token);
+		var task2 = tryGetBlock(blockHash2, testCts.Token);
+		var task3 = tryGetBlock(blockHash3, testCts.Token);
+		var task4 = tryGetBlock(blockHash4, testCts.Token);
 
 		// Downloading of the block1 waits for our signal.
 		{
@@ -120,11 +117,11 @@ public class BlockDownloadServiceTests
 
 		// Second attempt to download block2 should succeed.
 		{
-			var block = await service.TryGetBlockAsync(blockHash2, testCts.Token);
+			var block = await tryGetBlock(blockHash2, testCts.Token);
 			Assert.Same(block2, block);
 		}
 
-		Block? actualBlock2 = await fullNodeBlockProvider.TryGetBlockAsync(blockHash2, testCts.Token);
+		Block? actualBlock2 = await fullNodeBlockProvider(blockHash2, testCts.Token);
 		Assert.Same(block2, actualBlock2);
 	}
 
@@ -154,9 +151,8 @@ public class BlockDownloadServiceTests
 		};
 
 		int block2Counter=0;
-		IBlockProvider fullNodeBlockProvider = new TesteableBlockProvider
-		{
-			OnTryGetBlockAsync = (blockHash, _) =>
+		BlockProvider fullNodeBlockProvider =
+			(blockHash, _) =>
 			{
 				var blk = (blockHash, block2Counter) switch
 				{
@@ -168,29 +164,28 @@ public class BlockDownloadServiceTests
 				};
 				if (blockHash == blockHash2) { block2Counter++;}
 				return Task.FromResult(blk);
-			}
-		};
+			};
 
-		var service = new CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
+		var tryGetBlock = BlockProviders.CachedBlockProvider(fullNodeBlockProvider, fileSystemBlockRepository);
 
-		var returnedBlock1 = await service.TryGetBlockAsync(blockHash1, testCts.Token);
+		var returnedBlock1 = await tryGetBlock(blockHash1, testCts.Token);
 		Assert.Same(block1, returnedBlock1);
 
-		var returnedBlock2 = await service.TryGetBlockAsync(blockHash2, testCts.Token);
+		var returnedBlock2 = await tryGetBlock(blockHash2, testCts.Token);
 		Assert.Null(returnedBlock2);
 
-		var returnedBlock3 = await service.TryGetBlockAsync(blockHash3, testCts.Token);
+		var returnedBlock3 = await tryGetBlock(blockHash3, testCts.Token);
 		Assert.Same(block3, returnedBlock3);
 
-		var returnedBlock4 = await service.TryGetBlockAsync(blockHash4, testCts.Token);
+		var returnedBlock4 = await tryGetBlock(blockHash4, testCts.Token);
 		Assert.Same(block4, returnedBlock4);
 
 		// Second attempt to get block2.
-		returnedBlock2 = await service.TryGetBlockAsync(blockHash2, testCts.Token);
+		returnedBlock2 = await tryGetBlock(blockHash2, testCts.Token);
 		Assert.Same(block2, returnedBlock2);
 
 		// Getting a block over P2P fails because there is no P2P provider registered.
-		var returnedBlock5 = await service.TryGetBlockAsync(blockHash2, testCts.Token);
+		var returnedBlock5 = await tryGetBlock(blockHash2, testCts.Token);
 		Assert.Null(returnedBlock5);
 	}
 }

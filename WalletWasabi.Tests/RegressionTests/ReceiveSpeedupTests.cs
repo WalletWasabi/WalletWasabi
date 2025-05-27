@@ -20,7 +20,6 @@ using WalletWasabi.Logging;
 using WalletWasabi.Helpers;
 using WalletWasabi.Exceptions;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Wallets.BlockProviders;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -71,7 +70,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 
 		using MemoryCache cache = BitcoinFactory.CreateMemoryCache();
 
-		var blockProvider = new P2PBlockProvider(network, nodes);
+		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
 		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);

@@ -14,14 +14,13 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
-using WalletWasabi.Wallets.BlockProviders;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, IBlockProvider blockProvider, EventBus eventBus)
+	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockProvider blockProvider, EventBus eventBus)
 	{
 		_keyManager = keyManager;
 		_bitcoinStore = bitcoinStore;
@@ -35,7 +34,7 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly KeyManager _keyManager;
 	private readonly BitcoinStore _bitcoinStore;
 	private readonly TransactionProcessor _transactionProcessor;
-	private readonly IBlockProvider _blockProvider;
+	private readonly BlockProvider _blockProvider;
 	private readonly EventBus _eventBus;
 	private readonly BlockFilterIterator _blockFilterIterator;
 	private readonly TaskCompletionSource _initialSynchronizationFinished;
@@ -112,11 +111,7 @@ public class WalletFilterProcessor : BackgroundService
 			if (matchFound)
 			{
 				// Wait until downloaded.
-				var currentBlock = await _blockProvider.TryGetBlockAsync(filter.Header.BlockHash, cancel).ConfigureAwait(false);
-				if (currentBlock == null)
-				{
-					//
-				}
+				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancel).ConfigureAwait(false);
 				var txsToProcess = new List<SmartTransaction>();
 				for (int i = 0; i < currentBlock.Transactions.Count; i++)
 				{
