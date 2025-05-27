@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
+using ArgumentException = System.ArgumentException;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 
@@ -29,17 +30,18 @@ public class BlockFilterIteratorTests
 		FilterModel filter3 = CreateFilterModel(blockHeight: 610_003, blockHash: new uint256(3), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(2), blockTime: 1231006506);
 		FilterModel filter4 = CreateFilterModel(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006506);
 
+		var fetchCallCount = 0;
 		var indexStore = new TesteableIndexStore
 		{
 			OnFetchBatchAsync = (fromHeight, count, _) =>
 			{
-				var filters = (fromHeight, count) switch
+				fetchCallCount++;
+				return Task.FromResult((fromHeight, count) switch
 				{
 					(610_001, 3) => new[] {filter1, filter2, filter3},
 					(610_004, 3) => new[] {filter4},
 					_ => throw new ArgumentException()
-				};
-				return Task.FromResult<FilterModel[]>(filters);
+				});
 			}
 		};
 
@@ -49,35 +51,28 @@ public class BlockFilterIteratorTests
 		{
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_001, testCts.Token);
 			Assert.Equal(filter1, actualFilter);
-
-			// The internal cache should not contain the filter anymore.
-			Assert.False(filterIterator.Cache.ContainsKey(610_001));
+			Assert.Equal(1, fetchCallCount);
 		}
 
 		// No database lookup is needed for block 610_001 as that one should be cached now.
 		{
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_002, testCts.Token);
 			Assert.Equal(filter2, actualFilter);
-			Assert.False(filterIterator.Cache.ContainsKey(610_002));
+			Assert.Equal(1, fetchCallCount);
 		}
 
 		// No database lookup is needed for block 610_002 as that one should be cached now.
 		{
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_003, testCts.Token);
 			Assert.Equal(filter3, actualFilter);
-			Assert.False(filterIterator.Cache.ContainsKey(610_003));
-
-			Assert.Empty(filterIterator.Cache);
+			Assert.Equal(1, fetchCallCount);
 		}
 
 		// Iterator needs to do a database lookup, but now that lookup returns only 1 record and not 3 (we are close to the blockchain tip).
 		{
 			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_004, testCts.Token);
 			Assert.Equal(filter4, actualFilter);
-			Assert.False(filterIterator.Cache.ContainsKey(610_004));
-
-			// Cache is empty again because we have got only 1 record from the index store.
-			Assert.Empty(filterIterator.Cache);
+			Assert.Equal(2, fetchCallCount);
 		}
 	}
 

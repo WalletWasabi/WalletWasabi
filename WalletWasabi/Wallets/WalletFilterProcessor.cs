@@ -137,7 +137,7 @@ public class WalletFilterProcessor : BackgroundService
 				_keyManager.SetMaxBestHeight(new Height(newBestHeight));
 				_transactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
 				_bitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
-				await _blockFilterIterator.RemoveNewerThanAsync(newBestHeight, CancellationToken.None).ConfigureAwait(false);
+				_blockFilterIterator.RemoveNewerThan(newBestHeight);
 			}
 		}
 		catch (Exception ex)
