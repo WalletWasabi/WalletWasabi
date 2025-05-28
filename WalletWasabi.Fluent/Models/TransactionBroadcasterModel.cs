@@ -59,10 +59,10 @@ public partial class TransactionBroadcasterModel
 			.ToArray();
 
 		var outputAddressAmount = psbt.Outputs
-			.Select(x => x.GetCoin().TxOut)
+			.Select(x => x.GetTxOut())
 			.ToArray();
 
-		var psbtTxn = psbt.GetOriginalTransaction();
+		var psbtTxn = psbt.ExtractTransaction();
 
 		var transactionId = psbtTxn.GetHash().ToString();
 
