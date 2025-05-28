@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using Nito.AsyncEx;
 using System;
@@ -120,6 +119,7 @@ public class Global
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly IndexStore _indexStore;
+	private readonly ComposedDisposable _disposables = new();
 
 	public StatusContainer Status { get; }
 	public string DataDir { get; }
@@ -152,16 +152,18 @@ public class Global
 
 	private void ConfigureBitcoinNetwork(NodesGroup nodesGroup)
 	{
-		var bitcoinNetwork = Spawn("BitcoinNetwork",
-			Network == Network.RegTest
-				? P2pNetwork.CreateForTestNet(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
-				: P2pNetwork.Create(
-					Network,
-					nodesGroup,
-					Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-					Path.Combine(DataDir, "BitcoinP2pNetwork"),
-					EventBus,
-					Config.BlockOnlyMode ? null : BitcoinStore.CreateUntrustedP2pBehavior()));
+		Spawn("BitcoinNetwork",
+			Service("Bitcoin Network Connectivity",
+				Network == Network.RegTest
+					? P2pNetwork.CreateForTestNet(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
+					: P2pNetwork.Create(
+						Network,
+						nodesGroup,
+						Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
+						Path.Combine(DataDir, "BitcoinP2pNetwork"),
+						EventBus,
+						Config.BlockOnlyMode ? null : BitcoinStore.CreateUntrustedP2pBehavior())))
+			.DisposeUsing(_disposables);
 	}
 
 	private void ConfigureBitcoinRpcClient()
@@ -213,10 +215,12 @@ public class Global
 			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		}
 		var feeRateUpdater = Spawn("FeeRateUpdater",
-			Periodically(
-				TimeSpan.FromMinutes(15),
-				FeeRateEstimations.Empty,
-				FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus)));
+			Service("Mining Fee Rate Updater",
+				Periodically(
+					TimeSpan.FromMinutes(15),
+					FeeRateEstimations.Empty,
+					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))));
+		feeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
 	}
 
@@ -224,10 +228,12 @@ public class Global
 	{
 		if (_bitcoinRpcClient is not null)
 		{
-			var rpcMonitor = Spawn("RpcMonitor",
-				Periodically(
-					TimeSpan.FromSeconds(7),
-					RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus)));
+			var rpcMonitor = Spawn(RpcMonitor.ServiceName,
+				Service("Bitcoin Rpc Interface Monitoring",
+					Periodically(
+						TimeSpan.FromSeconds(7),
+						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))));
+			rpcMonitor.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 		}
 	}
@@ -248,10 +254,12 @@ public class Global
 			}
 		}
 
-		var synchronizer = Spawn("Synchronizer",
-			Continuously<Unit>(
-				Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
-			));
+		Spawn("Synchronizer",
+			Service("Wasabi Index-Based Synchronizer",
+				Continuously<Unit>(
+					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
+				)))
+			.DisposeUsing(_disposables);
 	}
 
 	private void ConfigureExchangeRateUpdater()
@@ -270,11 +278,13 @@ public class Global
 			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};
 
-		var exchangeFeeRateUpdater = Spawn("ExchangeFeeRateUpdater",
-			Periodically(
-				TimeSpan.FromMinutes(20),
-				0m,
-				ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus)));
+		var exchangeFeeRateUpdater = Spawn(ExchangeRateUpdater.ServiceName,
+				Service("Exchange Rate Updater",
+					Periodically(
+						TimeSpan.FromMinutes(20),
+						0m,
+						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))));
+		exchangeFeeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
 	}
 
@@ -291,9 +301,11 @@ public class Global
 				: ReleaseDownloader.ForOfficiallySupportedOSes(ExternalSourcesHttpClientFactory, EventBus);
 
 		var wasabiVersionUpdater = Spawn("UpdateManager",
-			Periodically(
-				TimeSpan.FromHours(12),
-				UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus)));
+			Service("Wasabi Version AutoUpdater",
+				Periodically(
+					TimeSpan.FromHours(12),
+					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
+		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
 	}
 
@@ -426,6 +438,7 @@ public class Global
 			var torStatusChecker = Spawn("TorStatusChecker",
 				Periodically(TimeSpan.FromHours(1),
 					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)));
+			torStatusChecker.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
 		}
 	}
@@ -516,6 +529,8 @@ public class Global
 				Status.Dispose();
 
 				NodesGroup.Dispose();
+
+				_disposables.Dispose();
 
 				if (_coinPrison is { } coinPrison)
 				{
