@@ -1,6 +1,7 @@
 using System.Linq;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Models;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Serialization;
 
@@ -50,4 +51,18 @@ public static partial class Decode
 			Ticker = "USD",
 			Rate = get.Required("USD", Field("Sell", Decimal))
 		});
+
+	public static readonly Decoder<TorIssue> TorIssueDecoder =
+		Object(get => new TorIssue(
+			get.Required("title", String),
+			get.Required("resolved", Bool),
+			get.Required("affected", Array(String)).ToList()));
+
+	public static readonly Decoder<SystemItem> TorSystemItemDecoder =
+		Object(get => new SystemItem(
+			get.Required("name", String), get.Required("status", String),
+			get.Required("unresolvedIssues", Array(TorIssueDecoder)).ToList()));
+
+	public static readonly Decoder<TorNetworkStatus> TorStatus =
+		Object(get => new TorNetworkStatus(get.Required("systems", Array(TorSystemItemDecoder)).ToList()));
 }
