@@ -13,7 +13,7 @@ public static class FeeRateEstimationUpdater
 	public static Func<Message, FeeRateEstimations, CancellationToken, Task<FeeRateEstimations>> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>
 		(message, feeRateEstimations, cancellationToken) => UpdateAsync(message, feeRateProvider, feeRateEstimations, eventBus, cancellationToken);
 
-	private static async Task<FeeRateEstimations> UpdateAsync(UpdateMessage _, FeeRateProvider feeRateProvider, FeeRateEstimations feeRateEstimations, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<FeeRateEstimations> UpdateAsync(Message _, FeeRateProvider feeRateProvider, FeeRateEstimations feeRateEstimations, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		var newFeeRateEstimations = await feeRateProvider(cancellationToken).ConfigureAwait(false);
 		if (newFeeRateEstimations != feeRateEstimations)
