@@ -10,6 +10,7 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Protocol;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
@@ -100,23 +101,17 @@ public class Global
 			ExpirationScanFrequency = TimeSpan.FromSeconds(30)
 		});
 
-		// Register P2P network.
-		HostedServices.Register<P2pNetwork>(
-			() =>
-			{
-				var p2p = new P2pNetwork(
-						Network,
-						Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-						Path.Combine(DataDir, "BitcoinP2pNetwork"),
-						BitcoinStore);
-				if (!Config.BlockOnlyMode)
-				{
-					p2p.Nodes.NodeConnectionParameters.TemplateBehaviors.Add(BitcoinStore.CreateUntrustedP2pBehavior());
-				}
-
-				return p2p;
-			},
-			friendlyName: "Bitcoin P2P Network");
+		var nodesGroup = new NodesGroup(Network, requirements: Constants.NodeRequirements);
+		var bitcoinNetwork = Spawn("BitcoinNetwork",
+			Network == Network.RegTest
+				? P2pNetwork.CreateForTestNet(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
+				: P2pNetwork.Create(
+					Network,
+					nodesGroup,
+					Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
+					Path.Combine(DataDir, "BitcoinP2pNetwork"),
+					EventBus,
+					Config.BlockOnlyMode ? null : BitcoinStore.CreateUntrustedP2pBehavior()));
 
 		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
 		var blockstreamInfoExchangeProvider = ExchangeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
@@ -150,7 +145,7 @@ public class Global
 		};
 
 		// Block providers.
-		_p2PNodesManager = new P2PNodesManager(Network, HostedServices.Get<P2pNetwork>().Nodes);
+		_p2PNodesManager = new P2PNodesManager(Network, nodesGroup);
 
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
@@ -229,9 +224,10 @@ public class Global
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
-		var broadcasters = CreateBroadcasters();
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
+		var broadcasters = CreateBroadcasters(nodesGroup);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
+		NodesGroup = nodesGroup;
 		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
@@ -253,6 +249,7 @@ public class Global
 	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
+	public NodesGroup NodesGroup { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	private readonly P2PNodesManager _p2PNodesManager;
 	private TorProcessManager? TorManager { get; set; }
@@ -431,9 +428,8 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, coinJoinConfiguration, CoinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters()
+	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup)
 	{
-		var p2p = HostedServices.Get<P2pNetwork>();
 		var broadcasters = new List<IBroadcaster>();
 		if (BitcoinRpcClient is not null)
 		{
@@ -441,7 +437,7 @@ public class Global
 		}
 
 		broadcasters.AddRange([
-			new NetworkBroadcaster(BitcoinStore.MempoolService, p2p.Nodes),
+			new NetworkBroadcaster(BitcoinStore.MempoolService, nodesGroup),
 			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
 		]);
 
@@ -494,6 +490,7 @@ public class Global
 
 				Status.Dispose();
 
+				NodesGroup.Dispose();
 				if (CoinPrison is { } coinPrison)
 				{
 					coinPrison.Dispose();

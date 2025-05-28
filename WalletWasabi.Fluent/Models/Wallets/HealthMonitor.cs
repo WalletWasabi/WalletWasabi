@@ -1,10 +1,8 @@
-using NBitcoin.Protocol;
 using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
@@ -50,7 +48,6 @@ public partial class HealthMonitor : ReactiveObject
 		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
 		CanUseBitcoinRpc = UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
 		BitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
-		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 
 		// Priority Fee
 		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
@@ -110,13 +107,18 @@ public partial class HealthMonitor : ReactiveObject
 		issues.Connect()
 			.DisposeWith(Disposables);
 
+		var nodesCount = 0;
+		var peersObservable = Services.EventBus.AsObservable<BitcoinPeersChanged>();
+		peersObservable.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => nodesCount = x.NodesCount)
+			.DisposeWith(Disposables);
+
 		// Peers
-		Observable.Merge(Observable.FromEventPattern(nodes, nameof(nodes.Added)).ToSignal()
-			.Merge(Observable.FromEventPattern<NodeEventArgs>(nodes, nameof(nodes.Removed)).ToSignal()
-			.Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
+		Observable.Merge( peersObservable.ToSignal()
+			.Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ =>
-				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodesCount) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
 			.BindTo(this, x => x.Peers)
 			.DisposeWith(Disposables);
 
