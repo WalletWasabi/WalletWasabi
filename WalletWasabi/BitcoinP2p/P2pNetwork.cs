@@ -1,9 +1,7 @@
-using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Net.Sockets;
 using System.Threading;
@@ -12,165 +10,137 @@ using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Stores;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public class P2pNetwork : BackgroundService
+public static class P2pNetwork
 {
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public P2pNetwork(Network network, EndPoint? torSocks5EndPoint, string workDir, BitcoinStore bitcoinStore)
-	{
-		_network = network;
-		_bitcoinStore = bitcoinStore;
-		_addressManagerFilePath = Path.Combine(workDir, $"_addressManager{_network}.dat");
-
-		if (_network == Network.RegTest)
+	public static Func<Mailbox<Unit>, CancellationToken, Task> CreateForTestNet(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
+		async (_, cancellationToken) =>
 		{
-			_addressManager = new AddressManager();
-			Logger.LogInfo($"Fake {nameof(AddressManager)} is initialized on the {Network.RegTest}.");
-
-			Nodes = new NodesGroup(_network, requirements: Constants.NodeRequirements);
-		}
-		else
-		{
-			var needsToDiscoverPeers = true;
-
 			try
 			{
-				_addressManager = AddressManager.LoadPeerFile(_addressManagerFilePath);
+				var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
+				var node = await Node.ConnectAsync(Network.RegTest, localNodelEndpoint).ConfigureAwait(false);
+				node.Behaviors.Add(p2PBehavior);
+				node.VersionHandshake(cancellationToken);
+				Logger.LogInfo("Start connecting to mempool serving regtest node...");
 
-				// Most of the times we do not need to discover new peers. Instead, we can connect to
-				// some of those that we already discovered in the past. In this case we assume that
-				// discovering new peers could be necessary if our address manager has less
-				// than 500 addresses. 500 addresses could be okay because previously we tried with
-				// 200 and only one user reported he/she was not able to connect (there could be many others,
-				// of course).
-				// On the other side, increasing this number forces users that do not need to discover more peers
-				// to spend resources (CPU/bandwidth) to discover new peers.
-				needsToDiscoverPeers = torSocks5EndPoint is not null || _addressManager.Count < 500;
-				Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{_addressManagerFilePath}`.");
+				nodesGroup.ConnectedNodes.Add(node);
 			}
-			catch (DirectoryNotFoundException ex)
+			catch (SocketException ex)
 			{
-				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace(ex);
-				_addressManager = new AddressManager();
-			}
-			catch (FileNotFoundException ex)
-			{
-				Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{_addressManagerFilePath}`. Initializing new one.");
-				Logger.LogTrace(ex);
-				_addressManager = new AddressManager();
-			}
-			catch (Exception ex) when (ex is OverflowException || ex is FormatException || ex is ArgumentException || ex is EndOfStreamException)
-			{
-				// https://github.com/WalletWasabi/WalletWasabi/issues/712
-				// https://github.com/WalletWasabi/WalletWasabi/issues/880
-				// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
-				// https://github.com/WalletWasabi/WalletWasabi/issues/5255
-				Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
-				File.Delete(_addressManagerFilePath);
-				Logger.LogTrace(ex);
-				_addressManager = new AddressManager();
-				Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
+				Logger.LogError(ex);
+				throw;
 			}
 
-			var addressManagerBehavior = new AddressManagerBehavior(_addressManager)
+			nodesGroup.Connect();
+			await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
+			nodesGroup.Disconnect();
+		};
+
+
+	public static Func<Mailbox<Unit>, CancellationToken, Task> Create(Network network, NodesGroup nodesGroup, EndPoint? torSocks5EndPoint, string workDir, EventBus eventBus, P2pBehavior? p2PBehavior = null) =>
+		async (_, cancellationToken) =>
+		{
+			var addressManagerFilePath = Path.Combine(workDir, $"AddressManager{network}.dat");
+			var connectionParameters = new NodeConnectionParameters();
+
+			var addressManager = LoadOrCreateAddressManager(addressManagerFilePath);
+
+			var useTor = torSocks5EndPoint is not null;
+			var needsToDiscoverPeers = useTor || addressManager.Count < 500;
+			var addressManagerBehavior = new AddressManagerBehavior(addressManager)
 			{
 				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 			};
 
 			var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
-			var connectionParameters = new NodeConnectionParameters { UserAgent = userAgent };
-
+			connectionParameters.UserAgent = userAgent;
 			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
-
-			if (torSocks5EndPoint is not null)
+			if (p2PBehavior is not null)
 			{
-				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+				connectionParameters.TemplateBehaviors.Add(p2PBehavior);
 			}
-			var nodes = new NodesGroup(_network, connectionParameters, requirements: Constants.NodeRequirements);
-			nodes.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
-			nodes.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
-			nodes.MaximumNodeConnection = MaximumNodeConnections;
-
-			Nodes = nodes;
-		}
-	}
-
-	private readonly Network _network;
-	private readonly BitcoinStore _bitcoinStore;
-	public NodesGroup Nodes { get; }
-	private readonly string _addressManagerFilePath;
-	private readonly AddressManager _addressManager;
-
-	/// <inheritdoc />
-	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
-	{
-		if (_network == Network.RegTest)
-		{
-			try
+			if (useTor)
 			{
-				var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
-				Node node = await Node.ConnectAsync(Network.RegTest, localNodelEndpoint).ConfigureAwait(false);
-				node.Behaviors.Add(_bitcoinStore.CreateUntrustedP2pBehavior());
-				node.VersionHandshake(stoppingToken);
-				Logger.LogInfo("Start connecting to mempool serving regtest node...");
-
-				Nodes.ConnectedNodes.Add(node);
-
+				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint,
+					onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 			}
-			catch (SocketException ex)
+
+			nodesGroup.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
+			nodesGroup.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
+			nodesGroup.MaximumNodeConnection = MaximumNodeConnections;
+
+			nodesGroup.Connect();
+			await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
+
+			nodesGroup.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
+			nodesGroup.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
+
+			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
+			AddressManagerBehavior.GetAddrman(nodesGroup.NodeConnectionParameters).SavePeerFile(addressManagerFilePath, network);
+			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
+
+			nodesGroup.Disconnect();
+			return;
+
+			void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
 			{
-				Logger.LogError(ex);
+				if (sender is NodesCollection nodesCollection)
+				{
+					if (nodesGroup.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector
+					    bestEffortEndPointConnector)
+					{
+						bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
+					}
+
+					eventBus.Publish(new BitcoinPeersChanged(e.Added, nodesCollection.Count));
+				}
 			}
-		}
+		};
 
-		Nodes.Connect();
-	}
 
-	private void ConnectedNodes_OnAddedOrRemoved(object? sender, NodeEventArgs e)
+	private static AddressManager LoadOrCreateAddressManager(string addressManagerFilePath)
 	{
-		var nodes = Nodes;
-		if (nodes is not null && sender is NodesCollection nodesCollection && nodes.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector bestEffortEndPointConnector)
+		try
 		{
-			bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
+			var addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
+
+			// Most of the times we do not need to discover new peers. Instead, we can connect to
+			// some of those that we already discovered in the past. In this case we assume that
+			// discovering new peers could be necessary if our address manager has less
+			// than 500 addresses. 500 addresses could be okay because previously we tried with
+			// 200 and only one user reported he/she was not able to connect (there could be many others,
+			// of course).
+			// On the other side, increasing this number forces users that do not need to discover more peers
+			// to spend resources (CPU/bandwidth) to discover new peers.
+			Logger.LogInfo($"Loaded {nameof(AddressManager)} from `{addressManagerFilePath}`.");
+			return addressManager;
 		}
-	}
-
-	public override async Task StopAsync(CancellationToken cancellationToken)
-	{
-		IoHelpers.EnsureContainingDirectoryExists(_addressManagerFilePath);
-
-		_addressManager.SavePeerFile(_addressManagerFilePath, _network);
-		Logger.LogInfo($"{nameof(AddressManager)} is saved to `{_addressManagerFilePath}`.");
-
-		cancellationToken.ThrowIfCancellationRequested();
-
-		Nodes.Disconnect();
-		while (Nodes.ConnectedNodes.Any(x => x.IsConnected))
+		catch (IOException ex) when (ex is DirectoryNotFoundException or FileNotFoundException)
 		{
-			await Task.Delay(50, cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"{nameof(AddressManager)} did not exist at `{addressManagerFilePath}`. Initializing new one.");
+			Logger.LogTrace(ex);
+			return new AddressManager();
 		}
-
-		cancellationToken.ThrowIfCancellationRequested();
-
-		await base.StopAsync(cancellationToken).ConfigureAwait(false);
-	}
-
-	public override void Dispose()
-	{
-		if (_network != Network.RegTest)
+		catch (Exception ex) when (ex is OverflowException or FormatException or ArgumentException or EndOfStreamException)
 		{
-			Nodes.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
-			Nodes.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
+			// https://github.com/WalletWasabi/WalletWasabi/issues/712
+			// https://github.com/WalletWasabi/WalletWasabi/issues/880
+			// https://www.reddit.com/r/WasabiWallet/comments/qt0mgz/crashing_on_open/
+			// https://github.com/WalletWasabi/WalletWasabi/issues/5255
+			Logger.LogInfo($"{nameof(AddressManager)} has thrown `{ex.GetType().Name}`. Attempting to autocorrect.");
+			File.Delete(addressManagerFilePath);
+			Logger.LogTrace(ex);
+			var addressManager = new AddressManager();
+			Logger.LogInfo($"{nameof(AddressManager)} autocorrection is successful.");
+			return addressManager;
 		}
-
-		Nodes.Dispose();
-		base.Dispose();
 	}
 }
