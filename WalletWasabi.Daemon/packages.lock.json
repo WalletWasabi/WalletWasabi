@@ -237,7 +237,7 @@
           "Microsoft.Extensions.Hosting.Abstractions": "[8.0.0, )",
           "Microsoft.Extensions.Http": "[8.0.0, )",
           "Microsoft.Win32.SystemEvents": "[8.0.0, )",
-          "NBitcoin": "[7.0.46, )",
+          "NBitcoin": "[8.0.14, )",
           "NNostr.Client": "[0.0.49, )",
           "System.IO.Pipelines": "[8.0.0, )",
           "System.Text.Json": "[8.0.5, )",
@@ -308,9 +308,9 @@
       },
       "NBitcoin": {
         "type": "CentralTransitive",
-        "requested": "[7.0.46, )",
-        "resolved": "7.0.46",
-        "contentHash": "sGSZ5TVDNaE9pRhmcqTTbYB1hCaiJKANBz8vQz+ulbKM6bOrV/gmQEcU7bXk3hDwCfwyz7KZB6RxcgMP/HmFoQ==",
+        "requested": "[8.0.14, )",
+        "resolved": "8.0.14",
+        "contentHash": "pRrgEC7HNvOvjGeqHWIOjz/S3OcQiJ7nLRDokreXU5VShfjXWkiOjt9aP/zswliPheRfcAQWFU/BjlMIgwBlLg==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "13.0.1"

@@ -144,7 +144,7 @@
   (fetchNuGet { pname = "Microsoft.Win32.Registry"; version = "4.0.0"; hash = "sha256-M/06F/Z2wTHCh4pZOgtCjUGLD1FJXEJKCmzOeFMl7uo="; })
   (fetchNuGet { pname = "Microsoft.Win32.SystemEvents"; version = "8.0.0"; hash = "sha256-UcxurEamYD+Bua0PbPNMYAZaRulMrov8CfbJGIgTaRQ="; })
   (fetchNuGet { pname = "Moq"; version = "4.18.4"; hash = "sha256-JOmYlcTJdQOthRxnT0jAD6WG+NVLMmIV2BM9rNhNg3Q="; })
-  (fetchNuGet { pname = "NBitcoin"; version = "7.0.46"; hash = "sha256-c5KHQ/TYGBTMoKKKo7XYR8r7VTJlaU0ZW6KqWRMjh2Y="; })
+  (fetchNuGet { pname = "NBitcoin"; version = "8.0.14"; hash = "sha256-Ut/0TdRutL5dljFhsUyrTISqyWe+rBuciKvC7ORBGqc="; })
   (fetchNuGet { pname = "NBitcoin.Secp256k1"; version = "3.1.0"; hash = "sha256-vhp1Rjl//09c8U912Mqfu6/Ip0/ljnZkCkDo9k45dtU="; })
   (fetchNuGet { pname = "NBitcoin.Secp256k1"; version = "3.1.4"; hash = "sha256-D/V/vEAqZxAOjn5fPg028QLpkfweDG56N8/dsc80Fz8="; })
   (fetchNuGet { pname = "NETStandard.Library"; version = "1.6.0"; hash = "sha256-ExWI1EKDCRishcfAeHVS/RoJphqSqohmJIC/wz3ZtVo="; })
