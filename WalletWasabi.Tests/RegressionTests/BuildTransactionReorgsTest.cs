@@ -18,7 +18,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -71,12 +70,9 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		var workDir = Helpers.Common.GetWorkDir();
 
 
-		using BlockDownloadService blockDownloadService = new(
-			bitcoinStore.BlockRepository,
-			[],
-			new P2PBlockProvider(network, nodes));
+		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
 		walletManager.Initialize();
 

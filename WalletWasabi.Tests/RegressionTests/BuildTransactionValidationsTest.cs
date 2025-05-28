@@ -16,7 +16,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.FilterProcessor;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 
@@ -68,12 +67,9 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 
 		using MemoryCache cache = CreateMemoryCache();
 
-		using BlockDownloadService blockDownloadService = new(
-			bitcoinStore.BlockRepository,
-			[],
-			new P2PBlockProvider(network, nodes));
+		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockDownloadService, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, setup.EventBus);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 

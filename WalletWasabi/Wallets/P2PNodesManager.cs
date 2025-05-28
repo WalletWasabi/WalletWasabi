@@ -1,10 +1,11 @@
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
@@ -21,18 +22,32 @@ public class P2PNodesManager
 	private readonly NodesGroup _nodes;
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
+	private readonly List<Node> _nodesInUse = new();
 
-	public uint ConnectedNodesCount => (uint)_nodes.ConnectedNodes.Count;
-
-	public async Task<Node?> GetNodeAsync(CancellationToken cancellationToken)
+	public async Task<Node> GetNodeForSingleUseAsync(CancellationToken cancellationToken)
 	{
-		while (_nodes.ConnectedNodes.Count == 0)
+		while (!cancellationToken.IsCancellationRequested)
 		{
-			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+			if (_nodes.ConnectedNodes.Count == 0)
+			{
+				await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
+				continue;
+			}
+
+			var nodesInUse = _nodesInUse.ToArray();
+			var node = _nodes.ConnectedNodes.Where(n => !nodesInUse.Contains(n)).RandomElement(SecureRandom.Instance);
+
+			if (node is not null && node.IsConnected)
+			{
+				_nodesInUse.Add(node);
+				return node;
+			}
+
+			await Task.Delay(10, cancellationToken).ConfigureAwait(false);
 		}
 
-		// Select a random node we are connected to.
-		return _nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
+		cancellationToken.ThrowIfCancellationRequested();
+		throw new InvalidOperationException("Failed to retrieve a connected node.");
 	}
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
@@ -46,6 +61,7 @@ public class P2PNodesManager
 	public void DisconnectNode(Node node, string reason)
 	{
 		Logger.LogInfo(reason);
+		_nodesInUse.Remove(node);
 		node.DisconnectAsync(reason);
 	}
 
