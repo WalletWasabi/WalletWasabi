@@ -117,3 +117,5 @@ public record IndexerIncompatibilityDetected();
 public record RpcStatusChanged(Result<ConnectedRpcStatus, string> Status);
 public record FilterProcessed(FilterModel Filter);
 public record Tick(DateTime DateTime);
+
+public record BitcoinPeersChanged(bool Added, int NodesCount);
