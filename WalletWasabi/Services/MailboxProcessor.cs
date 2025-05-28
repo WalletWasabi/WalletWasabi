@@ -2,6 +2,7 @@ using System.Collections.Concurrent;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services;
 
@@ -29,13 +30,15 @@ public class Mailbox<TMsg>
 		_channel.Writer.Complete();
 }
 
+public delegate Task Process<TMsg>(Mailbox<TMsg> mailbox, CancellationToken cancellationToken);
+
 public sealed class MailboxProcessor<TMsg>(
-	Func<Mailbox<TMsg>, CancellationToken, Task> body,
+	Process<TMsg> body,
 	CancellationToken? cancellationToken = null) : IDisposable
 {
 	private readonly Mailbox<TMsg> _mailbox = new();
 
-	private readonly Func<Mailbox<TMsg>, CancellationToken, Task> _body =
+	private readonly Process<TMsg> _body =
 		body ?? throw new ArgumentNullException(nameof(body));
 
 	private readonly CancellationTokenSource _cts = cancellationToken != null
@@ -114,7 +117,6 @@ public sealed class MailboxProcessor<TMsg>(
 		catch (Exception exception)
 		{
 			// Log the exception
-			Workers.Tell("logger", exception);
 		}
 	}
 }
@@ -136,11 +138,12 @@ internal sealed class ReplyChannel<TReply> : IReplyChannel<TReply>
 	public void Reply(TReply reply) => _replyAction(reply);
 }
 
+
 public static class Workers
 {
 	private static readonly ConcurrentDictionary<string, object> Processors = new();
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Func<Mailbox<TMsg>, CancellationToken, Task> body)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
@@ -166,7 +169,7 @@ public static class Workers
 		return false;
 	}
 
-	public static Func<Mailbox<TMsg>, CancellationToken, Task> Periodically<TMsg>(TimeSpan period,
+	public static Process<TMsg> Periodically<TMsg>(TimeSpan period,
 		Func<TMsg, CancellationToken, Task> handler) =>
 		async (inbox, cancellationToken) =>
 		{
@@ -182,7 +185,7 @@ public static class Workers
 			}
 		};
 
-	public static Func<Mailbox<TMsg>, CancellationToken, Task> Periodically<TMsg, TState>(TimeSpan period, TState state,
+	public static Process<TMsg> Periodically<TMsg, TState>(TimeSpan period, TState state,
 		Func<TMsg, TState, CancellationToken, Task<TState>> handler) =>
 		async (inbox, cancellationToken) =>
 		{
@@ -198,13 +201,40 @@ public static class Workers
 			}
 		};
 
-	public static Func<Mailbox<TMsg>, CancellationToken, Task> Continuously<TMsg>(
+	public static Process<TMsg> Continuously<TMsg>(
 		Func<CancellationToken, Task> handler) =>
 		async (_, cancellationToken) =>
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				await handler(cancellationToken).ConfigureAwait(false);
+			}
+		};
+
+	public static Process<TMsg> Service<TMsg>(string serviceName, Process<TMsg> handler) =>
+		Service(
+			before: () => Logger.LogInfo($"Starting {serviceName}."),
+			handler,
+			after: () => Logger.LogInfo($"Stopped {serviceName}."));
+
+	public static Process<TMsg> Service<TMsg>(
+		Action before,
+		Process<TMsg> handler,
+		Action after) =>
+		async (mailbox, cancellationToken) =>
+		{
+			before();
+			try
+			{
+				await handler(mailbox, cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+
+			}
+			finally
+			{
+				after();
 			}
 		};
 }

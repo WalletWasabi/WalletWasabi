@@ -19,7 +19,7 @@ public static class P2pNetwork
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public static Func<Mailbox<Unit>, CancellationToken, Task> CreateForTestNet(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
+	public static Process<Unit> CreateForTestNet(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
 		async (_, cancellationToken) =>
 		{
 			try
@@ -44,7 +44,7 @@ public static class P2pNetwork
 		};
 
 
-	public static Func<Mailbox<Unit>, CancellationToken, Task> Create(Network network, NodesGroup nodesGroup, EndPoint? torSocks5EndPoint, string workDir, EventBus eventBus, P2pBehavior? p2PBehavior = null) =>
+	public static Process<Unit> Create(Network network, NodesGroup nodesGroup, EndPoint? torSocks5EndPoint, string workDir, EventBus eventBus, P2pBehavior? p2PBehavior = null) =>
 		async (_, cancellationToken) =>
 		{
 			var addressManagerFilePath = Path.Combine(workDir, $"AddressManager{network}.dat");
@@ -78,13 +78,20 @@ public static class P2pNetwork
 			nodesGroup.MaximumNodeConnection = MaximumNodeConnections;
 
 			nodesGroup.Connect();
-			await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
+			try
+			{
+				await Task.Delay(-1, cancellationToken).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				// ignore because we expected
+			}
 
 			nodesGroup.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
 			nodesGroup.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
 
 			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
-			AddressManagerBehavior.GetAddrman(nodesGroup.NodeConnectionParameters).SavePeerFile(addressManagerFilePath, network);
+			addressManager.SavePeerFile(addressManagerFilePath, network);
 			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
 
 			nodesGroup.Disconnect();
