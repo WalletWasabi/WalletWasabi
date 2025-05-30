@@ -50,4 +50,7 @@ public static class SmartTransactionExtensions
 
 		return null;
 	}
+	public static bool CanBeSpeedUpUsingCpfp(this SmartTransaction tx) =>
+		!tx.Confirmed && (tx.ForeignInputs.Count != 0 || tx.ForeignOutputs.Count != 0);
+
 }

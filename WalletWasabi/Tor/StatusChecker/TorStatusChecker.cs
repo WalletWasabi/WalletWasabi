@@ -3,6 +3,7 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
@@ -16,10 +17,10 @@ public static class TorStatusChecker
 
 	public record CheckMessage;
 
-	public static Func<CheckMessage, CancellationToken, Task> CreateChecker(HttpClient httpClient, EventBus eventBus) =>
+	public static Func<CheckMessage, CancellationToken, Task<Unit>> CreateChecker(HttpClient httpClient, EventBus eventBus) =>
 		(_, cancellationToken) => CheckTorStatusAsync(httpClient, eventBus, cancellationToken);
 
-	private static async Task CheckTorStatusAsync(HttpClient httpClient, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> CheckTorStatusAsync(HttpClient httpClient, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -37,6 +38,8 @@ public static class TorStatusChecker
 		{
 			Logger.LogDebug("Failed to get/parse Tor status page.", ex);
 		}
+
+		return Unit.Instance;
 	}
 
 	/// <summary>

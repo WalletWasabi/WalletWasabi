@@ -87,11 +87,7 @@ public class Global
 		ConfigureRpcMonitor();
 		ConfigureFeeRateUpdater();
 		ConfigureSynchronizer();
-
-		if (Network != Network.RegTest)
-		{
-			HostedServices.Register<CpfpInfoProvider>(() => new CpfpInfoProvider(ExternalSourcesHttpClientFactory, Network), friendlyName: "CPFP Info Provider");
-		}
+		var cpfpProvider = ConfigureCpfpInfoProvider();
 
 		WalletFactory walletFactory = new(
 			config.Network,
@@ -99,7 +95,7 @@ public class Global
 			config.ServiceConfiguration,
 			blockProvider,
 			EventBus,
-			Network == Network.RegTest ? null : HostedServices.Get<CpfpInfoProvider>());
+			cpfpProvider);
 
 		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
@@ -155,7 +151,7 @@ public class Global
 		Spawn("BitcoinNetwork",
 			Service("Bitcoin Network Connectivity",
 				Network == Network.RegTest
-					? P2pNetwork.CreateForTestNet(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
+					? P2pNetwork.CreateForRegTest(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
 					: P2pNetwork.Create(
 						Network,
 						nodesGroup,
@@ -307,6 +303,19 @@ public class Global
 					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
+	}
+
+	private CpfpInfoProvider ConfigureCpfpInfoProvider()
+	{
+		var cpfpUpdater = Spawn("CpfpInfoProvider",
+			Service("External Cpfp Info provider",
+				EventDriven(
+					Network == Network.RegTest
+					? CpfpInfoUpdater.CreateForRegTest()
+					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))));
+		cpfpUpdater.DisposeUsing(_disposables);
+		EventBus.Subscribe<FilterProcessed>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()));
+		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)

@@ -119,3 +119,4 @@ public record FilterProcessed(FilterModel Filter);
 public record Tick(DateTime DateTime);
 
 public record BitcoinPeersChanged(bool Added, int NodesCount);
+public record CpfpInfoArrived;

@@ -18,6 +18,7 @@ using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -48,8 +49,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = wallet.CpfpInfoProvider is null ? null :
-			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
+		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))

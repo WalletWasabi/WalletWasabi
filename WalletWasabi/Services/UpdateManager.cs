@@ -27,11 +27,11 @@ public static class UpdateManager
 {
 	public record UpdateMessage;
 
-	public static Func<UpdateMessage, CancellationToken, Task> CreateUpdater(Func<INostrClient> nostrClientFactory,
+	public static Func<UpdateMessage, CancellationToken, Task<Unit>> CreateUpdater(Func<INostrClient> nostrClientFactory,
 		AsyncReleaseDownloader releaseDownloader, EventBus eventBus) =>
 		(_, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
 
-	private static async Task UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		using var nostrClient = nostrClientFactory();
 		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
@@ -46,6 +46,8 @@ public static class UpdateManager
 			// Ensure we disconnect regardless of the outcome
 			await wasabiNostrClient.DisconnectAsync(cancellationToken).ConfigureAwait(false);
 		}
+
+		return Unit.Instance;
 	}
 
 	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)

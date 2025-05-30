@@ -1,8 +1,11 @@
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Services;
 
@@ -170,20 +173,8 @@ public static class Workers
 	}
 
 	public static Process<TMsg> Periodically<TMsg>(TimeSpan period,
-		Func<TMsg, CancellationToken, Task> handler) =>
-		async (inbox, cancellationToken) =>
-		{
-			var lastUpdateTime = DateTime.MinValue;
-			while (!cancellationToken.IsCancellationRequested)
-			{
-				var msg = await inbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
-				if (DateTime.UtcNow - lastUpdateTime > period)
-				{
-					await handler(msg, cancellationToken).ConfigureAwait(false);
-					lastUpdateTime = DateTime.UtcNow;
-				}
-			}
-		};
+		Func<TMsg, CancellationToken, Task<Unit>> handler) =>
+		Periodically<TMsg, Unit>(period, Unit.Instance, (msg, _, ct) => handler(msg, ct));
 
 	public static Process<TMsg> Periodically<TMsg, TState>(TimeSpan period, TState state,
 		Func<TMsg, TState, CancellationToken, Task<TState>> handler) =>
@@ -208,6 +199,16 @@ public static class Workers
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				await handler(cancellationToken).ConfigureAwait(false);
+			}
+		};
+
+	public static Process<TMsg> EventDriven<TMsg>(Func<TMsg, CancellationToken, Task> handler) =>
+		async (mailbox, cancellationToken) =>
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
+				await handler(msg, cancellationToken).ConfigureAwait(false);
 			}
 		};
 

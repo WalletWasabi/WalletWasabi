@@ -40,6 +40,7 @@ public class RegTestSetup : IAsyncDisposable
 		MempoolService mempoolService = new();
 		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
+		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(CpfpInfoUpdater.CreateForRegTest())));
 	}
 
 	public RegTestFixture RegTestFixture { get; }
@@ -51,7 +52,7 @@ public class RegTestSetup : IAsyncDisposable
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public EventBus EventBus { get; }
 	public string Password { get; } = "password";
-
+	public CpfpInfoProvider CpfpInfoProvider { get; }
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
 		[CallerFilePath] string callerFilePath = "",
