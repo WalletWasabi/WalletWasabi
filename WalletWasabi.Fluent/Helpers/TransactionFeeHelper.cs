@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -39,7 +40,7 @@ public static class TransactionFeeHelper
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider? cpfpInfoProvider, CancellationToken cancellationToken)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
 	{
 		if (TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
 		{
@@ -51,12 +52,13 @@ public static class TransactionFeeHelper
 			return null;
 		}
 
-		if (cpfpInfoProvider is null || await cpfpInfoProvider.GetCachedCpfpInfoAsync(tx.GetHash(), cancellationToken).ConfigureAwait(false) is not { } cpfpInfo)
+		var availableCpfpInfo = await cpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
+		if (availableCpfpInfo.FirstOrDefault(x => x.Transaction.GetHash() == tx.Transaction.GetHash()) is not { } entry)
 		{
 			return null;
 		}
 
-		var feeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+		var feeRate = new FeeRate(entry.CpfpInfo.EffectiveFeePerVSize);
 		return feeEstimates.EstimateConfirmationTime(feeRate);;
 	}
 
