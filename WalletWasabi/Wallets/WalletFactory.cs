@@ -16,7 +16,7 @@ public record WalletFactory(
 	ServiceConfiguration ServiceConfiguration,
 	BlockProvider BlockProvider,
 	EventBus EventBus,
-    CpfpInfoProvider? CpfpInfoProvider = null)
+    CpfpInfoProvider CpfpInfoProvider)
 {
 	public Wallet Create(KeyManager keyManager)
 	{
