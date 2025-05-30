@@ -14,13 +14,14 @@ public static class RpcMonitor
 	public static readonly string ServiceName = "BitcoinRpcMonitor";
 	public record CheckMessage;
 
-	public static Func<CheckMessage, CancellationToken, Task> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
+	public static Func<CheckMessage, CancellationToken, Task<Unit>> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
 		(_, cancellationToken) => CheckRpcStatusAsync(rpcClient, eventBus, cancellationToken);
 
-	private static async Task CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancel)
+	private static async Task<Unit> CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancel)
 	{
 		var rpcStatus = await GetRpcStatusAsync(rpcClient, cancel).ConfigureAwait(false);
 		eventBus.Publish(new RpcStatusChanged(rpcStatus));
+		return Unit.Instance;
 	}
 
 	private static async Task<Result<ConnectedRpcStatus, string>> GetRpcStatusAsync(IRPCClient rpcClient, CancellationToken cancel)

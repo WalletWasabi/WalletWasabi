@@ -19,7 +19,7 @@ public static class P2pNetwork
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public static Process<Unit> CreateForTestNet(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
+	public static Process<Unit> CreateForRegTest(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
 		async (_, cancellationToken) =>
 		{
 			try
