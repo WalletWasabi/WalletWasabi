@@ -64,7 +64,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		var blockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
 
-		WalletFactory walletFactory = new(network, bitcoinStore, setup.ServiceConfiguration, blockProvider, setup.EventBus);
+		WalletFactory walletFactory = new(network, bitcoinStore, setup.ServiceConfiguration, blockProvider, setup.EventBus, setup.CpfpInfoProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 		wallet.NewFiltersProcessed += setup.Wallet_NewFiltersProcessed;
 
