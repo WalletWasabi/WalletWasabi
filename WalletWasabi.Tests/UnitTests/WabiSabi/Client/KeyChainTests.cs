@@ -22,7 +22,7 @@ public class KeyChainTests
 
 		var transaction = Transaction.Create(Network.Main); // the transaction doesn't contain the input that we request to be signed.
 
-		Assert.Throws<ArgumentException>(() => keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData()));
+		Assert.Throws<InvalidOperationException>(() => keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData()));
 
 		transaction.Inputs.Add(coin.Outpoint);
 		var signedTx = keyChain.Sign(transaction, coin, transaction.PrecomputeTransactionData(new[] { coin }));

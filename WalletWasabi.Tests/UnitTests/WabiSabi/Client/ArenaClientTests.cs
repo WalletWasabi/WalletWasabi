@@ -113,7 +113,7 @@ public class ArenaClientTests
 		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
 
 		// No inputs in the coinjoin.
-		await Assert.ThrowsAsync<ArgumentException>(async () =>
+		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
 				await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, finalizedEmptyState.CreateUnsignedTransactionWithPrecomputedData(), CancellationToken.None));
 
 		var oneInput = emptyState.AddInput(alice1.Coin, alice1.OwnershipProof, commitmentData).Finalize();

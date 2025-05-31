@@ -28,7 +28,7 @@
     <!-- Version 8.0.3 contains a vulnerability, manually bumped to 8.0.4. -->
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
-    <PackageVersion Include="NBitcoin" Version="7.0.46" />
+    <PackageVersion Include="NBitcoin" Version="8.0.14" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.0" />
