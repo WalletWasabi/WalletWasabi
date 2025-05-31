@@ -13,6 +13,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -33,7 +34,7 @@ public class RegTestSetup : IAsyncDisposable
 	public RegTestSetup(RegTestFixture regTestFixture, string dir)
 	{
 		RegTestFixture = regTestFixture;
-		ServiceConfiguration = new ServiceConfiguration(regTestFixture.IndexerRegTestNode.P2pEndPoint.ToEndpointString(), Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration = new ServiceConfiguration(regTestFixture.IndexerRegTestNode.P2pEndPoint.ToUri("http").ToString(), Money.Coins(Constants.DefaultDustThreshold));
 
 		EventBus = new EventBus();
 		SmartHeaderChain smartHeaderChain = new();
@@ -56,18 +57,13 @@ public class RegTestSetup : IAsyncDisposable
 
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
-		int numberOfBlocksToGenerate,
 		[CallerFilePath] string callerFilePath = "",
 		[CallerMemberName] string callerMemberName = "")
 	{
 		string dir = Helpers.Common.GetWorkDir(callerFilePath, callerMemberName);
 		RegTestSetup setup = new(regTestFixture, dir);
+		await setup.RpcClient.GenerateAsync(101).ConfigureAwait(false); // Make sure everything is confirmed.
 		await setup.AssertFiltersInitializedAsync().ConfigureAwait(false); // Make sure filters are created on the server side.
-
-		if (numberOfBlocksToGenerate != 0)
-		{
-			await setup.RpcClient.GenerateAsync(numberOfBlocksToGenerate).ConfigureAwait(false); // Make sure everything is confirmed.
-		}
 
 		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
 
@@ -84,7 +80,7 @@ public class RegTestSetup : IAsyncDisposable
 			var filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
 			Assert.NotNull(filtersResponse);
 
-			if (filtersResponse is FiltersResponse.NewFiltersAvailable {Filters.Length: >= 101})
+			if (filtersResponse is FiltersResponse.AlreadyOnBestBlock)
 			{
 				break;
 			}

@@ -32,7 +32,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task ReplaceByFeeTxTestAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 		IRPCClient rpc = setup.RpcClient;
 		Network network = setup.Network;
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
