@@ -44,7 +44,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task BroadcastReplayTxAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 		IRPCClient rpc = setup.RpcClient;
 
 		var utxos = await rpc.ListUnspentAsync();
@@ -64,7 +64,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task BroadcastInvalidTxAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
@@ -82,7 +82,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	[Fact]
 	public async Task FilterBuilderTestAsync()
 	{
-		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture, numberOfBlocksToGenerate: 1);
+		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 		IRPCClient rpc = setup.RpcClient;
 		IndexBuilderService indexBuilderService = new(rpc, "filters.txt");
 		var startIndexingService = indexBuilderService.StartAsync(CancellationToken.None);

@@ -43,7 +43,7 @@
           runtimeDeps = with pkgs; [
              pkgs.openssl pkgs.zlib
              # for client
-             tor hwi bitcoind-knots
+             tor hwi bitcoind
              xorg.libX11 xorg.libXrandr xorg.libX11.dev xorg.libICE xorg.libSM fontconfig.lib ];
           # Testing
           doCheck = true;
@@ -58,11 +58,13 @@
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Backend $out/bin/wbend
           '';
 
-          microservices = "./WalletWasabi/Microservices/Binaries/lin64/";
+          binaries = "Microservices/Binaries/lin64";
+          microservices = "./WalletWasabi/${binaries}";
+          microservicesTest = "./WalletWasabi.Tests/${binaries}";
           preBuild = ''
             cp -r ${pkgs.tor}/bin/tor ${microservices}/Tor/tor
             cp ${pkgs.hwi}/bin/hwi ${microservices}/hwi
-            cp ${pkgs.bitcoind-knots}/bin/bitcoind ${microservices}/bitcoind
+            cp ${pkgs.bitcoind}/bin/bitcoind ${microservicesTest}/bitcoind
           '';
         });
 
