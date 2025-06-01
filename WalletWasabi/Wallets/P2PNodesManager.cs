@@ -52,6 +52,7 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
+		_nodesInUse.Remove(node);
 		if (_nodes.ConnectedNodes.Count > 3)
 		{
 			DisconnectNode(node, reason);
@@ -61,7 +62,6 @@ public class P2PNodesManager
 	public void DisconnectNode(Node node, string reason)
 	{
 		Logger.LogInfo(reason);
-		_nodesInUse.Remove(node);
 		node.DisconnectAsync(reason);
 	}
 
