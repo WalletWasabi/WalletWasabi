@@ -52,7 +52,7 @@ public static class PersistentConfigManager
 	{
 		Network = Network.RegTest,
 		IndexerUri = "http://localhost:37127/",
-		CoordinatorUri = "https://localhost:37127/",
+		CoordinatorUri = "https://localhost:37128/",
 		BitcoinRpcUri = Constants.DefaultRegTestBitcoinRpcUri,
 	};
 
