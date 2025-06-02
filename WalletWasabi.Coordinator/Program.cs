@@ -24,5 +24,5 @@ public static class Program
 	public static IHostBuilder CreateHostBuilder(string[] args) =>
 		Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder => webBuilder
 			.UseStartup<Startup>()
-			.UseUrls(Environment.GetEnvironmentVariable("WASABI_BIND") ?? "http://localhost:37128/"));
+			.UseUrls(Environment.GetEnvironmentVariable("WASABI_BIND") ?? "http://localhost:37126/"));
 }
