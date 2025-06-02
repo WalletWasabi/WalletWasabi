@@ -246,7 +246,7 @@ public partial class Arena : PeriodicRunner
 					if (!allReady && phaseExpired)
 					{
 						// It would be better to end the round and create a blame round here, but older client would not support it.
-						// See https://github.com/zkSNACKs/WalletWasabi/pull/11028.
+						// See https://github.com/WalletWasabi/WalletWasabi/pull/11028.
 						round.TransactionSigningTimeFrame = TimeFrame.Create(_config.FailFastTransactionSigningTimeout);
 						round.FastSigningPhase = true;
 					}
