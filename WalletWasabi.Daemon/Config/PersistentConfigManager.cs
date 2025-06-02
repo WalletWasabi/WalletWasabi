@@ -14,7 +14,7 @@ public static class PersistentConfigManager
 	public static readonly PersistentConfig DefaultMainNetConfig = new (
 		Network : Network.Main,
 		IndexerUri : Constants.IndexerUri,
-		CoordinatorUri : string.Empty,
+		CoordinatorUri : Constants.CoordinatorUri,
 		UseTor : "Enabled",
 		TerminateTorOnExit : false,
 		TorBridges : [],
@@ -41,7 +41,7 @@ public static class PersistentConfigManager
 	{
 		Network = Network.TestNet,
 		IndexerUri = Constants.TestnetIndexerUri,
-		CoordinatorUri = "https://walletwasabi.co/",
+		CoordinatorUri = Constants.TestnetCoordinatorUri,
 		BitcoinRpcCredentialString = string.Empty,
 		BitcoinRpcUri = Constants.DefaultTestNetBitcoinRpcUri,
 		JsonRpcServerEnabled = true,
@@ -51,8 +51,8 @@ public static class PersistentConfigManager
 	public static readonly PersistentConfig DefaultRegTestConfig = DefaultTestNetConfig with
 	{
 		Network = Network.RegTest,
-		IndexerUri = "http://localhost:37127/",
-		CoordinatorUri = "https://localhost:37127/",
+		IndexerUri = Constants.RegTestIndexerUri,
+		CoordinatorUri = Constants.RegTestCoordinatorUri,
 		BitcoinRpcUri = Constants.DefaultRegTestBitcoinRpcUri,
 	};
 

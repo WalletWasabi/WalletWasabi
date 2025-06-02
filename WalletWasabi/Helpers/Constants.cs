@@ -11,7 +11,13 @@ public static class Constants
 
 	public const string IndexerUri = "https://api.wasabiwallet.io/";
 	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
+	public const string RegTestIndexerUri = "http://localhost:37127/";
+
 	public const string BackendMajorVersion = "4";
+
+	public const string CoordinatorUri = "";
+	public const string TestnetCoordinatorUri = "";
+	public const string RegTestCoordinatorUri = "http://localhost:37128/";
 
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
 	public const string WasabiPubKey = "02c8ab8eea76c83788e246a1baee10c04a134ec11be6553946f6ae65e47ae9a608";
