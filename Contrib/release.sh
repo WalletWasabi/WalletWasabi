@@ -3,7 +3,7 @@
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
 #                                                                                    #
-#  This script builds the `WasabiWallet.Fluent.Desktop` for all the supported        #
+#  This script builds the `WalletWasabi.Fluent.Desktop` for all the supported        #
 #  platforms, creates the zips and tar.gz files for all of them and creates the .deb #
 #  package for Debian linux.                                                         #
 #                                                                                    #
