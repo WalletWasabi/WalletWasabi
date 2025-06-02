@@ -49,7 +49,7 @@ public partial class HealthMonitor : ReactiveObject
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
 		CanUseBitcoinRpc = UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
-
+		BitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
 		var nodes = Services.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes;
 
 		// Priority Fee
