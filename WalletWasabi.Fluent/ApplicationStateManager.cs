@@ -24,14 +24,14 @@ namespace WalletWasabi.Fluent;
 public class ApplicationStateManager : IMainWindowService
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private readonly IApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 	private IActivatableLifetime? _activatable;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
+	internal ApplicationStateManager(IApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
@@ -80,23 +80,45 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					_lifetime.Shutdown();
+					if (_lifetime is IControlledApplicationLifetime controlled)
+					{
+						controlled.Shutdown();
+					}
+					else
+					{
+						// TODO: Support shutdown on Mobile.
+					}
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
 				() =>
 				{
-					_lifetime.MainWindow.BringToFront();
-					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
-					_restartRequest = false; // reset the value.
+					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.MainWindow.BringToFront();
+						ApplicationViewModel.OnShutdownPrevented(_restartRequest);
+						_restartRequest = false; // reset the value.
+					}
+					else
+					{
+						// TODO: Support shutdown prevented on Mobile.
+					}
 				});
 
 		_stateMachine.Configure(State.Closed)
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow?.Close();
-				_lifetime.MainWindow = null;
+				if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				{
+					desktop.MainWindow?.Close();
+					desktop.MainWindow = null;
+				}
+				else
+				{
+					// TODO: Support close on Mobile.
+				}
+
 				ApplicationViewModel.IsMainWindowShown = false;
 				if (_activatable is { })
 				{
@@ -113,7 +135,14 @@ public class ApplicationStateManager : IMainWindowService
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
 
-		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			desktop.ShutdownRequested += LifetimeOnShutdownRequested;
+		}
+		else
+		{
+			// TODO: Support shutdown requested on Mobile.
+		}
 
 		_stateMachine.Start();
 	}
@@ -171,9 +200,16 @@ public class ApplicationStateManager : IMainWindowService
 			case ActivationKind.Background:
 				if (this is IMainWindowService service)
 				{
-					if (_lifetime.MainWindow is not null)
+					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
 					{
-						service.Hide();
+						if (desktop.MainWindow is not null)
+						{
+							service.Hide();
+						}
+					}
+					else
+					{
+						// TODO: Support ActivationKind.Background on Mobile.
 					}
 				}
 				break;
@@ -182,9 +218,11 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
-		if (_lifetime.MainWindow is { })
+		switch (_lifetime)
 		{
-			return;
+			case IClassicDesktopStyleApplicationLifetime { MainWindow: not null }:
+			case ISingleViewApplicationLifetime { MainView: not null }:
+				return;
 		}
 
 		MainViewModel.Instance.ApplyUiConfigWindowState();
@@ -194,66 +232,90 @@ public class ApplicationStateManager : IMainWindowService
 			_activatable.TryLeaveBackground();
 		}
 
-		var result = new MainWindow
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
 		{
-			DataContext = MainViewModel.Instance
-		};
-
-		_compositeDisposable?.Dispose();
-		_compositeDisposable = new();
-
-		Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
-			.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false, out bool isShutdownEnforced), isShutdownEnforced))
-			.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
-			.Subscribe(tup =>
+			var result = new MainWindow
 			{
-				var (e, preventShutdown, isShutdownEnforced) = tup;
+				DataContext = MainViewModel.Instance
+			};
 
-				// Check if Ctrl-C was used to forcefully terminate the app.
-				if (isShutdownEnforced)
+			_compositeDisposable?.Dispose();
+			_compositeDisposable = new();
+
+			Observable.FromEventPattern<CancelEventArgs>(result, nameof(result.Closing))
+				.Select(args => (args.EventArgs, !ApplicationViewModel.CanShutdown(false, out bool isShutdownEnforced), isShutdownEnforced))
+				.TakeWhile(_ => !_isShuttingDown) // Prevents stack overflow.
+				.Subscribe(tup =>
 				{
-					_isShuttingDown = true;
-					tup.EventArgs.Cancel = false;
-					_stateMachine.Fire(Trigger.ShutdownRequested);
-				}
+					var (e, preventShutdown, isShutdownEnforced) = tup;
 
-				// _hideRequest flag is used to distinguish what is the user's intent.
-				// It is only true when the request comes from the Tray.
-				if (Services.UiConfig.HideOnClose || _hideRequest)
+					// Check if Ctrl-C was used to forcefully terminate the app.
+					if (isShutdownEnforced)
+					{
+						_isShuttingDown = true;
+						tup.EventArgs.Cancel = false;
+						_stateMachine.Fire(Trigger.ShutdownRequested);
+					}
+
+					// _hideRequest flag is used to distinguish what is the user's intent.
+					// It is only true when the request comes from the Tray.
+					if (Services.UiConfig.HideOnClose || _hideRequest)
+					{
+						_hideRequest = false; // request processed, set it back to the default.
+						return;
+					}
+
+					_isShuttingDown = !preventShutdown;
+					e.Cancel = preventShutdown;
+
+					_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
+				})
+				.DisposeWith(_compositeDisposable);
+
+			Observable.FromEventPattern(result, nameof(result.Closed))
+				.Take(1)
+				.Subscribe(_ =>
 				{
-					_hideRequest = false; // request processed, set it back to the default.
-					return;
-				}
+					_compositeDisposable?.Dispose();
+					_compositeDisposable = null;
+					_stateMachine.Fire(Trigger.MainWindowClosed);
+				})
+				.DisposeWith(_compositeDisposable);
 
-				_isShuttingDown = !preventShutdown;
-				e.Cancel = preventShutdown;
+			desktop.MainWindow = result;
 
-				_stateMachine.Fire(preventShutdown ? Trigger.ShutdownPrevented : Trigger.ShutdownRequested);
-			})
-			.DisposeWith(_compositeDisposable);
-
-		Observable.FromEventPattern(result, nameof(result.Closed))
-			.Take(1)
-			.Subscribe(_ =>
+			if (result.WindowState != WindowState.Maximized)
 			{
-				_compositeDisposable?.Dispose();
-				_compositeDisposable = null;
-				_stateMachine.Fire(Trigger.MainWindowClosed);
-			})
-			.DisposeWith(_compositeDisposable);
+				SetWindowSize(result);
+			}
 
-		_lifetime.MainWindow = result;
+			ObserveWindowSize(result, _compositeDisposable);
 
-		if (result.WindowState != WindowState.Maximized)
-		{
-			SetWindowSize(result);
+			result.Show();
+
+			ApplicationViewModel.IsMainWindowShown = true;
 		}
+		else if (_lifetime is ISingleViewApplicationLifetime single)
+		{
+			var result = new MobileView
+			{
+				DataContext = MainViewModel.Instance
+			};
 
-		ObserveWindowSize(result, _compositeDisposable);
+			_compositeDisposable?.Dispose();
+			_compositeDisposable = new();
 
-		result.Show();
+			// TODO: Handle Closing event on mobile similar like Window.Closing event.
+			// TODO: Handle Closed event on mobile similar like Window.Closed event.
 
-		ApplicationViewModel.IsMainWindowShown = true;
+			single.MainView = result;
+
+			// TODO: We do not handle WindowState.Maximized or use ObserveWindowSize on mobile.
+
+			// TODO: We do not use Show() on mobile like on desktop window.
+
+			ApplicationViewModel.IsMainWindowShown = true;
+		}
 	}
 
 	private void SetWindowSize(Window window)
