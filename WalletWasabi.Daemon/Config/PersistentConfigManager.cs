@@ -41,7 +41,7 @@ public static class PersistentConfigManager
 	{
 		Network = Network.TestNet,
 		IndexerUri = Constants.TestnetIndexerUri,
-		CoordinatorUri = "https://walletwasabi.co/",
+		CoordinatorUri = "https://wasabiwallet.co/",
 		BitcoinRpcCredentialString = string.Empty,
 		BitcoinRpcUri = Constants.DefaultTestNetBitcoinRpcUri,
 		JsonRpcServerEnabled = true,
