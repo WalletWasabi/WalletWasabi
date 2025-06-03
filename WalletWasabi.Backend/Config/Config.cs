@@ -38,13 +38,13 @@ public class Config : ConfigBase
 
 	public Network Network { get; } = Network.Main;
 
-	public string BitcoinRpcConnectionString { get; } = "user:password";
-
 	public string MainNetBitcoinRpcUri { get; } = Constants.DefaultMainNetBitcoinRpcUri;
 
 	public string TestNetBitcoinRpcUri { get; } = Constants.DefaultTestNetBitcoinRpcUri;
 
 	public string RegTestBitcoinRpcUri { get; } = Constants.DefaultRegTestBitcoinRpcUri;
+
+	public string BitcoinRpcConnectionString { get; } = "user:password";
 
 	public string FilterType { get; } = Constants.DefaultFilterType;
 
