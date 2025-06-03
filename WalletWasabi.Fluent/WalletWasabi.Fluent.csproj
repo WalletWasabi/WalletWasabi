@@ -28,12 +28,21 @@
 		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
 		<PackageReference Include="System.Private.Uri" /> <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
+		<PackageReference Include="Microsoft.Extensions.Caching.Memory" /> <!-- Required for Daemon -->
 	</ItemGroup>
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
 
 		<!-- See explanation of the additional properties here: https://github.com/dotnet/roslyn/issues/60744#issuecomment-1438273464 -->
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
+		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
+	</ItemGroup>
+
+	<!-- We only include required parts of the Daemon project -->
+	<PropertyGroup>
+		<DaemonBasePath>..\WalletWasabi.Daemon</DaemonBasePath>
+	</PropertyGroup>
+	<ItemGroup>
+		<Compile Include="$(DaemonBasePath)\**\*.cs" LinkBase="Daemon" Exclude="$(DaemonBasePath)\Program.cs;$(DaemonBasePath)\Properties\**;$(DaemonBasePath)\obj\**;$(DaemonBasePath)\bin\**" />
 	</ItemGroup>
 
 	<ItemGroup>
