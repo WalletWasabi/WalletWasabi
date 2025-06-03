@@ -112,11 +112,6 @@
           "System.Threading.Tasks.Extensions": "4.5.4"
         }
       }
-    },
-    ".NETStandard,Version=v2.0/linux-arm64": {},
-    ".NETStandard,Version=v2.0/linux-x64": {},
-    ".NETStandard,Version=v2.0/osx-arm64": {},
-    ".NETStandard,Version=v2.0/osx-x64": {},
-    ".NETStandard,Version=v2.0/win-x64": {}
+    }
   }
 }
