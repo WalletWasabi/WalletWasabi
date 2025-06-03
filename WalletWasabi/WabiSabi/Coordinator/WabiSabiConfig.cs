@@ -24,7 +24,11 @@ public class WabiSabiConfig : ConfigBase
 
 	public Network Network { get; init; } = Network.Main;
 
-	public string BitcoinRpcUri { get; init; } = Constants.DefaultMainNetBitcoinRpcUri;
+	public string MainNetBitcoinRpcUri { get; } = Constants.DefaultMainNetBitcoinRpcUri;
+
+	public string TestNetBitcoinRpcUri { get; } = Constants.DefaultTestNetBitcoinRpcUri;
+
+	public string RegTestBitcoinRpcUri { get; } = Constants.DefaultRegTestBitcoinRpcUri;
 
 	public string BitcoinRpcConnectionString { get; init; } = "user:password";
 
