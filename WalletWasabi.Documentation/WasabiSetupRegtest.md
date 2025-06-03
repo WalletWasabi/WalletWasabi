@@ -94,10 +94,6 @@ Todo:
     {
       "Network": "RegTest",
       "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
-      "MainNetBitcoinCoreRpcEndPoint": "127.0.0.1:8332",
-      "TestNetBitcoinCoreRpcEndPoint": "127.0.0.1:18332",
-      "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443",
-      "FilterType": "legacy"
     }
     ```
 7. Go to WalletWasabi.Backend folder.
@@ -120,10 +116,8 @@ Todo:
 6. Edit this lines in `Config.json`:
     ```
     "Network": "RegTest",
-    "BitcoinCoreRpcEndPoint": "http://localhost:18443",
     "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
     "StandardInputRegistrationTimeout": "0d 0h 2m 0s",
-    "MaxInputCountByRound": 100,
     "MinInputCountByRoundMultiplier": 0.02,
     ```
 7. Go to WalletWasabi.Coordinator folder.
