@@ -5,9 +5,10 @@ using NBitcoin;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
-using WalletWasabi.Coordinator;
+using static WalletWasabi.Serialization.Encode;
+using static WalletWasabi.Serialization.Decode;
 
-namespace WalletWasabi.Serialization;
+namespace WalletWasabi.Coordinator;
 
 public static partial class Encode
 {
