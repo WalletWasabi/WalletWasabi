@@ -59,13 +59,23 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IRPCClient>(provider =>
 		{
-		    string host = config.Network switch
+		    string host;
+		    if (config.Network == Network.Main)
 		    {
-		        Network.Main => config.MainNetBitcoinRpcUri,
-		        Network.TestNet => config.TestNetBitcoinRpcUri,
-		        Network.RegTest => config.RegTestBitcoinRpcUri,
-		        _ => throw new NotSupportedException($"Network {config.Network} is not supported")
-		    };
+		        host = config.MainNetBitcoinRpcUri;
+		    }
+		    else if (config.Network == Network.TestNet)
+		    {
+		        host = config.TestNetBitcoinRpcUri;
+		    }
+		    else if (config.Network == Network.RegTest)
+		    {
+		        host = config.RegTestBitcoinRpcUri;
+		    }
+		    else
+		    {
+		        throw new NotSupportedException($"Network {config.Network} is not supported");
+		    }
 
 		    RPCClient rpcClient = new(
 		            authenticationString: config.BitcoinRpcConnectionString,
