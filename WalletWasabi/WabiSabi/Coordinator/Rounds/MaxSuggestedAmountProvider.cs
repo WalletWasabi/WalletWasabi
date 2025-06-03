@@ -1,12 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public class MaxSuggestedAmountProvider
 {
-	public MaxSuggestedAmountProvider(WabiSabiConfig config)
+	public MaxSuggestedAmountProvider(Config config)
 	{
 		Config = config;
 		MaxSuggestedAmount = GetMaxSuggestedAmount();
@@ -14,7 +15,7 @@ public class MaxSuggestedAmountProvider
 
 	private List<DividerMaxValue> RoundCounterDividerAndMaxAmounts { get; set; } = new List<DividerMaxValue>();
 	private Money LastGeneratedMaxSuggestedAmountBase { get; set; } = Money.Zero;
-	private WabiSabiConfig Config { get; init; }
+	private Config Config { get; init; }
 	private int Counter { get; set; }
 	public Money MaxSuggestedAmount { get; private set; }
 

@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -18,7 +18,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
@@ -34,7 +34,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task LegacyOutputsSuccessAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2pkhOutputs = true, AllowP2shOutputs = true };
+		Config cfg = new() { AllowP2pkhOutputs = true, AllowP2shOutputs = true };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
@@ -59,7 +59,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task TaprootSuccessAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2trOutputs = true };
+		Config cfg = new() { AllowP2trOutputs = true };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
@@ -76,7 +76,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task TaprootNotAllowedAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2trOutputs = false };
+		Config cfg = new() { AllowP2trOutputs = false };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
@@ -93,7 +93,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
-		var cfg = new WabiSabiConfig();
+		var cfg = new Config();
 		var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(nonExistingRound);
@@ -109,7 +109,7 @@ public class RegisterOutputTests
 		using Key key = new();
 		var outputScript = key.PubKey.GetAddress(ScriptPubKeyType.Legacy, Network.Main).ScriptPubKey;
 
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
 		{ MaxVsizeAllocationPerAlice = Constants.P2wpkhInputVirtualSize + outputScript.EstimateOutputVsize() };
@@ -131,7 +131,7 @@ public class RegisterOutputTests
 	public async Task NonStandardOutputAsync()
 	{
 		var sha256Bounty = Script.FromHex("aa20000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f87");
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
 		{ MaxVsizeAllocationPerAlice =  Constants.P2wpkhInputVirtualSize + sha256Bounty.EstimateOutputVsize() };
@@ -153,7 +153,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task NotEnoughFundsAsync()
 	{
-		WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };
+		Config cfg = new() { MinRegistrableAmount = Money.Coins(2) };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
@@ -170,7 +170,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task TooMuchFundsAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
+		Config cfg = new() { MaxRegistrableAmount = Money.Coins(1.993m) }; // TODO migrate to MultipartyTransactionParameters
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(2), round));
@@ -187,7 +187,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task IncorrectRequestedVsizeCredentialsAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
@@ -204,7 +204,7 @@ public class RegisterOutputTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		Round round = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));

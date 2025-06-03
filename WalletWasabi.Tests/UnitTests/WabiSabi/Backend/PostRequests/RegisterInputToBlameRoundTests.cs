@@ -2,7 +2,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -16,7 +16,7 @@ public class RegisterInputToBlameRoundTests
 	[Fact]
 	public async Task InputNotWhitelistedAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
@@ -36,7 +36,7 @@ public class RegisterInputToBlameRoundTests
 	[Fact]
 	public async Task InputWhitelistedAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
@@ -57,7 +57,7 @@ public class RegisterInputToBlameRoundTests
 	[Fact]
 	public async Task InputWhitelistedButBannedAsync()
 	{
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();

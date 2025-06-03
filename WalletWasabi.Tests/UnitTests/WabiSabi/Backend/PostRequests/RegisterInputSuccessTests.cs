@@ -8,7 +8,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
@@ -29,7 +29,7 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();
@@ -50,7 +50,7 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessCustomCoordinatorIdentifierAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		cfg.CoordinatorIdentifier = "test";
 		var round = WabiSabiFactory.CreateRound(cfg);
 
@@ -78,7 +78,7 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task SuccessWithAliceUpdateIntraRoundAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();
@@ -102,7 +102,7 @@ public class RegisterInputSuccessTests
 	[Fact]
 	public async Task TaprootSuccessAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2trInputs = true };
+		Config cfg = new() { AllowP2trInputs = true };
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();

@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -15,7 +15,7 @@ public class MultipartyTransactionStateTests
 	[Fact]
 	public void CanGetDifferentialStateTest()
 	{
-		var cfg = new WabiSabiConfig();
+		var cfg = new Config();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		var commitmentData = WabiSabiFactory.CreateCommitmentData(round.Id);
@@ -77,7 +77,7 @@ public class MultipartyTransactionStateTests
 	[Fact]
 	public void MaxSuggestedSteppingTest()
 	{
-		WabiSabiConfig config = new();
+		Config config = new();
 
 		RoundParameterFactory roundParameterFactory = new(config, Network.Main);
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);

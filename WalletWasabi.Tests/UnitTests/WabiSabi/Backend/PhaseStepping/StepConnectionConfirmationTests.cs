@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Xunit;
@@ -15,7 +15,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task AllConfirmedStepsAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+		Config cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);
 		var a2 = WabiSabiFactory.CreateAlice(round);
@@ -41,7 +41,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task NotAllConfirmedStaysAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
+		Config cfg = new() { MaxInputCountByRound = 4, MinInputCountByRoundMultiplier = 0.5 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var a1 = WabiSabiFactory.CreateAlice(round);
 		var a2 = WabiSabiFactory.CreateAlice(round);
@@ -70,7 +70,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task EnoughConfirmedTimedoutStepsAsync()
 	{
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.MaxInputCountByRound = 4;
 		cfg.ConnectionConfirmationTimeout = TimeSpan.Zero;
 
@@ -105,7 +105,7 @@ public class StepConnectionConfirmationTests
 	[Fact]
 	public async Task NotEnoughConfirmedTimedoutDestroysAsync()
 	{
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.MaxInputCountByRound = 4;
 		cfg.ConnectionConfirmationTimeout = TimeSpan.Zero;
 		cfg.MinInputCountByRoundMultiplier = 0.9;

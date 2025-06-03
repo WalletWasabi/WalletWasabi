@@ -94,7 +94,7 @@ public class PrisonTests
 	public void BanningTime()
 	{
 		var (prison, _) = WabiSabiFactory.CreateObservablePrison();
-		var cfg = WabiSabiFactory.CreateWabiSabiConfig().GetDoSConfiguration();
+		var cfg = WabiSabiFactory.CreateConfig().GetDoSConfiguration();
 
 		var roundId = BitcoinFactory.CreateUint256();
 

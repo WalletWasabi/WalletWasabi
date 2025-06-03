@@ -20,7 +20,7 @@ using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
@@ -45,7 +45,7 @@ public class ArenaClientTests
 	[Fact]
 	public async Task RemoveInputAsyncTestAsync()
 	{
-		var config = new WabiSabiConfig();
+		var config = new Config();
 		var round = WabiSabiFactory.CreateRound(config);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
@@ -71,7 +71,7 @@ public class ArenaClientTests
 	[Fact]
 	public async Task SignTransactionAsync()
 	{
-		WabiSabiConfig config = new();
+		Config config = new();
 		Round round = WabiSabiFactory.CreateRound(config);
 		var password = "satoshi";
 
@@ -146,7 +146,7 @@ public class ArenaClientTests
 
 	private async Task TestFullCoinjoinAsync(ScriptPubKeyType scriptPubKeyType, int inputVirtualSize)
 	{
-		var config = new WabiSabiConfig { MaxInputCountByRound = 1, AllowP2trInputs = true, AllowP2trOutputs = true };
+		var config = new Config { MaxInputCountByRound = 1, AllowP2trInputs = true, AllowP2trOutputs = true };
 		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(config));
 		using var key = new Key();
 		var outpoint = BitcoinFactory.CreateOutPoint();

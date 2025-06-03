@@ -9,6 +9,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Statistics;
 
@@ -16,7 +17,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 {
 	private readonly string _filePath;
 
-	public CoinJoinFeeRateStatStore(string filePath, WabiSabiConfig config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
+	public CoinJoinFeeRateStatStore(string filePath, Config config, IRPCClient rpc, IEnumerable<CoinJoinFeeRateStat> feeRateStats)
 		: base(TimeSpan.FromMinutes(10))
 	{
 		_filePath = filePath;
@@ -25,7 +26,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		_coinJoinFeeRateStats = new(feeRateStats.OrderBy(x => x.DateTimeOffset));
 	}
 
-	public CoinJoinFeeRateStatStore(string filePath, WabiSabiConfig config, IRPCClient rpc)
+	public CoinJoinFeeRateStatStore(string filePath, Config config, IRPCClient rpc)
 		: this(filePath, config, rpc, Enumerable.Empty<CoinJoinFeeRateStat>())
 	{
 	}
@@ -39,7 +40,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 
 	private CoinJoinFeeRateMedian[] DefaultMedians { get; set; } = [];
 
-	private readonly WabiSabiConfig _config;
+	private readonly Config _config;
 	private readonly IRPCClient _rpc;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
@@ -89,7 +90,7 @@ public class CoinJoinFeeRateStatStore : PeriodicRunner
 		return DefaultMedians;
 	}
 
-	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, WabiSabiConfig config, IRPCClient rpc)
+	public static CoinJoinFeeRateStatStore LoadFromFile(string filePath, Config config, IRPCClient rpc)
 	{
 		var from = DateTimeOffset.UtcNow - MaximumTimeToStore;
 

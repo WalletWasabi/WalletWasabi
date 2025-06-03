@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -18,7 +18,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task SuccessInInputRegistrationPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		var preDeadline = alice.Deadline;
@@ -44,7 +44,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task SuccessInConnectionConfirmationPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		round.SetPhase(Phase.ConnectionConfirmation);
@@ -70,7 +70,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task RoundNotFoundAsync()
 	{
-		var cfg = new WabiSabiConfig();
+		var cfg = new Config();
 		var nonExistingRound = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.Default.CreateAndStartAsync();
 		var req = WabiSabiFactory.CreateConnectionConfirmationRequest(nonExistingRound);
@@ -85,7 +85,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		Round round = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 		var alice = WabiSabiFactory.CreateAlice(round);
@@ -114,7 +114,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task AliceNotFoundAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
@@ -128,7 +128,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task IncorrectRequestedVsizeCredentialsAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
@@ -149,7 +149,7 @@ public class ConfirmConnectionTests
 	[Fact]
 	public async Task IncorrectRequestedAmountCredentialsAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
@@ -186,7 +186,7 @@ public class ConfirmConnectionTests
 		Func<Round, (CredentialIssuer, CredentialIssuer)> credentialIssuerSelector,
 		Func<ConnectionConfirmationRequest, RealCredentialsRequest> credentialsRequestSelector)
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);

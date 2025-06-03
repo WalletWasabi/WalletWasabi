@@ -1,16 +1,17 @@
 using NBitcoin;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public class RoundParameterFactory
 {
-	public RoundParameterFactory(WabiSabiConfig config, Network network)
+	public RoundParameterFactory(Config config, Network network)
 	{
 		Config = config;
 		Network = network;
 	}
 
-	public WabiSabiConfig Config { get; }
+	public Config Config { get; }
 	public Network Network { get; }
 
 	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>

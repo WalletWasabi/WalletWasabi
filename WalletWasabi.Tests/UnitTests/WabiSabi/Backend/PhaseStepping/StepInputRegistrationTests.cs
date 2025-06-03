@@ -2,7 +2,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Xunit;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
@@ -14,7 +14,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task RoundFullAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		Config cfg = new() { MaxInputCountByRound = 3 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
@@ -36,7 +36,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task DetectSpentTxoBeforeSteppingIntoConnectionConfirmationAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		Config cfg = new() { MaxInputCountByRound = 3 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var offendingAlice = WabiSabiFactory.CreateAlice(round); // this Alice spent the coin after registration
 
@@ -73,7 +73,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task BlameRoundFullAsync()
 	{
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			MaxInputCountByRound = 4,
 			MinInputCountByRoundMultiplier = 0.5
@@ -107,7 +107,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task InputRegistrationTimedoutWithSufficientInputsAsync()
 	{
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			StandardInputRegistrationTimeout = TimeSpan.Zero,
 			MaxInputCountByRound = 4,
@@ -127,7 +127,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task BlameRoundTimedoutWithSufficientInputsAsync()
 	{
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			BlameInputRegistrationTimeout = TimeSpan.Zero,
 			StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
@@ -155,7 +155,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task InputRegistrationTimedoutWithoutSufficientInputsAsync()
 	{
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			StandardInputRegistrationTimeout = TimeSpan.Zero,
 			MaxInputCountByRound = 4,
@@ -178,7 +178,7 @@ public class StepInputRegistrationTests
 		// This test also tests that the min input count multiplier is applied
 		// against the max input count by round number and not against the
 		// number of inputs awaited by the blame round itself.
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			BlameInputRegistrationTimeout = TimeSpan.Zero,
 			StandardInputRegistrationTimeout = TimeSpan.FromHours(1), // Test that this is disregarded.
@@ -213,7 +213,7 @@ public class StepInputRegistrationTests
 	[Fact]
 	public async Task InputRegistrationTimeoutCanBeModifiedRuntimeAsync()
 	{
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			StandardInputRegistrationTimeout = TimeSpan.FromHours(1),
 			MaxInputCountByRound = 4,

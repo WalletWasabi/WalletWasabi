@@ -4,7 +4,7 @@ using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using Xunit;
 
@@ -17,7 +17,7 @@ public class UtxoPrisonWardenTests
 	{
 		var workDir = Common.GetWorkDir();
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
-		using var w = new Warden("Prison.txt", new WabiSabiConfig());
+		using var w = new Warden("Prison.txt", new Config());
 		await w.StartAsync(CancellationToken.None);
 		await w.StopAsync(CancellationToken.None);
 	}
@@ -29,7 +29,7 @@ public class UtxoPrisonWardenTests
 		await IoHelpers.TryDeleteDirectoryAsync(workDir);
 
 		// Create prison.
-		using var w = new Warden("Prison.txt", new WabiSabiConfig());
+		using var w = new Warden("Prison.txt", new Config());
 		await w.StartAsync(CancellationToken.None);
 		var now = DateTimeOffset.FromUnixTimeSeconds(DateTimeOffset.UtcNow.ToUnixTimeSeconds());
 		var i1 = BitcoinFactory.CreateOutPoint();
@@ -47,7 +47,7 @@ public class UtxoPrisonWardenTests
 		await w.StopAsync(CancellationToken.None);
 
 		// See if prev UTXOs are loaded.
-		var cfg = new WabiSabiConfig();
+		var cfg = new Config();
 		using var w2 = new Warden("Prison.txt", cfg);
 		await w2.StartAsync(CancellationToken.None);
 

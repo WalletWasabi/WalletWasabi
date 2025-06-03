@@ -32,6 +32,10 @@
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi.Coordinator\WalletWasabi.Coordinator.csproj" />
+	</ItemGroup>
+
+	<ItemGroup>
 		<None Update="Microservices\Binaries\win64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

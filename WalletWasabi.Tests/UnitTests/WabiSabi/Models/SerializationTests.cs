@@ -12,7 +12,7 @@ using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -144,7 +144,7 @@ public class SerializationTests
 	[Fact]
 	public void RoundStateResponseSerialization()
 	{
-		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
+		var round = WabiSabiFactory.CreateRound(new Config());
 		var roundState = RoundState.FromRound(round);
 		RoundStateResponse response = new([roundState], []);
 

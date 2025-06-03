@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -17,7 +17,7 @@ public class RemoveInputTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var initialRemaining = round.RemainingInputVsizeAllocation;
 		var alice = WabiSabiFactory.CreateAlice(round);
@@ -56,7 +56,7 @@ public class RemoveInputTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();

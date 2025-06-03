@@ -3,6 +3,7 @@ using NBitcoin;
 using NBitcoin.Policy;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
@@ -85,7 +86,7 @@ public record RoundParameters
 												  ?? new FeeRate(Money.Satoshis(1000));
 
 	public static RoundParameters Create(
-		WabiSabiConfig wabiSabiConfig,
+		Config wabiSabiConfig,
 		Network network,
 		FeeRate miningFeeRate,
 		Money maxSuggestedAmount)

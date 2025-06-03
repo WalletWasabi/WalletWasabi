@@ -5,7 +5,7 @@ using NBitcoin;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.Serialization;
 
@@ -27,7 +27,7 @@ public static partial class Encode
 			("Key", String(cfg.Key))
 		]);
 
-	public static JsonNode WabiSabiConfig(WabiSabiConfig cfg) =>
+	public static JsonNode Config(Config cfg) =>
 		Object([
 			("Network", Network(cfg.Network)),
 			("MainNetBitcoinRpcUri", String(cfg.MainNetBitcoinRpcUri)),
@@ -105,8 +105,8 @@ public static partial class Decode
 			Key = get.Required("Key", String)
 		});
 
-	public static Decoder<WabiSabiConfig> WabiSabiConfig(string filePath) =>
-		Object(get => new WabiSabiConfig(filePath)
+	public static Decoder<Config> Config(string filePath) =>
+		Object(get => new Config(filePath)
 		{
 			Network = get.Required("Network", Network),
 			MainNetBitcoinRpcUri = get.Required("MainNetBitcoinRpcUri", String),

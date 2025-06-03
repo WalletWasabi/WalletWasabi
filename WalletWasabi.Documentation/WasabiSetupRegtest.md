@@ -99,7 +99,7 @@ Todo:
       "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
     }
     ```
-6. Edit some lines in `WabiSabiConfig.json`. For example, make the `InputRegistrationPhase` faster and allow rounds to have between 2 and 100 inputs:
+6. Edit some lines in `Config.json`. For example, make the `InputRegistrationPhase` faster and allow rounds to have between 2 and 100 inputs:
     ```
     "StandardInputRegistrationTimeout": "0d 0h 2m 0s",
     "MaxInputCountByRound": 100,

@@ -7,12 +7,13 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public class Warden : BackgroundService
 {
-	public Warden(string prisonFilePath, WabiSabiConfig config)
+	public Warden(string prisonFilePath, Config config)
 	{
 		_prisonFilePath = prisonFilePath;
 		_config = config;
@@ -24,7 +25,7 @@ public class Warden : BackgroundService
 	public Prison Prison { get; }
 
 	private readonly string _prisonFilePath;
-	private readonly WabiSabiConfig _config;
+	private readonly Config _config;
 
 	private readonly Channel<Offender> _offendersToSaveChannel;
 

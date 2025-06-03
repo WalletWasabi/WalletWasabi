@@ -3,7 +3,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Xunit;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
@@ -12,7 +12,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
 public class RoundCreationTests
 {
-	private static Arena CreateArena(WabiSabiConfig cfg, IRPCClient rpc)
+	private static Arena CreateArena(Config cfg, IRPCClient rpc)
 	{
 		var arenaBuilder = ArenaBuilder.From(cfg).With(rpc);
 		arenaBuilder.Period = TimeSpan.FromSeconds(1);
@@ -22,7 +22,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task InitializesRoundAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);
@@ -37,7 +37,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task CreatesRoundIfNoneInputRegistrationAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);
@@ -56,7 +56,7 @@ public class RoundCreationTests
 	[Fact]
 	public async Task CreatesRoundIfInBlameInputRegistrationAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var mockRpc = BitcoinFactory.GetMockMinimalRpc();
 
 		using Arena arena = CreateArena(cfg, mockRpc);

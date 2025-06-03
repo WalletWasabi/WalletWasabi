@@ -19,7 +19,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
@@ -53,7 +53,7 @@ public class Startup(IConfiguration configuration)
 
 		services.AddControllers();
 
-		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
+		Config config = Config.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
 
 		services.AddSingleton<IdempotencyRequestCache>();
@@ -94,11 +94,11 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<Warden>(s =>
 			new Warden(
 				Path.Combine(dataDir, "Prison.txt"),
-				s.GetRequiredService<WabiSabiConfig>()));
+				s.GetRequiredService<Config>()));
 		services.AddSingleton<CoinJoinFeeRateStatStore>(s =>
 			CoinJoinFeeRateStatStore.LoadFromFile(
 				Path.Combine(dataDir, "CoinJoinFeeRateStatStore.txt"),
-				s.GetRequiredService<WabiSabiConfig>(),
+				s.GetRequiredService<Config>(),
 				s.GetRequiredService<IRPCClient>()
 				));
 		services.AddSingleton<RoundParameterFactory>();

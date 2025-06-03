@@ -10,7 +10,7 @@ using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -30,7 +30,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = new()
+		Config cfg = new()
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,
@@ -62,7 +62,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -99,7 +99,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		var (keyChain, coin1, coin2) = WabiSabiFactory.CreateCoinKeyPairs();
 
 		var mockRpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin1.Coin, coin2.Coin);
@@ -140,7 +140,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
 		cfg.MinInputCountByBlameRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
@@ -176,7 +176,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.MinInputCountByRoundMultiplier = 1;
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		cfg.FailFastOutputRegistrationTimeout = TimeSpan.Zero;
@@ -228,7 +228,7 @@ public class StepTransactionSigningTests
 		using CancellationTokenSource cancellationTokenSource = new(TestTimeout);
 		var token = cancellationTokenSource.Token;
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.TransactionSigningTimeout = TimeSpan.Zero;
 		cfg.OutputRegistrationTimeout = TimeSpan.Zero;
 		cfg.FailFastTransactionSigningTimeout = TimeSpan.Zero;

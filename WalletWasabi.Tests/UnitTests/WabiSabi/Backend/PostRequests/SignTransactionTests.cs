@@ -3,7 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -18,7 +18,7 @@ public class SignTransactionTests
 	[Fact]
 	public async Task SuccessAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Key key = new();
 		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
@@ -39,7 +39,7 @@ public class SignTransactionTests
 	[Fact]
 	public async Task TaprootSuccessAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2trInputs = true, AllowP2trOutputs = true };
+		Config cfg = new() { AllowP2trInputs = true, AllowP2trOutputs = true };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Key key = new();
 		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
@@ -70,7 +70,7 @@ public class SignTransactionTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync();
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
 		var round = arena.Rounds.First();

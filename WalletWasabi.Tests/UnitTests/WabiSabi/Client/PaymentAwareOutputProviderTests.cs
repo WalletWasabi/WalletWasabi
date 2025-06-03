@@ -8,7 +8,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -27,7 +27,7 @@ public class PaymentAwareOutputProviderTests
 			key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network),
 			Money.Coins(101.0001m)); // Too big, non-standard payment which cannot be done.
 
-		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new Config());
 		var registeredCoinsEffectiveValues = new[] { Money.Coins(100m) };
 		var theirCoinEffectiveValues = new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m), Money.Coins(0.0025m), Money.Coins(0.0001m) };
 		var availableVsize = roundParameters.MaxVsizeAllocationPerAlice - Constants.P2wpkhInputVirtualSize;
@@ -70,7 +70,7 @@ public class PaymentAwareOutputProviderTests
 		var paymentBatch = new PaymentBatch();
 		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch);
 
-		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new Config());
 
 		var scriptPubKeys = payments.Select(payment =>
 		{
@@ -114,7 +114,7 @@ public class PaymentAwareOutputProviderTests
 	[InlineData(new[] { "0.1", "0.05" }, "0.14", 40 + 31, 0)] // Not enough vsize to register the payment and the change.
 	public void BestPaymentSetTest(string[] amountsToPay, string availableAmountStr, int availableVsize, int expectedOutputs)
 	{
-		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new Config());
 		var paymentBatch = new PaymentBatch();
 
 		var payments = amountsToPay.Select(a => (Destination: GetNewSegwitAddress(), Amount: Money.Coins(decimal.Parse(a))));

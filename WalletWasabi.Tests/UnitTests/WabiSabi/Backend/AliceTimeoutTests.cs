@@ -4,7 +4,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -21,7 +21,7 @@ public class AliceTimeoutTests
 		using CancellationTokenSource testDeadlineCts = new(TimeSpan.FromMinutes(5)); // Sanity timeout for the unit test.
 
 		// Alice times out when its deadline is reached.
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var km = ServiceFactory.CreateKeyManager(password: "");
 		var key = BitcoinFactory.CreateHdPubKey(km);
@@ -72,7 +72,7 @@ public class AliceTimeoutTests
 	{
 		// Alice does not time out when it's not input registration anymore,
 		// even though the deadline is reached.
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var alice = WabiSabiFactory.CreateAlice(round);
@@ -96,7 +96,7 @@ public class AliceTimeoutTests
 	{
 		// Alice does not time out if input registration timed out,
 		// even though the deadline is reached and still in input reg.
-		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
+		Config cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
@@ -119,7 +119,7 @@ public class AliceTimeoutTests
 	{
 		// Alice does not time out if input reg is full with alices,
 		// even though the deadline is reached and still in input reg.
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		Config cfg = new() { MaxInputCountByRound = 3 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);
@@ -143,7 +143,7 @@ public class AliceTimeoutTests
 	public async Task AliceDeadlineUpdatedAsync()
 	{
 		// Alice's deadline is updated by connection confirmation.
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var alice = WabiSabiFactory.CreateAlice(round);
 		round.Alices.Add(alice);

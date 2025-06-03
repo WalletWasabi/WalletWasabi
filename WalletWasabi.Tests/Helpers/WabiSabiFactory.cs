@@ -22,7 +22,7 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
@@ -33,7 +33,7 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class WabiSabiFactory
 {
-	private static string CoordinatorIdentifier = new WabiSabiConfig().CoordinatorIdentifier;
+	private static string CoordinatorIdentifier = new Config().CoordinatorIdentifier;
 
 	public static Coin CreateCoin(Key? key = null, Money? amount = null, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
@@ -69,7 +69,7 @@ public static class WabiSabiFactory
 		return new OwnershipIdentifier(identificationKey, scriptPubKey);
 	}
 
-	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
+	public static RoundParameters CreateRoundParameters(Config cfg) =>
 		RoundParameters.Create(
 			cfg,
 			Network.Main,
@@ -79,7 +79,7 @@ public static class WabiSabiFactory
 	public static Round CreateRound(RoundParameters parameters) =>
 		new(parameters, InsecureRandom.Instance);
 
-	public static Round CreateRound(WabiSabiConfig cfg) =>
+	public static Round CreateRound(Config cfg) =>
 		CreateRound(CreateRoundParameters(cfg) with
 		{
 			MaxVsizeAllocationPerAlice =
@@ -284,7 +284,7 @@ public static class WabiSabiFactory
 			realVsizeCredentialRequest);
 	}
 
-	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
+	public static BlameRound CreateBlameRound(Round round, Config cfg)
 	{
 		var roundParameters = RoundParameters.Create(
 				cfg,
@@ -347,7 +347,7 @@ public static class WabiSabiFactory
 		return coinjoinClient;
 	}
 
-	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
+	public static RoundParameterFactory CreateRoundParametersFactory(Config cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
 		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
 		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
@@ -381,9 +381,9 @@ public static class WabiSabiFactory
 		return prison;
 	}
 
-	internal static WabiSabiConfig CreateWabiSabiConfig()
+	internal static Config CreateConfig()
 	{
-		return new WabiSabiConfig
+		return new Config
 		{
 			MaxInputCountByRound = 2,
 			MinInputCountByRoundMultiplier = 0.5,

@@ -18,13 +18,14 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Coordinator;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public partial class Arena : PeriodicRunner
 {
 	public Arena(
-		WabiSabiConfig config,
+		Config config,
 		IRPCClient rpc,
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
@@ -46,7 +47,7 @@ public partial class Arena : PeriodicRunner
 	public ImmutableList<RoundState> RoundStates { get; private set; } = ImmutableList<RoundState>.Empty;
 	internal ConcurrentQueue<uint256> DisruptedRounds { get; } = new();
 	private readonly AsyncLock _asyncLock = new();
-	private readonly WabiSabiConfig _config;
+	private readonly Config _config;
 	internal IRPCClient Rpc { get; }
 	private readonly Prison _prison;
 	public CoinJoinScriptStore? CoinJoinScriptStore { get; }

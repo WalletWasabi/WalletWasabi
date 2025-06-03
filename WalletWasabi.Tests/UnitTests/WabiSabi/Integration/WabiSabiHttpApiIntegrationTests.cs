@@ -18,7 +18,7 @@ using Xunit;
 using Xunit.Abstractions;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
@@ -140,7 +140,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				services.AddSingleton(s => new Config
 				{
 					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -206,7 +206,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(_ => new WabiSabiConfig
+				services.AddSingleton(_ => new Config
 				{
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -305,7 +305,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				services.AddSingleton(s => new Config
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
@@ -398,7 +398,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddSingleton<IRPCClient>(s => rpc);
-				services.AddSingleton(s => new WabiSabiConfig(Path.GetTempFileName())
+				services.AddSingleton(s => new Config(Path.GetTempFileName())
 				{
 					MaxRegistrableAmount = Money.Coins(500m),
 					MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + (10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)))),

@@ -10,15 +10,11 @@ using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
-namespace WalletWasabi.WabiSabi.Coordinator;
+namespace WalletWasabi.Coordinator;
 
-public class WabiSabiConfig : ConfigBase
+public class Config : ConfigBase
 {
-	public WabiSabiConfig() : base("./fakeConfig.for.testing.only.json")
-	{
-	}
-
-	public WabiSabiConfig(string filePath) : base(filePath)
+	public Config(string filePath) : base(filePath)
 	{
 	}
 
@@ -174,25 +170,25 @@ public class WabiSabiConfig : ConfigBase
 		return scriptTypes.ToImmutableSortedSet();
 	}
 
-	public static WabiSabiConfig LoadFile(string filePath)
+	public static Config LoadFile(string filePath)
 	{
 		try
 		{
 			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
-			var decoder = JsonDecoder.FromStream(Decode.WabiSabiConfig(filePath));
+			var decoder = JsonDecoder.FromStream(Decode.Config(filePath));
 			var decodingResult = decoder(cfgFile);
 			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
 		}
 		catch (Exception ex)
 		{
-			var config = new WabiSabiConfig(filePath);
+			var config = new Config(filePath);
 			config.ToFile();
-			Logger.LogInfo($"{nameof(WabiSabiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
 			Logger.LogWarning(ex);
 			return config;
 		}
 	}
 
 	protected override string EncodeAsJson() =>
-		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
+		JsonEncoder.ToReadableString(this, Encode.Config);
 }

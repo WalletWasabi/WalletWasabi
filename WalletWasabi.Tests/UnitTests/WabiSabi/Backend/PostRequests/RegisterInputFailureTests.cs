@@ -4,7 +4,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
+using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -41,7 +41,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task WrongPhaseAsync()
 	{
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
@@ -65,7 +65,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputRegistrationFullAsync()
 	{
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 3 };
+		Config cfg = new() { MaxInputCountByRound = 3 };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
@@ -91,7 +91,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputRegistrationTimedOutAsync()
 	{
-		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
+		Config cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
@@ -119,7 +119,7 @@ public class RegisterInputFailureTests
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
@@ -147,7 +147,7 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		Prison prison = WabiSabiFactory.CreatePrison();
@@ -174,7 +174,7 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 
-		WabiSabiConfig cfg = WabiSabiFactory.CreateWabiSabiConfig();
+		Config cfg = WabiSabiFactory.CreateConfig();
 		cfg.AllowNotedInputRegistration = false;
 
 		var round = WabiSabiFactory.CreateRound(cfg);
@@ -198,7 +198,7 @@ public class RegisterInputFailureTests
 	public async Task InputSpentAsync()
 	{
 		using Key key = new();
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -219,7 +219,7 @@ public class RegisterInputFailureTests
 	public async Task InputUnconfirmedAsync()
 	{
 		using Key key = new();
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -241,7 +241,7 @@ public class RegisterInputFailureTests
 	public async Task InputImmatureAsync()
 	{
 		using Key key = new();
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -271,7 +271,7 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task TaprootNotAllowedAsync()
 	{
-		WabiSabiConfig cfg = new() { AllowP2trInputs = false };
+		Config cfg = new() { AllowP2trInputs = false };
 		var round = WabiSabiFactory.CreateRound(cfg);
 
 		using Key key = new();
@@ -316,7 +316,7 @@ public class RegisterInputFailureTests
 		var outpoint = BitcoinFactory.CreateOutPoint();
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(new Coin(outpoint, txOut));
 
-		WabiSabiConfig cfg = new() { MinRegistrableAmount = Money.Coins(2) };
+		Config cfg = new() { MinRegistrableAmount = Money.Coins(2) };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -336,7 +336,7 @@ public class RegisterInputFailureTests
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-		WabiSabiConfig cfg = new() { MaxRegistrableAmount = Money.Coins(0.9m) };
+		Config cfg = new() { MaxRegistrableAmount = Money.Coins(0.9m) };
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -356,7 +356,7 @@ public class RegisterInputFailureTests
 		// Configures a round that allows so many inputs (Alices) that
 		// the virtual size each of they have available is not enough
 		// to register anything.
-		WabiSabiConfig cfg = new() { MaxInputCountByRound = 100_000 };
+		Config cfg = new() { MaxInputCountByRound = 100_000 };
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 
@@ -379,7 +379,7 @@ public class RegisterInputFailureTests
 	{
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
@@ -403,7 +403,7 @@ public class RegisterInputFailureTests
 	{
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var anotherRound = WabiSabiFactory.CreateRound(cfg);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
@@ -428,7 +428,7 @@ public class RegisterInputFailureTests
 	{
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
-		WabiSabiConfig cfg = new();
+		Config cfg = new();
 		var round = WabiSabiFactory.CreateRound(cfg);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
