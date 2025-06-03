@@ -94,12 +94,10 @@ Todo:
     {
       "Network": "RegTest",
       "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
-      "MainNetBitcoinP2pEndPoint": "127.0.0.1:8333",
-      "TestNetBitcoinP2pEndPoint": "127.0.0.1:48333",
-      "RegTestBitcoinP2pEndPoint": "127.0.0.1:18444",
       "MainNetBitcoinCoreRpcEndPoint": "127.0.0.1:8332",
       "TestNetBitcoinCoreRpcEndPoint": "127.0.0.1:18332",
-      "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443"
+      "RegTestBitcoinCoreRpcEndPoint": "127.0.0.1:18443",
+      "FilterType": "legacy"
     }
     ```
 7. Go to WalletWasabi.Backend folder.
