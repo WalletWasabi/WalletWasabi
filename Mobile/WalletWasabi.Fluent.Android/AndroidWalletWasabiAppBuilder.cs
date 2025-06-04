@@ -6,8 +6,12 @@ namespace WalletWasabi.Fluent.Android;
 
 public class AndroidWalletWasabiAppBuilder : IWalletWasabiAppBuilder
 {
+	public AppBuilder? AppBuilder { get; set; }
+
 	public AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
+		AppBuilder = appBuilder;
+
 		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
 
 		appBuilder

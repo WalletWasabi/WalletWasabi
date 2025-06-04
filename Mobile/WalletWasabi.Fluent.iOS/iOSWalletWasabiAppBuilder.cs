@@ -7,8 +7,12 @@ namespace WalletWasabi.Fluent.iOS;
 // ReSharper disable once InconsistentNaming
 public class iOSWalletWasabiAppBuilder : IWalletWasabiAppBuilder
 {
+	public AppBuilder? AppBuilder { get; set; }
+
 	public AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
+		AppBuilder = appBuilder;
+
 		// TODO: On iOS, GPU rendering is always enabled - we need to hide that option from settings.
 		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
 

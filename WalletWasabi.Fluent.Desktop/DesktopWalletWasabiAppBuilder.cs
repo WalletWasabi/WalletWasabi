@@ -9,8 +9,12 @@ namespace WalletWasabi.Fluent.Desktop.Extensions;
 
 public class DesktopWalletWasabiAppBuilder : IWalletWasabiAppBuilder
 {
+	public AppBuilder? AppBuilder { get; set; }
+
 	public AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
+		AppBuilder = appBuilder;
+
 		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
 
 		appBuilder.UseReactiveUI();
