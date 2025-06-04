@@ -30,7 +30,7 @@ public static class WasabiFluentAppBuilder
 			.OnTermination(TerminateApplication)
 			.Build();
 
-		var exitCode = await app.RunAsync(afterStarting: () => AfterStarting(app, walletWasabiAppBuilder));
+		var exitCode = await app.RunAsync(afterStarting: () => AfterStartingDesktop(app, walletWasabiAppBuilder));
 
 		if (app.TerminateService.GracefulCrashException is not null)
 		{
@@ -42,7 +42,7 @@ public static class WasabiFluentAppBuilder
 		return (int)exitCode;
 	}
 
-	private static Task AfterStarting(
+	private static Task AfterStartingDesktop(
 		WasabiApplication app,
 		IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
@@ -65,6 +65,59 @@ public static class WasabiFluentAppBuilder
 		{
 			appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 		}
+
+		return Task.CompletedTask;
+	}
+
+	public static async Task RunMobileAsync(string[] args, IWalletWasabiAppBuilder walletWasabiAppBuilder)
+	{
+		var app = WasabiAppBuilder
+			.Create("Wasabi GUI", args)
+			.EnsureSingleInstance()
+			.OnUnhandledExceptions(LogUnhandledException)
+			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+			.OnTermination(TerminateApplication)
+			.Build();
+
+		await app.RunMobileAsync(afterStarting: () => AfterStartingMobile(app, walletWasabiAppBuilder));
+
+		// TODO:
+		// if (app.TerminateService.GracefulCrashException is not null)
+		// {
+		// 	throw app.TerminateService.GracefulCrashException;
+		// }
+
+		// TODO:
+		// TryInstallNewVersion(app, exitCode);
+
+		// TODO:
+		// return (int)exitCode;
+	}
+
+	private static Task AfterStartingMobile(
+		WasabiApplication app,
+		IWalletWasabiAppBuilder walletWasabiAppBuilder)
+	{
+		SetupExceptionHandler();
+
+		Logger.LogInfo("Wasabi GUI started.");
+		bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
+		var uiConfig = InitializeDependencies(app);
+
+		using CancellationTokenSource stopLoadingCts = new();
+
+		var appBuilder = BuildDesktopAppBuilder(app, stopLoadingCts, uiConfig, runGuiInBackground, walletWasabiAppBuilder);
+
+		// TODO:
+		// if (app.TerminateService.CancellationToken.IsCancellationRequested)
+		// {
+		// 	Logger.LogDebug("Skip starting Avalonia UI as requested the application to stop.");
+		// 	stopLoadingCts.Cancel();
+		// }
+		// else
+		// {
+		// 	appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
+		// }
 
 		return Task.CompletedTask;
 	}
