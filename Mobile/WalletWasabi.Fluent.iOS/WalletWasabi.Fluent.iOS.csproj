@@ -1,0 +1,19 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+    <PropertyGroup>
+        <OutputType>Exe</OutputType>
+        <TargetFramework>net8.0-ios</TargetFramework>
+		<!--<RuntimeIdentifiers>ios-arm64</RuntimeIdentifiers>-->
+		<RuntimeIdentifiers>iossimulator-arm64</RuntimeIdentifiers>
+		<!--<RuntimeIdentifiers>iossimulator-x64</RuntimeIdentifiers>-->
+        <SupportedOSPlatformVersion>13.0</SupportedOSPlatformVersion>
+        <Nullable>enable</Nullable>
+    </PropertyGroup>
+
+    <ItemGroup>
+        <PackageReference Include="Avalonia.iOS"/>
+    </ItemGroup>
+
+    <ItemGroup>
+      <ProjectReference Include="..\..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
+    </ItemGroup>
+</Project>
