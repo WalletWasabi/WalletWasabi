@@ -69,7 +69,7 @@ public static class WasabiFluentAppBuilder
 		return Task.CompletedTask;
 	}
 
-	public static async Task RunMobileAsync(string[] args, IWalletWasabiAppBuilder walletWasabiAppBuilder)
+	public static void RunMobileAsync(string[] args, IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
 		var app = WasabiAppBuilder
 			.Create("Wasabi GUI", args)
@@ -79,7 +79,7 @@ public static class WasabiFluentAppBuilder
 			.OnTermination(TerminateApplication)
 			.Build();
 
-		await app.RunMobileAsync(afterStarting: () => AfterStartingMobile(app, walletWasabiAppBuilder));
+		app.RunMobileAsync(afterStarting: () => AfterStartingMobile(app, walletWasabiAppBuilder));
 
 		// TODO:
 		// if (app.TerminateService.GracefulCrashException is not null)
@@ -94,7 +94,7 @@ public static class WasabiFluentAppBuilder
 		// return (int)exitCode;
 	}
 
-	private static Task AfterStartingMobile(
+	private static void AfterStartingMobile(
 		WasabiApplication app,
 		IWalletWasabiAppBuilder walletWasabiAppBuilder)
 	{
@@ -119,7 +119,8 @@ public static class WasabiFluentAppBuilder
 		// 	appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 		// }
 
-		return Task.CompletedTask;
+		// TODO:
+		// return Task.CompletedTask;
 	}
 
 	private static AppBuilder BuildDesktopAppBuilder(

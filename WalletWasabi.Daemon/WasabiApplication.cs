@@ -77,7 +77,7 @@ public class WasabiApplication
 		}
 	}
 
-	public async Task RunMobileAsync(Func<Task> afterStarting)
+	public void RunMobileAsync(Action afterStarting)
 	{
 		// TODO:
 		// if (AppConfig.Arguments.Contains("--version"))
@@ -110,11 +110,11 @@ public class WasabiApplication
 
 		try
 		{
-			TerminateService.Activate();
+			//TerminateService.Activate();
 
 			BeforeStarting();
 
-			await afterStarting();
+			afterStarting();
 			// TODO:
 			// return ExitCode.Ok;
 		}
