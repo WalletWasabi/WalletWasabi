@@ -77,6 +77,54 @@ public class WasabiApplication
 		}
 	}
 
+	public async Task RunMobileAsync(Func<Task> afterStarting)
+	{
+		// TODO:
+		// if (AppConfig.Arguments.Contains("--version"))
+		// {
+		// 	Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+		// 	return ExitCode.Ok;
+		// }
+		// if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
+		// {
+		// 	ShowHelp();
+		// 	return ExitCode.Ok;
+		// }
+
+		/* TODO:
+		if (AppConfig.MustCheckSingleInstance)
+		{
+			var instanceResult = await SingleInstanceChecker.CheckSingleInstanceAsync();
+			if (instanceResult == WasabiInstanceStatus.AnotherInstanceIsRunning)
+			{
+				Logger.LogDebug("Wasabi is already running, signaled the first instance.");
+				return ExitCode.FailedAlreadyRunningSignaled;
+			}
+			if (instanceResult == WasabiInstanceStatus.Error)
+			{
+				Logger.LogCritical($"Wasabi is already running, but cannot be signaled");
+				return ExitCode.FailedAlreadyRunningError;
+			}
+		}
+		*/
+
+		try
+		{
+			TerminateService.Activate();
+
+			BeforeStarting();
+
+			await afterStarting();
+			// TODO:
+			// return ExitCode.Ok;
+		}
+		finally
+		{
+			// TODO:
+			// BeforeStopping();
+		}
+	}
+
 	private void BeforeStarting()
 	{
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
