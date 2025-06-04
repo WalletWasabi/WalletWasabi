@@ -28,7 +28,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private IndexerStatus _indexerStatus;
-	[AutoNotify] private bool _backendNotCompatible;
+	[AutoNotify] private bool _indexerNotCompatible;
 	[AutoNotify] private bool _isConnectionIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
 	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
@@ -95,7 +95,7 @@ public partial class HealthMonitor : ReactiveObject
 		Services.EventBus.AsObservable<IndexerIncompatibilityDetected>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => true)
-			.BindTo(this, x => x.BackendNotCompatible)
+			.BindTo(this, x => x.IndexerNotCompatible)
 			.DisposeWith(Disposables);
 
 		// Tor Issues
@@ -116,7 +116,7 @@ public partial class HealthMonitor : ReactiveObject
 			.Merge(Services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal())))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ =>
-				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from backend answer so it seems to the user that peers are connected over clearnet, while they are not.
+				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodes.Count) // Set peers to 0 if Tor is not running, because we get Tor status from indexer answer so it seems to the user that peers are connected over clearnet, while they are not.
 			.BindTo(this, x => x.Peers)
 			.DisposeWith(Disposables);
 
@@ -156,7 +156,7 @@ public partial class HealthMonitor : ReactiveObject
 		this.WhenAnyValue(
 				x => x.TorStatus,
 				x => x.IndexerStatus,
-				x => x.BackendNotCompatible,
+				x => x.IndexerNotCompatible,
 				x => x.Peers,
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
@@ -190,9 +190,9 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.UpdateAvailable;
 		}
 
-		if (BackendNotCompatible)
+		if (IndexerNotCompatible)
 		{
-			return HealthMonitorState.BackendNotCompatible;
+			return HealthMonitorState.IndexerNotCompatible;
 		}
 
 		if (IsBitcoinCoreIssueDetected)

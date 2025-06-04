@@ -11,7 +11,7 @@ public enum RoundDisruptionMethod
 	DidNotSignalReadyToSign,
 	DidNotSign,
 	DoubleSpent,
-	BackendStabilitySafety
+	IndexerStabilitySafety
 }
 
 public abstract record Offense();
@@ -54,9 +54,9 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 						yield return disruptedRoundId.ToString();
 					}
 					break;
-				case CoordinatorStabilitySafety backendStabilitySafety:
+				case CoordinatorStabilitySafety indexerStabilitySafety:
 					yield return nameof(CoordinatorStabilitySafety);
-					yield return backendStabilitySafety.RoundId.ToString();
+					yield return indexerStabilitySafety.RoundId.ToString();
 					break;
 				case FailedToVerify fv:
 					yield return nameof(FailedToVerify);

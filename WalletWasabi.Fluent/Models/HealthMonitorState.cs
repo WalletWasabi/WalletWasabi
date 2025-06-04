@@ -4,7 +4,7 @@ public enum HealthMonitorState
 {
 	Loading,
 	Ready,
-	BackendNotCompatible,
+	IndexerNotCompatible,
 	UpdateAvailable,
 	ConnectionIssueDetected,
 	BitcoinCoreIssueDetected,

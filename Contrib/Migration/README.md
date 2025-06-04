@@ -1,12 +1,12 @@
 # Filters Migration
 
-Starting with Wasabi v2.2.0.0, the backend now utilizes SQLite to store and retrieve compact filters. As a result, operators need to migrate their old plain text filters to the new SQLite format.
+Starting with Wasabi v2.2.0.0, the indexer now utilizes SQLite to store and retrieve compact filters. As a result, operators need to migrate their old plain text filters to the new SQLite format.
 
 ## Migration Guide
 
 ### Using Nix
 
-If you're deploying with `Nix`, migrating is straightforward. Simply run the following command on your backend server:
+If you're deploying with `Nix`, migrating is straightforward. Simply run the following command on your indexer server:
 
 ```bash
 $ nix run github:WalletWasabi/WalletWasabi#migrateFilters
@@ -32,5 +32,5 @@ For those using dotnet, follow these steps:
   ```
 * Run the migration script:
   ```
-  dotnet fsi migrateBackendFilters.fsx
+  dotnet fsi migrateIndexerFilters.fsx
   ```

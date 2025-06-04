@@ -2,7 +2,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;

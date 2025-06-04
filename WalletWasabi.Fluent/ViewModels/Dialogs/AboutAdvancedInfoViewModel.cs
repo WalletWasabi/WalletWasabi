@@ -20,9 +20,9 @@ public partial class AboutAdvancedInfoViewModel : DialogViewModelBase<System.Rea
 
 	public Version HwiVersion => Constants.HwiVersion;
 
-	public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;
+	public string IndexerCompatibleVersions => Constants.ClientSupportIndexerVersionText;
 
-	public string CurrentBackendMajorVersion => IndexerClient.ApiVersion.ToString();
+	public string CurrentIndexerMajorVersion => IndexerClient.ApiVersion.ToString();
 
 	protected override void OnDialogClosed()
 	{

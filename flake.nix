@@ -18,11 +18,11 @@
           src = ./.;
         };
 
-        # Build Wasabi Backend
-        buildBackend = buildWasabiModule.overrideAttrs (oldAttrs: rec {
-          pname = "WalletWasabi.Backend";
-          projectFile = "WalletWasabi.Backend/WalletWasabi.Backend.csproj";
-          executables = [ "WalletWasabi.Backend" ];
+        # Build Wasabi Indexer
+        buildIndexer = buildWasabiModule.overrideAttrs (oldAttrs: rec {
+          pname = "WalletWasabi.Indexer";
+          projectFile = "WalletWasabi.Indexer/WalletWasabi.Indexer.csproj";
+          executables = [ "WalletWasabi.Indexer" ];
           runtimeDeps = [ pkgs.openssl pkgs.zlib ];
           postInstall = ''
             ln -s ${deployScript}/bin/deploy $out
@@ -33,11 +33,11 @@
         buildEverything = buildWasabiModule.overrideAttrs (oldAttrs: rec {
           pname = "WalletWasabi";
           projectFile = [
-             "WalletWasabi.Backend/WalletWasabi.Backend.csproj"
-             "WalletWasabi.Backend/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Indexer/WalletWasabi.Indexer.csproj"
+             "WalletWasabi.Indexer/WalletWasabi.Coordinator.csproj"
              "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
           executables = [
-            "WalletWasabi.Backend"
+            "WalletWasabi.Indexer"
             "WalletWasabi.Coordinator"
             "WalletWasabi.Fluent.Desktop" ];
           runtimeDeps = with pkgs; [
@@ -55,7 +55,7 @@
 
           preFixup = ''
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Fluent.Desktop $out/bin/wasabi
-            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Backend $out/bin/wbend
+            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Indexer $out/bin/wbend
           '';
 
           binaries = "Microservices/Binaries/lin64";
@@ -108,18 +108,18 @@
              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
            '';
         };
-        migrateBackendFilters = {
+        migrateIndexerFilters = {
            type = "app";
-           program = "${(pkgs.writeShellScript "migrateBackendFilters" ''
-              ${pkgs.dotnetCorePackages.sdk_8_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateBackendFilters.fsx;
+           program = "${(pkgs.writeShellScript "migrateIndexerFilters" ''
+              ${pkgs.dotnetCorePackages.sdk_8_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateIndexerFilters.fsx;
               '')}";
         };
     in
     {
-      packages.x86_64-linux.default = buildBackend;
+      packages.x86_64-linux.default = buildIndexer;
       packages.x86_64-linux.all = buildEverything;
       devShells.x86_64-linux.default = wasabi-shell;
 
-      apps.x86_64-linux.migrateFilters = migrateBackendFilters;
+      apps.x86_64-linux.migrateFilters = migrateIndexerFilters;
     };
 }

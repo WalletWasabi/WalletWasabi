@@ -4,7 +4,7 @@ public enum SmartCoinStatus
 {
 	Unconfirmed, // The coin is unconfirmed.
 	Confirmed, // The coin is confirmed.
-	SpentAccordingToBackend, // The coin is spent according to the backend, but the wallet does not know about it yet. Probably a lost mempool transaction.
+	SpentAccordingToIndexer, // The coin is spent according to the indexer, but the wallet does not know about it yet. Probably a lost mempool transaction.
 	MixingBanned, // The coin is banned from mixing.
 	MixingWaitingForConfirmation, // The coin is on the mixing waiting list, but it is unconfirmed, so it cannot be registered yet.
 	MixingOnWaitingList, // The coin is on the mixing waiting list.

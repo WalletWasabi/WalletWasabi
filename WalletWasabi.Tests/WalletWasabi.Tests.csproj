@@ -33,7 +33,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi.Backend\WalletWasabi.Backend.csproj" />
+		<ProjectReference Include="..\WalletWasabi.Indexer\WalletWasabi.Indexer.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Coordinator\WalletWasabi.Coordinator.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" />
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />

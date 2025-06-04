@@ -3,7 +3,7 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Controllers;
+using WalletWasabi.Indexer.Controllers;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Controllers;

@@ -41,13 +41,13 @@ public class LiveServerTests : IAsyncLifetime
 
 	[Theory]
 	[MemberData(nameof(GetNetworks))]
-	public async Task GetBackendVersionTestsAsync(Network network)
+	public async Task GetIndexerVersionTestsAsync(Network network)
 	{
 		using CancellationTokenSource ctsTimeout = new(TimeSpan.FromMinutes(2));
 
 		IndexerClient client = MakeIndexerClient(network);
-		var backendMajorVersion = await client.GetIndexerMajorVersionAsync(ctsTimeout.Token);
-		Assert.Equal(4, backendMajorVersion);
+		var indexerMajorVersion = await client.GetIndexerMajorVersionAsync(ctsTimeout.Token);
+		Assert.Equal(4, indexerMajorVersion);
 	}
 
 	private IndexerClient MakeIndexerClient(Network network)

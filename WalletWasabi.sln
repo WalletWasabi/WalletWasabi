@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Backend", "WalletWasabi.Backend\WalletWasabi.Backend.csproj", "{A378E063-1660-472F-9CB2-0A3E96A56A63}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Indexer", "WalletWasabi.Indexer\WalletWasabi.Indexer.csproj", "{A378E063-1660-472F-9CB2-0A3E96A56A63}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Tests", "WalletWasabi.Tests\WalletWasabi.Tests.csproj", "{50BDFA09-7575-4EEE-B733-D41B65B06D00}"
 EndProject

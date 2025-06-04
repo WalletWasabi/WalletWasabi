@@ -1,5 +1,5 @@
 using System.Linq;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.StatusChecker;
 

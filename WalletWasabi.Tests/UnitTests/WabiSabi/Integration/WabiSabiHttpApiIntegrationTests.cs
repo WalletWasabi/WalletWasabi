@@ -328,7 +328,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var roundState = await roundStateUpdater.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
+		// Creates a IIndexerHttpClientFactory that creates an HttpClient that says everything is okay
 		// when a signature is sent but it doesn't really send it.
 		var httpClient = app.CreateClient();
 		using var nonSigningHttpClientMock = new MockHttpClient();

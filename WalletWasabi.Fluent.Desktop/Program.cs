@@ -173,7 +173,7 @@ public static class WasabiAppExtensions
 
 				AppBuilder appBuilder = AppBuilder
 					.Configure(() => new App(
-						backendInitialiseAsync: async () =>
+						indexerInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
 							await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);

@@ -459,7 +459,7 @@ public class CoinJoinClient
 
 					case WabiSabiProtocolErrorCode.InputSpent:
 						coin.SpentAccordingToNetwork = true;
-						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.");
+						roundState.LogInfo($"{coin.Coin.Outpoint} is spent according to the indexer. The wallet is not fully synchronized or corrupted.");
 						break;
 
 					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:

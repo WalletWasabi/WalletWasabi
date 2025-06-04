@@ -22,8 +22,8 @@
 **Deploy to TestNet example**
 
 Hello there, we are deploying this commit to the `TestNet` server.
-- Latest commit on backend: 167c81be80d8d3de9deaf8d306017c5403593c89
-- Planning to deploy to backend: 460e21ce71738d3cc1560a3d4fc1984cc4beb725
+- Latest commit on indexer: 167c81be80d8d3de9deaf8d306017c5403593c89
+- Planning to deploy to indexer: 460e21ce71738d3cc1560a3d4fc1984cc4beb725
 - PRs with affiliate label: https://github.com/WalletWasabi/WalletWasabi/pulls?q=is%3Apr+is%3Aclosed+label%3Aaffiliate
 
 Please ack and test.
@@ -34,18 +34,18 @@ Please ack and test.
 
 ### build-wasabi script
 
-This script builds wasabi backend and it is defined as follow:
+This script builds wasabi indexer and it is defined as follow:
 
 ```bash
 $ echo "#!/usr/bin/env bash" > build-wasabi
-$ echo "nix build -o wasabi-backend github:walletwasabi/walletwasabi/\$1" >> build-wasabi
+$ echo "nix build -o wasabi-indexer github:walletwasabi/walletwasabi/\$1" >> build-wasabi
 ```
 
 ### deploy-wasabi script
 
-This script deploys the already built wasabi backend and it is defined as follow:
+This script deploys the already built wasabi indexer and it is defined as follow:
 
 ```bash
 $ echo "#!/usr/bin/env bash" > deploy-wasabi
-$ echo "./wasabi-backend/deploy" >> deploy-wasabi
+$ echo "./wasabi-indexer/deploy" >> deploy-wasabi
 ```

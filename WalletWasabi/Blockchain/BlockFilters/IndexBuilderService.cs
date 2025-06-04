@@ -8,7 +8,7 @@ using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.Blocks;

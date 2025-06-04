@@ -1,7 +1,7 @@
 using System.Text.Json.Nodes;
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using WalletWasabi.Backend.Models.Responses;
+using WalletWasabi.Indexer.Models.Responses;
 using WalletWasabi.Helpers;
 using ByteHelpers = WabiSabi.Helpers.ByteHelpers;
 
@@ -56,7 +56,7 @@ public static partial class Decode
 		Object(get =>
 			new VersionsResponse
 			{
-				BackendMajorVersion = get.Required("BackendMajorVersion", String),
+				IndexerMajorVersion = get.Required("IndexerMajorVersion", String),
 				ClientVersion = get.Required("ClientVersion", String),
 				CommitHash = get.Required("CommitHash", String),
 			});

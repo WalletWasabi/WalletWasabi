@@ -29,11 +29,11 @@ SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
-BACKEND="WalletWasabi.Backend"
+INDEXER="WalletWasabi.Indexer"
 COORDINATOR="WalletWasabi.Coordinator"
 DAEMON="WalletWasabi.Daemon"
 DESKTOP_PROJECT="./$DESKTOP/$DESKTOP.csproj"
-BACKEND_PROJECT="./$BACKEND/$BACKEND.csproj"
+INDEXER_PROJECT="./$INDEXER/$INDEXER.csproj"
 COORDINATOR_PROJECT="./$COORDINATOR/$COORDINATOR.csproj"
 
 # Build directory
@@ -42,7 +42,7 @@ BUILD_DIR="$ROOT_DIR/build"
 
 # Executable name
 EXECUTABLE_NAME="wassabee"
-BACKEND_EXECUTABLE_NAME="wbackend"
+INDEXER_EXECUTABLE_NAME="windexer"
 COORDINATOR_EXECUTABLE_NAME="wcoordinator"
 
 # Directory where to save the generated packages
@@ -118,7 +118,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   OUTPUT_DIR=$BUILD_DIR/$PLATFORM
 
   if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
-    PROJECTS_TO_BUILD=("$DESKTOP_PROJECT" "$BACKEND_PROJECT" "$COORDINATOR_PROJECT" )
+    PROJECTS_TO_BUILD=("$DESKTOP_PROJECT" "$INDEXER_PROJECT" "$COORDINATOR_PROJECT" )
   else
     PROJECTS_TO_BUILD=("$DESKTOP_PROJECT" )
   fi
@@ -157,7 +157,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   mv $OUTPUT_DIR/{$DAEMON,${EXECUTABLE_NAME}d}$EXE_FILE_EXTENSION
   if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
     mv $OUTPUT_DIR/{$COORDINATOR,${COORDINATOR_EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
-    mv $OUTPUT_DIR/{$BACKEND,${BACKEND_EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
+    mv $OUTPUT_DIR/{$INDEXER,${INDEXER_EXECUTABLE_NAME}}$EXE_FILE_EXTENSION
   fi
 
   # Remove microservices binaries for other platforms
@@ -284,14 +284,14 @@ chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
 if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   # Create wrapper scripts
   echo "#!/usr/bin/env sh
-  ${INSTALL_DIR}/${BACKEND_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
+  ${INSTALL_DIR}/${INDEXER_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${INDEXER_EXECUTABLE_NAME}
 
   echo "#!/usr/bin/env sh
   ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 
   # Remove execution to everything except for executables and their wrapper scripts
-  chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${BACKEND_EXECUTABLE_NAME}
-  chmod 0755 ${DEBIAN_BIN}/${BACKEND_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${INDEXER_EXECUTABLE_NAME}
+  chmod 0755 ${DEBIAN_BIN}/${INDEXER_EXECUTABLE_NAME}
   chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${COORDINATOR_EXECUTABLE_NAME}
   chmod 0755 ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Services;

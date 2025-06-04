@@ -207,7 +207,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				(_, false) => "Not running"
 			},
 			["onionService"] = Global.OnionServiceUri?.ToString() ?? "Unavailable",
-			["backendStatus"] = Global.Status.IsIndexerAvailable ? "Connected" : "Disconnected",
+			["indexerStatus"] = Global.Status.IsIndexerAvailable ? "Connected" : "Disconnected",
 			["bestBlockchainHeight"] = smartHeaderChain.TipHeight.ToString(),
 			["bestBlockchainHash"] = smartHeaderChain.TipHash?.ToString() ?? "",
 			["filtersCount"] = smartHeaderChain.HashCount,

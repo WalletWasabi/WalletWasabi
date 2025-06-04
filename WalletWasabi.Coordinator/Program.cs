@@ -1,7 +1,7 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using WalletWasabi.Backend;
+using WalletWasabi.Indexer;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Coordinator;

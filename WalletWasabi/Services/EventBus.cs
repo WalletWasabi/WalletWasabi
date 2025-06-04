@@ -1,6 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;

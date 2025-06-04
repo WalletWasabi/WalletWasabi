@@ -2,7 +2,7 @@
 
 ## Why do this?
 
-RegTest is a local testing environment in which developers can almost instantly generate blocks on demand for testing events, and create private satoshis with no real-world value. Running Wasabi Backend on RegTest allows you to emulate network events and observe how the Backend and the Client react on that.
+RegTest is a local testing environment in which developers can almost instantly generate blocks on demand for testing events, and create private satoshis with no real-world value. Running Wasabi Indexer on RegTest allows you to emulate network events and observe how the Indexer and the Client react on that.
 You do not need to download the blockchain for this setup!
 
 ## Setup Bitcoin Knots with RegTest
@@ -71,20 +71,20 @@ Todo:
 
 You can force rebuilding the txindex with the `-reindex` command line argument.
 
-## Setup Wasabi Backend
+## Setup Wasabi Indexer
 
 Here you will have to build from source, follow [these instructions here](https://github.com/WalletWasabi/WalletWasabi#build-from-source-code).
 
 Todo:
-1. Go to `WalletWasabi\WalletWasabi.Backend` folder.
+1. Go to `WalletWasabi\WalletWasabi.Indexer` folder.
 2. Open the command line and enter:
 `dotnet run`
-3. You will get some errors, but the data directory will be created. Stop the backend if it is still running with CTRL-C.
-4. Go to the Backend folder:
+3. You will get some errors, but the data directory will be created. Stop the indexer if it is still running with CTRL-C.
+4. Go to the Indexer folder:
     ```
-    Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Backend"
-    macOS: "/Users/{your username}/.walletwasabi/backend"
-    Linux: "/home/{your username}/.walletwasabi/backend"
+    Windows: "C:\Users\{your username}\AppData\Roaming\WalletWasabi\Indexer"
+    macOS: "/Users/{your username}/.walletwasabi/indexer"
+    Linux: "/home/{your username}/.walletwasabi/indexer"
     ```
 5. Edit `Config.json` file by replacing everything with:
     ```json
@@ -109,9 +109,9 @@ Todo:
 8. Go to WalletWasabi folder
 9. Open the command line and enter. This will build all the projects under this directory.
 `dotnet build`
-10. Go to WalletWasabi\WalletWasabi.Backend folder.
+10. Go to WalletWasabi\WalletWasabi.Indexer folder.
 `dotnet run --no-build`
-11. Now the Backend is generating the filters and it is running. (You can quit with CTRL-C any time)
+11. Now the Indexer is generating the filters and it is running. (You can quit with CTRL-C any time)
 
 ## Setup Wasabi Client
 

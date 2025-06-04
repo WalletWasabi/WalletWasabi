@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.WebClients.BlockchainInfo;

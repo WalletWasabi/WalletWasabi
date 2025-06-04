@@ -27,10 +27,10 @@ After this step we are ready to start configuring the build tasks and the launch
 
 ## Understanding the Wasabi components
 
-Wasabi Wallet is a client/server system where the client part is the Wasabi Wallet that users download and install on their machines, and the server part is the Wasabi backend that runs on the zkSNACKs servers.
+Wasabi Wallet is a client/server system where the client part is the Wasabi Wallet that users download and install on their machines, and the server part is the Wasabi indexer that runs on the zkSNACKs servers.
 Additionally, the solution contains other components like the Packager used to prepare the Wasabi client to be distributed, integration tests, project, and others.
 
-Here we are going to focus first on how to debug the client component, and then the backend component.
+Here we are going to focus first on how to debug the client component, and then the indexer component.
 
 ### Wasabi Client
 
@@ -80,7 +80,7 @@ That is defined in the tasks file (it goes into `.vscode/tasks.json` file).
 After these two files are created press (CTRL+SHIFT+D) to go to the debugger, set a couple of breakpoints, select the `Wasabi GUI .NET Core` launcher (it should be the only one available) and press the play button.
 That is all.
 
-### Wasabi Backend
+### Wasabi Indexer
 
 In the same way we did with the client part, we need to create a launcher and a task for running and debugging the server-side component.
 Let us start with the launcher.
@@ -88,13 +88,13 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
 
 ```json
 {
-   "name": "Wasabi Backend .NET Core",
+   "name": "Wasabi Indexer .NET Core",
    "type": "coreclr",
    "request": "launch",
-   "preLaunchTask": "build-backend",
-   "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net8.0/WalletWasabi.Backend.dll",
+   "preLaunchTask": "build-indexer",
+   "program": "${workspaceFolder}/WalletWasabi.Indexer/bin/Debug/net8.0/WalletWasabi.Indexer.dll",
    "args": [],
-   "cwd": "${workspaceFolder}/WalletWasabi.Backend",
+   "cwd": "${workspaceFolder}/WalletWasabi.Indexer",
    "stopAtEntry": false,
    "internalConsoleOptions": "openOnSessionStart",
    "launchBrowser": {
@@ -120,24 +120,24 @@ Add the following launcher to the array of `configurations` in the `.vscode/laun
    }
 }
 ```
-As before, we need to create a task for compiling the backend project before executing the code, and this is done again in the `.vscode/tasks.json` file.
+As before, we need to create a task for compiling the indexer project before executing the code, and this is done again in the `.vscode/tasks.json` file.
 Add the following task to the array of tasks:
 
 ```json
 {
-   "label": "build-backend",
+   "label": "build-indexer",
    "command": "dotnet",
    "type": "process",
    "args": [
       "build",
-      "${workspaceFolder}/WalletWasabi.Backend/WalletWasabi.Backend.csproj"
+      "${workspaceFolder}/WalletWasabi.Indexer/WalletWasabi.Indexer.csproj"
    ],
    "problemMatcher": "$msCompile"
 }
 ```
 
 And that is all.
-Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugger, set a couple of breakpoints, select the `Wasabi Backend .NET Core` launcher and press the play button to start debugging.
+Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugger, set a couple of breakpoints, select the `Wasabi Indexer .NET Core` launcher and press the play button to start debugging.
 
 
 
@@ -168,13 +168,13 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             }
         },
         {
-            "name": "Wasabi Backend .NET Core",
+            "name": "Wasabi Indexer .NET Core",
             "type": "coreclr",
             "request": "launch",
-            "preLaunchTask": "build-backend",
-            "program": "${workspaceFolder}/WalletWasabi.Backend/bin/Debug/net8.0/WalletWasabi.Backend.dll",
+            "preLaunchTask": "build-indexer",
+            "program": "${workspaceFolder}/WalletWasabi.Indexer/bin/Debug/net8.0/WalletWasabi.Indexer.dll",
             "args": [],
-            "cwd": "${workspaceFolder}/WalletWasabi.Backend",
+            "cwd": "${workspaceFolder}/WalletWasabi.Indexer",
             "stopAtEntry": false,
             "internalConsoleOptions": "openOnSessionStart",
             "launchBrowser": {
@@ -257,12 +257,12 @@ Once this has been done a developer can press (CTRL+SHIFT+D) to go to the debugg
             "problemMatcher": "$msCompile"
         },
         {
-            "label": "build-backend",
+            "label": "build-indexer",
             "command": "dotnet",
             "type": "process",
             "args": [
                "build",
-               "${workspaceFolder}/WalletWasabi.Backend/WalletWasabi.Backend.csproj",
+               "${workspaceFolder}/WalletWasabi.Indexer/WalletWasabi.Indexer.csproj",
                "/property:GenerateFullPaths=true",
                "/consoleloggerparameters:NoSummary"
            ],
@@ -308,7 +308,7 @@ You can tweak debugging options for unit tests by addind the following setting t
             "WalletWasabi/": "${workspaceFolder}/WalletWasabi",
             "WalletWasabi.Fluent.Desktop/": "${workspaceFolder}/WalletWasabi.Fluent.Desktop",
             "WalletWasabi.Tests/": "${workspaceFolder}/WalletWasabi.Tests",
-            "WalletWasabi.Backend/": "${workspaceFolder}/WalletWasabi.Backend"
+            "WalletWasabi.Indexer/": "${workspaceFolder}/WalletWasabi.Indexer"
         }
     },
 ```
@@ -324,16 +324,16 @@ In these cases we have to setup and run all the components, and use regtest.
 Download and install Bitcoin Core from [https://bitcoincore.org/bin/](https://bitcoincore.org/bin/).
 
 
-### Running the backend (coordinator)
+### Running the indexer (coordinator)
 
 There is more than one way to do this:
 
-* From **VSCode** go to the Debug panel (CTRL+SHIFT+D), select `Wasabi Backend .NET Core` and press play.
-* From **Terminal** just type `dotnet run <WasabiProjectFolder>/WalletWasabi.Backend/WalletWasabi.Backend.csproj`
+* From **VSCode** go to the Debug panel (CTRL+SHIFT+D), select `Wasabi Indexer .NET Core` and press play.
+* From **Terminal** just type `dotnet run <WasabiProjectFolder>/WalletWasabi.Indexer/WalletWasabi.Indexer.csproj`
 
 ### Get some coins to test
 
-Once the Wasabi backend, the bitcoin node and the Wasabi client are running, we can mine some blocks and get the new mined coins into our Wasabi wallet.
+Once the Wasabi indexer, the bitcoin node and the Wasabi client are running, we can mine some blocks and get the new mined coins into our Wasabi wallet.
 
 1. Go to Wasabi and generate a new address
 2. Open a terminal and type `bitcoin-cli -regtest generatetoaddress 101 <your-wasabi-address>`

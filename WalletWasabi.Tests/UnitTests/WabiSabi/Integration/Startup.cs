@@ -30,7 +30,7 @@ public class Startup
 
 	public void ConfigureServices(IServiceCollection services)
 	{
-		var backendAssembly = typeof(WabiSabiController).Assembly;
+		var indexerAssembly = typeof(WabiSabiController).Assembly;
 		services.AddSingleton<IdempotencyRequestCache>();
 		services
 			.AddMvc(options =>
@@ -43,7 +43,7 @@ public class Startup
 			{
 				manager.FeatureProviders.Add(new ControllerProvider(Configuration));
 			})
-			.AddApplicationPart(backendAssembly);
+			.AddApplicationPart(indexerAssembly);
 	}
 }
 public class ControllerProvider : ControllerFeatureProvider

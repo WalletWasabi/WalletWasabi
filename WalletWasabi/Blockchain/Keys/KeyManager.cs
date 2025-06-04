@@ -417,7 +417,7 @@ public class KeyManager
 		byte[] GetScriptPubKeyBytes(HdPubKeyInfo hdPubKeyInfo) =>
 			isBIP158
 				? hdPubKeyInfo.ScriptPubKeyBytes  // BIP158 compatible script to test against filters
-				: hdPubKeyInfo.CompressedScriptPubKeyBytes; // Legacy Wasabi backend scripts used to build filters
+				: hdPubKeyInfo.CompressedScriptPubKeyBytes; // Legacy Wasabi indexer scripts used to build filters
  	}
 
 	public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)

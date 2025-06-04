@@ -74,7 +74,7 @@ public class Global
 		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
-		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
+		IndexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.IndexerUri), BuildHttpClientFactory());
 
 		if (config.UseTor != TorMode.Disabled)
 		{
@@ -136,7 +136,7 @@ public class Global
 		TimeSpan requestInterval = Network == Network.RegTest ? TimeSpan.FromSeconds(5) : TimeSpan.FromSeconds(30);
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		ICompactFilterProvider filtersProvider =
-			new WebApiFilterProvider(maxFiltersToSync, BackendHttpClientFactory, EventBus);
+			new WebApiFilterProvider(maxFiltersToSync, IndexerHttpClientFactory, EventBus);
 
 		var credentialString = config.BitcoinRpcCredentialString;
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
@@ -208,7 +208,7 @@ public class Global
 	public BitcoinStore BitcoinStore { get; }
 
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
-	public IHttpClientFactory BackendHttpClientFactory { get; }
+	public IHttpClientFactory IndexerHttpClientFactory { get; }
 	public IHttpClientFactory? CoordinatorHttpClientFactory { get; set; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }

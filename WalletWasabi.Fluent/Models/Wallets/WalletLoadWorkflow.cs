@@ -80,11 +80,11 @@ public partial class WalletLoadWorkflow
 		_disposables.Dispose();
 	}
 
-	private async Task LoadWalletAsync(bool isBackendAvailable)
+	private async Task LoadWalletAsync(bool isIndexerAvailable)
 	{
 		IsLoading = true;
 
-		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
+		await SetInitValuesAsync(isIndexerAvailable).ConfigureAwait(false);
 
 		if (_wallet.State != WalletState.Uninitialized)
 		{
@@ -105,11 +105,11 @@ public partial class WalletLoadWorkflow
 		}
 	}
 
-	private async Task SetInitValuesAsync(bool isBackendAvailable)
+	private async Task SetInitValuesAsync(bool isIndexerAvailable)
 	{
-		if (isBackendAvailable)
+		if (isIndexerAvailable)
 		{
-			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
+			// Wait until "server tip height" is initialized. It can be initialized only if Indexer is available.
 			await Services.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
 		}
 

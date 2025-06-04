@@ -21,7 +21,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Connections", "Backend", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
+			"Settings", "Connections", "Indexer", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
 			"Tor", "Terminate", "Wasabi", "Shut", "Reset"
 	},
 	IconName = "settings_general_regular")]

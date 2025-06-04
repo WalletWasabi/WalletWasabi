@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
@@ -33,7 +33,7 @@ public interface ICompactFilterProvider
 
 public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpClientFactory, EventBus eventBus) : ICompactFilterProvider
 {
-	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-backend");
+	private readonly HttpClient _httpClient = httpClientFactory.CreateClient("long-live-satoshi-indexer");
 
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
@@ -49,16 +49,16 @@ public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpC
 		{
 			if (ex.Message.Contains("Not Found"))
 			{
-				// Backend API version might be updated meanwhile. Trying to update the versions.
-				var backendCompatible =
-					await CheckBackendCompatibilityAsync(wasabiClient, cancellationToken).ConfigureAwait(false);
-				if (!backendCompatible)
+				// Indexer API version might be updated meanwhile. Trying to update the versions.
+				var indexerCompatible =
+					await CheckIndexerCompatibilityAsync(wasabiClient, cancellationToken).ConfigureAwait(false);
+				if (!indexerCompatible)
 				{
 					eventBus.Publish(new IndexerIncompatibilityDetected());
 				}
 
-				// If the backend is compatible and the Api version updated then we just used the wrong API.
-				if (backendCompatible && lastUsedApiVersion != IndexerClient.ApiVersion)
+				// If the indexer is compatible and the Api version updated then we just used the wrong API.
+				if (indexerCompatible && lastUsedApiVersion != IndexerClient.ApiVersion)
 				{
 					// Next request will be fine, do not throw exception.
 					return FilterFetchingResult.Fail(FilterFetchingError.Continue);
@@ -69,20 +69,20 @@ public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpC
 		}
 	}
 
-	private static async Task<bool> CheckBackendCompatibilityAsync(IndexerClient indexerClient, CancellationToken cancel)
+	private static async Task<bool> CheckIndexerCompatibilityAsync(IndexerClient indexerClient, CancellationToken cancel)
 	{
-		bool backendCompatible;
+		bool indexerCompatible;
 		try
 		{
-			backendCompatible = await indexerClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
+			indexerCompatible = await indexerClient.CheckUpdatesAsync(cancel).ConfigureAwait(false);
 		}
 		catch (HttpRequestException ex) when (ex.Message.Contains("Not Found"))
 		{
-			// Backend is online but the endpoint for versions doesn't exist -> backend is not compatible.
-			backendCompatible = false;
+			// Indexer is online but the endpoint for versions doesn't exist -> indexer is not compatible.
+			indexerCompatible = false;
 		}
 
-		return backendCompatible;
+		return indexerCompatible;
 	}
 }
 

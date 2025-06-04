@@ -83,10 +83,10 @@ public class AliceClient
 		}
 		catch (Exception) when (aliceClient is { })
 		{
-			var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
+			var aliceWouldBeRemovedByIndexerTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
 
 			// We only need to unregister if alice wouldn't be removed because of the connection confirmation timeout - otherwise just leave it there.
-			if (aliceWouldBeRemovedByBackendTime > roundState.InputRegistrationEnd)
+			if (aliceWouldBeRemovedByIndexerTime > roundState.InputRegistrationEnd)
 			{
 				// Unregistering coins is only possible before connection confirmation phase.
 				await aliceClient.TryToUnregisterAlicesAsync(unregisterCancellationToken).ConfigureAwait(false);

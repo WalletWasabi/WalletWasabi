@@ -4,7 +4,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -32,7 +32,7 @@ public class IndexerClient
 	private readonly HttpClient _httpClient;
 	private readonly EventBus _eventBus;
 
-	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.BackendMajorVersion);
+	public static ushort ApiVersion { get; private set; } = ushort.Parse(Helpers.Constants.IndexerMajorVersion);
 
 	public async Task<FiltersResponse> GetFiltersAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancel = default)
 	{
@@ -69,33 +69,33 @@ public class IndexerClient
 		using HttpContent content = response.Content;
 		var resp = await content.ReadAsJsonAsync(Decode.VersionsResponse).ConfigureAwait(false);
 
-		return ushort.Parse(resp.BackendMajorVersion);
+		return ushort.Parse(resp.IndexerMajorVersion);
 	}
 
 	public async Task<bool> CheckUpdatesAsync(CancellationToken cancel)
 	{
-		ushort backendMajorVersion;
+		ushort indexerMajorVersion;
 		try
 		{
-			 backendMajorVersion = await GetIndexerMajorVersionAsync(cancel).ConfigureAwait(false);
+			 indexerMajorVersion = await GetIndexerMajorVersionAsync(cancel).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
-			Logger.LogWarning($"Could not get the backend major version: {ex}");
+			Logger.LogWarning($"Could not get the indexer major version: {ex}");
 			throw;
 		}
 
-		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);
-		var currentBackendMajorVersion = backendMajorVersion;
+		// If ClientSupportIndexerVersionMin <= indexer major <= ClientSupportIndexerVersionMax, then our software is compatible.
+		var indexerCompatible = int.Parse(Helpers.Constants.ClientSupportIndexerVersionMax) >= indexerMajorVersion && indexerMajorVersion >= int.Parse(Helpers.Constants.ClientSupportIndexerVersionMin);
+		var currentIndexerMajorVersion = indexerMajorVersion;
 
-		if (backendCompatible)
+		if (indexerCompatible)
 		{
 			// Only refresh if compatible.
-			ApiVersion = currentBackendMajorVersion;
+			ApiVersion = currentIndexerMajorVersion;
 		}
 
-		return backendCompatible;
+		return indexerCompatible;
 	}
 
 	private async Task CheckErrorsAsync(HttpResponseMessage response, CancellationToken cancel)

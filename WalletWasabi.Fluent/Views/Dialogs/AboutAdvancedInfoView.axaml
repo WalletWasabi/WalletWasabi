@@ -26,13 +26,13 @@
         <TextBlock Classes="Header" Text="Compatible Coordinator Versions" />
         <TextBox Classes="Content"
                  Theme="{DynamicResource SelectableTextBlockTextBox}"
-                 Text="{Binding BackendCompatibleVersions}" />
+                 Text="{Binding IndexerCompatibleVersions}" />
       </StackPanel>
       <StackPanel>
         <TextBlock Classes="Header" Text="Current Coordinator Version" />
         <TextBox Classes="Content"
                  Theme="{DynamicResource SelectableTextBlockTextBox}"
-                 Text="{Binding CurrentBackendMajorVersion}" />
+                 Text="{Binding CurrentIndexerMajorVersion}" />
       </StackPanel>
       <StackPanel>
         <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Version" />

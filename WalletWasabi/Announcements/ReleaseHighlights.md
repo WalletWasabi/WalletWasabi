@@ -11,7 +11,7 @@ Wasabi Wallet v2.6.0 "Prometheus" marks a significant milestone in our survival 
 
 ### 💥 Support for Standard BIP 158 Block Filters
 
-Wasabi can now synchronize using BIP 158 filters without requiring a backend/indexer. You can connect directly to your own node, significantly enhancing synchronization speed and resilience. This improvement allows clients to operate fully sovereign and independent of specific servers.
+Wasabi can now synchronize using BIP 158 filters without requiring a indexer/indexer. You can connect directly to your own node, significantly enhancing synchronization speed and resilience. This improvement allows clients to operate fully sovereign and independent of specific servers.
 
 ### 💻 Full Node Integration Rework
 

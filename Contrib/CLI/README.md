@@ -16,7 +16,7 @@ $ ./wcli.sh getstatus
 
 {
   "torStatus": "Running",
-  "backendStatus": "Connected",
+  "indexerStatus": "Connected",
   "bestBlockchainHeight": "2432219",
   "bestBlockchainHash": "0000000000000013081887ac34a2bc356a99a3979a808a4e5d63358412cecc68",
   "filtersCount": 5001,

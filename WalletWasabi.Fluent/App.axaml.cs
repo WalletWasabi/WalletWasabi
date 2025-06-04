@@ -22,7 +22,7 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
-	private readonly Func<Task>? _backendInitialiseAsync;
+	private readonly Func<Task>? _indexerInitialiseAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
 	public App()
@@ -30,10 +30,10 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
+	public App(Func<Task> indexerInitialiseAsync, bool startInBg) : this()
 	{
 		_startInBg = startInBg;
-		_backendInitialiseAsync = backendInitialiseAsync;
+		_indexerInitialiseAsync = indexerInitialiseAsync;
 	}
 
 	public override void Initialize()
@@ -64,7 +64,7 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+						await _indexerInitialiseAsync!(); // Guaranteed not to be null when not in designer.
 
 						MainViewModel.Instance.Initialize();
 					});

@@ -74,13 +74,13 @@
           </DockPanel>
 
           <DockPanel
-            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}">
+            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IndexerNotCompatible}}">
             <PathIcon Data="{StaticResource info_regular}"
                       DockPanel.Dock="Top"
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="Wasabi is not compatible with the specified backend. Update or change the backend provider."
+                       Text="Wasabi is not compatible with the specified indexer. Update or change the indexer provider."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
@@ -116,7 +116,7 @@
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Backend"
+            <StatusItem Title="Indexer"
                           StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource connector_regular}" />
@@ -214,8 +214,8 @@
 
     <!--Critical update available-->
     <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}"
-      Data="{StaticResource backend_not_compatible}"
+      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IndexerNotCompatible}}"
+      Data="{StaticResource indexer_not_compatible}"
       Foreground="{DynamicResource SystemErrorTextColor}" />
 
     <!--Update available-->

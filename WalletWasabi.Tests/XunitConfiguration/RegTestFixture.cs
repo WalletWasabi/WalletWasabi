@@ -8,7 +8,7 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend;
+using WalletWasabi.Indexer;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.BitcoinCore;
@@ -29,12 +29,12 @@ public class RegTestFixture : IDisposable
 		var walletName = "wallet";
 		IndexerRegTestNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
-		var testnetBackendDir = Path.Combine(Common.DataDir, "RegTests", "Backend");
-		IoHelpers.TryDeleteDirectoryAsync(testnetBackendDir).GetAwaiter().GetResult();
+		var testnetIndexerDir = Path.Combine(Common.DataDir, "RegTests", "Indexer");
+		IoHelpers.TryDeleteDirectoryAsync(testnetIndexerDir).GetAwaiter().GetResult();
 		Thread.Sleep(100);
-		Directory.CreateDirectory(testnetBackendDir);
+		Directory.CreateDirectory(testnetIndexerDir);
 		Thread.Sleep(100);
-		var config = new Config(Path.Combine(testnetBackendDir, "Config.json"),
+		var config = new Config(Path.Combine(testnetIndexerDir, "Config.json"),
 			IndexerRegTestNode.RpcClient.Network,
 			IndexerRegTestNode.RpcClient.CredentialString.ToString(),
 			$"http://localhost:{Network.Main.RPCPort}",
@@ -45,7 +45,7 @@ public class RegTestFixture : IDisposable
 		config.ToFile();
 
 		var conf = new ConfigurationBuilder()
-			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetBackendDir) })
+			.AddInMemoryCollection(new[] { new KeyValuePair<string, string?>("datadir", testnetIndexerDir) })
 			.Build();
 		IndexerEndPoint = $"http://localhost:{CryptoHelpers.RandomInt(37130, 37999)}/";
 		IndexerEndPointUri = new Uri(IndexerEndPoint);

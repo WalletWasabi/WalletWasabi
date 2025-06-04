@@ -2,7 +2,7 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using WalletWasabi.Backend.Models;
+using WalletWasabi.Indexer.Models;
 
 namespace WalletWasabi.Stores;
 

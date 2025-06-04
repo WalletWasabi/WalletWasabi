@@ -6,7 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Backend.Controllers;
+using WalletWasabi.Indexer.Controllers;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto;
