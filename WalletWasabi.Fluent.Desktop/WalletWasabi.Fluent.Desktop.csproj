@@ -21,13 +21,12 @@
 		<Authors>zkSNACKs Ltd</Authors>
 		<Company>zkSNACKs Ltd</Company>
 		<NeutralLanguage>en-US</NeutralLanguage>
-		<AssemblyTitle>Wasabi Wallet Fluent</AssemblyTitle>
+		<AssemblyTitle>Wasabi Wallet</AssemblyTitle>
 		<Description>
 			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, coinjoin, payjoin and coin control features.
 		</Description>
 		<Copyright>MIT</Copyright>
-		<PackageId>Wasabi Wallet Fluent</PackageId>
-		<AssemblyTitle>Wasabi Wallet</AssemblyTitle>
+		<PackageId>WalletWasabi.Fluent.Desktop</PackageId>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;wabisabi;coinjoin;tor</PackageTags>
 		<PackageProjectUrl>https://github.com/WalletWasabi/WalletWasabi/</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
@@ -35,7 +34,7 @@
 		<RepositoryUrl>https://github.com/WalletWasabi/WalletWasabi/</RepositoryUrl>
 		<ApplicationIcon>Assets\WasabiLogo.ico</ApplicationIcon>
 		<PackageIcon>Assets\WasabiLogo.ico</PackageIcon>
-		<Product>Wasabi Wallet Fluent</Product>
+		<Product>Wasabi Wallet</Product>
 		<!-- owners is not supported in MSBuild -->
 	</PropertyGroup>
 
