@@ -26,7 +26,6 @@
 			Open-source, non-custodial, privacy focused Bitcoin wallet for Windows, Linux, and Mac. Built-in Tor, coinjoin, payjoin and coin control features.
 		</Description>
 		<Copyright>MIT</Copyright>
-		<PackageId>WalletWasabi.Fluent.Desktop</PackageId>
 		<PackageTags>bitcoin-wallet;privacy;bitcoin;dotnet;nbitcoin;cross-platform;zerolink;wallet;wabisabi;coinjoin;tor</PackageTags>
 		<PackageProjectUrl>https://github.com/WalletWasabi/WalletWasabi/</PackageProjectUrl>
 		<PackageLicenseUrl>https://github.com/WalletWasabi/WalletWasabi/blob/master/LICENSE.md</PackageLicenseUrl>
