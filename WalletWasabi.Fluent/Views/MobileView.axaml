@@ -2,7 +2,23 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.MobileView">
-  <!-- TODO: -->
+  <Panel>
+    <!--
+    WARNING:
+    Do not remove as the OpacityMask is needed for RenderOptions.TextRenderingMode="SubpixelAntialias"
+    to work without artifacts until the https://github.com/AvaloniaUI/Avalonia/issues/13265 issue is fixed in Avalonia
+    -->
+    <Panel.OpacityMask>
+      <LinearGradientBrush StartPoint="0%,0%"
+                           EndPoint="100%,0%">
+        <GradientStop Color="White" Offset="0" />
+        <GradientStop Color="White" Offset="1" />
+      </LinearGradientBrush>
+    </Panel.OpacityMask>
+    <!-- TODO: Adapt Shell view for mobile -->
+    <shell:Shell />
+  </Panel>
 </UserControl>
