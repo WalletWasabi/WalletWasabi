@@ -4,6 +4,7 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -235,7 +236,7 @@ public class TagsBox : TemplatedControl
 		{
 			AddTag(DefaultLabel);
 		}
-		
+
 		_containerControl = _presenter.ItemsPanelRoot;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>()
 			.FirstOrDefault();
@@ -432,6 +433,17 @@ public class TagsBox : TemplatedControl
 
 		var typedFullText = autoCompleteBox.SearchText + e.Text;
 
+		var suggestions = Suggestions?.ToArray();
+
+		var propertyInfo = typeof(AutoCompleteBox).GetProperty("TextBoxSelectionLength",
+			BindingFlags.NonPublic | BindingFlags.Instance);
+		var textBoxSelectionStart = propertyInfo?.GetValue(autoCompleteBox);
+
+		if(suggestions is not null && textBoxSelectionStart is not null && CurrentText.Length > 0 && suggestions.Contains(CurrentText) && textBoxSelectionStart.Equals(0))
+		{
+			typedFullText = CurrentText + e.Text;
+		}
+
 		if (!_isInputEnabled ||
 		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
 		    string.IsNullOrEmpty(typedFullText.ParseLabel()))
@@ -439,8 +451,6 @@ public class TagsBox : TemplatedControl
 			e.Handled = true;
 			return;
 		}
-
-		var suggestions = Suggestions?.ToArray();
 
 		if (RestrictInputToSuggestions &&
 		    suggestions is { } &&
