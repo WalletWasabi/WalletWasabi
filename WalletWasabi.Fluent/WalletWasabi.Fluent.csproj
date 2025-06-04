@@ -11,6 +11,11 @@
 		<AvaloniaNameGeneratorIsEnabled>false</AvaloniaNameGeneratorIsEnabled>
 		<AllowUnsafeBlocks>true</AllowUnsafeBlocks>
 	</PropertyGroup>
+
+	<PropertyGroup>
+		<PackageId>WalletWasabi.Fluent</PackageId>
+	</PropertyGroup>
+
 	<ItemGroup>
 		<AvaloniaResource Include="Assets\**" />
 	</ItemGroup>
@@ -29,6 +34,7 @@
 		<PackageReference Include="QRackers" />
 		<PackageReference Include="System.Private.Uri" /> <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Daemon\WalletWasabi.Daemon.csproj" />
 

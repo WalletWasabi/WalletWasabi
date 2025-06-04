@@ -3,7 +3,7 @@
     <PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<NoWarn>1701;1702;1705;1591;1573;CA1031;CA1822</NoWarn>
-		<Product>WalletWasabiCoordinatorApi</Product>
+		<Product>Wasabi Wallet Coordinator</Product>
 		<Copyright>MIT</Copyright>
 		<PackageTags>walletwasabi, wasabiwallet, wasabi, wallet, bitcoin, nbitcoin, tor, zerolink, wabisabi, coinjoin, fungibility, privacy, anonymity</PackageTags>
 		<RepositoryType>Git</RepositoryType>
@@ -16,7 +16,7 @@
 	<ItemGroup>
 		<Content Update="appsettings.json" CopyToPublishDirectory="Never" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi\WalletWasabi.csproj" />
 	</ItemGroup>

@@ -10,6 +10,10 @@
 		<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi</PathMap>
 	</PropertyGroup>
 
+	<PropertyGroup>
+		<PackageId>WalletWasabi</PackageId>
+	</PropertyGroup>
+
 	<Target Name="WriteMetadata" BeforeTargets="PrepareForBuild">
 		<ItemGroup>
 			<AssemblyMetadata Include="CommitHash" Value="$(CommitHash)" />
