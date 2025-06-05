@@ -21,4 +21,11 @@ public static class ReflectionUtils
 			.Where(x => x.Key == metadataKey)
 			.DefaultIfEmpty(new AssemblyMetadataAttribute(metadataKey, ""))
 			.First().Value;
+
+	public static Func<TType, TValue> GetPropertyAccessor<TType,TValue>(string propertyName)
+	{
+		var property = typeof(TType).GetProperty(propertyName, BindingFlags.NonPublic | BindingFlags.Instance);
+		return instance => (TValue)property.GetValue(instance);
+	}
+
 }

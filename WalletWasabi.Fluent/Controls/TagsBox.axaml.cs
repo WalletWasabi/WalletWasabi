@@ -16,6 +16,7 @@ using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -235,7 +236,7 @@ public class TagsBox : TemplatedControl
 		{
 			AddTag(DefaultLabel);
 		}
-		
+
 		_containerControl = _presenter.ItemsPanelRoot;
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>()
 			.FirstOrDefault();
@@ -423,6 +424,9 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
+	private static readonly Func<AutoCompleteBox, int> TextBoxSelectionLengthPropertyAccessor =
+		ReflectionUtils.GetPropertyAccessor<AutoCompleteBox,int>("TextBoxSelectionLength");
+
 	private void OnTextInput(object? sender, TextInputEventArgs e)
 	{
 		if (sender is not AutoCompleteBox autoCompleteBox)
@@ -430,7 +434,12 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		var typedFullText = autoCompleteBox.SearchText + e.Text;
+		var suggestions = Suggestions?.ToArray() ?? [];
+
+		var textBoxSelectionStart = TextBoxSelectionLengthPropertyAccessor(autoCompleteBox);
+		var typedFullText = textBoxSelectionStart == 0 && CurrentText.Length > 0 && suggestions.Contains(CurrentText)
+			? CurrentText + e.Text
+			: autoCompleteBox.SearchText + e.Text;
 
 		if (!_isInputEnabled ||
 		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
@@ -440,10 +449,7 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		var suggestions = Suggestions?.ToArray();
-
 		if (RestrictInputToSuggestions &&
-		    suggestions is { } &&
 		    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 		{
 			if (!typedFullText.EndsWith(TagSeparator) ||

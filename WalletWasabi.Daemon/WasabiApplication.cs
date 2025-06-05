@@ -109,7 +109,7 @@ public class WasabiApplication
 
 		var networkFilePath = Path.Combine(Config.DataDir, "network");
 		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
-		networkName ??= File.ReadAllText(networkFilePath);
+		networkName ??= File.ReadAllText(networkFilePath).Trim();
 		var network = Network.GetNetwork(networkName ?? "mainnet");
 		var configFileName = networkName switch
 		{
