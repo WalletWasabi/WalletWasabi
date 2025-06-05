@@ -424,6 +424,9 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
+	private static readonly PropertyInfo? TextBoxSelectionLengthProperty =
+		typeof(AutoCompleteBox).GetProperty("TextBoxSelectionLength", BindingFlags.NonPublic | BindingFlags.Instance);
+
 	private void OnTextInput(object? sender, TextInputEventArgs e)
 	{
 		if (sender is not AutoCompleteBox autoCompleteBox)
@@ -431,18 +434,12 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		var typedFullText = autoCompleteBox.SearchText + e.Text;
+		var suggestions = Suggestions?.ToArray() ?? [];
 
-		var suggestions = Suggestions?.ToArray();
-
-		var propertyInfo = typeof(AutoCompleteBox).GetProperty("TextBoxSelectionLength",
-			BindingFlags.NonPublic | BindingFlags.Instance);
-		var textBoxSelectionStart = propertyInfo?.GetValue(autoCompleteBox);
-
-		if(suggestions is not null && textBoxSelectionStart is not null && CurrentText.Length > 0 && suggestions.Contains(CurrentText) && textBoxSelectionStart.Equals(0))
-		{
-			typedFullText = CurrentText + e.Text;
-		}
+		var textBoxSelectionStart = (int)(TextBoxSelectionLengthProperty?.GetValue(autoCompleteBox) ?? 0);
+		var typedFullText = textBoxSelectionStart == 0 && CurrentText.Length > 0 && suggestions.Contains(CurrentText)
+			? CurrentText + e.Text
+			: autoCompleteBox.SearchText + e.Text;
 
 		if (!_isInputEnabled ||
 		    (typedFullText is { Length: 1 } && typedFullText.StartsWith(TagSeparator)) ||
@@ -453,7 +450,6 @@ public class TagsBox : TemplatedControl
 		}
 
 		if (RestrictInputToSuggestions &&
-		    suggestions is { } &&
 		    !suggestions.Any(x => x.StartsWith(typedFullText, _stringComparison)))
 		{
 			if (!typedFullText.EndsWith(TagSeparator) ||
