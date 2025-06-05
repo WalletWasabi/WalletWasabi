@@ -80,7 +80,7 @@
                       HorizontalAlignment="Center"
                       Height="30" />
             <TextBlock DockPanel.Dock="Bottom"
-                       Text="Wasabi is not compatible with the specified backend. Update or change the backend provider."
+                       Text="Wasabi is not compatible with the specified indexer. Update or change the index provider."
                        TextWrapping="Wrap"
                        TextAlignment="Center" />
           </DockPanel>
@@ -116,7 +116,7 @@
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Backend"
+            <StatusItem Title="Indexer"
                           StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource connector_regular}" />
