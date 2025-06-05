@@ -4,7 +4,6 @@ using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Reflection;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
@@ -17,6 +16,7 @@ using Avalonia.VisualTree;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -424,8 +424,8 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
-	private static readonly PropertyInfo? TextBoxSelectionLengthProperty =
-		typeof(AutoCompleteBox).GetProperty("TextBoxSelectionLength", BindingFlags.NonPublic | BindingFlags.Instance);
+	private static readonly Func<AutoCompleteBox, int> TextBoxSelectionLengthPropertyAccessor =
+		ReflectionUtils.GetPropertyAccessor<AutoCompleteBox,int>("TextBoxSelectionLength");
 
 	private void OnTextInput(object? sender, TextInputEventArgs e)
 	{
@@ -436,7 +436,7 @@ public class TagsBox : TemplatedControl
 
 		var suggestions = Suggestions?.ToArray() ?? [];
 
-		var textBoxSelectionStart = (int)(TextBoxSelectionLengthProperty?.GetValue(autoCompleteBox) ?? 0);
+		var textBoxSelectionStart = TextBoxSelectionLengthPropertyAccessor(autoCompleteBox);
 		var typedFullText = textBoxSelectionStart == 0 && CurrentText.Length > 0 && suggestions.Contains(CurrentText)
 			? CurrentText + e.Text
 			: autoCompleteBox.SearchText + e.Text;
