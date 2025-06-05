@@ -117,6 +117,7 @@
             </StatusItem>
 
             <StatusItem Title="Backend"
+                          IsVisible="{Binding !HealthMonitor.CanUseBitcoinRpc, FallbackValue=True}"
                           StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource connector_regular}" />
