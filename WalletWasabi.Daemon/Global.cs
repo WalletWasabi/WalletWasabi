@@ -74,7 +74,7 @@ public class Global
 		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
-		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.BackendUri), BuildHttpClientFactory());
+		BackendHttpClientFactory = new IndexerHttpClientFactory(new Uri(config.IndexerUri), BuildHttpClientFactory());
 
 		if (config.UseTor != TorMode.Disabled)
 		{

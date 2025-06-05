@@ -37,9 +37,9 @@ public class Config
 			[ nameof(Network)] = (
 				"The Bitcoin network to use: main, testnet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
-			[ nameof(BackendUri)] = (
+			[ nameof(IndexerUri)] = (
 				"The backend server's URL to connect to",
-				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
+				GetStringValue("IndexerUri", PersistentConfig.IndexerUri, cliArgs)),
 			[ nameof(CoordinatorUri)] = (
 				"The coordinator server's URL to connect to",
 				GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs)),
@@ -150,7 +150,7 @@ public class Config
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
 
-	public string BackendUri => GetEffectiveValue<StringValue, string>(nameof(BackendUri));
+	public string IndexerUri => GetEffectiveValue<StringValue, string>(nameof(IndexerUri));
 	public string CoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(CoordinatorUri));
 	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
