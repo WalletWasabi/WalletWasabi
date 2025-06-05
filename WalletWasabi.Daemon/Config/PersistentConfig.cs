@@ -83,7 +83,7 @@ public record PersistentConfigPrev2_6_0(
 {
 	public PersistentConfigPrev2_6_0 Migrate() =>
 		MigrateMaxCoordinationFeeRate()
-		.MigrateOldDefaultIndexerUris()
+		.MigrateOldDefaultBackendUris()
 		.MigrateP2pToRpcConnection() with
 		{
 			ConfigVersion = 2
@@ -91,7 +91,7 @@ public record PersistentConfigPrev2_6_0(
 
 	private PersistentConfigPrev2_6_0 MigrateMaxCoordinationFeeRate() => this;
 
-	private PersistentConfigPrev2_6_0 MigrateOldDefaultIndexerUris()
+	private PersistentConfigPrev2_6_0 MigrateOldDefaultBackendUris()
 	{
 		if (MainNetIndexerUri == "https://wasabiwallet.io/" || TestNetIndexerUri == "https://wasabiwallet.co/")
 		{
