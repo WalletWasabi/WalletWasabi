@@ -539,13 +539,13 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 			{
 				_coinRefrigerator.Freeze(successfulCoinjoin.Coins);
 				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
-				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.");
 			}
 			else
 			{
 				wallet.LogInfo($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was not broadcast.");
 			}
+			MarkDestinationsUsed(destinationProvider, result.OutputScripts);
 		}
 		catch (UnknownRoundEndingException ex)
 		{
@@ -556,6 +556,7 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 		}
 		catch (CoinJoinClientException clientException)
 		{
+			// CoinjoinClientExceptions are thrown to indicate that was not possible to start the coinjoin for some reason
 			cjClientException = clientException;
 			if (cjClientException.CoinjoinError is CoinjoinError.CoordinatorLiedAboutInputs)
 			{
