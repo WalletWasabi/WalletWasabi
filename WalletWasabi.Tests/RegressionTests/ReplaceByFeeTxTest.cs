@@ -15,6 +15,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Extensions;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -97,20 +98,20 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 			}
 
 			Assert.Single(wallet.Coins);
-			Assert.True(wallet.Coins.First().Transaction.IsRBF);
+			Assert.True(wallet.Coins.First().Transaction.IsRBF());
 
 			var bfr = await rpc.BumpFeeAsync(tx0Id);
 			var tx1Id = bfr.TransactionId;
 			await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 			Assert.Single(wallet.Coins);
-			Assert.True(wallet.Coins.First().Transaction.IsRBF);
+			Assert.True(wallet.Coins.First().Transaction.IsRBF());
 			Assert.Equal(tx1Id, wallet.Coins.First().TransactionId);
 
 			bfr = await rpc.BumpFeeAsync(tx1Id);
 			var tx2Id = bfr.TransactionId;
 			await Task.Delay(2000); // Waits for the replacement transaction get to the mempool.
 			Assert.Single(wallet.Coins);
-			Assert.True(wallet.Coins.First().Transaction.IsRBF);
+			Assert.True(wallet.Coins.First().Transaction.IsRBF());
 			Assert.Equal(tx2Id, wallet.Coins.First().TransactionId);
 
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
@@ -119,7 +120,7 @@ public class ReplaceByFeeTxTest : IClassFixture<RegTestFixture>
 
 			var coin = Assert.Single(wallet.Coins);
 			Assert.True(coin.Confirmed);
-			Assert.False(coin.Transaction.IsRBF);
+			Assert.False(coin.Transaction.IsRBF());
 			Assert.Equal(tx2Id, coin.TransactionId);
 		}
 		finally

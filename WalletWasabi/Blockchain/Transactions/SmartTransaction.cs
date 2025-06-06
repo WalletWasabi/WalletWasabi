@@ -201,13 +201,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public uint256 GetHash() => Transaction.GetHash();
 
-	/// <summary>
-	/// A transaction can signal that is replaceable by fee in two ways:
-	/// * Explicitly by using a nSequence &lt; (0xffffffff - 1) or,
-	/// * Implicitly in case one of its unconfirmed ancestors are replaceable
-	/// </summary>
-	public bool IsRBF => !Confirmed && (Transaction.RBF || IsReplacement || WalletInputs.Any(x => x.Transaction.IsRBF));
-
 	public bool IsImmature(int bestHeight)
 	{
 		return Transaction.IsCoinBase && Height >= bestHeight - 100;
@@ -273,7 +266,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsRbfable(KeyManager keyManager) =>
 		!keyManager.IsWatchOnly && !keyManager.IsHardwareWallet // [Difficultly] Watch-only and hardware wallets are problematic. It remains a ToDo for the future.
 		&& !Confirmed // [Impossibility] We can only speed up unconfirmed transactions.
-		&& IsRBF // [Impossibility] Otherwise it must signal RBF.
 		&& !GetForeignInputs(keyManager).Any() // [Impossibility] Must not have foreign inputs, otherwise we couldn't do RBF.
 		&& WalletOutputs.All(x => !x.IsSpent()); // [Dangerous] All the outputs we know of should not be spent, otherwise we shouldn't do RBF.
 

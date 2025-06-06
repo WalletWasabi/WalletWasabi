@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
+using WalletWasabi.Tests.UnitTests.Extensions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.TransactionOutputs;
@@ -153,8 +154,8 @@ public class CoinsRegistryTests
 
 			SmartCoin unconfirmedCoin1 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "B");
 			SmartCoin unconfirmedCoin2 = Assert.Single(Coins, coin => coin.HdPubKey.Labels == "C");
-			Assert.True(unconfirmedCoin1.Transaction.IsRBF);
-			Assert.True(unconfirmedCoin2.Transaction.IsRBF);
+			Assert.True(unconfirmedCoin1.Transaction.IsRBF());
+			Assert.True(unconfirmedCoin2.Transaction.IsRBF());
 
 			Assert.True(Coins.IsKnown(tx0.GetHash()));
 			Assert.True(Coins.IsKnown(tx1.GetHash()));
