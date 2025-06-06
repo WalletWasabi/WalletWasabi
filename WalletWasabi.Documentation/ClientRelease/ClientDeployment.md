@@ -12,5 +12,5 @@
 
 # Announce
 
-- [Twitter](https://twitter.com) (tag @wasabiwallet #Bitcoin #Privacy).
-- Submit to [/r/WasabiWallet](https://old.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://old.reddit.com/r/Bitcoin/).
+- [X](https://x.com) (tag @WasabiWallet #Bitcoin #Privacy).
+- Submit to [/r/WasabiWallet](https://www.reddit.com/r/WasabiWallet/) and [/r/Bitcoin](https://www.reddit.com/r/Bitcoin/).
