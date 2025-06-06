@@ -19,7 +19,7 @@ public static class PersistentConfigEncode
 
 	public static JsonNode PersistentConfig(PersistentConfig cfg) =>
 		Object([
-			("IndexerUri", String(cfg.IndexerUri)),
+			("BackendUri", String(cfg.IndexerUri)),
 			("CoordinatorUri", String(cfg.CoordinatorUri)),
 			("UseTor", UseTor(cfg.UseTor)),
 			("TerminateTorOnExit", Bool(cfg.TerminateTorOnExit)),
@@ -62,7 +62,7 @@ public static class PersistentConfigDecode
 	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_6_0 =
 		Object(get => new PersistentConfig(
 			Network: Network.Main, // Network is not part of the config
-			IndexerUri : get.Required("IndexerUri", Decode.String),
+			IndexerUri : get.Required("BackendUri", Decode.String),
 			CoordinatorUri : get.Required("CoordinatorUri", Decode.String),
 			UseTor : get.Required("UseTor", UseTor),
 			TerminateTorOnExit : get.Required("TerminateTorOnExit", Decode.Bool),
@@ -89,9 +89,9 @@ public static class PersistentConfigDecode
 
 	public static readonly Decoder<PersistentConfigPrev2_6_0> PersistentConfigPrev2_6_0 =
 		Object(get => new PersistentConfigPrev2_6_0(
-			get.Required("MainNetIndexerUri", Decode.String),
-			get.Required("TestNetIndexerUri", Decode.String),
-			get.Required("RegTestIndexerUri", Decode.String),
+			get.Required("MainNetBackendUri", Decode.String),
+			get.Required("TestNetBackendUri", Decode.String),
+			get.Required("RegTestBackendUri", Decode.String),
 			get.Required("MainNetCoordinatorUri", Decode.String),
 			get.Required("TestNetCoordinatorUri", Decode.String),
 			get.Required("RegTestCoordinatorUri", Decode.String),
