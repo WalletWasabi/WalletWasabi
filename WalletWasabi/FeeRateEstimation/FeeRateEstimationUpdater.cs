@@ -1,24 +1,38 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public class FeeRateEstimationUpdater(TimeSpan period, FeeRateProvider feeRateProvider, EventBus eventBus)
-	: PeriodicRunner(period)
+public static class FeeRateEstimationUpdater
 {
-	public FeeRateEstimations? FeeEstimates { get; private set; }
+	public abstract record Message;
+	public record UpdateMessage : Message;
+	public record GetMessage(IReplyChannel<FeeRateEstimations> ReplyChannel) : Message;
 
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	public static Func<Message, FeeRateEstimations, CancellationToken, Task<FeeRateEstimations>> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>
+		(message, feeRateEstimations, cancellationToken) => UpdateAsync(message, feeRateProvider, feeRateEstimations, eventBus, cancellationToken);
+
+	private static async Task<FeeRateEstimations> UpdateAsync(Message message, FeeRateProvider feeRateProvider, FeeRateEstimations feeRateEstimations, EventBus eventBus, CancellationToken cancellationToken)
 	{
-		var newFeeRateEstimations = await feeRateProvider(cancellationToken).ConfigureAwait(false);
-		if (newFeeRateEstimations != FeeEstimates)
+		switch (message)
 		{
-			FeeEstimates = newFeeRateEstimations;
-			eventBus.Publish(new MiningFeeRatesChanged(newFeeRateEstimations));
+			case UpdateMessage:
+			{
+				var newFeeRateEstimations = await feeRateProvider(cancellationToken).ConfigureAwait(false);
+				if (newFeeRateEstimations != feeRateEstimations)
+				{
+					feeRateEstimations = newFeeRateEstimations;
+					eventBus.Publish(new MiningFeeRatesChanged(newFeeRateEstimations));
+				}
+
+				break;
+			}
+			case GetMessage getter:
+				getter.ReplyChannel.Reply(feeRateEstimations);
+				break;
 		}
 
-		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
+		return feeRateEstimations;
 	}
 }
