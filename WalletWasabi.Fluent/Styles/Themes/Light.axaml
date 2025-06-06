@@ -6,40 +6,23 @@
 
   <Color x:Key="SystemAccentColor">#FF63A300</Color>
   <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
   <Color x:Key="SystemBaseHighColor">#FF000000</Color>
   <Color x:Key="SystemBaseLowColor">#FFDADADA</Color>
   <Color x:Key="SystemBaseMediumColor">#FFABABAB</Color>
   <Color x:Key="SystemBaseMediumHighColor">#FF787878</Color>
   <Color x:Key="SystemBaseMediumLowColor">#FF919191</Color>
   <Color x:Key="SystemChromeAltLowColor">#FF787878</Color>
-  <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
-  <Color x:Key="SystemChromeBlackLowColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemChromeBlackMediumColor">#FF787878</Color>
-  <Color x:Key="SystemChromeBlackMediumLowColor">#FFABABAB</Color>
+
   <Color x:Key="SystemChromeDisabledHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FFABABAB</Color>
-  <Color x:Key="SystemChromeGrayColor">#FF919191</Color>
   <Color x:Key="SystemChromeHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeLowColor">#FFFCFCFC</Color>
   <Color x:Key="SystemChromeMediumColor">#F3F3F3</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
-  <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemListLowColor">#F3F3F3</Color>
-  <Color x:Key="SystemListMediumColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemChromeAltMediumHighColor">#CCFFFFFF</Color>
-  <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemRevealListLowColor">#F3F3F3</Color>
-  <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
   <Color x:Key="SystemAccentColorLight1">#FF76AF1E</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF89BB3C</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF9BC75B</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
   <Color x:Key="SystemAccentColorDark1">#FF539000</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF427D00</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF326B00</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
   <Color x:Key="SystemAccentCustomColorLight">#789758</Color>
   <Color x:Key="SystemAccentCustomColorDark">#B2C69C</Color>
 
@@ -48,24 +31,13 @@
   <Color x:Key="RegionColor">#FFFFFFFF</Color>
 
   <Color x:Key="Layer1BackgroundBrush">#F5F5F5</Color>
-  <Color x:Key="Layer1BackgroundBrushLight1">#FFDCDCDC</Color>
-  <Color x:Key="Layer1BackgroundBrushLight2">#FFC3C3C3</Color>
-  <Color x:Key="Layer1BackgroundBrushLight3">#FFA9A9A9</Color>
-  <Color x:Key="Layer1BackgroundBrushDark1">#FFF6F6F6</Color>
-  <Color x:Key="Layer1BackgroundBrushDark2">#FFF7F7F7</Color>
-  <Color x:Key="Layer1BackgroundBrushDark3">#FFF9F9F9</Color>
+  <Color x:Key="Layer1BackgroundBrushLight1">#E9E9E9</Color>
 
   <Color x:Key="Layer2BackgroundBrush">#E9E9E9</Color>
   <Color x:Key="Layer2BackgroundBrushLight1">#FFD1D1D1</Color>
   <Color x:Key="Layer2BackgroundBrushLight2">#FFB9B9B9</Color>
-  <Color x:Key="Layer2BackgroundBrushLight3">#FFA0A0A0</Color>
-  <Color x:Key="Layer2BackgroundBrushDark1">#FFECECEC</Color>
-  <Color x:Key="Layer2BackgroundBrushDark2">#FFEFEFEF</Color>
-  <Color x:Key="Layer2BackgroundBrushDark3">#FFF1F1F1</Color>
 
-  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
   <Color x:Key="MenuFlyoutPresenterBackground">#FCFCFC</Color>
-  <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
@@ -74,10 +46,6 @@
   <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
-
-  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
   <Color x:Key="TileRegionColor">#EFEFEF</Color>
   <Color x:Key="BorderColor">#66757575</Color>
@@ -88,7 +56,7 @@
   <SolidColorBrush x:Key="PrivacyControlBlackListBackground" Color="Transparent" />
   <SolidColorBrush x:Key="PrivacyControlItemBackground" Color="#FFFFFF" />
 
-  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor">#FFFFFF</SolidColorBrush>
+  <SolidColorBrush x:Key="OptimizePrivacyOptionSelectedColor" Color="{StaticResource Layer1BackgroundBrushLight1}" />
 
   <SolidColorBrush x:Key="DialogOverlayColor">#7F7A7A7A</SolidColorBrush>
 
@@ -116,7 +84,7 @@
   <SolidColorBrush x:Key="PrivacyLevelNoneBrush" Color="#E0E0E0" />
 
   <!-- TreeDataGrid -->
-  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer2BackgroundBrush}" />
+  <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer1BackgroundBrush}" />
 
   <!-- Accent button -->
   <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>

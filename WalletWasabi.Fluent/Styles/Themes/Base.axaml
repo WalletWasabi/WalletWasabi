@@ -39,8 +39,8 @@
   <Color x:Key="LogoFixedAccentColor">#FF77C600</Color>
   <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
-  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
-  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
+  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
+  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
 
   <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />

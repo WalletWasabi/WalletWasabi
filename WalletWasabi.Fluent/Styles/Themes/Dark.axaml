@@ -6,66 +6,38 @@
 
   <Color x:Key="SystemAccentColor">#FF63A300</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
-  <Color x:Key="SystemAltLowColor">#FF000000</Color>
-  <Color x:Key="SystemAltMediumColor">#FF000000</Color>
-  <Color x:Key="SystemAltMediumHighColor">#FF000000</Color>
-  <Color x:Key="SystemAltMediumLowColor">#FF000000</Color>
   <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemBaseLowColor">#FF414141</Color>
   <Color x:Key="SystemBaseMediumColor">#FF949494</Color>
   <Color x:Key="SystemBaseMediumHighColor">#FFAFAFAF</Color>
   <Color x:Key="SystemBaseMediumLowColor">#FF5D5D5D</Color>
   <Color x:Key="SystemChromeAltLowColor">#FFAFAFAF</Color>
-  <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
-  <Color x:Key="SystemChromeBlackLowColor">#FFAFAFAF</Color>
-  <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color>
-  <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color>
+
   <Color x:Key="SystemChromeDisabledHighColor">#FF262626</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
-  <Color x:Key="SystemChromeGrayColor">#FF787878</Color>
   <Color x:Key="SystemChromeHighColor">#323232</Color>
   <Color x:Key="SystemChromeLowColor">#3F3F3F</Color>
   <Color x:Key="SystemChromeMediumColor">#262626</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FF202020</Color>
-  <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
-  <Color x:Key="SystemListLowColor">#262626</Color>
-  <Color x:Key="SystemListMediumColor">#FF262626</Color>
-  <Color x:Key="SystemChromeAltMediumHighColor">#CC1F1F1F</Color>
-  <Color x:Key="SystemChromeAltHighColor">#FF262626</Color>
-  <Color x:Key="SystemRevealListLowColor">#262626</Color>
-  <Color x:Key="SystemRevealListMediumColor">#FF262626</Color>
   <Color x:Key="SystemAccentColorDark1">#FF539000</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF427D00</Color>
-  <Color x:Key="SystemAccentColorDark3">#FF326B00</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
   <Color x:Key="SystemAccentColorLight1">#FF76AF1E</Color>
-  <Color x:Key="SystemAccentColorLight2">#FF89BB3C</Color>
-  <Color x:Key="SystemAccentColorLight3">#FF9BC75B</Color>
+  <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
   <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
   <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
-  <Color x:Key="ActionForegroundColor">#1F1F1F</Color>
+  <Color x:Key="ActionForegroundColor">#FFFFFF</Color>
 
   <Color x:Key="RegionColor">#1F1F1F</Color>
 
   <Color x:Key="Layer1BackgroundBrush">#262626</Color>
   <Color x:Key="Layer1BackgroundBrushLight1">#FF414141</Color>
-  <Color x:Key="Layer1BackgroundBrushLight2">#FF5D5D5D</Color>
-  <Color x:Key="Layer1BackgroundBrushLight3">#FF787878</Color>
-  <Color x:Key="Layer1BackgroundBrushDark1">#FF202020</Color>
-  <Color x:Key="Layer1BackgroundBrushDark2">#FF1B1B1B</Color>
-  <Color x:Key="Layer1BackgroundBrushDark3">#FF151515</Color>
 
   <Color x:Key="Layer2BackgroundBrush">#333333</Color>
   <Color x:Key="Layer2BackgroundBrushLight1">#FF4D4D4D</Color>
   <Color x:Key="Layer2BackgroundBrushLight2">#FF676767</Color>
-  <Color x:Key="Layer2BackgroundBrushLight3">#FF808080</Color>
-  <Color x:Key="Layer2BackgroundBrushDark1">#FF2C2C2C</Color>
-  <Color x:Key="Layer2BackgroundBrushDark2">#FF242424</Color>
-  <Color x:Key="Layer2BackgroundBrushDark3">#FF1D1D1D</Color>
 
-  <SolidColorBrush x:Key="MenuFlyoutPresenterBorderBrush" Color="{StaticResource BorderColor}" />
   <Color x:Key="MenuFlyoutPresenterBackground">#2B2B2B</Color>
-  <SolidColorBrush x:Key="ToolTipBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="TextControlBorderBrush" Color="{StaticResource SystemBaseLowColor}" />
   <SolidColorBrush x:Key="TextControlBorderBrushPointerOver" Color="{StaticResource SystemBaseMediumLowColor}" />
@@ -74,10 +46,6 @@
   <SolidColorBrush x:Key="TextControlBackground" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundFocused" Color="{StaticResource SystemChromeMediumColor}" />
   <SolidColorBrush x:Key="TextControlBackgroundPointerOver" Color="{StaticResource SystemChromeMediumColor}" />
-
-  <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
 
   <Color x:Key="TileRegionColor">#262626</Color>
   <Color x:Key="BorderColor">#66757575</Color>
