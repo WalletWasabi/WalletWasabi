@@ -42,7 +42,7 @@ public class PersistentConfigManagerTests
 		static string GetConfigString(string localBitcoinCoreDataDir)
 			=> $$"""
 			{
-			  "IndexerUri": "https://api.wasabiwallet.io/",
+			  "BackendUri": "https://api.wasabiwallet.io/",
 			  "CoordinatorUri": "",
 			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
