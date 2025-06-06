@@ -143,8 +143,6 @@ public class TransactionFactory
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
 
-		builder.OptInRBF = true;
-
 		builder.SendEstimatedFees(parameters.FeeRate);
 
 		var psbt = builder.BuildPSBT(false);
@@ -325,12 +323,6 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
 	private Key[] _keys;
-
-	public bool OptInRBF
-	{
-		get => _builder.OptInRBF;
-		set => _builder.OptInRBF = value;
-	}
 
 	public Func<OutPoint, ICoin> CoinFinder
 	{
