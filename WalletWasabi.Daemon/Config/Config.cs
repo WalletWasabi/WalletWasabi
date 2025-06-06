@@ -38,7 +38,7 @@ public class Config
 				"The Bitcoin network to use: main, testnet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
 			[ nameof(BackendUri)] = (
-				"The backend server's URL to connect to",
+				"The indexer server's URL to connect to",
 				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
 			[ nameof(CoordinatorUri)] = (
 				"The coordinator server's URL to connect to",
