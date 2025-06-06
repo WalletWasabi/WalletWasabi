@@ -14,6 +14,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Extensions;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -417,8 +418,8 @@ public class TransactionProcessorTests
 
 		var unconfirmedCoin1 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "B");
 		var unconfirmedCoin2 = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
-		Assert.True(unconfirmedCoin1.Transaction.IsRBF);
-		Assert.True(unconfirmedCoin2.Transaction.IsRBF);
+		Assert.True(unconfirmedCoin1.Transaction.IsRBF());
+		Assert.True(unconfirmedCoin2.Transaction.IsRBF());
 
 		// Spend the received coin
 		var tx2 = CreateSpendingTransaction(unconfirmedCoin1.Coin, transactionProcessor.NewKey("D").P2wpkhScript);
@@ -435,7 +436,7 @@ public class TransactionProcessorTests
 		Assert.True(relevant3.IsNews);
 		Assert.Equal(1, replaceTransactionReceivedCalled);
 		var finalCoin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(finalCoin.Transaction.IsRBF);
+		Assert.True(finalCoin.Transaction.IsRBF());
 		Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
 		Assert.DoesNotContain(unconfirmedCoin1, transactionProcessor.Coins.AsAllCoinsView());
@@ -538,9 +539,9 @@ public class TransactionProcessorTests
 
 		var coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.True(coinB.Transaction.IsRBF);
-		Assert.True(coinC.Transaction.IsRBF);
-		Assert.True(coinD.Transaction.IsRBF);
+		Assert.True(coinB.Transaction.IsRBF());
+		Assert.True(coinC.Transaction.IsRBF());
+		Assert.True(coinD.Transaction.IsRBF());
 
 		// Now it is confirmed
 		var blockHeight = new Height(77551);
@@ -550,8 +551,8 @@ public class TransactionProcessorTests
 		coinC = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "C");
 		coinD = Assert.Single(transactionProcessor.Coins, coin => coin.HdPubKey.Labels == "D");
 
-		Assert.False(coinC.Transaction.IsRBF);
-		Assert.False(coinD.Transaction.IsRBF);
+		Assert.False(coinC.Transaction.IsRBF());
+		Assert.True(coinD.Transaction.IsRBF());
 	}
 
 	[Fact]
@@ -678,7 +679,7 @@ public class TransactionProcessorTests
 
 		Assert.True(relevant2.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(coin.Transaction.IsRBF);
+		Assert.True(coin.Transaction.IsRBF());
 
 		// Transaction store assertions
 		var mempool = transactionProcessor.TransactionStore.MempoolStore.GetTransactions();
@@ -732,10 +733,10 @@ public class TransactionProcessorTests
 		relevant = transactionProcessor.Process(tx3);
 
 		Assert.True(relevant.IsNews);
-		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.Transaction.IsRBF);
+		var replaceableCoin = Assert.Single(transactionProcessor.Coins, c => c.Transaction.IsRBF());
 		Assert.Equal(tx3.Transaction.GetHash(), replaceableCoin.TransactionId);
 
-		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.Transaction.IsRBF);
+		var nonReplaceableCoin = Assert.Single(transactionProcessor.Coins, c => !c.Transaction.IsRBF());
 		Assert.Equal(tx1.Transaction.GetHash(), nonReplaceableCoin.TransactionId);
 
 		// Transaction store assertions
