@@ -97,8 +97,8 @@ public class HwiKatas
 		// USER: Hold to confirm
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -172,8 +172,8 @@ public class HwiKatas
 		// USER: Hold to confirm
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -266,8 +266,8 @@ public class HwiKatas
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -362,8 +362,8 @@ public class HwiKatas
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -446,8 +446,8 @@ public class HwiKatas
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -531,8 +531,8 @@ public class HwiKatas
 		// USER: CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -613,8 +613,8 @@ public class HwiKatas
 		// USER: CONFIRM CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);
@@ -698,8 +698,8 @@ public class HwiKatas
 		// USER: CONFIRM CONFIRM
 		PSBT signedPsbt = await client.SignTxAsync(deviceType, devicePath, Psbt, cts.Token);
 
-		Transaction signedTx = signedPsbt.GetOriginalTransaction();
-		Assert.Equal(Psbt.GetOriginalTransaction().GetHash(), signedTx.GetHash());
+		Transaction signedTx = signedPsbt.ExtractTransaction();
+		Assert.Equal(Psbt.ExtractTransaction().GetHash(), signedTx.GetHash());
 
 		var checkResult = signedTx.Check();
 		Assert.Equal(TransactionCheckResult.Success, checkResult);

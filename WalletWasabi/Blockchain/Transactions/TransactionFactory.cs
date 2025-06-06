@@ -161,7 +161,10 @@ public class TransactionFactory
 			throw new InvalidOperationException("Impossible to get the fees of the PSBT, this should never happen.");
 		}
 
-		var vSize = builder.EstimateSize(psbt.GetOriginalTransaction(), true);
+		if (!psbt.TryGetVirtualSize(out var vSize)) //builder.EstimateSize(psbt.ExtractTransaction(), true);
+		{
+			throw new InvalidOperationException("It was not possible to estimate the size of the transaction");
+		}
 
 		// Do some checks
 		Money totalSendAmountNoFee = realToSend.Sum(x => x.amount);
@@ -465,7 +468,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			.Select(x => (x.SilentPaymentAddress, TaprootPubKey: new TaprootPubKey(x.SilentPaymentPubKey.ToBytes())))
 			.ToDictionary(x => x.SilentPaymentAddress, x => x.TaprootPubKey.ScriptPubKey);
 
-		var tx = psbt.GetOriginalTransaction();
+		var tx = psbt.GetGlobalTransaction();
 		foreach (var output in tx.Outputs)
 		{
 			if (_silentPayments.TryGetValue(output.ScriptPubKey, out var silentPaymentAddress))
