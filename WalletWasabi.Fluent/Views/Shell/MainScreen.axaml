@@ -34,7 +34,7 @@
                   <Setter Property="Foreground" Value="{DynamicResource CoinjoinWaveCriticalColor}" />
                 </Style>
                 <Style Selector="SpectrumControl">
-                  <Setter Property="Foreground" Value="{DynamicResource CoinjoinWaveDefaultColor}" />
+                  <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
                 </Style>
               </SpectrumControl.Styles>
               <SpectrumControl.Transitions>
