@@ -4,7 +4,7 @@
     <ResourceInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Base.axaml" />
   </ResourceDictionary.MergedDictionaries>
 
-  <Color x:Key="SystemAccentColor">#FF63A300</Color>
+  <Color x:Key="SystemAccentColor">#FF29903B</Color>
   <Color x:Key="SystemAltHighColor">#FF000000</Color>
   <Color x:Key="SystemBaseHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemBaseLowColor">#FF414141</Color>
@@ -19,10 +19,10 @@
   <Color x:Key="SystemChromeLowColor">#3F3F3F</Color>
   <Color x:Key="SystemChromeMediumColor">#262626</Color>
   <Color x:Key="SystemChromeMediumLowColor">#FF202020</Color>
-  <Color x:Key="SystemAccentColorDark1">#FF539000</Color>
-  <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
-  <Color x:Key="SystemAccentColorLight1">#FF76AF1E</Color>
+  <Color x:Key="SystemAccentColorLight1">#FF238636</Color>
   <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
+  <Color x:Key="SystemAccentColorDark1">#FF207931</Color>
+  <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
   <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
   <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
@@ -94,14 +94,12 @@
   <Color x:Key="NetworkBadgeColor">Gold</Color>
 
   <!-- MusicBox -->
-  <Color x:Key="CoinjoinWaveDefaultColor">#FF63A300</Color>
   <Color x:Key="CoinjoinWaveCriticalColor">#FF7800</Color>
 
   <!-- WalletIcon -->
   <Color x:Key="WalletIconBackgroundStartColor">#FF646464</Color>
   <Color x:Key="WalletIconBackgroundEndColor">#FF333333</Color>
-  <Color x:Key="WalletIconAccentStartColor">#63A300</Color>
-  <Color x:Key="WalletIconAccentEndColor">#7EB230</Color>
+  <Color x:Key="WalletIconAccentColor">#17C04A</Color>
   <Color x:Key="WalletIconForegroundColor">#FFDBDBDB</Color>
   <Color x:Key="WalletIconShadeColor1">#0077C400</Color>
   <Color x:Key="WalletIconShadeColor2">#03355700</Color>
