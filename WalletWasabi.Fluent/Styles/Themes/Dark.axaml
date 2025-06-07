@@ -23,7 +23,7 @@
   <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
   <Color x:Key="SystemAccentColorDark1">#FF207931</Color>
   <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
-  <Color x:Key="SystemAccentCustomColorLight">#FF889E66</Color>
+  <Color x:Key="SystemAccentCustomColorLight">#17C04A</Color>
   <Color x:Key="SystemAccentCustomColorDark">#FF556440</Color>
 
   <Color x:Key="ActionForegroundColor">#FFFFFF</Color>
