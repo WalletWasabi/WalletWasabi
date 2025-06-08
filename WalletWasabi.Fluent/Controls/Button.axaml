@@ -5,17 +5,17 @@
 
   <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
     <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
     <Setter Property="CornerRadius" Value="6" />
     <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Padding" Value="9 7" />
     <Style Selector="^:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
     </Style>
     <Style Selector="^:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionForegroundColor}" />
     </Style>
     <Style Selector="^.bordered">
       <Setter Property="BorderBrush" Value="Yellow"/>

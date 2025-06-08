@@ -86,9 +86,6 @@
   <!-- TreeDataGrid -->
   <SolidColorBrush x:Key="TreeDataGridChildRowBackground" Color="{StaticResource Layer1BackgroundBrush}" />
 
-  <!-- Accent button -->
-  <Color x:Key="AccentButtonForegroundColor">#FFFFFFFF</Color>
-
   <!-- Network badge -->
   <Color x:Key="NetworkBadgeColor">#0066FF</Color>
 
@@ -98,8 +95,6 @@
   <!-- WalletIcon -->
   <Color x:Key="WalletIconBackgroundStartColor">#FF989898</Color>
   <Color x:Key="WalletIconBackgroundEndColor">#FF4D4D4D</Color>
-  <Color x:Key="WalletIconAccentColor">#17C04A</Color>
-  <Color x:Key="WalletIconForegroundColor">#FFFFFFFF</Color>
   <Color x:Key="WalletIconShadeColor1">#0077C400</Color>
   <Color x:Key="WalletIconShadeColor2">#03355700</Color>
   <Color x:Key="WalletIconShadeColor3">#33000000</Color>

@@ -36,7 +36,7 @@
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
-  <SolidColorBrush x:Key="LogoAccentColor" Color="{StaticResource WalletIconAccentColor}" />
+  <SolidColorBrush x:Key="LogoAccentColor" Color="{StaticResource SystemAccentColor}" />
   <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
 
   <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
