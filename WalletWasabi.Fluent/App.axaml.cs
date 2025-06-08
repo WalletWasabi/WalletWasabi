@@ -71,6 +71,28 @@ public class App : Application
 
 				InitializeTrayIcons();
 			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+				var uiContext = CreateUiContext();
+				UiContext.Default = uiContext;
+				_applicationStateManager =
+					new ApplicationStateManager(single, uiContext, _startInBg);
+
+				DataContext = _applicationStateManager.ApplicationViewModel;
+
+				// TODO: Implement ShutdownMode similar do desktop if possible.
+				// TODO: Implement Exit event similar do desktop if possible.
+
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+
+						MainViewModel.Instance.Initialize();
+					});
+
+				// TODO: We probably don't need to call InitializeTrayIcons() on mobile.
+			}
 		}
 
 		base.OnFrameworkInitializationCompleted();
