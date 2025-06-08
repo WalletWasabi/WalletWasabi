@@ -32,6 +32,7 @@
   <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
   <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 

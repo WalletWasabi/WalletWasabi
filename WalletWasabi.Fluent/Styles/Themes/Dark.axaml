@@ -13,7 +13,7 @@
   <Color x:Key="SystemBaseMediumLowColor">#FF5D5D5D</Color>
   <Color x:Key="SystemChromeAltLowColor">#FFAFAFAF</Color>
 
-  <Color x:Key="SystemChromeDisabledHighColor">#FF262626</Color>
+  <Color x:Key="SystemChromeDisabledHighColor">#FF000000</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
   <Color x:Key="SystemChromeHighColor">#323232</Color>
   <Color x:Key="SystemChromeLowColor">#3F3F3F</Color>

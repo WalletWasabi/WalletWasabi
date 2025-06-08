@@ -110,7 +110,7 @@
     </Style>
     <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
-      <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledForegroundColor}" />
     </Style>
   </ControlTheme>
 
