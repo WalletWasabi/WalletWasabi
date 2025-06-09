@@ -263,11 +263,6 @@ public class CoinJoinClient
 					throw;
 				}
 			}
-			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
-			{
-				// Do nothing - if the actual state of the round is Ended we let the execution continue.
-			}
-
 			var signedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
 			try
@@ -379,8 +374,6 @@ public class CoinJoinClient
 	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
 	{
 		int eventInvokedAlready = 0;
-
-		UnexpectedRoundPhaseException? lastUnexpectedRoundPhaseException = null;
 
 		var remainingInputRegTime = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow;
 
@@ -502,11 +495,6 @@ public class CoinJoinClient
 					Logger.LogDebug(ex);
 				}
 			}
-			catch (UnexpectedRoundPhaseException ex)
-			{
-				lastUnexpectedRoundPhaseException = ex;
-				Logger.LogTrace(ex);
-			}
 			catch (Exception ex)
 			{
 				Logger.LogWarning(ex);
@@ -546,12 +534,6 @@ public class CoinJoinClient
 			.Select(x => x.Result)
 			.Where(r => r is not null)
 			.ToImmutableArray();
-
-		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
-		{
-			// In this case the coordinator aborted the round - throw only one exception and log outside.
-			throw lastUnexpectedRoundPhaseException;
-		}
 
 		return successfulAlices;
 	}

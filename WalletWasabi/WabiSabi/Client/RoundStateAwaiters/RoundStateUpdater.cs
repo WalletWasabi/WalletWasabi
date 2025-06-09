@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
@@ -86,13 +85,13 @@ public class RoundStateUpdater : PeriodicRunner
 		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
 	}
 
-	private Task<RoundState> CreateRoundAwaiterAsync(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
+	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
 	{
-		RoundStateAwaiter? roundStateAwaiter = null;
+		RoundStateAwaiter roundStateAwaiter;
 
 		lock (_awaitersLock)
 		{
-			roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, phase, cancellationToken);
+			roundStateAwaiter = new RoundStateAwaiter(predicate, cancellationToken);
 			_awaiters.Add(roundStateAwaiter);
 		}
 
@@ -107,15 +106,8 @@ public class RoundStateUpdater : PeriodicRunner
 		return roundStateAwaiter.Task;
 	}
 
-	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
-	{
-		return CreateRoundAwaiterAsync(null, null, predicate, cancellationToken);
-	}
-
-	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken)
-	{
-		return CreateRoundAwaiterAsync(roundId, phase, null, cancellationToken);
-	}
+	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken) =>
+		CreateRoundAwaiterAsync(rs => rs.Phase == phase && rs.Id == roundId, cancellationToken);
 
 	/// <summary>
 	/// This might not contain up-to-date states. Make sure it is updated.
