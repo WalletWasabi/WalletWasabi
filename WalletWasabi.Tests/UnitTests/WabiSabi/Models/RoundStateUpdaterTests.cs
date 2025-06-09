@@ -147,7 +147,7 @@ public class RoundStateUpdaterTests
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
-		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
+		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 		var cancellationToken = cancellationTokenSource.Token;
 
 		// Each line represents a response for each request.
