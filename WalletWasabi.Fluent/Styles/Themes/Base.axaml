@@ -27,20 +27,24 @@
   <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.1" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
-  <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />
+  <SolidColorBrush x:Key="ActionButtonForegroundColor">White</SolidColorBrush>
   <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
   <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
   <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor">Black</SolidColorBrush>
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
-  <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
-  <Color x:Key="LogoFixedAccentColor">#FF77C600</Color>
-  <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
+  <LinearGradientBrush x:Key="LogoAccentColor" StartPoint="1,0" EndPoint="0,1">
+      <GradientStop Color="#00FF4D" Offset="0"/>
+      <GradientStop Color="#17C04A" Offset="1"/>
+  </LinearGradientBrush>
 
-  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
-  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
+  <Color x:Key="LogoFixedForegroundColor">White</Color>
+
+  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
+  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
 
   <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />
