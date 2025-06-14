@@ -31,7 +31,7 @@
         </TextBox>
     </DockPanel>
     <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
-      <TextBlock Text="Bitcoin RPC CredentialString" />
+      <TextBlock Text="Bitcoin RPC Credentials" />
       <TextBox Text="{Binding BitcoinRpcCredentialString}"
                Watermark="(rpcuser:rpcpassword or cookie file)"/>
     </DockPanel>
