@@ -46,7 +46,7 @@
   </Style>
 
   <Style Selector="ctxt|CHyperlink:pointerover">
-    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorLight3}"/>
+    <Setter Property="Foreground" Value="{DynamicResource SystemAccentColorLight2}"/>
   </Style>
 
   <Style Selector="Border.Table">
