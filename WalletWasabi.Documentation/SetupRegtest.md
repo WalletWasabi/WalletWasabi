@@ -50,8 +50,8 @@ RegTest is a local network in which users can generate blocks and coins for test
     regtest.whitebind = 127.0.0.1:18444
     regtest.rpchost = 127.0.0.1
     regtest.rpcport = 18443
-    regtest.rpcuser = 7c9b6473600fbc9be1120ae79f1622f42c32e5c78d
-    regtest.rpcpassword = 309bc9961d01f388aed28b630ae834379296a8c8e3
+    regtest.rpcuser = rpcuser
+    regtest.rpcpassword = rpcpassword
     regtest.disablewallet = 0
     regtest.softwareexpiry = 0
     regtest.listenonion = 0
@@ -60,7 +60,7 @@ RegTest is a local network in which users can generate blocks and coins for test
 5. Save it.
 6. Close Bitcoin Core to confirm changes and open it again with: `bitcoin-qt.exe -regtest`.
 7. Do not worry about "Syncing Headers" just press the Hide button. Because you run on Regtest, no Mainnet blocks will be downloaded.
-8. Go to menu *File / Create* wallet and create a wallet with the name you prefer. Use the default options.
+8. Go to menu *File / Create* and create a wallet with the name you prefer. Use the default options.
 9. Go to menu *Window / Console*.
 10. Generate a new address with:
 `getnewaddress`
@@ -88,12 +88,10 @@ Here you will have to build from source, follow [these instructions here](https:
     macOS: "/Users/{your username}/.walletwasabi/backend"
     Linux: "/home/{your username}/.walletwasabi/backend"
     ```
-6. Edit `Config.json` file by replacing everything with:
-    ```json
-    {
+6. Edit these lines in `Config.json`:
+    ```
       "Network": "RegTest",
-      "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
-    }
+      "BitcoinRpcConnectionString": "rpcuser:rpcpassword",
     ```
 7. Go to WalletWasabi.Backend folder.
 8. Open the command line and enter:
@@ -113,10 +111,10 @@ Here you will have to build from source, follow [these instructions here](https:
     macOS: "/Users/{your username}/.walletwasabi/coordinator"
     Linux: "/home/{your username}/.walletwasabi/coordinator"
     ```
-6. Edit this lines in `Config.json`:
+6. Edit these lines in `Config.json`:
     ```
     "Network": "RegTest",
-    "BitcoinRpcConnectionString": "7c9b6473600fbc9be1120ae79f1622f42c32e5c78d:309bc9961d01f388aed28b630ae834379296a8c8e3",
+    "BitcoinRpcConnectionString": "rpcuser:rpcpassword",
     "StandardInputRegistrationTimeout": "0d 0h 2m 0s",
     "MinInputCountByRoundMultiplier": 0.02,
     ```
