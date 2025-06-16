@@ -69,7 +69,7 @@
   <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
 
-  <SolidColorBrush x:Key="PositiveAmountColor" Color="{StaticResource SystemAccentCustomColorLight}" />
+  <SolidColorBrush x:Key="PositiveAmountColor" Color="{StaticResource SystemAccentColor}" />
 
   <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
@@ -111,10 +111,10 @@
   <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
 
   <!-- LineChart -->
-  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentColor" />
   <StaticResource x:Key="LineChartAreaGradientEndStopColor" ResourceKey="RegionColor" />
-  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
-  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentColor" />
 
   <!-- ComboBox -->
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource Layer2BackgroundBrush}" />

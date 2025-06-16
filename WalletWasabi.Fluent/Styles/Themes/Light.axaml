@@ -38,8 +38,6 @@
   <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
   <Color x:Key="SystemAccentColorDark1">#FF16943C</Color>
   <Color x:Key="SystemAccentColorDark2">#FF326B00</Color>
-  <Color x:Key="SystemAccentCustomColorLight">#789758</Color>
-  <Color x:Key="SystemAccentCustomColorDark">#B2C69C</Color>
 
   <Color x:Key="RegionColor">#FFFFFFFF</Color>
 
