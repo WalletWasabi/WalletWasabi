@@ -103,7 +103,7 @@
 
             <Panel>
               <Button Classes="function"
-                      IsVisible="{Binding IsSendButtonVisible}"
+                      IsVisible="{Binding IsDonateButtonVisible}"
                       Command="{Binding DonateCommand}">
                 <StackPanel Orientation="Horizontal">
                   <PathIcon Data="{StaticResource gift}" />
