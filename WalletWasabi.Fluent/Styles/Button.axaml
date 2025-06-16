@@ -55,7 +55,7 @@
     <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
   </Style>
   <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
     <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
   </Style>
   <!-- Transparent Function -->
