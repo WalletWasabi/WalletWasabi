@@ -101,16 +101,11 @@
               </SubActionButton.SubCommands>
             </SubActionButton>
 
-            <Panel>
-              <SubActionButton
-                      IsVisible="{Binding IsDonateButtonVisible}"
-                      Command="{Binding DonateCommand}">
-                <StackPanel Orientation="Horizontal">
-                  <PathIcon Data="{StaticResource gift}" />
-                  <TextBlock Text="Donate" />
-                </StackPanel>
-              </SubActionButton>
-            </Panel>
+            <SubActionButton Content="Donate"
+                    IsVisible="{Binding IsDonateButtonVisible}"
+                    Command="{Binding DonateCommand}"
+                    Icon="{StaticResource gift}">
+            </SubActionButton>
 
             <Button Classes="transparentFunction">
               <Button.Flyout>
