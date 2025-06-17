@@ -3,239 +3,64 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:shell="using:WalletWasabi.Fluent.Views.Shell"
+             xmlns:trans="clr-namespace:Avalonia.Media;assembly=Avalonia.Visuals"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Shell.WelcomeBg">
+
+  <UserControl.Styles>
+    <Style Selector="Path.animated-line">
+      <Setter Property="Stroke" Value="{DynamicResource SystemAccentColor}"/>
+      <Setter Property="StrokeThickness" Value="2"/>
+      <Setter Property="StrokeDashArray" Value="50, 1000"/>
+      <Setter Property="StrokeDashOffset" Value="1050"/>
+      <Setter Property="StrokeLineCap" Value="Round"/>
+      <Style.Animations>
+      <!-- Animation -->
+        <Animation Duration="0:0:3" IterationCount="Infinite" Easing="LinearEasing">
+          <KeyFrame Cue="0%">
+            <Setter Property="StrokeDashOffset" Value="1050"/>
+          </KeyFrame>
+          <KeyFrame Cue="100%">
+            <Setter Property="StrokeDashOffset" Value="0"/>
+          </KeyFrame>
+        </Animation>
+      </Style.Animations>
+    </Style>
+  </UserControl.Styles>
+
   <Panel Classes="mainx" Width="1600" Height="900">
     <Panel.Resources>
-      <ControlTemplate x:Key="wa1">
-        <Panel Width="330" Height="330">
-          <Path StrokeThickness="1"
-                Data="m 49 0 h 232 c 24.93 0 45 20.07 45 45 v 232 c 0 24.93 -20.07 45 -45 45 H 49 C 24.07 322 4 301.93 4 277 V 45 C 4 20.07 24.07 0 49 0 Z">
-            <Path.Fill>
-              <LinearGradientBrush StartPoint="300,-6" EndPoint="-17,335">
-                <LinearGradientBrush.GradientStops>
-                  <GradientStop Color="#134074" />
-                  <GradientStop Color="#8093AE" Offset="1" />
-                </LinearGradientBrush.GradientStops>
-              </LinearGradientBrush>
-            </Path.Fill>
-          </Path>
-          <Path Fill="#D8DED7" StrokeThickness="1"
-                Data="m 116 23 h 96 c 4.432 0 8 3.568 8 8 0 4.432 -3.568 8 -8 8 h -96 c -4.432 0 -8 -3.568 -8 -8 0 -4.432 3.568 -8 8 -8 z" />
-        </Panel>
-      </ControlTemplate>
+      <ControlTemplate x:Key="CoinJoin">
+        <Panel>
+          <!-- Main Lines -->
+          <Path Data="M 0,40 Q 800,400 1600,40" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,120 Q 800,400 1600,120" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,200 Q 800,400 1600,200" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,280 Q 800,400 1600,280" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,360 Q 800,400 1600,360" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,440 Q 800,400 1600,440" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,520 Q 800,400 1600,520" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,600 Q 800,400 1600,600" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,680 Q 800,400 1600,680" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
+          <Path Data="M 0,760 Q 800,400 1600,760" Stroke="{DynamicResource SystemBaseHighColor}" Opacity="0.5" StrokeThickness="1"/>
 
-      <ControlTemplate x:Key="coin1">
-        <Panel Width="152" Height="152">
-          <Path Fill="#78A827"
-                Data="M 151.2733 75.879799 A 75.393501 75.393501 0 0 1 75.879799 151.2733 75.393501 75.393501 0 0 1 0.48629761 75.879799 75.393501 75.393501 0 0 1 75.879799 0.48629761 75.393501 75.393501 0 0 1 151.2733 75.879799 Z" />
-          <Path Fill="#97D234"
-                Data="M 120.0387 75.8797 A 44.159 44.159 0 0 1 75.8797 120.0387 44.159 44.159 0 0 1 31.720699 75.8797 44.159 44.159 0 0 1 75.8797 31.720699 44.159 44.159 0 0 1 120.0387 75.8797 Z" />
-          <Path Fill="#97D234"
-                Data="M 75.681641 9.1035156 L 75.697266 14.488281 C 77.420127 14.482878 79.143203 14.548877 80.857422 14.6875 L 81.291016 9.3183594 C 79.423639 9.1673509 77.551994 9.0976498 75.681641 9.1035156 z M 70.076172 9.3515625 C 68.210082 9.5116393 66.350897 9.7516267 64.505859 10.068359 L 65.417969 15.375 C 67.114424 15.083774 68.821085 14.863833 70.535156 14.716797 L 70.076172 9.3515625 z M 86.861328 10.001953 L 85.984375 15.314453 C 87.681025 15.594433 89.365404 15.947555 91.033203 16.371094 L 92.359375 11.152344 C 90.544449 10.691442 88.710021 10.307023 86.861328 10.001953 z M 59.019531 11.251953 C 57.203748 11.722541 55.409411 12.27141 53.644531 12.894531 L 55.4375 17.972656 C 57.060865 17.399499 58.706537 16.895733 60.369141 16.464844 L 59.019531 11.251953 z M 97.736328 12.763672 L 95.978516 17.853516 C 97.602576 18.414474 99.204125 19.047184 100.77734 19.746094 L 102.96289 14.824219 C 101.25234 14.0643 99.508658 13.375843 97.736328 12.763672 z M 48.433594 14.986328 C 46.726956 15.756504 45.052201 16.598756 43.416016 17.511719 L 46.039062 22.214844 C 47.540757 21.376924 49.079858 20.604357 50.648438 19.896484 L 48.433594 14.986328 z M 107.99219 17.318359 L 105.40234 22.039062 C 106.90894 22.865384 108.38338 23.759583 109.81836 24.712891 L 112.79688 20.226562 C 111.23888 19.191531 109.63615 18.220021 107.99219 17.318359 z M 38.632812 20.449219 C 37.078635 21.494441 35.569189 22.604381 34.109375 23.777344 L 37.482422 27.976562 C 38.823679 26.898861 40.21117 25.877999 41.638672 24.917969 L 38.632812 20.449219 z M 117.33789 23.527344 L 113.99414 27.748047 C 115.34244 28.815769 116.64594 29.942203 117.90039 31.121094 L 121.58789 27.197266 C 120.22391 25.915441 118.80654 24.690378 117.33789 23.527344 z M 29.884766 27.470703 C 28.526707 28.760189 27.222626 30.106601 25.978516 31.505859 L 30.003906 35.083984 C 31.147379 33.797913 32.344103 32.559694 33.591797 31.375 L 29.884766 27.470703 z M 125.51562 31.207031 L 121.51367 34.8125 C 122.66609 36.091523 123.76561 37.416831 124.80469 38.787109 L 129.0957 35.533203 C 127.96365 34.040312 126.76845 32.597491 125.51562 31.207031 z M 22.427734 35.849609 C 21.303532 37.347206 20.24155 38.892616 19.248047 40.480469 L 23.814453 43.337891 C 24.726891 41.879599 25.701391 40.458112 26.734375 39.082031 L 22.427734 35.849609 z M 132.29883 40.142578 L 127.75195 43.027344 C 128.67482 44.481869 129.53769 45.972395 130.33203 47.496094 L 135.10742 45.007812 C 134.24065 43.345183 133.30102 41.722125 132.29883 40.142578 z M 16.472656 45.357422 C 15.614611 47.022243 14.825903 48.725037 14.113281 50.458984 L 19.095703 52.505859 C 19.748976 50.916318 20.47167 49.355274 21.259766 47.826172 L 16.472656 45.357422 z M 137.49219 50.087891 L 132.52734 52.169922 C 133.19261 53.755607 133.79023 55.370315 134.31836 57.007812 L 139.44336 55.355469 C 138.86853 53.573162 138.21708 51.815692 137.49219 50.087891 z M 12.199219 55.732422 C 11.632543 57.519098 11.141877 59.332412 10.732422 61.162109 L 15.988281 62.337891 C 16.36349 60.661225 16.81243 58.999582 17.332031 57.361328 L 12.199219 55.732422 z M 140.93945 60.767578 L 135.69336 61.984375 C 136.08156 63.659789 136.39773 65.351254 136.64258 67.054688 L 141.97266 66.289062 C 141.70626 64.435775 141.36235 62.592722 140.93945 60.767578 z M 9.7324219 66.683594 C 9.4763244 68.538662 9.2982092 70.40405 9.1992188 72.273438 L 14.578125 72.558594 C 14.669144 70.839735 14.831101 69.124379 15.066406 67.419922 L 9.7324219 66.683594 z M 142.53906 71.873047 L 137.16406 72.193359 C 137.23737 73.417832 137.27121 74.648035 137.27148 75.878906 C 137.27148 75.879558 137.27148 75.880208 137.27148 75.880859 C 137.27137 77.603238 137.20151 79.324671 137.05859 81.039062 L 142.42578 81.486328 C 142.58132 79.620441 142.65813 77.749189 142.6582 75.878906 C 142.65795 74.544569 142.61906 73.209238 142.53906 71.873047 z M 14.515625 77.724609 L 9.1328125 77.882812 C 9.187358 79.753964 9.320167 81.622386 9.53125 83.482422 L 14.882812 82.875 C 14.688717 81.164654 14.565782 79.445226 14.515625 77.724609 z M 136.41406 86.164062 C 136.12893 87.859791 135.77218 89.543976 135.34375 91.210938 L 140.55859 92.550781 C 141.02461 90.737547 141.41585 88.904472 141.72656 87.056641 L 136.41406 86.164062 z M 15.679688 87.974609 L 10.398438 89.029297 C 10.765067 90.863222 11.207495 92.687575 11.732422 94.490234 L 16.904297 92.984375 C 16.424615 91.337093 16.017436 89.664067 15.679688 87.974609 z M 133.84766 96.150391 C 133.28099 97.774203 132.64333 99.373877 131.93945 100.94141 L 136.85352 103.14648 C 137.62153 101.43612 138.31441 99.694495 138.93164 97.925781 L 133.84766 96.150391 z M 18.548828 97.880859 L 13.519531 99.806641 C 14.189905 101.55761 14.93619 103.27973 15.753906 104.96484 L 20.599609 102.61328 C 19.848642 101.06572 19.163206 99.485571 18.548828 97.880859 z M 129.63086 105.5625 C 128.80002 107.06741 127.90468 108.53676 126.94727 109.96484 L 131.41992 112.96484 C 132.46335 111.40845 133.43991 109.80669 134.3457 108.16602 L 129.63086 105.5625 z M 23.044922 107.16211 L 18.412109 109.90625 C 19.367182 111.51772 20.390543 113.08916 21.478516 114.61328 L 25.863281 111.48438 C 24.863591 110.08392 23.921888 108.64179 23.044922 107.16211 z M 123.89648 114.13672 C 122.8256 115.48191 121.69602 116.78236 120.51367 118.03125 L 124.42383 121.73242 C 125.71173 120.37203 126.94237 118.95812 128.10938 117.49219 L 123.89648 114.13672 z M 29.035156 115.56055 L 24.925781 119.04102 C 26.136102 120.46963 27.407578 121.84835 28.734375 123.16992 L 32.535156 119.35352 C 31.31612 118.13928 30.147546 116.87357 29.035156 115.56055 z M 116.81055 121.63672 C 115.53055 122.78496 114.19981 123.8776 112.82617 124.91211 L 116.06641 129.21484 C 117.56296 128.08776 119.01159 126.89562 120.40625 125.64453 L 116.81055 121.63672 z M 36.341797 122.8457 L 32.869141 126.96094 C 34.30041 128.1684 35.78386 129.31626 37.3125 130.39844 L 40.423828 126.00195 C 39.019738 125.00794 37.656978 123.95523 36.341797 122.8457 z M 108.57422 127.84961 C 107.12085 128.76808 105.62826 129.62453 104.10156 130.41406 L 106.57422 135.19727 C 108.2391 134.33627 109.86713 133.40339 111.45117 132.40234 L 108.57422 127.84961 z M 44.759766 128.81055 L 42.023438 133.44727 C 43.637009 134.39929 45.290743 135.28263 46.978516 136.09375 L 49.310547 131.24023 C 47.759636 130.49489 46.24098 129.68448 44.759766 128.81055 z M 99.417969 132.59766 C 97.831907 133.25887 96.21573 133.8501 94.578125 134.37109 L 96.210938 139.50391 C 97.997306 138.93558 99.759857 138.28973 101.49023 137.56836 L 99.417969 132.59766 z M 54.052734 133.27734 L 52.136719 138.31055 C 53.885873 138.97595 55.66529 139.56932 57.46875 140.08398 L 58.947266 134.90625 C 57.295357 134.43484 55.662019 133.88954 54.052734 133.27734 z M 89.595703 135.73242 C 87.920975 136.11612 86.22852 136.42783 84.523438 136.66797 L 85.273438 142 C 87.126469 141.73902 88.971 141.4012 90.798828 140.98242 L 89.595703 135.73242 z M 63.964844 136.11719 L 62.925781 141.40039 C 64.76328 141.76206 66.616986 142.04517 68.478516 142.25 L 69.066406 136.89648 C 67.356205 136.70831 65.652988 136.44946 63.964844 136.11719 z M 79.384766 137.17383 C 77.665542 137.27067 75.942414 137.29598 74.220703 137.25 L 74.076172 142.63281 C 75.946477 142.68276 77.819104 142.65407 79.6875 142.54883 L 79.384766 137.17383 z " />
-        </Panel>
-      </ControlTemplate>
-
-      <ControlTemplate x:Key="coin2">
-        <Panel Width="152" Height="152">
-          <Path Fill="#13315C"
-                Data="M 151.2733 75.879799 A 75.393501 75.393501 0 0 1 75.879799 151.2733 75.393501 75.393501 0 0 1 0.48629761 75.879799 75.393501 75.393501 0 0 1 75.879799 0.48629761 75.393501 75.393501 0 0 1 151.2733 75.879799 Z" />
-          <Path Fill="#8093AE"
-                Data="M 120.0387 75.8797 A 44.159 44.159 0 0 1 75.8797 120.0387 44.159 44.159 0 0 1 31.720699 75.8797 44.159 44.159 0 0 1 75.8797 31.720699 44.159 44.159 0 0 1 120.0387 75.8797 Z" />
-          <Path Fill="#8093AE"
-                Data="M 75.681641 9.1035156 L 75.697266 14.488281 C 77.420127 14.482878 79.143203 14.548877 80.857422 14.6875 L 81.291016 9.3183594 C 79.423639 9.1673509 77.551994 9.0976498 75.681641 9.1035156 z M 70.076172 9.3515625 C 68.210082 9.5116393 66.350897 9.7516267 64.505859 10.068359 L 65.417969 15.375 C 67.114424 15.083774 68.821085 14.863833 70.535156 14.716797 L 70.076172 9.3515625 z M 86.861328 10.001953 L 85.984375 15.314453 C 87.681025 15.594433 89.365404 15.947555 91.033203 16.371094 L 92.359375 11.152344 C 90.544449 10.691442 88.710021 10.307023 86.861328 10.001953 z M 59.019531 11.251953 C 57.203748 11.722541 55.409411 12.27141 53.644531 12.894531 L 55.4375 17.972656 C 57.060865 17.399499 58.706537 16.895733 60.369141 16.464844 L 59.019531 11.251953 z M 97.736328 12.763672 L 95.978516 17.853516 C 97.602576 18.414474 99.204125 19.047184 100.77734 19.746094 L 102.96289 14.824219 C 101.25234 14.0643 99.508658 13.375843 97.736328 12.763672 z M 48.433594 14.986328 C 46.726956 15.756504 45.052201 16.598756 43.416016 17.511719 L 46.039062 22.214844 C 47.540757 21.376924 49.079858 20.604357 50.648438 19.896484 L 48.433594 14.986328 z M 107.99219 17.318359 L 105.40234 22.039062 C 106.90894 22.865384 108.38338 23.759583 109.81836 24.712891 L 112.79688 20.226562 C 111.23888 19.191531 109.63615 18.220021 107.99219 17.318359 z M 38.632812 20.449219 C 37.078635 21.494441 35.569189 22.604381 34.109375 23.777344 L 37.482422 27.976562 C 38.823679 26.898861 40.21117 25.877999 41.638672 24.917969 L 38.632812 20.449219 z M 117.33789 23.527344 L 113.99414 27.748047 C 115.34244 28.815769 116.64594 29.942203 117.90039 31.121094 L 121.58789 27.197266 C 120.22391 25.915441 118.80654 24.690378 117.33789 23.527344 z M 29.884766 27.470703 C 28.526707 28.760189 27.222626 30.106601 25.978516 31.505859 L 30.003906 35.083984 C 31.147379 33.797913 32.344103 32.559694 33.591797 31.375 L 29.884766 27.470703 z M 125.51562 31.207031 L 121.51367 34.8125 C 122.66609 36.091523 123.76561 37.416831 124.80469 38.787109 L 129.0957 35.533203 C 127.96365 34.040312 126.76845 32.597491 125.51562 31.207031 z M 22.427734 35.849609 C 21.303532 37.347206 20.24155 38.892616 19.248047 40.480469 L 23.814453 43.337891 C 24.726891 41.879599 25.701391 40.458112 26.734375 39.082031 L 22.427734 35.849609 z M 132.29883 40.142578 L 127.75195 43.027344 C 128.67482 44.481869 129.53769 45.972395 130.33203 47.496094 L 135.10742 45.007812 C 134.24065 43.345183 133.30102 41.722125 132.29883 40.142578 z M 16.472656 45.357422 C 15.614611 47.022243 14.825903 48.725037 14.113281 50.458984 L 19.095703 52.505859 C 19.748976 50.916318 20.47167 49.355274 21.259766 47.826172 L 16.472656 45.357422 z M 137.49219 50.087891 L 132.52734 52.169922 C 133.19261 53.755607 133.79023 55.370315 134.31836 57.007812 L 139.44336 55.355469 C 138.86853 53.573162 138.21708 51.815692 137.49219 50.087891 z M 12.199219 55.732422 C 11.632543 57.519098 11.141877 59.332412 10.732422 61.162109 L 15.988281 62.337891 C 16.36349 60.661225 16.81243 58.999582 17.332031 57.361328 L 12.199219 55.732422 z M 140.93945 60.767578 L 135.69336 61.984375 C 136.08156 63.659789 136.39773 65.351254 136.64258 67.054688 L 141.97266 66.289062 C 141.70626 64.435775 141.36235 62.592722 140.93945 60.767578 z M 9.7324219 66.683594 C 9.4763244 68.538662 9.2982092 70.40405 9.1992188 72.273438 L 14.578125 72.558594 C 14.669144 70.839735 14.831101 69.124379 15.066406 67.419922 L 9.7324219 66.683594 z M 142.53906 71.873047 L 137.16406 72.193359 C 137.23737 73.417832 137.27121 74.648035 137.27148 75.878906 C 137.27148 75.879558 137.27148 75.880208 137.27148 75.880859 C 137.27137 77.603238 137.20151 79.324671 137.05859 81.039062 L 142.42578 81.486328 C 142.58132 79.620441 142.65813 77.749189 142.6582 75.878906 C 142.65795 74.544569 142.61906 73.209238 142.53906 71.873047 z M 14.515625 77.724609 L 9.1328125 77.882812 C 9.187358 79.753964 9.320167 81.622386 9.53125 83.482422 L 14.882812 82.875 C 14.688717 81.164654 14.565782 79.445226 14.515625 77.724609 z M 136.41406 86.164062 C 136.12893 87.859791 135.77218 89.543976 135.34375 91.210938 L 140.55859 92.550781 C 141.02461 90.737547 141.41585 88.904472 141.72656 87.056641 L 136.41406 86.164062 z M 15.679688 87.974609 L 10.398438 89.029297 C 10.765067 90.863222 11.207495 92.687575 11.732422 94.490234 L 16.904297 92.984375 C 16.424615 91.337093 16.017436 89.664067 15.679688 87.974609 z M 133.84766 96.150391 C 133.28099 97.774203 132.64333 99.373877 131.93945 100.94141 L 136.85352 103.14648 C 137.62153 101.43612 138.31441 99.694495 138.93164 97.925781 L 133.84766 96.150391 z M 18.548828 97.880859 L 13.519531 99.806641 C 14.189905 101.55761 14.93619 103.27973 15.753906 104.96484 L 20.599609 102.61328 C 19.848642 101.06572 19.163206 99.485571 18.548828 97.880859 z M 129.63086 105.5625 C 128.80002 107.06741 127.90468 108.53676 126.94727 109.96484 L 131.41992 112.96484 C 132.46335 111.40845 133.43991 109.80669 134.3457 108.16602 L 129.63086 105.5625 z M 23.044922 107.16211 L 18.412109 109.90625 C 19.367182 111.51772 20.390543 113.08916 21.478516 114.61328 L 25.863281 111.48438 C 24.863591 110.08392 23.921888 108.64179 23.044922 107.16211 z M 123.89648 114.13672 C 122.8256 115.48191 121.69602 116.78236 120.51367 118.03125 L 124.42383 121.73242 C 125.71173 120.37203 126.94237 118.95812 128.10938 117.49219 L 123.89648 114.13672 z M 29.035156 115.56055 L 24.925781 119.04102 C 26.136102 120.46963 27.407578 121.84835 28.734375 123.16992 L 32.535156 119.35352 C 31.31612 118.13928 30.147546 116.87357 29.035156 115.56055 z M 116.81055 121.63672 C 115.53055 122.78496 114.19981 123.8776 112.82617 124.91211 L 116.06641 129.21484 C 117.56296 128.08776 119.01159 126.89562 120.40625 125.64453 L 116.81055 121.63672 z M 36.341797 122.8457 L 32.869141 126.96094 C 34.30041 128.1684 35.78386 129.31626 37.3125 130.39844 L 40.423828 126.00195 C 39.019738 125.00794 37.656978 123.95523 36.341797 122.8457 z M 108.57422 127.84961 C 107.12085 128.76808 105.62826 129.62453 104.10156 130.41406 L 106.57422 135.19727 C 108.2391 134.33627 109.86713 133.40339 111.45117 132.40234 L 108.57422 127.84961 z M 44.759766 128.81055 L 42.023438 133.44727 C 43.637009 134.39929 45.290743 135.28263 46.978516 136.09375 L 49.310547 131.24023 C 47.759636 130.49489 46.24098 129.68448 44.759766 128.81055 z M 99.417969 132.59766 C 97.831907 133.25887 96.21573 133.8501 94.578125 134.37109 L 96.210938 139.50391 C 97.997306 138.93558 99.759857 138.28973 101.49023 137.56836 L 99.417969 132.59766 z M 54.052734 133.27734 L 52.136719 138.31055 C 53.885873 138.97595 55.66529 139.56932 57.46875 140.08398 L 58.947266 134.90625 C 57.295357 134.43484 55.662019 133.88954 54.052734 133.27734 z M 89.595703 135.73242 C 87.920975 136.11612 86.22852 136.42783 84.523438 136.66797 L 85.273438 142 C 87.126469 141.73902 88.971 141.4012 90.798828 140.98242 L 89.595703 135.73242 z M 63.964844 136.11719 L 62.925781 141.40039 C 64.76328 141.76206 66.616986 142.04517 68.478516 142.25 L 69.066406 136.89648 C 67.356205 136.70831 65.652988 136.44946 63.964844 136.11719 z M 79.384766 137.17383 C 77.665542 137.27067 75.942414 137.29598 74.220703 137.25 L 74.076172 142.63281 C 75.946477 142.68276 77.819104 142.65407 79.6875 142.54883 L 79.384766 137.17383 z " />
+          <!-- Animated Green Lines -->
+          <Path Data="M 0,40 Q 800,400 1600,40" Classes="animated-line"/>
+          <Path Data="M 0,120 Q 800,400 1600,120" Classes="animated-line"/>
+          <Path Data="M 0,200 Q 800,400 1600,200" Classes="animated-line"/>
+          <Path Data="M 0,280 Q 800,400 1600,280" Classes="animated-line"/>
+          <Path Data="M 0,360 Q 800,400 1600,360" Classes="animated-line"/>
+          <Path Data="M 0,440 Q 800,400 1600,440" Classes="animated-line"/>
+          <Path Data="M 0,520 Q 800,400 1600,520" Classes="animated-line"/>
+          <Path Data="M 0,600 Q 800,400 1600,600" Classes="animated-line"/>
+          <Path Data="M 0,680 Q 800,400 1600,680" Classes="animated-line"/>
+          <Path Data="M 0,760 Q 800,400 1600,760" Classes="animated-line"/>
         </Panel>
       </ControlTemplate>
     </Panel.Resources>
-    <Panel.Styles>
-      <Style Selector="Panel.main">
-        <Setter Property="RenderTransform" Value="rotate(-15deg)" />
-      </Style>
 
-      <Style Selector="shell|WelcomeBg[EnableAnimations=True] Viewbox.wal1">
-        <Setter Property="Opacity" Value="0" />
-        <Style.Animations>
-          <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:1" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="-50" />
-            </KeyFrame>
-            <KeyFrame Cue="50%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="(TranslateTransform.Y)" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="50" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-
-      <Style Selector="shell|WelcomeBg[EnableAnimations=True] Viewbox.wal2">
-        <Setter Property="Opacity" Value="0" />
-        <Style.Animations>
-          <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:5" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="-50" />
-            </KeyFrame>
-            <KeyFrame Cue="50%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="(TranslateTransform.Y)" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="50" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-
-      <Style Selector="shell|WelcomeBg[EnableAnimations=True] Viewbox.wal3">
-        <Setter Property="Opacity" Value="0" />
-        <Style.Animations>
-          <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:7" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="-50" />
-            </KeyFrame>
-            <KeyFrame Cue="50%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="(TranslateTransform.Y)" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="50" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-
-      <Style Selector="shell|WelcomeBg[EnableAnimations=True] Viewbox.wal4">
-        <Setter Property="Opacity" Value="0" />
-        <Style.Animations>
-          <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:9" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="-50" />
-            </KeyFrame>
-            <KeyFrame Cue="50%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="(TranslateTransform.Y)" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="50" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-
-      <Style Selector="shell|WelcomeBg[EnableAnimations=True] Viewbox.wal5">
-        <Setter Property="Opacity" Value="0" />
-        <Style.Animations>
-          <Animation Duration="0:0:10" SpeedRatio="0.5" Delay="0:0:11" IterationCount="Infinite">
-            <KeyFrame Cue="0%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="-50" />
-            </KeyFrame>
-            <KeyFrame Cue="50%">
-              <Setter Property="Opacity" Value="1" />
-              <Setter Property="(TranslateTransform.Y)" Value="0" />
-            </KeyFrame>
-            <KeyFrame Cue="100%">
-              <Setter Property="Opacity" Value="0" />
-              <Setter Property="(TranslateTransform.Y)" Value="50" />
-            </KeyFrame>
-          </Animation>
-        </Style.Animations>
-      </Style>
-    </Panel.Styles>
-
-    <Panel HorizontalAlignment="Left" VerticalAlignment="Top">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <ScaleTransform ScaleX="9" ScaleY="9" />
-          <TranslateTransform X="-7" Y="-33" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06" />
-    </Panel>
-
-    <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <ScaleTransform ScaleX="9" ScaleY="9" />
-          <TranslateTransform X="-7" Y="-33" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Ellipse Width="100" Height="100" Fill="White" Opacity="0.06" />
-    </Panel>
-
-    <Panel HorizontalAlignment="Right" VerticalAlignment="Bottom">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <RotateTransform Angle="-24.81" />
-          <ScaleTransform ScaleX="3" ScaleY="3" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Viewbox Classes="wal1" Height="100" Width="100">
-        <ContentControl Template="{StaticResource wa1}" />
-      </Viewbox>
-    </Panel>
-
-    <Panel HorizontalAlignment="Left" VerticalAlignment="Top">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <RotateTransform Angle="-24.81" />
-          <ScaleTransform ScaleX="1.8" ScaleY="1.8" />
-          <TranslateTransform X="500" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Viewbox Classes="wal2" Height="100" Width="100">
-        <ContentControl Template="{StaticResource coin2}" />
-      </Viewbox>
-    </Panel>
-
-    <Panel HorizontalAlignment="Left" VerticalAlignment="Top">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <RotateTransform Angle="-24.81" />
-          <ScaleTransform ScaleX="1" ScaleY="1" />
-          <TranslateTransform X="50" Y="200" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Viewbox Classes="wal3" Height="100" Width="100">
-        <ContentControl Template="{StaticResource coin1}" />
-      </Viewbox>
-    </Panel>
-
-    <Panel HorizontalAlignment="Left" VerticalAlignment="Bottom">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <RotateTransform Angle="-24.81" />
-          <ScaleTransform ScaleX="1.4" ScaleY="1.4" />
-          <TranslateTransform X="70" Y="-100" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Viewbox Classes="wal4" Height="100" Width="100">
-        <ContentControl Template="{StaticResource coin2}" />
-      </Viewbox>
-    </Panel>
-
-    <Panel HorizontalAlignment="Right" VerticalAlignment="Top">
-      <Panel.RenderTransform>
-        <TransformGroup>
-          <RotateTransform Angle="-24.81" />
-          <ScaleTransform ScaleX="1.4" ScaleY="1.4" />
-          <TranslateTransform X="-70" Y="330" />
-        </TransformGroup>
-      </Panel.RenderTransform>
-      <Viewbox Classes="wal5" Height="100" Width="100">
-        <ContentControl Template="{StaticResource coin1}" />
-      </Viewbox>
-    </Panel>
+    <Viewbox Stretch="Uniform" Width="1600" Height="900">
+      <ContentControl Name="PART_ContentControl" Template="{StaticResource CoinJoin}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+    </Viewbox>
   </Panel>
 </UserControl>
-
