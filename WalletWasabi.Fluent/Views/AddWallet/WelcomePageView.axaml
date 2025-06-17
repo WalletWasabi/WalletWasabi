@@ -132,7 +132,7 @@
             <Viewbox>
               <Panel>
                 <Border Width="465.5" Height="465.5" />
-                <Path Fill="{DynamicResource LogoFixedForegroundColor}" Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z" />
+                <Path Fill="{DynamicResource SystemBaseHighColor}" Data="M 14 37 L 14 452 L 453 452 L 453 189 L 322 189 L 322 37 L 14 37 z" />
                 <Path Fill="{DynamicResource LogoAccentColor}" Data="M 322 37 H 458 V 208 H 322 Z" />
                 <Path Fill="{DynamicResource RegionColor}" Data="M0 0v465.5h465.5V0H0zm363.6 76.1h74.6v73.3h-74.6V76zM91.1 81.6a479.5 479.5 0 0 0 54.2 142.3l6.8 9.5h84a474.6 474.6 0 0 1-43.3-115.2L255 82.9a528 528 0 0 0 55.6 141l6.8 9.5h119.3v58.3h-65c19 20.4 40.6 35.3 59.6 47.5l-51.5 50.2c-25.8-17.7-70.5-50.2-107.1-97.7H209c20.4 17.7 44.8 39.4 58.3 47.5l-54.2 50.2A430 430 0 0 1 96.5 274.1a481 481 0 0 1-69.2-156c23-13.5 40.7-21.6 63.8-36.5z" />
               </Panel>

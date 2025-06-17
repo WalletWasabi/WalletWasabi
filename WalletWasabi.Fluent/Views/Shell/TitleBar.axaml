@@ -41,9 +41,9 @@
                   TextElement.FontFamily="{StaticResource WasabiLogoTextFont}"
                   Classes="h7"
                   TextElement.FontWeight="Light" Orientation="Horizontal" ClipToBounds="False">
-        <TextBlock Text="WASABI" Foreground="{DynamicResource LogoFixedForegroundColor}" />
+        <TextBlock Text="WASABI" Foreground="{DynamicResource SystemBaseHighColor}" />
         <TextBlock Text="." Foreground="{DynamicResource LogoAccentColor}" />
-        <TextBlock Text="WALLET" Foreground="{DynamicResource LogoFixedForegroundColor}" />
+        <TextBlock Text="WALLET" Foreground="{DynamicResource SystemBaseHighColor}" />
       </StackPanel>
     </DataTemplate>
 

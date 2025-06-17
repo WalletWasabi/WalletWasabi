@@ -41,8 +41,6 @@
       <GradientStop Color="#17C04A" Offset="1"/>
   </LinearGradientBrush>
 
-  <Color x:Key="LogoFixedForegroundColor">White</Color>
-
   <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
   <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
 
