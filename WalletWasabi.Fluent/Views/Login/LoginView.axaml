@@ -58,7 +58,7 @@
               </Interaction.Behaviors>
             </CopyablePasswordTextBox>
             <Panel Margin="0 5 0 0 ">
-              <Button Content="Open" Focusable="False" Classes="action" HorizontalAlignment="Right" Command="{Binding NextCommand}">
+              <Button Content="Open" Focusable="False" Classes="function" HorizontalAlignment="Right" Command="{Binding NextCommand}">
                 <Button.IsDefault>
                   <MultiBinding Converter="{x:Static BoolConverters.And}">
                     <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNullOrEmpty}" />
@@ -70,7 +70,7 @@
           </DockPanel>
 
           <!-- Hardware & Watch only wallet -->
-          <Button Content="Open" IsVisible="{Binding !IsPasswordNeeded}" HorizontalAlignment="Center" Classes="action" Command="{Binding NextCommand}" />
+          <Button Content="Open" IsVisible="{Binding !IsPasswordNeeded}" HorizontalAlignment="Center" Classes="function" Command="{Binding NextCommand}" />
         </DockPanel>
 
         <!-- Incorrect password -->
@@ -80,7 +80,7 @@
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
           <TextBlock Text="{Binding ErrorMessage}" HorizontalAlignment="Center" />
-          <Button Content="OK" Focusable="False" Classes="action" HorizontalAlignment="Center" Command="{Binding OkCommand}">
+          <Button Content="OK" Focusable="False" Classes="function" HorizontalAlignment="Center" Command="{Binding OkCommand}">
             <Button.IsDefault>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />

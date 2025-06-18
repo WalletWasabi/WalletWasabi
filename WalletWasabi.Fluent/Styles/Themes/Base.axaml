@@ -34,6 +34,13 @@
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
   <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor">Black</SolidColorBrush>
 
+  <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
+  <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="FunctionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="FunctionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor">Black</SolidColorBrush>
+
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
   <LinearGradientBrush x:Key="LogoAccentColor" StartPoint="1,0" EndPoint="0,1">
