@@ -4,23 +4,36 @@
   <Thickness x:Key="FunctionButtonPadding">13,7</Thickness>
 
   <ControlTheme x:Key="AccentButton" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
-    <Setter Property="CornerRadius" Value="6" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="Padding" Value="9 7" />
-    <Style Selector="^:pointerover /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
+      <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
-    </Style>
-    <Style Selector="^:pressed /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
-      <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
-    </Style>
-    <Style Selector="^.bordered">
-      <Setter Property="BorderBrush" Value="Yellow"/>
-      <Setter Property="BorderThickness" Value="1.5"/>
-    </Style>
+      <Setter Property="CornerRadius" Value="6" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Padding" Value="9 7" />
+
+      <Style Selector="^:pointerover /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
+          <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+          <Setter Property="BorderBrush" Value="Transparent" />
+      </Style>
+
+      <Style Selector="^:pressed /template/ ContentPresenter">
+          <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
+          <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+      </Style>
+
+      <Style Selector="^.bordered">
+          <Setter Property="BorderBrush" Value="LawnGreen"/>
+          <Setter Property="BorderThickness" Value="1.5"/>
+          <Setter Property="Background" Value="{DynamicResource LowOpacityAccentBrush}" />
+          <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+      </Style>
+
+      <Style Selector="^.bordered:pointerover /template/ ContentPresenter">
+          <Setter Property="BorderBrush" Value="LawnGreen"/>
+          <Setter Property="BorderThickness" Value="1.5"/>
+          <Setter Property="Background" Value="{DynamicResource HighOpacityAccentBrush}" />
+          <Setter Property="Foreground" Value="{DynamicResource AccentButtonForegroundColor}" />
+      </Style>
   </ControlTheme>
 
   <ControlTheme x:Key="SortButtonBase" TargetType="Button" BasedOn="{StaticResource {x:Type Button}}">

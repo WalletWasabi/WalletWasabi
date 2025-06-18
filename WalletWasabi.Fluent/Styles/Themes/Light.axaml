@@ -71,7 +71,7 @@
 
   <SolidColorBrush x:Key="ComboBoxItemBackground" Color="Transparent" />
   <SolidColorBrush x:Key="ComboBoxItemBackgroundPressed" Color="{StaticResource SystemChromeHighColor}" />
-  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Color="{StaticResource SystemChromeLowColor}" />
+  <SolidColorBrush x:Key="ComboBoxItemBackgroundPointerOver" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
 
   <Color x:Key="TileRegionColor">#EFEFEF</Color>
   <Color x:Key="BorderColor">#66757575</Color>

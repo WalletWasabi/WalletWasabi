@@ -22,7 +22,7 @@
               Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
               ToolTip.Tip="Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource double_shield_regular}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource SystemAltHighColor}" Data="{StaticResource double_shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
         </StackPanel>
       </Button>
@@ -32,7 +32,7 @@
               Classes.bordered="{Binding DefaultProfileSelected}"
               ToolTip.Tip="Well rounded strategy">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource shield_regular}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource SystemAltHighColor}" Data="{StaticResource shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
         </StackPanel>
       </Button>
@@ -42,7 +42,7 @@
               Classes.bordered="{Binding EconomicalProfileSelected}"
               ToolTip.Tip="Only participate in coinjoins during the cheapest parts of the week.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_cost}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource SystemAltHighColor}" Data="{StaticResource coinjoin_cost}" />
           <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
         </StackPanel>
       </Button>
