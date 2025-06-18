@@ -9,20 +9,24 @@
 
   <!-- Action -->
   <Style Selector="Button.action /template/ ContentPresenter">
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
-    <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
-    <Setter Property="TextElement.Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="Background" Value="{DynamicResource ActionButtonBackgroundColor}" />
+      <Setter Property="Padding" Value="{StaticResource ActionButtonPadding}" />
+      <Setter Property="TextElement.Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
   </Style>
+
   <Style Selector="Button.action:pointerover /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
+      <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPointerOverColor}" />
   </Style>
+
   <Style Selector="Button.action:pressed /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+      <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPressedColor}" />
   </Style>
+
   <Style Selector="Button.action:disabled /template/ ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledForegroundColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledColor}" />
   </Style>
 
   <!-- Function -->
@@ -144,7 +148,7 @@
         <Button Classes="plain" Content="Plain Button" />
         <Button Classes="function">
           <StackPanel Orientation="Horizontal">
-            <PathIcon Data="{StaticResource wallet_action_send}" />
+            <PathIcon Foreground="{DynamicResource SystemChromeWhiteColor}" Data="{StaticResource wallet_action_send}" />
             <TextBlock Text="Send" />
           </StackPanel>
         </Button>

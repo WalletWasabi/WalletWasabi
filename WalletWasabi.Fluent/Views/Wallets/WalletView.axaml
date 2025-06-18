@@ -40,6 +40,7 @@
 
             <SubActionButton Content="Send"
                              Command="{Binding DefaultSendCommand}"
+                             Foreground="{DynamicResource SystemChromeWhiteColor}"
                              IsVisible="{Binding IsSendButtonVisible}"
                              Icon="{StaticResource wallet_action_send}">
               <SubActionButton.SubCommands>
@@ -77,6 +78,7 @@
                              Command="{Binding DefaultReceiveCommand}"
                              VerticalAlignment="Bottom"
                              HorizontalAlignment="Right"
+                             Foreground="{DynamicResource SystemChromeWhiteColor}"
                              Icon="{StaticResource wallet_action_receive}"
                              IsVisible="{Binding SeveralReceivingScriptTypes}">
               <SubActionButton.SubCommands>
@@ -103,6 +105,7 @@
 
             <Panel>
               <Button Classes="function"
+                      Foreground="{DynamicResource SystemChromeWhiteColor}"
                       IsVisible="{Binding IsDonateButtonVisible}"
                       Command="{Binding DonateCommand}">
                 <StackPanel Orientation="Horizontal">

@@ -5,35 +5,45 @@
   </ResourceDictionary.MergedDictionaries>
 
   <Color x:Key="SystemAccentColor">#FF1AB248</Color>
+
   <Color x:Key="SystemAltHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltLowColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltMediumColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltMediumHighColor">#FFFFFFFF</Color>
   <Color x:Key="SystemAltMediumLowColor">#FFFFFFFF</Color>
+
   <Color x:Key="SystemBaseHighColor">#FF000000</Color>
   <Color x:Key="SystemBaseLowColor">#FFDADADA</Color>
   <Color x:Key="SystemBaseMediumColor">#FFABABAB</Color>
   <Color x:Key="SystemBaseMediumHighColor">#FF787878</Color>
   <Color x:Key="SystemBaseMediumLowColor">#FF919191</Color>
+
   <Color x:Key="SystemChromeAltLowColor">#FF787878</Color>
+  <Color x:Key="SystemChromeAltMediumHighColor">#FF1A1A1A</Color>
+  <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
+
   <Color x:Key="SystemChromeBlackHighColor">#FF000000</Color>
   <Color x:Key="SystemChromeBlackLowColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeBlackMediumColor">#FF787878</Color>
   <Color x:Key="SystemChromeBlackMediumLowColor">#FFABABAB</Color>
+
   <Color x:Key="SystemChromeDisabledHighColor">#FFF7F7F7</Color>
   <Color x:Key="SystemChromeDisabledLowColor">#FFABABAB</Color>
-  <Color x:Key="SystemChromeGrayColor">#FF919191</Color>
-  <Color x:Key="SystemChromeHighColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemChromeLowColor">#FFFCFCFC</Color>
-  <Color x:Key="SystemChromeMediumColor">#F3F3F3</Color>
-  <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
+
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
+  <Color x:Key="SystemChromeGrayColor">#FF919191</Color>
+
+  <Color x:Key="SystemChromeLowColor">#FFFCFCFC</Color>
+  <Color x:Key="SystemChromeMediumLowColor">#FFFCFCFC</Color>
+  <Color x:Key="SystemChromeMediumColor">#F3F3F3</Color>
+  <Color x:Key="SystemChromeHighColor">#FFF7F7F7</Color>
+
   <Color x:Key="SystemListLowColor">#F3F3F3</Color>
   <Color x:Key="SystemListMediumColor">#FFF7F7F7</Color>
-  <Color x:Key="SystemChromeAltMediumHighColor">#CCFFFFFF</Color>
-  <Color x:Key="SystemChromeAltHighColor">#FFF7F7F7</Color>
+
   <Color x:Key="SystemRevealListLowColor">#F3F3F3</Color>
   <Color x:Key="SystemRevealListMediumColor">#FFF7F7F7</Color>
+
   <Color x:Key="SystemAccentColorLight1">#FF18A442</Color>
   <Color x:Key="SystemAccentColorLight2">#FF9BC75B</Color>
   <Color x:Key="SystemAccentColorDark1">#FF16943C</Color>

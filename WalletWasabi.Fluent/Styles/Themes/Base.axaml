@@ -27,13 +27,16 @@
   <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.1" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
-  <SolidColorBrush x:Key="ActionButtonForegroundColor">White</SolidColorBrush>
-  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
-  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
-  <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
-  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor">Black</SolidColorBrush>
+  <!-- Action Buttons -->
+  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Opacity="0.20" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPressedColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Opacity="0.18" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
 
+  <!-- Function Buttons -->
   <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
   <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
   <SolidColorBrush x:Key="FunctionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
@@ -114,8 +117,8 @@
   <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 4 10 0 #4A000000</BoxShadows>
 
   <!-- Invisible function button -->
-  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.18" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
 
   <!-- LineChart -->
   <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentColor" />
