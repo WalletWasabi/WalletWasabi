@@ -17,16 +17,16 @@
 
   <Style Selector="Button.action:pointerover /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource ActionButtonPointerOverBackgroundColor}" />
-      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPointerOverColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPointerOverForegroundColor}" />
   </Style>
 
   <Style Selector="Button.action:pressed /template/ ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource ActionButtonPressedBackgroundColor}" />
-      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPressedColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonPressedForegroundColor}" />
   </Style>
 
   <Style Selector="Button.action:disabled /template/ ContentPresenter">
-      <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledColor}" />
+      <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledForegroundColor}" />
   </Style>
 
   <!-- Function -->
@@ -34,7 +34,7 @@
     <Setter Property="BorderThickness" Value="0" />
     <Setter Property="MinHeight" Value="32" />
     <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
-    <Setter Property="Background" Value="{DynamicResource SystemAccentColor}" />
+    <Setter Property="Background" Value="{DynamicResource FunctionButtonBackgroundColor}" />
     <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
     <Setter Property="Cursor" Value="Hand" />
   </Style>
@@ -52,15 +52,19 @@
   </Style>
   <Style Selector="Button.function:pointerover /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
   </Style>
   <Style Selector="Button.function:pressed /template/ ContentPresenter">
     <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+  </Style>
+  <Style Selector="Button.function:selected /template/ ContentPresenter">
+    <Setter Property="Background" Value="{DynamicResource FunctionButtonSelectedBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonSelectedForegroundColor}" />
   </Style>
   <Style Selector="Button.function:disabled /template/ ContentPresenter#PART_ContentPresenter">
-    <Setter Property="Background" Value="{DynamicResource FunctionButtonBackgroundColor}" />
-    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
+    <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
   </Style>
 
   <!-- Transparent Function -->

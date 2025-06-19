@@ -16,12 +16,12 @@
       <TextBlock Text="Name" />
       <Button MaxWidth="150"
               Command="{Binding RenameCommand}"
-              Theme="{StaticResource AccentButton}"
+              Theme="{StaticResource FunctionButton}"
               ToolTip.Tip="{Binding WalletName}"
               DockPanel.Dock="Right">
         <Button.Content>
           <DockPanel>
-            <PathIcon Foreground="{DynamicResource AccentButtonForegroundColor}" Margin="8 0 0 0"
+            <PathIcon Foreground="{DynamicResource FunctionButtonForegroundColor}" Margin="8 0 0 0"
                       DockPanel.Dock="Right" Data="{StaticResource edit_regular}" />
             <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
           </DockPanel>

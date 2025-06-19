@@ -30,19 +30,31 @@
   <!-- Action Buttons -->
   <SolidColorBrush x:Key="ActionButtonBackgroundColor" Opacity="0.20" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonPointerOverColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+
   <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Opacity="0.18" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonDisabledColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPressedForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+
+  <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor">Black</SolidColorBrush>
 
   <!-- Function Buttons -->
-  <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
   <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="FunctionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
+
   <SolidColorBrush x:Key="FunctionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="FunctionButtonPointerOverForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonPressedForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonSelectedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonSelectedForegroundColor">White</SolidColorBrush>
+
   <SolidColorBrush x:Key="FunctionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
-  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor">Black</SolidColorBrush>
+  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor">White</SolidColorBrush>
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
