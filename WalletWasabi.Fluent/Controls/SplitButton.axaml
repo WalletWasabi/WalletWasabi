@@ -49,9 +49,26 @@
                   VerticalAlignment="Stretch"
                   HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
                   VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                  Background="{DynamicResource FunctionButtonBackgroundColor}"
+                  Foreground="{DynamicResource FunctionButtonForegroundColor}"
                   Padding="{TemplateBinding Padding}"
                   Focusable="False"
-                  KeyboardNavigation.IsTabStop="False" />
+                  KeyboardNavigation.IsTabStop="False">
+              <Button.Styles>
+                  <Style Selector="Button:pointerover /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:pressed /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                  </Style>
+              </Button.Styles>
+          </Button>
 
           <Border x:Name="SeparatorBorder"
                   Grid.Column="1"
@@ -62,20 +79,36 @@
 
           <Button x:Name="PART_SecondaryButton"
                   Grid.Column="2"
-                                    Width="{DynamicResource SplitButtonSecondaryButtonSize}"
+                  Width="{DynamicResource SplitButtonSecondaryButtonSize}"
                   BorderBrush="{TemplateBinding BorderBrush}"
                   BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource SecondaryButtonBorderMultiplier}}"
                   CornerRadius="{TemplateBinding CornerRadius, Converter={StaticResource RightCornerRadiusFilterConverter}}"
                   Padding="0"
                   HorizontalContentAlignment="Center"
                   VerticalContentAlignment="Center"
+                  Background="{DynamicResource FunctionButtonBackgroundColor}"
+                  Foreground="{DynamicResource FunctionButtonForegroundColor}"
                   HorizontalAlignment="Stretch"
                   VerticalAlignment="Stretch"
                   Focusable="False"
                   KeyboardNavigation.IsTabStop="False">
             <Viewbox>
-              <PathIcon Foreground="{Binding #PART_PrimaryButton.Foreground}" Margin="6" Width="25" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
+              <PathIcon Margin="6" Width="25" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
             </Viewbox>
+            <Button.Styles>
+                <Style Selector="Button:pointerover /template/ ContentPresenter">
+                    <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                </Style>
+                <Style Selector="Button:pressed /template/ ContentPresenter">
+                    <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                </Style>
+                <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                    <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                </Style>
+            </Button.Styles>
           </Button>
         </Grid>
       </ControlTemplate>
@@ -91,12 +124,6 @@
 
     <Style Selector="^:checked:flyout-open /template/ Button">
       <Setter Property="Tag" Value="checked-flyout-open" />
-    </Style>
-  </ControlTheme>
-
-  <ControlTheme x:Key="FunctionSplitButton" TargetType="SplitButton" BasedOn="{StaticResource {x:Type SplitButton}}">
-    <Style Selector="^ /template/ Button">
-      <Setter Property="Theme" Value="{StaticResource FunctionButton}" />
     </Style>
   </ControlTheme>
 
@@ -130,13 +157,6 @@
           </ToggleSplitButton.Flyout>
         </ToggleSplitButton>
         <ToggleSplitButton Content="Checked Disabled" IsChecked="True" IsEnabled="False"/>
-        <SplitButton Content="ActionSplitButton" Theme="{StaticResource FunctionSplitButton}">
-          <SplitButton.Flyout>
-            <Flyout>
-              <TextBlock>Some content</TextBlock>
-            </Flyout>
-          </SplitButton.Flyout>
-        </SplitButton>
       </StackPanel>
     </Border>
   </Design.PreviewWith>

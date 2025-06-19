@@ -42,57 +42,60 @@
     </Border>
   </Design.PreviewWith>
 
-  <ControlTheme x:Key="{x:Type SubActionButton}"
-                TargetType="SubActionButton">
-    <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="MinHeight" Value="33" />
-    <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
-    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
-    <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate>
-          <SplitButton Command="{TemplateBinding Command}"
-                       BorderThickness="{TemplateBinding BorderThickness}"
-                       Padding="{TemplateBinding Padding}"
-                       BorderBrush="{TemplateBinding BorderBrush}"
-                       Foreground="{TemplateBinding Foreground}"
-                       Content="{TemplateBinding Content}"
-                       Theme="{StaticResource FunctionSplitButton}">
-            <SplitButton.ContentTemplate>
-              <DataTemplate>
-                <DockPanel>
-                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 10 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" />
-                  <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
-                </DockPanel>
-              </DataTemplate>
-            </SplitButton.ContentTemplate>
-            <SplitButton.Flyout>
-              <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
-                <MenuFlyout.ItemContainerTheme>
-                  <ControlTheme TargetType="MenuItem"
-                                BasedOn="{StaticResource {x:Type MenuItem}}">
-                    <Setter x:DataType="IUICommand" Property="HeaderTemplate">
-                      <Setter.Value>
-                        <DataTemplate DataType="IUICommand">
-                          <DockPanel>
-                            <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="8" Width="8" Fill="{DynamicResource SystemAccentColor}" />
-                            <TextBlock Text="{Binding Name}" />
-                          </DockPanel>
-                        </DataTemplate>
-                      </Setter.Value>
-                    </Setter>
-                    <Setter x:DataType="IUICommand" Property="Icon" Value="{Binding Icon}" />
-                    <Setter x:DataType="IUICommand" Property="Command" Value="{Binding Command}" />
-                  </ControlTheme>
-                </MenuFlyout.ItemContainerTheme>
-              </MenuFlyout>
-            </SplitButton.Flyout>
-          </SplitButton>
-        </ControlTemplate>
-      </Setter.Value>
-    </Setter>
-
+  <ControlTheme x:Key="{x:Type SubActionButton}" TargetType="SubActionButton">
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="Cursor" Value="Hand" />
+      <Setter Property="MinHeight" Value="33" />
+      <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
+      <Setter Property="Template">
+        <Setter.Value>
+          <ControlTemplate>
+            <SplitButton Command="{TemplateBinding Command}"
+                         BorderThickness="{TemplateBinding BorderThickness}"
+                         Padding="{TemplateBinding Padding}"
+                         BorderBrush="{TemplateBinding BorderBrush}"
+                         Foreground="{TemplateBinding Foreground}"
+                         Content="{TemplateBinding Content}">
+              <SplitButton.ContentTemplate>
+                <DataTemplate>
+                  <DockPanel>
+                    <!-- Измененная привязка Foreground -->
+                    <PathIcon x:Name="PART_Icon"
+                             Margin="0 0 10 0"
+                             Data="{Binding $parent[SubActionButton].Icon}"
+                             IsVisible="{Binding !!$parent[SubActionButton].Icon}"
+                             Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=SplitButton}}"/>
+                    <ContentControl VerticalAlignment="Center"
+                                   Content="{Binding $parent[SubActionButton].Content}"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=SplitButton}}"/>
+                  </DockPanel>
+                </DataTemplate>
+              </SplitButton.ContentTemplate>
+              <SplitButton.Flyout>
+                <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
+                  <MenuFlyout.ItemContainerTheme>
+                    <ControlTheme TargetType="MenuItem"
+                                  BasedOn="{StaticResource {x:Type MenuItem}}">
+                      <Setter x:DataType="IUICommand" Property="HeaderTemplate">
+                        <Setter.Value>
+                          <DataTemplate DataType="IUICommand">
+                            <DockPanel>
+                              <Ellipse IsVisible="{Binding IsDefault}" ToolTip.Tip="Default" DockPanel.Dock="Right" Margin="10 0 0 0" VerticalAlignment="Center" Height="8" Width="8" Fill="{DynamicResource SystemAccentColor}" />
+                              <TextBlock Text="{Binding Name}" />
+                            </DockPanel>
+                          </DataTemplate>
+                        </Setter.Value>
+                      </Setter>
+                      <Setter x:DataType="IUICommand" Property="Icon" Value="{Binding Icon}" />
+                      <Setter x:DataType="IUICommand" Property="Command" Value="{Binding Command}" />
+                    </ControlTheme>
+                  </MenuFlyout.ItemContainerTheme>
+                </MenuFlyout>
+              </SplitButton.Flyout>
+            </SplitButton>
+          </ControlTemplate>
+        </Setter.Value>
+      </Setter>
   </ControlTheme>
 
 </ResourceDictionary>
