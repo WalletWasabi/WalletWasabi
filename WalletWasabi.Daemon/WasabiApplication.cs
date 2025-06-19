@@ -132,12 +132,12 @@ public class WasabiApplication
 
 	private void CreateConfigFiles()
 	{
-		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.json"),
-			PersistentConfigManager.DefaultMainNetConfig);
-		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.TestNet.json"),
-			PersistentConfigManager.DefaultTestNetConfig);
 		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.RegTest.json"),
 			PersistentConfigManager.DefaultRegTestConfig);
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.TestNet.json"),
+			PersistentConfigManager.DefaultTestNetConfig);
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.json"),
+			PersistentConfigManager.DefaultMainNetConfig);
 		return;
 
 		static void CreateConfigFileIfNotExists(string filePath, PersistentConfig config)
