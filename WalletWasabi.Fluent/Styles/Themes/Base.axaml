@@ -28,14 +28,14 @@
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
   <!-- Action Buttons -->
-  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Opacity="0.20" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ActionButtonForegroundColor">White</SolidColorBrush>
 
-  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Opacity="0.18" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonPointerOverForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverForegroundColor">White</SolidColorBrush>
 
-  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ActionButtonPressedForegroundColor">White</SolidColorBrush>
 
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
   <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
