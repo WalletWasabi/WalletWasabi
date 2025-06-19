@@ -26,6 +26,7 @@
   </Style>
 
   <Style Selector="Button.action:disabled /template/ ContentPresenter">
+      <Setter Property="Background" Value="{DynamicResource ActionButtonDisabledBackgroundColor}" />
       <Setter Property="Foreground" Value="{DynamicResource ActionButtonDisabledForegroundColor}" />
   </Style>
 

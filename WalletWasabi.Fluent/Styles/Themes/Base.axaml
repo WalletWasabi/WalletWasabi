@@ -38,7 +38,7 @@
   <SolidColorBrush x:Key="ActionButtonPressedForegroundColor" Color="{StaticResource SystemChromeAltMediumHighColor}" />
 
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
-  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor">Black</SolidColorBrush>
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
 
   <!-- Function Buttons -->
   <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
@@ -54,7 +54,7 @@
   <SolidColorBrush x:Key="FunctionButtonSelectedForegroundColor">White</SolidColorBrush>
 
   <SolidColorBrush x:Key="FunctionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
-  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor">White</SolidColorBrush>
+  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
