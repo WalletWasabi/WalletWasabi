@@ -2,7 +2,6 @@
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
                     xmlns:converters="using:Avalonia.Controls.Converters">
 
-  <!-- Общие параметры для кнопки -->
   <x:Double x:Key="SubActionButtonPrimaryButtonSize">32</x:Double>
   <x:Double x:Key="SubActionButtonSecondaryButtonSize">13</x:Double>
   <x:Double x:Key="SubActionButtonSeparatorWidth">1</x:Double>
@@ -36,7 +35,6 @@
             <ColumnDefinition Width="Auto" />
           </Grid.ColumnDefinitions>
 
-          <!-- Основная кнопка -->
           <Button x:Name="PART_PrimaryButton"
                   Grid.Column="0"
                   MinWidth="{DynamicResource SubActionButtonPrimaryButtonSize}"
@@ -53,37 +51,43 @@
                   Padding="{TemplateBinding Padding}"
                   Focusable="False"
                   KeyboardNavigation.IsTabStop="False">
-            <Button.ContentTemplate>
-              <DataTemplate>
-                <DockPanel>
-                  <PathIcon x:Name="PART_Icon"
-                           Margin="0 0 10 0"
-                           Data="{Binding $parent[SubActionButton].Icon}"
-                           IsVisible="{Binding !!$parent[SubActionButton].Icon}"
-                           Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                  <ContentControl VerticalAlignment="Center"
-                                 Content="{Binding $parent[SubActionButton].Content}"
-                                 Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
-                </DockPanel>
-              </DataTemplate>
-            </Button.ContentTemplate>
-            <Button.Styles>
-              <Style Selector="Button:pointerover /template/ ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
-              </Style>
-              <Style Selector="Button:pressed /template/ ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
-              </Style>
-              <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
-              </Style>
-            </Button.Styles>
+              <Button.Styles>
+                  <Style Selector="Button:pointerover /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                  </Style>
+                  <Style Selector="Button:pressed /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                  </Style>
+                  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                  </Style>
+
+                  <Style Selector="Button:pointerover">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:pressed">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:disabled">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                  </Style>
+              </Button.Styles>
+              <Button.ContentTemplate>
+                  <DataTemplate>
+                      <DockPanel>
+                          <PathIcon x:Name="PART_Icon"
+                                   Margin="0 0 10 0"
+                                   Data="{Binding $parent[SubActionButton].Icon}"
+                                   IsVisible="{Binding !!$parent[SubActionButton].Icon}"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                          <ContentControl VerticalAlignment="Center"
+                                         Content="{Binding $parent[SubActionButton].Content}"
+                                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                      </DockPanel>
+                  </DataTemplate>
+              </Button.ContentTemplate>
           </Button>
 
-          <!-- Разделитель -->
           <Border x:Name="SeparatorBorder"
                   Grid.Column="1"
                   Background="Transparent"
@@ -91,7 +95,6 @@
                   BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource SeparatorBorderMultiplier}}"
                   BorderBrush="{TemplateBinding BorderBrush}" />
 
-          <!-- Кнопка выпадающего меню -->
           <Button x:Name="PART_SecondaryButton"
                   Grid.Column="2"
                   Width="{DynamicResource SubActionButtonSecondaryButtonSize}"
@@ -107,23 +110,30 @@
                   VerticalAlignment="Stretch"
                   Focusable="False"
                   KeyboardNavigation.IsTabStop="False">
+                  <Button.Styles>
+                      <Style Selector="Button:pointerover /template/ ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                      </Style>
+                      <Style Selector="Button:pressed /template/ ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                      </Style>
+                      <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                      </Style>
+
+                      <Style Selector="Button:pointerover">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                      </Style>
+                      <Style Selector="Button:pressed">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                      </Style>
+                      <Style Selector="Button:disabled">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                      </Style>
+                  </Button.Styles>
             <Viewbox>
-              <PathIcon Margin="6" Width="25" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
+              <PathIcon Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Margin="6" Width="25" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
             </Viewbox>
-            <Button.Styles>
-              <Style Selector="Button:pointerover /template/ ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
-              </Style>
-              <Style Selector="Button:pressed /template/ ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
-              </Style>
-              <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
-                <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
-                <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
-              </Style>
-            </Button.Styles>
             <Button.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
                 <MenuFlyout.ItemContainerTheme>
