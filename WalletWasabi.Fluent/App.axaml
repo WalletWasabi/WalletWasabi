@@ -39,7 +39,7 @@
   </NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
-      <TrayIcon Icon="/Assets/TrayIcon.ico" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
+      <TrayIcon Icon="/Assets/WasabiLogo.ico" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">
         <!-- TODO: This is temporary workaround until https://github.com/WalletWasabi/WalletWasabi/issues/8151 is fixed. -->
         <!--<NativeMenu.Menu>
           <NativeMenu>
