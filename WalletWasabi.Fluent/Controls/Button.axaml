@@ -88,13 +88,13 @@
       <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
       <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
     </Style>
-    <Style Selector="^:selected /template/ ContentPresenter">
-      <Setter Property="Background" Value="{DynamicResource FunctionButtonSelectedBackgroundColor}" />
-      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonSelectedForegroundColor}" />
-    </Style>
     <Style Selector="^:disabled /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
       <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+    </Style>
+    <Style Selector="^.selected">
+        <Setter Property="Background" Value="{DynamicResource FunctionButtonSelectedBackgroundColor}" />
+        <Setter Property="Foreground" Value="{DynamicResource FunctionButtonSelectedForegroundColor}" />
     </Style>
   </ControlTheme>
 
