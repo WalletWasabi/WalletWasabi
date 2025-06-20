@@ -44,6 +44,11 @@
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
   </Style>
+  <Style Selector="Button.function:disabled PathIcon">
+    <Setter Property="Margin" Value="0" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+  </Style>
   <Style Selector="Button.function TextBlock">
     <Setter Property="VerticalAlignment" Value="Center" />
     <Setter Property="Margin" Value="0" />
