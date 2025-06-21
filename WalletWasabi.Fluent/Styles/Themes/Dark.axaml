@@ -27,8 +27,8 @@
   <Color x:Key="SystemChromeBlackMediumColor">#FF000000</Color>
   <Color x:Key="SystemChromeBlackMediumLowColor">#FF000000</Color>
 
-  <Color x:Key="SystemChromeDisabledHighColor">#FF000000</Color>
-  <Color x:Key="SystemChromeDisabledLowColor">#FF949494</Color>
+  <Color x:Key="SystemChromeDisabledHighColor">#FF707070</Color>
+  <Color x:Key="SystemChromeDisabledLowColor">#FF333333</Color>
 
   <Color x:Key="SystemChromeWhiteColor">#FFFFFFFF</Color>
   <Color x:Key="SystemChromeGrayColor">#FF787878</Color>
