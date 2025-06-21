@@ -14,19 +14,15 @@
   <StackPanel Classes="settingsLayout">
     <DockPanel>
       <TextBlock Text="Name" />
-      <Button MaxWidth="150"
-              Command="{Binding RenameCommand}"
-              Theme="{StaticResource FunctionButton}"
-              ToolTip.Tip="{Binding WalletName}"
-              DockPanel.Dock="Right">
-        <Button.Content>
-          <DockPanel>
-            <PathIcon Foreground="{DynamicResource FunctionButtonForegroundColor}" Margin="8 0 0 0"
-                      DockPanel.Dock="Right" Data="{StaticResource edit_regular}" />
-            <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" VerticalAlignment="Center" Text="{Binding WalletName, FallbackValue='Wallet name'}" />
-          </DockPanel>
-        </Button.Content>
-      </Button>
+      <TextBox MaxLength="{StaticResource WalletNameMaxLength}"
+               Text="{Binding NewWalletName}"
+               VerticalAlignment="Top"
+               Watermark="Wallet name">
+        <Interaction.Behaviors>
+          <FocusOnAttachedBehavior />
+          <TextBoxSelectAllTextBehavior />
+        </Interaction.Behaviors>
+      </TextBox>
     </DockPanel>
 
     <DockPanel IsVisible="{Binding IsHardwareWallet}">
