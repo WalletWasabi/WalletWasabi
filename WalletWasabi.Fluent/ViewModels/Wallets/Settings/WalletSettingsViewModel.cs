@@ -43,13 +43,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     {
         UiContext = uiContext;
         _wallet = walletModel;
-        _walletName = walletModel.Name; // Инициализация текущим именем
+        _walletName = walletModel.Name;
         _preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
         _selectedTab = 0;
         IsHardwareWallet = walletModel.IsHardwareWallet;
         IsWatchOnly = walletModel.IsWatchOnlyWallet;
 
-        // Валидация имени кошелька
         this.ValidateProperty(
             x => x.WalletName,
             errors =>
@@ -183,7 +182,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     {
         base.OnNavigatedTo(isInHistory, disposables);
 
-        // Сбрасываем значение на текущее имя кошелька при каждом открытии
         WalletName = _wallet.Name;
 
         WalletCoinJoinSettings.ManuallyUpdateOutputWalletList();
