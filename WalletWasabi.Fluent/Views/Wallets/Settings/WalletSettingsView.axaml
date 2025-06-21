@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletSettingsView">
   <ContentArea Title="{Binding Title}"
-               EnableNext="True" NextContent="Done"
+               EnableNext="True" NextContent="Save"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
