@@ -16,33 +16,33 @@
             HorizontalAlignment="Center"
             Orientation="Horizontal"
             Classes="settingsLayout">
-      <Button Theme="{StaticResource AccentButton}"
+      <Button Theme="{StaticResource FunctionButton}"
               Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
-              Classes.bordered="{Binding MaximizePrivacyProfileSelected}"
+              Classes.selected="{Binding MaximizePrivacyProfileSelected}"
               ToolTip.Tip="Optimizes for privacy at all costs.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource double_shield_regular}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource double_shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
         </StackPanel>
       </Button>
-      <Button Theme="{StaticResource AccentButton}"
+      <Button Theme="{StaticResource FunctionButton}"
               Height="37"
               Command="{Binding SelectDefaultSettings}"
-              Classes.bordered="{Binding DefaultProfileSelected}"
+              Classes.selected="{Binding DefaultProfileSelected}"
               ToolTip.Tip="Well rounded strategy">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource shield_regular}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
         </StackPanel>
       </Button>
-      <Button Theme="{StaticResource AccentButton}"
+      <Button Theme="{StaticResource FunctionButton}"
               Height="37"
               Command="{Binding SelectEconomicalSettings}"
-              Classes.bordered="{Binding EconomicalProfileSelected}"
+              Classes.selected="{Binding EconomicalProfileSelected}"
               ToolTip.Tip="Only participate in coinjoins during the cheapest parts of the week.">
         <StackPanel Spacing="10" Orientation="Horizontal">
-          <PathIcon Opacity="0.9" Data="{StaticResource coinjoin_cost}" />
+          <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource coinjoin_cost}" />
           <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
         </StackPanel>
       </Button>

@@ -22,18 +22,6 @@
                             Easing="{StaticResource FluentEasing}" />
         </Transitions>
       </shell:MainScreen.Transitions>
-      <shell:MainScreen.Styles>
-        <Style Selector="shell|MainScreen[IsHitTestVisible=True]">
-          <Setter Property="Effect">
-            <BlurEffect Radius="0.0" />
-          </Setter>
-        </Style>
-        <Style Selector="shell|MainScreen[IsHitTestVisible=False]">
-          <Setter Property="Effect">
-            <BlurEffect Radius="3.0" />
-          </Setter>
-        </Style>
-      </shell:MainScreen.Styles>
     </shell:MainScreen>
     <shell:Dialogs />
   </Panel>
