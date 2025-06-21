@@ -32,7 +32,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     private readonly IWalletModel _wallet;
     [AutoNotify] private bool _preferPsbtWorkflow;
     [AutoNotify] private string _walletName;
-    [AutoNotify] private string _newWalletName;
     [AutoNotify] private int _selectedTab;
     [AutoNotify] private ScriptType _defaultReceiveScriptType;
     [AutoNotify] private bool _isSegWitDefaultReceiveScriptType;
@@ -44,8 +43,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     {
         UiContext = uiContext;
         _wallet = walletModel;
-        _walletName = walletModel.Name;
-        _newWalletName = walletModel.Name;
+        _walletName = walletModel.Name; // Инициализация текущим именем
         _preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
         _selectedTab = 0;
         IsHardwareWallet = walletModel.IsHardwareWallet;
@@ -53,19 +51,47 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         // Валидация имени кошелька
         this.ValidateProperty(
-            x => x.NewWalletName,
+            x => x.WalletName,
             errors =>
             {
-                if (_wallet.Name == NewWalletName)
+                if (_wallet.Name == WalletName)
                 {
                     return;
                 }
 
-                if (UiContext.WalletRepository.ValidateWalletName(NewWalletName) is { } error)
+                if (UiContext.WalletRepository.ValidateWalletName(WalletName) is { } error)
                 {
                     errors.Add(error.Severity, error.Message);
                 }
             });
+
+        SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+        var canSave = this.WhenAnyValue(x => x.WalletName, x => x.Validations,
+            (name, validations) => !string.IsNullOrWhiteSpace(name) && !validations.Any);
+
+        NextCommand = ReactiveCommand.Create(() =>
+        {
+            if (_wallet.Name != WalletName)
+            {
+                try
+                {
+                    _wallet.Rename(WalletName);
+                }
+                catch
+                {
+                    WalletName = _wallet.Name;
+                    UiContext.Navigate().To().ShowErrorDialog(
+                        $"The wallet cannot be renamed to {WalletName}",
+                        "Invalid name",
+                        "Cannot rename the wallet",
+                        NavigationTarget.CompactDialogScreen);
+                    return;
+                }
+            }
+
+            _wallet.Settings.Save();
+            Navigate().Back();
+        }, canSave);
 
         DefaultReceiveScriptType = walletModel.Settings.DefaultReceiveScriptType;
         this.WhenAnyValue(x => x.DefaultReceiveScriptType)
@@ -88,9 +114,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
-        SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
-        NextCommand = CancelCommand;
-
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -103,31 +126,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
             }
         });
-
-        // Обработка изменения имени
-        this.WhenAnyValue(x => x.NewWalletName)
-            .Skip(1)
-            .Where(_ => !Validations.Any)
-            .Subscribe(newName =>
-            {
-                if (_wallet.Name != newName)
-                {
-                    try
-                    {
-                        _wallet.Rename(newName);
-                        _walletName = newName;
-                    }
-                    catch
-                    {
-                        NewWalletName = _wallet.Name;
-                        UiContext.Navigate().To().ShowErrorDialog(
-                            $"The wallet cannot be renamed to {newName}",
-                            "Invalid name",
-                            "Cannot rename the wallet",
-                            NavigationTarget.CompactDialogScreen);
-                    }
-                }
-            });
 
         this.WhenAnyValue(x => x.DefaultSendWorkflow)
             .Skip(1)
@@ -160,8 +158,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                 walletModel.Settings.PreferPsbtWorkflow = value;
                 walletModel.Settings.Save();
             });
-
-        this.WhenAnyValue(x => x._wallet.Name).BindTo(this, x => x.WalletName);
     }
 
     public bool IsHardwareWallet { get; }
@@ -186,6 +182,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {
         base.OnNavigatedTo(isInHistory, disposables);
+
+        // Сбрасываем значение на текущее имя кошелька при каждом открытии
+        WalletName = _wallet.Name;
+
         WalletCoinJoinSettings.ManuallyUpdateOutputWalletList();
     }
 }

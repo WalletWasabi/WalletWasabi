@@ -13,15 +13,11 @@
 
   <StackPanel Classes="settingsLayout">
   <DockPanel>
-    <TextBlock Text="Name" />
+    <TextBlock Text="Wallet Name" />
     <TextBox MaxLength="{StaticResource WalletNameMaxLength}"
-             Text="{Binding NewWalletName}"
+             Text="{Binding WalletName}"
              VerticalAlignment="Top"
              Watermark="Wallet name">
-      <Interaction.Behaviors>
-        <FocusOnAttachedBehavior />
-        <TextBoxSelectAllTextBehavior />
-      </Interaction.Behaviors>
     </TextBox>
   </DockPanel>
 
