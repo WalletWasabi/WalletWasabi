@@ -14,7 +14,7 @@
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"
                  EnableCancel="{Binding !IsReadOnly}"
-                 NextContent="Save"
+                 NextContent="Done"
                  CancelContent="Reset All Settings"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <DockPanel LastChildFill="True">
