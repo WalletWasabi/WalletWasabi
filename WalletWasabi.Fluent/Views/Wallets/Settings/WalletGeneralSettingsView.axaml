@@ -12,18 +12,18 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletGeneralSettingsView">
 
   <StackPanel Classes="settingsLayout">
-    <DockPanel>
-      <TextBlock Text="Name" />
-      <TextBox MaxLength="{StaticResource WalletNameMaxLength}"
-               Text="{Binding NewWalletName}"
-               VerticalAlignment="Top"
-               Watermark="Wallet name">
-        <Interaction.Behaviors>
-          <FocusOnAttachedBehavior />
-          <TextBoxSelectAllTextBehavior />
-        </Interaction.Behaviors>
-      </TextBox>
-    </DockPanel>
+  <DockPanel>
+    <TextBlock Text="Name" />
+    <TextBox MaxLength="{StaticResource WalletNameMaxLength}"
+             Text="{Binding NewWalletName}"
+             VerticalAlignment="Top"
+             Watermark="Wallet name">
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+        <TextBoxSelectAllTextBehavior />
+      </Interaction.Behaviors>
+    </TextBox>
+  </DockPanel>
 
     <DockPanel IsVisible="{Binding IsHardwareWallet}">
       <TextBlock Text="PSBT workflow" />
