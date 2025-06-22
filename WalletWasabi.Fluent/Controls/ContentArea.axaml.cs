@@ -52,6 +52,11 @@ public class ContentArea : ContentControl
 	public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 		AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
 
+	public static readonly StyledProperty<object?> NextButtonSubActionsProperty = AvaloniaProperty.Register<ContentArea, object?>(nameof(NextButtonSubActions));
+
+	public static readonly StyledProperty<object> SubActionContentProperty =
+		AvaloniaProperty.Register<ContentArea, object>(nameof(SubActionContent), "SubAction");
+
 	private ContentPresenter? _titlePresenter;
 	private ContentPresenter? _captionPresenter;
 
@@ -143,6 +148,16 @@ public class ContentArea : ContentControl
 	{
 		get => GetValue(HeaderBackgroundProperty);
 		set => SetValue(HeaderBackgroundProperty, value);
+	}
+	public object? NextButtonSubActions
+	{
+		get => GetValue(NextButtonSubActionsProperty);
+		set => SetValue(NextButtonSubActionsProperty, value);
+	}
+	public object SubActionContent
+	{
+		get => GetValue(SubActionContentProperty);
+		set => SetValue(SubActionContentProperty, value);
 	}
 
 	protected override bool RegisterContentPresenter(ContentPresenter presenter)
