@@ -95,6 +95,8 @@
     <Style Selector="^.selected">
         <Setter Property="Background" Value="{DynamicResource FunctionButtonSelectedBackgroundColor}" />
         <Setter Property="Foreground" Value="{DynamicResource FunctionButtonSelectedForegroundColor}" />
+        <Setter Property="BorderBrush" Value="Yellow"/>
+        <Setter Property="BorderThickness" Value="1.5"/>
     </Style>
   </ControlTheme>
 

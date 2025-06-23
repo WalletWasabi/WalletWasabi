@@ -115,7 +115,7 @@
         <!-- Get started -->
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel DockPanel.Dock="Bottom" Spacing="10">
-            <TextBlock Text="Welcome to Wasabi" FontSize="30" HorizontalAlignment="Center" />
+            <TextBlock Text="Welcome to Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
 
             <TextBlock TextAlignment="Center" Text="An easy to use, privacy focused, open source Bitcoin wallet" FontWeight="Light" />
           </StackPanel>
