@@ -40,6 +40,20 @@
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
   <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
 
+  <!-- Action Buttons (Green Alternative)
+  <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ActionButtonForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ActionButtonPressedForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
+  -->
+
   <!-- Function Buttons -->
   <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
   <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
