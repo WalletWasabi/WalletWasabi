@@ -91,5 +91,10 @@
       <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
     </DockPanel>
+
+    <DockPanel ToolTip.Tip="Coins above this value will automatically be excluded from coinjoin.">
+      <TextBlock Text="Exclude Coin From Coinjoin Threshold" />
+      <CurrencyEntryBox Classes="standalone" Text="{Binding ExcludeCoinFromCoinjoinThreshold}" CurrencyCode="BTC" />
+    </DockPanel>
   </StackPanel>
 </UserControl>

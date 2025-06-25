@@ -291,25 +291,23 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	private void LoadExcludedCoins()
+	public void LoadExcludedCoins()
 	{
-		bool isUpdateRequired = false;
-		foreach (var excludedCoin in KeyManager.ExcludedCoinsFromCoinJoin)
+		foreach (var coin in Coins)
 		{
-			var coin = Coins.SingleOrDefault(c => c.Outpoint == excludedCoin);
-			if (coin != null)
-			{
-				coin.IsExcludedFromCoinJoin = true;
-			}
-			else
-			{
-				isUpdateRequired = true;
-			}
+			coin.IsExcludedFromCoinJoin =
+				(coin.Amount >= KeyManager.ExcludeCoinFromCoinjoinThreshold && !KeyManager.BypassAutomaticExclusionFromCoinjoin.Contains(coin.Outpoint)) ||
+				KeyManager.ExcludedCoinsFromCoinJoin.Contains(coin.Outpoint);
 		}
-		if (isUpdateRequired)
-		{
-			UpdateExcludedCoinFromCoinJoin();
-		}
+
+
+	}
+
+	public void UpdateExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> addedCoinsToExclusion, IEnumerable<OutPoint> removedCoinsFromExclusion)
+	{
+		KeyManager.UpdateExcludedCoinsFromCoinJoin(addedCoinsToExclusion, removedCoinsFromExclusion);
+		LoadExcludedCoins();
+
 	}
 
 	/// <inheritdoc />
@@ -358,6 +356,12 @@ public class Wallet : BackgroundService, IWallet
 		try
 		{
 			WalletRelevantTransactionProcessed?.Invoke(this, e);
+
+			// No need to reload the whole list because newly received coins cannot be in the bypass list
+			foreach (var newCoin in e.NewlyReceivedCoins.Where(newCoin => newCoin.Amount >= KeyManager.ExcludeCoinFromCoinjoinThreshold))
+			{
+				newCoin.IsExcludedFromCoinJoin = true;
+			}
 
 			if (CpfpInfoProvider.ShouldRequest(e.Transaction))
 			{
@@ -483,33 +487,6 @@ public class Wallet : BackgroundService, IWallet
 		}
 
 		State = WalletState.WaitingForInit;
-	}
-
-	public void ExcludeCoinFromCoinJoin(OutPoint outpoint, bool exclude = true)
-	{
-		if (!Coins.TryGetByOutPoint(outpoint, out var coin))
-		{
-			throw new InvalidOperationException($"Coin '{outpoint}' doesn't belong to the wallet or is spent.");
-		}
-
-		coin.IsExcludedFromCoinJoin = exclude;
-		UpdateExcludedCoinFromCoinJoin();
-	}
-
-	public void UpdateExcludedCoinsFromCoinJoin(OutPoint[] outPointsToExclude)
-	{
-		foreach (var coin in Coins)
-		{
-			coin.IsExcludedFromCoinJoin = outPointsToExclude.Contains(coin.Outpoint);
-		}
-
-		UpdateExcludedCoinFromCoinJoin();
-	}
-
-	private void UpdateExcludedCoinFromCoinJoin()
-	{
-		var excludedOutpoints = Coins.Where(c => c.IsExcludedFromCoinJoin).Select(c => c.Outpoint);
-		KeyManager.SetExcludedCoinsFromCoinJoin(excludedOutpoints);
 	}
 
 	public void UpdateUsedHdPubKeysLabels(Dictionary<HdPubKey, LabelsArray> hdPubKeysWithLabels)

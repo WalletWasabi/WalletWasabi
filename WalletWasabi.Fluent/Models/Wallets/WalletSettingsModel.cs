@@ -19,6 +19,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _autoCoinjoin;
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private Money _plebStopThreshold;
+	[AutoNotify] private Money _excludeCoinFromCoinjoinThreshold;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private WalletId? _outputWalletId;
@@ -37,6 +38,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_autoCoinjoin = _keyManager.AutoCoinJoin;
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
+		_excludeCoinFromCoinjoinThreshold = _keyManager.ExcludeCoinFromCoinjoinThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
 
@@ -55,6 +57,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.AutoCoinjoin,
 				x => x.PreferPsbtWorkflow,
 				x => x.PlebStopThreshold,
+				x => x.ExcludeCoinFromCoinjoinThreshold,
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation)
 			.Skip(1)
@@ -101,6 +104,12 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.AutoCoinJoin = AutoCoinjoin;
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
+		if (ExcludeCoinFromCoinjoinThreshold != _keyManager.ExcludeCoinFromCoinjoinThreshold)
+		{
+			_keyManager.ResetBypassAutomaticExclusionFromCoinjoin();
+			_keyManager.ExcludeCoinFromCoinjoinThreshold = ExcludeCoinFromCoinjoinThreshold;
+			Services.WalletManager.GetWalletByName(_keyManager.WalletName).LoadExcludedCoins();
+		}
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;

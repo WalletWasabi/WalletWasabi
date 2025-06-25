@@ -16,12 +16,13 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) : CoinListModel(wallet, walletModel)
 {
-	public async Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsToExclude)
+	public async Task UpdateExcludedCoinsFromCoinjoinAsync(ICoinModel[] coinsAdded, ICoinModel[] coinsRemoved)
 	{
 		await Task.Run(() =>
 		{
-			var outPoints = coinsToExclude.Select(x => x.GetSmartCoin().Outpoint).ToArray();
-			Wallet.UpdateExcludedCoinsFromCoinJoin(outPoints);
+			var smartCoinsAdded = coinsAdded.Select(x => x.GetSmartCoin().Outpoint).ToArray();
+			var smartCoinsRemoved = coinsRemoved.Select(x => x.GetSmartCoin().Outpoint).ToArray();
+			Wallet.UpdateExcludedCoinsFromCoinJoin(smartCoinsAdded, smartCoinsRemoved);
 		});
 	}
 

@@ -140,6 +140,8 @@ public class KeyManager
 	/// </summary>
 	public Money PlebStopThreshold { get; set; } = DefaultPlebStopThreshold;
 
+	public Money ExcludeCoinFromCoinjoinThreshold { get; set; } = Money.Coins(Constants.DefaultExcludeCoinFromCoinjoinThreshold);
+
 	public string? Icon { get; private set; }
 
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
@@ -153,6 +155,7 @@ public class KeyManager
 	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
+	public List<OutPoint> BypassAutomaticExclusionFromCoinjoin { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -682,9 +685,23 @@ public class KeyManager
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
 		new(x.ExtPubKey.PubKey, x.KeyPath, Analysis.Clustering.LabelsArray.Empty, KeyState.Clean);
 
-	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
+	public void UpdateExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> addedCoinsToExclusion, IEnumerable<OutPoint> removedCoinsFromExclusion)
 	{
-		ExcludedCoinsFromCoinJoin = excludedOutpoints.ToList();
+		var addedCoinsToExclusionArray = addedCoinsToExclusion as OutPoint[] ?? addedCoinsToExclusion.ToArray();
+		var removedCoinsFromExclusionArray = removedCoinsFromExclusion as OutPoint[] ?? removedCoinsFromExclusion.ToArray();
+
+		ExcludedCoinsFromCoinJoin.AddRange(addedCoinsToExclusionArray);
+		ExcludedCoinsFromCoinJoin.RemoveAll(removedCoinsFromExclusionArray.Contains);
+
+		BypassAutomaticExclusionFromCoinjoin.AddRange(removedCoinsFromExclusionArray);
+		BypassAutomaticExclusionFromCoinjoin.RemoveAll(addedCoinsToExclusionArray.Contains);
+
+		ToFile();
+	}
+
+	public void ResetBypassAutomaticExclusionFromCoinjoin()
+	{
+		BypassAutomaticExclusionFromCoinjoin = [];
 		ToFile();
 	}
 
@@ -702,6 +719,7 @@ public class KeyManager
 			("PreferPsbtWorkflow", Encode.Bool(keyManager.PreferPsbtWorkflow)),
 			("AutoCoinJoin", Encode.Bool(keyManager.AutoCoinJoin)),
 			("PlebStopThreshold", Encode.MoneyBitcoins(keyManager.PlebStopThreshold)),
+			("ExcludeCoinFromCoinjoinThreshold", Encode.MoneyBitcoins(keyManager.ExcludeCoinFromCoinjoinThreshold)),
 			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
 			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
 			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
@@ -709,6 +727,7 @@ public class KeyManager
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
+			("BypassAutomaticExclusionFromCoinjoin", Encode.Array(keyManager.BypassAutomaticExclusionFromCoinjoin.Select(Encode.Outpoint))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -733,6 +752,8 @@ public class KeyManager
 				PreferPsbtWorkflow = get.Optional("PreferPsbtWorkflow", Decode.Bool, false),
 				AutoCoinJoin = get.Optional("AutoCoinJoin", Decode.Bool, false),
 				PlebStopThreshold = get.Optional("PlebStopThreshold", Decode.MoneyBitcoins) ?? DefaultPlebStopThreshold,
+				ExcludeCoinFromCoinjoinThreshold = get.Optional("ExcludeCoinFromCoinjoinThreshold", Decode.MoneyBitcoins) ?? Money.Coins(Constants.DefaultExcludeCoinFromCoinjoinThreshold),
+				BypassAutomaticExclusionFromCoinjoin = get.Optional("BypassAutomaticExclusionFromCoinjoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
