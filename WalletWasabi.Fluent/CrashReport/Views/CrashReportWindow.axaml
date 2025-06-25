@@ -14,7 +14,7 @@
   <Panel Margin="{Binding #CrashReporterWindow.OffScreenMargin}">
     <ContentArea EnableNext="True"
                           EnableCancel="True"
-                          NextContent="Exit"
+                          NextContent="Close"
                           CancelContent="Restart Wasabi"
                           FocusNext="True"
                           Title="{Binding Title}"

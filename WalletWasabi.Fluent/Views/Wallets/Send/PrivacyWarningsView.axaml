@@ -57,7 +57,7 @@
     </Style>
 
     <Style Selector="SuggestionItem > DockPanel > PathIcon">
-      <Setter Property="Foreground" Value="{DynamicResource SystemAccentCustomColorLight}" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
       <Setter Property="Margin" Value="0 0 10 0" />
       <Setter Property="DockPanel.Dock" Value="Left" />
       <Setter Property="Height" Value="25" />

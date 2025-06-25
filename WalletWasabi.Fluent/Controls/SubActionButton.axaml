@@ -1,77 +1,144 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
-                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+                    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+                    xmlns:converters="using:Avalonia.Controls.Converters">
 
-  <Design.PreviewWith>
-    <Border Width="500" Height="500">
-      <Border Padding="60">
-        <StackPanel Spacing="20">
+  <x:Double x:Key="SubActionButtonPrimaryButtonSize">32</x:Double>
+  <x:Double x:Key="SubActionButtonSecondaryButtonSize">13</x:Double>
+  <x:Double x:Key="SubActionButtonSeparatorWidth">1</x:Double>
+  <x:Double x:Key="SubActionButtonMinHeight">33</x:Double>
 
-          <SplitButton>Split button</SplitButton>
+  <converters:MarginMultiplierConverter x:Key="PrimaryButtonBorderMultiplier" Left="True" Top="True" Bottom="True" Indent="1" />
+  <converters:MarginMultiplierConverter x:Key="SecondaryButtonBorderMultiplier" Right="True" Top="True" Bottom="True" Indent="1" />
+  <converters:MarginMultiplierConverter x:Key="SeparatorBorderMultiplier" Top="True" Bottom="True" Indent="1" />
 
-          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
-            <SubActionButton.SubCommands>
-              <UICommandCollection>
-                <UICommandDesign Name="Command 2">
-                  <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                </UICommandDesign>
-                <UICommandDesign Name="Command 2">
-                  <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                </UICommandDesign>
-
-                <UICommandDesign Name="Command 3">
-                  <UICommandDesign.Icon>
-                    <PathIcon Data="{StaticResource wallet_action_coinjoin}"
-                              Classes="Icon" />
-                  </UICommandDesign.Icon>
-                </UICommandDesign>
-              </UICommandCollection>
-            </SubActionButton.SubCommands>
-          </SubActionButton>
-
-          <Button Theme="{StaticResource FunctionButton}">Hola</Button>
-          <Button Classes="function">Hola</Button>
-
-        </StackPanel>
-      </Border>
-    </Border>
-  </Design.PreviewWith>
-
-  <ControlTheme x:Key="{x:Type SubActionButton}"
-                TargetType="SubActionButton">
+  <ControlTheme x:Key="{x:Type SubActionButton}" TargetType="SubActionButton">
+    <Setter Property="Background" Value="{DynamicResource FunctionButtonBackgroundColor}" />
+    <Setter Property="Foreground" Value="{DynamicResource FunctionButtonForegroundColor}" />
+    <Setter Property="BorderBrush" Value="Transparent" />
     <Setter Property="BorderThickness" Value="0" />
-    <Setter Property="Cursor" Value="Hand" />
-    <Setter Property="MinHeight" Value="33" />
+    <Setter Property="MinHeight" Value="{DynamicResource SubActionButtonMinHeight}" />
+    <Setter Property="HorizontalAlignment" Value="Left" />
+    <Setter Property="VerticalAlignment" Value="Center" />
+    <Setter Property="HorizontalContentAlignment" Value="Stretch" />
+    <Setter Property="VerticalContentAlignment" Value="Center" />
+    <Setter Property="KeyboardNavigation.IsTabStop" Value="True" />
+    <Setter Property="Focusable" Value="True" />
     <Setter Property="Padding" Value="{StaticResource FunctionButtonPadding}" />
-    <Setter Property="Foreground" Value="{DynamicResource ActionButtonForegroundColor}" />
+    <Setter Property="CornerRadius" Value="{DynamicResource ControlCornerRadius}" />
+    <Setter Property="Cursor" Value="Hand" />
     <Setter Property="Template">
-      <Setter.Value>
-        <ControlTemplate>
-          <SplitButton Command="{TemplateBinding Command}"
-                       BorderThickness="{TemplateBinding BorderThickness}"
-                       Padding="{TemplateBinding Padding}"
-                       BorderBrush="{TemplateBinding BorderBrush}"
-                       Foreground="{TemplateBinding Foreground}"
-                       Content="{TemplateBinding Content}"
-                       Theme="{StaticResource FunctionSplitButton}">
-            <SplitButton.ContentTemplate>
-              <DataTemplate>
-                <DockPanel>
-                  <PathIcon Foreground="{Binding $parent[SubActionButton].Foreground}" x:Name="PART_Icon" Margin="0 0 10 0" Data="{Binding $parent[SubActionButton].Icon}" IsVisible="{Binding !!$parent[SubActionButton].Icon}" />
-                  <ContentControl VerticalAlignment="Center" Content="{Binding $parent[SubActionButton].Content}" />
-                </DockPanel>
-              </DataTemplate>
-            </SplitButton.ContentTemplate>
-            <SplitButton.Flyout>
+      <ControlTemplate>
+        <Grid>
+          <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="*" />
+            <ColumnDefinition Width="Auto" />
+            <ColumnDefinition Width="Auto" />
+          </Grid.ColumnDefinitions>
+
+          <Button x:Name="PART_PrimaryButton"
+                  Grid.Column="0"
+                  MinWidth="{DynamicResource SubActionButtonPrimaryButtonSize}"
+                  BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource PrimaryButtonBorderMultiplier}}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  CornerRadius="{TemplateBinding CornerRadius, Converter={StaticResource LeftCornerRadiusFilterConverter}}"
+                  Command="{TemplateBinding Command}"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}"
+                  VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                  Background="{TemplateBinding Background}"
+                  Foreground="{TemplateBinding Foreground}"
+                  Padding="{TemplateBinding Padding}"
+                  Focusable="False"
+                  KeyboardNavigation.IsTabStop="False">
+              <Button.Styles>
+                  <Style Selector="Button:pointerover /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                  </Style>
+                  <Style Selector="Button:pressed /template/ ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                  </Style>
+                  <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                      <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                  </Style>
+
+                  <Style Selector="Button:pointerover">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:pressed">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                  </Style>
+                  <Style Selector="Button:disabled">
+                      <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                  </Style>
+              </Button.Styles>
+              <Button.ContentTemplate>
+                  <DataTemplate>
+                      <DockPanel>
+                          <PathIcon x:Name="PART_Icon"
+                                   Margin="0 0 10 0"
+                                   Data="{Binding $parent[SubActionButton].Icon}"
+                                   IsVisible="{Binding !!$parent[SubActionButton].Icon}"
+                                   Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                          <ContentControl VerticalAlignment="Center"
+                                         Content="{Binding $parent[SubActionButton].Content}"
+                                         Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}"/>
+                      </DockPanel>
+                  </DataTemplate>
+              </Button.ContentTemplate>
+          </Button>
+
+          <Border x:Name="SeparatorBorder"
+                  Grid.Column="1"
+                  Background="Transparent"
+                  Width="{DynamicResource SubActionButtonSeparatorWidth}"
+                  BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource SeparatorBorderMultiplier}}"
+                  BorderBrush="{TemplateBinding BorderBrush}" />
+
+          <Button x:Name="PART_SecondaryButton"
+                  Grid.Column="2"
+                  Width="{DynamicResource SubActionButtonSecondaryButtonSize}"
+                  BorderBrush="{TemplateBinding BorderBrush}"
+                  BorderThickness="{TemplateBinding BorderThickness, Converter={StaticResource SecondaryButtonBorderMultiplier}}"
+                  CornerRadius="{TemplateBinding CornerRadius, Converter={StaticResource RightCornerRadiusFilterConverter}}"
+                  Padding="0"
+                  HorizontalContentAlignment="Center"
+                  VerticalContentAlignment="Center"
+                  Background="{TemplateBinding Background}"
+                  Foreground="{TemplateBinding Foreground}"
+                  HorizontalAlignment="Stretch"
+                  VerticalAlignment="Stretch"
+                  Focusable="False"
+                  KeyboardNavigation.IsTabStop="False">
+                  <Button.Styles>
+                      <Style Selector="Button:pointerover /template/ ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonPointerOverBackgroundColor}" />
+                      </Style>
+                      <Style Selector="Button:pressed /template/ ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonPressedBackgroundColor}" />
+                      </Style>
+                      <Style Selector="Button:disabled /template/ ContentPresenter#PART_ContentPresenter">
+                          <Setter Property="Background" Value="{DynamicResource FunctionButtonDisabledBackgroundColor}" />
+                      </Style>
+
+                      <Style Selector="Button:pointerover">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPointerOverForegroundColor}" />
+                      </Style>
+                      <Style Selector="Button:pressed">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonPressedForegroundColor}" />
+                      </Style>
+                      <Style Selector="Button:disabled">
+                          <Setter Property="Foreground" Value="{DynamicResource FunctionButtonDisabledForegroundColor}" />
+                      </Style>
+                  </Button.Styles>
+            <Viewbox>
+              <PathIcon Foreground="{Binding Foreground, RelativeSource={RelativeSource AncestorType=Button}}" Margin="6" Width="25" Data="M1939 486L2029 576L1024 1581L19 576L109 486L1024 1401L1939 486Z" />
+            </Viewbox>
+            <Button.Flyout>
               <MenuFlyout ItemsSource="{Binding $parent[SubActionButton].SubCommands}" Placement="Bottom">
                 <MenuFlyout.ItemContainerTheme>
                   <ControlTheme TargetType="MenuItem"
-                                BasedOn="{StaticResource {x:Type MenuItem}}">
+                              BasedOn="{StaticResource {x:Type MenuItem}}">
                     <Setter x:DataType="IUICommand" Property="HeaderTemplate">
                       <Setter.Value>
                         <DataTemplate DataType="IUICommand">
@@ -87,12 +154,44 @@
                   </ControlTheme>
                 </MenuFlyout.ItemContainerTheme>
               </MenuFlyout>
-            </SplitButton.Flyout>
-          </SplitButton>
-        </ControlTemplate>
-      </Setter.Value>
+            </Button.Flyout>
+          </Button>
+        </Grid>
+      </ControlTemplate>
     </Setter>
-
   </ControlTheme>
+
+  <Design.PreviewWith>
+    <Border Width="500" Height="500">
+      <Border Padding="60">
+        <StackPanel Spacing="20">
+          <SubActionButton Content="Subaction Button" Icon="{StaticResource wallet_action_buy}">
+            <SubActionButton.SubCommands>
+              <UICommandCollection>
+                <UICommandDesign Name="Command 1">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+                <UICommandDesign Name="Command 2">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+                <UICommandDesign Name="Command 3">
+                  <UICommandDesign.Icon>
+                    <PathIcon Data="{StaticResource wallet_action_coinjoin}" Classes="Icon" />
+                  </UICommandDesign.Icon>
+                </UICommandDesign>
+              </UICommandCollection>
+            </SubActionButton.SubCommands>
+          </SubActionButton>
+
+          <Button Theme="{StaticResource FunctionButton}">Hola</Button>
+          <Button Classes="function">Hola</Button>
+        </StackPanel>
+      </Border>
+    </Border>
+  </Design.PreviewWith>
 
 </ResourceDictionary>

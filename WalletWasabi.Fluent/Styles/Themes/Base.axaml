@@ -27,20 +27,46 @@
   <SolidColorBrush x:Key="TagsBoxBorderBrush" Opacity="0.1" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="HeaderRegionColor" Color="{StaticResource RegionColor}" />
 
-  <SolidColorBrush x:Key="ActionButtonForegroundColor" Color="{StaticResource ActionForegroundColor}" />
+  <!-- Action Buttons -->
   <SolidColorBrush x:Key="ActionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
-  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ActionButtonForegroundColor">White</SolidColorBrush>
+
   <SolidColorBrush x:Key="ActionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="ActionButtonPointerOverForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="ActionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="ActionButtonPressedForegroundColor">White</SolidColorBrush>
+
   <SolidColorBrush x:Key="ActionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="ActionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
+
+  <!-- Function Buttons -->
+  <SolidColorBrush x:Key="FunctionButtonBackgroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="FunctionButtonForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonPointerOverBackgroundColor" Color="{StaticResource SystemAccentColorLight1}" />
+  <SolidColorBrush x:Key="FunctionButtonPointerOverForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonPressedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonPressedForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonSelectedBackgroundColor" Color="{StaticResource SystemAccentColorDark1}" />
+  <SolidColorBrush x:Key="FunctionButtonSelectedForegroundColor">White</SolidColorBrush>
+
+  <SolidColorBrush x:Key="FunctionButtonDisabledBackgroundColor" Color="{StaticResource SystemChromeDisabledLowColor}" />
+  <SolidColorBrush x:Key="FunctionButtonDisabledForegroundColor" Color="{StaticResource SystemChromeDisabledHighColor}" />
 
   <SolidColorBrush x:Key="NavBarItemSelectedBrush" Color="{StaticResource AcrylicTrimForeground}" />
 
-  <SolidColorBrush x:Key="LogoAccentColor" Color="#FF77C600" />
-  <Color x:Key="LogoFixedAccentColor">#FF77C600</Color>
-  <Color x:Key="LogoFixedForegroundColor">#D8DED7</Color>
+  <LinearGradientBrush x:Key="LogoAccentColor" StartPoint="1,0" EndPoint="0,1">
+      <GradientStop Color="#00FF4D" Offset="0"/>
+      <GradientStop Color="#17C04A" Offset="1"/>
+  </LinearGradientBrush>
 
-  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
-  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight3}" />
+  <Color x:Key="LogoFixedForegroundColor">White</Color>
+
+  <SolidColorBrush x:Key="PrivacyControlItemBlackListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
+  <SolidColorBrush x:Key="PrivacyControlItemWhiteListHighlight" Color="{StaticResource SystemAccentColorLight2}" />
 
   <SolidColorBrush x:Key="WarningMessageForeground">#DDA73E</SolidColorBrush>
   <SolidColorBrush x:Key="SystemControlErrorTextForegroundBrush" Color="{StaticResource SystemErrorTextColor}" />
@@ -65,7 +91,7 @@
   <SolidColorBrush x:Key="TextControlForeground" Color="{StaticResource SystemBaseHighColor}" />
   <SolidColorBrush x:Key="TextForegroundColor" Color="{StaticResource SystemBaseHighColor}" />
 
-  <SolidColorBrush x:Key="PositiveAmountColor" Color="{StaticResource SystemAccentCustomColorLight}" />
+  <SolidColorBrush x:Key="PositiveAmountColor" Color="{StaticResource SystemAccentColor}" />
 
   <SolidColorBrush x:Key="NotificationCardBackgroundBrush" Color="{StaticResource TileRegionColor}" />
 
@@ -103,14 +129,14 @@
   <BoxShadows x:Key="OptimizePrivacyOptionBoxShadow2">0 4 10 0 #4A000000</BoxShadows>
 
   <!-- Invisible function button -->
-  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.25" Color="{StaticResource SystemBaseHighColor}" />
-  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.15" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPointerOverBackgroundColor" Opacity="0.18" Color="{StaticResource SystemBaseHighColor}" />
+  <SolidColorBrush x:Key="InvisibleButtonPressedBackgroundColor" Opacity="0.16" Color="{StaticResource SystemBaseHighColor}" />
 
   <!-- LineChart -->
-  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientStartStopColor" ResourceKey="SystemAccentColor" />
   <StaticResource x:Key="LineChartAreaGradientEndStopColor" ResourceKey="RegionColor" />
-  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentCustomColorDark" />
-  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentCustomColorDark" />
+  <StaticResource x:Key="LineChartAreaGradientCursorStrokeColor" ResourceKey="SystemAccentColor" />
+  <StaticResource x:Key="LineChartLineColor" ResourceKey="SystemAccentColor" />
 
   <!-- ComboBox -->
   <SolidColorBrush x:Key="ComboBoxBackground" Color="{StaticResource Layer2BackgroundBrush}" />

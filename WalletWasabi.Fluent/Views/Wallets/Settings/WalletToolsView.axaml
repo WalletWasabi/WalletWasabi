@@ -14,7 +14,7 @@
         <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
       </ToolTip.Tip>
       <TextBlock Text="Verify Recovery Words (BIP 39 Only)" />
-      <Button Theme="{StaticResource AccentButton}" Command="{Binding VerifyRecoveryWordsCommand}" Content="Open" DockPanel.Dock="Right" />
+      <Button Theme="{StaticResource FunctionButton}" Command="{Binding VerifyRecoveryWordsCommand}" Content="Open" DockPanel.Dock="Right" />
     </DockPanel>
 
     <DockPanel>
@@ -22,7 +22,7 @@
         <TextBlock Text="If your wallet is missing some confirmed transaction, try to resync." />
       </ToolTip.Tip>
       <TextBlock Text="Resync Wallet" />
-      <Button Theme="{StaticResource AccentButton}" Command="{Binding ResyncWalletCommand}" Content="Open" DockPanel.Dock="Right" />
+      <Button Theme="{StaticResource FunctionButton}" Command="{Binding ResyncWalletCommand}" Content="Open" DockPanel.Dock="Right" />
     </DockPanel>
   </StackPanel>
 </UserControl>

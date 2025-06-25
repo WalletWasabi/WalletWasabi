@@ -10,7 +10,7 @@
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
              d:DesignWidth="1000" d:DesignHeight="1000"
              x:CompileBindings="True">
-  <DockPanel IsEnabled="{Binding IsMainContentEnabled^}">
+  <DockPanel IsEnabled="True">
     <shell:TitleBar DockPanel.Dock="Top" />
     <DockPanel>
       <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
