@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -38,6 +39,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private string _excludeCoinFromCoinjoinThreshold;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
@@ -50,6 +52,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
+
+		_excludeCoinFromCoinjoinThreshold =
+			_wallet.Settings.ExcludeCoinFromCoinjoinThreshold.ToUnit(MoneyUnit.BTC) ==
+			Constants.DefaultExcludeCoinFromCoinjoinThreshold
+				? ""
+				: _wallet.Settings.ExcludeCoinFromCoinjoinThreshold.ToString();
+
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
 
@@ -109,6 +118,25 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					if (Money.TryParse(x, out var result) && result != _wallet.Settings.PlebStopThreshold)
 					{
 						_wallet.Settings.PlebStopThreshold = result;
+						_wallet.Settings.Save();
+					}
+				});
+
+		this.WhenAnyValue(x => x.ExcludeCoinFromCoinjoinThreshold)
+			.Skip(1)
+			.Throttle(TimeSpan.FromMilliseconds(2000))
+			.ObserveOn(RxApp.TaskpoolScheduler)
+			.Subscribe(
+				x =>
+				{
+					if (x == "" && _wallet.Settings.ExcludeCoinFromCoinjoinThreshold.ToUnit(MoneyUnit.BTC) != Constants.DefaultExcludeCoinFromCoinjoinThreshold)
+					{
+						_wallet.Settings.ExcludeCoinFromCoinjoinThreshold = Money.Coins(Constants.DefaultExcludeCoinFromCoinjoinThreshold);
+						_wallet.Settings.Save();
+					}
+					else if (Money.TryParse(x, out var result) && result != _wallet.Settings.ExcludeCoinFromCoinjoinThreshold)
+					{
+						_wallet.Settings.ExcludeCoinFromCoinjoinThreshold = result;
 						_wallet.Settings.Save();
 					}
 				});

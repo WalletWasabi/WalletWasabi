@@ -443,7 +443,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 
-		activeWallet.ExcludeCoinFromCoinJoin(new OutPoint(transactionId, n), exclude);
+		if (exclude)
+		{
+			activeWallet.UpdateExcludedCoinsFromCoinJoin([new OutPoint(transactionId, n)], []);
+		}
+		else
+		{
+			activeWallet.UpdateExcludedCoinsFromCoinJoin([], [new OutPoint(transactionId, n)]);
+
+		}
 	}
 
 	[JsonRpcMethod("listkeys")]

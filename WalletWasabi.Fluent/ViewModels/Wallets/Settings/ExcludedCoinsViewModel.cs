@@ -45,9 +45,24 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 
 		CoinList.Selection
 			.ToObservableChangeSet()
-			.ToCollection()
-			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
-			.DoAsync(async x => await _wallet.Coins.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
+			.Buffer(TimeSpan.FromMilliseconds(10), RxApp.MainThreadScheduler)
+			.DoAsync(async changeSets =>
+			{
+				var allAdded = changeSets.SelectMany(cs => cs)
+					.Where(change => change.Reason == ListChangeReason.Add)
+					.Select(change => change.Item.Current)
+					.ToArray();
+
+				var allRemoved = changeSets.SelectMany(cs => cs)
+					.Where(change => change.Reason == ListChangeReason.Remove)
+					.Select(change => change.Item.Current)
+					.ToArray();
+
+				if (allAdded.Length > 0 || allRemoved.Length > 0)
+				{
+					await _wallet.Coins.UpdateExcludedCoinsFromCoinjoinAsync(allAdded, allRemoved);
+				}
+			})
 			.Subscribe()
 			.DisposeWith(disposables);
 
