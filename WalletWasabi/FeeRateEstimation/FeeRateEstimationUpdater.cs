@@ -10,7 +10,7 @@ public static class FeeRateEstimationUpdater
 	public record UpdateMessage : Message;
 	public record GetMessage(IReplyChannel<FeeRateEstimations> ReplyChannel) : Message;
 
-	public static Func<Message, FeeRateEstimations, CancellationToken, Task<FeeRateEstimations>> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>
+	public static MessageHandler<Message, FeeRateEstimations> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>
 		(message, feeRateEstimations, cancellationToken) => UpdateAsync(message, feeRateProvider, feeRateEstimations, eventBus, cancellationToken);
 
 	private static async Task<FeeRateEstimations> UpdateAsync(Message message, FeeRateProvider feeRateProvider, FeeRateEstimations feeRateEstimations, EventBus eventBus, CancellationToken cancellationToken)

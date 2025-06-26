@@ -5,6 +5,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SQLitePCL;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -43,10 +44,10 @@ public static class CpfpInfoUpdater
 {
 	private delegate Task<Result<CpfpInfo,string>> CpfpInfoGetter(SmartTransaction stx);
 
-	public static Func<CpfpInfoMessage, CancellationToken, Task<Unit>> CreateForRegTest() =>
-		(_, _) => Task.FromResult(Unit.Instance);
+	public static MessageHandler<CpfpInfoMessage, Unit> CreateForRegTest() =>
+		(_, _, _) => Task.FromResult(Unit.Instance);
 
-	public static Func<CpfpInfoMessage, CancellationToken, Task<Unit>> Create(
+	public static MessageHandler<CpfpInfoMessage, Unit> Create(
 		IHttpClientFactory httpClientFactory, Network network, EventBus eventBus)
 	{
 		var uri = network == Network.Main
@@ -54,7 +55,7 @@ public static class CpfpInfoUpdater
 			: new Uri("https://mempool.space/testnet/api/");
 		var tasks = new List<Task>();
 		var cache = new Dictionary<uint256, CachedCpfpInfo>();
-		return (msg, cancellationToken) => ProcessMessagesAsync(msg, httpClientFactory, uri, tasks, cache, eventBus, cancellationToken);
+		return (msg, _, cancellationToken) => ProcessMessagesAsync(msg, httpClientFactory, uri, tasks, cache, eventBus, cancellationToken);
 	}
 
 	private static async Task<Unit> ProcessMessagesAsync(CpfpInfoMessage msg, IHttpClientFactory httpClientFactory, Uri uri, List<Task> tasks, Dictionary<uint256, CachedCpfpInfo> cache, EventBus eventBus, CancellationToken cancellationToken)

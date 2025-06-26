@@ -1,5 +1,9 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -10,6 +14,7 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;
 
@@ -31,14 +36,17 @@ public class AliceTimeoutTests
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
-		await roundStateUpdater.StartAsync(testDeadlineCts.Token);
+		using var roundStateUpdater = Spawn("RoundStateUpdater", EventDriven(
+			new RoundsState(new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+			RoundStateUpdater.Create(arena)));
+
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		// Register Alices.
 		KeyChain keyChain = new(km, "");
 
 		using CancellationTokenSource registrationCts = new();
-		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
+		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateProvider, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
 
 		while (round.Alices.Count == 0)
 		{
@@ -63,7 +71,6 @@ public class AliceTimeoutTests
 			Assert.True(ex is OperationCanceledException or WabiSabiProtocolException);
 		}
 
-		await roundStateUpdater.StopAsync(testDeadlineCts.Token);
 		await arena.StopAsync(testDeadlineCts.Token);
 	}
 

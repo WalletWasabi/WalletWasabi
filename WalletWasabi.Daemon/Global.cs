@@ -2,6 +2,7 @@ using NBitcoin;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -35,6 +36,7 @@ using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.WabiSabi.Models;
 using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Daemon;
@@ -217,6 +219,7 @@ public class Global
 				Service("Bitcoin Rpc Interface Monitoring",
 					Periodically(
 						TimeSpan.FromSeconds(7),
+						Unit.Instance,
 						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))));
 			rpcMonitor.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
@@ -242,7 +245,7 @@ public class Global
 
 		Spawn("Synchronizer",
 			Service("Wasabi Index-Based Synchronizer",
-				Continuously<Unit>(
+				Continuously(
 					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
 				)))
 			.DisposeUsing(_disposables);
@@ -276,6 +279,7 @@ public class Global
 			Service("Wasabi Version AutoUpdater",
 				Periodically(
 					TimeSpan.FromHours(12),
+					Unit.Instance,
 					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
@@ -286,6 +290,7 @@ public class Global
 		var cpfpUpdater = Spawn("CpfpInfoProvider",
 			Service("External Cpfp Info provider",
 				EventDriven(
+					Unit.Instance,
 					Network == Network.RegTest
 					? CpfpInfoUpdater.CreateForRegTest()
 					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))));
@@ -421,7 +426,9 @@ public class Global
 
 			var torStatusHttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject");
 			var torStatusChecker = Spawn("TorStatusChecker",
-				Periodically(TimeSpan.FromHours(1),
+				Periodically(
+					TimeSpan.FromHours(1),
+					Unit.Instance,
 					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)));
 			torStatusChecker.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
@@ -436,11 +443,17 @@ public class Global
 		var coordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory());
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi-coordination", coordinatorHttpClientFactory);
-		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");
+		var roundUpdater = Spawn("RoundUpdater",
+			Service("WabiSabi Rounds Updater",
+				EventDriven(
+					new RoundsState(new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+					RoundStateUpdater.Create(wabiSabiStatusProvider))));
+		roundUpdater.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage()));
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, HostedServices.Get<RoundStateUpdater>(), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
 	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup)

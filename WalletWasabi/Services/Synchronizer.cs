@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.ComponentModel;
 using System.Linq;
 using System.Net.Http;
 using System.Threading;
@@ -7,9 +6,9 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 using WalletWasabi.WebClients.Wasabi;
@@ -130,10 +129,10 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 
 public static class Synchronizer
 {
-	public static Func<CancellationToken, Task> CreateFilterGenerator(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
-		cancellationToken => GenerateCompactFiltersAsync(filtersProvider, bitcoinStore, eventBus, cancellationToken);
+	public static MessageHandler<Unit> CreateFilterGenerator(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
+		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, bitcoinStore, eventBus, cancellationToken);
 
-	private static async Task GenerateCompactFiltersAsync(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		var smartHeaderChain = bitcoinStore.SmartHeaderChain;
 
@@ -141,7 +140,7 @@ public static class Synchronizer
 		if (smartHeaderChain.TipHash is null)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken).ConfigureAwait(false);
-			return;
+			return Unit.Instance;
 		}
 
 		var response =  await filtersProvider.GetFiltersAsync(smartHeaderChain.TipHash, smartHeaderChain.TipHeight, cancellationToken)
@@ -160,6 +159,7 @@ public static class Synchronizer
 			var continueAfterSeconds = response.Error == FilterFetchingError.ContinueAfter30Seconds ? 30 : 0;
 			await Task.Delay(TimeSpan.FromSeconds(continueAfterSeconds), cancellationToken).ConfigureAwait(false);
 		}
+		return Unit.Instance;
 	}
 
 	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, BitcoinStore bitcoinStore, EventBus eventBus )
