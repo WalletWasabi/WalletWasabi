@@ -100,7 +100,6 @@ public static class Constants
 	public static readonly string VersionName = "Prometheus";
 
 	public static readonly Version HwiVersion = new("3.1.0");
-	public static readonly Version BitcoinCoreVersion = new("23.0");
 
 	public static readonly FeeRate MinRelayFeeRate = new(1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);

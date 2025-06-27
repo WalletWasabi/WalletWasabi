@@ -16,8 +16,6 @@ public partial class AboutAdvancedInfoViewModel : DialogViewModelBase<System.Rea
 		NextCommand = CancelCommand;
 	}
 
-	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
-
 	public Version HwiVersion => Constants.HwiVersion;
 
 	public string BackendCompatibleVersions => Constants.ClientSupportBackendVersionText;

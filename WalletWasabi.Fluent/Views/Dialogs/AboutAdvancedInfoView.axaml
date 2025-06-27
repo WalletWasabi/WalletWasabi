@@ -35,12 +35,6 @@
                  Text="{Binding CurrentBackendMajorVersion}" />
       </StackPanel>
       <StackPanel>
-        <TextBlock Classes="Header" Text="Compatible Bitcoin Core and Bitcoin Knots Version" />
-        <TextBox Classes="Content"
-                 Theme="{DynamicResource SelectableTextBlockTextBox}"
-                 Text="{Binding BitcoinCoreVersion}" />
-      </StackPanel>
-      <StackPanel>
         <TextBlock Classes="Header" Text="Compatible Hardware Wallet Interface Version" />
         <TextBox Classes="Content"
                  Theme="{DynamicResource SelectableTextBlockTextBox}"
