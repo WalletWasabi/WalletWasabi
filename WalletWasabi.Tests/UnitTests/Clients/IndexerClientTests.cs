@@ -17,8 +17,9 @@ public class IndexerClientTests
 	[Fact]
 	public void ConstantsTests()
 	{
-		var current = int.Parse(WalletWasabi.Helper.Constants.BackendMajorVersion);
-		var supported = int.Parse(WalletWasabi.Helper.Constants.ClientSupportBackendVersion);
+		var supported = int.Parse(WalletWasabi.Helpers.Constants.ClientSupportBackendVersionMin);
+		var current = int.Parse(WalletWasabi.Helpers.Constants.BackendMajorVersion);
+
 		Assert.True(supported == current);
 	}
 }
