@@ -85,20 +85,20 @@ public class IndexerClient
 			throw;
 		}
 
-		// If ClientSupportBackendVersionMin <= backend major <= ClientSupportBackendVersionMax, then our software is compatible.
-		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersionMax) >= backendMajorVersion && backendMajorVersion >= int.Parse(Helpers.Constants.ClientSupportBackendVersionMin);
+		// If ClientSupportBackendVersion = BackendMajorVersion, then our software is compatible.
+		var backendCompatible = int.Parse(Helpers.Constants.ClientSupportBackendVersion) == backendMajorVersion;
 		var currentBackendMajorVersion = backendMajorVersion;
 
 		if (backendCompatible)
 		{
-			// Only refresh if compatible.
-			ApiVersion = currentBackendMajorVersion;
+		    // Only refresh if compatible.
+		    ApiVersion = currentBackendMajorVersion;
 		}
 
 		return backendCompatible;
 	}
 
-	private async Task CheckErrorsAsync(HttpResponseMessage response, CancellationToken cancel)
+	async Task CheckErrorsAsync(HttpResponseMessage response, CancellationToken cancel)
 	{
 		_eventBus.Publish(new IndexerAvailabilityStateChanged(response.StatusCode == HttpStatusCode.OK));
 		if (response.StatusCode != HttpStatusCode.OK)

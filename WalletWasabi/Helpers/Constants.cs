@@ -7,8 +7,7 @@ namespace WalletWasabi.Helpers;
 public static class Constants
 {
 	public const string BackendMajorVersion = "4";
-	public const string ClientSupportBackendVersionMin = "4";
-	public const string ClientSupportBackendVersionMax = "4";
+	public const string ClientSupportBackendVersion = "4";
 
 	public const string IndexerUri = "https://api.wasabiwallet.io/";
 	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
@@ -158,10 +157,6 @@ public static class Constants
 		432, // Three Days
 		1008, // Seven Days
 	};
-
-	public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
-		? ClientSupportBackendVersionMin
-		: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 
 	public static readonly string DefaultFilterType = "legacy";
 }
