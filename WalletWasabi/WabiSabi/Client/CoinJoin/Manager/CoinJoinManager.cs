@@ -582,14 +582,6 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 				wallet.LogInfo($"{nameof(CoinJoinClient)} was cancelled.");
 			}
 		}
-		catch (UnexpectedRoundPhaseException e)
-		{
-			// `UnexpectedRoundPhaseException` indicates an error in the protocol however,
-			// temporarily we are shortening the circuit by aborting the rounds if
-			// there are Alices that didn't confirm.
-			// The fix is already done but the clients have to upgrade.
-			wallet.LogInfo($"{nameof(CoinJoinClient)} failed with exception: '{e}'");
-		}
 		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode == WabiSabiProtocolErrorCode.WrongPhase)
 		{
 			// This can happen when the coordinator aborts the round in Signing phase because of detected double spend.
