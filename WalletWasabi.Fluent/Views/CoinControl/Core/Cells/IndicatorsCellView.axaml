@@ -48,7 +48,7 @@
     </Panel>
 
     <!-- Banned -->
-    <PathIcon Data="{StaticResource warning_filled}"
+    <PathIcon Data="{StaticResource warning_circle}"
               Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}"
               Height="14"
               ToolTip.Tip="{Binding BannedUntilUtcToolTip}">

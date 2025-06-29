@@ -32,7 +32,7 @@
 
     <Style Selector="PathIcon.blink">
         <Style.Animations>
-            <Animation Duration="0:0:2" IterationCount="Infinite">
+            <Animation Duration="0:0:3" IterationCount="Infinite">
                 <KeyFrame Cue="0%">
                     <Setter Property="Opacity" Value="1" />
                 </KeyFrame>
@@ -128,7 +128,7 @@
 
             <StatusItem Title="Update Checker" StatusText="Wasabi won't look for updates while Tor is disabled." IsVisible="{Binding IsTorDisabled}">
               <StatusItem.Icon>
-                <PathIcon Data="{StaticResource warning_filled}" />
+                <PathIcon Data="{StaticResource warning_circle}" />
               </StatusItem.Icon>
             </StatusItem>
 
@@ -201,7 +201,7 @@
     <!-- Ready -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.Ready}}"
-      Data="{StaticResource checkmark_circle_filled}"
+      Data="{StaticResource checkmark_circle}"
       Foreground="{DynamicResource SystemAccentColor}" />
 
     <!-- Loading -->
@@ -221,7 +221,7 @@
     <!-- Connection issue -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.ConnectionIssueDetected}}"
-      Data="{StaticResource warning_filled}"
+      Data="{StaticResource warning_circle}"
       Foreground="Goldenrod"
       VerticalAlignment="Center" HorizontalAlignment="Right"
       Classes.blink="{Binding $self.IsVisible}" />
@@ -229,7 +229,7 @@
     <!-- Bitcoin Core Connection issue -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinCoreIssueDetected}}"
-      Data="{StaticResource warning_filled}"
+      Data="{StaticResource warning_circle}"
       Foreground="Goldenrod"
       VerticalAlignment="Center" HorizontalAlignment="Right"
       Classes.blink="{Binding $self.IsVisible}" />
@@ -237,14 +237,14 @@
     <!--Critical update available-->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BackendNotCompatible}}"
-      Data="{StaticResource backend_not_compatible}"
+      Data="{StaticResource download_circle}"
       Foreground="{DynamicResource SystemErrorTextColor}"
       Classes.blink="{Binding $self.IsVisible}" />
 
     <!--Update available-->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.UpdateAvailable}}"
-      Data="{StaticResource arrow_clockwise_with_elipse}"
+      Data="{StaticResource download_circle}"
       Foreground="Goldenrod"
       Classes.blink="{Binding $self.IsVisible}" />
 
