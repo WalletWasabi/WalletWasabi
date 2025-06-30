@@ -22,6 +22,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.IntegrationTests;
 
@@ -86,8 +87,7 @@ public class P2pTests
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
 		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
-		using Synchronizer synchronizer = new(period: TimeSpan.FromSeconds(3), filterProvider, bitcoinStore, eventBus);
-		using FeeRateEstimationUpdater feeProvider = new (TimeSpan.Zero, FeeRateProviders.BlockstreamAsync(new HttpClientFactory()), eventBus);
+		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, eventBus)));
 
 		using MemoryCache cache = new(new MemoryCacheOptions
 		{
@@ -100,7 +100,8 @@ public class P2pTests
 			blocks);
 
 		ServiceConfiguration serviceConfiguration = new($"http://{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
-		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, feeProvider, blockProvider, eventBus);
+		var cpfpInfoProvider = new CpfpInfoProvider(Spawn("CpfpInfoProvider", EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
+		WalletFactory walletFactory = new(network, bitcoinStore, serviceConfiguration, blockProvider, eventBus, cpfpInfoProvider);
 		using Wallet wallet = walletFactory.CreateAndInitialize(keyManager);
 
 		try

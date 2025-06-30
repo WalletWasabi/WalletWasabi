@@ -5,8 +5,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -282,11 +282,11 @@ public class StepTransactionSigningTests
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
 		// Register Alices.
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
-		await roundStateUpdater.StartAsync(token);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(arena);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
-		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
-		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateUpdater, token, token, token);
+		var task1 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin1, keyChain, roundStateProvider, token, token, token);
+		var task2 = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, coin2, keyChain, roundStateProvider, token, token, token);
 
 		while (Phase.OutputRegistration != round.Phase)
 		{
@@ -317,7 +317,6 @@ public class StepTransactionSigningTests
 		await aliceClient1.ReadyToSignAsync(token);
 		await aliceClient2.ReadyToSignAsync(token);
 
-		await roundStateUpdater.StopAsync(token);
 		return (round, aliceClient1, aliceClient2);
 	}
 }

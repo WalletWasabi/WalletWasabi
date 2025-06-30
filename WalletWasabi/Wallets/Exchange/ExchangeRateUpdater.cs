@@ -1,41 +1,32 @@
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Wallets.Exchange;
 
-public class ExchangeRateUpdater : PeriodicRunner
+public static class ExchangeRateUpdater
 {
-	private readonly Func<string> _exchangeRateProviderGetter;
-	private readonly EventBus _eventBus;
-	private readonly ExchangeRateProvider _provider;
-	private readonly UserAgentPicker _userAgentPicker;
-	public decimal UsdExchangeRate { get; private set; }
+	public record UpdateMessage;
 
-	public ExchangeRateUpdater(TimeSpan period, Func<string> exchangeRateProviderGetter,
-		IHttpClientFactory httpClientFactory, EventBus eventBus)
-		: base(period)
-	{
-		_provider = new ExchangeRateProvider(httpClientFactory);
-		_exchangeRateProviderGetter = exchangeRateProviderGetter;
-		_userAgentPicker = UserAgent.GenerateUserAgentPicker(false);
-		_eventBus = eventBus;
-	}
+	public static MessageHandler<UpdateMessage, decimal> CreateExchangeRateUpdater(
+		Func<string> exchangeRateProviderGetter, IHttpClientFactory httpClientFactory, EventBus eventBus) =>
+		(_, usdExchangeRate, cancellationToken) => UpdateExchangeRateAsync(usdExchangeRate, new ExchangeRateProvider(httpClientFactory),
+			exchangeRateProviderGetter, UserAgent.GenerateUserAgentPicker(false),
+			eventBus, cancellationToken);
 
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	private static async Task<decimal> UpdateExchangeRateAsync(decimal usdExchangeRate, ExchangeRateProvider provider, Func<string> exchangeRateProviderGetter, UserAgentPicker userAgentPicker, EventBus eventBus, CancellationToken cancellationToken)
 	{
-		var newExchangeRate = await _provider.GetExchangeRateAsync(_exchangeRateProviderGetter(), _userAgentPicker(), cancellationToken).ConfigureAwait(false);
-		if (newExchangeRate.Rate != UsdExchangeRate && newExchangeRate.Rate > 0m)
+		var newExchangeRate = await provider.GetExchangeRateAsync(exchangeRateProviderGetter(), userAgentPicker(), cancellationToken).ConfigureAwait(false);
+		if (newExchangeRate.Rate != usdExchangeRate && newExchangeRate.Rate > 0m)
 		{
-			UsdExchangeRate = newExchangeRate.Rate;
-			_eventBus.Publish(new ExchangeRateChanged(newExchangeRate.Rate));
-			Logger.LogInfo($"Fetched exchange rate from {_exchangeRateProviderGetter()}: {newExchangeRate.Rate}.");
+			usdExchangeRate = newExchangeRate.Rate;
+			eventBus.Publish(new ExchangeRateChanged(newExchangeRate.Rate));
+			Logger.LogInfo($"Fetched exchange rate from {exchangeRateProviderGetter()}: {newExchangeRate.Rate}.");
 		}
 
-		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
+		return usdExchangeRate;
 	}
 }
