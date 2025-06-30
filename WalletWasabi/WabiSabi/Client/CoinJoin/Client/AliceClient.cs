@@ -55,7 +55,7 @@ public class AliceClient
 		ArenaClient arenaClient,
 		SmartCoin coin,
 		IKeyChain keyChain,
-		RoundStateUpdater roundStatusUpdater,
+		RoundStateProvider roundStatusProvider,
 		CancellationToken unregisterCancellationToken,
 		CancellationToken registrationCancellationToken,
 		CancellationToken confirmationCancellationToken)
@@ -63,7 +63,7 @@ public class AliceClient
 		var aliceClient = await RegisterInputAsync(roundState, arenaClient, coin, keyChain, registrationCancellationToken).ConfigureAwait(false);
 		try
 		{
-			await aliceClient.ConfirmConnectionAsync(roundStatusUpdater, confirmationCancellationToken).ConfigureAwait(false);
+			await aliceClient.ConfirmConnectionAsync(roundStatusProvider, confirmationCancellationToken).ConfigureAwait(false);
 
 			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
 		}
@@ -112,7 +112,7 @@ public class AliceClient
 		return aliceClient;
 	}
 
-	private async Task ConfirmConnectionAsync(RoundStateUpdater roundStatusUpdater, CancellationToken cancellationToken)
+	private async Task ConfirmConnectionAsync(RoundStateProvider roundStatusProvider, CancellationToken cancellationToken)
 	{
 		long[] amountsToRequest = { EffectiveValue.Satoshi };
 		long[] vsizesToRequest = { _maxVsizeAllocationPerAlice - SmartCoin.ScriptPubKey.EstimateInputVsize() };
@@ -124,7 +124,7 @@ public class AliceClient
 
 			try
 			{
-				await roundStatusUpdater
+				await roundStatusProvider
 					.CreateRoundAwaiterAsync(
 						RoundId,
 						Phase.ConnectionConfirmation,
