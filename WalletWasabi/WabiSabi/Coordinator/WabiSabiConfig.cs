@@ -30,7 +30,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public string RegTestBitcoinRpcUri { get; init; } = Constants.DefaultRegTestBitcoinRpcUri;
 
-	public string BitcoinRpcConnectionString { get; init; } = "user:password";
+	public string BitcoinRpcConnectionString { get; init; } = "rpcuser:rpcpassword";
 
 	public uint ConfirmationTarget { get; init; } = 108;
 

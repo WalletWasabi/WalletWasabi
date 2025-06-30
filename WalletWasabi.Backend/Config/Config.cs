@@ -44,7 +44,7 @@ public class Config : ConfigBase
 
 	public string RegTestBitcoinRpcUri { get; } = Constants.DefaultRegTestBitcoinRpcUri;
 
-	public string BitcoinRpcConnectionString { get; } = "user:password";
+	public string BitcoinRpcConnectionString { get; } = "rpcuser:rpcpassword";
 
 	public string FilterType { get; } = Constants.DefaultFilterType;
 
