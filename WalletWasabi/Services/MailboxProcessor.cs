@@ -1,11 +1,9 @@
 using System.Collections.Concurrent;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 
 namespace WalletWasabi.Services;
 
@@ -34,6 +32,8 @@ public class Mailbox<TMsg>
 }
 
 public delegate Task Process<TMsg>(Mailbox<TMsg> mailbox, CancellationToken cancellationToken);
+public delegate Task<TState> MessageHandler<TMsg,TState>(TMsg msg, TState state, CancellationToken cancellationToken);
+public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken cancellationToken);
 
 public sealed class MailboxProcessor<TMsg>(
 	Process<TMsg> body,
@@ -50,6 +50,7 @@ public sealed class MailboxProcessor<TMsg>(
 
 	private Task? _processingTask;
 	private bool _isDisposed;
+	public CancellationToken CancellationToken => _cts.Token;
 
 	public void Start()
 	{
@@ -117,10 +118,6 @@ public sealed class MailboxProcessor<TMsg>(
 		{
 			// Normal cancellation, ignore
 		}
-		catch (Exception exception)
-		{
-			// Log the exception
-		}
 	}
 }
 
@@ -146,7 +143,7 @@ public static class Workers
 {
 	private static readonly ConcurrentDictionary<string, object> Processors = new();
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
@@ -156,7 +153,7 @@ public static class Workers
 			throw new ArgumentException($"A worker named '{name}' already exists.", nameof(name));
 		}
 
-		var processor = new MailboxProcessor<TMsg>(body);
+		var processor = new MailboxProcessor<TMsg>(body, cancellationToken);
 		processor.Start();
 		Processors[name] = processor;
 		return processor;
@@ -172,50 +169,65 @@ public static class Workers
 		return false;
 	}
 
-	public static Process<TMsg> Periodically<TMsg>(TimeSpan period,
-		Func<TMsg, CancellationToken, Task<Unit>> handler) =>
-		Periodically<TMsg, Unit>(period, Unit.Instance, (msg, _, ct) => handler(msg, ct));
+	public static Process<Unit> Continuously(
+		MessageHandler<Unit> handler) =>
+		async (mailbox, cancellationToken) =>
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+				}
+			}
+		};
 
-	public static Process<TMsg> Periodically<TMsg, TState>(TimeSpan period, TState state,
-		Func<TMsg, TState, CancellationToken, Task<TState>> handler) =>
+	public static Process<TMsg> EventDriven<TMsg,TState>(TState state,
+		MessageHandler<TMsg, TState> handler) =>
+		async (mailbox, cancellationToken) =>
+		{
+			while (!cancellationToken.IsCancellationRequested)
+			{
+				try
+				{
+					var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
+					state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception e)
+				{
+				}
+			}
+		};
+
+	public static Process<TMsg> Periodically<TMsg,TState>(TimeSpan period, TState state,
+		MessageHandler<TMsg, TState> handler) =>
 		async (inbox, cancellationToken) =>
 		{
 			var lastUpdateTime = DateTime.MinValue;
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				var msg = await inbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
-				if (DateTime.UtcNow - lastUpdateTime > period)
+				try
 				{
-					state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
-					lastUpdateTime = DateTime.UtcNow;
+					var msg = await inbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
+					if (DateTime.UtcNow - lastUpdateTime > period)
+					{
+						state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
+						lastUpdateTime = DateTime.UtcNow;
+					}
+				}
+				catch (Exception e)
+				{
 				}
 			}
 		};
 
-	public static Process<TMsg> Continuously<TMsg>(
-		Func<CancellationToken, Task> handler) =>
-		async (_, cancellationToken) =>
-		{
-			while (!cancellationToken.IsCancellationRequested)
-			{
-				await handler(cancellationToken).ConfigureAwait(false);
-			}
-		};
-
-	public static Process<TMsg> EventDriven<TMsg>(Func<TMsg, CancellationToken, Task> handler) =>
-		async (mailbox, cancellationToken) =>
-		{
-			while (!cancellationToken.IsCancellationRequested)
-			{
-				var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
-				await handler(msg, cancellationToken).ConfigureAwait(false);
-			}
-		};
-
-	public static Process<TMsg> Service<TMsg>(string serviceName, Process<TMsg> handler) =>
+	public static Process<TMsg> Service<TMsg>(string serviceName, Process<TMsg> process) =>
 		Service(
 			before: () => Logger.LogInfo($"Starting {serviceName}."),
-			handler,
+			process,
 			after: () => Logger.LogInfo($"Stopped {serviceName}."));
 
 	public static Process<TMsg> Service<TMsg>(
@@ -238,16 +250,4 @@ public static class Workers
 				after();
 			}
 		};
-}
-
-public static class EventBusExtensions
-{
-	public static IDisposable Subscribe<TMsg>(this EventBus eventBus, MailboxProcessor<TMsg> processor)
-		where TMsg : notnull
-	{
-		ArgumentNullException.ThrowIfNull(eventBus, nameof(eventBus));
-		ArgumentNullException.ThrowIfNull(processor, nameof(processor));
-
-		return eventBus.Subscribe<TMsg>(msg => processor.Post(msg));
-	}
 }

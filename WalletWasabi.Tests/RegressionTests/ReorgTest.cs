@@ -72,7 +72,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		await rpc.GenerateAsync(2); // Generate two, so we can test for two reorg
 
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously<Unit>(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 
 		var reorgAwaiter = new EventsAwaiter<FilterModel>(
 			h => bitcoinStore.IndexStore.Reorged += h,

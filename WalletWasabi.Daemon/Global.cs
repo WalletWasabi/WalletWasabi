@@ -228,6 +228,7 @@ public class Global
 				Service("Bitcoin Rpc Interface Monitoring",
 					Periodically(
 						TimeSpan.FromSeconds(7),
+						Unit.Instance,
 						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))));
 			rpcMonitor.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
@@ -252,7 +253,7 @@ public class Global
 
 		Spawn("Synchronizer",
 			Service("Wasabi Index-Based Synchronizer",
-				Continuously<Unit>(
+				Continuously(
 					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
 				)))
 			.DisposeUsing(_disposables);
@@ -300,6 +301,7 @@ public class Global
 			Service("Wasabi Version AutoUpdater",
 				Periodically(
 					TimeSpan.FromHours(12),
+					Unit.Instance,
 					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
@@ -310,6 +312,7 @@ public class Global
 		var cpfpUpdater = Spawn("CpfpInfoProvider",
 			Service("External Cpfp Info provider",
 				EventDriven(
+					Unit.Instance,
 					Network == Network.RegTest
 					? CpfpInfoUpdater.CreateForRegTest()
 					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))));
@@ -445,7 +448,9 @@ public class Global
 
 			var torStatusHttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-torproject");
 			var torStatusChecker = Spawn("TorStatusChecker",
-				Periodically(TimeSpan.FromHours(1),
+				Periodically(
+					TimeSpan.FromHours(1),
+					Unit.Instance,
 					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)));
 			torStatusChecker.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
