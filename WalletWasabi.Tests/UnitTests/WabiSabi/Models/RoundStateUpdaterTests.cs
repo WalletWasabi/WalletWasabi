@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -6,10 +8,12 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
-using System.Net;
 using WalletWasabi.Serialization;
+using WalletWasabi.Services;
+using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
@@ -37,18 +41,19 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromDays(1), apiClient);
+		using var roundStatusUpdaterCancellation = new CancellationTokenSource();
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient, roundStatusUpdaterCancellation.Token);
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var round1TSCts = new CancellationTokenSource();
-		var round1IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.InputRegistration, cancellationToken);
-		var round1ORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.OutputRegistration, cancellationToken);
-		var round1TSTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
-		var round1TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState1.Id, Phase.Ended, cancellationToken);
+		var round1IRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState1.Id, Phase.InputRegistration, cancellationToken);
+		var round1ORTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState1.Id, Phase.OutputRegistration, cancellationToken);
+		var round1TSTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState1.Id, Phase.TransactionSigning, round1TSCts.Token);
+		var round1TBTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState1.Id, Phase.Ended, cancellationToken);
 
-		// Start
-		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
+		await Task.Delay(TimeSpan.FromMilliseconds(100)).ContinueWith(_ => roundStatusUpdater.Update());
 
 		// Wait for round1 in input registration.
 		var round1 = await round1IRTask;
@@ -58,12 +63,12 @@ public class RoundStateUpdaterTests
 
 		// Force the RoundStatusUpdater to run. After this it will know about the existence of `round2` so,
 		// we can subscribe to events.
-		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
-		var round2IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.InputRegistration, cancellationToken);
-		var round2TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, cancellationToken);
+		roundStatusUpdater.Update();
+		var round2IRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState2.Id, Phase.InputRegistration, cancellationToken);
+		var round2TBTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, cancellationToken);
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
-		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
+		roundStatusUpdater.Update();
 
 		// Wait for round1 in input registration.
 		var round2 = await round2IRTask;
@@ -78,19 +83,19 @@ public class RoundStateUpdaterTests
 		Assert.All(new[] { round1TSTask, round1TBTask, round2TBTask }, t => Assert.Equal(TaskStatus.WaitingForActivation, t.Status));
 
 		// We cancel the cancellation token source used for the `wake me up when round1 transactions has to be signed` awaiter
-		round1TSCts.Cancel();
+		await round1TSCts.CancelAsync();
 		Assert.True(round1TSTask.IsCanceled);
 
 		// At this point in time all the rounds have disappeared and then the awaiter that was waiting for round1 to broadcast
 		// the transaction has to fail to let the sleeping component that the round doesn't exist any more.
-		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
+		roundStatusUpdater.Update();
 		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await round1TBTask);
 		Assert.Contains(round1.Id.ToString(), ex.Message);
 		Assert.Contains("not running", ex.Message);
 
 		// `Round2` awaiter has to be cancelled immediately when we stop the updater.
 		Assert.Equal(TaskStatus.WaitingForActivation, round2TBTask.Status);
-		await roundStatusUpdater.StopAsync(cancellationToken);
+		await roundStatusUpdaterCancellation.CancelAsync();
 
 		Assert.Equal(TaskStatus.Canceled, round2TBTask.Status);
 	}
@@ -116,17 +121,16 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), apiClient);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
-		// Start
-		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
-
+		roundStatusUpdater.Update();
 		// Wait for round1 in input registration.
 		var round = await roundIRTask;
 		Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -134,9 +138,11 @@ public class RoundStateUpdaterTests
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
 		// Lots of exceptions in the meanwhile
-		roundStatusUpdater.TriggerRound();
-		roundStatusUpdater.TriggerRound();
-		roundStatusUpdater.TriggerRound();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
 		await Task.Delay(TimeSpan.FromSeconds(1));
 
 		// But in the end everything is alright.
@@ -165,17 +171,16 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromMilliseconds(100), apiClient);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
 		// events for that round.
 		using var roundTSCts = new CancellationTokenSource();
-		var roundIRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
-		var roundORTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		var roundORTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cancellationToken);
 
-		// Start
-		await roundStatusUpdater.StartAsync(cancellationTokenSource.Token);
-
+		roundStatusUpdater.Update();
 		// Wait for round1 in input registration.
 		var round = await roundIRTask;
 		Assert.Equal(Phase.InputRegistration, round.Phase);
@@ -183,9 +188,11 @@ public class RoundStateUpdaterTests
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
 		// Lots of exceptions in the meanwhile
-		roundStatusUpdater.TriggerRound();
-		roundStatusUpdater.TriggerRound();
-		roundStatusUpdater.TriggerRound();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
+		roundStatusUpdater.Update();
 
 		// We are expecting output registration phase but the round unexpectedly ends.
 		await Assert.ThrowsAsync<UnexpectedRoundPhaseException>(async () => await roundORTask);
@@ -201,22 +208,21 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using RoundStateUpdater roundStatusUpdater = new(TimeSpan.FromSeconds(100), apiClient);
-		try
-		{
-			await roundStatusUpdater.StartAsync(CancellationToken.None);
-			using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 
-			await Assert.ThrowsAsync<TaskCanceledException>(async () =>
-				await roundStatusUpdater.CreateRoundAwaiterAsync(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
-		}
-		finally
-		{
-			await roundStatusUpdater.StopAsync(CancellationToken.None);
-		}
+		await Assert.ThrowsAsync<TaskCanceledException>(async () =>
+			await roundStatusProvider.CreateRoundAwaiterAsync(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
 	}
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
 		() => HttpResponseMessageEx.Ok(
 			Encode.RoundStateResponse( new RoundStateResponse(roundStates)).ToJsonString());
+}
+
+public static class RoundStateUpdaterExtensions
+{
+	public static void Update(this MailboxProcessor<RoundUpdateMessage> roundStateUpdater) =>
+		roundStateUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow));
 }
