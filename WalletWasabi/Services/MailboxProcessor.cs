@@ -177,10 +177,11 @@ public static class Workers
 			{
 				try
 				{
-					await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
+					var _ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
 				}
-				catch (Exception e)
+				catch (Exception e) when(e is not TaskCanceledException)
 				{
+					Logger.LogError(e);
 				}
 			}
 		};
@@ -196,8 +197,9 @@ public static class Workers
 					var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
 					state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
 				}
-				catch (Exception e)
+				catch (Exception e) when(e is not ChannelClosedException)
 				{
+					Logger.LogError(e);
 				}
 			}
 		};
@@ -218,8 +220,9 @@ public static class Workers
 						lastUpdateTime = DateTime.UtcNow;
 					}
 				}
-				catch (Exception e)
+				catch (Exception e) when(e is not ChannelClosedException)
 				{
+					Logger.LogError(e);
 				}
 			}
 		};
@@ -243,7 +246,6 @@ public static class Workers
 			}
 			catch (Exception e)
 			{
-
 			}
 			finally
 			{

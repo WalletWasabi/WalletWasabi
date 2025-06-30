@@ -10,11 +10,11 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Services;
+using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -75,11 +75,12 @@ internal class Participant
 		}
 
 		var apiClient = HttpClientFactory;
-		using var roundStateUpdater = new RoundStateUpdater(TimeSpan.FromSeconds(3), apiClient("satoshi"));
-		await roundStateUpdater.StartAsync(cancellationToken).ConfigureAwait(false);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient("satoshi"));
+		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var outputProvider = new OutputProvider(Wallet);
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, outputProvider, roundStateUpdater, false);
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(HttpClientFactory, Wallet, outputProvider, roundStateProvider, false);
 
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
@@ -95,8 +96,6 @@ internal class Participant
 
 		// Run the coinjoin client task.
 		var ret = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(smartCoins), true, cancellationToken).ConfigureAwait(false);
-
-		await roundStateUpdater.StopAsync(cancellationToken).ConfigureAwait(false);
 
 		return ret;
 	}
