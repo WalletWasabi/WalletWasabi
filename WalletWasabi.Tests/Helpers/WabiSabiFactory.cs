@@ -315,13 +315,13 @@ public static class WabiSabiFactory
 	public static CoinJoinClient CreateTestCoinJoinClient(
 		Func<string, IWabiSabiApiRequestHandler> apiClientFactory,
 		KeyManager keyManager,
-		RoundStateUpdater roundStateUpdater)
+		RoundStateProvider roundStateProvider)
 	{
 		return CreateTestCoinJoinClient(
 			apiClientFactory,
 			new KeyChain(keyManager, ""),
 			new OutputProvider(new InternalDestinationProvider(keyManager)),
-			roundStateUpdater,
+			roundStateProvider,
 			keyManager.NonPrivateCoinIsolation);
 	}
 
@@ -329,7 +329,7 @@ public static class WabiSabiFactory
 		Func<string, IWabiSabiApiRequestHandler> apiClientFactory,
 		IKeyChain keyChain,
 		OutputProvider outputProvider,
-		RoundStateUpdater roundStateUpdater,
+		RoundStateProvider roundStateProvider,
 		bool redCoinIsolation)
 	{
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
@@ -338,7 +338,7 @@ public static class WabiSabiFactory
 			apiClientFactory,
 			keyChain,
 			outputProvider,
-			roundStateUpdater,
+			roundStateProvider,
 			coinSelector,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
 			new LiquidityClueProvider(),
@@ -403,7 +403,7 @@ public static class WabiSabiFactory
 
 public class TesteableCoinJoinClient : CoinJoinClient
 {
-	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateUpdater roundStatusUpdater, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusUpdater, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
+	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
 	{
 	}
 

@@ -180,4 +180,10 @@ public class TesteabletNostrClient : INostrClient
 	public event EventHandler<string>? EoseReceived;
 }
 
-
+public class RoundStateUpdaterForTesting
+{
+	public static MailboxProcessor<RoundUpdateMessage> Create(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken = null) =>
+		Spawn($"RoundStateUpdater-{Random.Shared.Next()}", EventDriven(
+			new RoundsState(new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+			RoundStateUpdater.Create(api)), cancellationToken);
+}
