@@ -14,8 +14,8 @@ public static class RpcMonitor
 	public static readonly string ServiceName = "BitcoinRpcMonitor";
 	public record CheckMessage;
 
-	public static Func<CheckMessage, CancellationToken, Task<Unit>> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
-		(_, cancellationToken) => CheckRpcStatusAsync(rpcClient, eventBus, cancellationToken);
+	public static MessageHandler<CheckMessage, Unit> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
+		(_, _, cancellationToken) => CheckRpcStatusAsync(rpcClient, eventBus, cancellationToken);
 
 	private static async Task<Unit> CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancel)
 	{

@@ -3,10 +3,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using NNostr.Client;
+using WalletWasabi.Helpers;
 using WalletWasabi.Services;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients;
 using Xunit;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.UnitTests.Services;
 
@@ -33,7 +39,7 @@ public class UpdateManagerTests
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetResult(e.UpdateStatus));
 
-		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		var updateStatusReceived = await updateStatusObtainedTask.Task.WaitAsync(cts.Token);
 		await updateTask;
 
@@ -64,7 +70,7 @@ public class UpdateManagerTests
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetResult(e.UpdateStatus));
 
-		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		var updateStatusReceived = await updateStatusObtainedTask.Task.WaitAsync(cts.Token);
 		await updateTask;
 
@@ -95,7 +101,7 @@ public class UpdateManagerTests
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetException(new Exception("Unexpected event. This should have never been called. Bug")));
 
-		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await updateStatusObtainedTask.Task.WaitAsync(cts.Token));
 
 		await updateTask;
@@ -117,7 +123,7 @@ public class UpdateManagerTests
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetException(new Exception("Unexpected event. This should have never been called. Bug")));
 
-		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await updateStatusObtainedTask.Task.WaitAsync(cts.Token));
 
 		await updateTask;
@@ -173,3 +179,5 @@ public class TesteabletNostrClient : INostrClient
 	public event EventHandler<(string eventId, bool success, string messafe)>? OkReceived;
 	public event EventHandler<string>? EoseReceived;
 }
+
+

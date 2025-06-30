@@ -9,7 +9,7 @@ public static class ExchangeRateUpdater
 	public static readonly string ServiceName = "ExchangeFeeRateUpdater";
 	public record UpdateMessage;
 
-	public static Func<UpdateMessage, decimal, CancellationToken, Task<decimal>> CreateExchangeRateUpdater(
+	public static MessageHandler<UpdateMessage, decimal> CreateExchangeRateUpdater(
 		ExchangeRateProvider provider, EventBus eventBus) =>
 		(_, usdExchangeRate, cancellationToken) => UpdateExchangeRateAsync(usdExchangeRate, provider, eventBus, cancellationToken);
 

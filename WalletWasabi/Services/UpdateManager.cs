@@ -27,9 +27,9 @@ public static class UpdateManager
 {
 	public record UpdateMessage;
 
-	public static Func<UpdateMessage, CancellationToken, Task<Unit>> CreateUpdater(Func<INostrClient> nostrClientFactory,
+	public static MessageHandler<UpdateMessage, Unit> CreateUpdater(Func<INostrClient> nostrClientFactory,
 		AsyncReleaseDownloader releaseDownloader, EventBus eventBus) =>
-		(_, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
+		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
 
 	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
 	{

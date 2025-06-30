@@ -33,7 +33,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously<Unit>(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 		var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 		// Test initial synchronization.
 		var times = 0;
