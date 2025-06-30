@@ -25,13 +25,14 @@ public record RoundStateAwaiter
 		_predicate = predicate;
 		_roundId = roundId;
 		_phase = phase;
-		cancellationToken.Register(() => Cancel());
+		_cancellationTokenRegistration = cancellationToken.Register(Cancel);
 	}
 
 	private readonly TaskCompletionSource<RoundState> _taskCompletionSource;
 	private readonly Predicate<RoundState>? _predicate;
 	private readonly uint256? _roundId;
 	private readonly Phase? _phase;
+	private readonly CancellationTokenRegistration _cancellationTokenRegistration;
 
 	public Task<RoundState> Task => _taskCompletionSource.Task;
 
@@ -87,7 +88,7 @@ public record RoundStateAwaiter
 		return false;
 	}
 
-	public void Cancel()
+	private void Cancel()
 	{
 		_taskCompletionSource.TrySetCanceled();
 	}

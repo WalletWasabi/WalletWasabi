@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -31,14 +32,14 @@ public class AliceTimeoutTests
 		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), arena);
-		await roundStateUpdater.StartAsync(testDeadlineCts.Token);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(arena);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		// Register Alices.
 		KeyChain keyChain = new(km, "");
 
 		using CancellationTokenSource registrationCts = new();
-		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateUpdater, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
+		Task<AliceClient> task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), arenaClient, smartCoin, keyChain, roundStateProvider, registrationCts.Token, registrationCts.Token, confirmationCancellationToken: testDeadlineCts.Token);
 
 		while (round.Alices.Count == 0)
 		{
@@ -63,7 +64,6 @@ public class AliceTimeoutTests
 			Assert.True(ex is OperationCanceledException or WabiSabiProtocolException);
 		}
 
-		await roundStateUpdater.StopAsync(testDeadlineCts.Token);
 		await arena.StopAsync(testDeadlineCts.Token);
 	}
 

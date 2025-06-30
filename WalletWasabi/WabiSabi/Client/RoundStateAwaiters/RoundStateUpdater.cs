@@ -1,67 +1,116 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
-using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 
-public class RoundStateUpdater : PeriodicRunner
+
+public abstract record RoundUpdateMessage
 {
-	public RoundStateUpdater(TimeSpan requestInterval, IWabiSabiApiRequestHandler arenaRequestHandler) : base(requestInterval)
+	public record UpdateMessage(DateTime CurrentTime) : RoundUpdateMessage;
+	public record CreateRoundAwaiter(uint256? RoundId, Phase? Phase, Predicate<RoundState>? Predicate, IReplyChannel<Task<RoundState>> ReplayChannel) : RoundUpdateMessage;
+}
+
+public class RoundStateProvider(MailboxProcessor<RoundUpdateMessage> roundStateUpdater)
+{
+	public static TimeSpan QueryFrequency = TimeSpan.FromSeconds(15);
+
+	public async Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase,
+		CancellationToken cancellationToken)
 	{
-		_arenaRequestHandler = arenaRequestHandler;
+		var awaiter = await roundStateUpdater
+			.PostAndReplyAsync<Task<RoundState>>(
+				chan => new RoundUpdateMessage.CreateRoundAwaiter(roundId, phase, null, chan),
+				cancellationToken).ConfigureAwait(false);
+		using var cts =
+			CancellationTokenSource.CreateLinkedTokenSource(roundStateUpdater.CancellationToken, cancellationToken);
+		return await awaiter.WaitAsync(cts.Token).ConfigureAwait(false);
 	}
 
-	private readonly IWabiSabiApiRequestHandler _arenaRequestHandler;
-	private IDictionary<uint256, RoundState> RoundStates { get; set; } = new Dictionary<uint256, RoundState>();
-
-	private readonly List<RoundStateAwaiter> _awaiters = new();
-	private readonly object _awaitersLock = new();
-
-	public bool AnyRound => RoundStates.Any();
-
-	public bool SlowRequestsMode { get; set; } = true;
-
-	private DateTimeOffset LastSuccessfulRequestTime { get; set; }
-
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	public async Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate,
+		CancellationToken cancellationToken)
 	{
-		if (SlowRequestsMode)
+		var awaiter = await roundStateUpdater
+			.PostAndReplyAsync<Task<RoundState>>(
+				chan => new RoundUpdateMessage.CreateRoundAwaiter(null, null, predicate, chan),
+				cancellationToken).ConfigureAwait(false);
+		using var cts =
+			CancellationTokenSource.CreateLinkedTokenSource(roundStateUpdater.CancellationToken, cancellationToken);
+		return await awaiter.WaitAsync(cts.Token).ConfigureAwait(false);
+	}
+}
+
+public record RoundsState(
+	DateTime NextQueryTime,
+	TimeSpan QueryInterval,
+	Dictionary<uint256, RoundState> Rounds,
+	ImmutableList<RoundStateAwaiter> Awaiters);
+
+public static class RoundStateUpdater
+{
+	public static MessageHandler<RoundUpdateMessage, RoundsState> Create(IWabiSabiApiRequestHandler arenaRequestHandler) =>
+		(msg, state, cancellationToken) => ProcessMessageAsync(msg, state, arenaRequestHandler, cancellationToken);
+
+	private static async Task<RoundsState> ProcessMessageAsync(
+		RoundUpdateMessage msg,
+		RoundsState state,
+		IWabiSabiApiRequestHandler arenaRequestHandler,
+		CancellationToken cancellationToken)
+	{
+		switch (msg)
 		{
-			lock (_awaitersLock)
-			{
-				if (_awaiters.Count == 0 && DateTimeOffset.UtcNow - LastSuccessfulRequestTime < TimeSpan.FromMinutes(5))
+			case RoundUpdateMessage.UpdateMessage m:
+				if (state.Awaiters.Count > 0 && DateTime.UtcNow >= state.NextQueryTime)
 				{
-					return;
+					var (rounds, awaiters) = await UpdateRoundsStateAsync(state, arenaRequestHandler, cancellationToken).ConfigureAwait(false);
+					state = state with
+					{
+						NextQueryTime = m.CurrentTime + state.QueryInterval,
+						Rounds = rounds,
+						Awaiters = awaiters
+					};
 				}
-			}
+
+				break;
+			case RoundUpdateMessage.CreateRoundAwaiter m:
+				var roundStateAwaiter = new RoundStateAwaiter(m.Predicate, m.RoundId, m.Phase, cancellationToken);
+				state = state with {Awaiters = state.Awaiters.Add(roundStateAwaiter)};
+				m.ReplayChannel.Reply(roundStateAwaiter.Task);
+				break;
 		}
 
+		return state;
+	}
+
+	private static async Task<(Dictionary<uint256, RoundState> Rounds, ImmutableList<RoundStateAwaiter> Awaiters)> UpdateRoundsStateAsync(
+		RoundsState state,
+		IWabiSabiApiRequestHandler arenaRequestHandler,
+		CancellationToken cancellationToken)
+	{
 		var request = new RoundStateRequest(
-			RoundStates.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
+			state.Rounds.Select(x => new RoundStateCheckpoint(x.Key, x.Value.CoinjoinState.Events.Count)).ToImmutableList());
 
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(30));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
-		var response = await _arenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
+		var response = await arenaRequestHandler.GetStatusAsync(request, linkedCts.Token).ConfigureAwait(false);
 		RoundState[] roundStates = response.RoundStates;
 
 		var updatedRoundStates = roundStates
-			.Where(rs => RoundStates.ContainsKey(rs.Id))
-			.Select(rs => (NewRoundState: rs, CurrentRoundState: RoundStates[rs.Id]))
+			.Where(rs => state.Rounds.ContainsKey(rs.Id))
+			.Select(rs => (NewRoundState: rs, CurrentRoundState: state.Rounds[rs.Id]))
 			.Select(x => x.NewRoundState with { CoinjoinState = x.NewRoundState.CoinjoinState.AddPreviousStates(x.CurrentRoundState.CoinjoinState, x.NewRoundState.Id) })
 			.ToList();
 
 		var newRoundStates = roundStates
-			.Where(rs => !RoundStates.ContainsKey(rs.Id));
+			.Where(rs => !state.Rounds.ContainsKey(rs.Id));
 
 		if (newRoundStates.Any(r => !r.IsRoundIdMatching()))
 		{
@@ -71,69 +120,9 @@ public class RoundStateUpdater : PeriodicRunner
 
 		// Don't use ToImmutable dictionary, because that ruins the original order and makes the server unable to suggest a round preference.
 		// ToDo: ToDictionary doesn't guarantee the order by design so .NET team might change this out of our feet, so there's room for improvement here.
-		RoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
+		var finalRoundStates = newRoundStates.Concat(updatedRoundStates).ToDictionary(x => x.Id, x => x);
 
-		lock (_awaitersLock)
-		{
-			foreach (var awaiter in _awaiters.Where(awaiter => awaiter.IsCompleted(RoundStates)).ToArray())
-			{
-				// The predicate was fulfilled.
-				_awaiters.Remove(awaiter);
-				break;
-			}
-		}
-
-		LastSuccessfulRequestTime = DateTimeOffset.UtcNow;
-	}
-
-	private Task<RoundState> CreateRoundAwaiterAsync(uint256? roundId, Phase? phase, Predicate<RoundState>? predicate, CancellationToken cancellationToken)
-	{
-		RoundStateAwaiter? roundStateAwaiter = null;
-
-		lock (_awaitersLock)
-		{
-			roundStateAwaiter = new RoundStateAwaiter(predicate, roundId, phase, cancellationToken);
-			_awaiters.Add(roundStateAwaiter);
-		}
-
-		cancellationToken.Register(() =>
-		{
-			lock (_awaitersLock)
-			{
-				_awaiters.Remove(roundStateAwaiter);
-			}
-		});
-
-		return roundStateAwaiter.Task;
-	}
-
-	public Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate, CancellationToken cancellationToken)
-	{
-		return CreateRoundAwaiterAsync(null, null, predicate, cancellationToken);
-	}
-
-	public Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase, CancellationToken cancellationToken)
-	{
-		return CreateRoundAwaiterAsync(roundId, phase, null, cancellationToken);
-	}
-
-	/// <summary>
-	/// This might not contain up-to-date states. Make sure it is updated.
-	/// </summary>
-	public bool TryGetRoundState(uint256 roundId, [NotNullWhen(true)] out RoundState? roundState)
-	{
-		return RoundStates.TryGetValue(roundId, out roundState);
-	}
-
-	public override Task StopAsync(CancellationToken cancellationToken)
-	{
-		lock (_awaitersLock)
-		{
-			foreach (var awaiter in _awaiters)
-			{
-				awaiter.Cancel();
-			}
-		}
-		return base.StopAsync(cancellationToken);
+		var completedAwaiters = state.Awaiters.Where(awaiter => awaiter.IsCompleted(finalRoundStates)).ToArray();
+		return (Rounds: finalRoundStates, Awaiters: state.Awaiters.RemoveRange(completedAwaiters));
 	}
 }

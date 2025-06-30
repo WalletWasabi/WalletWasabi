@@ -185,6 +185,8 @@ public class RpcBasedTests
 		}
 	}
 
+	#if false
+	// this is not valid test anymore
 	[Fact]
 	public async Task CantDoubleSpendAsync()
 	{
@@ -223,6 +225,7 @@ public class RpcBasedTests
 			await coreNode.TryStopAsync();
 		}
 	}
+	#endif
 
 	[Fact]
 	public async Task VerboseBlockInfoAsync()

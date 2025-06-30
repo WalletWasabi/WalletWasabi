@@ -14,19 +14,19 @@ public class CoinJoinTrackerFactory
 {
 	public CoinJoinTrackerFactory(
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
-		RoundStateUpdater roundStatusUpdater,
+		RoundStateProvider roundStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CancellationToken cancellationToken)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
-		_roundStatusUpdater = roundStatusUpdater;
+		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_cancellationToken = cancellationToken;
 		_liquidityClueProvider = new LiquidityClueProvider();
 	}
 
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
-	private readonly RoundStateUpdater _roundStatusUpdater;
+	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
@@ -48,7 +48,7 @@ public class CoinJoinTrackerFactory
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
 			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
-			_roundStatusUpdater,
+			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
 			_liquidityClueProvider,
