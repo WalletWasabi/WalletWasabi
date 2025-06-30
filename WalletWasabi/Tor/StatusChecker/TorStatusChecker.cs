@@ -2,6 +2,7 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using SQLitePCL;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -17,8 +18,8 @@ public static class TorStatusChecker
 
 	public record CheckMessage;
 
-	public static Func<CheckMessage, CancellationToken, Task<Unit>> CreateChecker(HttpClient httpClient, EventBus eventBus) =>
-		(_, cancellationToken) => CheckTorStatusAsync(httpClient, eventBus, cancellationToken);
+	public static MessageHandler<CheckMessage, Unit> CreateChecker(HttpClient httpClient, EventBus eventBus) =>
+		(_, _, cancellationToken) => CheckTorStatusAsync(httpClient, eventBus, cancellationToken);
 
 	private static async Task<Unit> CheckTorStatusAsync(HttpClient httpClient, EventBus eventBus, CancellationToken cancellationToken)
 	{
