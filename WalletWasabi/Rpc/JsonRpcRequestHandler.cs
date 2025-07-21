@@ -33,6 +33,7 @@ public class JsonRpcRequestHandler<TService>
     	{
     		NullValueHandling = NullValueHandling.Ignore,
     		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+
     		Converters = new JsonConverter[]
     		{
     			new Uint256JsonConverter(),
