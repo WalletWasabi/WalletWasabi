@@ -17,6 +17,7 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
+using WalletWasabi.Scheme;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
@@ -541,6 +542,21 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["walletName"] = x.WalletName
 			})
 			.ToImmutableArray();
+	}
+
+	[JsonRpcMethod("execute", initializable: false)]
+	public object Execute(string script)
+	{
+		try
+		{
+			var expressionResult = Global.Scheme.Execute(script);
+			var result = Interpreter.Print(expressionResult);
+			return result;
+		}
+		catch (Exception e)
+		{
+			return e.Message;
+		}
 	}
 
 	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]
