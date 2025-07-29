@@ -171,11 +171,11 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 					case HttpStatusCode.RequestTimeout:
 					case HttpStatusCode.BadGateway:
 					case HttpStatusCode.ServiceUnavailable:
-						Logger.LogInfo($"retying {request.RequestUri} because {response.ReasonPhrase}");
+						Logger.LogTrace($"retying {request.RequestUri} because {response.ReasonPhrase}");
 						await Task.Delay(Config.TimeBeforeRetringAfterServerError, cancellationToken).ConfigureAwait(false);
 						continue;
 					case HttpStatusCode.TooManyRequests:
-						Logger.LogInfo($"retying {request.RequestUri} because {response.ReasonPhrase}");
+						Logger.LogTrace($"retying {request.RequestUri} because {response.ReasonPhrase}");
 						// Be nice with third-party server overwhelmed by request from Tor exit nodes
 						await Task.Delay(Config.TimeBeforeRetringAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
 						continue;
@@ -185,10 +185,18 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 						return response;
 				}
 			}
-			catch (Exception ex) when (IsNetworkError(ex))
+			catch (Exception ex)
 			{
-				Logger.LogInfo($"retying {request.RequestUri} because {ex.Message}");
-				await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken).ConfigureAwait(false);
+				if (IsNetworkError(ex))
+				{
+					Logger.LogTrace($"retying {request.RequestUri} because {ex.Message}");
+					await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken)
+						.ConfigureAwait(false);
+				}
+				else
+				{
+					throw;
+				}
 			}
 			finally
 			{
