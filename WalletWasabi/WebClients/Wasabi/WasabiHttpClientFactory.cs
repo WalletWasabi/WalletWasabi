@@ -151,7 +151,8 @@ public class NotifyHttpClientHandler(string name, Action<string> disposedCallbac
 	}
 }
 
-public class RetryHttpClientHandler(string name, Action<string> disposedCallback, HttpClientHandlerConfiguration config) : NotifyHttpClientHandler(name, disposedCallback)
+public class RetryHttpClientHandler(string name, Action<string> disposedCallback, HttpClientHandlerConfiguration config)
+	: NotifyHttpClientHandler(name, disposedCallback)
 {
 	internal HttpClientHandlerConfiguration Config = config;
 
@@ -187,16 +188,13 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 			}
 			catch (Exception ex)
 			{
-				if (IsNetworkError(ex))
-				{
-					Logger.LogTrace($"retying {request.RequestUri} because {ex.Message}");
-					await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken)
-						.ConfigureAwait(false);
-				}
-				else
+				if (!ShouldRetry(ex))
 				{
 					throw;
 				}
+				Logger.LogTrace($"retying {request.RequestUri} because {ex.Message}");
+				await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken)
+					.ConfigureAwait(false);
 			}
 			finally
 			{
@@ -207,6 +205,21 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 		throw new HttpRequestException($"Failed to make http request '{request.RequestUri}' after 3 attempts.");
 	}
 
-	private static bool IsNetworkError(Exception ex) =>
-		ex is SocketException || (ex.InnerException is { } inner && IsNetworkError(inner));
+	private static bool ShouldRetry(Exception ex) =>
+		ex switch
+		{
+			SocketException => true,
+			HttpRequestException
+			{
+				HttpRequestError:
+				HttpRequestError.ConnectionError or
+				HttpRequestError.ProxyTunnelError or
+				HttpRequestError.SecureConnectionError or
+				HttpRequestError.NameResolutionError or
+				HttpRequestError.InvalidResponse or
+				HttpRequestError.ResponseEnded
+			} => true,
+			{InnerException: var inner} when ShouldRetry(inner) => true,
+			_ => false
+		};
 }
