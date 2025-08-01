@@ -3,13 +3,13 @@ using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
@@ -337,7 +337,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		{
 			if (req.RequestUri.ToString().Contains("transaction-signature"))
 			{
-				throw new HttpRequestException("Something was wrong posting the signature.");
+				return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));
 			}
 
 			return httpClient.SendAsync(req, CancellationToken.None);

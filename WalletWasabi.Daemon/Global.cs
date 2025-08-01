@@ -232,10 +232,10 @@ public class Global
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly IndexStore _indexStore;
 
-	private HttpClientFactory BuildHttpClientFactory() =>
+	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
 		Config.UseTor != TorMode.Disabled
-			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"))
-			: new HttpClientFactory();
+			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config)
+			: new HttpClientFactory(config);
 	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
@@ -370,7 +370,15 @@ public class Global
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		CoinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-		CoordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory());
+		// Aggressively retry
+		var coordinatorHttpClientConfig = new HttpClientHandlerConfiguration
+		{
+			MaxAttempts = 10,
+			TimeBeforeRetringAfterNetworkError = TimeSpan.FromSeconds(0.5),
+			TimeBeforeRetringAfterServerError = TimeSpan.FromSeconds(0.5),
+			TimeBeforeRetringAfterTooManyRequests = TimeSpan.FromSeconds(0.1)
+		};
+		CoordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory(coordinatorHttpClientConfig));
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi-coordination", CoordinatorHttpClientFactory);
 		HostedServices.Register<RoundStateUpdater>(() => new RoundStateUpdater(TimeSpan.FromSeconds(10), wabiSabiStatusProvider), "Round info updater");
