@@ -24,30 +24,9 @@ public class P2PNodesManager
 	private int _currentTimeoutSeconds = 16;
 	private readonly List<Node> _nodesInUse = new();
 
-	public async Task<Node> GetNodeForSingleUseAsync(CancellationToken cancellationToken)
+	public async Task<NodesCollection> GetNodeForSingleUseAsync(CancellationToken cancellationToken)
 	{
-		while (!cancellationToken.IsCancellationRequested)
-		{
-			if (_nodes.ConnectedNodes.Count == 0)
-			{
-				await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
-				continue;
-			}
-
-			var nodesInUse = _nodesInUse.ToArray();
-			var node = _nodes.ConnectedNodes.Where(n => !nodesInUse.Contains(n)).RandomElement(SecureRandom.Instance);
-
-			if (node is not null && node.IsConnected)
-			{
-				_nodesInUse.Add(node);
-				return node;
-			}
-
-			await Task.Delay(10, cancellationToken).ConfigureAwait(false);
-		}
-
-		cancellationToken.ThrowIfCancellationRequested();
-		throw new InvalidOperationException("Failed to retrieve a connected node.");
+		return _nodes.ConnectedNodes;
 	}
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
