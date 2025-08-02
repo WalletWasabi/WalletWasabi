@@ -174,7 +174,9 @@ public class TorSettings
 			$"--GeoIPFile \"{_geoIpPath}\"",
 			$"--GeoIPv6File \"{_geoIp6Path}\"",
 			$"--NumEntryGuards 3",
-			$"--NumPrimaryGuards 3"
+			$"--NumPrimaryGuards 3",
+			$"--ConfluxEnabled 1",
+			$"--ConfluxClientUX throughput"
 		];
 
 		if (useBridges)
