@@ -172,7 +172,9 @@ public class TorSettings
 			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
 			$"--DataDirectory \"{TorDataDir}\"",
 			$"--GeoIPFile \"{_geoIpPath}\"",
-			$"--GeoIPv6File \"{_geoIp6Path}\""
+			$"--GeoIPv6File \"{_geoIp6Path}\"",
+			$"--NumEntryGuards 3",
+			$"--NumPrimaryGuards 3"
 		];
 
 		if (useBridges)
