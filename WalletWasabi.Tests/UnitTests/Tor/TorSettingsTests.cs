@@ -33,6 +33,10 @@ public class TorSettingsTests
 			$"--DataDirectory \"{Path.Combine("temp", "tempDataDir", "tordata2")}\"",
 			$"--GeoIPFile \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip")}\"",
 			$"--GeoIPv6File \"{Path.Combine("tempDistributionDir", "Tor", "Geoip", "geoip6")}\"",
+			$"--NumEntryGuards 3",
+			$"--NumPrimaryGuards 3",
+			$"--ConfluxEnabled 1",
+			$"--ConfluxClientUX throughput",
 			$"--Log \"notice file {Path.Combine("temp", "tempDataDir", "TorLogs.txt")}\"",
 			$"__OwningControllerProcess 7");
 
