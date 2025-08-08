@@ -50,7 +50,7 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (_nodes.ConnectedNodes.Count > 3)
+		if (_nodes.ConnectedNodes.Count > 5)
 		{
 			DisconnectNode(node, reason);
 		}
