@@ -22,7 +22,6 @@ public class P2PNodesManager
 	private readonly NodesGroup _nodes;
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
-	private readonly List<Node> _nodesInUse = new();
 
 	public async Task<Node> GetNodeForSingleUseAsync(CancellationToken cancellationToken)
 	{
@@ -34,14 +33,13 @@ public class P2PNodesManager
 				continue;
 			}
 
-			var nodesInUse = _nodesInUse.ToArray();
-			var node = _nodes.ConnectedNodes.Where(n => !nodesInUse.Contains(n)).RandomElement(SecureRandom.Instance);
+			var node = _nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
 
 			if (node is not null && node.IsConnected)
 			{
-				_nodesInUse.Add(node);
 				return node;
 			}
+			Logger.LogTrace($"Selected node is null or disconnected.");
 
 			await Task.Delay(10, cancellationToken).ConfigureAwait(false);
 		}
@@ -52,7 +50,6 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		_nodesInUse.Remove(node);
 		if (_nodes.ConnectedNodes.Count > 3)
 		{
 			DisconnectNode(node, reason);
