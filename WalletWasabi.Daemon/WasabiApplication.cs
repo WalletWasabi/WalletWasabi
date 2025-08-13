@@ -183,8 +183,6 @@ public class WasabiApplication
 				MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
 				MaxDaysInMempool: oldConfig.MaxDaysInMempool
 			);
-			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
-			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
 
 			var testConfig = mainConfig with
 			{
@@ -194,8 +192,6 @@ public class WasabiApplication
 				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
 				BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToUriString("http"),
 			};
-			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
-			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
 
 			var regtestConfig = mainConfig with
 			{
@@ -205,8 +201,15 @@ public class WasabiApplication
 				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
 				BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToUriString("http"),
 			};
+
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
 			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);
+
+			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
+			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
+
+			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
+			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
 		}
 	}
 
