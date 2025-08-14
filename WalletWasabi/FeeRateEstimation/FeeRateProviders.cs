@@ -5,6 +5,7 @@ using System.Text.Json;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Collections.Immutable;
+using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Extensions;
@@ -42,7 +43,7 @@ public static class FeeRateProviders
 			httpClientFactory, PickRandomUserAgent(), MempoolSpaceHandler(), cancellationToken);
 
 	public static FeeRateProvider NoneAsync() =>
-		_ => Task.FromResult(new FeeRateEstimations(new Dictionary<int, int> ()));
+		_ => Task.FromResult(new FeeRateEstimations(new Dictionary<int, FeeRate> ()));
 
 	public static FeeRateProvider RpcAsync(IRPCClient rpcClient) =>
 		async cancellationToken =>
@@ -96,7 +97,7 @@ public static class FeeRateProviders
 		json => new FeeRateEstimations(
 			JsonDocument.Parse(json).RootElement
 				.EnumerateObject()
-				.Select(o => (int.Parse(o.Name), (int) Math.Ceiling(o.Value.GetDouble())))
+				.Select(o => (int.Parse(o.Name), new FeeRate(o.Value.GetDecimal())))
 				.ToDictionary());
 
 	private static Func<string, FeeRateEstimations> MempoolSpaceHandler() =>
@@ -104,7 +105,7 @@ public static class FeeRateProviders
 			new FeeRateEstimations(
 				JsonDocument.Parse(json).RootElement
 					.EnumerateObject()
-					.Select(o => (o.Name, o.Value.GetDouble()) switch {
+					.Select(o => (o.Name, o.Value.GetDecimal()) switch {
 							("fastestFee", var feeRate) => (Target: 2, feeRate),
 							("halfHourFee", var feeRate) => (Target: 3, feeRate),
 							("hourFee", var feeRate) => (Target: 6, feeRate),
@@ -112,6 +113,6 @@ public static class FeeRateProviders
 							_ => (0, 0)
 						})
 					.Where(x => x.Target > 0)
-					.Select(o => (o.Target, (int) Math.Ceiling(o.feeRate)))
+					.Select(o => (o.Target, new FeeRate(o.feeRate)))
 					.ToDictionary());
 }

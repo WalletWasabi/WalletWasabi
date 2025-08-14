@@ -28,8 +28,8 @@ public static partial class Encode
 	public static JsonNode Filter(FilterModel filter) =>
 		String(filter.ToLine());
 
-	public static JsonNode FeeEstimations(Dictionary<int, int> estimations) =>
-		Dictionary(estimations.ToDictionary(x => x.Key.ToString(), x => Int(x.Value)));
+	public static JsonNode FeeEstimations(Dictionary<int, FeeRate> estimations) =>
+		Dictionary(estimations.ToDictionary(x => x.Key.ToString(), x => FeeRate(x.Value)));
 
 	public static JsonNode AllFeeEstimate(AllFeeEstimate estimate) =>
 		Object([
@@ -61,7 +61,7 @@ public static partial class Encode
 			ExchangeRate exchangeRate => ExchangeRate(exchangeRate),
 			SynchronizeResponse syncResp => SynchronizeResponse(syncResp),
 			FiltersResponse filtersResp => FiltersResponse(filtersResp),
-			Dictionary<int, int> feeEstimations => FeeEstimations(feeEstimations),
+			Dictionary<int, FeeRate> feeEstimations => FeeEstimations(feeEstimations),
 			IEnumerable<string> s => Array(s.Select(String)),
 			IEnumerable<uint256> u => Array(u.Select(UInt256)),
 			IEnumerable<ExchangeRate> e => Array(e.Select(ExchangeRate)),
@@ -74,7 +74,7 @@ public static partial class Decode
 {
 	public static readonly Decoder<AllFeeEstimate> AllFeeEstimate =
 		Object(get => new AllFeeEstimate(
-			get.Required("estimations", Dictionary(Int)).ToDictionary(x => int.Parse(x.Key), x => x.Value)
+			get.Required("estimations", Dictionary(FeeRate)).ToDictionary(x => int.Parse(x.Key), x => x.Value)
 		));
 
 	public static readonly Decoder<FilterModel> Filter =

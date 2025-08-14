@@ -6,7 +6,7 @@ namespace WalletWasabi.Blockchain.TransactionBuilding;
 
 public class FeeStrategy
 {
-	public static readonly FeeRate MinimumFeeRate = new(1m);
+	public static readonly FeeRate MinimumFeeRate = Constants.MinRelayFeeRate;
 
 	private int? _target;
 	private FeeRate? _feeRate;
@@ -22,7 +22,7 @@ public class FeeStrategy
 	{
 		if (feeRate < MinimumFeeRate)
 		{
-			throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, "Cannot be less than 1 sat/vByte.");
+			throw new ArgumentOutOfRangeException(nameof(feeRate), feeRate, $"Cannot be less than {MinimumFeeRate.SatoshiPerByte} sat/vByte.");
 		}
 
 		Type = FeeStrategyType.Rate;

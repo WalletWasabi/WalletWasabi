@@ -23,7 +23,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// Constructor takes the input confirmation estimations and filters out all confirmation targets that are not <see cref="Constants.ConfirmationTargets">whitelisted</see>.
 	/// </summary>
 	/// <param name="estimations">Map of confirmation targets to fee rates in satoshis (e.g. confirmation target 1 -> 50 sat/vByte).</param>
-	public AllFeeEstimate(IDictionary<int, int> estimations)
+	public AllFeeEstimate(IDictionary<int, FeeRate> estimations)
 	{
 		Guard.NotNullOrEmpty(nameof(estimations), estimations);
 
@@ -36,7 +36,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
 		Estimations = [];
-		var lastFeeRate = int.MaxValue;
+		var lastFeeRate = new FeeRate(Constants.MaximumNumberOfBitcoinsMoney);
 		foreach (var estimation in filteredEstimations)
 		{
 			// Otherwise it's inconsistent data.
@@ -51,7 +51,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
 	/// </summary>
-	public Dictionary<int, int> Estimations { get; }
+	public Dictionary<int, FeeRate> Estimations { get; }
 
 	/// <summary>
 	/// Estimations where we try to fill out gaps for all valid time spans.
@@ -66,7 +66,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			}
 
 			var timeSpan = TimeSpan.FromMinutes(20);
-			IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> convertedEstimations = Estimations.Select(x => (TimeSpan.FromMinutes(x.Key * 10), new FeeRate((decimal)x.Value)));
+			var convertedEstimations = Estimations.Select(x => (timeSpan: TimeSpan.FromMinutes(x.Key * 10), feeRate: x.Value));
 
 			var wildEstimations = new List<(TimeSpan timeSpan, FeeRate feeRate)>();
 			var prevFeeRate = FeeRate.Zero;
@@ -131,11 +131,9 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	public FeeRate GetFeeRate(int confirmationTarget)
 	{
 		// Where the target is still under or equal to the requested target.
-		decimal satoshiPerByte = Estimations
+		return Estimations
 			.Last(x => x.Key <= confirmationTarget) // The last should be the largest confirmation target.
 			.Value;
-
-		return new FeeRate(satoshiPerByte);
 	}
 
 	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)
@@ -145,7 +143,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 		{
 			return TimeSpan.FromMinutes(10);
 		}
-		else if (feeRate <= wildEstimations.Last().feeRate)
+		if (feeRate <= wildEstimations.Last().feeRate)
 		{
 			return wildEstimations.Last().timeSpan;
 		}
@@ -162,7 +160,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 	public override int GetHashCode()
 	{
 		int hash = 13;
-		foreach (KeyValuePair<int, int> est in Estimations)
+		foreach (KeyValuePair<int, FeeRate> est in Estimations)
 		{
 			hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
 		}
@@ -188,7 +186,7 @@ public class AllFeeEstimate : IEquatable<AllFeeEstimate>
 			equal = true;
 			foreach (var pair in x.Estimations)
 			{
-				if (y.Estimations.TryGetValue(pair.Key, out int value))
+				if (y.Estimations.TryGetValue(pair.Key, out FeeRate? value))
 				{
 					// Require value be equal.
 					if (value != pair.Value)
