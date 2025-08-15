@@ -45,10 +45,10 @@ public class BlockstreamInfoClient
 
 		var responseString = await response.Content.ReadAsStringAsync(cancel).ConfigureAwait(false);
 		var parsed = JsonDocument.Parse(responseString).RootElement;
-		var myDic = new Dictionary<int, int>();
+		var myDic = new Dictionary<int, FeeRate>();
 		foreach (var elem in parsed.EnumerateObject())
 		{
-			myDic.Add(int.Parse(elem.Name), (int)Math.Ceiling(elem.Value.GetDouble()));
+			myDic.Add(int.Parse(elem.Name), new FeeRate(elem.Value.GetDecimal()));
 		}
 
 		return new AllFeeEstimate(myDic);

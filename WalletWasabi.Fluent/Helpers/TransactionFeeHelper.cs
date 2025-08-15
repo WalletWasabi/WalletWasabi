@@ -14,18 +14,18 @@ namespace WalletWasabi.Fluent.Helpers;
 public static class TransactionFeeHelper
 {
 	private static readonly FeeRateEstimations TestNetFeeRateEstimations = new(
-		new Dictionary<int, int>
+		new Dictionary<int, FeeRate>
 		{
-			[1] = 17,
-			[2] = 12,
-			[3] = 9,
-			[6] = 9,
-			[18] = 2,
-			[36] = 2,
-			[72] = 2,
-			[144] = 2,
-			[432] = 1,
-			[1008] = 1
+			[1] = new( 17m),
+			[2] = new( 12m),
+			[3] = new( 9m),
+			[6] = new( 9m),
+			[18] = new( 2m),
+			[36] = new( 2m),
+			[72] = new( 2m),
+			[144] = new( 2m),
+			[432] = new( 1m),
+			[1008] = new( 1m)
 		});
 
 	public static async Task<FeeRateEstimations> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)

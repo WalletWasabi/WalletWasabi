@@ -24,7 +24,7 @@ public partial class HealthMonitor : ReactiveObject
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 
-	[AutoNotify] private int _priorityFee;
+	[AutoNotify] private decimal _priorityFee;
 	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private IndexerStatus _indexerStatus;
@@ -57,7 +57,7 @@ public partial class HealthMonitor : ReactiveObject
 			.Select(e => e.AllFeeEstimate.Estimations.FirstOrDefault(x => x.Key == 2).Value)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(priorityFee => PriorityFee = priorityFee);
+			.Subscribe(priorityFee => PriorityFee = priorityFee.SatoshiPerByte);
 
 		// Blockchain Tip
 		var smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;

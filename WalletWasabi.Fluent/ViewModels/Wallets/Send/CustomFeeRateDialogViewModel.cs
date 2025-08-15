@@ -4,6 +4,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -72,9 +73,9 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 			return;
 		}
 
-		if (value < decimal.One)
+		if (value < Constants.MinRelayFeeRate.SatoshiPerByte)
 		{
-			errors.Add(ErrorSeverity.Error, "Cannot be less than 1 sat/vByte.");
+			errors.Add(ErrorSeverity.Error, $"Cannot be less than {Constants.MinRelayFeeRate.SatoshiPerByte} sat/vByte.");
 			return;
 		}
 

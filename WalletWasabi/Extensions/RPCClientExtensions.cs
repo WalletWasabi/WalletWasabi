@@ -8,7 +8,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using FeeRateByConfirmationTarget = System.Collections.Generic.Dictionary<int, int>;
+using FeeRateByConfirmationTarget = System.Collections.Generic.Dictionary<int, NBitcoin.FeeRate>;
 
 namespace WalletWasabi.Extensions;
 
@@ -38,7 +38,7 @@ public static class RPCClientExtensions
 	private static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
 		Constants.ConfirmationTargets
 		.Select(target => SimulateRegTestFeeEstimation(target))
-		.ToDictionary(x => x.Blocks, x => (int)Math.Ceiling(x.FeeRate.SatoshiPerByte));
+		.ToDictionary(x => x.Blocks, x => x.FeeRate);
 
 	/// <summary>
 	/// If null is returned, no exception is thrown, so the test was successful.
@@ -79,10 +79,10 @@ public static class RPCClientExtensions
 	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
 	{
 		var minEstimations = GetFeeEstimationsFromMempoolInfo(mempoolInfo);
-		var minEstimationFor260Mb = new FeeRate((decimal)minEstimations.GetValueOrDefault(260 / 4));
+		var minEstimationFor260Mb = minEstimations.GetValueOrDefault(260 / 4) ?? FeeRate.Zero;
 		var minSanityFeeRate = FeeRate.Max(minEstimationFor260Mb, mempoolInfo.GetSanityFeeRate());
-		var estimationForTarget2 = minEstimations.GetValueOrDefault(2);
-		var maxEstimationFor3Mb = new FeeRate(estimationForTarget2 > 0 ? estimationForTarget2 : 5_000m);
+		var estimationForTarget2 = minEstimations.GetValueOrDefault(2) ?? FeeRate.Zero;
+		var maxEstimationFor3Mb = estimationForTarget2 > FeeRate.Zero ? estimationForTarget2 : new FeeRate(5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
 
 		var fixedEstimations = smartEstimations
@@ -92,12 +92,12 @@ public static class RPCClientExtensions
 				inner => inner.Key,
 				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
 			.SelectMany(
-				x => x.MinimumFromMemPool.DefaultIfEmpty(),
+				x => x.MinimumFromMemPool.Any() ? x.MinimumFromMemPool : [KeyValuePair.Create(0, FeeRate.Zero)],
 				(a, b) =>
 				{
-					var maxLowerBound = Math.Max(a.Estimation.Value, b.Value);
-					var maxMinFeeRate = Math.Max((int)minSanityFeeRate.SatoshiPerByte, maxLowerBound);
-					var minMaxFeeRate = Math.Min((int)maxSanityFeeRate.SatoshiPerByte, maxMinFeeRate);
+					var maxLowerBound = FeeRate.Max(a.Estimation.Value, b.Value);
+					var maxMinFeeRate = FeeRate.Max(minSanityFeeRate, maxLowerBound);
+					var minMaxFeeRate = FeeRate.Min(maxSanityFeeRate, maxMinFeeRate);
 					return (
 						Target: a.Estimation.Key,
 						FeeRate: minMaxFeeRate);
@@ -136,7 +136,7 @@ public static class RPCClientExtensions
 			.Where(x => x.IsCompletedSuccessfully)
 			.Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
 			.DistinctBy(x => x.target)
-			.ToDictionary(x => x.target, x => (int)Math.Ceiling(x.feeRate.SatoshiPerByte));
+			.ToDictionary(x => x.target, x => x.feeRate);
 	}
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
@@ -201,10 +201,10 @@ public static class RPCClientExtensions
 		var consolidatedFeeGroupByTarget = feeGroupsByTarget
 			.GroupBy(
 				x => x.Target,
-				(target, feeGroups) => (Target: target, FeeRate: feeGroups.Last().FeeRate.SatoshiPerByte));
+				(target, feeGroups) => (Target: target, FeeRate: feeGroups.Last().FeeRate));
 
 		var feeRateByConfirmationTarget = consolidatedFeeGroupByTarget
-			.ToDictionary(x => x.Target, x => (int)Math.Ceiling(x.FeeRate));
+			.ToDictionary(x => x.Target, x => x.FeeRate);
 
 		return feeRateByConfirmationTarget;
 	}
