@@ -236,7 +236,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			var credentialAmount = -request.AmountCredentialRequests.Delta;
 
-			if (CoinJoinScriptStore?.Contains(request.Script) is true)
+			if (_coinJoinScriptStore?.Contains(request.Script) is true)
 			{
 				Logger.LogWarning($"Round ({request.RoundId}): Already registered script in previous coinjoins.");
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AlreadyRegisteredScript, $"Round ({request.RoundId}): Already registered script.");
@@ -342,7 +342,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	{
 		OutPoint input = request.Input;
 
-		var txOutResponse = await Rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
+		var txOutResponse = await _rpc.GetTxOutAsync(input.Hash, (int)input.N, includeMempool: true, cancellationToken).ConfigureAwait(false)
 			?? throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputSpent);
 		if (txOutResponse.Confirmations == 0)
 		{
@@ -360,7 +360,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
 		var requestCheckPointDictionary = request.RoundCheckpoints.ToDictionary(r => r.RoundId, r => r);
-		var responseRoundStates = RoundStates.Select(x =>
+		var responseRoundStates = _roundStates.Select(x =>
 		{
 			if (requestCheckPointDictionary.TryGetValue(x.Id, out RoundStateCheckpoint? checkPoint) && checkPoint.StateId > 0)
 			{
