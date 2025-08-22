@@ -45,7 +45,7 @@ public class BobClientTests
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
 
-		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new("FeeRateStatSore.txt", config, arena.Rpc);
+		using CoinJoinFeeRateStatStore coinJoinFeeRateStatStore = new("FeeRateStatSore.txt", config, mockRpc);
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena, coinJoinFeeRateStatStore);
 
 		InsecureRandom insecureRandom = InsecureRandom.Instance;
