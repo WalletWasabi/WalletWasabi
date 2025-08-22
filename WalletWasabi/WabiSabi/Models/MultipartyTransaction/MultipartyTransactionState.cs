@@ -8,8 +8,7 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-public interface IEvent
-{ }
+public interface IEvent;
 
 public record RoundCreated(RoundParameters RoundParameters) : IEvent;
 public record InputAdded(Coin Coin, OwnershipProof OwnershipProof) : IEvent;
