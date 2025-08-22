@@ -132,11 +132,11 @@ public static class WabiSabiFactory
 		return mockRpc;
 	}
 
-	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof, Round round)
-		=> new(coin, ownershipProof, round, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
+	public static Alice CreateAlice(Coin coin, OwnershipProof ownershipProof)
+		=> new(coin, ownershipProof, Guid.NewGuid()) { Deadline = DateTimeOffset.UtcNow + TimeSpan.FromHours(1) };
 
 	public static Alice CreateAlice(Key key, Money amount, Round round, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
-		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(key, round.Id, scriptPubKeyType), round);
+		=> CreateAlice(CreateCoin(key, amount, scriptPubKeyType), CreateOwnershipProof(key, round.Id, scriptPubKeyType));
 
 	public static Alice CreateAlice(Money amount, Round round)
 	{

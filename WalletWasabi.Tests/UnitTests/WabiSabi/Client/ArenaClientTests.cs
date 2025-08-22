@@ -47,7 +47,7 @@ public class ArenaClientTests
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var fundingTx = BitcoinFactory.CreateSmartTransaction(ownOutputCount: 1);
 		var coin = fundingTx.WalletOutputs.First().Coin;
-		var alice = new Alice(coin, new OwnershipProof(), round, Guid.NewGuid());
+		var alice = new Alice(coin, new OwnershipProof(), Guid.NewGuid());
 		round.Alices.Add(alice);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient();
@@ -82,10 +82,10 @@ public class ArenaClientTests
 				OwnershipProof: keyChain.GetOwnershipProof(destination, WabiSabiFactory.CreateCommitmentData(round.Id))))
 			.ToArray();
 
-		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof, round: round);
+		Alice alice1 = WabiSabiFactory.CreateAlice(coins[0].Coin, coins[0].OwnershipProof);
 		round.Alices.Add(alice1);
 
-		Alice alice2 = WabiSabiFactory.CreateAlice(coins[1].Coin, coins[1].OwnershipProof, round: round);
+		Alice alice2 = WabiSabiFactory.CreateAlice(coins[1].Coin, coins[1].OwnershipProof);
 		round.Alices.Add(alice2);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient();

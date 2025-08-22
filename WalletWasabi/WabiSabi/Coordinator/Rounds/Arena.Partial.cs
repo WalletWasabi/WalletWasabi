@@ -69,7 +69,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// only that the probability of duplicates is very low).
 			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
-			var alice = new Alice(coin, request.OwnershipProof, round, id);
+			var alice = new Alice(coin, request.OwnershipProof, id);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate) <= Money.Zero)
 			{

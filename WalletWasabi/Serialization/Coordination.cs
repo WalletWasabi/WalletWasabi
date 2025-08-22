@@ -158,7 +158,6 @@ public static partial class Encode
 		Object([
 			("Type", String("SigningState")),
 		    ("Witnesses", Dictionary(ss.Witnesses.ToDictionary(x => x.Key.ToString(), x => WitScript(x.Value)))),
-            ("IsFullySigned", Bool(ss.IsFullySigned)),
 			("Events", Array(ss.Events.Select(RoundEvent)))
 		]);
 
@@ -299,7 +298,7 @@ public static partial class Encode
 			("Phase", String(rs.Phase)),
 		]);
 
-	public static JsonNode HummanMonitorResponse(HumanMonitorResponse rs) =>
+	public static JsonNode HumanMonitorResponse(HumanMonitorResponse rs) =>
 		Object([
 			("RoundStates", Array(rs.RoundStates.Select(HummanMonitorRoundResponse)))
 		]);
@@ -328,7 +327,7 @@ public static partial class Encode
 			ConnectionConfirmationResponse ccr => ConnectionConfirmationResponse(ccr),
 			ReissueCredentialResponse rcr => ReissueCredentialResponse(rcr),
 			RoundStateResponse rsr => RoundStateResponse(rsr),
-			HumanMonitorResponse hmr => HummanMonitorResponse(hmr),
+			HumanMonitorResponse hmr => HumanMonitorResponse(hmr),
 
 			Error error => Error(error),
 
