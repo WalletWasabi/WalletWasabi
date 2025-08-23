@@ -148,13 +148,13 @@ public static partial class Encode
 			("i", GroupElement(ip.I))
 		]);
 
-	private static JsonNode ConstructionState(ConstructionState cs) =>
+	private static JsonNode ConstructionState(MultipartyTransactionState cs) =>
 		Object([
 			("Type", String("ConstructionState")),
 			("Events", Array(cs.Events.Select(RoundEvent)))
 		]);
 
-	private static JsonNode SigningState(SigningState ss) =>
+	private static JsonNode SigningState(MultipartyTransactionState ss) =>
 		Object([
 			("Type", String("SigningState")),
 		    ("Witnesses", Dictionary(ss.Witnesses.ToDictionary(x => x.Key.ToString(), x => WitScript(x.Value)))),
@@ -164,9 +164,8 @@ public static partial class Encode
 	private static JsonNode MultipartyTransactionState(MultipartyTransactionState ts) =>
 		ts switch
 		{
-			ConstructionState cs => ConstructionState(cs),
-			SigningState ss => SigningState(ss),
-			_ => throw new ArgumentException("There is not such a transaction state")
+			{Witnesses: { Count: > 0 }} ss => SigningState(ss),
+			var cs => ConstructionState(cs),
 		};
 
 	private static JsonNode RoundState(RoundState rs) =>
@@ -445,23 +444,27 @@ public static partial class Decode
 	private static Decoder<MultipartyTransactionState> MultipartyTransactionState =>
 			Field("Type", String).AndThen(t => t switch
 			{
-				"ConstructionState" => Cast<MultipartyTransactionState, ConstructionState>(ConstructionState),
-				"SigningState" => Cast<MultipartyTransactionState, SigningState>(SigningState),
+				"ConstructionState" => ConstructionState,
+				"SigningState" => SigningState,
 				_ => Fail<MultipartyTransactionState>($"Unknown MultipartyTransactionState '{t}'")
 			});
 
 	private static Decoder<IEvent[]> RoundEvents =>
 		Field("Events", Array(RoundEvent));
 
-	private static Decoder<ConstructionState> ConstructionState =>
+	private static Decoder<MultipartyTransactionState> ConstructionState =>
 		RoundEvents.Map(events =>
 		{
-			var state = new ConstructionState(null!);
+			var state = new MultipartyTransactionState(null!);
 			return state with {Events = events.ToImmutableList() };
 		});
 
-	private static Decoder<SigningState> SigningState =>
-		RoundEvents.Map(events => new SigningState(null!, events));
+	private static Decoder<MultipartyTransactionState> SigningState =>
+		RoundEvents.Map(events =>
+		{
+			var state = new MultipartyTransactionState(null!);
+			return state with {Events = events.ToImmutableList() };
+		});
 
 	private static Decoder<InputRegistrationRequest> InputRegistrationRequest =>
 		Object(get => new InputRegistrationRequest(
