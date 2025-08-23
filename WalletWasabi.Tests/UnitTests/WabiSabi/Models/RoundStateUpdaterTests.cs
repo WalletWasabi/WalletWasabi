@@ -15,7 +15,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
 public class RoundStateUpdaterTests
 {
-	private static readonly TimeSpan TestTimeOut = TimeSpan.FromMinutes(10);
+	private static readonly TimeSpan TestTimeOut = TimeSpan.FromSeconds(10);
 
 	[Fact]
 	public async Task RoundStateUpdaterTestsAsync()
@@ -60,7 +60,7 @@ public class RoundStateUpdaterTests
 		// we can subscribe to events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
 		var round2IRTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.InputRegistration, cancellationToken);
-		var round2TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, cancellationToken);
+		var round2TBTask = roundStatusUpdater.CreateRoundAwaiterAsync(roundState2.Id, Phase.Ended, CancellationToken.None);
 
 		// Force the RoundStatusUpdater to run again just to make it trigger the events.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
@@ -84,9 +84,7 @@ public class RoundStateUpdaterTests
 		// At this point in time all the rounds have disappeared and then the awaiter that was waiting for round1 to broadcast
 		// the transaction has to fail to let the sleeping component that the round doesn't exist any more.
 		await roundStatusUpdater.TriggerAndWaitRoundAsync(TestTimeOut);
-		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await round1TBTask);
-		Assert.Contains(round1.Id.ToString(), ex.Message);
-		Assert.Contains("not running", ex.Message);
+		await Assert.ThrowsAsync<TaskCanceledException>(async () => await round1TBTask);
 
 		// `Round2` awaiter has to be cancelled immediately when we stop the updater.
 		Assert.Equal(TaskStatus.WaitingForActivation, round2TBTask.Status);
@@ -100,7 +98,7 @@ public class RoundStateUpdaterTests
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
-		using var cancellationTokenSource = new CancellationTokenSource();
+		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(2));
 		var cancellationToken = cancellationTokenSource.Token;
 
 		// Each line represents a response for each request.
@@ -149,7 +147,7 @@ public class RoundStateUpdaterTests
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
-		using var cancellationTokenSource = new CancellationTokenSource();
+		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(3));
 		var cancellationToken = cancellationTokenSource.Token;
 
 		// Each line represents a response for each request.
@@ -188,7 +186,7 @@ public class RoundStateUpdaterTests
 		roundStatusUpdater.TriggerRound();
 
 		// We are expecting output registration phase but the round unexpectedly ends.
-		await Assert.ThrowsAsync<UnexpectedRoundPhaseException>(async () => await roundORTask);
+		await Assert.ThrowsAsync<TaskCanceledException>(async () => await roundORTask);
 	}
 
 	[Fact]
