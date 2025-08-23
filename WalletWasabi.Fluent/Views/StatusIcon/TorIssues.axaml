@@ -8,10 +8,10 @@
              x:Class="WalletWasabi.Fluent.Views.StatusIcon.TorIssues"
              x:CompileBindings="True"
              x:DataType="statusIcon:StatusIconViewModel">
-  <Button Classes="activeHyperLink" VerticalAlignment="Center" Foreground="Gold"
+  <Button Classes="activeHyperLink" VerticalAlignment="Center" Foreground="Goldenrod"
           Command="{Binding OpenTorStatusSiteCommand}">
     <Button.Content>
-      <PathIcon Foreground="Gold" VerticalAlignment="Center" Data="{StaticResource warning_filled}" />
+      <PathIcon Foreground="Goldenrod" VerticalAlignment="Center" Data="{StaticResource warning_circle}" />
     </Button.Content>
     <ToolTip.Tip>
       <DockPanel>
