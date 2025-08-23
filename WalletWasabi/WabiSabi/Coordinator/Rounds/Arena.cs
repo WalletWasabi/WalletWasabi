@@ -233,7 +233,7 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady || phaseExpired)
 				{
-					var coinjoin = round.Assert<ConstructionState>();
+					var coinjoin = round.CoinjoinState;
 
 					Logger.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.", round);
 					Logger.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.", round);
@@ -266,7 +266,7 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 		{
-			var state = round.Assert<SigningState>();
+			var state = round.CoinjoinState;
 
 			try
 			{
@@ -381,7 +381,7 @@ public partial class Arena : PeriodicRunner
 
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
-		var state = round.Assert<SigningState>();
+		var state = round.CoinjoinState;
 
 		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
 
@@ -514,7 +514,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
+	public static MultipartyTransactionState AddCoordinationFee(Round round, MultipartyTransactionState coinjoin, Script coordinatorScriptPubKey)
 	{
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
@@ -584,9 +584,9 @@ public partial class Arena : PeriodicRunner
 		round.EndRound(endRoundState);
 	}
 
-	private SigningState FinalizeTransaction(ConstructionState constructionState)
+	private MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState)
 	{
-		SigningState signingState = constructionState.Finalize();
+		MultipartyTransactionState signingState = multipartyTransactionState.Finalize();
 		return signingState;
 	}
 

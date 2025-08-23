@@ -103,11 +103,11 @@ public class ArenaClientTests
 
 		round.SetPhase(Phase.TransactionSigning);
 
-		var emptyState = round.Assert<ConstructionState>();
+		var emptyState = round.CoinjoinState;
 		var commitmentData = WabiSabiFactory.CreateCommitmentData(round.Id);
 
 		// We can't use ``emptyState.Finalize()` because this is not a valid transaction so we fake it
-		var finalizedEmptyState = new SigningState(round.Parameters, emptyState.Events);
+		var finalizedEmptyState = new MultipartyTransactionState(round.Parameters, emptyState.Events);
 
 		// No inputs in the coinjoin.
 		await Assert.ThrowsAsync<InvalidOperationException>(async () =>
@@ -126,19 +126,19 @@ public class ArenaClientTests
 			.Finalize();
 		round.CoinjoinState = twoInputs;
 
-		Assert.False(round.Assert<SigningState>().IsFullySigned);
-		var unsigned = round.Assert<SigningState>().CreateUnsignedTransactionWithPrecomputedData();
+		Assert.False(round.CoinjoinState.IsFullySigned);
+		var unsigned = round.CoinjoinState.CreateUnsignedTransactionWithPrecomputedData();
 
 		await apiClient.SignTransactionAsync(round.Id, alice1.Coin, keyChain, unsigned, CancellationToken.None);
-		Assert.True(round.Assert<SigningState>().IsInputSigned(alice1.Coin.Outpoint));
-		Assert.False(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
+		Assert.True(round.CoinjoinState.IsInputSigned(alice1.Coin.Outpoint));
+		Assert.False(round.CoinjoinState.IsInputSigned(alice2.Coin.Outpoint));
 
-		Assert.False(round.Assert<SigningState>().IsFullySigned);
+		Assert.False(round.CoinjoinState.IsFullySigned);
 
 		await apiClient.SignTransactionAsync(round.Id, alice2.Coin, keyChain, unsigned, CancellationToken.None);
-		Assert.True(round.Assert<SigningState>().IsInputSigned(alice2.Coin.Outpoint));
+		Assert.True(round.CoinjoinState.IsInputSigned(alice2.Coin.Outpoint));
 
-		Assert.True(round.Assert<SigningState>().IsFullySigned);
+		Assert.True(round.CoinjoinState.IsFullySigned);
 	}
 
 	private async Task TestFullCoinjoinAsync(ScriptPubKeyType scriptPubKeyType, int inputVirtualSize)
@@ -277,7 +277,7 @@ public class ArenaClientTests
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
 
-		var tx = round.Assert<SigningState>().CreateTransaction();
+		var tx = round.CoinjoinState.CreateTransaction();
 		Assert.Single(tx.Inputs);
 		Assert.Equal(2, tx.Outputs.Count);
 	}
