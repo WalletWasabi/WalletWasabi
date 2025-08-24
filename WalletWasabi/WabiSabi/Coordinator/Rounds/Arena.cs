@@ -100,12 +100,12 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x =>
 			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
+			&& x.IsInputRegistrationEnded)
 			.ToArray())
 		{
 			try
 			{
-				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round.Alices, cancel).ConfigureAwait(false))
 				{
 					if (offendingAlices.Length != 0)
 					{
@@ -124,7 +124,7 @@ public partial class Arena : PeriodicRunner
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.", round);
 				}
-				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
+				else if (round.IsInputRegistrationEnded)
 				{
 					_maxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
@@ -173,7 +173,7 @@ public partial class Arena : PeriodicRunner
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
 						var allOffendingAlices = new List<Alice>();
-						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
+						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round.Alices, cancel).ConfigureAwait(false))
 						{
 							allOffendingAlices.AddRange(offendingAlices);
 						}
@@ -361,9 +361,9 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+	private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(List<Alice> alicesToCheck, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
-		foreach (var chunkOfAlices in round.Alices.ToList().ChunkBy(16))
+		foreach (var chunkOfAlices in alicesToCheck.ChunkBy(16))
 		{
 			var batchedRpc = _rpc.PrepareBatch();
 
@@ -498,7 +498,7 @@ public partial class Arena : PeriodicRunner
 	private void TimeoutAlices()
 	{
 		var now = DateTimeOffset.UtcNow;
-		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)).ToArray())
+		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded).ToArray())
 		{
 			var alicesToRemove = round.Alices.Where(x => x.Deadline < now && !x.ConfirmedConnection).ToArray();
 			foreach (var alice in alicesToRemove)
