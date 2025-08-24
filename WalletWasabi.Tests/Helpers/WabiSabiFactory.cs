@@ -288,19 +288,17 @@ public static class WabiSabiFactory
 
 	public static BlameRound CreateBlameRound(Round round, WabiSabiConfig cfg)
 	{
-		var roundParameters = RoundParameters.Create(
-				cfg,
-				round.Parameters.Network,
-				round.Parameters.MiningFeeRate,
-				round.Parameters.MaxSuggestedAmount) with
-		{
-			MinInputCountByRound = cfg.MinInputCountByBlameRound
-		};
+		var blameWhitelist = round.Alices.Select(x => x.Coin.Outpoint).ToHashSet();
+		var roundParameters = round.Parameters with
+			{
+				MinInputCountByRound = cfg.MinInputCountByBlameRound,
+				MaxInputCountByRound = blameWhitelist.Count
+			};
 
 		return new BlameRound(
 			parameters: roundParameters,
 			blameOf: round,
-			blameWhitelist: round.Alices.Select(x => x.Coin.Outpoint).ToHashSet(),
+			blameWhitelist: blameWhitelist,
 			InsecureRandom.Instance);
 	}
 

@@ -41,7 +41,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
-			_ = round.CoinjoinState.AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
+			_ = round.AddInput(coin, request.OwnershipProof);
 
 			CheckCoinIsNotBanned(coin.Outpoint, round);
 
@@ -53,7 +53,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			if (round.IsInputRegistrationEnded(_config.MaxInputCountByRound))
+			if (round.IsInputRegistrationEnded)
 			{
 				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
@@ -213,7 +213,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 						await vsizeRealCredentialTask.ConfigureAwait(false));
 
 					// Update the coinjoin state, adding the confirmed input.
-					round.CoinjoinState = round.CoinjoinState.AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
+					round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof);
 					alice.ConfirmedConnection = true;
 					return response;
 

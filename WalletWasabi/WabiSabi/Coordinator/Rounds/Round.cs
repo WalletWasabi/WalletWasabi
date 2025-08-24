@@ -76,7 +76,7 @@ public class Round
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
 
-	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
+	private CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
 
 	public void SetPhase(Phase phase)
 	{
@@ -113,23 +113,13 @@ public class Round
 		EndRoundState = finalState;
 	}
 
-	public virtual bool IsInputRegistrationEnded(int maxInputCount)
-	{
-		if (Phase > Phase.InputRegistration)
-		{
-			return true;
-		}
+	public bool IsInputRegistrationEnded =>
+		Phase > Phase.InputRegistration
+		|| InputCount >= Parameters.MaxInputCountByRound
+		|| InputRegistrationTimeFrame.HasExpired;
 
-		if (InputCount >= maxInputCount)
-		{
-			return true;
-		}
-
-		return InputRegistrationTimeFrame.HasExpired;
-	}
-
-	public MultipartyTransactionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
-		=> CoinjoinState.AddInput(coin, ownershipProof, coinJoinInputCommitmentData);
+	public MultipartyTransactionState AddInput(Coin coin, OwnershipProof ownershipProof)
+		=> CoinjoinState.AddInput(coin, ownershipProof, CoinJoinInputCommitmentData);
 
 	public MultipartyTransactionState AddOutput(TxOut output)
 		=> CoinjoinState.AddOutput(output);
