@@ -7,8 +7,7 @@ namespace WalletWasabi.Helpers;
 public static class Constants
 {
 	public const string BackendMajorVersion = "4";
-	public const string ClientSupportBackendVersionMin = "4";
-	public const string ClientSupportBackendVersionMax = "4";
+	public const string ClientSupportBackendVersion = "4";
 
 	public const string IndexerUri = "https://api.wasabiwallet.io/";
 	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
@@ -100,7 +99,6 @@ public static class Constants
 	public static readonly string VersionName = "Prometheus";
 
 	public static readonly Version HwiVersion = new("3.1.0");
-	public static readonly Version BitcoinCoreVersion = new("23.0");
 
 	public static readonly FeeRate MinRelayFeeRate = new(1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
@@ -159,10 +157,6 @@ public static class Constants
 		432, // Three Days
 		1008, // Seven Days
 	};
-
-	public static string ClientSupportBackendVersionText => ClientSupportBackendVersionMin == ClientSupportBackendVersionMax
-		? ClientSupportBackendVersionMin
-		: $"{ClientSupportBackendVersionMin} - {ClientSupportBackendVersionMax}";
 
 	public static readonly string DefaultFilterType = "legacy";
 }

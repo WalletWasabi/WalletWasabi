@@ -55,8 +55,6 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public IApplicationSettings Settings { get; }
 
-	public Version BitcoinCoreVersion => Constants.BitcoinCoreVersion;
-
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
 
 	private void ValidateBitcoinRpcUri(IValidationErrors errors)
