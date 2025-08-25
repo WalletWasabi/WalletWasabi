@@ -84,7 +84,6 @@ public class Round
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}
 
-		this.LogInfo($"Phase changed: {Phase} -> {phase}");
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)
@@ -156,4 +155,7 @@ public class Round
 			CoinjoinState = CoinjoinState.PublishWitnesses();
 		}
 	}
+
+	public override string ToString() =>
+		$"{(this is BlameRound ? "Blame Round" : "Round")} ({Id})";
 }
