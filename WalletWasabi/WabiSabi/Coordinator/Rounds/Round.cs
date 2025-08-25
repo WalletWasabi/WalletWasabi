@@ -174,4 +174,7 @@ public class Round
 			CoinjoinState = signingState.PublishWitnesses();
 		}
 	}
+
+	public override string ToString() =>
+		$"{(this is BlameRound ? "Blame Round" : "Round")} ({Id})";
 }
