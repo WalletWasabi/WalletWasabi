@@ -92,10 +92,6 @@ public class WabiSabiConfig : ConfigBase
 
 	public int RoundParallelization { get; init; } = 1;
 
-	public bool WW200CompatibleLoadBalancing { get; init; } = false;
-
-	public double WW200CompatibleLoadBalancingInputSplit { get; init; } = 0.75;
-
 	public string CoordinatorIdentifier { get; set; } = "CoinJoinCoordinatorIdentifier";
 
 	public bool AllowP2wpkhInputs { get; init; } = true;
