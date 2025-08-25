@@ -576,7 +576,9 @@ public partial class Arena : PeriodicRunner
 
 	private void SetRoundPhase(Round round, Phase phase)
 	{
+		var currentPhase = round.Phase;
 		round.SetPhase(phase);
+		Logger.LogInfo($"{round}: Phase changed: {currentPhase} -> {phase}");
 	}
 
 	internal void EndRound(Round round, EndRoundState endRoundState)
