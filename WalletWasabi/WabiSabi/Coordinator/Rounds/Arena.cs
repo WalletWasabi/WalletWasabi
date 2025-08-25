@@ -464,7 +464,7 @@ public partial class Arena : PeriodicRunner
 		};
 
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
-		AddRound(blameRound);
+		Rounds.Add(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
 	}
 
@@ -479,7 +479,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
-			AddRound(r);
+			Rounds.Add(r);
 			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
 		}
 	}
@@ -556,11 +556,6 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void AddRound(Round round)
-	{
-		Rounds.Add(round);
-	}
-
 	private void AbortDisruptedRounds()
 	{
 		while (_disruptedRounds.TryDequeue(out var disruptedRoundId))
@@ -586,11 +581,7 @@ public partial class Arena : PeriodicRunner
 		round.EndRound(endRoundState);
 	}
 
-	private MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState)
-	{
-		MultipartyTransactionState signingState = multipartyTransactionState.Finalize();
-		return signingState;
-	}
+	private static MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState) => multipartyTransactionState.Finalize();
 
 	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
 	{

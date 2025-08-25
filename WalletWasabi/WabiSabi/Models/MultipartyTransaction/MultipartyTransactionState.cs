@@ -42,7 +42,7 @@ public record MultipartyTransactionState
 
 	public ImmutableList<IEvent> Events { get; init; } = ImmutableList<IEvent>.Empty;
 	public ImmutableDictionary<int, WitScript> Witnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
-	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count;
+	public bool IsFullySigned => UnpublishedWitnesses.Count + Witnesses.Count == SortedInputs.Count && SortedInputs.Count > 0;
 	private ImmutableDictionary<int, WitScript> UnpublishedWitnesses { get; init; } = ImmutableDictionary<int, WitScript>.Empty;
 	public IEnumerable<Coin> UnsignedInputs => Enumerable.Where<Coin>(SortedInputs, (_, i) => !IsInputSigned(i));
 
@@ -187,7 +187,7 @@ public record MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		if (EffectiveFeeRate < Parameters.MiningFeeRate)
+		if (1.001m * EffectiveFeeRate.SatoshiPerByte < Parameters.MiningFeeRate.SatoshiPerByte)
 		{
 			var tx = CreateUnsignedTransaction();
 			var txHex = tx.ToHex();
