@@ -3,7 +3,6 @@ using NBitcoin;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -157,4 +156,7 @@ public class Round
 			CoinjoinState = CoinjoinState.PublishWitnesses();
 		}
 	}
+
+	public override string ToString() =>
+		$"{(this is BlameRound ? "Blame Round" : "Round")} ({Id})";
 }
