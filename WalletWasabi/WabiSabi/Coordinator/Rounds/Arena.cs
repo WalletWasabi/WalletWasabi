@@ -99,8 +99,7 @@ public partial class Arena : PeriodicRunner
 	private async Task StepInputRegistrationPhaseAsync(CancellationToken cancel)
 	{
 		foreach (var round in Rounds.Where(x =>
-			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded)
+			x is {Phase: Phase.InputRegistration, IsInputRegistrationEnded: true})
 			.ToArray())
 		{
 			try
@@ -276,7 +275,7 @@ public partial class Arena : PeriodicRunner
 
 					// Logging.
 					Logger.LogInfo($"{round}: Trying to broadcast coinjoin.");
-					Coin[] spentCoins = round.CoinjoinState.Inputs.ToArray();
+					ICoin[] spentCoins = round.CoinjoinState.Inputs.ToArray<ICoin>();
 					Money networkFee = coinjoin.GetFee(spentCoins);
 					Logger.LogInfo($"{round}: Network Fee: {networkFee.ToString(false, false)} BTC.");
 					FeeRate feeRate = coinjoin.GetFeeRate(spentCoins);
@@ -298,7 +297,7 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo($"{round}: Number of outputs: {coinjoin.Outputs.Count}.");
 					Logger.LogInfo($"{round}: Serialized Size: {coinjoin.GetSerializedSize() / 1024.0} KB.");
 					Logger.LogInfo($"{round}: VSize: {coinjoin.GetVirtualSize() / 1024.0} KB.");
-					var indistinguishableOutputs = coinjoin.GetIndistinguishableOutputs(includeSingle: true);
+					var indistinguishableOutputs = coinjoin.GetIndistinguishableOutputs(includeSingle: true).ToList();
 					foreach (var (value, count) in indistinguishableOutputs.Where(x => x.count > 1))
 					{
 						Logger.LogInfo($"{round}: There are {count} occurrences of {value.ToString(true, false)} outputs.");
@@ -462,7 +461,7 @@ public partial class Arena : PeriodicRunner
 		};
 
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
-		AddRound(blameRound);
+		Rounds.Add(blameRound);
 		Logger.LogInfo($"{(Round) blameRound}: Blame round created from round '{round.Id}'.");
 	}
 
@@ -477,7 +476,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
-			AddRound(r);
+			Rounds.Add(r);
 			Logger.LogInfo($"{r}: Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.");
 		}
 	}
@@ -554,11 +553,6 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
-	private void AddRound(Round round)
-	{
-		Rounds.Add(round);
-	}
-
 	private void AbortDisruptedRounds()
 	{
 		while (_disruptedRounds.TryDequeue(out var disruptedRoundId))
@@ -584,11 +578,7 @@ public partial class Arena : PeriodicRunner
 		round.EndRound(endRoundState);
 	}
 
-	private MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState)
-	{
-		MultipartyTransactionState signingState = multipartyTransactionState.Finalize();
-		return signingState;
-	}
+	private static MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState) => multipartyTransactionState.Finalize();
 
 	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
 	{
