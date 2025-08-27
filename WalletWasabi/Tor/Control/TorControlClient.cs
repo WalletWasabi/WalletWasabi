@@ -177,13 +177,41 @@ public class TorControlClient : IAsyncDisposable
 		return reply;
 	}
 
-	public async Task<string> CreateOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
+	public Task<string> CreateEphemeralOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
-		var reply = await SendCommandAsync($"ADD_ONION NEW:BEST Flags=DiscardPK Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
-		if (!reply.Success)
+		return CreateOnionServiceAsync("NEW:BEST", "Flags=DiscardPK", virtualPort, remotePort, cancellationToken);
+	}
+
+	public async Task<(string, string)> CreateKeylessOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
+	{
+		var reply = await CreateOnionServiceCommand("NEW:ED25519-V3", "", virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
+
+		const string ServiceIdMarker = "ServiceID=";
+		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(ServiceIdMarker, StringComparison.Ordinal));
+		if (serviceLine is null)
 		{
-			throw new TorControlException("Failed to create onion service.");
+			throw new TorControlException("Tor protocol violation.");
 		}
+		const string PrivateKeyMarker = "PrivateKey=";
+		var privateKeyLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(PrivateKeyMarker , StringComparison.Ordinal));
+		if (privateKeyLine is null)
+		{
+			throw new TorControlException("Tor protocol violation.");
+		}
+
+		var serviceId = serviceLine[ServiceIdMarker.Length..];
+		var privateKey = privateKeyLine[PrivateKeyMarker.Length..];
+		return (serviceId, privateKey);
+	}
+
+	public Task<string> CreateOnionServiceAsync(string key, int virtualPort, int remotePort, CancellationToken cancellationToken)
+	{
+		return CreateOnionServiceAsync(key, "", virtualPort, remotePort, cancellationToken);
+	}
+
+	private async Task<string> CreateOnionServiceAsync(string key, string flags, int virtualPort, int remotePort, CancellationToken cancellationToken)
+	{
+		var reply = await CreateOnionServiceCommand(key, flags, virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
 
 		const string Marker = "ServiceID=";
 		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker, StringComparison.Ordinal));
@@ -194,6 +222,18 @@ public class TorControlClient : IAsyncDisposable
 
 		var serviceId = serviceLine[Marker.Length..];
 		return serviceId;
+	}
+
+	private async Task<TorControlReply> CreateOnionServiceCommand(string key, string flags, int virtualPort,
+		int remotePort, CancellationToken cancellationToken)
+	{
+		var reply = await SendCommandAsync($"ADD_ONION {key} {flags} Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
+		if (!reply.Success)
+		{
+			throw new TorControlException("Failed to create onion service.");
+		}
+
+		return reply;
 	}
 
 	public async Task<bool> DestroyOnionServiceAsync(string serviceId, CancellationToken cancellationToken)

@@ -351,7 +351,7 @@ public class Global
 				var anonymousAccessAllowed = string.IsNullOrEmpty(Config.JsonRpcUser) || string.IsNullOrEmpty(Config.JsonRpcPassword);
 				if (!anonymousAccessAllowed)
 				{
-					var onionServiceId = await nonNullTorControlClient.CreateOnionServiceAsync(80, 37129, cancellationToken).ConfigureAwait(false);
+					var onionServiceId = await nonNullTorControlClient.CreateEphemeralOnionServiceAsync(80, 37129, cancellationToken).ConfigureAwait(false);
 					OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
 					Logger.LogInfo($"RPC server listening on {OnionServiceUri}");
 				}
