@@ -104,8 +104,11 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton<RoundParameterFactory>();
 		services.AddBackgroundService<Arena>();
 
-		services.AddSingleton<AnnouncerConfig>(_ => config.AnnouncerConfig);
-		services.AddBackgroundService<CoordinatorAnnouncer>();
+		if (config.AnnouncerConfig.IsEnabled)
+		{
+			services.AddSingleton<AnnouncerConfig>(_ => config.AnnouncerConfig);
+			services.AddBackgroundService<CoordinatorAnnouncer>();
+		}
 
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddStartupTask<StartupTask>();
