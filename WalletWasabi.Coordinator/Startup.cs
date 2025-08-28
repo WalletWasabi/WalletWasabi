@@ -57,7 +57,10 @@ public class Startup(IConfiguration configuration)
 		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
 
-		var torSetting = new TorSettings(dataDir, "/nix/store/7fmf99a7rkb8i5kij390jnywxyk45yiw-tor-0.4.8.16/bin/tor", true, TorMode.Enabled, 37155, 37156);
+		var torSetting = new TorSettings(dataDir,
+			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			true, TorMode.Enabled, 37155, 37156);
+
 		services.AddSingleton(torSetting);
 
 		services.AddSingleton<IdempotencyRequestCache>();
