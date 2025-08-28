@@ -5,10 +5,11 @@ using Microsoft.Extensions.Hosting;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor;
+using WalletWasabi.WabiSabi.Coordinator;
 
 namespace WalletWasabi.Coordinator;
 
-public class TorProcessManagerService(TorSettings torSettings) : IHostedService
+public class TorProcessManagerService(TorSettings torSettings, WabiSabiConfig config) : IHostedService
 {
 	private readonly TorProcessManager _torManager = new(torSettings, new EventBus());
 
@@ -19,25 +20,26 @@ public class TorProcessManagerService(TorSettings torSettings) : IHostedService
 
 		if (torControlClient is { } nonNullTorControlClient)
 		{
-			var keyFilePath = Path.Combine(torSettings.TorDataDir, "onion-service-private-key");
-			var onionServiceId = "";
-			if (File.Exists(keyFilePath))
+			string onionServiceId;
+			if (!string.IsNullOrWhiteSpace(config.OnionServicePrivateKey))
 			{
-				var onionServicePrivateKey = await File.ReadAllTextAsync(keyFilePath, cancellationToken);
 				onionServiceId = await nonNullTorControlClient
-					.CreateOnionServiceAsync(onionServicePrivateKey, 80, 37126, cancellationToken).ConfigureAwait(false);
+					.CreateOnionServiceAsync(config.OnionServicePrivateKey, 80, 37126, cancellationToken).ConfigureAwait(false);
 			}
 			else
 			{
 				(onionServiceId, var privateKey) = await nonNullTorControlClient
 					.CreateKeylessOnionServiceAsync(80, 37126, cancellationToken).ConfigureAwait(false);
-				await File.WriteAllTextAsync(keyFilePath, privateKey, cancellationToken).ConfigureAwait(false);
+				config.OnionServicePrivateKey = privateKey;
+				config.AnnouncerConfig.CoordinatorUri = $"http://{onionServiceId}.onion";
+				config.AnnouncerConfig.ReadMoreUri = $"http://{onionServiceId}.onion";
+				config.ToFile();
 			}
 
-			var OnionServiceUri = new Uri($"http://{onionServiceId}.onion");
-			Logger.LogInfo($"Coordinator server listening on {OnionServiceUri}");
+			Logger.LogInfo($"Coordinator server listening on http://{onionServiceId}.onion");
 		}
 	}
+
 
 	public async Task StopAsync(CancellationToken cancellationToken)
 	{

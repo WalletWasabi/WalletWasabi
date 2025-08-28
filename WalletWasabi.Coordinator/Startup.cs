@@ -121,7 +121,7 @@ public class Startup(IConfiguration configuration)
 					Timeout = TimeSpan.FromSeconds(5)
 				});
 
-		if (true /*config.PublishAsOnionService*/)
+		if (config.PublishAsOnionService)
 		{
 			services.AddBackgroundService<TorProcessManagerService>();
 		}
