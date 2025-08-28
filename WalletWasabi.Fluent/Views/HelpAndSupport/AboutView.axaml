@@ -82,17 +82,6 @@
                        Text="This open source software is licensed with " />
             <ContentControl Content="{Binding License}" />
           </DockPanel>
-          <!-- Advanced -->
-          <Button DockPanel.Dock="Bottom"
-                  HorizontalAlignment="Center"
-                  VerticalAlignment="Bottom"
-                  Classes="plain obscured"
-                  Command="{Binding AboutAdvancedInfoDialogCommand}">
-            <StackPanel Orientation="Horizontal" Spacing="5" Margin="2">
-              <PathIcon Data="{StaticResource info_regular}" />
-              <TextBlock Text="Advanced Information" Classes="activeHyperLink" />
-            </StackPanel>
-          </Button>
         </DockPanel>
       </DockPanel>
     </ContentArea>
