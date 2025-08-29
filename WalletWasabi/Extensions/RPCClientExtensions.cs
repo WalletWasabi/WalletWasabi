@@ -16,30 +16,6 @@ public static class RPCClientExtensions
 {
 	private const EstimateSmartFeeMode EstimateMode = EstimateSmartFeeMode.Conservative;
 
-	public static async Task<EstimateSmartFeeResponse> EstimateConservativeSmartFeeAsync(this IRPCClient rpc, int confirmationTarget, CancellationToken cancellationToken = default)
-	{
-		var estimations = await rpc.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
-		return new EstimateSmartFeeResponse
-		{
-			Blocks = confirmationTarget,
-			FeeRate = estimations.GetFeeRate(confirmationTarget)
-		};
-	}
-
-	private static EstimateSmartFeeResponse SimulateRegTestFeeEstimation(int confirmationTarget)
-	{
-		int satoshiPerByte = (Constants.SevenDaysConfirmationTarget + 1 + 6 - confirmationTarget) / 7;
-		Money feePerK = Money.Satoshis(satoshiPerByte * 1000);
-		FeeRate feeRate = new(feePerK);
-		var resp = new EstimateSmartFeeResponse { Blocks = confirmationTarget, FeeRate = feeRate };
-		return resp;
-	}
-
-	private static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
-		Constants.ConfirmationTargets
-		.Select(target => SimulateRegTestFeeEstimation(target))
-		.ToDictionary(x => x.Blocks, x => x.FeeRate);
-
 	/// <summary>
 	/// If null is returned, no exception is thrown, so the test was successful.
 	/// </summary>
@@ -74,6 +50,16 @@ public static class RPCClientExtensions
 			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
 		return new AllFeeEstimate(finalEstimations);
+
+		static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
+			Constants.ConfirmationTargets
+				.Select(target =>
+				{
+					decimal satoshiPerByte = (Constants.SevenDaysConfirmationTarget + 1 + 6 - target) / 7m;
+					FeeRate feeRate = new(satoshiPerByte);
+					return new EstimateSmartFeeResponse { Blocks = target, FeeRate = feeRate };
+				})
+				.ToDictionary(x => x.Blocks, x => x.FeeRate);
 	}
 
 	private static FeeRateByConfirmationTarget SmartEstimationsWithMempoolInfo(FeeRateByConfirmationTarget smartEstimations, MemPoolInfo mempoolInfo)
@@ -224,52 +210,5 @@ public static class RPCClientExtensions
 			Logger.LogWarning(e);
 			return false;
 		}
-	}
-
-	public static async Task<(bool accept, string rejectReason)> TestMempoolAcceptAsync(this IRPCClient rpc, IEnumerable<Coin> coins, int fakeOutputCount, Money feePerInputs, Money feePerOutputs, CancellationToken cancellationToken)
-	{
-		// Check if mempool would accept a fake transaction created with the registered inputs.
-		// This will catch ascendant/descendant count and size limits for example.
-		var fakeTransaction = rpc.Network.CreateTransaction();
-		fakeTransaction.Inputs.AddRange(coins.Select(coin => new TxIn(coin.Outpoint)));
-		Money totalFakeOutputsValue;
-		try
-		{
-			totalFakeOutputsValue = NBitcoinHelpers.TakeFee(coins, fakeOutputCount, feePerInputs, feePerOutputs);
-		}
-		catch (InvalidOperationException ex)
-		{
-			return (false, ex.Message);
-		}
-		for (int i = 0; i < fakeOutputCount; i++)
-		{
-			var fakeOutputValue = totalFakeOutputsValue / fakeOutputCount;
-			fakeTransaction.Outputs.Add(fakeOutputValue, new Key());
-		}
-		MempoolAcceptResult testMempoolAcceptResult = await rpc.TestMempoolAcceptAsync(fakeTransaction, cancellationToken).ConfigureAwait(false);
-
-		if (!testMempoolAcceptResult.IsAllowed)
-		{
-			string rejected = testMempoolAcceptResult.RejectReason;
-
-			if (!(rejected.Contains("mandatory-script-verify-flag-failed", StringComparison.OrdinalIgnoreCase)
-				|| rejected.Contains("non-mandatory-script-verify-flag", StringComparison.OrdinalIgnoreCase)))
-			{
-				return (false, rejected);
-			}
-		}
-		return (true, "");
-	}
-
-	/// <summary>
-	/// Gets the transactions that are unconfirmed using getrawmempool.
-	/// This is efficient when many transaction ids are provided.
-	/// </summary>
-	public static async Task<IEnumerable<uint256>> GetUnconfirmedAsync(this IRPCClient rpc, IEnumerable<uint256> transactionHashes, CancellationToken cancellationToken)
-	{
-		uint256[] unconfirmedTransactionHashes = await rpc.GetRawMempoolAsync(cancellationToken).ConfigureAwait(false);
-
-		// If there are common elements, then there's unconfirmed.
-		return transactionHashes.Intersect(unconfirmedTransactionHashes);
 	}
 }

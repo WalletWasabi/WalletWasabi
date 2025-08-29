@@ -268,7 +268,7 @@ public class AllFeeEstimateTests
 
 		var allFee = await mockRpc.EstimateAllFeeAsync();
 		Assert.Equal(140, allFee.Estimations[2].SatoshiPerByte);
-		Assert.Equal(124, allFee.Estimations[144].SatoshiPerByte);
+		Assert.Equal(124.428m, allFee.Estimations[144].SatoshiPerByte);
 		Assert.True(allFee.Estimations[1008].SatoshiPerByte > 1);
 	}
 
