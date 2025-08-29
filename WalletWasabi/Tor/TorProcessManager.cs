@@ -492,7 +492,7 @@ public class TorProcessManager : IAsyncDisposable
 		}
 
 		// Get cookie.
-		string cookieString = ByteHelpers.ToHex(File.ReadAllBytes(_settings.CookieAuthFilePath));
+		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
 
 		// Authenticate.
 		TorControlClientFactory factory = new();

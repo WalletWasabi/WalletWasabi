@@ -149,30 +149,35 @@ public class WalletDirTests
 		var baseDir = Common.GetWorkDir();
 		await CleanupWalletDirectoriesAsync(baseDir);
 		var walletDirectories = new WalletDirectories(Network.Main, baseDir);
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 
 		Assert.Equal("Random Wallet", walletDirectories.GetNextWalletName());
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
 		Assert.Equal("Random Wallet 2", walletDirectories.GetNextWalletName());
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 2.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 2.json"));
 		Assert.Equal("Random Wallet 4", walletDirectories.GetNextWalletName());
 
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4.dat"));
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4.dat"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 4"));
 		Assert.Equal("Random Wallet 4", walletDirectories.GetNextWalletName());
 
 		File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
 		File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 		Assert.Equal("Random Wallet", walletDirectories.GetNextWalletName());
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet.json"));
 		Assert.Equal("Random Wallet 3", walletDirectories.GetNextWalletName());
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 		File.Delete(Path.Combine(walletDirectories.WalletsDir, "Random Wallet 3.json"));
 
 		Assert.Equal("Foo", walletDirectories.GetNextWalletName("Foo"));
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo.json"));
 		Assert.Equal("Foo 2", walletDirectories.GetNextWalletName("Foo"));
-		IoHelpers.CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo 2.json"));
+		CreateOrOverwriteFile(Path.Combine(walletDirectories.WalletsDir, "Foo 2.json"));
+
+		static void CreateOrOverwriteFile(string path)
+		{
+			using var _ = File.Create(path);
+		}
 	}
 
 	[Fact]

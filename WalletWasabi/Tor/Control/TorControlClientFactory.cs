@@ -78,7 +78,7 @@ public partial class TorControlClientFactory
 	{
 		byte[] nonceBytes = new byte[32];
 		_random.GetBytes(nonceBytes);
-		string clientNonce = ByteHelpers.ToHex(nonceBytes);
+		string clientNonce = Convert.ToHexString(nonceBytes);
 
 		TorControlReply authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);
 
@@ -107,8 +107,8 @@ public partial class TorControlClientFactory
 		string toHash = $"{cookieString}{clientNonce}{serverNonce}";
 
 		using HMACSHA256 hmacSha256 = new(ClientHmacKey);
-		byte[] serverHash = hmacSha256.ComputeHash(ByteHelpers.FromHex(toHash));
-		string serverHashStr = ByteHelpers.ToHex(serverHash);
+		byte[] serverHash = hmacSha256.ComputeHash(Convert.FromHexString(toHash));
+		string serverHashStr = Convert.ToHexString(serverHash);
 
 		Logger.LogTrace($"Authenticate using server hash: '{serverHashStr}'.");
 		TorControlReply authenticationReply = await controlClient.SendCommandAsync($"AUTHENTICATE {serverHashStr}\r\n", cancellationToken).ConfigureAwait(false);

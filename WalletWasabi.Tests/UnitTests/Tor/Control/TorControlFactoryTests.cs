@@ -29,7 +29,7 @@ public class TorControlFactoryTests
 
 		var mockRandom = new TesteableRandom
 		{
-			OnGetBytes = (buffer) => Array.Copy(sourceArray: ByteHelpers.FromHex(clientNonce), buffer, 32)
+			OnGetBytes = (buffer) => Array.Copy(sourceArray: Convert.FromHexString(clientNonce), buffer, 32)
 		};
 
 		TorControlClientFactory clientFactory = new(mockRandom);

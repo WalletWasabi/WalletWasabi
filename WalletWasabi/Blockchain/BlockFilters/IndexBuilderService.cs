@@ -229,7 +229,10 @@ public static class LegacyWasabiFilterGenerator
 	}
 
 	// Script used for dummy filters
-	public static readonly byte[][] DummyScript = new byte[][] { ByteHelpers.FromHex("0009BBE4C2D17185643765C265819BF5261755247D") };
+	public static readonly byte[][] DummyScript = new byte[][]
+		{
+			Convert.FromHexString("0009BBE4C2D17185643765C265819BF5261755247D")
+		};
 
 	internal static GolombRiceFilter BuildFilterForBlock(VerboseBlockInfo block)
 	{
