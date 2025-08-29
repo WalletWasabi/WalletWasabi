@@ -5,6 +5,7 @@
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
              xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.ExcludedCoinsView"
              x:DataType="vm:ExcludedCoinsViewModel"
@@ -31,6 +32,15 @@
                       IsChecked="{Binding HasSelection}"/>
       </StackPanel>
     </ContentArea.TopContent>
-    <coins:CoinListView DataContext="{Binding CoinList}" />
+    <DockPanel>
+      <InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+                   HorizontalAlignment="Center"
+                   Opacity="{Binding IsCoinjoining, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                   DockPanel.Dock="Bottom"
+                   Margin="0,16,0,0">
+          <TextBlock Text="Stop the Coinjoin process to change excluded coins." />
+      </InfoMessage>
+      <coins:CoinListView DataContext="{Binding CoinList}" />
+    </DockPanel>
   </ContentArea>
 </UserControl>

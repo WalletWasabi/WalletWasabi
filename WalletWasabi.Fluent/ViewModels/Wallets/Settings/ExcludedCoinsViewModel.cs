@@ -5,6 +5,7 @@ using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
+using LinqKit;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -19,6 +20,7 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private bool _hasSelection;
+	[AutoNotify] private bool _isCoinjoining;
 
 	public ExcludedCoinsViewModel(IWalletModel wallet)
 	{
@@ -49,6 +51,19 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 			.Throttle(TimeSpan.FromMilliseconds(100), RxApp.MainThreadScheduler)
 			.DoAsync(async x => await _wallet.Coins.UpdateExcludedCoinsFromCoinjoinAsync(x.ToArray()))
 			.Subscribe()
+			.DisposeWith(disposables);
+
+		_wallet.Coinjoin?.WhenAnyValue(x => x.IsCoinjoining)
+			.Subscribe(x =>
+			{
+				CoinList.CoinItems.ForEach(y =>
+				{
+					var wasSelected = y.IsSelected;
+					y.CanBeSelected = !x;
+					y.IsSelected = wasSelected;
+				});
+				IsCoinjoining = x;
+			})
 			.DisposeWith(disposables);
 
 		CoinList.DisposeWith(disposables);
