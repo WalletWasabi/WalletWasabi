@@ -29,7 +29,7 @@ public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(
 		IWalletProvider walletProvider,
-		RoundStateUpdater roundStatusUpdater,
+		RoundStateProvider roundStatusProvider,
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison,
@@ -37,7 +37,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		_walletProvider = walletProvider;
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
-		_roundStatusUpdater = roundStatusUpdater;
+		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
 		_serverTipHeightChangeSubscription = eventBus.Subscribe<ServerTipHeightChanged>(h => _serverTipHeight = h.Height);
@@ -48,7 +48,7 @@ public class CoinJoinManager : BackgroundService
 	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
 	private readonly IWalletProvider _walletProvider;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
-	private readonly RoundStateUpdater _roundStatusUpdater;
+	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinPrison _coinPrison;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
@@ -124,9 +124,7 @@ public class CoinJoinManager : BackgroundService
 		var trackedWallets = new Dictionary<WalletId, IWallet>();
 		while (!stoppingToken.IsCancellationRequested)
 		{
-			var mixableWallets = _roundStatusUpdater.AnyRound
-				? await GetMixableWalletsAsync().ConfigureAwait(false)
-				: ImmutableDictionary<WalletId, IWallet>.Empty;
+			var mixableWallets = await GetMixableWalletsAsync().ConfigureAwait(false);
 
 			// Notifies when a wallet meets the criteria for participating in a coinjoin.
 			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
@@ -165,7 +163,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusUpdater, _coinJoinConfiguration, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -474,7 +472,6 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 
 			CoinJoinClientStates = GetCoinJoinClientStates(wallets, trackedCoinJoins, trackedAutoStarts);
 			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets, trackedCoinJoins);
-			_roundStatusUpdater.SlowRequestsMode = HighestCoinJoinClientState is CoinJoinClientState.Idle;
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}

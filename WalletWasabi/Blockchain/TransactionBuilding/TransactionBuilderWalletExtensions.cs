@@ -32,7 +32,7 @@ public static class TransactionBuilderWalletExtensions
 
 		if (feeStrategy.TryGetTarget(out int? target))
 		{
-			feeRate = wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(target.Value)
+			feeRate = wallet.FeeRateEstimations.GetFeeRate(target.Value)
 				?? throw new InvalidOperationException("Cannot get fee estimations.");
 		}
 		else if (!feeStrategy.TryGetFeeRate(out feeRate))

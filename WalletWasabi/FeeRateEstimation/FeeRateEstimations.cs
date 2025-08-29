@@ -11,6 +11,7 @@ namespace WalletWasabi.FeeRateEstimation;
 public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 {
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
+	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate>{ {0, FeeRate.Zero} });
 
 	/// <summary>All allowed target confirmation ranges, i.e. 0-2, 2-3, 3-6, 6-18, ..., 432-1008.</summary>
 	private static readonly IEnumerable<(int Start, int End)> TargetRanges = AllConfirmationTargets

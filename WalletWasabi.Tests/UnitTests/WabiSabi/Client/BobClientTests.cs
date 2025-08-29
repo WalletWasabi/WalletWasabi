@@ -3,13 +3,12 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Backend.Controllers;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi;
+using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -61,11 +60,11 @@ public class BobClientTests
 			wabiSabiApi);
 		Assert.Equal(Phase.InputRegistration, round.Phase);
 
-		using RoundStateUpdater roundStateUpdater = new(TimeSpan.FromSeconds(2), wabiSabiApi);
-		await roundStateUpdater.StartAsync(token);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(arena);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var keyChain = new KeyChain(km,"");
-		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateUpdater, token, token, token);
+		var task = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round), aliceArenaClient, coin1, keyChain, roundStateProvider, token, token, token);
 
 		do
 		{
