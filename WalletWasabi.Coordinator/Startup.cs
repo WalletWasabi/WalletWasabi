@@ -17,8 +17,9 @@ using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.Userfacing;
+using WalletWasabi.Tor;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -55,6 +56,12 @@ public class Startup(IConfiguration configuration)
 
 		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
+
+		var torSetting = new TorSettings(dataDir,
+			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			true, TorMode.Enabled, 37155, 37156);
+
+		services.AddSingleton(torSetting);
 
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IRPCClient>(provider =>
@@ -119,6 +126,11 @@ public class Startup(IConfiguration configuration)
 				{
 					Timeout = TimeSpan.FromSeconds(5)
 				});
+
+		if (config.PublishAsOnionService)
+		{
+			services.AddBackgroundService<TorProcessManagerService>();
+		}
 	}
 
 	[SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "This method gets called by the runtime. Use this method to configure the HTTP request pipeline")]

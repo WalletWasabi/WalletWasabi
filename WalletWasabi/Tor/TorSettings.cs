@@ -134,9 +134,6 @@ public class TorSettings
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; }
-	public int RpcVirtualPort => 80;
-	public int RpcOnionPort => 37129;
-
 	private readonly string _geoIpPath;
 	private readonly string _geoIp6Path;
 

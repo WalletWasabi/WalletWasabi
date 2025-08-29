@@ -3,7 +3,6 @@ using System.Net;
 using System.Text.Json.Nodes;
 using NBitcoin;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Coordinator;
 
@@ -72,6 +71,8 @@ public static partial class Encode
 			("AllowP2wshOutputs", Bool(cfg.AllowP2wshOutputs)),
 			("DelayTransactionSigning", Bool(cfg.DelayTransactionSigning)),
 			("AnnouncerConfig", AnnouncerConfig(cfg.AnnouncerConfig)),
+			("PublishAsOnionService", Bool(cfg.PublishAsOnionService)),
+			("OnionServicePrivateKey", Optional(cfg.OnionServicePrivateKey, String))
 		]);
 }
 
@@ -148,6 +149,8 @@ public static partial class Decode
 			AllowP2shOutputs = get.Required("AllowP2shOutputs", Bool),
 			AllowP2wshOutputs = get.Required("AllowP2wshOutputs", Bool),
 			DelayTransactionSigning = get.Required("DelayTransactionSigning", Bool),
-			AnnouncerConfig = get.Required("AnnouncerConfig", AnnouncerConfig)
+			AnnouncerConfig = get.Required("AnnouncerConfig", AnnouncerConfig),
+			PublishAsOnionService = get.Optional("PublishAsOnionService", Bool, true),
+			OnionServicePrivateKey = get.Optional("OnionServicePrivateKey", String)
 		});
 }

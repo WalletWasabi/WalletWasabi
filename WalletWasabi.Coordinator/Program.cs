@@ -1,7 +1,6 @@
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using WalletWasabi.Backend;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Coordinator;
@@ -23,6 +22,5 @@ public static class Program
 
 	public static IHostBuilder CreateHostBuilder(string[] args) =>
 		Host.CreateDefaultBuilder(args).ConfigureWebHostDefaults(webBuilder => webBuilder
-			.UseStartup<Startup>()
-			.UseUrls(Environment.GetEnvironmentVariable("WASABI_BIND") ?? "http://localhost:37126/"));
+			.UseStartup<Startup>());
 }
