@@ -12,6 +12,7 @@ using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
@@ -28,6 +29,7 @@ public partial class Arena : PeriodicRunner
 		IRPCClient rpc,
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
+		FeeRateProvider feeRateProvider,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(2))
@@ -37,6 +39,7 @@ public partial class Arena : PeriodicRunner
 		_prison = prison;
 		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParameterFactory = roundParameterFactory;
+		_feeRateProvider = feeRateProvider;
 		_maxSuggestedAmountProvider = new(_config);
 	}
 
@@ -49,6 +52,7 @@ public partial class Arena : PeriodicRunner
 	private readonly Prison _prison;
 	private readonly CoinJoinScriptStore? _coinJoinScriptStore;
 	private readonly RoundParameterFactory _roundParameterFactory;
+	private readonly FeeRateProvider _feeRateProvider;
 	private readonly MaxSuggestedAmountProvider _maxSuggestedAmountProvider;
 
 	protected override async Task ActionAsync(CancellationToken cancel)
@@ -282,7 +286,7 @@ public partial class Arena : PeriodicRunner
 					// Added for monitoring reasons.
 					try
 					{
-						FeeRate targetFeeRate = (await _rpc.EstimateConservativeSmartFeeAsync((int)_config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
+						var targetFeeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
 						round.LogInfo($"Current Fee Rate on the Network: {targetFeeRate.SatoshiPerByte} sat/vByte. Confirmation target is: {(int)_config.ConfirmationTarget} blocks.");
 					}
 					catch (Exception ex)
@@ -448,7 +452,7 @@ public partial class Arena : PeriodicRunner
 		// This indicates to the client that there will be a blame round.
 		EndRound(round, EndRoundState.NotAllAlicesSign);
 
-		var feeRate = (await _rpc.EstimateConservativeSmartFeeAsync((int)_config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
+		FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
 		var blameWhitelist = round.Alices
 			.Select(x => x.Coin.Outpoint)
 			.Where(x => !_prison.IsBanned(x, _config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
@@ -466,14 +470,12 @@ public partial class Arena : PeriodicRunner
 
 	private async Task CreateRoundsAsync(CancellationToken cancellationToken)
 	{
-		FeeRate? feeRate = null;
-
 		// Add more rounds if not enough.
 		var registrableRoundCount = Rounds.Count(x => x is not BlameRound && x.Phase == Phase.InputRegistration && x.InputRegistrationTimeFrame.Remaining > TimeSpan.FromMinutes(1));
 		int roundsToCreate = _config.RoundParallelization - registrableRoundCount;
 		for (int i = 0; i < roundsToCreate; i++)
 		{
-			feeRate ??= (await _rpc.EstimateConservativeSmartFeeAsync((int)_config.ConfirmationTarget, cancellationToken).ConfigureAwait(false)).FeeRate;
+			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
 			RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
@@ -586,6 +588,12 @@ public partial class Arena : PeriodicRunner
 	{
 		SigningState signingState = constructionState.Finalize();
 		return signingState;
+	}
+
+	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
+	{
+		var feeEstimations = await _feeRateProvider(cancellationToken).ConfigureAwait(false);
+		return feeEstimations.GetFeeRate((int)_config.ConfirmationTarget);
 	}
 
 	/// <summary>
