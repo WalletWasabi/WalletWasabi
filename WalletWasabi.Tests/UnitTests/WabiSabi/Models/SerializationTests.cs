@@ -146,7 +146,7 @@ public class SerializationTests
 	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
 		var roundState = RoundState.FromRound(round);
-		RoundStateResponse response = new([roundState], []);
+		RoundStateResponse response = new([roundState]);
 
 		AssertSerialization(response);
 
@@ -156,7 +156,7 @@ public class SerializationTests
 		round.CoinjoinState = new SigningState(state.Parameters, state.Events);
 		roundState = RoundState.FromRound(round);
 
-		response = new([roundState], []);
+		response = new([roundState]);
 
 		AssertSerialization(response);
 	}

@@ -218,5 +218,5 @@ public class RoundStateUpdaterTests
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
 		() => HttpResponseMessageEx.Ok(
-			Encode.RoundStateResponse( new RoundStateResponse(roundStates, Array.Empty<CoinJoinFeeRateMedian>() )).ToJsonString());
+			Encode.RoundStateResponse( new RoundStateResponse(roundStates)).ToJsonString());
 }

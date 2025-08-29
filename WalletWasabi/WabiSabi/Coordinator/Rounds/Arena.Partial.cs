@@ -369,7 +369,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 			return x;
 		}).ToArray();
-		return Task.FromResult(new RoundStateResponse(responseRoundStates, Array.Empty<CoinJoinFeeRateMedian>()));
+		return Task.FromResult(new RoundStateResponse(responseRoundStates));
 	}
 
 	private void CheckCoinIsNotBanned(OutPoint input, Round round)

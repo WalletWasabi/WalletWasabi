@@ -170,12 +170,6 @@ public static partial class Encode
 			_ => throw new ArgumentException("There is not such a transaction state")
 		};
 
-	private static JsonNode CoinJoinFeeRateMedian(CoinJoinFeeRateMedian m) =>
-		Object([
-			("timeFrame", TimeSpan(m.TimeFrame)),
-			("medianFeeRate", FeeRate(m.MedianFeeRate) ),
-		]);
-
 	private static JsonNode RoundState(RoundState rs) =>
 		Object([
 			("id", UInt256(rs.Id)),
@@ -205,7 +199,7 @@ public static partial class Encode
 	public static JsonNode RoundStateResponse(RoundStateResponse sr) =>
 		Object([
 			("roundStates", Array(sr.RoundStates.Select(RoundState))),
-			("coinJoinFeeRateMedians", Array(sr.CoinJoinFeeRateMedians.Select(CoinJoinFeeRateMedian)))
+			("coinJoinFeeRateMedians", Array([]))
 		]);
 
 	public static JsonNode InputRegistrationRequest(InputRegistrationRequest ir) =>
@@ -574,8 +568,7 @@ public static partial class Decode
 
 	public static readonly Decoder<RoundStateResponse> RoundStateResponse =
 		Object(get => new RoundStateResponse(
-			get.Required("roundStates", Array(RoundState)),
-			[]
+			get.Required("roundStates", Array(RoundState))
 		));
 
 	private static readonly Decoder<InputBannedExceptionData> InputBannedExceptionData =
