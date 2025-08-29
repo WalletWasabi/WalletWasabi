@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
@@ -33,8 +34,9 @@ public class ArenaBuilder
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient();
 		Network network = Network ?? Network.Main;
 		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config, network);
+		FeeRateProvider feeProvider = FeeRateProviders.RpcAsync(rpc);
 
-		Arena arena = new(config, rpc, prison, roundParameterFactory, period:period);
+		Arena arena = new(config, rpc, prison, roundParameterFactory, feeProvider, period:period);
 
 		foreach (var round in rounds)
 		{

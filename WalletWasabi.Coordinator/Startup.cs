@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Net.Http;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http.Timeouts;
@@ -15,6 +16,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Cache;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -24,6 +26,7 @@ using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
+using WalletWasabi.WebClients.Wasabi;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 [assembly: ApiController]
@@ -116,6 +119,22 @@ public class Startup(IConfiguration configuration)
 			services.AddSingleton<AnnouncerConfig>(_ => config.AnnouncerConfig);
 			services.AddBackgroundService<CoordinatorAnnouncer>();
 		}
+
+		services.AddSingleton<IHttpClientFactory>(s =>
+			config.PublishAsOnionService
+			? new OnionHttpClientFactory(torSetting.SocksEndpoint.ToUri("socks5"))
+			: new HttpClientFactory()
+			);
+
+		services.AddSingleton<FeeRateProvider>(s =>
+		{
+			var httpClientFactory = s.GetRequiredService<IHttpClientFactory>();
+			return FeeRateProviders.Composed([
+				FeeRateProviders.RpcAsync(s.GetRequiredService<IRPCClient>()),
+				FeeRateProviders.MempoolSpaceAsync(httpClientFactory),
+				FeeRateProviders.BlockstreamAsync(httpClientFactory)
+			]);
+		});
 
 		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddStartupTask<StartupTask>();
