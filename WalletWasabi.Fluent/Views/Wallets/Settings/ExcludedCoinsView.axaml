@@ -35,10 +35,10 @@
     <DockPanel>
       <InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
                    HorizontalAlignment="Center"
-                   Opacity="{Binding ShowRestartCoinjoinWarning, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                   Opacity="{Binding IsCoinjoining, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
                    DockPanel.Dock="Bottom"
                    Margin="0,16,0,0">
-          <TextBlock Text="Restart Coinjoin to apply changes." />
+          <TextBlock Text="Stop the Coinjoin process to change excluded coins." />
       </InfoMessage>
       <coins:CoinListView DataContext="{Binding CoinList}" />
     </DockPanel>

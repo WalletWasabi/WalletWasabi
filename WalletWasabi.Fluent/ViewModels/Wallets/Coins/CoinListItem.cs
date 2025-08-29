@@ -110,15 +110,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	public bool? IsSelected
 	{
 		get => _isSelected;
-		set
-		{
-			if (!CanBeSelected && value == true)
-			{
-				return;
-			}
-
-			this.RaiseAndSetIfChanged(ref _isSelected, value);
-		}
+		set => this.RaiseAndSetIfChanged(ref _isSelected, value);
 	}
 
 	public ScriptType? ScriptType { get; protected set; }
