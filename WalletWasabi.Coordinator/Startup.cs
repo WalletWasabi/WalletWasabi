@@ -105,12 +105,6 @@ public class Startup(IConfiguration configuration)
 			new Warden(
 				Path.Combine(dataDir, "Prison.txt"),
 				s.GetRequiredService<WabiSabiConfig>()));
-		services.AddSingleton<CoinJoinFeeRateStatStore>(s =>
-			CoinJoinFeeRateStatStore.LoadFromFile(
-				Path.Combine(dataDir, "CoinJoinFeeRateStatStore.txt"),
-				s.GetRequiredService<WabiSabiConfig>(),
-				s.GetRequiredService<IRPCClient>()
-				));
 		services.AddSingleton<RoundParameterFactory>();
 		services.AddBackgroundService<Arena>();
 

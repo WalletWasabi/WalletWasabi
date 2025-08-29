@@ -7,7 +7,6 @@ using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Filters;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
@@ -20,23 +19,19 @@ namespace WalletWasabi.Coordinator.Controllers;
 [Produces("application/json")]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
-	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena, CoinJoinFeeRateStatStore coinJoinFeeRateStatStore)
+	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)
 	{
 		_idempotencyRequestCache = idempotencyRequestCache;
 		_arena = arena;
-		_coinJoinFeeRateStatStore = coinJoinFeeRateStatStore;
 	}
 
 	private readonly IdempotencyRequestCache _idempotencyRequestCache;
 	private readonly Arena _arena;
-	private readonly CoinJoinFeeRateStatStore _coinJoinFeeRateStatStore;
 
 	[HttpPost("status")]
 	public async Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
 	{
-		var response = await _arena.GetStatusAsync(request, cancellationToken);
-		var medians = _coinJoinFeeRateStatStore.GetDefaultMedians();
-		return response with {CoinJoinFeeRateMedians = medians};
+		return await _arena.GetStatusAsync(request, cancellationToken);
 	}
 
 	[HttpPost("connection-confirmation")]
