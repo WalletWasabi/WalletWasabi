@@ -1,42 +1,37 @@
 ## Release Highlights
-#### 🤯 Coordinators harder to censor
 #### 🟠 Enhanced Bitcoin Node Integration
-#### 🎨 Fresh UI with Colorful Icons & Animations
-#### ⚙️ One Config File per Network
-#### 🛠️️ Miscellaneous Improvements & Fixes
+#### 🎨 Refreshed UI with Icons & Animations
+#### ⚙️ Dedicated Config Files Per Network
+#### 🤯 Stronger & Smarter Coordinators
+#### 🛠️ Refinements & Fixes
 
 ## Release Summary
-
-Wasabi Wallet v2.7.0 is a stabilisation release that delivers a refreshed interface alongside plenty of bug-fixes and important architectural improvements.
-
-### 🤯 Coordinators harder to censor
-
-Coordinators are published as onion services automatically making them available immediately after installation. Operators don't need to install Tor or
-configure it. Additionally, a coordinator can now be run with an automatically pruned node even in `blocksonly` mode.
-
-Two fallback fee rate providers `mempool.space` and `blockstream.info` were added to be used in case the Bitcoin node cannot provide estimations. Those are
-queried through Tor in case the coordinator is only available as an onion service.
+Wasabi Wallet v2.7.0 is a stabilization release that not only strengthens reliability but also brings a fresh look and smoother performance.
 
 ### 🟠 Enhanced Bitcoin Node Integration
+Bitcoin node connectivity is now more seamless. RPC endpoint handling has been refined for smoother setup, with support for onion-service RPC interfaces.
 
-RPC endpoint handling has been improved for easier Bitcoin node connectivity, allowing also to connect to RPC interfaces available as onion services.
-Additionally, Wasabi no longer ships with bitcoind binaries, and block downloading has been simplified and made more reliable.
+Additionally, Wasabi no longer bundles bitcoind binaries, while block downloading has been simplified and made more dependable.
 
-### 🎨 Fresh UI with Colorful Icons & Animations
+### 🎨 Refreshed UI with Icons & Animations
+The interface has been given a polished update. Subtle animations and a balanced color scheme breathe new life into Wasabi’s design, making it both cleaner and less aggressive.
 
-Visual refresh with a refined and less aggressive color scheme.
+### ⚙️ Dedicated Config Files Per Network
+Each network  Mainnet, Testnet4, and Regtest — now has its own independent configuration file. Switching to test networks is easier and your preferences are always preserved.
 
-### ⚙️ One Config File per Network
+### 🤯 Stronger & Smarter Coordinators
+Coordinators are automatically published as onion services right out of the box: no manual Tor setup needed. Coordinators can now also run on pruned nodes in blocksonly mode.
 
-Mainnet, Testnet4, and Regtest now have independent configuration files, making it easier to save preferences and switch to test networks.
+Plus, fallback fee rate providers were implemented (mempool.space and blockstream.info), ensuring accurate fee estimates, even if your node can’t provide them.
 
-### 🛠️️ Miscellaneous Improvements & Fixes
-- **Full-RBF** - RBF flag is no longer considered as all transactions are now treated as replaceable by default. Wasabi transactions no longer signal for replaceability.
-- **More reliable Http communication** - implements a retry strategy across all the http communication.
-- **Fixes in recover by seed** - fixed some annoying typing issues in seed phrase recovery process
-- **More precise fee rate estimations and calculation** - do not round up or down and consider decimal positions always.
-- **Updated NBitcoin to 8.0.14** - latest Bitcoin protocol library with bug fixes and improvements
-- **Improved terminology** - "Backend" renamed to "Indexer" throughout the UI for clarity
-- **Removed legacy components** - remove TurboSync, BlockNotifier, and other deprecated features to improve codebase maintainability
-- **Force to stop Coinjoin before changing Excluded Coins** - the Excluded Coins can now only be changed when Coinjoin is stopped, preventing potential issues
-- **Remove the Donation button** - donations have diminished at the point that it isn't worth ruining the UI with it.
+### 🛠️ Refinements & Fixes
+- **Full-RBF by default** – All transactions are treated as replaceable.
+- **Resilient HTTP communication** – Smarter retry handling makes connections sturdier.
+- **Seed recovery fixes** – Annoying typing issues are resolved.
+- **Sharper fee estimations** – Precise decimal calculations with no rounding loss.
+- **NBitcoin updated to 8.0.14** – Latest Bitcoin protocol improvements included.
+- **Clearer terminology** – “Backend” is now called “Indexer.”
+- **Lean codebase** – Legacy components like TurboSync and BlockNotifier removed.
+- **Safer Coinjoin handling** – Excluded Coins can only be changed when Coinjoin is paused.
+- **Donation Button removed from Main Screen** – The button is gone, but donations are still possible via the search bar.
+- **Conflux by default** - Better Tor configuration for improved connectivity.
