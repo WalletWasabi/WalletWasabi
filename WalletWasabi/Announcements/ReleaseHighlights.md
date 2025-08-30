@@ -1,59 +1,37 @@
 ## Release Highlights
-#### 💥 Support for Standard BIP 158 Block Filters
-#### 💻 Full Node Integration Rework
-#### 🔐 Create & Recover SLIP 39 Shares
-#### 💪 Nostr Update Manager
-#### 🤯 And more…
+#### 🟠 Enhanced Bitcoin Node Integration
+#### 🎨 Refreshed UI with Icons & Animations
+#### ⚙️ Dedicated Config Files Per Network
+#### 🤯 Stronger & Smarter Coordinators
+#### 🛠️ Refinements & Fixes
 
 ## Release Summary
+Wasabi Wallet v2.7.0 is a stabilization release that not only strengthens reliability but also brings a fresh look and smoother performance.
 
-Wasabi Wallet v2.6.0 "Prometheus" marks a significant milestone in our survival strategy, delivering major improvements in resiliency by eliminating dependency on centralized infrastructure while making it harder to stop.
+### 🟠 Enhanced Bitcoin Node Integration
+Bitcoin node connectivity is now more seamless. RPC endpoint handling has been refined for smoother setup, with support for onion-service RPC interfaces.
 
-### 💥 Support for Standard BIP 158 Block Filters
+Additionally, Wasabi no longer bundles bitcoind binaries, while block downloading has been simplified and made more dependable.
 
-Wasabi can now synchronize using BIP 158 filters without requiring a backend/indexer. You can connect directly to your own node, significantly enhancing synchronization speed and resilience. This improvement allows clients to operate fully sovereign and independent of specific servers.
+### 🎨 Refreshed UI with Icons & Animations
+The interface has been given a polished update. Subtle animations and a balanced color scheme breathe new life into Wasabi’s design, making it both cleaner and less aggressive.
 
-### 💻 Full Node Integration Rework
+### ⚙️ Dedicated Config Files Per Network
+Each network  Mainnet, Testnet4, and Regtest — now has its own independent configuration file. Switching to test networks is easier and your preferences are always preserved.
 
-The previous integration was replaced with a simpler, more flexible system which is not limited to a specific Bitcoin node fork and doesn't depend on the node running on the same machine as Wasabi, or require modifications to the node's configuration.
+### 🤯 Stronger & Smarter Coordinators
+Coordinators are automatically published as onion services right out of the box: no manual Tor setup needed. Coordinators can now also run on pruned nodes in blocksonly mode.
 
-Simply enable the RPC server on your node and point Wasabi to it, ensuring all Bitcoin network interactions happen through your own node, bypassing third parties for getting blocks, fee estimations, block filters, and broadcasting transactions.
+Plus, fallback fee rate providers were implemented (mempool.space and blockstream.info), ensuring accurate fee estimates, even if your node can’t provide them.
 
-### 🔐 Create & Recover SLIP 39 Shares
-
-You can now create and recover wallets with multiple share backups using SLIP 39. Simply specify the number of shares and the required threshold for recovery (e.g., a 2-of-3 scheme requires 2 of the 3 generated seed phrases to unlock the funds).
-
-This offers additional flexibility for backups, as individual shares can be compromised without endangering funds.
-
-Special thanks to Trezor (SatoshiLabs) for sponsoring this amazing feature.
-
-### 💪 Nostr Update Manager
-
-We're introducing a cutting-edge mechanism using the censorship-resistant Nostr network to receive update information and download locations instead of relying on GitHub's goodwill.
-
-This considerably improves resiliency, allowing updates even if GitHub is inaccessible. Naturally, the manager still verifies that displayed updates are signed by our secure certificate.
-
-### 🤯 And more…
-We've also been busy under the hood with several miscellaneous improvements:
-
-- Updated Avalonia to v11.2.7, fixing numerous UI bugs (including restoring Minimize on macOS Sequoia!).
-- Added a configurable third-party fallback for broadcasting transactions if other methods fail.
-- Changed our Windows Code Signing Certificate, now using Azure Trusted Signing.
-- Fixed numerous bugs, improved our codebase, and enhanced our CI pipeline.
-- Provided the option to avoid using any third-party Exchange Rate and Fee Rate providers (Wasabi can work without them).
-- Rebuilt all JSON Serialization mechanisms avoiding default .NET converters. Serialization is now stricter.
-
-### 🔮 A Glimpse of Tomorrow
-This new version brings us closer to our ultimate goal: ensuring Wasabi is future-proof.
-
-Our main focus areas for survival are:
-- Ensuring users can always fully and securely use their client.
-- Making contribution and forks easy through a codebase of the highest quality possible: understandable, maintainable, and improvable.
-
-Simultaneously, we aim for Wasabi to remain a top-notch choice for self-custody Bitcoin wallets, bringing privacy without frustration.
-
-As we achieve our survival goals, expect more cutting-edge improvements in Bitcoin privacy and self-custody.
-
-Thank you for the trust you place in us by using Wasabi.
-
-Stay tuned 👀
+### 🛠️ Refinements & Fixes
+- **Full-RBF by default** – All transactions are treated as replaceable.
+- **Resilient HTTP communication** – Smarter retry handling makes connections sturdier.
+- **Seed recovery fixes** – Annoying typing issues are resolved.
+- **Sharper fee estimations** – Precise decimal calculations with no rounding loss.
+- **NBitcoin updated to 8.0.14** – Latest Bitcoin protocol improvements included.
+- **Clearer terminology** – “Backend” is now called “Indexer.”
+- **Lean codebase** – Legacy components like TurboSync and BlockNotifier removed.
+- **Safer Coinjoin handling** – Excluded Coins can only be changed when Coinjoin is paused.
+- **Donation Button removed from Main Screen** – The button is gone, but donations are still possible via the search bar.
+- **Conflux by default** - Better Tor configuration for improved connectivity.
