@@ -48,7 +48,7 @@
       </Button>
     </StackPanel>
 
-    <DockPanel ToolTip.Tip="Only submits one non-private coin in each round.">
+    <DockPanel ToolTip.Tip="Each round can register at most one non-private coin.">
       <TextBlock Text="Non-private coin isolation" />
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
