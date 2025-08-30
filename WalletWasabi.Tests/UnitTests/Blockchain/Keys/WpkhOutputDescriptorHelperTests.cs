@@ -12,7 +12,7 @@ public class WpkhOutputDescriptorHelperTests
 	{
 		Network testNet = Network.TestNet;
 		BitcoinEncryptedSecretNoEC encryptedSecret = new(wif: "6PYJxoa2SLZdYADFyMp3wo41RKaKGNedC3vviix4VdjFfrt1LkKDmXmYTM", Network.Main);
-		byte[]? chainCode = ByteHelpers.FromHex("D9DAD5377AB84A44815403FF57B0ABC6825701560DAA0F0FCDDB5A52EBE12A6E");
+		byte[]? chainCode = Convert.FromHexString("D9DAD5377AB84A44815403FF57B0ABC6825701560DAA0F0FCDDB5A52EBE12A6E");
 		ExtKey accountPrivateKey = new(encryptedSecret.GetKey(password: "123456"), chainCode);
 		KeyPath keyPath = new("84'/0'/0'");
 		HDFingerprint masterFingerprint = new(0x2fc4a4f3);

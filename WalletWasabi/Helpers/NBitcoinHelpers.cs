@@ -49,7 +49,7 @@ public static class NBitcoinHelpers
 				catch
 				{
 					// Try hex, Old wallet format was like this.
-					epk = new ExtPubKey(ByteHelpers.FromHex(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
+					epk = new ExtPubKey(Convert.FromHexString(extPubKeyString)); // Starts with "ExtPubKey": "hexbytes...
 				}
 			}
 		}

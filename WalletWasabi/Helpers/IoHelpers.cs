@@ -134,9 +134,4 @@ public static class IoHelpers
 			}
 		}
 	}
-
-	public static void CreateOrOverwriteFile(string path)
-	{
-		using var _ = File.Create(path);
-	}
 }

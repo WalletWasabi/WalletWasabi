@@ -86,21 +86,4 @@ public static unsafe class ByteHelpers
 			return true;
 		}
 	}
-
-	/// <seealso cref="Convert.ToHexString(byte[])"/>
-	public static string ToHex(params byte[] bytes)
-	{
-		return Convert.ToHexString(bytes);
-	}
-
-	/// <seealso cref="Convert.FromHexString(string)"/>
-	public static byte[] FromHex(string hex)
-	{
-		if (string.IsNullOrWhiteSpace(hex))
-		{
-			return Array.Empty<byte>();
-		}
-
-		return Convert.FromHexString(hex);
-	}
 }
