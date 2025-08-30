@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using WalletWasabi.Helpers;
@@ -16,14 +17,37 @@ public class Scheme
 	{
 		var (env, _) = Load(Env, "Scheme/Wasabilib.scm");
 		env = DefineNativeFunction("now", () => DateTime.Now, env);
-		env = DefineNativeFunction<string, object>("__get", (method, instance) =>
-			instance.GetType()
-				.InvokeMember(method,
-					BindingFlags.GetProperty | BindingFlags.InvokeMethod | BindingFlags.Instance | BindingFlags.Public | BindingFlags.IgnoreCase, null, instance, [])!, env);
+		env = DefineNativeFunction<string, object>("__get", GetterFn, env);
 		env = DefineNativeFunction("global", () => global, env);
 		env = DefineNativeFunction("wallets",
 			() => global.WalletManager.GetWallets(), env);
 		_env = env;
+	}
+
+	private Dictionary<(Type, string), MemberInfo> Accessors = new();
+	private object GetterFn(string method, object instance)
+	{
+		var typ = instance.GetType();
+		var key = (typ, method);
+		if (!Accessors.TryGetValue(key, out var info))
+		{
+			var members = typ.GetMember(method,
+				BindingFlags.GetProperty
+				| BindingFlags.InvokeMethod
+				| BindingFlags.Instance
+				| BindingFlags.Public
+				| BindingFlags.IgnoreCase);
+			info = members[0];
+			Accessors.Add(key, info);
+		}
+
+		var result = info switch
+		{
+			MethodInfo mi => mi.Invoke(instance, []),
+			PropertyInfo pi => pi.GetValue(instance),
+			_ => throw new ArgumentOutOfRangeException()
+		};
+		return result!;
 	}
 
 	public Expression Execute(string prg)
