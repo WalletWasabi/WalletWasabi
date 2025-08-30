@@ -20,7 +20,7 @@
               Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
               Classes.selected="{Binding MaximizePrivacyProfileSelected}"
-              ToolTip.Tip="Optimizes for privacy at all costs.">
+              ToolTip.Tip="Repeats coinjoins to increase privacy, but costs additional fees.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource double_shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
@@ -30,7 +30,7 @@
               Height="37"
               Command="{Binding SelectDefaultSettings}"
               Classes.selected="{Binding DefaultProfileSelected}"
-              ToolTip.Tip="Well rounded strategy">
+              ToolTip.Tip="Balances privacy and cost.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource shield_regular}" />
           <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
@@ -40,7 +40,7 @@
               Height="37"
               Command="{Binding SelectEconomicalSettings}"
               Classes.selected="{Binding EconomicalProfileSelected}"
-              ToolTip.Tip="Only participate in coinjoins during the cheapest parts of the week.">
+              ToolTip.Tip="Minimizes transaction fees and allows non-private coin consolidation.">
         <StackPanel Spacing="10" Orientation="Horizontal">
           <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource coinjoin_cost}" />
           <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
@@ -48,7 +48,7 @@
       </Button>
     </StackPanel>
 
-    <DockPanel ToolTip.Tip="Out of the registered coins into coinjoin only one can be non-private (anonymity score 1).">
+    <DockPanel ToolTip.Tip="Only submits one non-private coin in each round.">
       <TextBlock Text="Non-private coin isolation" />
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
