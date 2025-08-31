@@ -211,7 +211,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Let's remove some coins coming from the same tx in the final candidate, allow 2 on average.
-		int sameTxAllowance = _generator.GetRandomBiasedSameTxAllowance(67);
+		int sameTxAllowance = _generator.GetRandomBiasedSameTxAllowance(33);
 
 		List<TCoin> winner = new()
 		{
