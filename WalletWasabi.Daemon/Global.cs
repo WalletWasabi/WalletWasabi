@@ -141,8 +141,17 @@ public class Global
 		var credentialString = config.BitcoinRpcCredentialString;
 		if (config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
 		{
+			// In case the credential string is malformed, we replace it with a valid but extremely improbable one.
+			// That results in the creation of a rpc instance that will fail to connect. In that way the RpcMonitor
+			// can detect the problem an inform to the user.
+			if (!RPCCredentialString.TryParse(credentialString, out var credentials))
+			{
+				var improbableString = Convert.ToHexString(RandomUtils.GetBytes(32));
+				credentials = RPCCredentialString.Parse($"{improbableString}:{improbableString}");
+			}
+
 			var bitcoinRpcUri = config.BitcoinRpcUri;
-			var internalRpcClient = new RPCClient(credentialString, bitcoinRpcUri, Network);
+			var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
 			if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
 			{
 				internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
