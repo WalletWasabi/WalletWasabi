@@ -122,10 +122,12 @@ public class Global
 
 		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), ()=> Config.ExchangeRateProvider, ExternalSourcesHttpClientFactory, EventBus), "Exchange rate updater");
 
+		var mempoolSpaceFeeProvider = FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
+		var blockstreamInfoFeeProvider = FeeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
 		FeeRateProvider feeRateProvider = config.FeeRateEstimationProvider.ToLower() switch
 		{
-			"mempoolspace" => FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory),
-			"blockstreaminfo" => FeeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory),
+			"mempoolspace" => FeeRateProviders.Composed([mempoolSpaceFeeProvider, blockstreamInfoFeeProvider]),
+			"blockstreaminfo" => FeeRateProviders.Composed([blockstreamInfoFeeProvider, mempoolSpaceFeeProvider]),
 			"" or "none" => FeeRateProviders.NoneAsync(),
 			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'. Default: '{Constants.DefaultFeeRateEstimationProvider}'")
 		};
