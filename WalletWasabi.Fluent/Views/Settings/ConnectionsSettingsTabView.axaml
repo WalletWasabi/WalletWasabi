@@ -28,8 +28,8 @@
                 SelectedItem="{Binding Settings.ExchangeRateProvider}" />
     </DockPanel>
 
-    <DockPanel>
-      <TextBlock Text="Fee Rate Estimation Provider" />
+    <DockPanel ToolTip.Tip="The client will try to fetch fee rate estimations from this provider. If unavailable, it will fallback to any other.">
+      <TextBlock Text="Preferred Fee Rate Provider" />
       <ComboBox ItemsSource="{Binding FeeRateEstimationProviders}"
                 SelectedItem="{Binding Settings.FeeRateEstimationProvider}" />
     </DockPanel>
