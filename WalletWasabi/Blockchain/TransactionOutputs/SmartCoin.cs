@@ -91,13 +91,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public DateTimeOffset? BannedUntilUtc
 	{
 		get => _bannedUntilUtc;
-		set
-		{
-			if (RaiseAndSetIfChanged(ref _bannedUntilUtc, value))
-			{
-				RefreshAndGetIsBanned();
-			}
-		}
+		set => RaiseAndSetIfChanged(ref _bannedUntilUtc, value);
 	}
 
 	/// <summary>
@@ -117,14 +111,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		private set => RaiseAndSetIfChanged(ref _confirmed, value);
 	}
 
-	/// <summary>
-	/// If you want to have a notification about a coin is released, then you have to periodically read IsBanned.
-	/// </summary>
-	public bool IsBanned
-	{
-		get => RefreshAndGetIsBanned();
-		private set => RaiseAndSetIfChanged(ref _isBanned, value);
-	}
+	public bool IsBanned => BannedUntilUtc is not null && BannedUntilUtc > DateTimeOffset.UtcNow;
 
 	public bool IsExcludedFromCoinJoin
 	{
@@ -135,20 +122,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <returns>False if external, or the tx inputs are all external.</returns>
 	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/10567</remarks>
 	public bool IsSufficientlyDistancedFromExternalKeys { get; set; } = true;
-
-	public bool RefreshAndGetIsBanned()
-	{
-		if (BannedUntilUtc is { } && BannedUntilUtc > DateTimeOffset.UtcNow)
-		{
-			IsBanned = true;
-			return true;
-		}
-
-		IsBanned = false;
-		BannedUntilUtc = null;
-
-		return false;
-	}
 
 	[MemberNotNullWhen(returnValue: true, nameof(SpenderTransaction))]
 	public bool IsSpent() => SpenderTransaction is not null;
