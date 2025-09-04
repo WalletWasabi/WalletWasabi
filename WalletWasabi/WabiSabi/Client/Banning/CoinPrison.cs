@@ -41,7 +41,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 	{
 		lock (_lock)
 		{
-			return GetBanningStatus(outpoint) == BanningStatus.Banned;
+			return GetBanningStatus(outpoint) is (BanningStatus.Banned, _);
 		}
 	}
 
@@ -75,15 +75,28 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 	{
 		lock (_lock)
 		{
-			foreach (var coin in wallet.Coins.Where(c => GetBanningStatus(c.Outpoint) == BanningStatus.BanningExpired))
+			var needToSave = false;
+			foreach (var coin in wallet.Coins)
 			{
-				if (bannedCoins.Remove(coin.Outpoint))
+				var (banningStatus, bannedUntil) = GetBanningStatus(coin.Outpoint);
+				if (banningStatus is BanningStatus.BanningExpired)
 				{
-					coin.BannedUntilUtc = null;
+					if (bannedCoins.Remove(coin.Outpoint))
+					{
+						coin.BannedUntilUtc = null;
+						needToSave = true;
+					}
+				}
+				else if(banningStatus is BanningStatus.Banned)
+				{
+					coin.BannedUntilUtc = bannedUntil;
 				}
 			}
 
-			ToFile();
+			if (needToSave)
+			{
+				ToFile();
+			}
 		}
 	}
 
@@ -95,13 +108,14 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		}
 	}
 
-	private BanningStatus GetBanningStatus(OutPoint outpoint)
+	private (BanningStatus, DateTimeOffset?) GetBanningStatus(OutPoint outpoint)
 	{
-		return !bannedCoins.TryGetValue(outpoint, out var bannedCoin)
+		var status = !bannedCoins.TryGetValue(outpoint, out var bannedCoin)
 			? BanningStatus.NonBanned
 			: DateTimeOffset.UtcNow < bannedCoin.BannedUntil
 				? BanningStatus.Banned
 				: BanningStatus.BanningExpired;
+		return (status, bannedCoin?.BannedUntil);
 	}
 
 	private void ToFile()
