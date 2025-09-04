@@ -541,12 +541,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 			.ToImmutableArray();
 	}
 
-	[JsonRpcMethod("execute", initializable: false)]
-	public object Execute(string script)
+	[JsonRpcMethod("query", initializable: false)]
+	public async Task<object> Execute(string script)
 	{
+		if (!Global.Config.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
+		{
+			throw new InvalidOperationException("The experimental 'scripting' feature is not enabled.");
+		}
 		try
 		{
-			var expressionResult = Global.Scheme.Execute(script);
+			var expressionResult = await Global.Scheme.Execute(script);
 			var result = ToObject(Interpreter.ToNativeObject(expressionResult));
 			return result;
 		}
