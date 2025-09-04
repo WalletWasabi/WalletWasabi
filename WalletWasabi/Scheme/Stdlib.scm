@@ -246,6 +246,19 @@
     ((null? lst) '())
     (else (drop (cdr lst) (- n 1)))))
 
+(define (sort lst compare-proc)
+  (define (insert x sorted-lst)
+    (cond ((null? sorted-lst) (list x))
+      ((compare-proc x (car sorted-lst)) (cons x sorted-lst))
+      (else (cons (car sorted-lst) (insert x (cdr sorted-lst))))))
+
+  (define (insertion-sort lst)
+    (if (null? lst)
+      '()
+      (insert (car lst) (insertion-sort (cdr lst)))))
+
+  (insertion-sort lst))
+
 ;;; ------------------
 ;;; Higher-Order List Functions
 ;;; ------------------
@@ -681,6 +694,9 @@
 (define (string-length str)
   (length (string->list str)))
 
+(define (string-empty? str)
+  (eq? 0 (string-length str)))
+
 (define (string=? a b)
   (equal?
     (string->list a)
@@ -706,6 +722,18 @@
       (if (= count n)
         (reverse result)
         (loop (+ count 1) (cons char result))))))
+
+(define (string-join separator string-list)
+  (cond
+    ((null? string-list) "")
+    ((null? (cdr string-list)) (car string-list))
+    (else
+      (let loop ((result (car string-list))
+                  (rest (cdr string-list)))
+        (if (null? rest)
+          result
+          (loop (string-append result separator (car rest))
+            (cdr rest)))))))
 
 ;;; ------------------
 ;;; Error Handling

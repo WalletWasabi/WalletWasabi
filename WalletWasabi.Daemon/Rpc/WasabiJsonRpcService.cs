@@ -13,17 +13,14 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Scheme;
-using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.Exchange;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
 
@@ -550,12 +547,28 @@ public class WasabiJsonRpcService : IJsonRpcService
 		try
 		{
 			var expressionResult = Global.Scheme.Execute(script);
-			var result = Interpreter.Print(expressionResult);
+			var result = ToObject(Interpreter.ToNativeObject(expressionResult));
 			return result;
 		}
 		catch (Exception e)
 		{
 			return e.Message;
+		}
+
+		object ToObject(object obj)
+		{
+			if (obj is not IEnumerable<object> e)
+			{
+				return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
+			}
+
+			if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
+			{
+				return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
+					x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
+			}
+
+			return e.Select(ToObject);
 		}
 	}
 
