@@ -29,6 +29,7 @@ public class Scheme
 			.NativeFunction<Script>("script->address", s => s.GetDestinationAddress(_global.Network)!)
 			.NativeFunction<ExtPubKey?>("extpubkey->string", e => e?.ToString(_global.Network) ?? "")
 			.NativeFunction("wallets", () => _global.WalletManager.GetWallets())
+			.NativeFunction<Wallet>("wallet-coins", w => w.Coins.AsAllCoinsView())
 			.NativeFunction<Wallet>("__start_wallet", w =>
 			{
 				 _global.WalletManager.StartWalletAsync(w).GetAwaiter().GetResult();
