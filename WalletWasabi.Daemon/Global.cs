@@ -131,7 +131,7 @@ public class Global
 			"coingecko" => ExchangeRateProviders.Composed([coinGeckoExchangeProvider, mempoolSpaceExchangeProvider, blockstreamInfoExchangeProvider, geminiExchangeProvider]),
 			"gemini" => ExchangeRateProviders.Composed([geminiExchangeProvider, blockstreamInfoExchangeProvider, blockstreamInfoExchangeProvider, coinGeckoExchangeProvider, ]),
 			"" or "none" => ExchangeRateProviders.NoneAsync(),
-			var providerName => throw new ArgumentException( $"Not supported exchnage rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
+			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};
 
 		HostedServices.Register<ExchangeRateUpdater>(() => new ExchangeRateUpdater(TimeSpan.FromMinutes(5), exchangeRateProvider, EventBus), "Exchange rate updater");

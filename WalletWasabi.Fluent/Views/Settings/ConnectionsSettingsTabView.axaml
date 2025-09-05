@@ -22,7 +22,7 @@
       </TextBox>
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="The client will try to fetch exchange rate from this provider. If unavailable, it will fallback to any other.">
+    <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
       <TextBlock Text="Exchange Rate Provider" />
       <ComboBox ItemsSource="{Binding ExchangeRateProviders}"
                 SelectedItem="{Binding Settings.ExchangeRateProvider}" />
