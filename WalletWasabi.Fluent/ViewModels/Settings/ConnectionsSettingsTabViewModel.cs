@@ -53,7 +53,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public IApplicationSettings Settings { get; }
 
-	public IEnumerable<string> ExchangeRateProviders => ExchangeRateProvider.Providers.Select(x => x.Name);
+	public IEnumerable<string> ExchangeRateProviders => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Providers;
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;
 	public IEnumerable<string> ExternalBroadcastProviders { get; }
 

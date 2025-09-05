@@ -11,27 +11,26 @@ public class ExternalApiTests
 {
 	[Fact]
 	public async Task MempoolSpaceExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("MempoolSpace");
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.MempoolSpaceAsync);
 
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("BlockchainInfo");
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.BlockstreamAsync);
 
 	[Fact]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("CoinGecko");
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.CoinGeckoAsync);
 
 	[Fact]
 	public async Task GeminiExchangeRateProviderTestsAsync() =>
-		await AssertProviderAsync("Gemini");
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.GeminiAsync);
 
-	private async Task AssertProviderAsync(string providerName)
+	private async Task AssertExchangeRateProviderAsync(Func<HttpClientFactory, ExchangeRateProvider> providerFactory)
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
-		var provider = new ExchangeRateProvider(new HttpClientFactory());
-		var userAgent = WebClients.UserAgent.GetNew(Random.Shared.Next());
-		var rate = await provider.GetExchangeRateAsync(providerName, userAgent, timeoutCts.Token).ConfigureAwait(false);
-		Assert.NotEqual(0m, rate.Rate);
+		var provider = providerFactory(new HttpClientFactory());
+		var exchangeRate = await provider(CancellationToken.None).ConfigureAwait(false);
+		Assert.True(exchangeRate.Rate > 0);
 	}
 
 	[Fact]

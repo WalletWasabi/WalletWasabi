@@ -1,5 +1,4 @@
 using System.Collections.Immutable;
-using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,35 +6,66 @@ using Newtonsoft.Json.Linq;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using ExchangeRateProviderInfo = (string Name, string ApiUrl, System.Func<string, decimal> Extractor);
+using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Wallets.Exchange;
 
-public class ExchangeRateProvider(IHttpClientFactory httpClientFactory)
+using ExchangeRateExtractor = Func<string, decimal>;
+public delegate Task<ExchangeRate> ExchangeRateProvider(CancellationToken cancellationToken);
+
+public static class ExchangeRateProviders
 {
-	public static readonly ImmutableArray<ExchangeRateProviderInfo> Providers =
+	public static readonly ImmutableArray<string> Providers =
 	[
-		("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath(".USD")),
-		("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy")),
-		("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price")),
-		("Gemini", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid")),
-		("None", "", _ => 0),
+		"BlockstreamInfo",
+		"MempoolSpace",
+		"CoinGecko",
+		"Gemini",
+		"None"
 	];
 
-	public async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string userAgent, CancellationToken cancellationToken)
+	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker(false);
+
+	public static ExchangeRateProvider BlockstreamAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetExchangeRateAsync("Blockstream", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
+			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+
+	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetExchangeRateAsync("MempoolSpace", "https://mempool.space/api/v1/prices", JsonPath(".USD"),
+			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+
+	public static ExchangeRateProvider CoinGeckoAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.coingecko.com/api/v3/coins/markets?vs_currency=usd&ids=bitcoin", JsonPath(".[0].current_price"),
+			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+
+	public static ExchangeRateProvider GeminiAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetExchangeRateAsync("CoinGecko", "https://api.gemini.com/v1/pubticker/btcusd", JsonPath(".bid"),
+			httpClientFactory, PickRandomUserAgent(), cancellationToken);
+
+	public static ExchangeRateProvider NoneAsync() =>
+		_ => Task.FromResult(new ExchangeRate("USD", -1m));
+
+	public static ExchangeRateProvider Composed(ExchangeRateProvider[] exchangeRateProviders) =>
+		async cancellationToken =>
+		{
+			foreach (var provider in exchangeRateProviders)
+			{
+				try
+				{
+					return await provider(cancellationToken).ConfigureAwait(false);
+				}
+				catch (Exception)
+				{
+					// ignore. Try the next provider
+				}
+			}
+
+			throw new InvalidOperationException("All exchange rate providers failed to give us an exchange rate.");
+		};
+
+	private static async Task<ExchangeRate> GetExchangeRateAsync(string providerName, string apiUrl, ExchangeRateExtractor extractor, IHttpClientFactory httpClientFactory, string userAgent, CancellationToken cancellationToken)
 	{
-		var providerInfo = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase));
-		if (providerInfo == default)
-		{
-			throw new NotSupportedException($"Exchange rate provider '{providerName}' is not supported.");
-		}
-
-		if(providerInfo.Name is "None" or "")
-		{
-			return new ExchangeRate("USD", -1);
-		}
-
-		var url = new Uri(providerInfo.ApiUrl);
+		var url = new Uri(apiUrl);
 
 		var httpClient = httpClientFactory.CreateClient($"{providerName}-exchange-rate-provider");
 		httpClient.BaseAddress = new Uri($"{url.Scheme}://{url.Host}");
@@ -46,13 +76,13 @@ public class ExchangeRateProvider(IHttpClientFactory httpClientFactory)
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 		Logger.LogDebug(json);
 		return Result<decimal, Exception>
-			.Catch(() => providerInfo.Extractor(json))
+			.Catch(() => extractor(json))
 			.Match(
 				rate => new ExchangeRate("USD", rate),
 				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));
 	}
 
-	private static Func<string, decimal> JsonPath(string xpath) =>
+	private static ExchangeRateExtractor JsonPath(string xpath) =>
 		json =>
 			JToken.Parse(json).SelectToken(xpath)?.Value<decimal>()
 			?? throw new ArgumentException($@"The xpath {xpath} was not found.", nameof(xpath));
