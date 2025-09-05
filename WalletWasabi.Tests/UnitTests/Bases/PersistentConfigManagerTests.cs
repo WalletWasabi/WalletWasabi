@@ -67,6 +67,7 @@ public class PersistentConfigManagerTests
 			  "MaxCoinJoinMiningFeeRate": 150.0,
 			  "AbsoluteMinInputCount": 21,
 			  "MaxDaysInMempool": 30,
+			  "ExperimentalFeatures": [],
 			  "ConfigVersion": 2
 			}
 			""";
