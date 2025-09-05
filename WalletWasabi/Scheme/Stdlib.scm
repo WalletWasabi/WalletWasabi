@@ -377,7 +377,7 @@
 (define (eqv? a b)
   (if (eq? a b) #t (and (number? a) (equal? a b))))
 
-;; Check if an item is a member of a list using the provided comparere
+;; Check if an item is a member of a list using the provided comparer
 (define (memx item lst eq)
   (if (null? lst) #f
       (if (eq item (car lst)) lst

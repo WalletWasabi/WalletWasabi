@@ -4,6 +4,7 @@ using System.Diagnostics;
 using System.Globalization;
 using System.IO;
 using System.Linq;
+using WalletWasabi.Helpers;
 using WalletWasabi.Scheme;
 using static WalletWasabi.Scheme.Tokenizer;
 using Environment = System.Collections.Immutable.ImmutableDictionary<string, WalletWasabi.Scheme.Expression>;
@@ -72,7 +73,7 @@ public static class Interpreter
 			CharacterToken c => new Character(c.c),
 			BooleanToken s => s.b ? True : False,
 			SymbolToken t => new Symbol(t.symbol),
-			_ => throw new SyntaxException($"token '{token}' is not a mappeable to an expression.")
+			_ => throw new SyntaxException($"token '{token}' is not mappable to an expression.")
 		};
 
 	public static ImmutableArray<Expression> Parse(Token[] tokens)
@@ -433,6 +434,9 @@ public static class Interpreter
 			throw SyntaxError("'load'", exprs);
 		}
 
+		filename = Path.IsPathFullyQualified(filename)
+			? filename
+			: Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), filename);
 		var tokens = Tokenize(File.OpenText(filename).ReadToEnd());
 		var parsingResults = Parse(tokens.ToArray());
 		foreach (var result in parsingResults)
