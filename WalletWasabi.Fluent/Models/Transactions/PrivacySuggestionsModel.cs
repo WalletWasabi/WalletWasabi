@@ -16,9 +16,9 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
@@ -38,7 +38,7 @@ public partial class PrivacySuggestionsModel
 
 	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
-	private readonly ExchangeRateUpdater _exchangeRateUpdater;
+	private decimal _exchangeRate;
 	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
@@ -48,7 +48,7 @@ public partial class PrivacySuggestionsModel
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
 		_cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
-		_exchangeRateUpdater = Services.HostedServices.Get<ExchangeRateUpdater>();
+		Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
 	/// <summary>
@@ -181,7 +181,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
+		var usdExchangeRate = _exchangeRate;
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -287,7 +287,7 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _exchangeRateUpdater.UsdExchangeRate;
+		decimal usdExchangeRate = _exchangeRate;
 
 		// Only allow to create 2 more inputs with BnB.
 		int maxInputCount = transaction.SpentCoins.Count() + 2;

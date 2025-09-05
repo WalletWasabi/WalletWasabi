@@ -3,10 +3,16 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using NNostr.Client;
+using WalletWasabi.Helpers;
 using WalletWasabi.Services;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
+using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients;
 using Xunit;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.UnitTests.Services;
 
@@ -25,20 +31,17 @@ public class UpdateManagerTests
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
-
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetResult(e.UpdateStatus));
 
-		var startTask =  updateManager.StartAsync(cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		var updateStatusReceived = await updateStatusObtainedTask.Task.WaitAsync(cts.Token);
-
-		await startTask;
-		await updateManager.StopAsync(cts.Token);
+		await updateTask;
 
 		// Assert
 		Assert.Equal(Version.Parse("3.5.8"), updateStatusReceived.ClientVersion);
@@ -59,20 +62,17 @@ public class UpdateManagerTests
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
-
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetResult(e.UpdateStatus));
 
-		var startTask =  updateManager.StartAsync(cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		var updateStatusReceived = await updateStatusObtainedTask.Task.WaitAsync(cts.Token);
-
-		await startTask;
-		await updateManager.StopAsync(cts.Token);
+		await updateTask;
 
 		// Assert
 		Assert.Equal(Version.Parse("3.5.8"), updateStatusReceived.ClientVersion);
@@ -93,20 +93,18 @@ public class UpdateManagerTests
 		]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
-
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetException(new Exception("Unexpected event. This should have never been called. Bug")));
 
-		var startTask =  updateManager.StartAsync(cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await updateStatusObtainedTask.Task.WaitAsync(cts.Token));
 
-		await startTask;
-		await updateManager.StopAsync(cts.Token);
+		await updateTask;
 	}
 
 	[Fact]
@@ -117,20 +115,18 @@ public class UpdateManagerTests
 		var nostrClientFactory = () => new TesteabletNostrClient([]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
-		using var updateManager = new UpdateManager(TimeSpan.FromMinutes(10), nostrClientFactory, doNothingDownloader, eventBus);
-
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
 		using var subscription =
 			eventBus.Subscribe<NewSoftwareVersionAvailable>(e => updateStatusObtainedTask.SetException(new Exception("Unexpected event. This should have never been called. Bug")));
 
-		var startTask =  updateManager.StartAsync(cts.Token);
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
 		await Assert.ThrowsAsync<TaskCanceledException>(async () => await updateStatusObtainedTask.Task.WaitAsync(cts.Token));
 
-		await startTask;
-		await updateManager.StopAsync(cts.Token);
+		await updateTask;
 	}
 }
 
@@ -182,4 +178,12 @@ public class TesteabletNostrClient : INostrClient
 	public event EventHandler<(string subscriptionId, NostrEvent[] events)>? EventsReceived;
 	public event EventHandler<(string eventId, bool success, string messafe)>? OkReceived;
 	public event EventHandler<string>? EoseReceived;
+}
+
+public class RoundStateUpdaterForTesting
+{
+	public static MailboxProcessor<RoundUpdateMessage> Create(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken = null) =>
+		Spawn($"RoundStateUpdater-{Random.Shared.Next()}", EventDriven(
+			new RoundsState(DateTime.UtcNow, TimeSpan.FromSeconds(0), new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+			RoundStateUpdater.Create(api)), cancellationToken);
 }
