@@ -17,7 +17,6 @@
 
 (define (wallet-name wallet) (__get 'walletname wallet))
 (define (wallet-path wallet) (__get 'filepath (wallet-keymanager wallet)))
-(define (wallet-coins wallet) (__get 'coins wallet))
 (define (wallet-keymanager wallet) (__get 'keymanager wallet))
 (define (wallet-unspent-coins wallet) (filter coin-unspent? (wallet-coins wallet)))
 (define (wallet-state wallet) (native->string (__get 'state wallet)))

@@ -34,14 +34,15 @@ public class JsonRpcRequestHandler<TService>
     		NullValueHandling = NullValueHandling.Ignore,
     		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 
-    		Converters = new JsonConverter[]
+    		Converters = new List<JsonConverter>
     		{
     			new Uint256JsonConverter(),
     			new OutPointAsTxoRefJsonConverter(),
     			new BitcoinAddressJsonConverter(),
-    			new DestinationJsonConverter(network)
+    			new DestinationJsonConverter(network),
     		}
     	};
+		NBitcoin.JsonConverters.Serializer.RegisterFrontConverters(_defaultSettings, network);
 		_defaultSerializer = JsonSerializer.Create(_defaultSettings);
 	}
 
