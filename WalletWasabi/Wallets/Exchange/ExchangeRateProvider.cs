@@ -78,7 +78,11 @@ public static class ExchangeRateProviders
 		return Result<decimal, Exception>
 			.Catch(() => extractor(json))
 			.Match(
-				rate => new ExchangeRate("USD", rate),
+				rate =>
+				{
+					Logger.LogInfo($"Fetched exchange rate from {providerName}: {rate}.");
+					return new ExchangeRate("USD", rate);
+				},
 				e => throw new InvalidOperationException($"Error parsing exchange rate provider response. {e}"));
 	}
 
