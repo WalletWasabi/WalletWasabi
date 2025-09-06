@@ -49,6 +49,7 @@ public static class FeeRateProviders
 		async cancellationToken =>
 		{
 			var allEstimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Fetched fee rate from RPC node: {allEstimations.GetFeeRate(confirmationTarget: 2)}.");
 			return new FeeRateEstimations(allEstimations.Estimations);
 		};
 
@@ -85,11 +86,14 @@ public static class FeeRateProviders
 		using var response = await httpClient.GetAsync(apiEndPoint, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode($"Error requesting fee rate estimations to '{providerName}'");
 		var json = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
-		Logger.LogDebug(json);
 		return Result<FeeRateEstimations, Exception>
 			.Catch(() => extractor(json))
 			.Match(
-				estimations => estimations,
+				estimations =>
+				{
+					Logger.LogInfo($"Fetched fee rate from {providerName}: {estimations.GetFeeRate(confirmationTarget: 2)}.");
+					return estimations;
+				},
 				ex => throw new InvalidOperationException($"Error parsing fee rate estimations provider response.", ex));
 	}
 
