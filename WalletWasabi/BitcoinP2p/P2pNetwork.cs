@@ -19,73 +19,71 @@ public static class P2pNetwork
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public static Process<Unit> CreateForRegTest(NodesGroup nodesGroup, P2pBehavior p2PBehavior) =>
-		async (_, cancellationToken) =>
+	public static NodesGroup CreateNodesGroupForTestNet(P2pBehavior p2PBehavior)
+	{
+		var nodesGroup = new NodesGroup(Network.RegTest);
+		try
 		{
-			try
-			{
-				var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
-				var node = await Node.ConnectAsync(Network.RegTest, localNodelEndpoint).ConfigureAwait(false);
-				node.Behaviors.Add(p2PBehavior);
-				node.VersionHandshake(cancellationToken);
-				Logger.LogInfo("Start connecting to mempool serving regtest node...");
+			var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
+			var node = Node.Connect(Network.RegTest, localNodelEndpoint);
+			node.Behaviors.Add(p2PBehavior);
+			node.VersionHandshake(CancellationToken.None);
+			Logger.LogInfo("Start connecting to mempool serving regtest node...");
 
-				nodesGroup.ConnectedNodes.Add(node);
-			}
-			catch (SocketException ex)
-			{
-				Logger.LogError(ex);
-				throw;
-			}
+			nodesGroup.ConnectedNodes.Add(node);
+			return nodesGroup;
+		}
+		catch (SocketException ex)
+		{
+			Logger.LogError(ex);
+			throw;
+		}
+	}
 
-			nodesGroup.Connect();
-			await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-			nodesGroup.Disconnect();
+	public static NodesGroup CreateNodesGroup(Network network, EndPoint? torSocks5EndPoint, string workDir, P2pBehavior? p2PBehavior = null)
+	{
+		var addressManagerFilePath = Path.Combine(workDir, $"AddressManager{network}.dat");
+		var connectionParameters = new NodeConnectionParameters();
+
+		var addressManager = LoadOrCreateAddressManager(addressManagerFilePath);
+
+		var useTor = torSocks5EndPoint is not null;
+		var needsToDiscoverPeers = useTor || addressManager.Count < 500;
+		var addressManagerBehavior = new AddressManagerBehavior(addressManager)
+		{
+			Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
 		};
 
+		var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
+		connectionParameters.UserAgent = userAgent;
+		connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
+		connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
+		if (p2PBehavior is not null)
+		{
+			connectionParameters.TemplateBehaviors.Add(p2PBehavior);
+		}
 
-	public static Process<Unit> Create(Network network, NodesGroup nodesGroup, EndPoint? torSocks5EndPoint, string workDir, EventBus eventBus, P2pBehavior? p2PBehavior = null) =>
+		if (useTor)
+		{
+			connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint,
+				onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+		}
+
+		return new NodesGroup(network, connectionParameters, Constants.NodeRequirements);
+	}
+
+	public static Process<Unit> Create(NodesGroup nodesGroup, EventBus eventBus) =>
 		async (_, cancellationToken) =>
 		{
-			var addressManagerFilePath = Path.Combine(workDir, $"AddressManager{network}.dat");
-			var connectionParameters = new NodeConnectionParameters();
-
-			var addressManager = LoadOrCreateAddressManager(addressManagerFilePath);
-
-			var useTor = torSocks5EndPoint is not null;
-			var needsToDiscoverPeers = useTor || addressManager.Count < 500;
-			var addressManagerBehavior = new AddressManagerBehavior(addressManager)
-			{
-				Mode = needsToDiscoverPeers ? AddressManagerBehaviorMode.Discover : AddressManagerBehaviorMode.None
-			};
-
-			var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
-			connectionParameters.UserAgent = userAgent;
-			connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-			connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
-			if (p2PBehavior is not null)
-			{
-				connectionParameters.TemplateBehaviors.Add(p2PBehavior);
-			}
-			if (useTor)
-			{
-				connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint,
-					onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
-			}
-
 			nodesGroup.ConnectedNodes.Added += ConnectedNodes_OnAddedOrRemoved;
 			nodesGroup.ConnectedNodes.Removed += ConnectedNodes_OnAddedOrRemoved;
 			nodesGroup.MaximumNodeConnection = MaximumNodeConnections;
-
 			nodesGroup.Connect();
+
 			await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
 			nodesGroup.ConnectedNodes.Added -= ConnectedNodes_OnAddedOrRemoved;
 			nodesGroup.ConnectedNodes.Removed -= ConnectedNodes_OnAddedOrRemoved;
-
-			IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
-			addressManager.SavePeerFile(addressManagerFilePath, network);
-			Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
 
 			nodesGroup.Disconnect();
 			return;
@@ -104,7 +102,6 @@ public static class P2pNetwork
 				}
 			}
 		};
-
 
 	private static AddressManager LoadOrCreateAddressManager(string addressManagerFilePath)
 	{
@@ -143,4 +140,5 @@ public static class P2pNetwork
 			return addressManager;
 		}
 	}
+
 }
