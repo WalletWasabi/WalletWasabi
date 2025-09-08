@@ -11,6 +11,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
@@ -79,10 +80,8 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		var nodesGroup = new NodesGroup(Network, requirements: Constants.NodeRequirements);
-		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
 
-		ConfigureBitcoinNetwork(nodesGroup);
+		var nodesGroup = ConfigureBitcoinNetwork();
 		ConfigureBitcoinRpcClient();
 		ConfigureWasabiUpdater();
 		ConfigureExchangeRateUpdater();
@@ -90,6 +89,7 @@ public class Global
 		ConfigureFeeRateUpdater();
 		ConfigureSynchronizer();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
+		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
 
 		WalletFactory walletFactory = new(
 			config.Network,
@@ -148,20 +148,40 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private void ConfigureBitcoinNetwork(NodesGroup nodesGroup)
+	private NodesGroup ConfigureBitcoinNetwork()
 	{
-		Spawn("BitcoinNetwork",
-			Service("Bitcoin Network Connectivity",
-				Network == Network.RegTest
-					? P2pNetwork.CreateForRegTest(nodesGroup, BitcoinStore.CreateUntrustedP2pBehavior())
-					: P2pNetwork.Create(
-						Network,
-						nodesGroup,
-						Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-						Path.Combine(DataDir, "BitcoinP2pNetwork"),
-						EventBus,
-						Config.BlockOnlyMode ? null : BitcoinStore.CreateUntrustedP2pBehavior())))
-			.DisposeUsing(_disposables);
+		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
+		var behavior = BitcoinStore.CreateUntrustedP2pBehavior();
+		var nodesGroup = Network == Network.RegTest
+			? P2pNetwork.CreateNodesGroupForTestNet(behavior)
+			: P2pNetwork.CreateNodesGroup(
+				Network,
+				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
+				directory,
+				Config.BlockOnlyMode ? null : behavior);
+
+		var serviceName = "Bitcoin Network Connectivity";
+		var p2pNetwork = Spawn("BitcoinNetwork",
+			Service(
+				before: () => Logger.LogInfo($"Starting {serviceName}."),
+				P2pNetwork.Create(nodesGroup, EventBus),
+				after: () =>
+				{
+					Logger.LogInfo($"Stopped {serviceName}.");
+					var addressManagerBehavior = nodesGroup.NodeConnectionParameters.TemplateBehaviors.Find<AddressManagerBehavior>();
+					if (addressManagerBehavior is not null)
+					{
+						var addressManager = addressManagerBehavior.AddressManager;
+						var addressManagerFilePath = Path.Combine(directory, $"AddressManager{Network}.dat");
+						IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
+						addressManager.SavePeerFile(addressManagerFilePath, Network);
+						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
+					}
+				}));
+		p2pNetwork.DisposeUsing(_disposables);
+		p2pNetwork.Post(Unit.Instance);
+
+		return nodesGroup;
 	}
 
 	private void ConfigureBitcoinRpcClient()
