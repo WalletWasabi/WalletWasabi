@@ -177,9 +177,10 @@ public static class Workers
 			{
 				try
 				{
-					var _ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
+					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
 				}
-				catch (Exception e) when(e is not TaskCanceledException)
+				catch (Exception e) when (e is not OperationCanceledException oce ||
+				                          oce.CancellationToken != cancellationToken)
 				{
 					Logger.LogError(e);
 				}
@@ -244,8 +245,9 @@ public static class Workers
 			{
 				await handler(mailbox, cancellationToken).ConfigureAwait(false);
 			}
-			catch (Exception e)
+			catch (Exception e) when (e is not (ChannelClosedException or TaskCanceledException))
 			{
+				Logger.LogError($"Service will stopped because of unexpected exception: {e}");
 			}
 			finally
 			{
