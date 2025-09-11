@@ -3,36 +3,32 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.RPC;
-using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.BitcoinRpc;
 
-public class RpcMonitor : PeriodicRunner
+public static class RpcMonitor
 {
-	private readonly EventBus _eventBus;
-	private readonly IRPCClient _rpcClient;
+	public static readonly string ServiceName = "BitcoinRpcMonitor";
+	public record CheckMessage;
 
-	public RpcMonitor(TimeSpan period, IRPCClient rpcClient, EventBus eventBus) : base(period)
+	public static MessageHandler<CheckMessage, Unit> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
+		(_, _, cancellationToken) => CheckRpcStatusAsync(rpcClient, eventBus, cancellationToken);
+
+	private static async Task<Unit> CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancel)
 	{
-		_eventBus = eventBus;
-		_rpcClient = rpcClient;
+		var rpcStatus = await GetRpcStatusAsync(rpcClient, cancel).ConfigureAwait(false);
+		eventBus.Publish(new RpcStatusChanged(rpcStatus));
+		return Unit.Instance;
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancel)
-	{
-		var rpcStatus = await GetRpcStatusAsync(cancel).ConfigureAwait(false);
-		_eventBus.Publish(new RpcStatusChanged(rpcStatus));
-	}
-
-
-	private async Task<Result<ConnectedRpcStatus, string>> GetRpcStatusAsync(CancellationToken cancel)
+	private static async Task<Result<ConnectedRpcStatus, string>> GetRpcStatusAsync(IRPCClient rpcClient, CancellationToken cancel)
 	{
 		try
 		{
-			var bci = await _rpcClient.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
+			var bci = await rpcClient.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
 			var pi = await PeerInfos().ConfigureAwait(false);
 			var peerCount = pi.Map(x => x.Length);
 			return new ConnectedRpcStatus(bci.Headers, bci.Blocks, peerCount, bci.BestBlockHash, bci.Pruned,
@@ -56,7 +52,7 @@ public class RpcMonitor : PeriodicRunner
 		{
 			try
 			{
-				return await _rpcClient.GetPeersInfoAsync(cancel).ConfigureAwait(false);
+				return await rpcClient.GetPeersInfoAsync(cancel).ConfigureAwait(false);
 			}
 			catch (RPCException e)
 			{

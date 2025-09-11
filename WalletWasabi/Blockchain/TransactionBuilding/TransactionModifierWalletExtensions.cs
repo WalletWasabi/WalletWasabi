@@ -128,7 +128,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
@@ -273,11 +273,6 @@ public static class TransactionModifierWalletExtensions
 
 	public static async Task<BuildTransactionResult> CpfpTransactionAsync(this Wallet wallet, SmartTransaction transactionToCpfp, IEnumerable<SmartCoin> allowedInputs, FeeRate? preferredFeeRate, CancellationToken cancellationToken)
 	{
-		if (wallet.CpfpInfoProvider is null)
-		{
-			throw new InvalidOperationException("No third-party available to get the information required to perform a CPFP.");
-		}
-
 		if (transactionToCpfp.Confirmed)
 		{
 			throw new InvalidOperationException("Transaction is already confirmed.");
@@ -286,7 +281,7 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimationUpdater.FeeEstimates?.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var destination = keyManager.GetNextChangeKey().GetAssumedScriptPubKey().GetDestinationAddress(network);
@@ -295,7 +290,11 @@ public static class TransactionModifierWalletExtensions
 		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
 		using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-		CpfpInfo cpfpInfo = await wallet.CpfpInfoProvider.ImmediateRequestAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
+		var cpfpInfoResult = await wallet.CpfpInfoProvider.GetCpfpInfoAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
+
+		var cpfpInfo = cpfpInfoResult.Match(
+			v => v,
+			e => throw new InvalidOperationException(e));
 
 		// If a descendant that pays a higher fee rate than the one we are going to pay already exists, then there is no need to CPFP.
 		if (new FeeRate(cpfpInfo.EffectiveFeePerVSize) > bestFeeRate)

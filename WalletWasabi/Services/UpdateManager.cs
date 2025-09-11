@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NNostr.Client;
-using WalletWasabi.Bases;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Microservices;
@@ -24,14 +23,15 @@ public delegate Task AsyncReleaseDownloader(ReleaseInfo releaseInfo, Cancellatio
 /// <summary>
 /// Manages software updates by periodically checking for new releases via Nostr
 /// </summary>
-public class UpdateManager(
-	TimeSpan period,
-	Func<INostrClient> nostrClientFactory,
-	AsyncReleaseDownloader releaseDownloader,
-	EventBus eventBus)
-	: PeriodicRunner(period)
+public static class UpdateManager
 {
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	public record UpdateMessage;
+
+	public static MessageHandler<UpdateMessage, Unit> CreateUpdater(Func<INostrClient> nostrClientFactory,
+		AsyncReleaseDownloader releaseDownloader, EventBus eventBus) =>
+		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
+
+	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		using var nostrClient = nostrClientFactory();
 		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
@@ -39,16 +39,18 @@ public class UpdateManager(
 		{
 			// Connect to Nostr relays and check for release version updates
 			await wasabiNostrClient.ConnectAnsSubscribeAsync(cancellationToken).ConfigureAwait(false);
-			await ProcessReleaseEventsAsync(wasabiNostrClient, cancellationToken).ConfigureAwait(false);
+			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, cancellationToken).ConfigureAwait(false);
 		}
 		finally
 		{
 			// Ensure we disconnect regardless of the outcome
 			await wasabiNostrClient.DisconnectAsync(cancellationToken).ConfigureAwait(false);
 		}
+
+		return Unit.Instance;
 	}
 
-	private async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, CancellationToken cancellationToken)
+	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		using var sixtySeconds = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, sixtySeconds.Token);
