@@ -18,7 +18,7 @@ public static class PersistentConfigManager
 		UseTor : "Enabled",
 		TerminateTorOnExit : false,
 		TorBridges : [],
-		DownloadNewVersion : true,
+		DownloadNewVersion : false,
 		UseBitcoinRpc : false,
 		BitcoinRpcCredentialString : string.Empty,
 		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri.ToString(),

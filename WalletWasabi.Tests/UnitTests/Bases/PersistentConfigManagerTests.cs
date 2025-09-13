@@ -47,7 +47,7 @@ public class PersistentConfigManagerTests
 			  "UseTor": "Enabled",
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
-			  "DownloadNewVersion": true,
+			  "DownloadNewVersion": false,
 			  "UseBitcoinRpc": false,
 			  "BitcoinRpcCredentialString": "",
 			  "BitcoinRpcEndPoint": "http://localhost:8332",
