@@ -22,7 +22,7 @@ public static class CoinPocketHelper
 
 		foreach (SmartCoin coin in allCoins.Where(x => x.IsRedCoin()))
 		{
-			var cluster = coin.HdPubKey.Cluster.Labels;
+			var cluster = coin.HdPubKey.ClusterLabels;
 
 			if (clusters.TryGetValue(cluster, out var clusterCoins))
 			{

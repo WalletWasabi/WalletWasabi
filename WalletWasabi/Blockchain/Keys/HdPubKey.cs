@@ -65,6 +65,7 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public KeyPath FullKeyPath { get; }
 
 	public LabelsArray Labels { get; private set; }
+	public LabelsArray ClusterLabels => _cluster.Labels;
 
 	public KeyState KeyState { get; private set; }
 

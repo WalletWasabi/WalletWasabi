@@ -15,12 +15,12 @@ public static class CoinHelpers
 			return LabelsArray.Empty;
 		}
 
-		if (coin.HdPubKey.Cluster.Labels == LabelsArray.Empty)
+		if (coin.HdPubKey.ClusterLabels.IsEmpty)
 		{
 			return CoinPocketHelper.UnlabelledFundsText;
 		}
 
-		return coin.HdPubKey.Cluster.Labels;
+		return coin.HdPubKey.ClusterLabels;
 	}
 
 	public static int GetConfirmations(this SmartCoin coin) => coin.Transaction.GetConfirmations((int)Services.SmartHeaderChain.TipHeight);
