@@ -72,7 +72,7 @@ public class SmartCoinSelector : ICoinSelector
 
 		// This operation is doing super advanced grouping on the coin clusters and adding properties to each of them.
 		var sayajinCoinClusters = coinClusters
-			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.Cluster.Labels.Count))))
+			.Select(coins => (Coins: coins, Privacy: 1.0m / (1 + coins.Sum(x => x.HdPubKey.ClusterLabels.Count))))
 			.Select(group => (
 				Coins: group.Coins,
 				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.

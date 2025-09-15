@@ -1058,7 +1058,7 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx0);
 
 		var createdCoin = transactionProcessor.Coins.First();
-		Assert.Equal("A", createdCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A", createdCoin.HdPubKey.ClusterLabels);
 
 		// Spend the received coin to someone else B
 		var changeScript1 = transactionProcessor.NewKey("B").P2wpkhScript;
@@ -1066,7 +1066,7 @@ public class TransactionProcessorTests
 		var tx1 = CreateSpendingTransaction(new[] { createdCoin.Coin }, key.PubKey.ScriptPubKey, changeScript1);
 		transactionProcessor.Process(tx1);
 		createdCoin = transactionProcessor.Coins.First();
-		Assert.Equal("A, B", createdCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B", createdCoin.HdPubKey.ClusterLabels);
 
 		// Spend the received coin to myself else C
 		var myselfScript = transactionProcessor.NewKey("C").P2wpkhScript;
@@ -1076,10 +1076,10 @@ public class TransactionProcessorTests
 
 		Assert.Equal(2, transactionProcessor.Coins.Count());
 		createdCoin = transactionProcessor.Coins.First();
-		Assert.Equal("A, B, C", createdCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C", createdCoin.HdPubKey.ClusterLabels);
 
 		var createdChangeCoin = transactionProcessor.Coins.Last();
-		Assert.Equal("A, B, C", createdChangeCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C", createdChangeCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
@@ -1109,9 +1109,9 @@ public class TransactionProcessorTests
 		var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx2);
 
-		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
-		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "B");
-		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "C");
+		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "A");
+		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "B");
+		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "C");
 
 		var changeScript = transactionProcessor.NewKey("D").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
@@ -1120,12 +1120,12 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		var changeCoinD = Assert.Single(transactionProcessor.Coins);
-		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.ClusterLabels);
 
 		hdPubKey = transactionProcessor.NewKey("E");
 		var tx4 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx4);
-		var smartCoinE = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "E");
+		var smartCoinE = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "E");
 
 		changeScript = transactionProcessor.NewKey("F").P2wpkhScript;
 		coins = new[] { changeCoinD.Coin, smartCoinE.Coin };
@@ -1134,7 +1134,7 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx5);
 
 		var changeCoin = Assert.Single(transactionProcessor.Coins);
-		Assert.Equal("A, B, C, D, E, F", changeCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D, E, F", changeCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
@@ -1162,9 +1162,9 @@ public class TransactionProcessorTests
 		var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx2);
 
-		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
-		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "B");
-		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "C");
+		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "A");
+		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "B");
+		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "C");
 
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
@@ -1173,13 +1173,13 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.ClusterLabels);
 
 		var tx4 = CreateCreditingTransaction(myself, Money.Coins(7.0m));
 		transactionProcessor.Process(tx4);
 		Assert.Equal(2, transactionProcessor.Coins.Count(c => c.ScriptPubKey == myself));
 		var newPaymentCoin = Assert.Single(transactionProcessor.Coins, c => c.Amount == Money.Coins(7.0m));
-		Assert.Equal("A, B, C, D", newPaymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", newPaymentCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
@@ -1207,7 +1207,7 @@ public class TransactionProcessorTests
 
 		var coins = transactionProcessor.Coins;
 		Assert.Equal(coins.First().HdPubKey.Cluster, coins.Last().HdPubKey.Cluster);
-		Assert.Equal("A, B", coins.First().HdPubKey.Cluster.Labels.ToString());
+		Assert.Equal("A, B", coins.First().HdPubKey.ClusterLabels.ToString());
 	}
 
 	[Fact]
@@ -1234,9 +1234,9 @@ public class TransactionProcessorTests
 		var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx2);
 
-		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
-		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "B");
-		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "C");
+		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "A");
+		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "B");
+		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "C");
 
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
@@ -1245,14 +1245,14 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.ClusterLabels);
 
 		coins = new[] { smartCoinB.Coin, smartCoinC.Coin, smartCoinA.Coin };
 		var tx4 = CreateSpendingTransaction(coins, myself, changeScript);
 		transactionProcessor.Process(tx4);
 
 		paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
@@ -1280,9 +1280,9 @@ public class TransactionProcessorTests
 		var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx2);
 
-		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
-		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "B");
-		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "C");
+		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "A");
+		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "B");
+		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "C");
 
 		var myself = transactionProcessor.NewKey("D").P2wpkhScript;
 		var changeScript = transactionProcessor.NewKey("").P2wpkhScript;
@@ -1291,19 +1291,19 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		var paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", paymentCoin.HdPubKey.ClusterLabels);
 
 		hdPubKey = transactionProcessor.NewKey("X");
 		var tx4 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx4);
-		var smartCoinX = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "X");
+		var smartCoinX = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "X");
 
 		coins = new[] { smartCoinB.Coin, smartCoinX.Coin, smartCoinC.Coin, smartCoinA.Coin };
 		var tx5 = CreateSpendingTransaction(coins, myself, changeScript);
 		transactionProcessor.Process(tx5);
 
 		paymentCoin = Assert.Single(transactionProcessor.Coins, c => c.ScriptPubKey == myself);
-		Assert.Equal("A, B, C, D, X", paymentCoin.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D, X", paymentCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
@@ -1331,9 +1331,9 @@ public class TransactionProcessorTests
 		var tx2 = CreateCreditingTransaction(hdPubKey.P2wpkhScript, Money.Coins(1.0m), height: 54323);
 		transactionProcessor.Process(tx2);
 
-		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "A");
-		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "B");
-		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.Cluster.Labels == "C");
+		var smartCoinA = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "A");
+		var smartCoinB = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "B");
+		var smartCoinC = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.ClusterLabels == "C");
 
 		var changeScript = transactionProcessor.NewKey("D").P2wpkhScript;
 		var coins = new[] { smartCoinA.Coin, smartCoinB.Coin, smartCoinC.Coin };
@@ -1342,7 +1342,7 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		var changeCoinD = Assert.Single(transactionProcessor.Coins);
-		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.ClusterLabels);
 		Assert.Equal(smartCoinA.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
 		Assert.Equal(smartCoinB.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
 		Assert.Equal(smartCoinC.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
@@ -1352,7 +1352,7 @@ public class TransactionProcessorTests
 		transactionProcessor.UndoBlock(tx3.Height);
 		Assert.False(changeCoinD.Confirmed);
 
-		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.Cluster.Labels);
+		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.ClusterLabels);
 		Assert.Equal(smartCoinA.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
 		Assert.Equal(smartCoinB.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
 		Assert.Equal(smartCoinC.HdPubKey.Cluster, changeCoinD.HdPubKey.Cluster);
@@ -1393,8 +1393,8 @@ public class TransactionProcessorTests
 		var anonymousCoin = Assert.Single(transactionProcessor.Coins, c => c.Amount == Money.Coins(0.1m));
 		var changeCoin = Assert.Single(transactionProcessor.Coins, c => c.Amount == Money.Coins(0.9m));
 
-		Assert.Empty(anonymousCoin.HdPubKey.Cluster.Labels);
-		Assert.NotEmpty(changeCoin.HdPubKey.Cluster.Labels);
+		Assert.Empty(anonymousCoin.HdPubKey.ClusterLabels);
+		Assert.NotEmpty(changeCoin.HdPubKey.ClusterLabels);
 	}
 
 	[Fact]
