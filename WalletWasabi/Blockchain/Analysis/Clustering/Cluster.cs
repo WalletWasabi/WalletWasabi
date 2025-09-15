@@ -4,34 +4,22 @@ using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public class Cluster : IEquatable<Cluster>
+public class Cluster(IEnumerable<HdPubKey> keys) : IEquatable<Cluster>
 {
-	public LabelsArray Labels => LabelsArray.Merge(Keys.Select(x => x.Labels));
+	public LabelsArray Labels => LabelsArray.Merge(KeysSet.Select(x => x.Labels));
 
-	public Cluster(IEnumerable<HdPubKey> keys)
-	{
-		_lock = new object();
-		Keys = keys.ToList();
-		KeysSet = Keys.ToHashSet();
-	}
+	private readonly object _lock = new();
+	private HashSet<HdPubKey> KeysSet { get; } = keys.ToHashSet();
 
-	private readonly object _lock;
-	private List<HdPubKey> Keys { get; }
-	private HashSet<HdPubKey> KeysSet { get; }
-
-	public void Merge(Cluster cluster) => Merge(cluster.Keys);
+	public void Merge(Cluster cluster) => Merge(cluster.KeysSet);
 
 	private void Merge(IEnumerable<HdPubKey> keys)
 	{
 		lock (_lock)
 		{
-			var insertPosition = 0;
 			foreach (var key in keys.ToList())
 			{
-				if (KeysSet.Add(key))
-				{
-					Keys.Insert(insertPosition++, key);
-				}
+				KeysSet.Add(key);
 				key.Cluster = this;
 			}
 		}
@@ -50,7 +38,7 @@ public class Cluster : IEquatable<Cluster>
 		lock (_lock)
 		{
 			int hash = 0;
-			foreach (var key in Keys)
+			foreach (var key in KeysSet)
 			{
 				hash ^= key.GetHashCode();
 			}
