@@ -8,12 +8,9 @@ namespace WalletWasabi.Blockchain.TransactionProcessing;
 
 public class ProcessedResult
 {
-	private Lazy<bool> _isOwnCoinJoin;
-
 	public ProcessedResult(SmartTransaction transaction)
 	{
 		Transaction = Guard.NotNull(nameof(transaction), transaction);
-		_isOwnCoinJoin = new Lazy<bool>(() => Transaction.IsOwnCoinjoin(), true);
 	}
 
 	public SmartTransaction Transaction { get; }
@@ -28,7 +25,7 @@ public class ProcessedResult
 		|| NewlyConfirmedSpentCoins.Count != 0
 		|| ReceivedDusts.Count != 0; // To be fair it isn't necessarily news, the algorithm of the processor can be improved for that. Not sure it is worth it though.
 
-	public bool IsOwnCoinJoin => _isOwnCoinJoin.Value;
+	public bool IsOwnCoinJoin => Transaction.IsOwnCoinjoin();
 
 	/// <summary>
 	/// Gets the dust outputs we received in this transaction. We may or may not have known about
