@@ -151,7 +151,7 @@ public readonly struct LabelsArray : IReadOnlyCollection<string>, IEquatable<Lab
 		Merge(labels as IEnumerable<LabelsArray>);
 
 	public static LabelsArray Merge(IEnumerable<LabelsArray> labels) =>
-		new(labels?.SelectMany(x => x));
+		new(labels.SelectMany(x => x));
 
 	public static bool operator ==(LabelsArray x, LabelsArray y) => x.Equals(y);
 
