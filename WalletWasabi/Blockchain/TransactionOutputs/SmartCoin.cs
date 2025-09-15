@@ -25,23 +25,10 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private bool _isBanned;
 	private bool _isExcludedFromCoinJoin;
 
-	private Lazy<uint256> _transactionId;
-	private Lazy<OutPoint> _outPoint;
-	private Lazy<TxOut> _txOut;
-	private Lazy<Coin> _coin;
-	private Lazy<int> _hashCode;
-
 	public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 	{
 		Transaction = transaction;
-		Index = outputIndex;
-		_transactionId = new Lazy<uint256>(() => Transaction.GetHash(), true);
-
-		_outPoint = new Lazy<OutPoint>(() => new OutPoint(TransactionId, Index), true);
-		_txOut = new Lazy<TxOut>(() => Transaction.Transaction.Outputs[Index], true);
-		_coin = new Lazy<Coin>(() => new Coin(Outpoint, TxOut), true);
-
-		_hashCode = new Lazy<int>(() => Outpoint.GetHashCode(), true);
+		Coin = new Coin(Transaction.Transaction, outputIndex);
 
 		_height = transaction.Height;
 		_confirmed = _height.Type == HeightType.Chain;
@@ -52,12 +39,11 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	}
 
 	public SmartTransaction Transaction { get; }
-	public uint Index { get; }
-	public uint256 TransactionId => _transactionId.Value;
-
-	public OutPoint Outpoint => _outPoint.Value;
-	public TxOut TxOut => _txOut.Value;
-	public Coin Coin => _coin.Value;
+	public uint Index => Coin.Outpoint.N;
+	public uint256 TransactionId => Coin.Outpoint.Hash;
+	public OutPoint Outpoint => Coin.Outpoint;
+	public TxOut TxOut => Coin.TxOut;
+	public Coin Coin { get; }
 
 	public Script ScriptPubKey => TxOut.ScriptPubKey;
 	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
@@ -139,7 +125,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool Equals(SmartCoin? other) => this == other;
 
-	public override int GetHashCode() => _hashCode.Value;
+	public override int GetHashCode() => Outpoint.GetHashCode();
 
 	public static bool operator ==(SmartCoin? x, SmartCoin? y)
 	{
