@@ -13,10 +13,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void BasicCalculation()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
@@ -27,10 +26,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void DoubleProcessing()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
-		analyzer.Analyze(tx);
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
 		// 10 participants, 1 is you, your anonset is 10.
@@ -40,13 +38,12 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void OtherWalletChangesThings()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 8), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		var sc = tx.WalletOutputs.First();
 		Assert.True(tx.TryRemoveWalletOutput(sc));
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 		Assert.True(tx.TryAddWalletOutput(sc));
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
 		// 10 participants, 2 is you, your anonset is 10/2 = 5.
@@ -57,10 +54,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void Inheritance()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
@@ -72,10 +68,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void ChangeOutput()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
@@ -88,10 +83,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void ChangeOutputConservativeConsolidation()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(3.1m), 1), (Money.Coins(3.1m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
@@ -104,10 +98,9 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void ChangeOutputInheritance()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(6.2m), 100) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(5m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
@@ -121,7 +114,6 @@ public class CoinJoinAnonScoreTests
 	public void MultiDenomination()
 	{
 		// Multiple standard denomination outputs should be accounted separately.
-		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1, 2, 2 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			9,
@@ -129,7 +121,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(3.2m), 1) },
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var level1 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var level2 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(2m));
@@ -143,7 +135,6 @@ public class CoinJoinAnonScoreTests
 	public void MultiDenominationInheritance()
 	{
 		// Multiple denominations inherit properly.
-		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1, 2, 2 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			9,
@@ -151,7 +142,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(3.2m), 100) },
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var level1 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var level2 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(2m));
@@ -165,7 +156,6 @@ public class CoinJoinAnonScoreTests
 	public void SelfAnonsetSanityCheck()
 	{
 		// If we have multiple same denomination in the same coinjoin, then our anonset would be total coins/our coins.
-		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -174,7 +164,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(3.2m), 1) },
 			ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 		Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2d, x.HdPubKey.AnonymitySet));
@@ -183,7 +173,6 @@ public class CoinJoinAnonScoreTests
 	[Fact]
 	public void SelfAnonsetSanityCheck2()
 	{
-		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1 };
 		var ownOutputs = new[] { 1, 1, 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -193,7 +182,7 @@ public class CoinJoinAnonScoreTests
 				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
 
 		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
 		// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
@@ -206,10 +195,9 @@ public class CoinJoinAnonScoreTests
 	public void InputSanityCheck()
 	{
 		// Anonset can never be larger than the number of inputs.
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(2, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 		Assert.Equal(3, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
@@ -219,7 +207,6 @@ public class CoinJoinAnonScoreTests
 	public void SelfAnonsetSanityBeforeInputSanityCheck()
 	{
 		// Self anonset sanity check is executed before input sanity check is executed.
-		var analyzer = new BlockchainAnalyzer();
 		var othersOutputs = new[] { 1, 1, 1 };
 		var ownOutputs = new[] { 1, 1 };
 		var tx = BitcoinFactory.CreateSmartTransaction(
@@ -228,7 +215,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(3.2m), 1) },
 			ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
 
@@ -242,14 +229,13 @@ public class CoinJoinAnonScoreTests
 	public void InputMergePunishmentNoInheritance()
 	{
 		// Input merging results in worse inherited anonset, but does not punish gains from output indistinguishability.
-		var analyzer = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 1), (Money.Coins(1.2m), 1), (Money.Coins(1.3m), 1), (Money.Coins(1.4m), 1) },
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
 
@@ -261,8 +247,6 @@ public class CoinJoinAnonScoreTests
 	public void InputMergeNonStandardChange()
 	{
 		// Input merging and non-standard change results in maximum anonymity punishment.
-		var analyzer = new BlockchainAnalyzer();
-
 		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 1) };
 		var othersOutputCount = 9;
 
@@ -272,7 +256,7 @@ public class CoinJoinAnonScoreTests
 			ownInputs,
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Satoshis(5001), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.MaxBy(x => x.Amount)!;
 		var change = tx.WalletOutputs.MinBy(x => x.Amount)!;
@@ -288,8 +272,6 @@ public class CoinJoinAnonScoreTests
 	public void InputMergeSmallUniqueDenom()
 	{
 		// Input merging and small unique denomination in WW2 results in no anonymity punishment.
-		var analyzer = new BlockchainAnalyzer();
-
 		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(1.2m), 1) };
 		var othersOutputCount = 9;
 
@@ -300,7 +282,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Satoshis(5000), HdPubKey.DefaultHighAnonymitySet) },
 			orderByAmount: true);
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.MaxBy(x => x.Amount)!;
 		var change = tx.WalletOutputs.MinBy(x => x.Amount)!;
@@ -318,8 +300,6 @@ public class CoinJoinAnonScoreTests
 	public void InputMergeLargeUniqueDenom()
 	{
 		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
-		var analyzer = new BlockchainAnalyzer();
-
 		var ownInputs = new[] { (Money.Coins(1.1m), 100), (Money.Coins(2.2m), 1) };
 		var othersOutputCount = 9;
 
@@ -330,7 +310,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(2m), HdPubKey.DefaultHighAnonymitySet) },
 			orderByAmount: true);
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.MinBy(x => x.Amount)!;
 		var change = tx.WalletOutputs.MaxBy(x => x.Amount)!;
@@ -348,8 +328,6 @@ public class CoinJoinAnonScoreTests
 	public void InputMergeLargeUniqueDenomReasonablePunishment()
 	{
 		// Input merging and large unique denomination in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
-		var analyzer = new BlockchainAnalyzer();
-
 		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };
 		var othersOutputCount = 9;
 
@@ -360,7 +338,7 @@ public class CoinJoinAnonScoreTests
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet), (Money.Coins(100m), HdPubKey.DefaultHighAnonymitySet) },
 			orderByAmount: true);
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var active = tx.WalletOutputs.MinBy(x => x.Amount)!;
 		var change = tx.WalletOutputs.MaxBy(x => x.Amount)!;
@@ -377,8 +355,6 @@ public class CoinJoinAnonScoreTests
 	public void InputMergeLargeUniqueDenomsReasonablePunishment()
 	{
 		// Input merging and large unique denominations in WW2 results in maximum anonymity punishment in relation to the largest inputs: https://github.com/WalletWasabi/WalletWasabi/pull/10699/
-		var analyzer = new BlockchainAnalyzer();
-
 		var ownInputs = new[] { (Money.Coins(1.1m), 1), (Money.Coins(55m), 100), (Money.Coins(45m), 3) };
 		var othersOutputCount = 9;
 
@@ -396,7 +372,7 @@ public class CoinJoinAnonScoreTests
 			},
 			orderByAmount: true);
 
-		analyzer.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var weightedAverage = ownInputs.Sum(x => x.Item1.Satoshi * x.Item2) / ownInputs.Sum(x => x.Item1.Satoshi);
 

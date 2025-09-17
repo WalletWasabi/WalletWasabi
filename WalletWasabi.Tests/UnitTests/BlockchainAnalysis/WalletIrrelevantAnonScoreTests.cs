@@ -12,10 +12,9 @@ public class WalletIrrelevantAnonScoreTests
 	[Fact]
 	public void OneInOneOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(1, 1, 0, 0);
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Empty(tx.WalletInputs);
 		Assert.Empty(tx.WalletOutputs);
@@ -24,10 +23,9 @@ public class WalletIrrelevantAnonScoreTests
 	[Fact]
 	public void ManyInManyOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(3, 3, 0, 0);
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		Assert.Empty(tx.WalletInputs);
 		Assert.Empty(tx.WalletOutputs);

@@ -9,7 +9,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
 
-public class BlockchainAnalyzer
+public static class BlockchainAnalyzer
 {
 	public static readonly long[] StdDenoms = new[]
 	{
@@ -26,7 +26,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Sets clusters and anonymity sets for related HD public keys.
 	/// </summary>
-	public void Analyze(SmartTransaction tx)
+	public static void Analyze(SmartTransaction tx)
 	{
 		var ownInputCount = tx.WalletInputs.Count;
 
@@ -146,7 +146,7 @@ public class BlockchainAnalyzer
 		mixedAnonScoreSanctioned = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + cjAnal.ComputeInputSanction(x, CoinjoinAnalyzer.WeightedAverage), x.Amount)));
 	}
 
-	private double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
+	private static double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
 	{
 		var distinctWalletInputPubKeys = tx.WalletVirtualInputs.Select(x => x.HdPubKey);
 		double startingOutputAnonset = Intersect(distinctWalletInputPubKeys.Select(x => x.AnonymitySet));
@@ -161,7 +161,7 @@ public class BlockchainAnalyzer
 	/// <summary>
 	/// Estimate input cluster anonymity set size, penalizing input consolidations to accounting for intersection attacks.
 	/// </summary>
-	private double Intersect(IEnumerable<double> anonsets)
+	private static double Intersect(IEnumerable<double> anonsets)
 	{
 		// Sanity check.
 		if (!anonsets.Any())
@@ -182,7 +182,7 @@ public class BlockchainAnalyzer
 		return normalizedIntersectionAnonset;
 	}
 
-	private void AnalyzeCoinjoinWalletOutputs(
+	private static void AnalyzeCoinjoinWalletOutputs(
 		SmartTransaction tx,
 		StartingAnonScores startingAnonScores)
 	{
@@ -271,10 +271,9 @@ public class BlockchainAnalyzer
 			.GroupBy(x => x)
 			.ToDictionary(x => x.Key, y => y.Count())
 			.Select(x => (x.Key, x.Value))
-			.Where(x => x.Value > 1)
-			.FirstOrDefault().Key;
+			.FirstOrDefault(x => x.Value > 1).Key;
 
-		largestEqualForeignOutputAmount = found == default ? null : found;
+		largestEqualForeignOutputAmount = found == 0 ? null : found;
 
 		return largestEqualForeignOutputAmount is not null;
 	}
@@ -300,7 +299,7 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, double startingOutputAnonset)
+	private static void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, double startingOutputAnonset)
 	{
 		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 		{
@@ -343,7 +342,7 @@ public class BlockchainAnalyzer
 		}
 	}
 
-	private void AnalyzeClusters(SmartTransaction tx)
+	private static void AnalyzeClusters(SmartTransaction tx)
 	{
 		foreach (var newCoin in tx.WalletOutputs)
 		{

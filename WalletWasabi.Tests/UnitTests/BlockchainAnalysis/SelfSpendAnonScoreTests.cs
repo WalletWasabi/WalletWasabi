@@ -14,13 +14,12 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInOneOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 1);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		// Anonset of the input shall be retained.
 		// Although the tx has more than one interpretation
@@ -32,13 +31,12 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void OneOwnInManyOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 3);
 		var coin = Assert.Single(tx.WalletInputs);
 		var key = coin.HdPubKey;
 		key.SetAnonymitySet(3, tx.GetHash());
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		// Anonset of the input shall be retained.
 		// Although the tx has many interpretations we shall not guess which one
@@ -51,7 +49,6 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInOneOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 1);
 		var smallestAnonset = 3;
 
@@ -61,7 +58,7 @@ public class SelfSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		// Anonset of the input shall be worsened because of input merging.
 		Assert.All(tx.WalletOutputs, x => Assert.True(x.HdPubKey.AnonymitySet < smallestAnonset));
@@ -71,7 +68,6 @@ public class SelfSpendAnonScoreTests
 	[Fact]
 	public void ManyOwnInManyOwnOut()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 3);
 		var smallestAnonset = 3;
 
@@ -81,7 +77,7 @@ public class SelfSpendAnonScoreTests
 			coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
 		}
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		// Anonset of the input shall be worsened because of input merging.
 		// Although the tx has many interpretations we shall not guess which one
