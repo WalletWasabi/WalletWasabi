@@ -56,7 +56,7 @@ public static class BlockchainAnalyzer
 			}
 			else
 			{
-				AnalyzeCoinjoinWalletInputs(tx, out StartingAnonScores startingAnonScores);
+				var startingAnonScores = AnalyzeCoinjoinWalletInputs(tx);
 
 				AnalyzeCoinjoinWalletOutputs(tx, startingAnonScores);
 
@@ -82,28 +82,26 @@ public static class BlockchainAnalyzer
 		}
 	}
 
-	private static void AnalyzeCoinjoinWalletInputs(
-		SmartTransaction tx,
-		out StartingAnonScores startingAnonScores)
+	private static StartingAnonScores AnalyzeCoinjoinWalletInputs( SmartTransaction tx)
 	{
 		// Consolidation in coinjoins is the only type of consolidation that's acceptable,
 		// because coinjoins are an exception from common input ownership heuristic.
 		// However this is not always true:
 		// For cases when it is we calculate weighted average.
 		// For cases when it isn't we calculate the rest.
-		CalculateWeightedAverage(tx, out double mixedAnonScore, out double mixedAnonScoreSanctioned);
-		CalculateMinAnonScore(tx, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned);
-		CalculateHalfMixedAnonScore(tx, mixedAnonScore, mixedAnonScoreSanctioned, out double halfMixedAnonScore, out double halfMixedAnonScoreSanctioned);
+		var unmixed = CalculateMinAnonScore(tx);
+		var mixed = CalculateWeightedAverage(tx);
+		var halfMixed = CalculateHalfMixedAnonScore(tx, mixed.AnonScore, mixed.AnonScoreSanctioned);
 
-		startingAnonScores = new()
+		return new()
 		{
-			Minimum = (nonMixedAnonScore, nonMixedAnonScoreSanctioned),
-			BigInputMinimum = (halfMixedAnonScore, halfMixedAnonScoreSanctioned),
-			WeightedAverage = (mixedAnonScore, mixedAnonScoreSanctioned)
+			Minimum = unmixed,
+			BigInputMinimum =  halfMixed,
+			WeightedAverage = mixed
 		};
 	}
 
-	private static void CalculateHalfMixedAnonScore(SmartTransaction tx, double mixedAnonScore, double mixedAnonScoreSanctioned, out double halfMixedAnonScore, out double halfMixedAnonScoreSanctioned)
+	private static (double, double) CalculateHalfMixedAnonScore(SmartTransaction tx, double mixedAnonScore, double mixedAnonScoreSanctioned)
 	{
 		// Calculate punishment to the smallest anonscore input from the largest inputs.
 		// We know WW2 coinjoins order inputs by amount.
@@ -117,33 +115,27 @@ public static class BlockchainAnalyzer
 				// Don't look more.
 				break;
 			}
-			else
-			{
-				ourLargeHdPubKeys.Add(ourInput.HdPubKey);
-			}
+			ourLargeHdPubKeys.Add(ourInput.HdPubKey);
 		}
 
-		halfMixedAnonScore = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		halfMixedAnonScoreSanctioned = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount)));
+		var halfMixedAnonScore = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		var halfMixedAnonScoreSanctioned = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount)));
 
 		// Sanity check: make sure to not give more than the weighted average would.
-		halfMixedAnonScore = Math.Min(halfMixedAnonScore, mixedAnonScore);
-		halfMixedAnonScoreSanctioned = Math.Min(halfMixedAnonScoreSanctioned, mixedAnonScoreSanctioned);
+		return (Math.Min(halfMixedAnonScore, mixedAnonScore), Math.Min(halfMixedAnonScoreSanctioned, mixedAnonScoreSanctioned));
 	}
 
-	private static void CalculateMinAnonScore(SmartTransaction tx, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned)
-	{
+	private static (double, double) CalculateMinAnonScore(SmartTransaction tx) =>
 		// Calculate punishment to the smallest anonscore input.
-		nonMixedAnonScore = Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		nonMixedAnonScoreSanctioned = Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount)));
-	}
+		(Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount))),
+		 Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount))));
 
-	private static void CalculateWeightedAverage(SmartTransaction tx, out double mixedAnonScore, out double mixedAnonScoreSanctioned)
-	{
+
+	private static (double AnonScore, double AnonScoreSanctioned) CalculateWeightedAverage(SmartTransaction tx) =>
 		// Calculate weighted average.
-		mixedAnonScore = WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		mixedAnonScoreSanctioned = WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputAvgSanction(x, tx), x.Amount)));
-	}
+		(WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount))),
+		 WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputAvgSanction(x, tx), x.Amount))));
+
 
 	private static double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
 	{
@@ -196,7 +188,7 @@ public static class BlockchainAnalyzer
 			if (!tx.ForeignVirtualOutputs.Any(x => x.Amount == virtualOutput.Amount))
 			{
 				// When WW2 denom output isn't too large, then it's not change.
-				if (tx.IsWasabi2Cj is true && StdDenoms.Contains(virtualOutput.Amount.Satoshi))
+				if (tx.IsWasabi2Cj && StdDenoms.Contains(virtualOutput.Amount.Satoshi))
 				{
 					if (maxAmountWeightedAverageIsApplicableFor is null && !TryGetLargestEqualForeignOutputAmount(tx, out maxAmountWeightedAverageIsApplicableFor))
 					{
@@ -302,7 +294,7 @@ public static class BlockchainAnalyzer
 	{
 		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
 		{
-			if (key.AnonymitySet == HdPubKey.DefaultHighAnonymitySet)
+			if (Math.Abs(key.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
 			{
 				key.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
 			}
@@ -389,17 +381,18 @@ public static class BlockchainAnalyzer
 		}
 	}
 
-	public delegate double AggregationFunction(IEnumerable<AmountWithAnonymity> amountWithAnonymity);
-	public static double Min(IEnumerable<AmountWithAnonymity> x) => x.Select(y => y.Anonymity).DefaultIfEmpty(0d).Min();
-	public static double WeightedAverage(IEnumerable<AmountWithAnonymity> x) => x.WeightedAverage(y => y.Anonymity, y => y.Amount.Satoshi);
+	private delegate double AggregationFunction(IEnumerable<AmountWithAnonymity> amountWithAnonymity);
 
-	public static double ComputeInputMinSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+	private static double Min(IEnumerable<AmountWithAnonymity> x) => x.Select(y => y.Anonymity).DefaultIfEmpty(0d).Min();
+	private static double WeightedAverage(IEnumerable<AmountWithAnonymity> x) => x.WeightedAverage(y => y.Anonymity, y => y.Amount.Satoshi);
+
+	private static double ComputeInputMinSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
 		ComputeInputSanction(virtualInput, tx, Min);
 
-	public static double ComputeInputAvgSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+	private static double ComputeInputAvgSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
 		ComputeInputSanction(virtualInput, tx, WeightedAverage);
 
-	public static double ComputeInputSanction(WalletVirtualInput virtualInput, SmartTransaction tx, AggregationFunction aggregationFunction)
+	private static double ComputeInputSanction(WalletVirtualInput virtualInput, SmartTransaction tx, AggregationFunction aggregationFunction)
 		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, tx, aggregationFunction)).Max();
 
 
@@ -451,5 +444,5 @@ public static class BlockchainAnalyzer
 		return (double)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
 	}
 
-	public record AmountWithAnonymity(double Anonymity, Money Amount);
+	private record AmountWithAnonymity(double Anonymity, Money Amount);
 }
