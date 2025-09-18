@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
@@ -399,9 +400,13 @@ public static class BlockchainAnalyzer
 		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, tx, aggregationFunction)).Max();
 
 
+
 	private static double ComputeInputSanction(SmartCoin transactionOutput, SmartTransaction tx, AggregationFunction aggregationFunction)
 	{
 		var relevantOutpoints = tx.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
+
+		var internalComputeInputSanction = Memoizer.Memoize<SmartCoin, double>(transactionOutput =>
+			RecursiveComputeInputSanction(transactionOutput, 1));
 
 		double RecursiveComputeInputSanction(SmartCoin transactionOutput, int recursionDepth)
 		{
@@ -421,7 +426,7 @@ public static class BlockchainAnalyzer
 			return sanction;
 		}
 
-		return RecursiveComputeInputSanction(transactionOutput, 1);
+		return internalComputeInputSanction(transactionOutput);
 	}
 
 	/// <summary>
@@ -448,4 +453,15 @@ public static class BlockchainAnalyzer
 	}
 
 	private record AmountWithAnonymity(double Anonymity, Money Amount);
+}
+
+
+public static class Memoizer
+{
+	public static Func<TInput, TResult> Memoize<TInput, TResult>(this Func<TInput, TResult> func) where TInput : notnull
+	{
+		var memo = new ConcurrentDictionary<TInput, TResult>();
+
+		return input => memo.GetOrAdd(input, func);
+	}
 }
