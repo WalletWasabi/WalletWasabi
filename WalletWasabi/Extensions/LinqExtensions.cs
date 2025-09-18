@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Numerics;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -193,6 +194,9 @@ public static class LinqExtensions
 
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>
 		me.DefaultIfEmpty(defaultValue).Max();
+
+	public static T MinOrDefault<T>(this IEnumerable<T> me) where T: struct =>
+		me.DefaultIfEmpty(default).Min();
 
 	public static double Median(this IEnumerable<double> me)
 	{
