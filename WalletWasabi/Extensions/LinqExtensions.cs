@@ -188,7 +188,7 @@ public static class LinqExtensions
 
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
 	{
-		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).Sum();
+		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).DefaultIfEmpty(1).Sum();
 	}
 
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>

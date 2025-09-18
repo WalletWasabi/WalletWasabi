@@ -9,10 +9,15 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public static class CoinjoinAnalyzer
 {
-	public static readonly AggregationFunction Min = x => x.Any() ? x.Min(x => x.Anonymity) : 0;
-	public static readonly AggregationFunction WeightedAverage = x => x.Any() ? x.WeightedAverage(x => x.Anonymity, x => x.Amount.Satoshi) : 0;
-
 	public delegate double AggregationFunction(IEnumerable<AmountWithAnonymity> amountWithAnonymity);
+	public static double Min(IEnumerable<AmountWithAnonymity> x) => x.Select(y => y.Anonymity).DefaultIfEmpty(0d).Min();
+	public static double WeightedAverage(IEnumerable<AmountWithAnonymity> x) => x.WeightedAverage(y => y.Anonymity, y => y.Amount.Satoshi);
+
+	public static double ComputeInputMinSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+		ComputeInputSanction(virtualInput, tx, Min);
+
+	public static double ComputeInputAvgSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+		ComputeInputSanction(virtualInput, tx, WeightedAverage);
 
 	public static double ComputeInputSanction(WalletVirtualInput virtualInput, SmartTransaction tx, AggregationFunction aggregationFunction)
 		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, tx, aggregationFunction)).Max();
