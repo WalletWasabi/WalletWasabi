@@ -5,6 +5,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
@@ -122,8 +123,8 @@ public static class BlockchainAnalyzer
 			}
 		}
 
-		halfMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		halfMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + CoinjoinAnalyzer.ComputeInputMinSanction(x, tx), x.Amount)));
+		halfMixedAnonScore = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		halfMixedAnonScoreSanctioned = Min(tx.WalletVirtualInputs.Where(x => ourLargeHdPubKeys.Contains(x.HdPubKey)).Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount)));
 
 		// Sanity check: make sure to not give more than the weighted average would.
 		halfMixedAnonScore = Math.Min(halfMixedAnonScore, mixedAnonScore);
@@ -133,15 +134,15 @@ public static class BlockchainAnalyzer
 	private static void CalculateMinAnonScore(SmartTransaction tx, out double nonMixedAnonScore, out double nonMixedAnonScoreSanctioned)
 	{
 		// Calculate punishment to the smallest anonscore input.
-		nonMixedAnonScore = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		nonMixedAnonScoreSanctioned = CoinjoinAnalyzer.Min(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + CoinjoinAnalyzer.ComputeInputMinSanction(x, tx), x.Amount)));
+		nonMixedAnonScore = Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		nonMixedAnonScoreSanctioned = Min(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx), x.Amount)));
 	}
 
 	private static void CalculateWeightedAverage(SmartTransaction tx, out double mixedAnonScore, out double mixedAnonScoreSanctioned)
 	{
 		// Calculate weighted average.
-		mixedAnonScore = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
-		mixedAnonScoreSanctioned = CoinjoinAnalyzer.WeightedAverage(tx.WalletVirtualInputs.Select(x => new CoinjoinAnalyzer.AmountWithAnonymity(x.HdPubKey.AnonymitySet + CoinjoinAnalyzer.ComputeInputAvgSanction(x, tx), x.Amount)));
+		mixedAnonScore = WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet, x.Amount)));
+		mixedAnonScoreSanctioned = WeightedAverage(tx.WalletVirtualInputs.Select(x => new AmountWithAnonymity(x.HdPubKey.AnonymitySet + ComputeInputAvgSanction(x, tx), x.Amount)));
 	}
 
 	private static double AnalyzeSelfSpendWalletInputs(SmartTransaction tx)
@@ -218,7 +219,7 @@ public static class BlockchainAnalyzer
 
 			// Anonset gain cannot be larger than others' input count.
 			// Picking randomly an output would make our anonset: total/ours.
-			double anonymityGain = Math.Min(CoinjoinAnalyzer.ComputeAnonymityContribution(virtualOutput.Coins.First(), tx.ForeignVirtualOutputs.SelectMany(x => x.OutPoints).ToHashSet()), foreignInputCount);
+			double anonymityGain = Math.Min(ComputeAnonymityContribution(virtualOutput.Coins.First(), tx.ForeignVirtualOutputs.SelectMany(x => x.OutPoints).ToHashSet()), foreignInputCount);
 
 			// Account for the inherited anonymity set size from the inputs in the
 			// anonymity set size estimate.
@@ -387,4 +388,68 @@ public static class BlockchainAnalyzer
 			output.IsSufficientlyDistancedFromExternalKeys = true;
 		}
 	}
+
+	public delegate double AggregationFunction(IEnumerable<AmountWithAnonymity> amountWithAnonymity);
+	public static double Min(IEnumerable<AmountWithAnonymity> x) => x.Select(y => y.Anonymity).DefaultIfEmpty(0d).Min();
+	public static double WeightedAverage(IEnumerable<AmountWithAnonymity> x) => x.WeightedAverage(y => y.Anonymity, y => y.Amount.Satoshi);
+
+	public static double ComputeInputMinSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+		ComputeInputSanction(virtualInput, tx, Min);
+
+	public static double ComputeInputAvgSanction(WalletVirtualInput virtualInput, SmartTransaction tx) =>
+		ComputeInputSanction(virtualInput, tx, WeightedAverage);
+
+	public static double ComputeInputSanction(WalletVirtualInput virtualInput, SmartTransaction tx, AggregationFunction aggregationFunction)
+		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, tx, aggregationFunction)).Max();
+
+
+	private static double ComputeInputSanction(SmartCoin transactionOutput, SmartTransaction tx, AggregationFunction aggregationFunction)
+	{
+		var relevantOutpoints = tx.Transaction.Inputs.Select(input => input.PrevOut).ToHashSet();
+
+		double RecursiveComputeInputSanction(SmartCoin transactionOutput, int recursionDepth)
+		{
+			if (recursionDepth > 3)
+			{
+				return 0;
+			}
+			// Look at the transaction containing transactionOutput.
+			// We are searching for any transaction inputs of analyzedTransaction that might have come from this transaction.
+			// If we find such remixed outputs, then we determine how much they contributed to our anonymity set.
+			SmartTransaction transaction = transactionOutput.Transaction;
+			double sanction = -ComputeAnonymityContribution(transactionOutput, relevantOutpoints);
+
+			// Recursively branch out into all of the transaction inputs' histories and compute the sanction for each branch.
+			// Add the worst-case branch to the resulting sanction.
+			sanction += aggregationFunction(transaction.WalletInputs.Select(x => new AmountWithAnonymity(RecursiveComputeInputSanction(x, recursionDepth + 1), x.Amount)));
+			return sanction;
+		}
+
+		return RecursiveComputeInputSanction(transactionOutput, 1);
+	}
+
+	/// <summary>
+	/// Computes how much the foreign outputs of AnalyzedTransaction contribute to the anonymity of our transactionOutput.
+	/// Sometimes we are only interested in how much a certain subset of foreign outputs contributed.
+	/// This subset can be specified in relevantOutpoints, otherwise all outputs are considered relevant.
+	/// </summary>
+	public static double ComputeAnonymityContribution(SmartCoin transactionOutput, HashSet<OutPoint> relevantOutpoints)
+	{
+		var walletVirtualOutputs = transactionOutput.Transaction.WalletVirtualOutputs;
+		var foreignVirtualOutputs = transactionOutput.Transaction.ForeignVirtualOutputs;
+
+		var amount = walletVirtualOutputs.SelectMany(o => o.Coins).First(c => c.Outpoint == transactionOutput.Outpoint) .Amount;
+
+		// Count the outputs that have the same value as our transactionOutput.
+		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Count(o => o.Amount == amount);
+		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Where(o => relevantOutpoints.Overlaps(o.OutPoints)).Count(o => o.Amount == amount);
+
+		// The anonymity set should increase by the number of equal-valued foreign outputs.
+		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.
+		// The rationale behind this is that picking randomly an output would make our anonset:
+		// total/ours = 1 + foreign/ours, so the increase in anonymity is foreign/ours.
+		return (double)equalValueForeignRelevantVirtualOutputCount / equalValueWalletVirtualOutputCount;
+	}
+
+	public record AmountWithAnonymity(double Anonymity, Money Amount);
 }
