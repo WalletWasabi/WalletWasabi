@@ -15,10 +15,9 @@ public class ReceiveAnonScoreTests
 	[Fact]
 	public void NormalReceive()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(1, 1, 0, 1);
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
 		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
@@ -27,10 +26,9 @@ public class ReceiveAnonScoreTests
 	[Fact]
 	public void WholeCoinReceive()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(1, 0, 0, 1);
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
 		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
@@ -39,10 +37,9 @@ public class ReceiveAnonScoreTests
 	[Fact]
 	public void CoinjoinReceive()
 	{
-		var analyser = new BlockchainAnalyzer();
 		var tx = BitcoinFactory.CreateSmartTransaction(10, Enumerable.Repeat(Money.Coins(1m), 9), Enumerable.Empty<(Money, int)>(), new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 
-		analyser.Analyze(tx);
+		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
 		Assert.Equal(1, coin.HdPubKey.AnonymitySet);

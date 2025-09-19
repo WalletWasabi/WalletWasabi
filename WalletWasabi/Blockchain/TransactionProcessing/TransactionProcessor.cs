@@ -25,7 +25,6 @@ public class TransactionProcessor
 		KeyManager = keyManager;
 		DustThreshold = dustThreshold;
 		Coins = new();
-		_blockchainAnalyzer = new();
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -39,7 +38,6 @@ public class TransactionProcessor
 	public KeyManager KeyManager { get; }
 
 	public CoinsRegistry Coins { get; }
-	private readonly BlockchainAnalyzer _blockchainAnalyzer;
 	public Money DustThreshold { get; }
 	private readonly MempoolService? _mempoolService;
 
@@ -268,7 +266,7 @@ public class TransactionProcessor
 			TransactionStore.AddOrUpdate(tx);
 		}
 
-		_blockchainAnalyzer.Analyze(result.Transaction);
+		BlockchainAnalyzer.Analyze(result.Transaction);
 
 		return result;
 	}
