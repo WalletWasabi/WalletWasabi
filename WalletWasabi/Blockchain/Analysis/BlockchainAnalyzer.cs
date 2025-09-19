@@ -439,7 +439,7 @@ public static class BlockchainAnalyzer
 		var walletVirtualOutputs = transactionOutput.Transaction.WalletVirtualOutputs;
 		var foreignVirtualOutputs = transactionOutput.Transaction.ForeignVirtualOutputs;
 
-		var amount = walletVirtualOutputs.SelectMany(o => o.Coins).First(c => c.Outpoint == transactionOutput.Outpoint) .Amount;
+		var amount = walletVirtualOutputs.First(o => o.Coins.Select(c => c.Outpoint).Contains(transactionOutput.Outpoint)).Amount;
 
 		// Count the outputs that have the same value as our transactionOutput.
 		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Count(o => o.Amount == amount);
