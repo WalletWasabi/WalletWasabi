@@ -383,8 +383,8 @@ public partial class PrivacySuggestionsModel
 				var (btcDifference, fiatDifference) = GetDifference(transactionInfo, transaction, usdExchangeRate);
 				var differenceText = GetDifferenceText(btcDifference);
 				var differenceAmountText = GetDifferenceAmountText(btcDifference, fiatDifference);
-				var isMore = fiatDifference > 0;
-				var isLess = fiatDifference < 0;
+				var isMore = btcDifference > 0;
+				var isLess = btcDifference < 0;
 
 				yield return new ChangeAvoidanceSuggestion(transaction, fiatDifference, differenceText, differenceAmountText, isMore, isLess);
 			}
@@ -460,7 +460,11 @@ public partial class PrivacySuggestionsModel
 
 	private string GetDifferenceAmountText(decimal btcDifference, decimal fiatDifference)
 	{
-		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}";
+		var absFiatDifference = Math.Abs(fiatDifference);
+		return $"{Math.Abs(btcDifference).FormattedBtcFixedFractional()} BTC" +
+			(absFiatDifference > 0
+				? $" {Math.Abs(fiatDifference).ToUsdAproxBetweenParens()}"
+				: "");
 	}
 
 	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);
