@@ -72,7 +72,8 @@ public static class FeeRateProviders
 				}
 			}
 
-			throw new InvalidOperationException("All fee rate providers failed to give us fee estimations.");
+			Logger.LogError("All fee rate providers failed to give us fee estimations.");
+			return FeeRateEstimations.Empty;
 		};
 
 	private static async Task<FeeRateEstimations> GetFeeRateEstimationsAsync(string providerName, ApiDomains domains, string apiEndPoint, IHttpClientFactory httpClientFactory, string userAgent, FeeRateExtractor extractor, CancellationToken cancellationToken)

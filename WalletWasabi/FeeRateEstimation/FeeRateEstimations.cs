@@ -20,8 +20,6 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 
 	public FeeRateEstimations(IDictionary<int, FeeRate> estimations)
 	{
-		Guard.NotNullOrEmpty(nameof(estimations), estimations);
-
 		var filteredEstimations = estimations
 			.Where(x => x.Key >= AllConfirmationTargets[0] && x.Key <= AllConfirmationTargets[^1])
 			.OrderBy(x => x.Key)
