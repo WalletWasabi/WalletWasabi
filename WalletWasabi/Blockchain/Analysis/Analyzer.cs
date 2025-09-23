@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -27,10 +28,18 @@ public static class Analyzer
 		68719476736L, 94143178827L, 100000000000L, 137438953472L
 	};
 
+	private static readonly Dictionary<PubKey, double> Cache = new();
+
 	public static double GetAnonymityScore(SmartCoin coin)
 	{
-		var anonScore = InternalAnalyzeCoin(coin);
-		return anonScore;
+		if (Cache.TryGetValue(coin.HdPubKey.PubKey, out var score))
+		{
+			return score;
+		}
+
+		score = InternalAnalyzeCoin(coin);
+		Cache.Add(coin.HdPubKey.PubKey, score);
+		return score;
 	}
 
 	private static double InternalAnalyzeCoin(SmartCoin coin)
