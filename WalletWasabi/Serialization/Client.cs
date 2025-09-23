@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json.Nodes;
 using NBitcoin;
+using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
@@ -23,15 +24,30 @@ public static partial class Encode
 	public static JsonNode PubKey(PubKey pk) =>
 		String(pk.ToHex());
 
+	public static JsonNode ECPubKey(ECPubKey pk) =>
+		ByteArray(pk.ToBytes());
+
 	public static JsonNode LabelsArray(LabelsArray a) =>
 		String(a.ToString());
 
 	public static JsonNode HdPubKey(HdPubKey hd) =>
+		hd.TweakData is null
+			? HdPubKeyEncoder(hd)
+			: SpPubKeyEncoder(hd);
+
+	public static JsonNode HdPubKeyEncoder(HdPubKey hd) =>
 		Object([
 			("PubKey", PubKey(hd.PubKey)),
 			("FullKeyPath", KeyPath(hd.FullKeyPath) ),
 			("Label", LabelsArray(hd.Labels) ),
 			("KeyState", Int((int)hd.KeyState) ),
+		]);
+
+	public static JsonNode SpPubKeyEncoder(HdPubKey hd) =>
+		Object([
+			("PubKey", PubKey(hd.PubKey)),
+			("Label", LabelsArray(hd.Labels) ),
+			("TweakData", ECPubKey(hd.TweakData!))
 		]);
 
 	public static JsonNode? HDFingerprint(HDFingerprint? fp) =>
@@ -110,16 +126,30 @@ public static partial class Decode
 	public static readonly Decoder<PubKey> PubKey =
 		String.Map(s => new PubKey(s));
 
+	public static readonly Decoder<ECPubKey> ECPubKey =
+		ByteArray.Map(a => NBitcoin.Secp256k1.ECPubKey.Create(a));
+
 	public static readonly Decoder<LabelsArray> LabelsArray =
 		String.Map(s => new LabelsArray(s));
 
-	public static readonly Decoder<HdPubKey> HdPubKey =
+	public static readonly Decoder<HdPubKey> HdPubKeyDecoder =
 		Object(get => new HdPubKey(
 			get.Required("PubKey", PubKey),
 			get.Required("FullKeyPath", KeyPath),
 			get.Required("Label", LabelsArray),
 			get.Required("KeyState", Int.Map(x => (KeyState)x))
 		));
+
+	public static readonly Decoder<HdPubKey> SpPubKeyDecoder =
+		Object(get => new HdPubKey(
+			get.Required("PubKey", PubKey),
+			get.Required("FullKeyPath", KeyPath),
+			get.Required("Label", LabelsArray),
+			get.Required("KeyState", Int.Map(x => (KeyState)x))
+		));
+
+	public static readonly Decoder<HdPubKey> HdPubKey =
+		OneOf([HdPubKeyDecoder, SpPubKeyDecoder]);
 
 	public static readonly Decoder<BlockchainState> BlockchainState =
 		Object(get => new BlockchainState(
