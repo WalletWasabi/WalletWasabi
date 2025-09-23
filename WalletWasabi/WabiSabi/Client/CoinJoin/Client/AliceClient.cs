@@ -76,11 +76,6 @@ public class AliceClient
 			// Do not unregister.
 			throw;
 		}
-		catch (UnexpectedRoundPhaseException)
-		{
-			// Do not unregister.
-			throw;
-		}
 		catch (Exception) when (aliceClient is { })
 		{
 			var aliceWouldBeRemovedByBackendTime = aliceClient.LastSuccessfulInputConnectionConfirmation + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
