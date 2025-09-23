@@ -187,6 +187,7 @@ public class Global
 
 		HostedServices.Register<FeeRateEstimationUpdater>(() => new FeeRateEstimationUpdater(TimeSpan.FromMinutes(5), feeRateProvider, EventBus), "Mining Fee rate estimations updater");
 		HostedServices.Register<Synchronizer>(() => new Synchronizer(requestInterval, filtersProvider, BitcoinStore, EventBus), "Wasabi Synchronizer");
+		Scheme = new Scheme(this);
 
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(_p2PNodesManager);
@@ -221,6 +222,7 @@ public class Global
 	}
 
 	public StatusContainer Status { get; }
+	public Scheme Scheme { get; }
 
 	/// <summary>Lock that makes sure the application initialization and dispose methods do not run concurrently.</summary>
 	private readonly AsyncLock _initializationAsyncLock = new();
