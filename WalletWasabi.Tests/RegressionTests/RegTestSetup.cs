@@ -2,13 +2,10 @@ using System.Collections.Generic;
 using NBitcoin;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
-using System.Net.Http;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -43,6 +40,7 @@ public class RegTestSetup : IAsyncDisposable
 		MempoolService mempoolService = new();
 		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
 		BitcoinStore = new BitcoinStore(IndexStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
+		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}
 
 	public RegTestFixture RegTestFixture { get; }
@@ -54,7 +52,7 @@ public class RegTestSetup : IAsyncDisposable
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public EventBus EventBus { get; }
 	public string Password { get; } = "password";
-
+	public CpfpInfoProvider CpfpInfoProvider { get; }
 	public static async Task<RegTestSetup> InitializeTestEnvironmentAsync(
 		RegTestFixture regTestFixture,
 		[CallerFilePath] string callerFilePath = "",

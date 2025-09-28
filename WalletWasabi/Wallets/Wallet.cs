@@ -1,10 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -24,29 +21,28 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
+	private readonly IDisposable _feeRateSubscription;
 
 	public Wallet(
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
 		ServiceConfiguration serviceConfiguration,
-		FeeRateEstimationUpdater feeRateEstimationUpdater,
 		TransactionProcessor transactionProcessor,
 		WalletFilterProcessor walletFilterProcessor,
-		CpfpInfoProvider? cpfpInfoProvider)
+		CpfpInfoProvider cpfpInfoProvider,
+		EventBus eventBus)
 	{
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		ServiceConfiguration = serviceConfiguration;
-		FeeRateEstimationUpdater = feeRateEstimationUpdater;
 		CpfpInfoProvider = cpfpInfoProvider;
 
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
@@ -57,11 +53,13 @@ public class Wallet : BackgroundService, IWallet
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 		WalletId = new WalletId(Guid.NewGuid());
+		_feeRateSubscription =
+			eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate);
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
-	public event EventHandler<IEnumerable<FilterModel>>? NewFiltersProcessed;
+	public event EventHandler<FilterModel[]>? NewFiltersProcessed;
 
 	public event EventHandler<WalletState>? StateChanged;
 
@@ -85,6 +83,7 @@ public class Wallet : BackgroundService, IWallet
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
+	public FeeRateEstimations FeeRateEstimations { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
 	public CoinsRegistry Coins { get; }
@@ -94,8 +93,7 @@ public class Wallet : BackgroundService, IWallet
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 
-	public FeeRateEstimationUpdater FeeRateEstimationUpdater { get; }
-	public CpfpInfoProvider? CpfpInfoProvider { get; }
+	public CpfpInfoProvider CpfpInfoProvider { get; }
 	public WalletFilterProcessor WalletFilterProcessor { get; }
 
 	public bool IsLoggedIn { get; private set; }
@@ -155,6 +153,8 @@ public class Wallet : BackgroundService, IWallet
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
 	public async Task<List<TransactionSummary>> BuildHistorySummaryAsync(bool sortForUi = false, CancellationToken cancellationToken = default)
 	{
+		var cpfpInfos = await CpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
+
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
 		foreach (SmartCoin coin in GetAllCoins())
@@ -166,9 +166,9 @@ public class Wallet : BackgroundService, IWallet
 			else
 			{
 				FeeRate? effectiveFeeRate = null;
-				if (CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
+				if (cpfpInfos.FirstOrDefault(x => x.Transaction == coin.Transaction) is { } cachedCpfpInfo)
 				{
-					effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+					effectiveFeeRate = new FeeRate(cachedCpfpInfo.CpfpInfo.EffectiveFeePerVSize);
 				}
 
 				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
@@ -185,9 +185,9 @@ public class Wallet : BackgroundService, IWallet
 				else
 				{
 					FeeRate? effectiveFeeRate = null;
-					if (CpfpInfoProvider is not null && await CpfpInfoProvider.GetCachedCpfpInfoAsync(coin.TransactionId, cancellationToken).ConfigureAwait(false) is { } cpfpInfo)
+					if (cpfpInfos.FirstOrDefault(x => x.Transaction == coin.Transaction) is { } cachedCpfpInfo)
 					{
-						effectiveFeeRate = new FeeRate(cpfpInfo.EffectiveFeePerVSize);
+						effectiveFeeRate = new FeeRate(cachedCpfpInfo.CpfpInfo.EffectiveFeePerVSize);
 					}
 
 					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
@@ -335,7 +335,7 @@ public class Wallet : BackgroundService, IWallet
 			if (prevState < WalletState.Stopping)
 			{
 				await base.StopAsync(cancel).ConfigureAwait(false);
-
+				_feeRateSubscription.Dispose();
 				if (prevState >= WalletState.Initialized)
 				{
 					await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
@@ -357,11 +357,10 @@ public class Wallet : BackgroundService, IWallet
 	{
 		try
 		{
-			WalletRelevantTransactionProcessed?.Invoke(this, e);
-
-			if (CpfpInfoProvider.ShouldRequest(e.Transaction))
+			WalletRelevantTransactionProcessed.SafeInvoke(this, e);
+			if (e.Transaction.CanBeSpeedUpUsingCpfp())
 			{
-				CpfpInfoProvider?.ScheduleRequest(e.Transaction);
+				CpfpInfoProvider.ScheduleRequest(e.Transaction);
 			}
 		}
 		catch (Exception ex)
@@ -385,34 +384,9 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	private async void IndexDownloader_NewFiltersAsync(object? sender, IEnumerable<FilterModel> filters)
+	private void IndexDownloader_NewFiltersAsync(object? sender, FilterModel[] filters)
 	{
-		try
-		{
-			var filterModels = filters as FilterModel[] ?? filters.ToArray();
-
-			NewFiltersProcessed?.Invoke(this, filterModels);
-			await Task.Delay(100).ConfigureAwait(false);
-
-			// Make sure fully synced and this filter is the latest filter.
-			if (BitcoinStore.SmartHeaderChain.HashesLeft != 0 || BitcoinStore.SmartHeaderChain.TipHash != filterModels.Last().Header.BlockHash)
-			{
-				return;
-			}
-
-			if (CpfpInfoProvider is not null)
-			{
-				await CpfpInfoProvider.UpdateCacheAsync(CancellationToken.None).ConfigureAwait(false);
-			}
-		}
-		catch (OperationCanceledException)
-		{
-			// Cancellation token kicked in while processing the new filters, don't log anything.
-		}
-		catch (Exception ex)
-		{
-			Logger.LogWarning(ex);
-		}
+		NewFiltersProcessed.SafeInvoke(this, filters);
 	}
 
 	private async Task LoadWalletStateAsync(CancellationToken cancel)

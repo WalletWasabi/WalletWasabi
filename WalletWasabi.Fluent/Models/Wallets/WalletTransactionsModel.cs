@@ -18,6 +18,7 @@ using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -48,8 +49,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 					  .Select(x => (walletModel, x.EventArgs))
 					  .ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = wallet.CpfpInfoProvider is null ? null :
-			Observable.FromEventPattern<EventArgs>(wallet.CpfpInfoProvider, nameof(wallet.CpfpInfoProvider.RequestedCpfpInfoArrived)).ToSignal()
+		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))
@@ -97,7 +97,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
 
-		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimationUpdater, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
+		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
 	}
 
 	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(TransactionModel model, CancellationToken cancellationToken) => await TryEstimateConfirmationTimeAsync(model.Id, cancellationToken);

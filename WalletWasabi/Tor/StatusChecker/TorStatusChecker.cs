@@ -2,58 +2,52 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
+using SQLitePCL;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Tor.StatusChecker;
 
-/// <summary>
-/// Component that periodically checks https://status.torproject.org/ to detect network disruptions.
-/// </summary>
-public class TorStatusChecker : PeriodicRunner
+public static class TorStatusChecker
 {
-	public static readonly string[] RelevantSystems = { "v3 Onion Services", "Directory Authorities", "DNS" };
-	private readonly EventBus _eventBus;
+	private static readonly string[] RelevantSystems = { "v3 Onion Services", "Directory Authorities", "DNS" };
 	private static readonly Uri TorStatusUri = new("https://status.torproject.org/index.json");
 
-	public TorStatusChecker(TimeSpan period, HttpClient httpClient, EventBus eventBus)
-		: base(period)
-	{
-		_eventBus = eventBus;
-		_httpClient = httpClient;
-	}
+	public record CheckMessage;
 
-	private readonly HttpClient _httpClient;
+	public static MessageHandler<CheckMessage, Unit> CreateChecker(HttpClient httpClient, EventBus eventBus) =>
+		(_, _, cancellationToken) => CheckTorStatusAsync(httpClient, eventBus, cancellationToken);
 
-	/// <inheritdoc/>
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	private static async Task<Unit> CheckTorStatusAsync(HttpClient httpClient, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		try
 		{
 			using HttpRequestMessage request = new(HttpMethod.Get, TorStatusUri);
-			using HttpResponseMessage response = await _httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
+			using HttpResponseMessage response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 			using var content = response.Content;
 
-			TorNetworkStatus systemsStatus = await content.ReadAsJsonAsync(Decode.TorStatus).ConfigureAwait(false);
-			Issue[] issues = CheckForTorIssues(systemsStatus);
+			var systemsStatus = await content.ReadAsJsonAsync(Decode.TorStatus).ConfigureAwait(false);
+			var issues = CheckForTorIssues(systemsStatus);
 
 			// Fire event.
-			_eventBus.Publish(new TorNetworkStatusChanged(issues));
+			eventBus.Publish(new TorNetworkStatusChanged(issues));
 		}
 		catch (Exception ex)
 		{
 			Logger.LogDebug("Failed to get/parse Tor status page.", ex);
 		}
+
+		return Unit.Instance;
 	}
 
 	/// <summary>
 	/// Checks the relevant systems for any issues.
 	/// Relevant systems are: v3 Onion Services, Directory Authorities and DNS.
 	/// </summary>
-	private Issue[] CheckForTorIssues(TorNetworkStatus systemsStatus)
+	private static Issue[] CheckForTorIssues(TorNetworkStatus systemsStatus)
 	{
 		var issues = systemsStatus.Systems
 			.Where(system => RelevantSystems.Contains(system.Name))

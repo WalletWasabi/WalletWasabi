@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -59,7 +60,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public event EventHandler<FilterModel>? Reorged;
 
-	public event EventHandler<IEnumerable<FilterModel>>? NewFilters;
+	public event EventHandler<FilterModel[]>? NewFilters;
 
 	/// <summary>Mature index path for migration purposes.</summary>
 	private readonly string _oldIndexFilePath;
@@ -346,7 +347,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 				if (processed > 0)
 				{
-					NewFilters?.Invoke(this, filters.Take(processed));
+					NewFilters.SafeInvoke(this, filters.Take(processed).ToArray());
 				}
 			}
 		}

@@ -214,7 +214,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
 			["exchangeRate"] = Global.Status.UsdExchangeRate,
-			["peers"] = Global.HostedServices.Get<P2pNetwork>().Nodes.ConnectedNodes.Select(
+			["peers"] = Global.NodesGroup.ConnectedNodes.Select(
 				x => new JsonRpcResult
 				{
 					["isConnected"] = x.IsConnected,

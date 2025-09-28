@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Services;
@@ -11,7 +12,10 @@ public class AmountExtensionsTests
 	[Fact]
 	public void DifferenceShouldBeExpected()
 	{
-		WalletWasabi.Fluent.Services.EventBus = new EventBus();
+		var eventBus = new EventBus();
+		WalletWasabi.Fluent.Services.EventBus = eventBus;
+		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
+
 		var p = new AmountProvider();
 		var previous = new Amount(Money.FromUnit(221, MoneyUnit.Satoshi), p);
 		var current = new Amount(Money.FromUnit(110, MoneyUnit.Satoshi), p);

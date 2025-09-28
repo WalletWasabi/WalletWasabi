@@ -1,24 +1,25 @@
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public class FeeRateEstimationUpdater(TimeSpan period, FeeRateProvider feeRateProvider, EventBus eventBus)
-	: PeriodicRunner(period)
+public static class FeeRateEstimationUpdater
 {
-	public FeeRateEstimations? FeeEstimates { get; private set; }
+	public record UpdateMessage;
 
-	protected override async Task ActionAsync(CancellationToken cancellationToken)
+	public static MessageHandler<UpdateMessage, FeeRateEstimations> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>
+		(message, feeRateEstimations, cancellationToken) => UpdateAsync(message, feeRateProvider, feeRateEstimations, eventBus, cancellationToken);
+
+	private static async Task<FeeRateEstimations> UpdateAsync(UpdateMessage _, FeeRateProvider feeRateProvider, FeeRateEstimations feeRateEstimations, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		var newFeeRateEstimations = await feeRateProvider(cancellationToken).ConfigureAwait(false);
-		if (newFeeRateEstimations != FeeEstimates)
+		if (newFeeRateEstimations != feeRateEstimations)
 		{
-			FeeEstimates = newFeeRateEstimations;
+			feeRateEstimations = newFeeRateEstimations;
 			eventBus.Publish(new MiningFeeRatesChanged(newFeeRateEstimations));
 		}
 
-		await Task.Delay(TimeSpan.FromSeconds(Random.Shared.Next(120)), cancellationToken).ConfigureAwait(false);
+		return feeRateEstimations;
 	}
 }

@@ -13,7 +13,7 @@ public class TorStatusCheckerTests
 	[Fact]
 	public void DecodeTorStatusResponseWithNoIssues()
 	{
-		string jsonResponseWithNoIssue = """	
+		string jsonResponseWithNoIssue = """
 			{
 			  "is": "index",
 			  "cStateVersion": "6.0",
@@ -234,7 +234,7 @@ public class TorStatusCheckerTests
 		var deserialized = JsonDecoder.FromString(jsonResponseWithNoIssue, Decode.TorStatus);
 		Assert.NotNull(deserialized);
 		Assert.NotEmpty(deserialized.Systems);
-		Assert.NotEmpty(deserialized.Systems.Where(sys => TorStatusChecker.RelevantSystems.Contains(sys.Name)));
+		Assert.NotEmpty(deserialized.Systems.Where(sys => new[]{ "v3 Onion Services", "Directory Authorities", "DNS" }.Contains(sys.Name)));
 		Assert.All(deserialized.Systems, sys => Assert.Equal("ok", sys.Status));
 		Assert.All(deserialized.Systems, sys => Assert.Empty(sys.UnresolvedIssues));
 
@@ -243,7 +243,7 @@ public class TorStatusCheckerTests
 	[Fact]
 	public void DecodeTorStatusResponseWithIssues()
 	{
-		string jsonResponseWithIssues = """	
+		string jsonResponseWithIssues = """
 			{
 			  "is": "index",
 			  "cStateVersion": "6.0",
@@ -316,7 +316,7 @@ public class TorStatusCheckerTests
 					  "affected": ["metrics.torproject.org"],
 					  "filename": "2025-04-10-bridgedb-graphs-on-metrics-website.md"
 					}
-			
+
 					]
 
 			      },
@@ -351,7 +351,7 @@ public class TorStatusCheckerTests
 					  "affected": ["metrics.torproject.org"],
 					  "filename": "2025-04-10-bridgedb-graphs-on-metrics-website.md"
 					}
-			
+
 					]
 
 			      },
@@ -510,7 +510,7 @@ public class TorStatusCheckerTests
 		Assert.NotNull(deserialized);
 		Assert.NotEmpty(deserialized.Systems);
 
-		var v3Service = deserialized.Systems.Where(sys => sys.Name.Equals(TorStatusChecker.RelevantSystems[0])).First();
+		var v3Service = deserialized.Systems.First(sys => sys.Name == "v3 Onion Services");
 		Assert.NotNull(v3Service);
 		Assert.Equal("disrupted", v3Service.Status);
 		Assert.NotEmpty(v3Service.UnresolvedIssues);
