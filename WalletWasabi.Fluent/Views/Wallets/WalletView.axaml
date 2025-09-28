@@ -64,6 +64,15 @@
               </SubActionButton.SubCommands>
             </SubActionButton>
 
+            <Button Classes="function"
+                    Command="{Binding SegwitReceiveCommand}"
+                    IsVisible="{Binding Path=SeveralReceivingScriptTypes, Converter={x:Static BoolConverters.Not}}">
+              <StackPanel Orientation="Horizontal">
+                <PathIcon Data="{StaticResource wallet_action_receive}" />
+                <TextBlock Text="Receive" />
+              </StackPanel>
+            </Button>
+
             <SubActionButton Content="Receive"
                              Command="{Binding DefaultReceiveCommand}"
                              VerticalAlignment="Bottom"
