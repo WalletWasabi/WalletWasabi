@@ -13,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 [AppLifetime]
 [NavigationMetaData(
 	Title = "Coordinator",
-	Caption = "Manage Coordinator settings",
+	Caption = "Manage coordinator settings",
 	Order = 2,
 	Category = "Settings",
 	Keywords =
