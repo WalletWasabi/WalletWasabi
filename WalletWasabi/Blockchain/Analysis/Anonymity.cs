@@ -1,5 +1,5 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -10,31 +10,34 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public static class SmartTransactionExtensions
 {
-	public static bool IsReceive(this SmartTransaction tx) => tx.ForeignInputs.Count > 0 && tx.WalletInputs.Count == 0 && tx.WalletOutputs.Count > 0;
-	public static bool IsSpend(this SmartTransaction tx) => tx.ForeignInputs.Count == 0 && tx.ForeignOutputs.Count > 0;
 	public static bool IsSelfSpend(this SmartTransaction tx) => tx.ForeignInputs.Count == 0 && tx.ForeignOutputs.Count == 0;
 	public static bool IsMultiparty(this SmartTransaction tx) => tx.ForeignInputs.Count > 0 && tx.WalletInputs.Count > 0;
 }
 
-public static class XConstants
-{
-	public const AnonymityScore CertainlyKnown = 1m;
-}
 
+// This immutable record manages the state of anonymity scores.
+// The dependency tracking system is because a coin's privacy is affected by its transaction history.
+// When the privacy of one coin changes, all dependent coins need recalculation.
 public record AnonymityScoreDb
 {
+	// Tracks which coins have been analyzed
 	private ImmutableHashSet<SmartCoin> SmartCoinScores { get; init; } =
 		ImmutableHashSet<SmartCoin>.Empty;
 
+	// Stores the actual anonymity score for each public key
 	private ImmutableDictionary<HdPubKey, AnonymityScore> PubKeyScores { get; init; } =
 		ImmutableDictionary<HdPubKey, AnonymityScore>.Empty;
 
+	// Records which coins depend on others for their privacy calculation
 	private ImmutableList<(HdPubKey Source, SmartCoin SmartCoin)> Dependencies { get; init; } =
 		ImmutableList<(HdPubKey Source, SmartCoin SmartCoin)>.Empty;
 
 	public static readonly AnonymityScoreDb Empty = new();
 
-	public bool TryGetAnonymityScore(SmartCoin coin, out AnonymityScore anonymityScore)
+	// Tries to retrieve a cached anonymity score for a coin. If the coin exists in the cache,
+	// it returns the score associated with the coin's public key. This design reflects the fact
+	// that all coins associated with the same public key share the same privacy level.
+	public bool TryGetAnonymityScore(SmartCoin coin, [NotNullWhen(true)] out AnonymityScore? anonymityScore)
 	{
 		if (SmartCoinScores.Contains(coin))
 		{
@@ -42,21 +45,24 @@ public record AnonymityScoreDb
 			return true;
 		}
 
-		anonymityScore = XConstants.CertainlyKnown;
+		anonymityScore = null;
 		return false;
 	}
 
-	public bool TryGetAnonymityScore(HdPubKey pubkey, out AnonymityScore anonymityScore)
+	// Tries to retrieve a cached anonymity score for a public key.
+	public bool TryGetAnonymityScore(HdPubKey pubkey, [NotNullWhen(true)] out AnonymityScore? anonymityScore)
 	{
-		if (PubKeyScores.TryGetValue(pubkey, out anonymityScore ))
+		if (PubKeyScores.TryGetValue(pubkey, out var storedAnonymityScore))
 		{
+			anonymityScore = storedAnonymityScore;
 			return true;
 		}
 
-		anonymityScore = XConstants.CertainlyKnown;
+		anonymityScore = null;
 		return false;
 	}
 
+	// Sets an anonymity score for a coin.
 	public AnonymityScoreDb SetAnonymityScore (SmartCoin coin, AnonymityScore anonymityScore)
 	{
 		var invalidated = InvalidateCacheEntries(coin.HdPubKey);
@@ -69,6 +75,8 @@ public record AnonymityScoreDb
 		};
 	}
 
+	// Invalidates all cache entries that depend on a particular public key. This ensures
+	// that when a coin's privacy changes, all dependent coins get recalculated properly.
 	private AnonymityScoreDb InvalidateCacheEntries(HdPubKey pubKey)
 	{
 		var dependencies = Dependencies.Where(x => x.Source == pubKey).ToArray();
@@ -84,13 +92,13 @@ public record AnonymityScoreDb
 	}
 }
 
-public static class AnonymityCalculator
+public static class Anonymity
 {
-	public static (AnonymityScore AnonymityScore, AnonymityScoreDb Db) GetAnonymityScore(SmartCoin coin, AnonymityScoreDb db)
+	public static (AnonymityScore AnonymityScore, AnonymityScoreDb Db) GetScore(SmartCoin coin, AnonymityScoreDb db)
 	{
 		if (db.TryGetAnonymityScore(coin, out var anonymityScore))
 		{
-			return (anonymityScore, db);
+			return ((AnonymityScore)anonymityScore, db);
 		}
 
 		var (calculatedScore, pdb) = AnalyzeCoinAnonymity(coin, db); // Calculate the anonscore
@@ -99,10 +107,10 @@ public static class AnonymityCalculator
 			if (calculatedScore > storedAnonymityScore)
 			{
 				pdb = pdb.SetAnonymityScore(coin, calculatedScore); // Stores it if is less than value already known
-				return (anonymityScore, pdb);
+				return (calculatedScore, pdb);
 			}
 
-			return (storedAnonymityScore, pdb);
+			return ((AnonymityScore)storedAnonymityScore, pdb);
 		}
 
 		pdb = pdb.SetAnonymityScore(coin, calculatedScore); // Stores it if is less than value already known
@@ -115,39 +123,35 @@ public static class AnonymityCalculator
 		var tx = coin.Transaction;
 		if (tx.IsSelfSpend())
 		{
-			var (updatedDb, anonymityScores) = tx.WalletVirtualInputs.Aggregate(
-				(scoreDb: db, anonymityScoreList: ImmutableList<AnonymityScore>.Empty), (acc, virtualInput) =>
-				{
-					var (anonymityScore, scoreDb) = GetAnonymityScore(virtualInput.Coins.First(), acc.scoreDb);
-					return (scoreDb, acc.anonymityScoreList.Add(anonymityScore));
-				});
-			return (Addition(anonymityScores), updatedDb);
+			// You can't gain privacy by sending to yourself but you can be penalized by consolidating.
+			return CalculateMinimumScoreFromInputs();
 		}
 
 		if (tx.IsMultiparty())
 		{
-			var (updatedDb, anonymityScores) = tx.WalletVirtualInputs.Aggregate(
-				(scoreDb: db, anonymityScoreList: ImmutableList<AnonymityScore>.Empty), (acc, virtualInput) =>
-				{
-					var (anonymityScore, scoreDb) = GetAnonymityScore(virtualInput.Coins.First(), acc.scoreDb);
-					return (scoreDb, acc.anonymityScoreList.Add(anonymityScore));
-				});
-			var minimumAnonScore = Addition(anonymityScores);
-
+			var (minimumAnonScore, updatedDb) = CalculateMinimumScoreFromInputs();
 			var anonymityGain = Math.Max(ComputeAnonymityContribution(coin), 1m / tx.ForeignInputs.Count );
 			anonymityGain = anonymityGain > 1 ? 1 / anonymityGain : anonymityGain;
 
 			return (minimumAnonScore * anonymityGain, updatedDb);
 		}
 
-		return (XConstants.CertainlyKnown, db);
+		// When you send and receive change or, when you receive a payment, the coin is known.
+		return (1m, db);
+
+		(AnonymityScore, AnonymityScoreDb) CalculateMinimumScoreFromInputs()
+		{
+			var (updatedDb, anonymityScoreSum) = tx.WalletVirtualInputs.Aggregate(
+				(scoreDb: db, anonymityScore: 0m), (acc, virtualInput) =>
+				{
+					var (anonymityScore, scoreDb) = GetScore(virtualInput.Coins.First(), acc.scoreDb);
+					return (scoreDb, acc.anonymityScore + anonymityScore);
+				});
+			// Knowledge about coins is not mutually exclusive, and then addition can result in numbers bigger than one.
+			return (Math.Min(1m, anonymityScoreSum), updatedDb);
+		}
 	}
 
-	private static AnonymityScore Addition(IEnumerable<AnonymityScore> anonscore)
-	{
-		// Knowledge about coins is not mutually exclusive, and then addition can result in numbers bigger than one.
-		return Math.Min(XConstants.CertainlyKnown, anonscore.Sum());
-	}
 
 	private static AnonymityScore ComputeAnonymityContribution(SmartCoin transactionOutput)
 	{
@@ -160,12 +164,8 @@ public static class AnonymityCalculator
 		var equalValueWalletVirtualOutputCount = walletVirtualOutputs.Count(o => o.Amount == amount);
 		var equalValueForeignRelevantVirtualOutputCount = foreignVirtualOutputs.Count(o => o.Amount == amount);
 
-		// The anonymity set should increase by the number of equal-valued foreign outputs.
-		// If we have multiple equal-valued wallet outputs, then we divide the increase evenly between them.
-		// The rationale behind this is that picking randomly an output would make our anonset:
-		// total/ours = 1 + foreign/ours, so the increase in anonymity is foreign/ours.
 		return equalValueForeignRelevantVirtualOutputCount > 0
 			? (AnonymityScore)equalValueWalletVirtualOutputCount / equalValueForeignRelevantVirtualOutputCount
-			: XConstants.CertainlyKnown;
+			: 1m;
 	}
 }
