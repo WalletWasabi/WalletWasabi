@@ -166,10 +166,10 @@ public class AnalyzerTests
 			var receivedCoin = receiveTx.WalletOutputs.First();
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(receivedCoin, AnonymityScoreDb.Empty);
+			var (score, resultDb) = Anonymity.GetScore(receivedCoin, AnonymityScoreDb.Empty);
 
 			// Assert
-			Assert.Equal(XConstants.CertainlyKnown, score); // Default score for receive transactions
+			Assert.Equal(1m, score); // Default score for receive transactions
 			Assert.True(resultDb.TryGetAnonymityScore(receivedCoin, out _));
 		}
 
@@ -182,10 +182,10 @@ public class AnalyzerTests
 			var receivedCoin = receiveTx.WalletOutputs.First();
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(receivedCoin, AnonymityScoreDb.Empty);
+			var (score, resultDb) = Anonymity.GetScore(receivedCoin, AnonymityScoreDb.Empty);
 
 			// Assert
-			Assert.Equal(XConstants.CertainlyKnown, score); // Default score for receive transactions
+			Assert.Equal(1m, score); // Default score for receive transactions
 			Assert.True(resultDb.TryGetAnonymityScore(receivedCoin, out _));
 		}
 
@@ -198,10 +198,10 @@ public class AnalyzerTests
 			var receivedCoin = coinjoinTx.WalletOutputs.First();
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(receivedCoin, AnonymityScoreDb.Empty);
+			var (score, resultDb) = Anonymity.GetScore(receivedCoin, AnonymityScoreDb.Empty);
 
 			// Assert
-			Assert.Equal(XConstants.CertainlyKnown, score); // Default score for receive transactions
+			Assert.Equal(1m, score); // Default score for receive transactions
 			Assert.True(resultDb.TryGetAnonymityScore(receivedCoin, out _));
 		}
 	}
@@ -218,10 +218,10 @@ public class AnalyzerTests
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(spentInput, 1/3m);
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(receivedChange, db);
+			var (score, resultDb) = Anonymity.GetScore(receivedChange, db);
 
 			// Assert
-			Assert.Equal(XConstants.CertainlyKnown, score); // Default score for receive transactions
+			Assert.Equal(1m, score); // Default score for receive transactions
 			Assert.True(resultDb.TryGetAnonymityScore(receivedChange, out _));
 		}
 
@@ -235,10 +235,10 @@ public class AnalyzerTests
 			var db = spentInputs.Aggregate(AnonymityScoreDb.Empty, (scoreDb, coin) => scoreDb.SetAnonymityScore(coin, 1/3m));
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(receivedChange, db);
+			var (score, resultDb) = Anonymity.GetScore(receivedChange, db);
 
 			// Assert
-			Assert.Equal(XConstants.CertainlyKnown, score); // Default score for receive transactions
+			Assert.Equal(1m, score); // Default score for receive transactions
 			Assert.True(resultDb.TryGetAnonymityScore(receivedChange, out _));
 		}
 
@@ -251,7 +251,7 @@ public class AnalyzerTests
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(spentInput, 1/10m);
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(spentInput, db);
+			var (score, resultDb) = Anonymity.GetScore(spentInput, db);
 
 			// Assert
 			// Wasabi spends all reused addresses together. For this reason we can't spend reused scripts in the future.
@@ -297,8 +297,8 @@ public class AnalyzerTests
 			// Anonset of the input shall be retained.
 			// Although the tx has more than one interpretation
 			// blockchain anal usually just assumes it's a self spend.
-			Assert.Equal(1/3m, AnonymityCalculator.GetAnonymityScore(receivedOutput, db).AnonymityScore);
-			Assert.Equal(1/3m, AnonymityCalculator.GetAnonymityScore(spentInput, db).AnonymityScore);
+			Assert.Equal(1/3m, Anonymity.GetScore(receivedOutput, db).AnonymityScore);
+			Assert.Equal(1/3m, Anonymity.GetScore(spentInput, db).AnonymityScore);
 		}
 
 		[Fact]
@@ -317,7 +317,7 @@ public class AnalyzerTests
 			// Although the tx has many interpretations we shall not guess which one
 			// a blockchain analyzer would go with, therefore outputs shall not gain anonsets
 			// as we're conservatively estimating.
-			Assert.All(receivedOutputs, c => Assert.Equal(1/3m, AnonymityCalculator.GetAnonymityScore(c, db).AnonymityScore));
+			Assert.All(receivedOutputs, c => Assert.Equal(1/3m, Anonymity.GetScore(c, db).AnonymityScore));
 		}
 
 		[Fact]
@@ -336,7 +336,7 @@ public class AnalyzerTests
 
 			// Assert
 			// Anonset of the input shall be worsened because of input merging.
-			Assert.Equal(0.9m, AnonymityCalculator.GetAnonymityScore(receivedOutput, db).AnonymityScore);
+			Assert.Equal(0.9m, Anonymity.GetScore(receivedOutput, db).AnonymityScore);
 		}
 
 		[Fact]
@@ -355,7 +355,7 @@ public class AnalyzerTests
 
 			// Assert
 			// Anonset of the input shall be worsened because of input merging.
-			Assert.All(receivedOutputs, c => Assert.Equal(0.3m, AnonymityCalculator.GetAnonymityScore(c, db).AnonymityScore));
+			Assert.All(receivedOutputs, c => Assert.Equal(0.3m, Anonymity.GetScore(c, db).AnonymityScore));
 		}
 	}
 
@@ -376,7 +376,7 @@ public class AnalyzerTests
 				.SetAnonymityScore(reusedAddress, 1/3m);
 
 			// It should be smaller than 30, because reuse also gets punishment.
-			Assert.Equal(1/3m, AnonymityCalculator.GetAnonymityScore(receivedOutput, db).AnonymityScore);
+			Assert.Equal(1/3m, Anonymity.GetScore(receivedOutput, db).AnonymityScore);
 		}
 
 		[Fact]
@@ -394,8 +394,8 @@ public class AnalyzerTests
 				.SetAnonymityScore(reusedAddress, 1/3m);
 
 			// It should be smaller than 30, because reuse also gets punishment.
-			var (anonscore1, pdb1) = AnonymityCalculator.GetAnonymityScore(receivedOutput, db);
-			var (anonscore2, pdb2) = AnonymityCalculator.GetAnonymityScore(receivedOutput, pdb1);
+			var (anonscore1, pdb1) = Anonymity.GetScore(receivedOutput, db);
+			var (anonscore2, pdb2) = Anonymity.GetScore(receivedOutput, pdb1);
 			Assert.Equal(1/3m, anonscore1);
 			Assert.Equal(1/3m, anonscore2);
 		}
@@ -422,8 +422,8 @@ public class AnalyzerTests
 				.SetAnonymityScore(spentInputs[2], 1 / 3m);
 
 			// The receiver knows our change output
-			var (anonscore, _) = AnonymityCalculator.GetAnonymityScore(receivedOutput, db);
-			Assert.Equal(XConstants.CertainlyKnown, anonscore);
+			var (anonscore, _) = Anonymity.GetScore(receivedOutput, db);
+			Assert.Equal(1m, anonscore);
 		}
 
 
@@ -448,7 +448,7 @@ public class AnalyzerTests
 				.SetAnonymityScore(spentInputs[1], 1 / 3m)
 				.SetAnonymityScore(spentInputs[2], 1 / 3m);
 
-			var (anonscore, _) = AnonymityCalculator.GetAnonymityScore(receivedOutput, db);
+			var (anonscore, _) = Anonymity.GetScore(receivedOutput, db);
 			Assert.Equal(1/3m, anonscore);
 		}
 
@@ -472,7 +472,7 @@ public class AnalyzerTests
 				.SetAnonymityScore(spentInputs[1], 1 / 3m)
 				.SetAnonymityScore(spentInputs[2], 1 / 3m);
 
-			var (anonscore, _) = AnonymityCalculator.GetAnonymityScore(receivedOutput, db);
+			var (anonscore, _) = Anonymity.GetScore(receivedOutput, db);
 			Assert.Equal((1/3m) / 10, anonscore);
 		}
 	}
@@ -485,7 +485,7 @@ public class AnalyzerTests
 			var tx = CreateTransaction(foreignInputCount: 10, foreignOutputCount: 10, walletInputCount: 1, walletOutputCount: 1);
 			var receivedCoin = tx.WalletOutputs.First();
 
-			var (score, db) = AnonymityCalculator.GetAnonymityScore(receivedCoin, AnonymityScoreDb.Empty);
+			var (score, db) = Anonymity.GetScore(receivedCoin, AnonymityScoreDb.Empty);
 
 			// 10 participants, 1 is you, your anonset is 10.
 			Assert.Equal(1/10m, score);
@@ -497,8 +497,8 @@ public class AnalyzerTests
 			var tx = CreateTransaction(foreignInputCount: 10, foreignOutputCount: 10, walletInputCount: 1, walletOutputCount: 1);
 			var receivedCoin = tx.WalletOutputs.First();
 
-			var (score1, db) = AnonymityCalculator.GetAnonymityScore(receivedCoin, AnonymityScoreDb.Empty);
-			var (score2, _) = AnonymityCalculator.GetAnonymityScore(receivedCoin, db);
+			var (score1, db) = Anonymity.GetScore(receivedCoin, AnonymityScoreDb.Empty);
+			var (score2, _) = Anonymity.GetScore(receivedCoin, db);
 
 			// 10 participants, 1 is you, your anonset is 10.
 			Assert.Equal(1/10m, score1);
@@ -513,7 +513,7 @@ public class AnalyzerTests
 			var receivedCoin = tx.WalletOutputs.First();
 
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(spentCoin, 1 / 100m);
-			var (score, _) = AnonymityCalculator.GetAnonymityScore(receivedCoin, db);
+			var (score, _) = Anonymity.GetScore(receivedCoin, db);
 
 			// 10 participants, 1 is you, your anonset is 1/10 and you inherit 1/100 anonset,
 			// because you don't want to count yourself twice.
@@ -534,8 +534,8 @@ public class AnalyzerTests
 			var active = walletOutputs[0];
 			var change = walletOutputs[1];
 
-			var (activeScore, _) = AnonymityCalculator.GetAnonymityScore(active, AnonymityScoreDb.Empty);
-			var (changeScore, _) = AnonymityCalculator.GetAnonymityScore(change, AnonymityScoreDb.Empty);
+			var (activeScore, _) = Anonymity.GetScore(active, AnonymityScoreDb.Empty);
+			var (changeScore, _) = Anonymity.GetScore(change, AnonymityScoreDb.Empty);
 
 			Assert.Equal(1/10m, activeScore);
 			Assert.Equal(1m, changeScore);
@@ -558,8 +558,8 @@ public class AnalyzerTests
 			var db = AnonymityScoreDb.Empty
 				.SetAnonymityScore(walletInputs[0], 1 / 100m)
 				.SetAnonymityScore(walletInputs[1], 1m);
-			var (activeScore, _) = AnonymityCalculator.GetAnonymityScore(active, db);
-			var (changeScore, _) = AnonymityCalculator.GetAnonymityScore(change, db);
+			var (activeScore, _) = Anonymity.GetScore(active, db);
+			var (changeScore, _) = Anonymity.GetScore(change, db);
 
 			Assert.Equal(1/10m, activeScore);
 			Assert.Equal(1m, changeScore);
@@ -576,8 +576,8 @@ public class AnalyzerTests
 			var walletOutputs = tx.WalletOutputs.ToArray();
 
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(tx.WalletInputs.First(), 1 / 100m);
-			var (activeScore, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[0], db);
-			var (changeScore, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[1], db);
+			var (activeScore, _) = Anonymity.GetScore(walletOutputs[0], db);
+			var (changeScore, _) = Anonymity.GetScore(walletOutputs[1], db);
 
 			Assert.Equal(1 / 1000m, activeScore);
 			Assert.Equal(1 / 100m, changeScore);
@@ -594,8 +594,8 @@ public class AnalyzerTests
 				OutputCoins(Money.Coins(1m), Money.Coins(2m)));
 			var walletOutputs = tx.WalletOutputs.ToArray();
 
-			var (denomScore1, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[0], AnonymityScoreDb.Empty);
-			var (denomScore2, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[1], AnonymityScoreDb.Empty);
+			var (denomScore1, _) = Anonymity.GetScore(walletOutputs[0], AnonymityScoreDb.Empty);
+			var (denomScore2, _) = Anonymity.GetScore(walletOutputs[1], AnonymityScoreDb.Empty);
 
 			Assert.Equal(1 / 3m, denomScore1);
 			Assert.Equal(1 / 2m, denomScore2);
@@ -616,8 +616,8 @@ public class AnalyzerTests
 			var walletInput = tx.WalletInputs.First();
 
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(walletInput, 1 / 100m);
-			var (denomScore1, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[0], db);
-			var (denomScore2, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[1], db);
+			var (denomScore1, _) = Anonymity.GetScore(walletOutputs[0], db);
+			var (denomScore2, _) = Anonymity.GetScore(walletOutputs[1], db);
 
 			Assert.Equal(1 / 3m / 100m, denomScore1);
 			Assert.Equal(1 / 2m / 100m, denomScore2);
@@ -634,8 +634,8 @@ public class AnalyzerTests
 				OutputCoins(Money.Coins(1m), Money.Coins(1m)));
 			var walletOutputs = tx.WalletOutputs.ToArray();
 
-			var (denomScore1, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[0], AnonymityScoreDb.Empty);
-			var (denomScore2, _) = AnonymityCalculator.GetAnonymityScore(walletOutputs[1], AnonymityScoreDb.Empty);
+			var (denomScore1, _) = Anonymity.GetScore(walletOutputs[0], AnonymityScoreDb.Empty);
+			var (denomScore2, _) = Anonymity.GetScore(walletOutputs[1], AnonymityScoreDb.Empty);
 
 			Assert.Equal(2 / 3m, denomScore1);
 			Assert.Equal(2 / 3m, denomScore2);
@@ -653,7 +653,7 @@ public class AnalyzerTests
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(tx.WalletInputs.First(), 1 / 10m);
 
 			var anonScores = tx.WalletOutputs
-				.Select(output => AnonymityCalculator.GetAnonymityScore(output, db))
+				.Select(output => Anonymity.GetScore(output, db))
 				.Select(x => x.AnonymityScore);
 
 			// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
@@ -672,7 +672,7 @@ public class AnalyzerTests
 				InputCoins(Money.Coins(1.1m)),
 				OutputCoins(Money.Coins(1m)));
 
-			var (anonScore, _) = AnonymityCalculator.GetAnonymityScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
+			var (anonScore, _) = Anonymity.GetScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
 			Assert.Equal(1 / 2m, anonScore);
 		}
 
@@ -686,7 +686,7 @@ public class AnalyzerTests
 				InputCoins(Money.Coins(3.2m)),
 				OutputCoins(Money.Coins(1), Money.Coins(1)));
 
-			var (anonScore, _) = AnonymityCalculator.GetAnonymityScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
+			var (anonScore, _) = Anonymity.GetScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
 
 			// The other guy in the coinjoin knows my coins
 			Assert.Equal(1, anonScore);
@@ -702,7 +702,7 @@ public class AnalyzerTests
 				InputCoins(Money.Coins(1.1m), Money.Coins(1.2m), Money.Coins(1.3m), Money.Coins(1.4m)),
 				OutputCoins(Money.Coins(1)));
 
-			var (anonScore, _) = AnonymityCalculator.GetAnonymityScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
+			var (anonScore, _) = Anonymity.GetScore(tx.WalletOutputs.First(), AnonymityScoreDb.Empty);
 
 			// 10 participants, 1 is you, your anonset would be 10 normally and now too:
 			Assert.Equal(1 / 10m, anonScore);
@@ -721,7 +721,7 @@ public class AnalyzerTests
 			var db = AnonymityScoreDb.Empty.SetAnonymityScore(coin, cachedScore);
 
 			// Act
-			var (score, resultDb) = AnonymityCalculator.GetAnonymityScore(coin, db);
+			var (score, resultDb) = Anonymity.GetScore(coin, db);
 
 			// Assert
 			Assert.Equal(cachedScore, score);
@@ -742,7 +742,7 @@ public class AnalyzerTests
 				.SetAnonymityScore(spentCoins[1], .08m);
 
 			// Act
-			var (score, _) = AnonymityCalculator.GetAnonymityScore(receivedCoin, db);
+			var (score, _) = Anonymity.GetScore(receivedCoin, db);
 
 			Assert.Equal(0.18m, score);
 		}
@@ -759,8 +759,8 @@ public class AnalyzerTests
 			var db = new AnonymityScoreDb().SetAnonymityScore(inputCoin, .2m);
 
 			// Act
-			var (score1, _) = AnonymityCalculator.GetAnonymityScore(outputCoins[0], db);
-			var (score2, _) = AnonymityCalculator.GetAnonymityScore(outputCoins[1], db);
+			var (score1, _) = Anonymity.GetScore(outputCoins[0], db);
+			var (score2, _) = Anonymity.GetScore(outputCoins[1], db);
 
 			// Assert
 			// Should be minimum score (5) plus anonymity gain (10 foreign outputs / 2 wallet outputs)
