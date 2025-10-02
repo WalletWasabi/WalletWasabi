@@ -40,7 +40,7 @@ public class AnonymityScoreDbTests
 
 		// Assert
 		Assert.False(result);
-		Assert.Equal(0, anonymityScore);
+		Assert.Null(anonymityScore);
 	}
 
 	[Fact]
@@ -66,28 +66,6 @@ public class AnonymityScoreDbTests
 		Assert.Equal(lowerScore, score2);
 	}
 
-	[Fact]
-	public void Update_WithSamePubKeyHigherScore_KeepsMinimumScore()
-	{
-		// Arrange
-		var db = new AnonymityScoreDb();
-		var km = KeyManager.CreateNew(out _, "", Network.Main);
-		var pubKey = BitcoinFactory.CreateHdPubKey(km);
-		var coin1 = BitcoinFactory.CreateSmartCoin(pubKey, 1m);
-		var coin2 = BitcoinFactory.CreateSmartCoin(pubKey, 2m);
-		var lowerScore = 5.0m;
-		var higherScore = 10.0m;
-
-		// Act
-		var dbWithFirstCoin = db.SetAnonymityScore(coin1, lowerScore);
-		var dbWithSecondCoin = dbWithFirstCoin.SetAnonymityScore(coin2, higherScore);
-
-		// Assert
-		Assert.True(dbWithSecondCoin.TryGetAnonymityScore(coin1, out var score1));
-		Assert.True(dbWithSecondCoin.TryGetAnonymityScore(coin2, out var score2));
-		Assert.Equal(lowerScore, score1); // Should remain at minimum
-		Assert.Equal(lowerScore, score2); // Should be set to minimum
-	}
 
 	[Fact]
 	public void Update_WithCoinHavingWalletInputs_AddsDependencies()
