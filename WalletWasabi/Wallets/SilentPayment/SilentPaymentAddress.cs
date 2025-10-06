@@ -6,6 +6,10 @@ namespace WalletWasabi.Wallets.SilentPayment;
 
 public record SilentPaymentAddress(int Version, ECPubKey ScanKey, ECPubKey SpendKey)
 {
+	public SilentPaymentAddress(int version, PubKey scanKey, PubKey spendKey)
+		: this(version, ECPubKey.Create(scanKey.ToBytes()), ECPubKey.Create(spendKey.ToBytes()))
+	{}
+
 	public static SilentPaymentAddress Parse(string encoded, Network network)
 	{
 		var spEncoder = network.GetSilentPaymentBech32Encoder();

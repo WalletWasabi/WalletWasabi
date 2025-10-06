@@ -79,7 +79,7 @@ public static class ServiceFactory
 			taprootExtPubKey = extKey.Derive(taprootAccountKeyPath).Neuter();
 		}
 
-		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, 21, blockchainState, null, segwitAccountKeyPath, null);
+		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, null, null, 21, blockchainState, null, segwitAccountKeyPath, null);
 	}
 
 	public static KeyManager CreateWatchOnlyKeyManager()
@@ -88,7 +88,12 @@ public static class ServiceFactory
 		ExtKey extKey = mnemonic.DeriveExtKey();
 
 		return KeyManager.CreateNewWatchOnly(
-			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.Segwit)).Neuter(),
-			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, ScriptPubKeyType.TaprootBIP86)).Neuter());
+			Derive(extKey, KeyPurpose.Loud(ScriptPubKeyType.Segwit)),
+			Derive(extKey, KeyPurpose.Loud(ScriptPubKeyType.TaprootBIP86)),
+			Derive(extKey, KeyPurpose.Scan),
+			Derive(extKey, KeyPurpose.Spend));
+
+		ExtPubKey Derive(ExtKey extKey, KeyPurpose purpose) =>
+			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, purpose)).Neuter();
 	}
 }
