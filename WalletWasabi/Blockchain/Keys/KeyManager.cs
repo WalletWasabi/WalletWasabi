@@ -598,8 +598,8 @@ public class KeyManager
 		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan), MinGapLimit);
 		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend), MinGapLimit);
 
-		var testingSilentPaymentAddress = new SilentPaymentAddress(0, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Scan).PubKey, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Spend).PubKey);
-		Logger.LogInfo($"Silent Payment Address for testing: {testingSilentPaymentAddress.ToWip(_blockchainState.Network)} ");
+		var defaultSilentPaymentAddress = new SilentPaymentAddress(0, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Scan).PubKey, GetNextReceiveKey(LabelsArray.Empty, KeyPurpose.Spend).PubKey);
+		Logger.LogDebug($"Default Silent Payment Address: {defaultSilentPaymentAddress.ToWip(_blockchainState.Network)} ");
 		var scanKeys = GetKeys(x => x.FullKeyPath.GetAccountKeyPath() == GetAccountKeyPath(Network.Main, KeyPurpose.Scan));
 		var spendKeys = GetKeys(x => x.FullKeyPath.GetAccountKeyPath() == GetAccountKeyPath(Network.Main, KeyPurpose.Spend));
 
