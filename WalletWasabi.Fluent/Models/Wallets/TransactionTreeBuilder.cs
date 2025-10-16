@@ -120,6 +120,7 @@ public class TransactionTreeBuilder
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var confirmations = transactionSummary.GetConfirmations();
 		var status = GetItemStatus(transactionSummary);
+		var haveFeeEstimations = _wallet.FeeRateEstimations is not null;
 
 		return new TransactionModel
 		{
@@ -131,8 +132,8 @@ public class TransactionTreeBuilder
 			Date = date,
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
-			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
-			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
+			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager) && haveFeeEstimations,
+			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager) && haveFeeEstimations,
 			Type = itemType,
 			Status = status,
 			Confirmations = confirmations,

@@ -83,7 +83,7 @@ public class Wallet : BackgroundService, IWallet
 	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
-	public FeeRateEstimations FeeRateEstimations { get; private set; }
+	public FeeRateEstimations? FeeRateEstimations { get; private set; }
 	public string WalletName => KeyManager.WalletName;
 
 	public CoinsRegistry Coins { get; }
