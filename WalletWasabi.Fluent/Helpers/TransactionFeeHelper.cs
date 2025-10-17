@@ -76,12 +76,21 @@ public static class TransactionFeeHelper
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out FeeRateEstimations? estimates)
 		=> TryGetFeeEstimates(wallet.FeeRateEstimations, wallet.Network, out estimates);
 
-	public static bool TryGetFeeEstimates(FeeRateEstimations feeRateEstimations, Network network, [NotNullWhen(true)] out FeeRateEstimations? estimates)
+	public static bool TryGetFeeEstimates(FeeRateEstimations? feeRateEstimations, Network network, [NotNullWhen(true)] out FeeRateEstimations? estimates)
 	{
-		estimates = null;
+		if (network == Network.TestNet)
+		{
+			estimates = TestNetFeeRateEstimations;
+			return true;
+		}
+		if (feeRateEstimations is not null)
+		{
+			estimates = feeRateEstimations;
+			return true;
+		}
 
-		estimates = network == Network.TestNet ? TestNetFeeRateEstimations : feeRateEstimations;
-		return true;
+		estimates = null;
+		return false;
 	}
 
 	public static TimeSpan CalculateConfirmationTime(double targetBlock)
