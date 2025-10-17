@@ -25,7 +25,7 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			.OrderBy(x => x.Key)
 			.Select(x => (ConfirmationTarget: x.Key, FeeRate: x.Value, Range: TargetRanges.First(y => y.Start < x.Key && x.Key <= y.End)))
 			.GroupBy(x => x.Range, y => y, (x, y) => (Range: x, BestEstimation: y.Last()))
-			.Select(x => (ConfirmationTarget: x.Range.End, x.BestEstimation.FeeRate));
+			.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: FeeRate.Max(x.BestEstimation.FeeRate, Constants.MinRelayFeeRate)));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
 		Estimations = [];
