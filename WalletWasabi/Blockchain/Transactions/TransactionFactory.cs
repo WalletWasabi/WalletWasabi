@@ -49,6 +49,13 @@ public class TransactionFactory
 			throw new ArgumentOutOfRangeException($"{nameof(payments)}.{nameof(payments.TotalAmount)} sum cannot be smaller than 0 or greater than {Constants.MaximumNumberOfSatoshis}.");
 		}
 
+		var isSilentPayment = payments.Requests.Select(x => x.Destination).OfType<Destination.Silent>().Any();
+		var canUsePrivateKeys = !KeyManager.IsWatchOnly && parameters.TryToSign;
+		if (isSilentPayment && !canUsePrivateKeys)
+		{
+			throw new InvalidOperationException("Silent payments requires a hot wallet.");
+		}
+
 		// Get allowed coins to spend.
 		var availableCoinsView = Coins.Unspent();
 		if (parameters.AllowDoubleSpend && parameters.AllowedInputs is not null)
