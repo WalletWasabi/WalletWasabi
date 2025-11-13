@@ -42,8 +42,7 @@ public partial class HealthMonitor : ReactiveObject
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = Services.Config.UseTor;
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
-		UseBitcoinRpc = applicationSettings.UseBitcoinRpc;
-		CanUseBitcoinRpc = UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
+		CanUseBitcoinRpc = applicationSettings.UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
 		BitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
 
 		// Priority Fee
@@ -122,13 +121,13 @@ public partial class HealthMonitor : ReactiveObject
 		Services.EventBus.AsObservable<RpcStatusChanged>()
 			.Select(x => x.Status)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.BindTo(this, x => BitcoinRpcStatus)
+			.Subscribe(x => BitcoinRpcStatus = x)
 			.DisposeWith(Disposables);
 
 		// Is P2P Connected
 		// The source of the p2p connection comes from if we use Core for it or the network.
 		this.WhenAnyValue(x => x.Peers)
-			.Select((s, p) => Peers >= 1)
+			.Select(peerCount => peerCount > 0)
 			.BindTo(this, x => x.IsP2pConnected)
 			.DisposeWith(Disposables);
 
@@ -164,7 +163,6 @@ public partial class HealthMonitor : ReactiveObject
 	public ICollection<Issue> TorIssues => _torIssues.Value;
 
 	public TorMode UseTor { get; }
-	public bool UseBitcoinRpc { get; }
 
 	private CompositeDisposable Disposables { get; } = new();
 
@@ -185,12 +183,6 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.IncompatibleIndexer;
 		}
 
-		var isIndexerConnectionIssueDetected = IndexerStatus is IndexerStatus.NotConnected;
-		if (isIndexerConnectionIssueDetected)
-		{
-			return HealthMonitorState.IndexerConnectionIssueDetected;
-		}
-
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
 		if (torConnected && IndexerStatus == IndexerStatus.Connected && IsP2pConnected)
 		{
@@ -205,6 +197,11 @@ public partial class HealthMonitor : ReactiveObject
 					: HealthMonitorState.BitcoinRpcSynchronizing,
 				_ =>
 					HealthMonitorState.BitcoinRpcIssueDetected);
+		}
+
+		if (IndexerStatus is IndexerStatus.NotConnected)
+		{
+			return HealthMonitorState.IndexerConnectionIssueDetected;
 		}
 
 		return HealthMonitorState.Loading;
