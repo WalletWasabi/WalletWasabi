@@ -28,8 +28,6 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private IndexerStatus _indexerStatus;
 	[AutoNotify] private bool _incompatibleIndexer;
 	[AutoNotify] private bool _isIndexerConnectionIssueDetected;
-	[AutoNotify] private bool _isBitcoinRpcIssueDetected;
-	[AutoNotify] private bool _isBitcoinRpcSynchronizing;
 	[AutoNotify] private Result<ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
@@ -126,12 +124,7 @@ public partial class HealthMonitor : ReactiveObject
 		Services.EventBus.AsObservable<RpcStatusChanged>()
 			.Select(x => x.Status)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x =>
-			{
-				BitcoinRpcStatus = x;
-				IsBitcoinRpcSynchronizing = x.Match(r => !r.Synchronized, _ => false);
-				IsBitcoinRpcIssueDetected = !x.IsOk;
-			})
+			.BindTo(this, x => BitcoinRpcStatus)
 			.DisposeWith(Disposables);
 
 		// Is P2P Connected
@@ -163,8 +156,6 @@ public partial class HealthMonitor : ReactiveObject
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
 				x => x.IsIndexerConnectionIssueDetected,
-				x => x.IsBitcoinRpcIssueDetected,
-				x => x.IsBitcoinRpcSynchronizing,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -202,27 +193,22 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.IndexerConnectionIssueDetected;
 		}
 
-		if (IsBitcoinRpcIssueDetected)
-		{
-			return HealthMonitorState.BitcoinRpcIssueDetected;
-		}
-
-		if (IsBitcoinRpcSynchronizing)
-		{
-			return HealthMonitorState.BitcoinRpcSynchronizing;
-		}
-
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
 		if (torConnected && IndexerStatus == IndexerStatus.Connected && IsP2pConnected)
 		{
 			return HealthMonitorState.Ready;
 		}
 
-		if (CanUseBitcoinRpc && BitcoinRpcStatus.Match(x => x.Synchronized, _ => false))
+		if (CanUseBitcoinRpc)
 		{
-			return HealthMonitorState.Ready;
-
+			return _bitcoinRpcStatus.Match(
+				r => r.Synchronized
+					? HealthMonitorState.Ready
+					: HealthMonitorState.BitcoinRpcSynchronizing,
+				_ =>
+					HealthMonitorState.BitcoinRpcIssueDetected);
 		}
+
 		return HealthMonitorState.Loading;
 	}
 }
