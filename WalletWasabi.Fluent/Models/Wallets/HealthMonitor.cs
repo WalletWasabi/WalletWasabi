@@ -26,10 +26,10 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private uint _blockchainTip;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private IndexerStatus _indexerStatus;
-	[AutoNotify] private bool _backendNotCompatible;
-	[AutoNotify] private bool _isConnectionIssueDetected;
-	[AutoNotify] private bool _isBitcoinCoreIssueDetected;
-	[AutoNotify] private bool _isBitcoinCoreSynchronizingOrConnecting;
+	[AutoNotify] private bool _incompatibleIndexer;
+	[AutoNotify] private bool _isIndexerConnectionIssueDetected;
+	[AutoNotify] private bool _isBitcoinRpcIssueDetected;
+	[AutoNotify] private bool _isBitcoinRpcSynchronizing;
 	[AutoNotify] private Result<ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
@@ -83,7 +83,7 @@ public partial class HealthMonitor : ReactiveObject
 		// Indexer Status
 		Services.EventBus.AsObservable<IndexerAvailabilityStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(x => IsConnectionIssueDetected = !x.IsIndexerAvailable)
+			.Do(x => IsIndexerConnectionIssueDetected = !x.IsIndexerAvailable)
 			.Select(x => x.IsIndexerAvailable ? IndexerStatus.Connected : IndexerStatus.NotConnected)
 			.BindTo(this, x => x.IndexerStatus)
 			.DisposeWith(Disposables);
@@ -92,7 +92,7 @@ public partial class HealthMonitor : ReactiveObject
 		Services.EventBus.AsObservable<IndexerIncompatibilityDetected>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => true)
-			.BindTo(this, x => x.BackendNotCompatible)
+			.BindTo(this, x => x.IncompatibleIndexer)
 			.DisposeWith(Disposables);
 
 		// Tor Issues
@@ -129,8 +129,8 @@ public partial class HealthMonitor : ReactiveObject
 			.Subscribe(x =>
 			{
 				BitcoinRpcStatus = x;
-				IsBitcoinCoreSynchronizingOrConnecting = x.Match(r => !r.Synchronized, _ => false);
-				IsBitcoinCoreIssueDetected = !x.IsOk;
+				IsBitcoinRpcSynchronizing = x.Match(r => !r.Synchronized, _ => false);
+				IsBitcoinRpcIssueDetected = !x.IsOk;
 			})
 			.DisposeWith(Disposables);
 
@@ -158,13 +158,13 @@ public partial class HealthMonitor : ReactiveObject
 		this.WhenAnyValue(
 				x => x.TorStatus,
 				x => x.IndexerStatus,
-				x => x.BackendNotCompatible,
+				x => x.IncompatibleIndexer,
 				x => x.Peers,
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
-				x => x.IsConnectionIssueDetected,
-				x => x.IsBitcoinCoreIssueDetected,
-				x => x.IsBitcoinCoreSynchronizingOrConnecting,
+				x => x.IsIndexerConnectionIssueDetected,
+				x => x.IsBitcoinRpcIssueDetected,
+				x => x.IsBitcoinRpcSynchronizing,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -192,24 +192,24 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.UpdateAvailable;
 		}
 
-		if (BackendNotCompatible)
+		if (IncompatibleIndexer)
 		{
-			return HealthMonitorState.BackendNotCompatible;
+			return HealthMonitorState.IncompatibleIndexer;
 		}
 
-		if (IsBitcoinCoreIssueDetected)
+		if (IsIndexerConnectionIssueDetected)
 		{
-			return HealthMonitorState.BitcoinCoreIssueDetected;
+			return HealthMonitorState.IndexerConnectionIssueDetected;
 		}
 
-		if (IsConnectionIssueDetected)
+		if (IsBitcoinRpcIssueDetected)
 		{
-			return HealthMonitorState.ConnectionIssueDetected;
+			return HealthMonitorState.BitcoinRpcIssueDetected;
 		}
 
-		if (IsBitcoinCoreSynchronizingOrConnecting)
+		if (IsBitcoinRpcSynchronizing)
 		{
-			return HealthMonitorState.BitcoinCoreSynchronizingOrConnecting;
+			return HealthMonitorState.BitcoinRpcSynchronizing;
 		}
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
@@ -217,9 +217,11 @@ public partial class HealthMonitor : ReactiveObject
 		{
 			return HealthMonitorState.Ready;
 		}
+
 		if (CanUseBitcoinRpc && BitcoinRpcStatus.Match(x => x.Synchronized, _ => false))
 		{
 			return HealthMonitorState.Ready;
+
 		}
 		return HealthMonitorState.Loading;
 	}
