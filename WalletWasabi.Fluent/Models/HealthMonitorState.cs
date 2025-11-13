@@ -4,9 +4,9 @@ public enum HealthMonitorState
 {
 	Loading,
 	Ready,
-	BackendNotCompatible,
+	IncompatibleIndexer,
 	UpdateAvailable,
-	ConnectionIssueDetected,
-	BitcoinCoreIssueDetected,
-	BitcoinCoreSynchronizingOrConnecting,
+	IndexerConnectionIssueDetected,
+	BitcoinRpcIssueDetected,
+	BitcoinRpcSynchronizing,
 }
