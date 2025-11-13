@@ -27,7 +27,6 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private IndexerStatus _indexerStatus;
 	[AutoNotify] private bool _incompatibleIndexer;
-	[AutoNotify] private bool _isIndexerConnectionIssueDetected;
 	[AutoNotify] private Result<ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
 	[AutoNotify] private bool _isP2pConnected;
@@ -81,7 +80,6 @@ public partial class HealthMonitor : ReactiveObject
 		// Indexer Status
 		Services.EventBus.AsObservable<IndexerAvailabilityStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(x => IsIndexerConnectionIssueDetected = !x.IsIndexerAvailable)
 			.Select(x => x.IsIndexerAvailable ? IndexerStatus.Connected : IndexerStatus.NotConnected)
 			.BindTo(this, x => x.IndexerStatus)
 			.DisposeWith(Disposables);
@@ -155,7 +153,6 @@ public partial class HealthMonitor : ReactiveObject
 				x => x.Peers,
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
-				x => x.IsIndexerConnectionIssueDetected,
 				x => x.CheckForUpdates)
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -188,7 +185,8 @@ public partial class HealthMonitor : ReactiveObject
 			return HealthMonitorState.IncompatibleIndexer;
 		}
 
-		if (IsIndexerConnectionIssueDetected)
+		var isIndexerConnectionIssueDetected = IndexerStatus is IndexerStatus.NotConnected;
+		if (isIndexerConnectionIssueDetected)
 		{
 			return HealthMonitorState.IndexerConnectionIssueDetected;
 		}
