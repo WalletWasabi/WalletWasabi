@@ -18,11 +18,22 @@ public class ReleaseHighlights
 	public string Title => $"Wasabi Wallet v{Constants.ClientVersion}{(Constants.VersionName.Length > 0 ? " - " + Constants.VersionName : string.Empty)}: What's new?";
 	public string Caption { get; private set; } = "";
 
+	public string SummaryMd => !string.IsNullOrWhiteSpace(Summary)
+		? $"""
+		   ## Summary
+		   {Summary}
+		   """
+		: "";
+
+	public string DetailsMd => !string.IsNullOrWhiteSpace(Details)
+		? $"""
+		   ## Details
+		   {Details}
+		   """
+		: "";
 	public string MarkdownText => $"""
-	                               ## Summary
-	                               {Summary}
-	                               ## Details
-	                               {Details}
+	                               {SummaryMd}
+	                               {DetailsMd}
 	                               """;
 
 	private void Parse()
