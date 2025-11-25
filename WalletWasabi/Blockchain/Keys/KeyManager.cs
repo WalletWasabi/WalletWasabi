@@ -742,25 +742,6 @@ public class KeyManager
 		SetIcon(type.ToString());
 	}
 
-	public void AssertNetworkOrClearBlockState(Network expectedNetwork)
-	{
-		lock (_criticalStateLock)
-		{
-			var lastNetwork = _blockchainState.Network;
-			if (lastNetwork is null || lastNetwork != expectedNetwork)
-			{
-				_blockchainState.Network = expectedNetwork;
-				SetBestHeight(0);
-
-				if (lastNetwork is { })
-				{
-					Logger.LogWarning($"Wallet is opened on {expectedNetwork}. Last time it was opened on {lastNetwork}.");
-				}
-				Logger.LogInfo("Blockchain cache is cleared.");
-			}
-		}
-	}
-
 	#endregion _blockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
