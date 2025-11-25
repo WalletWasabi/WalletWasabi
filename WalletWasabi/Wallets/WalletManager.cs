@@ -25,13 +25,13 @@ public class WalletManager : IWalletProvider
 		Network network,
 		string workDir,
 		WalletDirectories walletDirectories,
-		WalletFactory walletFactory)
+		WalletFactory createWallet)
 	{
 		Network = network;
 		_workDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(_workDir);
 		WalletDirectories = walletDirectories;
-		_walletFactory = walletFactory;
+		_createWallet = createWallet;
 		_cancelAllTasksToken = _cancelAllTasks.Token;
 
 		LoadWalletListFromFileSystem();
@@ -62,7 +62,7 @@ public class WalletManager : IWalletProvider
 
 	private bool IsInitialized { get; set; }
 
-	private readonly WalletFactory _walletFactory;
+	private readonly WalletFactory _createWallet;
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private readonly string _workDir;
@@ -227,7 +227,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = _walletFactory.Create(keyManager);
+		Wallet wallet =  _createWallet(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -237,7 +237,7 @@ public class WalletManager : IWalletProvider
 		string walletFullPath = WalletDirectories.GetWalletFilePaths(walletName);
 		try
 		{
-			return _walletFactory.Create(KeyManager.FromFile(walletFullPath));
+			return _createWallet(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{

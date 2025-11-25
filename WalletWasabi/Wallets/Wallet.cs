@@ -6,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -24,37 +23,45 @@ using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Wallets;
 
+public delegate Wallet WalletFactory(KeyManager keyManager);
+
 public class Wallet : BackgroundService, IWallet
 {
 	private volatile WalletState _state;
 	private readonly IDisposable _feeRateSubscription;
 
-	public Wallet(
+	public static WalletFactory CreateFactory(Network network, BitcoinStore bitcoinStore, ServiceConfiguration serviceConfiguration,
+		BlockProvider blockProvider, EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
+		keyManager => new Wallet(network, keyManager, bitcoinStore, blockProvider, serviceConfiguration, cpfpInfoProvider, eventBus);
+
+	private Wallet(
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
+		BlockProvider blockProvider,
 		ServiceConfiguration serviceConfiguration,
-		TransactionProcessor transactionProcessor,
-		WalletFilterProcessor walletFilterProcessor,
 		CpfpInfoProvider cpfpInfoProvider,
 		EventBus eventBus)
 	{
+		Password = "";
 		Network = network;
 		KeyManager = keyManager;
 		BitcoinStore = bitcoinStore;
 		ServiceConfiguration = serviceConfiguration;
 		CpfpInfoProvider = cpfpInfoProvider;
-
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
-		TransactionProcessor = transactionProcessor;
+		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
+		WalletFilterProcessor = new WalletFilterProcessor(keyManager, BitcoinStore, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
-		WalletFilterProcessor = walletFilterProcessor;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
 		WalletId = new WalletId(Guid.NewGuid());
 		_feeRateSubscription =
 			eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate);
+
+		TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
+		BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;

@@ -91,7 +91,7 @@ public class Global
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
 
-		WalletFactory walletFactory = new(
+		var walletFactory = Wallet.CreateFactory(
 			config.Network,
 			BitcoinStore,
 			config.ServiceConfiguration,
