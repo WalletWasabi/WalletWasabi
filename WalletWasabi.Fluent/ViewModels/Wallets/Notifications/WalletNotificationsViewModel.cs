@@ -27,7 +27,7 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 			.Connect()
 			.AutoRefresh(x => x.IsLoggedIn)
 			.Filter(x => x.IsLoggedIn)
-			.FilterOnObservable(x => x.State.Select(s => s == WalletWasabi.Wallets.WalletState.Started))
+			.FilterOnObservable(x => x.Loaded.Select(s => s))
 			.MergeMany(x => x.Transactions.NewTransactionArrived)
 			.Where(x => !UiContext.ApplicationSettings.PrivacyMode)
 			.Where(x => x.EventArgs.IsNews)

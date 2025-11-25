@@ -6,6 +6,7 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -120,3 +121,5 @@ public record Tick(DateTime DateTime);
 
 public record BitcoinPeersChanged(bool Added, int NodesCount);
 public record CpfpInfoArrived;
+
+public record WalletLoaded(Wallet Wallet);

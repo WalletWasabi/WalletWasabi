@@ -136,7 +136,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			["walletName"] = activeWallet.WalletName,
 			["walletFile"] = km.FilePath,
-			["state"] = activeWallet.State.ToString(),
+			["loaded"] = activeWallet.Loaded,
 			["masterKeyFingerprint"] = km.MasterFingerprint?.ToString() ?? "",
 			["anonScoreTarget"] = activeWallet.AnonScoreTarget,
 			["isWatchOnly"] = activeWallet.KeyManager.IsWatchOnly,
@@ -160,7 +160,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			};
 		}
 
-		if (activeWallet.State == WalletState.Started)
+		if (activeWallet.Loaded)
 		{
 			// The following elements are valid only after the wallet is fully synchronized
 			info["balance"] = activeWallet.Coins
@@ -500,7 +500,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	private async Task StartCoinjoinSweepAsync(CoinJoinManager coinJoinManager, Wallet activeWallet, Wallet outputWallet)
 	{
 		// If output wallet isn't initialized, then load it.
-		if (outputWallet.State == WalletState.Uninitialized)
+		if (!outputWallet.Loaded)
 		{
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
@@ -582,7 +582,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 			ActiveWallet = wallet;
-			if (wallet.State == WalletState.Uninitialized)
+			if (!wallet.Loaded)
 			{
 				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 			}
@@ -599,7 +599,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
 		}
-		if (ActiveWallet.State < WalletState.Started)
+		if (!ActiveWallet.Loaded)
 		{
 			throw new InvalidOperationException("Wallet is not fully loaded yet.");
 		}

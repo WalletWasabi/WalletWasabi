@@ -101,7 +101,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		// TODO: This is a workaround to get all the transactions from currently loaded wallets. REMOVE after UIDecoupling #26
 
 		return MainViewModel.Instance.NavBar.Wallets
-			.Where(x => x.IsLoggedIn && x.Wallet.State == WalletState.Started)
+			.Where(x => x is {IsLoggedIn: true, Wallet.Loaded: true})
 			.Select(x => x.WalletViewModel)
 			.WhereNotNull()
 			.Select(

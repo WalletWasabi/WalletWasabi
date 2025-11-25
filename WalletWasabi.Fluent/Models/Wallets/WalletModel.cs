@@ -4,10 +4,12 @@ using System.Linq;
 using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
@@ -49,10 +51,9 @@ public partial class WalletModel : ReactiveObject
 
 		Addresses = new AddressesModel(Wallet);
 
-		State =
-			Observable.FromEventPattern<WalletState>(Wallet, nameof(Wallet.StateChanged))
-					  .ObserveOn(RxApp.MainThreadScheduler)
-					  .Select(_ => Wallet.State);
+		Loaded = Services.EventBus.AsObservable<WalletLoaded>()
+				  .ObserveOn(RxApp.MainThreadScheduler)
+				  .Select(_ => Wallet.Loaded);
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 
@@ -70,15 +71,14 @@ public partial class WalletModel : ReactiveObject
 			.Subscribe();
 
 		// Stop the loader after load is completed
-		State.Where(x => x == WalletState.Started)
+		Loaded.Where(x => x)
 			 .Do(_ => Loader.Stop())
 			 .Subscribe();
 
 		this.WhenAnyValue(x => x.Auth.IsLoggedIn)
 			.BindTo(this, x => x.IsLoggedIn);
 
-		this.WhenAnyObservable(x => x.State)
-			.Select(x => x == WalletState.Started)
+		this.WhenAnyObservable(x => x.Loaded)
 			.BindTo(this, x => x.IsLoaded);
 	}
 
@@ -120,7 +120,7 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletCoinjoinModel? Coinjoin => _coinjoin.Value;
 
-	public IObservable<WalletState> State { get; }
+	public IObservable<bool> Loaded { get; }
 
 	public IAmountProvider AmountProvider { get; }
 

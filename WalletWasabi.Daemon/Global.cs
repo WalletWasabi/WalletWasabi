@@ -105,7 +105,6 @@ public class Global
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
 		NodesGroup = nodesGroup;
-		WalletManager.WalletStateChanged += WalletManager_WalletStateChanged;
 	}
 
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -484,6 +483,10 @@ public class Global
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		_coinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
+		EventBus
+			.Subscribe<WalletLoaded>(e => _coinPrison.UpdateWallet(e.Wallet))
+			.DisposeUsing(_disposables);
+
 		// Aggressively retry
 		var coordinatorHttpClientConfig = new HttpClientHandlerConfiguration
 		{
@@ -524,19 +527,6 @@ public class Global
 		return broadcasters;
 	}
 
-	private void WalletManager_WalletStateChanged(object? sender, WalletState e)
-	{
-		// Load banned coins in wallet.
-		// This event function can be deleted later when SmartCoin.IsBanned is removed.
-		if (e is not WalletState.Started)
-		{
-			return;
-		}
-
-		var wallet = sender as Wallet ?? throw new InvalidOperationException($"The sender for {nameof(WalletManager.WalletStateChanged)} was not a Wallet.");
-		_coinPrison?.UpdateWallet(wallet);
-	}
-
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.
@@ -560,7 +550,6 @@ public class Global
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
-					WalletManager.WalletStateChanged -= WalletManager_WalletStateChanged;
 					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
 				}
 				catch (Exception ex)
