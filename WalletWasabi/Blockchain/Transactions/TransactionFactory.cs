@@ -50,7 +50,7 @@ public class TransactionFactory
 		}
 
 		var isSilentPayment = payments.Requests.Select(x => x.Destination).OfType<Destination.Silent>().Any();
-		var canUsePrivateKeys = !KeyManager.IsWatchOnly && parameters.TryToSign;
+		var canUsePrivateKeys = !KeyManager.IsWatchOnly;
 		if (isSilentPayment && !canUsePrivateKeys)
 		{
 			throw new InvalidOperationException("Silent payments requires a hot wallet.");
