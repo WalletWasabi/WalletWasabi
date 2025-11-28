@@ -14,14 +14,16 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests;
 
 /// <summary>
-/// Tests for <see cref="SafeIoManager"/>
+/// Tests for <see cref="SafeFile"/>
 /// </summary>
-public class SafeIoManagerTests
+public class SafeFileTests
 {
 	[Fact]
 	public async Task IoManagerTestsAsync()
 	{
 		var file = Path.Combine(Common.GetWorkDir(), "file1.dat");
+		var oldFilePath = file + ".old";
+		var newFilePath = file + ".new";
 
 		List<string> lines = new();
 		for (int i = 0; i < 1000; i++)
@@ -32,15 +34,14 @@ public class SafeIoManagerTests
 		}
 
 		// Single thread file operations.
-		SafeIoManager ioman1 = new(file);
 
 		// Delete the file if Exist.
-		ioman1.DeleteMe();
-		Assert.False(ioman1.Exists());
+		DeleteMe(file);
+		Assert.False(Exists(file));
 
 		// Write the data to the file.
-		await ioman1.WriteAllLinesAsync(lines);
-		Assert.True(ioman1.Exists());
+		await WriteAllLinesAsync(file, lines);
+		Assert.True(Exists(file));
 
 		// Read back the content and check.
 		static bool IsStringArraysEqual(string[] lines1, string[] lines2)
@@ -63,48 +64,48 @@ public class SafeIoManagerTests
 			return true;
 		}
 
-		var readLines = await ioman1.ReadAllLinesAsync();
+		var readLines = await ReadAllLinesAsync(file);
 
 		Assert.True(IsStringArraysEqual(readLines, lines.ToArray()));
 
 		// Write the same content, file should be rewritten.
-		var currentDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
+		var currentDate = File.GetLastWriteTimeUtc(file);
 		await Task.Delay(500);
-		await ioman1.WriteAllLinesAsync(lines);
-		var noChangeDate = File.GetLastWriteTimeUtc(ioman1.FilePath);
+		await WriteAllLinesAsync(file, lines);
+		var noChangeDate = File.GetLastWriteTimeUtc(file);
 		Assert.NotEqual(currentDate, noChangeDate);
 
 		// Simulate file write error and recovery logic.
 		// We have only *.new and *.old files.
-		File.Copy(ioman1.FilePath, ioman1.OldFilePath);
-		File.Move(ioman1.FilePath, ioman1.NewFilePath);
+		File.Copy(file, oldFilePath);
+		File.Move(file, newFilePath);
 
 		// At this point there is now OriginalFile.
-		var newFile = await ioman1.ReadAllLinesAsync();
+		var newFile = await ReadAllLinesAsync(file);
 
 		Assert.True(IsStringArraysEqual(newFile, lines.ToArray()));
 
 		// Add one more line to have different data.
 		lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
 
-		await ioman1.WriteAllLinesAsync(lines);
+		await WriteAllLinesAsync(file, lines);
 
 		// Check recovery mechanism.
 		Assert.True(
-			File.Exists(ioman1.FilePath) &&
-			!File.Exists(ioman1.OldFilePath) &&
-			!File.Exists(ioman1.NewFilePath));
+			File.Exists(file) &&
+			!File.Exists(oldFilePath) &&
+			!File.Exists(newFilePath));
 
-		ioman1.DeleteMe();
+		DeleteMe(file);
 
-		Assert.False(ioman1.Exists());
+		Assert.False(Exists(file));
 
 		// Check if directory is empty.
-		var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(ioman1.FilePath)!).Count();
+		var fileCount = Directory.EnumerateFiles(Path.GetDirectoryName(file)!).Count();
 		Assert.Equal(0, fileCount);
 
 		// TryReplace test.
-		var dummyFilePath = $"{ioman1.FilePath}dummy";
+		var dummyFilePath = $"{file}dummy";
 		var dummyContent = new string[]
 		{
 			"banana",
@@ -112,17 +113,17 @@ public class SafeIoManagerTests
 		};
 		await File.WriteAllLinesAsync(dummyFilePath, dummyContent);
 
-		await ioman1.WriteAllLinesAsync(lines);
+		await WriteAllLinesAsync(file, lines);
 
-		ioman1.TryReplaceMeWith(dummyFilePath);
+		TryReplaceMeWith(file, dummyFilePath);
 
-		var fruits = await ioman1.ReadAllLinesAsync();
+		var fruits = await ReadAllLinesAsync(file);
 
 		Assert.True(IsStringArraysEqual(dummyContent, fruits));
 
 		Assert.False(File.Exists(dummyFilePath));
 
-		ioman1.DeleteMe();
+		DeleteMe(file);
 	}
 
 	[Fact]
@@ -131,12 +132,11 @@ public class SafeIoManagerTests
 		var file = Path.Combine(Common.GetWorkDir(), "file.dat");
 
 		AsyncLock asyncLock = new();
-		SafeIoManager ioman = new(file);
-		ioman.DeleteMe();
-		await ioman.WriteAllLinesAsync(Array.Empty<string>());
-		Assert.False(File.Exists(ioman.FilePath));
-		IoHelpers.EnsureContainingDirectoryExists(ioman.FilePath);
-		File.Create(ioman.FilePath).Dispose();
+		DeleteMe(file);
+		await WriteAllLinesAsync(file, []);
+		Assert.False(File.Exists(file));
+		IoHelpers.EnsureContainingDirectoryExists(file);
+		File.Create(file).Dispose();
 
 		static string RandomString()
 		{
@@ -161,9 +161,9 @@ public class SafeIoManagerTests
 
 			using (await asyncLock.LockAsync())
 			{
-				var lines = (await ioman.ReadAllLinesAsync()).ToList();
+				var lines = (await ReadAllLinesAsync(file)).ToList();
 				lines.Add(next);
-				await ioman.WriteAllLinesAsync(lines);
+				await WriteAllLinesAsync(file, lines);
 			}
 		}
 
@@ -216,5 +216,98 @@ public class SafeIoManagerTests
 
 		var diff = allLines.Except(list);
 		Assert.Empty(diff);
+	}
+
+	private static void DeleteMe(string filePath)
+	{
+		if (File.Exists(filePath))
+		{
+			File.Delete(filePath);
+		}
+
+		if (File.Exists(filePath + ".new"))
+		{
+			File.Delete(filePath + ".new");
+		}
+
+		if (File.Exists(filePath + ".old"))
+		{
+			File.Delete(filePath + ".old");
+		}
+	}
+
+	private static bool Exists(string file)
+	{
+		try
+		{
+			SafeFile.ReadAllText(file, Encoding.UTF8);
+			return true;
+		}
+		catch
+		{
+			return false;
+		}
+	}
+
+	private static Task<string[]> ReadAllLinesAsync(string file, CancellationToken cancellationToken = default)
+	{
+		return Task.FromResult(SafeFile.ReadAllText(file, Encoding.Default).Split('\n', StringSplitOptions.RemoveEmptyEntries));
+	}
+
+	private static async Task WriteAllLinesAsync(string file, IEnumerable<string> lines, CancellationToken cancellationToken = default)
+	{
+		if (!lines.Any())
+		{
+			return;
+		}
+		var oldFilePath = file + ".old";
+		var newFilePath = file + ".new";
+
+		IoHelpers.EnsureContainingDirectoryExists(newFilePath);
+
+		await File.WriteAllLinesAsync(newFilePath, lines, cancellationToken).ConfigureAwait(false);
+		if (File.Exists(file))
+		{
+			if (File.Exists(oldFilePath))
+			{
+				File.Delete(oldFilePath);
+			}
+
+			File.Move(file, oldFilePath);
+		}
+
+		File.Move(newFilePath, file);
+
+		if (File.Exists(oldFilePath))
+		{
+			File.Delete(oldFilePath);
+		}
+	}
+
+	private static bool TryReplaceMeWith(string file, string sourcePath)
+	{
+		var oldFilePath = file + ".old";
+		if (File.Exists(sourcePath))
+		{
+			if (File.Exists(file))
+			{
+				if (File.Exists(oldFilePath))
+				{
+					File.Delete(oldFilePath);
+				}
+
+				File.Move(file, oldFilePath);
+			}
+
+			File.Move(sourcePath, file);
+
+			if (File.Exists(oldFilePath))
+			{
+				File.Delete(oldFilePath);
+			}
+			return true;
+		}
+
+		return false;
 	}
 }
