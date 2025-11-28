@@ -13,16 +13,11 @@ using Microsoft.AspNetCore.Mvc.Formatters;
 using WalletWasabi.Backend.Middlewares;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Cache;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Interfaces;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
-using WalletWasabi.Userfacing;
-using WalletWasabi.WebClients;
 
 [assembly: ApiController]
 
@@ -35,7 +30,7 @@ public class Startup
 		Configuration = configuration;
 	}
 
-	public IConfiguration Configuration { get; }
+	private IConfiguration Configuration { get; }
 
 	// This method gets called by the runtime. Use this method to add services to the container.
 	public void ConfigureServices(IServiceCollection services)
@@ -54,7 +49,6 @@ public class Startup
 
 		services.AddControllers();
 
-		services.AddSingleton<IExchangeRateProvider>(new ExchangeRateProvider());
 		string configFilePath = Path.Combine(dataDir, "Config.json");
 		Config config = Config.LoadFile(configFilePath);
 		services.AddSingleton(serviceProvider => config );

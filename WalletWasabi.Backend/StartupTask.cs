@@ -15,7 +15,7 @@ public class StartupTask
 	private IndexBuilderService IndexBuilderService { get; }
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(Config config, IRPCClient rpc, IndexBuilderService indexBuilderService)
+	public StartupTask( IRPCClient rpc, IndexBuilderService indexBuilderService)
 	{
 		IndexBuilderService = indexBuilderService;
 		RpcClient = rpc;

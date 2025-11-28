@@ -19,33 +19,11 @@ public static partial class Encode
 			("commitHash", String(version.CommitHash)),
 		]);
 
-	private static JsonNode ExchangeRate(ExchangeRate rate) =>
-		Object([
-			("ticker", String(rate.Ticker)),
-			("rate", Decimal(rate.Rate))
-		]);
-
 	public static JsonNode Filter(FilterModel filter) =>
 		String(filter.ToLine());
 
 	public static JsonNode FeeEstimations(Dictionary<int, FeeRate> estimations) =>
 		Dictionary(estimations.ToDictionary(x => x.Key.ToString(), x => FeeRate(x.Value)));
-
-	public static JsonNode AllFeeEstimate(AllFeeEstimate estimate) =>
-		Object([
-			("estimations", FeeEstimations(estimate.Estimations))
-		]);
-
-	public static JsonNode SynchronizeResponse(SynchronizeResponse sync) =>
-		Object([
-			("filtersResponseState", Int((int)sync.FiltersResponseState)),
-			("filters", Array(sync.Filters.Select(Filter))),
-			("bestHeight", Int(sync.BestHeight)),
-			("ccjRoundStates", Array(System.Array.Empty<JsonNode>())), // ww1 backward compatible
-			("allFeeEstimate", Optional(sync.AllFeeEstimate, AllFeeEstimate)),
-			("exchangeRates", Array(sync.ExchangeRates.Select(ExchangeRate))),
-			("unconfirmedCoinJoins", Array(System.Array.Empty<JsonNode>()))	// ww1 backend compatible
-		]);
 
 	public static JsonNode FiltersResponse(FiltersResponse resp) =>
 		Object([
@@ -57,14 +35,10 @@ public static partial class Encode
 		obj switch
 		{
 			VersionsResponse version => VersionsResponse(version),
-			AllFeeEstimate estimations => AllFeeEstimate(estimations),
-			ExchangeRate exchangeRate => ExchangeRate(exchangeRate),
-			SynchronizeResponse syncResp => SynchronizeResponse(syncResp),
 			FiltersResponse filtersResp => FiltersResponse(filtersResp),
 			Dictionary<int, FeeRate> feeEstimations => FeeEstimations(feeEstimations),
 			IEnumerable<string> s => Array(s.Select(String)),
 			IEnumerable<uint256> u => Array(u.Select(UInt256)),
-			IEnumerable<ExchangeRate> e => Array(e.Select(ExchangeRate)),
 			string errorMessage => String(errorMessage),
 			_ => throw new Exception($"{obj.GetType().FullName} is not known")
 		};
