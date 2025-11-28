@@ -9,18 +9,25 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Io;
 
-public class SafeIoManager : IoManager
+public class SafeIoManager
 {
 	private const string OldExtension = ".old";
 	private const string NewExtension = ".new";
 
-	public SafeIoManager(string filePath) : base(filePath)
+	public SafeIoManager(string filePath)
 	{
+		FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		FileName = Path.GetFileName(FilePath);
+		FileNameWithoutExtension = Path.GetFileNameWithoutExtension(FilePath);
 		OldFilePath = $"{FilePath}{OldExtension}";
 
 		NewFilePath = $"{FilePath}{NewExtension}";
 	}
 
+	public string FilePath { get; }
+
+	public string FileName { get; }
+	public string FileNameWithoutExtension { get; }
 	public string OldFilePath { get; }
 	public string NewFilePath { get; }
 
@@ -28,7 +35,10 @@ public class SafeIoManager : IoManager
 
 	public new void DeleteMe()
 	{
-		base.DeleteMe();
+		if (File.Exists(FilePath))
+		{
+			File.Delete(FilePath);
+		}
 
 		if (File.Exists(NewFilePath))
 		{
@@ -150,9 +160,9 @@ public class SafeIoManager : IoManager
 		SafeMoveNewToOriginal();
 	}
 
-	public new async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
+	public async Task<string[]> ReadAllLinesAsync(CancellationToken cancellationToken = default)
 	{
-		return await ReadAllLinesAsync(GetSafestFilePath(), cancellationToken).ConfigureAwait(false);
+		return await File.ReadAllLinesAsync(GetSafestFilePath(), cancellationToken).ConfigureAwait(false);
 	}
 
 	public string ReadAllText(Encoding encoding)
