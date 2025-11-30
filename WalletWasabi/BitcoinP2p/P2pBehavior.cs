@@ -21,7 +21,6 @@ public class P2pBehavior : NodeBehavior
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
 
-	public event EventHandler<Transaction>? OnTransactionArrived;
 	public MempoolService MempoolService { get; }
 
 	protected override void AttachCore()
@@ -130,7 +129,6 @@ public class P2pBehavior : NodeBehavior
 	{
 		Transaction transaction = payload.Object;
 		transaction.PrecomputeHash(false, true);
-		OnTransactionArrived.SafeInvoke(this, transaction);
 		MempoolService.Process(transaction);
 	}
 

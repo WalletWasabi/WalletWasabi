@@ -1,4 +1,3 @@
-using System.IO;
 using System.Text.Json.Nodes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
