@@ -1,20 +1,22 @@
+using System;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.Timeouts;
-using Microsoft.AspNetCore.Mvc.Formatters;
-using WalletWasabi.Backend.Middlewares;
+using NBitcoin;
+using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Cache;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -38,27 +40,10 @@ public class Startup
 		string dataDir = Configuration["datadir"] ?? EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Backend"));
 		Logger.InitializeDefaults(Path.Combine(dataDir, "Logs.txt"));
 
-		services.AddMemoryCache();
-		services.AddMvc(options =>
-			{
-				options.OutputFormatters.Insert(0, new WasabiJsonOutputFormatter(Encode.BackendMessage));
-				options.InputFormatters.RemoveType<SystemTextJsonInputFormatter>();
-				options.OutputFormatters.RemoveType<SystemTextJsonOutputFormatter>();
-			})
-			.AddControllersAsServices();
-
-		services.AddControllers();
-
 		string configFilePath = Path.Combine(dataDir, "Config.json");
 		Config config = Config.LoadFile(configFilePath);
 		services.AddSingleton(serviceProvider => config );
 
-		services.AddSingleton<IdempotencyRequestCache>();
-		services.AddHttpClient("no-name").ConfigurePrimaryHttpMessageHandler(() => new SocketsHttpHandler
-		{
-			// See https://github.com/dotnet/runtime/issues/18348#issuecomment-415845645
-			PooledConnectionLifetime = TimeSpan.FromMinutes(5)
-		});
 		services.AddSingleton<IRPCClient>(provider =>
 		{
 			string host = config.GetBitcoinRpcUri();
@@ -67,9 +52,8 @@ public class Startup
 					hostOrUri: host,
 					network: config.Network);
 
-			IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
-			CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
-			return cachedRpc;
+			RpcClientBase rpc = new(rpcClient);
+			return rpc;
 		});
 
 		var network = config.Network;
@@ -81,8 +65,6 @@ public class Startup
 			var filterType => throw new ArgumentException($"Invalid '{filterType}'. Only 'legacy' and 'bip158' filter types are allowed.")
 		};
 		services.AddSingleton(_ => network);
-		services.AddSingleton<MempoolService>();
-		services.AddSingleton<IdempotencyRequestCache>();
 		services.AddSingleton<IndexBuilderService>(s =>
 			new IndexBuilderService(
 				s.GetRequiredService<IRPCClient>(),
@@ -103,14 +85,47 @@ public class Startup
 	{
 		app.UseRouting();
 
-		// So to correctly handle HEAD requests.
-		// https://www.tpeczek.com/2017/10/exploring-head-method-behavior-in.html
-		// https://github.com/tpeczek/Demo.AspNetCore.Mvc.CosmosDB/blob/master/Demo.AspNetCore.Mvc.CosmosDB/Middlewares/HeadMethodMiddleware.cs
-		app.UseMiddleware<HeadMethodMiddleware>();
-
 		app.UseResponseCompression();
 
-		app.UseEndpoints(endpoints => endpoints.MapControllers());
+		app.UseEndpoints(endpoints =>
+		{
+			endpoints.MapGet("/api/software/versions", () => Encode.VersionsResponse(new VersionsResponse(Constants.BackendMajorVersion)));
+			endpoints.MapGet("/api/v4/btc/blockchain/filters", async (string bestKnownBlockHash, int count, CancellationToken cancellationToken) =>
+			{
+				var indexBuilderService = app.ApplicationServices.GetRequiredService<IndexBuilderService>();
+				return await GetFilters(indexBuilderService, bestKnownBlockHash, count, cancellationToken).ConfigureAwait(false);
+			});
+		});
 		app.UseRequestTimeouts();
+	}
+
+	private static async Task<IResult> GetFilters(IndexBuilderService indexBuilderService, string bestKnownBlockHash, int count, CancellationToken cancellationToken)
+	{
+		if (count <= 0)
+		{
+			return Results.BadRequest("Invalid block hash or count is provided.");
+		}
+
+		var knownHash = new uint256(bestKnownBlockHash);
+
+		var (bestHeight, filters, found) = await indexBuilderService.GetFilterLinesExcludingAsync(knownHash, count, cancellationToken);
+
+		if (!found)
+		{
+			return Results.NotFound($"Provided {nameof(bestKnownBlockHash)} is not found: {bestKnownBlockHash}.");
+		}
+
+		if (!filters.Any())
+		{
+			return Results.NoContent();
+		}
+
+		var response = new FiltersResponse
+		{
+			BestHeight = bestHeight,
+			Filters = filters
+		};
+
+		return Results.Ok(Encode.FiltersResponse(response));
 	}
 }

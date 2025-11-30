@@ -54,12 +54,7 @@ public static partial class Decode
 {
 	public static readonly Decoder<VersionsResponse> VersionsResponse =
 		Object(get =>
-			new VersionsResponse
-			{
-				BackendMajorVersion = get.Required("backenMajordVersion", String),
-				ClientVersion = get.Required("clientVersion", String),
-				CommitHash = get.Required("commitHash", String),
-			});
+			new VersionsResponse(get.Required("backenMajordVersion", String)));
 
 	public static Decoder<T> Catch<T>(this Decoder<T> decoder) =>
 		value =>
