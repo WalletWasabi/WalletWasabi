@@ -180,11 +180,11 @@ public class KeyManagementTests
 	{
 		var filePath = "wallet-serialization.json";
 		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
-		manager.SetBestHeight(10_000);
+		manager.SetBestHeight(500_000);
 		manager.ToFile();
 
 		var sameManager = KeyManager.FromFile(filePath);
-		Assert.Equal(new Height(9_899), sameManager.GetBestHeight());
+		Assert.Equal(new Height(499_899), sameManager.GetBestHeight());
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}

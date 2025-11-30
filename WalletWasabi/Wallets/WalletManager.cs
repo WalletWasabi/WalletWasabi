@@ -25,22 +25,17 @@ public class WalletManager : IWalletProvider
 		Network network,
 		string workDir,
 		WalletDirectories walletDirectories,
-		WalletFactory walletFactory)
+		WalletFactory createWallet)
 	{
 		Network = network;
 		_workDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		Directory.CreateDirectory(_workDir);
 		WalletDirectories = walletDirectories;
-		_walletFactory = walletFactory;
+		_createWallet = createWallet;
 		_cancelAllTasksToken = _cancelAllTasks.Token;
 
 		LoadWalletListFromFileSystem();
 	}
-
-	/// <summary>
-	/// Triggered if any of the _wallets changes its state. The sender of the event will be the Wallet.
-	/// </summary>
-	public event EventHandler<WalletState>? WalletStateChanged;
 
 	/// <summary>
 	/// Triggered if a wallet added to the Wallet collection. The sender of the event will be the WalletManager and the argument is the added Wallet.
@@ -62,7 +57,7 @@ public class WalletManager : IWalletProvider
 
 	private bool IsInitialized { get; set; }
 
-	private readonly WalletFactory _walletFactory;
+	private readonly WalletFactory _createWallet;
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
 	private readonly string _workDir;
@@ -188,19 +183,6 @@ public class WalletManager : IWalletProvider
 			_wallets.Single(x => x == wallet);
 		}
 
-		wallet.SetWaitingForInitState();
-
-		// Wait for the WalletManager to be initialized.
-		while (!IsInitialized)
-		{
-			await Task.Delay(100, _cancelAllTasks.Token).ConfigureAwait(false);
-		}
-
-		if (wallet.State == WalletState.WaitingForInit)
-		{
-			wallet.Initialize();
-		}
-
 		using (await _startStopWalletLock.LockAsync(_cancelAllTasks.Token).ConfigureAwait(false))
 		{
 			try
@@ -227,7 +209,7 @@ public class WalletManager : IWalletProvider
 
 	public Wallet AddWallet(KeyManager keyManager)
 	{
-		Wallet wallet = _walletFactory.Create(keyManager);
+		Wallet wallet =  _createWallet(keyManager);
 		AddWallet(wallet);
 		return wallet;
 	}
@@ -237,7 +219,7 @@ public class WalletManager : IWalletProvider
 		string walletFullPath = WalletDirectories.GetWalletFilePaths(walletName);
 		try
 		{
-			return _walletFactory.Create(KeyManager.FromFile(walletFullPath));
+			return _createWallet(KeyManager.FromFile(walletFullPath));
 		}
 		catch (Exception ex)
 		{
@@ -265,17 +247,10 @@ public class WalletManager : IWalletProvider
 			wallet.KeyManager.ToFile();
 		}
 
-		wallet.StateChanged += Wallet_StateChanged;
-
 		WalletAdded?.Invoke(this, wallet);
 	}
 
 	public bool WalletExists(HDFingerprint? fingerprint) => GetWallets().Any(x => fingerprint is { } && x.KeyManager.MasterFingerprint == fingerprint);
-
-	private void Wallet_StateChanged(object? sender, WalletState e)
-	{
-		WalletStateChanged?.Invoke(sender, e);
-	}
 
 	public async Task RemoveAndStopAllAsync(CancellationToken cancel)
 	{
@@ -298,8 +273,6 @@ public class WalletManager : IWalletProvider
 			{
 				cancel.ThrowIfCancellationRequested();
 
-				wallet.StateChanged -= Wallet_StateChanged;
-
 				lock (_lock)
 				{
 					if (!_wallets.Remove(wallet))
@@ -310,7 +283,7 @@ public class WalletManager : IWalletProvider
 
 				try
 				{
-					if (wallet.State >= WalletState.Initialized)
+					if (wallet.Loaded)
 					{
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
 						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
@@ -332,7 +305,7 @@ public class WalletManager : IWalletProvider
 	{
 		lock (_lock)
 		{
-			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started))
+			foreach (var wallet in _wallets.Where(x => x.Loaded))
 			{
 				wallet.TransactionProcessor.Process(transaction);
 			}
@@ -344,7 +317,7 @@ public class WalletManager : IWalletProvider
 		lock (_lock)
 		{
 			var res = new List<SmartCoin>();
-			foreach (var wallet in _wallets.Where(x => x.State == WalletState.Started))
+			foreach (var wallet in _wallets.Where(x => x.Loaded))
 			{
 				if (wallet.Coins.TryGetByOutPoint(input, out var coin))
 				{
@@ -358,11 +331,6 @@ public class WalletManager : IWalletProvider
 
 	public void Initialize()
 	{
-		foreach (var wallet in GetWallets().Where(w => w.State == WalletState.WaitingForInit))
-		{
-			wallet.Initialize();
-		}
-
 		IsInitialized = true;
 	}
 

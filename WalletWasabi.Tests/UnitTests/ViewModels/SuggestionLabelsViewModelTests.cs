@@ -193,7 +193,7 @@ public class SuggestionLabelsViewModelTests
 			set => throw new NotSupportedException();
 		}
 
-		public IObservable<WalletState> State => throw new NotSupportedException();
+		public IObservable<bool> Loaded => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
 		public IWalletAuthModel Auth => throw new NotSupportedException();

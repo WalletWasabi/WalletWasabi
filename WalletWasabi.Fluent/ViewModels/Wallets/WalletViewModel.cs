@@ -54,7 +54,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	}
 
 	private string _title = "";
-	[AutoNotify(SetterModifier = AccessModifier.Protected)] private WalletState _walletState;
+	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _loaded;
 
 	private UiConfig _uiConfig { get; }
 
@@ -278,8 +278,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			tile.Activate(disposables);
 		}
 
-		WalletModel.State
-			.BindTo(this, x => x.WalletState)
+		WalletModel.Loaded
+			.BindTo(this, x => x.Loaded)
 			.DisposeWith(disposables);
 	}
 

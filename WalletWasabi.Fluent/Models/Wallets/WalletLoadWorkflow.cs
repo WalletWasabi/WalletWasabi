@@ -42,12 +42,11 @@ public partial class WalletLoadWorkflow
 			.Subscribe(x => _lastestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
-		LoadCompleted =
-			Observable.FromEventPattern<WalletState>(_wallet, nameof(Wallet.StateChanged))
-					.ObserveOn(RxApp.MainThreadScheduler)
-					.Select(x => x.EventArgs)
-					.Where(x => x == WalletState.Started)
-					.ToSignal();
+		LoadCompleted = Services.EventBus.AsObservable<WalletLoaded>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Where(x => x.Wallet == _wallet)
+			.Select(x => x.Wallet.Loaded)
+			.ToSignal();
 	}
 
 	public IObservable<(uint RemainingFiltersToDownload, uint CurrentHeight, uint ChainTip, double Percent)> Progress => _progress;
@@ -85,11 +84,6 @@ public partial class WalletLoadWorkflow
 		IsLoading = true;
 
 		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
-
-		if (_wallet.State != WalletState.Uninitialized)
-		{
-			throw new Exception("Wallet is already being logged in.");
-		}
 
 		try
 		{

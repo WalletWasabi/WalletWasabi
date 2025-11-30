@@ -4,6 +4,9 @@ namespace WalletWasabi.Models;
 
 public readonly struct Height : IEquatable<Height>, IEquatable<int>, IComparable<Height>, IComparable<int>
 {
+	public static Height Max(Height h1, Height h2) =>
+		h1.Value > h2.Value ? h1 : h2;
+
 	public Height(uint height) : this((int)height)
 	{
 	}
