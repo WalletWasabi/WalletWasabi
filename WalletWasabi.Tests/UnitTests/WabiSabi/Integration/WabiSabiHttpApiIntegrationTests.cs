@@ -50,7 +50,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
-		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+		var round = rounds.First(x => x.Phase is Phase.InputRegistration or Phase.ConnectionConfirmation or Phase.OutputRegistration);
 
 		// If an output is not in the utxo dataset then it is not unspent, this
 		// means that the output is spent or simply doesn't even exist.
@@ -96,7 +96,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, timeoutCts.Token)).RoundStates;
-		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+		var round = rounds.First(x => x.Phase is Phase.InputRegistration or Phase.ConnectionConfirmation or Phase.OutputRegistration);
 
 		// If an output is not in the utxo dataset then it is not unspent, this
 		// means that the output is spent or simply doesn't even exist.
@@ -531,7 +531,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
 		ArenaClient apiClient = await _apiApplicationFactory.CreateArenaClientAsync(stutteredHttpClient);
 		RoundState[] rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
-		RoundState round = rounds.First(x => x.CoinjoinState is ConstructionState);
+		var round = rounds.First(x => x.Phase is Phase.InputRegistration or Phase.ConnectionConfirmation or Phase.OutputRegistration);
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
 		var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
