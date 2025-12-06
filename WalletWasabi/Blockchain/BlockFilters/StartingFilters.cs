@@ -20,6 +20,12 @@ public static class StartingFilters
 		}
 		else if (network == Network.RegTest)
 		{
+			// todo: correct?
+			GolombRiceFilter filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(startingHeader.BlockHash);
+			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter}:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
+		}
+		else if (network == Bitcoin.Instance.Signet)
+		{
 			GolombRiceFilter filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(startingHeader.BlockHash);
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter}:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
 		}

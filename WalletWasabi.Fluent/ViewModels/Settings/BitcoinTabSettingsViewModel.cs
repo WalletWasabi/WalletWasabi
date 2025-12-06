@@ -19,7 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords =
 	[
-		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
+		"Settings", "Bitcoin", "Network", "Main", "TestNet", "TestNet4", "Signet", "RegTest", "Run", "Node", "Core", "Knots", "Version", "Startup",
 		"Stop", "Shutdown", "Rpc", "Endpoint", "Dust", "Attack", "Limit"
 	],
 	IconName = "settings_bitcoin_regular")]
@@ -55,7 +55,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public IApplicationSettings Settings { get; }
 
-	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Network.RegTest };
+	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Bitcoin.Instance.Signet, Network.RegTest };
 
 	private void ValidateBitcoinRpcUri(IValidationErrors errors)
 	{

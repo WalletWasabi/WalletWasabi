@@ -69,6 +69,7 @@ public static class P2pNetwork
 				onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
 		}
 
+		Logger.LogError($"Connecting to {connectionParameters.ToString()}...");
 		return new NodesGroup(network, connectionParameters, Constants.NodeRequirements);
 	}
 
