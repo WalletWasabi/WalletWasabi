@@ -116,7 +116,7 @@ public class Config
 				"The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockstreamInfo, CoinGecko or None",
 				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
 			[ nameof(FeeRateEstimationProvider) ] = (
-				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo or None",
+				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo, Block.xyz or None",
 				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
 			[ nameof(ExternalTransactionBroadcaster) ] = (
 				"Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",

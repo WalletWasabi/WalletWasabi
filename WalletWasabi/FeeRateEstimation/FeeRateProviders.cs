@@ -23,8 +23,8 @@ public static class FeeRateProviders
 {
 	public static readonly ImmutableArray<string> Providers =
 	[
-		"Block.xyz",
 		"BlockstreamInfo",
+		"Block.xyz",
 		"MempoolSpace",
 		"None"
 	];
@@ -124,7 +124,7 @@ public static class FeeRateProviders
 				estimationsDict[1] = feeRateFor3Blocks;
 				estimationsDict[2] = feeRateFor3Blocks;
 			}
-			return new FeeRateEstimations(estimationsDict);;
+			return new FeeRateEstimations(estimationsDict);
 		};
 
 	private static Func<string, FeeRateEstimations> BlockstreamHandler() =>
