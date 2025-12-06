@@ -117,6 +117,7 @@ public class WasabiApplication
 			_ when network == Network.Main => "Config.json",
 			_ when network == Network.TestNet =>  "Config.TestNet.json",
 			_ when network == Network.RegTest =>  "Config.RegTest.json",
+			_ when network == Bitcoin.Instance.Signet =>  "Config.Signet.json",
 			_ => throw new NotSupportedException($"Network '{networkName}' is not supported."),
 		};
 		var configFilePath = Path.Combine(Config.DataDir, configFileName);
@@ -137,6 +138,8 @@ public class WasabiApplication
 			PersistentConfigManager.DefaultRegTestConfig);
 		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.TestNet.json"),
 			PersistentConfigManager.DefaultTestNetConfig);
+		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.Signet.json"),
+			PersistentConfigManager.DefaultSignetConfig);
 		CreateConfigFileIfNotExists(Path.Combine(Config.DataDir, "Config.json"),
 			PersistentConfigManager.DefaultMainNetConfig);
 		return;

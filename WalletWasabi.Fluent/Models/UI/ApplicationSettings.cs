@@ -250,6 +250,7 @@ public partial class ApplicationSettings : ReactiveObject
 			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
 			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
 			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
+			var network when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
 			_ => throw new NotSupportedException($"Network '{_startupConfig.Network}' is not supported."),
 		};
 

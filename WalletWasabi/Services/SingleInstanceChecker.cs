@@ -128,6 +128,7 @@ public class SingleInstanceChecker : BackgroundService, IAsyncDisposable
 		_ when network == Network.Main => 37129,
 		_ when network == Network.TestNet => 37130,
 		_ when network == Network.RegTest => 37131,
+		_ when network == Bitcoin.Instance.Signet => 37132,
 		_ => throw new Exception($"Network {network} is unknown")
 	};
 
