@@ -58,6 +58,14 @@ public static class PersistentConfigManager
 		BitcoinRpcUri = Constants.DefaultRegTestBitcoinRpcUri,
 	};
 
+	public static readonly PersistentConfig DefaultSignetConfig = DefaultTestNetConfig with
+	{
+		Network = Bitcoin.Instance.Signet,
+		IndexerUri = Constants.SignetIndexerUri,
+		CoordinatorUri = Constants.SignetCoordinatorUri,
+		BitcoinRpcUri = Constants.DefaultSignetBitcoinRpcUri,
+	};
+
 	public static string ToFile(string filePath, PersistentConfig obj)
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
@@ -100,6 +108,7 @@ public static class PersistentConfigManager
 				"Config.json" => DefaultMainNetConfig,
 				"Config.TestNet.json" => DefaultTestNetConfig,
 				"Config.RegTest.json" => DefaultRegTestConfig,
+				"Config.Signet.json" => DefaultSignetConfig,
 				_ => throw new ArgumentException($"The file '{configFilePath}' is not a valid config file name.")
 			};
 	}

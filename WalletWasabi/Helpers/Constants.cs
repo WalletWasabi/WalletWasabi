@@ -11,10 +11,12 @@ public static class Constants
 
 	public const string IndexerUri = "https://api.wasabiwallet.io/";
 	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
+	public const string SignetIndexerUri = "https://api.wasabiwallet.co/";
 	public const string RegTestIndexerUri = "http://localhost:37127/";
 
 	public const string CoordinatorUri = "";
 	public const string TestnetCoordinatorUri = "";
+	public const string SignetCoordinatorUri = "";
 	public const string RegTestCoordinatorUri = "http://localhost:37126/";
 
 	public const string WabiSabiFallBackCoordinatorExtPubKey = "xpub6C13JhXzjAhVRgeTcRSWqKEPe1vHi3Tmh2K9PN1cZaZFVjjSaj76y5NNyqYjc2bugj64LVDFYu8NZWtJsXNYKFb9J94nehLAPAKqKiXcebC";
@@ -64,6 +66,7 @@ public static class Constants
 
 	public const int DefaultMainNetBitcoinRpcPort = 8332;
 	public const int DefaultTestNetBitcoinRpcPort = 48332;
+	public const int DefaultSignetBitcoinRpcPort = 38332;
 	public const int DefaultRegTestBitcoinCorePort = 18443;
 
 	public const decimal DefaultDustThreshold = 0.00001m;
@@ -87,6 +90,7 @@ public static class Constants
 
 	public static readonly string DefaultMainNetBitcoinRpcUri = $"http://localhost:{DefaultMainNetBitcoinRpcPort}";
 	public static readonly string DefaultTestNetBitcoinRpcUri = $"http://localhost:{DefaultTestNetBitcoinRpcPort}";
+	public static readonly string DefaultSignetBitcoinRpcUri = $"http://localhost:{DefaultSignetBitcoinRpcPort}";
 	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";
 
 	public static readonly string DefaultExchangeRateProvider = "MempoolSpace";
