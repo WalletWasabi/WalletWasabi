@@ -128,6 +128,8 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 				filters.Add(filter);
 			}
 
+			Logger.LogInfo($"Synchronizer, current synced height: {stopAtHeight}");
+
 			return filters.Count == 0
 				? new FiltersResponse.AlreadyOnBestBlock()
 				: new FiltersResponse.NewFiltersAvailable(currentHeight, filters.ToArray());

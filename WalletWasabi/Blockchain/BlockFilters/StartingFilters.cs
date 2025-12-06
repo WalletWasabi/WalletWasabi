@@ -16,9 +16,15 @@ public static class StartingFilters
 		}
 		else if (network == Network.TestNet)
 		{
+			// First SegWit block with P2WPKH on TestNet: 00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:00000000000f0d5edcaeba823db17f366be49a80d91d15b77747c2e017b8c20a:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
 		}
 		else if (network == Network.RegTest)
+		{
+			GolombRiceFilter filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(startingHeader.BlockHash);
+			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter}:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
+		}
+		else if (network == Bitcoin.Instance.Signet)
 		{
 			GolombRiceFilter filter = LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(startingHeader.BlockHash);
 			return FilterModel.FromLine($"{startingHeader.Height}:{startingHeader.BlockHash}:{filter}:{startingHeader.HeaderOrPrevBlockHash}:{startingHeader.EpochBlockTime}");
