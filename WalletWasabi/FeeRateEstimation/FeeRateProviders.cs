@@ -24,7 +24,7 @@ public static class FeeRateProviders
 	public static readonly ImmutableArray<string> Providers =
 	[
 		"BlockstreamInfo",
-		"Block.xyz",
+		"BlockXyz",
 		"MempoolSpace",
 		"None"
 	];
