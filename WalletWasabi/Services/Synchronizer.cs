@@ -102,12 +102,24 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 				return new FiltersResponse.BestBlockUnknown();
 			}
 
-			for (var height = fromHeight + 1; height <= stopAtHeight; height++)
+			var heights = Enumerable.Range((int)fromHeight + 1, (int)(stopAtHeight - fromHeight)).ToArray();
+
+			var batchClient = bitcoinRpcClient.PrepareBatch();
+			var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+			await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+			var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+
+			var filterBatchClient = bitcoinRpcClient.PrepareBatch();
+			var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken)).ToArray();
+			await filterBatchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
+
+			for (var i = 0; i < blockHashes.Length; i++)
 			{
-				var blockHash = await bitcoinRpcClient.GetBlockHashAsync((int) height, cancellationToken)
-					.ConfigureAwait(false);
-				var filterResponse = await bitcoinRpcClient.GetBlockFilterAsync(blockHash, cancellationToken)
-					.ConfigureAwait(false);
+				var blockHash = blockHashes[i];
+				var filterResponse = filterResponses[i];
+				var height = (uint)heights[i];
 
 				var filter = new FilterModel(
 					new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
