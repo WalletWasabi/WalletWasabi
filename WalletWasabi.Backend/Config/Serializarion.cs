@@ -16,6 +16,7 @@ public static class ConfigEncode
 			("MainNetBitcoinCoreRpcEndPoint", String(cfg.MainNetBitcoinRpcUri) ),
 			("TestNetBitcoinCoreRpcEndPoint", String(cfg.TestNetBitcoinRpcUri) ),
 			("RegTestBitcoinCoreRpcEndPoint", String(cfg.RegTestBitcoinRpcUri) ),
+			("SignetBitcoinCoreRpcEndPoint", String(cfg.SignetBitcoinRpcUri) ),
 			("FilterType", Constants.DefaultFilterType)
 		]);
 }
@@ -30,6 +31,7 @@ public static class ConfigDecode
 			get.Required("MainNetBitcoinCoreRpcEndPoint", Decode.String ),
 			get.Required("TestNetBitcoinCoreRpcEndPoint", Decode.String ),
 			get.Required("RegTestBitcoinCoreRpcEndPoint", Decode.String ),
+			get.Required("SignetBitcoinCoreRpcEndPoint", Decode.String),
 			get.Optional("FilterType", Decode.String) ?? Constants.DefaultFilterType
 		));
 }
