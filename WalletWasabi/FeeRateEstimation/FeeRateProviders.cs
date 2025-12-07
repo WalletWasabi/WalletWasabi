@@ -24,11 +24,21 @@ public static class FeeRateProviders
 	public static readonly ImmutableArray<string> Providers =
 	[
 		"BlockstreamInfo",
+		"BlockXyz",
 		"MempoolSpace",
 		"None"
 	];
 
 	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker(false);
+
+	/*
+	 * https://engineering.block.xyz/blog/augur-an-open-source-bitcoin-fee-estimation-library
+	 */
+	public static FeeRateProvider BlockAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetFeeRateEstimationsAsync("Block.xyz",
+			("https://pricing.bitcoin.block.xyz", "https://pricing.bitcoin.block.xyz"),
+			"/fees",
+			httpClientFactory, PickRandomUserAgent(), BlockHandler(), cancellationToken);
 
 	public static FeeRateProvider BlockstreamAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetFeeRateEstimationsAsync("Blockstream",
@@ -97,6 +107,25 @@ public static class FeeRateProviders
 				},
 				ex => throw new InvalidOperationException($"Error parsing fee rate estimations provider response.", ex));
 	}
+
+	private static Func<string, FeeRateEstimations> BlockHandler() =>
+		json =>
+		{
+			var doc = JsonDocument.Parse(json);
+			var estimates = doc.RootElement.GetProperty("estimates");
+			var estimationsDict = estimates.EnumerateObject()
+				.Select(o => (int.Parse(o.Name), o.Value.GetProperty("probabilities").GetProperty("0.80").GetProperty("fee_rate").GetDecimal()))
+				.Select(o => (o.Item1, new FeeRate(o.Item2)))
+				.ToDictionary();
+
+			if (estimationsDict.TryGetValue(3, out var feeRateFor3Blocks))
+			{
+				// blog post says use "3 blocks" fee rate for next block so inserting for 1&2 to make correct extrapolation
+				estimationsDict[1] = feeRateFor3Blocks;
+				estimationsDict[2] = feeRateFor3Blocks;
+			}
+			return new FeeRateEstimations(estimationsDict);
+		};
 
 	private static Func<string, FeeRateEstimations> BlockstreamHandler() =>
 		json => new FeeRateEstimations(
