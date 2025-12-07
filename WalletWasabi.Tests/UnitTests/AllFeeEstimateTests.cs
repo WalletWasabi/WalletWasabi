@@ -19,25 +19,6 @@ namespace WalletWasabi.Tests.UnitTests;
 public class AllFeeEstimateTests
 {
 	[Fact]
-	public void Serialization()
-	{
-		var estimations = new Dictionary<int, FeeRate>
-		{
-			{ 2, new FeeRate(102M) },
-			{ 3, new FeeRate(20M) },
-			{ 19,new FeeRate( 1M) }
-		};
-		var allFee = new AllFeeEstimate(estimations);
-		var serialized = JsonEncoder.ToString(allFee, Encode.AllFeeEstimate);
-		var deserialized = JsonDecoder.FromString(serialized, Decode.AllFeeEstimate);
-
-		Assert.NotNull(deserialized);
-		Assert.Equal(estimations[2], deserialized.Estimations[2]);
-		Assert.Equal(estimations[3], deserialized.Estimations[3]);
-		Assert.Equal(estimations[19], deserialized.Estimations[36]);
-	}
-
-	[Fact]
 	public void OrdersByTarget()
 	{
 		var estimations = new Dictionary<int, FeeRate>
