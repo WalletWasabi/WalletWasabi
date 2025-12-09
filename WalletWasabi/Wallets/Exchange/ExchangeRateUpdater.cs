@@ -24,6 +24,4 @@ public static class ExchangeRateUpdater
 
 		return usdExchangeRate;
 	}
-
-	public static void UpdateExchangeRate() => Workers.Tell(ServiceName, new UpdateMessage());
 }

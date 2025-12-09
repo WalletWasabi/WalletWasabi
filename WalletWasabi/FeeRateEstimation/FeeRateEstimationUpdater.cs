@@ -6,6 +6,7 @@ namespace WalletWasabi.FeeRateEstimation;
 
 public static class FeeRateEstimationUpdater
 {
+	public static readonly string ServiceName = "FeeRateUpdater";
 	public record UpdateMessage;
 
 	public static MessageHandler<UpdateMessage, FeeRateEstimations> CreateUpdater(FeeRateProvider feeRateProvider, EventBus eventBus) =>

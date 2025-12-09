@@ -233,7 +233,7 @@ public class Global
 			var rpcFeeProvider = FeeRateProviders.RpcAsync(_bitcoinRpcClient);
 			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		}
-		var feeRateUpdater = Spawn("FeeRateUpdater",
+		var feeRateUpdater = Spawn(FeeRateEstimationUpdater.ServiceName,
 			Service("Mining Fee Rate Updater",
 				Periodically(
 					TimeSpan.FromMinutes(15),
