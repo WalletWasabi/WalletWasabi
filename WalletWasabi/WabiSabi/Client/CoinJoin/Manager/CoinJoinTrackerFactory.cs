@@ -15,23 +15,20 @@ public class CoinJoinTrackerFactory
 	public CoinJoinTrackerFactory(
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		RoundStateProvider roundStatusProvider,
-		CoinJoinConfiguration coinJoinConfiguration,
 		CancellationToken cancellationToken)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusProvider = roundStatusProvider;
-		_coinJoinConfiguration = coinJoinConfiguration;
 		_cancellationToken = cancellationToken;
 		_liquidityClueProvider = new LiquidityClueProvider();
 	}
 
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
-	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, CoinJoinConfiguration coinJoinConfiguration, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await _liquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -50,7 +47,7 @@ public class CoinJoinTrackerFactory
 			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
 			_roundStatusProvider,
 			coinSelector,
-			_coinJoinConfiguration,
+			coinJoinConfiguration,
 			_liquidityClueProvider);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);

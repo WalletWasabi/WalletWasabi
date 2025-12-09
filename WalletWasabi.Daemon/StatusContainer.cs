@@ -1,16 +1,12 @@
 using System;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Models;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Daemon;
 
-public class StatusContainer : IDisposable
+public class StatusContainer : StatusInfo, IDisposable
 {
-	public bool IsTorRunning { get; private set; }
-	public decimal UsdExchangeRate { get; private set; }
-	public FeeRateEstimations? FeeRates { get; private set; }
-	public int BestHeight { get; private set; }
-	public bool IsIndexerAvailable { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
 

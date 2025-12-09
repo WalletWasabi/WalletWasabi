@@ -334,6 +334,8 @@ public class CoinJoinClient
 		try
 		{
 			var roundId = roundState.Id;
+			roundState.LogInfo("Started.");
+			roundState.LogInfo($"FeeRate: {roundState.CoinjoinState.Parameters.MiningFeeRate} MaxAllowedMiningFeeRate: {_coinJoinConfiguration.MaxCoinJoinMiningFeeRate}");
 
 			registeredAliceClients = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())

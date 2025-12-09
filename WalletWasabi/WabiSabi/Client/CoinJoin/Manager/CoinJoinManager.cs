@@ -13,7 +13,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
+using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -33,14 +33,14 @@ public class CoinJoinManager : BackgroundService
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison,
-		EventBus eventBus)
+		StatusInfo statusInfo)
 	{
 		_walletProvider = walletProvider;
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
-		_serverTipHeightChangeSubscription = eventBus.Subscribe<ServerTipHeightChanged>(h => _serverTipHeight = h.Height);
+		_statusInfo = statusInfo;
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -50,9 +50,9 @@ public class CoinJoinManager : BackgroundService
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinPrison _coinPrison;
+	private readonly StatusInfo _statusInfo;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
-	private int _serverTipHeight;
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
@@ -69,7 +69,6 @@ public class CoinJoinManager : BackgroundService
 	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<WalletId, CoinJoinClientStateHolder>.Empty;
 
 	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
-	private readonly IDisposable _serverTipHeightChangeSubscription;
 
 	private static bool IsUnderPlebStop(SmartCoin[] coinCandidates, Money plebStopThreshold) => coinCandidates.Sum(x => x.Amount) < plebStopThreshold;
 
@@ -163,7 +162,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -233,7 +232,9 @@ public class CoinJoinManager : BackgroundService
 				return coinCandidates;
 			}
 
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+			var maxMiningFeeRate = (0.5m + 1.1m * _statusInfo.FeeRates?.GetFeeRate(2).SatoshiPerByte) ?? _coinJoinConfiguration.MaxCoinJoinMiningFeeRate;
+			var coinjoinConfiguration = _coinJoinConfiguration with { MaxCoinJoinMiningFeeRate = decimal.Min(_coinJoinConfiguration.MaxCoinJoinMiningFeeRate, maxMiningFeeRate) };
+			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, coinjoinConfiguration, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
 
 			if (!trackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
 			{
@@ -319,8 +320,8 @@ private async Task<CoinSelectionResult> GetCoinSelectionAsync(IWallet wallet)
     }
 
     var bannedCoins = coinCandidates.Where(x => _coinPrison.IsBanned(x.Outpoint)).ToArray();
-    var immatureCoins = _serverTipHeight > 0
-	    ? coinCandidates.Where(x => x.Transaction.IsImmature(_serverTipHeight)).ToArray()
+    var immatureCoins = _statusInfo.BestHeight > 0
+	    ? coinCandidates.Where(x => x.Transaction.IsImmature(_statusInfo.BestHeight)).ToArray()
 	    : [];
     var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
     var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
@@ -809,12 +810,6 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 		}
 
 		NotifyCoinJoinStatusChanged(wallet, e);
-	}
-
-	public override void Dispose()
-	{
-		_serverTipHeightChangeSubscription.Dispose();
-		base.Dispose();
 	}
 
 	private record CoinJoinCommand(IWallet Wallet);
