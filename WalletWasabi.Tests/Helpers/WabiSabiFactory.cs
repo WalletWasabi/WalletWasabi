@@ -341,8 +341,7 @@ public static class WabiSabiFactory
 			roundStateProvider,
 			coinSelector,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
-			new LiquidityClueProvider(),
-			TimeSpan.Zero);
+			new LiquidityClueProvider());
 
 		return coinjoinClient;
 	}
@@ -403,8 +402,10 @@ public static class WabiSabiFactory
 
 public class TesteableCoinJoinClient : CoinJoinClient
 {
-	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
+	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider)
+		: base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider)
 	{
+		_safetyMarginForRegistration = TimeSpan.Zero;
 	}
 
 	internal override ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime,

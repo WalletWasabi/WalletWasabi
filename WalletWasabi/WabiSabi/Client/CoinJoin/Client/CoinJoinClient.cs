@@ -51,6 +51,7 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
+		_safetyMarginForRegistration = TimeSpan.FromMinutes(1);
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -65,7 +66,7 @@ public class CoinJoinClient
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
-
+	protected TimeSpan _safetyMarginForRegistration;
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
 	{
 		CoinJoinClientProgress.SafeInvoke(this, new WaitingForRound());
@@ -76,7 +77,7 @@ public class CoinJoinClient
 		return await _roundStatusProvider
 			.CreateRoundAwaiterAsync(
 				roundState =>
-					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1)
+					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow >  TimeSpan.FromMicroseconds(1)
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& !roundState.IsBlame
