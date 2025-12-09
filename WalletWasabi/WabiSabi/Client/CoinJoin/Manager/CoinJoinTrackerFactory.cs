@@ -51,8 +51,7 @@ public class CoinJoinTrackerFactory
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
-			_liquidityClueProvider,
-			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
+			_liquidityClueProvider);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}

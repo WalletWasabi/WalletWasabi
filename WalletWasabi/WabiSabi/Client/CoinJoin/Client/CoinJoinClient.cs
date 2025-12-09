@@ -42,8 +42,7 @@ public class CoinJoinClient
 		RoundStateProvider roundStatusProvider,
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
-		LiquidityClueProvider liquidityClueProvider,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		LiquidityClueProvider liquidityClueProvider)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_keyChain = keyChain;
@@ -52,15 +51,12 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
-		_secureRandom = new SecureRandom();
-		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
 	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = ImmutableList<SmartCoin>.Empty;
 
-	private readonly SecureRandom _secureRandom;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly IKeyChain _keyChain;
 	private readonly OutputProvider _outputProvider;
@@ -68,7 +64,6 @@ public class CoinJoinClient
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
-	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -81,7 +76,7 @@ public class CoinJoinClient
 		return await _roundStatusProvider
 			.CreateRoundAwaiterAsync(
 				roundState =>
-					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > _doNotRegisterInLastMinuteTimeLimit
+					roundState.InputRegistrationEnd - DateTimeOffset.UtcNow > TimeSpan.FromMinutes(1)
 					&& roundState.CoinjoinState.Parameters.AllowedOutputAmounts.Min < MinimumOutputAmountSanity
 					&& roundState.Phase == Phase.InputRegistration
 					&& !roundState.IsBlame
@@ -397,8 +392,8 @@ public class CoinJoinClient
 			try
 			{
 				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(_secureRandom),
-					roundState.CreateVsizeCredentialClient(_secureRandom),
+					roundState.CreateAmountCredentialClient(SecureRandom.Instance),
+					roundState.CreateVsizeCredentialClient(SecureRandom.Instance),
 					_coinJoinConfiguration.CoordinatorIdentifier,
 					ArenaRequestHandlerFactory($"alice-{coin.Outpoint}"));
 
@@ -555,12 +550,12 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var identity = Convert.ToHexString(_secureRandom.GetBytes(20)).ToLower();
+		var identity = Convert.ToHexString(SecureRandom.Instance.GetBytes(20)).ToLower();
 		return new BobClient(
 			roundState.Id,
 			new(
-				roundState.CreateAmountCredentialClient(_secureRandom),
-				roundState.CreateVsizeCredentialClient(_secureRandom),
+				roundState.CreateAmountCredentialClient(SecureRandom.Instance),
+				roundState.CreateVsizeCredentialClient(SecureRandom.Instance),
 				_coinJoinConfiguration.CoordinatorIdentifier,
 				ArenaRequestHandlerFactory($"bob-{identity}")));
 	}
@@ -836,7 +831,7 @@ public class CoinJoinClient
 		var combinedToken = linkedCts.Token;
 		var alicesToSign = mustSignAllInputs
 			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(_secureRandom.GetInt(0, registeredAliceClients.Length));
+			: registeredAliceClients.RemoveAt(SecureRandom.Instance.GetInt(0, registeredAliceClients.Length));
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
