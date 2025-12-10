@@ -21,6 +21,7 @@ public class WasabiApplication
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
+	private static Guid InstanceGuid { get; } = Guid.NewGuid();
 
 	public WasabiApplication(WasabiAppBuilder wasabiAppBuilder)
 	{
@@ -83,7 +84,7 @@ public class WasabiApplication
 		AppDomain.CurrentDomain.UnhandledException += CurrentDomain_UnhandledException;
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
-		Logger.LogSoftwareStarted(AppConfig.AppName);
+		Logger.LogInfo($"{AppConfig.AppName} started ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 
 		Global = CreateGlobal();
 	}
@@ -96,7 +97,7 @@ public class WasabiApplication
 		// Start termination/disposal of the application.
 		TerminateService.Terminate();
 		SingleInstanceChecker.Dispose();
-		Logger.LogSoftwareStopped(AppConfig.AppName);
+		Logger.LogInfo($"{AppConfig.AppName} stopped gracefully ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 	}
 
 	private Global CreateGlobal()
@@ -228,7 +229,7 @@ public class WasabiApplication
 
 	private async Task TerminateApplicationAsync()
 	{
-		Logger.LogSoftwareStopped(AppConfig.AppName);
+		Logger.LogInfo($"{AppConfig.AppName} stopped gracefully ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 
 		if (Global is { } global)
 		{

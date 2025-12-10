@@ -49,13 +49,9 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var tx = await rpc.GetRawTransactionAsync(utxo.OutPoint.Hash);
 		using StringContent content = new($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
 
-		Logger.TurnOff();
-
 		using var response = await BackendApiHttpClient.PostAsync($"api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
 		Assert.Equal("Transaction is already in the blockchain.", await response.Content.ReadAsJsonAsync(Decode.String));
-
-		Logger.TurnOn();
 	}
 
 	[Fact]
@@ -65,15 +61,11 @@ public class BackendTests : IClassFixture<RegTestFixture>
 
 		using StringContent content = new($"''", Encoding.UTF8, "application/json");
 
-		Logger.TurnOff();
-
 		using var response = await BackendApiHttpClient.PostAsync($"api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 
 		Assert.NotEqual(HttpStatusCode.OK, response.StatusCode);
 		Assert.Equal(HttpStatusCode.BadRequest, response.StatusCode);
 		Assert.Contains("The hex field is required.", await response.Content.ReadAsStringAsync());
-
-		Logger.TurnOn();
 	}
 
 	[Fact]

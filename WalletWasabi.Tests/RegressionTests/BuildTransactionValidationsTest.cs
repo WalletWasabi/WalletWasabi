@@ -84,8 +84,6 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 			new DestinationRequest(scp, Money.Satoshis(long.MaxValue)),
 			new DestinationRequest(scp, Money.Satoshis(5))));
 
-		Logger.TurnOff();
-
 		// toSend cannot have a zero element
 		Assert.Throws<ArgumentException>(() => wallet.BuildTransaction("", new PaymentIntent(Array.Empty<DestinationRequest>()), FeeStrategy.SevenDaysConfirmationTargetStrategy));
 
@@ -177,8 +175,6 @@ public class BuildTransactionValidationsTest : IClassFixture<RegTestFixture>
 					new DestinationRequest(scp, MoneyRequest.CreateAllRemaining()),
 					new DestinationRequest(scp, MoneyRequest.CreateAllRemaining())),
 				FeeStrategy.TwentyMinutesConfirmationTargetStrategy));
-
-			Logger.TurnOn();
 
 			operations = new PaymentIntent(scp, Money.Coins(0.5m));
 			btx = wallet.BuildTransaction(password, operations, FeeStrategy.TwentyMinutesConfirmationTargetStrategy);
