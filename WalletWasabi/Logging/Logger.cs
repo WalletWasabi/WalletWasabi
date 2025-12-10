@@ -14,7 +14,6 @@ public static class Logger
 	private static HashSet<LogMode> Modes { get; } = new();
 	public static string FilePath { get; private set; } = "Log.txt";
 	public static string EntrySeparator { get; } = Environment.NewLine;
-	private static Guid InstanceGuid { get; } = Guid.NewGuid();
 	private static long MaximumLogFileSizeBytes { get; set; } = 10_000_000;
 	private static long LogFileSizeBytes { get; set; }
 
@@ -89,7 +88,7 @@ public static class Logger
 			_ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
 		};
 
-	public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
+	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "", int callerLineNumber = -1)
 	{
 			if (Modes.Count == 0)
 			{
@@ -134,19 +133,14 @@ public static class Logger
 				}
 			}
 
+			if (ctx is { })
+			{
+				messageBuilder.AppendLine(ctx.ToString());
+			}
 			var finalMessage = messageBuilder.ToString();
 
-			for (int i = 0; i < additionalEntrySeparators; i++)
-			{
-				messageBuilder.Insert(0, EntrySeparator);
-			}
 
 			var finalFileMessage = messageBuilder.ToString();
-			if (!additionalEntrySeparatorsLogFileOnlyMode)
-			{
-				finalMessage = finalFileMessage;
-			}
-
 			lock (Lock)
 			{
 				if (Modes.Contains(LogMode.Console))
@@ -164,9 +158,6 @@ public static class Logger
 							case LogLevel.Critical:
 								color = ConsoleColor.Red;
 								break;
-
-							default:
-								break; // Keep original color.
 						}
 
 						Console.ForegroundColor = color;
@@ -201,52 +192,41 @@ public static class Logger
 			}
 	}
 
-	private static void Log(string message, Exception ex, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(level, message: $"{message} Exception: {ex}", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-	}
+	public static void LogTrace(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+		Log(LogLevel.Trace, message, ctx, callerFilePath, callerLineNumber);
 
-	private static void Log(Exception exception, LogLevel level, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(level, exception.ToString(), callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-	}
+	public static void LogDebug(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+		Log(LogLevel.Debug, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogTrace(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Trace, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogInfo(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		Log(LogLevel.Info, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Trace, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogWarning(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+		Log(LogLevel.Warning, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogTrace(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(message, exception, LogLevel.Trace, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogError(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		Log(LogLevel.Error, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogDebug(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Debug, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogCritical(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		Log(LogLevel.Critical, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Debug, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	// ReSharper disable ExplicitCallerInfoArgument
+	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		LogTrace(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogDebug(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(message, exception, LogLevel.Debug, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		LogDebug(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogSoftwareStarted(string appName, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, $"{appName} started ({InstanceGuid}).", additionalEntrySeparators: 3, additionalEntrySeparatorsLogFileOnlyMode: true, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		LogInfo(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogSoftwareStopped(string appName, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(LogLevel.Info, $"{appName} stopped gracefully ({InstanceGuid}).", callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+		LogWarning(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogInfo(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Info, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+		LogError(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Info, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogWarning(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Warning, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Warning, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogError(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Error, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogError(string message, Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
-		=> Log(message, exception, LogLevel.Error, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Error, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogCritical(string message, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(LogLevel.Critical, message, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
-
-	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1) => Log(exception, LogLevel.Critical, callerFilePath: callerFilePath, callerMemberName: callerMemberName, callerLineNumber: callerLineNumber);
+	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+		LogCritical(exception.ToString(), null, callerFilePath, callerLineNumber);
+	// ReSharper restore ExplicitCallerInfoArgument
 }

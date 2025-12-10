@@ -188,7 +188,5 @@ public class TerminateService
 
 		// Indicate that the termination procedure finished. So other callers can return.
 		Interlocked.Exchange(ref _terminateStatus, TerminateStatusFinished);
-
-		Logger.LogSoftwareStopped("Wasabi");
 	}
 }
