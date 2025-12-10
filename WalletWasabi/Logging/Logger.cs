@@ -46,20 +46,8 @@ public static class Logger
 
 	public static void SetModes(params LogMode[] modes)
 	{
-		if (Modes.Count != 0)
-		{
-			Modes.Clear();
-		}
-
-		if (modes is null)
-		{
-			return;
-		}
-
-		foreach (var mode in modes)
-		{
-			Modes.Add(mode);
-		}
+		Modes.Clear();
+		Modes.UnionWith(modes);
 	}
 
 	public static void SetFilePath(string filePath)
@@ -76,7 +64,7 @@ public static class Logger
 		}
 	}
 
-	private static string ShortLevel(LogLevel level) =>
+	private static string GetShortNameLevel(LogLevel level) =>
 		level switch
 		{
 			LogLevel.Trace => "TRC",
@@ -87,6 +75,46 @@ public static class Logger
 			LogLevel.Critical => "CRT",
 			_ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
 		};
+
+	private static ConsoleColor GetConsoleColor(LogLevel level) =>
+		level switch
+		{
+			LogLevel.Warning => ConsoleColor.Yellow,
+			LogLevel.Error or LogLevel.Critical => ConsoleColor.Red,
+			_ => Console.ForegroundColor
+		};
+
+	private static string FormatCategory(string callerFilePath, int callerLineNumber)
+	{
+		if (string.IsNullOrWhiteSpace(callerFilePath))
+		{
+			return "";
+		}
+
+		var category = $"{callerFilePath}:{callerLineNumber}";
+		return category.Length > 40 ? $"..{category.Substring(category.Length - 38)}" : category;
+	}
+
+	private static void AppendMessageContent(StringBuilder builder, string message, string category)
+	{
+		if (message.Length == 0 && category.Length == 0)
+		{
+			return;
+		}
+
+		if (category.Length == 0)
+		{
+			builder.Append(message);
+		}
+		else if (message.Length == 0)
+		{
+			builder.Append(category);
+		}
+		else
+		{
+			builder.Append($"{category,-40} | {message}");
+		}
+	}
 
 	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "", int callerLineNumber = -1)
 	{
@@ -100,45 +128,19 @@ public static class Logger
 				return;
 			}
 
-			message = Guard.Correct(message);
-			var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{callerFilePath}:{callerLineNumber}";
+			var category = FormatCategory(callerFilePath, callerLineNumber);
 
 			var messageBuilder = new StringBuilder();
-			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {ShortLevel(level)} | ");
+			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
 
-			if (message.Length == 0)
-			{
-				if (category.Length == 0) // If both empty. It probably never happens though.
-				{
-					messageBuilder.Append($"{EntrySeparator}");
-				}
-				else // If only the message is empty.
-				{
-					messageBuilder.Append($"{category}{EntrySeparator}");
-				}
-			}
-			else
-			{
-				if (category.Length == 0) // If only the category is empty.
-				{
-					messageBuilder.Append($"{message}{EntrySeparator}");
-				}
-				else // If none of them empty.
-				{
-					if (category.Length > 40)
-					{
-						category = $"..{category.Substring(category.Length - 38)}";
-					}
-					messageBuilder.Append($"{category,-40} | {message}{EntrySeparator}");
-				}
-			}
+			AppendMessageContent(messageBuilder, message, category);
+			messageBuilder.Append(EntrySeparator);
 
 			if (ctx is { })
 			{
 				messageBuilder.AppendLine(ctx.ToString());
 			}
 			var finalMessage = messageBuilder.ToString();
-
 
 			var finalFileMessage = messageBuilder.ToString();
 			lock (Lock)
@@ -147,20 +149,7 @@ public static class Logger
 				{
 					lock (Console.Out)
 					{
-						var color = Console.ForegroundColor;
-						switch (level)
-						{
-							case LogLevel.Warning:
-								color = ConsoleColor.Yellow;
-								break;
-
-							case LogLevel.Error:
-							case LogLevel.Critical:
-								color = ConsoleColor.Red;
-								break;
-						}
-
-						Console.ForegroundColor = color;
+						Console.ForegroundColor = GetConsoleColor(level);
 						Console.Write(finalMessage);
 						Console.ResetColor();
 					}

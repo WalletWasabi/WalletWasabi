@@ -544,7 +544,7 @@ public class Global
 
 		using (await _initializationAsyncLock.LockAsync())
 		{
-			Logger.LogWarning("Process is exiting.", nameof(Global));
+			Logger.LogWarning("Process is exiting.");
 
 			try
 			{
@@ -552,7 +552,7 @@ public class Global
 				{
 					using var dequeueCts = new CancellationTokenSource(TimeSpan.FromMinutes(6));
 					await WalletManager.RemoveAndStopAllAsync(dequeueCts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(WalletManager)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(WalletManager)} is stopped.");
 				}
 				catch (Exception ex)
 				{
@@ -574,7 +574,7 @@ public class Global
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await rpcServer.StopAsync(cts.Token).ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(RpcServer)} is stopped.", nameof(Global));
+					Logger.LogInfo($"{nameof(RpcServer)} is stopped.");
 				}
 
 				if (HostedServices is { } backgroundServices)
