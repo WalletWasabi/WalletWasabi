@@ -25,8 +25,6 @@ public static class Logger
 
 	private static long On = 1;
 
-	private static int LoggingFailedCount = 0;
-
 	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
 
 	private static HashSet<LogMode> Modes { get; } = new();
@@ -156,8 +154,6 @@ public static class Logger
 
 	public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-		try
-		{
 			if (Modes.Count == 0 || !IsOn())
 			{
 				return;
@@ -266,18 +262,6 @@ public static class Logger
 
 				File.AppendAllText(FilePath, finalFileMessage);
 			}
-		}
-		catch (Exception ex)
-		{
-			if (Interlocked.Increment(ref LoggingFailedCount) == 1) // If it only failed the first time, try log the failure.
-			{
-				LogDebug($"Logging failed: {ex}");
-			}
-
-			// If logging the failure is successful then clear the failure counter.
-			// If it's not the first time the logging failed, then we do not try to log logging failure, so clear the failure counter.
-			Interlocked.Exchange(ref LoggingFailedCount, 0);
-		}
 	}
 
 	#endregion GeneralLoggingMethods
