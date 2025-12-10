@@ -126,16 +126,6 @@ public static class Logger
 
 	#endregion Initializers
 
-	#region Methods
-
-	public static void TurnOff() => Interlocked.Exchange(ref On, 0);
-
-	public static void TurnOn() => Interlocked.Exchange(ref On, 1);
-
-	public static bool IsOn() => Interlocked.Read(ref On) == 1;
-
-	#endregion Methods
-
 	#region LoggingMethods
 
 	#region GeneralLoggingMethods
@@ -154,7 +144,7 @@ public static class Logger
 
 	public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
-			if (Modes.Count == 0 || !IsOn())
+			if (Modes.Count == 0)
 			{
 				return;
 			}
