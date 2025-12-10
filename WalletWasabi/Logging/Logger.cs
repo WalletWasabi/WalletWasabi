@@ -142,6 +142,18 @@ public static class Logger
 
 	#region GeneralLoggingMethods
 
+	private static string ShortLevel(LogLevel level) =>
+		level switch
+		{
+			LogLevel.Trace => "TRC",
+			LogLevel.Debug => "DBG",
+			LogLevel.Info => "INF",
+			LogLevel.Warning => "WRN",
+			LogLevel.Error => "ERR",
+			LogLevel.Critical => "CRT",
+			_ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
+		};
+
 	public static void Log(LogLevel level, string message, int additionalEntrySeparators = 0, bool additionalEntrySeparatorsLogFileOnlyMode = true, [CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", [CallerLineNumber] int callerLineNumber = -1)
 	{
 		try
@@ -157,10 +169,10 @@ public static class Logger
 			}
 
 			message = Guard.Correct(message);
-			var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{EnvironmentHelpers.ExtractFileName(callerFilePath)}.{callerMemberName} ({callerLineNumber})";
+			var category = string.IsNullOrWhiteSpace(callerFilePath) ? "" : $"{callerFilePath}:{callerLineNumber}";
 
 			var messageBuilder = new StringBuilder();
-			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId}] {level.ToString().ToUpperInvariant()}\t");
+			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {ShortLevel(level)} | ");
 
 			if (message.Length == 0)
 			{
@@ -181,7 +193,11 @@ public static class Logger
 				}
 				else // If none of them empty.
 				{
-					messageBuilder.Append($"{category}\t{message}{EntrySeparator}");
+					if (category.Length > 40)
+					{
+						category = $"..{category.Substring(category.Length - 38)}";
+					}
+					messageBuilder.Append($"{category,-40} | {message}{EntrySeparator}");
 				}
 			}
 
