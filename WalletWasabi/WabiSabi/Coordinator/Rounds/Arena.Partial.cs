@@ -377,7 +377,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 		var banningTime = _prison.GetBanTimePeriod(input, _config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
-			round.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}");
+			Logger.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}", round);
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(banningTime.EndTime));
 		}
 	}
