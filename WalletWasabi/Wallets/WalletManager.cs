@@ -13,6 +13,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client;
+using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.Wallets;
 
@@ -187,9 +188,9 @@ public class WalletManager : IWalletProvider
 		{
 			try
 			{
-				Logger.LogInfo($"Starting wallet '{wallet.WalletName}'...");
+				Logger.LogInfo(FormatLog("Starting wallet...", wallet));
 				await wallet.StartAsync(_cancelAllTasksToken).ConfigureAwait(false);
-				Logger.LogInfo($"Wallet '{wallet.WalletName}' started.");
+				Logger.LogInfo(FormatLog("Wallet started.", wallet));
 				_cancelAllTasksToken.ThrowIfCancellationRequested();
 				return wallet;
 			}
@@ -286,14 +287,14 @@ public class WalletManager : IWalletProvider
 					if (wallet.Loaded)
 					{
 						await wallet.StopAsync(cancel).ConfigureAwait(false);
-						Logger.LogInfo($"'{wallet.WalletName}' wallet is stopped.");
+						Logger.LogInfo(FormatLog("is stopped.", wallet));
 					}
 
 					wallet.Dispose();
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError(ex);
+					Logger.LogError(FormatLog(ex.ToString(), wallet));
 				}
 			}
 		}

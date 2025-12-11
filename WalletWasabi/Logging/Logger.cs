@@ -4,6 +4,10 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Logging;
 
@@ -91,8 +95,9 @@ public static class Logger
 			return "";
 		}
 
-		var category = $"{callerFilePath}:{callerLineNumber}";
-		return category.Length > 40 ? $"..{category.Substring(category.Length - 38)}" : category;
+		var filePath = Path.GetFileName(callerFilePath);
+		var category = $"{filePath}:{callerLineNumber}";
+		return category.Length > 30 ? $"..{category.Substring(category.Length - 28)}" : category;
 	}
 
 	private static void AppendMessageContent(StringBuilder builder, string message, string category)
@@ -112,110 +117,143 @@ public static class Logger
 		}
 		else
 		{
-			builder.Append($"{category,-40} | {message}");
+			builder.Append($"{category,-30} | {message}");
 		}
 	}
 
-	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "", int callerLineNumber = -1)
+	private static string ContextToString(object? ctx) =>
+		ctx switch
+		{
+			not null => ctx.ToString()!,
+			_ => ""
+		};
+
+	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "",
+		int callerLineNumber = -1)
 	{
-			if (Modes.Count == 0)
+		if (Modes.Count == 0)
+		{
+			return;
+		}
+
+		if (level < MinimumLevel)
+		{
+			return;
+		}
+
+		var category = FormatCategory(callerFilePath, callerLineNumber);
+
+		var messageBuilder = new StringBuilder();
+		messageBuilder.Append(
+			$"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
+
+		AppendMessageContent(messageBuilder, message, category);
+		messageBuilder.Append(EntrySeparator);
+
+		if (ctx is not null)
+		{
+			messageBuilder.AppendLine(ContextToString(ctx));
+		}
+
+		var finalMessage = messageBuilder.ToString();
+
+		var finalFileMessage = messageBuilder.ToString();
+		lock (Lock)
+		{
+			if (Modes.Contains(LogMode.Console))
+			{
+				lock (Console.Out)
+				{
+					Console.ForegroundColor = GetConsoleColor(level);
+					Console.Write(finalMessage);
+					Console.ResetColor();
+				}
+			}
+
+			if (Modes.Contains(LogMode.Debug))
+			{
+				Debug.Write(finalMessage);
+			}
+
+			if (!Modes.Contains(LogMode.File))
 			{
 				return;
 			}
 
-			if (level < MinimumLevel)
+			if (MaximumLogFileSizeBytes > 0)
 			{
-				return;
+				// Simplification here is that: 1 character ~ 1 byte.
+				LogFileSizeBytes += finalFileMessage.Length;
+
+				if (LogFileSizeBytes > MaximumLogFileSizeBytes)
+				{
+					LogFileSizeBytes = 0;
+					File.Delete(FilePath);
+				}
 			}
 
-			var category = FormatCategory(callerFilePath, callerLineNumber);
-
-			var messageBuilder = new StringBuilder();
-			messageBuilder.Append($"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
-
-			AppendMessageContent(messageBuilder, message, category);
-			messageBuilder.Append(EntrySeparator);
-
-			if (ctx is { })
-			{
-				messageBuilder.AppendLine(ctx.ToString());
-			}
-			var finalMessage = messageBuilder.ToString();
-
-			var finalFileMessage = messageBuilder.ToString();
-			lock (Lock)
-			{
-				if (Modes.Contains(LogMode.Console))
-				{
-					lock (Console.Out)
-					{
-						Console.ForegroundColor = GetConsoleColor(level);
-						Console.Write(finalMessage);
-						Console.ResetColor();
-					}
-				}
-
-				if (Modes.Contains(LogMode.Debug))
-				{
-					Debug.Write(finalMessage);
-				}
-
-				if (!Modes.Contains(LogMode.File))
-				{
-					return;
-				}
-
-				if (MaximumLogFileSizeBytes > 0)
-				{
-					// Simplification here is that: 1 character ~ 1 byte.
-					LogFileSizeBytes += finalFileMessage.Length;
-
-					if (LogFileSizeBytes > MaximumLogFileSizeBytes)
-					{
-						LogFileSizeBytes = 0;
-						File.Delete(FilePath);
-					}
-				}
-
-				File.AppendAllText(FilePath, finalFileMessage);
-			}
+			File.AppendAllText(FilePath, finalFileMessage);
+		}
 	}
 
-	public static void LogTrace(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+	public static void LogTrace(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Trace, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogDebug(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+	public static void LogDebug(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Debug, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogInfo(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogInfo(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Info, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogWarning(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+	public static void LogWarning(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Warning, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogError(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogError(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Error, message, ctx, callerFilePath, callerLineNumber);
 
-	public static void LogCritical(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogCritical(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Critical, message, ctx, callerFilePath, callerLineNumber);
 
 	// ReSharper disable ExplicitCallerInfoArgument
-	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogTrace(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogDebug(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogDebug(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogInfo(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogInfo(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+	public static void LogWarning(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogWarning(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1) =>
+	public static void LogError(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogError(exception.ToString(), null, callerFilePath, callerLineNumber);
 
-	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)=>
+	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "",
+		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogCritical(exception.ToString(), null, callerFilePath, callerLineNumber);
 	// ReSharper restore ExplicitCallerInfoArgument
+}
+
+public static class LoggerTools
+{
+	private static string ShortString(object o) => o.ToString()?.Substring(0, 8) ?? "";
+	public static string FormatLog(string msg, string ctx) => $"{ctx} {msg}";
+	public static string FormatLog(string msg, Round round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
+	public static string FormatLog(string msg, RoundState round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
+	public static string FormatLog(string msg, AliceClient aliceClient) =>
+		FormatLog(msg, $"Round {ShortString(aliceClient.RoundId)} Alice {ShortString(aliceClient.AliceId)} EffValue {aliceClient.EffectiveValue}");
+	public static string FormatLog(string msg, IWallet wallet) => FormatLog(msg, $"Wallet '{wallet.WalletName}'");
 }
