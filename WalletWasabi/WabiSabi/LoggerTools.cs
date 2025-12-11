@@ -2,7 +2,6 @@ using System.Runtime.CompilerServices;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi;
 
@@ -45,34 +44,5 @@ public static class LoggerTools
 	{
 		Log(roundState, LogLevel.Debug, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
 	}
-
-	public static void Log(this IWallet wallet, LogLevel logLevel, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Logger.Log(logLevel, $"Wallet ({wallet.WalletName}): {logMessage}", callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
-
-	public static void LogInfo(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(wallet, LogLevel.Info, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
-
-	public static void LogDebug(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(wallet, LogLevel.Debug, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
-
-	public static void LogWarning(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(wallet, LogLevel.Warning, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
-
-	public static void LogError(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(wallet, LogLevel.Error, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
-
-	public static void LogTrace(this IWallet wallet, string logMessage, [CallerFilePath] string callerFilePath = "", [CallerLineNumber] int callerLineNumber = -1)
-	{
-		Log(wallet, LogLevel.Trace, logMessage, callerFilePath: callerFilePath, callerLineNumber: callerLineNumber);
-	}
 }
+
