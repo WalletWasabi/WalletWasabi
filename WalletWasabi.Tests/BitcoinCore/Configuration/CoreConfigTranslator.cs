@@ -43,6 +43,17 @@ public class CoreConfigTranslator
 		return null;
 	}
 
+	public ushort? TryGetPort()
+	{
+		var stringValue = TryGetValue("port");
+		if (stringValue is { } && ushort.TryParse(stringValue, out ushort value))
+		{
+			return value;
+		}
+
+		return null;
+	}
+
 	public WhiteBind? TryGetWhiteBind()
 	{
 		var stringValue = TryGetValue("whitebind");

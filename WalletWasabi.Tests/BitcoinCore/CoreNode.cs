@@ -61,6 +61,7 @@ public class CoreNode
 		string? rpcCookieFilePath = configTranslator.TryGetRpcCookieFile();
 		string? rpcHost = configTranslator.TryGetRpcBind();
 		int? rpcPort = configTranslator.TryGetRpcPort();
+		int? port = configTranslator.TryGetPort() ?? coreNodeParams.Port;
 		WhiteBind? whiteBind = configTranslator.TryGetWhiteBind();
 
 		string authString;
@@ -130,6 +131,7 @@ public class CoreNode
 			$"{configPrefix}.server			= 1",
 			$"{configPrefix}.listen			= 1",
 			$"{configPrefix}.daemon			= 0", // https://github.com/WalletWasabi/WalletWasabi/issues/3588
+			$"{configPrefix}.port			= {port}",
 			$"{configPrefix}.whitebind		= {whiteBindPermissionsPart}{coreNode.P2pEndPoint.ToString(coreNode.Network.DefaultPort)}",
 			$"{configPrefix}.rpcbind		= {rpcBindParameter}",
 			$"{configPrefix}.rpcallowip		= {IPAddress.Loopback}",
@@ -176,6 +178,11 @@ public class CoreNode
 		if (coreNodeParams.Listen is { })
 		{
 			desiredConfigLines.Add($"{configPrefix}.listen = {coreNodeParams.Listen}");
+		}
+
+		if (coreNodeParams.Port is { })
+		{
+			desiredConfigLines.Add($"{configPrefix}.port = {coreNodeParams.Port}");
 		}
 
 		if (coreNodeParams.Discover is { })
