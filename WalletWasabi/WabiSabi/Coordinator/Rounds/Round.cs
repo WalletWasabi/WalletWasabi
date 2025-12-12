@@ -3,6 +3,7 @@ using NBitcoin;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -91,7 +92,7 @@ public class Round
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}
 
-		this.LogInfo($"Phase changed: {Phase} -> {phase}");
+		Logger.LogInfo($"Phase changed: {Phase} -> {phase}", this);
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)

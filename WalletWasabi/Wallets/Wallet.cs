@@ -268,7 +268,7 @@ public class Wallet : BackgroundService, IWallet
 	/// <inheritdoc />
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+		Logger.LogInfo("is fully synchronized.", this);
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
@@ -427,4 +427,6 @@ public class Wallet : BackgroundService, IWallet
 
 		KeyManager.ToFile();
 	}
+
+	public override string ToString() => $"Wallet '{WalletName}'";
 }

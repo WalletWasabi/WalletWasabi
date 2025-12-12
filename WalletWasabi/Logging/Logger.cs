@@ -4,6 +4,9 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
 using WalletWasabi.Helpers;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Logging;
 
@@ -116,6 +119,17 @@ public static class Logger
 		}
 	}
 
+	private static string ContextToString(object? ctx) =>
+		ctx switch
+		{
+			IWallet w => $"Wallet={w.WalletName}",
+			RoundState rs => $"{(rs.IsBlame ? "Blame Round" : "Round")} ({rs.Id})",
+			BlameRound r => $"Blame Round ({r.Id})",
+			Round r => $"Round ({r.Id})",
+			not null => ctx.ToString()!,
+			_ => ""
+		};
+
 	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "", int callerLineNumber = -1)
 	{
 			if (Modes.Count == 0)
@@ -136,9 +150,9 @@ public static class Logger
 			AppendMessageContent(messageBuilder, message, category);
 			messageBuilder.Append(EntrySeparator);
 
-			if (ctx is { })
+			if (ctx is not null)
 			{
-				messageBuilder.AppendLine(ctx.ToString());
+				messageBuilder.AppendLine(ContextToString(ctx));
 			}
 			var finalMessage = messageBuilder.ToString();
 
