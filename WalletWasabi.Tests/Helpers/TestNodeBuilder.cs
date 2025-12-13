@@ -58,6 +58,7 @@ public static class TestNodeBuilder
 		nodeParameters.Upnp = 0;
 		nodeParameters.NatPmp = 0;
 		nodeParameters.PersistMempool = 0;
+		nodeParameters.Port = PortFinder.GetRandomPorts(1)[0];
 		return nodeParameters;
 	}
 }

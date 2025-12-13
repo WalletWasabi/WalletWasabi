@@ -60,8 +60,7 @@ public class Warden : BackgroundService
 			{
 				await foreach (var inmate in _offendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
 				{
-					var lines = Enumerable.Repeat(inmate.ToStringLine(), 1);
-					await File.AppendAllLinesAsync(_prisonFilePath, lines, CancellationToken.None).ConfigureAwait(false);
+					await File.AppendAllLinesAsync(_prisonFilePath, [inmate.ToStringLine()], CancellationToken.None).ConfigureAwait(false);
 				}
 			}
 		}

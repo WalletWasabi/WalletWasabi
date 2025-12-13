@@ -47,7 +47,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	public async Task RegisterSpentOrInNonExistentCoinAsync()
 	{
 		var httpClient = _apiApplicationFactory.CreateClient();
-
+		await Task.Delay(100);
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
@@ -94,6 +94,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton(_ => prison);
 			})).CreateClient();
 
+		await Task.Delay(100);
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, timeoutCts.Token)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
@@ -413,6 +414,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			}));
 
 		var httpClient = app.CreateClient();
+
+		await Task.Delay(100);
 		using var httpClientWrapper = new MonkeyHttpClient(
 			httpClient,
 			() => // This monkey injects `HttpRequestException` randomly to simulate errors in the communication.

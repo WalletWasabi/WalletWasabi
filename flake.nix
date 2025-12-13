@@ -4,16 +4,16 @@
   inputs.nixpkgs.url = "github:NixOS/nixpkgs/nixpkgs-unstable";
   outputs = { self, nixpkgs }:
     let
-        pkgs = import nixpkgs { system = "x86_64-linux"; };
+        pkgs = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.13-ecdsa-0.19.1"]; };
         deployScript = pkgs.writeScriptBin "deploy" (builtins.readFile ./Contrib/deploy.sh);
         gitRev = if (builtins.hasAttr "rev" self) then self.rev else "dirty";
         buildWasabiModule = pkgs.buildDotnetModule {
           pname = "wasabi";
           version = "2.0.0-${builtins.substring 0 8 (self.lastModifiedDate or self.lastModified or "19700101")}-${gitRev}";
-          nugetDeps = ./deps.nix; # nix build .#packages.x86_64-linux.all.passthru.fetch-deps
+          nugetDeps = ./deps.json; # nix build .#packages.x86_64-linux.all.passthru.fetch-deps
           dotnetFlags = [ "-p:CommitHash=${gitRev}"];
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
-          dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_8_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+          dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_10_0;
 
           src = ./.;
         };
@@ -48,7 +48,7 @@
           # Testing
           doCheck = true;
           testProjectFile = "WalletWasabi.Tests/WalletWasabi.Tests.csproj";
-          dotnetTestFlags = ["--filter \"FullyQualifiedName~UnitTests\"" "--logger \"console;verbosity=detailed\""];
+          dotnetTestFlags = ["--filter \"FullyQualifiedName~UnitTests\"" "--logger \"console\""];
 
           # wrap manually, because we want not so ugly executable names
           dontDotnetFixup = true;
@@ -74,7 +74,7 @@
           nugetName = "dotnet-trace";
           version = "8.0.510501";
           nugetSha256 = "sha256-Kt5x8n5Q0T+BaTVufhsyjXbi/BlGKidb97DWSbI6Iq8=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
         # dotnet dump
         dotnet-dump = pkgs.buildDotnetGlobalTool {
@@ -82,7 +82,7 @@
           nugetName = "dotnet-dump";
           version = "8.0.510501";
           nugetSha256 = "sha256-H7Z4EA/9G3DvVuXbnQJF7IJMEB2SkzRjTAL3eZMqCpI=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
         # dotnet counters
         dotnet-counters = pkgs.buildDotnetGlobalTool {
@@ -90,12 +90,12 @@
           nugetName = "dotnet-counters";
           version = "8.0.510501";
           nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
-          dotnet-sdk = pkgs.dotnetCorePackages.sdk_8_0;
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
         wasabi-shell = pkgs.mkShell {
            name = "wasabi-shell";
            packages = [
-             pkgs.dotnetCorePackages.sdk_8_0
+             pkgs.dotnetCorePackages.sdk_10_0
              dotnet-trace
              dotnet-dump
              dotnet-counters
@@ -104,14 +104,14 @@
            shellHook = ''
              export DOTNET_CLI_TELEMETRY_OPTOUT=1
              export DOTNET_NOLOGO=1
-             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_8_0}
+             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_10_0}
              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
            '';
         };
         migrateBackendFilters = {
            type = "app";
            program = "${(pkgs.writeShellScript "migrateBackendFilters" ''
-              ${pkgs.dotnetCorePackages.sdk_8_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateBackendFilters.fsx;
+              ${pkgs.dotnetCorePackages.sdk_10_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateBackendFilters.fsx;
               '')}";
         };
     in
