@@ -20,6 +20,7 @@ using WalletWasabi.Stores;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
+using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.Wallets;
 
@@ -268,7 +269,7 @@ public class Wallet : BackgroundService, IWallet
 	/// <inheritdoc />
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		Logger.LogInfo($"Wallet '{WalletName}' is fully synchronized.");
+		Logger.LogInfo(FormatLog("is fully synchronized.", this));
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
@@ -302,7 +303,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 		catch (Exception ex)
 		{
-			Logger.LogError(ex);
+			Logger.LogError(FormatLog(ex.ToString(), this));
 		}
 	}
 
@@ -317,7 +318,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 		catch (Exception ex)
 		{
-			Logger.LogWarning(ex);
+			Logger.LogWarning(FormatLog(ex.ToString(), this));
 		}
 	}
 
@@ -373,7 +374,7 @@ public class Wallet : BackgroundService, IWallet
 				{
 					if (BitcoinStore.TransactionStore.MempoolStore.TryRemove(txid, out _))
 					{
-						Logger.LogInfo($"Transaction {txid} dropped after {ServiceConfiguration.DropUnconfirmedTransactionsAfterDays} days being unconfirmed.");
+						Logger.LogInfo(FormatLog($"Transaction {txid} dropped after {ServiceConfiguration.DropUnconfirmedTransactionsAfterDays} days being unconfirmed.", this));
 					}
 				}
 			}

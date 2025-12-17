@@ -13,6 +13,7 @@ using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -65,7 +66,7 @@ public class AliceClient
 		{
 			await aliceClient.ConfirmConnectionAsync(roundStatusProvider, confirmationCancellationToken).ConfigureAwait(false);
 
-			Logger.LogInfo($"Round ({aliceClient.RoundId}), Alice ({aliceClient.AliceId}): Connection was confirmed.");
+			Logger.LogInfo(FormatLog("Connection was confirmed.", aliceClient));
 		}
 		catch (WabiSabiProtocolException wpe) when (wpe.ErrorCode
 			is WabiSabiProtocolErrorCode.RoundNotFound
@@ -107,7 +108,7 @@ public class AliceClient
 		AliceClient aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 		coin.CoinJoinInProgress = true;
 
-		Logger.LogInfo($"Round ({roundState.Id}), Alice ({aliceClient.AliceId}): Registered {coin.Outpoint}.");
+		Logger.LogInfo(FormatLog($"Registered {coin.Outpoint}.", aliceClient));
 
 		return aliceClient;
 	}
@@ -170,20 +171,20 @@ public class AliceClient
 
 			await RemoveInputAsync(linkedCts.Token).ConfigureAwait(false);
 			SmartCoin.CoinJoinInProgress = false;
-			Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Unregistered {SmartCoin.Outpoint}.");
+			Logger.LogInfo(FormatLog($"Unregistered {SmartCoin.Outpoint}.", this));
 		}
 		catch (OperationCanceledException e)
 		{
-			Logger.LogTrace(e);
+			Logger.LogTrace(FormatLog(e.ToString(), this));
 		}
 		catch (Exception e) when (e is HttpRequestException or WabiSabiProtocolException)
 		{
-			Logger.LogDebug($"Unregistration failed for coin '{SmartCoin.Coin.Outpoint}'.", e);
+			Logger.LogDebug(FormatLog($"Unregistration failed for coin '{SmartCoin.Coin.Outpoint}'.", this), e);
 		}
 		catch (Exception e)
 		{
 			// Log and swallow the exception because there is nothing else that can be done here.
-			Logger.LogWarning($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.");
+			Logger.LogWarning(FormatLog($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.", this));
 		}
 	}
 
@@ -196,20 +197,20 @@ public class AliceClient
 	{
 		await _arenaClient.RemoveInputAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
 		SmartCoin.CoinJoinInProgress = false;
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Inputs removed.");
+		Logger.LogInfo(FormatLog("Inputs removed.", this));
 	}
 
 	public async Task SignTransactionAsync(TransactionWithPrecomputedData unsignedCoinJoin, IKeyChain keyChain, CancellationToken cancellationToken)
 	{
 		await _arenaClient.SignTransactionAsync(RoundId, SmartCoin.Coin, keyChain, unsignedCoinJoin, cancellationToken).ConfigureAwait(false);
 
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Posted a signature.");
+		Logger.LogInfo(FormatLog("Posted a signature.", this));
 	}
 
 	public async Task ReadyToSignAsync(CancellationToken cancellationToken)
 	{
 		await _arenaClient.ReadyToSignAsync(RoundId, AliceId, cancellationToken).ConfigureAwait(false);
-		Logger.LogInfo($"Round ({RoundId}), Alice ({AliceId}): Ready to sign.");
+		Logger.LogInfo(FormatLog("Ready to sign.", this));
 	}
 
 	public Money EffectiveValue => SmartCoin.EffectiveValue(_feeRate);
