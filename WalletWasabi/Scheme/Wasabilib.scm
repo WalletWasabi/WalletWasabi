@@ -11,20 +11,18 @@
   (find by-name (wallets)))
 
 (define (get-opened-wallets)
-  (define (opened? wallet)
-    (string=? "Started" (wallet-state wallet)))
-  (filter opened? (wallets)))
+  (filter wallet-loaded? (wallets)))
 
 (define (wallet-name wallet) (__get 'walletname wallet))
 (define (wallet-path wallet) (__get 'filepath (wallet-keymanager wallet)))
 (define (wallet-keymanager wallet) (__get 'keymanager wallet))
 (define (wallet-unspent-coins wallet) (filter coin-unspent? (wallet-coins wallet)))
-(define (wallet-state wallet) (native->string (__get 'state wallet)))
+(define (wallet-loaded? wallet) (__get 'loaded wallet))
 (define (wallet-excluded-coins-from-coinjoin wallet) (__get 'excludedcoinsfromcoinjoin (wallet-keymanager wallet)))
-(define (wallet->info wallet)
+(define (wallet-info wallet)
   (list
     (list "name"     (wallet-name wallet))
-    (list "state"    (wallet-state wallet))
+    (list "loaded"   (wallet-loaded? wallet))
     (list "readOnly" (wallet-watch-only? wallet))
     (list "path"     (wallet-path wallet))
     ))
@@ -55,7 +53,7 @@
 (define (transaction-cpfp? tx)           (__get 'iscpfp tx))
 (define (transaction-confirmed? tx)      (__get 'confirmed tx))
 (define (transaction-coinjoin? tx)       (__get 'iswasabi2cj tx))
-(define (transaction->info tx)
+(define (transaction-info tx)
   (list
     (list "hash"           (transaction-hash tx))
     (list "height"         (transaction-height tx))
@@ -90,13 +88,14 @@
 (define (coin-labels coin)               (__get 'labels (coin-cluster coin)))
 (define (coin-keypath coin)              (__get 'fullkeypath (coin-pubkey coin)))
 (define (coin-address coin)              (native->string (script->address (coin-script-pubkey coin))))
-(define (coin->info coin)
+(define (coin-info coin)
   (list
     (list "outpoint"       (native->string (coin-outpoint coin)))
     (list "amount"         (coin-amount coin))
     (list "labels"         (coin-labels coin))
     (list "anonymityScore" (coin-anonymityset coin))
     (list "confirmed"      (coin-confirmed? coin))
+    (list "spent"          (coin-spent? coin))
     (list "keypath"        (native->string (coin-keypath coin)))
     (list "address"        (coin-address coin))
     ))
@@ -171,7 +170,7 @@
   (define base-info
     `(("walletName" ,(wallet-name wallet))
       ("walletFile" ,(wallet-path wallet))
-      ("state" ,(wallet-state wallet))
+      ("loaded"     ,(wallet-loaded? wallet))
       ("masterKeyFingerprint" ,(wallet-master-key-fingerprint wallet))
       ("anonScoreTarget" ,(wallet-anonscore-target wallet))
       ("isWatchOnly" ,(wallet-watch-only? wallet))
@@ -181,14 +180,14 @@
       ("accounts" ,accounts)))
 
   ;; Add additional info for started wallets
-  (if (string=? "Started" (wallet-state wallet))
+  (if (wallet-loaded? wallet)
       (append base-info
               `(("balance" ,(wallet-balance wallet))
                 ("coinjoinStatus" "unknown")))
       base-info))
 
 (define (open-wallet wallet)
-    (if (string=? "Uninitialized" (wallet-state wallet))
+  (wallet-info
+    (if (not (wallet-loaded? wallet))
       (__start_wallet wallet)
-      wallet))
-
+      wallet)))

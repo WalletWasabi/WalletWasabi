@@ -5,6 +5,9 @@ using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using NBitcoin.JsonConverters;
+using Newtonsoft.Json;
+using WalletWasabi.Rpc.JsonConverters;
 using WalletWasabi.Scheme;
 using WalletWasabi.Wallets;
 using static WalletWasabi.Scheme.Interpreter;
@@ -17,6 +20,7 @@ public class Scheme
 	private Environment _env;
 	private readonly Global _global;
 	private bool _initialized = false;
+	private JsonSerializerSettings _defaultJsonSerializerSettings;
 
 	public Scheme(Global global)
 	{
@@ -35,6 +39,7 @@ public class Scheme
 				 _global.WalletManager.StartWalletAsync(w).GetAwaiter().GetResult();
 				 return w;
 			});
+		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
 
 	private readonly Dictionary<(Type, string), MemberInfo> _accessors = new();
@@ -85,4 +90,44 @@ public class Scheme
 			_initialized = true;
 		}
 	}
+
+	private JsonSerializerSettings CreateJsonSerializerSettings(Network network)
+	{
+		var defaultSettings = new JsonSerializerSettings
+		{
+			NullValueHandling = NullValueHandling.Ignore,
+			ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
+			Formatting = Formatting.Indented,
+			MaxDepth = 3,
+			Converters = new List<JsonConverter>
+			{
+				new Uint256JsonConverter(),
+				new OutPointAsTxoRefJsonConverter(),
+				new BitcoinAddressJsonConverter(),
+				new DestinationJsonConverter(network),
+				new SmartTransactionJsonConverter(),
+			}
+		};
+		Serializer.RegisterFrontConverters(defaultSettings, network);
+		return defaultSettings;
+	}
+
+	public static object ToObject(object obj)
+	{
+		if (obj is not IEnumerable<object> e)
+		{
+			return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
+		}
+
+		if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
+		{
+			return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
+				x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
+		}
+
+		return e.Select(ToObject);
+	}
+
+	public string ToJson(Expression e) =>
+		JsonConvert.SerializeObject(ToObject(ToNativeObject(e)), _defaultJsonSerializerSettings);
 }

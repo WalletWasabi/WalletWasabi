@@ -551,7 +551,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		try
 		{
 			var expressionResult = await Global.Scheme.Execute(script);
-			var result = ToObject(Interpreter.ToNativeObject(expressionResult));
+			var result = Scheme.ToObject(Interpreter.ToNativeObject(expressionResult));
 			return result;
 		}
 		catch (Exception e)
@@ -559,21 +559,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 			return e.Message;
 		}
 
-		object ToObject(object obj)
-		{
-			if (obj is not IEnumerable<object> e)
-			{
-				return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
-			}
-
-			if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
-			{
-				return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
-					x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
-			}
-
-			return e.Select(ToObject);
-		}
 	}
 
 	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]

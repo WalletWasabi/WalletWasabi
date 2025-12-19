@@ -1,15 +1,14 @@
 using System.Globalization;
+using System.Linq;
 using Avalonia.Controls;
 using NBitcoin;
 using ReactiveUI;
-using System.Net;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -17,7 +16,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Userfacing;
 using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
@@ -76,6 +74,9 @@ public partial class ApplicationSettings : ReactiveObject
 	// Non-persistent
 	[AutoNotify] private bool _doUpdateOnClose;
 
+	// Experimental
+	[AutoNotify] private string[] _experimentalFeatures;
+
 	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
 		_persistentConfigFilePath = Services.PersistentConfigFilePath;
@@ -120,6 +121,9 @@ public partial class ApplicationSettings : ReactiveObject
 		TerminateTorOnExit = persistentConfig.TerminateTorOnExit;
 		DownloadNewVersion = persistentConfig.DownloadNewVersion;
 		EnableGpu = persistentConfig.EnableGpu;
+
+		// Experimental
+		ExperimentalFeatures = persistentConfig.ExperimentalFeatures.ToArray();
 
 		// Privacy Mode
 		PrivacyMode = uiConfig.PrivacyMode;

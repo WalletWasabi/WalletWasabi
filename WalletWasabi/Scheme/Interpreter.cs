@@ -616,6 +616,7 @@ public static class Interpreter
 			Symbol (var symValue) => symValue,
 			Pair pairValue => FlatPairChain(pairValue).Select(ToNativeObject),
 			Nil _ => false,
+			DummyExpression _ => "Done",
 			_ => throw new Exception("Undefined")
 		};
 

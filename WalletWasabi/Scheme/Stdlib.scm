@@ -367,6 +367,7 @@
 (define first car)
 (define second cadr)
 (define third caddr)
+(define last list-tail)
 
 ;;; ------------------
 ;;; Equality and Membership Testing

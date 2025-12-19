@@ -44,6 +44,8 @@ public static class Services
 	public static StatusContainer Status { get; set; }
 
 	public static EventBus EventBus { get;  set; } = null;
+
+	public static Daemon.Scheme Scheme { get; set; }
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>
@@ -76,6 +78,7 @@ public static class Services
 		TerminateService = terminateService;
 		EventBus = global.EventBus;
 		Status = global.Status;
+		Scheme = global.Scheme;
 
 		IsInitialized = true;
 	}
