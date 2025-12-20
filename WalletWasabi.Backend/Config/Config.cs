@@ -1,7 +1,6 @@
+using System;
 using System.IO;
 using NBitcoin;
-using System.Net;
-using System.Text.Json;
 using WalletWasabi.Bases;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;

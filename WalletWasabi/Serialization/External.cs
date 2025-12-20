@@ -22,36 +22,6 @@ public static partial class Decode
 			get.Required("adjustedVsize", Decimal)
 		));
 
-	public static readonly Decoder<ExchangeRate> BitstampExchangeRate =
-		Object(get => new ExchangeRate{
-			Ticker = "USD",
-			Rate = get.Required("bid", Decimal)
-		});
-
-	public static readonly Decoder<ExchangeRate> GeminiExchangeRateInfo =
-		Object(get => new ExchangeRate{
-			Ticker = "USD",
-			Rate = get.Required("Bid", Decimal)
-		});
-
-	public static readonly Decoder<ExchangeRate> CoinGeckoExchangeRate =
-		Object(get => new ExchangeRate{
-			Ticker = "USD",
-			Rate = get.Required("current_price", Decimal)
-		});
-
-	public static readonly Decoder<ExchangeRate> CoinbaseExchangeRate =
-		Object(get => new ExchangeRate{
-			Ticker = "USD",
-			Rate = get.Required("Data", Field("Rates", Field("USD", Decimal)))
-		});
-
-	public static readonly Decoder<ExchangeRate> BlockchainInfoExchangeRates =
-		Object(get => new ExchangeRate{
-			Ticker = "USD",
-			Rate = get.Required("USD", Field("Sell", Decimal))
-		});
-
 	public static readonly Decoder<TorIssue> TorIssueDecoder =
 		Object(get => new TorIssue(
 			get.Required("title", String),

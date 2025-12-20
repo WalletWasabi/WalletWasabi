@@ -1,25 +1,18 @@
-using System.IO;
+using System;
 using NBitcoin;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Backend;
 
-public class StartupTask
+public class StartupTask(IRPCClient rpc, IndexBuilderService indexBuilderService)
 {
-	private IndexBuilderService IndexBuilderService { get; }
-	private IRPCClient RpcClient { get; }
-
-	public StartupTask(Config config, IRPCClient rpc, IndexBuilderService indexBuilderService)
-	{
-		IndexBuilderService = indexBuilderService;
-		RpcClient = rpc;
-	}
+	private IndexBuilderService IndexBuilderService { get; } = indexBuilderService;
+	private IRPCClient RpcClient { get; } = rpc;
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
