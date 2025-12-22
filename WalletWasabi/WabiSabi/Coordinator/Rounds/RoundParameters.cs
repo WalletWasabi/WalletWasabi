@@ -41,9 +41,9 @@ public record RoundParameters
 		TransactionSigningTimeout = transactionSigningTimeout + TimeSpan.FromSeconds(delayTransactionSigning ? 50 : 0);
 		BlameInputRegistrationTimeout = blameInputRegistrationTimeout;
 
-		InitialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
-		MaxVsizeCredentialValue = Math.Min(InitialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
-		MaxVsizeAllocationPerAlice = MaxVsizeCredentialValue;
+		var initialInputVsizeAllocation = MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead;
+		var maxVsizeCredentialValue = Math.Min(initialInputVsizeAllocation / MaxInputCountByRound, (int)ProtocolConstants.MaxVsizeCredentialValue);
+		MaxVsizeAllocationPerAlice = maxVsizeCredentialValue;
 		CoordinationIdentifier = coordinationIdentifier;
 		DelayTransactionSigning = delayTransactionSigning;
 	}
@@ -66,8 +66,7 @@ public record RoundParameters
 	public Money MinAmountCredentialValue => AllowedInputAmounts.Min;
 	public Money MaxAmountCredentialValue => AllowedInputAmounts.Max;
 
-	public int InitialInputVsizeAllocation { get; init; }
-	public int MaxVsizeCredentialValue { get; init; }
+	public int MaxVsizeCredentialValue => MaxVsizeAllocationPerAlice;
 	public int MaxVsizeAllocationPerAlice { get; init; }
 
 	public string CoordinationIdentifier { get; init; }
@@ -80,7 +79,7 @@ public record RoundParameters
 	// (MAX_STANDARD_TX_WEIGHT = 400000); but NBitcoin still enforces it as before.
 	// Anyway, it really doesn't matter for us as it is a reasonable limit so, it doesn't affect us
 	// negatively in any way.
-	public int MaxTransactionSize { get; init; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
+	public int MaxTransactionSize { get; } = StandardTransactionPolicy.MaxTransactionSize ?? 100_000;
 	public FeeRate MinRelayTxFee { get; init; } = StandardTransactionPolicy.MinRelayTxFee
 												  ?? new FeeRate(Money.Satoshis(1000));
 

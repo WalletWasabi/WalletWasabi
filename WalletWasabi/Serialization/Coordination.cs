@@ -69,8 +69,6 @@ public static partial class Encode
 			("BlameInputRegistrationTimeout", TimeSpan(p.BlameInputRegistrationTimeout) ),
 			("MinAmountCredentialValue", MoneySatoshis(p.MinAmountCredentialValue) ),
 			("MaxAmountCredentialValue", MoneySatoshis(p.MaxAmountCredentialValue) ),
-			("InitialInputVsizeAllocation", Int(p.InitialInputVsizeAllocation) ),
-			("MaxVsizeCredentialValue", Int(p.MaxVsizeCredentialValue) ),
 			("MaxVsizeAllocationPerAlice", Int(p.MaxVsizeAllocationPerAlice) ),
 			("CoordinationIdentifier", String(p.CoordinationIdentifier) ),
 			("DelayTransactionSigning", Bool(p.DelayTransactionSigning) ),
