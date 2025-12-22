@@ -123,7 +123,10 @@ public class Config
 				GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs)),
 			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = (
 				"The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
-				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs))
+				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs)),
+			[ nameof(ExperimentalFeatures) ] = (
+				"Colon-separated list of experimental features to enable. (features available: scripting)",
+				GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs))
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -182,6 +185,8 @@ public class Config
 	public int AbsoluteMinInputCount => int.Max(
 		GetEffectiveValue<IntValue, int>(nameof(AbsoluteMinInputCount)),
 		Constants.AbsoluteMinInputCount);
+
+	public string[] ExperimentalFeatures => GetEffectiveValue<StringArrayValue, string[]>(nameof(ExperimentalFeatures));
 
 	public ServiceConfiguration ServiceConfiguration { get; }
 

@@ -182,7 +182,8 @@ public class WasabiApplication
 				IndexerUri : oldConfig.MainNetIndexerUri,
 				TorBridges : new ValueList<string>(oldConfig.TorBridges),
 				MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
-				MaxDaysInMempool: oldConfig.MaxDaysInMempool
+				MaxDaysInMempool: oldConfig.MaxDaysInMempool,
+				ExperimentalFeatures: ValueList<string>.Empty
 			);
 
 			var testConfig = mainConfig with
@@ -192,6 +193,7 @@ public class WasabiApplication
 				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
 				BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToUriString("http"),
+				ExperimentalFeatures = new ValueList<string>(["scripting"])
 			};
 
 			var regtestConfig = mainConfig with
@@ -201,6 +203,7 @@ public class WasabiApplication
 				CoordinatorUri = oldConfig.RegTestCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
 				BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToUriString("http"),
+				ExperimentalFeatures = new ValueList<string>(["scripting"])
 			};
 
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");

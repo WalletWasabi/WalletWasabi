@@ -145,4 +145,11 @@
   <SolidColorBrush x:Key="ComboBoxDropDownBorderBrush" Color="{StaticResource BorderColor}" />
 
   <SolidColorBrush x:Key="SystemControlBackgroundBaseLowBrush" Color="{DynamicResource SystemBaseLowColor}" />
+
+  <!-- Scripting -->
+  <SolidColorBrush x:Key="ConsoleOutputCommandForegroundColor" Color="{StaticResource SystemAccentColor}" />
+  <SolidColorBrush x:Key="ConsoleOutputResultForegroundColor">White</SolidColorBrush>
+  <SolidColorBrush x:Key="ConsoleOutputErrorForegroundColor" Color="#DD4343" />
+  <SolidColorBrush x:Key="ConsoleOutputSeparatorColor" Color="{StaticResource BorderColor}" />
+
 </ResourceDictionary>

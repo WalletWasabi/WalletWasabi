@@ -13,16 +13,14 @@ using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.Services;
+using WalletWasabi.Scheme;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.Wallets;
-using WalletWasabi.Wallets.Exchange;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
 
@@ -541,6 +539,26 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["walletName"] = x.WalletName
 			})
 			.ToImmutableArray();
+	}
+
+	[JsonRpcMethod("query", initializable: false)]
+	public async Task<object> Execute(string script)
+	{
+		if (!Global.Config.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
+		{
+			throw new InvalidOperationException("The experimental 'scripting' feature is not enabled.");
+		}
+		try
+		{
+			var expressionResult = await Global.Scheme.Execute(script);
+			var result = Scheme.ToObject(Interpreter.ToNativeObject(expressionResult));
+			return result;
+		}
+		catch (Exception e)
+		{
+			return e.Message;
+		}
+
 	}
 
 	[JsonRpcMethod(IJsonRpcService.StopRpcCommand, initializable: false)]

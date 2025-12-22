@@ -105,6 +105,7 @@ public class Global
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
 		NodesGroup = nodesGroup;
+		Scheme = new Scheme(this);
 	}
 
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -132,6 +133,7 @@ public class Global
 	public JsonRpcServer? RpcServer { get; private set; }
 	public Uri? OnionServiceUri { get; private set; }
 	public EventBus EventBus { get; }
+	public Scheme Scheme { get; }
 
 	private BlockProvider ConfigureBlockProvider(NodesGroup nodesGroup, FileSystemBlockRepository fileSystemBlockRepository)
 	{

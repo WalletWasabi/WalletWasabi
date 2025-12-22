@@ -152,6 +152,7 @@ public class App : Application
 			new EditableSearchSourceSource(),
 			torStatusChecker,
 			new HealthMonitor(applicationSettings, torStatusChecker),
-			new ReleaseHighlights());
+			new ReleaseHighlights(),
+			Services.Scheme);
 	}
 }
