@@ -23,16 +23,16 @@ public class SignTransactionTests
 		using Key key = new();
 		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round);
 		round.Alices.Add(alice);
-		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id)).Finalize();
+		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof).Finalize();
 		round.SetPhase(Phase.TransactionSigning);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
-		var aliceSignedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransaction();
+		var aliceSignedCoinJoin = round.CoinjoinState.CreateUnsignedTransaction();
 		aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coin);
 
 		var req = new TransactionSignaturesRequest(round.Id, 0, aliceSignedCoinJoin.Inputs[0].WitScript);
 		await arena.SignTransactionAsync(req, CancellationToken.None);
-		Assert.True(round.Assert<SigningState>().IsFullySigned);
+		Assert.True(round.CoinjoinState.IsFullySigned);
 		await arena.StopAsync(CancellationToken.None);
 	}
 
@@ -44,16 +44,16 @@ public class SignTransactionTests
 		using Key key = new();
 		Alice alice = WabiSabiFactory.CreateAlice(key: key, round: round, scriptPubKeyType: ScriptPubKeyType.TaprootBIP86);
 		round.Alices.Add(alice);
-		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id)).Finalize();
+		round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof).Finalize();
 		round.SetPhase(Phase.TransactionSigning);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
-		var aliceSignedCoinJoin = round.Assert<SigningState>().CreateUnsignedTransaction();
+		var aliceSignedCoinJoin = round.CoinjoinState.CreateUnsignedTransaction();
 		aliceSignedCoinJoin.Sign(key.GetBitcoinSecret(Network.Main), alice.Coin);
 
 		var req = new TransactionSignaturesRequest(round.Id, 0, aliceSignedCoinJoin.Inputs[0].WitScript);
 		await arena.SignTransactionAsync(req, CancellationToken.None);
-		Assert.True(round.Assert<SigningState>().IsFullySigned);
+		Assert.True(round.CoinjoinState.IsFullySigned);
 		await arena.StopAsync(CancellationToken.None);
 	}
 
