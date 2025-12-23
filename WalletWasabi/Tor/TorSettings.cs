@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -16,7 +17,7 @@ namespace WalletWasabi.Tor;
 public class TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
-	public const string TorBinaryFileName = "tor";
+	public const string TorBinaryFileName = "arti";
 
 	/// <summary>Default port assigned to Tor SOCKS5 for the Wasabi's bundled Tor.</summary>
 	public const int DefaultSocksPort = 37150;
@@ -61,14 +62,32 @@ public class TorSettings
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
+		SocksPort = socksPort;
 		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
-		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+
+
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+		}
+		else
+		{
+			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "arti", "rpc", "arti_rpc_socket");
+			ControlEndpoint = new UnixDomainSocketEndPoint(path);
+		}
+
 		Bridges = bridges ?? [];
 		OwningProcessId = owningProcessId;
 
+		/*
 		CookieAuthFilePath = defaultWasabiTorPorts
 			? Path.Combine(dataDir, $"control_auth_cookie")
 			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort}_{controlPort}");
+		*/
+
+		CookieAuthFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+			? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "torproject", "Arti", "data", "rpc", "arti_rpc_cookie")
+			: null;
 
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
@@ -126,11 +145,14 @@ public class TorSettings
 	/// <summary>Full path to executable file that is used to start Tor process.</summary>
 	public string TorBinaryFilePath { get; }
 
-	/// <summary>Full path to Tor cookie file.</summary>
-	public string CookieAuthFilePath { get; }
+	/// <summary>Full path to Tor cookie file, or <c>null</c> if UNIX domain socket endpoint is used.</summary>
+	public string? CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
 	public EndPoint SocksEndpoint { get; }
+
+	/// <summary>Tor SOCKS5 port.</summary>
+	public int SocksPort { get; }
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; }
@@ -158,6 +180,11 @@ public class TorSettings
 
 		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
 		List<string> arguments = [
+			"proxy",
+			"-o", "rpc.enable=true",
+			"-o", "logging.log_sensitive_information=true",
+			"-o", $"proxy.socks_port={SocksPort}",
+			/*
 			$"--LogTimeGranularity 1",
 			$"--TruncateLogFile 1",
 			$"--UseBridges {(useBridges ? "1" : "0")}",
@@ -174,6 +201,7 @@ public class TorSettings
 			$"--NumPrimaryGuards 3",
 			$"--ConfluxEnabled 1",
 			$"--ConfluxClientUX throughput"
+			*/
 		];
 
 		if (useBridges)
@@ -232,13 +260,15 @@ public class TorSettings
 
 		if (Log)
 		{
-			arguments.Add($"--Log \"notice file {LogFilePath}\"");
+			arguments.AddRange(["-l", "debug"]);
 		}
 
+		/*
 		if (TerminateOnExit && OwningProcessId is not null)
 		{
 			arguments.Add($"__OwningControllerProcess {OwningProcessId}");
 		}
+		*/
 
 		return string.Join(" ", arguments);
 	}

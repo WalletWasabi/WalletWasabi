@@ -40,7 +40,7 @@ public class TorControlFactoryTests
 		await using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 		Logger.LogTrace("Client: Start authentication task.");
-		Task<TorControlClient> authenticationTask = clientFactory.AuthSafeCookieOrThrowAsync(testClient, cookieString, timeoutCts.Token);
+		Task<TorControlClient> authenticationTask = clientFactory.AuthOrThrowAsync(testClient, cookieString, timeoutCts.Token);
 
 		Logger.LogTrace("Server: Read 'AUTHCHALLENGE SAFECOOKIE' command from the client.");
 		string authChallengeCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);

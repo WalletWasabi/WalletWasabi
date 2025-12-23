@@ -28,7 +28,18 @@ public class TorControlReplyReader
 
 		try
 		{
-			line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+			while (true)
+			{
+				line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+
+				// Skip the banner message which is the first message sent by Arti upon connection.
+				if (line == "{\"arti_rpc\":{}}")
+				{
+					continue;
+				}
+
+				break;
+			}
 		}
 		catch (OperationCanceledException)
 		{
@@ -39,75 +50,6 @@ public class TorControlReplyReader
 			throw new TorControlReplyParseException("No reply line was received.", e);
 		}
 
-		if (line.Length < 3)
-		{
-			throw new TorControlReplyParseException("Status code requires at least 3 characters.");
-		}
-
-		if (!int.TryParse(line.AsSpan(0, 3), out int code))
-		{
-			throw new TorControlReplyParseException($"Unknown status code: '{line[..3]}'.");
-		}
-
-		line = line[3..];
-
-		if (line.Length == 0)
-		{
-			return new TorControlReply((StatusCode)code, responseLines: new List<string>() { string.Empty });
-		}
-
-		char id = line[0];
-
-		if (id != '+' && id != '-')
-		{
-			if (id == ' ')
-			{
-				line = line[1..];
-			}
-
-			return new TorControlReply((StatusCode)code, responseLines: new List<string>() { line });
-		}
-
-		List<string> responses = new()
-		{
-			line[1..]
-		};
-
-		while (true)
-		{
-			line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-
-			if (line is null)
-			{
-				break;
-			}
-
-			if (line.Length == 0)
-			{
-				continue;
-			}
-
-			if (id == '-' && line.Length > 3 && line[3] == ' ')
-			{
-				responses.Add(line);
-				break;
-			}
-
-			if (line.Length > 3 && id != '+')
-			{
-				line = line[4..];
-			}
-
-			responses.Add(line);
-
-			if (id == '+' && ".".Equals(line, StringComparison.Ordinal))
-			{
-				line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
-				responses.Add(line);
-				break;
-			}
-		}
-
-		return new TorControlReply((StatusCode)code, responseLines: responses);
+		return new TorControlReply(StatusCode.OK, responseLines: [line]);
 	}
 }
