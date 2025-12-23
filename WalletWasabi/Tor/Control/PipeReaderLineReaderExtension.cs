@@ -16,7 +16,7 @@ namespace WalletWasabi.Tor.Control;
 public static class PipeReaderLineReaderExtension
 {
 	/// <summary>
-	/// Reads a single line ending with <c>\r\n</c> and returns the line without <c>\r\n</c> suffix.
+	/// Reads a single line ending with <c>\n</c> and returns the line without <c>\n</c> suffix.
 	/// </summary>
 	/// <remarks>
 	/// <para>
@@ -95,8 +95,8 @@ public static class PipeReaderLineReaderExtension
 		throw new InvalidDataException("No more data.");
 	}
 
-	/// <summary>Finds the first newline (<c>\r\n</c>) in the buffer.</summary>
-	/// <param name="line">Trims that line, excluding the <c>\r\n</c> from the input buffer.</param>
+	/// <summary>Finds the first newline (<c>\n</c>) in the buffer.</summary>
+	/// <param name="line">Trims that line, excluding the <c>\n</c> from the input buffer.</param>
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/buffers#process-text-data"/>
 	private static bool TryParseLine(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> line)
 	{
@@ -110,31 +110,12 @@ public static class PipeReaderLineReaderExtension
 			ReadOnlySpan<byte> span = segment.Span;
 
 			// Look for \r in the current segment.
-			index = span.IndexOf((byte)'\r');
+			index = span.IndexOf((byte)'\n');
 
 			if (index != -1)
 			{
-				// Check next segment for \n.
-				if (index + 1 >= span.Length)
-				{
-					SequencePosition next = position;
-					if (!buffer.TryGet(ref next, out ReadOnlyMemory<byte> nextSegment))
-					{
-						// You're at the end of the sequence.
-						return false;
-					}
-					else if (nextSegment.Span[0] == (byte)'\n')
-					{
-						//  A match was found.
-						break;
-					}
-				}
-				// Check the current segment of \n.
-				else if (span[index + 1] == (byte)'\n')
-				{
-					// It was found.
-					break;
-				}
+				// It was found.
+				break;
 			}
 
 			previous = position;
@@ -142,14 +123,14 @@ public static class PipeReaderLineReaderExtension
 
 		if (index != -1)
 		{
-			// Get the position just before the \r\n.
-			SequencePosition delimeter = buffer.GetPosition(index, previous);
+			// Get the position just before the \n.
+			SequencePosition delimiter = buffer.GetPosition(index, previous);
 
-			// Slice the line (excluding \r\n).
-			line = buffer.Slice(buffer.Start, delimeter);
+			// Slice the line (excluding \n).
+			line = buffer.Slice(buffer.Start, delimiter);
 
 			// Slice the buffer to get the remaining data after the line.
-			buffer = buffer.Slice(buffer.GetPosition(2, delimeter));
+			buffer = buffer.Slice(buffer.GetPosition(1, delimiter));
 			return true;
 		}
 

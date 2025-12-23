@@ -235,6 +235,7 @@ public class TorProcessManager : IAsyncDisposable
 					Logger.LogInfo($"Tor is already running on {_settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
+					/*
 					// Tor process can crash even between these two commands too.
 					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
 					process = new ProcessAsync(Process.GetProcessById(processId));
@@ -274,6 +275,7 @@ public class TorProcessManager : IAsyncDisposable
 						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
 						continue;
 					}
+					*/
 				}
 				else
 				{
@@ -304,7 +306,8 @@ public class TorProcessManager : IAsyncDisposable
 					_tcs.SetResult((cts.Token, controlClient));
 				}
 
-				await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				// await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
 
 				Logger.LogDebug("Tor process exited.");
 			}
@@ -456,9 +459,9 @@ public class TorProcessManager : IAsyncDisposable
 		{
 			FileName = _settings.TorBinaryFilePath,
 			Arguments = arguments,
-			UseShellExecute = false,
-			CreateNoWindow = true,
-			RedirectStandardOutput = true,
+			UseShellExecute = true,
+			CreateNoWindow = false,
+			RedirectStandardOutput = false,
 			WorkingDirectory = _settings.TorBinaryDir
 		};
 
@@ -473,7 +476,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
+		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}' with arguments '{arguments}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
@@ -485,14 +488,22 @@ public class TorProcessManager : IAsyncDisposable
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
 	{
-		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
-		if (!File.Exists(_settings.CookieAuthFilePath))
-		{
-			throw new TorControlException("Cookie file does not exist.");
-		}
+		string? cookieString = null;
 
-		// Get cookie.
-		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+		if (_settings.CookieAuthFilePath is not null)
+		{
+			// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
+			if (!File.Exists(_settings.CookieAuthFilePath))
+			{
+				throw new TorControlException("Cookie file does not exist.");
+			}
+
+			var cookieBytes = File.ReadAllBytes(_settings.CookieAuthFilePath);
+
+			// See https://gitlab.torproject.org/tpo/core/arti/-/blob/6d9ee5587fdbb6028ed9cfa2a6049e2418ba583a/crates/tor-rpc-connect/src/auth/cookie.rs#L42.
+			var artiPrefix = "====== arti-rpc-cookie-v1 ======";
+			cookieString = Convert.ToHexString(cookieBytes[artiPrefix.Length..]);
+		}
 
 		// Authenticate.
 		TorControlClientFactory factory = new();

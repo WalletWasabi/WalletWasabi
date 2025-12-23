@@ -27,10 +27,9 @@ public class TorControlClient : IAsyncDisposable
 	/// <remarks>This helps with graceful stopping of the reader loop.</remarks>
 	private volatile bool _readLastSyncReply;
 
-	public TorControlClient(TcpClient tcpClient) :
-		this(PipeReader.Create(tcpClient.GetStream()), PipeWriter.Create(tcpClient.GetStream()))
+	public TorControlClient(Stream stream) :
+		this(PipeReader.Create(stream), PipeWriter.Create(stream))
 	{
-		_tcpClient = tcpClient;
 	}
 
 	internal TorControlClient(PipeReader pipeReader, PipeWriter pipeWriter)
