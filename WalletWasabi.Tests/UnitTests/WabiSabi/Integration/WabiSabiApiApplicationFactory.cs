@@ -59,7 +59,11 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 			services.AddSingleton<IRPCClient>(_ => BitcoinFactory.GetMockMinimalRpc());
 			services.AddSingleton<Prison>(_ => WabiSabiFactory.CreatePrison());
 			services.AddSingleton<WabiSabiConfig>();
-			services.AddSingleton<RoundParameterFactory>();
+			services.AddSingleton<RoundParameterFactory>(s =>
+			{
+				var config = s.GetRequiredService<WabiSabiConfig>();
+				return (feeRate, maxSuggestedAmount) => RoundParameters.Create(config, feeRate, maxSuggestedAmount);
+			});
 			services.AddSingleton(typeof(TimeSpan), _ => TimeSpan.FromSeconds(2));
 			services.AddSingleton(s => new CoinJoinScriptStore());
 			services.AddSingleton(s => FeeRateProviders.RpcAsync(s.GetRequiredService<IRPCClient>()));

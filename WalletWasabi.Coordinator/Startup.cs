@@ -105,7 +105,8 @@ public class Startup(IConfiguration configuration)
 			new Warden(
 				Path.Combine(dataDir, "Prison.txt"),
 				s.GetRequiredService<WabiSabiConfig>()));
-		services.AddSingleton<RoundParameterFactory>();
+		services.AddSingleton<RoundParameterFactory>(s =>
+			 (feeRate, maxSuggestedAmount) => RoundParameters.Create(config, feeRate, maxSuggestedAmount) );
 		services.AddBackgroundService<Arena>();
 
 		if (config.AnnouncerConfig.IsEnabled)

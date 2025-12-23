@@ -17,7 +17,6 @@ public class ConstructionStateTests
 		var cfg = new WabiSabiConfig();
 		var roundParameters = RoundParameters.Create(
 				cfg,
-				Network.Main,
 				miningFeeRate,
 				Money.Coins(10));
 

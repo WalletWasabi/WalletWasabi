@@ -6,6 +6,8 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
+public delegate RoundParameters RoundParameterFactory(FeeRate feeRate, Money maxSuggestedAmount);
+
 public record RoundParameters
 {
 	public RoundParameters(
@@ -85,12 +87,11 @@ public record RoundParameters
 
 	public static RoundParameters Create(
 		WabiSabiConfig wabiSabiConfig,
-		Network network,
 		FeeRate miningFeeRate,
 		Money maxSuggestedAmount)
 	{
 		return new RoundParameters(
-			network,
+			wabiSabiConfig.Network,
 			miningFeeRate,
 			maxSuggestedAmount,
 			wabiSabiConfig.MinInputCountByRound,
