@@ -218,20 +218,18 @@
       (cons (list (car a) (car b)) (zip (cdr a) (cdr b)))))
 
 ;; Check if all elements in a list are distinct
-;; Bug: Uses undefined member? function, should be member
 (define (distinct? lst)
   (if (null? lst)
       #t
-      (if (member? (car lst) (cdr lst))
+      (if (member (car lst) (cdr lst))
           #f
           (distinct? (cdr lst)))))
 
 ;; Create a list excluding all elements in the first list from the second list
-;; Bug: Uses undefined member? function, should be member
 (define (exclude items lst)
   (if (null? lst)
       nil
-      (if (member? (car lst) items)
+      (if (member (car lst) items)
           (exclude items (cdr lst))
           (cons (car lst) (exclude items (cdr lst))))))
 
@@ -378,23 +376,22 @@
 (define (eqv? a b)
   (if (eq? a b) #t (and (number? a) (equal? a b))))
 
-;; Check if an item is a member of a list using the provided comparer
-(define (memx item lst eq)
-  (if (null? lst) #f
-      (if (eq item (car lst)) lst
-          (memx item (cdr lst) eq))))
-
 ;; Check if an item is a member of a list (using equal?)
 ;; Usage: (member 'b '(a b c)) => (b c)
-(define (member item lst) (memx item lst equal?))
+(define (member x lst . rest)
+  (let ((equal-pred (if (null? rest) equal? (car rest))))
+    (cond
+      ((null? lst) #f)
+      ((equal-pred x (car lst)) lst)
+      (else (member x (cdr lst) equal-pred)))))
 
 ;; Check if an item is a member of a list (using eq?)
 ;; Usage: (memq 'b '(a b c)) => (b c)
-(define (memq item lst) (memx item lst eq?))
+(define (memq item lst) (member item lst eq?))
 
 ;; Check if an item is a member of a list (using eqv?)
 ;; Usage: (memv 'b '(a b c)) => (b c)
-(define (memv item lst) (memx item lst eqv?))
+(define (memv item lst) (member item lst eqv?))
 
 ;; Look up a key in an association list (using the given comparer)
 (define (associate key alist eq)
