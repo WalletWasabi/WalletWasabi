@@ -15,27 +15,29 @@ namespace WalletWasabi.Fluent.ViewModels.Scheme;
 	IconName = "nav_wallet_24_regular",
 	Order = 3,
 	Category = "General",
-	Keywords = ["Wallet", "Coins", "UTXO"],
+	Keywords = ["Wallet", "Coins", "UTXO", "Scripting"],
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = true)]
-public partial class CommandConsoleViewModel : RoutableViewModel
+public partial class SchemeConsoleViewModel : RoutableViewModel
 {
 	private readonly Daemon.Scheme _schemeInterpreter;
 	[AutoNotify] private string _commandInput;
 	[AutoNotify] private bool _isExecuting;
-	public ObservableCollection<ConsoleOutput> Output { get; private set; }
+	public ObservableCollection<SchemeOutput> Output { get; private set; }
+	public ObservableCollection<string> CommandHistory { get; }
 
 	public ICommand ExecuteCommand { get; private set; }
 
-	public CommandConsoleViewModel(Daemon.Scheme schemeInterpreter)
+	public SchemeConsoleViewModel(Daemon.Scheme schemeInterpreter)
 	{
 		_schemeInterpreter = schemeInterpreter;
 		CommandInput = string.Empty;
+		CommandHistory = new();
 		Output = new();
 		IsExecuting = false;
 		ExecuteCommand = ReactiveCommand.CreateFromTask(ExecuteCommandAsync);
-		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
+		SetupCancel(enableCancel: true, enableCancelOnEscape: false, enableCancelOnPressed: true);
 	}
 
 	private async Task ExecuteCommandAsync()
@@ -46,7 +48,7 @@ public partial class CommandConsoleViewModel : RoutableViewModel
 			return;
 		}
 
-		Output.Add(new ConsoleOutputCommand(command));
+		Output.Add(new SchemeOutputCommand(command));
 		CommandInput = string.Empty;
 
 		IsExecuting = true;
@@ -54,11 +56,11 @@ public partial class CommandConsoleViewModel : RoutableViewModel
 		try
 		{
 			string result = await RunCommandAsync(command);
-			Output.Add(new ConsoleOutputResult(result));
+			Output.Add(new SchemeOutputResult(result));
 		}
 		catch (Exception ex)
 		{
-			Output.Add(new ConsoleOutputError(ex.Message));
+			Output.Add(new SchemeOutputError(ex.Message));
 		}
 		finally
 		{
@@ -68,14 +70,14 @@ public partial class CommandConsoleViewModel : RoutableViewModel
 
 	private async Task<string> RunCommandAsync(string command)
 	{
-			try
-			{
-				Expression expressionResult = await _schemeInterpreter.Execute(command);
-				return _schemeInterpreter.ToJson(expressionResult);
-			}
-			catch (Exception ex)
-			{
-				throw new Exception($"Failed to execute command: {ex.Message}");
-			}
+		try
+		{
+			Expression expressionResult = await _schemeInterpreter.Execute(command);
+			return _schemeInterpreter.ToJson(expressionResult);
+		}
+		catch (Exception ex)
+		{
+			throw new Exception($"Failed to execute command: {ex.Message}");
+		}
 	}
 }

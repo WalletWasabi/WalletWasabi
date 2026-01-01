@@ -5,9 +5,9 @@
              xmlns:console="using:WalletWasabi.Fluent.ViewModels.Scheme"
              xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
-             x:DataType="console:CommandConsoleViewModel"
+             x:DataType="console:SchemeConsoleViewModel"
              x:CompileBindings="True"
-             x:Class="WalletWasabi.Fluent.Views.Scheme.CommandConsoleView">
+             x:Class="WalletWasabi.Fluent.Views.Scheme.SchemeConsoleView">
      <Interaction.Behaviors>
         <DataTriggerBehavior Binding="{Binding IsExecuting}" Value="False">
            <FocusControlActionCustom TargetControl="CommandInputTextBox" />
@@ -18,7 +18,7 @@
         <ScrollViewer Name="OutputScrollViewer" Grid.Row="0" Margin="0 0 0 20">
             <ItemsControl ItemsSource="{Binding Output}" >
               <ItemsControl.DataTemplates>
-                <DataTemplate DataType="{x:Type console:ConsoleOutputResult}">
+                <DataTemplate DataType="{x:Type console:SchemeOutputResult}">
                   <Border BorderThickness="0 0 0 0.6"  Margin="0 0 0 15" Padding="0 0 0 10" BorderBrush="{DynamicResource ConsoleOutputSeparatorColor}">
                     <DockPanel Background="Transparent">
                       <ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
@@ -32,14 +32,14 @@
                     </DockPanel>
                   </Border>
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type console:ConsoleOutputError}">
+                <DataTemplate DataType="{x:Type console:SchemeOutputError}">
                   <TextBlock Foreground="{DynamicResource ConsoleOutputErrorForegroundColor}" TextWrapping="Wrap" >
                     <Run Text="[Error] " />
                     <Run Text="{Binding Text}" />
                   </TextBlock>
                 </DataTemplate>
-                <DataTemplate DataType="{x:Type console:ConsoleOutputCommand}">
-                  <TextBlock Foreground="{DynamicResource ConsoleOutputCommandForegroundColor }" FontWeight="Bold" Margin="0 0 0 10">
+                <DataTemplate DataType="{x:Type console:SchemeOutputCommand}">
+                  <TextBlock Foreground="{DynamicResource ConsoleOutputCommandForegroundColor }" Margin="0 0 0 10">
                     <Run Text=">>> " />
                     <Run Text="{Binding Text}" />
                   </TextBlock>
@@ -51,17 +51,18 @@
             </ItemsControl>
         </ScrollViewer>
         <Grid Grid.Row="1" ColumnDefinitions="*,Auto" >
-          <console:CommandConsoleTextBox Name="CommandInputTextBox"
+          <console:SchemeEditorTextBox Name="CommandInputTextBox"
                    Grid.Column="0"
                    Text="{Binding CommandInput}"
                    Command="{Binding ExecuteCommand}"
+                   CommandHistory="{Binding CommandHistory}"
                    AcceptsTab="True"
                    Watermark="Enter command and press Enter..."
                    IsEnabled="{Binding !IsExecuting}">
             <Interaction.Behaviors>
               <FocusOnAttachedBehavior />
             </Interaction.Behaviors>
-          </console:CommandConsoleTextBox>
+          </console:SchemeEditorTextBox>
         </Grid>
       </Grid>
 </UserControl>

@@ -55,7 +55,7 @@ public static class MainViewModelExtensions
 		if (uiContext.ApplicationSettings.ExperimentalFeatures.Contains("scripting",
 			    StringComparer.InvariantCultureIgnoreCase))
 		{
-			CommandConsoleViewModel.RegisterLazy(() => new CommandConsoleViewModel(uiContext.Scheme));
+			SchemeConsoleViewModel.Register(new SchemeConsoleViewModel(uiContext.Scheme));
 		}
 	}
 }

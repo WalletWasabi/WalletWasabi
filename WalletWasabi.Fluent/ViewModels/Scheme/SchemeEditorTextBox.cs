@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
@@ -6,15 +6,17 @@ using Avalonia.Input;
 
 namespace WalletWasabi.Fluent.ViewModels.Scheme;
 
-public class CommandConsoleTextBox: TextBox
+public class SchemeEditorTextBox: TextBox
 {
-	private readonly List<string> _commandHistory = new();
 	private int _historyIndex = -1;
 
 	protected override Type StyleKeyOverride => typeof(TextBox);
 
 	public static readonly StyledProperty<ICommand?> CommandProperty =
 		AvaloniaProperty.Register<Button, ICommand?>(nameof(Command), enableDataValidation: true);
+
+	public static readonly StyledProperty<Collection<string>> CommandHistoryProperty =
+		AvaloniaProperty.Register<SchemeEditorTextBox, Collection<string>>(nameof(CommandHistory), enableDataValidation: true);
 
 	protected override void OnKeyDown(KeyEventArgs e)
 	{
@@ -56,9 +58,13 @@ public class CommandConsoleTextBox: TextBox
 			if (Command is not null)
 			{
 				// Store non-empty commands in history
-				if (!string.IsNullOrWhiteSpace(Text))
+				var commandText = Text?.Trim();
+				if (!string.IsNullOrWhiteSpace(commandText))
 				{
-					_commandHistory.Add(Text);
+					if (!CommandHistory.Contains(commandText))
+					{
+						CommandHistory.Add(commandText);
+					}
 				}
 
 				_historyIndex = -1;
@@ -67,13 +73,19 @@ public class CommandConsoleTextBox: TextBox
 				return;
 			}
 		}
+		else if (e.Key == Key.Escape)
+		{
+			Text = "";
+			e.Handled = true;
+			return;
+		}
 
 		base.OnKeyDown(e);
 	}
 
 	private void NavigateHistory(int direction)
 	{
-		if (_commandHistory.Count == 0)
+		if (CommandHistory.Count == 0)
 		{
 			return;
 		}
@@ -82,9 +94,9 @@ public class CommandConsoleTextBox: TextBox
 
 		if (_historyIndex < -1)
 		{
-			_historyIndex = _commandHistory.Count -1;
+			_historyIndex = CommandHistory.Count -1;
 		}
-		else if (_historyIndex >= _commandHistory.Count)
+		else if (_historyIndex >= CommandHistory.Count)
 		{
 			_historyIndex = 0;
 		}
@@ -95,7 +107,7 @@ public class CommandConsoleTextBox: TextBox
 		}
 		else
 		{
-			Text = _commandHistory[_historyIndex];
+			Text = CommandHistory[_historyIndex];
 		}
 
 		CaretIndex = Text.Length;
@@ -105,5 +117,11 @@ public class CommandConsoleTextBox: TextBox
 	{
 		get => GetValue(CommandProperty);
 		set => SetValue(CommandProperty, value);
+	}
+
+	public Collection<string> CommandHistory
+	{
+		get => GetValue(CommandHistoryProperty);
+		set => SetValue(CommandHistoryProperty, value);
 	}
 }

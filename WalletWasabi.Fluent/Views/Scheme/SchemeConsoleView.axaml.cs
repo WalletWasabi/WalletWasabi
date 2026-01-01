@@ -3,9 +3,9 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Scheme;
 
-public class CommandConsoleView : UserControl
+public class SchemeConsoleView : UserControl
 {
-	public CommandConsoleView()
+	public SchemeConsoleView()
 	{
 		InitializeComponent();
 	}
