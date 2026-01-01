@@ -35,6 +35,7 @@ public static class PersistentConfigManager
 		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
 		AbsoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
 		MaxDaysInMempool : Constants.DefaultMaxDaysInMempool,
+		ExperimentalFeatures: ValueList<string>.Empty,
 		ConfigVersion : 2);
 
 	public static readonly PersistentConfig DefaultTestNetConfig = DefaultMainNetConfig with
@@ -46,6 +47,7 @@ public static class PersistentConfigManager
 		BitcoinRpcUri = Constants.DefaultTestNetBitcoinRpcUri,
 		JsonRpcServerEnabled = true,
 		AbsoluteMinInputCount = Constants.AbsoluteMinInputCount,
+		ExperimentalFeatures = new ValueList<string>(["scripting"]),
 	};
 
 	public static readonly PersistentConfig DefaultRegTestConfig = DefaultTestNetConfig with

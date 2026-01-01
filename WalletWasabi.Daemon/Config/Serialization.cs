@@ -41,6 +41,7 @@ public static class PersistentConfigEncode
 			("MaxCoinJoinMiningFeeRate", Decimal(cfg.MaxCoinJoinMiningFeeRate)),
 			("AbsoluteMinInputCount", Int(cfg.AbsoluteMinInputCount)),
 			("MaxDaysInMempool", Int(cfg.MaxDaysInMempool)),
+			("ExperimentalFeatures", Array(cfg.ExperimentalFeatures.Select(String))),
 			("ConfigVersion", Int(cfg.ConfigVersion))
 		]);
 }
@@ -84,6 +85,7 @@ public static class PersistentConfigDecode
 			MaxCoinJoinMiningFeeRate : get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
 			AbsoluteMinInputCount : get.Required("AbsoluteMinInputCount", Decode.Int),
 			MaxDaysInMempool : get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
+			ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ?? Helpers.ValueList<string>.Empty,
 			ConfigVersion : get.Required("ConfigVersion", Decode.Int)
 		));
 

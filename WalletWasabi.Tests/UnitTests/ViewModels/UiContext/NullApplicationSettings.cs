@@ -45,6 +45,7 @@ public class NullApplicationSettings : IApplicationSettings
 	public Version LastVersionHighlightsDisplayed { get; set; } = new Version();
 	public WindowState WindowState { get; set; }
 	public bool DoUpdateOnClose { get; set; }
+	public string[] ExperimentalFeatures { get; set; } = [];
 
 	public bool CheckIfRestartIsNeeded(PersistentConfig config)
 	{

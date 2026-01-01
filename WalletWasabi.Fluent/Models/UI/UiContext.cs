@@ -18,8 +18,7 @@ public class UiContext
 
 	private INavigate? _navigate;
 
-	public UiContext(
-		IQrCodeGenerator qrCodeGenerator,
+	public UiContext(IQrCodeGenerator qrCodeGenerator,
 		IQrCodeReader qrCodeReader,
 		IUiClipboard clipboard,
 		IWalletRepository walletRepository,
@@ -33,7 +32,8 @@ public class UiContext
 		IEditableSearchSource editableSearchSource,
 		ITorStatusCheckerModel torStatusChecker,
 		IHealthMonitor healthMonitor,
-		ReleaseHighlights releaseHighlights)
+		ReleaseHighlights releaseHighlights,
+		Daemon.Scheme? scheme = null)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
@@ -50,6 +50,7 @@ public class UiContext
 		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
 		HealthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
 		ReleaseHighlights = releaseHighlights ?? throw new ArgumentNullException(nameof(releaseHighlights));
+		Scheme = scheme;
 	}
 
 	public IUiClipboard Clipboard { get; }
@@ -67,6 +68,7 @@ public class UiContext
 	public ITorStatusCheckerModel TorStatusChecker { get; }
 	public IHealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
+	public Daemon.Scheme? Scheme { get; }
 	public MainViewModel? MainViewModel { get; private set; }
 
 	public void RegisterNavigation(INavigate navigate)

@@ -35,6 +35,7 @@ public record PersistentConfig(
 	decimal MaxCoinJoinMiningFeeRate,
 	int AbsoluteMinInputCount,
 	int MaxDaysInMempool,
+	ValueList<string> ExperimentalFeatures,
 	int ConfigVersion
 	) : IPersistentConfig
 {

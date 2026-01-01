@@ -1,0 +1,69 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:console="using:WalletWasabi.Fluent.ViewModels.Scheme"
+             xmlns:behaviors="clr-namespace:WalletWasabi.Fluent.Behaviors"
+             mc:Ignorable="d" d:DesignWidth="1200" d:DesignHeight="450"
+             x:DataType="console:SchemeConsoleViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Scheme.SchemeConsoleView">
+     <Interaction.Behaviors>
+        <DataTriggerBehavior Binding="{Binding IsExecuting}" Value="False">
+           <FocusControlActionCustom TargetControl="CommandInputTextBox" />
+        </DataTriggerBehavior>
+     </Interaction.Behaviors>
+
+     <Grid RowDefinitions="*,Auto" MaxWidth="1200">
+        <ScrollViewer Name="OutputScrollViewer" Grid.Row="0" Margin="0 0 0 20">
+            <ItemsControl ItemsSource="{Binding Output}" >
+              <ItemsControl.DataTemplates>
+                <DataTemplate DataType="{x:Type console:SchemeOutputResult}">
+                  <Border BorderThickness="0 0 0 0.6"  Margin="0 0 0 15" Padding="0 0 0 10" BorderBrush="{DynamicResource ConsoleOutputSeparatorColor}">
+                    <DockPanel Background="Transparent">
+                      <ClipboardCopyButton x:Name="PART_ClipboardCopyButton"
+                           ToolTip.Tip="Copy"
+                           DockPanel.Dock="Right"
+                           Width="30"
+                           Text="{Binding Path=Text}"
+                           VerticalAlignment="Bottom"
+                           HorizontalAlignment="Center"/>
+                      <TextBlock Text="{Binding Text}" Foreground="{DynamicResource ConsoleOutputResultForegroundColor}" Classes="monoSpaced" TextWrapping="Wrap"/>
+                    </DockPanel>
+                  </Border>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type console:SchemeOutputError}">
+                  <TextBlock Foreground="{DynamicResource ConsoleOutputErrorForegroundColor}" TextWrapping="Wrap" >
+                    <Run Text="[Error] " />
+                    <Run Text="{Binding Text}" />
+                  </TextBlock>
+                </DataTemplate>
+                <DataTemplate DataType="{x:Type console:SchemeOutputCommand}">
+                  <TextBlock Foreground="{DynamicResource ConsoleOutputCommandForegroundColor }" Margin="0 0 0 10">
+                    <Run Text=">>> " />
+                    <Run Text="{Binding Text}" />
+                  </TextBlock>
+                </DataTemplate>
+              </ItemsControl.DataTemplates>
+              <Interaction.Behaviors>
+                <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="OutputScrollViewer" />
+              </Interaction.Behaviors>
+            </ItemsControl>
+        </ScrollViewer>
+        <Grid Grid.Row="1" ColumnDefinitions="*,Auto" >
+          <console:SchemeEditorTextBox Name="CommandInputTextBox"
+                   Grid.Column="0"
+                   Text="{Binding CommandInput}"
+                   Command="{Binding ExecuteCommand}"
+                   CommandHistory="{Binding CommandHistory}"
+                   AcceptsReturn="True"
+                   AcceptsTab="True"
+                   Watermark="Enter script and press Shift+Enter..."
+                   IsEnabled="{Binding !IsExecuting}">
+            <Interaction.Behaviors>
+              <FocusOnAttachedBehavior />
+            </Interaction.Behaviors>
+          </console:SchemeEditorTextBox>
+        </Grid>
+      </Grid>
+</UserControl>
