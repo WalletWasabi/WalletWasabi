@@ -56,8 +56,9 @@
                    Text="{Binding CommandInput}"
                    Command="{Binding ExecuteCommand}"
                    CommandHistory="{Binding CommandHistory}"
+                   AcceptsReturn="True"
                    AcceptsTab="True"
-                   Watermark="Enter command and press Enter..."
+                   Watermark="Enter script and press Shift+Enter..."
                    IsEnabled="{Binding !IsExecuting}">
             <Interaction.Behaviors>
               <FocusOnAttachedBehavior />

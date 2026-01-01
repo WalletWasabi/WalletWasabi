@@ -26,14 +26,23 @@ public class SchemeEditorTextBox: TextBox
 			// Shift+Enter add a new line
 			if (e.Key == Key.Enter)
 			{
-				var text = Text;
-				var pos = CaretIndex;
-				Text = pos >= 0 && pos <= text.Length
-					? text[..pos] + "\n" + text[pos..]
-					: text + "\n";
+				if (Command is not null)
+				{
+					// Store non-empty commands in history
+					var commandText = Text?.Trim();
+					if (!string.IsNullOrWhiteSpace(commandText))
+					{
+						if (!CommandHistory.Contains(commandText))
+						{
+							CommandHistory.Add(commandText);
+						}
+					}
 
-				CaretIndex = pos + 1;
-				return;
+					_historyIndex = -1;
+					Command.Execute(System.Reactive.Unit.Default);
+					e.Handled = true;
+					return;
+				}
 			}
 
 			// Shift+Up recovers the previous entered command
@@ -52,26 +61,6 @@ public class SchemeEditorTextBox: TextBox
 				return;
 			}
 
-		}
-		else if (e.Key == Key.Enter)
-		{
-			if (Command is not null)
-			{
-				// Store non-empty commands in history
-				var commandText = Text?.Trim();
-				if (!string.IsNullOrWhiteSpace(commandText))
-				{
-					if (!CommandHistory.Contains(commandText))
-					{
-						CommandHistory.Add(commandText);
-					}
-				}
-
-				_historyIndex = -1;
-				Command.Execute(System.Reactive.Unit.Default);
-				e.Handled = true;
-				return;
-			}
 		}
 		else if (e.Key == Key.Escape)
 		{
