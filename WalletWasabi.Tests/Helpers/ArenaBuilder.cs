@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
@@ -17,7 +16,6 @@ namespace WalletWasabi.Tests.Helpers;
 public class ArenaBuilder
 {
 	public static ArenaBuilder Default => new();
-
 	public TimeSpan? Period { get; set; }
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }

@@ -6,87 +6,47 @@ namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public class MaxSuggestedAmountProvider
 {
-	public MaxSuggestedAmountProvider(WabiSabiConfig config)
+	private readonly List<AmountTier> _amountTiers;
+	private int _counter;
+
+	public MaxSuggestedAmountProvider(Money initialMaxSuggestedAmount, Money maxRegistrableAmount)
 	{
-		Config = config;
-		MaxSuggestedAmount = GetMaxSuggestedAmount();
+		_amountTiers = BuildAmountTiers(initialMaxSuggestedAmount, maxRegistrableAmount);
+		MaxSuggestedAmount = _amountTiers[0].MaxValue;
 	}
 
-	private List<DividerMaxValue> RoundCounterDividerAndMaxAmounts { get; set; } = new List<DividerMaxValue>();
-	private Money LastGeneratedMaxSuggestedAmountBase { get; set; } = Money.Zero;
-	private WabiSabiConfig Config { get; init; }
-	private int Counter { get; set; }
 	public Money MaxSuggestedAmount { get; private set; }
 
-	private void CheckOrGenerateRoundCounterDividerAndMaxAmounts()
-	{
-		Money maxSuggestedAmountBase = Config.MaxSuggestedAmountBase;
-
-		if (maxSuggestedAmountBase == LastGeneratedMaxSuggestedAmountBase)
-		{
-			// It was already generated for this base.
-			return;
-		}
-
-		int level = 0;
-		List<DividerMaxValue> roundCounterDividerAndMaxAmounts = new();
-		bool end = false;
-		do
-		{
-			var roundDivider = (int)Math.Pow(2, level);
-			var maxValue = maxSuggestedAmountBase * (long)Math.Pow(10, level);
-			if (maxValue >= Config.MaxRegistrableAmount)
+	private static List<AmountTier> BuildAmountTiers(Money initialMaxSuggestedAmount, Money maxRegistrableAmount) =>
+		Enumerable
+			.Range(0, 30)
+			.Select(level => new
 			{
-				maxValue = Config.MaxRegistrableAmount;
-				end = true;
-			}
-			roundCounterDividerAndMaxAmounts.Insert(0, new(roundDivider, maxValue));
-			level++;
-		}
-		while (!end);
+				divider = 1 << level,
+				maxValue = initialMaxSuggestedAmount * (long)Math.Pow(10, level)
+			})
+			.TakeWhile(x => x.maxValue < maxRegistrableAmount)
+			.Select(x => new AmountTier(x.divider, x.maxValue))
+			.Concat([new AmountTier(1 << 31, maxRegistrableAmount)])
+			.OrderByDescending(t => t.MaxValue)
+			.ToList();
 
-		RoundCounterDividerAndMaxAmounts = roundCounterDividerAndMaxAmounts;
-		LastGeneratedMaxSuggestedAmountBase = maxSuggestedAmountBase;
-		Counter = 0;
+
+	public void ResetMaxSuggested()
+	{
+		// We will keep this on the maximum - let everyone join.
+		MaxSuggestedAmount = _amountTiers[0].MaxValue;
+		_counter = -1;
 	}
 
-	private Money GetMaxSuggestedAmount()
+	public void StepMaxSuggested()
 	{
-		CheckOrGenerateRoundCounterDividerAndMaxAmounts();
-		if (Counter != 0)
-		{
-			foreach (var (divider, maxValue) in RoundCounterDividerAndMaxAmounts.Where(v => v.MaxValue <= Config.MaxRegistrableAmount))
-			{
-				if (Counter % divider == 0)
-				{
-					return maxValue;
-				}
-			}
-		}
-
-		// We always start with the largest whale round.
-		return RoundCounterDividerAndMaxAmounts.First().MaxValue;
-	}
-
-	private record DividerMaxValue(int Divider, Money MaxValue);
-
-	public void StepMaxSuggested(Round round, bool isInputRegistrationSuccessful)
-	{
-		if (round is BlameRound)
-		{
-			return;
-		}
-
-		if (!isInputRegistrationSuccessful)
-		{
-			// We will keep this on the maximum - let everyone join.
-			MaxSuggestedAmount = Config.MaxRegistrableAmount;
-			return;
-		}
-
 		// Alter the value.
-		Counter++;
+		_counter++;
 
-		MaxSuggestedAmount = GetMaxSuggestedAmount();
+		var tier = _amountTiers.FirstOrDefault(t => _counter % t.Divider == 0);
+		MaxSuggestedAmount = tier?.MaxValue ?? _amountTiers[0].MaxValue;
 	}
+
+	private record AmountTier(int Divider, Money MaxValue);
 }

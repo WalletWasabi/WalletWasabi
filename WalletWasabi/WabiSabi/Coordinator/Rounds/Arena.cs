@@ -40,7 +40,7 @@ public partial class Arena : PeriodicRunner
 		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParametersFactory = roundParametersFactory;
 		_feeRateProvider = feeRateProvider;
-		_maxSuggestedAmountProvider = new(_config);
+		_maxSuggestedAmountProvider = new(_config.MaxSuggestedAmountBase, _config.MaxRegistrableAmount);
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
@@ -120,14 +120,26 @@ public partial class Arena : PeriodicRunner
 						continue;
 					}
 
-					_maxSuggestedAmountProvider.StepMaxSuggested(round, false);
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.", round);
 				}
 				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
-					_maxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
+				}
+
+				if (round is BlameRound)
+				{
+					continue;
+				}
+
+				if (round.Phase is Phase.Ended)
+				{
+					_maxSuggestedAmountProvider.StepMaxSuggested();
+				}
+				else
+				{
+					_maxSuggestedAmountProvider.ResetMaxSuggested();
 				}
 			}
 			catch (Exception ex)
