@@ -32,6 +32,7 @@
 		<PackageReference Include="NBitcoin" />
 		<PackageReference Include="System.Linq.Async" />
 		<PackageReference Include="WabiSabi" />
+		<PackageReference Include="BouncyCastle.Cryptography" />
 	</ItemGroup>
 
 	<ItemGroup>

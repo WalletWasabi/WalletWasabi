@@ -6,11 +6,13 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Text.Json;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
+using WalletWasabi.Tor.Control.Rpc;
 using WalletWasabi.Tor.Control.Messages;
 using WalletWasabi.Tor.Control.Utils;
 
@@ -27,32 +29,52 @@ public class TorControlClient : IAsyncDisposable
 	/// <remarks>This helps with graceful stopping of the reader loop.</remarks>
 	private volatile bool _readLastSyncReply;
 
-	public TorControlClient(TcpClient tcpClient) :
-		this(PipeReader.Create(tcpClient.GetStream()), PipeWriter.Create(tcpClient.GetStream()))
+	public TorControlClient(TorBackend torBackend, Stream stream) :
+		this(torBackend, PipeReader.Create(stream), PipeWriter.Create(stream))
 	{
-		_tcpClient = tcpClient;
 	}
 
-	internal TorControlClient(PipeReader pipeReader, PipeWriter pipeWriter)
+	internal TorControlClient(TorBackend torBackend, PipeReader pipeReader, PipeWriter pipeWriter)
 	{
 		_tcpClient = null;
+		_torBackend = torBackend;
 		_pipeReader = pipeReader;
 		_pipeWriter = pipeWriter;
 
-		_syncChannel = Channel.CreateUnbounded<TorControlReply>(Options);
-		AsyncChannels = new List<Channel<TorControlReply>>();
+		_syncChannel = Channel.CreateUnbounded<ITorControlReply>(Options);
+		AsyncChannels = new List<Channel<ITorControlReply>>();
 		_readerLoopTask = Task.Run(ReaderLoopAsync);
 	}
 
 	private readonly TcpClient? _tcpClient;
+	private readonly TorBackend _torBackend;
 	private readonly PipeReader _pipeReader;
 	private readonly PipeWriter _pipeWriter;
 	private readonly CancellationTokenSource _readerCts = new();
 	private readonly Task _readerLoopTask;
 
+	private volatile string _rpcSessionId = string.Empty;
+
+	public string RpcSessionId
+	{
+		get => _rpcSessionId;
+		set => _rpcSessionId = value;
+	}
+
+	private volatile string _rpcClientId = string.Empty;
+
+	public string RpcClientId
+	{
+		get => _rpcClientId;
+		set => _rpcClientId = value;
+	}
+
+	// todo: use this.
+	private int _lastRpcId = 10;
+
 	/// <summary>Channel only for synchronous replies from Tor control.</summary>
 	/// <remarks>Typically, there is at most one message in the channel at a time.</remarks>
-	private readonly Channel<TorControlReply> _syncChannel;
+	private readonly Channel<ITorControlReply> _syncChannel;
 
 	/// <summary>Guards <see cref="AsyncChannels"/>.</summary>
 	private readonly object _asyncChannelsLock = new();
@@ -62,7 +84,7 @@ public class TorControlClient : IAsyncDisposable
 	/// Guarded by <see cref="_asyncChannelsLock"/>.
 	/// <para>This list should be used only in a copy-on-write way to avoid iterating a modified list.</para>
 	/// </remarks>
-	private List<Channel<TorControlReply>> AsyncChannels { get; set; }
+	private List<Channel<ITorControlReply>> AsyncChannels { get; set; }
 
 	/// <summary>Lock to when sending a request to Tor control and waiting for a reply.</summary>
 	/// <remarks>Tor control protocol does not provide a foolproof way to recognize that a response belongs to a request.</remarks>
@@ -87,6 +109,9 @@ public class TorControlClient : IAsyncDisposable
 			}
 		}
 	}
+
+	private int IncrementAndGetNextRpcRequestId()
+		=> Interlocked.Increment(ref _lastRpcId);
 
 	/// <summary>
 	/// Gets the value of zero or more configuration variable(s).
@@ -184,7 +209,7 @@ public class TorControlClient : IAsyncDisposable
 
 	public async Task<(string, string)> CreateKeylessOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
-		var reply = await CreateOnionServiceCommand("NEW:ED25519-V3", "", virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
+		var reply = await CreateOnionServiceCommandAsync("NEW:ED25519-V3", "", virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
 
 		const string ServiceIdMarker = "ServiceID=";
 		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(ServiceIdMarker, StringComparison.Ordinal));
@@ -211,7 +236,7 @@ public class TorControlClient : IAsyncDisposable
 
 	private async Task<string> CreateOnionServiceAsync(string key, string flags, int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
-		var reply = await CreateOnionServiceCommand(key, flags, virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
+		var reply = await CreateOnionServiceCommandAsync(key, flags, virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
 
 		const string Marker = "ServiceID=";
 		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker, StringComparison.Ordinal));
@@ -224,7 +249,7 @@ public class TorControlClient : IAsyncDisposable
 		return serviceId;
 	}
 
-	private async Task<TorControlReply> CreateOnionServiceCommand(string key, string flags, int virtualPort,
+	private async Task<TorControlReply> CreateOnionServiceCommandAsync(string key, string flags, int virtualPort,
 		int remotePort, CancellationToken cancellationToken)
 	{
 		var reply = await SendCommandAsync($"ADD_ONION {key} {flags} Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
@@ -268,10 +293,86 @@ public class TorControlClient : IAsyncDisposable
 		await _pipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(command)), linkedCts.Token).ConfigureAwait(false);
 		await _pipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
 
-		TorControlReply reply = await _syncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
+		ITorControlReply reply = await _syncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
 		Logger.LogTrace($"Client: Reply: '{reply}'");
 
+		return (TorControlReply)reply;
+	}
+
+	public async Task<JsonRpcResponse<T>> SendRpcRequestAsync<T>(JsonRpcRequest request, CancellationToken cancellationToken)
+	{
+		string jsonRequest = JsonSerializer.Serialize(request);
+		return await SendRpcRequestAsync<T>(jsonRequest, cancellationToken).ConfigureAwait(false);
+	}
+
+	public async Task<JsonRpcResponse<T>> SendRpcRequestAsync<T>(string jsonRequest, CancellationToken cancellationToken)
+	{
+		using IDisposable _ = await _messageLock.LockAsync(cancellationToken).ConfigureAwait(false);
+		return await SendRpcRequestNoLockAsync<T>(jsonRequest, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <remarks>Lock <see cref="_messageLock"/> must be acquired by the caller.</remarks>
+	private async Task<JsonRpcResponse<T>> SendRpcRequestNoLockAsync<T>(string jsonRequest, CancellationToken cancellationToken)
+	{
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(_readerCts.Token, cancellationToken);
+
+		Logger.LogTrace($"Client: About to RPC request command: '{jsonRequest.TrimEnd()}'");
+		await _pipeWriter.WriteAsync(new ReadOnlyMemory<byte>(Encoding.ASCII.GetBytes(jsonRequest)), linkedCts.Token).ConfigureAwait(false);
+		await _pipeWriter.FlushAsync(linkedCts.Token).ConfigureAwait(false);
+
+		var reply = await _syncChannel.Reader.ReadAsync(linkedCts.Token).ConfigureAwait(false);
+		var message = (ArtiJsonMessage)reply;
+		var replyObj = JsonSerializer.Deserialize<JsonRpcResponse<T>>(message.Json)!;
+
+		Logger.LogTrace($"Server: Received reply: '{message.Json}'");
+
+		return replyObj;
+	}
+
+	/// <summary>
+	/// Return current bootstrap and health information for a client.
+	/// </summary>
+	public async Task<JsonRpcResponse<GetClientStatusResult>> GetClientStatusRpcAsync(CancellationToken cancellationToken)
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		string json = $$"""{"id": {{id}},"obj":"{{RpcClientId}}","method":"arti:get_client_status","params":{} }""";
+		var response = await SendRpcRequestAsync<GetClientStatusResult>(json, cancellationToken).ConfigureAwait(false);
+
+		return response;
+	}
+
+	/// <summary>
+	/// Delivers updates about a client's bootstrap and health information.
+	/// </summary>
+	public async Task<JsonRpcResponse<object>> StartWatchingClientStatusRpcAsync(CancellationToken cancellationToken)
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		string json = $$"""{"id": {{id}},"obj":"{{RpcClientId}}","method":"arti:watch_client_status","params":{} }""";
+		var reply = await SendRpcRequestAsync<object>(json, cancellationToken).ConfigureAwait(false);
+
 		return reply;
+	}
+
+	public JsonRpcRequest CreateCookieAuthBeginRpcRequest(string clientNonce)
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		var @params = new Dictionary<string, object>
+		{
+			{ "client_nonce", clientNonce }
+		};
+
+		return new JsonRpcRequest(id, "connection", "auth:cookie_begin", @params);
+	}
+
+	public JsonRpcRequest CreateCookieAuthContinueRpcRequest(string rpcObject, string clientMac)
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		var @params = new Dictionary<string, object>
+		{
+			{ "client_mac", clientMac }
+		};
+
+		return new JsonRpcRequest(id, rpcObject, "auth:cookie_continue", @params);
 	}
 
 	/// <summary>Allows the caller to read Tor events using <c>await foreach</c>.</summary>
@@ -284,10 +385,10 @@ public class TorControlClient : IAsyncDisposable
 	/// }
 	/// </code>
 	/// </example>
-	public async IAsyncEnumerable<TorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
+	public async IAsyncEnumerable<ITorControlReply> ReadEventsAsync([EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		Channel<TorControlReply> channel = Channel.CreateUnbounded<TorControlReply>(Options);
-		List<Channel<TorControlReply>> newList;
+		Channel<ITorControlReply> channel = Channel.CreateUnbounded<ITorControlReply>(Options);
+		List<Channel<ITorControlReply>> newList;
 
 		try
 		{
@@ -302,7 +403,7 @@ public class TorControlClient : IAsyncDisposable
 			}
 
 			Logger.LogTrace($"ReadEventsAsync: subscribers: {newList.Count}.");
-			await foreach (TorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+			await foreach (ITorControlReply item in channel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 			{
 				yield return item;
 			}
@@ -460,29 +561,50 @@ public class TorControlClient : IAsyncDisposable
 
 		try
 		{
-			while (!_readerCts.IsCancellationRequested)
+			if (_torBackend == TorBackend.CTor)
 			{
-				TorControlReply reply = await TorControlReplyReader.ReadReplyAsync(_pipeReader, _readerCts.Token).ConfigureAwait(false);
-
-				if (reply.StatusCode == StatusCode.AsynchronousEventNotify)
+				while (!_readerCts.IsCancellationRequested)
 				{
-					List<Channel<TorControlReply>> list;
+					TorControlReply reply = await TorControlReplyReader.ReadReplyAsync(_pipeReader, _readerCts.Token).ConfigureAwait(false);
 
-					lock (_asyncChannelsLock)
+					if (reply.StatusCode == StatusCode.AsynchronousEventNotify)
 					{
-						list = AsyncChannels;
+						List<Channel<ITorControlReply>> list;
+
+						lock (_asyncChannelsLock)
+						{
+							list = AsyncChannels;
+						}
+
+						// Notify every "subscriber" who reads all Tor events.
+						foreach (Channel<ITorControlReply> channel in list)
+						{
+							await channel.Writer.WriteAsync(reply, _readerCts.Token).ConfigureAwait(false);
+						}
 					}
-
-					// Notify every "subscriber" who reads all Tor events.
-					foreach (Channel<TorControlReply> channel in list)
+					else
 					{
-						await channel.Writer.WriteAsync(reply, _readerCts.Token).ConfigureAwait(false);
+						// Propagate a response back to the requester.
+						await _syncChannel.Writer.WriteAsync(reply, _readerCts.Token).ConfigureAwait(false);
+
+						if (_readLastSyncReply)
+						{
+							Logger.LogTrace("Request to read last message was issued. No more message reading.");
+							break;
+						}
 					}
 				}
-				else
+			}
+			else
+			{
+				while (!_readerCts.IsCancellationRequested)
 				{
+					string json = await TorControlReplyReader.ReadRpcMessageAsync(_pipeReader, _readerCts.Token).ConfigureAwait(false);
+					Logger.LogTrace($"RPC incoming message: {json}");
+
 					// Propagate a response back to the requester.
-					await _syncChannel.Writer.WriteAsync(reply, _readerCts.Token).ConfigureAwait(false);
+					var message = new ArtiJsonMessage(json);
+					await _syncChannel.Writer.WriteAsync(message, _readerCts.Token).ConfigureAwait(false);
 
 					if (_readLastSyncReply)
 					{

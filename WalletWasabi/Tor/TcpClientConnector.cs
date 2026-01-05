@@ -8,36 +8,43 @@ namespace WalletWasabi.Tor;
 public static class TcpClientConnector
 {
 	/// <summary>
-	/// Connects to end point using a TCP client.
+	/// Opens a network stream with the end point.
 	/// </summary>
-	public static async Task<TcpClient> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
+	public static async Task<NetworkStream> ConnectAsync(EndPoint endPoint, CancellationToken cancellationToken)
 	{
-		TcpClient? client = null;
+		Socket? socketToDispose = null;
 
 		try
 		{
 			switch (endPoint)
 			{
 				case DnsEndPoint dnsEndPoint:
-					client = new();
-					await client.ConnectAsync(dnsEndPoint.Host, dnsEndPoint.Port, cancellationToken).ConfigureAwait(false);
+					socketToDispose = new Socket(SocketType.Stream, ProtocolType.Tcp);
+					await socketToDispose.ConnectAsync(dnsEndPoint, cancellationToken).ConfigureAwait(false);
 					break;
 
 				case IPEndPoint ipEndPoint:
-					client = new(endPoint.AddressFamily);
-					await client.ConnectAsync(ipEndPoint, cancellationToken).ConfigureAwait(false);
+					socketToDispose = new Socket(SocketType.Stream, ProtocolType.Tcp);
+					await socketToDispose.ConnectAsync(ipEndPoint, cancellationToken).ConfigureAwait(false);
+					break;
+
+				case UnixDomainSocketEndPoint unixDomainSocketEndPoint:
+					socketToDispose = new Socket(AddressFamily.Unix, SocketType.Stream, ProtocolType.Unspecified);
+					await socketToDispose.ConnectAsync(unixDomainSocketEndPoint, cancellationToken).ConfigureAwait(false);
 					break;
 
 				default:
-					throw new NotSupportedException($"Endpoint of type '{endPoint.GetType().FullName}' is not supported.");
+					throw new NotImplementedException();
 			}
-		}
-		catch
-		{
-			client?.Dispose();
-			throw;
-		}
 
-		return client;
+			var socket = socketToDispose;
+			socketToDispose = null;
+
+			return new NetworkStream(socket!, ownsSocket: true);
+		}
+		finally
+		{
+			socketToDispose?.Dispose();
+		}
 	}
 }
