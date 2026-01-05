@@ -37,7 +37,7 @@ public class WasabiJsonOutputFormatter : TextOutputFormatter
 			_encoder(context.Object).WriteTo(writter);
 			await responseStream.FlushAsync(httpContext.RequestAborted);
 		}
-		catch (OperationCanceledException ex) when (context.HttpContext.RequestAborted.IsCancellationRequested)
+		catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
 		{
 		}
 		catch(Exception e)

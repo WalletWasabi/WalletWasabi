@@ -38,7 +38,7 @@ public class WasabiJsonInputFormatter : TextInputFormatter
 			var model = modelDeserializationResult.Value;
 			return InputFormatterResult.Success(model);
 		}
-		catch (OperationCanceledException ex) when (context.HttpContext.RequestAborted.IsCancellationRequested)
+		catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)
 		{
 		}
 		catch (Exception e)
