@@ -5,6 +5,7 @@
   outputs = { self, nixpkgs }:
     let
         pkgs = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.13-ecdsa-0.19.1"]; };
+        pkgsUnfree = import nixpkgs { system = "x86_64-linux"; config.permittedInsecurePackages = ["python3.13-ecdsa-0.19.1"]; config.allowUnfree = true; };
         deployScript = pkgs.writeScriptBin "deploy" (builtins.readFile ./Contrib/deploy.sh);
         gitRev = if (builtins.hasAttr "rev" self) then self.rev else "dirty";
         buildWasabiModule = pkgs.buildDotnetModule {
@@ -92,21 +93,57 @@
           nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
-        wasabi-shell = pkgs.mkShell {
-           name = "wasabi-shell";
-           packages = [
-             pkgs.dotnetCorePackages.sdk_10_0
-             dotnet-trace
-             dotnet-dump
-             dotnet-counters
-             ];
 
-           shellHook = ''
-             export DOTNET_CLI_TELEMETRY_OPTOUT=1
-             export DOTNET_NOLOGO=1
-             export DOTNET_ROOT=${pkgs.dotnetCorePackages.sdk_10_0}
-             export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
-           '';
+        wasabi-shell =
+          with {
+            libs = with pkgs; [
+              xorg.libX11
+              xorg.libXrandr
+              xorg.libX11.dev
+              xorg.libICE
+              xorg.libSM
+              pkgs.zlib
+              fontconfig.lib
+            ];
+            skiaSharp=toString ./. + "/WalletWasabi.Fluent.Desktop/bin/Debug/net10.0/runtimes/linux-x64/native";
+          };
+          pkgs.mkShell {
+            name = "wasabi-shell";
+            buildInputs = libs;
+            packages = [
+              pkgs.dotnetCorePackages.sdk_10_0
+
+              # tools
+              dotnet-trace
+              dotnet-dump
+              dotnet-counters
+
+              # dependencies
+              pkgs.bitcoind
+              pkgs.tor
+              pkgs.hwi
+
+              # IDE
+              pkgsUnfree.jetbrains.rider
+            ];
+
+            DOTNET_CLI_TELEMETRY_OPTOUT = 1;
+            DOTNET_NOLOGO = 1;
+            DOTNET_ROOT = "${pkgs.dotnetCorePackages.sdk_10_0}";
+            DOTNET_GLOBAL_TOOLS_PATH = "${builtins.getEnv "HOME"}/.dotnet/tools";
+            #DOTNET_ROLL_FORWARD = "latestPatch";
+            LD_LIBRARY_PATH = "${skiaSharp};${pkgs.lib.makeLibraryPath libs}";
+            MICROSERVICE_BINARIES_PATH = "WalletWasabi/Microservices/Binaries/lin64";
+            MICROSERVICE_TEST_BINARIES_PATH = "WalletWasabi.Tests/Microservices/Binaries/lin64";
+
+            shellHook = ''
+              export PATH="$PATH:$DOTNET_GLOBAL_TOOLS_PATH"
+              cp $(which tor) "$MICROSERVICE_BINARIES_PATH/Tor/"
+              cp $(which hwi) "$MICROSERVICE_BINARIES_PATH/hwi"
+              cp $(which bitcoind) "$MICROSERVICE_TEST_BINARIES_PATH/"
+
+              export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
+            '';
         };
         migrateBackendFilters = {
            type = "app";
