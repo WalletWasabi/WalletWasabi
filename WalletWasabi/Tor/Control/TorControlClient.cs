@@ -1,5 +1,6 @@
 using Nito.AsyncEx;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.IO.Pipelines;
 using System.Linq;
@@ -12,8 +13,8 @@ using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
-using WalletWasabi.Tor.Control.Rpc;
 using WalletWasabi.Tor.Control.Messages;
+using WalletWasabi.Tor.Control.Rpc;
 using WalletWasabi.Tor.Control.Utils;
 
 namespace WalletWasabi.Tor.Control;
@@ -69,8 +70,7 @@ public class TorControlClient : IAsyncDisposable
 		set => _rpcClientId = value;
 	}
 
-	// todo: use this.
-	private int _lastRpcId = 10;
+	private int _lastRpcId = 0;
 
 	/// <summary>Channel only for synchronous replies from Tor control.</summary>
 	/// <remarks>Typically, there is at most one message in the channel at a time.</remarks>
@@ -353,13 +353,20 @@ public class TorControlClient : IAsyncDisposable
 		return reply;
 	}
 
+	public JsonRpcRequest CreateInherentAuthRpcRequest()
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		var @params = ImmutableDictionary<string, object>.Empty
+			.Add("scheme", "auth:inherent");
+
+		return new JsonRpcRequest(id, "connection", "auth:authenticate", @params);
+	}
+
 	public JsonRpcRequest CreateCookieAuthBeginRpcRequest(string clientNonce)
 	{
 		int id = IncrementAndGetNextRpcRequestId();
-		var @params = new Dictionary<string, object>
-		{
-			{ "client_nonce", clientNonce }
-		};
+		var @params = ImmutableDictionary<string, object>.Empty
+			.Add("client_nonce", clientNonce);
 
 		return new JsonRpcRequest(id, "connection", "auth:cookie_begin", @params);
 	}
@@ -367,12 +374,18 @@ public class TorControlClient : IAsyncDisposable
 	public JsonRpcRequest CreateCookieAuthContinueRpcRequest(string rpcObject, string clientMac)
 	{
 		int id = IncrementAndGetNextRpcRequestId();
-		var @params = new Dictionary<string, object>
-		{
-			{ "client_mac", clientMac }
-		};
+		var @params = ImmutableDictionary<string, object>.Empty
+			.Add("client_mac", clientMac);
 
 		return new JsonRpcRequest(id, rpcObject, "auth:cookie_continue", @params);
+	}
+
+	public JsonRpcRequest CreateGetClientRpcRequest(string rpcSessionId)
+	{
+		int id = IncrementAndGetNextRpcRequestId();
+		var @params = ImmutableDictionary<string, object>.Empty;
+	
+		return new JsonRpcRequest(id, rpcSessionId, "arti:get_client", @params);
 	}
 
 	/// <summary>Allows the caller to read Tor events using <c>await foreach</c>.</summary>

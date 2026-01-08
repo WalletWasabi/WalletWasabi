@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Text.Json.Serialization;
 using WalletWasabi.Tor.Control.Messages;
@@ -9,7 +10,7 @@ public record JsonRpcRequest(
 	[property: JsonPropertyName("id")] int Id,
 	[property: JsonPropertyName("obj")] string Obj,
 	[property: JsonPropertyName("method")] string Method,
-	[property: JsonPropertyName("params")] Dictionary<string, object> Params
+	[property: JsonPropertyName("params")] IImmutableDictionary<string, object> Params
 );
 
 public record JsonRpcError(
