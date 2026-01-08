@@ -142,8 +142,8 @@ public partial class TorControlClientFactory
 		else
 		{
 			// Authentication was proved by accessing the RPC by its UNIX socket domain file.
-			var authJson = """{"id": 1,"obj":"connection","method":"auth:authenticate","params":{"scheme":"auth:inherent"} }""";
-			var authenticationResponse = await controlClient.SendRpcRequestAsync<AuthSessionResult>(authJson, cancellationToken).ConfigureAwait(false);
+			var authRequest = controlClient.CreateInherentAuthRpcRequest();
+			var authenticationResponse = await controlClient.SendRpcRequestAsync<AuthSessionResult>(authRequest, cancellationToken).ConfigureAwait(false);
 
 			if (!authenticationResponse.Deconstruct(out var result, out var error))
 			{
@@ -158,8 +158,8 @@ public partial class TorControlClientFactory
 
 		// Get a client ID.
 		{
-			var json = $$"""{"id": 1,"obj":"{{rpcSessionId}}","method":"arti:get_client","params":{} }""";
-			var clientResponse = await controlClient.SendRpcRequestAsync<GetClientResult>(json, cancellationToken).ConfigureAwait(false);
+			var request = controlClient.CreateGetClientRpcRequest(rpcSessionId);
+			var clientResponse = await controlClient.SendRpcRequestAsync<GetClientResult>(request, cancellationToken).ConfigureAwait(false);
 
 			if (!clientResponse.Deconstruct(out var result, out var error))
 			{
