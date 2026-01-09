@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Net;
 using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
@@ -10,7 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
-namespace WalletWasabi.WabiSabi.Coordinator;
+namespace WalletWasabi.Coordinator;
 
 public class WabiSabiConfig : ConfigBase
 {
@@ -178,7 +177,7 @@ public class WabiSabiConfig : ConfigBase
 		try
 		{
 			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
-			var decoder = JsonDecoder.FromStream(Decode.WabiSabiConfig(filePath));
+			var decoder = Serialization.JsonDecoder.FromStream(ConfigDecode.WabiSabiConfig(filePath));
 			var decodingResult = decoder(cfgFile);
 			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
 		}
@@ -193,5 +192,5 @@ public class WabiSabiConfig : ConfigBase
 	}
 
 	protected override string EncodeAsJson() =>
-		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
+		Serialization.JsonEncoder.ToReadableString(this, ConfigEncode.WabiSabiConfig);
 }

@@ -12,6 +12,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -26,7 +27,7 @@ using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.Helpers;
 

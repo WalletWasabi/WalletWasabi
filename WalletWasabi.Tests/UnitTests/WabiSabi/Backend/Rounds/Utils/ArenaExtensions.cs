@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
 

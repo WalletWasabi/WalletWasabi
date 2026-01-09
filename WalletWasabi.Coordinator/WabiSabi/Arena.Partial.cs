@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -7,12 +6,14 @@ using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
-namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
+namespace WalletWasabi.Coordinator.WabiSabi;
 
 public partial class Arena : IWabiSabiApiRequestHandler
 {

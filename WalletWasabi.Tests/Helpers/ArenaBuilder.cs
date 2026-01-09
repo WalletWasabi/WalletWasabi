@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Coordinator;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.Helpers;
 

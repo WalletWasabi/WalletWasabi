@@ -7,8 +7,9 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
-namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
+namespace WalletWasabi.Coordinator.WabiSabi.DosPrevention;
 
 public class Warden : BackgroundService
 {

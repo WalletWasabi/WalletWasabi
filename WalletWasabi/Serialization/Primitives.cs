@@ -3,11 +3,13 @@ using System.Diagnostics.CodeAnalysis;
 using System.Diagnostics.Contracts;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Userfacing;
 using JsonException = System.Text.Json.JsonException;
 
 namespace WalletWasabi.Serialization;
@@ -58,6 +60,10 @@ public static partial class Encode
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static JsonNode? Optional<T>(T? value, Encoder<T> encoder) =>
 		value is { } nonNullValue ? encoder(nonNullValue) : null;
+
+	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static JsonNode EndPoint(EndPoint ep, int defaultPort) =>
+		String(ep.ToString(defaultPort));
 }
 
 
@@ -119,6 +125,17 @@ public static partial class Decode
 
 	public static Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
+
+	public static readonly Decoder<EndPoint> EndPoint =
+		String.AndThen(s =>
+		{
+			if (EndPointParser.TryParse(s, out EndPoint? endPoint))
+			{
+				return Succeed(endPoint);
+			}
+
+			return Fail<EndPoint>($"Invalid endpoint format: '{s}'");
+		});
 
 	public static Decoder<T> Succeed<T>(T output) =>
 		_ => output;

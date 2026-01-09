@@ -1,7 +1,8 @@
 using NBitcoin;
+using WalletWasabi.Coordinator;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;

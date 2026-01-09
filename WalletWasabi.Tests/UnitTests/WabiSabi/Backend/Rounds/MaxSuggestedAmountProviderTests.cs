@@ -1,5 +1,5 @@
 using NBitcoin;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.Coordinator.WabiSabi;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds;
