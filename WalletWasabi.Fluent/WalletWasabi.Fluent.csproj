@@ -30,9 +30,7 @@
 		<PackageReference Include="Avalonia.Fonts.Inter" />
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Markdown.Avalonia" />
-		<PackageReference Include="System.Runtime" />
 		<PackageReference Include="QRackers" />
-		<PackageReference Include="System.Private.Uri" /> <!-- Version 4.3.0 contains a vulnerability, manually bumped to 4.3.2. -->
 	</ItemGroup>
 
 	<ItemGroup>

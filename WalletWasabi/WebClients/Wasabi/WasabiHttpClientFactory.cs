@@ -172,11 +172,11 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 					case HttpStatusCode.RequestTimeout:
 					case HttpStatusCode.BadGateway:
 					case HttpStatusCode.ServiceUnavailable:
-						Logger.LogTrace($"retying {request.RequestUri} because {response.ReasonPhrase}");
+						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
 						await Task.Delay(Config.TimeBeforeRetringAfterServerError, cancellationToken).ConfigureAwait(false);
 						continue;
 					case HttpStatusCode.TooManyRequests:
-						Logger.LogTrace($"retying {request.RequestUri} because {response.ReasonPhrase}");
+						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
 						// Be nice with third-party server overwhelmed by request from Tor exit nodes
 						await Task.Delay(Config.TimeBeforeRetringAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
 						continue;
@@ -192,7 +192,7 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 				{
 					throw;
 				}
-				Logger.LogTrace($"retying {request.RequestUri} because {ex.Message}");
+				Logger.LogTrace($"Retrying {request.RequestUri} because {ex.Message}");
 				await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken)
 					.ConfigureAwait(false);
 			}
@@ -219,7 +219,7 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 				HttpRequestError.InvalidResponse or
 				HttpRequestError.ResponseEnded
 			} => true,
-			{InnerException: var inner} when ShouldRetry(inner) => true,
+			{InnerException: Exception inner} when ShouldRetry(inner) => true,
 			_ => false
 		};
 }

@@ -154,7 +154,7 @@ public abstract record CredentialEdgeSet(long MaxCredentialValue)
 			};
 		}
 		var initialSign = BalanceSign(1, 1);
-		var (p, n, isFanIn) = EvaluateCombination(initialSign, 1, 1, sources.Count(), sinks.Count());
+		var (p, n, isFanIn) = EvaluateCombination(initialSign, 1, 1, sources.Length, sinks.Length);
 
 		var (largestMagnitudeNode, smallMagnitudeNodes) = isFanIn
 			? (sinks.First(), sources.Take(p).Reverse())

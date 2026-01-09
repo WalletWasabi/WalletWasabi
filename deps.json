@@ -631,11 +631,6 @@
   },
   {
     "pname": "Microsoft.NETCore.Platforms",
-    "version": "1.1.1",
-    "hash": "sha256-8hLiUKvy/YirCWlFwzdejD2Db3DaXhHxT7GSZx/znJg="
-  },
-  {
-    "pname": "Microsoft.NETCore.Platforms",
     "version": "2.0.1",
     "hash": "sha256-1xZBheXlvHr0aNlOks+b1bzv1CxAtCaipZest6OtUMg="
   },
@@ -653,11 +648,6 @@
     "pname": "Microsoft.NETCore.Targets",
     "version": "1.1.0",
     "hash": "sha256-0AqQ2gMS8iNlYkrD+BxtIg7cXMnr9xZHtKAuN4bjfaQ="
-  },
-  {
-    "pname": "Microsoft.NETCore.Targets",
-    "version": "1.1.3",
-    "hash": "sha256-WLsf1NuUfRWyr7C7Rl9jiua9jximnVvzy6nk2D2bVRc="
   },
   {
     "pname": "Microsoft.NETCore.Windows.ApiSets",
@@ -1120,11 +1110,6 @@
     "hash": "sha256-1VQa8FoMUNAsja31OvOn7ungif+IPusAe9YcR+kRF6o="
   },
   {
-    "pname": "System.IO.Pipelines",
-    "version": "8.0.0",
-    "hash": "sha256-LdpB1s4vQzsOODaxiKstLks57X9DTD5D6cPx8DE1wwE="
-  },
-  {
     "pname": "System.IO.Pipes",
     "version": "4.0.0",
     "hash": "sha256-6qMAD6DCZ5c1wswLWi1msqwu8GwI8un1RzjpUhzbrjs="
@@ -1238,11 +1223,6 @@
     "pname": "System.Private.DataContractSerialization",
     "version": "4.1.1",
     "hash": "sha256-OaE+ZcEfkpIkbdMOMAMiJa9vgiVP25FGuFrf+N/mafY="
-  },
-  {
-    "pname": "System.Private.Uri",
-    "version": "4.3.2",
-    "hash": "sha256-jB2+W3tTQ6D9XHy5sEFMAazIe1fu2jrENUO0cb48OgU="
   },
   {
     "pname": "System.Reactive",
@@ -1373,11 +1353,6 @@
     "pname": "System.Runtime",
     "version": "4.3.0",
     "hash": "sha256-51813WXpBIsuA6fUtE5XaRQjcWdQ2/lmEokJt97u0Rg="
-  },
-  {
-    "pname": "System.Runtime",
-    "version": "4.3.1",
-    "hash": "sha256-R9T68AzS1PJJ7v6ARz9vo88pKL1dWqLOANg4pkQjkA0="
   },
   {
     "pname": "System.Runtime.CompilerServices.Unsafe",
@@ -1543,11 +1518,6 @@
     "pname": "System.Text.Encoding.Extensions",
     "version": "4.3.0",
     "hash": "sha256-vufHXg8QAKxHlujPHHcrtGwAqFmsCD6HKjfDAiHyAYc="
-  },
-  {
-    "pname": "System.Text.Json",
-    "version": "8.0.5",
-    "hash": "sha256-yKxo54w5odWT6nPruUVsaX53oPRe+gKzGvLnnxtwP68="
   },
   {
     "pname": "System.Text.RegularExpressions",
