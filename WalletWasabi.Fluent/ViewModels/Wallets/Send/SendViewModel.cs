@@ -283,27 +283,16 @@ public partial class SendViewModel : RoutableViewModel
 
 	private void ValidateToField(IValidationErrors errors)
 	{
-		if (!string.IsNullOrEmpty(To))
+		var parseResult = AddressParser.Parse(To, _walletModel.Network);
+		if (!parseResult.IsOk)
 		{
-			var parseResult = AddressParser.Parse(To, _walletModel.Network);
-			if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !parseResult.IsOk))
-			{
-				if (parseResult.IsOk)
-				{
-					errors.Add(ErrorSeverity.Error, "Leading or trailing whitespace detected. Remove it please.");
-				}
-				else
-				{
-					errors.Add(ErrorSeverity.Error, parseResult.Error);
-				}
-
-				return;
-			}
-			if (parseResult is {IsOk: true, Value: Address.SilentPayment} && _walletModel.IsHardwareWallet)
-			{
-				errors.Add(ErrorSeverity.Error, "Silent payments are not possible with hardware wallets.");
-				return;
-			}
+			errors.Add(ErrorSeverity.Error, parseResult.Error);
+			return;
+		}
+		if (parseResult is {Value: Address.SilentPayment} && _walletModel.IsHardwareWallet)
+		{
+			errors.Add(ErrorSeverity.Error, "Silent payments are not possible with hardware wallets.");
+			return;
 		}
 
 		if (IsPayJoin && _walletModel.IsHardwareWallet)
