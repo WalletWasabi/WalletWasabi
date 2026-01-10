@@ -288,7 +288,15 @@ public partial class SendViewModel : RoutableViewModel
 			var parseResult = AddressParser.Parse(To, _walletModel.Network);
 			if (!string.IsNullOrEmpty(To) && (To.IsTrimmable() || !parseResult.IsOk))
 			{
-				errors.Add(ErrorSeverity.Error, parseResult.Error);
+				if (parseResult.IsOk)
+				{
+					errors.Add(ErrorSeverity.Error, "Leading or trailing whitespace detected. Remove it please.");
+				}
+				else
+				{
+					errors.Add(ErrorSeverity.Error, parseResult.Error);
+				}
+
 				return;
 			}
 			if (parseResult is {IsOk: true, Value: Address.SilentPayment} && _walletModel.IsHardwareWallet)
