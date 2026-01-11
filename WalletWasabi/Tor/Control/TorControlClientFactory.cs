@@ -11,6 +11,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Rpc;
 using WalletWasabi.Tor.Control.Messages;
+using System.Globalization;
 
 namespace WalletWasabi.Tor.Control;
 
@@ -68,7 +69,14 @@ public partial class TorControlClientFactory
 			}
 			else
 			{
-				var rpcObjectId = await ArtiAuthOrThrowAsync(controlClient, cookieString, cancellationToken).ConfigureAwait(false);
+				int? port = endPoint switch
+				{
+					DnsEndPoint p => p.Port,
+					IPEndPoint p => p.Port,
+					_ => null,
+				};
+
+				var rpcObjectId = await ArtiAuthOrThrowAsync(controlClient, port, cookieString, cancellationToken).ConfigureAwait(false);
 				controlClient.RpcSessionId = rpcObjectId;
 			}
 
@@ -95,7 +103,7 @@ public partial class TorControlClientFactory
 
 	/// <summary>Authenticates Arti client using SAFE-COOKIE or UNIX socket domain.</summary>
 	/// <exception cref="TorControlException">If authentication fails for some reason.</exception>
-	internal async Task<string> ArtiAuthOrThrowAsync(TorControlClient controlClient, string? cookieString, CancellationToken cancellationToken)
+	internal async Task<string> ArtiAuthOrThrowAsync(TorControlClient controlClient, int? rpcPort, string? cookieString, CancellationToken cancellationToken)
 	{
 		byte[] nonceBytes = new byte[32];
 		_random.GetBytes(nonceBytes);
@@ -106,6 +114,11 @@ public partial class TorControlClientFactory
 		// Cookie authentication.
 		if (cookieString is not null)
 		{
+			if (rpcPort is null)
+			{
+				throw new TorControlException("RPC port is null.");
+			}			
+
 			var authRequest = controlClient.CreateCookieAuthBeginRpcRequest(clientNonce);
 			var authChallengeReply = await controlClient.SendRpcRequestAsync<CookieAuthChallengeResult>(authRequest, cancellationToken).ConfigureAwait(false);
 
@@ -115,7 +128,7 @@ public partial class TorControlClientFactory
 				throw new TorControlException("Invalid status code in auth:cookie_begin reply.");
 			}
 
-			var serverHash = ComputeTupleHash(cookieString, "Server", clientNonce, authChallengeResult.ServerNonce);
+			var serverHash = ComputeTupleHash(rpcPort.Value, cookieString, "Server", clientNonce, authChallengeResult.ServerNonce);
 			var serverHashStr = Convert.ToHexString(serverHash);
 
 			if (authChallengeResult.ServerMac != serverHashStr)
@@ -124,7 +137,7 @@ public partial class TorControlClientFactory
 				throw new TorControlException("Different server MAC.");
 			}
 
-			var clientHash = ComputeTupleHash(cookieString, "Client", clientNonce, authChallengeResult.ServerNonce);
+			var clientHash = ComputeTupleHash(rpcPort.Value, cookieString, "Client", clientNonce, authChallengeResult.ServerNonce);
 			var clientHashStr = Convert.ToHexString(clientHash);
 
 			Logger.LogTrace($"Authenticate using server hash: '{clientHashStr}'.");
@@ -231,12 +244,12 @@ public partial class TorControlClientFactory
 	}
 
 	/// <summary>Computes the tuple hash used in Arti's RPC cookie authentication.</summary>
-	private static byte[] ComputeTupleHash(string cookieString, string side, string clientNonce, string serverNonce)
+	private static byte[] ComputeTupleHash(int rpcPort, string cookieString, string side, string clientNonce, string serverNonce)
 	{
 		var tupleHash = new TupleHash(bitLength: 128, S: ArtiTupleHashCustomization);
 		tupleHash.BlockUpdate(Convert.FromHexString(cookieString));
 		tupleHash.BlockUpdate(Encoding.ASCII.GetBytes(side));
-		tupleHash.BlockUpdate(Encoding.ASCII.GetBytes("inet:127.0.0.1:9180"));
+		tupleHash.BlockUpdate(Encoding.ASCII.GetBytes(string.Create(CultureInfo.InvariantCulture, $"inet:127.0.0.1:{rpcPort}")));
 		tupleHash.BlockUpdate(Convert.FromHexString(clientNonce));
 		tupleHash.BlockUpdate(Convert.FromHexString(serverNonce));
 
