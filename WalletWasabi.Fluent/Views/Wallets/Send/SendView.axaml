@@ -97,6 +97,7 @@
       <!-- To -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  IsReadOnly="{Binding IsFixedAddress}"
                  Watermark="(e.g. Bitcoin address, Silent Payment address or payjoin URL)"
@@ -107,6 +108,8 @@
             <FocusOnAttachedBehavior />
             <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
             <FocusNextWhenValidBehavior />
+            <WhitespacePasteRemovalBehavior />
+            <WhitespaceInputRemovalBehavior />
             <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
               <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
             </KeyDownTrigger>
