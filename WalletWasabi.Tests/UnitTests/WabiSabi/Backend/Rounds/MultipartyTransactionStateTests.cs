@@ -1,9 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
+using WalletWasabi.Coordinator;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -79,9 +79,8 @@ public class MultipartyTransactionStateTests
 	{
 		WabiSabiConfig config = new();
 
-		RoundParameterFactory roundParameterFactory = new(config, Network.Main);
-		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
-		RoundParameters parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config.MaxSuggestedAmountBase, config.MaxRegistrableAmount);
+		var parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		Round roundLargest = new(parameters, SecureRandom.Instance);
 
 		// First Round is the largest.
@@ -91,8 +90,8 @@ public class MultipartyTransactionStateTests
 		Dictionary<Money, int> histogram = new();
 		for (int i = 0; i < 63; i++)
 		{
-			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
-			parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+			maxSuggestedAmountProvider.StepMaxSuggested();
+			parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 			Round round = new(parameters, SecureRandom.Instance);
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
@@ -118,29 +117,15 @@ public class MultipartyTransactionStateTests
 		// Simulate many unsuccessful input-reg. At the end we should always stick with the largest again.
 		for (int i = 0; i < 2; i++)
 		{
-			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, false);
+			maxSuggestedAmountProvider.ResetMaxSuggested();
 			Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		}
 
 		// Finally one successful round.
-		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
+		maxSuggestedAmountProvider.StepMaxSuggested();
 		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
-		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
+		maxSuggestedAmountProvider.StepMaxSuggested();
 		Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-
-		RoundParameters blameParameters = roundParameterFactory.CreateBlameRoundParameter(new FeeRate(12m), roundLargest) with
-		{
-			MinInputCountByRound = config.MinInputCountByBlameRound
-		};
-
-		BlameRound blameRound = new(blameParameters, roundLargest, new HashSet<OutPoint>(), SecureRandom.Instance);
-
-		// Blame rounds never change the MaxSuggestedAmount.
-		for (int i = 0; i < 2; i++)
-		{
-			maxSuggestedAmountProvider.StepMaxSuggested(blameRound, true);
-			Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-		}
 	}
 }

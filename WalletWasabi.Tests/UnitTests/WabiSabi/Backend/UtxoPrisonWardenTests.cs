@@ -2,10 +2,10 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.Coordinator;
+using WalletWasabi.Coordinator.WabiSabi.DosPrevention;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
-using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend;

@@ -1,7 +1,8 @@
 using NBitcoin;
+using WalletWasabi.Coordinator;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
@@ -17,7 +18,6 @@ public class ConstructionStateTests
 		var cfg = new WabiSabiConfig();
 		var roundParameters = RoundParameters.Create(
 				cfg,
-				Network.Main,
 				miningFeeRate,
 				Money.Coins(10));
 

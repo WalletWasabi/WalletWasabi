@@ -14,6 +14,8 @@ using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.Coordinator.WabiSabi.DosPrevention;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
@@ -22,12 +24,9 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tor;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WebClients.Wasabi;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 [assembly: ApiController]
 
@@ -105,7 +104,8 @@ public class Startup(IConfiguration configuration)
 			new Warden(
 				Path.Combine(dataDir, "Prison.txt"),
 				s.GetRequiredService<WabiSabiConfig>()));
-		services.AddSingleton<RoundParameterFactory>();
+		services.AddSingleton<RoundParameterFactory>(s =>
+			 (feeRate, maxSuggestedAmount) => RoundParameters.Create(config, feeRate, maxSuggestedAmount) );
 		services.AddBackgroundService<Arena>();
 
 		if (config.AnnouncerConfig.IsEnabled)

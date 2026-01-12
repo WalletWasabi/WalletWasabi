@@ -1,14 +1,12 @@
 using NBitcoin;
 using System.Linq;
 using WabiSabi.Crypto;
-using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Coordinator;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;

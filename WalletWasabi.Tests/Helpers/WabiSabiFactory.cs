@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
@@ -13,6 +12,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
@@ -27,7 +27,7 @@ using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -72,7 +72,6 @@ public static class WabiSabiFactory
 	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
 		RoundParameters.Create(
 			cfg,
-			Network.Main,
 			new FeeRate(100m),
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
@@ -288,7 +287,6 @@ public static class WabiSabiFactory
 	{
 		var roundParameters = RoundParameters.Create(
 				cfg,
-				round.Parameters.Network,
 				round.Parameters.MiningFeeRate,
 				round.Parameters.MaxSuggestedAmount) with
 		{
@@ -347,24 +345,13 @@ public static class WabiSabiFactory
 		return coinjoinClient;
 	}
 
-	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
-	{
-		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
-			.Returns(CreateRoundParameters(cfg)
-				with
-			{
-				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
-			.Returns(CreateRoundParameters(cfg)
-				with
+	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice) =>
+		(rate, maxSuggestedAmount) => CreateRoundParameters(cfg) with
 			{
 				MinInputCountByRound = cfg.MinInputCountByBlameRound,
+				MaxSuggestedAmount = maxSuggestedAmount,
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		return mockRoundParameterFactory.Object;
-	}
+			};
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
 	{

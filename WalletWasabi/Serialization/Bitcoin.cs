@@ -31,6 +31,8 @@ public static partial class Encode
 	public static JsonNode MoneyBitcoins(Money money) =>
 		String(money.ToString(fplus: false, trimExcessZero: true));
 
+	public static JsonNode ExtPubKey(ExtPubKey k) => String(k.GetWif(NBitcoin.Network.Main).ToWif());
+
 	private static JsonNode TxOut(TxOut txo) =>
 		Object([
 			("ScriptPubKey", Script(txo.ScriptPubKey)),
@@ -118,4 +120,8 @@ public static partial class Decode
 			get.Required("Outpoint", OutPoint),
 			get.Required("TxOut", TxOut)
 		));
+
+	public static readonly Decoder<ExtPubKey> ExtPubKey =
+		String.Map(s => NBitcoin.ExtPubKey.Parse(s, NBitcoin.Network.Main)).Catch();
+
 }

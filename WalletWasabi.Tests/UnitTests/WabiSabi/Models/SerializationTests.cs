@@ -8,14 +8,15 @@ using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
+using JsonEncoder = WalletWasabi.Serialization.JsonEncoder;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

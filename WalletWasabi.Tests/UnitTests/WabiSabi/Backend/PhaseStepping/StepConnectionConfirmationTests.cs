@@ -1,12 +1,12 @@
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Backend.Rounds.Utils;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using Xunit;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PhaseStepping;
 

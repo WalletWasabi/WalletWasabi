@@ -2,15 +2,15 @@ using NBitcoin;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Coordinator.WabiSabi;
 using Xunit;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests;
 
@@ -361,9 +361,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-		RoundParameterFactory roundParameterFactory = WabiSabiFactory.CreateRoundParametersFactory(cfg, rpc.Network, maxVsizeAllocationPerAlice: 0);
-		Round round = WabiSabiFactory.CreateRound(roundParameterFactory.CreateRoundParameter(new FeeRate(10m), Money.Zero));
-		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(roundParameterFactory).CreateAndStartAsync(round);
+		RoundParameters RoundParameterFactory(FeeRate rate, Money amount) => RoundParameters.Create(cfg, rate, amount) with {MaxVsizeAllocationPerAlice = 0};
+		Round round = WabiSabiFactory.CreateRound(RoundParameterFactory(new FeeRate(10m), Money.Zero));
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With((RoundParameterFactory) RoundParameterFactory).CreateAndStartAsync(round);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);

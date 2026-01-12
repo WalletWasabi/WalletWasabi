@@ -1,15 +1,14 @@
 using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Coordinator;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Coordinator.WabiSabi;
 using Xunit;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Backend.PostRequests;
 
