@@ -3,7 +3,7 @@ using System.Windows.Input;
 using Avalonia.Controls;
 using Markdown.Avalonia.Utils;
 using NBitcoin;
-using WalletWasabi.Daemon;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.UI;

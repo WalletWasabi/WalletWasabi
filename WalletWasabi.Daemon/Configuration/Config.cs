@@ -5,15 +5,13 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Daemon.Configuration;
 
 public class Config
 {

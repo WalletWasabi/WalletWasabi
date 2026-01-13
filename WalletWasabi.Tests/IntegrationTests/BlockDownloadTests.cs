@@ -6,7 +6,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Daemon;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 using Xunit;

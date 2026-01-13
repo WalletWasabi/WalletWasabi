@@ -2,12 +2,11 @@ using System;
 using System.IO;
 using System.Text;
 using NBitcoin;
-using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 
-namespace WalletWasabi.Bases;
+namespace WalletWasabi.Daemon.Configuration;
 
 public static class PersistentConfigManager
 {
@@ -94,7 +93,7 @@ public static class PersistentConfigManager
 			return defaultConfig;
 		}
 
-		PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
+		static PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
 			Path.GetFileName(configFilePath) switch
 			{
 				"Config.json" => DefaultMainNetConfig,

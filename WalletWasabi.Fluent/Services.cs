@@ -3,6 +3,7 @@ using System.Net.Http;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
