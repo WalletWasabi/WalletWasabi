@@ -11,7 +11,7 @@ public record AnnouncerConfig
 	public bool IsEnabled { get; init; } = false;
 	public string CoordinatorDescription { get; init; } = "WabiSabi Coinjoin Coordinator";
 	public string CoordinatorUri { get; set; } = "https://api.example.com/";
-	public uint AbsoluteMinInputCount { get; init; } = 21;
+	public uint AbsoluteMinInputCount { get; init; } = 25;
 	public string ReadMoreUri { get; set; } = "https://api.example.com/";
 	public string[] RelayUris { get; init;  } = ["wss://relay.primal.net"];
 	public string Key { get; init; } = InitKey();
