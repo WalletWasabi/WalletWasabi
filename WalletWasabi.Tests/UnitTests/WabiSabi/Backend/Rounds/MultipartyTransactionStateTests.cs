@@ -77,10 +77,7 @@ public class MultipartyTransactionStateTests
 	[Fact]
 	public void MaxSuggestedSteppingTest()
 	{
-		WabiSabiConfig config = new()
-		{
-			MaxSuggestedAmountBase = Money.Coins(0.1m)
-		};
+		WabiSabiConfig config = new();
 
 		RoundParameterFactory roundParameterFactory = new(config, Network.Main);
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);

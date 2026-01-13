@@ -88,7 +88,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public int CoordinatorExtPubKeyCurrentDepth { get; set; } = 1;
 
-	public Money MaxSuggestedAmountBase { get; init; } = Money.Coins(100m);
+	public Money MaxSuggestedAmountBase { get; init; } = Money.Coins(0.1m);
 
 	public int RoundParallelization { get; init; } = 1;
 
