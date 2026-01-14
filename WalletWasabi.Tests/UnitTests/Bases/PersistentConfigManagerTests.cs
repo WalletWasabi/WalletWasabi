@@ -26,6 +26,7 @@ public class PersistentConfigManagerTests
 
 		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig);
 		var readConfig = PersistentConfigManager.LoadFile(configPath) as PersistentConfig;
+		Assert.NotNull(readConfig);
 
 		// Objects are supposed to be equal by value-equality rules.
 		Assert.Equal(actualConfig, readConfig);
@@ -58,13 +59,13 @@ public class PersistentConfigManagerTests
 			    "http://127.0.0.1:37128/",
 			    "http://localhost:37128/"
 			  ],
-			  "DustThreshold": "0.00005",
+			  "DustThreshold": "0.00001",
 			  "EnableGpu": true,
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "ExchangeRateProvider": "MempoolSpace",
 			  "FeeRateEstimationProvider": "MempoolSpace",
 			  "ExternalTransactionBroadcaster": "MempoolSpace",
-			  "MaxCoinJoinMiningFeeRate": 150.0,
+			  "MaxCoinJoinMiningFeeRate": 50.0,
 			  "AbsoluteMinInputCount": 21,
 			  "MaxDaysInMempool": 30,
 			  "ExperimentalFeatures": [],
