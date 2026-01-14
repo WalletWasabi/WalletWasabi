@@ -16,7 +16,6 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
@@ -30,14 +29,12 @@ public partial class Arena : PeriodicRunner
 		Prison prison,
 		RoundParameterFactory roundParameterFactory,
 		FeeRateProvider feeRateProvider,
-		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
 		) : base(period ?? TimeSpan.FromSeconds(2))
 	{
 		_config = config;
 		_rpc = rpc;
 		_prison = prison;
-		_coinJoinScriptStore = coinJoinScriptStore;
 		_roundParameterFactory = roundParameterFactory;
 		_feeRateProvider = feeRateProvider;
 		_maxSuggestedAmountProvider = new(_config);
@@ -50,7 +47,6 @@ public partial class Arena : PeriodicRunner
 	private readonly WabiSabiConfig _config;
 	private readonly IRPCClient _rpc;
 	private readonly Prison _prison;
-	private readonly CoinJoinScriptStore? _coinJoinScriptStore;
 	private readonly RoundParameterFactory _roundParameterFactory;
 	private readonly FeeRateProvider _feeRateProvider;
 	private readonly MaxSuggestedAmountProvider _maxSuggestedAmountProvider;
@@ -318,9 +314,7 @@ public partial class Arena : PeriodicRunner
 						_config.MakeNextCoordinatorScriptDirty();
 					}
 
-					foreach (var address in coinjoin.Outputs
-						.Select(x => x.ScriptPubKey)
-						.Where(script => _coinJoinScriptStore?.Contains(script) is true))
+					foreach (var address in coinjoin.Outputs.Select(x => x.ScriptPubKey))
 					{
 						if (address == round.CoordinatorScript)
 						{
@@ -332,8 +326,6 @@ public partial class Arena : PeriodicRunner
 							Logger.LogError($"Output script pub key reuse detected: {address.ToHex()}", round);
 						}
 					}
-
-					_coinJoinScriptStore?.AddRange(coinjoin.Outputs.Select(x => x.ScriptPubKey));
 				}
 				else if (round.TransactionSigningTimeFrame.HasExpired)
 				{

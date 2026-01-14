@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.IO;
@@ -24,9 +22,6 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using static WalletWasabi.Services.Workers;
-using Timer = System.Timers.Timer;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -176,92 +171,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
-	}
-
-	[Fact]
-	public async Task FailToRegisterOutputsCoinJoinTestAsync()
-	{
-		long[] amounts = [10_000_000, 20_000_000, 30_000_000];
-		int inputCount = amounts.Length;
-
-		// At the end of the test a coinjoin transaction has to be created and broadcasted.
-		var transactionCompleted = new TaskCompletionSource<Transaction>();
-
-		// Create a key manager and use it to create fake coins.
-		_output.WriteLine("Creating key manager...");
-		KeyManager keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
-
-		var coins = GenerateSmartCoins(keyManager, amounts, inputCount);
-
-		_output.WriteLine("Coins were created successfully");
-
-		keyManager.AssertLockedInternalKeysIndexed(21, false);
-		keyManager.AssertLockedInternalKeysIndexed(21, true);
-
-		var keysCandidates = keyManager.GetNextCoinJoinKeys().ToArray();
-		var outputScriptCandidates = keysCandidates
-			.SelectMany(x => new[] {x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)})
-			.ToImmutableArray();
-
-		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
-			builder
-			.AddMockRpcClient(coins, _ => { })
-			.ConfigureServices(services =>
-			{
-				// Instruct the coordinator DI container to use this scoped
-				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(_ => new WabiSabiConfig
-				{
-					MaxInputCountByRound = inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
-					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
-
-				// Emulate that all our outputs had been already used in the past.
-				// the server will prevent the registration and fail with a WabiSabiProtocolError.
-				services.AddSingleton(_ => new CoinJoinScriptStore(outputScriptCandidates));
-			})).CreateClient();
-
-		// Create the coinjoin client
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
-
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
-		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
-
-		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
-		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
-
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_=> apiClient, keyManager, roundStateProvider);
-
-		// Run the coinjoin client task.
-		var coinjoinResultTask = coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(coins), true, cts.Token);
-
-		// If we see a blame round that means that the original round failed
-		var blameRoundWaiterTask = roundStateProvider.CreateRoundAwaiterAsync(r => r.IsBlame, cts.Token);
-
-		var finishedTask = await Task.WhenAny(coinjoinResultTask, blameRoundWaiterTask);
-		if (finishedTask == coinjoinResultTask)
-		{
-			try
-			{
-				var coinjoinResult = await coinjoinResultTask;
-				if (coinjoinResult is SuccessfulCoinJoinResult successfulCoinJoinResult)
-				{
-					var scripts = successfulCoinJoinResult.UnsignedCoinJoin.Outputs.Select(x => x.ScriptPubKey);
-					var common = outputScriptCandidates.Intersect(scripts);
-					Assert.Empty(common);
-					throw new Exception("Coinjoin should have never finished successfully.");
-				}
-			}
-			catch (InvalidOperationException e) when(e.Message.StartsWith("No valid output denominations found"))
-			{
-				// ignore. There is a rare case for this
-			}
-		}
 	}
 
 	[Theory]
