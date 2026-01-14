@@ -22,7 +22,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	private bool _spentAccordingToNetwork;
 
 	private bool _confirmed;
-	private bool _isBanned;
 	private bool _isExcludedFromCoinJoin;
 
 	public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
