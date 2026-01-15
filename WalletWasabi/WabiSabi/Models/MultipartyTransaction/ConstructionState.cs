@@ -110,7 +110,7 @@ public record ConstructionState : MultipartyTransactionState
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.SizeLimitExceeded, $"Transaction size is {EstimatedVsize} bytes, which exceeds the limit of {Parameters.MaxTransactionSize} bytes.");
 		}
 
-		if (EffectiveFeeRate < Parameters.MiningFeeRate)
+		if (1.001m * EffectiveFeeRate.SatoshiPerByte < Parameters.MiningFeeRate.SatoshiPerByte)
 		{
 			var state = new SigningState(Parameters, Events);
 			var tx = state.CreateUnsignedTransaction();
