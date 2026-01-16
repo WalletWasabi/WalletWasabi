@@ -8,7 +8,6 @@ using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -20,6 +19,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
+using WalletWasabi.Backend.Configuration;
 
 [assembly: ApiController]
 

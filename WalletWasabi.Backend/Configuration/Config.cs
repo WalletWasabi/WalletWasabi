@@ -6,7 +6,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Backend;
+namespace WalletWasabi.Backend.Configuration;
 
 public class Config : ConfigBase
 {

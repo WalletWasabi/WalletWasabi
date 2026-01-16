@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Userfacing;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Daemon.Configuration;
 
 public interface IPersistentConfig;
 

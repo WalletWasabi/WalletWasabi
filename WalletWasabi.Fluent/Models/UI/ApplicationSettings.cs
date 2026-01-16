@@ -6,8 +6,6 @@ using ReactiveUI;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using WalletWasabi.Bases;
-using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -17,6 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using Unit = System.Reactive.Unit;
+using WalletWasabi.Daemon.Configuration;
 
 namespace WalletWasabi.Fluent.Models.UI;
 

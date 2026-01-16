@@ -4,7 +4,7 @@ using WalletWasabi.Serialization;
 using static WalletWasabi.Serialization.Encode;
 using static WalletWasabi.Serialization.Decode;
 
-namespace WalletWasabi.Backend;
+namespace WalletWasabi.Backend.Configuration;
 
 public static class ConfigEncode
 {

@@ -39,6 +39,7 @@ using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WabiSabi.Models;
 using static WalletWasabi.Services.Workers;
+using WalletWasabi.Daemon.Configuration;
 
 namespace WalletWasabi.Daemon;
 

@@ -1,7 +1,6 @@
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Bases;
-using WalletWasabi.Daemon;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
 using Xunit;

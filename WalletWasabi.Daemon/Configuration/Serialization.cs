@@ -8,7 +8,7 @@ using static WalletWasabi.Serialization.Encode;
 using static WalletWasabi.Serialization.Decode;
 using Network = NBitcoin.Network;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Daemon.Configuration;
 
 public static class PersistentConfigEncode
 {

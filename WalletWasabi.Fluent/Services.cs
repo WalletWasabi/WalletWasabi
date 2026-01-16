@@ -3,6 +3,7 @@ using System.Net.Http;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -43,7 +44,7 @@ public static class Services
 	public static Config Config { get; set; } = null!;
 	public static StatusContainer Status { get; set; }
 
-	public static EventBus EventBus { get;  set; } = null;
+	public static EventBus EventBus { get;  set; } = null!;
 
 	public static Daemon.Scheme Scheme { get; set; }
 	public static bool IsInitialized { get; private set; }

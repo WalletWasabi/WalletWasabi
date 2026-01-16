@@ -3,13 +3,12 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Bases;
+using WalletWasabi.Daemon.Configuration;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Userfacing;
 using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Daemon;

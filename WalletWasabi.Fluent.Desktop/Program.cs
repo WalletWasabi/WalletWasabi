@@ -22,6 +22,7 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
+using WalletWasabi.Daemon.Configuration;
 
 namespace WalletWasabi.Fluent.Desktop;
 
