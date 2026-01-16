@@ -26,6 +26,10 @@ cleanup() {
 }
 trap cleanup EXIT
 
+
+echo -e "${YELLOW}Building Wasabi components...${NC}"
+dotnet build &> /dev/null
+
 echo -e "${YELLOW}Starting Bitcoin node in regtest...${NC}"
 mkdir -p "$BITCOIN_DATADIR"
 
