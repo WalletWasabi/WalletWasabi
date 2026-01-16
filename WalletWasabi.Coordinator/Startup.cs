@@ -25,7 +25,6 @@ using WalletWasabi.Tor;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WebClients.Wasabi;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
