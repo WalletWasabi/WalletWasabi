@@ -139,7 +139,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		var txnItem = Transactions.FirstOrDefault(item =>
+		var transactionsSnapshot = Transactions.ToArray();
+		var txnItem = transactionsSnapshot.FirstOrDefault(item =>
 		{
 			if (item is CoinJoinsHistoryItemViewModel cjGroup)
 			{
@@ -156,7 +157,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
 			// Selecting first the root item, then the child solves the issue.
-			var index = Transactions.IndexOf(txnItem);
+			var index = transactionsSnapshot.IndexOf(txnItem);
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
