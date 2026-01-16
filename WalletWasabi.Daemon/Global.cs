@@ -312,6 +312,12 @@ public class Global
 
 	private void ConfigureWasabiUpdater()
 	{
+		if (Config.UseTor is TorMode.Disabled)
+		{
+			Logger.LogInfo("Update manager requires Tor. Aborting...");
+			return;
+		}
+
 		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://relay.damus.io")];
 		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
 
