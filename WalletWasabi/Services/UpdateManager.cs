@@ -206,7 +206,7 @@ public static class ReleaseDownloader
 		var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
 		var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-		await using var fileStream = new FileStream(filePath, FileMode.Create);
+		using var fileStream = new FileStream(filePath, FileMode.Create);
 		await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
 		return filePath;
 	}

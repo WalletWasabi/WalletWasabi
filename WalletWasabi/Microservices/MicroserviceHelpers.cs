@@ -40,7 +40,9 @@ public static class MicroserviceHelpers
 		}
 		else if (platform == OSPlatform.Linux)
 		{
-			path = Path.Combine(commonPartialPath, "lin64");
+			path = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+				? Path.Combine(commonPartialPath, "linux_arm64")
+				: Path.Combine(commonPartialPath, "lin64");
 		}
 		else if (platform == OSPlatform.OSX)
 		{

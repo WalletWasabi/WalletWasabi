@@ -1,23 +1,62 @@
-# Script downloads Tor Browsers, then extracts the downloaded archives and copies Tor binaries to "temp/<version>/Tor/<os-platform>" folders to be consumed by Wasabi Wallet.
+<#
+.SYNOPSIS
+    Downloads, extracts, and upgrades Tor Browser binaries for use in Wasabi Wallet.
 
-# # Examples
-# 1] `.\UpgradeTorBinaries.ps1 -version "11.5.1"` runs the script which downloads Tor Browser binaries, extracts them to "temp" (where the script is placed) and copies Tor binaries to "temp/<tor-browser-version>/Tor/<os-platform>".
-#   Then the Tor binaries used by Wasabi Wallet are replaced with the just extracted ones.
-# 2] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -Debug` to show debug information what the script does.
-# 3] `.\UpgradeTorBinaries.ps1 -version "11.5.1" -skipDownloading` skips downloading Tor Browser binaries and continues as in 1]. Useful for script testing.
-#
-# # Notes
-#
-# Before running the script:
-# 1) Make sure you use PowerShell 7+
-# 2) You need to install 7zip
-#    $ winget install --id 7zip.7zip
-#    $ brew install sevenzip
-#    $ apt-add-repository multiverse && apt update && apt install 7zip # or install using https://www.7-zip.org/download.html. Note that "apt install p7zip-full" distributes 7z version 16 which is old and does not work with this script.
+.DESCRIPTION
+    This script automates the process of obtaining the latest (or specified) Tor Browser binaries,
+    extracting the Tor binaries from the platform-specific archives, and placing them into the
+    correct folder structure expected by Wasabi Wallet (temp/<version>/Tor/<os-platform>).
+
+    It can also replace the Tor binaries currently used by Wasabi Wallet with the newly extracted ones.
+
+    Requires PowerShell 7+ and 7-Zip installed on the system.
+
+.PARAMETER Version
+    The Tor Browser version to download (e.g. "15.0.4"). This is a required parameter.
+
+.PARAMETER Debug
+    Switch that enables verbose/debug output to show detailed information about what the script is doing.
+
+.PARAMETER SkipDownloading
+    Switch that skips the step of downloading Tor Browser binaries. Useful for testing or when archives are already present in the working directory.
+
+.EXAMPLE
+    .\UpgradeTorBinaries.ps1 -Version "15.0.4"
+
+    Downloads Tor Browser 15.0.4 for all supported platforms, extracts the archives,
+    organizes binaries into temp/15.0.4/Tor/<platform>, and replaces Wasabi's current Tor binaries.
+
+.EXAMPLE
+    .\UpgradeTorBinaries.ps1 -Version "15.0.4" -Debug
+
+    Same as above, but with detailed debug/verbose output shown in the console.
+
+.EXAMPLE
+    .\UpgradeTorBinaries.ps1 -Version "15.0.4" -SkipDownloading
+
+    Skips downloading (assumes files are already present), extracts & copies binaries,
+    and performs the Wasabi Wallet Tor upgrade.
+
+.NOTES
+    Prerequisites:
+    - PowerShell 7 or newer
+    - 7-Zip installed and available in PATH
+      → Windows:   winget install --id 7zip.7zip
+      → macOS:     brew install sevenzip
+      → Linux:     apt install 7zip
+
+    The script expects to be run from the directory where the "temp" folder should be created/used.
+
+    Typically used by Wasabi Wallet developers/maintainers when a new Tor release should be integrated.
+
+.LINK
+    https://www.torproject.org/download/
+    Tor Browser download page
+#>
 
 [CmdletBinding()]
 param(
-  [Parameter(Mandatory=$true)]$version, # Version of the Tor Browser (not Tor itself). So e.g. "11.5.1". See folder names here https://dist.torproject.org/torbrowser/.
+  [Parameter(Mandatory=$true)]$version,
   [Parameter(Mandatory=$false)][Switch]$skipDownloading,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingBrowserArchives,
   [Parameter(Mandatory=$false)][Switch]$skipExtractingTorBinaries,
@@ -34,26 +73,28 @@ $supportedPlatforms = @(
   "win64",
   "osx64",
   "lin64"
+  "linux_arm64"
 )
 # </Settings>
 
 if ($IsWindows) {
   $sevenZip = 'C:\Program Files\7-Zip\7z.exe'
-} elseif ($IsMacOS) {
-  $sevenZip = '7zz'
 } else {
   $sevenZip = '7zz'
 }
 
 $windowsInstaller = "tor-browser-windows-x86_64-portable-${version}.exe"
 $macDmg = "tor-browser-macos-${version}.dmg"
-$linuxTarball = "tor-browser-linux-x86_64-${version}.tar"
-$linuxCompressedTarball = "$linuxTarball.xz"
+$linuxTarball_arm64 = "tor-browser-linux-aarch64-${version}.tar"
+$linuxCompressedTarball_arm64 = "$linuxTarball_arm64.xz"
+$linuxTarball_x86_64 = "tor-browser-linux-x86_64-${version}.tar"
+$linuxCompressedTarball_x86_64 = "$linuxTarball_x86_64.xz"
 
 $packages = @(
   $windowsInstaller,
   $macDmg,
-  $linuxCompressedTarball
+  $linuxCompressedTarball_arm64
+  $linuxCompressedTarball_x86_64
 )
 
 # Remember old working directory to restore it later.
@@ -95,11 +136,13 @@ try {
     Write-Output "# Extract Tor Browser for macOS."
     & $sevenZip "x" "$windowsInstaller" "-oTorBrowser/Windows"
 
-    Write-Output "# Extract Tor Browser for linux."
-    # Shorter variant that does not work for me. See https://superuser.com/questions/80019/how-can-i-unzip-a-tar-gz-in-one-step-using-7-zip.
-    # & $sevenZip "x" "-so" "$linuxCompressedTarball" | & $sevenZip "x" "-aoa" "-si" "-ttar" "-oTorBrowser/linux"   # -so ~ write to stdout, -si ~ read from stdin
-    & $sevenZip "x" "$linuxCompressedTarball" "-y"
-    & $sevenZip "x" "$linuxTarball" "-oTorBrowser/linux"
+    Write-Output "# Extract Tor Browser for linux (x86_64)."
+    & $sevenZip "x" "$linuxCompressedTarball_x86_64" "-y"
+    & $sevenZip "x" "$linuxTarball_x86_64" "-oTorBrowser/linux_x86_64"
+
+    Write-Output "# Extract Tor Browser for linux (aarch64)."
+    & $sevenZip "x" "$linuxCompressedTarball_arm64" "-y"
+    & $sevenZip "x" "$linuxTarball_arm64" "-oTorBrowser/linux_arm64"
   }
 
   if ($skipExtractingTorBinaries) {
@@ -114,11 +157,15 @@ try {
 
     Write-Output "# Extract Tor binary for macOs."
     mkdir -p "Tor/osx64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
+    Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser Alpha/Tor Browser Alpha.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
 
-    Write-Output "# Extract Tor binary for linux."
+    Write-Output "# Extract Tor binary for linux (arm64)."
+    mkdir -p "Tor/linux_arm64/"
+    Copy-item -Recurse -Force -Path "TorBrowser/linux_arm64/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/linux_arm64/" -Exclude "PluggableTransports"
+
+    Write-Output "# Extract Tor binary for linux (x86_64)."
     mkdir -p "Tor/lin64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
+    Copy-item -Recurse -Force -Path "TorBrowser/linux_x86_64/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
   }
 
   if ($skipReplacingTorBinaries) {
@@ -136,7 +183,7 @@ try {
   } else {
     $destination = Join-Path -Resolve "$PSScriptRoot" ".." ".." "Tor" "Geoip"
     Write-Output "# Replace geoip files in folder '$destination'."
-    Copy-item -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Data/Tor/geoip*" -Destination "$destination/"
+    Copy-item -Force -Path "TorBrowser/linux_x86_64/tor-browser/Browser/TorBrowser/Data/Tor/geoip*" -Destination "$destination/"
   }
 
   Write-Output "# Done."
