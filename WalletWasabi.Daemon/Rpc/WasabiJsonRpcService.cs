@@ -600,10 +600,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 			var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 			ActiveWallet = wallet;
-			if (!wallet.Loaded)
-			{
-				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
-			}
 		}
 		catch (InvalidOperationException) // wallet not found
 		{
