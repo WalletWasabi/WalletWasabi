@@ -542,7 +542,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("query", initializable: false)]
-	public async Task<object> Execute(string script)
+	public async Task<object> ExecuteAsync(string script)
 	{
 		if (!Global.Config.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
 		{

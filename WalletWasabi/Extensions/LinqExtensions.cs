@@ -164,7 +164,7 @@ public static class LinqExtensions
 		}
 	}
 
-	public static async IAsyncEnumerable<T> TakeUntil<T>(this IAsyncEnumerable<T> list, Func<T, bool> predicate)
+	public static async IAsyncEnumerable<T> TakeUntilAsync<T>(this IAsyncEnumerable<T> list, Func<T, bool> predicate)
 	{
 		await foreach (T el in list)
 		{
