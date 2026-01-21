@@ -21,7 +21,8 @@
         <Panel>
           <!-- Coinjoin waves -->
           <Panel VerticalAlignment="Bottom" Height="100">
-            <SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
+            <!--
+              <SpectrumControl Opacity="0.6" IsActive="{Binding IsCoinJoinActive}"
                              Classes.fireEffect="{Binding CurrentWallet^.CoinJoinStateViewModel.IsInCriticalPhase, FallbackValue=False}">
               <SpectrumControl.IsDockEffectVisible>
                 <MultiBinding Converter="{x:Static BoolConverters.And}">
@@ -43,6 +44,7 @@
                 </Transitions>
               </SpectrumControl.Transitions>
             </SpectrumControl>
+            -->
           </Panel>
           <DockPanel>
             <DockPanel.Styles>
