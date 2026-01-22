@@ -9,6 +9,7 @@ using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
