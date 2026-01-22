@@ -249,14 +249,14 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
 			Assert.Contains(fundingBumpTxId.TransactionId, wallet.Coins.Select(x => x.TransactionId));
 			Assert.DoesNotContain(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
-			Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
+			Assert.Single(wallet.Coins, x => x.TransactionId == fundingBumpTxId.TransactionId);
 
 			// Confirm the coin
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(1);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-			Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId));
+			Assert.Single(wallet.Coins, x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId);
 		}
 		finally
 		{

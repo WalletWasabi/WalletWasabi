@@ -152,7 +152,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(2);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId4));
+			Assert.Contains(wallet.Coins, x => x.TransactionId == txId4);
 			var tip = await rpc.GetBestBlockHashAsync();
 			await rpc.InvalidateBlockAsync(tip); // Reorg 1
 			tip = await rpc.GetBestBlockHashAsync();
@@ -163,8 +163,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 			Assert.Equal(4, wallet.Coins.Count());
-			Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
+			Assert.DoesNotContain(wallet.Coins, x => x.TransactionId == txId4);
+			Assert.Contains(wallet.Coins, x => x.TransactionId == tx4bumpRes.TransactionId);
 			var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
 
 			Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
@@ -186,13 +186,13 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Equal(85, keyManager.GetKeys(KeyState.Clean).Count());
 			Assert.Equal(87, keyManager.GetKeys().Count());
 
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "foo label"));
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "bar label"));
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false), x => x.Labels == "foo label");
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false), x => x.Labels == "bar label");
 
 			// TEST MEMPOOL
 			var txId5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			await Task.Delay(1000); // Wait tx to arrive and get processed.
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId5));
+			Assert.Contains(wallet.Coins, x => x.TransactionId == txId5);
 			var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txId5);
 			Assert.Equal(Height.Mempool, mempoolCoin.Height);
 

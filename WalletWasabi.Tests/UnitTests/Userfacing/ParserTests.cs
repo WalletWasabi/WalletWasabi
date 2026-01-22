@@ -59,12 +59,11 @@ public class EndpointParserTests
         }
     }
 
-    [Theory]
-    [InlineData(null)]
-    public void ParseEndpoint_WithEmptyOrNullString_ThrowsArgumentNullException(string endpointString)
+    [Fact]
+    public void ParseEndpoint_WithEmptyOrNullString_ThrowsArgumentNullException()
     {
         // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => EndPointParser.Parse(endpointString));
+        Assert.Throws<ArgumentNullException>(() => EndPointParser.Parse(endpointString: null));
     }
 
     [Theory]

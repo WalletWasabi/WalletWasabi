@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AvaloniaVersion>11.2.7</AvaloniaVersion>
+    <AvaloniaVersion>11.3.9</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
@@ -12,7 +12,6 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageVersion Include="NNostr.Client" Version="0.0.49" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="2.88.8" />
     <!-- SQLite. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
@@ -27,7 +26,7 @@
     <PackageVersion Include="NBitcoin" Version="8.0.14" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.0" />
+    <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
     <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.2.7" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
@@ -49,7 +48,7 @@
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="8.0.0" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
     <PackageVersion Include="Moq" Version="[4.18.4]" />
-    <PackageVersion Include="xunit" Version="2.6.6" />
-    <PackageVersion Include="xunit.runner.visualstudio" Version="2.5.6" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
   </ItemGroup>
 </Project>
