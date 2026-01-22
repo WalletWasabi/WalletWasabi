@@ -95,6 +95,11 @@ public class Startup
 				var indexBuilderService = app.ApplicationServices.GetRequiredService<IndexBuilderService>();
 				return await GetFilters(indexBuilderService, bestKnownBlockHash, count, cancellationToken).ConfigureAwait(false);
 			});
+			endpoints.MapGet("/api/v4/btc/blockchain/latest", async (CancellationToken cancellationToken) =>
+			{
+				var indexBuilderService = app.ApplicationServices.GetRequiredService<IndexBuilderService>();
+				return await GetLatest(indexBuilderService, cancellationToken).ConfigureAwait(false);
+			});
 		});
 		app.UseRequestTimeouts();
 	}
@@ -127,5 +132,16 @@ public class Startup
 		};
 
 		return Results.Ok(Encode.FiltersResponse(response));
+	}
+
+	private static async Task<IResult> GetLatest(IndexBuilderService indexBuilderService, CancellationToken cancellationToken)
+	{
+		var lastFilter = await indexBuilderService.GetLastFilterAsync(cancellationToken).ConfigureAwait(false);
+		if (lastFilter is null)
+		{
+			return Results.NoContent();
+		}
+		var response = new BlockchainLatestResponse((int)lastFilter.Header.Height, lastFilter.Header.BlockHash.ToString());
+		return Results.Ok(Encode.BlockchainLatestResponse(response));
 	}
 }

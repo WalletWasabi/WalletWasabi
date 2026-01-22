@@ -23,6 +23,12 @@ public static partial class Encode
 			("filters", Array(resp.Filters.Select(Filter)))
 		]);
 
+	public static JsonNode BlockchainLatestResponse(BlockchainLatestResponse resp) =>
+		Object([
+			("height", Int(resp.Height)),
+			("hash", String(resp.Hash))
+		]);
+
 	public static JsonNode BackendMessage<T>(T obj) =>
 		obj switch
 		{
