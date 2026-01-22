@@ -211,6 +211,7 @@ public partial class ApplicationSettings : ReactiveObject
 			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
 			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
 			var network when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
+			_ => throw new NotSupportedNetworkException(Network)
 		};
 
 		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
