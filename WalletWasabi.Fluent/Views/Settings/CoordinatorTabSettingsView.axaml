@@ -22,7 +22,7 @@
 
     <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vB) higher than the value indicated here.">
       <TextBlock Text="Max Coinjoin Mining Fee Rate" />
-      <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="sat/vb"/>
+      <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="sat/vB"/>
     </DockPanel>
 
     <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a minimum input count lower than the value indicated here.">
