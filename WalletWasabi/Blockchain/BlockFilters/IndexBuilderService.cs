@@ -30,7 +30,7 @@ public record IndexBuilderServiceOptions(
 
 public class IndexBuilderService : BackgroundService
 {
-	private readonly BlockFilterGenerator? _generatorBlockFilter;
+	private readonly BlockFilterGenerator _generatorBlockFilter;
 
 	// Dependencies
 	private readonly IRPCClient _rpcClient;
@@ -137,7 +137,7 @@ public class IndexBuilderService : BackgroundService
 		{
 			if(!_indexStorage.TryRemoveLast(out var removedFilter))
 			{
-				Logger.LogInfo($"Failed to remove filter for REORG invalid block: {removedFilter.Header.BlockHash}");
+				Logger.LogInfo("Failed to remove filter for REORG invalid block");
 			}
 		}
 	}
