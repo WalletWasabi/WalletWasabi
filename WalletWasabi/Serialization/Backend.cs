@@ -22,17 +22,6 @@ public static partial class Encode
 			("bestHeight", Int(resp.BestHeight)),
 			("filters", Array(resp.Filters.Select(Filter)))
 		]);
-
-	public static JsonNode BackendMessage<T>(T obj) =>
-		obj switch
-		{
-			VersionsResponse version => VersionsResponse(version),
-			FiltersResponse filtersResp => FiltersResponse(filtersResp),
-			IEnumerable<string> s => Array(s.Select(String)),
-			IEnumerable<uint256> u => Array(u.Select(UInt256)),
-			string errorMessage => String(errorMessage),
-			_ => throw new Exception($"{obj.GetType().FullName} is not known")
-		};
 }
 
 public static partial class Decode
