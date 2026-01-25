@@ -175,7 +175,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
-			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
+			? new CoinJoinStateViewModel(uiContext, WalletModel, Wallet, WalletModel.Coinjoin!, Settings)
 			: null;
 
 		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
