@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using System.Text;
 using Microsoft.CodeAnalysis;
@@ -9,7 +9,7 @@ using Microsoft.CodeAnalysis.Text;
 namespace WalletWasabi.Fluent.Generators;
 
 [Generator]
-public class StaticViewLocatorGenerator : ISourceGenerator
+public class StaticViewLocatorGenerator : IIncrementalGenerator
 {
 	private const string StaticViewLocatorAttributeDisplayString = "WalletWasabi.Fluent.StaticViewLocatorAttribute";
 
@@ -30,140 +30,154 @@ public class StaticViewLocatorGenerator : ISourceGenerator
 		}
 		""";
 
-	public void Initialize(GeneratorInitializationContext context)
+	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
 		// System.Diagnostics.Debugger.Launch();
-		context.RegisterForPostInitialization((i) => i.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8)));
+		context.RegisterPostInitializationOutput(i => i.AddSource("StaticViewLocatorAttribute.cs", SourceText.From(AttributeText, Encoding.UTF8)));
 
-		context.RegisterForSyntaxNotifications(() => new SyntaxReceiver());
+		IncrementalValuesProvider<INamedTypeSymbol?> locatorProvider =
+			context.SyntaxProvider
+				.CreateSyntaxProvider(
+					predicate: static (node, _) => node is ClassDeclarationSyntax classDecl && classDecl.AttributeLists.Count > 0,
+					transform: static (ctx, cancellationToken) =>
+					{
+						ClassDeclarationSyntax classDeclarationSyntax = (ClassDeclarationSyntax)ctx.Node;
+						INamedTypeSymbol? namedTypeSymbol = ctx.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax, cancellationToken);
+
+						if (namedTypeSymbol is null)
+						{
+							return null;
+						}
+
+						var attributes = namedTypeSymbol.GetAttributes();
+						if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == StaticViewLocatorAttributeDisplayString))
+						{
+							return namedTypeSymbol;
+						}
+
+						return null;
+					})
+				.Where(static symbol => symbol is not null);
+
+		IncrementalValuesProvider<INamedTypeSymbol?> viewModelProvider =
+			context.SyntaxProvider
+				.CreateSyntaxProvider(
+					predicate: static (node, _) => node is ClassDeclarationSyntax cds && cds.Identifier.ValueText.EndsWith(ViewModelSuffix),
+					transform: static (ctx, cancellationToken) =>
+					{
+						var symbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.Node, cancellationToken);
+
+						if (symbol is INamedTypeSymbol namedTypeSymbol && !namedTypeSymbol.IsAbstract && namedTypeSymbol.Name.EndsWith(ViewModelSuffix))
+						{
+							return namedTypeSymbol;
+						}
+
+						return null;
+					})
+				.Where(static symbol => symbol is not null);
+
+		IncrementalValueProvider<(Compilation Compilation, ImmutableArray<INamedTypeSymbol?> Locators, ImmutableArray<INamedTypeSymbol?> ViewModels)> combined =
+			context.CompilationProvider
+				.Combine(locatorProvider.Collect())
+				.Combine(viewModelProvider.Collect())
+				.Select(static (pair, _) => (pair.Left.Left, pair.Left.Right, pair.Right));
+
+		context.RegisterSourceOutput(combined, (spc, tuple)
+			=> Execute(spc, tuple.Compilation, tuple.Locators, tuple.ViewModels));
 	}
 
-	public void Execute(GeneratorExecutionContext context)
+	private static void Execute(
+		SourceProductionContext spc,
+		Compilation compilation,
+		ImmutableArray<INamedTypeSymbol?> locatorSymbols,
+		ImmutableArray<INamedTypeSymbol?> viewModelSymbols)
 	{
-		if (context.SyntaxContextReceiver is not SyntaxReceiver receiver)
+		if (locatorSymbols.IsDefaultOrEmpty || viewModelSymbols.IsDefaultOrEmpty)
 		{
 			return;
 		}
 
-		var attributeSymbol = context.Compilation.GetTypeByMetadataName(StaticViewLocatorAttributeDisplayString);
+		var attributeSymbol = compilation.GetTypeByMetadataName(StaticViewLocatorAttributeDisplayString);
 		if (attributeSymbol is null)
 		{
 			return;
 		}
 
-		foreach (var namedTypeSymbol in receiver.NamedTypeSymbolLocators)
-		{
-			var namedTypeSymbolViewModels = receiver.NamedTypeSymbolViewModels.ToList();
-			namedTypeSymbolViewModels.Sort((x, y) => x.ToDisplayString().CompareTo(y.ToDisplayString()));
+		var namedTypeSymbolViewModels = viewModelSymbols
+			.Where(s => s is not null)
+			.Cast<INamedTypeSymbol>()
+			.ToList();
 
-			var classSource = ProcessClass(context.Compilation, namedTypeSymbol, namedTypeSymbolViewModels);
-			if (classSource is not null)
-			{
-				context.AddSource($"{namedTypeSymbol.Name}_StaticViewLocator.cs", SourceText.From(classSource, Encoding.UTF8));
-			}
-		}
-	}
+		namedTypeSymbolViewModels.Sort((x, y) => x.ToDisplayString().CompareTo(y.ToDisplayString()));
 
-	private static string? ProcessClass(Compilation compilation, INamedTypeSymbol namedTypeSymbolLocator, List<INamedTypeSymbol> namedTypeSymbolViewModels)
-	{
-		if (!namedTypeSymbolLocator.ContainingSymbol.Equals(namedTypeSymbolLocator.ContainingNamespace, SymbolEqualityComparer.Default))
-		{
-			return null;
-		}
-
-		string namespaceNameLocator = namedTypeSymbolLocator.ContainingNamespace.ToDisplayString();
+		INamedTypeSymbol? userControlViewSymbol = compilation.GetTypeByMetadataName("Avalonia.Controls.UserControl");
 
 		var format = new SymbolDisplayFormat(
 			typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
 			genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
 
-		string classNameLocator = namedTypeSymbolLocator.ToDisplayString(format);
-
-		var source = new StringBuilder(
-			$$"""
-			// <auto-generated />
-			#nullable enable
-			using System;
-			using System.Collections.Generic;
-			using Avalonia.Controls;
-
-			namespace {{namespaceNameLocator}};
-
-			public partial class {{classNameLocator}}
-			{
-			""");
-
-		source.Append(
-			"""
-
-				private static Dictionary<Type, Func<Control>> s_views = new()
-				{
-
-			""");
-
-		var userControlViewSymbol = compilation.GetTypeByMetadataName("Avalonia.Controls.UserControl");
-
-		foreach (var namedTypeSymbolViewModel in namedTypeSymbolViewModels)
+		foreach (INamedTypeSymbol? namedTypeSymbolLocator in locatorSymbols)
 		{
-			string namespaceNameViewModel = namedTypeSymbolViewModel.ContainingNamespace.ToDisplayString();
-			string classNameViewModel = $"{namespaceNameViewModel}.{namedTypeSymbolViewModel.ToDisplayString(format)}";
-			string classNameView = classNameViewModel.Replace(ViewModelSuffix, ViewSuffix);
-
-			var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
-			if (classNameViewSymbol is null || classNameViewSymbol.BaseType?.Equals(userControlViewSymbol, SymbolEqualityComparer.Default) != true)
+			if (namedTypeSymbolLocator is null)
 			{
-				source.AppendLine(
-					$$"""
-							[typeof({{classNameViewModel}})] = () => new TextBlock() { Text = {{("\"Not Found: " + classNameView + "\"")}} },
-					""");
+				continue;
 			}
-			else
+
+			if (!namedTypeSymbolLocator.ContainingSymbol.Equals(namedTypeSymbolLocator.ContainingNamespace, SymbolEqualityComparer.Default))
 			{
-				source.AppendLine(
-					$$"""
-							[typeof({{classNameViewModel}})] = () => new {{classNameView}}(),
-					""");
+				continue;
 			}
-		}
 
-		source.Append(
-			"""
-				};
-			}
-			""");
+			string namespaceNameLocator = namedTypeSymbolLocator.ContainingNamespace.ToDisplayString();
+			string classNameLocator = namedTypeSymbolLocator.ToDisplayString(format);
 
-		return source.ToString();
-	}
+			var source = new StringBuilder(
+				$$"""
+				// <auto-generated />
+				#nullable enable
+				using System;
+				using System.Collections.Generic;
+				using Avalonia.Controls;
 
-	private class SyntaxReceiver : ISyntaxContextReceiver
-	{
-		public List<INamedTypeSymbol> NamedTypeSymbolLocators { get; } = new();
+				namespace {{namespaceNameLocator}};
 
-		public List<INamedTypeSymbol> NamedTypeSymbolViewModels { get; } = new();
-
-		public void OnVisitSyntaxNode(GeneratorSyntaxContext context)
-		{
-			if (context.Node is ClassDeclarationSyntax classDeclarationSyntax)
-			{
-				var namedTypeSymbol = context.SemanticModel.GetDeclaredSymbol(classDeclarationSyntax);
-				if (namedTypeSymbol is null)
+				public partial class {{classNameLocator}}
 				{
-					return;
-				}
-
-				var attributes = namedTypeSymbol.GetAttributes();
-				if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == StaticViewLocatorAttributeDisplayString))
-				{
-					NamedTypeSymbolLocators.Add(namedTypeSymbol);
-				}
-				else if (namedTypeSymbol.Name.EndsWith(ViewModelSuffix))
-				{
-					if (!namedTypeSymbol.IsAbstract)
+					private static Dictionary<Type, Func<Control>> s_views = new()
 					{
-						NamedTypeSymbolViewModels.Add(namedTypeSymbol);
-					}
+				
+				""");
+
+			foreach (var namedTypeSymbolViewModel in namedTypeSymbolViewModels)
+			{
+				string namespaceNameViewModel = namedTypeSymbolViewModel.ContainingNamespace.ToDisplayString();
+				string classNameViewModel = $"{namespaceNameViewModel}.{namedTypeSymbolViewModel.ToDisplayString(format)}";
+				string classNameView = classNameViewModel.Replace(ViewModelSuffix, ViewSuffix);
+
+				var classNameViewSymbol = compilation.GetTypeByMetadataName(classNameView);
+				if (classNameViewSymbol is null || classNameViewSymbol.BaseType?.Equals(userControlViewSymbol, SymbolEqualityComparer.Default) != true)
+				{
+					source.AppendLine(
+						$$"""
+								[typeof({{classNameViewModel}})] = () => new TextBlock() { Text = {{("\"Not Found: " + classNameView + "\"")}} },
+						""");
+				}
+				else
+				{
+					source.AppendLine(
+						$$"""
+								[typeof({{classNameViewModel}})] = () => new {{classNameView}}(),
+						""");
 				}
 			}
+
+			source.Append(
+				"""
+					};
+				}
+				""");
+
+			spc.AddSource($"{namedTypeSymbolLocator.Name}_StaticViewLocator.cs", SourceText.From(source.ToString(), Encoding.UTF8));
 		}
 	}
 }
