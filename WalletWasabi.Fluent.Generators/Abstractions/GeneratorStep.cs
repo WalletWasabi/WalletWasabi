@@ -35,10 +35,5 @@ internal abstract class GeneratorStep
 		return syntaxTree;
 	}
 
-	protected void ReportDiagnostic(DiagnosticDescriptor diagnosticDescriptor, Location? location)
-	{
-		Context.Context.ReportDiagnostic(Diagnostic.Create(diagnosticDescriptor, location));
-	}
-
 	protected SemanticModel GetSemanticModel(SyntaxTree syntaxTree) => Context.Compilation.GetSemanticModel(syntaxTree);
 }

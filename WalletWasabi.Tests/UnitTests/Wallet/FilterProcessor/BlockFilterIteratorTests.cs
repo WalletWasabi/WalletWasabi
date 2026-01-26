@@ -31,7 +31,7 @@ public class BlockFilterIteratorTests
 		FilterModel filter4 = CreateFilterModel(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006506);
 
 		var fetchCallCount = 0;
-		var indexStore = new TesteableIndexStore
+		var indexStore = new TestableIndexStore
 		{
 			OnFetchBatchAsync = (fromHeight, count, _) =>
 			{

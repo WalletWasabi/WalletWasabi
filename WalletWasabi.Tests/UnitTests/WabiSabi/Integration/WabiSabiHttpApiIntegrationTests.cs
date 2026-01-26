@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
@@ -25,8 +24,7 @@ using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using static WalletWasabi.Services.Workers;
-using Timer = System.Timers.Timer;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -339,6 +337,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		nonSigningHttpClientMock.BaseAddress = httpClient.BaseAddress;
 		nonSigningHttpClientMock.OnSendAsync = req =>
 		{
+			Assert.NotNull(req.RequestUri);
+
 			if (req.RequestUri.ToString().Contains("transaction-signature"))
 			{
 				return Task.FromResult(new HttpResponseMessage(HttpStatusCode.OK));

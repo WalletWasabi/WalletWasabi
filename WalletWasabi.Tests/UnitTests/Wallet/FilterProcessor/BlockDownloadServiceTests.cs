@@ -148,6 +148,7 @@ public class BlockDownloadServiceTests
 					(_, _) when blockHash == blockHash2 => block2,
 					(_, _) when blockHash == blockHash3 => block3,
 					(_, _) when blockHash == blockHash4 => block4,
+					_ => throw new NotImplementedException(),
 				};
 				if (blockHash == blockHash2) { block2Counter++;}
 				return Task.FromResult(blk);
