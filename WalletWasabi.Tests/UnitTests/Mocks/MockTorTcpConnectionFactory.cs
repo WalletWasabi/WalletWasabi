@@ -1,9 +1,8 @@
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Mocks;
 
 public class MockHttpClientFactory : IHttpClientFactory
 {
@@ -27,14 +26,6 @@ public class MockHttpClientFactory : IHttpClientFactory
 		};
 		return mockHttpClientFactory;
 	}
-}
-
-public class MockHttpClientHandler : HttpClientHandler
-{
-	public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
-
-	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-		OnSendAsync(request, cancellationToken);
 }
 
 public static class HttpResponseMessageEx

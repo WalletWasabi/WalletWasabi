@@ -40,11 +40,6 @@ public class TransactionBroadcastEntry
 		}
 	}
 
-	public bool WasBroadcastedTo(EndPoint nodeEndpoint)
-	{
-		return _broadcastTo.Contains(nodeEndpoint);
-	}
-
 	public void ConfirmPropagationOnce(EndPoint nodeEndpoint)
 	{
 		lock (_syncObj)
@@ -56,11 +51,6 @@ public class TransactionBroadcastEntry
 				PropagationConfirmed.TrySetResult(_confirmedBy.ToArray());
 			}
 		}
-	}
-
-	public void ConfirmPropagationForGood(EndPoint nodeEndpoint)
-	{
-		PropagationConfirmed.TrySetResult([nodeEndpoint]);
 	}
 
 	public bool Is(uint256 id) =>
