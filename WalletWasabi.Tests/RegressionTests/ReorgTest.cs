@@ -75,8 +75,8 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
 
 		var reorgAwaiter = new EventsAwaiter<FilterModel>(
-			h => bitcoinStore.IndexStore.Reorged += h,
-			h => bitcoinStore.IndexStore.Reorged -= h,
+			h => bitcoinStore.FilterStore.Reorged += h,
+			h => bitcoinStore.FilterStore.Reorged -= h,
 			2);
 
 		// Test initial synchronization.
@@ -106,7 +106,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 		Assert.Equal(tip, bitcoinStore.SmartHeaderChain.TipHash);
 
 		FilterModel[] filters =
-			await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
+			await bitcoinStore.FilterStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
 		var filterTip = filters.Last();
 		Assert.Equal(tip, filterTip.Header.BlockHash);
 

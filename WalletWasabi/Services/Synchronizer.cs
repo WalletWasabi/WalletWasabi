@@ -186,7 +186,7 @@ public static class Synchronizer
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
-				FilterModel reorgedFilter = await bitcoinStore.IndexStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+				FilterModel reorgedFilter = await bitcoinStore.FilterStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
 					?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}  Height {reorgedFilter.Header.Height}.");
@@ -203,11 +203,11 @@ public static class Synchronizer
 					// We have wrong filters, the heights are not in sync with the server's.
 					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" + FormatInconsistencyDetails(hashChain, firstFilter));
 
-					await bitcoinStore.IndexStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					await bitcoinStore.FilterStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
 				}
 				else
 				{
-					await bitcoinStore.IndexStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+					await bitcoinStore.FilterStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
 
 					Logger.LogInfo(filters.Length == 1
 						? $"Downloaded filter for block {firstFilter.Header.Height}."

@@ -286,7 +286,7 @@ public class Wallet : BackgroundService, IWallet
 		await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 		WalletFilterProcessor.Dispose();
 
-		BitcoinStore.IndexStore.NewFilters -= IndexDownloader_NewFiltersAsync;
+		BitcoinStore.FilterStore.NewFilters -= IndexDownloader_NewFiltersAsync;
 		BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
 		TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 	}
@@ -334,7 +334,7 @@ public class Wallet : BackgroundService, IWallet
 
 		TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions());
 
-		BitcoinStore.IndexStore.NewFilters += IndexDownloader_NewFiltersAsync;
+		BitcoinStore.FilterStore.NewFilters += IndexDownloader_NewFiltersAsync;
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
 		var lastHashesLeft = BitcoinStore.SmartHeaderChain.HashesLeft;

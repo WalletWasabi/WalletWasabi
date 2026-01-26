@@ -73,10 +73,10 @@ public class Global
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-		_indexStore = new IndexStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 
-		BitcoinStore = new BitcoinStore(_indexStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
+		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -116,7 +116,7 @@ public class Global
 	private CoinPrison? _coinPrison;
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
-	private readonly IndexStore _indexStore;
+	private readonly FilterStore _filterStore;
 	private readonly ComposedDisposable _disposables = new();
 
 	public StatusContainer Status { get; }
@@ -620,15 +620,15 @@ public class Global
 
 				try
 				{
-					await _indexStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(IndexStore)} is disposed.");
+					await _filterStore.DisposeAsync().ConfigureAwait(false);
+					Logger.LogInfo($"{nameof(FilterStore)} is disposed.");
 
 					await _allTransactionStore.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)
 				{
-					Logger.LogError($"Error during the disposal of {nameof(IndexStore)} and {nameof(AllTransactionStore)}: {ex}");
+					Logger.LogError($"Error during the disposal of {nameof(FilterStore)} and {nameof(AllTransactionStore)}: {ex}");
 				}
 			}
 			catch (Exception ex)

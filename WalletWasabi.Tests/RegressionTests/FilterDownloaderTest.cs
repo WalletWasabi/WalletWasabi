@@ -72,7 +72,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 
 		// Test filter block hashes are correct.
 		FilterModel[] filters =
-			await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
+			await bitcoinStore.FilterStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
 
 		for (int i = 0; i < 101; i++)
 		{

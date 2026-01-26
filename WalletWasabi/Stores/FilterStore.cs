@@ -18,9 +18,9 @@ namespace WalletWasabi.Stores;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class IndexStore : IIndexStore, IAsyncDisposable
+public class FilterStore : IFilterStore, IAsyncDisposable
 {
-	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
+	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		_smartHeaderChain = smartHeaderChain;
 		_network = network;
@@ -28,11 +28,11 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
-		_newIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 
 		if (network == Network.RegTest)
 		{
-			DeleteIndex(_newIndexFilePath);
+			DeleteIndex(_storageFilePath);
 		}
 
 		IndexStorage = CreateBlockFilterSqliteStorage();
@@ -42,13 +42,13 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: _newIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(_network));
+			return BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath, startingFilter: StartingFilters.GetStartingFilter(_network));
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_newIndexFilePath}'.");
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
 
-			DeleteIndex(_newIndexFilePath);
+			DeleteIndex(_storageFilePath);
 			throw;
 		}
 	}
@@ -58,7 +58,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	public event EventHandler<FilterModel[]>? NewFilters;
 
 	/// <summary>SQLite file path for migration purposes.</summary>
-	private readonly string _newIndexFilePath;
+	private readonly string _storageFilePath;
 
 	/// <summary>NBitcoin network.</summary>
 	private readonly Network _network;
