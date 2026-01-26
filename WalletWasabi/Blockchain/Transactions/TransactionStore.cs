@@ -4,7 +4,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
@@ -29,13 +28,6 @@ public class TransactionStore : IAsyncDisposable
 		}
 
 		_sqliteStorage = TransactionSqliteStorage.FromFile(dataSource: _dataSource, network);
-
-		// Migrate data.
-		if (!useInMemoryDatabase)
-		{
-			string oldPath = Path.Combine(Path.GetDirectoryName(_dataSource)!, "Transactions.dat");
-			Import(oldPath, network);
-		}
 	}
 
 	private readonly string _dataSource;
@@ -46,23 +38,6 @@ public class TransactionStore : IAsyncDisposable
 
 	/// <remarks>Guarded by <see cref="_sqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
-
-	private void Import(string oldPath, Network network)
-	{
-		if (File.Exists(oldPath))
-		{
-			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format is about to begin. Please wait a moment.");
-			var stopwatch = Stopwatch.StartNew();
-
-			string[] allLines = File.ReadAllLines(oldPath, Encoding.UTF8);
-			IEnumerable<SmartTransaction> allTransactions = allLines.Select(x => SmartTransaction.FromLine(x, network));
-
-			_sqliteStorage.BulkInsert(allTransactions);
-
-			File.Delete(oldPath);
-			Logger.LogInfo($"Migration of transaction file '{oldPath}' to SQLite format was finished in {stopwatch.Elapsed.TotalSeconds} seconds.");
-		}
-	}
 
 	public Task InitializeAsync(string operationName, CancellationToken cancellationToken)
 	{
