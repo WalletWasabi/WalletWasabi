@@ -108,7 +108,7 @@ public partial class WalletLoadWorkflow
 		}
 
 		// Wait until "client tip height" is initialized.
-		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
+		await Services.BitcoinStore.FilterStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
 	}

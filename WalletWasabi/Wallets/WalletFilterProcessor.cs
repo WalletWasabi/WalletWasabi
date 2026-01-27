@@ -27,7 +27,7 @@ public class WalletFilterProcessor : BackgroundService
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
-		_blockFilterIterator = new(_bitcoinStore.IndexStore);
+		_blockFilterIterator = new(_bitcoinStore.FilterStore);
 		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
 
@@ -149,13 +149,13 @@ public class WalletFilterProcessor : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		_bitcoinStore.IndexStore.Reorged += ReorgedAsync;
+		_bitcoinStore.FilterStore.Reorged += ReorgedAsync;
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		_bitcoinStore.IndexStore.Reorged -= ReorgedAsync;
+		_bitcoinStore.FilterStore.Reorged -= ReorgedAsync;
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

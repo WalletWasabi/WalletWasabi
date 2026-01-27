@@ -13,12 +13,12 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Stores;
 
 /// <summary>
-/// Tests for <see cref="IndexStore"/>.
+/// Tests for <see cref="FilterStore"/>.
 /// </summary>
-public class IndexStoreTests
+public class FilterStoreTests
 {
 	[Fact]
-	public async Task IndexStoreTestsAsync()
+	public async Task FilterStoreTestsAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
@@ -26,15 +26,15 @@ public class IndexStoreTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		await using var indexStore = new IndexStore(directory, Network.Main, new SmartHeaderChain());
-		await indexStore.InitializeAsync(testCts.Token);
+		await using var filterStore = new FilterStore(directory, Network.Main, new SmartHeaderChain());
+		await filterStore.InitializeAsync(testCts.Token);
 
 		// Remove starting filter.
-		FilterModel? filterModel = await indexStore.TryRemoveLastFilterAsync();
+		FilterModel? filterModel = await filterStore.TryRemoveLastFilterAsync();
 		Assert.NotNull(filterModel);
 
 		// No filter to remove.
-		filterModel = await indexStore.TryRemoveLastFilterAsync();
+		filterModel = await filterStore.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
 
