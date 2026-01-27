@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.RPC;
@@ -11,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -46,7 +44,7 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
+		bitcoinStore.FilterStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -249,18 +247,18 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 			await Task.Delay(2000); // Waits for the funding transaction get to the mempool.
 			Assert.Contains(fundingBumpTxId.TransactionId, wallet.Coins.Select(x => x.TransactionId));
 			Assert.DoesNotContain(fundingTxId, wallet.Coins.Select(x => x.TransactionId));
-			Assert.Single(wallet.Coins.Where(x => x.TransactionId == fundingBumpTxId.TransactionId));
+			Assert.Single(wallet.Coins, x => x.TransactionId == fundingBumpTxId.TransactionId);
 
 			// Confirm the coin
 			Interlocked.Exchange(ref setup.FiltersProcessedByWalletCount, 0);
 			await rpc.GenerateAsync(1);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-			Assert.Single(wallet.Coins.Where(x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId));
+			Assert.Single(wallet.Coins, x => x.Confirmed && x.TransactionId == fundingBumpTxId.TransactionId);
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
+			bitcoinStore.FilterStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(testDeadlineCts.Token);
 			nodes?.Dispose();
 			node?.Disconnect();

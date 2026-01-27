@@ -8,7 +8,6 @@ using NBitcoin.RPC;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Http;
@@ -93,13 +92,13 @@ public class Startup
 			endpoints.MapGet("/api/v4/btc/blockchain/filters", async (string bestKnownBlockHash, int count, CancellationToken cancellationToken) =>
 			{
 				var indexBuilderService = app.ApplicationServices.GetRequiredService<IndexBuilderService>();
-				return await GetFilters(indexBuilderService, bestKnownBlockHash, count, cancellationToken).ConfigureAwait(false);
+				return await GetFiltersAsync(indexBuilderService, bestKnownBlockHash, count, cancellationToken).ConfigureAwait(false);
 			});
 		});
 		app.UseRequestTimeouts();
 	}
 
-	private static async Task<IResult> GetFilters(IndexBuilderService indexBuilderService, string bestKnownBlockHash, int count, CancellationToken cancellationToken)
+	private static async Task<IResult> GetFiltersAsync(IndexBuilderService indexBuilderService, string bestKnownBlockHash, int count, CancellationToken cancellationToken)
 	{
 		if (count <= 0)
 		{

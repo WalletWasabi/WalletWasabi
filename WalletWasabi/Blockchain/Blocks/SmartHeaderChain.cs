@@ -148,7 +148,7 @@ public class SmartHeaderChain
 				_chain.RemoveFirst();
 			}
 
-			TipHeightUpdated.SafeInvoke(this, (object)_tipHeight);
+			TipHeightUpdated.SafeInvoke(this, _tipHeight);
 		}
 	}
 

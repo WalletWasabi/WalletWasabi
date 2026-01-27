@@ -1,5 +1,6 @@
 using System.Collections.ObjectModel;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using DynamicData;
 using DynamicData.Binding;

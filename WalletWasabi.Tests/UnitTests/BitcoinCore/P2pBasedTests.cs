@@ -37,13 +37,13 @@ public class P2pBasedTests
 			await rpc.CreateWalletAsync(walletName);
 
 			SmartHeaderChain smartHeaderChain = new();
-			await using IndexStore indexStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
+			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			MempoolService mempoolService = coreNode.MempoolService;
 			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 			// Construct BitcoinStore.
-			BitcoinStore bitcoinStore = new(indexStore, transactionStore, mempoolService, smartHeaderChain, blocks);
+			BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain, blocks);
 			await bitcoinStore.InitializeAsync();
 
 			await rpc.GenerateAsync(blockCount: 101);

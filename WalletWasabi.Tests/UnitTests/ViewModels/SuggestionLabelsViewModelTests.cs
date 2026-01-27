@@ -181,8 +181,6 @@ public class SuggestionLabelsViewModelTests
 		public bool IsCoinJoinEnabled { get; } = true;
 		public IAddressesModel Addresses => throw new NotSupportedException();
 
-		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
-
 		public WalletId Id => throw new NotSupportedException();
 		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
 		public bool SeveralReceivingScriptTypes { get; }
@@ -213,11 +211,6 @@ public class SuggestionLabelsViewModelTests
 		public bool IsLoaded { get; set; }
 
 		public bool IsSelected { get; set; }
-
-		public IAddress GetNextReceiveAddress(IEnumerable<string> destinationLabels)
-		{
-			throw new NotSupportedException();
-		}
 
 		public void Rename(string newWalletName) => throw new NotSupportedException();
 

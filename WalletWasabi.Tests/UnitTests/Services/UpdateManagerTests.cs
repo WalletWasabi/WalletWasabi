@@ -19,7 +19,7 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 public class UpdateManagerTests
 {
 	[Fact]
-	public async Task NewReleaseDetected()
+	public async Task NewReleaseDetectedAsync()
 	{
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
@@ -50,7 +50,7 @@ public class UpdateManagerTests
 	}
 
 	[Fact]
-	public async Task MultipleNewerReleaseDetected()
+	public async Task MultipleNewerReleaseDetectedAsync()
 	{
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
@@ -81,7 +81,7 @@ public class UpdateManagerTests
 	}
 
 	[Fact]
-	public async Task OnlyOldReleasesFound()
+	public async Task OnlyOldReleasesFoundAsync()
 	{
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
@@ -108,7 +108,7 @@ public class UpdateManagerTests
 	}
 
 	[Fact]
-	public async Task NothingFound()
+	public async Task NothingFoundAsync()
 	{
 		// Arrange
 		var eventBus = new EventBus();

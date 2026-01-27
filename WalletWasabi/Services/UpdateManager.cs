@@ -94,7 +94,7 @@ public static class UpdateManager
 // Downloads and verifies new software releases
 public static class ReleaseDownloader
 {
-	private static readonly UserAgentPicker _userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 
 	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
 		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(httpClientFactory, eventBus, releaseInfo, cancellationToken);
@@ -201,12 +201,12 @@ public static class ReleaseDownloader
 	{
 		File.Delete(filePath);
 		var httpClient = httpClientFactory.CreateClient($"{uri.Host}-installers");
-		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
+		httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", UserAgentGetter());
 		using var request = new HttpRequestMessage(HttpMethod.Get, uri);
 		var response = await httpClient.SendAsync(request, cancellationToken).ConfigureAwait(false);
 		response.EnsureSuccessStatusCode();
 		var contentStream = await response.Content.ReadAsStreamAsync(cancellationToken).ConfigureAwait(false);
-		await using var fileStream = new FileStream(filePath, FileMode.Create);
+		using var fileStream = new FileStream(filePath, FileMode.Create);
 		await contentStream.CopyToAsync(fileStream, cancellationToken).ConfigureAwait(false);
 		return filePath;
 	}

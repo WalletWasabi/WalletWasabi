@@ -21,7 +21,7 @@ public record CoordinatorConnectionString(
 			$"coordinatorUri={Uri.EscapeDataString(CoordinatorUri.ToString())}",
 			$"coordinationFeeRate=0",
 			$"readMore={Uri.EscapeDataString(ReadMore.ToString())}",
-			$"absoluteMinInputCount={AbsoluteMinInputCount.ToString()}",
+			$"absoluteMinInputCount={AbsoluteMinInputCount}",
 		]);
 	}
 

@@ -5,9 +5,9 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Tests.UnitTests.Mocks;
 
-class TesteableIndexStore : IIndexStore
+class TestableFilterStore : IFilterStore
 {
-	public Func<uint, int, CancellationToken, Task<FilterModel[]>> OnFetchBatchAsync { get; set; }
+	public required Func<uint, int, CancellationToken, Task<FilterModel[]>> OnFetchBatchAsync { get; init; }
 	public Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken) =>
 		OnFetchBatchAsync.Invoke(fromHeight, batchSize, cancellationToken);
 }

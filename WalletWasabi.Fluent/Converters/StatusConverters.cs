@@ -25,7 +25,7 @@ public static class StatusConverters
 		});
 
 	public static readonly IValueConverter FeeRateToString =
-		new FuncValueConverter<decimal, string>(x => x == 0 ? "No data" : $"{x:0.##} s/vB");
+		new FuncValueConverter<decimal, string>(x => x == 0 ? "No data" : $"{x:0.##} sat/vB");
 
 	public static readonly IValueConverter BlockchainTipToString =
 		new FuncValueConverter<uint, string>(x => x == 0 ? "No data" : $"{x:N0}");

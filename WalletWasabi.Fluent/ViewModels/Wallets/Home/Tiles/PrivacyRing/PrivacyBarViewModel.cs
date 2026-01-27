@@ -3,6 +3,7 @@ using DynamicData.Binding;
 using System.Linq;
 using NBitcoin;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using System.Collections.Generic;

@@ -84,11 +84,11 @@ public class DefaultResponseTests
 	[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 	public async Task ThrowArgumentExceptionsForWrongDevicePathAsync(HwiClient client)
 	{
-		var wrongDeviePaths = new[] { null, "", " " };
+		var wrongDevicePaths = new[] { null, "", " " };
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-		foreach (HardwareWalletModels deviceType in Enum.GetValues(typeof(HardwareWalletModels)).Cast<HardwareWalletModels>())
+		foreach (HardwareWalletModels deviceType in Enum.GetValues<HardwareWalletModels>().Cast<HardwareWalletModels>())
 		{
-			foreach (var wrongDevicePath in wrongDeviePaths)
+			foreach (var wrongDevicePath in wrongDevicePaths)
 			{
 				await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.WipeAsync(deviceType, wrongDevicePath, cts.Token));
 				await Assert.ThrowsAnyAsync<ArgumentException>(async () => await client.SetupAsync(deviceType, wrongDevicePath, false, cts.Token));
@@ -222,7 +222,7 @@ public class DefaultResponseTests
 
 	/// <summary>Verify that <c>--help</c> returns output as expected.</summary>
 	[Fact]
-	public async void HwiHelpTestAsync()
+	public async Task HwiHelpTestAsync()
 	{
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 

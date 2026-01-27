@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -108,7 +109,7 @@ public partial class WalletLoadWorkflow
 		}
 
 		// Wait until "client tip height" is initialized.
-		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
+		await Services.BitcoinStore.FilterStore.InitializedTcs.Task.ConfigureAwait(true);
 
 		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
 	}
