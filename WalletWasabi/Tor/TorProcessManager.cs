@@ -488,42 +488,25 @@ public class TorProcessManager : IAsyncDisposable
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
 	internal virtual ProcessAsync StartProcess(string arguments)
 	{
-		ProcessStartInfo startInfo;
-
-		if (_settings.TorBackend == TorBackend.Arti)
+		ProcessStartInfo startInfo = new()
 		{
-			startInfo = new()
-			{
-				FileName = _settings.TorBinaryFilePath,
-				Arguments = arguments,
-				UseShellExecute = true,
-				CreateNoWindow = false,
-				RedirectStandardOutput = false,
-				WorkingDirectory = _settings.TorBinaryDir
-			};
-		}
-		else
+			FileName = _settings.TorBinaryFilePath,
+			Arguments = arguments,
+			UseShellExecute = false,
+			CreateNoWindow = true,
+			RedirectStandardOutput = true,
+			WorkingDirectory = _settings.TorBinaryDir
+		};
+
+		if (_settings.TorBackend == TorBackend.CTor && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			startInfo = new()
-			{
-				FileName = _settings.TorBinaryFilePath,
-				Arguments = arguments,
-				UseShellExecute = false,
-				CreateNoWindow = true,
-				RedirectStandardOutput = true,
-				WorkingDirectory = _settings.TorBinaryDir
-			};
+			var env = startInfo.EnvironmentVariables;
 
-			if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
-			{
-				var env = startInfo.EnvironmentVariables;
+			env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
+				? _settings.TorBinaryDir
+				: _settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
 
-				env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-					? _settings.TorBinaryDir
-					: _settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
-
-				Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
-			}
+			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
 		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}' with arguments '{arguments}'…" : "Starting Tor process…");
