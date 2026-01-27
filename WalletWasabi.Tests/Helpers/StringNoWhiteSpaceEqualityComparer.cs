@@ -4,9 +4,9 @@ using System.Linq;
 
 namespace WalletWasabi.Tests.Helpers;
 
-public class StringNoWhiteSpaceEqualityComparer : IEqualityComparer<string>
+public class StringNoWhiteSpaceEqualityComparer : IEqualityComparer<string?>
 {
-	public bool Equals([AllowNull] string x, [AllowNull] string y)
+	public bool Equals(string? x, string? y)
 	{
 		if (x == y)
 		{

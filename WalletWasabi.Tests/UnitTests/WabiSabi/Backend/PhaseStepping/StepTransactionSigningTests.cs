@@ -163,7 +163,7 @@ public class StepTransactionSigningTests
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
 		Assert.Equal(Phase.Ended, round.Phase);
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlicesSigned, round.EndRoundState);
-		Assert.Empty(arena.Rounds.Where(x => x is BlameRound));
+		Assert.DoesNotContain(arena.Rounds, x => x is BlameRound);
 
 		Assert.True(prison.IsBanned(aliceClient1.SmartCoin.Outpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
@@ -205,7 +205,7 @@ public class StepTransactionSigningTests
 		await aliceClient2.SignTransactionAsync(signedCoinJoin, keyChain, token);
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.DoesNotContain(round, arena.Rounds.Where(x => x.Phase != Phase.Ended));
-		Assert.Single(arena.Rounds.Where(x => x is BlameRound));
+		Assert.Single(arena.Rounds, x => x is BlameRound);
 		var badOutpoint = alice3.Coin.Outpoint;
 		Assert.True(prison.IsBanned(badOutpoint, cfg.GetDoSConfiguration(), DateTimeOffset.UtcNow));
 
