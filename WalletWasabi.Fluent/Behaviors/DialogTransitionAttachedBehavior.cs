@@ -1,5 +1,6 @@
 using System.Numerics;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using Avalonia;
 using Avalonia.Animation;
 using Avalonia.Animation.Easings;

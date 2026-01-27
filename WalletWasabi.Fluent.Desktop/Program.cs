@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.ReactiveUI;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -22,6 +21,7 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
+using ReactiveUI.Avalonia;
 
 namespace WalletWasabi.Fluent.Desktop;
 
@@ -30,7 +30,8 @@ public class Program
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
-	public static async Task<int> Main(string[] args)
+	[STAThread]
+	public static int Main(string[] args)
 	{
 		// Crash reporting must be before the "single instance checking".
 		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
@@ -60,7 +61,9 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = await app.RunAsGuiAsync();
+			var exitCode = app.RunAsGuiAsync()
+				.GetAwaiter()
+				.GetResult();
 
 			if (app.TerminateService.GracefulCrashException is not null)
 			{

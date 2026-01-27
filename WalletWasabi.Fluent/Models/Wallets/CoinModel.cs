@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
