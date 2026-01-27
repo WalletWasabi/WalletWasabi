@@ -28,7 +28,7 @@ This document lists all the officially supported software and devices by Wasabi 
 
 # FAQ
 
-## What are the bottlenecks of officially supporting Operating Systems?
+## What is required to run Wasabi Wallet on officially supported Operating Systems?
 
 Wasabi dependencies are:
 - .NET 10.0 [reqs](https://github.com/dotnet/core/blob/main/release-notes/10.0/supported-os.md).
