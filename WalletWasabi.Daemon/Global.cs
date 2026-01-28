@@ -349,15 +349,11 @@ public class Global
 
 	private async Task StartBitcoinStoreAsync(CancellationToken cancel)
 	{
-		var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-		cancel.ThrowIfCancellationRequested();
-
 		await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
 
 		try
 		{
-			await bitcoinStoreInitTask.ConfigureAwait(false);
+			await BitcoinStore.InitializeAsync(cancel).ConfigureAwait(false);
 
 			// Make sure that the height of the wallets will not be better than the current height of the filters.
 			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
