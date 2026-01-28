@@ -67,7 +67,7 @@ public static class WasabiAppExtensions
 			{
 				try
 				{
-					await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
+					await app.Global!.InitializeAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
 				}
 				catch (OperationCanceledException) when (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
