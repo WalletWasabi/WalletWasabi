@@ -88,7 +88,7 @@ public class Global
 		ConfigureFeeRateUpdater();
 		ConfigureSynchronizer();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(nodesGroup, BitcoinStore.BlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
