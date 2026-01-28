@@ -209,7 +209,7 @@ public class Global
 			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config)
 			: new HttpClientFactory(config);
 
-	private void ConfigureFeeRateUpdater()
+	private void ConfigureFeeRateUpdater(CancellationToken cancellationToken)
 	{
 		var blockFeeProvider = FeeRateProviders.BlockAsync(ExternalSourcesHttpClientFactory);
 		var mempoolSpaceFeeProvider = FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
@@ -233,12 +233,12 @@ public class Global
 				Periodically(
 					TimeSpan.FromMinutes(15),
 					FeeRateEstimations.Empty,
-					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))));
+					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))), cancellationToken);
 		feeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
 	}
 
-	private void ConfigureRpcMonitor()
+	private void ConfigureRpcMonitor(CancellationToken cancellationToken)
 	{
 		if (_bitcoinRpcClient is not null)
 		{
@@ -247,7 +247,7 @@ public class Global
 					Periodically(
 						TimeSpan.FromSeconds(7),
 						Unit.Instance,
-						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))));
+						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
 			rpcMonitor.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 		}
@@ -273,11 +273,11 @@ public class Global
 			Service("Wasabi Index-Based Synchronizer",
 				Continuously(
 					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
-				)))
+				)), cancellationToken)
 			.DisposeUsing(_disposables);
 	}
 
-	private void ConfigureExchangeRateUpdater()
+	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
 		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
 		var blockstreamInfoExchangeProvider = ExchangeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
@@ -298,12 +298,12 @@ public class Global
 					Periodically(
 						TimeSpan.FromMinutes(20),
 						0m,
-						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))));
+						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeFeeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
 	}
 
-	private void ConfigureWasabiUpdater()
+	private void ConfigureWasabiUpdater(CancellationToken cancellationToken)
 	{
 		if (Config.UseTor is TorMode.Disabled)
 		{
@@ -326,7 +326,7 @@ public class Global
 				Periodically(
 					TimeSpan.FromHours(12),
 					Unit.Instance,
-					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
+					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))), cancellationToken);
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
 	}
@@ -365,10 +365,10 @@ public class Global
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		ConfigureBitcoinRpcClient();
-		ConfigureWasabiUpdater();
-		ConfigureExchangeRateUpdater();
-		ConfigureRpcMonitor();
-		ConfigureFeeRateUpdater();
+		ConfigureWasabiUpdater(cancellationToken);
+		ConfigureExchangeRateUpdater(cancellationToken);
+		ConfigureRpcMonitor(cancellationToken);
+		ConfigureFeeRateUpdater(cancellationToken);
 
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
