@@ -80,7 +80,6 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-
 		var nodesGroup = ConfigureBitcoinNetwork();
 		ConfigureBitcoinRpcClient();
 		ConfigureWasabiUpdater();
@@ -92,14 +91,14 @@ public class Global
 		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
-			config.Network,
+			Config.Network,
 			BitcoinStore,
-			config.ServiceConfiguration,
+			Config.ServiceConfiguration,
 			blockProvider,
 			EventBus,
 			cpfpProvider);
 
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
+		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
 		var broadcasters = CreateBroadcasters(nodesGroup);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
