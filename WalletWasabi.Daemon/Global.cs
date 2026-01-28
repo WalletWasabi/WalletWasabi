@@ -255,8 +255,6 @@ public class Global
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		await StartBitcoinStoreAsync(cancellationToken).ConfigureAwait(false);
-
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
 		ICompactFilterProvider filtersProvider =
@@ -349,8 +347,6 @@ public class Global
 
 	private async Task StartBitcoinStoreAsync(CancellationToken cancel)
 	{
-		await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
-
 		try
 		{
 			await BitcoinStore.InitializeAsync(cancel).ConfigureAwait(false);
@@ -381,6 +377,11 @@ public class Global
 		using (await _initializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
+
+			await Task.WhenAll(
+				StartTorProcessManagerAsync(cancel),
+				StartBitcoinStoreAsync(cancel))
+				.ConfigureAwait(false);
 
 			await ConfigureSynchronizerAsync(cancel).ConfigureAwait(false);
 
