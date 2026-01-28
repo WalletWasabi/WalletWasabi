@@ -15,7 +15,7 @@
                IsBusy="{Binding IsBusy}"
                ScrollViewer.VerticalScrollBarVisibility="Auto">
     <ContentArea.Caption>
-      Payments queued here will be sent via Coinjoin for enhanced privacy. Maximum 4 payments per round.
+      Payments queued here will be sent via coinjoin for enhanced privacy. Maximum 4 payments per round. Scheduled payments are not guaranteed to be fulfilled.
     </ContentArea.Caption>
     <ContentArea.TopContent>
       <Button Content="Add Payment" Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" />
@@ -37,7 +37,7 @@
                    HorizontalAlignment="Center"
                    Margin="0,16,0,4"
                    Classes="h7" />
-        <TextBlock Text="Click 'Add Payment' to queue a payment for Coinjoin"
+        <TextBlock Text="Click 'Add Payment' to queue a payment for coinjoin"
                    HorizontalAlignment="Center"
                    Opacity="0.6" />
       </StackPanel>
@@ -63,7 +63,7 @@
                             Classes="plain"
                             VerticalAlignment="Center" />
                     <StackPanel>
-                      <TextBlock Text="{Binding AddressTruncated}"
+                      <TextBlock Text="{Binding Address}"
                                  Classes="monoSpaced"
                                  ToolTip.Tip="{Binding Address}" />
                       <TextBlock Text="{Binding AmountText}"
@@ -95,7 +95,7 @@
                                 Opacity="0.6" />
                     </StackPanel>
                     <StackPanel>
-                      <TextBlock Text="{Binding AddressTruncated}"
+                      <TextBlock Text="{Binding Address}"
                                  Classes="monoSpaced"
                                  ToolTip.Tip="{Binding Address}" />
                       <TextBlock Text="{Binding AmountText}"
@@ -127,7 +127,7 @@
                                 Foreground="{DynamicResource SystemAccentColor}" />
                     </StackPanel>
                     <StackPanel>
-                      <TextBlock Text="{Binding AddressTruncated}"
+                      <TextBlock Text="{Binding Address}"
                                  Classes="monoSpaced"
                                  ToolTip.Tip="{Binding Address}" />
                       <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">

@@ -25,19 +25,6 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 
 	public string Address => _payment.Destination.ScriptPubKey.GetDestinationAddress(_network)?.ToString() ?? "Unknown";
 
-	public string AddressTruncated
-	{
-		get
-		{
-			var address = Address;
-			if (address.Length > 20)
-			{
-				return $"{address[..10]}...{address[^8..]}";
-			}
-			return address;
-		}
-	}
-
 	public Money Amount => _payment.Amount;
 
 	public string AmountText => $"{_payment.Amount.ToDecimal(MoneyUnit.BTC):N8} BTC";
