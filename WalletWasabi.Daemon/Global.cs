@@ -80,13 +80,8 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		var nodesGroup = ConfigureBitcoinNetwork();
-		ConfigureBitcoinRpcClient();
-		ConfigureWasabiUpdater();
-		ConfigureExchangeRateUpdater();
-		ConfigureRpcMonitor();
-		ConfigureFeeRateUpdater();
-		ConfigureSynchronizer();
+		var nodesGroup = ConfigureBitcoinNetwork(mempoolService);
+		NodesGroup = nodesGroup;
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(nodesGroup, BitcoinStore.BlockRepository);
 
@@ -103,7 +98,6 @@ public class Global
 		var broadcasters = CreateBroadcasters(nodesGroup);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
-		NodesGroup = nodesGroup;
 		Scheme = new Scheme(this);
 	}
 
@@ -148,10 +142,10 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private NodesGroup ConfigureBitcoinNetwork()
+	private NodesGroup ConfigureBitcoinNetwork(MempoolService mempoolService)
 	{
 		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
-		var behavior = BitcoinStore.CreateUntrustedP2pBehavior();
+		var behavior = new P2pBehavior(mempoolService);
 		var nodesGroup = Network == Network.RegTest
 			? P2pNetwork.CreateNodesGroupForTestNet(behavior)
 			: P2pNetwork.CreateNodesGroup(
@@ -353,6 +347,13 @@ public class Global
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
+		ConfigureBitcoinRpcClient();
+		ConfigureWasabiUpdater();
+		ConfigureExchangeRateUpdater();
+		ConfigureRpcMonitor();
+		ConfigureFeeRateUpdater();
+		ConfigureSynchronizer();
+
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
 
