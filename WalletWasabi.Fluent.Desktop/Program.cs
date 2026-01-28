@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Controls;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -90,7 +91,15 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		Dispatcher.UIThread.Post(() =>
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				DetachTrayIconMenus();
+			}
+
+			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
+		}, DispatcherPriority.Send);
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -114,6 +123,26 @@ public class Program
 
 	private static void LogUnhandledException(object? sender, Exception e) =>
 		Logger.LogWarning(e);
+
+	private static void DetachTrayIconMenus()
+	{
+		if (Application.Current is not Application app)
+		{
+			return;
+		}
+
+		var trayIcons = TrayIcon.GetIcons(app);
+		if (trayIcons is null)
+		{
+			return;
+		}
+
+		foreach (var icon in trayIcons)
+		{
+			// Detach the menu before shutdown to prevent DBus menu updates after disposal.
+			icon.Menu = null;
+		}
+	}
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
