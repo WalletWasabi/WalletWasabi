@@ -45,6 +45,7 @@ public record PersistentConfig(
 			_ when Network == Network.Main => "Config.json",
 			_ when Network == Network.TestNet => "Config.TestNet.json",
 			_ when Network == Network.RegTest => "Config.RegTest.json",
+			_ when Network == Bitcoin.Instance.Signet => "Config.Signet.json",
 			_ => throw new NotSupportedException("Unsupported network")
 		};
 }
