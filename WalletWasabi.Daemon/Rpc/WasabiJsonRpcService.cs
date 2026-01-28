@@ -115,7 +115,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("loadwallet", initializable: false)]
 	public void LoadWallet(string walletName)
 	{
-		SelectWallet(walletName);
+		SelectWallet(walletName, ensureLoaded: true);
 	}
 
 	[JsonRpcMethod("getwalletinfo")]
@@ -542,7 +542,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("query", initializable: false)]
-	public async Task<object> Execute(string script)
+	public async Task<object> ExecuteAsync(string script)
 	{
 		if (!Global.Config.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
 		{
@@ -592,7 +592,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
-	private void SelectWallet(string walletName)
+	private void SelectWallet(string walletName, bool ensureLoaded = false)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try
@@ -600,7 +600,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 			ActiveWallet = wallet;
-			if (!wallet.Loaded)
+			if (ensureLoaded &&!wallet.Loaded)
 			{
 				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 			}
@@ -613,13 +613,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private void AssertWalletIsLoaded()
 	{
-		if (ActiveWallet is null)
+		if (ActiveWallet is not {Loaded: true})
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
-		}
-		if (!ActiveWallet.Loaded)
-		{
-			throw new InvalidOperationException("Wallet is not fully loaded yet.");
 		}
 	}
 
