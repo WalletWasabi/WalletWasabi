@@ -1,22 +1,18 @@
 using NBitcoin;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Models;
 
 public class Alice
 {
-	public Alice(Coin coin, OwnershipProof ownershipProof, Round round, Guid id)
+	public Alice(Coin coin, OwnershipProof ownershipProof, Guid id)
 	{
-		// TODO init syntax?
-		Round = round;
 		Coin = coin;
 		OwnershipProof = ownershipProof;
 		Id = id;
 	}
 
-	public Round Round { get; }
 	public Guid Id { get; }
 	public DateTimeOffset Deadline { get; set; } = DateTimeOffset.UtcNow;
 	public Coin Coin { get; }
@@ -24,7 +20,7 @@ public class Alice
 	public Money TotalInputAmount => Coin.Amount;
 	public int TotalInputVsize => Coin.ScriptPubKey.EstimateInputVsize();
 
-	public bool ConfirmedConnection { get; set; } = false;
+	public bool ConfirmedConnection { get; set; }
 	public bool ReadyToSign { get; set; }
 
 	public long CalculateRemainingVsizeCredentials(int maxRegistrableSize) => maxRegistrableSize - TotalInputVsize;

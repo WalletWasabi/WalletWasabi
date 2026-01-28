@@ -137,8 +137,8 @@ public class RegisterOutputTests
 		var round = WabiSabiFactory.CreateRound(parameters);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
-		round.SetPhase(Phase.OutputRegistration);
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
+		round.SetPhase(Phase.OutputRegistration);
 
 		var req = WabiSabiFactory.CreateOutputRegistrationRequest(round, sha256Bounty);
 		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await arena.RegisterOutputAsync(req, CancellationToken.None));
