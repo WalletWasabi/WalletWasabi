@@ -31,7 +31,7 @@ public class TorProcessManagerTests
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(TorBackend.CTor, dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
 		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
@@ -48,7 +48,7 @@ public class TorProcessManagerTests
 		mockTorProcessManager.Setup(c => c.EnsureRunningAsync(It.IsAny<ProcessAsync>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 		mockTorProcessManager.SetupSequence(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
-			.ReturnsAsync(() => new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)) // (1)
+			.ReturnsAsync(() => new TorControlClient(TorBackend.CTor, pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)) // (1)
 			.ThrowsAsync(new OperationCanceledException()); // (2)
 
 		await using (TorProcessManager manager = mockTorProcessManager.Object)
@@ -81,7 +81,7 @@ public class TorProcessManagerTests
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(TorBackend.CTor, dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
 		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
