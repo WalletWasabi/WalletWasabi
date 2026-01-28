@@ -126,6 +126,11 @@
                         <PathIcon Data="{StaticResource exclude_coins}" />
                       </MenuItem.Icon>
                     </MenuItem>
+                    <MenuItem Header="Coinjoin Payments" Command="{Binding CoinJoinStateViewModel.CoinJoinPaymentsCommand}">
+                      <MenuItem.Icon>
+                        <PathIcon Data="{StaticResource send_regular}" />
+                      </MenuItem.Icon>
+                    </MenuItem>
                   </MenuFlyout>
                 </Button.Flyout>
                 <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
