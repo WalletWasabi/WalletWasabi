@@ -101,7 +101,7 @@ public class Global
 		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
 		var broadcasters = CreateBroadcasters(nodesGroup);
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
 		NodesGroup = nodesGroup;
 		Scheme = new Scheme(this);
