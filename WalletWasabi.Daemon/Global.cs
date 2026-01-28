@@ -74,37 +74,30 @@ public class Global
 
 		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
-		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
+		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
 		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-
-		var nodesGroup = ConfigureBitcoinNetwork();
-		ConfigureBitcoinRpcClient();
-		ConfigureWasabiUpdater();
-		ConfigureExchangeRateUpdater();
-		ConfigureRpcMonitor();
-		ConfigureFeeRateUpdater();
-		ConfigureSynchronizer();
+		var nodesGroup = ConfigureBitcoinNetwork(mempoolService);
+		NodesGroup = nodesGroup;
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(nodesGroup, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(nodesGroup, BitcoinStore.BlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
-			config.Network,
+			Config.Network,
 			BitcoinStore,
-			config.ServiceConfiguration,
+			Config.ServiceConfiguration,
 			blockProvider,
 			EventBus,
 			cpfpProvider);
 
-		WalletManager = new WalletManager(config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
+		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
 		var broadcasters = CreateBroadcasters(nodesGroup);
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
-		NodesGroup = nodesGroup;
 		Scheme = new Scheme(this);
 	}
 
@@ -149,10 +142,10 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private NodesGroup ConfigureBitcoinNetwork()
+	private NodesGroup ConfigureBitcoinNetwork(MempoolService mempoolService)
 	{
 		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
-		var behavior = BitcoinStore.CreateUntrustedP2pBehavior();
+		var behavior = new P2pBehavior(mempoolService);
 		var nodesGroup = Network == Network.RegTest
 			? P2pNetwork.CreateNodesGroupForTestNet(behavior)
 			: P2pNetwork.CreateNodesGroup(
@@ -216,7 +209,7 @@ public class Global
 			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config)
 			: new HttpClientFactory(config);
 
-	private void ConfigureFeeRateUpdater()
+	private void ConfigureFeeRateUpdater(CancellationToken cancellationToken)
 	{
 		var blockFeeProvider = FeeRateProviders.BlockAsync(ExternalSourcesHttpClientFactory);
 		var mempoolSpaceFeeProvider = FeeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
@@ -240,12 +233,12 @@ public class Global
 				Periodically(
 					TimeSpan.FromMinutes(15),
 					FeeRateEstimations.Empty,
-					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))));
+					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))), cancellationToken);
 		feeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
 	}
 
-	private void ConfigureRpcMonitor()
+	private void ConfigureRpcMonitor(CancellationToken cancellationToken)
 	{
 		if (_bitcoinRpcClient is not null)
 		{
@@ -254,13 +247,13 @@ public class Global
 					Periodically(
 						TimeSpan.FromSeconds(7),
 						Unit.Instance,
-						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))));
+						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
 			rpcMonitor.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 		}
 	}
 
-	private void ConfigureSynchronizer()
+	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
@@ -269,7 +262,7 @@ public class Global
 
 		if (_bitcoinRpcClient is not null)
 		{
-			var supportsBlockFilters = _bitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
+			var supportsBlockFilters = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
 			if (supportsBlockFilters)
 			{
 				filtersProvider = new BitcoinRpcFilterProvider(_bitcoinRpcClient);
@@ -280,11 +273,11 @@ public class Global
 			Service("Wasabi Index-Based Synchronizer",
 				Continuously(
 					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
-				)))
+				)), cancellationToken)
 			.DisposeUsing(_disposables);
 	}
 
-	private void ConfigureExchangeRateUpdater()
+	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
 		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
 		var blockstreamInfoExchangeProvider = ExchangeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
@@ -305,12 +298,12 @@ public class Global
 					Periodically(
 						TimeSpan.FromMinutes(20),
 						0m,
-						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))));
+						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeFeeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
 	}
 
-	private void ConfigureWasabiUpdater()
+	private void ConfigureWasabiUpdater(CancellationToken cancellationToken)
 	{
 		if (Config.UseTor is TorMode.Disabled)
 		{
@@ -333,7 +326,7 @@ public class Global
 				Periodically(
 					TimeSpan.FromHours(12),
 					Unit.Instance,
-					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))));
+					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))), cancellationToken);
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
 	}
@@ -352,8 +345,31 @@ public class Global
 		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
-	public async Task InitializeNoWalletAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
+	private async Task StartBitcoinStoreAsync(CancellationToken cancel)
 	{
+		try
+		{
+			await BitcoinStore.InitializeAsync(cancel).ConfigureAwait(false);
+
+			// Make sure that the height of the wallets will not be better than the current height of the filters.
+			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
+			WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+			throw;
+		}
+	}
+
+	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
+	{
+		ConfigureBitcoinRpcClient();
+		ConfigureWasabiUpdater(cancellationToken);
+		ConfigureExchangeRateUpdater(cancellationToken);
+		ConfigureRpcMonitor(cancellationToken);
+		ConfigureFeeRateUpdater(cancellationToken);
+
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
 
@@ -362,6 +378,13 @@ public class Global
 		{
 			Logger.LogTrace("Initialization started.");
 
+			await Task.WhenAll(
+				StartTorProcessManagerAsync(cancel),
+				StartBitcoinStoreAsync(cancel))
+				.ConfigureAwait(false);
+
+			await ConfigureSynchronizerAsync(cancel).ConfigureAwait(false);
+
 			if (_disposeRequested)
 			{
 				return;
@@ -369,26 +392,6 @@ public class Global
 
 			try
 			{
-				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				cancel.ThrowIfCancellationRequested();
-
-				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
-
-				try
-				{
-					await bitcoinStoreInitTask.ConfigureAwait(false);
-
-					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
-				}
-				catch (Exception ex) when (ex is not OperationCanceledException)
-				{
-					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
-					throw;
-				}
-
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
 					RegisterCoinJoinComponents(coordinatorUri);
@@ -411,6 +414,7 @@ public class Global
 			{
 				Logger.LogTrace("Initialization finished.");
 			}
+			_ticker.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		}
 	}
 

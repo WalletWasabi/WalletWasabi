@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Wallets;
 
-public class FileSystemBlockRepository : IFileSystemBlockRepository
+public class FileSystemBlockRepository
 {
 	private const int MegaByte = 1024 * 1024;
 

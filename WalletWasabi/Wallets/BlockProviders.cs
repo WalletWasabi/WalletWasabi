@@ -101,7 +101,7 @@ public static class BlockProviders
 			return null;
 		};
 
-	public static BlockProvider CachedBlockProvider(BlockProvider blockProvider, IFileSystemBlockRepository fs) =>
+	public static BlockProvider CachedBlockProvider(BlockProvider blockProvider, FileSystemBlockRepository fs) =>
 		async (blockHash, cancellationToken) =>
 		{
 			var block = await blockProvider(blockHash, cancellationToken).ConfigureAwait(false);
