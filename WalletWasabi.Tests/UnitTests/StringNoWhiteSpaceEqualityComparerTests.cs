@@ -13,7 +13,7 @@ public class StringNoWhiteSpaceEqualityComparerTests
 	[InlineData("", "", true)]
 	[InlineData(null, null, true)]
 	[InlineData(null, "", false)]
-	public void StringNoWhiteSpaceEqualityComparerTest(string a, string b, bool equal)
+	public void StringNoWhiteSpaceEqualityComparerTest(string? a, string? b, bool equal)
 	{
 		if (equal)
 		{

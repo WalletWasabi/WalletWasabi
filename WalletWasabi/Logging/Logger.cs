@@ -5,7 +5,6 @@ using System.Runtime.CompilerServices;
 using System.Text;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
 
@@ -97,7 +96,7 @@ public static class Logger
 
 		var filePath = Path.GetFileName(callerFilePath);
 		var category = $"{filePath}:{callerLineNumber}";
-		return category.Length > 30 ? $"..{category.Substring(category.Length - 28)}" : category;
+		return category.Length > 30 ? $"..{category[^28..]}" : category;
 	}
 
 	private static void AppendMessageContent(StringBuilder builder, string message, string category)
@@ -249,9 +248,18 @@ public static class Logger
 
 public static class LoggerTools
 {
-	private static string ShortString(object o) => o.ToString()?.Substring(0, 8) ?? "";
+	private static string ShortString(object o)
+	{
+		var s = o.ToString();
+		return s?.Length switch
+		{
+			null => "",
+			<= 8 => s,
+			_ => s[0..8]
+		};
+	}
+
 	public static string FormatLog(string msg, string ctx) => $"{ctx} {msg}";
-	public static string FormatLog(string msg, Round round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, RoundState round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, AliceClient aliceClient) =>
 		FormatLog(msg, $"Round {ShortString(aliceClient.RoundId)} Alice {ShortString(aliceClient.AliceId)} EffValue {aliceClient.EffectiveValue}");

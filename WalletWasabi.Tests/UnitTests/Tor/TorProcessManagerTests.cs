@@ -54,7 +54,7 @@ public class TorProcessManagerTests
 		await using (TorProcessManager manager = mockTorProcessManager.Object)
 		{
 			// No exception is expected here.
-			(CancellationToken ct1, TorControlClient client1) = await manager.StartAsync(timeoutCts.Token);
+			(CancellationToken ct1, TorControlClient? client1) = await manager.StartAsync(timeoutCts.Token);
 
 			// Wait for the Tor process crash (see (1)).
 			await ct1.WhenCanceled().WaitAsync(timeoutCts.Token);
