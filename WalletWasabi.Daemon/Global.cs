@@ -255,6 +255,8 @@ public class Global
 
 	private void ConfigureSynchronizer()
 	{
+		StartBitcoinStoreAsync(CancellationToken.None).GetAwaiter().GetResult();
+
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
 		ICompactFilterProvider filtersProvider =
@@ -345,6 +347,29 @@ public class Global
 		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
+	private async Task StartBitcoinStoreAsync(CancellationToken cancel)
+	{
+		var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
+
+		cancel.ThrowIfCancellationRequested();
+
+		await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
+
+		try
+		{
+			await bitcoinStoreInitTask.ConfigureAwait(false);
+
+			// Make sure that the height of the wallets will not be better than the current height of the filters.
+			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
+		}
+		catch (Exception ex) when (ex is not OperationCanceledException)
+		{
+			// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
+			WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+			throw;
+		}
+	}
+
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
 		ConfigureBitcoinRpcClient();
@@ -369,26 +394,6 @@ public class Global
 
 			try
 			{
-				var bitcoinStoreInitTask = BitcoinStore.InitializeAsync(cancel);
-
-				cancel.ThrowIfCancellationRequested();
-
-				await StartTorProcessManagerAsync(cancel).ConfigureAwait(false);
-
-				try
-				{
-					await bitcoinStoreInitTask.ConfigureAwait(false);
-
-					// Make sure that the height of the wallets will not be better than the current height of the filters.
-					WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
-				}
-				catch (Exception ex) when (ex is not OperationCanceledException)
-				{
-					// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
-					WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
-					throw;
-				}
-
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
 					RegisterCoinJoinComponents(coordinatorUri);
