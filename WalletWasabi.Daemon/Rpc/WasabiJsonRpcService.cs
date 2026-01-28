@@ -613,13 +613,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private void AssertWalletIsLoaded()
 	{
-		if (ActiveWallet is null)
+		if (ActiveWallet is not {Loaded: true})
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
-		}
-		if (!ActiveWallet.Loaded)
-		{
-			throw new InvalidOperationException("Wallet is not fully loaded yet.");
 		}
 	}
 
