@@ -111,7 +111,7 @@ public record Offender(OutPoint OutPoint, DateTimeOffset StartedTime, Offense Of
 				ParseInheritedOffense(),
 			nameof(Cheating) =>
 				new Cheating(uint256.Parse(parts[3])),
-		_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
+			_ => throw new NotImplementedException("Cannot deserialize an unknown offense type.")
 		};
 
 		return new Offender(outpoint, startedTime, offense);

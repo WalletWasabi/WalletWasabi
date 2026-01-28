@@ -101,10 +101,7 @@ public class Startup(IConfiguration configuration)
 		services.AddSingleton(_ => network);
 
 		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
-		services.AddSingleton<Warden>(s =>
-			new Warden(
-				Path.Combine(dataDir, "Prison.txt"),
-				s.GetRequiredService<WabiSabiConfig>()));
+		services.AddSingleton<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
 		services.AddSingleton<RoundParameterFactory>();
 		services.AddBackgroundService<Arena>();
 
