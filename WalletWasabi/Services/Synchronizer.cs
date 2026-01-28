@@ -193,26 +193,39 @@ public static class Synchronizer
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
 				var hashChain = bitcoinStore.SmartHeaderChain;
+				var localTipHeight = hashChain.TipHeight;
+
 				hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
 				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
-				var filters = newFiltersAvailable.Filters;
-				var firstFilter = filters.First();
-				if (hashChain.TipHeight + 1 != firstFilter.Header.Height)
+
+				var downloadedFilters = newFiltersAvailable.Filters;
+				var newFilters = downloadedFilters.Where(x => localTipHeight < x.Header.Height).ToArray();
+				var firstNewFilter = newFilters.FirstOrDefault();
+
+				if (firstNewFilter is null)
+				{
+					Logger.LogInfo(downloadedFilters.Length == 1
+						? $"Downloaded filter for block {downloadedFilters[0].Header.Height} is known locally."
+						: $"Downloaded filters for blocks from {downloadedFilters[0].Header.Height} to {downloadedFilters[^1].Header.Height} are known locally.");
+				}
+				else if (localTipHeight + 1 != firstNewFilter.Header.Height)
 				{
 					// We have a problem.
 					// We have wrong filters, the heights are not in sync with the server's.
-					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}" + FormatInconsistencyDetails(hashChain, firstFilter));
+					string details = FormatInconsistencyDetails(hashChain, firstNewFilter);
+					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}{details}");
 
-					await bitcoinStore.FilterStore.RemoveAllNewerThanAsync(hashChain.TipHeight).ConfigureAwait(false);
+					await bitcoinStore.FilterStore.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
 				}
 				else
 				{
-					await bitcoinStore.FilterStore.AddNewFiltersAsync(filters).ConfigureAwait(false);
+					await bitcoinStore.FilterStore.AddNewFiltersAsync(newFilters).ConfigureAwait(false);
 
-					Logger.LogInfo(filters.Length == 1
-						? $"Downloaded filter for block {firstFilter.Header.Height}."
-						: $"Downloaded filters for blocks from {firstFilter.Header.Height} to {filters.Last().Header.Height}.");
+					Logger.LogInfo(newFilters.Length == 1
+						? $"Downloaded filter for block {firstNewFilter.Header.Height}."
+						: $"Downloaded filters for blocks from {firstNewFilter.Header.Height} to {newFilters.Last().Header.Height}.");
 				}
+
 				break;
 			default:
 				throw new ArgumentOutOfRangeException(nameof(response));
