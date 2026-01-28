@@ -253,9 +253,9 @@ public class Global
 		}
 	}
 
-	private void ConfigureSynchronizer()
+	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		StartBitcoinStoreAsync(CancellationToken.None).GetAwaiter().GetResult();
+		await StartBitcoinStoreAsync(cancellationToken).ConfigureAwait(false);
 
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
 		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
@@ -264,7 +264,7 @@ public class Global
 
 		if (_bitcoinRpcClient is not null)
 		{
-			var supportsBlockFilters = _bitcoinRpcClient.SupportsBlockFiltersAsync(CancellationToken.None).GetAwaiter().GetResult();
+			var supportsBlockFilters = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
 			if (supportsBlockFilters)
 			{
 				filtersProvider = new BitcoinRpcFilterProvider(_bitcoinRpcClient);
@@ -377,9 +377,6 @@ public class Global
 		ConfigureExchangeRateUpdater();
 		ConfigureRpcMonitor();
 		ConfigureFeeRateUpdater();
-		ConfigureSynchronizer();
-
-		_ticker.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
@@ -388,6 +385,8 @@ public class Global
 		using (await _initializationAsyncLock.LockAsync(cancellationToken))
 		{
 			Logger.LogTrace("Initialization started.");
+
+			await ConfigureSynchronizerAsync(cancel).ConfigureAwait(false);
 
 			if (_disposeRequested)
 			{
@@ -418,6 +417,7 @@ public class Global
 			{
 				Logger.LogTrace("Initialization finished.");
 			}
+			_ticker.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		}
 	}
 
