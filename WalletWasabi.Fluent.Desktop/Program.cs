@@ -28,6 +28,26 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
+	private static int _isShuttingDown;
+
+	internal static bool IsShuttingDown => Volatile.Read(ref _isShuttingDown) == 1;
+
+	internal static bool IsDbusMenuShutdownException(Exception exception)
+	{
+		if (exception is not NullReferenceException)
+		{
+			return false;
+		}
+
+		var declaringType = exception.TargetSite?.DeclaringType?.FullName;
+		if (declaringType?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true)
+		{
+			return true;
+		}
+
+		return exception.StackTrace?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true;
+	}
+
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
@@ -91,6 +111,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
+		Interlocked.Exchange(ref _isShuttingDown, 1);
 		Dispatcher.UIThread.Post(() =>
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -200,6 +221,19 @@ public static class WasabiAppExtensions
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
+
+					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+					{
+						Dispatcher.UIThread.UnhandledException += (_, e) =>
+						{
+							if (Program.IsShuttingDown &&
+								Program.IsDbusMenuShutdownException(e.Exception))
+							{
+								Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+								e.Handled = true;
+							}
+						};
+					}
 
 				using CancellationTokenSource stopLoadingCts = new();
 
