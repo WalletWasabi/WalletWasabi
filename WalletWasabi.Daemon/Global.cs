@@ -74,7 +74,7 @@ public class Global
 
 		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
-		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
+		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)), 0, Timeout.InfiniteTimeSpan, TimeSpan.FromSeconds(1));
 
 		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
 
@@ -378,6 +378,8 @@ public class Global
 		ConfigureRpcMonitor();
 		ConfigureFeeRateUpdater();
 		ConfigureSynchronizer();
+
+		_ticker.Change(TimeSpan.Zero, TimeSpan.FromSeconds(1));
 
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken cancel = linkedCts.Token;
