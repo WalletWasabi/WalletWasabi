@@ -102,12 +102,13 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
-			.Select(_ =>
+			.Select(e =>
 			{
-				TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var estimates);
+				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _wallet.Network, out var estimates);
 				return estimates;
 			})
 			.WhereNotNull()
+			.Where(x => x.Estimations.Any())
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
