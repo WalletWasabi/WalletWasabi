@@ -112,6 +112,11 @@ public class Program
 	private static void TerminateApplication()
 	{
 		Interlocked.Exchange(ref _isShuttingDown, 1);
+		if (Application.Current is null)
+		{
+			return;
+		}
+
 		Dispatcher.UIThread.Post(() =>
 		{
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -222,23 +227,10 @@ public static class WasabiAppExtensions
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-					if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
-					{
-						Dispatcher.UIThread.UnhandledException += (_, e) =>
-						{
-							if (Program.IsShuttingDown &&
-								Program.IsDbusMenuShutdownException(e.Exception))
-							{
-								Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
-								e.Handled = true;
-							}
-						};
-					}
+					using CancellationTokenSource stopLoadingCts = new();
 
-				using CancellationTokenSource stopLoadingCts = new();
-
-				AppBuilder appBuilder = AppBuilder
-					.Configure(() => new App(
+					AppBuilder appBuilder = AppBuilder
+						.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
@@ -247,9 +239,25 @@ public static class WasabiAppExtensions
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 						}, startInBg: runGuiInBackground))
-					.UseReactiveUI()
-					.SetupAppBuilder()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
+						.UseReactiveUI()
+						.SetupAppBuilder()
+						.AfterSetup(_ =>
+						{
+							ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+							{
+								Dispatcher.UIThread.UnhandledException += (_, e) =>
+								{
+									if (Program.IsShuttingDown &&
+										Program.IsDbusMenuShutdownException(e.Exception))
+									{
+										Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+										e.Handled = true;
+									}
+								};
+							}
+						});
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
