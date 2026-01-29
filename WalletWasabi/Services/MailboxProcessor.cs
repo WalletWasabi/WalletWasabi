@@ -179,7 +179,7 @@ public static class Workers
 				{
 					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
 				}
-				catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+				catch (OperationCanceledException)
 				{
 					// Ignore because it is expected
 				}
@@ -201,7 +201,7 @@ public static class Workers
 					var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
 					state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
 				}
-				catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+				catch (OperationCanceledException)
 				{
 					// Ignore because it is expected
 				}
@@ -228,7 +228,7 @@ public static class Workers
 						lastUpdateTime = DateTime.UtcNow;
 					}
 				}
-				catch (OperationCanceledException e) when (e.CancellationToken == cancellationToken)
+				catch (OperationCanceledException e)
 				{
 					// Ignore because it is expected
 				}
