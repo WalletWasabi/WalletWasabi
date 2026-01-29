@@ -367,16 +367,16 @@ public class Global
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
-		ConfigureWasabiUpdater(cancellationToken);
-		ConfigureExchangeRateUpdater(cancellationToken);
-		ConfigureRpcMonitor(cancellationToken);
-		ConfigureFeeRateUpdater(cancellationToken);
-
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken linkedCtsToken = linkedCts.Token;
 
+		ConfigureWasabiUpdater(linkedCtsToken);
+		ConfigureExchangeRateUpdater(linkedCtsToken);
+		ConfigureRpcMonitor(linkedCtsToken);
+		ConfigureFeeRateUpdater(linkedCtsToken);
+
 		// _stoppingCts may be disposed at this point, so do not forward the cancellation token here.
-		using (await _initializationAsyncLock.LockAsync(cancellationToken))
+		using (await _initializationAsyncLock.LockAsync(linkedCtsToken))
 		{
 			Logger.LogTrace("Initialization started.");
 
