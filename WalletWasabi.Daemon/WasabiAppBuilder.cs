@@ -52,8 +52,8 @@ public static class WasabiAppExtensions
 			{
 				try
 				{
-					var wallet = app.Global!.WalletManager.GetWalletByName(walletName);
-					app.Global!.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+					var wallet = app.Global.WalletManager.GetWalletByName(walletName);
+					app.Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 				}
 				catch (InvalidOperationException)
 				{
@@ -67,7 +67,7 @@ public static class WasabiAppExtensions
 			{
 				try
 				{
-					await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
+					await app.Global.InitializeAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
 				}
 				catch (OperationCanceledException) when (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{

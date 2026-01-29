@@ -60,6 +60,7 @@ public static class ExchangeRateProviders
 				}
 			}
 
+			cancellationToken.ThrowIfCancellationRequested();
 			throw new InvalidOperationException("All exchange rate providers failed to give us an exchange rate.");
 		};
 

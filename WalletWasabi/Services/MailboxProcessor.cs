@@ -179,8 +179,11 @@ public static class Workers
 				{
 					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
 				}
-				catch (Exception e) when (e is not OperationCanceledException oce ||
-				                          oce.CancellationToken != cancellationToken)
+				catch (OperationCanceledException)
+				{
+					// Ignore because it is expected
+				}
+				catch (Exception e)
 				{
 					Logger.LogError(e);
 				}
@@ -197,6 +200,10 @@ public static class Workers
 				{
 					var msg = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
 					state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
+				}
+				catch (OperationCanceledException)
+				{
+					// Ignore because it is expected
 				}
 				catch (Exception e) when(e is not ChannelClosedException)
 				{
@@ -220,6 +227,10 @@ public static class Workers
 						state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
 						lastUpdateTime = DateTime.UtcNow;
 					}
+				}
+				catch (OperationCanceledException e)
+				{
+					// Ignore because it is expected
 				}
 				catch (Exception e) when (e is not ChannelClosedException)
 				{
@@ -245,7 +256,7 @@ public static class Workers
 			{
 				await handler(mailbox, cancellationToken).ConfigureAwait(false);
 			}
-			catch (Exception e) when (e is not (ChannelClosedException or TaskCanceledException))
+			catch (Exception e) when (e is not ChannelClosedException)
 			{
 				Logger.LogError($"Service will stopped because of unexpected exception: {e}");
 			}

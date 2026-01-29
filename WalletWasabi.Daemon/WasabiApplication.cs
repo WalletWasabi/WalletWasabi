@@ -17,7 +17,7 @@ namespace WalletWasabi.Daemon;
 public class WasabiApplication
 {
 	public WasabiAppBuilder AppConfig { get; }
-	public Global? Global { get; private set; }
+	public Global Global { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
 	public TerminateService TerminateService { get; }
@@ -29,9 +29,10 @@ public class WasabiApplication
 
 		Directory.CreateDirectory(Config.DataDir);
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
-
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
+
+		Global = new Global(Config.DataDir, Config);
 		SingleInstanceChecker = new(Config.Network);
 		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
 	}
@@ -86,7 +87,6 @@ public class WasabiApplication
 
 		Logger.LogInfo($"{AppConfig.AppName} started ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 
-		Global = CreateGlobal();
 	}
 
 	private void BeforeStopping()
@@ -234,10 +234,7 @@ public class WasabiApplication
 	{
 		Logger.LogInfo($"{AppConfig.AppName} stopped gracefully ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 
-		if (Global is { } global)
-		{
-			await global.DisposeAsync().ConfigureAwait(false);
-		}
+		await Global.DisposeAsync().ConfigureAwait(false);
 	}
 
 	private void SetupLogger()
