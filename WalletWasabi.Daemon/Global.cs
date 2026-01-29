@@ -80,10 +80,10 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		var nodesGroup = ConfigureBitcoinNetwork(mempoolService);
-		NodesGroup = nodesGroup;
+		NodesGroup = ConfigureBitcoinNetwork(mempoolService);
+		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(nodesGroup, BitcoinStore.BlockRepository);
+		var blockProvider = ConfigureBlockProvider(NodesGroup, BitcoinStore.BlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -95,7 +95,7 @@ public class Global
 
 		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
-		var broadcasters = CreateBroadcasters(nodesGroup);
+		var broadcasters = CreateBroadcasters(NodesGroup);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
 
 		Scheme = new Scheme(this);
@@ -178,7 +178,7 @@ public class Global
 		return nodesGroup;
 	}
 
-	private void ConfigureBitcoinRpcClient()
+	private RpcClientBase? ConfigureBitcoinRpcClient()
 	{
 		var credentialString = Config.BitcoinRpcCredentialString;
 		if (Config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
@@ -200,8 +200,10 @@ public class Global
 					ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 			}
 
-			_bitcoinRpcClient = new RpcClientBase(internalRpcClient);
+			return new RpcClientBase(internalRpcClient);
 		}
+
+		return null;
 	}
 
 	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
@@ -345,11 +347,11 @@ public class Global
 		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
-	private async Task StartBitcoinStoreAsync(CancellationToken cancel)
+	private async Task InitializeBitcoinStoreAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
-			await BitcoinStore.InitializeAsync(cancel).ConfigureAwait(false);
+			await BitcoinStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
 
 			// Make sure that the height of the wallets will not be better than the current height of the filters.
 			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
@@ -357,6 +359,7 @@ public class Global
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
+			Logger.LogError($"Bitcoin storage got corrupted. Resetting wallet(s) to the first block to rescan. Exception: {ex}");
 			WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
 			throw;
 		}
@@ -364,14 +367,13 @@ public class Global
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
 	{
-		ConfigureBitcoinRpcClient();
 		ConfigureWasabiUpdater(cancellationToken);
 		ConfigureExchangeRateUpdater(cancellationToken);
 		ConfigureRpcMonitor(cancellationToken);
 		ConfigureFeeRateUpdater(cancellationToken);
 
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
-		CancellationToken cancel = linkedCts.Token;
+		CancellationToken linkedCtsToken = linkedCts.Token;
 
 		// _stoppingCts may be disposed at this point, so do not forward the cancellation token here.
 		using (await _initializationAsyncLock.LockAsync(cancellationToken))
@@ -379,11 +381,11 @@ public class Global
 			Logger.LogTrace("Initialization started.");
 
 			await Task.WhenAll(
-				StartTorProcessManagerAsync(cancel),
-				StartBitcoinStoreAsync(cancel))
+				StartTorProcessManagerAsync(linkedCtsToken),
+				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
 
-			await ConfigureSynchronizerAsync(cancel).ConfigureAwait(false);
+			await ConfigureSynchronizerAsync(linkedCtsToken).ConfigureAwait(false);
 
 			if (_disposeRequested)
 			{
@@ -402,11 +404,9 @@ public class Global
 					}
 				}
 
-				await HostedServices.StartAllAsync(cancel).ConfigureAwait(false);
+				await HostedServices.StartAllAsync(linkedCtsToken).ConfigureAwait(false);
 
-				Logger.LogInfo("Start synchronizing filters...");
-
-				await StartRpcServerAsync(terminateService, cancel).ConfigureAwait(false);
+				await StartRpcServerAsync(terminateService, linkedCtsToken).ConfigureAwait(false);
 
 				WalletManager.Initialize();
 			}
