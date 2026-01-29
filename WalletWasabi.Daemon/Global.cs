@@ -505,9 +505,9 @@ public class Global
 		var coordinatorHttpClientConfig = new HttpClientHandlerConfiguration
 		{
 			MaxAttempts = 10,
-			TimeBeforeRetringAfterNetworkError = TimeSpan.FromSeconds(0.5),
-			TimeBeforeRetringAfterServerError = TimeSpan.FromSeconds(0.5),
-			TimeBeforeRetringAfterTooManyRequests = TimeSpan.FromSeconds(0.1)
+			TimeBeforeRetryingAfterNetworkError = TimeSpan.FromSeconds(0.5),
+			TimeBeforeRetryingAfterServerError = TimeSpan.FromSeconds(0.5),
+			TimeBeforeRetryingAfterTooManyRequests = TimeSpan.FromSeconds(0.1)
 		};
 		var coordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory(coordinatorHttpClientConfig));
 
