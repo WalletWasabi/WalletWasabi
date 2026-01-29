@@ -9,8 +9,8 @@ public class FilterModel
 {
 	private readonly Lazy<GolombRiceFilter> _filter;
 
-	private static readonly uint256 MinimunValidBlockHash =
-		uint256.Parse("0000000fffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
+	private static readonly uint256 MinimumValidBlockHash =
+		uint256.Parse("0000ffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff");
 	public FilterModel(SmartHeader header, GolombRiceFilter filter)
 	{
 		Header = header;
@@ -31,7 +31,7 @@ public class FilterModel
 	public static FilterModel Create(uint blockHeight, uint256 blockHash, byte[] filterData, uint256 headerOrPrevBlockHash, long blockTime) =>
 		new (
 			new SmartHeader(blockHash, headerOrPrevBlockHash, blockHeight, blockTime),
-			headerOrPrevBlockHash > MinimunValidBlockHash
+			headerOrPrevBlockHash > MinimumValidBlockHash
 				? new GolombRiceFilter(filterData)
 				: new GolombRiceFilter(filterData, 20, 1 << 20));
 

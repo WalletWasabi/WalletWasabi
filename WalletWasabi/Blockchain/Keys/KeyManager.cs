@@ -126,18 +126,23 @@ public class KeyManager
 		new((network.Name, purpose) switch
 		{
 			("TestNet4", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/1h/0h",
+			("signet", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/1h/0h",
 			("RegTest", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/0h/0h",
 			("Main", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/0h/0h",
 			("TestNet4", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/1h/0h",
+			("signet", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/1h/0h",
 			("RegTest", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/0h/0h",
 			("Main", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/0h/0h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
+			("signet", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
 			("RegTest", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/0h/0h/1h",
 			("Main",  KeyPurpose.SilentPaymentKey.ScanKey)=> "m/352h/0h/0h/1h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
+			("signet", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
 			("RegTest", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/0h/0h/0h",
 			("Main",  KeyPurpose.SilentPaymentKey.SpendKey)=> "m/352h/0h/0h/0h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.Key) => "m/353h/1h/0h",
+			("signet", KeyPurpose.SilentPaymentKey.Key) => "m/353h/1h/0h",
 			("RegTest", KeyPurpose.SilentPaymentKey.Key) => "m/353h/0h/0h",
 			("Main",  KeyPurpose.SilentPaymentKey.Key)=> "m/353h/0h/0h",
 			(_, KeyPurpose.LoudPaymentKey s) => throw new ArgumentException($"Unknown account for network '{network}' and script type {s.ScriptPubKeyType}."),
@@ -258,7 +263,7 @@ public class KeyManager
 	private static KeyManager CreateNew(byte[] seed, string password, Network network, string? filePath = null)
 	{
 		var extKey = ExtKey.CreateFromSeed(seed);
-		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		BlockchainState blockchainState = new(network);
@@ -302,7 +307,7 @@ public class KeyManager
 	private static KeyManager Recover(byte[] seed, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 	{
 		ExtKey extKey = ExtKey.CreateFromSeed(seed);
-		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 
@@ -781,8 +786,13 @@ public class KeyManager
 		Decode.Object(get =>
 		{
 			var fingerprint = Decode.Field("MasterFingerprint", Decode.HDFingerprint)(get.Value).Match(v => v, _ => (HDFingerprint?)null);
+
+			// todo: review again
+			var blockchainState = get.Required("BlockchainState", Decode.BlockchainState);
+			var network = blockchainState.Network;
+			var encryptedSecretDecoder = Decode.String.Map(s => new BitcoinEncryptedSecretNoEC(s, network));
 			var km = new KeyManager(
-				get.Optional("EncryptedSecret", Decode.BitcoinEncryptedSecretNoEC),
+				get.Optional("EncryptedSecret", encryptedSecretDecoder),
 				get.Optional("ChainCode", Decode.ByteArray),
 				fingerprint,
 
@@ -791,7 +801,7 @@ public class KeyManager
 				get.Optional("SilentPaymentScanExtPubKey", Decode.ExtPubKey),
 				get.Optional("SilentPaymentSpendExtPubKey", Decode.ExtPubKey),
 				get.Optional("MinGapLimit", Decode.Int),
-				get.Required("BlockchainState", Decode.BlockchainState),
+				blockchainState,
 				(string?) "",
 				get.Optional("AccountKeyPath", Decode.KeyPath),
 				get.Optional("TaprootAccountKeyPath", Decode.KeyPath)

@@ -25,6 +25,7 @@ public class SmartHeaderTests
 		var startingMain = SmartHeader.GetStartingHeader(Network.Main);
 		var startingTest = SmartHeader.GetStartingHeader(Network.TestNet);
 		var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
+		var startingSig = SmartHeader.GetStartingHeader(Bitcoin.Instance.Signet);
 
 		var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
 		var expectedHeaderMain = new uint256("000000000000000000cbeff0b533f8e1189cf09dfbebf57a8ebe349362811b80");
@@ -41,6 +42,13 @@ public class SmartHeaderTests
 		uint expectedHeightReg = 0;
 		var expectedTimeReg = Network.RegTest.GetGenesis().Header.BlockTime;
 
+		var expectedHashSig = Bitcoin.Instance.Signet.GenesisHash;
+		var expectedHeaderSig = uint256.Zero;
+		uint expectedHeightSig = 0;
+		var expectedTimeSig = Bitcoin.Instance.Signet.GetGenesis().Header.BlockTime;
+
+
+
 		Assert.Equal(expectedHashMain, startingMain.BlockHash);
 		Assert.Equal(expectedHeaderMain, startingMain.HeaderOrPrevBlockHash);
 		Assert.Equal(expectedHeightMain, startingMain.Height);
@@ -55,5 +63,10 @@ public class SmartHeaderTests
 		Assert.Equal(expectedHeaderReg, startingReg.HeaderOrPrevBlockHash);
 		Assert.Equal(expectedHeightReg, startingReg.Height);
 		Assert.Equal(expectedTimeReg, startingReg.BlockTime);
+
+		Assert.Equal(expectedHashSig, startingSig.BlockHash);
+		Assert.Equal(expectedHeaderSig, startingSig.HeaderOrPrevBlockHash);
+		Assert.Equal(expectedHeightSig, startingSig.Height);
+		Assert.Equal(expectedTimeSig, startingSig.BlockTime);
 	}
 }

@@ -9,6 +9,7 @@ using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -210,6 +211,8 @@ public partial class ApplicationSettings : ReactiveObject
 			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
 			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
 			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
+			var network when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
+			_ => throw new NotSupportedNetworkException(Network)
 		};
 
 		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
