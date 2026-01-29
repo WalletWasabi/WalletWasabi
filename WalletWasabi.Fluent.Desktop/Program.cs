@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using Avalonia;
+using Avalonia.Controls;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -27,6 +28,26 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
+	private static int _isShuttingDown;
+
+	internal static bool IsShuttingDown => Volatile.Read(ref _isShuttingDown) == 1;
+
+	internal static bool IsDbusMenuShutdownException(Exception exception)
+	{
+		if (exception is not NullReferenceException)
+		{
+			return false;
+		}
+
+		var declaringType = exception.TargetSite?.DeclaringType?.FullName;
+		if (declaringType?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true)
+		{
+			return true;
+		}
+
+		return exception.StackTrace?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true;
+	}
+
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
@@ -90,7 +111,21 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		Interlocked.Exchange(ref _isShuttingDown, 1);
+		if (Application.Current is null)
+		{
+			return;
+		}
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				DetachTrayIconMenus();
+			}
+
+			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
+		}, DispatcherPriority.Send);
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -114,6 +149,26 @@ public class Program
 
 	private static void LogUnhandledException(object? sender, Exception e) =>
 		Logger.LogWarning(e);
+
+	private static void DetachTrayIconMenus()
+	{
+		if (Application.Current is not Application app)
+		{
+			return;
+		}
+
+		var trayIcons = TrayIcon.GetIcons(app);
+		if (trayIcons is null)
+		{
+			return;
+		}
+
+		foreach (var icon in trayIcons)
+		{
+			// Detach the menu before shutdown to prevent DBus menu updates after disposal.
+			icon.Menu = null;
+		}
+	}
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
@@ -172,10 +227,10 @@ public static class WasabiAppExtensions
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-				using CancellationTokenSource stopLoadingCts = new();
+					using CancellationTokenSource stopLoadingCts = new();
 
-				AppBuilder appBuilder = AppBuilder
-					.Configure(() => new App(
+					AppBuilder appBuilder = AppBuilder
+						.Configure(() => new App(
 						backendInitialiseAsync: async () =>
 						{
 							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
@@ -184,9 +239,25 @@ public static class WasabiAppExtensions
 							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 						}, startInBg: runGuiInBackground))
-					.UseReactiveUI()
-					.SetupAppBuilder()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
+						.UseReactiveUI()
+						.SetupAppBuilder()
+						.AfterSetup(_ =>
+						{
+							ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+							{
+								Dispatcher.UIThread.UnhandledException += (_, e) =>
+								{
+									if (Program.IsShuttingDown &&
+										Program.IsDbusMenuShutdownException(e.Exception))
+									{
+										Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+										e.Handled = true;
+									}
+								};
+							}
+						});
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
