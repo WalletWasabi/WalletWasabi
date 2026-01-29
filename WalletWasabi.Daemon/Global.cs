@@ -52,6 +52,7 @@ public class Global
 		DataDir = dataDir;
 		Config = config;
 		TorSettings = new TorSettings(
+			config.TorBackend,
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
 			terminateOnExit: Config.TerminateTorOnExit,

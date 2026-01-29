@@ -155,6 +155,11 @@
     "hash": "sha256-yCBoDPA+SyoCuZQYmui6GJfhtS8dr4va16VUvkYo9uM="
   },
   {
+    "pname": "BouncyCastle.Cryptography",
+    "version": "2.6.2",
+    "hash": "sha256-Yjk2+x/RcVeccGOQOQcRKCiYzyx1mlFnhS5auCII+Ms="
+  },
+  {
     "pname": "Castle.Core",
     "version": "5.1.1",
     "hash": "sha256-oVkQB+ON7S6Q27OhXrTLaxTL0kWB58HZaFFuiw4iTrE="

@@ -22,10 +22,10 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		README.md = README.md
 		Settings.StyleCop = Settings.StyleCop
 		NuGet.Config = NuGet.Config
-		deps.nix = deps.nix
 		flake.lock = flake.lock
 		flake.nix = flake.nix
 		Contrib\release.sh = Contrib\release.sh
+		deps.json = deps.json
 	EndProjectSection
 EndProject
 Project("{930C7802-8A8C-48F9-8165-68863BCCD9DD}") = "WalletWasabi.WindowsInstaller", "WalletWasabi.WindowsInstaller\WalletWasabi.WindowsInstaller.wixproj", "{54654468-4F58-4253-84BD-6F53A8D3D2C4}"
