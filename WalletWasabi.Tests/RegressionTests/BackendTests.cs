@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Linq;
 using System.Net;
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 		var utxos = await rpc.ListUnspentAsync();
 		var utxo = utxos[0];
 		var tx = await rpc.GetRawTransactionAsync(utxo.OutPoint.Hash);
-		using StringContent content = new($"'{tx.ToHex()}'", Encoding.UTF8, "application/json");
+		using StringContent content = new($"'{tx.ToHex()}'", Encoding.UTF8, MediaTypeNames.Application.Json);
 
 		using var response = await BackendApiHttpClient.PostAsync($"api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 		Assert.Equal(HttpStatusCode.OK, response.StatusCode);
@@ -59,7 +60,7 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 
-		using StringContent content = new($"''", Encoding.UTF8, "application/json");
+		using StringContent content = new($"''", Encoding.UTF8, MediaTypeNames.Application.Json);
 
 		using var response = await BackendApiHttpClient.PostAsync($"api/v{Constants.BackendMajorVersion}/btc/blockchain/broadcast", content);
 
