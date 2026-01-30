@@ -13,7 +13,6 @@ using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
@@ -49,7 +48,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
 
 	private readonly IWalletModel _wallet;
-	private readonly Wallet _walletInstance;
 	private readonly StateMachine<State, Trigger> _stateMachine;
 	private readonly DispatcherTimer _countdownTimer;
 	private readonly DispatcherTimer _autoCoinJoinStartTimer;
@@ -74,11 +72,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private CoinjoinError? _lastPlebStopActivatedEvent;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, Wallet walletInstance, IWalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, IWalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;
-		_walletInstance = walletInstance;
 
 		walletCoinjoinModel.StatusUpdated
 					   .Do(ProcessStatusChange)
@@ -175,7 +172,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
 			}
 		});
-		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
 
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
@@ -222,7 +218,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	public ICommand StopPauseCommand { get; }
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
-	public ICommand CoinJoinPaymentsCommand { get; }
 
 	private void ConfigureStateMachine()
 	{
