@@ -1,0 +1,155 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.CoinJoin"
+             mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoin.CoinJoinPaymentsView"
+             x:DataType="vm:CoinJoinPaymentsViewModel"
+             x:CompileBindings="True">
+  <ContentArea Title="{Binding Title}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True"
+               NextContent="Done"
+               EnableCancel="{Binding EnableCancel}"
+               IsBusy="{Binding IsBusy}"
+               ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <ContentArea.Caption>
+      Payments queued here will be sent via coinjoin for enhanced privacy. Maximum 4 payments per round. Scheduled payments are not guaranteed to be fulfilled.
+    </ContentArea.Caption>
+    <ContentArea.TopContent>
+      <Button Content="Add Payment" Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" />
+    </ContentArea.TopContent>
+
+    <DockPanel>
+      <!-- Empty state -->
+      <StackPanel DockPanel.Dock="Top"
+                  IsVisible="{Binding !HasAnyPayments}"
+                  HorizontalAlignment="Center"
+                  VerticalAlignment="Center"
+                  Margin="0,40,0,40">
+        <PathIcon Data="{StaticResource send_regular}"
+                  Width="48"
+                  Height="48"
+                  Opacity="0.3"
+                  HorizontalAlignment="Center" />
+        <TextBlock Text="No payments queued"
+                   HorizontalAlignment="Center"
+                   Margin="0,16,0,4"
+                   Classes="h7" />
+        <TextBlock Text="Click 'Add Payment' to queue a payment for coinjoin"
+                   HorizontalAlignment="Center"
+                   Opacity="0.6" />
+      </StackPanel>
+
+      <!-- Payments list -->
+      <StackPanel IsVisible="{Binding HasAnyPayments}" Spacing="20">
+
+        <!-- Pending Payments -->
+        <StackPanel IsVisible="{Binding HasPendingPayments}" Spacing="8">
+          <TextBlock Text="Pending" Classes="h8" Opacity="0.6" />
+          <ItemsControl ItemsSource="{Binding PendingPayments}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+                <Border Background="{DynamicResource Layer1BackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="12"
+                        Margin="0,0,0,4">
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right"
+                            Content="Cancel"
+                            Command="{Binding $parent[ItemsControl].((vm:CoinJoinPaymentsViewModel)DataContext).CancelPaymentCommand}"
+                            CommandParameter="{Binding}"
+                            Classes="plain"
+                            VerticalAlignment="Center" />
+                    <StackPanel>
+                      <TextBlock Text="{Binding Address}"
+                                 Classes="monoSpaced"
+                                 ToolTip.Tip="{Binding Address}" />
+                      <TextBlock Text="{Binding AmountText}"
+                                 Opacity="0.6"
+                                 Margin="0,4,0,0" />
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- In Progress Payments -->
+        <StackPanel IsVisible="{Binding HasInProgressPayments}" Spacing="8">
+          <TextBlock Text="In Progress" Classes="h8" Opacity="0.6" />
+          <ItemsControl ItemsSource="{Binding InProgressPayments}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+                <Border Background="{DynamicResource Layer1BackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="12"
+                        Margin="0,0,0,4">
+                  <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource loading_regular}"
+                                Width="16"
+                                Height="16"
+                                Opacity="0.6" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Address}"
+                                 Classes="monoSpaced"
+                                 ToolTip.Tip="{Binding Address}" />
+                      <TextBlock Text="{Binding AmountText}"
+                                 Opacity="0.6"
+                                 Margin="0,4,0,0" />
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+        <!-- Completed Payments -->
+        <StackPanel IsVisible="{Binding HasCompletedPayments}" Spacing="8">
+          <TextBlock Text="Completed" Classes="h8" Opacity="0.6" />
+          <ItemsControl ItemsSource="{Binding CompletedPayments}">
+            <ItemsControl.ItemTemplate>
+              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+                <Border Background="{DynamicResource Layer1BackgroundBrush}"
+                        CornerRadius="4"
+                        Padding="12"
+                        Margin="0,0,0,4">
+                  <DockPanel>
+                    <StackPanel DockPanel.Dock="Right" VerticalAlignment="Center">
+                      <PathIcon Data="{StaticResource checkmark_filled}"
+                                Width="16"
+                                Height="16"
+                                Foreground="{DynamicResource SystemAccentColor}" />
+                    </StackPanel>
+                    <StackPanel>
+                      <TextBlock Text="{Binding Address}"
+                                 Classes="monoSpaced"
+                                 ToolTip.Tip="{Binding Address}" />
+                      <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,4,0,0">
+                        <TextBlock Text="{Binding AmountText}" Opacity="0.6" />
+                        <TextBlock Text="-" Opacity="0.3" IsVisible="{Binding TransactionId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
+                        <TextBlock Text="{Binding TransactionId}"
+                                   Classes="monoSpaced"
+                                   Opacity="0.4"
+                                   IsVisible="{Binding TransactionId, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                                   MaxWidth="150"
+                                   TextTrimming="CharacterEllipsis"
+                                   ToolTip.Tip="{Binding TransactionId}" />
+                      </StackPanel>
+                    </StackPanel>
+                  </DockPanel>
+                </Border>
+              </DataTemplate>
+            </ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </StackPanel>
+
+      </StackPanel>
+    </DockPanel>
+  </ContentArea>
+</UserControl>
