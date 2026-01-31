@@ -2,10 +2,11 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.CoinJoin"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment"
+             xmlns:coinJoinPayment="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment"
              mc:Ignorable="d" d:DesignWidth="600" d:DesignHeight="450"
-             x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoin.CoinJoinPaymentsView"
-             x:DataType="vm:CoinJoinPaymentsViewModel"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoinPayment.CoinJoinPaymentsView"
+             x:DataType="coinJoinPayment:CoinJoinPaymentsViewModel"
              x:CompileBindings="True">
   <ContentArea Title="{Binding Title}"
                EnableBack="{Binding EnableBack}"
@@ -50,7 +51,7 @@
           <TextBlock Text="Pending" Classes="h8" Opacity="0.6" />
           <ItemsControl ItemsSource="{Binding PendingPayments}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+              <DataTemplate DataType="coinJoinPayment:CoinJoinPaymentViewModel">
                 <Border Background="{DynamicResource Layer1BackgroundBrush}"
                         CornerRadius="4"
                         Padding="12"
@@ -58,7 +59,7 @@
                   <DockPanel>
                     <Button DockPanel.Dock="Right"
                             Content="Cancel"
-                            Command="{Binding $parent[ItemsControl].((vm:CoinJoinPaymentsViewModel)DataContext).CancelPaymentCommand}"
+                            Command="{Binding $parent[ItemsControl].((coinJoinPayment:CoinJoinPaymentsViewModel)DataContext).CancelPaymentCommand}"
                             CommandParameter="{Binding}"
                             Classes="plain"
                             VerticalAlignment="Center" />
@@ -82,7 +83,7 @@
           <TextBlock Text="In Progress" Classes="h8" Opacity="0.6" />
           <ItemsControl ItemsSource="{Binding InProgressPayments}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+              <DataTemplate DataType="coinJoinPayment:CoinJoinPaymentViewModel">
                 <Border Background="{DynamicResource Layer1BackgroundBrush}"
                         CornerRadius="4"
                         Padding="12"
@@ -114,7 +115,7 @@
           <TextBlock Text="Completed" Classes="h8" Opacity="0.6" />
           <ItemsControl ItemsSource="{Binding CompletedPayments}">
             <ItemsControl.ItemTemplate>
-              <DataTemplate DataType="vm:CoinJoinPaymentViewModel">
+              <DataTemplate DataType="coinJoinPayment:CoinJoinPaymentViewModel">
                 <Border Background="{DynamicResource Layer1BackgroundBrush}"
                         CornerRadius="4"
                         Padding="12"

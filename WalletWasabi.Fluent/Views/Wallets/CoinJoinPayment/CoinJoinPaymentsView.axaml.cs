@@ -1,11 +1,11 @@
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
-namespace WalletWasabi.Fluent.Views.Wallets.CoinJoin;
+namespace WalletWasabi.Fluent.Views.Wallets.CoinJoinPayment;
 
-public partial class AddCoinJoinPaymentView : UserControl
+public partial class CoinJoinPaymentsView : UserControl
 {
-	public AddCoinJoinPaymentView()
+	public CoinJoinPaymentsView()
 	{
 		InitializeComponent();
 	}
