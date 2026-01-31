@@ -469,7 +469,7 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
-	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception error)
+	protected override void UpdateDataValidation(AvaloniaProperty property, BindingValueType state, Exception? error)
 	{
 		if (property == ItemsProperty)
 		{
