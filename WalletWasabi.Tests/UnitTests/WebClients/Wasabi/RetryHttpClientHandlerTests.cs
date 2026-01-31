@@ -21,7 +21,7 @@ public class RetryHttpClientHandlerTests
 		{
 			using var handler = new MockRetryHttpClientHandler(handlerName => callbackCalled = true, HttpClientHandlerConfiguration.Default)
 			{
-				GetResponseAsync = async (HttpClientHandler handler) =>
+				GetResponseAsync = async handler =>
 				{
 					var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
 					responseMessage.Content = new StringContent("My Response", Encoding.UTF8, MediaTypeNames.Text.Plain);
@@ -53,7 +53,7 @@ public class RetryHttpClientHandlerTests
 		{
 			using var handler = new MockRetryHttpClientHandler(handlerName => callbackCalled = true, HttpClientHandlerConfiguration.Default)
 			{
-				GetResponseAsync = async (HttpClientHandler handler) =>
+				GetResponseAsync = async handler =>
 				{
 					requestsCount++;
 
@@ -92,7 +92,7 @@ public class RetryHttpClientHandlerTests
 
 		using var handler = new MockRetryHttpClientHandler(handlerName => callbackCalled = true, HttpClientHandlerConfiguration.Default)
 		{
-			GetResponseAsync = async (HttpClientHandler handler) =>
+			GetResponseAsync = async handler =>
 			{
 				var responseMessage = new HttpResponseMessage(HttpStatusCode.OK);
 				responseMessage.Content = new StringContent("My Response", Encoding.UTF8, MediaTypeNames.Text.Plain);
