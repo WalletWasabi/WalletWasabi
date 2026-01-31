@@ -155,28 +155,32 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 {
 	internal HttpClientHandlerConfiguration Config;
 
-	private readonly CancellationTokenSource _stopCts = new();
-	private readonly CancellationToken _stopToken;
+	private volatile bool _dispose;
+	private readonly string _name;
 
 	public RetryHttpClientHandler(string name, Action<string> disposedCallback, HttpClientHandlerConfiguration config)
 		: base(name, disposedCallback)
 	{
 		Config = config;
-		_stopToken = _stopCts.Token;
+		_name = name;
 	}
 
 	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		// Intentionally not _stopCts.Token to avoid disposing issues.
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stopToken);
+		ObjectDisposedException.ThrowIf(_dispose, $"HTTP handler {_name} was already disposed.");
 
 		var attempt = 0;
 
 		while (attempt < Config.MaxAttempts)
 		{
+			if (_dispose)
+			{
+				throw new TimeoutException($"HTTP handler '{_name}' was disposed during request.");
+			}
+
 			try
 			{
-				var response = await base.SendAsync(request, linkedCts.Token).ConfigureAwait(false);
+				var response = await SendCoreAsync(request, cancellationToken).ConfigureAwait(false);
 
 				switch (response.StatusCode)
 				{
@@ -184,12 +188,12 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 					case HttpStatusCode.BadGateway:
 					case HttpStatusCode.ServiceUnavailable:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
-						await Task.Delay(Config.TimeBeforeRetryingAfterServerError, linkedCts.Token).ConfigureAwait(false);
+						await Task.Delay(Config.TimeBeforeRetryingAfterServerError, cancellationToken).ConfigureAwait(false);
 						continue;
 					case HttpStatusCode.TooManyRequests:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
 						// Be nice with third-party server overwhelmed by request from Tor exit nodes
-						await Task.Delay(Config.TimeBeforeRetryingAfterTooManyRequests, linkedCts.Token).ConfigureAwait(false);
+						await Task.Delay(Config.TimeBeforeRetryingAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
 						continue;
 
 					default:
@@ -197,7 +201,7 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 						return response;
 				}
 			}
-			catch (OperationCanceledException) when (_stopToken.IsCancellationRequested)
+			catch (OperationCanceledException)
 			{
 				throw;
 			}
@@ -209,7 +213,7 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 				}
 
 				Logger.LogTrace($"Retrying {request.RequestUri} because {e.Message}");
-				await Task.Delay(Config.TimeBeforeRetryingAfterNetworkError, linkedCts.Token).ConfigureAwait(false);
+				await Task.Delay(Config.TimeBeforeRetryingAfterNetworkError, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -220,12 +224,19 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 		throw new HttpRequestException($"Failed to make http request '{request.RequestUri}' after {Config.MaxAttempts} attempts.");
 	}
 
+	// Made protected virtual for testing purposes.
+	protected virtual async Task<HttpResponseMessage> SendCoreAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+	{
+		return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+	}
+
 	protected override void Dispose(bool disposing)
 	{
-		_stopCts.Cancel();
-		_stopCts.Dispose();
-
-		base.Dispose(disposing);
+		if (!_dispose)
+		{
+			_dispose = true;
+			base.Dispose(disposing);
+		}
 	}
 
 	private static bool ShouldRetry(Exception ex) =>
