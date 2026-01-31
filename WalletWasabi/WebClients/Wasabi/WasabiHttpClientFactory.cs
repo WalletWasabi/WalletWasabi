@@ -15,9 +15,9 @@ public record HttpClientHandlerConfiguration
 {
 	public static readonly HttpClientHandlerConfiguration Default = new();
 	public int MaxAttempts { get; init; } = 3;
-	public TimeSpan TimeBeforeRetringAfterTooManyRequests { get; init; } = TimeSpan.FromSeconds(2);
-	public TimeSpan TimeBeforeRetringAfterNetworkError { get; init; } = TimeSpan.FromSeconds(3);
-	public TimeSpan TimeBeforeRetringAfterServerError { get; init; } = TimeSpan.FromSeconds(2);
+	public TimeSpan TimeBeforeRetryingAfterTooManyRequests { get; init; } = TimeSpan.FromSeconds(2);
+	public TimeSpan TimeBeforeRetryingAfterNetworkError { get; init; } = TimeSpan.FromSeconds(3);
+	public TimeSpan TimeBeforeRetryingAfterServerError { get; init; } = TimeSpan.FromSeconds(2);
 }
 
 public class HttpClientFactory : IHttpClientFactory
@@ -76,7 +76,7 @@ public class HttpClientFactory : IHttpClientFactory
 	private void SetExpirationDate(string name)
 	{
 		var expirationTime = _lifetimeResolvers.Min(resolve => resolve(name));
-		_expirationDatetimes.AddOrUpdate(name, expirationTime, (_,_) => expirationTime);
+		_expirationDatetimes.AddOrUpdate(name, expirationTime, (_, _) => expirationTime);
 	}
 }
 
@@ -145,27 +145,42 @@ public class NotifyHttpClientHandler(string name, Action<string> disposedCallbac
 {
 	protected override void Dispose(bool disposing)
 	{
-		Logger.LogDebug($"Disposing httpclient handler {name}");
+		Logger.LogDebug($"Disposing HTTP client handler {name}");
 		base.Dispose(disposing);
 		disposedCallback(name);
 	}
 }
 
-public class RetryHttpClientHandler(string name, Action<string> disposedCallback, HttpClientHandlerConfiguration config)
-	: NotifyHttpClientHandler(name, disposedCallback)
+public class RetryHttpClientHandler : NotifyHttpClientHandler
 {
-	internal HttpClientHandlerConfiguration Config = config;
+	internal HttpClientHandlerConfiguration Config;
 
-	protected override async Task<HttpResponseMessage> SendAsync(
-		HttpRequestMessage request,
-		CancellationToken cancellationToken)
+	private volatile bool _dispose;
+	private readonly string _name;
+
+	public RetryHttpClientHandler(string name, Action<string> disposedCallback, HttpClientHandlerConfiguration config)
+		: base(name, disposedCallback)
 	{
+		Config = config;
+		_name = name;
+	}
+
+	protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+	{
+		ObjectDisposedException.ThrowIf(_dispose, $"HTTP handler {_name} was already disposed.");
+
 		var attempt = 0;
+
 		while (attempt < Config.MaxAttempts)
 		{
+			if (_dispose)
+			{
+				throw new TimeoutException($"HTTP handler '{_name}' was disposed during request.");
+			}
+
 			try
 			{
-				var response = await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+				var response = await SendCoreAsync(request, cancellationToken).ConfigureAwait(false);
 
 				switch (response.StatusCode)
 				{
@@ -173,12 +188,12 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 					case HttpStatusCode.BadGateway:
 					case HttpStatusCode.ServiceUnavailable:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
-						await Task.Delay(Config.TimeBeforeRetringAfterServerError, cancellationToken).ConfigureAwait(false);
+						await Task.Delay(Config.TimeBeforeRetryingAfterServerError, cancellationToken).ConfigureAwait(false);
 						continue;
 					case HttpStatusCode.TooManyRequests:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
 						// Be nice with third-party server overwhelmed by request from Tor exit nodes
-						await Task.Delay(Config.TimeBeforeRetringAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
+						await Task.Delay(Config.TimeBeforeRetryingAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
 						continue;
 
 					default:
@@ -186,15 +201,19 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 						return response;
 				}
 			}
-			catch (Exception ex)
+			catch (OperationCanceledException)
 			{
-				if (!ShouldRetry(ex))
+				throw;
+			}
+			catch (Exception e)
+			{
+				if (!ShouldRetry(e))
 				{
 					throw;
 				}
-				Logger.LogTrace($"Retrying {request.RequestUri} because {ex.Message}");
-				await Task.Delay(Config.TimeBeforeRetringAfterNetworkError, cancellationToken)
-					.ConfigureAwait(false);
+
+				Logger.LogTrace($"Retrying {request.RequestUri} because {e.Message}");
+				await Task.Delay(Config.TimeBeforeRetryingAfterNetworkError, cancellationToken).ConfigureAwait(false);
 			}
 			finally
 			{
@@ -202,7 +221,22 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 			}
 		}
 
-		throw new HttpRequestException($"Failed to make http request '{request.RequestUri}' after 3 attempts.");
+		throw new HttpRequestException($"Failed to make http request '{request.RequestUri}' after {Config.MaxAttempts} attempts.");
+	}
+
+	// Made protected virtual for testing purposes.
+	protected virtual async Task<HttpResponseMessage> SendCoreAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+	{
+		return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
+	}
+
+	protected override void Dispose(bool disposing)
+	{
+		if (!_dispose)
+		{
+			_dispose = true;
+			base.Dispose(disposing);
+		}
 	}
 
 	private static bool ShouldRetry(Exception ex) =>
@@ -219,7 +253,7 @@ public class RetryHttpClientHandler(string name, Action<string> disposedCallback
 				HttpRequestError.InvalidResponse or
 				HttpRequestError.ResponseEnded
 			} => true,
-			{InnerException: Exception inner} when ShouldRetry(inner) => true,
+			{ InnerException: Exception inner } when ShouldRetry(inner) => true,
 			_ => false
 		};
 }

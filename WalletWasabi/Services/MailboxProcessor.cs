@@ -228,7 +228,7 @@ public static class Workers
 						lastUpdateTime = DateTime.UtcNow;
 					}
 				}
-				catch (OperationCanceledException e)
+				catch (OperationCanceledException)
 				{
 					// Ignore because it is expected
 				}
