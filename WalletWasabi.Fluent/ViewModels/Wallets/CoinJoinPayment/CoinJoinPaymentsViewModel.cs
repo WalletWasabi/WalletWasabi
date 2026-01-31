@@ -1,7 +1,7 @@
 using System.Collections.ObjectModel;
 using System.Reactive;
 using System.Reactive.Disposables;
-using System.Reactive.Linq;
+using System.Reactive.Disposables.Fluent;
 using System.Windows.Input;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -9,7 +9,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoin;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 
 [NavigationMetaData(Title = "Coinjoin Payments", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>

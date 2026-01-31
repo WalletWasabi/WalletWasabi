@@ -14,7 +14,7 @@ using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoin;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 
 [NavigationMetaData(
 	Title = "Add Coinjoin Payment",
@@ -41,17 +41,17 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = true;
 
-		this.ValidateProperty(x => x.To, ValidateToField);
-		this.ValidateProperty(x => x.AmountBtc, ValidateAmount);
+		this.ValidateProperty<AddCoinJoinPaymentViewModel, string>(x => x.To, ValidateToField);
+		this.ValidateProperty<AddCoinJoinPaymentViewModel, decimal?>(x => x.AmountBtc, ValidateAmount);
 
-		this.WhenAnyValue(x => x.To)
+		this.WhenAnyValue<AddCoinJoinPaymentViewModel, string>(x => x.To)
 			.Skip(1)
 			.Subscribe(ParseToField);
 
 		var canExecute = this.WhenAnyValue(
 				x => x.AmountBtc,
 				x => x.To)
-			.Select(_ => !string.IsNullOrWhiteSpace(To) && AmountBtc > 0 && !Validations.AnyErrors);
+			.Select<(decimal?, string), bool>(_ => !string.IsNullOrWhiteSpace(To) && AmountBtc > 0 && !Validations.AnyErrors);
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnAddPaymentAsync, canExecute);
 

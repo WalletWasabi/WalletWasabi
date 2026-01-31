@@ -2,7 +2,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.WabiSabi.Client.Batching;
 
-namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoin;
+namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 
 /// <summary>
 /// ViewModel wrapper for a single Payment in the CoinJoin batched payments list.
