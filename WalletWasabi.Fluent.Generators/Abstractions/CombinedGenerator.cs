@@ -1,34 +1,16 @@
-using Microsoft.CodeAnalysis.Text;
 using Microsoft.CodeAnalysis;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 
 namespace WalletWasabi.Fluent.Generators.Abstractions;
 
 internal abstract class CombinedGenerator : ISourceGenerator
 {
 	private List<Func<GeneratorStep>> StepFactories { get; } = new();
-	private List<StaticFileGenerator> StaticFileGenerators { get; } = new();
 
 	public void Initialize(GeneratorInitializationContext context)
 	{
-		var files =
-			StaticFileGenerators.SelectMany(x => x.Generate())
-								.ToArray();
-
-		if (files.Length != 0)
-		{
-			context.RegisterForPostInitialization(ctx =>
-			{
-				foreach (var (fileName, source) in files)
-				{
-					ctx.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
-				}
-			});
-		}
-
 		if (StepFactories.Count != 0)
 		{
 			context.RegisterForSyntaxNotifications(() => new CombinedSyntaxReceiver(this));
@@ -63,11 +45,6 @@ internal abstract class CombinedGenerator : ISourceGenerator
 	protected void Add<T>() where T : GeneratorStep, new()
 	{
 		StepFactories.Add(() => new T());
-	}
-
-	protected void AddStaticFileGenerator<T>() where T : StaticFileGenerator, new()
-	{
-		StaticFileGenerators.Add(new T());
 	}
 
 	private class CombinedSyntaxReceiver : ISyntaxReceiver

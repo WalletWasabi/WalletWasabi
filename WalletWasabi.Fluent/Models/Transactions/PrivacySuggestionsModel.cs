@@ -125,7 +125,7 @@ public partial class PrivacySuggestionsModel
 		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
 		var labelsArray = new LabelsArray(labels);
 
-		if (labelsArray.Any())
+		if (!labelsArray.IsEmpty)
 		{
 			return new TransactionKnownAsYoursByWarning(labelsArray);
 		}
