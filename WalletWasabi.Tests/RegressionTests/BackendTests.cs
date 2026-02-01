@@ -74,7 +74,9 @@ public class BackendTests : IClassFixture<RegTestFixture>
 	{
 		await using RegTestSetup setup = await RegTestSetup.InitializeTestEnvironmentAsync(RegTestFixture);
 		IRPCClient rpc = setup.RpcClient;
+#pragma warning disable CA2000 // Dispose objects before losing scope - service is stopped in finally block
 		IndexBuilderService indexBuilderService = new(rpc, "filters.txt");
+#pragma warning restore CA2000
 		var startIndexingService = indexBuilderService.StartAsync(CancellationToken.None);
 		try
 		{

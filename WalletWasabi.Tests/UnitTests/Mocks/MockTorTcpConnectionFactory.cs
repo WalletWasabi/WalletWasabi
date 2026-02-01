@@ -14,7 +14,9 @@ public class MockHttpClientFactory : IHttpClientFactory
 
 	public static MockHttpClientFactory Create(params Func<HttpResponseMessage>[] responses)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope - MockHttpClient is returned via factory and disposed by caller
 		var mockHttpClient = new MockHttpClient();
+#pragma warning restore CA2000
 		var mockHttpClientFactory = new MockHttpClientFactory {OnCreateClient = _ => mockHttpClient};
 
 		var callCounter = 0;
