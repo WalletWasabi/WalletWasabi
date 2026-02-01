@@ -29,7 +29,9 @@ public class SuggestionLabelsViewModelTests
 				("Label 4", 5),
 				("Label 5", 4)
 			});
-		var sut = CreateSut(wallet, Intent.Send, maxSuggestions);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, maxSuggestions);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		Assert.Equal(expectedSuggestionsCount, sut.TopSuggestions.Count);
 	}
@@ -47,7 +49,9 @@ public class SuggestionLabelsViewModelTests
 				("Label 5", 5),
 			});
 
-		var sut = CreateSut(wallet, Intent.Send, 3);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 3);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		sut.Labels.Add("Label 3");
 
@@ -57,7 +61,9 @@ public class SuggestionLabelsViewModelTests
 	[Fact]
 	public void NoLabelsShouldHaveNoSuggestions()
 	{
-		var sut = CreateSut(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		Assert.Empty(sut.Suggestions);
 	}
@@ -65,7 +71,9 @@ public class SuggestionLabelsViewModelTests
 	[Fact]
 	public void NoLabelsShouldHaveNoTopSuggestions()
 	{
-		var sut = CreateSut(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		var sut = new SuggestionLabelsViewModel(new TestWallet(new List<(string Label, int Score)>()), Intent.Receive, 5);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		Assert.Empty(sut.Suggestions);
 	}
@@ -80,7 +88,9 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = CreateSut(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		Assert.Equal(new[] { "Label 2", "Label 3", "Label 1" }, sut.Suggestions);
 	}
@@ -131,7 +141,9 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 2),
 		};
 		var wallet = new TestWallet(mostUsedLabels);
-		var sut = CreateSut(wallet, Intent.Send, 1);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 1);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		sut.Labels.Add("Label 1");
 		sut.Labels.Add("Label 2");
@@ -153,16 +165,11 @@ public class SuggestionLabelsViewModelTests
 			("Label 3", 3),
 		};
 		var wallet = new TestWallet(labels);
-		var sut = CreateSut(wallet, Intent.Send, 100);
+		var sut = new SuggestionLabelsViewModel(wallet, Intent.Send, 100);
+		using var disposables = new CompositeDisposable();
+		sut.Activate(disposables);
 
 		Assert.Equal(new[] { "label 3", "Label 2", "label 1" }, sut.Suggestions);
-	}
-
-	private static SuggestionLabelsViewModel CreateSut(TestWallet wallet, Intent intent, int maxSuggestions)
-	{
-		var sut = new SuggestionLabelsViewModel(wallet, intent, maxSuggestions);
-		sut.Activate(new CompositeDisposable());
-		return sut;
 	}
 
 	private class TestWallet : IWalletModel

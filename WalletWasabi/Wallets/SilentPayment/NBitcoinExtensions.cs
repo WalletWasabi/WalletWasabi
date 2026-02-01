@@ -31,18 +31,20 @@ public static class NBitcoinExtensions
 
 	public static Key Tweak(this Key key)
 	{
+		using var eckey = ECPrivKey.Create(key.ToBytes());
 
-		var eckey = ECPrivKey.Create(key.ToBytes());
+		// Negate the key if the public key's y-coordinate is odd
+		using var workingKey = eckey.CreatePubKey().Q.y.IsOdd
+			? ECPrivKey.Create(eckey.sec.Negate().ToBytes(), eckey.ctx)
+			: eckey;
 
-		if (eckey.CreatePubKey().Q.y.IsOdd)
-		{
-			eckey = ECPrivKey.Create(eckey.sec.Negate().ToBytes(), eckey.ctx);
-		}
-		Span<byte> buf = stackalloc byte[32];
-		UnsafeTaprootFullPubKeyAccessor.ComputeTapTweak(null, key.PubKey.TaprootInternalKey, null, buf);
-		eckey = eckey.TweakAdd(buf);
+		// Compute taproot tweak
+		Span<byte> tweakHash = stackalloc byte[32];
+		UnsafeTaprootFullPubKeyAccessor.ComputeTapTweak(null, key.PubKey.TaprootInternalKey, null, tweakHash);
 
-		return new Key(eckey.ToBytes());
+		// Apply tweak and return new key
+		using var tweakedKey = workingKey.TweakAdd(tweakHash);
+		return new Key(tweakedKey.ToBytes());
 	}
 }
 
