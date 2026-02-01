@@ -969,8 +969,8 @@ public class TransactionFactoryTests
 	{
 		var mnemonic = new Mnemonic("bargain pumpkin blouse crush invest control radar install alien same shield grain");
 		var extKey = mnemonic.DeriveExtKey();
-		var scanKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/1'/0")).PrivateKey.ToBytes());
-		var spendKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/0'/0")).PrivateKey.ToBytes());
+		using var scanKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/1'/0")).PrivateKey.ToBytes());
+		using var spendKey = ECPrivKey.Create(extKey.Derive(KeyPath.Parse("m/352'/1'/0'/0'/0")).PrivateKey.ToBytes());
 		var tx = Transaction.Parse(
 			"020000000001016ea784410522d6c6c7dd43f9f2f05356200a7ab1f531f7bc5e34b4f84a89d7b4010000000000000080024006000000000000225120b8b5f908697c0c5982609bf577d319f7670c570e55532417cf7690e46fe67f6b6daa0100000000001600142897cab30c29ff293d1b8ef57153c3c3df0a72440247304402207d864ccbf293728f115a9a60e107cffa228e2e9b3a6325246804d2b99c52be2f02205ad685c728fa3c47f19a4863f122aee7f76eaa60101e49001157808af482d0580121024c006af7003e9588c5ca755686ffe0df6c2c107f42d06c213355783a5ed6ac9300000000",
 			Network.Main);
