@@ -120,6 +120,7 @@ public static class Interpreter
 				[UnquoteSplicingToken, .. var t] => ParseExpression(t).Then(r =>
 					(Cons(UnquoteSplicingExpr, r.ParsedExpression), rest: r.UnparsedTokens)),
 				[var h, .. var t] => (MapTokenToExpression(h), t),
+				[] => throw new InvalidOperationException("Unexpected end of input")
 			};
 	}
 
@@ -249,7 +250,8 @@ public static class Interpreter
 			p1 switch
 			{
 				Nil => p2,
-				Pair p => Cons(p.Car, Append(p.Cdr, p2))
+				Pair p => Cons(p.Car, Append(p.Cdr, p2)),
+				_ => throw new InvalidOperationException($"Cannot append to {p1.GetType().Name}")
 			};
 	}
 
@@ -412,7 +414,8 @@ public static class Interpreter
 		Convert<List>(lst => new String(lst switch
 		{
 			Nil => "",
-			Pair p => string.Join("", FlatPairChain(p).OfType<Character>().Select(x => x.Value))
+			Pair p => string.Join("", FlatPairChain(p).OfType<Character>().Select(x => x.Value)),
+			_ => throw new InvalidOperationException($"Cannot convert {lst.GetType().Name} to string")
 		}), "list->string");
 
 	private static ExpressionsProcessor NumberToString =
@@ -542,7 +545,8 @@ public static class Interpreter
 		{
 			Nil => NilExpr,
 			Symbol sym => Cons(new VarArgs(sym, args), NilExpr),
-			Pair => ZipDotted(NilExpr, ps, args)
+			Pair => ZipDotted(NilExpr, ps, args),
+			_ => throw new InvalidOperationException($"Cannot zip {ps.GetType().Name}")
 		};
 
 		List ZipDotted(List acc, Expression pps, Expression pas) =>

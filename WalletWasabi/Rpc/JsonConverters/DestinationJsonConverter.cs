@@ -12,7 +12,8 @@ public class DestinationJsonConverter(Network Network): JsonConverter<Destinatio
 		var wip = value switch
 		{
 			Destination.Loudly l => l.ScriptPubKey.GetDestinationAddress(Network)?.ToString(),
-			Destination.Silent s => s.Address.ToWip(Network)
+			Destination.Silent s => s.Address.ToWip(Network),
+			_ => throw new ArgumentException($"Unknown destination type: {value?.GetType().Name}")
 		};
 		writer.WriteValue(wip);
 	}
