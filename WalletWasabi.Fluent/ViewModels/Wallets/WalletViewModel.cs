@@ -178,8 +178,18 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
-			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
+			? new CoinJoinStateViewModel(uiContext, WalletModel, Wallet, WalletModel.Coinjoin!, Settings)
 			: null;
+
+		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel, Wallet));
+
+		if (WalletModel.IsCoinJoinEnabled)
+		{
+			var coinjoinPaymentsSearchItem = CreateCoinJoinPaymentsItem();
+			this.WhenAnyValue(x => x.IsSelected)
+				.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(coinjoinPaymentsSearchItem, shouldDisplay))
+				.Subscribe();
+		}
 
 		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -243,6 +253,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand WalletCoinsCommand { get; private set; }
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	public ICommand CoinJoinPaymentsCommand { get; private set; }
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
@@ -308,6 +320,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private ISearchItem CreateDonateItem()
 	{
 		return new ActionableItem("Donate", "Donate to The Wasabi Wallet Developers", () => { DonateCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", "Donate" }) { Icon = "gift", IsDefault = true, Priority = 4 };
+	}
+
+	private ISearchItem CreateCoinJoinPaymentsItem()
+	{
+		return new ActionableItem("Coinjoin Payments", "View and manage queued coinjoin payments", () => { CoinJoinPaymentsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Payments", "Send", "Batch" }) { Icon = "wallet_action_send", IsDefault = true, Priority = 3 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
