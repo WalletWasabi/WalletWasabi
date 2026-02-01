@@ -128,7 +128,7 @@
                     </MenuItem>
                     <MenuItem Header="Coinjoin Payments" Command="{Binding CoinJoinStateViewModel.CoinJoinPaymentsCommand}">
                       <MenuItem.Icon>
-                        <PathIcon Data="{StaticResource send_regular}" />
+                        <PathIcon Data="{StaticResource embedded_payment}" />
                       </MenuItem.Icon>
                     </MenuItem>
                   </MenuFlyout>
