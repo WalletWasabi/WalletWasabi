@@ -134,6 +134,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		DonateCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel, donate: true)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
+		_defaultSendCommand = SendCommand;
 
 		this.WhenAnyValue(x => x.Settings.DefaultSendWorkflow)
 			.Subscribe(value => DefaultSendCommand = value == SendWorkflow.Automatic ? SendCommand : SendManualControlCommand);
@@ -142,6 +143,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
 			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
 			null;
+		_defaultReceiveCommand = SegwitReceiveCommand;
 
 		this.WhenAnyValue(x => x.Settings.DefaultReceiveScriptType)
 			.Subscribe(value =>

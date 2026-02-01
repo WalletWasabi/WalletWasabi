@@ -92,7 +92,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             Navigate().Back();
         }, canSave);
 
-        DefaultReceiveScriptType = walletModel.Settings.DefaultReceiveScriptType;
+        _defaultReceiveScriptType = walletModel.Settings.DefaultReceiveScriptType;
         this.WhenAnyValue(x => x.DefaultReceiveScriptType)
             .Subscribe(value => IsSegWitDefaultReceiveScriptType = value == ScriptType.SegWit);
 

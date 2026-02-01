@@ -20,6 +20,7 @@ public partial class LoadingViewModel : RoutableViewModel
 	public LoadingViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
+		_timeToCatchUp = "";
 	}
 
 	public string WalletName => _wallet.Name;
