@@ -440,7 +440,7 @@ public static class Interpreter
 		filename = Path.IsPathFullyQualified(filename)
 			? filename
 			: Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), filename);
-		var tokens = Tokenize(File.OpenText(filename).ReadToEnd());
+		var tokens = Tokenize(File.ReadAllText(filename));
 		var parsingResults = Parse(tokens.ToArray());
 		foreach (var result in parsingResults)
 		{

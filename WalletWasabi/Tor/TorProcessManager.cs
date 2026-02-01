@@ -132,46 +132,54 @@ public class TorProcessManager : IAsyncDisposable
 		CancellationToken cancellationToken = linkedCts.Token;
 
 		bool detectedTorState = false;
-		CancellationTokenSource torStoppedCts = new();
+		CancellationTokenSource? torStoppedCts = null;
 
-		while (!cancellationToken.IsCancellationRequested)
+		try
 		{
-			bool isTorRunning = await IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+			torStoppedCts = new CancellationTokenSource();
 
-			if (detectedTorState && isTorRunning) // Case: Still running.
+			while (!cancellationToken.IsCancellationRequested)
 			{
-				// No-op.
-			}
-			else if (!detectedTorState && isTorRunning) // Case: Started running.
-			{
-				Logger.LogDebug("Connection to Tor SOCKS5 is established.");
-				_tcs.SetResult((torStoppedCts.Token, null));
-			}
-			else if (!isTorRunning) // Case: Stopped running, or still not running.
-			{
-				if (detectedTorState)
+				bool isTorRunning = await IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+
+				if (detectedTorState && isTorRunning) // Case: Still running.
 				{
-					Logger.LogDebug("Connection to Tor SOCKS5 was lost.");
+					// No-op.
+				}
+				else if (!detectedTorState && isTorRunning) // Case: Started running.
+				{
+					Logger.LogDebug("Connection to Tor SOCKS5 is established.");
+					_tcs.SetResult((torStoppedCts.Token, null));
+				}
+				else if (!isTorRunning) // Case: Stopped running, or still not running.
+				{
+					if (detectedTorState)
+					{
+						Logger.LogDebug("Connection to Tor SOCKS5 was lost.");
+					}
+
+					bool willWaitForTorRestart = !cancellationToken.IsCancellationRequested;
+					OnTorStop(willWaitForTorRestart, exception: null, torStoppedCts, globalCancellationToken);
+					torStoppedCts = null; // Ownership transferred to OnTorStop which disposes it.
+					torStoppedCts = new CancellationTokenSource();
 				}
 
-				bool willWaitForTorRestart = !cancellationToken.IsCancellationRequested;
-				OnTorStop(willWaitForTorRestart, exception: null, torStoppedCts, globalCancellationToken);
-				torStoppedCts = new();
-			}
+				detectedTorState = isTorRunning;
 
-			detectedTorState = isTorRunning;
+				// We don't use Tor Control client with an already running Tor, so we just use a simple sleep mechanism.
+				await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
 
-			// We don't use Tor Control client with an already running Tor, so we just use a simple sleep mechanism.
-			await Task.Delay(TimeSpan.FromSeconds(10), cancellationToken).ConfigureAwait(ConfigureAwaitOptions.SuppressThrowing);
-
-			if (cancellationToken.IsCancellationRequested)
-			{
-				Logger.LogDebug("User canceled operation.");
-				break;
+				if (cancellationToken.IsCancellationRequested)
+				{
+					Logger.LogDebug("User canceled operation.");
+					break;
+				}
 			}
 		}
-
-		torStoppedCts.Dispose();
+		finally
+		{
+			torStoppedCts?.Dispose();
+		}
 	}
 
 	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
@@ -223,7 +231,10 @@ public class TorProcessManager : IAsyncDisposable
 			bool setNewTcs = true;
 
 			// Use CancellationTokenSource to signal that Tor process terminated.
-			using CancellationTokenSource cts = new();
+			// Note: OnTorStop in the finally block always disposes this CTS.
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in OnTorStop
+			CancellationTokenSource cts = new();
+#pragma warning restore CA2000
 
 			try
 			{
