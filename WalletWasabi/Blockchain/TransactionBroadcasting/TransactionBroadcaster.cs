@@ -238,7 +238,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 	{
 		var results = await broadcasters
 			.ToAsyncEnumerable()
-			.SelectAwait(async x => await x.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false))
+			.Select(async (x, ct) => await x.BroadcastAsync(tx, ct).ConfigureAwait(false))
 			.TakeUntilAsync(x => x.IsOk)
 			.ToArrayAsync(cancellationToken)
 			.ConfigureAwait(false);
