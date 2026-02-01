@@ -32,7 +32,7 @@ public class P2pTests
 	[InlineData("main")]
 	public async Task TestServicesAsync(string networkString)
 	{
-		var network = Network.GetNetwork(networkString);
+		Network network = Network.GetNetwork(networkString)!;
 		var blocksToDownload = new List<uint256>();
 
 		blocksToDownload.Add(new uint256("00000000000000000037c2de35bd85f3e57f14ddd741ce6cee5b28e51473d5d0"));
@@ -84,7 +84,7 @@ public class P2pTests
 
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
-		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network);
+		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network!);
 		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
 		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, eventBus)));

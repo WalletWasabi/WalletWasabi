@@ -104,7 +104,7 @@ public class RpcTests
 	[Fact]
 	public void BuildTransactionWithFees()
 	{
-		var service = new WasabiJsonRpcService(null);
+		var service = new WasabiJsonRpcService(null!);
 		var paymentInfo = new PaymentInfo
 		{
 			Amount = Money.Coins(1),

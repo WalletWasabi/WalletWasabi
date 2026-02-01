@@ -66,7 +66,7 @@ public class SilentPaymentTests
 				var addressesTable = labels
 					.Select(label => SilentPayment.CreateLabel(scanKey, (uint) label))
 					.Select(labelSecret => new LabelInfo.Full(labelSecret, labelSecret.CreatePubKey()))
-					.Select(labelInfo => (LabelInfo: (LabelInfo)labelInfo, Address: baseAddress.DeriveAddressForLabel(labelInfo.PubKey))) // each label has a different address
+					.Select(labelInfo => (LabelInfo: (LabelInfo)labelInfo, Address: baseAddress.DeriveAddressForLabel(labelInfo.PubKey)!)) // each label has a different address
 					.Prepend((LabelInfo: new LabelInfo.None(), baseAddress))
 					.ToDictionary(x => x.Address, x => x.LabelInfo);
 				var addresses = addressesTable.Keys.ToArray();
@@ -137,9 +137,9 @@ public class SilentPaymentTests
 	private GE? ExtractPubKey(ReceivingVin vin)
 	{
 		var spk = Script.FromHex(vin.PrevOut.ScriptPubKey.Hex);
-		var scriptSig = Script.FromHex(vin.ScriptSig);
-		var txInWitness = string.IsNullOrEmpty(vin.TxInWitness) ? null :  new WitScript (Encoders.Hex.DecodeData(vin.TxInWitness));
-		return SilentPayment.ExtractPubKey(scriptSig, txInWitness, spk);
+		var scriptSig = Script.FromHex(vin.ScriptSig!);
+		var txInWitness = string.IsNullOrEmpty(vin.TxInWitness) ? null : new WitScript(Encoders.Hex.DecodeData(vin.TxInWitness));
+		return SilentPayment.ExtractPubKey(scriptSig, txInWitness!, spk);
 	}
 }
 

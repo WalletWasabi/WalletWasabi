@@ -997,7 +997,7 @@ public class TransactionFactoryTests
 		using var pk = new Key(SilentPayment.ComputePrivKey(spendKey, sharedSecret, 0).sec.ToBytes());
 
 		var singleScript = Assert.Single(outputs[detectedAddress]);
-		Assert.Equal("bc1phz6ljzrf0sx9nqnqn06h05ce7ansc4cw24fjg970w6gwgmlx0a4sdnn5ll", singleScript.GetDestinationAddress(Network.Main).ToString());
+		Assert.Equal("bc1phz6ljzrf0sx9nqnqn06h05ce7ansc4cw24fjg970w6gwgmlx0a4sdnn5ll", singleScript.GetDestinationAddress(Network.Main)!.ToString());
 	}
 
 	private static Script GetScriptPubKey(ICoinsView coins, OutPoint outPoint)
