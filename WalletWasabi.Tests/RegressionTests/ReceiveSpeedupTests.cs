@@ -138,7 +138,7 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 			Assert.Equal(outputToSpend, cpfpInput);
 
 			// CPFP fee rate should be higher than the best fee rate.
-			var feeRate = wallet.FeeRateEstimations.GetFeeRate(2);
+			var feeRate = wallet.FeeRateEstimations!.GetFeeRate(2);
 			Assert.NotNull(feeRate);
 			var cpfpFeeRate = cpfp.Transaction.Transaction.GetFeeRate(cpfp.Transaction.WalletInputs.Select(x => x.Coin).ToArray());
 			Assert.True(feeRate < cpfpFeeRate);

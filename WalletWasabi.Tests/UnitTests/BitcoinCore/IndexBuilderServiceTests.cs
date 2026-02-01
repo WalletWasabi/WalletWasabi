@@ -242,7 +242,7 @@ public class IndexBuilderServiceTests
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		bool neverCalled = true;
-		var continuation = node.Rpc.OnGetBlockchainInfoAsync;
+		var continuation = node.Rpc.OnGetBlockchainInfoAsync!;
 		node.Rpc.OnGetBlockchainInfoAsync = () =>
 		{
 			neverCalled = false;
@@ -385,9 +385,9 @@ public class IndexBuilderServiceTests
 		// Add delay to RPC calls to increase chance of concurrency issues
 		var random = new Random(1234);
 
-		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync;
-		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync;
-		var onGetVerboseBlockAsyncFunc = node.Rpc.OnGetVerboseBlockAsync;
+		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync!;
+		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync!;
+		var onGetVerboseBlockAsyncFunc = node.Rpc.OnGetVerboseBlockAsync!;
 
 		node.Rpc.OnGetBlockchainInfoAsync = async () =>
 		{

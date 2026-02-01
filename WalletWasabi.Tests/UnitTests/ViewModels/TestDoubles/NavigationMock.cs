@@ -1,3 +1,4 @@
+using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -17,6 +18,11 @@ public class NavigationMock : INavigate
 	{
 		_dialogResults = dialogResults;
 		_navigationStackMock = new NavigationStackMock();
+		HomeScreen = _navigationStackMock;
+		DialogScreen = _navigationStackMock;
+		FullScreen = _navigationStackMock;
+		CompactDialogScreen = _navigationStackMock;
+		IsDialogOpen = Observable.Return(false);
 	}
 
 	public int BackCount => _navigationStackMock.BackCount;

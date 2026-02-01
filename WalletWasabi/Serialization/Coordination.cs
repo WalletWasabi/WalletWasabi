@@ -338,12 +338,12 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<MoneyRange> MoneyRange =
+	public static  Decoder<MoneyRange> MoneyRange =>
 		Object(get => new MoneyRange(
 			get.Required("Min", MoneySatoshis),
 			get.Required("Max", MoneySatoshis)));
 
-	public static readonly Decoder<TimeSpan> TimeSpan =
+	public static  Decoder<TimeSpan> TimeSpan =>
 		String.Map(s =>
 		{
 			var daysParts = s.Split('d');
@@ -357,13 +357,13 @@ public static partial class Decode
 			return new TimeSpan(days, hours, minutes, seconds);
 		}).Catch();
 
-	public static readonly Decoder<ZeroCredentialsRequest> ZeroCredentialsRequest =
+	public static Decoder<ZeroCredentialsRequest> ZeroCredentialsRequest =>
 		Object(get => CreateInstance<ZeroCredentialsRequest>([
 			get.Required("Requested", Array(IssuanceRequest)),
 			get.Required("Proofs", Array(Proof))
 			]));
 
-	public static readonly Decoder<RealCredentialsRequest> RealCredentialsRequest =
+	public static Decoder<RealCredentialsRequest> RealCredentialsRequest =>
 		Object(get => CreateInstance<RealCredentialsRequest>([
 			get.Required("Delta", Int64),
 			get.Required("Presented", Array(CredentialPresentation)),
@@ -371,19 +371,19 @@ public static partial class Decode
 			get.Required("Proofs", Array(Proof))
 			])).Catch();
 
-	public static readonly Decoder<CredentialsResponse> CredentialsResponse =
+	public static Decoder<CredentialsResponse> CredentialsResponse =>
 		Object(get => CreateInstance<CredentialsResponse>([
 			get.Required("issuedCredentials", Array(MAC)),
 			get.Required("proofs", Array(Proof))
 			])).Catch();
 
-	public static readonly Decoder<CredentialIssuerParameters> CredentialIssuerParameters =
+	public static Decoder<CredentialIssuerParameters> CredentialIssuerParameters =>
 		Object(get => new CredentialIssuerParameters(
 			get.Required("cw", GroupElement ),
 			get.Required("i", GroupElement)
 			)).Catch();
 
-	private static readonly Decoder<OwnershipProof> OwnershipProof =
+	private static Decoder<OwnershipProof> OwnershipProof =>
 		Hexadecimal.Map(hex =>
 		{
 			var proof = new OwnershipProof();
@@ -391,19 +391,19 @@ public static partial class Decode
 			return proof;
 		}).Catch();
 
-	public static readonly Decoder<InputAdded> InputAdded =
+	public static Decoder<InputAdded> InputAdded =>
 		Object(get => new InputAdded(
 			get.Required("Coin", Coin),
 			get.Required("OwnershipProof", OwnershipProof)
 		));
 
-	public static readonly Decoder<OutputAdded> OutputAdded =
+	public static  Decoder<OutputAdded> OutputAdded =>
 		Object(get => new OutputAdded(get.Required("Output", TxOut)));
 
-	public static readonly Decoder<RoundCreated> RoundCreated =
+	public static Decoder<RoundCreated> RoundCreated =>
 		Object(get => new RoundCreated(get.Required("RoundParameters", RoundParameters)));
 
-	public static readonly Decoder<ScriptType> ScriptType =
+	public static Decoder<ScriptType> ScriptType =>
 		Int.AndThen(n => n <= (int)NBitcoin.ScriptType.Taproot
 			? Succeed((ScriptType) n)
 			: Fail<ScriptType>("Invalid ScriptType, it is greater than ScriptType.Taproot"));
@@ -411,7 +411,7 @@ public static partial class Decode
 	private static Decoder<T> Cast<T, R>(Decoder<R> decoder) where R : T =>
 		decoder.Map(r => (T) r);
 
-	public static readonly Decoder<IEvent> RoundEvent =
+	private static Decoder<IEvent> RoundEvent =>
 		Field("Type", String)
 			.AndThen(t => t switch
 			{
@@ -421,7 +421,7 @@ public static partial class Decode
 				_ => Fail<IEvent>($"Unknown event type 't'")
 			});
 
-	public static readonly Decoder<RoundParameters> RoundParameters =
+	private static Decoder<RoundParameters> RoundParameters =>
 		Object(get => new RoundParameters(
 			get.Required("Network", Network),
 			get.Required("MiningFeeRate", FeeRate),
@@ -443,7 +443,7 @@ public static partial class Decode
 			MaxVsizeAllocationPerAlice = get.Required("MaxVsizeAllocationPerAlice", Int)
 		});
 
-	public static readonly Decoder<MultipartyTransactionState> MultipartyTransactionState =
+	private static Decoder<MultipartyTransactionState> MultipartyTransactionState =>
 			Field("Type", String).AndThen(t => t switch
 			{
 				"ConstructionState" => Cast<MultipartyTransactionState, ConstructionState>(ConstructionState),
@@ -451,20 +451,20 @@ public static partial class Decode
 				_ => Fail<MultipartyTransactionState>($"Unknown MultipartyTransactionState '{t}'")
 			});
 
-	private static readonly Decoder<IEvent[]> RoundEvents =
+	private static Decoder<IEvent[]> RoundEvents =>
 		Field("Events", Array(RoundEvent));
 
-	private static readonly Decoder<ConstructionState> ConstructionState =
+	private static Decoder<ConstructionState> ConstructionState =>
 		RoundEvents.Map(events =>
 		{
 			var state = new ConstructionState(null!);
 			return state with {Events = events.ToImmutableList() };
 		});
 
-	private static readonly Decoder<SigningState> SigningState =
+	private static Decoder<SigningState> SigningState =>
 		RoundEvents.Map(events => new SigningState(null!, events));
 
-	public static readonly Decoder<InputRegistrationRequest> InputRegistrationRequest =
+	private static Decoder<InputRegistrationRequest> InputRegistrationRequest =>
 		Object(get => new InputRegistrationRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("Input", OutPoint),
@@ -473,14 +473,14 @@ public static partial class Decode
 			get.Required("ZeroVsizeCredentialRequests", ZeroCredentialsRequest)
 		));
 
-	public static readonly Decoder<InputRegistrationResponse> InputRegistrationResponse =
+	private static Decoder<InputRegistrationResponse> InputRegistrationResponse =>
 		Object(get => new InputRegistrationResponse(
 			get.Required("aliceId", Guid),
 			get.Required("amountCredentials", CredentialsResponse),
 			get.Required("vsizeCredentials", CredentialsResponse)
 		));
 
-	public static readonly Decoder<OutputRegistrationRequest> OutputRegistrationRequest =
+	private static Decoder<OutputRegistrationRequest> OutputRegistrationRequest =>
 		Object(get => new OutputRegistrationRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("Script", Script),
@@ -488,7 +488,7 @@ public static partial class Decode
 			get.Required("VsizeCredentialRequests", RealCredentialsRequest)
 		));
 
-	public static readonly Decoder<ReissueCredentialRequest> ReissueCredentialRequest =
+	private static Decoder<ReissueCredentialRequest> ReissueCredentialRequest =>
 		Object(get => new ReissueCredentialRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("RealAmountCredentialRequests", RealCredentialsRequest),
@@ -497,7 +497,7 @@ public static partial class Decode
 			get.Required("ZeroVsizeCredentialsRequests", ZeroCredentialsRequest)
 		));
 
-	public static readonly Decoder<ReissueCredentialResponse> ReissueCredentialResponse =
+	private static Decoder<ReissueCredentialResponse> ReissueCredentialResponse =>
 		Object(get => new ReissueCredentialResponse(
 			get.Required("realAmountCredentials", CredentialsResponse),
 			get.Required("realVsizeCredentials", CredentialsResponse),
@@ -505,13 +505,13 @@ public static partial class Decode
 			get.Required("zeroVsizeCredentials", CredentialsResponse)
 		));
 
-	public static readonly Decoder<InputsRemovalRequest> InputsRemovalRequest =
+	private static Decoder<InputsRemovalRequest> InputsRemovalRequest =>
 		Object(get => new InputsRemovalRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("AliceId", Guid)
 		));
 
-	public static readonly Decoder<ConnectionConfirmationRequest> ConnectionConfirmationRequest =
+	private static Decoder<ConnectionConfirmationRequest> ConnectionConfirmationRequest =>
 		Object(get => new ConnectionConfirmationRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("AliceId", Guid),
@@ -521,7 +521,7 @@ public static partial class Decode
 			get.Required("RealVsizeCredentialRequests", RealCredentialsRequest)
 		));
 
-	public static readonly Decoder<ConnectionConfirmationResponse> ConnectionConfirmationResponse =
+	private static Decoder<ConnectionConfirmationResponse> ConnectionConfirmationResponse =>
 		Object(get => new ConnectionConfirmationResponse(
 			get.Required("zeroAmountCredentials", CredentialsResponse),
 			get.Required("zeroVsizeCredentials", CredentialsResponse),
@@ -529,20 +529,20 @@ public static partial class Decode
 			get.Optional("realVsizeCredentials", CredentialsResponse)
 		));
 
-	public static readonly Decoder<TransactionSignaturesRequest> TransactionSignaturesRequest =
+	private static Decoder<TransactionSignaturesRequest> TransactionSignaturesRequest =>
 		Object(get => new TransactionSignaturesRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("InputIndex", UInt),
 			get.Required("Witness", WitScript)
 		));
 
-	public static readonly Decoder<ReadyToSignRequestRequest> ReadyToSignRequestRequest =
+	private static Decoder<ReadyToSignRequestRequest> ReadyToSignRequestRequest =>
 		Object(get => new ReadyToSignRequestRequest(
 			get.Required("RoundId", UInt256),
 			get.Required("AliceId", Guid)
 		));
 
-	private static readonly Decoder<RoundState> RoundState =
+	private static Decoder<RoundState> RoundState =>
 		Object(get => new RoundState(
 			get.Required("id", UInt256),
 			get.Required("blameOf", UInt256),
@@ -555,36 +555,36 @@ public static partial class Decode
 			get.Required("coinjoinState", MultipartyTransactionState)
 		));
 
-	private static readonly Decoder<RoundStateCheckpoint> RoundStateCheckpoint =
+	private static Decoder<RoundStateCheckpoint> RoundStateCheckpoint =>
 		Object(get => new RoundStateCheckpoint(
 			get.Required("RoundId", UInt256),
 			get.Required("StateId", Int)
 		));
 
-	public static readonly Decoder<RoundStateRequest> RoundStateRequest =
+	private static Decoder<RoundStateRequest> RoundStateRequest =>
 		Object(get => new RoundStateRequest(
 			get.Required("RoundCheckpoints", Array(RoundStateCheckpoint)).ToImmutableList()
 		));
 
-	public static readonly Decoder<RoundStateResponse> RoundStateResponse =
+	private static  Decoder<RoundStateResponse> RoundStateResponse =>
 		Object(get => new RoundStateResponse(
 			get.Required("roundStates", Array(RoundState))
 		));
 
-	private static readonly Decoder<InputBannedExceptionData> InputBannedExceptionData =
+	private static Decoder<InputBannedExceptionData> InputBannedExceptionData =>
 		Object(get => new InputBannedExceptionData(
 			get.Required("BannedUntil", DateTimeOffset)
 		));
 
-	private static readonly Decoder<WrongPhaseExceptionData> WrongPhaseExceptionData =
+	private static Decoder<WrongPhaseExceptionData> WrongPhaseExceptionData =>
 		Object(get => new WrongPhaseExceptionData(
 			get.Required("CurrentPhase", Int.Map(x => (Phase)x))
 		));
 
-	private static readonly Decoder<EmptyExceptionData> EmptyExceptionData =
+	private static  Decoder<EmptyExceptionData> EmptyExceptionData =>
 		Succeed(WabiSabi.Coordinator.Models.EmptyExceptionData.Instance);
 
-	public static readonly Decoder<ExceptionData> ExceptionData =
+	private static Decoder<ExceptionData> ExceptionData =>
 		Field("Type", String).AndThen(t => t switch
 		{
 			"InputBannedExceptionData" => Cast<ExceptionData, InputBannedExceptionData>(InputBannedExceptionData),
@@ -593,7 +593,7 @@ public static partial class Decode
 			_ => Fail<ExceptionData>($"Unknown ExceptionData '{t}'")
 		});
 
-	public static readonly Decoder<Error> Error =
+	public static Decoder<Error> Error =>
 		Object(get => new Error(
 			get.Required("type", String),
 			get.Required("errorCode", String),

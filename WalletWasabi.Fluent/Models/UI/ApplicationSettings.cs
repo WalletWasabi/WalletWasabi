@@ -85,7 +85,47 @@ public partial class ApplicationSettings : ReactiveObject
 		_config = config;
 		_uiConfig = uiConfig;
 
-		ApplyConfigs(persistentConfig, uiConfig);
+		// Connections
+		_indexerUri = persistentConfig.IndexerUri;
+		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
+		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
+		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+
+		// Bitcoin
+		_network = persistentConfig.Network;
+		_useBitcoinRpc = persistentConfig.UseBitcoinRpc;
+		_bitcoinRpcUri = persistentConfig.BitcoinRpcUri;
+		_bitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
+		_dustThreshold = persistentConfig.DustThreshold.ToString();
+
+		// Coordinator
+		_coordinatorUri = persistentConfig.CoordinatorUri;
+
+		_maxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		_absoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+
+		// General
+		_darkModeEnabled = uiConfig.DarkModeEnabled;
+		_autoCopy = uiConfig.Autocopy;
+		_autoPaste = uiConfig.AutoPaste;
+		_customChangeAddress = uiConfig.IsCustomChangeAddress;
+		_runOnSystemStartup = uiConfig.RunOnSystemStartup;
+		_hideOnClose = uiConfig.HideOnClose;
+		_terminateTorOnExit = persistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = persistentConfig.DownloadNewVersion;
+		_enableGpu = persistentConfig.EnableGpu;
+
+		// Experimental
+		_experimentalFeatures = persistentConfig.ExperimentalFeatures.ToArray();
+
+		// Privacy Mode
+		_privacyMode = uiConfig.PrivacyMode;
+
+		_oobe = uiConfig.Oobe;
+		_lastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
+
+		_windowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
 		SetupObservables();
 	}
 
@@ -210,6 +250,7 @@ public partial class ApplicationSettings : ReactiveObject
 			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
 			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
 			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
+			_ => throw new NotSupportedException($"Network '{_startupConfig.Network}' is not supported."),
 		};
 
 		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};

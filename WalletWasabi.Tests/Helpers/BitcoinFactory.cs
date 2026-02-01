@@ -205,7 +205,7 @@ public static class BitcoinFactory
 			mockRpc.Mempool.Add(transaction);
 			return transaction.GetHash();
 		};
-		mockRpc.OnGetRawTransactionAsync = (txId, _) => Task.FromResult(GetTransaction(txId));
+		mockRpc.OnGetRawTransactionAsync = (txId, _) => Task.FromResult(GetTransaction(txId))!;
 		mockRpc.OnGetRawMempoolAsync = () => Task.FromResult(mockRpc.Mempool.Select(x => x.GetHash()).ToArray());
 		mockRpc.OnGenerateToAddressAsync = (n, address) =>
 		{

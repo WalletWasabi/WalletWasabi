@@ -298,7 +298,7 @@ public class AllFeeEstimateTests
 		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
 		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
-		var minFee = estimations.Min(x => x.Value);
+		var minFee = estimations.Min(x => x.Value)!;
 
 		Assert.Equal(15, minFee.SatoshiPerByte); // this is the calculated MempoolMinFee needed to be in the top 200MB
 	}
@@ -315,7 +315,7 @@ public class AllFeeEstimateTests
 		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
 		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
-		var minFee = estimations.Min(x => x.Value);
+		var minFee = estimations.Min(x => x.Value)!;
 
 		Assert.Equal(expectedMinFee, minFee.SatoshiPerByte);
 	}
@@ -342,7 +342,7 @@ public class AllFeeEstimateTests
 
 		var feeRates = await mockRpc.EstimateAllFeeAsync();
 		var estimations = feeRates.Estimations;
-		var maxFee = estimations.Max(x => x.Value);
+		var maxFee = estimations.Max(x => x.Value)!;
 
 		Assert.Equal(expectedMaxFee, maxFee.SatoshiPerByte);
 	}

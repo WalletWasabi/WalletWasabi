@@ -111,28 +111,28 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<byte[]> ByteArray =
+	public static Decoder<byte[]> ByteArray =>
 		String.Map(Convert.FromBase64String);
 
-	public static readonly Decoder<HDFingerprint> HDFingerprint =
+	public static Decoder<HDFingerprint> HDFingerprint =>
 		String.Map(NBitcoin.HDFingerprint.Parse);
 
-	public static readonly Decoder<Height> WalletHeight =
+	private static Decoder<Height> WalletHeight =>
 		Int.Map(h => new Height(h));
 
-	public static readonly Decoder<KeyPath> KeyPath =
+	public static Decoder<KeyPath> KeyPath =>
 		String.Map(NBitcoin.KeyPath.Parse);
 
-	public static readonly Decoder<PubKey> PubKey =
+	private static Decoder<PubKey> PubKey =>
 		String.Map(s => new PubKey(s));
 
-	public static readonly Decoder<ECPubKey> ECPubKey =
+	public static Decoder<ECPubKey> ECPubKey =>
 		ByteArray.Map(a => NBitcoin.Secp256k1.ECPubKey.Create(a));
 
-	public static readonly Decoder<LabelsArray> LabelsArray =
+	private static Decoder<LabelsArray> LabelsArray =>
 		String.Map(s => new LabelsArray(s));
 
-	public static readonly Decoder<HdPubKey> HdPubKeyDecoder =
+	private static Decoder<HdPubKey> HdPubKeyDecoder =>
 		Object(get => new HdPubKey(
 			get.Required("PubKey", PubKey),
 			get.Required("FullKeyPath", KeyPath),
@@ -140,7 +140,7 @@ public static partial class Decode
 			get.Required("KeyState", Int.Map(x => (KeyState)x))
 		));
 
-	public static readonly Decoder<HdPubKey> SpPubKeyDecoder =
+	private static Decoder<HdPubKey> SpPubKeyDecoder =>
 		Object(get => new HdPubKey(
 			get.Required("PubKey", PubKey),
 			get.Required("FullKeyPath", KeyPath),
@@ -148,19 +148,19 @@ public static partial class Decode
 			get.Required("KeyState", Int.Map(x => (KeyState)x))
 		));
 
-	public static readonly Decoder<HdPubKey> HdPubKey =
+	public static Decoder<HdPubKey> HdPubKey =>
 		OneOf([HdPubKeyDecoder, SpPubKeyDecoder]);
 
-	public static readonly Decoder<BlockchainState> BlockchainState =
+	public static Decoder<BlockchainState> BlockchainState =>
 		Object(get => new BlockchainState(
 			get.Required("Network", Network),
 			get.Required("Height", WalletHeight)
 			));
 
-	public static readonly Decoder<BitcoinEncryptedSecretNoEC> BitcoinEncryptedSecretNoEC =
+	public static Decoder<BitcoinEncryptedSecretNoEC> BitcoinEncryptedSecretNoEC =>
 		String.Map(s => new BitcoinEncryptedSecretNoEC(s, NBitcoin.Network.Main));
 
-	public static readonly Decoder<PreferredScriptPubKeyType> PreferredScriptPubKeyType =
+	public static Decoder<PreferredScriptPubKeyType> PreferredScriptPubKeyType =>
 		String.Map(s => s switch
 		{
 			"Segwit" => new PreferredScriptPubKeyType.Specified(NBitcoin.ScriptPubKeyType.Segwit),
@@ -169,7 +169,7 @@ public static partial class Decode
 			_ => throw new Exception($"Unknown ScriptPubKeyType '{s}'")
 		}).Catch();
 
-	public static readonly Decoder<ScriptPubKeyType> ScriptPubKeyType =
+	public static Decoder<ScriptPubKeyType> ScriptPubKeyType =>
 		String.Map(s => s switch
 		{
 			"Segwit" => NBitcoin.ScriptPubKeyType.Segwit,
@@ -177,7 +177,7 @@ public static partial class Decode
 			_ => throw new Exception($"Unknown ScriptPubKeyType '{s}'")
 		}).Catch();
 
-	public static readonly Decoder<SendWorkflow> SendWorkflow =
+	public static Decoder<SendWorkflow> SendWorkflow =>
 		String.Map(s => s switch
 		{
 			"Automatic" => Models.SendWorkflow.Automatic,
@@ -185,7 +185,7 @@ public static partial class Decode
 			_ => throw new Exception($"Unknown SendWorkflow value '{s}'")
 		}).Catch();
 
-	public static readonly Decoder<SerializableException> SerializableException =
+	public static Decoder<SerializableException> SerializableException =>
 		Object(get => new SerializableException(
 			get.Required("ExceptionType", String),
 			get.Required("Message", String),
@@ -193,7 +193,7 @@ public static partial class Decode
 			get.Optional("InnerException", SerializableException)
 		));
 
-	public static readonly Decoder<PrisonedCoinRecord> PrisonedCoinRecord =
+	public static Decoder<PrisonedCoinRecord> PrisonedCoinRecord =>
 		Object(get => new PrisonedCoinRecord(
 			get.Required("Outpoint", OutPoint),
 			get.Required("BannedUntil", DateTimeOffset)

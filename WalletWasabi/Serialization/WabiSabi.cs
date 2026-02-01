@@ -47,13 +47,13 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	private static readonly Decoder<Scalar> Scalar =
+	private static Decoder<Scalar> Scalar =>
 		Hexadecimal.Map(bytes => new Scalar(bytes)).Catch();
 
-	private static readonly Decoder<GroupElement> GroupElement =
+	private static Decoder<GroupElement> GroupElement =>
 		Hexadecimal.Map(bytes => global::WabiSabi.Crypto.Groups.GroupElement.FromBytes(bytes)).Catch();
 
-	public static readonly Decoder<CredentialPresentation> CredentialPresentation =
+	private static Decoder<CredentialPresentation> CredentialPresentation =>
 		Object(get => CreateInstance<CredentialPresentation>([
 			get.Required("Ca", GroupElement),
 			get.Required("Cx0", GroupElement),
@@ -62,25 +62,25 @@ public static partial class Decode
 			get.Required("S", GroupElement)]
 		)).Catch();
 
-	public static readonly Decoder<IssuanceRequest> IssuanceRequest =
+	public static Decoder<IssuanceRequest> IssuanceRequest =>
 		Object(get => CreateInstance<IssuanceRequest>([
 			get.Required("Ma", GroupElement),
 			get.Required("BitCommitments", Array(GroupElement))
 		])).Catch();
 
-	public static readonly Decoder<MAC> MAC =
+	private static Decoder<MAC> MAC =>
 		Object(get => CreateInstance<MAC>([
 			get.Required("T", Scalar),
 			get.Required("V", GroupElement)
 		])).Catch();
 
-	private static readonly Decoder<GroupElementVector> GroupElementVector =
+	private static Decoder<GroupElementVector> GroupElementVector =>
 		Array(GroupElement).Map(CreateInstance<GroupElementVector>).Catch();
 
-	private static readonly Decoder<ScalarVector> ScalarVector =
+	private static Decoder<ScalarVector> ScalarVector =>
 		Array(Scalar).Map(a => CreateInstance<ScalarVector>(a.Cast<object>().ToArray())).Catch();
 
-	public static readonly Decoder<Proof> Proof =
+	private static Decoder<Proof> Proof =>
 		Object(get => CreateInstance<Proof>([
 			get.Required("PublicNonces", GroupElementVector),
 			get.Required("Responses", ScalarVector)

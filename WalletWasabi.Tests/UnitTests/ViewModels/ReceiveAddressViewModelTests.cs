@@ -42,7 +42,10 @@ public class ReceiveAddressViewModelTests
 
 	private class TestWallet : IWalletModel
 	{
+		// Event required by INotifyPropertyChanged interface but not used in this test mock
+#pragma warning disable CS0067
 		public event PropertyChangedEventHandler? PropertyChanged;
+#pragma warning restore CS0067
 
 		public IObservable<bool> IsCoinjoinRunning { get; } = Observable.Return(true);
 		public IObservable<bool> IsCoinjoinStarted { get; } = Observable.Return(true);

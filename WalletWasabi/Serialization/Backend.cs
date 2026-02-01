@@ -14,7 +14,7 @@ public static partial class Encode
 			("BackenMajordVersion", String(version.BackendMajorVersion)),
 		]);
 
-	public static JsonNode Filter(FilterModel filter) =>
+	private static JsonNode Filter(FilterModel filter) =>
 		String(filter.ToLine());
 
 	public static JsonNode FiltersResponse(FiltersResponse resp) =>
@@ -26,10 +26,10 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<FilterModel> Filter =
+	private static Decoder<FilterModel> Filter =>
 		String.Map(FilterModel.FromLine);
 
-	public static readonly Decoder<FiltersResponse> FiltersResponse =
+	public static Decoder<FiltersResponse> FiltersResponse =>
 		Object(get => new FiltersResponse(
 			get.Required("bestHeight", Int),
 			get.Required("filters", Array(Filter))
