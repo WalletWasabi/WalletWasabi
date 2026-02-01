@@ -52,11 +52,11 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<VersionsResponse> VersionsResponse =
+	public static Decoder<VersionsResponse> VersionsResponse =>
 		Object(get =>
 			new VersionsResponse(get.Required("backenMajordVersion", String)));
 
-	public static Decoder<T> Catch<T>(this Decoder<T> decoder) =>
+	private static Decoder<T> Catch<T>(this Decoder<T> decoder) =>
 		value =>
 		{
 			try
@@ -69,10 +69,10 @@ public static partial class Decode
 			}
 		};
 
-	public static readonly Decoder<uint256> UInt256 =
+	private static Decoder<uint256> UInt256 =>
 		String.Map(s => new uint256(s)).Catch();
 
-	public static readonly Decoder<Network> Network =
+	public static Decoder<Network> Network =>
 		String.AndThen(name =>
 		{
 			var network = NBitcoin.Network.GetNetwork(name);
@@ -81,22 +81,22 @@ public static partial class Decode
 				: Fail<Network>($"'{name}' is not a valid network.");
 		});
 
-	public static readonly Decoder<byte[]> Hexadecimal =
+	private static Decoder<byte[]> Hexadecimal =>
 		String.Map(Encoders.Hex.DecodeData).Catch();
 
-	public static readonly Decoder<Money> MoneySatoshis =
+	private static Decoder<Money> MoneySatoshis =>
 		Int64.Map(Money.Satoshis);
 
-	public static readonly Decoder<Money> MoneyBitcoins =
+	public static Decoder<Money> MoneyBitcoins =>
 		String.Map(Money.Parse).Catch();
 
-	public static readonly Decoder<FeeRate> FeeRate =
+	private static Decoder<FeeRate> FeeRate =>
 		MoneySatoshis.Map(m => new FeeRate(m)).Catch();
 
-	public static readonly Decoder<WitScript> WitScript =
+	private static Decoder<WitScript> WitScript =>
 		Hexadecimal.Map(hex => new WitScript(hex)).Catch();
 
-	public static readonly Decoder<OutPoint> OutPoint  =
+	public static Decoder<OutPoint> OutPoint  =>
 		Hexadecimal.Map(bytes =>
 		{
 			var op = new OutPoint();
@@ -104,16 +104,16 @@ public static partial class Decode
 			return op;
 		}).Catch();
 
-	public static readonly Decoder<Script> Script =
+	private static Decoder<Script> Script =>
 		String.Map(s => new Script(s)).Catch();
 
-	public static readonly Decoder<TxOut> TxOut =
+	private static Decoder<TxOut> TxOut =>
 		Object(get => new TxOut(
 			get.Required("Value", MoneySatoshis),
 			get.Required("ScriptPubKey", Script)
 		));
 
-	public static readonly Decoder<Coin> Coin =
+	private static Decoder<Coin> Coin =>
 		Object(get => new Coin(
 			get.Required("Outpoint", OutPoint),
 			get.Required("TxOut", TxOut)
