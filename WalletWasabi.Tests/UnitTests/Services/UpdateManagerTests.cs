@@ -172,12 +172,15 @@ public class TesteabletNostrClient : INostrClient
 	public Task ConnectAndWaitUntilConnected(CancellationToken connectionCancellationToken,
 		CancellationToken lifetimeCancellationToken) => Task.CompletedTask;
 
+	// Events required by INostrClient interface but not used in this test mock
+#pragma warning disable CS0067
 	public event EventHandler<string>? MessageReceived;
 	public event EventHandler<string>? InvalidMessageReceived;
 	public event EventHandler<string>? NoticeReceived;
 	public event EventHandler<(string subscriptionId, NostrEvent[] events)>? EventsReceived;
 	public event EventHandler<(string eventId, bool success, string messafe)>? OkReceived;
 	public event EventHandler<string>? EoseReceived;
+#pragma warning restore CS0067
 }
 
 public class RoundStateUpdaterForTesting
