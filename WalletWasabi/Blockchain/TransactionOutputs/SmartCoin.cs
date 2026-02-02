@@ -137,8 +137,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 			return false;
 		}
 
-		// Indices are fast to compare, so compare them first.
-		return (y.Index == x.Index) && (x.GetHashCode() == y.GetHashCode()) && (y.TransactionId == x.TransactionId);
+		return y.Outpoint == x.Outpoint;
 	}
 
 	public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);
