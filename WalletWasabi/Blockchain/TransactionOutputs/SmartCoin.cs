@@ -12,7 +12,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// <summary>
 /// An UTXO that knows more.
 /// </summary>
-[DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
+[DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Labels} OutPoint={Coin.Outpoint}")]
 public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
 {
 	private Height _height;
@@ -137,8 +137,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 			return false;
 		}
 
-		// Indices are fast to compare, so compare them first.
-		return (y.Index == x.Index) && (x.GetHashCode() == y.GetHashCode()) && (y.TransactionId == x.TransactionId);
+		return y.Outpoint == x.Outpoint;
 	}
 
 	public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);
