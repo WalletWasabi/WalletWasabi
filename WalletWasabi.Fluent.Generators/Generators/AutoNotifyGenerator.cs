@@ -1,57 +1,111 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
-using WalletWasabi.Fluent.Generators.Abstractions;
+using Microsoft.CodeAnalysis.Text;
+using System.Collections.Immutable;
+using System.Linq;
+using System.Text;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
 
-internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
+[Generator(LanguageNames.CSharp)]
+internal class AutoNotifyGenerator : IIncrementalGenerator
 {
-	private const string AutoNotifyAttributeDisplayString = "WalletWasabi.Fluent.AutoNotifyAttribute";
+	private static SymbolDisplayFormat GeneratorSymbolDisplayFormat = new(
+		typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
+		genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
+
+	public const string AutoNotifyAttributeDisplayString = "WalletWasabi.Fluent.AutoNotifyAttribute";
 	private const string ReactiveObjectDisplayString = "ReactiveUI.ReactiveObject";
 
-	public override bool Filter(FieldDeclarationSyntax field)
+	public void Initialize(IncrementalGeneratorInitializationContext context)
 	{
-		return field.AttributeLists.Count > 0;
-	}
+		// Find all fields decorated with [AutoNotify].
+		var fieldProvider = context.SyntaxProvider
+			.ForAttributeWithMetadataName(
+				fullyQualifiedMetadataName: AutoNotifyAttributeDisplayString,
+				predicate: static (node, _) => node is VariableDeclaratorSyntax variableDeclarator,
+				transform: static (ctx, ct) =>
+				{
+					var symbol = ctx.SemanticModel.GetDeclaredSymbol(ctx.TargetNode, ct);
+					return symbol as IFieldSymbol;
+				})
+			.Where(static symbol => symbol is not null)!
+			.Select(static (x, _) => x!)
+			.Collect();
 
-	public override void Execute(FieldDeclarationSyntax[] syntaxNodes)
-	{
-		var fieldSymbols = GetAutoNotifyFields(syntaxNodes).ToArray();
+		// Group fields by containing type + collect compilation
+		var groupedProvider = fieldProvider
+			.Combine(context.CompilationProvider)
+			.Select(static (pair, cancellationToken) =>
+			{
+				var (fields, compilation) = pair;
 
-		var attributeSymbol = Context.Compilation.GetTypeByMetadataName(AutoNotifyAttributeDisplayString);
-		if (attributeSymbol is null)
-		{
-			return;
-		}
+				if (fields.IsDefaultOrEmpty)
+				{
+					return ImmutableArray<(INamedTypeSymbol, ImmutableArray<IFieldSymbol>)>.Empty;
+				}
 
-		var notifySymbol = Context.Compilation.GetTypeByMetadataName(ReactiveObjectDisplayString);
-		if (notifySymbol is null)
-		{
-			return;
-		}
+				var attributeSymbol = compilation.GetTypeByMetadataName(AutoNotifyAttributeDisplayString);
+				if (attributeSymbol is null)
+				{
+					return ImmutableArray<(INamedTypeSymbol, ImmutableArray<IFieldSymbol>)>.Empty;
+				}
 
-		// TODO: https://github.com/dotnet/roslyn/issues/49385
-#pragma warning disable RS1024
-		var groupedFields = fieldSymbols.GroupBy(f => f.ContainingType);
+				var notifySymbol = compilation.GetTypeByMetadataName(ReactiveObjectDisplayString);
+				if (notifySymbol is null)
+				{
+					return ImmutableArray<(INamedTypeSymbol, ImmutableArray<IFieldSymbol>)>.Empty;
+				}
+
+				// Group by containing type (same as original)
+#pragma warning disable RS1024 // Enable 'types' or 'symbols' comparer
+				var grouped = fields
+					.GroupBy(f => f.ContainingType)
+					.Select(g => (g.Key, g.ToImmutableArray()))
+					.ToImmutableArray();
 #pragma warning restore RS1024
 
-		foreach (var group in groupedFields)
-		{
-			var classSource = ProcessClass(group.Key, group.ToList(), attributeSymbol, notifySymbol);
-			if (classSource is null)
-			{
-				continue;
-			}
+				return grouped;
+			});
 
-			AddSource($"{group.Key.Name}_AutoNotify.cs", classSource);
-		}
+		context.RegisterSourceOutput(groupedProvider.Combine(context.CompilationProvider),
+			static (spc, tuple) =>
+			{
+				var (groups, compilation) = tuple;
+
+				if (groups.IsDefaultOrEmpty)
+				{
+					return;
+				}
+
+				var notifySymbol = compilation.GetTypeByMetadataName(ReactiveObjectDisplayString);
+				if (notifySymbol is null)
+				{
+					return;
+				}
+
+				var attributeSymbol = compilation.GetTypeByMetadataName(AutoNotifyAttributeDisplayString);
+				if (attributeSymbol is null)
+				{
+					return;
+				}
+
+				foreach (var (classSymbol, fields) in groups)
+				{
+					var source = ProcessClass(classSymbol, fields, notifySymbol, attributeSymbol);
+					if (source is null)
+					{
+						continue;
+					}
+
+					var fileName = $"{classSymbol.Name}_AutoNotify.g.cs";
+					spc.AddSource(fileName, SourceText.From(source, Encoding.UTF8));
+				}
+			});
 	}
 
-	private string? ProcessClass(INamedTypeSymbol classSymbol, List<IFieldSymbol> fields, ISymbol attributeSymbol, INamedTypeSymbol notifySymbol)
+	private static string? ProcessClass(INamedTypeSymbol classSymbol, ImmutableArray<IFieldSymbol> fields, INamedTypeSymbol notifySymbol, INamedTypeSymbol attributeSymbol)
 	{
 		if (!classSymbol.ContainingSymbol.Equals(classSymbol.ContainingNamespace, SymbolEqualityComparer.Default))
 		{
@@ -62,13 +116,8 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 
 		var addNotifyInterface = !classSymbol.Interfaces.Contains(notifySymbol);
 		var baseType = classSymbol.BaseType;
-		while (true)
+		while (baseType is not null)
 		{
-			if (baseType is null)
-			{
-				break;
-			}
-
 			if (SymbolEqualityComparer.Default.Equals(baseType, notifySymbol))
 			{
 				addNotifyInterface = false;
@@ -80,9 +129,7 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 
 		var source = new StringBuilder();
 
-		var format = new SymbolDisplayFormat(
-			typeQualificationStyle: SymbolDisplayTypeQualificationStyle.NameAndContainingTypes,
-			genericsOptions: SymbolDisplayGenericsOptions.IncludeTypeParameters | SymbolDisplayGenericsOptions.IncludeTypeConstraints | SymbolDisplayGenericsOptions.IncludeVariance);
+		var classDisplay = classSymbol.ToDisplayString(GeneratorSymbolDisplayFormat);
 
 		if (addNotifyInterface)
 		{
@@ -95,7 +142,7 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 
 				namespace {{namespaceName}};
 
-				public partial class {{classSymbol.ToDisplayString(format)}} : {{notifySymbol.ToDisplayString()}}
+				public partial class {{classDisplay}} : {{notifySymbol.ToDisplayString()}}
 				{
 				""");
 		}
@@ -109,7 +156,7 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 
 				namespace {{namespaceName}};
 
-				public partial class {{classSymbol.ToDisplayString(format)}}
+				public partial class {{classDisplay}}
 				{
 				""");
 		}
@@ -128,7 +175,7 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 		return source.ToString();
 	}
 
-	private void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
+	private static void ProcessField(StringBuilder source, IFieldSymbol fieldSymbol, ISymbol attributeSymbol)
 	{
 		var fieldName = fieldSymbol.Name;
 		var fieldType = fieldSymbol.Type;
@@ -208,28 +255,6 @@ internal class AutoNotifyGenerator : GeneratorStep<FieldDeclarationSyntax>
 			}
 
 			return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
-		}
-	}
-
-	private IEnumerable<IFieldSymbol> GetAutoNotifyFields(FieldDeclarationSyntax[] fieldDeclarations)
-	{
-		foreach (var fieldDeclaration in fieldDeclarations)
-		{
-			var semanticModel = GetSemanticModel(fieldDeclaration.SyntaxTree);
-
-			foreach (VariableDeclaratorSyntax variable in fieldDeclaration.Declaration.Variables)
-			{
-				if (semanticModel.GetDeclaredSymbol(variable) is not IFieldSymbol fieldSymbol)
-				{
-					continue;
-				}
-
-				var attributes = fieldSymbol.GetAttributes();
-				if (attributes.Any(ad => ad?.AttributeClass?.ToDisplayString() == AutoNotifyAttributeDisplayString))
-				{
-					yield return fieldSymbol;
-				}
-			}
 		}
 	}
 }

@@ -42,24 +42,48 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 		var interfaceName = $"I{namedTypeSymbol.Name}";
 
 		var members = namedTypeSymbol.GetMembers()
-			.Where(x => x.DeclaredAccessibility == Accessibility.Public)
 			.Where(x => !x.IsStatic)
 			.ToList();
 
 		var namespaces = new List<string>();
 		var properties = new List<string>();
 		var methods = new List<string>();
+
 		foreach (var member in members)
 		{
+			// Only [AutoNotify] fields are private, all other members have to be public.
+			if (member is IFieldSymbol field)
+			{
+				var attributes = field.GetAttributes();
+				if (attributes.Any(ad => ad.AttributeClass?.ToDisplayString() == AutoNotifyGenerator.AutoNotifyAttributeDisplayString))
+				{
+					var fieldName = field.Name.TrimStart('_');
+					if (fieldName.Length > 0)
+					{
+						var type = field.Type.SimplifyType(namespaces);
+
+						fieldName = fieldName.Length == 1
+							? fieldName.ToUpper()
+							: fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
+
+						properties.Add('\t' + $$"""{{type}} {{fieldName}} { get; set; }""");
+					}
+				}
+			}
+
+			if (member.DeclaredAccessibility != Accessibility.Public)
+			{
+				continue;
+			}
+
 			if (member is IPropertySymbol property)
 			{
-				var accessors =
-					property.SetMethod switch
-					{
-						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
-						IMethodSymbol s => "{ get; set; }",
-						_ => "{ get; }"
-					};
+				var accessors = property.SetMethod switch
+				{
+					IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
+					IMethodSymbol s => "{ get; set; }",
+					_ => "{ get; }"
+				};
 
 				var type = property.Type.SimplifyType(namespaces);
 				properties.Add($"\t{type} {property.Name} {accessors}");
@@ -95,11 +119,11 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 
 				if (!IsInterfaceMethodImplementation(method))
 				{
-					methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+					methodSignature = $"\t{returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
 				}
 				else
 				{
-					methodSignature = $"\t /* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
+					methodSignature = $"\t/* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
 				}
 
 				methods.Add(methodSignature);
