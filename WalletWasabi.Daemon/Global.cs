@@ -147,7 +147,7 @@ public class Global
 		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
 		var behavior = new P2pBehavior(mempoolService);
 		var nodesGroup = Network == Network.RegTest
-			? P2pNetwork.CreateNodesGroupForTestNet(behavior)
+			? P2pNetwork.CreateNodesGroupForRegTest(behavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
