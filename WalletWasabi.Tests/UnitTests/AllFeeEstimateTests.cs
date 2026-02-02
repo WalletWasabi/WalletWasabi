@@ -1,13 +1,11 @@
 using NBitcoin;
 using NBitcoin.RPC;
-using Newtonsoft.Json;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -300,6 +298,7 @@ public class AllFeeEstimateTests
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value)!;
 
+		Assert.NotNull(minFee);
 		Assert.Equal(15, minFee.SatoshiPerByte); // this is the calculated MempoolMinFee needed to be in the top 200MB
 	}
 
@@ -317,6 +316,7 @@ public class AllFeeEstimateTests
 		var estimations = feeRates.Estimations;
 		var minFee = estimations.Min(x => x.Value)!;
 
+		Assert.NotNull(minFee);
 		Assert.Equal(expectedMinFee, minFee.SatoshiPerByte);
 	}
 
@@ -344,6 +344,7 @@ public class AllFeeEstimateTests
 		var estimations = feeRates.Estimations;
 		var maxFee = estimations.Max(x => x.Value)!;
 
+		Assert.NotNull(maxFee);
 		Assert.Equal(expectedMaxFee, maxFee.SatoshiPerByte);
 	}
 
