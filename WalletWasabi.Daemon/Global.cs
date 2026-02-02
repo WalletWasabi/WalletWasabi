@@ -258,9 +258,8 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
-		ICompactFilterProvider filtersProvider =
-			new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
+
+		ICompactFilterProvider? filtersProvider = null;
 
 		if (_bitcoinRpcClient is not null)
 		{
@@ -269,6 +268,17 @@ public class Global
 			{
 				filtersProvider = new BitcoinRpcFilterProvider(_bitcoinRpcClient);
 			}
+		}
+
+		if (!string.IsNullOrEmpty(Config.BackendUri) && filtersProvider is null)
+		{
+			var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
+			filtersProvider = new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
+		}
+
+		if (filtersProvider is null)
+		{
+			throw new NotSupportedException("Neither backend URI is specified nor Bitcoin RPC client exists.");
 		}
 
 		Spawn("Synchronizer",
