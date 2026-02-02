@@ -227,10 +227,9 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 		throw new HttpRequestException($"Failed to make http request '{request.RequestUri}' after {_config.MaxAttempts} attempts.");
 	}
 
-	// Made protected virtual for testing purposes.
-	private static async Task<HttpResponseMessage> SendCoreAsync(RetryHttpClientHandler handler, HttpRequestMessage request, CancellationToken cancellationToken)
+	private async Task<HttpResponseMessage> SendCoreAsync(RetryHttpClientHandler handler, HttpRequestMessage request, CancellationToken cancellationToken)
 	{
-		return await handler.SendAsync(request, cancellationToken).ConfigureAwait(false);
+		return await base.SendAsync(request, cancellationToken).ConfigureAwait(false);
 	}
 
 	protected override void Dispose(bool disposing)
