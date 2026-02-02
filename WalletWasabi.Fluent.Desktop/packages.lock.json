@@ -117,68 +117,6 @@
           "Avalonia.Skia": "11.3.11"
         }
       },
-      "Avalonia.Xaml.Interactions": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "maHbe3gNxZr4bHvaHqug/hpLYLiNbOsxmtvfFTr8qo8hd6YDFfdWYcp006c+EMhR2fp7FSie/ZfwqkIcW62TMg==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Custom": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "5GFy8qS0HyX7wkS/GDM3a8l4gGhOvjbrxzNC01qsyKvA8Nyh+37W+B2KaIV487hVIPxR0aOnbyBqn7emM/0MTg==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactions.DragAndDrop": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "OL9ID/iTJWx1uvErRkv2/2Wy8M5/vdO4FY4UVaPNb1zCSj7i08Bg2EUlXpiQRMDVNJK9lWT2gBLqTb5gn83txg==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Draggable": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "CcyO8m+vVVQEIUBzjxeSM3Wo8fGEouTy1I7Kpycq89tzHjWZUBRWebniqAPDnLvbMu8TiZ3qVcYWz5X5O0y8Kg==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Events": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "f3AP9yyggC7q0ZSo0B3Dn/qO9l6kjaR3FHD0AN7L4zwVlK9/L8iLxI1Cy/1z8k3B8sc9QxG7KKJBq8gjKZYxgQ==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactions.Responsive": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "7LUcdvUCH/uLY7zUJ3Hq840+ucmI4xta4zPRM3X+WLwXF3Ft5Qyh7cSI0DP+n2axI56hWxZXZvvAwL+r4kTt+A==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
-        }
-      },
-      "Avalonia.Xaml.Interactivity": {
-        "type": "Transitive",
-        "resolved": "11.2.7",
-        "contentHash": "/LWL8VOWx1MKVMXEoEAqbMmJBtoLDBTBycVhTBvXUXehER1meHxzUxV+KS43NdQ++OWUT/SqnN9yc8RxXWxsQQ==",
-        "dependencies": {
-          "Avalonia": "11.2.7"
-        }
-      },
       "ColorDocument.Avalonia": {
         "type": "Transitive",
         "resolved": "11.0.3-a1",
@@ -547,6 +485,68 @@
         "resolved": "0.21.2",
         "contentHash": "ScSMrUrrw8px4kK1Glh0fZv/HQUlg1078bNXNPfRPKQ3WbRzV9HpsydYEOgSoMK5LWICMf2bMwIFH0pGjxjcMA=="
       },
+      "Xaml.Behaviors.Interactions": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "1LLV/vriXBEP6nBgpFlTnCuYv7WN86Fs9VVbI13/GZHbOj7E8kDTIX9beIrOGauiJIoeghrPBX79WS9olIfTqQ==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactions.Custom": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "Xycb7v8UlXN30aUi1E3/OMQ4N2FDezhdsOsXXDk39tuHDbP8AraGbwOABEQ5mN5WGLBKXVYj5Ba16bGwiPcpWQ==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactions.DragAndDrop": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "j2qgs2azoaIFsFG4vd2SgSH0vM9MP1BLJZAAHoV5r8Ij9jZf0WON/szf9VbNOmlonXHVU8tZk07yGV+j3Ds13A==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactions.Draggable": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "5fJDvMOw7RXDWefLUHoeld/+Y9Pw9CswI1ZeZ2IrBhuWzjQRhGCrBT6A+3Y9n7/jK0zIeDFpgo1gF1qT8DZIyg==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactions.Events": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "aPv0NPAAou+ap97zGw2k76tUhWVRyLeGVHbe1mmGSwsacTmRYLfhduWuxQ+C3s9SHuBfHomD5e0yXUxlH68rbg==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactions.Responsive": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "5RT32T49jzt1QTsvHw9/H+I4d7eB/HfaayHuuAUtelVea3VEFljOuZhjrspoN0ECT+0xhtbhK0cAvsl4ARcXkA==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
+        }
+      },
+      "Xaml.Behaviors.Interactivity": {
+        "type": "Transitive",
+        "resolved": "11.3.9.3",
+        "contentHash": "oYLjL3FuHadcNVfJMWHj52R2TjjYZqxLTuptnh13HQlQT5hvoi7wjWZeOxjbvbrm4uxd3cfUMfRPsSJWhPjqfQ==",
+        "dependencies": {
+          "Avalonia": "11.3.9"
+        }
+      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -578,14 +578,14 @@
           "Avalonia.Fonts.Inter": "[11.3.11, )",
           "Avalonia.Skia": "[11.3.11, )",
           "Avalonia.Themes.Fluent": "[11.3.11, )",
-          "Avalonia.Xaml.Behaviors": "[11.2.7, )",
           "DynamicData": "[9.4.1, )",
           "Markdown.Avalonia": "[11.0.3-a1, )",
           "QRackers": "[1.1.0, )",
           "ReactiveUI.Avalonia": "[11.3.8, )",
           "SkiaSharp": "[3.119.0, )",
           "SkiaSharp.NativeAssets.Linux": "[3.119.0, )",
-          "WalletWasabi.Daemon": "[1.0.0, )"
+          "WalletWasabi.Daemon": "[1.0.0, )",
+          "Xaml.Behaviors.Avalonia": "[11.3.9.3, )"
         }
       },
       "Avalonia": {
@@ -651,22 +651,6 @@
         "contentHash": "GBLwgTwLPGaWxtbBdZ+kUn+QIKVorTc3m8v3nr0wsvRJkWHPgrDR5LAoHJjkPQCLDFuqocYFIeLOUAaBYP0MeA==",
         "dependencies": {
           "Avalonia": "11.3.11"
-        }
-      },
-      "Avalonia.Xaml.Behaviors": {
-        "type": "CentralTransitive",
-        "requested": "[11.2.7, )",
-        "resolved": "11.2.7",
-        "contentHash": "/yA0QlvBMPYRFzS7VAieHwIIQXL5urL8Srm1kYWt8i6fgN9Mz5pkq0OCg8b0HC8qvKddVMUeP7Cqb6+CoH9jqQ==",
-        "dependencies": {
-          "Avalonia": "11.2.7",
-          "Avalonia.Xaml.Interactions": "11.2.7",
-          "Avalonia.Xaml.Interactions.Custom": "11.2.7",
-          "Avalonia.Xaml.Interactions.DragAndDrop": "11.2.7",
-          "Avalonia.Xaml.Interactions.Draggable": "11.2.7",
-          "Avalonia.Xaml.Interactions.Events": "11.2.7",
-          "Avalonia.Xaml.Interactions.Responsive": "11.2.7",
-          "Avalonia.Xaml.Interactivity": "11.2.7"
         }
       },
       "DynamicData": {
@@ -832,6 +816,22 @@
         "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
+        }
+      },
+      "Xaml.Behaviors.Avalonia": {
+        "type": "CentralTransitive",
+        "requested": "[11.3.9.3, )",
+        "resolved": "11.3.9.3",
+        "contentHash": "hHDiTPj9tCDj7yNxKUSNQwOJDPh0tr8RE8kas7VExOja4ohdj7csuv9NuSdPJVtYgXTZowwDO+z3e+CzkPev3w==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactions": "11.3.9.3",
+          "Xaml.Behaviors.Interactions.Custom": "11.3.9.3",
+          "Xaml.Behaviors.Interactions.DragAndDrop": "11.3.9.3",
+          "Xaml.Behaviors.Interactions.Draggable": "11.3.9.3",
+          "Xaml.Behaviors.Interactions.Events": "11.3.9.3",
+          "Xaml.Behaviors.Interactions.Responsive": "11.3.9.3",
+          "Xaml.Behaviors.Interactivity": "11.3.9.3"
         }
       }
     },

@@ -1,6 +1,5 @@
 <ResourceDictionary xmlns="https://github.com/avaloniaui"
                     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-                    xmlns:i="clr-namespace:Avalonia.Xaml.Interactivity;assembly=Avalonia.Xaml.Interactivity"
                     xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
                     xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
                     xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid">
@@ -158,9 +157,9 @@
               <Binding Path="IsLastChild" />
             </MultiBinding>
           </Classes.lastChildIsParentSelected>
-          <i:Interaction.Behaviors>
+          <Interaction.Behaviors>
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding ShowDetailsCommand, Mode=OneWay}" />
-          </i:Interaction.Behaviors>
+          </Interaction.Behaviors>
           <Panel>
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"
                                         ElementFactory="{TemplateBinding ElementFactory}"
@@ -312,9 +311,9 @@
       <ControlTemplate>
         <Border x:Name="PART_SelectionIndicator"
                 x:CompileBindings="True" x:DataType="receive:AddressViewModel">
-          <i:Interaction.Behaviors>
+          <Interaction.Behaviors>
             <ExecuteCommandOnDoubleTappedBehavior Command="{Binding NavigateCommand, Mode=OneWay}" />
-          </i:Interaction.Behaviors>
+          </Interaction.Behaviors>
           <Panel>
             <Border Name="BackgroundRectangle" />
             <TreeDataGridCellsPresenter Name="PART_CellsPresenter"

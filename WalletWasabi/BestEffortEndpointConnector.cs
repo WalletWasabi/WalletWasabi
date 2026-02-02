@@ -54,7 +54,7 @@ public class BestEffortEndpointConnector : IEnpointConnector
 			}
 			if (!isTor && State.AllowOnlyTorEndpoints)
 			{
-				throw new InvalidOperationException($"The Endpoint connector is configured to allow only Tor endpoints and the '{endpoint}' enpoint is not one");
+				throw new InvalidOperationException($"The Endpoint connector is configured to allow only Tor endpoints and the '{endpoint}' endpoint is not one");
 			}
 
 			socketEndpoint = socksSettings.SocksEndpoint;
