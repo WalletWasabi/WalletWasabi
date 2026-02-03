@@ -162,7 +162,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			// The following elements are valid only after the wallet is fully synchronized
 			info["balance"] = activeWallet.Coins
-				.Where(c => !c.IsSpent() && !c.SpentAccordingToNetwork)
+				.Where(c => !c.IsSpent())
 				.Sum(c => c.Amount.Satoshi);
 			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
 		}

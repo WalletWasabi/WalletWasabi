@@ -313,23 +313,6 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public IEnumerable<SmartCoin> CoinsByOutPoint(OutPoint input)
-	{
-		lock (_lock)
-		{
-			var res = new List<SmartCoin>();
-			foreach (var wallet in _wallets.Where(x => x.Loaded))
-			{
-				if (wallet.Coins.TryGetByOutPoint(input, out var coin))
-				{
-					res.Add(coin);
-				}
-			}
-
-			return res;
-		}
-	}
-
 	public void Initialize()
 	{
 		IsInitialized = true;

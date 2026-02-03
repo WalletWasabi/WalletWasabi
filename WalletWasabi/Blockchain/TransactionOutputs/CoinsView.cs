@@ -15,7 +15,7 @@ public class CoinsView : ICoinsView
 
 	private readonly IEnumerable<SmartCoin> _coins;
 
-	public ICoinsView Unspent() => new CoinsView(_coins.Where(x => !x.IsSpent() && !x.SpentAccordingToNetwork));
+	public ICoinsView Unspent() => new CoinsView(_coins.Where(x => !x.IsSpent()));
 
 	public ICoinsView Available() => new CoinsView(_coins.Where(x => x.IsAvailable()));
 
