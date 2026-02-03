@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views;
 
-public class SuccessAnimationView : UserControl
+public partial class SuccessAnimationView : UserControl
 {
 	public SuccessAnimationView()
 	{

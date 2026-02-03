@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <AvaloniaVersion>11.3.11</AvaloniaVersion>
+    <AvaloniaVersion>12.0.999-cibuild0061894-alpha</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
@@ -12,11 +12,11 @@
     <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Extensions.Http" Version="8.0.0" />
     <PackageVersion Include="NNostr.Client" Version="0.0.49" />
-    <PackageVersion Include="SkiaSharp" Version="3.119.0" />
-    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.0" />
-    <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.0" />
+    <PackageVersion Include="SkiaSharp" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.Linux" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.1" />
+    <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.1" />
     <!-- SQLite. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="8.0.0" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="8.0.0" />
@@ -32,7 +32,7 @@
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
-    <PackageVersion Include="Avalonia.Diagnostics" Version="$(AvaloniaVersion)" />
+    <!--<PackageVersion Include="AvaloniaUI.DiagnosticsSupport" Version="$(AvaloniaVersion)" />-->
     <PackageVersion Include="Avalonia.Xaml.Behaviors" Version="11.2.7" />
     <PackageVersion Include="Avalonia.Desktop" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="ReactiveUI.Avalonia" Version="11.3.8" />

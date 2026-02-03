@@ -5,7 +5,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.SearchBar;
 
-public class SearchBar : UserControl
+public partial class SearchBar : UserControl
 {
 	public SearchBar()
 	{

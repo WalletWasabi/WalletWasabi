@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs.ReleaseHighlights;
 
-public class ReleaseHighlightsDialogView : UserControl
+public partial class ReleaseHighlightsDialogView : UserControl
 {
 	public ReleaseHighlightsDialogView()
 	{

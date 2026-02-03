@@ -23,7 +23,7 @@
 		<PackageReference Include="Avalonia" />
 		<PackageReference Include="Avalonia.Controls.TreeDataGrid" />
 		<PackageReference Include="ReactiveUI.Avalonia" />
-		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
+		<!--<PackageReference Include="AvaloniaUI.DiagnosticsSupport" Condition="'$(Configuration)' == 'Debug'" />-->
 		<PackageReference Include="Avalonia.Xaml.Behaviors" />
 		<PackageReference Include="Avalonia.Skia" />
 		<PackageReference Include="SkiaSharp" />

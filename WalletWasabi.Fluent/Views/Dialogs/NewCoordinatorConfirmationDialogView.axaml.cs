@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class NewCoordinatorConfirmationDialogView : UserControl
+public partial class NewCoordinatorConfirmationDialogView : UserControl
 {
 	public NewCoordinatorConfirmationDialogView()
 	{

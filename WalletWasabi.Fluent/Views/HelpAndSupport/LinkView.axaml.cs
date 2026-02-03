@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.HelpAndSupport;
 
-public class LinkView : UserControl
+public partial class LinkView : UserControl
 {
 	public LinkView()
 	{

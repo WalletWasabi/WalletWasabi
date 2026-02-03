@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send;
 
-public class PrivacyWarningsView : UserControl
+public partial class PrivacyWarningsView : UserControl
 {
 	public PrivacyWarningsView()
 	{
