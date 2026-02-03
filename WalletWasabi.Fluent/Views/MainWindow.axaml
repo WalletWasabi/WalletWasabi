@@ -7,7 +7,7 @@
         mc:Ignorable="d" d:DesignWidth="536" d:DesignHeight="459"
         x:Class="WalletWasabi.Fluent.Views.MainWindow"
         x:DataType="viewModels:MainViewModel"
-        x:Name="MainWindow"
+        x:Name="AppMainWindow"
         x:CompileBindings="True"
         MinWidth="720" MinHeight="480"
         WindowStartupLocation="CenterScreen"
@@ -33,7 +33,7 @@
     <CoordinatorConnectionStringBehavior />
   </Interaction.Behaviors>
 
-  <Panel Margin="{Binding #MainWindow.OffScreenMargin}">
+  <Panel Margin="{Binding #AppMainWindow.OffScreenMargin}">
     <!--
     WARNING:
     Do not remove as the OpacityMask is needed for RenderOptions.TextRenderingMode="SubpixelAntialias"
