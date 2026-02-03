@@ -57,8 +57,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _loaded;
 
-	private UiConfig _uiConfig { get; }
-
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
 		UiContext = uiContext;
@@ -67,8 +65,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-
-		_uiConfig = Services.UiConfig;
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)

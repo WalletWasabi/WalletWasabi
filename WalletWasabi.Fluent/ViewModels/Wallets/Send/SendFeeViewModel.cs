@@ -108,7 +108,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 				return estimates;
 			})
 			.WhereNotNull()
-			.Where(x => x.Estimations.Any())
+			.Where(x => x.Estimations.Count != 0)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);

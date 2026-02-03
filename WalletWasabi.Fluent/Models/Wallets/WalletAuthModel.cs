@@ -10,13 +10,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AutoInterface]
 public partial class WalletAuthModel : ReactiveObject
 {
-	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	[AutoNotify] private bool _isLoggedIn;
 
-	public WalletAuthModel(IWalletModel walletModel, Wallet wallet)
+	public WalletAuthModel(Wallet wallet)
 	{
-		_walletModel = walletModel;
 		_wallet = wallet;
 	}
 

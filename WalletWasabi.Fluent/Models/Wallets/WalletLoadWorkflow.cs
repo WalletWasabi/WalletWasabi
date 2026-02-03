@@ -125,8 +125,8 @@ public partial class WalletLoadWorkflow
 			return;
 		}
 
-		var currentheight = _lastestProcessBlockHeight;
-		var percentProgress = 100 * ((currentheight - InitialHeight) / (double)(tipHeight - InitialHeight));
-		_progress.OnNext((RemainingFiltersToDownload, currentheight, tipHeight, percentProgress));
+		var currentHeight = _lastestProcessBlockHeight;
+		var percentProgress = 100 * ((currentHeight - InitialHeight) / (double)(tipHeight - InitialHeight));
+		_progress.OnNext((RemainingFiltersToDownload, currentHeight, tipHeight, percentProgress));
 	}
 }

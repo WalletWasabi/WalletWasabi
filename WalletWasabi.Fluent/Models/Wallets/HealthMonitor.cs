@@ -44,7 +44,7 @@ public partial class HealthMonitor : ReactiveObject
 		UseTor = Services.Config.UseTor;
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		CanUseBitcoinRpc = applicationSettings.UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
-		BitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
+		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
 
 		// Priority Fee
 		Services.EventBus.AsObservable<MiningFeeRatesChanged>()

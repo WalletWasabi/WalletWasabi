@@ -190,10 +190,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		MainViewModel.Instance.ApplyUiConfigWindowState();
 
-		if (_activatable is not null)
-		{
-			_activatable.TryLeaveBackground();
-		}
+		_activatable?.TryLeaveBackground();
 
 		var result = new MainWindow
 		{
