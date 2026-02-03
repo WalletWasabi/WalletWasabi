@@ -6,11 +6,6 @@
   },
   {
     "pname": "Avalonia",
-    "version": "11.2.7",
-    "hash": "sha256-WXMsXV1xRvgDcLcEvxUCK9hOXOhYKzizOuJw0fyDz6U="
-  },
-  {
-    "pname": "Avalonia",
     "version": "11.3.11",
     "hash": "sha256-FSMuXVA5q5L5evwos5bIsuT81suO8FbCjEF3OvAL9p0="
   },
@@ -18,6 +13,11 @@
     "pname": "Avalonia",
     "version": "11.3.8",
     "hash": "sha256-0cM3VVudDUELNE/fWehuCplPKLITjw1hbg9IGtIm20g="
+  },
+  {
+    "pname": "Avalonia",
+    "version": "11.3.9",
+    "hash": "sha256-bjSH8REHeK19bh8IacmyllDPaWND+TJdkhKGc8LVvjE="
   },
   {
     "pname": "Avalonia.Angle.Windows.Natives",
@@ -113,46 +113,6 @@
     "pname": "Avalonia.X11",
     "version": "11.3.11",
     "hash": "sha256-2fiQvKxU/r71UOAQgy0zwSHVCM2uG2sdEUhObd5TrQQ="
-  },
-  {
-    "pname": "Avalonia.Xaml.Behaviors",
-    "version": "11.2.7",
-    "hash": "sha256-0GrxHoiJUMWNed3lDotO//vVTcBBfxXP5qYJ6kY/CWg="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions",
-    "version": "11.2.7",
-    "hash": "sha256-Tys7C8EG75r8mLbNjcixRQbWBIFlhX9aLCLj0G3sFoE="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions.Custom",
-    "version": "11.2.7",
-    "hash": "sha256-N++dRqYYwf7k+SSBAz04KeYouhaRuVVTV/23dEpTFww="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions.DragAndDrop",
-    "version": "11.2.7",
-    "hash": "sha256-c7pGBeGISxd2nNq7nMIRKeyEN4eoQeCCUS78E7CwaQ0="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions.Draggable",
-    "version": "11.2.7",
-    "hash": "sha256-E13W4Wg3Qi2a0nUwV7bNkLjTEFQdlueNnnCBLiKYFpo="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions.Events",
-    "version": "11.2.7",
-    "hash": "sha256-S12P9fy4hJHfoEi8BZl0YDBDXjXlpotHSdO3KgJQWOU="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactions.Responsive",
-    "version": "11.2.7",
-    "hash": "sha256-ixWEj04qNH5I/27mGL6tss8irz2sRWWwQ39O6VaoHzY="
-  },
-  {
-    "pname": "Avalonia.Xaml.Interactivity",
-    "version": "11.2.7",
-    "hash": "sha256-yCBoDPA+SyoCuZQYmui6GJfhtS8dr4va16VUvkYo9uM="
   },
   {
     "pname": "Castle.Core",
@@ -1683,6 +1643,46 @@
     "pname": "WabiSabi",
     "version": "1.0.1.2",
     "hash": "sha256-Gx+tuXraMABak8s0SeofbXpNLVfTnxz4At4+HejnQeU="
+  },
+  {
+    "pname": "Xaml.Behaviors.Avalonia",
+    "version": "11.3.9.3",
+    "hash": "sha256-3I9u6Bl94pQjMDJxJVXwz7BxiY+X+3Ww9sUHqihXyII="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions",
+    "version": "11.3.9.3",
+    "hash": "sha256-vhGP0P1SGPJcTUwmC/LmRoH808wPVsUnHZ59+XZzx4E="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions.Custom",
+    "version": "11.3.9.3",
+    "hash": "sha256-MlbSikNqq0bB6w/sNY9ooWoarmaAMCxeStD4oNTmx/o="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions.DragAndDrop",
+    "version": "11.3.9.3",
+    "hash": "sha256-NJ1nIrZOO47NAiiE4PbyYr0i3N2+gPJOLA1NQGmoqBU="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions.Draggable",
+    "version": "11.3.9.3",
+    "hash": "sha256-MTef9BKYd6qZNLcvxSXt9qpg+G/+uKhMhkn6KU06xVc="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions.Events",
+    "version": "11.3.9.3",
+    "hash": "sha256-vojLvPekYfzLXKlX0SP9A4SgxLswrmfsAfuy5wQcV+o="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactions.Responsive",
+    "version": "11.3.9.3",
+    "hash": "sha256-eLLawnW5rDVrNkXUKpv7U+Ru7bC/IborYauaA/yH60Q="
+  },
+  {
+    "pname": "Xaml.Behaviors.Interactivity",
+    "version": "11.3.9.3",
+    "hash": "sha256-0km0mrfKQIv+A7gv7zWL0YBYA316k4tUw4WOlt6wW/c="
   },
   {
     "pname": "xunit",
