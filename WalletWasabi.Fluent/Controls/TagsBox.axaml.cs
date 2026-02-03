@@ -39,7 +39,7 @@ public class TagsBox : TemplatedControl
 	public static readonly StyledProperty<bool> ForceAddProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(ForceAdd));
 
-	public static readonly StyledProperty<string> WatermarkProperty =
+	public static readonly StyledProperty<string?> WatermarkProperty =
 		TextBox.WatermarkProperty.AddOwner<TagsBox>();
 
 	public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
@@ -204,10 +204,7 @@ public class TagsBox : TemplatedControl
 		_watermark = e.NameScope.Find<TextBlock>("PART_Watermark");
 		_presenter = e.NameScope.Find<ItemsControl>("PART_ItemsPresenter");
 
-		if (_presenter is not null)
-		{
-			_presenter.Loaded += PresenterOnLoaded;
-		}
+		_presenter?.Loaded += PresenterOnLoaded;
 
 		InvalidateWatermark();
 	}
