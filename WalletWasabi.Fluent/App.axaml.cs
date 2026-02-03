@@ -74,9 +74,9 @@ public class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
-#if DEBUG
+/*#if DEBUG
 		this.AttachDevTools();
-#endif
+#endif*/
 	}
 
 	private void InitializeTrayIcons()
