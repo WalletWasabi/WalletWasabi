@@ -461,8 +461,8 @@ public class CoinJoinClient
 						break;
 
 					case WabiSabiProtocolErrorCode.InputSpent:
-						coin.SpentAccordingToNetwork = true;
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} is spent according to the backend. The wallet is not fully synchronized or corrupted.", roundState));
+						// FIXME: Now what?
+						Logger.LogWarning(FormatLog($"{coin.Coin.Outpoint} is spent according to the coordinator. The wallet is not fully synchronized, corrupted or the coordinator lies.", roundState));
 						break;
 
 					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
@@ -477,7 +477,6 @@ public class CoinJoinClient
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						coin.SpentAccordingToNetwork = false;
 						Logger.LogWarning(FormatLog($"{coin.Coin.Outpoint} cannot be registered in the blame round.", roundState));
 						break;
 

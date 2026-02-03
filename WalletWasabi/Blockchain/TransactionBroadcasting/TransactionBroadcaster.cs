@@ -37,7 +37,6 @@ public abstract record BroadcastOk
 public abstract record BroadcastError
 {
 	public record SpentError : BroadcastError;
-	public record SpentInputError(OutPoint SpentOutpoint) : BroadcastError;
 	public record RpcError(string RpcErrorMessage) : BroadcastError;
 	public record Unknown(string Message) : BroadcastError;
 	public record NotEnoughP2pNodes : BroadcastError;
@@ -266,17 +265,10 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.RpcErrorMessage}.");
 				break;
 			case BroadcastError.Timeout _:
-				Logger.LogWarning($"The transaction might have been broadcast but the propagation was not confirmed in time.");
+				Logger.LogWarning("The transaction might have been broadcast but the propagation was not confirmed in time.");
 				break;
 			case BroadcastError.SpentError _:
 				Logger.LogError("Failed to broadcast transaction. There are spent inputs.");
-				break;
-			case BroadcastError.SpentInputError spentInputError:
-				Logger.LogError($"Failed to broadcast transaction. Input {spentInputError.SpentOutpoint} is already spent.");
-				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.SpentOutpoint))
-				{
-					coin.SpentAccordingToNetwork = true;
-				}
 				break;
 			case BroadcastError.NotEnoughP2pNodes _:
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");

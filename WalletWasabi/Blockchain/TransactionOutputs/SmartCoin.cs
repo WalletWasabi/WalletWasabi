@@ -79,15 +79,6 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		set => RaiseAndSetIfChanged(ref _bannedUntilUtc, value);
 	}
 
-	/// <summary>
-	/// If the network thinks it's spent, but Wasabi does not yet know.
-	/// </summary>
-	public bool SpentAccordingToNetwork
-	{
-		get => _spentAccordingToNetwork;
-		set => RaiseAndSetIfChanged(ref _spentAccordingToNetwork, value);
-	}
-
 	public HdPubKey HdPubKey { get; }
 
 	public bool Confirmed
@@ -114,7 +105,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <summary>
 	/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
 	/// </summary>
-	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToNetwork && !CoinJoinInProgress;
+	public bool IsAvailable() => SpenderTransaction is null && !CoinJoinInProgress;
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
