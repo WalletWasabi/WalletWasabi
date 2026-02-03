@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using WalletWasabi.Fluent.Generators.Abstractions;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
@@ -55,18 +56,25 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 			if (member is IFieldSymbol field)
 			{
 				var attributes = field.GetAttributes();
-				if (attributes.Any(ad => ad.AttributeClass?.ToDisplayString() == AutoNotifyGenerator.AutoNotifyAttributeDisplayString))
+				var attributeData = attributes.FirstOrDefault(ad => ad.AttributeClass?.ToDisplayString() == AutoNotifyGenerator.AutoNotifyAttributeDisplayString);
+
+				if (attributeData is not null)
 				{
-					var fieldName = field.Name.TrimStart('_');
-					if (fieldName.Length > 0)
+					string? propertyName = AutoNotifyGenerator.GetPropertyName(field.Name, attributeData);
+					if (propertyName is not null)
 					{
 						var type = field.Type.SimplifyType(namespaces);
 
-						fieldName = fieldName.Length == 1
-							? fieldName.ToUpper()
-							: fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
-
-						properties.Add('\t' + $$"""{{type}} {{fieldName}} { get; set; }""");
+						string? setterModifier = AutoNotifyGenerator.GetSetterModifier(attributeData);
+						if (setterModifier is null)
+						{
+							properties.Add('\t' + $$"""{{type}} {{propertyName}} { get; }""");
+						}
+						else
+						{
+							var setter = setterModifier.Length > 0 ? setterModifier + " set;" : "set;";
+							properties.Add('\t' + $$"""{{type}} {{propertyName}} { get; {{setter}} }""");
+						}
 					}
 				}
 			}

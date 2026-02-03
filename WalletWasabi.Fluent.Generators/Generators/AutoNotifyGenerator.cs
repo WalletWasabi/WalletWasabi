@@ -180,8 +180,7 @@ internal class AutoNotifyGenerator : IIncrementalGenerator
 		var fieldName = fieldSymbol.Name;
 		var fieldType = fieldSymbol.Type;
 		var attributeData = fieldSymbol.GetAttributes().Single(ad => ad?.AttributeClass?.Equals(attributeSymbol, SymbolEqualityComparer.Default) ?? false);
-		var overriddenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
-		var propertyName = ChooseName(fieldName, overriddenNameOpt);
+		var propertyName = GetPropertyName(fieldName, attributeData);
 
 		if (propertyName is null || propertyName.Length == 0 || propertyName == fieldName)
 		{
@@ -189,8 +188,8 @@ internal class AutoNotifyGenerator : IIncrementalGenerator
 			return;
 		}
 
-		var overriddenSetterModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "SetterModifier").Value;
-		var setterModifier = ChooseSetterModifier(overriddenSetterModifierOpt);
+		var setterModifier = GetSetterModifier(attributeData);
+
 		if (setterModifier is null)
 		{
 			source.Append(
@@ -214,47 +213,59 @@ internal class AutoNotifyGenerator : IIncrementalGenerator
 					}
 				""");
 		}
+	}
 
-		static string? ChooseSetterModifier(TypedConstant overriddenSetterModifierOpt)
+	private static string? ChooseSetterModifier(TypedConstant overriddenSetterModifierOpt)
+	{
+		if (!overriddenSetterModifierOpt.IsNull && overriddenSetterModifierOpt.Value is not null)
 		{
-			if (!overriddenSetterModifierOpt.IsNull && overriddenSetterModifierOpt.Value is not null)
+			var value = (int)overriddenSetterModifierOpt.Value;
+			return value switch
 			{
-				var value = (int)overriddenSetterModifierOpt.Value;
-				return value switch
-				{
-					0 => null,// None
-					1 => "",// Public
-					2 => "protected ",// Protected
-					3 => "private ",// Private
-					4 => "internal ",// Internal
-					_ => ""// Default
-				};
-			}
-			else
-			{
-				return "";
-			}
+				0 => null,// None
+				1 => "",// Public
+				2 => "protected ",// Protected
+				3 => "private ",// Private
+				4 => "internal ",// Internal
+				_ => ""// Default
+			};
+		}
+		else
+		{
+			return "";
+		}
+	}
+
+	private static string? ChooseName(string fieldName, TypedConstant overriddenNameOpt)
+	{
+		if (!overriddenNameOpt.IsNull)
+		{
+			return overriddenNameOpt.Value?.ToString();
 		}
 
-		static string? ChooseName(string fieldName, TypedConstant overriddenNameOpt)
+		fieldName = fieldName.TrimStart('_');
+		if (fieldName.Length == 0)
 		{
-			if (!overriddenNameOpt.IsNull)
-			{
-				return overriddenNameOpt.Value?.ToString();
-			}
-
-			fieldName = fieldName.TrimStart('_');
-			if (fieldName.Length == 0)
-			{
-				return string.Empty;
-			}
-
-			if (fieldName.Length == 1)
-			{
-				return fieldName.ToUpper();
-			}
-
-			return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
+			return string.Empty;
 		}
+
+		if (fieldName.Length == 1)
+		{
+			return fieldName.ToUpper();
+		}
+
+		return fieldName.Substring(0, 1).ToUpper() + fieldName.Substring(1);
+	}
+
+	public static string? GetPropertyName(string fieldName, AttributeData attributeData)
+	{
+		var overriddenNameOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "PropertyName").Value;
+		return ChooseName(fieldName, overriddenNameOpt);
+	}
+
+	public static string? GetSetterModifier(AttributeData attributeData)
+	{
+		var overriddenSetterModifierOpt = attributeData.NamedArguments.SingleOrDefault(kvp => kvp.Key == "SetterModifier").Value;
+		return ChooseSetterModifier(overriddenSetterModifierOpt);
 	}
 }
