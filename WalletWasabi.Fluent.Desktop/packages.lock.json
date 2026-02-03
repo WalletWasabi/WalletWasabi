@@ -206,6 +206,11 @@
         "resolved": "1.2.1",
         "contentHash": "nSudK8LeKSu7T/N/6NVZNjUniMYagfzVo8yT2XwZ9BOVbWYQH3EQ8oviuztJ7AfO8PlRDsYIWboZuzIg94hhzQ=="
       },
+      "FlashCap.Core": {
+        "type": "Transitive",
+        "resolved": "1.11.0",
+        "contentHash": "vEEUwQmpITV2iBgRU+YYl+Dr+Tm/1T/nXfnSLyLQSbBIWMlF/NO22OqU4ysfSNEb9TN6w+QK0bqGFMmnN13+Ag=="
+      },
       "HarfBuzzSharp": {
         "type": "Transitive",
         "resolved": "8.3.1.1",
@@ -580,12 +585,13 @@
           "Avalonia.Themes.Fluent": "[11.3.11, )",
           "Avalonia.Xaml.Behaviors": "[11.2.7, )",
           "DynamicData": "[9.4.1, )",
+          "FlashCap": "[1.11.0, )",
           "Markdown.Avalonia": "[11.0.3-a1, )",
-          "QRackers": "[1.1.0, )",
           "ReactiveUI.Avalonia": "[11.3.8, )",
           "SkiaSharp": "[3.119.0, )",
           "SkiaSharp.NativeAssets.Linux": "[3.119.0, )",
-          "WalletWasabi.Daemon": "[1.0.0, )"
+          "WalletWasabi.Daemon": "[1.0.0, )",
+          "ZXing.Net": "[0.16.11, )"
         }
       },
       "Avalonia": {
@@ -676,6 +682,15 @@
         "contentHash": "+SoDTbuzY9j0K+sZfRbbVpGjjylkVMhUQnw6qiPhxzYLBJlwxFpmunXSaNBtTxwC2C9d/XIp0kO7VhMAVuUt7w==",
         "dependencies": {
           "System.Reactive": "6.0.1"
+        }
+      },
+      "FlashCap": {
+        "type": "CentralTransitive",
+        "requested": "[1.11.0, )",
+        "resolved": "1.11.0",
+        "contentHash": "XwH9DHLKGUTciHat2D7GgsUegAOErJAyZHX+3H5gHX70Ipds7Zv2/q3T9/f0KkIh2A5P6WCg+lFwVxMgLERCKA==",
+        "dependencies": {
+          "FlashCap.Core": "1.11.0"
         }
       },
       "Markdown.Avalonia": {
@@ -785,15 +800,6 @@
           "System.Interactive.Async": "6.0.1"
         }
       },
-      "QRackers": {
-        "type": "CentralTransitive",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "a44f7v+IVAI+Rz2PM+EdzreEBbgT9ffOj2B8kiBAKAM4DcgHieaN/qN5RsZwUuFX3TF1HGblZ20aM1jbD+t/Kg==",
-        "dependencies": {
-          "SkiaSharp": "2.88.3"
-        }
-      },
       "SkiaSharp": {
         "type": "CentralTransitive",
         "requested": "[3.119.0, )",
@@ -833,6 +839,12 @@
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
+      },
+      "ZXing.Net": {
+        "type": "CentralTransitive",
+        "requested": "[0.16.11, )",
+        "resolved": "0.16.11",
+        "contentHash": "OZfAVu88hl87BffQ+rlWCj/vLvAhhCK4QnFaoveeF/MY8SjHNSYBQ3qyUEWlPKNgBQGh1syXhCDg10vUnCsqkg=="
       }
     },
     "net10.0/linux-arm64": {

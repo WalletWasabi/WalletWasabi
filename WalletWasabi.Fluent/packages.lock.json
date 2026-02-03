@@ -92,6 +92,15 @@
           "System.Reactive": "6.0.1"
         }
       },
+      "FlashCap": {
+        "type": "Direct",
+        "requested": "[1.11.0, )",
+        "resolved": "1.11.0",
+        "contentHash": "XwH9DHLKGUTciHat2D7GgsUegAOErJAyZHX+3H5gHX70Ipds7Zv2/q3T9/f0KkIh2A5P6WCg+lFwVxMgLERCKA==",
+        "dependencies": {
+          "FlashCap.Core": "1.11.0"
+        }
+      },
       "Markdown.Avalonia": {
         "type": "Direct",
         "requested": "[11.0.3-a1, )",
@@ -109,15 +118,6 @@
         "requested": "[3.3.4, )",
         "resolved": "3.3.4",
         "contentHash": "0k2Jwpc8eq0hjOtX6TxRkHm9clkJ2PAQ3heEHgqIJZcsfdFosC/iyz18nsgTVDDWpID80rC7aiYK7ripx+Qndg=="
-      },
-      "QRackers": {
-        "type": "Direct",
-        "requested": "[1.1.0, )",
-        "resolved": "1.1.0",
-        "contentHash": "a44f7v+IVAI+Rz2PM+EdzreEBbgT9ffOj2B8kiBAKAM4DcgHieaN/qN5RsZwUuFX3TF1HGblZ20aM1jbD+t/Kg==",
-        "dependencies": {
-          "SkiaSharp": "2.88.3"
-        }
       },
       "ReactiveUI.Avalonia": {
         "type": "Direct",
@@ -145,6 +145,12 @@
         "requested": "[3.119.0, )",
         "resolved": "3.119.0",
         "contentHash": "oBvfueHtYGTmVHkVebZ6lMYN5nCXR/eN5e7a9VGHca1Z0bt8G5QGLtsjPA+hJ30ZK2wq3i02Zoej2aZDIpvcHA=="
+      },
+      "ZXing.Net": {
+        "type": "Direct",
+        "requested": "[0.16.11, )",
+        "resolved": "0.16.11",
+        "contentHash": "OZfAVu88hl87BffQ+rlWCj/vLvAhhCK4QnFaoveeF/MY8SjHNSYBQ3qyUEWlPKNgBQGh1syXhCDg10vUnCsqkg=="
       },
       "Avalonia.AvaloniaEdit": {
         "type": "Transitive",
@@ -278,6 +284,11 @@
         "type": "Transitive",
         "resolved": "1.2.1",
         "contentHash": "nSudK8LeKSu7T/N/6NVZNjUniMYagfzVo8yT2XwZ9BOVbWYQH3EQ8oviuztJ7AfO8PlRDsYIWboZuzIg94hhzQ=="
+      },
+      "FlashCap.Core": {
+        "type": "Transitive",
+        "resolved": "1.11.0",
+        "contentHash": "vEEUwQmpITV2iBgRU+YYl+Dr+Tm/1T/nXfnSLyLQSbBIWMlF/NO22OqU4ysfSNEb9TN6w+QK0bqGFMmnN13+Ag=="
       },
       "HarfBuzzSharp": {
         "type": "Transitive",

@@ -22,6 +22,7 @@ public partial class QrCodeReader
 
 	public bool IsPlatformSupported =>
 		RuntimeInformation.IsOSPlatform(OSPlatform.Linux) ||
+		RuntimeInformation.IsOSPlatform(OSPlatform.OSX) ||
 		RuntimeInformation.IsOSPlatform(OSPlatform.Windows);
 
 	public IObservable<(string decoded, Bitmap bitmap)> Read()
