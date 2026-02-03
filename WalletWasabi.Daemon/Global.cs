@@ -257,19 +257,8 @@ public class Global
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		int maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-		var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
-		ICompactFilterProvider filtersProvider =
-			new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
-
-		if (_bitcoinRpcClient is not null)
-		{
-			var supportsBlockFilters = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-			if (supportsBlockFilters)
-			{
-				filtersProvider = new BitcoinRpcFilterProvider(_bitcoinRpcClient);
-			}
-		}
+		ICompactFilterProvider filtersProvider = await GetFilterProviderAsync() ??
+		                                         throw new NotSupportedException("Neither backend URI is specified nor a Bitcoin RPC client able to provide compact filters exists.");
 
 		Spawn("Synchronizer",
 			Service("Wasabi Index-Based Synchronizer",
@@ -277,6 +266,28 @@ public class Global
 					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
 				)), cancellationToken)
 			.DisposeUsing(_disposables);
+		return;
+
+		async Task<ICompactFilterProvider?> GetFilterProviderAsync()
+		{
+			if (_bitcoinRpcClient is not null)
+			{
+				var supportsBlockFilters = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
+				if (supportsBlockFilters)
+				{
+					return new BitcoinRpcFilterProvider(_bitcoinRpcClient);
+				}
+			}
+
+			if (!string.IsNullOrEmpty(Config.BackendUri))
+			{
+				var maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
+				var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
+				return new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
+			}
+
+			return null;
+		}
 	}
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
