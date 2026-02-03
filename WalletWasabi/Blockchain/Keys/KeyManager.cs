@@ -372,7 +372,7 @@ public class KeyManager
 		{
 			var (generator, generatorSetter) = purpose switch
 			{
-				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => ((HdPubKeyGenerator?) SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator?>) (g => SegwitExternalKeyGenerator = g)),
+				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => (SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator?>) (g => SegwitExternalKeyGenerator = g)),
 				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, g => TaprootExternalKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),

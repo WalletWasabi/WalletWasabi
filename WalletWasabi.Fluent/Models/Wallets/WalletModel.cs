@@ -33,7 +33,7 @@ public partial class WalletModel : ReactiveObject
 		Wallet = wallet;
 		AmountProvider = amountProvider;
 
-		Auth = new WalletAuthModel(this, Wallet);
+		Auth = new WalletAuthModel(Wallet);
 		Loader = new WalletLoadWorkflow(Wallet);
 		Settings = new WalletSettingsModel(Wallet.KeyManager);
 
@@ -52,8 +52,8 @@ public partial class WalletModel : ReactiveObject
 		Addresses = new AddressesModel(Wallet);
 
 		Loaded = Services.EventBus.AsObservable<WalletLoaded>()
-				  .ObserveOn(RxApp.MainThreadScheduler)
-				  .Select(_ => Wallet.Loaded);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Select(_ => Wallet.Loaded);
 
 		Privacy = new WalletPrivacyModel(this, Wallet);
 

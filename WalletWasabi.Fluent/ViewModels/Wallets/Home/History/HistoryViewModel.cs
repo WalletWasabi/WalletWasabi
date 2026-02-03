@@ -1,4 +1,3 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
@@ -14,7 +13,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -190,6 +188,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed with the disposables
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
 		{
 			Columns =
@@ -201,6 +200,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				ActionsColumn(),
 			}
 		}.DisposeWith(disposables);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 		Source.RowSelection!.SingleSelect = true;
 
