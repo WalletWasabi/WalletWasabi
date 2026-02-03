@@ -25,7 +25,7 @@ public class MultipartyTransactionStateTests
 		(var coin3, var ownershipProof3) = WabiSabiFactory.CreateCoinWithOwnershipProof(roundId: round.Id);
 
 		// Three events / three states
-		var state0 = round.Assert<ConstructionState>();
+		var state0 = round.CoinjoinState;
 		var state1 = state0.AddInput(coin1, ownershipProof1, commitmentData);
 		var state2 = state1.AddInput(coin2, ownershipProof2, commitmentData);
 		var state3 = state2.AddInput(coin3, ownershipProof3, commitmentData);

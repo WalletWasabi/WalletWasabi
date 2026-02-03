@@ -66,7 +66,7 @@ public class StepOutputRegistrationTests
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
-		var tx = round.Assert<SigningState>().CreateTransaction();
+		var tx = round.CoinjoinState.CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
 		Assert.Equal(2, tx.Outputs.Count);
 
@@ -106,7 +106,7 @@ public class StepOutputRegistrationTests
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
-		var tx = round.Assert<SigningState>().CreateTransaction();
+		var tx = round.CoinjoinState.CreateTransaction();
 		Assert.Equal(2, tx.Inputs.Count);
 		Assert.Equal(2, tx.Outputs.Count);
 		Assert.Contains(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
@@ -159,11 +159,11 @@ public class StepOutputRegistrationTests
 		var extraAlice = WabiSabiFactory.CreateAlice(round.Parameters.MiningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize) + txParameters.AllowedOutputAmounts.Min - new Money(1L), round);
 		extraAlice.ReadyToSign = true;
 		round.Alices.Add(extraAlice);
-		round.CoinjoinState = round.Assert<ConstructionState>().AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
+		round.CoinjoinState = round.CoinjoinState.AddInput(extraAlice.Coin, extraAlice.OwnershipProof, WabiSabiFactory.CreateCommitmentData(round.Id));
 
 		await arena.TriggerAndWaitRoundAsync(token);
 		Assert.Equal(Phase.TransactionSigning, round.Phase);
-		var tx = round.Assert<SigningState>().CreateTransaction();
+		var tx = round.CoinjoinState.CreateTransaction();
 		Assert.Equal(3, tx.Inputs.Count);
 		Assert.Equal(2, tx.Outputs.Count);
 		Assert.DoesNotContain(round.CoordinatorScript, tx.Outputs.Select(x => x.ScriptPubKey));
