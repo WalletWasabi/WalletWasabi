@@ -2,7 +2,7 @@ using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Coinjoins;
-public class CoinjoinCoinListView : UserControl
+public partial class CoinjoinCoinListView : UserControl
 {
 	public CoinjoinCoinListView()
 	{

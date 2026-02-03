@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.StatusIcon;
 
-public class TorIssues : UserControl
+public partial class TorIssues : UserControl
 {
 	public TorIssues()
 	{

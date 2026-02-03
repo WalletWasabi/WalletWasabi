@@ -6,7 +6,7 @@ using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.Controls;
 
-public class PrivacyTextPresenter : UserControl
+public partial class PrivacyTextPresenter : UserControl
 {
 	public static readonly StyledProperty<int> MaxPrivacyCharsProperty =
 		AvaloniaProperty.Register<PrivacyTextPresenter, int>(nameof(MaxPrivacyChars), int.MaxValue);
@@ -39,9 +39,10 @@ public class PrivacyTextPresenter : UserControl
 
 	private GlyphRun? CreateGlyphRun(double width)
 	{
-		var privacyChar = UiConstants.PrivacyChar;
+		/*
+ 		var privacyChar = UiConstants.PrivacyChar;
 
-		var glyphTypeface = new Typeface((FontFamily?)FontFamily).GlyphTypeface;
+		var glyphTypeface = new Typeface(FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
 
 		var scale = FontSize / glyphTypeface.Metrics.DesignEmHeight;
@@ -57,6 +58,8 @@ public class PrivacyTextPresenter : UserControl
 		var glyphs = Enumerable.Repeat(glyph, count).ToArray();
 
 		return new GlyphRun(glyphTypeface, FontSize, characters, glyphs);
+		*/
+		return null;
 	}
 
 	protected override Size MeasureOverride(Size availableSize)

@@ -7,7 +7,7 @@
              x:CompileBindings="True"
              x:DataType="vm:SendFeeViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendFeeView"
-             x:Name="SendFeeView">
+             x:Name="SendFeeViewControl">
   <UserControl.Styles>
     <!-- Slider Fee -->
     <Style Selector="Slider.cursor">
@@ -165,8 +165,8 @@
                 Value="{Binding SliderValue}"
                 IsVisible="{Binding EnableCursor}">
           <Interaction.Behaviors>
-            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
-            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeView.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
+            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderRightCommand}" IsEnabled="{Binding #SendFeeViewControl.DataContext.IsActive}" x:CompileBindings="False" Key="Right" EventRoutingStrategy="Tunnel" />
+            <ExecuteCommandOnKeyDownBehavior Command="{Binding MoveSliderLeftCommand}" IsEnabled="{Binding #SendFeeViewControl.DataContext.IsActive}" x:CompileBindings="False" Key="Left" EventRoutingStrategy="Tunnel" />
           </Interaction.Behaviors>
         </Slider>
         <Panel>

@@ -8,7 +8,7 @@ using WalletWasabi.Fluent.Screenshot;
 
 namespace WalletWasabi.Fluent.Views;
 
-public class MainWindow : Window
+public partial class MainWindow : Window
 {
 	public MainWindow()
 	{

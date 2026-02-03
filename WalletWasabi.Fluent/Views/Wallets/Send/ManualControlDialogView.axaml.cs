@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Send;
 
-public class ManualControlDialogView : UserControl
+public partial class ManualControlDialogView : UserControl
 {
 	public ManualControlDialogView()
 	{

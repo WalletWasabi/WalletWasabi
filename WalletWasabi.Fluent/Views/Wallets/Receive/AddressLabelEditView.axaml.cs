@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Receive;
 
-public class AddressLabelEditView : UserControl
+public partial class AddressLabelEditView : UserControl
 {
 	public AddressLabelEditView()
 	{
