@@ -30,12 +30,6 @@ public class TagsBox : TemplatedControl
 	private Control? _containerControl;
 	private StringComparison _stringComparison;
 	private bool _isInputEnabled = true;
-	private IList<string>? _suggestions;
-	private IEnumerable<string>? _items;
-	private IEnumerable<string>? _topItems;
-	private bool _requestAdd;
-	private string? _defaultLabel;
-
 	public static readonly StyledProperty<bool> IsCurrentTextValidProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(IsCurrentTextValid));
 
@@ -101,8 +95,8 @@ public class TagsBox : TemplatedControl
 	[Content]
 	public IEnumerable<string>? Items
 	{
-		get => _items;
-		set => SetAndRaise(ItemsProperty, ref _items, value);
+		get;
+		set => SetAndRaise(ItemsProperty, ref field, value);
 	}
 
 	public bool IsCurrentTextValid
@@ -113,11 +107,11 @@ public class TagsBox : TemplatedControl
 
 	public IEnumerable<string>? TopItems
 	{
-		get => _topItems;
-		set => SetAndRaise(TopItemsProperty, ref _topItems, value);
+		get;
+		set => SetAndRaise(TopItemsProperty, ref field, value);
 	}
 
-	public string Watermark
+	public string? Watermark
 	{
 		get => GetValue(WatermarkProperty);
 		set => SetValue(WatermarkProperty, value);
@@ -125,8 +119,8 @@ public class TagsBox : TemplatedControl
 
 	public bool RequestAdd
 	{
-		get => _requestAdd;
-		set => SetAndRaise(RequestAddProperty, ref _requestAdd, value);
+		get;
+		set => SetAndRaise(RequestAddProperty, ref field, value);
 	}
 
 	public bool ForceAdd
@@ -155,8 +149,8 @@ public class TagsBox : TemplatedControl
 
 	public IList<string>? Suggestions
 	{
-		get => _suggestions;
-		set => SetAndRaise(SuggestionsProperty, ref _suggestions, value);
+		get;
+		set => SetAndRaise(SuggestionsProperty, ref field, value);
 	}
 
 	public bool IsReadOnly
@@ -199,8 +193,8 @@ public class TagsBox : TemplatedControl
 
 	public string? DefaultLabel
 	{
-		get => _defaultLabel;
-		set => SetAndRaise(DefaultLabelProperty, ref _defaultLabel, value);
+		get;
+		set => SetAndRaise(DefaultLabelProperty, ref field, value);
 	}
 
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
