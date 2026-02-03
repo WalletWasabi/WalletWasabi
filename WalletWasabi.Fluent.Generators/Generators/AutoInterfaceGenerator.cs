@@ -3,6 +3,7 @@ using Microsoft.CodeAnalysis.CSharp;
 using Microsoft.CodeAnalysis.CSharp.Syntax;
 using System.Collections.Generic;
 using System.Linq;
+using System.Reflection;
 using WalletWasabi.Fluent.Generators.Abstractions;
 
 namespace WalletWasabi.Fluent.Generators.Generators;
@@ -42,24 +43,55 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 		var interfaceName = $"I{namedTypeSymbol.Name}";
 
 		var members = namedTypeSymbol.GetMembers()
-			.Where(x => x.DeclaredAccessibility == Accessibility.Public)
 			.Where(x => !x.IsStatic)
 			.ToList();
 
 		var namespaces = new List<string>();
 		var properties = new List<string>();
 		var methods = new List<string>();
+
 		foreach (var member in members)
 		{
+			// Only [AutoNotify] fields are private, all other members have to be public.
+			if (member is IFieldSymbol field)
+			{
+				var attributes = field.GetAttributes();
+				var attributeData = attributes.FirstOrDefault(ad => ad.AttributeClass?.ToDisplayString() == AutoNotifyGenerator.AutoNotifyAttributeDisplayString);
+
+				if (attributeData is not null)
+				{
+					string? propertyName = AutoNotifyGenerator.GetPropertyName(field.Name, attributeData);
+					if (propertyName is not null)
+					{
+						var type = field.Type.SimplifyType(namespaces);
+
+						string? setterModifier = AutoNotifyGenerator.GetSetterModifier(attributeData);
+						if (setterModifier is null)
+						{
+							properties.Add('\t' + $$"""{{type}} {{propertyName}} { get; }""");
+						}
+						else
+						{
+							var setter = setterModifier.Length > 0 ? setterModifier + " set;" : "set;";
+							properties.Add('\t' + $$"""{{type}} {{propertyName}} { get; {{setter}} }""");
+						}
+					}
+				}
+			}
+
+			if (member.DeclaredAccessibility != Accessibility.Public)
+			{
+				continue;
+			}
+
 			if (member is IPropertySymbol property)
 			{
-				var accessors =
-					property.SetMethod switch
-					{
-						IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
-						IMethodSymbol s => "{ get; set; }",
-						_ => "{ get; }"
-					};
+				var accessors = property.SetMethod switch
+				{
+					IMethodSymbol s when s.IsInitOnly => "{ get; init; }",
+					IMethodSymbol s => "{ get; set; }",
+					_ => "{ get; }"
+				};
 
 				var type = property.Type.SimplifyType(namespaces);
 				properties.Add($"\t{type} {property.Name} {accessors}");
@@ -95,11 +127,11 @@ internal class AutoInterfaceGenerator : GeneratorStep<ClassDeclarationSyntax>
 
 				if (!IsInterfaceMethodImplementation(method))
 				{
-					methodSignature = $"\t {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
+					methodSignature = $"\t{returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)});";
 				}
 				else
 				{
-					methodSignature = $"\t /* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
+					methodSignature = $"\t/* SKIPPED: Implements an interface */ /* {returnType} {method.Name}{genericTypeOrEmpty}({string.Join(", ", parameters)}); */";
 				}
 
 				methods.Add(methodSignature);
