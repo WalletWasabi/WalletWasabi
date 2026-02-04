@@ -16,13 +16,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
 {
 	private Height _height;
-	private SmartTransaction? _spenderTransaction;
-	private bool _coinJoinInProgress;
-	private DateTimeOffset? _bannedUntilUtc;
-	private bool _spentAccordingToNetwork;
-
 	private bool _confirmed;
-	private bool _isExcludedFromCoinJoin;
 
 	public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 	{
@@ -63,20 +57,20 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public SmartTransaction? SpenderTransaction
 	{
-		get => _spenderTransaction;
-		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public bool CoinJoinInProgress
 	{
-		get => _coinJoinInProgress;
-		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public DateTimeOffset? BannedUntilUtc
 	{
-		get => _bannedUntilUtc;
-		set => RaiseAndSetIfChanged(ref _bannedUntilUtc, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public HdPubKey HdPubKey { get; }
@@ -91,8 +85,8 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool IsExcludedFromCoinJoin
 	{
-		get => _isExcludedFromCoinJoin;
-		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	/// <returns>False if external, or the tx inputs are all external.</returns>
