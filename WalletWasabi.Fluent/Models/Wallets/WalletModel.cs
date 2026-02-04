@@ -15,20 +15,80 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletModel : INotifyPropertyChanged;
+public partial interface IWalletModel : INotifyPropertyChanged
+{
+	bool IsLoggedIn { get; set; }
+
+	bool IsLoaded { get; set; }
+
+	bool IsSelected { get; set; }
+
+	IObservable<bool> IsCoinjoinRunning { get; }
+
+	IObservable<bool> IsCoinjoinStarted { get; }
+
+	bool IsCoinJoinEnabled { get; }
+
+	IAddressesModel Addresses { get; }
+
+	WalletId Id { get; }
+
+	string Name { get; }
+
+	Network Network { get; }
+
+	IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes { get; }
+
+	bool SeveralReceivingScriptTypes { get; }
+
+	IWalletTransactionsModel Transactions { get; }
+
+	IObservable<Amount> Balances { get; }
+
+	IObservable<bool> HasBalance { get; }
+
+	IWalletCoinsModel Coins { get; }
+
+	IWalletAuthModel Auth { get; }
+
+	IWalletLoadWorkflow Loader { get; }
+
+	IWalletSettingsModel Settings { get; }
+
+	IWalletPrivacyModel Privacy { get; }
+
+	IWalletCoinjoinModel? Coinjoin { get; }
+
+	IObservable<bool> Loaded { get; }
+
+	IAmountProvider AmountProvider { get; }
+
+	bool IsHardwareWallet { get; }
+
+	bool IsWatchOnlyWallet { get; }
+
+	IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent);
+
+	IWalletStatsModel GetWalletStats();
+
+	IWalletInfoModel GetWalletInfo();
+
+	IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow);
+
+	void Rename(string newWalletName);
+}
 
 [AppLifetime]
-[AutoInterface]
-public partial class WalletModel : ReactiveObject
+public partial class WalletModel : ReactiveObject, IWalletModel
 {
-	private readonly Lazy<IWalletCoinjoinModel?> _coinjoin;
+	private readonly Lazy<WalletCoinjoinModel?> _coinjoin;
 	private readonly Lazy<IWalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isLoaded;
 	[AutoNotify] private bool _isSelected;
 
-	public WalletModel(Wallet wallet,  IAmountProvider amountProvider)
+	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
 	{
 		Wallet = wallet;
 		AmountProvider = amountProvider;
@@ -116,9 +176,9 @@ public partial class WalletModel : ReactiveObject
 
 	public IWalletSettingsModel Settings { get; }
 
-	public IWalletPrivacyModel Privacy { get; }
+	public WalletPrivacyModel Privacy { get; }
 
-	public IWalletCoinjoinModel? Coinjoin => _coinjoin.Value;
+	public WalletCoinjoinModel? Coinjoin => _coinjoin.Value;
 
 	public IObservable<bool> Loaded { get; }
 
@@ -138,12 +198,12 @@ public partial class WalletModel : ReactiveObject
 		return new WalletStatsModel(this, Wallet);
 	}
 
-	public IWalletInfoModel GetWalletInfo()
+	public WalletInfoModel GetWalletInfo()
 	{
 		return new WalletInfoModel(Wallet);
 	}
 
-	public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow)
+	public PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow)
 	{
 		return new PrivacySuggestionsModel(sendFlow);
 	}
