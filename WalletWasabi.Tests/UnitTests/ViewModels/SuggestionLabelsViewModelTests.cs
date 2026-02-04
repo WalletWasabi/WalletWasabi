@@ -189,7 +189,7 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<bool> IsCoinjoinRunning { get; } = Observable.Return(true);
 		public IObservable<bool> IsCoinjoinStarted { get; } = Observable.Return(true);
 		public bool IsCoinJoinEnabled { get; } = true;
-		public IAddressesModel Addresses => throw new NotSupportedException();
+		public AddressesModel Addresses => throw new NotSupportedException();
 
 		public WalletId Id => throw new NotSupportedException();
 		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
@@ -204,14 +204,14 @@ public class SuggestionLabelsViewModelTests
 		public IObservable<bool> Loaded => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => throw new NotSupportedException();
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-		public IWalletAuthModel Auth => throw new NotSupportedException();
-		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
+		public WalletAuthModel Auth => throw new NotSupportedException();
+		public WalletLoadWorkflow Loader => throw new NotSupportedException();
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
 		public IWalletCoinsModel Coins => throw new NotSupportedException();
-		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
-		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
+		public WalletPrivacyModel Privacy => throw new NotSupportedException();
+		public WalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 		public Network Network => throw new NotSupportedException();
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		WalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
@@ -233,7 +233,7 @@ public class SuggestionLabelsViewModelTests
 			return _mostUsedLabels;
 		}
 
-		public IWalletInfoModel GetWalletInfo()
+		public WalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
 		}
@@ -243,7 +243,7 @@ public class SuggestionLabelsViewModelTests
 			throw new NotImplementedException();
 		}
 
-		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
+		public PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

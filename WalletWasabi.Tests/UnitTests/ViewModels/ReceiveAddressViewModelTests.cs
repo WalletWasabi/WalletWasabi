@@ -50,7 +50,7 @@ public class ReceiveAddressViewModelTests
 		public IObservable<bool> IsCoinjoinRunning { get; } = Observable.Return(true);
 		public IObservable<bool> IsCoinjoinStarted { get; } = Observable.Return(true);
 		public bool IsCoinJoinEnabled { get; } = true;
-		public IAddressesModel Addresses => throw new NotSupportedException();
+		public AddressesModel Addresses => throw new NotSupportedException();
 
 		public WalletId Id => throw new NotSupportedException();
 		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
@@ -65,16 +65,16 @@ public class ReceiveAddressViewModelTests
 		public IObservable<bool> Loaded => throw new NotSupportedException();
 		bool IWalletModel.IsHardwareWallet => false;
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
-		public IWalletAuthModel Auth => throw new NotSupportedException();
-		public IWalletLoadWorkflow Loader => throw new NotSupportedException();
+		public WalletAuthModel Auth => throw new NotSupportedException();
+		public WalletLoadWorkflow Loader => throw new NotSupportedException();
 		public IWalletSettingsModel Settings => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-		public IWalletPrivacyModel Privacy => throw new NotSupportedException();
-		public IWalletCoinjoinModel Coinjoin => throw new NotSupportedException();
+		public WalletPrivacyModel Privacy => throw new NotSupportedException();
+		public WalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
 		public Network Network => throw new NotSupportedException();
-		IWalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
+		WalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 		public IAmountProvider AmountProvider => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
@@ -90,7 +90,7 @@ public class ReceiveAddressViewModelTests
 			throw new NotSupportedException();
 		}
 
-		public IWalletInfoModel GetWalletInfo()
+		public WalletInfoModel GetWalletInfo()
 		{
 			throw new NotSupportedException();
 		}
@@ -100,7 +100,7 @@ public class ReceiveAddressViewModelTests
 			throw new NotImplementedException();
 		}
 
-		public IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
+		public PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendParameters)
 		{
 			throw new NotImplementedException();
 		}

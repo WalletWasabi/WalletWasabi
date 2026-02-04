@@ -29,7 +29,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	bool IsCoinJoinEnabled { get; }
 
-	IAddressesModel Addresses { get; }
+	AddressesModel Addresses { get; }
 
 	WalletId Id { get; }
 
@@ -41,7 +41,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	bool SeveralReceivingScriptTypes { get; }
 
-	IWalletTransactionsModel Transactions { get; }
+	WalletTransactionsModel Transactions { get; }
 
 	IObservable<Amount> Balances { get; }
 
@@ -49,15 +49,15 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	IWalletCoinsModel Coins { get; }
 
-	IWalletAuthModel Auth { get; }
+	WalletAuthModel Auth { get; }
 
-	IWalletLoadWorkflow Loader { get; }
+	WalletLoadWorkflow Loader { get; }
 
 	IWalletSettingsModel Settings { get; }
 
-	IWalletPrivacyModel Privacy { get; }
+	WalletPrivacyModel Privacy { get; }
 
-	IWalletCoinjoinModel? Coinjoin { get; }
+	WalletCoinjoinModel? Coinjoin { get; }
 
 	IObservable<bool> Loaded { get; }
 
@@ -71,9 +71,9 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	IWalletStatsModel GetWalletStats();
 
-	IWalletInfoModel GetWalletInfo();
+	WalletInfoModel GetWalletInfo();
 
-	IPrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow);
+	PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow);
 
 	void Rename(string newWalletName);
 }
@@ -148,7 +148,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public bool IsCoinJoinEnabled => _coinjoin.Value is not null;
 
-	public IAddressesModel Addresses { get; }
+	public AddressesModel Addresses { get; }
 
 	internal Wallet Wallet { get; }
 
@@ -162,7 +162,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public bool SeveralReceivingScriptTypes => AvailableScriptPubKeyTypes.Contains(ScriptPubKeyType.TaprootBIP86);
 
-	public IWalletTransactionsModel Transactions { get; }
+	public WalletTransactionsModel Transactions { get; }
 
 	public IObservable<Amount> Balances { get; }
 
@@ -170,9 +170,9 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IWalletCoinsModel Coins => _coins.Value;
 
-	public IWalletAuthModel Auth { get; }
+	public WalletAuthModel Auth { get; }
 
-	public IWalletLoadWorkflow Loader { get; }
+	public WalletLoadWorkflow Loader { get; }
 
 	public IWalletSettingsModel Settings { get; }
 
