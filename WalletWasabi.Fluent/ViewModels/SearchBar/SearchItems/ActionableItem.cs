@@ -14,7 +14,7 @@ public class ActionableItem : IActionableItem
 		Description = description;
 		Activate = onExecution;
 		Category = category;
-		Keywords = keywords ?? Enumerable.Empty<string>();
+		Keywords = keywords ?? [];
 		Command = ReactiveCommand.CreateFromTask(onExecution);
 	}
 
