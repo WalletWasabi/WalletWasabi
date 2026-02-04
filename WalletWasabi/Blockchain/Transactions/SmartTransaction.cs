@@ -24,9 +24,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public SmartTransaction(
 		Transaction transaction,
-		Height height,
+		Height? height = null,
 		uint256? blockHash = null,
-		int blockIndex = 0,
+		int blockIndex = 0, // FIXME: unconfirmed/unknown txs are not in the genesis block
 		LabelsArray? labels = null,
 		bool isReplacement = false,
 		bool isSpeedup = false,
@@ -40,7 +40,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 		Labels = labels ?? LabelsArray.Empty;
 
-		Height = height;
+		Height = height ?? Unknown;
 		BlockHash = blockHash;
 		BlockIndex = blockIndex;
 
@@ -197,13 +197,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 					|| (x.Height == Height.Mempool && Height == Height.Unknown)) // It's ok if we didn't yet get to the mempool to consider this CPFP.
 			: Enumerable.Empty<SmartTransaction>();
 
-	public bool Confirmed => Height.Type == HeightType.Chain;
+	public bool Confirmed => Height is ChainHeight;
 
 	public uint256 GetHash() => Transaction.GetHash();
 
-	public bool IsImmature(int bestHeight)
+	public bool IsImmature(ChainHeight bestHeight)
 	{
-		return Transaction.IsCoinBase && Height >= bestHeight - 100;
+		return Transaction.IsCoinBase && Height is ChainHeight h && h + 100 >= bestHeight;
 	}
 
 	#endregion Members
@@ -493,8 +493,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				}
 			}
 
-			if (!Height.TryParse(heightString, out Height height))
+			if (!Height.TryParse(heightString, out Height? height))
 			{
+				// FIXME: Unknown is for txs that have not been broadcasted. What we have here is an input error.
 				height = Height.Unknown;
 			}
 			if (!uint256.TryParse(blockHashString, out var blockHash))

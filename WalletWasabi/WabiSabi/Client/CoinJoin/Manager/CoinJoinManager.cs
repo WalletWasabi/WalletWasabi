@@ -53,7 +53,7 @@ public class CoinJoinManager : BackgroundService
 	private readonly CoinPrison _coinPrison;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
-	private int _serverTipHeight;
+	private uint _serverTipHeight;
 
 	/// <summary>
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.

@@ -91,9 +91,9 @@ public static partial class TextHelpers
 			.Replace(" ", "");
 	}
 
-	public static string GetConfirmationText(int confirmations)
+	public static string GetConfirmationText(uint confirmations)
 	{
-		return $"Confirmed ({confirmations} confirmation{AddSIfPlural(confirmations)})";
+		return $"Confirmed ({confirmations} confirmation{AddSIfPlural((int)confirmations)})";
 	}
 
 	public static string FormatPercentageDiff(double n)

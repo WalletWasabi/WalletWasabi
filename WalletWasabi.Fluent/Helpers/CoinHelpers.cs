@@ -23,7 +23,7 @@ public static class CoinHelpers
 		return coin.HdPubKey.ClusterLabels;
 	}
 
-	public static int GetConfirmations(this SmartCoin coin) => coin.Transaction.GetConfirmations((int)Services.SmartHeaderChain.TipHeight);
+	public static uint GetConfirmations(this SmartCoin coin) => coin.Transaction.GetConfirmations(Services.SmartHeaderChain.TipHeight);
 
 	public static PrivacyLevel GetPrivacyLevel(this SmartCoin coin, int privateThreshold)
 	{

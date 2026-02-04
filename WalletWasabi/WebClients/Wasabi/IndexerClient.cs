@@ -18,7 +18,7 @@ public abstract record FiltersResponse
 
 	public record BestBlockUnknown : FiltersResponse;
 
-	public record NewFiltersAvailable(int BestHeight, FilterModel[] Filters) : FiltersResponse;
+	public record NewFiltersAvailable(uint BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
 public class IndexerClient

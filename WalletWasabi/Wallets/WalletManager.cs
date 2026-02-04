@@ -322,7 +322,7 @@ public class WalletManager : IWalletProvider
 	{
 		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
-			km.SetMaxBestHeight(new Height(bestHeight));
+			km.SetMaxBestHeight(bestHeight);
 		}
 	}
 

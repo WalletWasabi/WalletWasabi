@@ -429,7 +429,7 @@ public class CoinsRegistryTests
 		tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		tx.Outputs.Add(amount, scriptPubKey);
 
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight((uint)height));
 	}
 
 	/// <summary>Creates a transaction that fully spends the given coin to a single outpoint (leaving rest for fees).</summary>

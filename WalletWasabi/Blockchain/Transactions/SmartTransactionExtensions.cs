@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Transactions.Summary;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
@@ -38,8 +37,12 @@ public static class SmartTransactionExtensions
 		return known.Concat(unknown);
 	}
 
-	public static int GetConfirmations(this SmartTransaction transaction, int blockchainTipHeight)
-		=> transaction.Height.Type == HeightType.Chain ? blockchainTipHeight - transaction.Height.Value + 1 : 0;
+	public static uint GetConfirmations(this SmartTransaction transaction, uint blockchainTipHeight)
+		=> transaction.Height switch
+		{
+			ChainHeight(var height) => blockchainTipHeight - height + 1,
+			_ => 0
+		};
 
 	public static Money? GetFee(this SmartTransaction transaction)
 	{

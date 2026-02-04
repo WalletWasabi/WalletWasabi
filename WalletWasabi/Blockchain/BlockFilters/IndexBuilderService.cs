@@ -157,20 +157,20 @@ public class IndexBuilderService : BackgroundService
 		}
 	}
 
-	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
+	public async Task<(ChainHeight bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
 			if (filterModels.Count > 0)
 			{
-				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
+				return (new Height.ChainHeight((uint)_indexStorage.GetBestHeight()), filterModels, true);
 			}
 
 			var lastFilter = GetLastFilterNoLock();
 			return  lastFilter is null
-				? (new Height(HeightType.Unknown), [], false)
-				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
+				? (ChainHeight.Genesis, [], false) // FIXME: This is an error return, we should use Result<S,E> here
+				: (new ChainHeight(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
 		}
 	}
 

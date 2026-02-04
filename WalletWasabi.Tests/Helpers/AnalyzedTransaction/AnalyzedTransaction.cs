@@ -7,13 +7,14 @@ using NBitcoin.Crypto;
 using NBitcoin.DataEncoders;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Analysis;
+using WalletWasabi.Models;
 
 namespace WalletWasabi.Tests.Helpers.AnalyzedTransaction;
 
 public class AnalyzedTransaction : SmartTransaction
 {
 	public AnalyzedTransaction()
-		: base(Transaction.Create(Network.Main), 0)
+		: base(Transaction.Create(Network.Main), Height.Unknown)
 	{
 	}
 

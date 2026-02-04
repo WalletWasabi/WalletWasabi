@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -54,7 +53,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["amount"] = x.Amount.Satoshi,
 				["anonymityScore"] = x.HdPubKey.AnonymitySet,
 				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["label"] = x.HdPubKey.Labels.ToString(),
 				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
 				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
@@ -81,7 +80,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["amount"] = x.Amount.Satoshi,
 				["anonymityScore"] = x.HdPubKey.AnonymitySet,
 				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
 				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
 				["spentBy"] = x.SpenderTransaction?.GetHash().ToString()
@@ -426,7 +425,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			x => new JsonRpcResult
 			{
 				["datetime"] = x.FirstSeen,
-				["height"] = x.Height.Value,
+				["height"] =  x.Height.ToString(),
 				["amount"] = x.Amount.Satoshi,
 				["label"] = x.Labels.ToString(),
 				["tx"] = x.GetHash(),
