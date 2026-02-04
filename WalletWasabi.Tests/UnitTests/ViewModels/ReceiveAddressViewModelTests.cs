@@ -52,8 +52,6 @@ public class ReceiveAddressViewModelTests
 		public bool IsCoinJoinEnabled { get; } = true;
 		public IAddressesModel Addresses => throw new NotSupportedException();
 
-		public WalletWasabi.Wallets.Wallet Wallet => throw new NotSupportedException();
-
 		public WalletId Id => throw new NotSupportedException();
 		public IEnumerable<ScriptPubKeyType> AvailableScriptPubKeyTypes => throw new NotSupportedException();
 		public bool SeveralReceivingScriptTypes { get; }
