@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
@@ -9,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 
 public class ActionableItem : IActionableItem
 {
-	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null, IObservable<bool> isVisible = null)
+	public ActionableItem(string name, string description, Func<Task> onExecution, string category, IEnumerable<string>? keywords = null)
 	{
 		Name = name;
 		Description = description;
