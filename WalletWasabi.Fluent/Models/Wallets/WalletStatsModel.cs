@@ -32,7 +32,6 @@ public interface IWalletStatsModel : IDisposable
 	int CoinjoinTransactionCount { get; set; }
 }
 
-[AutoInterface]
 public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();

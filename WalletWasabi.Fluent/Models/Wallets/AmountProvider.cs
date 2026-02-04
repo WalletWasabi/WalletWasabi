@@ -15,7 +15,6 @@ public interface IAmountProvider
 	Amount Create(Money? money);
 }
 
-[AutoInterface]
 public partial class AmountProvider : ReactiveObject, IAmountProvider
 {
 	[AutoNotify] private decimal _usdExchangeRate;

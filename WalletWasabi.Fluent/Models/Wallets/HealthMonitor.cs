@@ -49,7 +49,6 @@ public partial interface IHealthMonitor : IDisposable
 	TorMode UseTor { get; }
 }
 
-[AutoInterface]
 public partial class HealthMonitor : ReactiveObject, IHealthMonitor
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
