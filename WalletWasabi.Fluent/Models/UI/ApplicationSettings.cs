@@ -20,9 +20,77 @@ using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
+public interface IApplicationSettings
+{
+	bool EnableGpu { get; set; }
+
+	string IndexerUri { get; set; }
+
+	Network Network { get; set; }
+
+	bool UseBitcoinRpc { get; set; }
+
+	string BitcoinRpcUri { get; set; }
+
+	string BitcoinRpcCredentialString { get; set; }
+
+	string DustThreshold { get; set; }
+
+	string ExchangeRateProvider { get; set; }
+
+	string FeeRateEstimationProvider { get; set; }
+
+	string ExternalTransactionBroadcaster { get; set; }
+
+	string CoordinatorUri { get; set; }
+
+	string MaxCoinJoinMiningFeeRate { get; set; }
+
+	string AbsoluteMinInputCount { get; set; }
+
+	bool DarkModeEnabled { get; set; }
+
+	bool AutoCopy { get; set; }
+
+	bool AutoPaste { get; set; }
+
+	bool CustomChangeAddress { get; set; }
+
+	bool RunOnSystemStartup { get; set; }
+
+	bool HideOnClose { get; set; }
+
+	TorMode UseTor { get; set; }
+
+	bool TerminateTorOnExit { get; set; }
+
+	bool DownloadNewVersion { get; set; }
+
+	bool PrivacyMode { get; set; }
+
+	bool Oobe { get; set; }
+
+	Version LastVersionHighlightsDisplayed { get; set; }
+
+	WindowState WindowState { get; set; }
+
+	bool DoUpdateOnClose { get; set; }
+
+	string[] ExperimentalFeatures { get; set; }
+
+	bool IsOverridden { get; }
+
+	IObservable<bool> IsRestartNeeded { get; }
+
+	void ResetToDefault();
+
+	bool CheckIfRestartIsNeeded(PersistentConfig config);
+
+	bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString);
+}
+
 [AppLifetime]
-[AutoInterface]
-public partial class ApplicationSettings : ReactiveObject
+public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 {
 	private const int ThrottleTime = 500;
 
