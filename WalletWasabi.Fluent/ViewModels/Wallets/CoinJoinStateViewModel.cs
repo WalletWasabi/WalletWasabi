@@ -74,7 +74,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	private CoinjoinError? _lastPlebStopActivatedEvent;
 
-	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, Wallet walletInstance, IWalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
+	public CoinJoinStateViewModel(UiContext uiContext, IWalletModel wallet, Wallet walletInstance, WalletCoinjoinModel walletCoinjoinModel, WalletSettingsViewModel settings)
 	{
 		UiContext = uiContext;
 		_wallet = wallet;

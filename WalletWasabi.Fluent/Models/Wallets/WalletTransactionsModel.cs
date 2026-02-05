@@ -24,7 +24,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IWalletModel _walletModel;

@@ -5,8 +5,14 @@ using WalletWasabi.Hwi.Models;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class HardwareWalletInterface
+public interface IHardwareWalletInterface
+{
+	Task<HwiEnumerateEntry[]> DetectAsync(CancellationToken cancelToken);
+
+	Task InitHardwareWalletAsync(HwiEnumerateEntry device, CancellationToken cancelToken);
+}
+
+public partial class HardwareWalletInterface : IHardwareWalletInterface
 {
 	public Task<HwiEnumerateEntry[]> DetectAsync(CancellationToken cancelToken)
 	{

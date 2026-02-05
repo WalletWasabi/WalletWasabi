@@ -7,7 +7,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class WalletAuthModel : ReactiveObject
 {
 	private readonly Wallet _wallet;

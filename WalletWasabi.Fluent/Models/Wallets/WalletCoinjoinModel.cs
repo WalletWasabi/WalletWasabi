@@ -13,7 +13,6 @@ using WalletWasabi.Wallets;
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AppLifetime]
-[AutoInterface]
 public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;

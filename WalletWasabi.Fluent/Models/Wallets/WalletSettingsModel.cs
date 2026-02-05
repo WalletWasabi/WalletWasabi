@@ -4,13 +4,44 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public interface IWalletSettingsModel
+{
+	bool IsNewWallet { get; set; }
+
+	bool AutoCoinjoin { get; set; }
+
+	bool PreferPsbtWorkflow { get; set; }
+
+	Money PlebStopThreshold { get; set; }
+
+	int AnonScoreTarget { get; set; }
+
+	bool NonPrivateCoinIsolation { get; set; }
+
+	WalletId? OutputWalletId { get; set; }
+
+	ScriptType DefaultReceiveScriptType { get; set; }
+
+	PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; }
+
+	SendWorkflow DefaultSendWorkflow { get; set; }
+
+	WalletType WalletType { get; }
+
+	bool IsCoinJoinPaused { get; set; }
+
+	WalletId Save();
+
+	void RescanWallet(int startingHeight = 0);
+}
+
 [AppLifetime]
-[AutoInterface]
-public partial class WalletSettingsModel : ReactiveObject
+public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
@@ -23,8 +54,8 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
-	[AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
-	[AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
+	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
+	[AutoNotify] private SendWorkflow _defaultSendWorkflow;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{

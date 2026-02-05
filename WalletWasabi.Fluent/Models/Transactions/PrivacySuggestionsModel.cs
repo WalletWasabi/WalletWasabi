@@ -22,7 +22,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-[AutoInterface]
 public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = Constants.BnBMaximumDifferenceTolerance;
