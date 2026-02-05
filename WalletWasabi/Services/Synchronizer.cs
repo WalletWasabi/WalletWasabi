@@ -3,6 +3,7 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
+using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -17,13 +18,7 @@ using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 namespace WalletWasabi.Services;
 
 
-using FilterFetchingResult = Result<FiltersResponse, FilterFetchingError>;
-
-public enum FilterFetchingError
-{
-	Continue,
-	ContinueAfter30Seconds
-}
+using FilterFetchingResult = Result<FiltersResponse, TimeSpan>;
 
 public interface ICompactFilterProvider
 {
@@ -60,11 +55,11 @@ public class WebApiFilterProvider(int maxFiltersToSync, IHttpClientFactory httpC
 				if (backendCompatible && lastUsedApiVersion != IndexerClient.ApiVersion)
 				{
 					// Next request will be fine, do not throw exception.
-					return FilterFetchingResult.Fail(FilterFetchingError.Continue);
+					return FilterFetchingResult.Fail(TimeSpan.Zero);
 				}
 			}
 
-			return FilterFetchingResult.Fail(FilterFetchingError.ContinueAfter30Seconds);
+			return FilterFetchingResult.Fail(TimeSpan.FromSeconds(30));
 		}
 	}
 
@@ -89,20 +84,21 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 {
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
-		var filters = new List<FilterModel>();
-		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
-		var stopAtHeight = fromHeight + nbOfFiltersToFetch;
-
 		try
 		{
-			var realBlockHash = await bitcoinRpcClient.GetBlockHashAsync((int)fromHeight, cancellationToken).ConfigureAwait(false);
+			var filters = new List<FilterModel>();
+			var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+			var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+			var stopAtHeight = fromHeight + nbOfFiltersToFetch;
+
+			var realBlockHash = await bitcoinRpcClient.GetBlockHashAsync((int) fromHeight, cancellationToken)
+				.ConfigureAwait(false);
 			if (realBlockHash != fromHash)
 			{
 				return new FiltersResponse.BestBlockUnknown();
 			}
 
-			var heights = Enumerable.Range((int)fromHeight + 1, (int)(stopAtHeight - fromHeight)).ToArray();
+			var heights = Enumerable.Range((int) fromHeight + 1, (int) (stopAtHeight - fromHeight)).ToArray();
 
 			var batchClient = bitcoinRpcClient.PrepareBatch();
 			var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
@@ -111,7 +107,8 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 			var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
 
 			var filterBatchClient = bitcoinRpcClient.PrepareBatch();
-			var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken)).ToArray();
+			var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken))
+				.ToArray();
 			await filterBatchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
 
@@ -119,7 +116,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 			{
 				var blockHash = blockHashes[i];
 				var filterResponse = filterResponses[i];
-				var height = (uint)heights[i];
+				var height = (uint) heights[i];
 
 				var filter = new FilterModel(
 					new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
@@ -135,6 +132,14 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
 			return new FiltersResponse.BestBlockUnknown();
+		}
+		catch (Exception e)
+		{
+			var msg = e is HttpRequestException {InnerException: SocketException}
+				? "Cannot connect to get filter from bitcoin RPC"
+				: "Error fetching filter from bitcoin RPC";
+			Logger.LogError($"{msg} - {e.Message}. Retrying in 15 seconds...");
+			return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
 		}
 	}
 }
@@ -168,8 +173,8 @@ public static class Synchronizer
 		}
 		else
 		{
-			var continueAfterSeconds = response.Error == FilterFetchingError.ContinueAfter30Seconds ? 30 : 0;
-			await Task.Delay(TimeSpan.FromSeconds(continueAfterSeconds), cancellationToken).ConfigureAwait(false);
+			var continueAfterSeconds = response.Error;
+			await Task.Delay(continueAfterSeconds, cancellationToken).ConfigureAwait(false);
 		}
 		return Unit.Instance;
 	}
