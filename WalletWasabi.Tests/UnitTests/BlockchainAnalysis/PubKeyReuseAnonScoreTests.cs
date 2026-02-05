@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -223,7 +224,8 @@ public class PubKeyReuseAnonScoreTests
 			Common.Repeat(() => new TxOut(equalOutputAmount, new Key()), 7).Concat(new[] { reusedTxOut, reusedTxOut }),
 			new[] { (Money.Coins(1.1m), 1, BitcoinFactory.CreateHdPubKey(km)) },
 			new[] { (equalOutputAmount, HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) },
-			orderByAmount: false);
+			orderByAmount: false,
+			height: Height.Mempool);
 
 		BlockchainAnalyzer.Analyze(tx);
 
