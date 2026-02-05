@@ -43,6 +43,9 @@ public class Config
 			[ nameof(CoordinatorUri)] = (
 				"The coordinator server's URL to connect to",
 				GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs)),
+			[ nameof(TorBackend)] = (
+				"Tor backend to route communication through",
+				GetTorBackendValue("TorBackend", TorBackend.CTor, cliArgs)),
 			[ nameof(UseTor)] = (
 				"All the communications go through the Tor network",
 				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
@@ -155,6 +158,7 @@ public class Config
 
 	public string BackendUri => GetEffectiveValue<StringValue, string>(nameof(BackendUri));
 	public string CoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(CoordinatorUri));
+	public TorBackend TorBackend => GetEffectiveValue<TorBackendValue, TorBackend>(nameof(TorBackend));
 	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
@@ -356,6 +360,21 @@ public class Config
 		return new LogModeArrayValue(arrayValues, arrayValues, ValueSource.Disk);
 	}
 
+	private static TorBackendValue GetTorBackendValue(string key, TorBackend defaultValue, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!Enum.TryParse(overrideValue, ignoreCase: true, out TorBackend mode))
+			{
+				throw new NotSupportedException($"Tor backend '{overrideValue}' is not supported.");
+			}
+
+			return new TorBackendValue(defaultValue, mode, valueSource.Value);
+		}
+
+		return new TorBackendValue(defaultValue, defaultValue, ValueSource.Disk);
+	}
+
 	private static TorModeValue GetTorModeValue(string key, object value, string[] cliArgs)
 	{
 		TorMode computedValue;
@@ -492,6 +511,7 @@ public class Config
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;
 	private record StringArrayValue(string[] Value, string[] EffectiveValue, ValueSource ValueSource) : ITypedValue<string[]>;
 	private record LogModeArrayValue(LogMode[] Value, LogMode[] EffectiveValue, ValueSource ValueSource) : ITypedValue<LogMode[]>;
+	private record TorBackendValue(TorBackend Value, TorBackend EffectiveValue, ValueSource ValueSource) : ITypedValue<TorBackend>;
 	private record TorModeValue(TorMode Value, TorMode EffectiveValue, ValueSource ValueSource) : ITypedValue<TorMode>;
 	private record NetworkValue(Network Value, Network EffectiveValue, ValueSource ValueSource) : ITypedValue<Network>;
 	private record MoneyValue(Money Value, Money EffectiveValue, ValueSource ValueSource) : ITypedValue<Money>;

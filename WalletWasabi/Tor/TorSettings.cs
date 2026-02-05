@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Net;
+using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -15,9 +16,6 @@ namespace WalletWasabi.Tor;
 /// </summary>
 public class TorSettings
 {
-	/// <summary>Tor binary file name without extension.</summary>
-	public const string TorBinaryFileName = "tor";
-
 	/// <summary>Default port assigned to Tor SOCKS5 for the Wasabi's bundled Tor.</summary>
 	public const int DefaultSocksPort = 37150;
 
@@ -25,6 +23,7 @@ public class TorSettings
 	public const int DefaultControlPort = 37151;
 
 	public TorSettings(
+		TorBackend backend,
 		string dataDir,
 		string distributionFolderPath,
 		bool terminateOnExit,
@@ -36,6 +35,7 @@ public class TorSettings
 		int? owningProcessId = null,
 		bool log = true)
 	{
+		TorBackend = backend;
 		IsCustomTorFolder = torFolder is not null;
 
 		bool defaultWasabiTorPorts = socksPort == DefaultSocksPort && controlPort == DefaultControlPort;
@@ -61,14 +61,34 @@ public class TorSettings
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
+		SocksPort = socksPort;
 		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
-		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+
+		if (TorBackend == TorBackend.Arti && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		{
+			var path = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "arti", "rpc", "arti_rpc_socket");
+			ControlEndpoint = new UnixDomainSocketEndPoint(path);
+		}
+		else
+		{
+			ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+		}
+
 		Bridges = bridges ?? [];
 		OwningProcessId = owningProcessId;
 
-		CookieAuthFilePath = defaultWasabiTorPorts
-			? Path.Combine(dataDir, $"control_auth_cookie")
-			: Path.Combine(dataDir, $"control_auth_cookie_{socksPort}_{controlPort}");
+		if (TorBackend == TorBackend.CTor)
+		{
+			CookieAuthFilePath = defaultWasabiTorPorts
+				? Path.Combine(dataDir, $"control_auth_cookie")
+				: Path.Combine(dataDir, $"control_auth_cookie_{socksPort}_{controlPort}");
+		}
+		else
+		{
+			CookieAuthFilePath = RuntimeInformation.IsOSPlatform(OSPlatform.Windows)
+				? Path.Join(Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData), "torproject", "Arti", "data", "rpc", "arti_rpc_cookie")
+				: null;
+		}
 
 		LogFilePath = Path.Combine(dataDir, "TorLogs.txt");
 		IoHelpers.EnsureContainingDirectoryExists(LogFilePath);
@@ -87,7 +107,12 @@ public class TorSettings
 		_geoIp6Path = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip6");
 	}
 
+	public TorBackend TorBackend { get; }
+
 	public TorMode TorMode { get; }
+
+	/// <summary>Tor binary file name without extension.</summary>
+	public string TorBinaryFileName => TorBackend == TorBackend.CTor ? "tor" : "arti";
 
 	/// <summary><c>true</c> if user specified a custom Tor folder to run a (possibly) different Tor binary than the bundled Tor, <c>false</c> otherwise.</summary>
 	public bool IsCustomTorFolder { get; }
@@ -126,11 +151,14 @@ public class TorSettings
 	/// <summary>Full path to executable file that is used to start Tor process.</summary>
 	public string TorBinaryFilePath { get; }
 
-	/// <summary>Full path to Tor cookie file.</summary>
-	public string CookieAuthFilePath { get; }
+	/// <summary>Full path to Tor cookie file, or <c>null</c> if UNIX domain socket endpoint is used.</summary>
+	public string? CookieAuthFilePath { get; }
 
 	/// <summary>Tor SOCKS5 endpoint.</summary>
 	public EndPoint SocksEndpoint { get; }
+
+	/// <summary>Tor SOCKS5 port.</summary>
+	public int SocksPort { get; }
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; }
@@ -138,7 +166,7 @@ public class TorSettings
 	private readonly string _geoIp6Path;
 
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
-	public static string GetTorBinaryFilePath(string path, OSPlatform? platform = null)
+	public string GetTorBinaryFilePath(string path, OSPlatform? platform = null)
 	{
 		return Path.Combine(path, MicroserviceHelpers.GetFilenameWithExtension(TorBinaryFileName, platform));
 	}
@@ -154,90 +182,115 @@ public class TorSettings
 			port = 9051; // Standard port for Tor control.
 		}
 
-		bool useBridges = Bridges.Length > 0;
+		List<string> arguments;
 
-		// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
-		List<string> arguments = [
-			$"--LogTimeGranularity 1",
-			$"--TruncateLogFile 1",
-			$"--UseBridges {(useBridges ? "1" : "0")}",
-			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
-			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
-			$"--SocksTimeout 30", // Default is 2 minutes.
-			$"--CookieAuthentication 1",
-			$"--ControlPort {port}",
-			$"--CookieAuthFile \"{CookieAuthFilePath}\"",
-			$"--DataDirectory \"{TorDataDir}\"",
-			$"--GeoIPFile \"{_geoIpPath}\"",
-			$"--GeoIPv6File \"{_geoIp6Path}\"",
-			$"--NumEntryGuards 3",
-			$"--NumPrimaryGuards 3",
-			$"--ConfluxEnabled 1",
-			$"--ConfluxClientUX throughput"
-		];
 
-		if (useBridges)
+		if (TorBackend == TorBackend.CTor)
 		{
-			HashSet<string> usedPlugins = [];
+			bool useBridges = Bridges.Length > 0;
 
-			foreach (string bridge in Bridges)
+			// `--SafeLogging 0` is useful for debugging to avoid "[scrubbed]" redactions in Tor log.
+			arguments = [
+				$"--LogTimeGranularity 1",
+				$"--TruncateLogFile 1",
+				$"--UseBridges {(useBridges ? "1" : "0")}",
+				$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
+				$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
+				$"--SocksTimeout 30", // Default is 2 minutes.
+				$"--CookieAuthentication 1",
+				$"--ControlPort {port}",
+				$"--CookieAuthFile \"{CookieAuthFilePath}\"",
+				$"--DataDirectory \"{TorDataDir}\"",
+				$"--GeoIPFile \"{_geoIpPath}\"",
+				$"--GeoIPv6File \"{_geoIp6Path}\"",
+				$"--NumEntryGuards 3",
+				$"--NumPrimaryGuards 3",
+				$"--ConfluxEnabled 1",
+				$"--ConfluxClientUX throughput"
+			];
+
+			if (useBridges)
 			{
-				if (bridge.Contains('\'') || bridge.Contains('"'))
+				HashSet<string> usedPlugins = [];
+
+				foreach (string bridge in Bridges)
 				{
-					Logger.LogError($"Skipping bridge '{bridge}' because it contains a quote or an apostrophe.");
-					continue;
+					if (bridge.Contains('\'') || bridge.Contains('"'))
+					{
+						Logger.LogError($"Skipping bridge '{bridge}' because it contains a quote or an apostrophe.");
+						continue;
+					}
+
+					if (bridge.StartsWith("obfs4 ", StringComparison.Ordinal))
+					{
+						usedPlugins.Add("obfs4");
+					}
+					else if (bridge.StartsWith("webtunnel ", StringComparison.Ordinal))
+					{
+						usedPlugins.Add("webtunnel");
+					}
+					else if (bridge.StartsWith("snowflake ", StringComparison.Ordinal))
+					{
+						usedPlugins.Add("snowflake");
+					}
+					else
+					{
+						throw new NotSupportedException($"Bridge transport of bridge '{bridge}' is not supported.");
+					}
+
+					arguments.Add($"--Bridge \"{bridge}\"");
 				}
 
-				if (bridge.StartsWith("obfs4 ", StringComparison.Ordinal))
+				foreach (string plugin in usedPlugins)
 				{
-					usedPlugins.Add("obfs4");
-				}
-				else if (bridge.StartsWith("webtunnel ", StringComparison.Ordinal))
-				{
-					usedPlugins.Add("webtunnel");
-				}
-				else if (bridge.StartsWith("snowflake ", StringComparison.Ordinal))
-				{
-					usedPlugins.Add("snowflake");
-				}
-				else
-				{
-					throw new NotSupportedException($"Bridge transport of bridge '{bridge}' is not supported.");
-				}
+					string fileNameWithoutExtension = plugin switch
+					{
+						"obfs4" => "lyrebird", // obfs4 was renamed to lyrebird.
+						"webtunnel" => "webtunnel-client",
+						"snowflake" => "snowflake-client",
+						_ => throw new NotSupportedException($"Unknown Tor pluggable transport '{plugin}'."),
+					};
 
-				arguments.Add($"--Bridge \"{bridge}\"");
+					string filename = MicroserviceHelpers.GetCurrentPlatform() == OSPlatform.Windows ? $"{fileNameWithoutExtension}.exe" : $"{fileNameWithoutExtension}";
+					string path = Path.Combine(TorTransportPluginsDir, filename);
+
+					if (!File.Exists(path))
+					{
+						throw new NotSupportedException($"Tor bridge plugin was not found '{path}'.");
+					}
+
+					arguments.Add($"--ClientTransportPlugin \"{plugin} exec {path}\"");
+				}
 			}
-
-			foreach (string plugin in usedPlugins)
-			{
-				string fileNameWithoutExtension = plugin switch
-				{
-					"obfs4" => "lyrebird", // obfs4 was renamed to lyrebird.
-					"webtunnel" => "webtunnel-client",
-					"snowflake" => "snowflake-client",
-					_ => throw new NotSupportedException($"Unknown Tor pluggable transport '{plugin}'."),
-				};
-
-				string filename = MicroserviceHelpers.GetCurrentPlatform() == OSPlatform.Windows ? $"{fileNameWithoutExtension}.exe" : $"{fileNameWithoutExtension}";
-				string path = Path.Combine(TorTransportPluginsDir, filename);
-
-				if (!File.Exists(path))
-				{
-					throw new NotSupportedException($"Tor bridge plugin was not found '{path}'.");
-				}
-
-				arguments.Add($"--ClientTransportPlugin \"{plugin} exec {path}\"");
-			}
+		}
+		else
+		{
+			arguments = [
+				"proxy",
+				"-o", "rpc.enable=true",
+				"-o", "logging.log_sensitive_information=true",
+				"-o", $"\"proxy.socks_listen = {SocksPort}\"",
+			];
 		}
 
 		if (Log)
 		{
-			arguments.Add($"--Log \"notice file {LogFilePath}\"");
+			if (TorBackend == TorBackend.CTor)
+			{
+				arguments.Add($"--Log \"notice file {LogFilePath}\"");
+			}
+			else
+			{
+				arguments.AddRange(["--log-level", "debug"]);
+			}
 		}
 
-		if (TerminateOnExit && OwningProcessId is not null)
+		if (TorBackend == TorBackend.CTor)
 		{
-			arguments.Add($"__OwningControllerProcess {OwningProcessId}");
+			if (TerminateOnExit && OwningProcessId is not null)
+			{
+				arguments.Add($"__OwningControllerProcess {OwningProcessId}");
+			}
 		}
 
 		return string.Join(" ", arguments);

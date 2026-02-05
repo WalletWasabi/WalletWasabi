@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
+using static WalletWasabi.Tor.Control.PipeReaderLineReaderExtension;
 
 namespace WalletWasabi.Tor.Control;
 
@@ -28,7 +29,7 @@ public class TorControlReplyReader
 
 		try
 		{
-			line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+			line = await reader.ReadLineAsync(LineEnding.CRLF, cancellationToken).ConfigureAwait(false);
 		}
 		catch (OperationCanceledException)
 		{
@@ -75,7 +76,7 @@ public class TorControlReplyReader
 
 		while (true)
 		{
-			line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+			line = await reader.ReadLineAsync(LineEnding.CRLF, cancellationToken).ConfigureAwait(false);
 
 			if (line is null)
 			{
@@ -102,12 +103,43 @@ public class TorControlReplyReader
 
 			if (id == '+' && ".".Equals(line, StringComparison.Ordinal))
 			{
-				line = await reader.ReadLineAsync(cancellationToken).ConfigureAwait(false);
+				line = await reader.ReadLineAsync(LineEnding.CRLF, cancellationToken).ConfigureAwait(false);
 				responses.Add(line);
 				break;
 			}
 		}
 
 		return new TorControlReply((StatusCode)code, responseLines: responses);
+	}
+
+	public static async Task<string> ReadRpcMessageAsync(PipeReader reader, CancellationToken cancellationToken)
+	{
+		string line;
+
+		try
+		{
+			while (true)
+			{
+				line = await reader.ReadLineAsync(LineEnding.LF, cancellationToken).ConfigureAwait(false);
+
+				// Skip the banner message which is the first message sent by Arti upon connection.
+				if (line == "{\"arti_rpc\":{}}")
+				{
+					continue;
+				}
+
+				break;
+			}
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
+		}
+		catch (InvalidDataException e)
+		{
+			throw new TorControlReplyParseException("No reply line was received.", e);
+		}
+
+		return line;
 	}
 }

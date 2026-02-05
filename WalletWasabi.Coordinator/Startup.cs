@@ -60,7 +60,7 @@ public class Startup(IConfiguration configuration)
 		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
 		services.AddSingleton(config);
 
-		var torSetting = new TorSettings(dataDir,
+		var torSetting = new TorSettings(TorBackend.CTor, dataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
 			true, TorMode.Enabled, 37155, 37156);
 

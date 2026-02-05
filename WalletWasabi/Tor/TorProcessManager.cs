@@ -27,7 +27,6 @@ public class TorProcessManager : IAsyncDisposable
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
-	/// <summary>For tests.</summary>
 	public TorProcessManager(TorSettings settings, EventBus eventBus)
 	{
 		TorProcess = null;
@@ -246,44 +245,52 @@ public class TorProcessManager : IAsyncDisposable
 					Logger.LogInfo($"Tor is already running on {_settings.SocksEndpoint}");
 					controlClient = await InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
-					// Tor process can crash even between these two commands too.
-					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
-					process = new ProcessAsync(Process.GetProcessById(processId));
-
-					try
+					if (_settings.TorBackend == TorBackend.CTor)
 					{
-						// Note: This is a workaround how to check whether we have sufficient permissions for the process.
-						// Especially, we want to make sure that Tor is running under our user and not a different one.
-						// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
-						nint _ = process.Handle;
+						// Tor process can crash even between these two commands too.
+						int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
+						process = new ProcessAsync(Process.GetProcessById(processId));
+
+						try
+						{
+							// Note: This is a workaround how to check whether we have sufficient permissions for the process.
+							// Especially, we want to make sure that Tor is running under our user and not a different one.
+							// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
+							nint _ = process.Handle;
+						}
+						catch (Exception ex)
+						{
+							throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+						}
+
+						TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
+						if (!clientTransportPluginReply.Success)
+						{
+							throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
+						}
+
+						// Check if the bridges in the running Tor instance are the same as user requested.
+						TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
+						if (!bridgeReply.Success)
+						{
+							throw new InvalidOperationException("Tor control failed to report active bridges.");
+						}
+
+						// Compare as two unordered sets.
+						string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
+						bool areBridgesAsRequired = currentBridges.SequenceEqual(_settings.Bridges.Order());
+
+						if (!areBridgesAsRequired)
+						{
+							Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
+							await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
+							continue;
+						}
 					}
-					catch (Exception ex)
+					else
 					{
-						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
-					}
-
-					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
-					if (!clientTransportPluginReply.Success)
-					{
-						throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
-					}
-
-					// Check if the bridges in the running Tor instance are the same as user requested.
-					TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
-					if (!bridgeReply.Success)
-					{
-						throw new InvalidOperationException("Tor control failed to report active bridges.");
-					}
-
-					// Compare as two unordered sets.
-					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
-					bool areBridgesAsRequired = currentBridges.SequenceEqual(_settings.Bridges.Order());
-
-					if (!areBridgesAsRequired)
-					{
-						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
-						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
-						continue;
+						// There is no API to get Arti's process ID, so we can't monitor it properly.
+						// Arti with Tor Bridges is not supported yet.
 					}
 				}
 				else
@@ -305,6 +312,15 @@ public class TorProcessManager : IAsyncDisposable
 				}
 
 				Logger.LogInfo("Tor is running.");
+				if (_settings.TorBackend == TorBackend.Arti)
+				{
+					var clientStatus = await controlClient.GetClientStatusRpcAsync(cancellationToken).ConfigureAwait(false);
+					if (!clientStatus.Deconstruct(out var result, out var error))
+					{
+						Logger.LogError($"Client status RPC failed with error: {error}");
+						throw new InvalidOperationException("Client status RPC request failed.");
+					}
+				}
 
 				// Only now we know that Tor process is fully started.
 				lock (_stateLock)
@@ -315,7 +331,16 @@ public class TorProcessManager : IAsyncDisposable
 					_tcs.SetResult((cts.Token, controlClient));
 				}
 
-				await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				// If we have a process instance, then we can wait for it to exist, otherwise we just wait indefinitely until cancellation is requested.
+				// TODO: Figure out, how to retrieve already-running Arti's process ID.
+				if (process is not null)
+				{
+					await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+				}
 
 				Logger.LogDebug("Tor process exited.");
 			}
@@ -423,7 +448,7 @@ public class TorProcessManager : IAsyncDisposable
 
 	internal virtual Process[] GetTorProcesses()
 	{
-		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
+		return Process.GetProcessesByName(_settings.TorBinaryFileName);
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
@@ -473,7 +498,7 @@ public class TorProcessManager : IAsyncDisposable
 			WorkingDirectory = _settings.TorBinaryDir
 		};
 
-		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
+		if (_settings.TorBackend == TorBackend.CTor && !RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			var env = startInfo.EnvironmentVariables;
 
@@ -484,7 +509,7 @@ public class TorProcessManager : IAsyncDisposable
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
+		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}' with arguments '{arguments}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
 		process.Start();
 
@@ -496,18 +521,33 @@ public class TorProcessManager : IAsyncDisposable
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	internal virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
 	{
-		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
-		if (!File.Exists(_settings.CookieAuthFilePath))
-		{
-			throw new TorControlException("Cookie file does not exist.");
-		}
+		string? cookieString = null;
 
-		// Get cookie.
-		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+		if (_settings.CookieAuthFilePath is not null)
+		{
+			// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
+			if (!File.Exists(_settings.CookieAuthFilePath))
+			{
+				throw new TorControlException("Cookie file does not exist.");
+			}
+
+			if (_settings.TorBackend == TorBackend.CTor)
+			{
+				cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+			}
+			else
+			{
+				var cookieBytes = File.ReadAllBytes(_settings.CookieAuthFilePath);
+
+				// See https://gitlab.torproject.org/tpo/core/arti/-/blob/6d9ee5587fdbb6028ed9cfa2a6049e2418ba583a/crates/tor-rpc-connect/src/auth/cookie.rs#L42.
+				var artiPrefix = "====== arti-rpc-cookie-v1 ======";
+				cookieString = Convert.ToHexString(cookieBytes[artiPrefix.Length..]);
+			}
+		}
 
 		// Authenticate.
 		TorControlClientFactory factory = new();
-		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.TorBackend, _settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
 
 		if (_settings.TerminateOnExit)
 		{

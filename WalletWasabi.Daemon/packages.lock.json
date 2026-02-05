@@ -196,6 +196,7 @@
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
+          "BouncyCastle.Cryptography": "[2.6.2, )",
           "Microsoft.AspNetCore.WebUtilities": "[8.0.0, )",
           "Microsoft.Data.Sqlite": "[8.0.0, )",
           "Microsoft.Extensions.Caching.Abstractions": "[8.0.0, )",
@@ -207,6 +208,12 @@
           "System.Linq.Async": "[7.0.0, )",
           "WabiSabi": "[1.0.1.2, )"
         }
+      },
+      "BouncyCastle.Cryptography": {
+        "type": "CentralTransitive",
+        "requested": "[2.6.2, )",
+        "resolved": "2.6.2",
+        "contentHash": "7oWOcvnntmMKNzDLsdxAYqApt+AjpRpP2CShjMfIa3umZ42UQMvH0tl1qAliYPNYO6vTdcGMqnRrCPmsfzTI1w=="
       },
       "Microsoft.AspNetCore.WebUtilities": {
         "type": "CentralTransitive",
