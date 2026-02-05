@@ -712,7 +712,7 @@ public class CoinJoinClient
 		var availableVsizes = registeredAliceClients.SelectMany(x => x.IssuedVsizeCredentials.Where(y => y.Value > 0)).Select(x => x.Value);
 
 		// Calculate outputs values
-		var constructionState = roundState.CoinjoinState;
+		var constructionState = roundState.Assert<ConstructionState>();
 
 		var (ourCoins, theirCoins) = constructionState.Inputs.Partition(x => registeredCoins.Any(y => x.Outpoint == y.Outpoint));
 		var registeredCoinEffectiveValues = registeredAliceClients.Select(x => x.EffectiveValue);
@@ -801,7 +801,7 @@ public class CoinJoinClient
 
 		Logger.LogDebug(FormatLog($"Transaction signing phase started - it will end in: {signingStateEndTime - DateTimeOffset.UtcNow:hh\\:mm\\:ss}.", roundState));
 
-		var signingState = roundState.CoinjoinState;
+		var signingState = roundState.Assert<SigningState>();
 		var unsignedCoinJoin = signingState.CreateUnsignedTransactionWithPrecomputedData();
 
 		// If everything is okay, then sign all the inputs. Otherwise, in case there are missing outputs, the server is

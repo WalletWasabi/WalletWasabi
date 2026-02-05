@@ -75,7 +75,7 @@ public class WabiSabiApiApplicationFactory<TStartup> : WebApplicationFactory<TSt
 	public async Task<ArenaClient> CreateArenaClientAsync(WabiSabiHttpApiClient wabiSabiHttpApiClient)
 	{
 		var rounds = (await wabiSabiHttpApiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
-		var round = rounds.First(x => x.Phase is Phase.InputRegistration or Phase.OutputRegistration or Phase.ConnectionConfirmation);
+		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
 		var arenaClient = new ArenaClient(
 			round.CreateAmountCredentialClient(InsecureRandom.Instance),
 			round.CreateVsizeCredentialClient(InsecureRandom.Instance),

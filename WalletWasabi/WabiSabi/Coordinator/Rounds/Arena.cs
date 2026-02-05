@@ -100,12 +100,12 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x =>
 			x.Phase == Phase.InputRegistration
-			&& x.IsInputRegistrationEnded)
+			&& x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound))
 			.ToArray())
 		{
 			try
 			{
-				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round.Alices, cancel).ConfigureAwait(false))
+				await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 				{
 					if (offendingAlices.Length != 0)
 					{
@@ -124,7 +124,7 @@ public partial class Arena : PeriodicRunner
 					EndRound(round, EndRoundState.AbortedNotEnoughAlices);
 					Logger.LogInfo($"Not enough inputs ({round.InputCount}) in {nameof(Phase.InputRegistration)} phase. The minimum is ({round.Parameters.MinInputCountByRound}). {nameof(round.Parameters.MaxSuggestedAmount)} was '{round.Parameters.MaxSuggestedAmount}' BTC.", round);
 				}
-				else if (round.IsInputRegistrationEnded)
+				else if (round.IsInputRegistrationEnded(round.Parameters.MaxInputCountByRound))
 				{
 					_maxSuggestedAmountProvider.StepMaxSuggested(round, true);
 					SetRoundPhase(round, Phase.ConnectionConfirmation);
@@ -173,7 +173,7 @@ public partial class Arena : PeriodicRunner
 					if (round.InputCount >= round.Parameters.MinInputCountByRound)
 					{
 						var allOffendingAlices = new List<Alice>();
-						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round.Alices, cancel).ConfigureAwait(false))
+						await foreach (var offendingAlices in CheckTxoSpendStatusAsync(round, cancel).ConfigureAwait(false))
 						{
 							allOffendingAlices.AddRange(offendingAlices);
 						}
@@ -233,7 +233,7 @@ public partial class Arena : PeriodicRunner
 
 				if (allReady || phaseExpired)
 				{
-					var coinjoin = round.CoinjoinState;
+					var coinjoin = round.Assert<ConstructionState>();
 
 					Logger.LogInfo($"{coinjoin.Inputs.Count()} inputs were added.", round);
 					Logger.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.", round);
@@ -266,7 +266,7 @@ public partial class Arena : PeriodicRunner
 	{
 		foreach (var round in Rounds.Where(x => x.Phase == Phase.TransactionSigning).ToArray())
 		{
-			var state = round.CoinjoinState;
+			var state = round.Assert<SigningState>();
 
 			try
 			{
@@ -361,9 +361,9 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(List<Alice> alicesToCheck, [EnumeratorCancellation] CancellationToken cancellationToken = default)
+	private async IAsyncEnumerable<Alice[]> CheckTxoSpendStatusAsync(Round round, [EnumeratorCancellation] CancellationToken cancellationToken = default)
 	{
-		foreach (var chunkOfAlices in alicesToCheck.ChunkBy(16))
+		foreach (var chunkOfAlices in round.Alices.ToList().ChunkBy(16))
 		{
 			var batchedRpc = _rpc.PrepareBatch();
 
@@ -381,7 +381,7 @@ public partial class Arena : PeriodicRunner
 
 	private async Task FailTransactionSigningPhaseAsync(Round round, CancellationToken cancellationToken)
 	{
-		var state = round.CoinjoinState;
+		var state = round.Assert<SigningState>();
 
 		var unsignedOutpoints = state.UnsignedInputs.Select(c => c.Outpoint).ToHashSet();
 
@@ -464,7 +464,7 @@ public partial class Arena : PeriodicRunner
 		};
 
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
-		Rounds.Add(blameRound);
+		AddRound(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
 	}
 
@@ -479,7 +479,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
-			Rounds.Add(r);
+			AddRound(r);
 			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
 		}
 	}
@@ -498,7 +498,7 @@ public partial class Arena : PeriodicRunner
 	private void TimeoutAlices()
 	{
 		var now = DateTimeOffset.UtcNow;
-		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded).ToArray())
+		foreach (var round in Rounds.Where(x => !x.IsInputRegistrationEnded(x.Parameters.MaxInputCountByRound)).ToArray())
 		{
 			var alicesToRemove = round.Alices.Where(x => x.Deadline < now && !x.ConfirmedConnection).ToArray();
 			foreach (var alice in alicesToRemove)
@@ -514,7 +514,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	public static MultipartyTransactionState AddCoordinationFee(Round round, MultipartyTransactionState coinjoin, Script coordinatorScriptPubKey)
+	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
 	{
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
@@ -556,6 +556,11 @@ public partial class Arena : PeriodicRunner
 		return coordinatorScriptPubKey;
 	}
 
+	private void AddRound(Round round)
+	{
+		Rounds.Add(round);
+	}
+
 	private void AbortDisruptedRounds()
 	{
 		while (_disruptedRounds.TryDequeue(out var disruptedRoundId))
@@ -571,9 +576,7 @@ public partial class Arena : PeriodicRunner
 
 	private void SetRoundPhase(Round round, Phase phase)
 	{
-		var currentPhase = round.Phase;
 		round.SetPhase(phase);
-		Logger.LogInfo($"{round}: Phase changed: {currentPhase} -> {phase}");
 	}
 
 	internal void EndRound(Round round, EndRoundState endRoundState)
@@ -581,7 +584,11 @@ public partial class Arena : PeriodicRunner
 		round.EndRound(endRoundState);
 	}
 
-	private static MultipartyTransactionState FinalizeTransaction(MultipartyTransactionState multipartyTransactionState) => multipartyTransactionState.Finalize();
+	private SigningState FinalizeTransaction(ConstructionState constructionState)
+	{
+		SigningState signingState = constructionState.Finalize();
+		return signingState;
+	}
 
 	private async Task<FeeRate> GetFeeRateEstimationAsync(CancellationToken cancellationToken)
 	{

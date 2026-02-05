@@ -3,6 +3,7 @@ using NBitcoin;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
+using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -35,7 +36,7 @@ public class Round
 	{
 		Parameters = parameters;
 
-		CoinjoinState = new MultipartyTransactionState(Parameters);
+		CoinjoinState = new ConstructionState(Parameters);
 
 		AmountCredentialIssuer = new(new(random), random, Parameters.MaxAmountCredentialValue);
 		VsizeCredentialIssuer = new(new(random), random, Parameters.MaxVsizeCredentialValue);
@@ -75,7 +76,14 @@ public class Round
 	public RoundParameters Parameters { get; }
 	public Script CoordinatorScript { get; set; }
 
-	private CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
+	public CoinJoinInputCommitmentData CoinJoinInputCommitmentData => new (Parameters.CoordinationIdentifier, Id);
+
+	public TState Assert<TState>() where TState : MultipartyTransactionState =>
+		CoinjoinState switch
+		{
+			TState s => s,
+			_ => throw new InvalidOperationException($"{typeof(TState).Name} state was expected but {CoinjoinState.GetType().Name} state was received.")
+		};
 
 	public void SetPhase(Phase phase)
 	{
@@ -84,6 +92,7 @@ public class Round
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}
 
+		Logger.LogInfo($"Phase changed: {Phase} -> {phase}", this);
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)
@@ -111,19 +120,29 @@ public class Round
 		EndRoundState = finalState;
 	}
 
-	public bool IsInputRegistrationEnded =>
-		Phase > Phase.InputRegistration
-		|| InputCount >= Parameters.MaxInputCountByRound
-		|| InputRegistrationTimeFrame.HasExpired;
+	public virtual bool IsInputRegistrationEnded(int maxInputCount)
+	{
+		if (Phase > Phase.InputRegistration)
+		{
+			return true;
+		}
 
-	public MultipartyTransactionState AddInput(Coin coin, OwnershipProof ownershipProof)
-		=> CoinjoinState.AddInput(coin, ownershipProof, CoinJoinInputCommitmentData);
+		if (InputCount >= maxInputCount)
+		{
+			return true;
+		}
 
-	public MultipartyTransactionState AddOutput(TxOut output)
-		=> CoinjoinState.AddOutput(output);
+		return InputRegistrationTimeFrame.HasExpired;
+	}
 
-	public MultipartyTransactionState AddWitness(int index, WitScript witness)
-		=> CoinjoinState.AddWitness(index, witness);
+	public ConstructionState AddInput(Coin coin, OwnershipProof ownershipProof, CoinJoinInputCommitmentData coinJoinInputCommitmentData)
+		=> Assert<ConstructionState>().AddInput(coin, ownershipProof, coinJoinInputCommitmentData);
+
+	public ConstructionState AddOutput(TxOut output)
+		=> Assert<ConstructionState>().AddOutput(output);
+
+	public SigningState AddWitness(int index, WitScript witness)
+		=> Assert<SigningState>().AddWitness(index, witness);
 
 	private uint256 CalculateHash()
 		=> RoundHasher.CalculateHash(
@@ -150,12 +169,9 @@ public class Round
 
 	private void PublishWitnessesIfPossible()
 	{
-		if (Phase is Phase.TransactionSigning)
+		if (CoinjoinState is SigningState signingState)
 		{
-			CoinjoinState = CoinjoinState.PublishWitnesses();
+			CoinjoinState = signingState.PublishWitnesses();
 		}
 	}
-
-	public override string ToString() =>
-		$"{(this is BlameRound ? "Blame Round" : "Round")} ({Id})";
 }

@@ -41,7 +41,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// Compute but don't commit updated coinjoin to round state, it will
 			// be re-calculated on input confirmation. This is computed in here
 			// for validation purposes.
-			_ = round.AddInput(coin, request.OwnershipProof);
+			_ = round.Assert<ConstructionState>().AddInput(coin, request.OwnershipProof, round.CoinJoinInputCommitmentData);
 
 			CheckCoinIsNotBanned(coin.Outpoint, round);
 
@@ -53,7 +53,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			if (round.IsInputRegistrationEnded)
+			if (round.IsInputRegistrationEnded(_config.MaxInputCountByRound))
 			{
 				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
@@ -69,7 +69,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// only that the probability of duplicates is very low).
 			var id = new Guid(SecureRandom.Instance.GetBytes(16));
 
-			var alice = new Alice(coin, request.OwnershipProof, id);
+			var alice = new Alice(coin, request.OwnershipProof, round, id);
 
 			if (alice.CalculateRemainingAmountCredentials(round.Parameters.MiningFeeRate) <= Money.Zero)
 			{
@@ -213,7 +213,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 						await vsizeRealCredentialTask.ConfigureAwait(false));
 
 					// Update the coinjoin state, adding the confirmed input.
-					round.CoinjoinState = round.AddInput(alice.Coin, alice.OwnershipProof);
+					round.CoinjoinState = round.Assert<ConstructionState>().AddInput(alice.Coin, alice.OwnershipProof, round.CoinJoinInputCommitmentData);
 					alice.ConfirmedConnection = true;
 					return response;
 
