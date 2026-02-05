@@ -169,14 +169,29 @@ public static class Workers
 		return false;
 	}
 
-	public static Process<Unit> Continuously(
-		MessageHandler<Unit> handler) =>
-		async (mailbox, cancellationToken) =>
+	public static (Func<Task>, Func<Task>, Process<Unit>) Continuously(MessageHandler<Unit> handler)
+	{
+		var semaphore = new SemaphoreSlim(1, 1);
+
+		async Task Pause() => await semaphore.WaitAsync();
+		Task Resume() {
+			if (semaphore.CurrentCount == 0)
+			{
+				semaphore.Release();
+			}
+
+			return Task.CompletedTask;
+		}
+
+		async Task Loop(Mailbox<Unit> mailbox, CancellationToken cancellationToken)
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				try
 				{
+					await semaphore.WaitAsync(cancellationToken);
+					semaphore.Release();
+
 					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
 				}
 				catch (OperationCanceledException)
@@ -188,7 +203,10 @@ public static class Workers
 					Logger.LogError(e);
 				}
 			}
-		};
+		}
+
+		return (Pause, Resume, Loop);
+	}
 
 	public static Process<TMsg> EventDriven<TMsg,TState>(TState state,
 		MessageHandler<TMsg, TState> handler) =>
