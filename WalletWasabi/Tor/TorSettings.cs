@@ -268,7 +268,7 @@ public class TorSettings
 				"proxy",
 				"-o", "rpc.enable=true",
 				"-o", "logging.log_sensitive_information=true",
-				"-o", $"proxy.socks_port={SocksPort}",
+				"-o", $"\"proxy.socks_listen = {SocksPort}\"",
 			];
 		}
 
