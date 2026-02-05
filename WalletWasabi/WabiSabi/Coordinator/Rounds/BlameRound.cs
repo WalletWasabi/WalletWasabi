@@ -16,4 +16,9 @@ public class BlameRound : Round
 
 	public Round BlameOf { get; }
 	public ISet<OutPoint> BlameWhitelist { get; }
+
+	public override bool IsInputRegistrationEnded(int maxInputCount)
+	{
+		return base.IsInputRegistrationEnded(BlameWhitelist.Count);
+	}
 }

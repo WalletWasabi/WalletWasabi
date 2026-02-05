@@ -26,10 +26,6 @@ cleanup() {
 }
 trap cleanup EXIT
 
-
-echo -e "${YELLOW}Building Wasabi components...${NC}"
-dotnet build &> /dev/null
-
 echo -e "${YELLOW}Starting Bitcoin node in regtest...${NC}"
 mkdir -p "$BITCOIN_DATADIR"
 
@@ -45,7 +41,7 @@ bitcoind \
   -fallbackfee=0.0001 \
   -daemon
 
-sleep 5
+sleep 3
 
 echo -e "${GREEN}Bitcoin node started${NC}"
 
@@ -77,7 +73,7 @@ mkdir -p "$WASABI_DATADIR/Coordinator"
 # Start coordinator in background
 WASABI_COORDINATOR_DATADIR="$WASABI_DATADIR/Coordinator"
 WASABI_COORDINATOR_LOGFILE="$WASABI_COORDINATOR_DATADIR/Logs.txt"
-rm -f ""$WASABI_COORDINATOR_LOGFILE""
+rm ""$WASABI_COORDINATOR_LOGFILE""
 
 cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
 {
@@ -144,7 +140,7 @@ dotnet run --project WalletWasabi.Coordinator -- \
   --datadir="$WASABI_COORDINATOR_DATADIR" &> /dev/null &
 COORDINATOR_PID=$!
 
-sleep 3
+sleep 5
 echo -e "${GREEN}Coordinator started (PID: $COORDINATOR_PID)${NC}"
 
 echo -e "${YELLOW}Starting Wasabi Wallet Client${NC}"
@@ -163,10 +159,10 @@ dotnet run --project WalletWasabi.Daemon -- \
   --jsonrpcserverenabled=true \
   --maxcoinjoinminingfeerate=500 \
   --absolutemininputcount=4 \
-  --usetor="disabled" & #> /dev/null &
+  --usetor="disabled" &> /dev/null &
 
 WALLET_PID=$!
-sleep 6
+sleep 3
 
 echo -e "${YELLOW}Creating Wasabi Wallets${NC}"
 
@@ -179,11 +175,6 @@ create_and_fund_wallet() {
   curl -s -X POST http://127.0.0.1:$WALLET_RPC_PORT/ \
     -H "Content-Type: application/json" \
     -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"createwallet\",\"params\":[\"$wallet_name\", \"\"]}" | jq -r '.result'
-
-  echo -e "${YELLOW}Load wallet $wallet_name...${NC}"
-  curl -s -X POST http://127.0.0.1:$WALLET_RPC_PORT/ \
-    -H "Content-Type: application/json" \
-    -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\", \"\"]}" | jq -r '.result'
 
   echo -e "${YELLOW}Generating addresses for $wallet_name...${NC}"
   for (( i = 0; i < 4; i++ )); do

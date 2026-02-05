@@ -8,7 +8,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 
-public class MultipartyTransactionStateTests
+public class ConstructionStateTests
 {
 	[Fact]
 	public void ConstructionStateFeeRateCalculation()
@@ -22,7 +22,7 @@ public class MultipartyTransactionStateTests
 				Money.Coins(10));
 
 		var round = WabiSabiFactory.CreateRound(roundParameters);
-		var state = round.CoinjoinState;
+		var state = round.Assert<ConstructionState>();
 
 		var (coin, ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(
 			amount: roundParameters.AllowedInputAmounts.Min + miningFeeRate.GetFee(Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize),

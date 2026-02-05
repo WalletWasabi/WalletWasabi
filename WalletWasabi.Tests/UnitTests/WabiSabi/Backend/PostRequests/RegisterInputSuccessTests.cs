@@ -86,7 +86,7 @@ public class RegisterInputSuccessTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 
 		// Make sure an Alice have already been registered with the same input.
-		var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
+		var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key), round);
 		round.Alices.Add(preAlice);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);

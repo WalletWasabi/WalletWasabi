@@ -383,7 +383,7 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		// Make sure an Alice have already been registered with the same input.
-		var anotherAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
+		var anotherAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key), round);
 		round.Alices.Add(anotherAlice);
 		round.SetPhase(Phase.ConnectionConfirmation);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
@@ -408,7 +408,7 @@ public class RegisterInputFailureTests
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		// Make sure an Alice have already been registered with the same input.
-		var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key));
+		var preAlice = WabiSabiFactory.CreateAlice(coin, WabiSabiFactory.CreateOwnershipProof(key), round);
 		anotherRound.Alices.Add(preAlice);
 		anotherRound.SetPhase(Phase.ConnectionConfirmation);
 
