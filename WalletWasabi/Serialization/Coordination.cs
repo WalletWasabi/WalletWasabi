@@ -332,7 +332,7 @@ public static partial class Encode
 
 			Error error => Error(error),
 
-			_ => throw new Exception($"{obj.GetType().FullName} is not known")
+			_ => throw new Exception($"{obj?.GetType().FullName} is not known")
 		};
 }
 

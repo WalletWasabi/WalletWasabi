@@ -258,7 +258,7 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		ICompactFilterProvider filtersProvider = await GetFilterProviderAsync() ??
-		                                         throw new NotSupportedException("Neither backend URI is specified nor a Bitcoin RPC client able to provide compact filters exists.");
+			throw new NotSupportedException("Neither backend URI is specified nor a Bitcoin RPC client able to provide compact filters exists.");
 
 		Spawn("Synchronizer",
 			Service("Wasabi Index-Based Synchronizer",
