@@ -51,7 +51,7 @@ public static class CpfpInfoUpdater
 	{
 		var uri = network == Network.Main
 			? new Uri("https://mempool.space/api/")
-			: new Uri("https://mempool.space/testnet/api/");
+			: new Uri("https://mempool.space/testnet4/api/");
 		var tasks = new List<Task>();
 		var cache = new Dictionary<uint256, CachedCpfpInfo>();
 		return (msg, _, cancellationToken) => ProcessMessagesAsync(msg, httpClientFactory, uri, tasks, cache, eventBus, cancellationToken);
@@ -96,6 +96,7 @@ public static class CpfpInfoUpdater
 
 	private static async Task ProcessFinishedFetchingTasksAsync(List<Task> tasks, CancellationToken cancellationToken)
 	{
+		cancellationToken.ThrowIfCancellationRequested();
 		var completedTasks = tasks.Where(t => t.IsCompleted).ToArray();
 		await Task.WhenAll(completedTasks).ConfigureAwait(false);
 		tasks.RemoveAll(t => completedTasks.Contains(t));
@@ -174,7 +175,7 @@ public static class CpfpInfoUpdater
 
 		var httpClient = httpClientFactory.CreateClient($"mempool.space-{txid}");
 		httpClient.BaseAddress = uri;
-		var response = await httpClient.GetAsync( $"v1/cpfp/{txid}", linkedCts.Token).ConfigureAwait(false);
+		var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"v1/cpfp/{txid}"), linkedCts.Token).ConfigureAwait(false);
 
 		response.EnsureSuccessStatusCode();
 
