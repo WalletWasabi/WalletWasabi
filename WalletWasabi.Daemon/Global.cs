@@ -260,12 +260,23 @@ public class Global
 		ICompactFilterProvider filtersProvider = await GetFilterProviderAsync() ??
 			throw new NotSupportedException("Neither backend URI is specified nor a Bitcoin RPC client able to provide compact filters exists.");
 
-		Spawn("Synchronizer",
-			Service("Wasabi Index-Based Synchronizer",
-				Continuously(
-					Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus)
-				)), cancellationToken)
+		var (pause, resume, serviceLoop) =
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus));
+
+		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
+
+		if (filtersProvider is BitcoinRpcFilterProvider)
+		{
+			EventBus.Subscribe<RpcStatusChanged>(e =>
+			{
+				var action = e.Status.Match(
+					x => x.Synchronized ? resume : pause,
+					_ => pause);
+				action();
+			});
+		}
+
 		return;
 
 		async Task<ICompactFilterProvider?> GetFilterProviderAsync()

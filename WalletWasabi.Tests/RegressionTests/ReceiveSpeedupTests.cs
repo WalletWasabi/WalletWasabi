@@ -60,7 +60,8 @@ public class ReceiveSpeedupTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.IndexerHttpClientFactory;
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
+		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
