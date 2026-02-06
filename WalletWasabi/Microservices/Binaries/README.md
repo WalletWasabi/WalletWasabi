@@ -5,9 +5,9 @@
 3. Make sure the Linux and the OSX binaries are executable:
 	`git update-index --chmod=+x hwi`
 	`git update-index --chmod=+x bitcoind`
+	`git update-index --chmod=+x .\linux_arm64\Tor\tor`
 	`git update-index --chmod=+x .\lin64\Tor\tor`
 	`git update-index --chmod=+x .\win64\Tor\tor.exe`
 	`git update-index --chmod=+x .\osx64\Tor\tor`
-4. Update the binary hashes of each executable and the text documentation in `*BinaryHashesTests.cs` test files.
-5. Commit, push.
-6. Make sure CI passes.
+4. Commit, push.
+5. Make sure CI passes.
