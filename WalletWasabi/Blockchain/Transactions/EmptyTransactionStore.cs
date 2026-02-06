@@ -14,7 +14,7 @@ public class EmptyTransactionStore : ITransactionStore
 
 	public bool TryGetTransaction(uint256 hash, [NotNullWhen(true)] out SmartTransaction? sameStx)
 	{
-		sameStx = new SmartTransaction(Transaction.Create(Network), Models.Height.Unknown);
+		sameStx = new SmartTransaction(Transaction.Create(Network), height: Unknown);
 		return true;
 	}
 }

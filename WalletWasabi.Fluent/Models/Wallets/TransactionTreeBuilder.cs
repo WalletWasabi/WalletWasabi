@@ -137,7 +137,7 @@ public class TransactionTreeBuilder
 			Type = itemType,
 			Status = status,
 			Confirmations = confirmations,
-			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0u, // FIXME: this is wrong. Only confirmed txs have a BlockHeigh
 			BlockHash = transactionSummary.BlockHash,
 			HexFunction = transactionSummary.Hex,
 			WalletInputs = transactionSummary.WalletInputs,
@@ -291,7 +291,7 @@ public class TransactionTreeBuilder
 			Type = TransactionType.Coinjoin,
 			Status = status,
 			Confirmations = confirmations,
-			BlockHeight = transactionSummary.Height.Type == HeightType.Chain ? transactionSummary.Height.Value : 0,
+			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0,
 			BlockHash = transactionSummary.BlockHash,
 			HexFunction = transactionSummary.Hex,
 			WalletInputs = transactionSummary.WalletInputs,
@@ -340,7 +340,7 @@ public class TransactionTreeBuilder
 		return transactionSummary.IsConfirmed() ? TransactionStatus.Confirmed : TransactionStatus.Pending;
 	}
 
-	private async Task<string> GetConfirmationToolTipAsync(TransactionStatus status, int confirmations, SmartTransaction smartTransaction, CancellationToken cancellationToken)
+	private async Task<string> GetConfirmationToolTipAsync(TransactionStatus status, uint confirmations, SmartTransaction smartTransaction, CancellationToken cancellationToken)
 	{
 		if (status == TransactionStatus.Confirmed)
 		{

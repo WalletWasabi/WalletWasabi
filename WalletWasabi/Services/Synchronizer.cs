@@ -127,7 +127,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 
 			return filters.Count == 0
 				? new FiltersResponse.AlreadyOnBestBlock()
-				: new FiltersResponse.NewFiltersAvailable(currentHeight, filters.ToArray());
+				: new FiltersResponse.NewFiltersAvailable((uint)currentHeight, filters.ToArray());
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
@@ -187,7 +187,7 @@ public static class Synchronizer
 				// Already synchronized. Nothing to do.
 				var tip = bitcoinStore.SmartHeaderChain.TipHeight;
 				bitcoinStore.SmartHeaderChain.SetServerTipHeight(tip);
-				eventBus.Publish(new ServerTipHeightChanged((int)tip));
+				eventBus.Publish(new ServerTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
@@ -200,7 +200,7 @@ public static class Synchronizer
 				var hashChain = bitcoinStore.SmartHeaderChain;
 				var localTipHeight = hashChain.TipHeight;
 
-				hashChain.SetServerTipHeight((uint)newFiltersAvailable.BestHeight);
+				hashChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
 				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;

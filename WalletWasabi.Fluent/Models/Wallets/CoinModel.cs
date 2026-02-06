@@ -23,7 +23,7 @@ public partial interface ICoinModel
 
 	int AnonScore { get; set; }
 
-	int Confirmations { get; set; }
+	uint Confirmations { get; set; }
 
 	bool IsConfirmed { get; set; }
 
@@ -66,7 +66,7 @@ public partial class CoinModel : ReactiveObject, ICoinModel
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
 	[AutoNotify] private int _anonScore;
-	[AutoNotify] private int _confirmations;
+	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
 	public CoinModel(SmartCoin coin, Network network, int anonScoreTarget)

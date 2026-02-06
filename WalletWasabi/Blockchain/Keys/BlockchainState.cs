@@ -1,27 +1,17 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Keys;
 
 public class BlockchainState
 {
-	public BlockchainState(Network network, Height height)
+	public BlockchainState(Network? network = null, ChainHeight? height = null)
 	{
-		Network = network;
-		Height = Height.Max(height, new Height(SmartHeader.GetStartingHeader(Network).Height));
-	}
-
-	public BlockchainState()
-		: this(Network.Main, 0)
-	{
-	}
-
-	public BlockchainState(Network network) : this(network, height: 0)
-	{
+		Network = network ?? Network.Main;
+		Height = ChainHeight.Max(height ?? ChainHeight.Genesis, new ChainHeight(SmartHeader.GetStartingHeader(Network).Height));
 	}
 
 	public Network Network { get; }
 
-	public Height Height { get; set; }
+	public ChainHeight Height { get; set; }
 }

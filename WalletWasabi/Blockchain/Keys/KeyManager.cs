@@ -691,7 +691,7 @@ public class KeyManager
 
 	#region _blockchainState
 
-	public Height GetBestHeight()
+	public ChainHeight GetBestHeight()
 	{
 		lock (_criticalStateLock)
 		{
@@ -704,7 +704,7 @@ public class KeyManager
 		return _blockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height, bool toFile = true)
+	public void SetBestHeight(ChainHeight height, bool toFile = true)
 	{
 		lock (_criticalStateLock)
 		{
@@ -716,7 +716,7 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height newHeight)
+	public void SetMaxBestHeight(ChainHeight newHeight)
 	{
 		lock (_criticalStateLock)
 		{
@@ -724,7 +724,7 @@ public class KeyManager
 			if (newHeight < prevHeight)
 			{
 				SetBestHeight(newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
 	}

@@ -19,7 +19,7 @@ public static partial class Encode
 
 	public static JsonNode FiltersResponse(FiltersResponse resp) =>
 		Object([
-			("bestHeight", Int(resp.BestHeight)),
+			("bestHeight", UInt(resp.BestHeight)),
 			("filters", Array(resp.Filters.Select(Filter)))
 		]);
 }
@@ -31,7 +31,7 @@ public static partial class Decode
 
 	public static Decoder<FiltersResponse> FiltersResponse =>
 		Object(get => new FiltersResponse(
-			get.Required("bestHeight", Int),
+			get.Required("bestHeight", UInt),
 			get.Required("filters", Array(Filter))
 		));
 }

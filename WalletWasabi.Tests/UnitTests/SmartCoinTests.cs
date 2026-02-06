@@ -132,11 +132,11 @@ public class SmartCoinTests
 	public void SmartCoinImmatureTest()
 	{
 		var coinBaseTx = Transaction.Parse("010000000001010000000000000000000000000000000000000000000000000000000000000000ffffffff4f0327510c1362696e616e63652f3839345700000418572e8b066a61786e657420a584170a5545b9f9e18627d950d38f3cbefc9d6c7977259947ac326fe00fee1c066a61786e65745a9c0000c2000000ffffffff04f653a7260000000017a914ca35b1f4d02907314852f09935b9604507f8d700870000000000000000266a24aa21a9ed243c043949d4fdd7cfce809b7e4070c4a832da5d4cd0b137390b2e18d149696b00000000000000002b6a2952534b424c4f434b3a036b8396d36b05334061cf892fc5d21967011977486d73169b45b617004bfe5a00000000000000001976a914bc473af4c71c45d5aa3278adc99701ded3740a5488ac0120000000000000000000000000000000000000000000000000000000000000000000000000", Network.Main);
-		var coinBaseStx = new SmartTransaction(coinBaseTx, 100);
+		var coinBaseStx = new SmartTransaction(coinBaseTx, new Height.ChainHeight(100u));
 		var coinBaseCoin = new SmartCoin(coinBaseStx, 0, null!);
 
 		// Negative bestHeight.
-		Assert.True(coinBaseCoin.Transaction.IsImmature(-100));
+		// Assert.True(coinBaseCoin.Transaction.IsImmature(-100)); # impossible
 
 		// Relatively negative bestHeight.
 		Assert.True(coinBaseCoin.Transaction.IsImmature(0));
@@ -155,7 +155,7 @@ public class SmartCoinTests
 
 		// Non-Coinbase tx.
 		var tx = Transaction.Parse("01000000015cff8c26f4ed95b6db750c21fe1a150ee7c6fb629b7f97f77e641935e6109b31000000006a47304402204e4655953a5f3b13764563f673760d6f0d6a1837b01846f12f2ffdd819a1f21d022075bbc5be28aa32be69d17c3b5ca502264460387594c3b4bc66d65f130812613501210369e03e2c91f0badec46c9c903d9e9edae67c167b9ef9b550356ee791c9a40896ffffffff02dfaff10f000000001976a9149f21a07a0c7c3cf65a51f586051395762267cdaf88acb4062c000000000016001472196a5d64c66518fbe9555854ac7a6a4be902f200000000", Network.Main);
-		var stx = new SmartTransaction(tx, 100);
+		var stx = new SmartTransaction(tx, new Height.ChainHeight(100));
 		var coin = new SmartCoin(stx, 0, null!);
 
 		// Whatever happens this should be always false.

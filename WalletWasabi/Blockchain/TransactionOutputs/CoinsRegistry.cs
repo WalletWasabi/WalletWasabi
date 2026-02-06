@@ -227,7 +227,7 @@ public class CoinsRegistry : ICoinsView
 		TransactionAmountsByTxid[txid] = TransactionAmountsByTxid.TryGetValue(txid, out Money? current) ? current + diff : diff;
 	}
 
-	public void SwitchToUnconfirmFromBlock(Height blockHeight)
+	public void SwitchToUnconfirmFromBlock(ChainHeight blockHeight)
 	{
 		lock (_lock)
 		{

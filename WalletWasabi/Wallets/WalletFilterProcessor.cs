@@ -53,7 +53,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
-					Height lastHeight = _keyManager.GetBestHeight();
+					var lastHeight = _keyManager.GetBestHeight();
 
 					if (lastHeight == _bitcoinStore.SmartHeaderChain.TipHeight)
 					{
@@ -62,14 +62,14 @@ public class WalletFilterProcessor : BackgroundService
 						continue;
 					}
 
-					uint currentHeight = (uint)lastHeight.Value + 1;
+					var currentHeight = lastHeight + 1;
 					FilterModel filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
 					var matchFound = await ProcessFilterModelAsync(filter, cancellationToken).ConfigureAwait(false);
 					_eventBus.Publish(new FilterProcessed(filter));
 
 					var reachedBlockChainTip = currentHeight == _bitcoinStore.SmartHeaderChain.TipHeight;
 					bool storeToDisk = matchFound || reachedBlockChainTip;
-					_keyManager.SetBestHeight(new Height(currentHeight), storeToDisk);
+					_keyManager.SetBestHeight(currentHeight, storeToDisk);
 				}
 			}
 		}
@@ -98,7 +98,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancel)
 	{
-		var height = new Height(filter.Header.Height);
+		var height = new ChainHeight(filter.Header.Height);
 
 		var toTestKeys = GetScriptPubKeysToTest(filter.Filter.IsBip158());
 
@@ -130,12 +130,12 @@ public class WalletFilterProcessor : BackgroundService
 		try
 		{
 			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
-			uint newBestHeight = invalidFilter.Header.Height - 1;
+			var newBestHeight = invalidFilter.Header.Height - 1;
 
 			using (await _reorgLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
-				_keyManager.SetMaxBestHeight(new Height(newBestHeight));
-				_transactionProcessor.UndoBlock((int)invalidFilter.Header.Height);
+				_keyManager.SetMaxBestHeight(newBestHeight);
+				_transactionProcessor.UndoBlock(invalidFilter.Header.Height);
 				_bitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				_blockFilterIterator.RemoveNewerThan(newBestHeight);
 			}

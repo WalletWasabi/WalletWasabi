@@ -24,7 +24,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		Coin = new Coin(Transaction.Transaction, outputIndex);
 
 		_height = transaction.Height;
-		_confirmed = _height.Type == HeightType.Chain;
+		_confirmed = transaction.Confirmed;
 
 		HdPubKey = pubKey;
 
@@ -50,7 +50,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			if (RaiseAndSetIfChanged(ref _height, value))
 			{
-				Confirmed = _height.Type == HeightType.Chain;
+				Confirmed = _height is ChainHeight;
 			}
 		}
 	}

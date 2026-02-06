@@ -119,11 +119,7 @@ public class Startup
 			return Results.NoContent();
 		}
 
-		var response = new FiltersResponse
-		{
-			BestHeight = bestHeight,
-			Filters = filters
-		};
+		var response = new FiltersResponse(bestHeight.Height, filters.ToArray());
 
 		return Results.Ok(Encode.FiltersResponse(response));
 	}
