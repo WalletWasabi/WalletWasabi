@@ -106,11 +106,6 @@ public static class AnalyzerExtensions
 		return (null, []);
 	}
 
-	public static bool HasUiContextParameter(this ConstructorDeclarationSyntax ctor, SemanticModel model)
-	{
-		return ctor.ParameterList.Parameters.Any(p => p.Type.IsUiContextType(model));
-	}
-
 	public static bool IsUiContextType(this TypeSyntax? typeSyntax, SemanticModel model)
 	{
 		if (typeSyntax is null)
@@ -228,22 +223,5 @@ public static class AnalyzerExtensions
 		}
 
 		return typeName;
-	}
-
-	public static string? GetExplicitDefaultValueString(this IParameterSymbol parameter)
-	{
-		if (!parameter.HasExplicitDefaultValue)
-		{
-			return null;
-		}
-
-		return parameter.ExplicitDefaultValue switch
-		{
-			string s => $"\"{s}\"",
-			bool b when b => "true",
-			bool b when !b => "false",
-			null => "null",
-			_ => parameter.ExplicitDefaultValue.ToString()
-		};
 	}
 }
