@@ -61,7 +61,7 @@ public class ApplicationHelper
 			});
 		}
 
-		return await Task.FromResult("");
+		return "";
 	}
 
 	public static async Task SetTextAsync(string? text)
