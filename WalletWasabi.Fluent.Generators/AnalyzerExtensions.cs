@@ -15,7 +15,7 @@ public static class AnalyzerExtensions
 		var directReferences =
 			node.DescendantNodes()
 				.OfType<IdentifierNameSyntax>()
-				.Where(x => x.Identifier.ValueText == "UiContext")                                                   // faster verification
+				.Where(x => x.Identifier.ValueText == "UiContext") // faster verification
 				.Where(x => semanticModel.GetTypeInfo(x).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType) // slower, but safer. Only runs if previous verification passed.
 				.ToList();
 
@@ -44,15 +44,13 @@ public static class AnalyzerExtensions
 	public static bool IsSourceGenerated(this SyntaxNode node)
 	{
 		var filePath = node.SyntaxTree.FilePath;
-
-		return filePath is null ||
-			   filePath.EndsWith(UiContextAnalyzer.UiContextFileSuffix);
+		return filePath is null || filePath.EndsWith(UiContextAnalyzer.UiContextFileSuffix);
 	}
 
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
 		var typeInfo = model.GetDeclaredSymbol(cls)
-					   ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
+			?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
 	}
