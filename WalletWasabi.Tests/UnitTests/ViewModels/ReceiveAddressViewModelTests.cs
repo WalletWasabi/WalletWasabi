@@ -3,11 +3,17 @@ using System.ComponentModel;
 using System.Reactive.Linq;
 using Moq;
 using NBitcoin;
+using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Daemon;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
+using WalletWasabi.Services;
+using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -20,19 +26,32 @@ public class ReceiveAddressViewModelTests
 	[Fact]
 	public void CopyCommandShouldSetAddressInClipboard()
 	{
+		var eventBus = new EventBus();
+		WalletWasabi.Fluent.Services.EventBus = eventBus;
+		WalletWasabi.Fluent.Services.Config = new Config(PersistentConfigManager.DefaultMainNetConfig, []);
+		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
+
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
-		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress", ScriptType.SegWit), false);
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		Action<Address> onHide = _ => { };
+		var hdKey = BitcoinFactory.CreateHdPubKey(km);
+		var sut = new ReceiveAddressViewModel(context, new TestWallet(), new Address(km, hdKey, onHide), false);
 
 		sut.CopyAddressCommand.Execute(null);
 
 		var mock = Mock.Get(clipboard);
-		mock.Verify(x => x.SetTextAsync("SomeAddress"));
+		mock.Verify(x => x.SetTextAsync(hdKey.GetP2wpkhAddress(Network.Main).ToString()));
 	}
 
 	[Fact]
 	public void AutoCopyEnabledShouldCopyToClipboard()
 	{
+		var eventBus = new EventBus();
+		WalletWasabi.Fluent.Services.EventBus = eventBus;
+		WalletWasabi.Fluent.Services.Config = new Config(PersistentConfigManager.DefaultMainNetConfig, []);
+		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
+
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
 		var context = new UiContextBuilder().WithClipboard(clipboard).Build();
 		new ReceiveAddressViewModel(context, new TestWallet(), new TestAddress("SomeAddress", ScriptType.SegWit), true);
@@ -67,15 +86,15 @@ public class ReceiveAddressViewModelTests
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
 		public WalletAuthModel Auth => throw new NotSupportedException();
 		public WalletLoadWorkflow Loader => throw new NotSupportedException();
-		public IWalletSettingsModel Settings => throw new NotSupportedException();
+		public WalletSettingsModel Settings => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
 		public WalletPrivacyModel Privacy => throw new NotSupportedException();
 		public WalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 		public IObservable<Amount> Balances => throw new NotSupportedException();
-		IWalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
+		WalletCoinsModel IWalletModel.Coins => throw new NotSupportedException();
 		public Network Network => throw new NotSupportedException();
 		WalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
-		public IAmountProvider AmountProvider => throw new NotSupportedException();
+		public AmountProvider AmountProvider => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 

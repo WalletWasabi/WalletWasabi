@@ -16,11 +16,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public partial class WalletCoinjoinModel : ReactiveObject
 {
 	private readonly Wallet _wallet;
-	private readonly IWalletSettingsModel _settings;
+	private readonly WalletSettingsModel _settings;
 	private CoinJoinManager? _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
-	public WalletCoinjoinModel(Wallet wallet, CoinJoinManager? coinjoinManager, IWalletSettingsModel settings)
+	public WalletCoinjoinModel(Wallet wallet, CoinJoinManager? coinjoinManager, WalletSettingsModel settings)
 	{
 		_wallet = wallet;
 		_settings = settings;

@@ -9,39 +9,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public interface IWalletSettingsModel
-{
-	bool IsNewWallet { get; set; }
-
-	bool AutoCoinjoin { get; set; }
-
-	bool PreferPsbtWorkflow { get; set; }
-
-	Money PlebStopThreshold { get; set; }
-
-	int AnonScoreTarget { get; set; }
-
-	bool NonPrivateCoinIsolation { get; set; }
-
-	WalletId? OutputWalletId { get; set; }
-
-	ScriptType DefaultReceiveScriptType { get; set; }
-
-	PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; }
-
-	SendWorkflow DefaultSendWorkflow { get; set; }
-
-	WalletType WalletType { get; }
-
-	bool IsCoinJoinPaused { get; set; }
-
-	WalletId Save();
-
-	void RescanWallet(int startingHeight = 0);
-}
-
 [AppLifetime]
-public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
+public partial class WalletSettingsModel : ReactiveObject
 {
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;

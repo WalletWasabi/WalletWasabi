@@ -93,7 +93,7 @@ public class App : Application
 	}
 
 	// It begins to show that we're re-inventing DI, aren't we?
-	private static IWalletRepository CreateWalletRepository(IAmountProvider amountProvider)
+	private static IWalletRepository CreateWalletRepository(AmountProvider amountProvider)
 	{
 		return new WalletRepository(amountProvider);
 	}
@@ -123,7 +123,7 @@ public class App : Application
 		return new TransactionBroadcasterModel(network);
 	}
 
-	private static IAmountProvider CreateAmountProvider()
+	private static AmountProvider CreateAmountProvider()
 	{
 		return new AmountProvider();
 	}
@@ -149,7 +149,7 @@ public class App : Application
 			applicationSettings,
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
-			new EditableSearchSourceSource(),
+			new EditableSearchSource(),
 			torStatusChecker,
 			new HealthMonitor(applicationSettings, torStatusChecker),
 			new ReleaseHighlights(),

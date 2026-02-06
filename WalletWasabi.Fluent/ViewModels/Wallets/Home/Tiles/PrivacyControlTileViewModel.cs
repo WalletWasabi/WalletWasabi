@@ -95,7 +95,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		UiContext.Navigate().To().PrivacyRing(_wallet);
 	}
 
-	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<ICoinModel> coins)
+	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<CoinModel> coins)
 	{
 		PercentText =
 			coins.TotalAmount() > Money.Zero

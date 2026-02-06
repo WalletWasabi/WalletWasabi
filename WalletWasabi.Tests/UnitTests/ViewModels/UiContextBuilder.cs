@@ -1,3 +1,5 @@
+using System.Collections.Generic;
+using System.Reactive.Linq;
 using Moq;
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models;
@@ -8,6 +10,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Tests.UnitTests.ViewModels.UIContext;
+using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
 
@@ -31,21 +34,23 @@ public class UiContextBuilder
 
 	public UiContext Build()
 	{
+		var applicationSettings = new NullApplicationSettings();
+		var torStatusCheckerModel = Mock.Of<ITorStatusCheckerModel>(x => x.Issues == Observable.Empty<IList<Issue>>());
 		var uiContext = new UiContext(
 			QrGenerator,
 			QrReader,
 			Clipboard,
 			WalletRepository,
-			Mock.Of<ICoinjoinModel>(),
+			Mock.Of<CoinjoinModel>(),
 			HardwareWalletInterface,
 			FileSystem,
 			ClientConfig,
-			new NullApplicationSettings(),
+			applicationSettings,
 			TransactionBroadcaster,
-			Mock.Of<IAmountProvider>(),
-			new EditableSearchSourceSource(),
-			Mock.Of<ITorStatusCheckerModel>(),
-			Mock.Of<IHealthMonitor>(),
+			Mock.Of<AmountProvider>(),
+			new EditableSearchSource(),
+			torStatusCheckerModel,
+			new HealthMonitor(applicationSettings, torStatusCheckerModel),
 			Mock.Of<ReleaseHighlights>(),
 			 null!);
 

@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class CoinViewModel : CoinListItem
 {
-    public CoinViewModel(LabelsArray labels, ICoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
+    public CoinViewModel(LabelsArray labels, CoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -38,6 +38,6 @@ public class CoinViewModel : CoinListItem
         }
 	}
 
-	public ICoinModel Coin { get; }
+	public CoinModel Coin { get; }
 	public override string Key => Coin.Key.ToString();
 }

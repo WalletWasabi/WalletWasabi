@@ -14,11 +14,11 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public interface ICoinListModel
 {
-	IObservableCache<ICoinModel, int> List { get; }
+	IObservableCache<CoinModel, int> List { get; }
 
 	IObservableCache<Pocket, LabelsArray> Pockets { get; }
 
-	ICoinModel GetCoinModel(SmartCoin smartCoin);
+	CoinModel GetCoinModel(SmartCoin smartCoin);
 
 	/* SKIPPED: Implements an interface */ /* void Dispose(); */
 }
@@ -58,23 +58,23 @@ public abstract partial class CoinListModel : ICoinListModel, IDisposable
 	protected Wallet Wallet { get; }
 	protected IWalletModel WalletModel { get; }
 
-	public IObservableCache<ICoinModel, int> List { get; }
+	public IObservableCache<CoinModel, int> List { get; }
 
 	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
 
-	public ICoinModel GetCoinModel(SmartCoin smartCoin)
+	public CoinModel GetCoinModel(SmartCoin smartCoin)
 	{
 		return List.Items.First(coinModel => coinModel.Key == smartCoin.Outpoint.GetHashCode());
 	}
 
-	protected ICoinModel CreateCoinModel(SmartCoin smartCoin)
+	protected CoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
 		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget);
 	}
 
 	protected abstract Pocket[] GetPockets();
 
-	protected abstract ICoinModel[] CreateCoinModels();
+	protected abstract CoinModel[] CreateCoinModels();
 
 	public void Dispose() => _disposables.Dispose();
 }
