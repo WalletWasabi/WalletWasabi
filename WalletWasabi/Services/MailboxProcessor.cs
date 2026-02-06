@@ -92,7 +92,8 @@ public sealed class MailboxProcessor<TMsg>(
 				"It was not possible to write into an Unbounded channel, something that should always succeed."));
 		}
 
-		return tcs.Task.WaitAsync(cancellationToken);
+		var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
+		return tcs.Task.WaitAsync(cts.Token);
 	}
 
 	public void Dispose()
