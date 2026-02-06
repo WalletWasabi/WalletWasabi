@@ -9,6 +9,5 @@ internal class MainGenerator : CombinedGenerator
 	public MainGenerator()
 	{
 		Add<UiContextConstructorGenerator>();
-		Add<FluentNavigationGenerator>();
 	}
 }
