@@ -5,17 +5,7 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-
-public interface ICoinjoinModel
-{
-	bool CanShutdown();
-
-	Task RestartAbortedCoinjoinsAsync();
-
-	Task SignalToStopCoinjoinsAsync();
-}
-
-public partial class CoinjoinModel : ReactiveObject, ICoinjoinModel
+public partial class CoinjoinModel : ReactiveObject
 {
 	private CoinJoinManager? _coinJoinManager;
 

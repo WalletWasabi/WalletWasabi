@@ -47,13 +47,13 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	IObservable<bool> HasBalance { get; }
 
-	IWalletCoinsModel Coins { get; }
+	WalletCoinsModel Coins { get; }
 
 	WalletAuthModel Auth { get; }
 
 	WalletLoadWorkflow Loader { get; }
 
-	IWalletSettingsModel Settings { get; }
+	WalletSettingsModel Settings { get; }
 
 	WalletPrivacyModel Privacy { get; }
 
@@ -61,7 +61,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	IObservable<bool> Loaded { get; }
 
-	IAmountProvider AmountProvider { get; }
+	AmountProvider AmountProvider { get; }
 
 	bool IsHardwareWallet { get; }
 
@@ -82,13 +82,13 @@ public partial interface IWalletModel : INotifyPropertyChanged
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly Lazy<WalletCoinjoinModel?> _coinjoin;
-	private readonly Lazy<IWalletCoinsModel> _coins;
+	private readonly Lazy<WalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
 	[AutoNotify] private bool _isLoaded;
 	[AutoNotify] private bool _isSelected;
 
-	public WalletModel(Wallet wallet, IAmountProvider amountProvider)
+	public WalletModel(Wallet wallet, AmountProvider amountProvider)
 	{
 		Wallet = wallet;
 		AmountProvider = amountProvider;
@@ -168,13 +168,13 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IObservable<bool> HasBalance { get; }
 
-	public IWalletCoinsModel Coins => _coins.Value;
+	public WalletCoinsModel Coins => _coins.Value;
 
 	public WalletAuthModel Auth { get; }
 
 	public WalletLoadWorkflow Loader { get; }
 
-	public IWalletSettingsModel Settings { get; }
+	public WalletSettingsModel Settings { get; }
 
 	public WalletPrivacyModel Privacy { get; }
 
@@ -182,7 +182,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IObservable<bool> Loaded { get; }
 
-	public IAmountProvider AmountProvider { get; }
+	public AmountProvider AmountProvider { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 

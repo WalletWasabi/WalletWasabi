@@ -9,54 +9,7 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface ICoinModel
-{
-	bool IsExcludedFromCoinJoin { get; set; }
-
-	bool IsCoinJoinInProgress { get; set; }
-
-	bool IsBanned { get; set; }
-
-	string? BannedUntilUtcToolTip { get; set; }
-
-	string? ConfirmedToolTip { get; set; }
-
-	int AnonScore { get; set; }
-
-	int Confirmations { get; set; }
-
-	bool IsConfirmed { get; set; }
-
-	Money Amount { get; }
-
-	string? BtcAddress { get; }
-
-	int Key { get; }
-
-	PrivacyLevel PrivacyLevel { get; }
-
-	LabelsArray Labels { get; }
-
-	ScriptType ScriptType { get; }
-
-	DateTimeOffset? BannedUntilUtc { get; }
-
-	bool IsPrivate { get; }
-
-	bool IsSemiPrivate { get; }
-
-	bool IsNonPrivate { get; }
-
-	void SubscribeToCoinChanges(CompositeDisposable disposable);
-
-	bool IsSameAddress(ICoinModel anotherCoin);
-
-	bool IsSame(ICoinModel anotherCoin);
-
-	SmartCoin GetSmartCoin();
-}
-
-public partial class CoinModel : ReactiveObject, ICoinModel
+public partial class CoinModel : ReactiveObject
 {
 	private bool _subscribedToCoinChanges;
 
@@ -143,9 +96,9 @@ public partial class CoinModel : ReactiveObject, ICoinModel
 		_subscribedToCoinChanges = true;
 	}
 
-	public bool IsSameAddress(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.HdPubKey == Coin.HdPubKey;
+	public bool IsSameAddress(CoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.HdPubKey == Coin.HdPubKey;
 
-	public bool IsSame(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.Outpoint == Coin.Outpoint;
+	public bool IsSame(CoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.Outpoint == Coin.Outpoint;
 
 	// TODO: Leaky abstraction. This shouldn't exist.
 	public SmartCoin GetSmartCoin() => Coin;

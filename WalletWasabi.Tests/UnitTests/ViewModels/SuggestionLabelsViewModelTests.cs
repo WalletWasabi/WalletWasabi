@@ -206,15 +206,15 @@ public class SuggestionLabelsViewModelTests
 		public bool IsWatchOnlyWallet => throw new NotSupportedException();
 		public WalletAuthModel Auth => throw new NotSupportedException();
 		public WalletLoadWorkflow Loader => throw new NotSupportedException();
-		public IWalletSettingsModel Settings => throw new NotSupportedException();
-		public IWalletCoinsModel Coins => throw new NotSupportedException();
+		public WalletSettingsModel Settings => throw new NotSupportedException();
+		public WalletCoinsModel Coins => throw new NotSupportedException();
 		public WalletPrivacyModel Privacy => throw new NotSupportedException();
 		public WalletCoinjoinModel Coinjoin => throw new NotSupportedException();
 		public Network Network => throw new NotSupportedException();
 		WalletTransactionsModel IWalletModel.Transactions => throw new NotSupportedException();
 		public IObservable<Amount> Balances => throw new NotSupportedException();
 		public IObservable<bool> HasBalance => throw new NotSupportedException();
-		public IAmountProvider AmountProvider => throw new NotSupportedException();
+		public AmountProvider AmountProvider => throw new NotSupportedException();
 
 		public bool IsLoggedIn { get => throw new NotSupportedException(); set => throw new NotSupportedException(); }
 

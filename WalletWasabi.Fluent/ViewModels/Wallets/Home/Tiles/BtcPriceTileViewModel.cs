@@ -8,7 +8,7 @@ public partial class BtcPriceTileViewModel : ActivatableViewModel
 {
 	[AutoNotify] private decimal _usdPerBtc;
 
-	public BtcPriceTileViewModel(IAmountProvider amountProvider)
+	public BtcPriceTileViewModel(AmountProvider amountProvider)
 	{
 		amountProvider.BtcToUsdExchangeRate
 			.ObserveOn(RxApp.MainThreadScheduler)

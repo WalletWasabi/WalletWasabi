@@ -6,16 +6,7 @@ using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public interface IAmountProvider
-{
-	decimal UsdExchangeRate { get; set; }
-
-	IObservable<decimal> BtcToUsdExchangeRate { get; }
-
-	Amount Create(Money? money);
-}
-
-public partial class AmountProvider : ReactiveObject, IAmountProvider
+public partial class AmountProvider : ReactiveObject
 {
 	[AutoNotify] private decimal _usdExchangeRate;
 

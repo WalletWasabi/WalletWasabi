@@ -35,7 +35,8 @@ public partial class ReceiveAddressViewModel : RoutableViewModel
 
 		EnableBack = true;
 
-		CopyAddressCommand = ReactiveCommand.CreateFromTask(() => UiContext.Clipboard.SetTextAsync(Address));
+		CopyAddressCommand = ReactiveCommand.CreateFromTask(() =>
+			UiContext.Clipboard.SetTextAsync(Address));
 
 		ShowOnHwWalletCommand = ReactiveCommand.CreateFromTask(ShowOnHwWalletAsync);
 

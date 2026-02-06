@@ -29,7 +29,7 @@ public class Amount
 		HasUsdBalance = Observable.Return(false);
 	}
 
-	public Amount(Money money, IAmountProvider exchangeRateProvider)
+	public Amount(Money money, AmountProvider exchangeRateProvider)
 	{
 		Btc = money;
 		Usd = exchangeRateProvider.BtcToUsdExchangeRate

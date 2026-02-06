@@ -1,9 +1,11 @@
 using System.Collections.Generic;
-using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using Moq;
 using NBitcoin;
+using WalletWasabi.Daemon;
+using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Services;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.ViewModels;
@@ -13,8 +15,13 @@ public class AmountTests
 	[Fact]
 	public void BtcShouldMatch()
 	{
+		var eventBus = new EventBus();
+		WalletWasabi.Fluent.Services.EventBus = eventBus;
+		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
+		eventBus.Publish(new ExchangeRateChanged(88_000));
+
 		var money = Money.FromUnit(1, MoneyUnit.BTC);
-		var btcAmount = new Amount(money, Mock.Of<IAmountProvider>(provider => provider.BtcToUsdExchangeRate == Observable.Empty<decimal>()));
+		var btcAmount = new Amount(money, new AmountProvider());
 		Assert.Equal(money, btcAmount.Btc);
 	}
 
@@ -22,16 +29,19 @@ public class AmountTests
 	public void UsdValueShouldChangeWithEachExchangeRate()
 	{
 		// ARRANGE
-		var exchangeRates = new[] { 1m, 2m, 3m };
+		var eventBus = new EventBus();
+		WalletWasabi.Fluent.Services.EventBus = eventBus;
+		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
+
 		var money = Money.FromUnit(2, MoneyUnit.BTC);
-		using var rates = new Subject<decimal>();
-		var exchangeProvider = Mock.Of<IAmountProvider>(x => x.BtcToUsdExchangeRate == rates);
 		var destination = new List<decimal>();
-		var sut = new Amount(money, exchangeProvider);
+		var sut = new Amount(money, new AmountProvider());
 		using var usdValues = sut.Usd.Dump(destination);
 
 		// ACT
-		rates.Inject(exchangeRates);
+		eventBus.Publish(new ExchangeRateChanged(1));
+		eventBus.Publish(new ExchangeRateChanged(2));
+		eventBus.Publish(new ExchangeRateChanged(3));
 
 		// ASSERT
 		Assert.Equal([0, 2, 4, 6], destination);
