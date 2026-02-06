@@ -6,6 +6,7 @@ using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using System.Diagnostics.CodeAnalysis;
 using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
@@ -47,7 +48,7 @@ public class ApplicationHelper
 	{
 		return await Dispatcher.UIThread.InvokeAsync(async () =>
 		{
-			if (GetClipboard() is { } clipboard)
+			if (TryGetClipboard(out var clipboard))
 			{
 				try
 				{
@@ -70,7 +71,7 @@ public class ApplicationHelper
 		{
 			await Dispatcher.UIThread.InvokeAsync(async () =>
 			{
-				if (GetClipboard() is { } clipboard)
+				if (TryGetClipboard(out var clipboard))
 				{
 					await clipboard.SetTextAsync(text);
 				}
@@ -82,7 +83,7 @@ public class ApplicationHelper
 	{
 		await Dispatcher.UIThread.InvokeAsync(async () =>
 		{
-			if (GetClipboard() is { } clipboard)
+			if (TryGetClipboard(out var clipboard))
 			{
 				await clipboard.ClearAsync();
 			}
@@ -95,11 +96,14 @@ public class ApplicationHelper
 		.Merge(1)
 		.DistinctUntilChanged();
 
-	private static IClipboard? GetClipboard()
+	private static bool TryGetClipboard([NotNullWhen(true)] out IClipboard? clipboard)
 	{
+		clipboard = null;
+
 		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
 		{
-			return window.Clipboard;
+			clipboard = window.Clipboard;
+			return clipboard is not null;
 		}
 
 		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
@@ -107,11 +111,12 @@ public class ApplicationHelper
 			var visualRoot = mainView.GetVisualRoot();
 			if (visualRoot is TopLevel topLevel)
 			{
-				return topLevel.Clipboard;
+				clipboard = topLevel.Clipboard;
+				return clipboard is not null;
 			}
 		}
 
-		return null;
+		return false;
 	}
 
 	private static TopLevel? GetTopLevel()
