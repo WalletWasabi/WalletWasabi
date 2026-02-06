@@ -51,7 +51,8 @@ public class ApplicationHelper
 			{
 				try
 				{
-					return await clipboard.GetTextAsync() ?? "";
+					var content = await clipboard.TryGetTextAsync();
+					return content ?? "";
 				}
 				catch (InvalidCastException)
 				{
@@ -60,7 +61,7 @@ public class ApplicationHelper
 			});
 		}
 
-		return await Task.FromResult("");
+		return "";
 	}
 
 	public static async Task SetTextAsync(string? text)
