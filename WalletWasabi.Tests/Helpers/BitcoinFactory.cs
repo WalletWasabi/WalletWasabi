@@ -17,19 +17,19 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class BitcoinFactory
 {
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0, bool orderByAmount = false)
-		=> CreateSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount), orderByAmount);
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount = 1, int othersOutputCount = 1, int ownInputCount = 0, int ownOutputCount = 0, bool orderByAmount = false, Height? height = null)
+		=> CreateSmartTransaction(othersInputCount, Enumerable.Repeat(Money.Coins(1m), othersOutputCount), Enumerable.Repeat((Money.Coins(1.1m), 1), ownInputCount), Enumerable.Repeat((Money.Coins(1m), 1), ownOutputCount), orderByAmount, height ?? Height.Mempool);
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs, bool orderByAmount = false)
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset)> ownInputs, IEnumerable<(Money value, int anonset)> ownOutputs, bool orderByAmount = false, Height? height = null)
 	{
 		var km = ServiceFactory.CreateKeyManager();
-		return CreateSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), orderByAmount);
+		return CreateSmartTransaction(othersInputCount, othersOutputs, ownInputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), ownOutputs.Select(x => (x.value, x.anonset, CreateHdPubKey(km))), orderByAmount, height ?? Height.Mempool);
 	}
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount = false)
-		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs, orderByAmount);
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<Money> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount = false, Height? heigth = null)
+		=> CreateSmartTransaction(othersInputCount, othersOutputs.Select(x => new TxOut(x, new Key())), ownInputs, ownOutputs, orderByAmount, heigth ?? Height.Mempool);
 
-	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount)
+	public static SmartTransaction CreateSmartTransaction(int othersInputCount, IEnumerable<TxOut> othersOutputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownInputs, IEnumerable<(Money value, int anonset, HdPubKey hdpk)> ownOutputs, bool orderByAmount, Height height)
 	{
 		var tx = Transaction.Create(Network.Main);
 		var walletInputs = new HashSet<SmartCoin>();
@@ -83,7 +83,7 @@ public static class BitcoinFactory
 			outputs = outputs.OrderByDescending(x => x.txout.Value).ToList();
 		}
 
-		var stx = new SmartTransaction(tx, Height.Mempool);
+		var stx = new SmartTransaction(tx, height);
 		var idx = 0u;
 		foreach (var output in outputs)
 		{
