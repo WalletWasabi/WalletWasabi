@@ -1,6 +1,3 @@
-using System.Reactive.Concurrency;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
@@ -9,6 +6,10 @@ using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using System.Diagnostics.CodeAnalysis;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Helpers;
 
@@ -45,9 +46,9 @@ public class ApplicationHelper
 
 	public static async Task<string> GetTextAsync()
 	{
-		if (GetClipboard() is { } clipboard)
+		return await Dispatcher.UIThread.InvokeAsync(async () =>
 		{
-			return await Dispatcher.UIThread.InvokeAsync(async () =>
+			if (TryGetClipboard(out var clipboard))
 			{
 				try
 				{
@@ -58,26 +59,35 @@ public class ApplicationHelper
 				{
 					return "";
 				}
-			});
-		}
+			}
 
-		return "";
+			return "";
+		});
 	}
 
 	public static async Task SetTextAsync(string? text)
 	{
-		if (GetClipboard() is { } clipboard && text is not null)
+		if (text is not null)
 		{
-			await Dispatcher.UIThread.InvokeAsync(async () => await clipboard.SetTextAsync(text));
+			await Dispatcher.UIThread.InvokeAsync(async () =>
+			{
+				if (TryGetClipboard(out var clipboard))
+				{
+					await clipboard.SetTextAsync(text);
+				}
+			});
 		}
 	}
 
 	public static async Task ClearAsync()
 	{
-		if (GetClipboard() is { } clipboard)
+		await Dispatcher.UIThread.InvokeAsync(async () =>
 		{
-			await Dispatcher.UIThread.InvokeAsync(async () => await clipboard.ClearAsync());
-		}
+			if (TryGetClipboard(out var clipboard))
+			{
+				await clipboard.ClearAsync();
+			}
+		});
 	}
 
 	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default) => Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
@@ -86,11 +96,14 @@ public class ApplicationHelper
 		.Merge(1)
 		.DistinctUntilChanged();
 
-	private static IClipboard? GetClipboard()
+	private static bool TryGetClipboard([NotNullWhen(true)] out IClipboard? clipboard)
 	{
+		clipboard = null;
+
 		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime { MainWindow: { } window })
 		{
-			return window.Clipboard;
+			clipboard = window.Clipboard;
+			return clipboard is not null;
 		}
 
 		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
@@ -98,11 +111,12 @@ public class ApplicationHelper
 			var visualRoot = mainView.GetVisualRoot();
 			if (visualRoot is TopLevel topLevel)
 			{
-				return topLevel.Clipboard;
+				clipboard = topLevel.Clipboard;
+				return clipboard is not null;
 			}
 		}
 
-		return null;
+		return false;
 	}
 
 	private static TopLevel? GetTopLevel()

@@ -18,10 +18,7 @@ public class CrashReportWindowViewModel : ViewModelBase
 
 		OpenGitHubRepoCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(Link));
 
-		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () =>
-		{
-			await ApplicationHelper.SetTextAsync(Trace);
-		});
+		CopyTraceCommand = ReactiveCommand.CreateFromTask(async () => await ApplicationHelper.SetTextAsync(Trace));
 	}
 
 	public SerializableException SerializedException { get; }
