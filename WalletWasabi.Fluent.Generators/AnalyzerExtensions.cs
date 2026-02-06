@@ -49,61 +49,12 @@ public static class AnalyzerExtensions
 			   filePath.EndsWith(UiContextAnalyzer.UiContextFileSuffix);
 	}
 
-	public static bool IsSubTypeOf(this SyntaxNode node, SemanticModel model, string baseType)
-	{
-		if (node is not ClassDeclarationSyntax cls)
-		{
-			return false;
-		}
-
-		var currentType = model.GetDeclaredSymbol(cls);
-		while (currentType != null)
-		{
-			if (currentType.ToDisplayString() == baseType)
-			{
-				return true;
-			}
-			currentType = currentType.BaseType;
-		}
-
-		return false;
-	}
-
 	public static bool IsAbstractClass(this ClassDeclarationSyntax cls, SemanticModel model)
 	{
 		var typeInfo = model.GetDeclaredSymbol(cls)
 					   ?? throw new InvalidOperationException($"Unable to get Declared Symbol: {cls.Identifier}");
 
 		return typeInfo.IsAbstract;
-	}
-
-	public static bool IsRoutableViewModel(this SyntaxNode node, SemanticModel model)
-	{
-		return node.IsSubTypeOf(model, "WalletWasabi.Fluent.ViewModels.Navigation.RoutableViewModel");
-	}
-
-	public static (string? TypeName, IEnumerable<string> Namespaces) GetDialogResultType(this SyntaxNode node, SemanticModel model)
-	{
-		if (node is not ClassDeclarationSyntax cls)
-		{
-			return (null, []);
-		}
-
-		var currentType = model.GetDeclaredSymbol(cls);
-		while (currentType != null)
-		{
-			if (currentType.ConstructedFrom?.ToDisplayString() == UiContextAnalyzer.DialogViewModelBaseType)
-			{
-				var typeArgument = currentType.TypeArguments.FirstOrDefault();
-				if (typeArgument is { })
-				{
-					return (typeArgument.ToDisplayString(), typeArgument.GetNamespaces());
-				}
-			}
-			currentType = currentType.BaseType;
-		}
-
-		return (null, []);
 	}
 
 	public static bool IsUiContextType(this TypeSyntax? typeSyntax, SemanticModel model)
@@ -114,32 +65,6 @@ public static class AnalyzerExtensions
 		}
 
 		return model.GetTypeInfo(typeSyntax).Type?.ToDisplayString() == UiContextAnalyzer.UiContextType;
-	}
-
-	public static List<string> GetNamespaces(this ITypeSymbol? typeSymbol)
-	{
-		return GetNamespaceSymbols(typeSymbol)
-			.Where(x => !x.IsGlobalNamespace)
-			.Select(x => x.ToDisplayString())
-			.ToList();
-	}
-
-	private static IEnumerable<INamespaceSymbol> GetNamespaceSymbols(this ITypeSymbol? typeSymbol)
-	{
-		if (typeSymbol is null)
-		{
-			yield break;
-		}
-
-		yield return typeSymbol.ContainingNamespace;
-
-		if (typeSymbol is INamedTypeSymbol namedType)
-		{
-			foreach (var typeArg in namedType.TypeArguments)
-			{
-				yield return typeArg.ContainingNamespace;
-			}
-		}
 	}
 
 	public static string SimplifyType(this ITypeSymbol typeSymbol, List<string> namespaces)
