@@ -48,12 +48,19 @@ public record SmartHeader
 		0,
 		Network.RegTest.GetGenesis().Header.BlockTime);
 
+	private static SmartHeader StartingHeaderSignet { get; } = new SmartHeader(
+		Bitcoin.Instance.Signet.GenesisHash,
+		Bitcoin.Instance.Signet.GetGenesis().Header.HashPrevBlock,
+		0,
+		Bitcoin.Instance.Signet.GetGenesis().Header.BlockTime);
+
 	public static SmartHeader GetStartingHeader(Network network) =>
 		network.Name switch
 		{
 			"Main" => StartingHeaderSegwitMain,
 			"TestNet4" => StartingHeaderSegwitTestNet4,
 			"RegTest" => StartingHeaderRegTest,
+			"signet" => StartingHeaderSignet,
 			_ => throw new NotSupportedNetworkException(network)
 		};
 

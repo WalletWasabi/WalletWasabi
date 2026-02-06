@@ -35,7 +35,7 @@ public class Config
 		Data = new()
 		{
 			[ nameof(Network)] = (
-				"The Bitcoin network to use: main, testnet, or regtest",
+				"The Bitcoin network to use: main, testnet, signet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
 			[ nameof(BackendUri)] = (
 				"The indexer server's URL to connect to",

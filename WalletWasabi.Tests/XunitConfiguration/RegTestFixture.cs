@@ -40,6 +40,7 @@ public class RegTestFixture : IDisposable
 			$"http://localhost:{Network.Main.RPCPort}",
 			$"http://localhost:{Network.TestNet.RPCPort}",
 			$"http://{IndexerRegTestNode.RpcEndPoint}",
+			$"http://localhost:{Bitcoin.Instance.Signet.RPCPort}",
 			Constants.DefaultFilterType
 			);
 		config.ToFile();

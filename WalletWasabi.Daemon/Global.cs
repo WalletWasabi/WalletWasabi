@@ -146,8 +146,19 @@ public class Global
 	{
 		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
 		var behavior = new P2pBehavior(mempoolService);
+
+		// NBitcoin doesn't have these dnsSeeds for signet
+		if (Network == Bitcoin.Instance.Signet)
+		{
+			if (Network.DNSSeeds is List<DNSSeedData> dnsSeeds)
+			{
+				dnsSeeds.Add(new DNSSeedData("sprovoost.nl", "seed.signet.bitcoin.sprovoost.nl"));
+				dnsSeeds.Add(new DNSSeedData("achownodes.xyz", "seed.signet.achownodes.xyz"));
+			}
+		}
+
 		var nodesGroup = Network == Network.RegTest
-			? P2pNetwork.CreateNodesGroupForTestNet(behavior)
+			? P2pNetwork.CreateNodesGroupForRegTest(behavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,

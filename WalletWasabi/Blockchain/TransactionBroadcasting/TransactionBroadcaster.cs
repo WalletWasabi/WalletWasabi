@@ -89,11 +89,20 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		new("MempoolSpace", ("https://mempool.space/testnet4", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"), "/api/tx")
 	];
 
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> SignetProviders =
+	[
+		new("MempoolSpace", ("https://mempool.space/signet", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet"), "/api/tx")
+	];
+
 	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
 	{
 		if (network == Network.Main)
 		{
 			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		}
+		else if (network == Bitcoin.Instance.Signet)
+		{
+			Broadcaster = SignetProviders.First();
 		}
 		else
 		{
