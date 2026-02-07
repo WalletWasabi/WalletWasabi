@@ -15,1005 +15,1007 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 
 public class CpfpInfoUpdaterTests
 {
-    [Fact]
-    public void CreateForRegTest_ReturnsHandler_ThatCompletesSuccessfully()
-    {
-        // Arrange
-        var handler = CpfpInfoUpdater.CreateForRegTest();
-        var message = new CpfpInfoMessage.UpdateMessage();
+	[Fact]
+	public async Task CreateForRegTest_ReturnsHandler_ThatCompletesSuccessfullyAsync()
+	{
+		// Arrange
+		var handler = CpfpInfoUpdater.CreateForRegTest();
+		var message = new CpfpInfoMessage.UpdateMessage();
 
-        // Act
-        var result = handler(message, null!, CancellationToken.None);
+		// Act
+		var task = handler(message, null!, CancellationToken.None);
 
-        // Assert
-        Assert.True(result.IsCompletedSuccessfully);
-        Assert.Equal(Unit.Instance, result.Result);
-    }
+		// Assert
+		Assert.True(task.IsCompletedSuccessfully);
 
-    [Fact]
-    public async Task GetCachedCpfpInfo_ReturnsEmptyArray_WhenCacheIsEmpty()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var replyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
-        var message = new CpfpInfoMessage.GetCachedCpfpInfo(replyChannel);
+		var result = await task;
+		Assert.Equal(Unit.Instance, result);
+	}
 
-        // Act
-        await handler(message, null!, CancellationToken.None);
+	[Fact]
+	public async Task GetCachedCpfpInfo_ReturnsEmptyArray_WhenCacheIsEmptyAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var replyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
+		var message = new CpfpInfoMessage.GetCachedCpfpInfo(replyChannel);
 
-        // Assert
-        Assert.NotNull(replyChannel.Result);
-        Assert.Empty(replyChannel.Result);
-    }
+		// Act
+		await handler(message, null!, CancellationToken.None);
 
-    [Fact]
-    public async Task UpdateMessage_ProcessesWithoutError()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var message = new CpfpInfoMessage.UpdateMessage();
+		// Assert
+		Assert.NotNull(replyChannel.Result);
+		Assert.Empty(replyChannel.Result);
+	}
 
-        // Act
-        var result = await handler(message, null!, CancellationToken.None);
+	[Fact]
+	public async Task UpdateMessage_ProcessesWithoutErrorAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var message = new CpfpInfoMessage.UpdateMessage();
 
-        // Assert
-        Assert.Equal(Unit.Instance, result);
-    }
+		// Act
+		var result = await handler(message, null!, CancellationToken.None);
 
-    [Fact]
-    public async Task GetInfoForTransaction_ReturnsFailure_WhenHttpRequestFails()
-    {
-        // Arrange
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => new HttpResponseMessage(HttpStatusCode.InternalServerError));
+		// Assert
+		Assert.Equal(Unit.Instance, result);
+	}
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction();
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
-        var message = new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel);
+	[Fact]
+	public async Task GetInfoForTransaction_ReturnsFailure_WhenHttpRequestFailsAsync()
+	{
+		// Arrange
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => new HttpResponseMessage(HttpStatusCode.InternalServerError));
 
-        // Act
-        await handler(message, Unit.Instance, CancellationToken.None);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction();
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		var message = new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel);
 
-        // Assert
-        Assert.NotNull(replyChannel.Result);
-        Assert.False(replyChannel.Result.IsOk);
-    }
+		// Act
+		await handler(message, Unit.Instance, CancellationToken.None);
 
-    [Fact]
-    public async Task GetInfoForTransaction_ReturnsSuccess_WhenHttpRequestSucceeds()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+		// Assert
+		Assert.NotNull(replyChannel.Result);
+		Assert.False(replyChannel.Result.IsOk);
+	}
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
-        var message = new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel);
+	[Fact]
+	public async Task GetInfoForTransaction_ReturnsSuccess_WhenHttpRequestSucceedsAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        // Act
-        await handler(message, Unit.Instance, CancellationToken.None);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		var message = new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel);
 
-        // Assert
-        Assert.NotNull(replyChannel.Result);
-        Assert.True(replyChannel.Result.IsOk);
-    }
+		// Act
+		await handler(message, Unit.Instance, CancellationToken.None);
 
-    [Fact]
-    public async Task GetInfoForTransaction_UsesCachedValue_WhenAvailable()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var callCount = 0;
+		// Assert
+		Assert.NotNull(replyChannel.Result);
+		Assert.True(replyChannel.Result.IsOk);
+	}
 
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = _ =>
-        {
-            callCount++;
-            return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
-        };
+	[Fact]
+	public async Task GetInfoForTransaction_UsesCachedValue_WhenAvailableAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var callCount = 0;
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = _ =>
+		{
+			callCount++;
+			return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
+		};
 
-        // First request
-        var replyChannel1 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel1), null!, CancellationToken.None);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Second request for same transaction
-        var replyChannel2 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel2), null!, CancellationToken.None);
+		// First request
+		var replyChannel1 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel1), null!, CancellationToken.None);
 
-        // Assert - HTTP should only be called once due to caching
-        Assert.Equal(1, callCount);
-        Assert.True(replyChannel1.Result!.IsOk);
-        Assert.True(replyChannel2.Result!.IsOk);
-    }
+		// Second request for same transaction
+		var replyChannel2 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel2), null!, CancellationToken.None);
 
-    [Fact]
-    public async Task PreFetchInfoForTransaction_SchedulesTask_WithoutBlocking()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var message = new CpfpInfoMessage.PreFetchInfoForTransaction(tx);
+		// Assert - HTTP should only be called once due to caching
+		Assert.Equal(1, callCount);
+		Assert.True(replyChannel1.Result!.IsOk);
+		Assert.True(replyChannel2.Result!.IsOk);
+	}
 
-        // Act
-        var result = await handler(message, null!, CancellationToken.None);
+	[Fact]
+	public async Task PreFetchInfoForTransaction_SchedulesTask_WithoutBlockingAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var message = new CpfpInfoMessage.PreFetchInfoForTransaction(tx);
 
-        // Assert
-        Assert.Equal(Unit.Instance, result);
-    }
+		// Act
+		var result = await handler(message, null!, CancellationToken.None);
 
-    [Fact]
-    public async Task UpdateMessage_RemovesConfirmedTransactions_FromCache()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+		// Assert
+		Assert.Equal(Unit.Instance, result);
+	}
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: new Height(8888));
+	[Fact]
+	public async Task UpdateMessage_RemovesConfirmedTransactions_FromCacheAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        // Add to cache
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: new Height(8888));
 
-        // Trigger update (cleans confirmed transactions)
-        await handler(new CpfpInfoMessage.UpdateMessage(), Unit.Instance, CancellationToken.None);
+		// Add to cache
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
 
-        // Check cache
-        var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
-        await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
+		// Trigger update (cleans confirmed transactions)
+		await handler(new CpfpInfoMessage.UpdateMessage(), Unit.Instance, CancellationToken.None);
 
-        // Assert
-        Assert.Empty(cacheReplyChannel.Result!);
-    }
+		// Check cache
+		var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
+		await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
 
-    [Fact]
-    public async Task UpdateMessage_KeepsUnconfirmedTransactions_InCache()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson),
-            () => HttpResponseMessageEx.Ok(cpfpJson)); // For reschedule
+		// Assert
+		Assert.Empty(cacheReplyChannel.Result!);
+	}
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+	[Fact]
+	public async Task UpdateMessage_KeepsUnconfirmedTransactions_InCacheAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson),
+			() => HttpResponseMessageEx.Ok(cpfpJson)); // For reschedule
 
-        // Add to cache
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Trigger update
-        await handler(new CpfpInfoMessage.UpdateMessage(), null!, CancellationToken.None);
+		// Add to cache
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
 
-        // Check cache
-        var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
-        await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
+		// Trigger update
+		await handler(new CpfpInfoMessage.UpdateMessage(), null!, CancellationToken.None);
 
-        // Assert
-        Assert.Single(cacheReplyChannel.Result!);
-    }
+		// Check cache
+		var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
+		await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
 
-    [Fact]
-    public async Task GetInfoForTransaction_PublishesCpfpInfoArrivedEvent_OnSuccess()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+		// Assert
+		Assert.Single(cacheReplyChannel.Result!);
+	}
 
-        var eventBus = new EventBus();
-        var eventReceived = false;
-        eventBus.Subscribe<CpfpInfoArrived>(_ => eventReceived = true);
+	[Fact]
+	public async Task GetInfoForTransaction_PublishesCpfpInfoArrivedEvent_OnSuccessAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		var eventBus = new EventBus();
+		var eventReceived = false;
+		eventBus.Subscribe<CpfpInfoArrived>(_ => eventReceived = true);
 
-        // Act
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
 
-        // Assert
-        Assert.True(eventReceived);
-    }
+		// Act
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
 
-    [Fact]
-    public async Task GetInfoForTransaction_DoesNotPublishEvent_OnFailure()
-    {
-        // Arrange
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => new HttpResponseMessage(HttpStatusCode.InternalServerError));
+		// Assert
+		Assert.True(eventReceived);
+	}
 
-        var eventBus = new EventBus();
-        var eventReceived = false;
-        eventBus.Subscribe<CpfpInfoArrived>(_ => eventReceived = true);
+	[Fact]
+	public async Task GetInfoForTransaction_DoesNotPublishEvent_OnFailureAsync()
+	{
+		// Arrange
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => new HttpResponseMessage(HttpStatusCode.InternalServerError));
 
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		var eventBus = new EventBus();
+		var eventReceived = false;
+		eventBus.Subscribe<CpfpInfoArrived>(_ => eventReceived = true);
 
-        // Act
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
 
-        // Assert
-        Assert.False(eventReceived);
-    }
+		// Act
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, CancellationToken.None);
 
-    [Fact]
-    public void Create_DoesNotThrow_ForMainnet()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
+		// Assert
+		Assert.False(eventReceived);
+	}
 
-        // Act & Assert
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        Assert.NotNull(handler);
-    }
+	[Fact]
+	public void Create_DoesNotThrow_ForMainnet()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
 
-    [Fact]
-    public void Create_DoesNotThrow_ForTestnet4()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
+		// Act & Assert
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		Assert.NotNull(handler);
+	}
 
-        // Act & Assert
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.TestNet4, eventBus);
-        Assert.NotNull(handler);
-    }
+	[Fact]
+	public void Create_DoesNotThrow_ForTestnet4()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
 
-    [Fact]
-    public async Task GetCachedCpfpInfo_ReturnsAllCachedItems()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson),
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+		// Act & Assert
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.TestNet4, eventBus);
+		Assert.NotNull(handler);
+	}
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task GetCachedCpfpInfo_ReturnsAllCachedItemsAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson),
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        // Add two transactions to cache
-        var reply1 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx1, reply1), null!, CancellationToken.None);
+		var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        var reply2 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx2, reply2), null!, CancellationToken.None);
+		// Add two transactions to cache
+		var reply1 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx1, reply1), null!, CancellationToken.None);
 
-        // Act
-        var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
-        await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
+		var reply2 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx2, reply2), null!, CancellationToken.None);
 
-        // Assert
-        Assert.Equal(2, cacheReplyChannel.Result!.Length);
-    }
+		// Act
+		var cacheReplyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
+		await handler(new CpfpInfoMessage.GetCachedCpfpInfo(cacheReplyChannel), null!, CancellationToken.None);
+
+		// Assert
+		Assert.Equal(2, cacheReplyChannel.Result!.Length);
+	}
 }
 
 public class CpfpInfoProviderTests
 {
-    [Fact]
-    public async Task GetCachedCpfpInfoAsync_ReturnsResultFromMailbox()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task GetCachedCpfpInfoAsync_ReturnsResultFromMailboxAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
 
-        // Act
-        var result = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
+		// Act
+		var result = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
 
-        // Assert
-        Assert.NotNull(result);
-        Assert.Empty(result);
-    }
+		// Assert
+		Assert.NotNull(result);
+		Assert.Empty(result);
+	}
 
-    [Fact]
-    public async Task ScheduleRequest_PostsPreFetchMessage_AndProcessesIt()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var requestReceived = false;
+	[Fact]
+	public async Task ScheduleRequest_PostsPreFetchMessage_AndProcessesItAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var requestReceived = false;
 
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = _ =>
-        {
-            requestReceived = true;
-            return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
-        };
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = _ =>
+		{
+			requestReceived = true;
+			return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        provider.ScheduleRequest(tx);
+		// Act
+		provider.ScheduleRequest(tx);
 
-        // Wait for async processing (prefetch has random delay up to 10 seconds, but we can check cache)
-        await Task.Delay(100);
+		// Wait for async processing (prefetch has random delay up to 10 seconds, but we can check cache)
+		await Task.Delay(100);
 
-        // Assert - message was posted (we can't easily verify prefetch completed due to random delay)
-        // But we can verify the provider doesn't throw
-        Assert.True(true);
-    }
+		// Assert - message was posted (we can't easily verify prefetch completed due to random delay)
+		// But we can verify the provider doesn't throw
+		Assert.True(true);
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_ReturnsSuccess_WhenHttpSucceeds()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+	[Fact]
+	public async Task GetCpfpInfoAsync_ReturnsSuccess_WhenHttpSucceedsAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        var result = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		// Act
+		var result = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
 
-        // Assert
-        Assert.True(result.IsOk);
-    }
+		// Assert
+		Assert.True(result.IsOk);
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_ReturnsFailure_WhenHttpFails()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => new HttpResponseMessage(HttpStatusCode.InternalServerError));
+	[Fact]
+	public async Task GetCpfpInfoAsync_ReturnsFailure_WhenHttpFailsAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => new HttpResponseMessage(HttpStatusCode.InternalServerError));
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        var result = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		// Act
+		var result = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
 
-        // Assert
-        Assert.False(result.IsOk);
-    }
+		// Assert
+		Assert.False(result.IsOk);
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_UsesCachedValue_OnSubsequentCalls()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var callCount = 0;
+	[Fact]
+	public async Task GetCpfpInfoAsync_UsesCachedValue_OnSubsequentCallsAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var callCount = 0;
 
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = _ =>
-        {
-            callCount++;
-            return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
-        };
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = _ =>
+		{
+			callCount++;
+			return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        var result1 = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
-        var result2 = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		// Act
+		var result1 = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		var result2 = await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
 
-        // Assert
-        Assert.Equal(1, callCount);
-        Assert.True(result1.IsOk);
-        Assert.True(result2.IsOk);
-    }
+		// Assert
+		Assert.Equal(1, callCount);
+		Assert.True(result1.IsOk);
+		Assert.True(result2.IsOk);
+	}
 
-    [Fact]
-    public async Task GetCachedCpfpInfoAsync_ReturnsPopulatedCache_AfterGetCpfpInfoAsync()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+	[Fact]
+	public async Task GetCachedCpfpInfoAsync_ReturnsPopulatedCache_AfterGetCpfpInfoAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Populate cache
-        await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		// Populate cache
+		await provider.GetCpfpInfoAsync(tx, CancellationToken.None);
 
-        // Act
-        var cachedInfo = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
+		// Act
+		var cachedInfo = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
 
-        // Assert
-        Assert.Single(cachedInfo);
-        Assert.Equal(tx, cachedInfo[0].Transaction);
-    }
+		// Assert
+		Assert.Single(cachedInfo);
+		Assert.Equal(tx, cachedInfo[0].Transaction);
+	}
 
-    [Fact]
-    public async Task Provider_HandlesCancellation_Gracefully()
-    {
-        // Arrange
-        using var cts = new CancellationTokenSource();
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task Provider_HandlesCancellation_GracefullyAsync()
+	{
+		// Arrange
+		using var cts = new CancellationTokenSource();
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var requestCts = new CancellationTokenSource();
-        requestCts.Cancel();
+		using var requestCts = new CancellationTokenSource();
+		requestCts.Cancel();
 
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => provider.GetCpfpInfoAsync(tx, requestCts.Token));
-    }
+		// Act & Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => provider.GetCpfpInfoAsync(tx, requestCts.Token));
+	}
 
-    [Fact]
-    public async Task Provider_DisposedMailbox_ThrowsObjectDisposedException()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task Provider_DisposedMailbox_ThrowsObjectDisposedExceptionAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        var mailbox = CreateAndStartMailboxProcessor(handler, CancellationToken.None);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var mailbox = CreateAndStartMailboxProcessor(handler, CancellationToken.None);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Dispose the mailbox
-        mailbox.Dispose();
+		// Dispose the mailbox
+		mailbox.Dispose();
 
-        // Act & Assert
-        await Assert.ThrowsAsync<ObjectDisposedException>(
-            () => provider.GetCpfpInfoAsync(tx, CancellationToken.None));
-    }
+		// Act & Assert
+		await Assert.ThrowsAsync<ObjectDisposedException>(
+			() => provider.GetCpfpInfoAsync(tx, CancellationToken.None));
+	}
 
-    private static MailboxProcessor<CpfpInfoMessage> CreateAndStartMailboxProcessor(
-        MessageHandler<CpfpInfoMessage, Unit> handler,
-        CancellationToken cancellationToken)
-    {
-        var processor = new MailboxProcessor<CpfpInfoMessage>(
-            async (mailbox, ct) =>
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    var message = await mailbox.ReceiveAsync(ct);
-                    await handler(message, Unit.Instance, ct);
-                }
-            },
-            cancellationToken);
+	private static MailboxProcessor<CpfpInfoMessage> CreateAndStartMailboxProcessor(
+		MessageHandler<CpfpInfoMessage, Unit> handler,
+		CancellationToken cancellationToken)
+	{
+		var processor = new MailboxProcessor<CpfpInfoMessage>(
+			async (mailbox, ct) =>
+			{
+				while (!ct.IsCancellationRequested)
+				{
+					var message = await mailbox.ReceiveAsync(ct);
+					await handler(message, Unit.Instance, ct);
+				}
+			},
+			cancellationToken);
 
-        processor.Start();
-        return processor;
-    }
+		processor.Start();
+		return processor;
+	}
 }
 
 public class TestReplyChannel<T> : IReplyChannel<T>
 {
-    public T? Result { get; private set; }
-    public bool WasReplied { get; private set; }
+	public T? Result { get; private set; }
+	public bool WasReplied { get; private set; }
 
-    public void Reply(T response)
-    {
-        Result = response;
-        WasReplied = true;
-    }
+	public void Reply(T response)
+	{
+		Result = response;
+		WasReplied = true;
+	}
 }
 
 public class CpfpInfoUpdaterCancellationTests
 {
-    [Fact]
-    public async Task GetInfoForTransaction_ThrowsOperationCanceledException_WhenCancelled()
-    {
-        // Arrange
-        var tcs = new TaskCompletionSource<HttpResponseMessage>();
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = _ => tcs.Task;
+	[Fact]
+	public async Task GetInfoForTransaction_ThrowsOperationCanceledException_WhenCancelledAsync()
+	{
+		// Arrange
+		var tcs = new TaskCompletionSource<HttpResponseMessage>();
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = _ => tcs.Task;
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var cts = new CancellationTokenSource();
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		using var cts = new CancellationTokenSource();
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
 
-        // Act
-        var task = handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, cts.Token);
-        cts.Cancel();
-        tcs.SetCanceled();
+		// Act
+		var task = handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, cts.Token);
+		cts.Cancel();
+		tcs.SetCanceled();
 
-        await task;
+		await task;
 
-        // Assert
-        Assert.Equal("A task was canceled.", replyChannel.Result!.Error);
-    }
+		// Assert
+		Assert.Equal("A task was canceled.", replyChannel.Result!.Error);
+	}
 
-    [Fact]
-    public async Task GetInfoForTransaction_ReturnsFailure_WhenHttpRequestTimesOut()
-    {
-        // Arrange
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = async _ =>
-        {
-            await Task.Delay(TimeSpan.FromSeconds(30));
-            return HttpResponseMessageEx.Ok("{}");
-        };
+	[Fact]
+	public async Task GetInfoForTransaction_ReturnsFailure_WhenHttpRequestTimesOutAsync()
+	{
+		// Arrange
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = async _ =>
+		{
+			await Task.Delay(TimeSpan.FromSeconds(30));
+			return HttpResponseMessageEx.Ok("{}");
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-        var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
+		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
+		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();
 
-        // Act
-        try
-        {
-            await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, cts.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+		// Act
+		try
+		{
+			await handler(new CpfpInfoMessage.GetInfoForTransaction(tx, replyChannel), null!, cts.Token);
+		}
+		catch (OperationCanceledException)
+		{
+			// Expected
+		}
 
-        // Assert - either cancelled or returned failure
-        Assert.True(cts.IsCancellationRequested);
-    }
+		// Assert - either cancelled or returned failure
+		Assert.True(cts.IsCancellationRequested);
+	}
 
-    [Fact]
-    public async Task PreFetchInfoForTransaction_StopsGracefully_WhenCancelled()
-    {
-        // Arrange
-        var requestStarted = new TaskCompletionSource();
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = async _ =>
-        {
-            requestStarted.SetResult();
-            await Task.Delay(TimeSpan.FromSeconds(30));
-            return HttpResponseMessageEx.Ok("{}");
-        };
+	[Fact]
+	public async Task PreFetchInfoForTransaction_StopsGracefully_WhenCancelledAsync()
+	{
+		// Arrange
+		var requestStarted = new TaskCompletionSource();
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = async _ =>
+		{
+			requestStarted.SetResult();
+			await Task.Delay(TimeSpan.FromSeconds(30));
+			return HttpResponseMessageEx.Ok("{}");
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var cts = new CancellationTokenSource();
+		using var cts = new CancellationTokenSource();
 
-        // Act
-        var result = await handler(new CpfpInfoMessage.PreFetchInfoForTransaction(tx), null!, cts.Token);
-        cts.Cancel();
+		// Act
+		var result = await handler(new CpfpInfoMessage.PreFetchInfoForTransaction(tx), null!, cts.Token);
+		cts.Cancel();
 
-        // Assert - handler returns immediately, prefetch is scheduled but cancellation stops it
-        Assert.Equal(Unit.Instance, result);
-    }
+		// Assert - handler returns immediately, prefetch is scheduled but cancellation stops it
+		Assert.Equal(Unit.Instance, result);
+	}
 
-    [Fact]
-    public async Task UpdateMessage_HandlesAlreadyCancelledToken()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task UpdateMessage_HandlesAlreadyCancelledTokenAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var cts = new CancellationTokenSource();
-        cts.Cancel();
+		using var cts = new CancellationTokenSource();
+		cts.Cancel();
 
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => handler(new CpfpInfoMessage.UpdateMessage(), null!, cts.Token));
-    }
+		// Act & Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => handler(new CpfpInfoMessage.UpdateMessage(), null!, cts.Token));
+	}
 
-    [Fact]
-    public async Task GetCachedCpfpInfo_WorksWithCancelledToken_IfAlreadyComplete()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-        var replyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
+	[Fact]
+	public async Task GetCachedCpfpInfo_WorksWithCancelledToken_IfAlreadyCompleteAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var replyChannel = new TestReplyChannel<CachedCpfpInfo[]>();
 
-        // Act - GetCachedCpfpInfo is synchronous internally, so it completes before checking cancellation
-        await handler(new CpfpInfoMessage.GetCachedCpfpInfo(replyChannel), null!, CancellationToken.None);
+		// Act - GetCachedCpfpInfo is synchronous internally, so it completes before checking cancellation
+		await handler(new CpfpInfoMessage.GetCachedCpfpInfo(replyChannel), null!, CancellationToken.None);
 
-        // Assert
-        Assert.True(replyChannel.WasReplied);
-        Assert.Empty(replyChannel.Result!);
-    }
+		// Assert
+		Assert.True(replyChannel.WasReplied);
+		Assert.Empty(replyChannel.Result!);
+	}
 
-    [Fact]
-    public async Task Handler_ContinuesProcessing_AfterSingleRequestCancellation()
-    {
-        // Arrange
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var callCount = 0;
-        var firstRequestStarted = new TaskCompletionSource();
+	[Fact]
+	public async Task Handler_ContinuesProcessing_AfterSingleRequestCancellationAsync()
+	{
+		// Arrange
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var callCount = 0;
+		var firstRequestStarted = new TaskCompletionSource();
 
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = async _ =>
-        {
-            callCount++;
-            if (callCount == 1)
-            {
-                firstRequestStarted.SetResult();
-                await Task.Delay(TimeSpan.FromSeconds(30));
-            }
-            return HttpResponseMessageEx.Ok(cpfpJson);
-        };
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = async _ =>
+		{
+			callCount++;
+			if (callCount == 1)
+			{
+				firstRequestStarted.SetResult();
+				await Task.Delay(TimeSpan.FromSeconds(30));
+			}
+			return HttpResponseMessageEx.Ok(cpfpJson);
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // First request - will be cancelled
-        using var cts1 = new CancellationTokenSource();
-        var replyChannel1 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        var task1 = handler(new CpfpInfoMessage.GetInfoForTransaction(tx1, replyChannel1), null!, cts1.Token);
+		// First request - will be cancelled
+		using var cts1 = new CancellationTokenSource();
+		var replyChannel1 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		var task1 = handler(new CpfpInfoMessage.GetInfoForTransaction(tx1, replyChannel1), null!, cts1.Token);
 
-        await firstRequestStarted.Task;
-        cts1.Cancel();
+		await firstRequestStarted.Task;
+		cts1.Cancel();
 
-        try
-        {
-            await task1;
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+		try
+		{
+			await task1;
+		}
+		catch (OperationCanceledException)
+		{
+			// Expected
+		}
 
-        // Second request - should work
-        var replyChannel2 = new TestReplyChannel<Result<CpfpInfo, string>>();
-        await handler(new CpfpInfoMessage.GetInfoForTransaction(tx2, replyChannel2), null!, CancellationToken.None);
+		// Second request - should work
+		var replyChannel2 = new TestReplyChannel<Result<CpfpInfo, string>>();
+		await handler(new CpfpInfoMessage.GetInfoForTransaction(tx2, replyChannel2), null!, CancellationToken.None);
 
-        // Assert
-        Assert.True(replyChannel2.WasReplied);
-        Assert.True(replyChannel2.Result!.IsOk);
-    }
+		// Assert
+		Assert.True(replyChannel2.WasReplied);
+		Assert.True(replyChannel2.Result!.IsOk);
+	}
 }
 
 public class CpfpInfoProviderCancellationTests
 {
-    [Fact]
-    public async Task GetCachedCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelled()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var slowHandler = CreateSlowHandler();
+	[Fact]
+	public async Task GetCachedCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelledAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var slowHandler = CreateSlowHandler();
 
-        using var mailbox = CreateAndStartMailboxProcessor(slowHandler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
+		using var mailbox = CreateAndStartMailboxProcessor(slowHandler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
 
-        using var requestCts = new CancellationTokenSource();
-        requestCts.Cancel();
+		using var requestCts = new CancellationTokenSource();
+		requestCts.Cancel();
 
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => provider.GetCachedCpfpInfoAsync(requestCts.Token));
-    }
+		// Act & Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => provider.GetCachedCpfpInfoAsync(requestCts.Token));
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelledBeforeResponse()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var messageReceived = new TaskCompletionSource();
+	[Fact]
+	public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelledBeforeResponseAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var messageReceived = new TaskCompletionSource();
 
-        MessageHandler<CpfpInfoMessage, Unit> handler = async (msg, _, ct) =>
-        {
-            if (msg is CpfpInfoMessage.GetInfoForTransaction)
-            {
-                messageReceived.SetResult();
-                await Task.Delay(TimeSpan.FromSeconds(30), ct);
-            }
-            return Unit.Instance;
-        };
+		async Task<Unit> Handler(CpfpInfoMessage msg, Unit _, CancellationToken ct)
+		{
+			if (msg is CpfpInfoMessage.GetInfoForTransaction)
+			{
+				messageReceived.SetResult();
+				await Task.Delay(TimeSpan.FromSeconds(30), ct);
+			}
+			return Unit.Instance;
+		}
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(Handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var requestCts = new CancellationTokenSource();
+		using var requestCts = new CancellationTokenSource();
 
-        // Act
-        var task = provider.GetCpfpInfoAsync(tx, requestCts.Token);
-        await messageReceived.Task;
-        requestCts.Cancel();
+		// Act
+		var task = provider.GetCpfpInfoAsync(tx, requestCts.Token);
+		await messageReceived.Task;
+		requestCts.Cancel();
 
-        // Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
-    }
+		// Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task);
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelledImmediately()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenCancelledImmediatelyAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var requestCts = new CancellationTokenSource();
-        requestCts.Cancel();
+		using var requestCts = new CancellationTokenSource();
+		requestCts.Cancel();
 
-        // Act & Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(
-            () => provider.GetCpfpInfoAsync(tx, requestCts.Token));
-    }
+		// Act & Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(
+			() => provider.GetCpfpInfoAsync(tx, requestCts.Token));
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenMailboxProcessorIsCancelled()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var messageReceived = new TaskCompletionSource();
+	[Fact]
+	public async Task GetCpfpInfoAsync_ThrowsOperationCanceledException_WhenMailboxProcessorIsCancelledAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var messageReceived = new TaskCompletionSource();
 
-        MessageHandler<CpfpInfoMessage, Unit> handler = async (msg, _, ct) =>
-        {
-            if (msg is CpfpInfoMessage.GetInfoForTransaction)
-            {
-                messageReceived.SetResult();
-                await Task.Delay(TimeSpan.FromSeconds(30), ct);
-            }
-            return Unit.Instance;
-        };
+		async Task<Unit> Handler(CpfpInfoMessage msg, Unit _, CancellationToken ct)
+		{
+			if (msg is CpfpInfoMessage.GetInfoForTransaction)
+			{
+				messageReceived.SetResult();
+				await Task.Delay(TimeSpan.FromSeconds(30), ct);
+			}
+			return Unit.Instance;
+		}
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(Handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        var task = provider.GetCpfpInfoAsync(tx, CancellationToken.None);
-        await messageReceived.Task;
-        processorCts.Cancel();
+		// Act
+		var task = provider.GetCpfpInfoAsync(tx, CancellationToken.None);
+		await messageReceived.Task;
+		processorCts.Cancel();
 
-        // Assert
-        await Assert.ThrowsAnyAsync<Exception>(() => task);
-    }
+		// Assert
+		await Assert.ThrowsAnyAsync<Exception>(() => task);
+	}
 
-    [Fact]
-    public async Task ScheduleRequest_DoesNotThrow_WhenCancelledLater()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task ScheduleRequest_DoesNotThrow_WhenCancelledLaterAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // Act
-        provider.ScheduleRequest(tx);
-        processorCts.Cancel();
+		// Act
+		provider.ScheduleRequest(tx);
+		processorCts.Cancel();
 
-        // Assert - no exception thrown, fire-and-forget behavior
-        await Task.Delay(50); // Give time for any potential exceptions
-        Assert.True(true);
-    }
+		// Assert - no exception thrown, fire-and-forget behavior
+		await Task.Delay(50); // Give time for any potential exceptions
+		Assert.True(true);
+	}
 
-    [Fact]
-    public async Task ScheduleRequest_ReturnsFalse_WhenMailboxDisposed()
-    {
-        // Arrange
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+	[Fact]
+	public async Task ScheduleRequest_ReturnsFalse_WhenMailboxDisposedAsync()
+	{
+		// Arrange
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => new HttpClient() };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        var mailbox = CreateAndStartMailboxProcessor(handler, CancellationToken.None);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var mailbox = CreateAndStartMailboxProcessor(handler, CancellationToken.None);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        mailbox.Dispose();
+		mailbox.Dispose();
 
-        // Act - Post returns false when disposed, but ScheduleRequest doesn't expose this
-        provider.ScheduleRequest(tx);
+		// Act - Post returns false when disposed, but ScheduleRequest doesn't expose this
+		provider.ScheduleRequest(tx);
 
-        // Assert - no exception thrown
-        await Task.Delay(50);
-        Assert.True(true);
-    }
+		// Assert - no exception thrown
+		await Task.Delay(50);
+		Assert.True(true);
+	}
 
-    [Fact]
-    public async Task MultipleRequests_HandleCancellationIndependently()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var request1Started = new TaskCompletionSource();
-        var request2Started = new TaskCompletionSource();
-        var callCount = 0;
+	[Fact]
+	public async Task MultipleRequests_HandleCancellationIndependentlyAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var request1Started = new TaskCompletionSource();
+		var request2Started = new TaskCompletionSource();
+		var callCount = 0;
 
-        var mockHttpClient = new MockHttpClient();
-        mockHttpClient.OnSendAsync = async req =>
-        {
-            var currentCall = Interlocked.Increment(ref callCount);
-            if (currentCall == 1)
-            {
-                request1Started.SetResult();
-                await Task.Delay(TimeSpan.FromSeconds(30));
-            }
-            else
-            {
-                request2Started.SetResult();
-            }
-            return HttpResponseMessageEx.Ok(cpfpJson);
-        };
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = async req =>
+		{
+			var currentCall = Interlocked.Increment(ref callCount);
+			if (currentCall == 1)
+			{
+				request1Started.SetResult();
+				await Task.Delay(TimeSpan.FromSeconds(30));
+			}
+			else
+			{
+				request2Started.SetResult();
+			}
+			return HttpResponseMessageEx.Ok(cpfpJson);
+		};
 
-        var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
 
-        var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var cts1 = new CancellationTokenSource();
+		using var cts1 = new CancellationTokenSource();
 
-        // Act
-        var task1 = provider.GetCpfpInfoAsync(tx1, cts1.Token);
-        await request1Started.Task;
-        cts1.Cancel();
+		// Act
+		var task1 = provider.GetCpfpInfoAsync(tx1, cts1.Token);
+		await request1Started.Task;
+		cts1.Cancel();
 
-        var task2 = provider.GetCpfpInfoAsync(tx2, CancellationToken.None);
+		var task2 = provider.GetCpfpInfoAsync(tx2, CancellationToken.None);
 
-        // Assert
-        await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task1);
+		// Assert
+		await Assert.ThrowsAnyAsync<OperationCanceledException>(() => task1);
 
-        // Task2 might complete or might be waiting depending on timing
-        // The important thing is that the provider/mailbox is still functional
-        var cacheResult = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
-        Assert.NotNull(cacheResult);
-    }
+		// Task2 might complete or might be waiting depending on timing
+		// The important thing is that the provider/mailbox is still functional
+		var cacheResult = await provider.GetCachedCpfpInfoAsync(CancellationToken.None);
+		Assert.NotNull(cacheResult);
+	}
 
-    [Fact]
-    public async Task GetCpfpInfoAsync_CompletesSuccessfully_BeforeCancellation()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+	[Fact]
+	public async Task GetCpfpInfoAsync_CompletesSuccessfully_BeforeCancellationAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
-        var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
+		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        using var requestCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+		using var requestCts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 
-        // Act
-        var result = await provider.GetCpfpInfoAsync(tx, requestCts.Token);
+		// Act
+		var result = await provider.GetCpfpInfoAsync(tx, requestCts.Token);
 
-        // Assert
-        Assert.True(result.IsOk);
-        Assert.False(requestCts.IsCancellationRequested);
-    }
+		// Assert
+		Assert.True(result.IsOk);
+		Assert.False(requestCts.IsCancellationRequested);
+	}
 
-    [Fact]
-    public async Task Provider_RemainsUsable_AfterCancellationException()
-    {
-        // Arrange
-        using var processorCts = new CancellationTokenSource();
-        var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-        var httpClientFactory = MockHttpClientFactory.Create(
-            () => HttpResponseMessageEx.Ok(cpfpJson),
-            () => HttpResponseMessageEx.Ok(cpfpJson));
+	[Fact]
+	public async Task Provider_RemainsUsable_AfterCancellationExceptionAsync()
+	{
+		// Arrange
+		using var processorCts = new CancellationTokenSource();
+		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
+		var httpClientFactory = MockHttpClientFactory.Create(
+			() => HttpResponseMessageEx.Ok(cpfpJson),
+			() => HttpResponseMessageEx.Ok(cpfpJson));
 
-        var eventBus = new EventBus();
-        var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
+		var eventBus = new EventBus();
+		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
-        using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
-        var provider = new CpfpInfoProvider(mailbox);
+		using var mailbox = CreateAndStartMailboxProcessor(handler, processorCts.Token);
+		var provider = new CpfpInfoProvider(mailbox);
 
-        var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
-        var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx1 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
+		var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
-        // First request - cancelled
-        using var cts1 = new CancellationTokenSource();
-        cts1.Cancel();
+		// First request - cancelled
+		using var cts1 = new CancellationTokenSource();
+		cts1.Cancel();
 
-        try
-        {
-            await provider.GetCpfpInfoAsync(tx1, cts1.Token);
-        }
-        catch (OperationCanceledException)
-        {
-            // Expected
-        }
+		try
+		{
+			await provider.GetCpfpInfoAsync(tx1, cts1.Token);
+		}
+		catch (OperationCanceledException)
+		{
+			// Expected
+		}
 
-        // Act - Second request should work
-        var result = await provider.GetCpfpInfoAsync(tx2, CancellationToken.None);
+		// Act - Second request should work
+		var result = await provider.GetCpfpInfoAsync(tx2, CancellationToken.None);
 
-        // Assert
-        Assert.True(result.IsOk);
-    }
+		// Assert
+		Assert.True(result.IsOk);
+	}
 
-    private static MessageHandler<CpfpInfoMessage, Unit> CreateSlowHandler()
-    {
-        return async (_, _, ct) =>
-        {
-            await Task.Delay(TimeSpan.FromSeconds(30), ct);
-            return Unit.Instance;
-        };
-    }
+	private static MessageHandler<CpfpInfoMessage, Unit> CreateSlowHandler()
+	{
+		return async (_, _, ct) =>
+		{
+			await Task.Delay(TimeSpan.FromSeconds(30), ct);
+			return Unit.Instance;
+		};
+	}
 
-    private static MailboxProcessor<CpfpInfoMessage> CreateAndStartMailboxProcessor(
-        MessageHandler<CpfpInfoMessage, Unit> handler,
-        CancellationToken cancellationToken)
-    {
-        var processor = new MailboxProcessor<CpfpInfoMessage>(
-            async (mailbox, ct) =>
-            {
-                while (!ct.IsCancellationRequested)
-                {
-                    var message = await mailbox.ReceiveAsync(ct);
-                    await handler(message, Unit.Instance, ct);
-                }
-            },
-            cancellationToken);
+	private static MailboxProcessor<CpfpInfoMessage> CreateAndStartMailboxProcessor(
+		MessageHandler<CpfpInfoMessage, Unit> handler,
+		CancellationToken cancellationToken)
+	{
+		var processor = new MailboxProcessor<CpfpInfoMessage>(
+			async (mailbox, ct) =>
+			{
+				while (!ct.IsCancellationRequested)
+				{
+					var message = await mailbox.ReceiveAsync(ct);
+					await handler(message, Unit.Instance, ct);
+				}
+			},
+			cancellationToken);
 
-        processor.Start();
-        return processor;
-    }
+		processor.Start();
+		return processor;
+	}
 }
