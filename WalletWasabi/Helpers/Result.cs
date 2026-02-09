@@ -13,18 +13,16 @@ public record Result<TValue,TError>
 	private readonly TValue? _value;
 	private readonly TError? _error;
 
-	private readonly bool _isSuccess;
-
 	protected Result(TValue value)
 	{
-		_isSuccess = true;
+		IsOk = true;
 		_value = value;
 		_error = default;
 	}
 
 	protected Result(TError error)
 	{
-		_isSuccess = false;
+		IsOk = false;
 		_value = default;
 		_error = error;
 	}
@@ -38,13 +36,13 @@ public record Result<TValue,TError>
 	public delegate T FailureAction<out T>(TError e);
 
 	public T Match<T>(SuccessAction<T> success, FailureAction<T> failure) =>
-		_isSuccess
+		IsOk
 			? success(_value!)
 			: failure(_error!);
 
 	public void MatchDo(Action<TValue> success, Action<TError> failure)
 	{
-		if (_isSuccess)
+		if (IsOk)
 		{
 			success(_value!);
 		}
@@ -54,7 +52,7 @@ public record Result<TValue,TError>
 		}
 	}
 
-	public bool IsOk => _isSuccess;
+	public bool IsOk { get; }
 
 	public Result<T, TError> Map<T>(Func<TValue, T> f) =>
 		Match(v => Result<T, TError>.Ok(f(v)), e => e);
@@ -73,7 +71,7 @@ public record Result<TValue,TError>
 		Result<TValue[], TError[]> initialState = Array.Empty<TValue>();
 
 		return results.Aggregate(initialState, (acc, s) =>
-			(acc._isSuccess, s._isSuccess) switch
+			(acc.IsOk, s.IsOk) switch
 			{
 				(true, true) => acc._value!.Append(s._value!).ToArray(),
 				(true, false) => new[] {s._error!},
@@ -105,7 +103,7 @@ public record Result<TValue,TError>
 	}
 
 	public TValue? AsNullable () =>
-		_isSuccess
+		IsOk
 			? Value
 			: default;
 }
@@ -122,7 +120,7 @@ public record Result<TError> : Result<Unit, TError>
 
 	public static implicit operator Result<TError> (TError error) => new(error);
 	public static Result<TError> Ok() => new(Unit.Instance);
-	public static Result<TError> Fail(TError error) => new(error);
+	public static new Result<TError> Fail(TError error) => new(error);
 
 	public static Result<TError[]> Sequence(IEnumerable<Result<TError>> results) =>
 		Result<Unit, TError>.Sequence(results)
@@ -130,7 +128,7 @@ public record Result<TError> : Result<Unit, TError>
 				_ => Result<TError[]>.Ok(),
 				es => Result<TError[]>.Fail(es));
 
-	public Result<T> ThenError<T>(Func<TError, T> f) =>
+	public new Result<T> ThenError<T>(Func<TError, T> f) =>
 		Match(_=> Result<T>.Ok(), e => Result<T>.Fail(f(e)));
 }
 
