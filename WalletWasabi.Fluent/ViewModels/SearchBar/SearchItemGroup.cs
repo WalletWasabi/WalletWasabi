@@ -19,8 +19,7 @@ public class SearchItemGroup : IDisposable
 	{
 		Title = title;
 		changes
-			.Sort(SortExpressionComparer<ISearchItem>.Ascending(x => x.Priority))
-			.Bind(out _items)
+			.SortAndBind(out _items, SortExpressionComparer<ISearchItem>.Ascending(x => x.Priority))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe()
 			.DisposeWith(_disposables);

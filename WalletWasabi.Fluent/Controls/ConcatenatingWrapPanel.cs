@@ -47,7 +47,7 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 	public Avalonia.Controls.Controls ConcatenatedChildren { get; } = new Avalonia.Controls.Controls();
 
 	/// <summary>
-	/// Gets or sets the orientation in which child controls will be layed out.
+	/// Gets or sets the orientation in which child controls will be laid out.
 	/// </summary>
 	public Orientation Orientation
 	{
@@ -84,7 +84,7 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 	{
 		var orientation = Orientation;
 		var children = Children.Concat(ConcatenatedChildren).ToList();
-		bool horiz = orientation == Orientation.Horizontal;
+		bool isHorizontal = orientation == Orientation.Horizontal;
 		int index = Children.IndexOf((Control)from);
 
 		switch (direction)
@@ -106,19 +106,19 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 				break;
 
 			case NavigationDirection.Left:
-				index = horiz ? index - 1 : -1;
+				index = isHorizontal ? index - 1 : -1;
 				break;
 
 			case NavigationDirection.Right:
-				index = horiz ? index + 1 : -1;
+				index = isHorizontal ? index + 1 : -1;
 				break;
 
 			case NavigationDirection.Up:
-				index = horiz ? -1 : index - 1;
+				index = isHorizontal ? -1 : index - 1;
 				break;
 
 			case NavigationDirection.Down:
-				index = horiz ? -1 : index + 1;
+				index = isHorizontal ? -1 : index + 1;
 				break;
 		}
 

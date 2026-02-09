@@ -146,6 +146,11 @@ public static class HwiParser
 		var response = new List<HwiEnumerateEntry>();
 		foreach (var json in jArray)
 		{
+			if (json is null)
+			{
+				continue;
+			}
+
 			var hwiEntry = ParseHwiEnumerateEntry(json);
 			response.Add(hwiEntry);
 		}
@@ -339,7 +344,7 @@ public static class HwiParser
 
 	public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string? commandArguments)
 	{
-		options ??= Enumerable.Empty<HwiOption>();
+		options ??= [];
 		var fullOptions = new List<HwiOption>(options);
 
 		if (network != Network.Main)
@@ -401,7 +406,7 @@ public static class HwiParser
 		try
 		{
 			token = JsonNode.Parse(text);
-			return true;
+			return token is not null;
 		}
 		catch (JsonException)
 		{
