@@ -35,7 +35,7 @@ public static partial class Encode
 	public static JsonNode Guid(Guid value) => JsonValue.Create(value);
 
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static JsonNode Dictionary(Dictionary<string, JsonNode> values) => new JsonObject(values);
+	public static JsonNode Dictionary(Dictionary<string, JsonNode> values) => new JsonObject(values!);
 
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static JsonNode Object(IEnumerable<(string, JsonNode?)> values) => new JsonObject(values.ToDictionary(x => x.Item1, x => x.Item2));
@@ -281,14 +281,8 @@ public static partial class Decode
 	public static Decoder<T> AndThen<T, R>(Func<R, Decoder<T>> cb, Decoder<R> decoder) =>
 		value => decoder(value).Match(r => cb(r)(value), s => s);
 
-	public static Decoder<T> AndMap<T, R>(Decoder<R> decoder1, Decoder<R> decoder2, Func<R, R, T> ctor) =>
-		Map2(ctor, decoder1, decoder2);
-
 	public static Decoder<T> AndThen<T, R>(this Decoder<R> decoder, Func<R, Decoder<T>> cb) =>
 		AndThen(cb, decoder);
-
-	public static Decoder<T> AndMap<T, R>(this Decoder<Func<R, T>> decoderFun, Decoder<R> decoder) =>
-		Map2((x, f) => f(x), decoder, decoderFun);
 
 	private static Result<T, string> Integral<T>(
 		string name,
