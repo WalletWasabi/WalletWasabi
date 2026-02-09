@@ -1,5 +1,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
@@ -56,9 +57,12 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		NextCommand = ReactiveCommand.CreateFromTask(OnAddPaymentAsync, canExecute);
 
 		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
+		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 	}
 
 	public ICommand PasteCommand { get; }
+
+	public ICommand AutoPasteCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -69,6 +73,18 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 			To = "";
 			AmountBtc = null;
 			ClearValidations();
+		}
+		
+		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+	}
+
+	private async Task OnAutoPasteAsync()
+	{
+		var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
+
+		if (string.IsNullOrWhiteSpace(To) && isAutoPasteEnabled)
+		{
+			await OnPasteAsync();
 		}
 	}
 

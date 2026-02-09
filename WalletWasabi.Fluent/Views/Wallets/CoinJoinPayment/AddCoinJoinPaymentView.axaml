@@ -8,6 +8,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.CoinJoinPayment.AddCoinJoinPaymentView"
              x:DataType="coinJoinPayment:AddCoinJoinPaymentViewModel"
              x:CompileBindings="True">
+             
   <ContentArea Title="{Binding Title}"
                EnableBack="{Binding EnableBack}"
                EnableNext="True"
@@ -57,8 +58,13 @@
                  AcceptsReturn="False">
           <Interaction.Behaviors>
             <FocusOnAttachedBehavior />
+            <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
+            <FocusNextWhenValidBehavior />
             <WhitespacePasteRemovalBehavior />
             <WhitespaceInputRemovalBehavior />
+            <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
+              <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
+            </KeyDownTrigger>
           </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
