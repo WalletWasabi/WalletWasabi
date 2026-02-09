@@ -11,7 +11,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
 
 public abstract partial class InputsCoinListItem : ViewModelBase, ITreeDataGridExpanderItem, IDisposable
 {
-	protected readonly CompositeDisposable _disposables = new();
+	protected CompositeDisposable Disposables { get; } = new();
 
 	[AutoNotify] private bool _isParentPointerOver;
 	[AutoNotify] private bool _isControlPointerOver;
@@ -55,9 +55,9 @@ public abstract partial class InputsCoinListItem : ViewModelBase, ITreeDataGridE
 	public bool IsLastChild { get; set; }
 	public bool IsParentSelected { get; set; } = false;
 
-	public string TitleText { get; set; }
+	public string? TitleText { get; set; }
 	public int? NbDiff { get; set; }
 	public string? Tip { get; set; }
 
-	public void Dispose() => _disposables.Dispose();
+	public void Dispose() => Disposables.Dispose();
 }
