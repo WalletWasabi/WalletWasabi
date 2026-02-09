@@ -32,6 +32,7 @@ using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Models;
@@ -534,11 +535,22 @@ public class Global
 		var coordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory(coordinatorHttpClientConfig));
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi-coordination", coordinatorHttpClientFactory);
+
+		// Verification clients on independent, short-lived Tor circuits to detect
+		// round ID consistency attacks by a malicious coordinator.
+		// The "bob-" prefix gives 40-second circuit lifetimes, rotating frequently
+		// so the coordinator cannot link them to the primary polling circuit.
+		var verificationHandlers = new IWabiSabiApiRequestHandler[]
+		{
+			new WabiSabiHttpApiClient("bob-verify-1", coordinatorHttpClientFactory),
+			new WabiSabiHttpApiClient("bob-verify-2", coordinatorHttpClientFactory),
+		};
+
 		var roundUpdater = Spawn("RoundUpdater",
 			Service("WabiSabi Rounds Updater",
 				EventDriven(
 					new RoundsState(DateTime.UtcNow, RoundStateProvider.QueryFrequency, new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
-					RoundStateUpdater.Create(wabiSabiStatusProvider))));
+					RoundStateUpdater.Create(wabiSabiStatusProvider, verificationHandlers))));
 		roundUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
 
