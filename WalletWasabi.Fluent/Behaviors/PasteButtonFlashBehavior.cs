@@ -1,13 +1,13 @@
-using System.Reactive.Concurrency;
-using System.Reactive.Disposables;
-using System.Reactive.Disposables.Fluent;
-using System.Reactive.Linq;
-using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
+using System.Reactive.Concurrency;
+using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
+using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -39,34 +39,27 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync());
+		RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync(forceCheck: false));
 
 		var disposables = new CompositeDisposable();
 
-		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime)
+		if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime lifetime && lifetime.MainWindow is { } mainWindow)
 		{
-			var mainWindow = lifetime.MainWindow;
-
 			Observable
 				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).ToSignal()
 				.Merge(this.WhenAnyValue(x => x.CurrentAddress).ToSignal())
 				.Throttle(TimeSpan.FromMilliseconds(100))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.SubscribeAsync(async _ => await CheckClipboardForValidAddressAsync(forceCheck: true))
+				.SelectMany(_ => Observable.FromAsync(() => CheckClipboardForValidAddressAsync(forceCheck: true)))
+				.Subscribe()
 				.DisposeWith(disposables);
 
 			Observable
 				.Interval(TimeSpan.FromMilliseconds(500))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.SubscribeAsync(async _ =>
-				{
-					if (!mainWindow.IsActive)
-					{
-						return;
-					}
-
-					await CheckClipboardForValidAddressAsync();
-				})
+				.Where(_ => mainWindow.IsActive)
+				.SelectMany(_ => Observable.FromAsync(() => CheckClipboardForValidAddressAsync(forceCheck: false)))
+				.Subscribe()
 				.DisposeWith(disposables);
 		}
 
@@ -78,7 +71,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 		return disposables;
 	}
 
-	private async Task CheckClipboardForValidAddressAsync(bool forceCheck = false)
+	private async Task CheckClipboardForValidAddressAsync(bool forceCheck)
 	{
 		var clipboardValue = await ApplicationHelper.GetTextAsync();
 
