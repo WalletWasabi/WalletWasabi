@@ -5,14 +5,14 @@ using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Rpc.JsonConverters;
 
-public class DestinationJsonConverter(Network Network): JsonConverter<Destination>
+public class DestinationJsonConverter(Network network): JsonConverter<Destination>
 {
 	public override void WriteJson(JsonWriter writer, Destination? value, JsonSerializer serializer)
 	{
 		var wip = value switch
 		{
-			Destination.Loudly l => l.ScriptPubKey.GetDestinationAddress(Network)?.ToString(),
-			Destination.Silent s => s.Address.ToWip(Network),
+			Destination.Loudly l => l.ScriptPubKey.GetDestinationAddress(network)?.ToString(),
+			Destination.Silent s => s.Address.ToWip(network),
 			_ => throw new ArgumentException($"Unknown destination type: {value?.GetType().Name}")
 		};
 		writer.WriteValue(wip);
@@ -25,12 +25,12 @@ public class DestinationJsonConverter(Network Network): JsonConverter<Destinatio
 		ArgumentException.ThrowIfNullOrWhiteSpace(str);
 		try
 		{
-			var address = BitcoinAddress.Create(str, Network);
+			var address = BitcoinAddress.Create(str, network);
 			return new Destination.Loudly(address.ScriptPubKey);
 		}
 		catch (Exception)
 		{
-			var address = SilentPaymentAddress.Parse(str, Network);
+			var address = SilentPaymentAddress.Parse(str, network);
 			return new Destination.Silent(address);
 		}
 	}
