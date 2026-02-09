@@ -28,13 +28,17 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		UiContext.WalletRepository
-				 .Wallets
-				 .Connect()
-				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-				 .AutoRefresh(x => x.IsLoggedIn)
-				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
-				 .Bind(out var wallets)
-				 .Subscribe();
+			.Wallets
+			.Connect()
+			.Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
+			.AutoRefresh(x => x.IsLoggedIn)
+			.SortAndBind(
+				out var wallets,
+				SortExpressionComparer< WalletPageViewModel>
+					.Descending(i => i.IsLoggedIn)
+					.ThenByAscending(x => x.WalletModel.Name)
+			)
+			.Subscribe();
 
 		Wallets = wallets;
 	}
