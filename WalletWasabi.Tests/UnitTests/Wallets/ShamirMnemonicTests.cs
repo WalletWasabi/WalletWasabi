@@ -189,11 +189,11 @@ public class ShamirMnemonicTests
 	[MemberData(nameof(Slip39TestVector.TestCasesData), MemberType = typeof(Slip39TestVector))]
 	public void TestVectors(Slip39TestVector test)
 	{
-		if (!string.IsNullOrEmpty(test.secretHex))
+		if (!string.IsNullOrEmpty(test.SecretHex))
 		{
-			var shares = test.mnemonics.Select(Share.FromMnemonic).ToArray();
+			var shares = test.Mnemonics.Select(Share.FromMnemonic).ToArray();
 			var secret = Shamir.Combine(shares, "TREZOR");
-			Assert.Equal(test.secretHex, Convert.ToHexString(secret).ToLower());
+			Assert.Equal(test.SecretHex, Convert.ToHexString(secret).ToLower());
 
 			//Assert.Equal(new BIP32Key(secret).ExtendedKey(), xprv);
 		}
@@ -201,9 +201,9 @@ public class ShamirMnemonicTests
 		{
 			Assert.Throws<ArgumentException>(() =>
 			{
-				var shares = test.mnemonics.Select(Share.FromMnemonic).ToArray();
+				var shares = test.Mnemonics.Select(Share.FromMnemonic).ToArray();
 				Shamir.Combine(shares);
-				Assert.Fail($"Failed to raise exception for test vector \"{test.description}\".");
+				Assert.Fail($"Failed to raise exception for test vector \"{test.Description}\".");
 			});
 		}
 	}
@@ -253,7 +253,7 @@ public class ShamirMnemonicTests
 	}
 }
 
-public record Slip39TestVector(string description, string[] mnemonics, string secretHex, string xprv)
+public record Slip39TestVector(string Description, string[] Mnemonics, string SecretHex, string Xprv)
 {
 	private static readonly Decoder<Slip39TestVector> Slip39TestDecoder =
 		Decode.Tuple4(Decode.String, Decode.Array(Decode.String), Decode.String, Decode.String)
@@ -273,7 +273,7 @@ public record Slip39TestVector(string description, string[] mnemonics, string se
 	public static IEnumerable<object[]> TestCasesData =>
 		TestCases.Select(testCase => new object[] {testCase});
 
-	public override string ToString() => description;
+	public override string ToString() => Description;
 
 }
 
