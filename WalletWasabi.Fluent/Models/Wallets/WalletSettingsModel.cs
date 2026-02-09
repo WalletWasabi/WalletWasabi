@@ -37,7 +37,7 @@ public interface IWalletSettingsModel
 
 	WalletId Save();
 
-	void RescanWallet(int startingHeight = 0);
+	void RescanWallet(uint startingHeight = 0);
 }
 
 [AppLifetime]
@@ -140,7 +140,7 @@ public partial class WalletSettingsModel : ReactiveObject, IWalletSettingsModel
 		_isDirty = true;
 	}
 
-	public void RescanWallet(int startingHeight = 0)
+	public void RescanWallet(uint startingHeight = 0)
 	{
 		_keyManager.SetBestHeight(startingHeight);
 	}

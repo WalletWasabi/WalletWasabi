@@ -98,7 +98,7 @@ public static class NBitcoinExtensions
 	public static SmartTransaction ExtractSmartTransaction(this PSBT psbt)
 	{
 		var extractedTx = psbt.ExtractTransaction();
-		return new SmartTransaction(extractedTx, Height.Unknown);
+		return new SmartTransaction(extractedTx);
 	}
 
 	public static SmartTransaction ExtractSmartTransaction(this PSBT psbt, SmartTransaction unsignedSmartTransaction)
@@ -154,7 +154,7 @@ public static class NBitcoinExtensions
 		var lookup = new Dictionary<uint256, TransactionDependencyNode>();
 		foreach (var tx in txs)
 		{
-			lookup.Add(tx.GetHash(), new TransactionDependencyNode { Transaction = tx });
+			lookup.Add(tx.GetHash(), new TransactionDependencyNode(tx));
 		}
 
 		foreach (var node in lookup.Values)

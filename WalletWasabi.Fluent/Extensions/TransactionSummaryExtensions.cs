@@ -1,5 +1,4 @@
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -11,6 +10,6 @@ public static class TransactionSummaryExtensions
 		return confirmations > 0;
 	}
 
-	public static int GetConfirmations(this TransactionSummary model)
-		=> model.Transaction.GetConfirmations((int)Services.SmartHeaderChain.ServerTipHeight);
+	public static uint GetConfirmations(this TransactionSummary model)
+		=> model.Transaction.GetConfirmations(Services.SmartHeaderChain.ServerTipHeight);
 }

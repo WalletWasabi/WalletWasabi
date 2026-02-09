@@ -31,5 +31,7 @@ public static class StatusConverters
 		new FuncValueConverter<uint, string>(x => x == 0 ? "No data" : $"{x:N0}");
 
 	public static readonly IValueConverter RpcStatusStringConverter =
-		new FuncValueConverter<Result<ConnectedRpcStatus,string>, string>(status => status.Match(s => s.ToString(), e => e));
+		new FuncValueConverter<Result<ConnectedRpcStatus, string>, string>(status => status is not null
+			? status.Match(s => s.ToString() ?? "", e => e)
+			: "Unknown Status");
 }

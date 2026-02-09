@@ -22,6 +22,7 @@ public class DestinationJsonConverter(Network Network): JsonConverter<Destinatio
 		JsonSerializer serializer)
 	{
 		var str = reader.Value as string;
+		ArgumentException.ThrowIfNullOrWhiteSpace(str);
 		try
 		{
 			var address = BitcoinAddress.Create(str, Network);

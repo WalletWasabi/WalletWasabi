@@ -24,8 +24,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private string? _amountText = "";
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private int _confirmations;
+	[AutoNotify] private uint _blockHeight;
+	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string? _dateString;
 	[AutoNotify] private bool _isConfirmationTimeVisible;

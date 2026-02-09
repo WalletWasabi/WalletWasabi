@@ -22,9 +22,9 @@ public partial class TransactionModel : ReactiveObject
 
 	public required string DateToolTipString { get; set; }
 
-	public required int Confirmations { get; init; }
+	public required uint Confirmations { get; init; }
 
-	public int BlockHeight { get; init; }
+	public uint BlockHeight { get; init; }
 
 	public uint256? BlockHash { get; init; }
 

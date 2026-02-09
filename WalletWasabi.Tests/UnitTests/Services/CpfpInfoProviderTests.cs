@@ -166,10 +166,9 @@ public class CpfpInfoUpdaterTests
 		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
 		var httpClientFactory = MockHttpClientFactory.Create(
 			() => HttpResponseMessageEx.Ok(cpfpJson));
-
 		var eventBus = new EventBus();
 		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-		var tx = BitcoinFactory.CreateSmartTransaction(height: new Height(8888));
+		var tx = BitcoinFactory.CreateSmartTransaction(height: new Height.ChainHeight(8888));
 
 		// Add to cache
 		var replyChannel = new TestReplyChannel<Result<CpfpInfo, string>>();

@@ -44,7 +44,7 @@ public class WalletGenerator
 			? KeyManager.CreateNew(out mnemonic, password, Network)
 			: KeyManager.CreateNew(mnemonic, password, Network);
 		km.SetFilePath(walletFilePath);
-		km.SetBestHeight(height: new Height(TipHeight));
+		km.SetBestHeight(TipHeight);
 		return (km, mnemonic);
 	}
 
@@ -62,7 +62,7 @@ public class WalletGenerator
 
 		var km = KeyManager.CreateNew(shares, password, Network);
 
-		km.SetBestHeight(height: new Height(TipHeight));
+		km.SetBestHeight(TipHeight);
 		km.SetFilePath(walletFilePath);
 		return (km, shares);
 	}

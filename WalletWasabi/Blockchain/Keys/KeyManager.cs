@@ -137,9 +137,9 @@ public class KeyManager
 			("TestNet4", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
 			("RegTest", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/0h/0h/0h",
 			("Main",  KeyPurpose.SilentPaymentKey.SpendKey)=> "m/352h/0h/0h/0h",
-			("TestNet4", KeyPurpose.SilentPaymentKey.Key) => "m/353h/1h/0h",
-			("RegTest", KeyPurpose.SilentPaymentKey.Key) => "m/353h/0h/0h",
-			("Main",  KeyPurpose.SilentPaymentKey.Key)=> "m/353h/0h/0h",
+			("TestNet4", KeyPurpose.SilentPaymentKey.AccountKey) => "m/353h/1h/0h",
+			("RegTest", KeyPurpose.SilentPaymentKey.AccountKey) => "m/353h/0h/0h",
+			("Main",  KeyPurpose.SilentPaymentKey.AccountKey)=> "m/353h/0h/0h",
 			(_, KeyPurpose.LoudPaymentKey s) => throw new ArgumentException($"Unknown account for network '{network}' and script type {s.ScriptPubKeyType}."),
 			(_, KeyPurpose.SilentPaymentKey)=> throw new ArgumentException($"Unknown account for silentPayment and network '{network}'"),
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
@@ -412,7 +412,7 @@ public class KeyManager
 
 	public HdPubKey GetNextSilentPaymentDummyKey(int scanKeyIndex, PubKey pubkey, LabelsArray labels, ECPubKey tweak)
 	{
-		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Key).Derive((uint)scanKeyIndex);
+		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Account).Derive((uint)scanKeyIndex);
 		lock (_criticalStateLock)
 		{
 			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1 ) + 1;
@@ -691,7 +691,7 @@ public class KeyManager
 
 	#region _blockchainState
 
-	public Height GetBestHeight()
+	public ChainHeight GetBestHeight()
 	{
 		lock (_criticalStateLock)
 		{
@@ -704,7 +704,7 @@ public class KeyManager
 		return _blockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height, bool toFile = true)
+	public void SetBestHeight(ChainHeight height, bool toFile = true)
 	{
 		lock (_criticalStateLock)
 		{
@@ -716,7 +716,7 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height newHeight)
+	public void SetMaxBestHeight(ChainHeight newHeight)
 	{
 		lock (_criticalStateLock)
 		{
@@ -724,7 +724,7 @@ public class KeyManager
 			if (newHeight < prevHeight)
 			{
 				SetBestHeight(newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
 	}
@@ -838,7 +838,7 @@ public abstract record KeyPurpose
 {
 	public static readonly KeyPurpose Scan = new SilentPaymentKey.ScanKey();
 	public static readonly KeyPurpose Spend = new SilentPaymentKey.SpendKey();
-	public static readonly KeyPurpose Key = new SilentPaymentKey.Key();
+	public static readonly KeyPurpose Account = new SilentPaymentKey.AccountKey();
 	public static KeyPurpose Loud(ScriptPubKeyType spk) => new LoudPaymentKey(spk);
 
 	public abstract record SilentPaymentKey : KeyPurpose
@@ -846,7 +846,7 @@ public abstract record KeyPurpose
 		public record ScanKey : SilentPaymentKey;
 
 		public record SpendKey : SilentPaymentKey;
-		public record Key : SilentPaymentKey;
+		public record AccountKey : SilentPaymentKey;
 	};
 
 	public record LoudPaymentKey(ScriptPubKeyType ScriptPubKeyType) : KeyPurpose;
