@@ -15,7 +15,7 @@ public abstract record JsonRpcResponse
 		[JsonRpcErrorCodes.InternalError] = "Internal error",
 	};
 
-	protected JsonRpcResponse(string? id)
+	protected JsonRpcResponse(string id)
 	{
 		Id = id;
 	}
@@ -24,12 +24,12 @@ public abstract record JsonRpcResponse
 	public string JsonRpc => "2.0";
 
 	[JsonProperty("id", Order = 3)]
-	public string? Id { get; }
+	public string Id { get; }
 
 	public static JsonRpcSuccessResponse CreateResultResponse(string id, object? result = null) =>
 		new(id, result);
 
-	public static JsonRpcErrorResponse CreateErrorResponse(string? id, JsonRpcErrorCodes code, string? customMessage = null) =>
+	public static JsonRpcErrorResponse CreateErrorResponse(string id, JsonRpcErrorCodes code, string? customMessage = null) =>
 		new(id, code, customMessage ?? GetDefaultMessageFor(code));
 
 	public string ToJson(JsonSerializerSettings serializerSettings) =>
@@ -55,7 +55,7 @@ public record JsonRpcSuccessResponse : JsonRpcResponse
 
 public record JsonRpcErrorResponse : JsonRpcResponse
 {
-	public JsonRpcErrorResponse(string? id, JsonRpcErrorCodes code, string message)
+	public JsonRpcErrorResponse(string id, JsonRpcErrorCodes code, string message)
 		: base(id)
 	{
 		Error = new ErrorObject(code, message);
@@ -64,5 +64,5 @@ public record JsonRpcErrorResponse : JsonRpcResponse
 	[JsonProperty("error", Order = 1)]
 	public ErrorObject Error { get; }
 
-	public record ErrorObject(JsonRpcErrorCodes Code, string Message);
+	public record ErrorObject(JsonRpcErrorCodes code, string message);
 }
