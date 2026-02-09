@@ -9,11 +9,16 @@ public class SettingSelector : IDataTemplate
 {
 	public List<IDataTemplate> DataTemplates { get; set; } = new();
 
-	public Control Build(object param)
+	public Control Build(object? param)
 	{
-		var prop = param.GetType().GetProperty("Value");
+		if (param is null)
+		{ 
+			return CreateNotFoundControl();
+		}
+
 		var template = DataTemplates.FirstOrDefault(d =>
 		{
+			var prop = param.GetType().GetProperty("Value");
 			var value = prop?.GetValue(param);
 
 			if (value is null)
@@ -26,14 +31,15 @@ public class SettingSelector : IDataTemplate
 
 		if (template is not null)
 		{
-			return template.Build(param);
+			return template.Build(param) ?? CreateNotFoundControl();
 		}
 
-		return new TextBlock { Text = "Not found" };
+		return CreateNotFoundControl();
 	}
 
-	public bool Match(object data)
-	{
-		return data.GetType().Name.Contains("Setting");
-	}
+	public bool Match(object? data) =>
+		data is not null && data.GetType().Name.Contains("Setting");
+
+	private static TextBlock CreateNotFoundControl() =>
+		new() { Text = "Not found" };
 }
