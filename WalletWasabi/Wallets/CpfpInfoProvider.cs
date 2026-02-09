@@ -175,13 +175,14 @@ public static class CpfpInfoUpdater
 
 		var httpClient = httpClientFactory.CreateClient($"mempool.space-{txid}");
 		httpClient.BaseAddress = uri;
-		var response = await httpClient.SendAsync(new HttpRequestMessage(HttpMethod.Get, $"v1/cpfp/{txid}"), linkedCts.Token).ConfigureAwait(false);
+		using var request = new HttpRequestMessage(HttpMethod.Get, $"v1/cpfp/{txid}");
+		var response = await httpClient.SendAsync(request, linkedCts.Token).ConfigureAwait(false);
 
 		response.EnsureSuccessStatusCode();
 
 		var stringResponse = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 
-		return JsonDecoder.FromString(stringResponse, Decode.CpfpInfo) ??
-		       throw new DataException("Deserialization error");;
+		return JsonDecoder.FromString(stringResponse, Decode.CpfpInfo)
+			?? throw new DataException("Deserialization error");
 	}
 }
