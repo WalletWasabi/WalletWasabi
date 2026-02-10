@@ -68,7 +68,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	public Amount Amount { get; }
 	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
-	public int Confirmations { get; }
+	public uint Confirmations { get; }
 	public string Reference { get; }
 
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)

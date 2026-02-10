@@ -12,8 +12,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public abstract partial class CoinListModel : IDisposable
+public interface ICoinListModel
+{
+	IObservableCache<ICoinModel, int> List { get; }
+
+	IObservableCache<Pocket, LabelsArray> Pockets { get; }
+
+	ICoinModel GetCoinModel(SmartCoin smartCoin);
+
+	/* SKIPPED: Implements an interface */ /* void Dispose(); */
+}
+
+public abstract partial class CoinListModel : ICoinListModel, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 

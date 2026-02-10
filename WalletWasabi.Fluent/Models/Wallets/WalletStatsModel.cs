@@ -9,12 +9,30 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletStatsModel : IDisposable
+public interface IWalletStatsModel : IDisposable
 {
+	int CoinCount { get; set; }
+
+	Amount Balance { get; set; }
+
+	Amount ConfirmedBalance { get; set; }
+
+	Amount UnconfirmedBalance { get; set; }
+
+	int GeneratedKeyCount { get; set; }
+
+	int GeneratedCleanKeyCount { get; set; }
+
+	int GeneratedUsedKeyCount { get; set; }
+
+	int TotalTransactionCount { get; set; }
+
+	int NonCoinjointransactionCount { get; set; }
+
+	int CoinjoinTransactionCount { get; set; }
 }
 
-[AutoInterface]
-public partial class WalletStatsModel : ReactiveObject, IDisposable
+public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 	[AutoNotify] private int _coinCount;

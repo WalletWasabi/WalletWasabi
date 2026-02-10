@@ -143,7 +143,7 @@ public class IndexBuilderServiceTests
 
 		var result = await indexer.GetFilterLinesExcludingAsync(node.BlockChain.Keys.First(), 100);
 		Assert.True(result.found);
-		Assert.Equal(10, result.bestHeight.Value);
+		Assert.Equal((Height.ChainHeight)10u, result.bestHeight);
 		Assert.Equal(10, result.filters.Count());
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -276,7 +276,7 @@ public class IndexBuilderServiceTests
 
 		// Check results
 		Assert.True(result.found);
-		Assert.Equal(new Height((uint)10), result.bestHeight);
+		Assert.Equal((Height.ChainHeight)10u, result.bestHeight);
 		Assert.Equal(3, result.filters.Count()); // Should have filters for blocks 6, 7, 8
 
 		// Verify the first filter is for block 6

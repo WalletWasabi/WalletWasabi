@@ -12,7 +12,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
@@ -39,7 +38,7 @@ public partial class WalletLoadWorkflow
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
-			.StartWith((uint)_wallet.KeyManager.GetBestHeight().Value)
+			.StartWith(_wallet.KeyManager.GetBestHeight().Height)
 			.Subscribe(x => _lastestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
@@ -111,7 +110,7 @@ public partial class WalletLoadWorkflow
 		// Wait until "client tip height" is initialized.
 		await Services.BitcoinStore.FilterStore.InitializedTcs.Task.ConfigureAwait(true);
 
-		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 	}
 
 	private void UpdateProgress()

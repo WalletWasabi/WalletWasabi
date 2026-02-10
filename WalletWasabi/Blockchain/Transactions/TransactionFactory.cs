@@ -235,7 +235,10 @@ public class TransactionFactory
 			// Try to pay using payjoin
 			if (payjoinClient is not null)
 			{
+#pragma warning disable CS8604 // Possible null reference argument.
+				// changeHdPubKey is never null
 				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+#pragma warning restore CS8604 // Possible null reference argument.
 				psbt.AddKeyPaths(KeyManager);
 				psbt.AddPrevTxs(_transactionStore);
 			}
@@ -256,7 +259,7 @@ public class TransactionFactory
 			}
 		}
 
-		var smartTransaction = new SmartTransaction(tx, Height.Unknown, labels: LabelsArray.Merge(payments.Requests.Select(x => x.Labels)));
+		var smartTransaction = new SmartTransaction(tx, labels: LabelsArray.Merge(payments.Requests.Select(x => x.Labels)));
 		foreach (var coin in spentCoins)
 		{
 			smartTransaction.TryAddWalletInput(coin);
@@ -332,7 +335,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 {
 	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
-	private Key[] _keys;
+	private Key[]? _keys;
 
 	public Func<OutPoint, ICoin> CoinFinder
 	{
@@ -445,7 +448,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 
 	public PSBT SolveSilentPayment(PSBT psbt)
 	{
-		var keys = _keys;
+		var keys = _keys ?? [];
 
 		Key GetKeyForScriptPubKey(Script spk)
 		{

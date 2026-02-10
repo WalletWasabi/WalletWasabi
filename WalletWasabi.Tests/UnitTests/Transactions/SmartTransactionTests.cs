@@ -24,7 +24,7 @@ public class SmartTransactionTests
 		var smartTx = new SmartTransaction(tx, height);
 		var differentSmartTx = new SmartTransaction(Network.TestNet.Consensus.ConsensusFactory.CreateTransaction(), height);
 		var s1 = new SmartTransaction(tx, Height.Unknown);
-		var s2 = new SmartTransaction(tx, new Height(2));
+		var s2 = new SmartTransaction(tx, new Height.ChainHeight(2));
 		var s3 = new SmartTransaction(tx2, height);
 		var s4 = new SmartTransaction(tx3, height);
 
@@ -184,7 +184,7 @@ public class SmartTransactionTests
 
 		t.Outputs.Add(txout);
 		t.Outputs.Add(txout2);
-		SmartTransaction st1 = new(t, 0);
+		SmartTransaction st1 = new(t);
 
 		Assert.Single(st1.ForeignVirtualOutputs);
 		Assert.Equal(2, st1.ForeignVirtualOutputs.First().OutPoints.Count);
@@ -196,7 +196,7 @@ public class SmartTransactionTests
 
 		t2.Outputs.Add(txout3);
 		t2.Outputs.Add(txout4);
-		SmartTransaction st2 = new(t2, 0);
+		SmartTransaction st2 = new(t2);
 
 		Assert.Single(st2.ForeignVirtualOutputs);
 		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
@@ -211,7 +211,7 @@ public class SmartTransactionTests
 
 		Transaction t = Transaction.Create(network);
 
-		SmartTransaction st1 = new(t, 0);
+		SmartTransaction st1 = new(t);
 
 		var sc = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(1));
 		var sc2 = BitcoinFactory.CreateSmartCoin(hdPubKey, Money.Coins(2));
@@ -267,11 +267,11 @@ public class SmartTransactionTests
 		{
 			Height.Unknown,
 			Height.Mempool,
-			new Height(0),
-			new Height(100),
-			new Height(int.MaxValue)
+			Height.ChainHeight.Genesis,
+			new Height.ChainHeight(100),
+			new Height.ChainHeight(int.MaxValue)
 		};
-		var defaultHeight = new Height(0);
+		var defaultHeight = Height.ChainHeight.Genesis;
 
 		var blockHashes = new List<uint256?>
 		{

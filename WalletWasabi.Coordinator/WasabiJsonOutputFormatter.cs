@@ -34,7 +34,10 @@ public class WasabiJsonOutputFormatter : TextOutputFormatter
 		try
 		{
 			await using Utf8JsonWriter writer = new(responseStream);
-			_encoder(context.Object).WriteTo(writer);
+			if (context.Object is not null)
+			{
+				_encoder(context.Object).WriteTo(writer);
+			}
 			await responseStream.FlushAsync(httpContext.RequestAborted);
 		}
 		catch (OperationCanceledException) when (context.HttpContext.RequestAborted.IsCancellationRequested)

@@ -128,7 +128,9 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate
+						  ?? wallet.FeeRateEstimations?.GetFeeRate(2)
+						  ?? throw new InvalidOperationException("Cannot get fee estimations.");
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();

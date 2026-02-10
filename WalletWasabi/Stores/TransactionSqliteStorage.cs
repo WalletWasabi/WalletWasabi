@@ -173,7 +173,7 @@ public class TransactionSqliteStorage : IDisposable
 		foreach (SmartTransaction tx in transactions)
 		{
 			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
-			blockHeightParameter.Value = tx.Height.Value;
+			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(tx.Height);
 
 			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
@@ -272,7 +272,7 @@ public class TransactionSqliteStorage : IDisposable
 		foreach (SmartTransaction tx in transactions)
 		{
 			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
-			blockHeightParameter.Value = tx.Height.Value;
+			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(tx.Height);
 
 			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
@@ -415,7 +415,7 @@ public class TransactionSqliteStorage : IDisposable
 
 		Transaction transaction = Transaction.Load(tx, _network);
 
-		Height height = new(blockHeight);
+		Height height = BackwardCompatibleIntegerToHeight(blockHeight);
 		LabelsArray labelsArray = new(labelsString);
 		DateTimeOffset firstSeen = DateTimeOffset.FromUnixTimeSeconds(firstSeenLong);
 
@@ -493,6 +493,21 @@ public class TransactionSqliteStorage : IDisposable
 			_disposedValue = true;
 		}
 	}
+
+	static int HeightToBackwardCompatibleInteger(Height height) =>
+		height is ChainHeight(var h)
+			? (int)h
+			: height == Mempool
+				? int.MaxValue - 1
+				: int.MaxValue;
+
+	static Height BackwardCompatibleIntegerToHeight(int height) =>
+		height switch
+		{
+			int.MaxValue => Unknown,
+			int.MaxValue - 1 => Mempool,
+			var h => new ChainHeight((uint)h)
+		};
 
 	/// <inheritdoc/>
 	public void Dispose()

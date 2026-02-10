@@ -16,10 +16,40 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial interface IHealthMonitor : IDisposable
 {
+	decimal PriorityFee { get; set; }
+
+	uint BlockchainTip { get; set; }
+
+	TorStatus TorStatus { get; set; }
+
+	IndexerStatus IndexerStatus { get; set; }
+
+	bool IncompatibleIndexer { get; set; }
+
+	Result<ConnectedRpcStatus, string> BitcoinRpcStatus { get; set; }
+
+	int Peers { get; set; }
+
+	bool IsP2pConnected { get; set; }
+
+	HealthMonitorState State { get; set; }
+
+	bool UpdateAvailable { get; set; }
+
+	bool IsReadyToInstall { get; set; }
+
+	bool CheckForUpdates { get; set; }
+
+	Version? ClientVersion { get; set; }
+
+	bool CanUseBitcoinRpc { get; set; }
+
+	ICollection<Issue> TorIssues { get; }
+
+	TorMode UseTor { get; }
 }
 
-[AutoInterface]
-public partial class HealthMonitor : ReactiveObject
+public partial class HealthMonitor : ReactiveObject, IHealthMonitor
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
 

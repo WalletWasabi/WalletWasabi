@@ -233,9 +233,9 @@ public class TagsBox : TemplatedControl
 		_autoCompleteBox = (_containerControl as ConcatenatingWrapPanel)?.ConcatenatedChildren.OfType<TagsBoxAutoCompleteBox>()
 			.FirstOrDefault();
 
-		if (_autoCompleteBox is null)
+		if (_autoCompleteBox is not { SuggestionListBox: {} suggestionListBox})
 		{
-			return;
+			throw new InvalidOperationException("AutoCompleteBox not found");
 		}
 
 		_autoCompleteBox.InternalTextBox.WhenAnyValue(x => x.IsFocused)
@@ -244,7 +244,7 @@ public class TagsBox : TemplatedControl
 					.DisposeWith(_compositeDisposable);
 
 		Observable
-			.FromEventPattern(_autoCompleteBox.SuggestionListBox, nameof(PointerReleased))
+			.FromEventPattern(suggestionListBox, nameof(PointerReleased))
 			.Subscribe(_ => RequestAdd = true)
 			.DisposeWith(_compositeDisposable);
 

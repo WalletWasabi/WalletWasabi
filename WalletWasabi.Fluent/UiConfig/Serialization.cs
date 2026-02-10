@@ -25,7 +25,6 @@ public static class UiConfigEncode
 			yield return ("IsCustomChangeAddress", Bool(cfg.IsCustomChangeAddress));
 			yield return ("PrivacyMode", Bool(cfg.PrivacyMode));
 			yield return ("DarkModeEnabled", Bool(cfg.DarkModeEnabled));
-			yield return ("LastSelectedWallet", String(cfg.LastSelectedWallet));
 			yield return ("RunOnSystemStartup", Bool(cfg.RunOnSystemStartup));
 			yield return ("HideOnClose", Bool(cfg.HideOnClose));
 			yield return ("SendAmountConversionReversed", Bool(cfg.SendAmountConversionReversed));
@@ -33,6 +32,11 @@ public static class UiConfigEncode
 			{
 				yield return ("WindowWidth", Double(width));
 				yield return ("WindowHeight", Double(height));
+			}
+
+			if (cfg.LastSelectedWallet is not null)
+			{
+				yield return ("LastSelectedWallet", String(cfg.LastSelectedWallet));
 			}
 		}
 		return Object(Properties());

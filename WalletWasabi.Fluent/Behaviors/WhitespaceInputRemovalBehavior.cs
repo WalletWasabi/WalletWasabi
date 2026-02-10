@@ -3,7 +3,7 @@ using System.Reactive.Linq;
 using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.Interactivity;
-using Avalonia.Xaml.Interactions.Custom;
+using Avalonia.Xaml.Interactivity;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 

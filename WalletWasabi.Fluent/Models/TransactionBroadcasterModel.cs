@@ -9,8 +9,18 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models;
 
-[AutoInterface]
-public partial class TransactionBroadcasterModel
+public interface ITransactionBroadcasterModel
+{
+	SmartTransaction? Parse(string text);
+
+	Task<SmartTransaction> LoadFromFileAsync(string filePath);
+
+	TransactionBroadcastInfo GetBroadcastInfo(SmartTransaction transaction);
+
+	Task SendAsync(SmartTransaction transaction);
+}
+
+public partial class TransactionBroadcasterModel : ITransactionBroadcasterModel
 {
 	private readonly Network _network;
 
@@ -67,7 +77,7 @@ public partial class TransactionBroadcasterModel
 
 		return new TransactionBroadcastInfo(transactionId, tx.Inputs.Count, tx.Outputs.Count , spendingAmount, outputAmount, networkFee);
 
-		TxOut? GetOutput(OutPoint outpoint) =>
+		static TxOut? GetOutput(OutPoint outpoint) =>
 			Services.BitcoinStore.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 				? prevTxn.Transaction.Outputs[outpoint.N]
 				: null;

@@ -60,7 +60,8 @@ public class SendTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.IndexerHttpClientFactory;
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
+		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -416,7 +417,7 @@ public class SendTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(1);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 
-			var bestHeight = new Height(bitcoinStore.SmartHeaderChain.TipHeight);
+			var bestHeight = new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight);
 			IEnumerable<string> confirmedCoinLabels = wallet.Coins.Where(x => x.Height == bestHeight).SelectMany(x => x.HdPubKey.Labels);
 			Assert.Contains("outgoing", confirmedCoinLabels);
 			Assert.Contains("outgoing2", confirmedCoinLabels);

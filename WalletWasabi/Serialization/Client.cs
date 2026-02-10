@@ -56,8 +56,8 @@ public static partial class Encode
 	public static JsonNode? BitcoinEncryptedSecretNoEC(BitcoinEncryptedSecretNoEC? s) =>
 		Optional(s?.ToWif(), String);
 
-	public static JsonNode WalletHeight(Height height) =>
-		String(Math.Max(0, height.Value - 101).ToString());
+	public static JsonNode WalletHeight(ChainHeight height) =>
+		String(Math.Max(0, height.Height - 101).ToString());
 
 	public static JsonNode BlockchainState(BlockchainState s) =>
 		Object([
@@ -117,8 +117,8 @@ public static partial class Decode
 	public static Decoder<HDFingerprint> HDFingerprint =>
 		String.Map(NBitcoin.HDFingerprint.Parse);
 
-	private static Decoder<Height> WalletHeight =>
-		Int.Map(h => new Height(h));
+	private static Decoder<ChainHeight> WalletHeight =>
+		UInt.Map(h => new ChainHeight(h));
 
 	public static Decoder<KeyPath> KeyPath =>
 		String.Map(NBitcoin.KeyPath.Parse);

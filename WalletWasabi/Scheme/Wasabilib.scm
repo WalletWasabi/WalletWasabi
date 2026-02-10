@@ -3,7 +3,10 @@
 ;; Helpers
 (define (bitcoin->satoshi n) (* n 100000000))
 (define (satoshi->bitcoin n) (/ n 100000000.0))
-(define (height native-height) (__get 'value native-height))
+(define (height native-height)
+  (let* ((hs (native->string native-height))
+         (hi (string->number hs)))
+    (if hi hi hs)))
 
 (define (get-wallet-by-name name)
   (define (by-name wallet)
@@ -70,6 +73,7 @@
 (define (outpoint-hash outpoint)         (__get 'hash outpoint))
 (define (outpoint-n outpoint)            (__get 'n outpoint))
 
+(define (coin-tx coin)                   (__get 'transaction coin))
 (define (coin-amount coin)               (satoshi->bitcoin (__get 'satoshi (__get 'amount coin))))
 (define (coin-outpoint coin)             (__get 'outpoint coin))
 (define (coin-anonymityset coin)         (__get 'anonymityset coin))

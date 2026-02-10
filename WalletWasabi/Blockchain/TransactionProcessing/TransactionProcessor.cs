@@ -276,7 +276,7 @@ public class TransactionProcessor
 		&& !weAreAmongTheSender // we are not one of the senders (it is not a self-spending tx or coinjoin)
 		&& Coins.IsUsed(hdPubKey); // the destination address has already been used (address reuse)
 
-	public void UndoBlock(Height blockHeight)
+	public void UndoBlock(ChainHeight blockHeight)
 	{
 		Coins.SwitchToUnconfirmFromBlock(blockHeight);
 	}

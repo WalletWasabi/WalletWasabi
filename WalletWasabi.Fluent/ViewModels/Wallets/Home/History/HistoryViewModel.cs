@@ -38,11 +38,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		_wallet.Transactions.Cache.Connect()
 			.Transform(x => CreateViewModel(x))
-			.Sort(
+			.SortAndBind(
+				Transactions,
 				SortExpressionComparer<HistoryItemViewModelBase>
 					.Ascending(x => x.Transaction.IsConfirmed)
-					.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(Transactions)
+					.ThenByDescending(x => x.Transaction.OrderIndex)
+			)
 		.Subscribe();
 
 		_wallet.Transactions.IsEmpty
@@ -51,7 +52,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
-	public IEnumerable<SortableItem> Sortables { get; private set; }
+	public IEnumerable<SortableItem> Sortables { get; private set; } = [];
 
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{

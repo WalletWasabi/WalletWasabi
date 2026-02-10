@@ -30,7 +30,7 @@ public class SilentPaymentTests
 
 				Assert.Subset(expected.Outputs.SelectMany(x => x).ToHashSet(), actual.ToHashSet());
 			}
-			catch (ArgumentException e) when(e.Message.Contains("Invalid ec private key") && test.comment.Contains("point at infinity"))
+			catch (ArgumentException e) when(e.Message.Contains("Invalid ec private key") && test.Comment.Contains("point at infinity"))
 			{
 				// ignore because it is expected to fail;
 			}
@@ -56,8 +56,8 @@ public class SilentPaymentTests
 				}
 
 				// Parse key material (scan and spend keys)
-				using var scanKey = ParsePrivKey(keyMaterial.scan_priv_key);
-				using var spendKey = ParsePrivKey(keyMaterial.spend_priv_key);
+				using var scanKey = ParsePrivKey(keyMaterial.Scan_priv_key);
+				using var spendKey = ParsePrivKey(keyMaterial.Spend_priv_key);
 
 				// Addresses
 				var baseAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
@@ -69,6 +69,7 @@ public class SilentPaymentTests
 					.Select(labelInfo => (LabelInfo: (LabelInfo)labelInfo, Address: baseAddress.DeriveAddressForLabel(labelInfo.PubKey)!)) // each label has a different address
 					.Prepend((LabelInfo: new LabelInfo.None(), baseAddress))
 					.ToDictionary(x => x.Address, x => x.LabelInfo);
+
 				var addresses = addressesTable.Keys.ToArray();
 				var expectedAddresses = expected.Addresses.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
 				Assert.Equal(expectedAddresses, addresses);
@@ -79,7 +80,7 @@ public class SilentPaymentTests
 				var givenOutputPubKeys = givenOutputs.Select(ParseXOnlyPubKey).ToArray();
 				var detectedOutputPubKeys = SilentPayment.GetPubKeys(addresses.ToArray(), sharedSecret, givenOutputPubKeys);
 				var detectedOutputs = detectedOutputPubKeys.Select(x => Encoders.Hex.EncodeData(x.PubKey.ToBytes())).ToArray();
-				var expectedOutputs = expected.Outputs.Select(x => x.pub_key).ToArray();
+				var expectedOutputs = expected.Outputs.Select(x => x.Pub_key).ToArray();
 
 				Assert.Equal(detectedOutputs.ToHashSet(), expectedOutputs.ToHashSet());
 
@@ -104,12 +105,12 @@ public class SilentPaymentTests
 					.ToArray();
 
 				var detectedTweakKeys = tweakKeys.Select(x => Encoders.Hex.EncodeData(x.TweakKey.sec.ToBytes()));
-				var expectedTweakKeys = expected.Outputs.Select(o => o.priv_key_tweak);
+				var expectedTweakKeys = expected.Outputs.Select(o => o.Priv_key_tweak);
 
 				Assert.Equal(expectedTweakKeys.ToHashSet(), detectedTweakKeys.ToHashSet());
 
 				// Signature
-				var expectedSignature = expected.Outputs.Select(o => o.signature).ToHashSet();
+				var expectedSignature = expected.Outputs.Select(o => o.Signature).ToHashSet();
 				var tweakKeyMap = tweakKeys.ToDictionary(x => x.PubKey, x => x.TweakKey);
 				var computedSignatures = detectedOutputPubKeys
 					.Select(x => (x.Address, x.PubKey, TweakKey: tweakKeyMap[x.PubKey]))
@@ -120,7 +121,7 @@ public class SilentPaymentTests
 
 				Assert.Equal(expectedSignature.ToHashSet(), computedSignatures.ToHashSet());
 			}
-			catch (InvalidOperationException e) when(e.Message.Contains("infinite") && test.comment.Contains("point at infinity"))
+			catch (InvalidOperationException e) when(e.Message.Contains("infinite") && test.Comment.Contains("point at infinity"))
 			{
 				// ignore because it is expected to fail;
 			}
@@ -146,12 +147,12 @@ public class SilentPaymentTests
 public record ScriptPubKey(string Hex);
 public record Output(ScriptPubKey ScriptPubKey);
 
-public record ReceivingExpectedOutput(string priv_key_tweak, string pub_key, string signature);
+public record ReceivingExpectedOutput(string Priv_key_tweak, string Pub_key, string Signature);
 public record ReceivingVin( string TxId, int Vout, Output PrevOut, string? ScriptSig, string? TxInWitness);
 public record SendingVin( string TxId, int Vout, string Private_Key, Output PrevOut);
 public record SendingGiven(SendingVin[] Vin, string[] Recipients);
 
-public record KeyMaterial(string spend_priv_key, string scan_priv_key);
+public record KeyMaterial(string Spend_priv_key, string Scan_priv_key);
 public record ReceivingGiven(ReceivingVin[] Vin, string[] Outputs, KeyMaterial Key_Material, int[] Labels);
 public record SendingExpected(string[][] Outputs);
 
@@ -160,7 +161,7 @@ public record ReceivingExpected(string[] Addresses, ReceivingExpectedOutput[] Ou
 public record Sending(SendingGiven Given, SendingExpected Expected);
 public record Receiving(ReceivingGiven Given, ReceivingExpected Expected);
 
-public record SilentPaymentTestVector(string comment, Sending[] Sending, Receiving[] Receiving)
+public record SilentPaymentTestVector(string Comment, Sending[] Sending, Receiving[] Receiving)
 {
 	private static SilentPaymentTestVector[] VectorsData() =>
 		JsonConvert.DeserializeObject<SilentPaymentTestVector[]>(
@@ -171,7 +172,7 @@ public record SilentPaymentTestVector(string comment, Sending[] Sending, Receivi
 	public static object[][] TestCasesData =>
 		TestCases.Select(testCase => new object[] { testCase }).ToArray();
 
-	public override string ToString() => comment;
+	public override string ToString() => Comment;
 }
 
 public abstract record LabelInfo

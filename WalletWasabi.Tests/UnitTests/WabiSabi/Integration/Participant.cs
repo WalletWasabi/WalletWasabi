@@ -64,7 +64,7 @@ internal class Participant
 			splitTx.Outputs.Add(new TxOut(effectiveOutputValue, Wallet.CreateNewAddress()));
 		}
 		await Wallet.SendRawTransactionAsync(Wallet.SignTransaction(splitTx), cancellationToken).ConfigureAwait(false);
-		SplitTransaction = new SmartTransaction(splitTx, new Height(1));
+		SplitTransaction = new SmartTransaction(splitTx, new Height.ChainHeight(1));
 	}
 
 	public async Task<CoinJoinResult> StartParticipatingAsync(CancellationToken cancellationToken)

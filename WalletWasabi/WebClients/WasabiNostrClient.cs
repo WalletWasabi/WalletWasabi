@@ -17,7 +17,7 @@ public class WasabiNostrClient : IDisposable
 	private readonly Channel<ReleaseInfo> _updateChannel = Channel.CreateUnbounded<ReleaseInfo>();
 	private readonly Dictionary<string, NostrEvent> _events = new();
 	private readonly INostrClient _nostrClient;
-	private string _nostrSubscriptionID;
+	private readonly string _nostrSubscriptionID = Guid.NewGuid().ToString();
 
 	public WasabiNostrClient(INostrClient nostrClient)
 	{
@@ -36,7 +36,6 @@ public class WasabiNostrClient : IDisposable
 			Authors = [NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex()],
 			Limit = 1};
 
-		_nostrSubscriptionID = Guid.NewGuid().ToString();
 		await _nostrClient.CreateSubscription(_nostrSubscriptionID, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
 	}
 

@@ -4,17 +4,13 @@ namespace WalletWasabi.Backend.Models.Responses;
 
 public class FiltersResponse
 {
-	public FiltersResponse()
-	{
-	}
-
-	public FiltersResponse(int bestHeight, FilterModel[] filters)
+	public FiltersResponse(uint bestHeight, FilterModel[] filters)
 	{
 		BestHeight = bestHeight;
 		Filters = filters;
 	}
 
-	public int BestHeight { get; set; }
+	public uint BestHeight { get; set; }
 
 	public IEnumerable<FilterModel> Filters { get; set; } = new List<FilterModel>();
 }

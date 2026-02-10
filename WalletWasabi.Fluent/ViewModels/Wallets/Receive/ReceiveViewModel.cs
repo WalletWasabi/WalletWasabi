@@ -54,7 +54,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 		AddressesModel = wallet.Addresses;
 	}
 
-	public IAddressesModel AddressesModel { get; }
+	public AddressesModel AddressesModel { get; }
 
 	public List<ScriptType> SupportedScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
 

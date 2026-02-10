@@ -21,37 +21,7 @@ public static class ObservableExtensions
 			.Select(x => Observable.FromAsync(() => onNextAsync(x)))
 			.Concat();
 
-	public static IObservable<Unit> Do(this IObservable<Unit> source, Action onNext) => source.Do(_ => onNext());
-
 	public static IObservable<Unit> ToSignal<T>(this IObservable<T> source) => source.Select(_ => Unit.Default);
-
-	public static IObservable<T> ReplayLastActive<T>(this IObservable<T> observable)
-	{
-		return observable.Replay(1).RefCount();
-	}
-
-	public static IObservable<(T1, T2, T3, T4, T5, T6, T7, T8)> WhenAnyValue<TSender, T1, T2, T3, T4, T5, T6, T7, T8>(
-			this TSender sender,
-						Expression<Func<TSender, T1>> property1,
-						Expression<Func<TSender, T2>> property2,
-						Expression<Func<TSender, T3>> property3,
-						Expression<Func<TSender, T4>> property4,
-						Expression<Func<TSender, T5>> property5,
-						Expression<Func<TSender, T6>> property6,
-						Expression<Func<TSender, T7>> property7,
-						Expression<Func<TSender, T8>> property8)
-	{
-		return sender.WhenAny(
-			property1,
-			property2,
-			property3,
-			property4,
-			property5,
-			property6,
-			property7,
-			property8,
-			(c1, c2, c3, c4, c5, c6, c7, c8) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value));
-	}
 
 	public static IObservable<(T1, T2, T3, T4, T5, T6, T7, T8, T9)> WhenAnyValue<TSender, T1, T2, T3, T4, T5, T6, T7, T8, T9>(
 			this TSender sender,
@@ -76,33 +46,6 @@ public static class ObservableExtensions
 			property8,
 			property9,
 			(c1, c2, c3, c4, c5, c6, c7, c8, c9) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value));
-	}
-
-	public static IObservable<(T1, T2, T3, T4, T5, T6, T7, T8, T9, T10)> WhenAnyValue<TSender, T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(
-			this TSender sender,
-						Expression<Func<TSender, T1>> property1,
-						Expression<Func<TSender, T2>> property2,
-						Expression<Func<TSender, T3>> property3,
-						Expression<Func<TSender, T4>> property4,
-						Expression<Func<TSender, T5>> property5,
-						Expression<Func<TSender, T6>> property6,
-						Expression<Func<TSender, T7>> property7,
-						Expression<Func<TSender, T8>> property8,
-						Expression<Func<TSender, T9>> property9,
-						Expression<Func<TSender, T10>> property10)
-	{
-		return sender.WhenAny(
-			property1,
-			property2,
-			property3,
-			property4,
-			property5,
-			property6,
-			property7,
-			property8,
-			property9,
-			property10,
-			(c1, c2, c3, c4, c5, c6, c7, c8, c9, c10) => (c1.Value, c2.Value, c3.Value, c4.Value, c5.Value, c6.Value, c7.Value, c8.Value, c9.Value, c10.Value));
 	}
 
 	public static IObservable<(T1, T2, T3)> Flatten<T1, T2, T3>(this IObservable<((T1, T2), T3)> source) =>

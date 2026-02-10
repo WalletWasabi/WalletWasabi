@@ -104,7 +104,7 @@ public class EventBus
 
 public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
-public record ServerTipHeightChanged(int Height);
+public record ServerTipHeightChanged(uint Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
 public record NewSoftwareVersionInstallerAvailable(string InstallerPath);
 
