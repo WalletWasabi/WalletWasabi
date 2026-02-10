@@ -158,6 +158,8 @@ public static class RoundStateUpdater
 			.Where(r => r is not null)
 			.ToArray();
 
+		Logger.LogInfo($"Round state verification: {successfulResults.Length}/{verificationHandlers.Count} queries succeeded. Primary has {primaryRoundStates.Length} rounds.");
+
 		if (successfulResults.Length == 0 && verificationHandlers.Count > 0)
 		{
 			Logger.LogWarning("All round state verification queries failed. Cannot verify coordinator consistency.");
