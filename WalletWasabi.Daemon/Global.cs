@@ -108,6 +108,7 @@ public class Global
 	private TorProcessManager? _torManager;
 	private IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
+	private CoordinatorPrison? _coordinatorPrison;
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly FilterStore _filterStore;
@@ -419,11 +420,21 @@ public class Global
 			{
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
-					RegisterCoinJoinComponents(coordinatorUri);
+					var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
+					_coordinatorPrison = CoordinatorPrison.CreateOrLoadFromFile(prisonForCoordinator);
 
-					if (initializeSleepInhibitor)
+					if (_coordinatorPrison.IsBanned(coordinatorUri.Host))
 					{
-						await CreateSleepInhibitorAsync().ConfigureAwait(false);
+						Logger.LogError($"Coordinator '{coordinatorUri.Host}' is permanently banned due to detected cheating. Skipping CoinJoin registration.");
+					}
+					else
+					{
+						RegisterCoinJoinComponents(coordinatorUri);
+
+						if (initializeSleepInhibitor)
+						{
+							await CreateSleepInhibitorAsync().ConfigureAwait(false);
+						}
 					}
 				}
 
@@ -556,7 +567,7 @@ public class Global
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, _coordinatorPrison!, coordinatorUri, _bitcoinRpcClient, EventBus), "CoinJoin Manager");
 	}
 
 	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup)

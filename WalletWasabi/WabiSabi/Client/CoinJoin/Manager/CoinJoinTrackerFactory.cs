@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -16,11 +17,13 @@ public class CoinJoinTrackerFactory
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		RoundStateProvider roundStatusProvider,
 		CoinJoinConfiguration coinJoinConfiguration,
+		IRPCClient? bitcoinRpcClient,
 		CancellationToken cancellationToken)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
+		_bitcoinRpcClient = bitcoinRpcClient;
 		_cancellationToken = cancellationToken;
 		_liquidityClueProvider = new LiquidityClueProvider();
 	}
@@ -28,6 +31,7 @@ public class CoinJoinTrackerFactory
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
+	private readonly IRPCClient? _bitcoinRpcClient;
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 
@@ -52,6 +56,7 @@ public class CoinJoinTrackerFactory
 			coinSelector,
 			_coinJoinConfiguration,
 			_liquidityClueProvider,
+			_bitcoinRpcClient,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);

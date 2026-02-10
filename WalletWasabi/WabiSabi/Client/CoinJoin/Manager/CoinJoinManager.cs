@@ -14,6 +14,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -34,6 +35,9 @@ public class CoinJoinManager : BackgroundService
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison,
+		CoordinatorPrison coordinatorPrison,
+		Uri coordinatorUri,
+		IRPCClient? bitcoinRpcClient,
 		EventBus eventBus)
 	{
 		_walletProvider = walletProvider;
@@ -41,6 +45,9 @@ public class CoinJoinManager : BackgroundService
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
+		_coordinatorPrison = coordinatorPrison;
+		_coordinatorUri = coordinatorUri;
+		_bitcoinRpcClient = bitcoinRpcClient;
 		_serverTipHeightChangeSubscription = eventBus.Subscribe<ServerTipHeightChanged>(h => _serverTipHeight = h.Height);
 	}
 
@@ -51,6 +58,9 @@ public class CoinJoinManager : BackgroundService
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinPrison _coinPrison;
+	private readonly CoordinatorPrison _coordinatorPrison;
+	private readonly Uri _coordinatorUri;
+	private readonly IRPCClient? _bitcoinRpcClient;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private uint _serverTipHeight;
@@ -164,7 +174,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(ConcurrentDictionary<WalletId, CoinJoinTracker> trackedCoinJoins, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, CancellationToken stoppingToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, _bitcoinRpcClient, stoppingToken);
 
 		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
 		{
@@ -558,6 +568,7 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 			if (cjClientException.CoinjoinError is CoinjoinError.CoordinatorLiedAboutInputs)
 			{
 				Logger.LogError(cjClientException);
+				_coordinatorPrison.Ban(_coordinatorUri.Host, cjClientException.Message);
 				forceStop = true;
 			}
 			else
@@ -567,7 +578,16 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 		}
 		catch (InvalidOperationException ioe)
 		{
-			Logger.LogWarning(ioe);
+			if (ioe.Message.Contains("inconsistent round data", StringComparison.OrdinalIgnoreCase))
+			{
+				Logger.LogError(ioe);
+				_coordinatorPrison.Ban(_coordinatorUri.Host, ioe.Message);
+				forceStop = true;
+			}
+			else
+			{
+				Logger.LogWarning(ioe);
+			}
 		}
 		catch (OperationCanceledException)
 		{

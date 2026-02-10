@@ -5,6 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WabiSabi.Crypto.Randomness;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
@@ -43,6 +44,7 @@ public class CoinJoinClient
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
 		LiquidityClueProvider liquidityClueProvider,
+		IRPCClient? bitcoinRpcClient = null,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
@@ -52,6 +54,7 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
+		_bitcoinRpcClient = bitcoinRpcClient;
 		_secureRandom = new SecureRandom();
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
@@ -68,6 +71,7 @@ public class CoinJoinClient
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
+	private readonly IRPCClient? _bitcoinRpcClient;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
@@ -727,6 +731,9 @@ public class CoinJoinClient
 			throw new CoinJoinClientException(CoinjoinError.CoordinatorLiedAboutInputs, "Coordinator lied about registered inputs. It probably tries to be malicious.");
 		}
 
+		// If the user runs a Bitcoin Core node, verify other participants' UTXOs against it.
+		await VerifyUtxosAsync(theirCoins, roundState, cancellationToken).ConfigureAwait(false);
+
 		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoinEffectiveValues, outputTxOuts, roundParameters.MiningFeeRate, availableVsizes, roundParameters.MaxAmountCredentialValue, roundParameters.MaxVsizeCredentialValue);
@@ -780,6 +787,73 @@ public class CoinJoinClient
 						break;
 				}
 			}
+		}
+	}
+
+	private async Task VerifyUtxosAsync(IEnumerable<Coin> theirCoins, RoundState roundState, CancellationToken cancellationToken)
+	{
+		if (_bitcoinRpcClient is null)
+		{
+			return;
+		}
+
+		var coins = theirCoins.ToArray();
+		if (coins.Length == 0)
+		{
+			return;
+		}
+
+		try
+		{
+			Logger.LogInfo(FormatLog($"Verifying {coins.Length} other participants' UTXOs against local Bitcoin node.", roundState));
+
+			var batchRpc = _bitcoinRpcClient.PrepareBatch();
+			var tasks = coins.Select(coin =>
+				(Coin: coin, Task: batchRpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, includeMempool: true, cancellationToken)))
+				.ToArray();
+
+			await batchRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+			await Task.WhenAll(tasks.Select(t => t.Task)).ConfigureAwait(false);
+
+			foreach (var (coin, task) in tasks)
+			{
+				var response = await task.ConfigureAwait(false);
+				if (response is null)
+				{
+					throw new CoinJoinClientException(
+						CoinjoinError.CoordinatorLiedAboutInputs,
+						$"UTXO {coin.Outpoint} does not exist according to local Bitcoin node. Coordinator fabricated inputs.");
+				}
+
+				if (response.TxOut.Value != coin.TxOut.Value)
+				{
+					throw new CoinJoinClientException(
+						CoinjoinError.CoordinatorLiedAboutInputs,
+						$"UTXO {coin.Outpoint} amount mismatch. Coordinator claims {coin.TxOut.Value}, node reports {response.TxOut.Value}.");
+				}
+
+				if (response.TxOut.ScriptPubKey != coin.TxOut.ScriptPubKey)
+				{
+					throw new CoinJoinClientException(
+						CoinjoinError.CoordinatorLiedAboutInputs,
+						$"UTXO {coin.Outpoint} scriptPubKey mismatch. Coordinator provided different script than what's on-chain.");
+				}
+
+				if (response.Confirmations == 0)
+				{
+					Logger.LogDebug(FormatLog($"UTXO {coin.Outpoint} is unconfirmed (mempool-only).", roundState));
+				}
+			}
+
+			Logger.LogInfo(FormatLog($"All {coins.Length} UTXOs verified successfully against local Bitcoin node.", roundState));
+		}
+		catch (CoinJoinClientException)
+		{
+			throw;
+		}
+		catch (Exception ex)
+		{
+			Logger.LogWarning(FormatLog($"UTXO verification via RPC failed: {ex.Message}. Proceeding without verification.", roundState));
 		}
 	}
 

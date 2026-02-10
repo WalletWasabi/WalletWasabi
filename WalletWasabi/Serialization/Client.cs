@@ -106,6 +106,13 @@ public static partial class Encode
 
 	public static JsonNode ClientPrison(IEnumerable<PrisonedCoinRecord> p) =>
 		Array(p.Select(PrisonedCoinRecord));
+
+	public static JsonNode BannedCoordinatorRecord(BannedCoordinatorRecord r) =>
+		Object([
+			("CoordinatorUri", String(r.CoordinatorUri)),
+			("BannedAt", DatetimeOffset(r.BannedAt)),
+			("Reason", String(r.Reason))
+		]);
 }
 
 
@@ -197,5 +204,12 @@ public static partial class Decode
 		Object(get => new PrisonedCoinRecord(
 			get.Required("Outpoint", OutPoint),
 			get.Required("BannedUntil", DateTimeOffset)
+		));
+
+	public static Decoder<BannedCoordinatorRecord> BannedCoordinatorRecord =>
+		Object(get => new BannedCoordinatorRecord(
+			get.Required("CoordinatorUri", String),
+			get.Required("BannedAt", DateTimeOffset),
+			get.Required("Reason", String)
 		));
 }
