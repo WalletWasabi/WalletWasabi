@@ -93,7 +93,7 @@ public class CoordinatorPrisonTests
 		try
 		{
 			// Write corrupt data.
-			File.WriteAllText(Path.Combine(tempDir, "BannedCoordinator.json"), "not valid json{{{");
+			File.WriteAllText(Path.Combine(tempDir, "BannedCoordinators.json"), "not valid json{{{");
 
 			// Should recover gracefully.
 			var prison = CoordinatorPrison.CreateOrLoadFromFile(tempDir);
@@ -118,6 +118,33 @@ public class CoordinatorPrisonTests
 			prison.Ban("coordinator.example.com", "Second reason");
 
 			Assert.True(prison.IsBanned("coordinator.example.com"));
+		}
+		finally
+		{
+			Directory.Delete(tempDir, true);
+		}
+	}
+
+	[Fact]
+	public void MultipleBannedCoordinatorsTest()
+	{
+		var tempDir = Path.Combine(Path.GetTempPath(), $"CoordinatorPrisonTest_{Guid.NewGuid()}");
+		Directory.CreateDirectory(tempDir);
+		try
+		{
+			var prison = CoordinatorPrison.CreateOrLoadFromFile(tempDir);
+
+			prison.Ban("evil-coordinator-1.onion", "Inconsistent round data");
+			prison.Ban("evil-coordinator-2.onion", "Lied about inputs");
+
+			Assert.True(prison.IsBanned("evil-coordinator-1.onion"));
+			Assert.True(prison.IsBanned("evil-coordinator-2.onion"));
+			Assert.False(prison.IsBanned("honest-coordinator.onion"));
+
+			// Reload from file - both bans should persist.
+			var reloaded = CoordinatorPrison.CreateOrLoadFromFile(tempDir);
+			Assert.True(reloaded.IsBanned("evil-coordinator-1.onion"));
+			Assert.True(reloaded.IsBanned("evil-coordinator-2.onion"));
 		}
 		finally
 		{

@@ -420,8 +420,7 @@ public class Global
 			{
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
-					var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
-					_coordinatorPrison = CoordinatorPrison.CreateOrLoadFromFile(prisonForCoordinator);
+					_coordinatorPrison = CoordinatorPrison.CreateOrLoadFromFile(DataDir);
 
 					if (_coordinatorPrison.IsBanned(coordinatorUri.Host))
 					{

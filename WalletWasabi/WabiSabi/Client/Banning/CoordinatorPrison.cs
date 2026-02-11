@@ -1,5 +1,6 @@
+using System.Collections.Generic;
 using System.IO;
-using System.Text.Json;
+using System.Linq;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -8,22 +9,22 @@ namespace WalletWasabi.WabiSabi.Client.Banning;
 
 public class CoordinatorPrison
 {
-	private readonly string? _filePath;
-	private BannedCoordinatorRecord? _bannedCoordinator;
+	private readonly string _filePath;
+	private readonly List<BannedCoordinatorRecord> _bannedCoordinators;
 	private readonly object _lock = new();
 
-	private CoordinatorPrison(string? filePath, BannedCoordinatorRecord? bannedCoordinator)
+	private CoordinatorPrison(string filePath, List<BannedCoordinatorRecord> bannedCoordinators)
 	{
 		_filePath = filePath;
-		_bannedCoordinator = bannedCoordinator;
+		_bannedCoordinators = bannedCoordinators;
 	}
 
 	public bool IsBanned(string coordinatorHost)
 	{
 		lock (_lock)
 		{
-			return _bannedCoordinator is not null
-				&& string.Equals(_bannedCoordinator.CoordinatorUri, coordinatorHost, StringComparison.OrdinalIgnoreCase);
+			return _bannedCoordinators.Any(r =>
+				string.Equals(r.CoordinatorUri, coordinatorHost, StringComparison.OrdinalIgnoreCase));
 		}
 	}
 
@@ -31,12 +32,13 @@ public class CoordinatorPrison
 	{
 		lock (_lock)
 		{
-			if (_bannedCoordinator is not null)
+			if (IsBannedUnsafe(coordinatorHost))
 			{
 				return;
 			}
 
-			_bannedCoordinator = new BannedCoordinatorRecord(coordinatorHost, DateTimeOffset.UtcNow, reason);
+			var record = new BannedCoordinatorRecord(coordinatorHost, DateTimeOffset.UtcNow, reason);
+			_bannedCoordinators.Add(record);
 			Logger.LogError($"Coordinator '{coordinatorHost}' has been permanently banned. Reason: {reason}");
 			ToFile();
 		}
@@ -44,7 +46,7 @@ public class CoordinatorPrison
 
 	public static CoordinatorPrison CreateOrLoadFromFile(string containingDirectory)
 	{
-		string filePath = Path.Combine(containingDirectory, "BannedCoordinator.json");
+		string filePath = Path.Combine(containingDirectory, "BannedCoordinators.json");
 		try
 		{
 			IoHelpers.EnsureFileExists(filePath);
@@ -52,29 +54,32 @@ public class CoordinatorPrison
 			string data = File.ReadAllText(filePath);
 			if (string.IsNullOrWhiteSpace(data))
 			{
-				return new CoordinatorPrison(filePath, null);
+				return new CoordinatorPrison(filePath, []);
 			}
 
-			var record = JsonDecoder.FromString(data, Decode.BannedCoordinatorRecord);
-			return new CoordinatorPrison(filePath, record);
+			var records = JsonDecoder.FromString(data, Decode.Array(Decode.BannedCoordinatorRecord))
+				?? throw new InvalidDataException("Banned coordinators file is corrupted.");
+
+			return new CoordinatorPrison(filePath, records.ToList());
 		}
 		catch (Exception exc)
 		{
 			Logger.LogError($"There was an error during loading {nameof(CoordinatorPrison)}. Deleting corrupt file.", exc);
 			File.Delete(filePath);
-			return new CoordinatorPrison(filePath, null);
+			return new CoordinatorPrison(filePath, []);
 		}
+	}
+
+	private bool IsBannedUnsafe(string coordinatorHost)
+	{
+		return _bannedCoordinators.Any(r =>
+			string.Equals(r.CoordinatorUri, coordinatorHost, StringComparison.OrdinalIgnoreCase));
 	}
 
 	private void ToFile()
 	{
-		if (string.IsNullOrWhiteSpace(_filePath) || _bannedCoordinator is null)
-		{
-			return;
-		}
-
 		IoHelpers.EnsureFileExists(_filePath);
-		string json = JsonEncoder.ToReadableString(_bannedCoordinator, Encode.BannedCoordinatorRecord);
+		string json = JsonEncoder.ToReadableString(_bannedCoordinators, Encode.CoordinatorPrison);
 		File.WriteAllText(_filePath, json);
 	}
 }

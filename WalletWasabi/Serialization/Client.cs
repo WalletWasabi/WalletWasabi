@@ -113,6 +113,9 @@ public static partial class Encode
 			("BannedAt", DatetimeOffset(r.BannedAt)),
 			("Reason", String(r.Reason))
 		]);
+
+	public static JsonNode CoordinatorPrison(IEnumerable<BannedCoordinatorRecord> p) =>
+		Array(p.Select(BannedCoordinatorRecord));
 }
 
 
