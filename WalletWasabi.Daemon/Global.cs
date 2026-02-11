@@ -301,10 +301,10 @@ public class Global
 				}
 			}
 
-			if (!string.IsNullOrEmpty(Config.BackendUri))
+			if (!string.IsNullOrEmpty(Config.IndexerUri))
 			{
 				var maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-				var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
+				var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.IndexerUri), BuildHttpClientFactory());
 				return new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
 			}
 

@@ -5,13 +5,11 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using System.Net;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor;
-using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Daemon;
 
@@ -37,9 +35,9 @@ public class Config
 			[ nameof(Network)] = (
 				"The Bitcoin network to use: main, testnet, signet, or regtest",
 				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
-			[ nameof(BackendUri)] = (
+			[ nameof(IndexerUri)] = (
 				"The indexer server's URL to connect to",
-				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
+				GetStringValue("IndexerUri", PersistentConfig.IndexerUri, cliArgs)),
 			[ nameof(CoordinatorUri)] = (
 				"The coordinator server's URL to connect to",
 				GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs)),
@@ -153,7 +151,7 @@ public class Config
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
 
-	public string BackendUri => GetEffectiveValue<StringValue, string>(nameof(BackendUri));
+	public string IndexerUri => GetEffectiveValue<StringValue, string>(nameof(IndexerUri));
 	public string CoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(CoordinatorUri));
 	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
@@ -226,7 +224,7 @@ public class Config
 		{
 			if (!Money.TryParse(overrideValue, out var money))
 			{
-				throw new ArgumentNullException("DustThreshold", "Not a valid money");
+				throw new ArgumentNullException("DustThreshold", "Not a valid money value");
 			}
 
 			return new MoneyValue(value, money, valueSource.Value);

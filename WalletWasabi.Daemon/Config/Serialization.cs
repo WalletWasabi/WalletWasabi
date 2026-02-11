@@ -19,7 +19,7 @@ public static class PersistentConfigEncode
 
 	public static JsonNode PersistentConfig(PersistentConfig cfg) =>
 		Object([
-			("BackendUri", String(cfg.IndexerUri)),
+			("IndexerUri", String(cfg.IndexerUri)),
 			("CoordinatorUri", String(cfg.CoordinatorUri)),
 			("UseTor", UseTor(cfg.UseTor)),
 			("TerminateTorOnExit", Bool(cfg.TerminateTorOnExit)),
@@ -63,7 +63,7 @@ public static class PersistentConfigDecode
 	public static readonly Decoder<PersistentConfig> PersistentConfigPost2_6_0 =
 		Object(get => new PersistentConfig(
 			Network: Network.Main, // Network is not part of the config
-			IndexerUri : get.Required("BackendUri", Decode.String),
+			IndexerUri : get.Required("IndexerUri", Decode.String),
 			CoordinatorUri : get.Required("CoordinatorUri", Decode.String),
 			UseTor : get.Required("UseTor", UseTor),
 			TerminateTorOnExit : get.Required("TerminateTorOnExit", Decode.Bool),
