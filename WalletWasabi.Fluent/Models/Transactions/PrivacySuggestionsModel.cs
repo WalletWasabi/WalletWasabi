@@ -30,7 +30,7 @@ public partial class PrivacySuggestionsModel
 	private static readonly Money LargePortionSpentMinAmount = new (1_000_000L);
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();

@@ -5,6 +5,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
@@ -25,7 +26,7 @@ public class CoinsRegistry : ICoinsView
 	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private bool InvalidateSnapshot { get; set; }
 
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private readonly HashSet<SmartCoin> _spentCoins = new();

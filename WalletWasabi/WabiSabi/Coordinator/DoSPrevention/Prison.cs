@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Channels;
 using NBitcoin;
 using WalletWasabi.Logging;
@@ -20,7 +21,7 @@ public class Prison
 	private readonly Dictionary<OutPoint, TimeFrame> _banningTimeCache = new();
 
 	/// <remarks>_lock object to guard <see cref="_offendersByTxId"/>and <see cref="_banningTimeCache"/></remarks>
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	public void CoordinatorStabilitySafetyBan(OutPoint outPoint, uint256 roundId) =>
 		Punish(new Offender(outPoint, DateTimeOffset.UtcNow, new CoordinatorStabilitySafety(roundId)));

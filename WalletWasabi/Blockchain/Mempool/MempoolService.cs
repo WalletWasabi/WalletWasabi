@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -21,7 +22,7 @@ public class MempoolService
 	private readonly List<TransactionBroadcastEntry> _broadcastStore = new();
 
 	/// <summary>Guards <see cref="_broadcastStore"/>.</summary>
-	private readonly object _broadcastStoreLock = new();
+	private readonly Lock _broadcastStoreLock = new();
 
 	public bool TryAddToBroadcastStore(SmartTransaction transaction)
 	{

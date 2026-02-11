@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Net;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -25,7 +26,7 @@ public class TransactionBroadcastEntry
 
 	private readonly List<EndPoint> _broadcastTo = new();
 	private readonly List<EndPoint> _confirmedBy = new();
-	private readonly object _syncObj = new();
+	private readonly Lock _syncObj = new();
 
 	public void BroadcastedTo(EndPoint nodeEndpoint)
 	{

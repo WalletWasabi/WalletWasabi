@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 
@@ -47,7 +48,7 @@ public class SmartHeaderChain
 	private readonly int _maxChainSize;
 
 	private readonly LinkedList<SmartHeader> _chain = new();
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	public SmartHeader? Tip
 	{

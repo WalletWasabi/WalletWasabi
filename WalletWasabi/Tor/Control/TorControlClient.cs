@@ -55,7 +55,7 @@ public class TorControlClient : IAsyncDisposable
 	private readonly Channel<TorControlReply> _syncChannel;
 
 	/// <summary>Guards <see cref="AsyncChannels"/>.</summary>
-	private readonly object _asyncChannelsLock = new();
+	private readonly Lock _asyncChannelsLock = new();
 
 	/// <summary>Channel only for <see cref="StatusCode.AsynchronousEventNotify"/> events.</summary>
 	/// <remarks>
@@ -73,7 +73,7 @@ public class TorControlClient : IAsyncDisposable
 
 	/// <summary>Lock to guard all access to <see cref="SubscribedEvents"/>.</summary>
 	/// <remarks><see cref="_messageLock"/> must be locked first if it is needed too.</remarks>
-	private readonly object _subscriptionEventsLock = new();
+	private readonly Lock _subscriptionEventsLock = new();
 
 	/// <summary>Number of subscribers that currently listen to Tor's async events using <see cref="ReadEventsAsync"/>.</summary>
 	/// <remarks>Mainly for tests.</remarks>

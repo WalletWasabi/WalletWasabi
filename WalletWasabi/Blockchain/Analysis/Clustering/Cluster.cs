@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using WalletWasabi.Blockchain.Keys;
 
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
@@ -8,7 +9,7 @@ public class Cluster(IEnumerable<HdPubKey> keys) : IEquatable<Cluster>
 {
 	public LabelsArray Labels => LabelsArray.Merge(KeysSet.Select(x => x.Labels));
 
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 	private HashSet<HdPubKey> KeysSet { get; } = keys.ToHashSet();
 
 	public void Merge(Cluster cluster) => Merge(cluster.KeysSet);

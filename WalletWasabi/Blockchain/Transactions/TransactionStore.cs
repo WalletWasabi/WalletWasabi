@@ -31,7 +31,7 @@ public class TransactionStore : IAsyncDisposable
 	}
 
 	private readonly string _dataSource;
-	private readonly object _sqliteStorageLock = new();
+	private readonly Lock _sqliteStorageLock = new();
 
 	/// <remarks>Guarded by <see cref="_sqliteStorageLock"/>.</remarks>
 	private readonly TransactionSqliteStorage _sqliteStorage;

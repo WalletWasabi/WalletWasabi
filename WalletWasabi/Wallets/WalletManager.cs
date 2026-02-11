@@ -53,7 +53,7 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="_lock"/> object.</remarks>
 	private readonly HashSet<Wallet> _wallets = new();
 
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 	private readonly AsyncLock _startStopWalletLock = new();
 
 	private bool IsInitialized { get; set; }

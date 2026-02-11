@@ -3,6 +3,7 @@ using Avalonia.Media;
 using Avalonia.Platform;
 using Avalonia.Rendering.Composition;
 using Avalonia.Skia;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.Controls.Rendering;
 
@@ -11,7 +12,7 @@ internal class DrawCompositionCustomVisualHandler : CompositionCustomVisualHandl
 	private bool _running;
 	private IDrawHandler? _drawHandler;
 	private Rect _bounds;
-	private readonly object _sync = new();
+	private readonly Lock _sync = new();
 
 	public override void OnMessage(object message)
 	{

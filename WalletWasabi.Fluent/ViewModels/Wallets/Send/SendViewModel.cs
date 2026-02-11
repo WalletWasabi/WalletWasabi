@@ -28,6 +28,7 @@ using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Services;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
+using System.Threading;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -43,7 +44,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
-	private readonly object _parsingLock = new();
+	private readonly Lock _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;

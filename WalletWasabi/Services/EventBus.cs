@@ -7,6 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
+using System.Threading;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -14,7 +15,7 @@ using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
 public class EventBus
 {
 	private readonly SubscriptionRegistry _subscriptions = new();
-	private readonly object _syncObj = new();
+	private readonly Lock _syncObj = new();
 
 	public IDisposable Subscribe<TEvent>(Action<TEvent> action) where TEvent : notnull
 	{

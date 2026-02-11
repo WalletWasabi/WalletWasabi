@@ -42,7 +42,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public TransactionStore MempoolStore { get; }
 	public TransactionStore ConfirmedStore { get; }
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	public async Task InitializeAsync(CancellationToken cancellationToken = default)
 	{

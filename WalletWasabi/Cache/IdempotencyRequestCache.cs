@@ -22,7 +22,7 @@ public class IdempotencyRequestCache
 	/// <summary>Guards <see cref="_responseCache"/>.</summary>
 	/// <remarks>Unfortunately, <see cref="CacheExtensions.GetOrCreate{TItem}(IMemoryCache, object, Func{ICacheEntry, TItem})"/> is not atomic.</remarks>
 	/// <seealso href="https://github.com/dotnet/runtime/issues/36499"/>
-	private readonly object _responseCacheLock = new();
+	private readonly Lock _responseCacheLock = new();
 
 	/// <remarks>Guarded by <see cref="_responseCacheLock"/>.</remarks>
 	private readonly IMemoryCache _responseCache;

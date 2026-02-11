@@ -1,5 +1,6 @@
 using System.Diagnostics.CodeAnalysis;
 using System.Runtime.InteropServices;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
 
@@ -61,7 +62,7 @@ public class WindowsPowerAvailabilityTask : IPowerSavingInhibitorTask
 	}
 
 	/// <remarks>Guards <see cref="_isDone"/>.</remarks>
-	private readonly object _stateLock = new();
+	private readonly Lock _stateLock = new();
 
 	public PowerRequestType RequestType { get; }
 

@@ -39,7 +39,7 @@ public class TorProcessManager : IAsyncDisposable
 	}
 
 	/// <summary>Guards <see cref="TorProcess"/> and <see cref="TorControlClient"/>.</summary>
-	private readonly object _stateLock = new();
+	private readonly Lock _stateLock = new();
 
 	private Task? LoopTask { get; set; }
 

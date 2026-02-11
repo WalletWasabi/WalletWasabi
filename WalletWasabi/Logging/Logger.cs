@@ -3,6 +3,7 @@ using System.Diagnostics;
 using System.IO;
 using System.Runtime.CompilerServices;
 using System.Text;
+using System.Threading;
 using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Models;
@@ -12,7 +13,7 @@ namespace WalletWasabi.Logging;
 
 public static class Logger
 {
-	private static readonly object Lock = new();
+	private static readonly Lock Lock = new();
 	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
 	private static HashSet<LogMode> Modes { get; } = new();
 	public static string FilePath { get; private set; } = "Log.txt";
