@@ -327,8 +327,8 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 		var newUiConfig = new UiConfig(_uiConfig.FilePath)
 		{
-			Oobe= Oobe,
-			LastVersionHighlightsDisplayed= LastVersionHighlightsDisplayed
+			Oobe = Oobe,
+			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed
 		};
 
 		ApplyConfigs(newPersistentConfig, newUiConfig);
