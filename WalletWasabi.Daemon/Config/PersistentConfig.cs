@@ -84,14 +84,11 @@ public record PersistentConfigPrev2_6_0(
 	int ConfigVersion) : IPersistentConfig
 {
 	public PersistentConfigPrev2_6_0 Migrate() =>
-		MigrateMaxCoordinationFeeRate()
-		.MigrateOldDefaultBackendUris()
+		MigrateOldDefaultBackendUris()
 		.MigrateP2pToRpcConnection() with
 		{
 			ConfigVersion = 2
 		};
-
-	private PersistentConfigPrev2_6_0 MigrateMaxCoordinationFeeRate() => this;
 
 	private PersistentConfigPrev2_6_0 MigrateOldDefaultBackendUris()
 	{
