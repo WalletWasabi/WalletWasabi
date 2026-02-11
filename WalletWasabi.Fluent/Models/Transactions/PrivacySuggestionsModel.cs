@@ -50,9 +50,6 @@ public partial class PrivacySuggestionsModel
 		Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
-	/// <summary>
-	///
-	/// </summary>
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo transactionInfo, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken, bool includeSuggestions)
 	{
@@ -60,13 +57,13 @@ public partial class PrivacySuggestionsModel
 		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
 
 		lock (_lock)
 		{
 			_singleRunCancellationTokenSource?.Cancel();
 			_linkedCancellationTokenSource?.Cancel();
 			_singleRunCancellationTokenSource = singleRunCts;
-			CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
 			CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
 			_linkedCancellationTokenSource = linkedCts;
 		}
