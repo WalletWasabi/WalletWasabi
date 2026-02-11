@@ -102,7 +102,7 @@ public static class PersistentConfigManager
 			return defaultConfig;
 		}
 
-		PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
+		static PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
 			Path.GetFileName(configFilePath) switch
 			{
 				"Config.json" => DefaultMainNetConfig,
