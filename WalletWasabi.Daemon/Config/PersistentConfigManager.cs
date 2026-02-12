@@ -97,7 +97,7 @@ public static class PersistentConfigManager
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 
 			ToFile(filePath, defaultConfig);
-			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;
 		}

@@ -121,6 +121,8 @@ public class WasabiApplication
 			_ => throw new NotSupportedException($"Network '{networkName}' is not supported."),
 		};
 		var configFilePath = Path.Combine(Config.DataDir, configFileName);
+
+		Logger.LogInfo($"Loading config file '{configFilePath}'.");
 		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
 		if (persistentConfig is PersistentConfig config)
