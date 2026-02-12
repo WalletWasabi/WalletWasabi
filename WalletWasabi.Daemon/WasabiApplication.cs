@@ -74,6 +74,11 @@ public class WasabiApplication
 			await afterStarting();
 			return ExitCode.Ok;
 		}
+		catch (Exception e)
+		{
+			Logger.LogInfo("Exception occurred while the application was starting or running", e);
+			throw;
+		}
 		finally
 		{
 			BeforeStopping();
@@ -86,7 +91,6 @@ public class WasabiApplication
 		TaskScheduler.UnobservedTaskException += TaskScheduler_UnobservedTaskException;
 
 		Logger.LogInfo($"{AppConfig.AppName} started ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
-
 	}
 
 	private void BeforeStopping()
