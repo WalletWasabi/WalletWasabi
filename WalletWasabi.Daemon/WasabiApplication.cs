@@ -9,7 +9,6 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Userfacing;
 using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Daemon;
@@ -103,9 +102,6 @@ public class WasabiApplication
 		SingleInstanceChecker.Dispose();
 		Logger.LogInfo($"{AppConfig.AppName} stopped gracefully ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 	}
-
-	private Global CreateGlobal()
-		=> new(Config.DataDir, Config);
 
 	private PersistentConfig LoadOrCreateConfigs()
 	{
