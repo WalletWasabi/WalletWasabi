@@ -1,16 +1,17 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <NetPackagesVersion>10.0.2</NetPackagesVersion>
     <AvaloniaVersion>11.3.11</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
     <PackageVersion Include="Markdown.Avalonia" Version="11.0.3-a1" />
-    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Extensions.Http" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Hosting.Abstractions" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Extensions.Http" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="NNostr.Client" Version="0.0.54" />
     <PackageVersion Include="SkiaSharp" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.HarfBuzz" Version="3.119.2" />
@@ -18,8 +19,8 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.2" />
     <!-- SQLite. -->
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.2" />
-    <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="$(NetPackagesVersion)" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
     <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="5.0.0" />
@@ -50,7 +51,7 @@
     <PackageVersion Include="Avalonia.Headless.XUnit" Version="$(AvaloniaVersion)" />
     <!-- Testing. -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
-    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="10.0.2" />
+    <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(NetPackagesVersion)" />
     <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
     <PackageVersion Include="Moq" Version="[4.18.4]" />
     <PackageVersion Include="xunit" Version="2.9.3" />

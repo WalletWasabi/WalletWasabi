@@ -65,11 +65,6 @@ public class ApplicationStateManager : IMainWindowService
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
-		Observable
-			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
-
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(initTransitionState)
 			.OnTrigger(
