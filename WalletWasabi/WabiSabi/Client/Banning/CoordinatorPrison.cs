@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Helpers;
@@ -19,12 +20,21 @@ public class CoordinatorPrison
 		_bannedCoordinators = bannedCoordinators;
 	}
 
-	public bool IsBanned(string coordinatorHost)
+	public bool IsBanned(string coordinatorHost, [NotNullWhen(true)] out string? reason)
 	{
 		lock (_lock)
 		{
-			return _bannedCoordinators.Any(r =>
-				string.Equals(r.CoordinatorUri, coordinatorHost, StringComparison.OrdinalIgnoreCase));
+			var record = _bannedCoordinators.FirstOrDefault(r =>
+				string.Equals(r.CoordinatorHost, coordinatorHost, StringComparison.OrdinalIgnoreCase));
+
+			if (record is not null)
+			{
+				reason = record.Reason;
+				return true;
+			}
+
+			reason = null;
+			return false;
 		}
 	}
 
@@ -32,7 +42,8 @@ public class CoordinatorPrison
 	{
 		lock (_lock)
 		{
-			if (IsBannedUnsafe(coordinatorHost))
+			if (_bannedCoordinators.Any(r =>
+				string.Equals(r.CoordinatorHost, coordinatorHost, StringComparison.OrdinalIgnoreCase)))
 			{
 				return;
 			}
@@ -40,7 +51,8 @@ public class CoordinatorPrison
 			var record = new BannedCoordinatorRecord(coordinatorHost, DateTimeOffset.UtcNow, reason);
 			_bannedCoordinators.Add(record);
 			Logger.LogError($"Coordinator '{coordinatorHost}' has been permanently banned. Reason: {reason}");
-			ToFile();
+			Logger.LogError($"Modify '{_filePath}' to unban the coordinator, if you wish so.");
+			ToFileLocked();
 		}
 	}
 
@@ -64,19 +76,13 @@ public class CoordinatorPrison
 		}
 		catch (Exception exc)
 		{
-			Logger.LogError($"There was an error during loading {nameof(CoordinatorPrison)}. Deleting corrupt file.", exc);
+			Logger.LogError($"There was an error during loading {nameof(CoordinatorPrison)}. Deleting corrupted file '{filePath}'.", exc);
 			File.Delete(filePath);
 			return new CoordinatorPrison(filePath, []);
 		}
 	}
 
-	private bool IsBannedUnsafe(string coordinatorHost)
-	{
-		return _bannedCoordinators.Any(r =>
-			string.Equals(r.CoordinatorUri, coordinatorHost, StringComparison.OrdinalIgnoreCase));
-	}
-
-	private void ToFile()
+	private void ToFileLocked()
 	{
 		IoHelpers.EnsureFileExists(_filePath);
 		string json = JsonEncoder.ToReadableString(_bannedCoordinators, Encode.CoordinatorPrison);

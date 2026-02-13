@@ -109,7 +109,7 @@ public static partial class Encode
 
 	public static JsonNode BannedCoordinatorRecord(BannedCoordinatorRecord r) =>
 		Object([
-			("CoordinatorUri", String(r.CoordinatorUri)),
+			("CoordinatorHost", String(r.CoordinatorHost)),
 			("BannedAt", DatetimeOffset(r.BannedAt)),
 			("Reason", String(r.Reason))
 		]);
@@ -211,7 +211,7 @@ public static partial class Decode
 
 	public static Decoder<BannedCoordinatorRecord> BannedCoordinatorRecord =>
 		Object(get => new BannedCoordinatorRecord(
-			get.Required("CoordinatorUri", String),
+			get.Required("CoordinatorHost", String),
 			get.Required("BannedAt", DateTimeOffset),
 			get.Required("Reason", String)
 		));

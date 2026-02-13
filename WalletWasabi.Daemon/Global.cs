@@ -422,9 +422,9 @@ public class Global
 				{
 					_coordinatorPrison = CoordinatorPrison.CreateOrLoadFromFile(DataDir);
 
-					if (_coordinatorPrison.IsBanned(coordinatorUri.Host))
+					if (_coordinatorPrison.IsBanned(coordinatorUri.Host, out var banReason))
 					{
-						Logger.LogError($"Coordinator '{coordinatorUri.Host}' is permanently banned due to detected cheating. Skipping CoinJoin registration.");
+						Logger.LogError($"Coordinator '{coordinatorUri.Host}' is permanently banned. Reason: {banReason}. Skipping coinjoin registration.");
 					}
 					else
 					{
