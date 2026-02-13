@@ -1,10 +1,10 @@
 using System.IO;
 using System.Threading.Tasks;
-using WalletWasabi.Services;
+using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Clients;
+namespace WalletWasabi.Tests.UnitTests.Helpers;
 
 /// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
 [Collection("Serial unit tests collection")]

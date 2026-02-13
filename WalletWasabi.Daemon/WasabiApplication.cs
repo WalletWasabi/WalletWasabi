@@ -7,7 +7,6 @@ using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using Constants = WalletWasabi.Helpers.Constants;
 
