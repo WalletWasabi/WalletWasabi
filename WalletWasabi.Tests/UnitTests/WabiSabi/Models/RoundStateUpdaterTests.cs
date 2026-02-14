@@ -223,6 +223,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task ConsistentVerificationResponsesPassAsync()
 	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
@@ -253,6 +254,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task InconsistentRoundIdsDetectedAsync()
 	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
@@ -285,6 +287,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task InconsistentParametersDetectedAsync()
 	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
@@ -324,6 +327,7 @@ public class RoundStateUpdaterTests
 	[Fact]
 	public async Task VerificationFailureDoesNotBlockAsync()
 	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 
 		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);

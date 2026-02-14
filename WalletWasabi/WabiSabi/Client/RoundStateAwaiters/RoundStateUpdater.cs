@@ -137,6 +137,11 @@ public static class RoundStateUpdater
 		return (Rounds: finalRoundStates, Awaiters: state.Awaiters.RemoveRange(completedAwaiters));
 	}
 
+	// Maximum random delay (in milliseconds) before each verification query.
+	// Each query gets an independent random delay to prevent timing correlation
+	// between the primary poll and verification queries across Tor circuits.
+	internal static int MaxVerificationDelayMs = 5000;
+
 	private static async Task VerifyConsistencyAsync(
 		RoundState[] primaryRoundStates,
 		IReadOnlyList<IWabiSabiApiRequestHandler> verificationHandlers,
@@ -148,6 +153,8 @@ public static class RoundStateUpdater
 		using var verificationTimeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(15));
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, verificationTimeoutCts.Token);
 
+		// Each verification query gets an independent random delay to break
+		// timing correlation between the primary poll and verification queries.
 		var verificationTasks = verificationHandlers
 			.Select(handler => GetVerificationResponseAsync(handler, verificationRequest, linkedCts.Token))
 			.ToArray();
@@ -179,6 +186,11 @@ public static class RoundStateUpdater
 	{
 		try
 		{
+			// Random delay before each query to prevent a coordinator from correlating
+			// verification circuits with the primary circuit via timing analysis.
+			var delayMs = Random.Shared.Next(MaxVerificationDelayMs);
+			await Task.Delay(delayMs, cancellationToken).ConfigureAwait(false);
+
 			var response = await handler.GetStatusAsync(request, cancellationToken).ConfigureAwait(false);
 			return response.RoundStates;
 		}
