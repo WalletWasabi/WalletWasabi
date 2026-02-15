@@ -28,9 +28,9 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
-	private static int _isShuttingDown;
+	private static int IsShuttingDownFlag;
 
-	internal static bool IsShuttingDown => Volatile.Read(ref _isShuttingDown) == 1;
+	internal static bool IsShuttingDown => Volatile.Read(ref IsShuttingDownFlag) == 1;
 
 	internal static bool IsDbusMenuShutdownException(Exception exception)
 	{
@@ -111,7 +111,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Interlocked.Exchange(ref _isShuttingDown, 1);
+		Interlocked.Exchange(ref IsShuttingDownFlag, 1);
 		if (Application.Current is null)
 		{
 			return;
