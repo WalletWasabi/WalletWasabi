@@ -227,37 +227,36 @@ public static class WasabiAppExtensions
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-					using CancellationTokenSource stopLoadingCts = new();
+				using CancellationTokenSource stopLoadingCts = new();
 
-					AppBuilder appBuilder = AppBuilder
-						.Configure(() => new App(
-						backendInitialiseAsync: async () =>
+				AppBuilder appBuilder = AppBuilder.Configure(() => new App(
+					backendInitializeAsync: async () =>
+					{
+						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+						await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+
+						// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+					}, startInBg: runGuiInBackground))
+					.UseReactiveUI()
+					.SetupAppBuilder()
+					.AfterSetup(_ =>
+					{
+						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
-							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
-
-							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground))
-						.UseReactiveUI()
-						.SetupAppBuilder()
-						.AfterSetup(_ =>
-						{
-							ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-
-							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+							Dispatcher.UIThread.UnhandledException += (_, e) =>
 							{
-								Dispatcher.UIThread.UnhandledException += (_, e) =>
+								if (Program.IsShuttingDown &&
+									Program.IsDbusMenuShutdownException(e.Exception))
 								{
-									if (Program.IsShuttingDown &&
-										Program.IsDbusMenuShutdownException(e.Exception))
-									{
-										Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
-										e.Handled = true;
-									}
-								};
-							}
-						});
+									Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+									e.Handled = true;
+								}
+							};
+						}
+					});
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
