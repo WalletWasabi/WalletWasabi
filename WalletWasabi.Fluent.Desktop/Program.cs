@@ -82,9 +82,7 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = app.RunAsGuiAsync()
-				.GetAwaiter()
-				.GetResult();
+			var exitCode = app.RunAsGui();
 
 			if (app.TerminateService.GracefulCrashException is not null)
 			{
@@ -205,7 +203,7 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
+	public static ExitCode RunAsGui(this WasabiApplication app)
 	{
 		return app.Run(afterStarting: () =>
 			{
