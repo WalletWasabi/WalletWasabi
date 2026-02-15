@@ -1,7 +1,4 @@
 using System;
-using System.Linq;
-using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Daemon;
 
@@ -35,50 +32,4 @@ public record WasabiAppBuilder(string AppName, string[] Arguments)
 
 	public static WasabiAppBuilder Create(string appName, string[] args) =>
 		new(appName, args);
-}
-
-public static class WasabiAppExtensions
-{
-	public static async Task<ExitCode> RunAsConsoleAsync(this WasabiApplication app)
-	{
-		void ProcessCommands()
-		{
-			var arguments = app.AppConfig.Arguments;
-			var walletNames = ArgumentHelpers
-				.GetValues("wallet", arguments)
-				.Distinct();
-
-			foreach (var walletName in walletNames)
-			{
-				try
-				{
-					var wallet = app.Global.WalletManager.GetWalletByName(walletName);
-					app.Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
-				}
-				catch (InvalidOperationException)
-				{
-					Logger.LogWarning($"Wallet '{walletName}' was not found. Ignoring...");
-				}
-			}
-		}
-
-		return await app.RunAsync(
-			async () =>
-			{
-				try
-				{
-					await app.Global.InitializeAsync(initializeSleepInhibitor: false, app.TerminateService, app.TerminateService.CancellationToken).ConfigureAwait(false);
-				}
-				catch (OperationCanceledException) when (app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					Logger.LogInfo("User requested the application to stop. Stopping.");
-				}
-
-				if (!app.TerminateService.CancellationToken.IsCancellationRequested)
-				{
-					ProcessCommands();
-					await app.TerminateService.ForcefulTerminationRequestedTask.ConfigureAwait(false);
-				}
-			}).ConfigureAwait(false);
-	}
 }
