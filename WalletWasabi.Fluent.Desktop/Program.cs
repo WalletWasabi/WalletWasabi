@@ -207,8 +207,7 @@ public static class WasabiAppExtensions
 {
 	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
 	{
-		return await app.RunAsync(
-			afterStarting: () =>
+		return app.Run(afterStarting: () =>
 			{
 				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{
@@ -267,8 +266,6 @@ public static class WasabiAppExtensions
 				{
 					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 				}
-
-				return Task.CompletedTask;
 			});
 	}
 

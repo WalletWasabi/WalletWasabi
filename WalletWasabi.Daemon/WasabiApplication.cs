@@ -35,6 +35,33 @@ public class WasabiApplication
 		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
 	}
 
+	public ExitCode Run(Action afterStarting)
+	{
+		var exitCode = ProcessAppArguments();
+		if (exitCode is not null)
+		{
+			return exitCode.Value;
+		}
+
+		try
+		{
+			TerminateService.Activate();
+			BeforeStarting();
+
+			afterStarting();
+			return ExitCode.Ok;
+		}
+		catch (Exception e)
+		{
+			Logger.LogInfo("Exception occurred while the application was starting or running", e);
+			throw;
+		}
+		finally
+		{
+			BeforeStopping();
+		}
+	}
+
 	public async Task<ExitCode> RunAsync(Func<Task> afterStarting)
 	{
 		var exitCode = ProcessAppArguments();
