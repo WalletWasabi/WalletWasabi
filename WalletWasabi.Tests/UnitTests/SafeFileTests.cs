@@ -44,29 +44,9 @@ public class SafeFileTests
 		Assert.True(Exists(file));
 
 		// Read back the content and check.
-		static bool IsStringArraysEqual(string[] lines1, string[] lines2)
-		{
-			if (lines1.Length != lines2.Length)
-			{
-				return false;
-			}
-
-			for (int i = 0; i < lines1.Length; i++)
-			{
-				string line = lines2[i];
-				var readLine = lines1[i];
-
-				if (!line.Equals(readLine))
-				{
-					return false;
-				}
-			}
-			return true;
-		}
-
 		var readLines = await ReadAllLinesAsync(file);
 
-		Assert.True(IsStringArraysEqual(readLines, lines.ToArray()));
+		Assert.Equal(readLines, lines.ToArray());
 
 		// Write the same content, file should be rewritten.
 		var currentDate = File.GetLastWriteTimeUtc(file);
@@ -83,7 +63,7 @@ public class SafeFileTests
 		// At this point there is now OriginalFile.
 		var newFile = await ReadAllLinesAsync(file);
 
-		Assert.True(IsStringArraysEqual(newFile, lines.ToArray()));
+		Assert.Equal(newFile, lines.ToArray());
 
 		// Add one more line to have different data.
 		lines.Add("Lorem ipsum dolor sit amet, consectetur adipiscing elit.");
@@ -111,15 +91,15 @@ public class SafeFileTests
 			"banana",
 			"peach"
 		};
-		await File.WriteAllLinesAsync(dummyFilePath, dummyContent);
 
+		await File.WriteAllTextAsync(dummyFilePath, string.Join('\n', dummyContent));
 		await WriteAllLinesAsync(file, lines);
 
 		TryReplaceMeWith(file, dummyFilePath);
 
 		var fruits = await ReadAllLinesAsync(file);
 
-		Assert.True(IsStringArraysEqual(dummyContent, fruits));
+		Assert.Equal(dummyContent, fruits);
 
 		Assert.False(File.Exists(dummyFilePath));
 
@@ -249,9 +229,11 @@ public class SafeFileTests
 		}
 	}
 
-	private static Task<string[]> ReadAllLinesAsync(string file, CancellationToken cancellationToken = default)
+	private static Task<string[]> ReadAllLinesAsync(string file)
 	{
-		return Task.FromResult(SafeFile.ReadAllText(file, Encoding.Default).Split('\n', StringSplitOptions.RemoveEmptyEntries));
+		string text = SafeFile.ReadAllText(file, Encoding.Default);
+		string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
+		return Task.FromResult(lines);
 	}
 
 	private static async Task WriteAllLinesAsync(string file, IEnumerable<string> lines, CancellationToken cancellationToken = default)
@@ -265,7 +247,9 @@ public class SafeFileTests
 
 		IoHelpers.EnsureContainingDirectoryExists(newFilePath);
 
-		await File.WriteAllLinesAsync(newFilePath, lines, cancellationToken).ConfigureAwait(false);
+		var contents = string.Join('\n', lines);
+		await File.WriteAllTextAsync(newFilePath, contents, cancellationToken).ConfigureAwait(false);
+
 		if (File.Exists(file))
 		{
 			if (File.Exists(oldFilePath))
