@@ -12,11 +12,11 @@
                EnableBack="{Binding EnableBack}"
                EnableNext="True"
                NextContent="Done"
-               EnableCancel="{Binding EnableCancel}"
+               EnableCancel="False"
                IsBusy="{Binding IsBusy}"
                ScrollViewer.VerticalScrollBarVisibility="Auto">
     <ContentArea.Caption>
-      Payments queued here will be sent via coinjoin for enhanced privacy. Maximum 4 payments per round. Scheduled payments are not guaranteed to be fulfilled.
+      Payments queued here will be sent via coinjoin for enhanced privacy. Maximum 4 payments per round. This list is cleared when you close Wasabi.
     </ContentArea.Caption>
     <ContentArea.TopContent>
       <Button Content="Add Payment" Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" />
