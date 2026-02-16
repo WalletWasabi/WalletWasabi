@@ -837,9 +837,10 @@ public class CoinJoinClient
 
 				if (response.TxOut.ScriptPubKey != coin.TxOut.ScriptPubKey)
 				{
+					Logger.LogDebug(FormatLog($"UTXO {coin.Outpoint} scriptPubKey mismatch. Coordinator claims {coin.TxOut.ScriptPubKey}, node reports {response.TxOut.ScriptPubKey}", roundState));
 					throw new CoinJoinClientException(
 						CoinjoinError.CoordinatorLiedAboutInputs,
-						$"UTXO {coin.Outpoint} scriptPubKey mismatch. Coordinator provided different script than what's on-chain.");
+						$"UTXO {coin.Outpoint} scriptPubKey mismatch. Coordinator provided different script than local Bitcoin node reported.");
 				}
 
 				if (response.Confirmations == 0)

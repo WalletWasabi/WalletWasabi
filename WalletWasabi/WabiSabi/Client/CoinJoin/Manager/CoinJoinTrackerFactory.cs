@@ -31,7 +31,7 @@ public class CoinJoinTrackerFactory
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
-	private readonly IRPCClient? _bitcoinRpcClient;
+	private readonly IRPCClient? _rpc;
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 

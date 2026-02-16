@@ -219,8 +219,7 @@ public static class RoundStateUpdater
 			var msg = $"Round ID inconsistency: rounds [{string.Join(", ", suspiciouslyMissing)}] " +
 				"were shown to primary circuit but not to verification circuit.";
 			Logger.LogError(msg);
-			throw new InvalidOperationException(
-				$"Coordinator served inconsistent round data across Tor circuits. {msg}");
+			throw new InvalidOperationException($"Coordinator served inconsistent round data across Tor circuits. {msg}");
 		}
 
 		// For rounds present in both, compare immutable structural fields.

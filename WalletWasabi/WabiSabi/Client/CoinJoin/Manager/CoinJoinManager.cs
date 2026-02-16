@@ -578,7 +578,7 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 		}
 		catch (InvalidOperationException ioe)
 		{
-			if (ioe.Message.Contains("inconsistent round data", StringComparison.OrdinalIgnoreCase))
+			if (ioe is InconsistentRoundDataException)
 			{
 				Logger.LogError(ioe);
 				_coordinatorPrison.Ban(_coordinatorUri.Host, ioe.Message);
