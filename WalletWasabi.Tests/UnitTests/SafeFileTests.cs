@@ -29,7 +29,6 @@ public class SafeFileTests
 		for (int i = 0; i < 1000; i++)
 		{
 			string line = RandomString.AlphaNumeric(100);
-
 			lines.Add(line);
 		}
 
@@ -62,7 +61,6 @@ public class SafeFileTests
 
 		// At this point there is now OriginalFile.
 		var newFile = await ReadAllLinesAsync(file);
-
 		Assert.Equal(newFile, lines.ToArray());
 
 		// Add one more line to have different data.
@@ -100,7 +98,6 @@ public class SafeFileTests
 		var fruits = await ReadAllLinesAsync(file);
 
 		Assert.Equal(dummyContent, fruits);
-
 		Assert.False(File.Exists(dummyFilePath));
 
 		DeleteMe(file);
@@ -161,6 +158,7 @@ public class SafeFileTests
 				WriteNextLineAsync().Wait();
 			}
 		});
+
 		var t2 = new Thread(() =>
 		{
 			for (var i = 0; i < Iterations; i++)
@@ -168,6 +166,7 @@ public class SafeFileTests
 				WriteNextLineAsync().Wait();
 			}
 		});
+
 		var t3 = new Thread(() =>
 		{
 			for (var i = 0; i < Iterations; i++)
@@ -190,10 +189,8 @@ public class SafeFileTests
 		var allLines = File.ReadAllLines(file);
 		Assert.NotEmpty(allLines);
 
-		/* Lines were added to the list and to the file parallel so the two data should be equal.
-		 * If we "substract" them from each other we should get empty array.
-		 */
-
+		// Lines were added to the list and to the file parallel so the two data should be equal.
+		// If we "subtract" them from each other we should get empty array.
 		var diff = allLines.Except(list);
 		Assert.Empty(diff);
 	}
