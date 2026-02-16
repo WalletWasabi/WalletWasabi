@@ -793,13 +793,8 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task VerifyUtxosAsync(IEnumerable<Coin> theirCoins, RoundState roundState, CancellationToken cancellationToken)
+	private static async Task VerifyUtxosAsync(IRPCClient rpcClient, IEnumerable<Coin> theirCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
-		if (_bitcoinRpcClient is null)
-		{
-			return;
-		}
-
 		var coins = theirCoins.ToArray();
 		if (coins.Length == 0)
 		{
@@ -810,7 +805,7 @@ public class CoinJoinClient
 		{
 			Logger.LogInfo(FormatLog($"Verifying {coins.Length} other participants' UTXOs against local Bitcoin node.", roundState));
 
-			var batchRpc = _bitcoinRpcClient.PrepareBatch();
+			var batchRpc = rpcClient.PrepareBatch();
 			var tasks = coins.Select(coin =>
 				(Coin: coin, Task: batchRpc.GetTxOutAsync(coin.Outpoint.Hash, (int)coin.Outpoint.N, includeMempool: true, cancellationToken)))
 				.ToArray();

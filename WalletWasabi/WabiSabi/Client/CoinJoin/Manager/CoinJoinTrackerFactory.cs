@@ -23,7 +23,7 @@ public class CoinJoinTrackerFactory
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
-		_bitcoinRpcClient = bitcoinRpcClient;
+		_rpc = bitcoinRpcClient;
 		_cancellationToken = cancellationToken;
 		_liquidityClueProvider = new LiquidityClueProvider();
 	}
@@ -56,7 +56,7 @@ public class CoinJoinTrackerFactory
 			coinSelector,
 			_coinJoinConfiguration,
 			_liquidityClueProvider,
-			_bitcoinRpcClient,
+			_rpc,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1));
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
