@@ -732,7 +732,10 @@ public class CoinJoinClient
 		}
 
 		// If the user runs a Bitcoin Core node, verify other participants' UTXOs against it.
-		await VerifyUtxosAsync(theirCoins, roundState, cancellationToken).ConfigureAwait(false);
+		if (_bitcoinRpcClient is not null && theirCoins.Any())
+		{
+			await VerifyUtxosAsync(_bitcoinRpcClient, theirCoins, roundState, cancellationToken).ConfigureAwait(false);
+		}
 
 		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
 
