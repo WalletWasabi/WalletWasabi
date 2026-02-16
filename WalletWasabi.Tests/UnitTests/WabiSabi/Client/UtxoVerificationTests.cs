@@ -21,7 +21,7 @@ public class UtxoVerificationTests
 {
 	private static MethodInfo GetVerifyUtxosMethod()
 	{
-		return typeof(CoinJoinClient).GetMethod("VerifyUtxosAsync", BindingFlags.NonPublic | BindingFlags.Instance)
+		return typeof(CoinJoinClient).GetMethod("VerifyUtxosAsync", BindingFlags.NonPublic | BindingFlags.Static)
 			?? throw new InvalidOperationException("VerifyUtxosAsync method not found.");
 	}
 
@@ -29,17 +29,6 @@ public class UtxoVerificationTests
 	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig());
 		return RoundState.FromRound(round);
-	}
-
-	[Fact]
-	public async Task NullRpcClient_SkipsVerification()
-	{
-		var client = CreateCoinJoinClient(bitcoinRpcClient: null);
-		var method = GetVerifyUtxosMethod();
-
-		var coin = CreateCoin(Money.Coins(1m));
-
-		await (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!;
 	}
 
 	[Fact]
@@ -54,10 +43,9 @@ public class UtxoVerificationTests
 				Confirmations = 6
 			};
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
-		await (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!;
+		await (Task)method.Invoke(null, [mockRpc, new[] { coin }, CreateTestRoundState(), CancellationToken.None])!;
 	}
 
 	[Fact]
@@ -67,11 +55,10 @@ public class UtxoVerificationTests
 		var mockRpc = new MockRpcClient();
 		mockRpc.OnGetTxOutAsync = (txId, index, includeMempool) => null;
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
 		var ex = await AssertCoinJoinClientExceptionAsync(
-			() => (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
+			() => (Task)method.Invoke(null, [mockRpc, new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
 
 		Assert.Equal(CoinjoinError.CoordinatorLiedAboutInputs, ex.CoinjoinError);
 		Assert.Contains("does not exist", ex.Message);
@@ -89,11 +76,10 @@ public class UtxoVerificationTests
 				Confirmations = 6
 			};
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
 		var ex = await AssertCoinJoinClientExceptionAsync(
-			() => (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
+			() => (Task)method.Invoke(null, [mockRpc, new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
 
 		Assert.Equal(CoinjoinError.CoordinatorLiedAboutInputs, ex.CoinjoinError);
 		Assert.Contains("amount mismatch", ex.Message);
@@ -112,11 +98,10 @@ public class UtxoVerificationTests
 				Confirmations = 6
 			};
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
 		var ex = await AssertCoinJoinClientExceptionAsync(
-			() => (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
+			() => (Task)method.Invoke(null, [mockRpc, new[] { coin }, CreateTestRoundState(), CancellationToken.None])!);
 
 		Assert.Equal(CoinjoinError.CoordinatorLiedAboutInputs, ex.CoinjoinError);
 		Assert.Contains("scriptPubKey mismatch", ex.Message);
@@ -130,11 +115,10 @@ public class UtxoVerificationTests
 		mockRpc.OnGetTxOutAsync = (txId, index, includeMempool) =>
 			throw new HttpRequestException("Connection refused");
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
 		// RPC failure should be handled gracefully, not thrown.
-		await (Task)method.Invoke(client, [new[] { coin }, CreateTestRoundState(), CancellationToken.None])!;
+		await (Task)method.Invoke(null, [mockRpc, new[] { coin }, CreateTestRoundState(), CancellationToken.None])!;
 	}
 
 	/// <summary>
@@ -169,10 +153,9 @@ public class UtxoVerificationTests
 			return new GetTxOutResponse { TxOut = new TxOut(), Confirmations = 1 };
 		};
 
-		var client = CreateCoinJoinClient(bitcoinRpcClient: mockRpc);
 		var method = GetVerifyUtxosMethod();
 
-		await (Task)method.Invoke(client, [Array.Empty<Coin>(), CreateTestRoundState(), CancellationToken.None])!;
+		await (Task)method.Invoke(null, [mockRpc, Array.Empty<Coin>(), CreateTestRoundState(), CancellationToken.None])!;
 		Assert.Equal(0, callCount);
 	}
 
@@ -185,16 +168,4 @@ public class UtxoVerificationTests
 		return new Coin(outpoint, new TxOut(amount, scriptPubKey));
 	}
 
-	private static CoinJoinClient CreateCoinJoinClient(IRPCClient? bitcoinRpcClient)
-	{
-		return new CoinJoinClient(
-			arenaRequestHandlerFactory: _ => throw new NotImplementedException(),
-			keyChain: null!,
-			outputProvider: null!,
-			roundStatusProvider: null!,
-			coinJoinCoinSelector: null!,
-			coinJoinConfiguration: new WalletWasabi.WabiSabi.Client.CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 350m, 2, false),
-			liquidityClueProvider: new LiquidityClueProvider(),
-			bitcoinRpcClient: bitcoinRpcClient);
-	}
 }
