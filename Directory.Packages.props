@@ -2,7 +2,7 @@
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
     <NetPackagesVersion>10.0.2</NetPackagesVersion>
-    <AvaloniaVersion>11.3.999-cibuild0062283-alpha</AvaloniaVersion>
+    <AvaloniaVersion>11.3.999-cibuild0062303-alpha</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>
     <!-- AspNetCore. -->
