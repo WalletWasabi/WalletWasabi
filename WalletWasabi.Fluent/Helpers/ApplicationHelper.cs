@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class ApplicationHelper
 {
-	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
+	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(11111111);
 
 	public static ApplicationHelper Instance { get; } = new();
 

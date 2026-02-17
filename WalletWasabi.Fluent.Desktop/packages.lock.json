@@ -47,8 +47,8 @@
       },
       "Avalonia.BuildServices": {
         "type": "Transitive",
-        "resolved": "0.0.31",
-        "contentHash": "KmCN6Hc+45q4OnF10ge450yVUvWuxU6bdQiyKqiSvrHKpahNrEdk0kG6Ip6GHk2SKOCttGQuA206JVdkldEENg=="
+        "resolved": "11.3.2",
+        "contentHash": "qHDToxto1e3hci5YqbG9n0Ty8mlp3zBUN5wT66wKqaDVzXyQ0do3EnRILd4Ke9jpvsktaPpgE0YjEk7hornryQ=="
       },
       "Avalonia.Controls.ColorPicker": {
         "type": "Transitive",
@@ -78,8 +78,8 @@
       },
       "Avalonia.Remote.Protocol": {
         "type": "Transitive",
-        "resolved": "12.0.999-cibuild0055906-alpha",
-        "contentHash": "ZXkXQ7wIh3OFL1+zeLHhsTWN3LpUmnC3CpioQuihSP16/4KsmqLO3uNfeidTscp4UxCn46yoWg6NxkFa3uTg5g=="
+        "resolved": "11.3.999-cibuild0062303-alpha",
+        "contentHash": "oz63GkMRG7OyfiUzvj4nBrMoG+L8XyUaO3mNziplo50VX1PzPv4N7s2lIdibl74OjjeXHUr+7VvHa0QUmMMqRg=="
       },
       "Avalonia.Svg": {
         "type": "Transitive",
@@ -597,11 +597,11 @@
       "Avalonia": {
         "type": "CentralTransitive",
         "requested": "[11.3.999-cibuild0062303-alpha, )",
-        "resolved": "12.0.999-cibuild0055906-alpha",
-        "contentHash": "dk/w03VWgC0lXpi3C6xmm1Ov28MjT0CBa0Mel1mWrRQVeY+BbBX6YxmNsuIPD/4LLY519toDqagnng54Y3RnAQ==",
+        "resolved": "11.3.999-cibuild0062303-alpha",
+        "contentHash": "a0BmWsJelQIbBO9M2GCluR9Kx2SkCCDgVuIYjBKd1h9ipYh00/+Ov2BrOF/v91D7c3Fbrn1HYD0+xUYv37Bv6A==",
         "dependencies": {
-          "Avalonia.BuildServices": "0.0.31",
-          "Avalonia.Remote.Protocol": "12.0.999-cibuild0055906-alpha",
+          "Avalonia.BuildServices": "11.3.2",
+          "Avalonia.Remote.Protocol": "11.3.999-cibuild0062303-alpha",
           "MicroCom.Runtime": "0.11.0"
         }
       },
