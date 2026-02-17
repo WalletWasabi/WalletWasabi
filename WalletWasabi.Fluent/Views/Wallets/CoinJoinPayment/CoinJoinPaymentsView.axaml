@@ -19,7 +19,7 @@
       Payments queued here will be sent via coinjoin for enhanced privacy. Maximum 4 payments per round. Scheduled payments are not guaranteed to be fulfilled.
     </ContentArea.Caption>
     <ContentArea.TopContent>
-      <Button Content="Add Payment" Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" />
+      <Button Content="Add Payment" Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" Cursor="Hand"/>
     </ContentArea.TopContent>
 
     <DockPanel>
