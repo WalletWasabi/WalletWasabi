@@ -363,7 +363,7 @@ public class RoundStateUpdaterTests
 		var primary = new[] { roundState };
 		var verification = Array.Empty<RoundState>();
 
-		var ex = Assert.Throws<InvalidOperationException>(() =>
+		var ex = Assert.Throws<InconsistentRoundDataException>(() =>
 			RoundStateUpdater.CheckConsistency(primary, verification));
 		Assert.Contains("inconsistent", ex.Message, StringComparison.OrdinalIgnoreCase);
 	}
