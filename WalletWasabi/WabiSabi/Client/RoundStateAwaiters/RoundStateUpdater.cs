@@ -111,7 +111,8 @@ public static class RoundStateUpdater
 		// Verify consistency of round data across independent Tor circuits.
 		if (verificationHandlers.Count > 0)
 		{
-			await VerifyConsistencyAsync(roundStates, verificationHandlers, cancellationToken).ConfigureAwait(false);
+			var previouslyKnownRoundIds = state.Rounds.Keys.ToHashSet();
+			await VerifyConsistencyAsync(roundStates, verificationHandlers, previouslyKnownRoundIds, cancellationToken).ConfigureAwait(false);
 		}
 
 		var updatedRoundStates = roundStates
@@ -145,6 +146,7 @@ public static class RoundStateUpdater
 	private static async Task VerifyConsistencyAsync(
 		RoundState[] primaryRoundStates,
 		IReadOnlyList<IWabiSabiApiRequestHandler> verificationHandlers,
+		ISet<uint256> previouslyKnownRoundIds,
 		CancellationToken cancellationToken)
 	{
 		// Use an empty request to avoid revealing which rounds this client tracks.
@@ -175,7 +177,7 @@ public static class RoundStateUpdater
 
 		foreach (var verificationRoundStates in successfulResults)
 		{
-			CheckConsistency(primaryRoundStates, verificationRoundStates!);
+			CheckConsistency(primaryRoundStates, verificationRoundStates!, previouslyKnownRoundIds);
 		}
 	}
 
@@ -206,14 +208,24 @@ public static class RoundStateUpdater
 		}
 	}
 
-	internal static void CheckConsistency(RoundState[] primaryStates, RoundState[] verificationStates)
+	internal static void CheckConsistency(RoundState[] primaryStates, RoundState[] verificationStates, ISet<uint256> previouslyKnownRoundIds)
 	{
 		var primaryById = primaryStates.ToDictionary(r => r.Id);
 		var verificationById = verificationStates.ToDictionary(r => r.Id);
 
-		// Rounds shown to our primary circuit but hidden from the verification circuit
-		// are the signature of a partitioning attack.
-		var suspiciouslyMissing = primaryById.Keys.Where(id => !verificationById.ContainsKey(id)).ToList();
+		// Rounds shown to our primary circuit but missing from the verification circuit.
+		// Since verification queries happen *after* the primary query, a missing round
+		// could mean it expired between the two queries (legitimate) or that the
+		// coordinator is showing a fake round only to our circuit (partitioning attack).
+		// Only flag rounds that are brand new (not seen in a previous poll cycle).
+		var missingFromVerification = primaryById.Keys.Where(id => !verificationById.ContainsKey(id)).ToList();
+		var suspiciouslyMissing = missingFromVerification.Where(id => !previouslyKnownRoundIds.Contains(id)).ToList();
+
+		if (missingFromVerification.Count > 0 && suspiciouslyMissing.Count == 0)
+		{
+			Logger.LogDebug($"Rounds [{string.Join(", ", missingFromVerification)}] were in primary but not verification — likely expired between queries.");
+		}
+
 		if (suspiciouslyMissing.Count > 0)
 		{
 			var msg = $"Round ID inconsistency: rounds [{string.Join(", ", suspiciouslyMissing)}] " +
@@ -255,9 +267,11 @@ public static class RoundStateUpdater
 				ThrowInconsistency(roundId, nameof(RoundState.InputRegistrationTimeout), primary.InputRegistrationTimeout, verification.InputRegistrationTimeout);
 			}
 
-			// Allow ±1 phase tolerance for legitimate race conditions between queries.
-			var phaseDiff = Math.Abs((int)primary.Phase - (int)verification.Phase);
-			if (phaseDiff > 1)
+			// Verification queries happen after the primary query, so with an honest
+			// coordinator the verification phase should be >= primary phase (rounds only
+			// advance). Verification being ahead is a normal race condition. Only flag
+			// if verification is behind primary by more than 1 phase.
+			if ((int)primary.Phase > (int)verification.Phase + 1)
 			{
 				ThrowInconsistency(roundId, nameof(RoundState.Phase), primary.Phase, verification.Phase);
 			}

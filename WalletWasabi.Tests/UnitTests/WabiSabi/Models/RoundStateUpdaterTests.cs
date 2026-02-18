@@ -357,15 +357,57 @@ public class RoundStateUpdaterTests
 	}
 
 	[Fact]
-	public void CheckConsistencyDetectsMissingRound()
+	public void CheckConsistencyDetectsNewRoundMissingFromVerification()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState };
+		var verification = Array.Empty<RoundState>();
+		var previouslyKnown = new HashSet<uint256>();
+
+		var ex = Assert.Throws<InconsistentRoundDataException>(() =>
+			RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown));
+		Assert.Contains("inconsistent", ex.Message, StringComparison.OrdinalIgnoreCase);
+	}
+
+	[Fact]
+	public void CheckConsistencyAllowsStaleRoundExpiry()
 	{
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 		var primary = new[] { roundState };
 		var verification = Array.Empty<RoundState>();
 
+		// The round was seen in a previous poll cycle, so it's known.
+		// Missing from verification = it expired between queries.
+		var previouslyKnown = new HashSet<uint256> { roundState.Id };
+
+		// Should not throw.
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
+	}
+
+	[Fact]
+	public void CheckConsistencyAllowsVerificationPhaseAhead()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState with { Phase = Phase.InputRegistration } };
+		var verification = new[] { roundState with { Phase = Phase.Ended } };
+		var previouslyKnown = new HashSet<uint256>();
+
+		// Verification is ahead — round progressed between queries. Should not throw.
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
+	}
+
+	[Fact]
+	public void CheckConsistencyDetectsVerificationBehind()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState with { Phase = Phase.TransactionSigning } };
+		var verification = new[] { roundState with { Phase = Phase.InputRegistration } };
+		var previouslyKnown = new HashSet<uint256>();
+
+		// Verification is behind by 3 phases — suspicious.
 		var ex = Assert.Throws<InconsistentRoundDataException>(() =>
-			RoundStateUpdater.CheckConsistency(primary, verification));
-		Assert.Contains("inconsistent", ex.Message, StringComparison.OrdinalIgnoreCase);
+			RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown));
+		Assert.Contains("Phase", ex.Message);
 	}
 
 	[Fact]
@@ -374,9 +416,10 @@ public class RoundStateUpdaterTests
 		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
 		var primary = new[] { roundState };
 		var verification = new[] { roundState };
+		var previouslyKnown = new HashSet<uint256>();
 
 		// Should not throw.
-		RoundStateUpdater.CheckConsistency(primary, verification);
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
 	}
 
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
