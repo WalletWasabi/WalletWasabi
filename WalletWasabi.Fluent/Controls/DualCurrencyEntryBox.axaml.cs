@@ -86,7 +86,6 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
-	private decimal? _amountBtc;
 	private bool _isTextInputFocused;
 	private bool _isConversationTextFocused;
 	private bool _skipProcessing;
@@ -122,8 +121,8 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public decimal? AmountBtc
 	{
-		get => _amountBtc;
-		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
+		get;
+		set => SetAndRaise(AmountBtcProperty, ref field, value);
 	}
 
 	public string? Text
