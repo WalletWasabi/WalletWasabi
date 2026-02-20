@@ -109,14 +109,14 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public HorizontalAlignment HorizontalContentAlignment
 	{
-		get { return GetValue(HorizontalContentAlignmentProperty); }
-		set { SetValue(HorizontalContentAlignmentProperty, value); }
+		get => GetValue(HorizontalContentAlignmentProperty);
+		set => SetValue(HorizontalContentAlignmentProperty, value);
 	}
 
 	public VerticalAlignment VerticalContentAlignment
 	{
-		get { return GetValue(VerticalContentAlignmentProperty); }
-		set { SetValue(VerticalContentAlignmentProperty, value); }
+		get => GetValue(VerticalContentAlignmentProperty);
+		set => SetValue(VerticalContentAlignmentProperty, value);
 	}
 
 	public decimal? AmountBtc

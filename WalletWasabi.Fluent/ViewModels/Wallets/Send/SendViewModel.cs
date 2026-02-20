@@ -49,7 +49,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly CoinJoinManager? _coinJoinManager;
-	private readonly ClipboardObserver _clipboardObserver;
+	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private bool _parsingTo;
 	private Address _parsedAddress;
@@ -66,6 +66,8 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 	[AutoNotify] private string _defaultLabel;
 	[AutoNotify] private bool _isFixedAddress;
+	[AutoNotify] private string? _usdContent;
+	[AutoNotify] private string? _bitcoinContent;
 
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
@@ -106,6 +108,10 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
+		this.WhenAnyValue(x => x.Balance)
+			.Switch()
+			.ToProperty(this, vm => vm.BalanceLatest, out _balanceLatest);
+
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = parameters.AvailableCoins.TotalAmount().ToDecimal(MoneyUnit.BTC));
@@ -131,15 +137,11 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
-
-		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
 	public IObservable<Amount> Balance { get; }
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
-
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
+	public Amount? BalanceLatest => _balanceLatest.Value;
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
