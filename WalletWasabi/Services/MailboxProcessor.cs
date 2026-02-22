@@ -172,7 +172,9 @@ public static class Workers
 
 	public static (Func<Task>, Func<Task>, Process<Unit>) Continuously(MessageHandler<Unit> handler)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in LoopAsync.
 		var semaphore = new SemaphoreSlim(1, 1);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 		async Task PauseAsync() => await semaphore.WaitAsync().ConfigureAwait(false);
 		Task ResumeAsync() {
@@ -204,6 +206,8 @@ public static class Workers
 					Logger.LogError(e);
 				}
 			}
+
+			semaphore.Dispose();
 		}
 
 		return (PauseAsync, ResumeAsync, LoopAsync);
