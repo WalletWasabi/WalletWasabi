@@ -174,8 +174,8 @@ public static class Workers
 	{
 		var semaphore = new SemaphoreSlim(1, 1);
 
-		async Task Pause() => await semaphore.WaitAsync().ConfigureAwait(false);
-		Task Resume() {
+		async Task PauseAsync() => await semaphore.WaitAsync().ConfigureAwait(false);
+		Task ResumeAsync() {
 			if (semaphore.CurrentCount == 0)
 			{
 				semaphore.Release();
@@ -184,7 +184,7 @@ public static class Workers
 			return Task.CompletedTask;
 		}
 
-		async Task Loop(Mailbox<Unit> mailbox, CancellationToken cancellationToken)
+		async Task LoopAsync(Mailbox<Unit> mailbox, CancellationToken cancellationToken)
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
@@ -206,7 +206,7 @@ public static class Workers
 			}
 		}
 
-		return (Pause, Resume, Loop);
+		return (PauseAsync, ResumeAsync, LoopAsync);
 	}
 
 	public static Process<TMsg> EventDriven<TMsg,TState>(TState state,
