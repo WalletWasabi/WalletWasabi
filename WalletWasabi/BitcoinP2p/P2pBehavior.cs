@@ -1,6 +1,7 @@
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
@@ -16,12 +17,30 @@ public class P2pBehavior : NodeBehavior
 {
 	private const int MaxInvSize = 50000;
 
+	private static readonly ConcurrentDictionary<EndPoint, FeeRate> PeerFeeFilters = new();
+
 	public P2pBehavior(MempoolService mempoolService)
 	{
 		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
 	}
 
 	public MempoolService MempoolService { get; }
+
+	/// <summary>
+	/// Returns the minimum fee filter across all connected peers, or null if no peer has announced a fee filter.
+	/// </summary>
+	public static FeeRate? GetMinPeerFeeFilter()
+	{
+		FeeRate? min = null;
+		foreach (var kvp in PeerFeeFilters)
+		{
+			if (min is null || kvp.Value < min)
+			{
+				min = kvp.Value;
+			}
+		}
+		return min;
+	}
 
 	protected override void AttachCore()
 	{
@@ -31,6 +50,7 @@ public class P2pBehavior : NodeBehavior
 	protected override void DetachCore()
 	{
 		AttachedNode.MessageReceived -= AttachedNode_MessageReceivedAsync;
+		PeerFeeFilters.TryRemove(AttachedNode.RemoteSocketEndpoint, out _);
 	}
 
 	private async void AttachedNode_MessageReceivedAsync(Node node, IncomingMessage message)
@@ -44,6 +64,10 @@ public class P2pBehavior : NodeBehavior
 			else if (message.Message.Payload is TxPayload txPayload)
 			{
 				ProcessTx(txPayload);
+			}
+			else if (message.Message.Payload is FeeFilterPayload feeFilterPayload)
+			{
+				PeerFeeFilters[node.RemoteSocketEndpoint] = feeFilterPayload.FeeRate;
 			}
 			else if (message.Message.Payload is InvPayload invPayload)
 			{

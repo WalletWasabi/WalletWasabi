@@ -18,6 +18,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using System.Collections.Immutable;
 using System.Text;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -42,7 +43,7 @@ public abstract record BroadcastError
 	public record NotEnoughP2pNodes : BroadcastError;
 	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 	public record Timeout(string Message) : BroadcastError;
-
+	public record FeeTooLowForPeers(string Message) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -157,6 +158,29 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
+		if (tx.TryGetFee(out var txFee) && tx.TryGetFeeRate(out var txFeeRate) && txFeeRate < new FeeRate(1m))
+		{
+			var minPeerFee = P2pBehavior.GetMinPeerFeeFilter();
+			if (minPeerFee is not null)
+			{
+				// Compare actual fees rather than fee rates to avoid false negatives
+				// from integer satoshi rounding (e.g. 0.1 sat/vB on a 102 vB tx = 10 sats,
+				// which back-computes to 0.098 sat/vB but is accepted by peers).
+				var vsize = tx.Transaction.GetVirtualSize();
+				var requiredFee = minPeerFee.GetFee(vsize);
+				if (txFee < requiredFee)
+				{
+					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(
+						$"Transaction fee ({txFee.Satoshi} sat) is below the minimum required by any connected peer ({requiredFee.Satoshi} sat for {vsize} vB at {minPeerFee})."));
+				}
+			}
+			else
+			{
+				return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(
+					"None of the connected peers have announced their fee filter. Cannot determine if sub-1 sat/vB transactions will be relayed."));
+			}
+		}
+
 		var connectedNodes = nodes.ConnectedNodes.Where(x => x.IsConnected).ToArray();
 		if (connectedNodes.Length < MinBroadcastNodes)
 		{
@@ -281,6 +305,9 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				break;
 			case BroadcastError.NotEnoughP2pNodes _:
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
+				break;
+			case BroadcastError.FeeTooLowForPeers feeTooLow:
+				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: {feeTooLow.Message}");
 				break;
 			case BroadcastError.Unknown unknown:
 				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");
