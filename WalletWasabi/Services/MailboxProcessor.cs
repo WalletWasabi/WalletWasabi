@@ -174,7 +174,7 @@ public static class Workers
 	{
 		var semaphore = new SemaphoreSlim(1, 1);
 
-		async Task Pause() => await semaphore.WaitAsync();
+		async Task Pause() => await semaphore.WaitAsync().ConfigureAwait(false);
 		Task Resume() {
 			if (semaphore.CurrentCount == 0)
 			{
@@ -190,7 +190,7 @@ public static class Workers
 			{
 				try
 				{
-					await semaphore.WaitAsync(cancellationToken);
+					await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
 					semaphore.Release();
 
 					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
