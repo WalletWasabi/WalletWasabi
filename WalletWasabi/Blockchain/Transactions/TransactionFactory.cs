@@ -154,16 +154,17 @@ public class TransactionFactory
 
 		var psbt = builder.BuildPSBT(false);
 
-		// For sub-1 sat/vB fee rates, integer truncation can drop the effective rate below
-		// the target (e.g. 0.1 sat/vB × 102 vB = 10.2 -> 10 sats -> effective 0.098 sat/vB).
-		// Rebuild with a ceiling-adjusted fee rate to guarantee the effective rate meets the target.
+		// For sub-1 sat/vB fee rates, NBitcoin's FeeRate truncates because _FeePerK is a long
+		// (e.g. 0.1 sat/vB × 141 vB = 14.1 -> 14 sats -> effective 0.099 sat/vB).
+		// Rebuild with a FeeRate whose _FeePerK is ceiled to guarantee the fee covers the target.
 		if (parameters.FeeRate.SatoshiPerByte < 1m && psbt.TryGetVirtualSize(out var estimatedVSize))
 		{
 			var adjustedFee = parameters.FeeRate.GetAdjustedFee(estimatedVSize);
 			var truncatedFee = parameters.FeeRate.GetFee(estimatedVSize);
 			if (truncatedFee < adjustedFee)
 			{
-				builder.SendEstimatedFees(new FeeRate(adjustedFee, estimatedVSize));
+				var ceilFeePerK = (long)Math.Ceiling(adjustedFee.Satoshi * 1000m / estimatedVSize);
+				builder.SendEstimatedFees(new FeeRate(Money.Satoshis(ceilFeePerK)));
 				psbt = builder.BuildPSBT(false);
 			}
 		}
