@@ -84,6 +84,9 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
+	public static readonly StyledProperty<bool> IsFiatProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsFiat));
+
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
 	private bool _isTextInputFocused;
@@ -225,6 +228,12 @@ public class DualCurrencyEntryBox : TemplatedControl
 	{
 		get => GetValue(ValidatePasteBalanceProperty);
 		set => SetValue(ValidatePasteBalanceProperty, value);
+	}
+
+	public bool IsFiat
+	{
+		get => GetValue(IsFiatProperty);
+		set => SetValue(IsFiatProperty, value);
 	}
 
 	public ICommand FocusCommand { get; }
@@ -381,6 +390,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 					return;
 				}
 
+				IsFiat = false;
 				_isTextInputFocused = x;
 				UpdateDisplay();
 			})
@@ -395,6 +405,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 					return;
 				}
 
+				IsFiat = true;
 				_isConversationTextFocused = x;
 				UpdateDisplay();
 			})
