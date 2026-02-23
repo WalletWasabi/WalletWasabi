@@ -147,7 +147,7 @@ public class WasabiApplication
 		{
 			if (!File.Exists(filePath))
 			{
-				PersistentConfigManager.ToFile(filePath, config);
+				PersistentConfigManager.ToFile(filePath, config, setNetwork: false);
 			}
 		}
 	}
@@ -209,13 +209,13 @@ public class WasabiApplication
 			};
 
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
-			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);
+			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig, setNetwork: false);
 
 			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
-			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
+			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig, setNetwork: false);
 
 			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
-			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
+			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig, setNetwork: false);
 		}
 	}
 

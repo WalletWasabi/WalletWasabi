@@ -24,7 +24,7 @@ public class PersistentConfigManagerTests
 		// Create config and store it.
 		PersistentConfig actualConfig = PersistentConfigManager.DefaultMainNetConfig;
 
-		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig);
+		string storedJson = PersistentConfigManager.ToFile(configPath, actualConfig, setNetwork: true);
 		var readConfig = PersistentConfigManager.LoadFile(configPath) as PersistentConfig;
 		Assert.NotNull(readConfig);
 
