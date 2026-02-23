@@ -80,8 +80,7 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		BitcoinP2pNetworkDirectory = Path.Combine(DataDir, "BitcoinP2pNetwork");
-		NodesGroup = ConfigureNodesGroup(BitcoinP2pNetworkDirectory, mempoolService);
+		NodesGroup = ConfigureNodesGroup(mempoolService);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(NodesGroup, BitcoinStore.BlockRepository);
@@ -120,7 +119,6 @@ public class Global
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
-	public string BitcoinP2pNetworkDirectory { get; }
 	public NodesGroup NodesGroup { get; }
 	public TransactionBroadcaster TransactionBroadcaster { get; set; }
 	public HostedServices HostedServices { get; }
@@ -129,6 +127,8 @@ public class Global
 	public Uri? OnionServiceUri { get; private set; }
 	public EventBus EventBus { get; }
 	public Scheme Scheme { get; }
+
+	private string GetBitcoinP2pNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
 	private BlockProvider ConfigureBlockProvider(NodesGroup nodesGroup, FileSystemBlockRepository fileSystemBlockRepository)
 	{
@@ -144,7 +144,7 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private NodesGroup ConfigureNodesGroup(string directory, MempoolService mempoolService)
+	private NodesGroup ConfigureNodesGroup(MempoolService mempoolService)
 	{
 		var behavior = new P2pBehavior(mempoolService);
 
@@ -163,7 +163,7 @@ public class Global
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-				directory,
+				GetBitcoinP2pNetworkDirectory(),
 				Config.BlockOnlyMode ? null : behavior);
 
 		return nodesGroup;
@@ -183,7 +183,7 @@ public class Global
 					if (addressManagerBehavior is not null)
 					{
 						var addressManager = addressManagerBehavior.AddressManager;
-						var addressManagerFilePath = Path.Combine(BitcoinP2pNetworkDirectory, $"AddressManager{Network}.dat");
+						var addressManagerFilePath = Path.Combine(GetBitcoinP2pNetworkDirectory(), $"AddressManager{Network}.dat");
 						IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 						addressManager.SavePeerFile(addressManagerFilePath, Network);
 						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
