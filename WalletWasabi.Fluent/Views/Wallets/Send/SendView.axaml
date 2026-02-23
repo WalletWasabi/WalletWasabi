@@ -167,11 +167,11 @@
             </DualCurrencyEntryBox.Resources>
             <Interaction.Behaviors>
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                        PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                        PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
                 <FocusControlActionCustom TargetControl="LabelTagBox"/>
               </KeyDownTrigger>
