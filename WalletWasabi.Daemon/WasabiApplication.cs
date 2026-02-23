@@ -1,8 +1,8 @@
+using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -112,9 +112,9 @@ public class WasabiApplication
 		var configFileName = networkName switch
 		{
 			_ when network == Network.Main => "Config.json",
-			_ when network == Network.TestNet =>  "Config.TestNet.json",
-			_ when network == Network.RegTest =>  "Config.RegTest.json",
-			_ when network == Bitcoin.Instance.Signet =>  "Config.Signet.json",
+			_ when network == Network.TestNet => "Config.TestNet.json",
+			_ when network == Network.RegTest => "Config.RegTest.json",
+			_ when network == Bitcoin.Instance.Signet => "Config.Signet.json",
 			_ => throw new NotSupportedException($"Network '{networkName}' is not supported."),
 		};
 		var configFilePath = Path.Combine(Config.DataDir, configFileName);
@@ -190,7 +190,7 @@ public class WasabiApplication
 
 			var testConfig = mainConfig with
 			{
-				Network	= Network.TestNet,
+				Network = Network.TestNet,
 				IndexerUri = oldConfig.TestNetIndexerUri,
 				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
 				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
