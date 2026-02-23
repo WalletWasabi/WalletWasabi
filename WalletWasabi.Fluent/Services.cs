@@ -41,11 +41,11 @@ public static class Services
 	public static TerminateService TerminateService { get; private set; } = null!;
 
 	public static Config Config { get; set; } = null!;
-	public static StatusContainer Status { get; set; }
+	public static StatusContainer Status { get; set; } = null!;
 
-	public static EventBus EventBus { get;  set; } = null;
+	public static EventBus EventBus { get;  set; } = null!;
 
-	public static Daemon.Scheme Scheme { get; set; }
+	public static Daemon.Scheme Scheme { get; set; } = null!;
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>
