@@ -91,9 +91,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			return;
 		}
 
-		if (maxCoinJoinMiningFeeRateDecimal < 0.1m)
+		if (maxCoinJoinMiningFeeRateDecimal < 1)
 		{
-			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 0.1 sat/vb");
+			errors.Add(ErrorSeverity.Error, "Mining fee rate must be at least 1 sat/vb");
 			return;
 		}
 

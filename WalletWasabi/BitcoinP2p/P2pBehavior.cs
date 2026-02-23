@@ -17,7 +17,7 @@ public class P2pBehavior : NodeBehavior
 {
 	private const int MaxInvSize = 50000;
 
-	private static readonly ConcurrentDictionary<EndPoint, FeeRate> PeerFeeFilters = new();
+	private static readonly ConcurrentDictionary<Node, FeeRate> PeerFeeFilters = new();
 
 	public P2pBehavior(MempoolService mempoolService)
 	{
@@ -29,18 +29,8 @@ public class P2pBehavior : NodeBehavior
 	/// <summary>
 	/// Returns the minimum fee filter across all connected peers, or null if no peer has announced a fee filter.
 	/// </summary>
-	public static FeeRate? GetMinPeerFeeFilter()
-	{
-		FeeRate? min = null;
-		foreach (var kvp in PeerFeeFilters)
-		{
-			if (min is null || kvp.Value < min)
-			{
-				min = kvp.Value;
-			}
-		}
-		return min;
-	}
+	public static FeeRate? GetMinPeerFeeFilter() =>
+		PeerFeeFilters.Select(x => x.Value).MinOrDefault();
 
 	protected override void AttachCore()
 	{
@@ -50,7 +40,7 @@ public class P2pBehavior : NodeBehavior
 	protected override void DetachCore()
 	{
 		AttachedNode.MessageReceived -= AttachedNode_MessageReceivedAsync;
-		PeerFeeFilters.TryRemove(AttachedNode.RemoteSocketEndpoint, out _);
+		PeerFeeFilters.TryRemove(AttachedNode, out _);
 	}
 
 	private async void AttachedNode_MessageReceivedAsync(Node node, IncomingMessage message)
@@ -67,7 +57,7 @@ public class P2pBehavior : NodeBehavior
 			}
 			else if (message.Message.Payload is FeeFilterPayload feeFilterPayload)
 			{
-				PeerFeeFilters[node.RemoteSocketEndpoint] = feeFilterPayload.FeeRate;
+				PeerFeeFilters[node] = feeFilterPayload.FeeRate;
 			}
 			else if (message.Message.Payload is InvPayload invPayload)
 			{

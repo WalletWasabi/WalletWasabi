@@ -43,7 +43,7 @@ public abstract record BroadcastError
 	public record NotEnoughP2pNodes : BroadcastError;
 	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 	public record Timeout(string Message) : BroadcastError;
-	public record FeeTooLowForPeers(string Message) : BroadcastError;
+	public record FeeTooLowForPeers(Money TxFee, Money MinRequiredFee, FeeRate MinPeerFeeRate, SmartTransaction Transaction) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -163,21 +163,12 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 			var minPeerFee = P2pBehavior.GetMinPeerFeeFilter();
 			if (minPeerFee is not null)
 			{
-				// Compare actual fees rather than fee rates to avoid false negatives
-				// from integer satoshi rounding (e.g. 0.1 sat/vB on a 102 vB tx = 10 sats,
-				// which back-computes to 0.098 sat/vB but is accepted by peers).
 				var vsize = tx.Transaction.GetVirtualSize();
 				var requiredFee = minPeerFee.GetFee(vsize);
 				if (txFee < requiredFee)
 				{
-					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(
-						$"Transaction fee ({txFee.Satoshi} sat) is below the minimum required by any connected peer ({requiredFee.Satoshi} sat for {vsize} vB at {minPeerFee})."));
+					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(txFee, requiredFee, minPeerFee, tx));
 				}
-			}
-			else
-			{
-				return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(
-					"None of the connected peers have announced their fee filter. Cannot determine if sub-1 sat/vB transactions will be relayed."));
 			}
 		}
 
@@ -307,7 +298,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
 				break;
 			case BroadcastError.FeeTooLowForPeers feeTooLow:
-				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: {feeTooLow.Message}");
+				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: tx fee {feeTooLow.TxFee.Satoshi} sat is below the minimum required {feeTooLow.MinRequiredFee.Satoshi} sat (min peer fee rate: {feeTooLow.MinPeerFeeRate}).");
 				break;
 			case BroadcastError.Unknown unknown:
 				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");

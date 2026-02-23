@@ -159,11 +159,11 @@ public class TransactionFactory
 		// Rebuild with a ceiling-adjusted fee rate to guarantee the effective rate meets the target.
 		if (parameters.FeeRate.SatoshiPerByte < 1m && psbt.TryGetVirtualSize(out var estimatedVSize))
 		{
-			var ceilFee = (long)Math.Ceiling(parameters.FeeRate.SatoshiPerByte * estimatedVSize);
+			var adjustedFee = parameters.FeeRate.GetAdjustedFee(estimatedVSize);
 			var truncatedFee = parameters.FeeRate.GetFee(estimatedVSize);
-			if (truncatedFee.Satoshi < ceilFee)
+			if (truncatedFee < adjustedFee)
 			{
-				builder.SendEstimatedFees(new FeeRate(Money.Satoshis(ceilFee), estimatedVSize));
+				builder.SendEstimatedFees(new FeeRate(adjustedFee, estimatedVSize));
 				psbt = builder.BuildPSBT(false);
 			}
 		}
