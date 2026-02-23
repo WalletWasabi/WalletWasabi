@@ -1,34 +1,34 @@
+using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Threading;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Services;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
-using System.Threading;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -52,7 +52,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private bool _parsingTo;
-	private Address _parsedAddress;
+	private Address? _parsedAddress;
 
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
@@ -133,6 +133,7 @@ public partial class SendViewModel : RoutableViewModel
 				});
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+		PasteFromClipboardCommand = ReactiveCommand.CreateFromTask<object>(PasteFromClipboardAsync);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
@@ -154,6 +155,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
+
+	public ICommand? PasteFromClipboardCommand { get; }
 
 	private async Task OnNextAsync()
 	{
@@ -196,6 +199,37 @@ public partial class SendViewModel : RoutableViewModel
 		var sendParameters = _parameters with { TransactionInfo = transactionInfo };
 
 		Navigate().To().TransactionPreview(_walletModel, sendParameters);
+	}
+
+	private async Task PasteFromClipboardAsync(object? parameter)
+	{
+		if (parameter is not DualCurrencyEntryBox box)
+		{
+			return;
+		}
+
+		string content = await ApplicationHelper.GetTextAsync();
+
+		if (box.IsFiat)
+		{
+			var usd = ClipboardObserver.ParseToUsd(content);
+			if (usd is not null)
+			{
+				UsdContent = usd.Value.ToString("0.00");
+			}
+		}
+		else
+		{
+			var latestBalance = BalanceLatest;
+			if (latestBalance is not null)
+			{
+				var btc = ClipboardObserver.ParseToMoney(content, latestBalance.Btc);
+				if (btc is not null)
+				{
+					BitcoinContent = btc;
+				}
+			}
+		}
 	}
 
 	private async Task OnAutoPasteAsync()
