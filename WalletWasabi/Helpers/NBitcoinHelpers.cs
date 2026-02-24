@@ -1,44 +1,28 @@
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.Protocol;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Reflection;
-using System.Runtime.CompilerServices;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Helpers;
 
 public static class NBitcoinHelpers
 {
-	public static void PatchTestNet()
+	/// <exception cref="InvalidOperationException">If valid output value cannot be created with the given parameters.</exception>
+	/// <returns>Sum of outputs' values. Sum of inputs' values - the calculated fee.</returns>
+	public static Money TakeFee(IEnumerable<Coin> inputs, int outputCount, Money feePerInputs, Money feePerOutputs)
 	{
-		// This is necessary to force the static members to be initialized
-		RuntimeHelpers.RunClassConstructor(typeof(Network).TypeHandle);
-
-		// Access the Bitcoin.Instance
-		var bitcoinInstance = Bitcoin.Instance;
-
-		// Get the private field `_Networks` using reflection
-		var networksField = bitcoinInstance
-			.GetType()
-			.GetField("_Networks", BindingFlags.NonPublic | BindingFlags.Instance);
-
-		// Get the internal dictionary
-		var networks = networksField!.GetValue(bitcoinInstance) as ConcurrentDictionary<ChainName, Network>;
-
-		var testnet4 = networks![new ChainName("testnet4")];
-
-		// Replaces testnet by testnet4 network
-		networks[new ChainName("testnet")] = testnet4;
-
-		var otherAliasesField = typeof(Network)
-			.GetField("_OtherAliases", BindingFlags.NonPublic | BindingFlags.Static);
-
-		var otherAliases = otherAliasesField!.GetValue(null) as ConcurrentDictionary<string, Network>;
-		otherAliases!["test"] = testnet4;
-		otherAliases["testnet"] = testnet4;
+		var inputValue = inputs.Sum(coin => coin.TxOut.Value);
+		var fee = (inputs.Count() * feePerInputs) + (outputCount * feePerOutputs);
+		Money outputSum = inputValue - fee;
+		if (outputSum < Money.Zero)
+		{
+			throw new InvalidOperationException($"{nameof(outputSum)} cannot be negative.");
+		}
+		return outputSum;
 	}
 
 	public static ExtPubKey BetterParseExtPubKey(string extPubKeyString)
