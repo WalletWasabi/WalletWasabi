@@ -162,7 +162,6 @@ public class TorSettings
 			$"--TruncateLogFile 1",
 			$"--UseBridges {(useBridges ? "1" : "0")}",
 			$"--SOCKSPort \"{SocksEndpoint} ExtendedErrors KeepAliveIsolateSOCKSAuth\"",
-			$"--MaxCircuitDirtiness 1800", // 30 minutes. Default is 10 minutes.
 			$"--SocksTimeout 30", // Default is 2 minutes.
 			$"--CookieAuthentication 1",
 			$"--ControlPort {port}",
