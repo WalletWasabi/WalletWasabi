@@ -80,7 +80,7 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
-		NodesGroup = ConfigureBitcoinNetwork(mempoolService);
+		NodesGroup = ConfigureNodesGroup(mempoolService);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(NodesGroup, BitcoinStore.BlockRepository);
@@ -128,6 +128,8 @@ public class Global
 	public EventBus EventBus { get; }
 	public Scheme Scheme { get; }
 
+	private string GetBitcoinP2pNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
+
 	private BlockProvider ConfigureBlockProvider(NodesGroup nodesGroup, FileSystemBlockRepository fileSystemBlockRepository)
 	{
 		var p2PNodesManager = new P2PNodesManager(Network, nodesGroup);
@@ -142,9 +144,8 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private NodesGroup ConfigureBitcoinNetwork(MempoolService mempoolService)
+	private NodesGroup ConfigureNodesGroup(MempoolService mempoolService)
 	{
-		var directory = Path.Combine(DataDir, "BitcoinP2pNetwork");
 		var behavior = new P2pBehavior(mempoolService);
 
 		// NBitcoin doesn't have these dnsSeeds for signet
@@ -162,22 +163,27 @@ public class Global
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-				directory,
+				GetBitcoinP2pNetworkDirectory(),
 				Config.BlockOnlyMode ? null : behavior);
 
+		return nodesGroup;
+	}
+
+	private void ConfigureBitcoinNetwork()
+	{
 		var serviceName = "Bitcoin Network Connectivity";
 		var p2pNetwork = Spawn("BitcoinNetwork",
 			Service(
 				before: () => Logger.LogInfo($"Starting {serviceName}."),
-				P2pNetwork.Create(nodesGroup, EventBus),
+				handler: P2pNetwork.Create(NodesGroup, EventBus),
 				after: () =>
 				{
 					Logger.LogInfo($"Stopped {serviceName}.");
-					var addressManagerBehavior = nodesGroup.NodeConnectionParameters.TemplateBehaviors.Find<AddressManagerBehavior>();
+					var addressManagerBehavior = NodesGroup.NodeConnectionParameters.TemplateBehaviors.Find<AddressManagerBehavior>();
 					if (addressManagerBehavior is not null)
 					{
 						var addressManager = addressManagerBehavior.AddressManager;
-						var addressManagerFilePath = Path.Combine(directory, $"AddressManager{Network}.dat");
+						var addressManagerFilePath = Path.Combine(GetBitcoinP2pNetworkDirectory(), $"AddressManager{Network}.dat");
 						IoHelpers.EnsureContainingDirectoryExists(addressManagerFilePath);
 						addressManager.SavePeerFile(addressManagerFilePath, Network);
 						Logger.LogInfo($"{nameof(AddressManager)} is saved to `{addressManagerFilePath}`.");
@@ -185,8 +191,6 @@ public class Global
 				}));
 		p2pNetwork.DisposeUsing(_disposables);
 		p2pNetwork.Post(Unit.Instance);
-
-		return nodesGroup;
 	}
 
 	private RpcClientBase? ConfigureBitcoinRpcClient()
@@ -403,6 +407,7 @@ public class Global
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken linkedCtsToken = linkedCts.Token;
 
+		ConfigureBitcoinNetwork();
 		ConfigureWasabiUpdater(linkedCtsToken);
 		ConfigureExchangeRateUpdater(linkedCtsToken);
 		ConfigureRpcMonitor(linkedCtsToken);
