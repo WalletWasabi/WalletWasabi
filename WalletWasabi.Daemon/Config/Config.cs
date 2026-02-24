@@ -32,99 +32,37 @@ public class Config
 
 		Data = new()
 		{
-			[ nameof(Network)] = (
-				"The Bitcoin network to use: main, testnet, signet, or regtest",
-				GetNetworkValue("Network", PersistentConfig.Network.ToString(), [])),
-			[ nameof(BackendUri)] = (
-				"The indexer server's URL to connect to",
-				GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs)),
-			[ nameof(CoordinatorUri)] = (
-				"The coordinator server's URL to connect to",
-				GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs)),
-			[ nameof(UseTor)] = (
-				"All the communications go through the Tor network",
-				GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs)),
-			[ nameof(TorFolder)] = (
-				"Folder where Tor binary is located",
-				GetNullableStringValue("TorFolder", null, cliArgs)),
-			[ nameof(TorSocksPort)] = (
-				"Tor is started to listen with the specified SOCKS5 port",
-				GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs)),
-			[ nameof(TorControlPort)] = (
-				"Tor is started to listen with the specified control port",
-				GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs)),
-			[nameof(TorBridges)] = (
-				"Tor is started with the set of specified bridges",
-				GetStringArrayValue("TorBridges", PersistentConfig.TorBridges.ToArray(), cliArgs)),
-			[nameof(TerminateTorOnExit)] = (
-				"Stop the Tor process when Wasabi is closed",
-				GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs)),
-			[ nameof(DownloadNewVersion)] = (
-				"Automatically download any new released version of Wasabi",
-				GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs)),
-			[ nameof(UseBitcoinRpc)] = (
-				"Connect to bitcoin node rpc server",
-				GetBoolValue("UseBitcoinRpc", PersistentConfig.UseBitcoinRpc, cliArgs)),
-			[ nameof(BitcoinRpcCredentialString)] = (
-				"Credentials for authenticating against the bitcoin node rpc server",
-				GetStringValue("BitcoinRpcCredentialString", PersistentConfig.BitcoinRpcCredentialString, cliArgs)),
-			[ nameof(BitcoinRpcUri)] = (
-				"-",
-				GetUriStringValue("BitcoinRpcEndPoint", PersistentConfig.BitcoinRpcUri, cliArgs)),
-			[ nameof(JsonRpcServerEnabled)] = (
-				"Start the Json RPC Server and accept requests",
-				GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs)),
-			[ nameof(JsonRpcUser)] = (
-				"The user name that is authorized to make requests to the Json RPC server",
-				GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs)),
-			[ nameof(JsonRpcPassword)] = (
-				"The user password that is authorized to make requests to the Json RPC server",
-				GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs)),
-			[ nameof(JsonRpcServerPrefixes)] = (
-				"The Json RPC server prefixes",
-				GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes.ToArray(), cliArgs)),
-			[ nameof(RpcOnionEnabled)] = (
-				"Publish the Json RPC Server as a Tor Onion service",
-				GetBoolValue("RpcOnionEnabled", value: false, cliArgs)),
-			[ nameof(DustThreshold)] = (
-				"The amount threshold under which coins received from others to already used addresses are considered a dust attack",
-				GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs)),
-			[ nameof(BlockOnlyMode)] = (
-				"Wasabi listens only for blocks and not for transactions",
-				GetBoolValue("BlockOnly", value: false, cliArgs)),
-			[ nameof(LogLevel)] = (
-				"The level of detail in the logs: trace, debug, info, warning, error, or critical",
-				GetStringValue("LogLevel", value: "", cliArgs)),
-			[ nameof(LogModes)] = (
-				"The logging modes: console, and file (for multiple values use comma as a separator)",
-				GetLogModeArrayValue("LogModes", arrayValues: defaultLogModes, cliArgs)),
-			[ nameof(EnableGpu)] = (
-				"Use a GPU to render the user interface",
-				GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs)),
-			[ nameof(CoordinatorIdentifier)] = (
-				"-",
-				GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs)),
-			[ nameof(MaxCoinjoinMiningFeeRate)] = (
-				"Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
-				GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs)),
-			[ nameof(AbsoluteMinInputCount)] = (
-				"Minimum number of inputs the client is willing to accept to participate into a round",
-				GetLongValue("AbsoluteMinInputCount", PersistentConfig.AbsoluteMinInputCount, cliArgs)),
-			[ nameof(ExchangeRateProvider)] = (
-				"The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockstreamInfo, CoinGecko or None",
-				GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs)),
-			[ nameof(FeeRateEstimationProvider) ] = (
-				"The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo, BlockXyz or None",
-				GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs)),
-			[ nameof(ExternalTransactionBroadcaster) ] = (
-				"Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
-				GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs)),
-			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = (
-				"The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
-				GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs)),
-			[ nameof(ExperimentalFeatures) ] = (
-				"Colon-separated list of experimental features to enable. (features available: scripting)",
-				GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs))
+			[ nameof(Network)] = GetNetworkValue("Network", PersistentConfig.Network.ToString(), []),
+			[ nameof(BackendUri)] = GetStringValue("BackendUri", PersistentConfig.IndexerUri, cliArgs),
+			[ nameof(CoordinatorUri)] = GetStringValue("CoordinatorUri", PersistentConfig.CoordinatorUri, cliArgs),
+			[ nameof(UseTor)] = GetTorModeValue("UseTor", PersistentConfig.UseTor, cliArgs),
+			[ nameof(TorFolder)] = GetNullableStringValue("TorFolder", null, cliArgs),
+			[ nameof(TorSocksPort)] = GetLongValue("TorSocksPort", TorSettings.DefaultSocksPort, cliArgs),
+			[ nameof(TorControlPort)] = GetLongValue("TorControlPort", TorSettings.DefaultControlPort, cliArgs),
+			[ nameof(TorBridges)] = GetStringArrayValue("TorBridges", PersistentConfig.TorBridges.ToArray(), cliArgs),
+			[ nameof(TerminateTorOnExit)] = GetBoolValue("TerminateTorOnExit", PersistentConfig.TerminateTorOnExit, cliArgs),
+			[ nameof(DownloadNewVersion)] = GetBoolValue("DownloadNewVersion", PersistentConfig.DownloadNewVersion, cliArgs),
+			[ nameof(UseBitcoinRpc)] = GetBoolValue("UseBitcoinRpc", PersistentConfig.UseBitcoinRpc, cliArgs),
+			[ nameof(BitcoinRpcCredentialString)] = GetStringValue("BitcoinRpcCredentialString", PersistentConfig.BitcoinRpcCredentialString, cliArgs),
+			[ nameof(BitcoinRpcUri)] = GetUriStringValue("BitcoinRpcEndPoint", PersistentConfig.BitcoinRpcUri, cliArgs),
+			[ nameof(JsonRpcServerEnabled)] = GetBoolValue("JsonRpcServerEnabled", PersistentConfig.JsonRpcServerEnabled, cliArgs),
+			[ nameof(JsonRpcUser)] = GetStringValue("JsonRpcUser", PersistentConfig.JsonRpcUser, cliArgs),
+			[ nameof(JsonRpcPassword)] = GetStringValue("JsonRpcPassword", PersistentConfig.JsonRpcPassword, cliArgs),
+			[ nameof(JsonRpcServerPrefixes)] = GetStringArrayValue("JsonRpcServerPrefixes", PersistentConfig.JsonRpcServerPrefixes.ToArray(), cliArgs),
+			[ nameof(RpcOnionEnabled)] = GetBoolValue("RpcOnionEnabled", value: false, cliArgs),
+			[ nameof(DustThreshold)] = GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs),
+			[ nameof(BlockOnlyMode)] = GetBoolValue("BlockOnly", value: false, cliArgs),
+			[ nameof(LogLevel)] = GetStringValue("LogLevel", value: "", cliArgs),
+			[ nameof(LogModes)] = GetLogModeArrayValue("LogModes", arrayValues: defaultLogModes, cliArgs),
+			[ nameof(EnableGpu)] = GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs),
+			[ nameof(CoordinatorIdentifier)] = GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs),
+			[ nameof(MaxCoinjoinMiningFeeRate)] = GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs),
+			[ nameof(AbsoluteMinInputCount)] = GetLongValue("AbsoluteMinInputCount", PersistentConfig.AbsoluteMinInputCount, cliArgs),
+			[ nameof(ExchangeRateProvider)] = GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs),
+			[ nameof(FeeRateEstimationProvider) ] = GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs),
+			[ nameof(ExternalTransactionBroadcaster) ] = GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs),
+			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs),
+			[ nameof(ExperimentalFeatures) ] = GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs)
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -133,7 +71,7 @@ public class Config
 			// It is allowed to override the log level.
 			if (!string.Equals(optionName, nameof(LogLevel)) && !string.Equals(optionName, nameof(Network)) )
 			{
-				(_, IValue optionValue) = Data[optionName];
+				IValue optionValue = Data[optionName];
 
 				if (optionValue.Overridden)
 				{
@@ -146,7 +84,42 @@ public class Config
 		ServiceConfiguration = new ServiceConfiguration(BitcoinRpcUri, DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
-	private Dictionary<string, (string Hint, IValue Value)> Data { get; }
+	private static readonly Dictionary<string, string> Help =
+		new()
+		{
+			[ nameof(Network)] = "The Bitcoin network to use: main, testnet, signet, or regtest",
+			[ nameof(BackendUri)] = "The indexer server's URL to connect to",
+			[ nameof(CoordinatorUri)] = "The coordinator server's URL to connect to",
+			[ nameof(UseTor)] = "All the communications go through the Tor network",
+			[ nameof(TorFolder)] = "Folder where Tor binary is located",
+			[ nameof(TorSocksPort)] = "Tor is started to listen with the specified SOCKS5 port",
+			[ nameof(TorControlPort)] = "Tor is started to listen with the specified control port",
+			[ nameof(TorBridges)] = "Tor is started with the set of specified bridges",
+			[ nameof(TerminateTorOnExit)] = "Stop the Tor process when Wasabi is closed",
+			[ nameof(DownloadNewVersion)] = "Automatically download any new released version of Wasabi",
+			[ nameof(UseBitcoinRpc)] = "Connect to bitcoin node rpc server",
+			[ nameof(BitcoinRpcCredentialString)] = "Credentials for authenticating against the bitcoin node rpc server",
+			[ nameof(BitcoinRpcUri)] = "-",
+			[ nameof(JsonRpcServerEnabled)] = "Start the Json RPC Server and accept requests",
+			[ nameof(JsonRpcUser)] = "The user name that is authorized to make requests to the Json RPC server",
+			[ nameof(JsonRpcPassword)] = "The user password that is authorized to make requests to the Json RPC server",
+			[ nameof(JsonRpcServerPrefixes)] = "The Json RPC server prefixes",
+			[ nameof(RpcOnionEnabled)] = "Publish the Json RPC Server as a Tor Onion service",
+			[ nameof(DustThreshold)] = "The amount threshold under which coins received from others to already used addresses are considered a dust attack",
+			[ nameof(BlockOnlyMode)] = "Wasabi listens only for blocks and not for transactions",
+			[ nameof(LogLevel)] = "The level of detail in the logs: trace, debug, info, warning, error, or critical",
+			[ nameof(LogModes)] = "The logging modes: console, and file (for multiple values use comma as a separator)",
+			[ nameof(EnableGpu)] = "Use a GPU to render the user interface",
+			[ nameof(CoordinatorIdentifier)] = "-",
+			[ nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
+			[ nameof(AbsoluteMinInputCount)] = "Minimum number of inputs the client is willing to accept to participate into a round",
+			[ nameof(ExchangeRateProvider)] = "The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockstreamInfo, CoinGecko or None",
+			[ nameof(FeeRateEstimationProvider) ] = "The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo, BlockXyz or None",
+			[ nameof(ExternalTransactionBroadcaster) ] = "Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
+			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = "The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
+			[ nameof(ExperimentalFeatures) ] = "Colon-separated list of experimental features to enable. (features available: scripting)",
+		};
+	private Dictionary<string, IValue> Data { get; }
 	public PersistentConfig PersistentConfig { get; }
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
@@ -215,8 +188,8 @@ public class Config
 		}
 	}
 
-	public IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
-		Data.Select(x => (x.Key, x.Value.Hint));
+	public static IEnumerable<(string ParameterName, string Hint)> GetConfigOptionsMetadata() =>
+		Help.Select(x => (x.Key, x.Value));
 
 	private MoneyValue GetMoneyValue(string key, Money value, string[] cliArgs)
 	{
@@ -450,7 +423,7 @@ public class Config
 
 	private TValue GetEffectiveValue<TStorage, TValue>(string key) where TStorage : ITypedValue<TValue>
 	{
-		if (Data.TryGetValue(key, out (string, IValue value) valueObject) && valueObject.value is ITypedValue<TValue> typedValue)
+		if (Data.TryGetValue(key, out IValue? value) && value is ITypedValue<TValue> typedValue)
 		{
 			return typedValue.EffectiveValue;
 		}
