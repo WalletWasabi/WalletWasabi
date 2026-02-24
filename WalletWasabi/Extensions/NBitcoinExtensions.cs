@@ -448,4 +448,10 @@ public static class NBitcoinExtensions
 			return false;
 		}
 	}
+
+	public static Money GetAdjustedFee(this FeeRate feeRate, int virtualSize)
+	{
+		var ceilFee = (long)Math.Ceiling(feeRate.SatoshiPerByte * virtualSize);
+		return Money.Satoshis(ceilFee);
+	}
 }

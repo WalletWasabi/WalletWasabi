@@ -198,6 +198,9 @@ public static class LinqExtensions
 	public static T MinOrDefault<T>(this IEnumerable<T> me) where T: struct =>
 		me.DefaultIfEmpty(default).Min();
 
+	public static T? MinOrDefault<T>(this IEnumerable<T> me, T? defaultValue = default) where T: class, IComparable<T> =>
+		me.DefaultIfEmpty(defaultValue).Min();
+
 	public static double Median(this IEnumerable<double> me)
 	{
 		if (!me.Any())

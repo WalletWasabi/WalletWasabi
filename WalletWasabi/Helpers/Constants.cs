@@ -104,7 +104,7 @@ public static class Constants
 
 	public static readonly Version HwiVersion = new("3.1.0");
 
-	public static readonly FeeRate MinRelayFeeRate = new(1m);
+	public static readonly FeeRate MinRelayFeeRate = new(0.1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
 
 	public const decimal BnBMaximumDifferenceTolerance = 0.15m;

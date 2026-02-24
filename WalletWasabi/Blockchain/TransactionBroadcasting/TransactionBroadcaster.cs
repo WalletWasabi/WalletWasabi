@@ -18,6 +18,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using System.Collections.Immutable;
 using System.Text;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -42,7 +43,7 @@ public abstract record BroadcastError
 	public record NotEnoughP2pNodes : BroadcastError;
 	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 	public record Timeout(string Message) : BroadcastError;
-
+	public record FeeTooLowForPeers(FeeRate TxFeeRate, FeeRate MinPeerFeeRate, SmartTransaction Transaction) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -163,7 +164,21 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
 
-		var broadcastToNode = connectedNodes
+		Node[] nodesWillingToRelayTx = connectedNodes;
+		if (tx.TryGetFeeRate(out var txFeeRate))
+		{
+			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToArray();
+			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
+			{
+				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)
+				{
+					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(txFeeRate, minPeerFeeRate, tx));
+				}
+				return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
+			}
+		}
+
+		var broadcastToNode = nodesWillingToRelayTx
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
 			.Take(Math.Max(MinBroadcastNodes, 1 + connectedNodes.Length / 5))
@@ -281,6 +296,9 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				break;
 			case BroadcastError.NotEnoughP2pNodes _:
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
+				break;
+			case BroadcastError.FeeTooLowForPeers feeTooLow:
+				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: {feeTooLow.TxFeeRate} is below the minimum required {feeTooLow.MinPeerFeeRate}.");
 				break;
 			case BroadcastError.Unknown unknown:
 				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");

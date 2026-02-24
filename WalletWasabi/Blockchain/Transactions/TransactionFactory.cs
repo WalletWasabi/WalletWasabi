@@ -154,6 +154,21 @@ public class TransactionFactory
 
 		var psbt = builder.BuildPSBT(false);
 
+		// For sub-1 sat/vB fee rates, NBitcoin's FeeRate truncates because _FeePerK is a long
+		// (e.g. 0.1 sat/vB × 141 vB = 14.1 -> 14 sats -> effective 0.099 sat/vB).
+		// Rebuild with a FeeRate whose _FeePerK is ceiled to guarantee the fee covers the target.
+		if (parameters.FeeRate.SatoshiPerByte < 1m && psbt.TryGetVirtualSize(out var estimatedVSize))
+		{
+			var adjustedFee = parameters.FeeRate.GetAdjustedFee(estimatedVSize);
+			var truncatedFee = parameters.FeeRate.GetFee(estimatedVSize);
+			if (truncatedFee < adjustedFee)
+			{
+				var ceilFeePerK = (long)Math.Ceiling(adjustedFee.Satoshi * 1000m / estimatedVSize);
+				builder.SendEstimatedFees(new FeeRate(Money.Satoshis(ceilFeePerK)));
+				psbt = builder.BuildPSBT(false);
+			}
+		}
+
 		var spentCoins = psbt.Inputs.Select(txin => allowedSmartCoinInputs.First(y => y.Outpoint == txin.PrevOut)).ToArray();
 
 		var realToSend = payments.Requests
@@ -331,10 +346,18 @@ public class TransactionFactory
 	}
 }
 
-public class TransactionBuilderWithSilentPaymentSupport(Network network)
+public class TransactionBuilderWithSilentPaymentSupport
 {
-	private readonly TransactionBuilder _builder = network.CreateTransactionBuilder();
+	private readonly Network _network;
+	private readonly TransactionBuilder _builder;
 	private readonly Dictionary<Script, SilentPaymentAddress> _silentPayments = [];
+
+	public TransactionBuilderWithSilentPaymentSupport(Network network)
+	{
+		_network = network;
+		_builder = network.CreateTransactionBuilder();
+		_builder.StandardTransactionPolicy.MinRelayTxFee = Constants.MinRelayFeeRate;
+	}
 	private Key[]? _keys;
 
 	public Func<OutPoint, ICoin> CoinFinder
@@ -419,6 +442,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 		_builder.SendEstimatedFees(feeRate);
 	}
 
+
 	public PSBT BuildPSBT(bool sign)
 	{
 		return _builder.BuildPSBT(sign);
@@ -487,7 +511,7 @@ public class TransactionBuilderWithSilentPaymentSupport(Network network)
 			}
 		}
 
-		var newPsbt = tx.CreatePSBT(network);
+		var newPsbt = tx.CreatePSBT(_network);
 
 		foreach (var (newInput, oldInput) in newPsbt.Inputs.Zip(psbt.Inputs))
 		{
