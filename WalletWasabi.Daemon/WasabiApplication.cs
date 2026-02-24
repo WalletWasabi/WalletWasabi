@@ -25,12 +25,12 @@ public class WasabiApplication
 	{
 		AppConfig = wasabiAppBuilder;
 
+		CheckVersionAndHelp();
 		Directory.CreateDirectory(Config.DataDir);
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 
-		CheckVersionAndHelp();
 		Global = new Global(Config.DataDir, Config);
 		SingleInstanceChecker = new(Config.DataDir);
 		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
