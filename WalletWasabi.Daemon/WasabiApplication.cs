@@ -30,9 +30,26 @@ public class WasabiApplication
 		SetupLogger();
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 
+		CheckVersionAndHelp();
 		Global = new Global(Config.DataDir, Config);
 		SingleInstanceChecker = new(Config.DataDir);
 		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
+	}
+
+	private void CheckVersionAndHelp()
+	{
+		if (AppConfig.Arguments.Contains("--version"))
+		{
+			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
+			Environment.Exit((int)ExitCode.Ok);
+		}
+
+		if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
+		{
+			ShowHelp();
+			Environment.Exit((int)ExitCode.Ok);
+		}
+
 	}
 
 	public ExitCode Run(Action afterStarting)
@@ -91,18 +108,6 @@ public class WasabiApplication
 
 	private ExitCode? ProcessAppArguments()
 	{
-		if (AppConfig.Arguments.Contains("--version"))
-		{
-			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
-			return ExitCode.Ok;
-		}
-
-		if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
-		{
-			ShowHelp();
-			return ExitCode.Ok;
-		}
-
 		if (AppConfig.MustCheckSingleInstance)
 		{
 			var isFirst = SingleInstanceChecker.IsFirstInstance();
