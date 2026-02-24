@@ -43,7 +43,7 @@ public abstract record BroadcastError
 	public record NotEnoughP2pNodes : BroadcastError;
 	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 	public record Timeout(string Message) : BroadcastError;
-	public record FeeTooLowForPeers(Money TxFee, Money MinRequiredFee, FeeRate MinPeerFeeRate, SmartTransaction Transaction) : BroadcastError;
+	public record FeeTooLowForPeers(FeeRate TxFeeRate, FeeRate MinPeerFeeRate, SmartTransaction Transaction) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -158,27 +158,27 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		if (tx.TryGetFee(out var txFee) && tx.TryGetFeeRate(out var txFeeRate) && txFeeRate < new FeeRate(1m))
-		{
-			var minPeerFee = P2pBehavior.GetMinPeerFeeFilter();
-			if (minPeerFee is not null)
-			{
-				var vsize = tx.Transaction.GetVirtualSize();
-				var requiredFee = minPeerFee.GetFee(vsize);
-				if (txFee < requiredFee)
-				{
-					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(txFee, requiredFee, minPeerFee, tx));
-				}
-			}
-		}
-
 		var connectedNodes = nodes.ConnectedNodes.Where(x => x.IsConnected).ToArray();
 		if (connectedNodes.Length < MinBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
 
-		var broadcastToNode = connectedNodes
+		Node[] nodesWillingToRelayTx = connectedNodes;
+		if (tx.TryGetFeeRate(out var txFeeRate))
+		{
+			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToArray();
+			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
+			{
+				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)
+				{
+					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(txFeeRate, minPeerFeeRate, tx));
+				}
+				return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
+			}
+		}
+
+		var broadcastToNode = nodesWillingToRelayTx
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
 			.Take(Math.Max(MinBroadcastNodes, 1 + connectedNodes.Length / 5))
@@ -298,7 +298,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
 				break;
 			case BroadcastError.FeeTooLowForPeers feeTooLow:
-				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: tx fee {feeTooLow.TxFee.Satoshi} sat is below the minimum required {feeTooLow.MinRequiredFee.Satoshi} sat (min peer fee rate: {feeTooLow.MinPeerFeeRate}).");
+				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: {feeTooLow.TxFeeRate} is below the minimum required {feeTooLow.MinPeerFeeRate}.");
 				break;
 			case BroadcastError.Unknown unknown:
 				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");

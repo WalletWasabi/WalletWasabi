@@ -26,11 +26,15 @@ public class P2pBehavior : NodeBehavior
 
 	public MempoolService MempoolService { get; }
 
-	/// <summary>
-	/// Returns the minimum fee filter across all connected peers, or null if no peer has announced a fee filter.
-	/// </summary>
 	public static FeeRate? GetMinPeerFeeFilter() =>
 		PeerFeeFilters.Select(x => x.Value).MinOrDefault();
+
+	public static Node[] GetNodesWillingToRelay(FeeRate feeRate) =>
+		PeerFeeFilters
+			.Where(x => x.Key.IsConnected)
+			.Where(x => x.Value <= feeRate)
+			.Select(x => x.Key)
+			.ToArray();
 
 	protected override void AttachCore()
 	{
