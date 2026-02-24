@@ -356,7 +356,8 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 						throw new NotSupportedException("Only configuration files after v2.5.1 are supported.");
 					}
 					var newConfig = ApplyChanges(currentConfig);
-					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig, setNetwork: true);
+					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
+					PersistentConfigManager.UpdateNetwork(_persistentConfigFilePath, newConfig.Network);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}

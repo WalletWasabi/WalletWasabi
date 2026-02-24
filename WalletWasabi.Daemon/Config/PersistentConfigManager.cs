@@ -66,18 +66,18 @@ public static class PersistentConfigManager
 		BitcoinRpcUri = Constants.DefaultSignetBitcoinRpcUri,
 	};
 
-	public static string ToFile(string filePath, PersistentConfig obj, bool setNetwork)
+	public static string ToFile(string filePath, PersistentConfig obj)
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
 		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 
-		if (setNetwork)
-		{
-			var networkFilePath = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, "network");
-			File.WriteAllText(networkFilePath, obj.Network.ToString());
-		}
-
 		return jsonString;
+	}
+
+	public static void UpdateNetwork(string filePath, Network network)
+	{
+		var networkFilePath = Path.Combine(Path.GetDirectoryName(filePath) ?? string.Empty, "network");
+		File.WriteAllText(networkFilePath, network.ToString());
 	}
 
 	public static IPersistentConfig LoadFile(string filePath)
@@ -93,7 +93,9 @@ public static class PersistentConfigManager
 		{
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 
-			ToFile(filePath, defaultConfig, setNetwork: true);
+			ToFile(filePath, defaultConfig);
+			UpdateNetwork(filePath, defaultConfig.Network);
+
 			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return defaultConfig;
 		}
@@ -101,7 +103,9 @@ public static class PersistentConfigManager
 		{
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 
-			ToFile(filePath, defaultConfig, setNetwork: true);
+			ToFile(filePath, defaultConfig);
+			UpdateNetwork(filePath, defaultConfig.Network);
+
 			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;

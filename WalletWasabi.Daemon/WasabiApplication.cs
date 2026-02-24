@@ -106,6 +106,11 @@ public class WasabiApplication
 		var networkFilePath = Path.Combine(Config.DataDir, "network");
 		Logger.LogInfo($"Loading network file '{networkFilePath}'.");
 
+		if (!File.Exists(networkFilePath))
+		{
+			PersistentConfigManager.UpdateNetwork(networkFilePath, Network.Main);
+		}
+
 		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
 		networkName ??= File.ReadAllText(networkFilePath).Trim();
 		var network = Network.GetNetwork(networkName ?? "mainnet");
@@ -147,7 +152,7 @@ public class WasabiApplication
 		{
 			if (!File.Exists(filePath))
 			{
-				PersistentConfigManager.ToFile(filePath, config, setNetwork: false);
+				PersistentConfigManager.ToFile(filePath, config);
 			}
 		}
 	}
@@ -209,13 +214,13 @@ public class WasabiApplication
 			};
 
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
-			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig, setNetwork: false);
+			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);
 
 			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
-			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig, setNetwork: false);
+			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
 
 			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
-			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig, setNetwork: false);
+			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
 		}
 	}
 
