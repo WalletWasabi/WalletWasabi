@@ -357,6 +357,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 					}
 					var newConfig = ApplyChanges(currentConfig);
 					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
+					PersistentConfigManager.UpdateNetwork(_persistentConfigFilePath, newConfig.Network);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}
