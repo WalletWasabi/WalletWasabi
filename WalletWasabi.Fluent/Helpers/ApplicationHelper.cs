@@ -5,9 +5,7 @@ using Avalonia.Input;
 using Avalonia.Input.Platform;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
-using ReactiveUI;
 using System.Diagnostics.CodeAnalysis;
-using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 
@@ -15,8 +13,6 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public class ApplicationHelper
 {
-	private static readonly TimeSpan PollingInterval = TimeSpan.FromSeconds(0.2);
-
 	public static ApplicationHelper Instance { get; } = new();
 
 	public static Window? MainWindow => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow;
@@ -89,12 +85,6 @@ public class ApplicationHelper
 			}
 		});
 	}
-
-	public static IObservable<string?> ClipboardTextChanged(IScheduler? scheduler = default) => Observable.Timer(PollingInterval, scheduler ?? Scheduler.Default)
-		.Repeat()
-		.Select(_ => Observable.FromAsync(GetTextAsync, RxApp.MainThreadScheduler))
-		.Merge(1)
-		.DistinctUntilChanged();
 
 	private static bool TryGetClipboard([NotNullWhen(true)] out IClipboard? clipboard)
 	{

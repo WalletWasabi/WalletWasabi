@@ -148,16 +148,16 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
           <DualCurrencyEntryBox x:Name="amountTb"
-                                  KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
-                                  IsReadOnly="{Binding IsFixedAmount}"
-                                  AmountBtc="{Binding AmountBtc}"
-                                  ConversionRate="{Binding ExchangeRate}"
-                                  CurrencyCode="BTC"
-                                  ConversionCurrencyCode="USD"
-                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
-                                  BalanceBtc="{Binding Balance^.Btc}"
-                                  BalanceUsd="{Binding Balance^.Usd^}"
-                                  ValidatePasteBalance="False">
+                                KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                                IsReadOnly="{Binding IsFixedAmount}"
+                                AmountBtc="{Binding AmountBtc}"
+                                ConversionRate="{Binding ExchangeRate}"
+                                CurrencyCode="BTC"
+                                ConversionCurrencyCode="USD"
+                                IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                BalanceBtc="{Binding Balance^.Btc}"
+                                BalanceUsd="{Binding Balance^.Usd^}"
+                                ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
@@ -165,12 +165,16 @@
                                            FalseValue="{x:Static PlacementMode.BottomEdgeAlignedLeft}" />
             </DualCurrencyEntryBox.Resources>
             <Interaction.Behaviors>
-              <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent^}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
-              <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent^}"
-                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+              <EventTriggerBehavior EventName="GotFocus">
+                <InvokeCommandAction Command="{Binding PasteFromClipboardCommand}" CommandParameter="{Binding #amountTb}" />
+              </EventTriggerBehavior>
+
+              <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent}"
+                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                        PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+              <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent}"
+                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                        PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
                 <FocusControlActionCustom TargetControl="LabelTagBox"/>
               </KeyDownTrigger>

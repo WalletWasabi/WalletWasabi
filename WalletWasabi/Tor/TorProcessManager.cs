@@ -248,7 +248,10 @@ public class TorProcessManager : IAsyncDisposable
 
 					// Tor process can crash even between these two commands too.
 					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in finally clause
 					process = new ProcessAsync(Process.GetProcessById(processId));
+#pragma warning restore CA2000
 
 					try
 					{

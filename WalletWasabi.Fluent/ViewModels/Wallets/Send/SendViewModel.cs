@@ -1,34 +1,34 @@
+using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Threading;
-using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Fluent.Models.Transactions;
+using WalletWasabi.Fluent.Models.UI;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
-using WalletWasabi.Fluent.Models.UI;
-using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
-using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Services;
 using Address = WalletWasabi.Userfacing.Address;
 using Constants = WalletWasabi.Helpers.Constants;
-using System.Threading;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -49,10 +49,10 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly CoinJoinManager? _coinJoinManager;
-	private readonly ClipboardObserver _clipboardObserver;
+	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private bool _parsingTo;
-	private Address _parsedAddress;
+	private Address? _parsedAddress;
 
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
@@ -66,6 +66,8 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private SuggestionLabelsViewModel _suggestionLabels;
 	[AutoNotify] private string _defaultLabel;
 	[AutoNotify] private bool _isFixedAddress;
+	[AutoNotify] private string? _usdContent;
+	[AutoNotify] private string? _bitcoinContent;
 
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
@@ -106,6 +108,10 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
 
+		this.WhenAnyValue(x => x.Balance)
+			.Switch()
+			.ToProperty(this, vm => vm.BalanceLatest, out _balanceLatest);
+
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = parameters.AvailableCoins.TotalAmount().ToDecimal(MoneyUnit.BTC));
@@ -127,19 +133,16 @@ public partial class SendViewModel : RoutableViewModel
 				});
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
+		PasteFromClipboardCommand = ReactiveCommand.CreateFromTask<object>(PasteFromClipboardAsync);
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
 			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
-
-		_clipboardObserver = new ClipboardObserver(Balance);
 	}
 
 	public IObservable<Amount> Balance { get; }
 
-	public IObservable<string?> UsdContent => _clipboardObserver.ClipboardUsdContentChanged(RxApp.MainThreadScheduler);
-
-	public IObservable<string?> BitcoinContent => _clipboardObserver.ClipboardBtcContentChanged(RxApp.MainThreadScheduler);
+	public Amount? BalanceLatest => _balanceLatest.Value;
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
@@ -152,6 +155,8 @@ public partial class SendViewModel : RoutableViewModel
 	public ICommand QrCommand { get; }
 
 	public ICommand InsertMaxCommand { get; }
+
+	public ICommand? PasteFromClipboardCommand { get; }
 
 	private async Task OnNextAsync()
 	{
@@ -194,6 +199,37 @@ public partial class SendViewModel : RoutableViewModel
 		var sendParameters = _parameters with { TransactionInfo = transactionInfo };
 
 		Navigate().To().TransactionPreview(_walletModel, sendParameters);
+	}
+
+	private async Task PasteFromClipboardAsync(object? parameter)
+	{
+		if (parameter is not DualCurrencyEntryBox box)
+		{
+			return;
+		}
+
+		string content = await ApplicationHelper.GetTextAsync();
+
+		if (box.IsFiat)
+		{
+			var usd = ClipboardObserver.ParseToUsd(content);
+			if (usd is not null)
+			{
+				UsdContent = usd.Value.ToString("0.00");
+			}
+		}
+		else
+		{
+			var latestBalance = BalanceLatest;
+			if (latestBalance is not null)
+			{
+				var btc = ClipboardObserver.ParseToMoney(content, latestBalance.Btc);
+				if (btc is not null)
+				{
+					BitcoinContent = btc;
+				}
+			}
+		}
 	}
 
 	private async Task OnAutoPasteAsync()
