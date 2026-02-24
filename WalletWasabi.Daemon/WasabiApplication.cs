@@ -35,13 +35,68 @@ public class WasabiApplication
 		TerminateService = new(TerminateApplicationAsync, AppConfig.Terminate);
 	}
 
+	public ExitCode Run(Action afterStarting)
+	{
+		var exitCode = ProcessAppArguments();
+		if (exitCode is not null)
+		{
+			return exitCode.Value;
+		}
+
+		try
+		{
+			TerminateService.Activate();
+			BeforeStarting();
+
+			afterStarting();
+			return ExitCode.Ok;
+		}
+		catch (Exception e)
+		{
+			Logger.LogInfo("Exception occurred while the application was starting or running", e);
+			throw;
+		}
+		finally
+		{
+			BeforeStopping();
+		}
+	}
+
 	public async Task<ExitCode> RunAsync(Func<Task> afterStarting)
+	{
+		var exitCode = ProcessAppArguments();
+		if (exitCode is not null)
+		{
+			return exitCode.Value;
+		}
+
+		try
+		{
+			TerminateService.Activate();
+			BeforeStarting();
+
+			await afterStarting();
+			return ExitCode.Ok;
+		}
+		catch (Exception e)
+		{
+			Logger.LogInfo("Exception occurred while the application was starting or running", e);
+			throw;
+		}
+		finally
+		{
+			BeforeStopping();
+		}
+	}
+
+	private ExitCode? ProcessAppArguments()
 	{
 		if (AppConfig.Arguments.Contains("--version"))
 		{
 			Console.WriteLine($"{AppConfig.AppName} {Constants.ClientVersion}");
 			return ExitCode.Ok;
 		}
+
 		if (AppConfig.Arguments.Contains("--help") || AppConfig.Arguments.Contains("-h"))
 		{
 			ShowHelp();
@@ -59,24 +114,7 @@ public class WasabiApplication
 			}
 		}
 
-		try
-		{
-			TerminateService.Activate();
-
-			BeforeStarting();
-
-			await afterStarting();
-			return ExitCode.Ok;
-		}
-		catch (Exception e)
-		{
-			Logger.LogInfo("Exception occurred while the application was starting or running", e);
-			throw;
-		}
-		finally
-		{
-			BeforeStopping();
-		}
+		return null;
 	}
 
 	private void BeforeStarting()

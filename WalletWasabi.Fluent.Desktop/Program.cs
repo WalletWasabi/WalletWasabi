@@ -28,9 +28,9 @@ namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
-	private static int _isShuttingDown;
+	private static int IsShuttingDownFlag;
 
-	internal static bool IsShuttingDown => Volatile.Read(ref _isShuttingDown) == 1;
+	internal static bool IsShuttingDown => Volatile.Read(ref IsShuttingDownFlag) == 1;
 
 	internal static bool IsDbusMenuShutdownException(Exception exception)
 	{
@@ -82,9 +82,7 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = app.RunAsGuiAsync()
-				.GetAwaiter()
-				.GetResult();
+			var exitCode = app.RunAsGui();
 
 			if (app.TerminateService.GracefulCrashException is not null)
 			{
@@ -111,7 +109,7 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Interlocked.Exchange(ref _isShuttingDown, 1);
+		Interlocked.Exchange(ref IsShuttingDownFlag, 1);
 		if (Application.Current is null)
 		{
 			return;
@@ -205,10 +203,9 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
+	public static ExitCode RunAsGui(this WasabiApplication app)
 	{
-		return await app.RunAsync(
-			afterStarting: () =>
+		return app.Run(afterStarting: () =>
 			{
 				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{
@@ -227,37 +224,36 @@ public static class WasabiAppExtensions
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
 				Services.Initialize(app.Global, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
-					using CancellationTokenSource stopLoadingCts = new();
+				using CancellationTokenSource stopLoadingCts = new();
 
-					AppBuilder appBuilder = AppBuilder
-						.Configure(() => new App(
-						backendInitialiseAsync: async () =>
+				AppBuilder appBuilder = AppBuilder.Configure(() => new App(
+					backendInitializeAsync: async () =>
+					{
+						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+						await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+
+						// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+					}, startInBg: runGuiInBackground))
+					.UseReactiveUI()
+					.SetupAppBuilder()
+					.AfterSetup(_ =>
+					{
+						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{
-							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
-
-							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground))
-						.UseReactiveUI()
-						.SetupAppBuilder()
-						.AfterSetup(_ =>
-						{
-							ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
-
-							if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+							Dispatcher.UIThread.UnhandledException += (_, e) =>
 							{
-								Dispatcher.UIThread.UnhandledException += (_, e) =>
+								if (Program.IsShuttingDown &&
+									Program.IsDbusMenuShutdownException(e.Exception))
 								{
-									if (Program.IsShuttingDown &&
-										Program.IsDbusMenuShutdownException(e.Exception))
-									{
-										Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
-										e.Handled = true;
-									}
-								};
-							}
-						});
+									Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+									e.Handled = true;
+								}
+							};
+						}
+					});
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
@@ -268,8 +264,6 @@ public static class WasabiAppExtensions
 				{
 					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 				}
-
-				return Task.CompletedTask;
 			});
 	}
 

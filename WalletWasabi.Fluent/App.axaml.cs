@@ -15,14 +15,13 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent;
 
 public class App : Application
 {
 	private readonly bool _startInBg;
-	private readonly Func<Task>? _backendInitialiseAsync;
+	private readonly Func<Task>? _backendInitializeAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
 	public App()
@@ -30,10 +29,10 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
+	public App(Func<Task> backendInitializeAsync, bool startInBg) : this()
 	{
 		_startInBg = startInBg;
-		_backendInitialiseAsync = backendInitialiseAsync;
+		_backendInitializeAsync = backendInitializeAsync;
 	}
 
 	public override void Initialize()
@@ -64,7 +63,7 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+						await _backendInitializeAsync!(); // Guaranteed not to be null when not in designer.
 
 						MainViewModel.Instance.Initialize();
 					});
