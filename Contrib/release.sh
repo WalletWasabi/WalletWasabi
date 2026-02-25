@@ -233,13 +233,11 @@ DEBIAN_USR=$DEBIAN_PACKAGE_DIR/usr
 DEBIAN_BIN=$DEBIAN_USR/local/bin
 
 DEBIAN_ARCH_NAME=""
-DEBIAN_BUILD_DIR_NAME="linux-x64"
-DEBIAN_WASABI_BINARIES_DIR_NAME="linux-x64"
+DEBIAN_FULL_PLATFORM_NAME="linux-x64"
 
 if [ "$CURRENT_ARCH" = "arm64" ]; then
   DEBIAN_ARCH_NAME="-arm64"
-  DEBIAN_BUILD_DIR_NAME="linux-arm64"
-  DEBIAN_WASABI_BINARIES_DIR_NAME="linux-arm64"
+  DEBIAN_FULL_PLATFORM_NAME="linux-arm64"
 fi
 
 
@@ -257,7 +255,7 @@ for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
 done
 
 # Calculate package size (in kilobytes)
-DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_BUILD_DIR_NAME}" | cut -f1)
+DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
 
 # Create the control file content
 DEBIAN_CONTROL_FILE_CONTENT="Package: ${EXECUTABLE_NAME}
@@ -281,7 +279,7 @@ echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 USR_LOCAL_BIN_DIR="/usr/local/bin"
 INSTALL_DIR="${USR_LOCAL_BIN_DIR}/wasabiwallet"
 DEBIAN_POST_INST_SCRIPT_CONTENT="#!/usr/bin/env sh
-${INSTALL_DIR}/Microservices/Binaries/${DEBIAN_WASABI_BINARIES_DIR_NAME}/hwi installudevrules
+${INSTALL_DIR}/Microservices/Binaries/${DEBIAN_FULL_PLATFORM_NAME}/hwi installudevrules
 exit 0"
 echo "${DEBIAN_POST_INST_SCRIPT_CONTENT}" > $DEBIAN/postinst
 chmod 0775 ${DEBIAN}/postinst
@@ -305,7 +303,7 @@ echo "${DEBIAN_DESKTOP_CONTENT}" > $DEBIAN_DESKTOP
 chmod 0644 $DEBIAN_DESKTOP
 
 # Copy the build to into the debian package structure
-cp -a "${BUILD_DIR}/${DEBIAN_BUILD_DIR_NAME}" $DEBIAN_BIN/wasabiwallet
+cp -a "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" $DEBIAN_BIN/wasabiwallet
 
 # Create wrapper scripts
 echo "#!/usr/bin/env sh
