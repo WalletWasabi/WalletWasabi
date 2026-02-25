@@ -144,7 +144,8 @@ public class WasabiApplication
 	private PersistentConfig LoadOrCreateConfigs()
 	{
 		CreateConfigFiles();
-		MigrateConfigFiles();
+		MigrateConfigFilesTo260();
+		MigrateConfigFilesTo280();
 
 		var networkFilePath = Path.Combine(Config.DataDir, "network");
 		Logger.LogInfo($"Loading network file '{networkFilePath}'.");
@@ -216,71 +217,219 @@ public class WasabiApplication
 		}
 	}
 
-	private void MigrateConfigFiles()
+	private void MigrateConfigFilesTo260()
 	{
 		var configFilePath = Path.Combine(Config.DataDir, "Config.json");
 		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
 		if (persistentConfig is PersistentConfigPrev2_6_0 oldConfig)
 		{
-			oldConfig = oldConfig.Migrate();
-			var mainConfig = new PersistentConfig(
-				Network: Network.Main,
-				AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
-				BitcoinRpcCredentialString : oldConfig.MainNetBitcoinRpcCredentialString,
-				BitcoinRpcUri : oldConfig.MainNetBitcoinRpcEndPoint.ToUriString("http"),
-				ConfigVersion : 3,
-				CoordinatorUri : oldConfig.MainNetCoordinatorUri,
-				CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
-				DownloadNewVersion : oldConfig.DownloadNewVersion,
-				DustThreshold : oldConfig.DustThreshold,
-				EnableGpu : oldConfig.EnableGpu,
-				ExchangeRateProvider : oldConfig.ExchangeRateProvider,
-				UseTor : oldConfig.UseTor,
-				FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
-				ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
-				UseBitcoinRpc : oldConfig.UseBitcoinRpc,
-				JsonRpcUser : oldConfig.JsonRpcUser,
-				JsonRpcPassword : oldConfig.JsonRpcPassword,
-				JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
-				JsonRpcServerPrefixes : new ValueList<string>(oldConfig.JsonRpcServerPrefixes),
-				TerminateTorOnExit : oldConfig.TerminateTorOnExit,
-				IndexerUri : oldConfig.MainNetIndexerUri,
-				TorBridges : new ValueList<string>(oldConfig.TorBridges),
-				MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
-				MaxDaysInMempool: oldConfig.MaxDaysInMempool,
-				ExperimentalFeatures: ValueList<string>.Empty
-			);
-
-			var testConfig = mainConfig with
-			{
-				Network = Network.TestNet,
-				IndexerUri = oldConfig.TestNetIndexerUri,
-				CoordinatorUri = oldConfig.TestNetCoordinatorUri,
-				BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
-				BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToUriString("http"),
-				ExperimentalFeatures = new ValueList<string>(["scripting"])
-			};
-
-			var regtestConfig = mainConfig with
-			{
-				Network = Network.RegTest,
-				IndexerUri = oldConfig.RegTestIndexerUri,
-				CoordinatorUri = oldConfig.RegTestCoordinatorUri,
-				BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
-				BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToUriString("http"),
-				ExperimentalFeatures = new ValueList<string>(["scripting"])
-			};
+			var configs260 = UpdateFromPrev260To260(oldConfig);
+			var configs = UpdateFrom260To280(configs260);
 
 			var regtestConfigFilePath = Path.Combine(Config.DataDir, "Config.RegTest.json");
-			PersistentConfigManager.ToFile(regtestConfigFilePath, regtestConfig);
+			PersistentConfigManager.ToFile(regtestConfigFilePath, configs.RegTest);
 
 			var testnetConfigFilePath = Path.Combine(Config.DataDir, "Config.TestNet.json");
-			PersistentConfigManager.ToFile(testnetConfigFilePath, testConfig);
+			PersistentConfigManager.ToFile(testnetConfigFilePath, configs.TestNet);
 
 			var mainnetConfigFilePath = Path.Combine(Config.DataDir, "Config.json");
-			PersistentConfigManager.ToFile(mainnetConfigFilePath, mainConfig);
+			PersistentConfigManager.ToFile(mainnetConfigFilePath, configs.MainNet);
 		}
+	}
+
+	private void MigrateConfigFilesTo280()
+	{
+		void Upgrade(string configFileName)
+		{
+			var configFilePath = Path.Combine(Config.DataDir, configFileName);
+			var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
+
+			if (persistentConfig is PersistentConfig_2_6_0 oldConfig)
+			{
+				var config = UpdateFrom260To280(oldConfig);
+				PersistentConfigManager.ToFile(configFilePath, config);
+			}
+		}
+
+		Upgrade("Config.json");
+		Upgrade("Config.TestNet.json");
+		Upgrade("Config.RegTest.json");
+	}
+
+	public static PersistentConfig UpdateFrom260To280(PersistentConfig_2_6_0 config)
+	{
+		var oldConfig = config;
+		var mustMigrateMain = MustMigrate(oldConfig);
+		return new PersistentConfig(
+			Network: oldConfig.Network,
+			AbsoluteMinInputCount: oldConfig.AbsoluteMinInputCount,
+			BitcoinRpcCredentialString: mustMigrateMain ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri: mustMigrateMain ? "https://rpc.wasabiwallet.io" : oldConfig.BitcoinRpcUri,
+			ConfigVersion: 3,
+			CoordinatorUri: oldConfig.CoordinatorUri,
+			CoordinatorIdentifier: oldConfig.CoordinatorIdentifier,
+			DownloadNewVersion: oldConfig.DownloadNewVersion,
+			DustThreshold: oldConfig.DustThreshold,
+			EnableGpu: oldConfig.EnableGpu,
+			ExchangeRateProvider: oldConfig.ExchangeRateProvider,
+			UseTor: oldConfig.UseTor,
+			FeeRateEstimationProvider: oldConfig.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster: oldConfig.ExternalTransactionBroadcaster,
+			JsonRpcUser: oldConfig.JsonRpcUser,
+			JsonRpcPassword: oldConfig.JsonRpcPassword,
+			JsonRpcServerEnabled: oldConfig.JsonRpcServerEnabled,
+			JsonRpcServerPrefixes: oldConfig.JsonRpcServerPrefixes,
+			TerminateTorOnExit: oldConfig.TerminateTorOnExit,
+			TorBridges: oldConfig.TorBridges,
+			MaxCoinJoinMiningFeeRate: oldConfig.MaxCoinJoinMiningFeeRate,
+			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
+			ExperimentalFeatures: ValueList<string>.Empty
+		);
+
+		static bool MustMigrate(PersistentConfig_2_6_0 cfg) =>
+			cfg.UseBitcoinRpc is false || !Uri.IsWellFormedUriString(cfg.BitcoinRpcUri, UriKind.Absolute);
+	}
+
+
+	private (PersistentConfig MainNet, PersistentConfig TestNet, PersistentConfig RegTest) UpdateFrom260To280((PersistentConfig_2_6_0 MainNet, PersistentConfig_2_6_0 TestNet, PersistentConfig_2_6_0 RegTest) configs260)
+	{
+		static bool MustMigrate(PersistentConfig_2_6_0 cfg) =>
+			cfg.UseBitcoinRpc is false && !Uri.IsWellFormedUriString(cfg.BitcoinRpcUri, UriKind.Absolute);
+
+		var oldConfig = configs260.MainNet;
+		var mustMigrateMain = MustMigrate(oldConfig);
+		var mainConfig = new PersistentConfig(
+			Network: Network.Main,
+			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
+			BitcoinRpcCredentialString : mustMigrateMain ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri : mustMigrateMain ? "https://rpc.wasabiwallet.io" : oldConfig.BitcoinRpcUri,
+			ConfigVersion : 4,
+			CoordinatorUri : oldConfig.CoordinatorUri,
+			CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
+			DownloadNewVersion : oldConfig.DownloadNewVersion,
+			DustThreshold : oldConfig.DustThreshold,
+			EnableGpu : oldConfig.EnableGpu,
+			ExchangeRateProvider : oldConfig.ExchangeRateProvider,
+			UseTor : oldConfig.UseTor,
+			FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
+			JsonRpcUser : oldConfig.JsonRpcUser,
+			JsonRpcPassword : oldConfig.JsonRpcPassword,
+			JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
+			JsonRpcServerPrefixes : oldConfig.JsonRpcServerPrefixes,
+			TerminateTorOnExit : oldConfig.TerminateTorOnExit,
+			TorBridges : oldConfig.TorBridges,
+			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
+			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
+			ExperimentalFeatures: ValueList<string>.Empty
+		);
+
+		oldConfig = configs260.TestNet;
+		var testConfig = new PersistentConfig(
+			Network: Network.TestNet,
+			BitcoinRpcCredentialString : MustMigrate(configs260.TestNet) ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri : MustMigrate(configs260.TestNet) ? "https://rpc.wasabiwallet.co" : oldConfig.BitcoinRpcUri,
+			ExperimentalFeatures : new ValueList<string>(["scripting"]),
+			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
+			ConfigVersion : 4,
+			CoordinatorUri : oldConfig.CoordinatorUri,
+			CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
+			DownloadNewVersion : oldConfig.DownloadNewVersion,
+			DustThreshold : oldConfig.DustThreshold,
+			EnableGpu : oldConfig.EnableGpu,
+			ExchangeRateProvider : oldConfig.ExchangeRateProvider,
+			UseTor : oldConfig.UseTor,
+			FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
+			JsonRpcUser : oldConfig.JsonRpcUser,
+			JsonRpcPassword : oldConfig.JsonRpcPassword,
+			JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
+			JsonRpcServerPrefixes : oldConfig.JsonRpcServerPrefixes,
+			TerminateTorOnExit : oldConfig.TerminateTorOnExit,
+			TorBridges : oldConfig.TorBridges,
+			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
+			MaxDaysInMempool: oldConfig.MaxDaysInMempool
+		);
+
+		oldConfig = configs260.TestNet;
+		var regtestConfig = new PersistentConfig(
+			Network: Network.RegTest,
+			BitcoinRpcCredentialString: MustMigrate(configs260.RegTest) ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri: MustMigrate(configs260.RegTest) ? Constants.DefaultRegTestBitcoinRpcUri : oldConfig.BitcoinRpcUri,
+			ExperimentalFeatures: new ValueList<string>(["scripting"]),
+			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
+			ConfigVersion : 4,
+			CoordinatorUri : oldConfig.CoordinatorUri,
+			CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
+			DownloadNewVersion : oldConfig.DownloadNewVersion,
+			DustThreshold : oldConfig.DustThreshold,
+			EnableGpu : oldConfig.EnableGpu,
+			ExchangeRateProvider : oldConfig.ExchangeRateProvider,
+			UseTor : oldConfig.UseTor,
+			FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
+			JsonRpcUser : oldConfig.JsonRpcUser,
+			JsonRpcPassword : oldConfig.JsonRpcPassword,
+			JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
+			JsonRpcServerPrefixes : oldConfig.JsonRpcServerPrefixes,
+			TerminateTorOnExit : oldConfig.TerminateTorOnExit,
+			TorBridges : oldConfig.TorBridges,
+			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
+			MaxDaysInMempool: oldConfig.MaxDaysInMempool
+		);
+		return (MainNet: mainConfig, TestNet: testConfig, RegTest: regtestConfig);
+	}
+
+	private (PersistentConfig_2_6_0 MainNet, PersistentConfig_2_6_0 TestNet, PersistentConfig_2_6_0 RegTest) UpdateFromPrev260To260(PersistentConfigPrev2_6_0 oldConfig)
+	{
+		oldConfig = oldConfig.Migrate();
+		var mainConfig = new PersistentConfig_2_6_0(
+			Network: Network.Main,
+			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
+			BitcoinRpcCredentialString : oldConfig.MainNetBitcoinRpcCredentialString,
+			BitcoinRpcUri : oldConfig.MainNetBitcoinRpcEndPoint.ToUriString("http"),
+			ConfigVersion : 3,
+			CoordinatorUri : oldConfig.MainNetCoordinatorUri,
+			CoordinatorIdentifier : oldConfig.CoordinatorIdentifier,
+			DownloadNewVersion : oldConfig.DownloadNewVersion,
+			DustThreshold : oldConfig.DustThreshold,
+			EnableGpu : oldConfig.EnableGpu,
+			ExchangeRateProvider : oldConfig.ExchangeRateProvider,
+			UseTor : oldConfig.UseTor,
+			FeeRateEstimationProvider : oldConfig.FeeRateEstimationProvider,
+			ExternalTransactionBroadcaster : oldConfig.ExternalTransactionBroadcaster,
+			UseBitcoinRpc : oldConfig.UseBitcoinRpc,
+			JsonRpcUser : oldConfig.JsonRpcUser,
+			JsonRpcPassword : oldConfig.JsonRpcPassword,
+			JsonRpcServerEnabled : oldConfig.JsonRpcServerEnabled,
+			JsonRpcServerPrefixes : new ValueList<string>(oldConfig.JsonRpcServerPrefixes),
+			TerminateTorOnExit : oldConfig.TerminateTorOnExit,
+			IndexerUri : oldConfig.MainNetIndexerUri,
+			TorBridges : new ValueList<string>(oldConfig.TorBridges),
+			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
+			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
+			ExperimentalFeatures: ValueList<string>.Empty
+		);
+
+		var testConfig = mainConfig with
+		{
+			Network	= Network.TestNet,
+			CoordinatorUri = oldConfig.TestNetCoordinatorUri,
+			BitcoinRpcCredentialString = oldConfig.TestNetBitcoinRpcCredentialString,
+			BitcoinRpcUri = oldConfig.TestNetBitcoinRpcEndPoint.ToUriString("http"),
+			ExperimentalFeatures = new ValueList<string>(["scripting"])
+		};
+
+		var regtestConfig = mainConfig with
+		{
+			Network = Network.RegTest,
+			CoordinatorUri = oldConfig.RegTestCoordinatorUri,
+			BitcoinRpcCredentialString = oldConfig.RegTestBitcoinRpcCredentialString,
+			BitcoinRpcUri = oldConfig.RegTestBitcoinRpcEndPoint.ToUriString("http"),
+			ExperimentalFeatures = new ValueList<string>(["scripting"])
+		};
+		return (MainNet: mainConfig, TestNet: testConfig, RegTest: regtestConfig);
 	}
 
 	private void TaskScheduler_UnobservedTaskException(object? sender, UnobservedTaskExceptionEventArgs e)

@@ -470,18 +470,13 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos(bool isBIP158)
+	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos()
 	{
 		lock (_criticalStateLock)
 		{
-			return _hdPubKeyCache.Select(x => GetScriptPubKeyBytes(x));
+			return _hdPubKeyCache.Select(x => x.ScriptPubKeyBytes);
 		}
-
-		byte[] GetScriptPubKeyBytes(HdPubKeyInfo hdPubKeyInfo) =>
-			isBIP158
-				? hdPubKeyInfo.ScriptPubKeyBytes  // BIP158 compatible script to test against filters
-				: hdPubKeyInfo.CompressedScriptPubKeyBytes; // Legacy Wasabi backend scripts used to build filters
- 	}
+	}
 
 	public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 	{

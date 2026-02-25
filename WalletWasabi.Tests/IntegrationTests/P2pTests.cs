@@ -19,6 +19,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using Xunit;
@@ -85,8 +86,7 @@ public class P2pTests
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network!);
-		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
-		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
+		var filterProvider = new BitcoinRpcFilterProvider(new MockRpcClient());
 		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, eventBus));
 		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 

@@ -16,14 +16,6 @@ public static class StatusConverters
 			{ } => x.ToString()
 		});
 
-	public static readonly IValueConverter IndexerStatusToString =
-		new FuncValueConverter<IndexerStatus, string>(x => x switch
-		{
-			IndexerStatus.Connected => "is connected",
-			IndexerStatus.NotConnected => "is not connected",
-			{ } => x.ToString()
-		});
-
 	public static readonly IValueConverter FeeRateToString =
 		new FuncValueConverter<decimal, string>(x => x == 0 ? "No data" : $"{x:0.##} sat/vB");
 

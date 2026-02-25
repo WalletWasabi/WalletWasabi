@@ -17,9 +17,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
-using Xunit;
-using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -71,16 +68,17 @@ public class RegTestSetup : IAsyncDisposable
 	public async Task AssertFiltersInitializedAsync()
 	{
 		uint256 firstHash = await RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
-
+		var filterProvider = new BitcoinRpcFilterProvider(RpcClient);
 		while (true)
 		{
-			var client = new IndexerClient(RegTestFixture.IndexerHttpClientFactory.CreateClient("test"));
-			var filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
-			Assert.NotNull(filtersResponse);
+			var filtersResponse = await filterProvider.GetFiltersAsync(firstHash, 0, CancellationToken.None).ConfigureAwait(false);
 
-			if (filtersResponse is FiltersResponse.AlreadyOnBestBlock)
+			if (filtersResponse.IsOk)
 			{
-				break;
+				if (filtersResponse.Value is FiltersResponse.AlreadyOnBestBlock)
+				{
+					break;
+				}
 			}
 
 			await Task.Delay(100).ConfigureAwait(false);

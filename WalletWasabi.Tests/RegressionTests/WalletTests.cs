@@ -47,7 +47,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 		node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
 
 		// 2. Create wasabi synchronizer service.
-		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
+		var filterProvider = new BitcoinRpcFilterProvider(setup.RpcClient);
 		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
 		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 

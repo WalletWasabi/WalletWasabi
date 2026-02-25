@@ -10,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
@@ -85,22 +84,11 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	/// <summary>
-	/// Return the keys to test against the filter depending on the height of the filter and the type of synchronization.
-	/// </summary>
-	/// <param name="isBip158"></param>
-	/// <returns>Keys to test against this filter.</returns>
-	private IEnumerable<byte[]> GetScriptPubKeysToTest(bool isBip158)
-	{
-		// Wasabi doesn't build bip158 filters and also uses the compact representation of the scriptPubKeys
-		return _keyManager.UnsafeGetSynchronizationInfos(isBip158);
-	}
-
 	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancel)
 	{
 		var height = new ChainHeight(filter.Header.Height);
 
-		var toTestKeys = GetScriptPubKeysToTest(filter.Filter.IsBip158());
+		var toTestKeys = _keyManager.UnsafeGetSynchronizationInfos();
 
 		var matchFound = false;
 		if (toTestKeys.Any())

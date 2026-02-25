@@ -21,11 +21,7 @@
                 SelectedItem="{Binding Settings.Network}" />
     </DockPanel>
 
-    <DockPanel>
-      <TextBlock Text="Connect to Bitcoin Node RPC" />
-      <ToggleSwitch IsChecked="{Binding Settings.UseBitcoinRpc}" />
-    </DockPanel>
-    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}"
+    <DockPanel
       ToolTip.Tip="Wasabi will download blocks from a full node you control.">
       <TextBlock Text="Bitcoin RPC Endpoint" />
         <TextBox Text="{Binding BitcoinRpcUri}">
@@ -36,7 +32,7 @@
           </Interaction.Behaviors>
         </TextBox>
     </DockPanel>
-    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
+    <DockPanel>
       <TextBlock Text="Bitcoin RPC Credential String" />
       <TextBox Text="{Binding BitcoinRpcCredentialString}"
                Watermark="(rpcuser:rpcpassword or cookie file)"/>

@@ -10,7 +10,6 @@ public class StatusContainer : IDisposable
 	public decimal UsdExchangeRate { get; private set; }
 	public FeeRateEstimations? FeeRates { get; private set; }
 	public uint BestHeight { get; private set; }
-	public bool IsIndexerAvailable { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
 
@@ -18,7 +17,6 @@ public class StatusContainer : IDisposable
 	private readonly IDisposable _feeRateSubscription;
 	private readonly IDisposable _exchangeRateSubscription;
 	private readonly IDisposable _bestHeightSubscription;
-	private readonly IDisposable _indexerConnectionStatusSubscription;
 	private readonly IDisposable _installOnCloseSubscription;
 	private readonly IDisposable _installerAvailableSubscription;
 
@@ -36,9 +34,6 @@ public class StatusContainer : IDisposable
 		_bestHeightSubscription =
 			eventBus.Subscribe<ServerTipHeightChanged>(e => BestHeight = e.Height);
 
-		_indexerConnectionStatusSubscription =
-			eventBus.Subscribe<IndexerAvailabilityStateChanged>(e => IsIndexerAvailable = e.IsIndexerAvailable);
-
 		_installerAvailableSubscription =
 			eventBus.Subscribe<NewSoftwareVersionInstallerAvailable>(e => InstallerFilePath = e.InstallerPath);
 
@@ -54,7 +49,6 @@ public class StatusContainer : IDisposable
 		_feeRateSubscription.Dispose();
 		_exchangeRateSubscription.Dispose();
 		_bestHeightSubscription.Dispose();
-		_indexerConnectionStatusSubscription.Dispose();
 		_installerAvailableSubscription.Dispose();
 		_installOnCloseSubscription.Dispose();
 	}

@@ -186,11 +186,11 @@ public class SmartHeaderChain
 	}
 
 	/// <remarks>Only for tests.</remarks>
-	public (uint height, SmartHeader header)[] GetChain()
+	public SmartHeader[] GetChain()
 	{
 		lock (_lock)
 		{
-			return _chain.Select(x => (x.Height, x)).ToArray();
+			return _chain.ToArray();
 		}
 	}
 

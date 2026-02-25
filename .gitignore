@@ -280,3 +280,4 @@ lcov.info
 **/launchSettings.json
 build/
 result/
+.aider*

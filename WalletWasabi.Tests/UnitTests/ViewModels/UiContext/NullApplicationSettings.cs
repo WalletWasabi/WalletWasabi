@@ -18,13 +18,10 @@ public class NullApplicationSettings : IApplicationSettings
 	public IObservable<bool> IsRestartNeeded { get; } = Observable.Return(false);
 	public bool EnableGpu { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
-	public bool UseBitcoinRpc { get; set; }
 	public string BitcoinRpcUri { get; set; } = "";
 	public string BitcoinRpcCredentialString { get; set; } = "";
-	public string RegTestCoordinatorUri { get; set; } = "";
 	public string MaxCoinJoinMiningFeeRate { get; set; } = "";
 	public string AbsoluteMinInputCount { get; set; } = "";
-	public string IndexerUri { get; set; } = "";
 	public string DustThreshold { get; set; } = "";
 	public string ExchangeRateProvider { get; set; } = "";
 	public string FeeRateEstimationProvider { get; set; } = "";
@@ -53,11 +50,6 @@ public class NullApplicationSettings : IApplicationSettings
 	}
 
 	public bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString)
-	{
-		return false;
-	}
-
-	public bool TrySetCoordinatorUri(string uri, Network? network = null)
 	{
 		return false;
 	}

@@ -62,18 +62,18 @@ public class BlockFilterSqliteStorageTests
 		Assert.True(result);
 		Assert.NotNull(filterLast);
 		Assert.NotSame(filter1, filterLast);
-		Assert.Equal(1u, filterLast.Header.Height);
+		Assert.Equal(1u, filterLast.Header.Height.Height);
 		Assert.Equal(new uint256(2), filterLast.Header.BlockHash);
-		Assert.Equal(uint256.One, filterLast.Header.HeaderOrPrevBlockHash);
+		Assert.Equal(uint256.One, filterLast.Header.BlockFilterHeader);
 		Assert.Equal(1231006506, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 
 		result = indexStorage.TryRemoveLast(out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(0u, filterLast.Header.Height);
+		Assert.Equal(0u, filterLast.Header.Height.Height);
 		Assert.Equal(uint256.One, filterLast.Header.BlockHash);
-		Assert.Equal(uint256.Zero, filterLast.Header.HeaderOrPrevBlockHash);
+		Assert.Equal(uint256.Zero, filterLast.Header.BlockFilterHeader);
 		Assert.Equal(1231006505, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 	}
@@ -95,17 +95,17 @@ public class BlockFilterSqliteStorageTests
 		bool result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out FilterModel? filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(3u, filterLast.Header.Height);
+		Assert.Equal(3u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(2u, filterLast.Header.Height);
+		Assert.Equal(2u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(1u, filterLast.Header.Height);
+		Assert.Equal(1u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.False(result);

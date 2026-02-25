@@ -22,8 +22,8 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 {
 	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
-		_smartHeaderChain = smartHeaderChain;
 		_network = network;
+		_smartHeaderChain = smartHeaderChain;
 
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
@@ -171,41 +171,15 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 		{
 			return true;
 		}
-		if (m.Filter.IsBip158())
+
+		// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
+		// was also a bip158-compatible one, and it is the correct one.
+		if (m.Filter.GetHeader(c.Tip.BlockFilterHeader) == m.Header.BlockFilterHeader)
 		{
-			// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
-			// was also a bip158-compatible one, and it is the correct one.
-			if (m.Filter.GetHeader(tip.HeaderOrPrevBlockHash) == m.Header.HeaderOrPrevBlockHash || c.HashCount == 1)
-			{
-				return true;
-			}
-
-			// In case the previous filter is Bip158-compatible it should have passed the previous condition so, the
-			// received filter did match.
-			var previousFilter = IndexStorage.Fetch(tip.Height, 1).First();
-			if (previousFilter.Filter.IsBip158())
-			{
-				return false;
-			}
-
-			// If we received a bip158-compatible filter for first time we accept it.
 			return true;
 		}
-		else // Non-standard Wasabi Filter
-		{
-			if (m.Header.HeaderOrPrevBlockHash == tip.BlockHash)
-			{
-				return true;
-			}
 
-			var previousFilter = IndexStorage.Fetch(tip.Height, 1).First();
-			if (previousFilter.Filter.IsBip158())
-			{
-				throw new InvalidOperationException("The received filter is not Wasabi filter while the previous one is a standard bip158 and it is not possible to verify the chain.");
-			}
-
-			return false;
-		}
+		return false;
 	}
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)

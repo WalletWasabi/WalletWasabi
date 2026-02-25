@@ -6,14 +6,6 @@ namespace WalletWasabi.Helpers;
 
 public static class Constants
 {
-	public const string BackendMajorVersion = "4";
-	public const string ClientSupportBackendVersion = "4";
-
-	public const string IndexerUri = "https://api.wasabiwallet.io/";
-	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
-	public const string SignetIndexerUri = "";
-	public const string RegTestIndexerUri = "http://localhost:37127/";
-
 	public const string CoordinatorUri = "";
 	public const string TestnetCoordinatorUri = "";
 	public const string SignetCoordinatorUri = "";
