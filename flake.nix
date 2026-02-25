@@ -60,7 +60,7 @@
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Coordinator $out/bin/wasabi-coordinator
           '';
 
-          binaries = "Microservices/Binaries/lin64";
+          binaries = "Microservices/Binaries/linux-x64";
           microservices = "./WalletWasabi/${binaries}";
           microservicesTest = "./WalletWasabi.Tests/${binaries}";
           preBuild = ''
@@ -134,8 +134,8 @@
             DOTNET_GLOBAL_TOOLS_PATH = "${builtins.getEnv "HOME"}/.dotnet/tools";
             #DOTNET_ROLL_FORWARD = "latestPatch";
             LD_LIBRARY_PATH = "${skiaSharp};${pkgs.lib.makeLibraryPath libs}";
-            MICROSERVICE_BINARIES_PATH = "WalletWasabi/Microservices/Binaries/lin64";
-            MICROSERVICE_TEST_BINARIES_PATH = "WalletWasabi.Tests/Microservices/Binaries/lin64";
+            MICROSERVICE_BINARIES_PATH = "WalletWasabi/Microservices/Binaries/linux-x64";
+            MICROSERVICE_TEST_BINARIES_PATH = "WalletWasabi.Tests/Microservices/Binaries/linux-x64";
 
             shellHook = ''
               export PATH="$PATH:$DOTNET_GLOBAL_TOOLS_PATH"

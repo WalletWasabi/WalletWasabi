@@ -35,22 +35,28 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="Microservices\Binaries\win64\Tor\**\*">
+		<None Update="Microservices\Binaries\win-x64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\lin64\Tor\**\*">
+		<None Update="Microservices\Binaries\linux-arm64\Tor\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\linux-x64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Microservices\Binaries\osx64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\lin64\hwi">
+		<None Update="Microservices\Binaries\linux-arm64\hwi">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+		<None Update="Microservices\Binaries\linux-x64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Microservices\Binaries\osx64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\win64\hwi.exe">
+		<None Update="Microservices\Binaries\win-x64\hwi.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="Tor\Geoip\geoip">

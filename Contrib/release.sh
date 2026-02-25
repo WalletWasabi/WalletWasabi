@@ -68,7 +68,7 @@ if [ "$1" = "wininstaller" ]; then
   PACKAGE_COORDINATOR="no"
 elif [ "$1" = "debian" ]; then
   # Supported platforms
-  PLATFORMS=("linux-x64")
+  PLATFORMS=("linux-x64" "linux-arm64")
   CREATE_WINDOWS_INSTALLER="no"
   CREATE_DEBIAN_PACKAGE="yes"
   RELEASE_NOTE="no"
@@ -162,8 +162,14 @@ for PLATFORM in "${PLATFORMS[@]}"; do
 
   # Remove microservices binaries for other platforms
   MICRO_SERVICES_DIR="$OUTPUT_DIR/Microservices/Binaries"
-  export PLATFORM_MICRO_SERVICES="${PLATFORM:0:3}${PLATFORM: -2}"
-  find $MICRO_SERVICES_DIR -mindepth 1 -maxdepth 1 -type d ! -name "$PLATFORM_MICRO_SERVICES" -exec rm -rf {} +
+
+  if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
+    # For macOS, the microservices binaries are stored in "osx64" and it supports both x64 and arm64.
+    find $MICRO_SERVICES_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" -exec rm -rf {} +
+  else
+    # For other platforms, the microservices binaries are stored in a folder with the same name as the platform (e.g. linux-x64, linux-arm64 and win-x64).
+    find $MICRO_SERVICES_DIR -mindepth 1 -maxdepth 1 -type d ! -name "$PLATFORM" -exec rm -rf {} +
+  fi
 
   # Hack! *.deps.json files contains this SHA516 that depends on the absolute path of
   # the nuget packages. This means that these files are different in different computers
@@ -214,10 +220,28 @@ done
 #------------------------------------------------------------------------------------#
 if [ "$CREATE_DEBIAN_PACKAGE" = "yes" ]; then
 # Create .deb package
-DEBIAN_PACKAGE_DIR=$BUILD_DIR/deb
+
+for DEBIAN_ZIP_PACKAGE in $PACKAGES_DIR/Wasabi*linux*.zip; do
+
+# Combine paths
+CURRENT_ARCH=$(echo "$DEBIAN_ZIP_PACKAGE" | grep -o 'arm64\|x64')
+ZIP_PACKAGE=$(basename "$DEBIAN_ZIP_PACKAGE")
+
+DEBIAN_PACKAGE_DIR=$BUILD_DIR/$ZIP_PACKAGE/deb
 DEBIAN=$DEBIAN_PACKAGE_DIR/DEBIAN
 DEBIAN_USR=$DEBIAN_PACKAGE_DIR/usr
 DEBIAN_BIN=$DEBIAN_USR/local/bin
+
+DEBIAN_ARCH_NAME=""
+DEBIAN_BUILD_DIR_NAME="linux-x64"
+DEBIAN_WASABI_BINARIES_DIR_NAME="linux-x64"
+
+if [ "$CURRENT_ARCH" = "arm64" ]; then
+  DEBIAN_ARCH_NAME="-arm64"
+  DEBIAN_BUILD_DIR_NAME="linux-arm64"
+  DEBIAN_WASABI_BINARIES_DIR_NAME="linux-arm64"
+fi
+
 
 # Create necessary directories
 mkdir -p $DEBIAN
@@ -233,7 +257,7 @@ for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
 done
 
 # Calculate package size (in kilobytes)
-DEBIAN_PACKAGE_SIZE=$(du -s $BUILD_DIR/linux-x64 | cut -f1)
+DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_BUILD_DIR_NAME}" | cut -f1)
 
 # Create the control file content
 DEBIAN_CONTROL_FILE_CONTENT="Package: ${EXECUTABLE_NAME}
@@ -257,7 +281,7 @@ echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 USR_LOCAL_BIN_DIR="/usr/local/bin"
 INSTALL_DIR="${USR_LOCAL_BIN_DIR}/wasabiwallet"
 DEBIAN_POST_INST_SCRIPT_CONTENT="#!/usr/bin/env sh
-${INSTALL_DIR}/Microservices/Binaries/lin64/hwi installudevrules
+${INSTALL_DIR}/Microservices/Binaries/${DEBIAN_WASABI_BINARIES_DIR_NAME}/hwi installudevrules
 exit 0"
 echo "${DEBIAN_POST_INST_SCRIPT_CONTENT}" > $DEBIAN/postinst
 chmod 0775 ${DEBIAN}/postinst
@@ -281,7 +305,7 @@ echo "${DEBIAN_DESKTOP_CONTENT}" > $DEBIAN_DESKTOP
 chmod 0644 $DEBIAN_DESKTOP
 
 # Copy the build to into the debian package structure
-cp -a $BUILD_DIR/linux-x64 $DEBIAN_BIN/wasabiwallet
+cp -a "${BUILD_DIR}/${DEBIAN_BUILD_DIR_NAME}" $DEBIAN_BIN/wasabiwallet
 
 # Create wrapper scripts
 echo "#!/usr/bin/env sh
@@ -314,7 +338,9 @@ if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
 fi
 
 # Build the .deb package
-dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
+dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}${DEBIAN_ARCH_NAME}.deb"
+
+done
 fi
 
 #------------------------------------------------------------------------------------#
