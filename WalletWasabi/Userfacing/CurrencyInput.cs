@@ -24,15 +24,48 @@ public static partial class CurrencyInput
 	[GeneratedRegex(@"[\d.,٫٬⎖·\']")]
 	public static partial Regex RegexValidCharsOnly();
 
-	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? best)
+	[GeneratedRegex(@"^[\d]*[.,٫٬⎖·\']?[\d]+$")]
+	public static partial Regex RegexValidInput();
+
+	/// <summary>
+	/// Checks input amount value and attempts to correct it if it is not valid.
+	/// </summary>
+	/// <param name="original">Amount to check and correct if needed.</param>
+	/// <param name="correctedAmount">Amount representing <paramref name="original"/> if <paramref name="original"/> is deemed to be a valid amount string.</param>
+	/// <returns>
+	/// * True when original was modified and the result is stored in <paramref name="correctedAmount"/>.
+	/// * False when original was not modified, or if the original was invalid and could not be corrected.
+	/// </returns>
+	public static bool TryCorrectAmount(string original, [NotNullWhen(true)] out string? correctedAmount)
 	{
-		var corrected = original;
+		// No corrections was done.
+		if (original == "")
+		{
+			correctedAmount = null;
+			return false;
+		}
 
-		// Correct amount
-		Regex digitsOnly = new(@"[^\d.,٫٬⎖·\']");
+		var corrected = original.Replace(" ", "");
 
-		// Make it digits and .,٫٬⎖·\ only.
-		corrected = digitsOnly.Replace(corrected, "");
+		// String was trimmed, so it was changed.
+		if (corrected == "")
+		{
+			correctedAmount = "";
+			return true;
+		}
+
+		// Initial minus is allowed, and it is removed.
+		if (corrected.StartsWith('-'))
+		{
+			corrected = corrected[1..];
+		}
+
+		bool isValid = RegexValidInput().IsMatch(corrected);
+		if (!isValid)
+		{
+			correctedAmount = null;
+			return false;
+		}
 
 		// https://en.wikipedia.org/wiki/Decimal_separator
 		corrected = corrected.Replace(",", DecimalSeparator);
@@ -41,6 +74,11 @@ public static partial class CurrencyInput
 		corrected = corrected.Replace("⎖", DecimalSeparator);
 		corrected = corrected.Replace("·", DecimalSeparator);
 		corrected = corrected.Replace("'", DecimalSeparator);
+
+		if (corrected.StartsWith('.'))
+		{
+			corrected = "0" + corrected;
+		}
 
 		// Trim trailing dots except the last one.
 		if (corrected.EndsWith('.'))
@@ -87,17 +125,24 @@ public static partial class CurrencyInput
 
 		if (corrected != original)
 		{
-			best = corrected;
+			correctedAmount = corrected;
 			return true;
 		}
 
-		best = null;
+		correctedAmount = corrected;
 		return false;
 	}
 
 	public static bool TryCorrectBitcoinAmount(string original, [NotNullWhen(true)] out string? best)
 	{
-		TryCorrectAmount(original, out var corrected);
+		// It does not matter if the value was corrected or not.
+		_ = TryCorrectAmount(original, out var corrected);
+
+		if (corrected is null)
+		{
+			best = null;
+			return false;
+		}
 
 		// If the original value wasn't fixed, it's definitely not a null.
 		corrected ??= original;
@@ -115,7 +160,7 @@ public static partial class CurrencyInput
 			return true;
 		}
 
-		best = null;
+		best = corrected;
 		return false;
 	}
 }
