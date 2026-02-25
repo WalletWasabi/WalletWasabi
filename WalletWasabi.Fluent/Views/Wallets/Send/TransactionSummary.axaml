@@ -62,25 +62,52 @@
     </DockPanel>
     <Separator />
 
-    <!-- Address -->
+    <!-- Single Recipient: Address -->
     <PreviewItem Icon="{StaticResource transceive_regular}"
                    x:Name="PreviewItem"
                    Label="Address"
                    CopyableContent="{Binding AddressText}"
-                   Classes.Dimmed="{Binding IsPreview}">
+                   Classes.Dimmed="{Binding IsPreview}"
+                   IsVisible="{Binding !IsPayToMany}">
       <TextBlock Classes="monoSpaced" Text="{Binding AddressText, FallbackValue=btc029382398fkj34f98df239823}" />
     </PreviewItem>
-    <Separator />
+    <Separator IsVisible="{Binding !IsPayToMany}" />
 
-    <!-- Recipient -->
+    <!-- Single Recipient: Recipient -->
     <PreviewItem Icon="{StaticResource person_regular}"
                    Classes.Dimmed="{Binding IsPreview}"
                    Label="Recipient"
-                   CopyableContent="{Binding Recipient}">
+                   CopyableContent="{Binding Recipient}"
+                   IsVisible="{Binding !IsPayToMany}">
       <LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                               HorizontalAlignment="Left"
                               VerticalAlignment="Center" />
     </PreviewItem>
+
+    <!-- Multi-Recipient: Recipients List -->
+    <StackPanel IsVisible="{Binding IsPayToMany}" Spacing="8">
+      <PreviewItem Icon="{StaticResource person_regular}"
+                     Label="Recipients"
+                     Classes.Dimmed="{Binding IsPreview}">
+        <TextBlock Text="{Binding Recipients.Count, StringFormat='{}{0} recipients'}" />
+      </PreviewItem>
+      <ItemsControl ItemsSource="{Binding Recipients}" Margin="30,0,0,0">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="send:RecipientSummaryViewModel">
+            <StackPanel Margin="0,4" Spacing="2">
+              <DockPanel>
+                <AmountControl DockPanel.Dock="Right" Classes="WithUsd" Amount="{Binding Amount}" Margin="10,0,0,0" />
+                <TextBlock Classes="monoSpaced" Text="{Binding AddressText}" TextTrimming="CharacterEllipsis" />
+              </DockPanel>
+              <LabelsItemsPresenter ItemsSource="{Binding Recipient}"
+                                    HorizontalAlignment="Left"
+                                    VerticalAlignment="Center"
+                                    Margin="0,2,0,0" />
+            </StackPanel>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+    </StackPanel>
 
     <!-- Inputs/Outputs -->
     <Separator />

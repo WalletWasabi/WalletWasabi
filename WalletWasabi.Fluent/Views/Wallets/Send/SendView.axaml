@@ -148,16 +148,16 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
           <DualCurrencyEntryBox x:Name="amountTb"
-                                KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
-                                IsReadOnly="{Binding IsFixedAmount}"
-                                AmountBtc="{Binding AmountBtc}"
-                                ConversionRate="{Binding ExchangeRate}"
-                                CurrencyCode="BTC"
-                                ConversionCurrencyCode="USD"
-                                IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
-                                BalanceBtc="{Binding Balance^.Btc}"
-                                BalanceUsd="{Binding Balance^.Usd^}"
-                                ValidatePasteBalance="False">
+                                  KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                                  IsReadOnly="{Binding IsFixedAmount}"
+                                  AmountBtc="{Binding AmountBtc}"
+                                  ConversionRate="{Binding ExchangeRate}"
+                                  CurrencyCode="BTC"
+                                  ConversionCurrencyCode="USD"
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balance^.Btc}"
+                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
@@ -170,11 +170,11 @@
               </EventTriggerBehavior>
 
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent}"
-                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                        PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent}"
-                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                        PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
                 <FocusControlActionCustom TargetControl="LabelTagBox"/>
               </KeyDownTrigger>
@@ -201,6 +201,60 @@
                  ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}">
         </TagsBox>
       </DockPanel>
+
+      <!-- Additional Recipients -->
+      <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding AdditionalRecipients}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate x:DataType="vm:RecipientRowViewModel">
+            <Border Margin="0,5,0,10" Padding="0,0,0,10" BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="0,0,0,1">
+              <DockPanel>
+                <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding RemoveCommand}" CommandParameter="{Binding}" ToolTip.Tip="Remove recipient" VerticalAlignment="Top" Margin="5,8,0,0">
+                  <PathIcon Data="{StaticResource dismiss_regular}" Width="14" Height="14" />
+                </Button>
+                <StackPanel>
+                  <DockPanel Margin="0,0,0,5">
+                    <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
+                    <TextBox Text="{Binding To}" Classes="monoSpaced" MaxLength="250"
+                             Watermark="Bitcoin address" />
+                  </DockPanel>
+                  <DockPanel Margin="0,0,0,5">
+                    <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
+                    <DockPanel>
+                      <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding InsertMaxCommand}"
+                              Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
+                      <DualCurrencyEntryBox AmountBtc="{Binding AmountBtc}"
+                                            ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
+                                            CurrencyCode="BTC"
+                                            ConversionCurrencyCode="USD"
+                                            IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
+                                            ValidatePasteBalance="False" />
+                    </DockPanel>
+                  </DockPanel>
+                  <DockPanel Margin="0,0,0,5">
+                    <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
+                    <TagsBox VerticalAlignment="Top"
+                             Watermark="{StaticResource LabelsWatermarkText}"
+                             TagSeparator=","
+                             SuggestionsAreCaseSensitive="True"
+                             RestrictInputToSuggestions="False"
+                             Items="{Binding SuggestionLabels.Labels}"
+                             TopItems="{Binding SuggestionLabels.TopSuggestions}"
+                             Suggestions="{Binding SuggestionLabels.Suggestions}"
+                             MaxTextLength="{StaticResource MaxLabelLength}"
+                             IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
+                             ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}" />
+                  </DockPanel>
+                </StackPanel>
+              </DockPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- Add Recipient Button -->
+      <Button DockPanel.Dock="Top" Classes="activeHyperLink" Command="{Binding AddRecipientCommand}"
+              Content="+ Add another recipient" Margin="80,0,0,10" HorizontalAlignment="Left"
+              IsVisible="{Binding IsNotInDonationWorkflow}" />
     </DockPanel>
   </ContentArea>
 </UserControl>

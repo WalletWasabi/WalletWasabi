@@ -1,16 +1,20 @@
-using Avalonia.Threading;
-using NBitcoin;
-using ReactiveUI;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Http;
+using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Reactive.Subjects;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using Avalonia.Threading;
+using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -68,7 +72,11 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isFixedAddress;
 	[AutoNotify] private string? _usdContent;
 	[AutoNotify] private string? _bitcoinContent;
+	[AutoNotify] private bool _isPayToMany;
 
+	private bool _primaryIsMaxAmount;
+	private bool _settingPrimaryMax;
+	private readonly Subject<Unit> _additionalRecipientsChanged = new();
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
@@ -112,25 +120,73 @@ public partial class SendViewModel : RoutableViewModel
 			.Switch()
 			.ToProperty(this, vm => vm.BalanceLatest, out _balanceLatest);
 
+		this.WhenAnyValue(x => x.AmountBtc)
+			.Subscribe(_ =>
+			{
+				if (!_settingPrimaryMax)
+				{
+					_primaryIsMaxAmount = false;
+				}
+			});
+
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
-		InsertMaxCommand = ReactiveCommand.Create(() => AmountBtc = parameters.AvailableCoins.TotalAmount().ToDecimal(MoneyUnit.BTC));
+		InsertMaxCommand = ReactiveCommand.Create(() =>
+		{
+			var totalAvailable = parameters.AvailableCoins.TotalAmount().ToDecimal(MoneyUnit.BTC);
+			var otherAmounts = AdditionalRecipients.Where(r => r.AmountBtc.HasValue).Sum(r => r.AmountBtc!.Value);
+			_settingPrimaryMax = true;
+			AmountBtc = Math.Max(0m, totalAvailable - otherAmounts);
+			_primaryIsMaxAmount = true;
+			_settingPrimaryMax = false;
+		});
 		QrCommand = ReactiveCommand.Create(ShowQrCameraAsync);
 
-		var nextCommandCanExecute =
-			this.WhenAnyValue(
-					x => x.AmountBtc,
-					x => x.To,
-					x => x.SuggestionLabels.Labels.Count,
-					x => x.SuggestionLabels.IsCurrentTextValid)
-				.Select(tup =>
-				{
-					var (amountBtc, to, labelsCount, isCurrentTextValid) = tup;
-					var allFilled = !string.IsNullOrEmpty(to) && amountBtc > 0;
-					var hasError = Validations.AnyErrors;
+		AdditionalRecipients = new ObservableCollection<RecipientRowViewModel>();
+		AddRecipientCommand = ReactiveCommand.Create(OnAddRecipient);
 
-					return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
-				});
+		AdditionalRecipients.CollectionChanged += (_, _) =>
+		{
+			IsPayToMany = AdditionalRecipients.Count > 0;
+			if (IsPayToMany)
+			{
+				PayJoinEndPoint = null;
+			}
+			_additionalRecipientsChanged.OnNext(Unit.Default);
+		};
+
+		var primaryChanged = this.WhenAnyValue(
+				x => x.AmountBtc,
+				x => x.To,
+				x => x.SuggestionLabels.Labels.Count,
+				x => x.SuggestionLabels.IsCurrentTextValid)
+			.Select(_ => Unit.Default);
+
+		var nextCommandCanExecute = primaryChanged
+			.Merge(_additionalRecipientsChanged)
+			.Select(_ =>
+			{
+				var allFilled = !string.IsNullOrEmpty(To) && AmountBtc > 0;
+				var hasError = Validations.AnyErrors;
+				var labelsCount = SuggestionLabels.Labels.Count;
+				var isCurrentTextValid = SuggestionLabels.IsCurrentTextValid;
+
+				if (allFilled && AdditionalRecipients.Count > 0)
+				{
+					allFilled = AdditionalRecipients.All(r => r.IsValid);
+
+					// Check total amount across all recipients against available balance
+					var totalAmountBtc = (AmountBtc ?? 0m) + AdditionalRecipients
+						.Where(r => r.AmountBtc.HasValue)
+						.Sum(r => r.AmountBtc!.Value);
+					if (totalAmountBtc > _parameters.AvailableAmountBtc)
+					{
+						hasError = true;
+					}
+				}
+
+				return allFilled && !hasError && (labelsCount > 0 || isCurrentTextValid);
+			});
 
 		NextCommand = ReactiveCommand.CreateFromTask(OnNextAsync, nextCommandCanExecute);
 		PasteFromClipboardCommand = ReactiveCommand.CreateFromTask<object>(PasteFromClipboardAsync);
@@ -158,6 +214,50 @@ public partial class SendViewModel : RoutableViewModel
 
 	public ICommand? PasteFromClipboardCommand { get; }
 
+	public ObservableCollection<RecipientRowViewModel> AdditionalRecipients { get; }
+
+	public ICommand AddRecipientCommand { get; }
+
+	private decimal GetRemainingBalanceFor(RecipientRowViewModel excludeRow)
+	{
+		var primaryAmount = AmountBtc ?? 0m;
+		var otherAdditionalAmounts = AdditionalRecipients
+			.Where(r => r != excludeRow && r.AmountBtc.HasValue)
+			.Sum(r => r.AmountBtc!.Value);
+		var remaining = _parameters.AvailableAmountBtc - primaryAmount - otherAdditionalAmounts;
+		return Math.Max(0m, remaining);
+	}
+
+	private void OnAddRecipient()
+	{
+		var row = new RecipientRowViewModel(
+			_walletModel,
+			_walletModel.Network,
+			ReactiveCommand.Create<RecipientRowViewModel>(r =>
+			{
+				AdditionalRecipients.Remove(r);
+				r.Dispose();
+			}),
+			GetRemainingBalanceFor);
+
+		row.WhenAnyValue(r => r.AmountBtc, r => r.To, r => r.SuggestionLabels.Labels.Count, r => r.SuggestionLabels.IsCurrentTextValid)
+			.Subscribe(_ => _additionalRecipientsChanged.OnNext(Unit.Default));
+
+		AdditionalRecipients.Add(row);
+	}
+
+	private static Destination ParsedAddressToDestination(Address parsedAddress)
+	{
+		return parsedAddress switch
+		{
+			Address.Bitcoin bitcoin => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.Bitcoin bitcoin } => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
+			Address.Bip21Uri { Address: Address.SilentPayment silentPayment } => new Destination.Silent(silentPayment.Address),
+			Address.SilentPayment silentPayment => new Destination.Silent(silentPayment.Address),
+			_ => throw new ArgumentException("Unknown address type")
+		};
+	}
+
 	private async Task OnNextAsync()
 	{
 		var label = new LabelsArray(SuggestionLabels.Labels.ToArray());
@@ -173,22 +273,34 @@ public partial class SendViewModel : RoutableViewModel
 		}
 
 		var amount = new Money(amountBtc, MoneyUnit.BTC);
-		Destination destination = parsedAddress switch
-		{
-			Address.Bitcoin bitcoin => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
-			Address.Bip21Uri { Address: Address.Bitcoin bitcoin }  => new Destination.Loudly(bitcoin.Address.ScriptPubKey),
-			Address.Bip21Uri { Address: Address.SilentPayment silentPayment }  => new Destination.Silent(silentPayment.Address),
-			Address.SilentPayment silentPayment => new Destination.Silent(silentPayment.Address),
-			_ => throw new ArgumentException("Unknown address type")
-		};
+		Destination destination = ParsedAddressToDestination(parsedAddress);
+
+		var additionalRecipients = AdditionalRecipients
+			.Where(r => r.IsValid && r.ParsedAddress is not null)
+			.Select(r => new RecipientInfo(
+				ParsedAddressToDestination(r.ParsedAddress!),
+				new Money(r.AmountBtc!.Value, MoneyUnit.BTC),
+				new LabelsArray(r.SuggestionLabels.Labels.ToArray()),
+				IsSubtractFee: r.IsMaxAmount))
+			.ToList();
+
+		var isPayToMany = additionalRecipients.Count > 0;
+
+		// For pay-to-many: if any recipient used Max, that recipient gets SubtractFee.
+		// The primary recipient's SubtractFee is set only if it used Max AND no additional recipient also used Max.
+		var anyAdditionalUsedMax = additionalRecipients.Any(r => r.IsSubtractFee);
+		var primarySubtractFee = isPayToMany
+			? _primaryIsMaxAmount && !anyAdditionalUsedMax
+			: amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin);
 
 		var transactionInfo = new TransactionInfo(destination, _walletModel.Settings.AnonScoreTarget)
 		{
 			Amount = amount,
 			Recipient = label,
-			PayJoinClient = GetPayjoinClient(PayJoinEndPoint),
+			PayJoinClient = isPayToMany ? null : GetPayjoinClient(PayJoinEndPoint),
 			IsFixedAmount = IsFixedAmount,
-			SubtractFee = amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin)
+			SubtractFee = primarySubtractFee,
+			AdditionalRecipients = additionalRecipients
 		};
 
 		if (_coinJoinManager is { } coinJoinManager)
@@ -304,15 +416,20 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be less than the total supply of BTC.");
 		}
-		else if (AmountBtc > _parameters.AvailableAmountBtc)
-		{
-			errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the amount requested.");
-		}
 		else if (AmountBtc <= 0)
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
 		}
-		else if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
+		else
+		{
+			var totalAmountBtc = AmountBtc.Value + AdditionalRecipients.Where(r => r.AmountBtc.HasValue).Sum(r => r.AmountBtc!.Value);
+			if (totalAmountBtc > _parameters.AvailableAmountBtc)
+			{
+				errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the total amount requested.");
+			}
+		}
+
+		if (_parsedAddress is Address.SilentPayment && AmountBtc < 0.00001m)
 		{
 			errors.Add(ErrorSeverity.Warning, "Most wallets don't recognize Silent Payments lower than 1000 sats.");
 		}
@@ -430,6 +547,12 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			To = "";
 			AmountBtc = 0;
+			foreach (var r in AdditionalRecipients)
+			{
+				r.Dispose();
+			}
+			AdditionalRecipients.Clear();
+			_primaryIsMaxAmount = false;
 			ClearValidations();
 
 			if (_coinJoinManager is { } coinJoinManager)

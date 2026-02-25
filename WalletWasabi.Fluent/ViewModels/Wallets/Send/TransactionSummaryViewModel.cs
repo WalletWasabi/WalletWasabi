@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -14,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionSummaryViewModel : ViewModelBase
 {
 	private readonly IWalletModel _wallet;
+	private readonly TransactionInfo _info;
 	private BuildTransactionResult? _transaction;
 	[AutoNotify] private bool _transactionHasChange;
 	[AutoNotify] private TimeSpan? _confirmationTime;
@@ -34,7 +36,9 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	{
 		Parent = parent;
 		_wallet = wallet;
+		_info = info;
 		IsPreview = isPreview;
+		IsPayToMany = info.IsPayToMany;
 		AddressText = info.Destination.ToString(_wallet.Network);
 		PayJoinUrl = info.PayJoinClient?.PaymentUrl.AbsoluteUri;
 		IsPayJoin = PayJoinUrl is not null;
@@ -50,22 +54,50 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 
 	public bool IsPayJoin { get; }
 
+	public bool IsPayToMany { get; }
+
+	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = Array.Empty<RecipientSummaryViewModel>();
+
 	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
 	{
 		_transaction = transactionResult;
 
 		ConfirmationTime = _wallet.Transactions.TryEstimateConfirmationTime(info);
 
-		var destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
-		var destinationIndexedTxOut = transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut)
-			.Union(transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut))
-			.FirstOrDefault(x =>
-				info.Destination switch
-				{
-					Destination.Loudly loudly => x.ScriptPubKey == loudly.ScriptPubKey,
-					Destination.Silent silent => false, /* we can only send */
-					_ => throw new InvalidOperationException("Unknown destination type")
-				});
+		Money destinationAmount;
+		if (info.IsPayToMany)
+		{
+			var fee = _transaction.Fee;
+			var hasSubtractFee = info.AllRecipients.Any(r => r.IsSubtractFee);
+
+			// For pay-to-many, show per-recipient amounts. If a recipient used "Max" (SubtractFee),
+			// display their actual received amount (requested minus fee) instead of the raw request.
+			Recipients = info.AllRecipients.Select(r =>
+			{
+				var displayAmount = r.IsSubtractFee ? r.Amount - fee : r.Amount;
+				return new RecipientSummaryViewModel(
+					r.Destination.ToString(_wallet.Network),
+					UiContext.AmountProvider.Create(displayAmount),
+					r.Label);
+			}).ToList();
+
+			// Total destination amount: subtract fee only if one of the recipients absorbs it.
+			destinationAmount = hasSubtractFee
+				? info.TotalAmount - fee
+				: info.TotalAmount;
+		}
+		else
+		{
+			destinationAmount = _transaction.CalculateDestinationAmount(info.Destination);
+		}
+
+		// Collect all destination scriptPubKeys (single or multiple recipients) so the outputs
+		// list can distinguish actual destinations from change. Previously this was a single Script
+		// matched against the primary destination only, which caused additional recipients' outputs
+		// to be incorrectly labeled as "change".
+		var destinationScripts = info.AllRecipients
+			.Select(r => r.Destination.GetScriptPubKey())
+			.ToHashSet();
 
 		Amount = UiContext.AmountProvider.Create(destinationAmount);
 		Fee = UiContext.AmountProvider.Create(_transaction.Fee);
@@ -82,7 +114,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
 			_wallet.Network,
-			destinationIndexedTxOut?.ScriptPubKey,
+			destinationScripts,
 			Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().IsExpanded,
 			!IsPreview ? null : Parent.CurrentTransactionSummary.OutputList?.TreeDataGridSource.Items.First().Children.Count);
 

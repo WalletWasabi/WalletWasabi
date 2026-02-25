@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -20,6 +21,11 @@ public static class TransactionHelpers
 {
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
+		if (transactionInfo.IsPayToMany)
+		{
+			return BuildPayToManyTransaction(wallet, transactionInfo, tryToSign);
+		}
+
 		if (transactionInfo.IsOptimized)
 		{
 			return wallet.BuildChangelessTransaction(
@@ -46,6 +52,29 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
+	private static BuildTransactionResult BuildPayToManyTransaction(Wallet wallet, TransactionInfo transactionInfo, bool tryToSign)
+	{
+		// The primary recipient's SubtractFee is on TransactionInfo itself.
+		// Additional recipients carry their own IsSubtractFee flag.
+		bool isFirst = true;
+		var requests = transactionInfo.AllRecipients.Select(r =>
+		{
+			bool subtractFee = isFirst ? transactionInfo.SubtractFee : r.IsSubtractFee;
+			isFirst = false;
+			return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
+		}).ToArray();
+
+		var intent = new PaymentIntent(requests);
+
+		return wallet.BuildTransaction(
+			password: wallet.Password,
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+			allowUnconfirmed: true,
+			allowedInputs: transactionInfo.Coins.Select(c => c.Outpoint),
+			tryToSign: tryToSign);
+	}
+
 	public static bool TryBuildTransactionWithoutPrevTx(
 		KeyManager keyManager,
 		TransactionInfo transactionInfo,
@@ -54,15 +83,30 @@ public static class TransactionHelpers
 		string password,
 		out Money minimumAmount)
 	{
-		minimumAmount = transactionInfo.Amount;
+		minimumAmount = transactionInfo.IsPayToMany ? transactionInfo.TotalAmount : transactionInfo.Amount;
 
 		try
 		{
-			var intent = new PaymentIntent(
-				destination: transactionInfo.Destination,
-				amount: transactionInfo.Amount,
-				subtractFee: transactionInfo.SubtractFee,
-				label: transactionInfo.Recipient);
+			PaymentIntent intent;
+			if (transactionInfo.IsPayToMany)
+			{
+				bool isFirst = true;
+				var requests = transactionInfo.AllRecipients.Select(r =>
+				{
+					bool subtractFee = isFirst ? transactionInfo.SubtractFee : r.IsSubtractFee;
+					isFirst = false;
+					return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
+				}).ToArray();
+				intent = new PaymentIntent(requests);
+			}
+			else
+			{
+				intent = new PaymentIntent(
+					destination: transactionInfo.Destination,
+					amount: transactionInfo.Amount,
+					subtractFee: transactionInfo.SubtractFee,
+					label: transactionInfo.Recipient);
+			}
 
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);

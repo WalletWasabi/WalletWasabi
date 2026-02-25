@@ -131,7 +131,7 @@ public partial class PrivacySuggestionsModel
 
 	private IEnumerable<PrivacyItem> VerifyPrivacyLevel(Parameters parameters)
 	{
-		var canModifyTransactionAmount = !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsFixedAmount;
+		var canModifyTransactionAmount = !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayToMany;
 
 		var transactionLabels = parameters.Transaction.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget));
 		var onlyKnownByRecipient =
@@ -259,14 +259,25 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
-		var hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
+		bool hasChange;
+		if (parameters.TransactionInfo.IsPayToMany)
+		{
+			var destinationScripts = parameters.TransactionInfo.AllRecipients
+				.Select(r => r.Destination.GetScriptPubKey()).ToHashSet();
+			hasChange = parameters.Transaction.InnerWalletOutputs
+				.Any(x => !destinationScripts.Contains(x.ScriptPubKey));
+		}
+		else
+		{
+			var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
+			hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
+		}
 
 		if (hasChange)
 		{
 			yield return new CreatesChangeWarning();
 
-			if (parameters.IncludeSuggestions && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayJoin)
+			if (parameters.IncludeSuggestions && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsPayToMany)
 			{
 				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(parameters.TransactionInfo, parameters.Transaction, linkedCts).ConfigureAwait(false);
 				foreach (var suggestion in suggestions)

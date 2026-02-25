@@ -1,10 +1,12 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -56,6 +58,24 @@ public partial class TransactionInfo
 
 	public bool IsFixedAmount { get; init; }
 
+	public IReadOnlyList<RecipientInfo> AdditionalRecipients { get; init; } = ImmutableList<RecipientInfo>.Empty;
+
+	public bool IsPayToMany => AdditionalRecipients.Count > 0;
+
+	public IEnumerable<RecipientInfo> AllRecipients
+	{
+		get
+		{
+			yield return new RecipientInfo(Destination, Amount, Recipient, IsSubtractFee: SubtractFee);
+			foreach (var r in AdditionalRecipients)
+			{
+				yield return r;
+			}
+		}
+	}
+
+	public Money TotalAmount => AllRecipients.Aggregate(Money.Zero, (sum, r) => sum + r.Amount);
+
 	private void OnFeeChanged()
 	{
 		ChangelessCoins = Enumerable.Empty<SmartCoin>();
@@ -84,7 +104,8 @@ public partial class TransactionInfo
 			SubtractFee = SubtractFee,
 			IsOtherPocketSelectionPossible = IsOtherPocketSelectionPossible,
 			IsSelectedCoinModificationEnabled = IsSelectedCoinModificationEnabled,
-			IsFixedAmount = IsFixedAmount
+			IsFixedAmount = IsFixedAmount,
+			AdditionalRecipients = AdditionalRecipients
 		};
 	}
 }
