@@ -3,8 +3,8 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -12,9 +12,9 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests;
 
 /// <summary>
-/// Tests for <see cref="AllFeeEstimate"/>.
+/// Tests for <see cref="FeeRateEstimations"/>.
 /// </summary>
-public class AllFeeEstimateTests
+public class FeeRateEstimationsTests
 {
 	[Fact]
 	public void OrdersByTarget()
@@ -27,7 +27,7 @@ public class AllFeeEstimateTests
 			{ 20,new FeeRate(  1M) }
 		};
 
-		var allFee = new AllFeeEstimate(estimations);
+		var allFee = new FeeRateEstimations(estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 		Assert.Equal(estimations[3], allFee.Estimations[3]);
 		Assert.Equal(estimations[19], allFee.Estimations[36]);
@@ -42,7 +42,7 @@ public class AllFeeEstimateTests
 			{ 3, new FeeRate(20M) }
 		};
 
-		var allFee = new AllFeeEstimate(estimations);
+		var allFee = new FeeRateEstimations(estimations);
 		Assert.Single(allFee.Estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 	}
@@ -56,7 +56,7 @@ public class AllFeeEstimateTests
 			{ 1, new FeeRate(20M) }
 		};
 
-		var allFees = new AllFeeEstimate(estimations);
+		var allFees = new FeeRateEstimations(estimations);
 		Assert.Single(allFees.Estimations);
 		Assert.Equal(estimations[1], allFees.Estimations[2]);
 
@@ -67,7 +67,7 @@ public class AllFeeEstimateTests
 			{ 2, new FeeRate(21M) }
 		};
 
-		allFees = new AllFeeEstimate(estimations);
+		allFees = new FeeRateEstimations(estimations);
 		Assert.Single(allFees.Estimations);
 		Assert.Equal(estimations[2], allFees.Estimations[2]);
 	}
@@ -80,7 +80,7 @@ public class AllFeeEstimateTests
 			{ 1007, new FeeRate(20M) }
 		};
 
-		var allFees = new AllFeeEstimate(estimations);
+		var allFees = new FeeRateEstimations(estimations);
 		var est = Assert.Single(allFees.Estimations);
 		Assert.Equal(1008, est.Key);
 	}
@@ -94,7 +94,7 @@ public class AllFeeEstimateTests
 			{ 3, new FeeRate(21M) }
 		};
 
-		var allFee = new AllFeeEstimate(estimations);
+		var allFee = new FeeRateEstimations(estimations);
 		Assert.Single(allFee.Estimations);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 
@@ -107,7 +107,7 @@ public class AllFeeEstimateTests
 			{ 6, new FeeRate(4M) },
 		};
 
-		allFee = new AllFeeEstimate(estimations);
+		allFee = new FeeRateEstimations(estimations);
 		Assert.Equal(2, allFee.Estimations.Count);
 		Assert.Equal(estimations[2], allFee.Estimations[2]);
 		Assert.Equal(estimations[6], allFee.Estimations[6]);
@@ -359,7 +359,7 @@ public class AllFeeEstimateTests
 			{ 18,new FeeRate(1m) } // 3h
 		};
 
-		var allFee = new AllFeeEstimate(estimations);
+		var allFee = new FeeRateEstimations(estimations);
 
 		Assert.Equal(7, allFee.WildEstimations.Count);
 		Assert.Equal(new FeeRate(102m), allFee.WildEstimations[0].feeRate); // 20m
