@@ -94,13 +94,18 @@
         </Style>
       </DockPanel.Styles>
 
+      <!-- Recipient 1 header (only visible in pay-to-many) -->
+      <TextBlock DockPanel.Dock="Top" Text="Recipient 1"
+                 Classes="h8" Opacity="0.6" MinWidth="80" Margin="0,0,0,8"
+                 IsVisible="{Binding IsPayToMany}" />
+
       <!-- To -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
 
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  IsReadOnly="{Binding IsFixedAddress}"
-                 Watermark="(e.g. Bitcoin address, Silent Payment address or payjoin URL)"
+                 Watermark="{Binding AddressWatermark}"
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
@@ -207,54 +212,81 @@
         <ItemsControl.ItemTemplate>
           <DataTemplate x:DataType="vm:RecipientRowViewModel">
             <Border Margin="0,5,0,10" Padding="0,0,0,10" BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="0,0,0,1">
-              <DockPanel>
-                <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding RemoveCommand}" CommandParameter="{Binding}" ToolTip.Tip="Remove recipient" VerticalAlignment="Top" Margin="5,8,0,0">
-                  <PathIcon Data="{StaticResource dismiss_regular}" Width="14" Height="14" />
-                </Button>
-                <StackPanel>
-                  <DockPanel Margin="0,0,0,5">
-                    <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
-                    <TextBox Text="{Binding To}" Classes="monoSpaced" MaxLength="250"
-                             Watermark="Bitcoin address" />
+              <StackPanel>
+                <!-- Recipient header with number and remove button -->
+                <DockPanel Margin="0,0,0,8">
+                  <TextBlock DockPanel.Dock="Left" Text="{Binding Index, StringFormat='Recipient {0}'}"
+                             Classes="h8" Opacity="0.6" VerticalAlignment="Center" MinWidth="80" />
+                  <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding RemoveCommand}" CommandParameter="{Binding}"
+                          ToolTip.Tip="Remove recipient" VerticalAlignment="Center" Margin="5,0,0,0" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <PathIcon Data="{StaticResource dismiss_light}" Width="12" Height="12" />
+                      <TextBlock Text="Remove" Opacity="0.6" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </DockPanel>
+                <!-- To -->
+                <DockPanel Margin="0,0,0,5">
+                  <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
+                  <TextBox Text="{Binding To}" Classes="monoSpaced" MaxLength="250"
+                           Watermark="Bitcoin address">
+                    <TextBox.InnerRightContent>
+                      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+                        <AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                          Focusable="False"
+                                          Command="{Binding PasteCommand}"
+                                          ToolTip.Tip="Paste"
+                                          NormalIcon="{StaticResource paste_regular}"
+                                          ClickIcon="{StaticResource copy_confirmed}" />
+                        <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+                                          KeyboardNavigation.IsTabStop="False"
+                                          Focusable="False"
+                                          Command="{Binding QrCommand}"
+                                          ToolTip.Tip="Scan QR Code"
+                                          NormalIcon="{StaticResource qr_code_regular}" />
+                      </StackPanel>
+                    </TextBox.InnerRightContent>
+                  </TextBox>
+                </DockPanel>
+                <!-- Amount -->
+                <DockPanel Margin="0,0,0,5">
+                  <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding InsertMaxCommand}"
+                            Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
+                    <DualCurrencyEntryBox AmountBtc="{Binding AmountBtc}"
+                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
+                                          CurrencyCode="BTC"
+                                          ConversionCurrencyCode="USD"
+                                          IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
+                                          ValidatePasteBalance="False" />
                   </DockPanel>
-                  <DockPanel Margin="0,0,0,5">
-                    <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
-                    <DockPanel>
-                      <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding InsertMaxCommand}"
-                              Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
-                      <DualCurrencyEntryBox AmountBtc="{Binding AmountBtc}"
-                                            ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
-                                            CurrencyCode="BTC"
-                                            ConversionCurrencyCode="USD"
-                                            IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
-                                            ValidatePasteBalance="False" />
-                    </DockPanel>
-                  </DockPanel>
-                  <DockPanel Margin="0,0,0,5">
-                    <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
-                    <TagsBox VerticalAlignment="Top"
-                             Watermark="{StaticResource LabelsWatermarkText}"
-                             TagSeparator=","
-                             SuggestionsAreCaseSensitive="True"
-                             RestrictInputToSuggestions="False"
-                             Items="{Binding SuggestionLabels.Labels}"
-                             TopItems="{Binding SuggestionLabels.TopSuggestions}"
-                             Suggestions="{Binding SuggestionLabels.Suggestions}"
-                             MaxTextLength="{StaticResource MaxLabelLength}"
-                             IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
-                             ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}" />
-                  </DockPanel>
-                </StackPanel>
-              </DockPanel>
+                </DockPanel>
+                <!-- Recipient label -->
+                <DockPanel Margin="0,0,0,5">
+                  <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
+                  <TagsBox VerticalAlignment="Top"
+                           Watermark="{StaticResource LabelsWatermarkText}"
+                           TagSeparator=","
+                           SuggestionsAreCaseSensitive="True"
+                           RestrictInputToSuggestions="False"
+                           Items="{Binding SuggestionLabels.Labels}"
+                           TopItems="{Binding SuggestionLabels.TopSuggestions}"
+                           Suggestions="{Binding SuggestionLabels.Suggestions}"
+                           MaxTextLength="{StaticResource MaxLabelLength}"
+                           IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
+                           ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}" />
+                </DockPanel>
+              </StackPanel>
             </Border>
           </DataTemplate>
         </ItemsControl.ItemTemplate>
       </ItemsControl>
 
       <!-- Add Recipient Button -->
-      <Button DockPanel.Dock="Top" Classes="activeHyperLink" Command="{Binding AddRecipientCommand}"
+      <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
               Content="+ Add another recipient" Margin="80,0,0,10" HorizontalAlignment="Left"
-              IsVisible="{Binding IsNotInDonationWorkflow}" />
+              IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand" />
     </DockPanel>
   </ContentArea>
 </UserControl>

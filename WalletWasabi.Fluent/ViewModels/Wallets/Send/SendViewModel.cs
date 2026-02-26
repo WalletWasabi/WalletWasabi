@@ -152,6 +152,7 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				PayJoinEndPoint = null;
 			}
+			this.RaisePropertyChanged(nameof(AddressWatermark));
 			_additionalRecipientsChanged.OnNext(Unit.Default);
 		};
 
@@ -204,6 +205,10 @@ public partial class SendViewModel : RoutableViewModel
 
 	public bool IsNotInDonationWorkflow => !_parameters.Donate;
 
+	public string AddressWatermark => IsPayToMany
+		? "Bitcoin address"
+		: "(e.g. Bitcoin address, Silent Payment address or payjoin URL)";
+
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }
@@ -237,13 +242,25 @@ public partial class SendViewModel : RoutableViewModel
 			{
 				AdditionalRecipients.Remove(r);
 				r.Dispose();
+				ReindexRecipients();
 			}),
-			GetRemainingBalanceFor);
+			GetRemainingBalanceFor,
+			index: AdditionalRecipients.Count + 2, // +2 because primary is "Recipient 1"
+			scanQrCodeAsync: async () => await Navigate().To().ShowQrCameraDialog(_walletModel.Network).GetResultAsync(),
+			isQrButtonVisible: IsQrButtonVisible);
 
 		row.WhenAnyValue(r => r.AmountBtc, r => r.To, r => r.SuggestionLabels.Labels.Count, r => r.SuggestionLabels.IsCurrentTextValid)
 			.Subscribe(_ => _additionalRecipientsChanged.OnNext(Unit.Default));
 
 		AdditionalRecipients.Add(row);
+	}
+
+	private void ReindexRecipients()
+	{
+		for (int i = 0; i < AdditionalRecipients.Count; i++)
+		{
+			AdditionalRecipients[i].Index = i + 2;
+		}
 	}
 
 	private static Destination ParsedAddressToDestination(Address parsedAddress)
