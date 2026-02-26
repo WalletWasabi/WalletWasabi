@@ -58,9 +58,9 @@ public static class FeeRateProviders
 	public static FeeRateProvider RpcAsync(IRPCClient rpcClient) =>
 		async cancellationToken =>
 		{
-			var allEstimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
-			Logger.LogInfo($"Fetched fee rate from RPC node: {allEstimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
-			return new FeeRateEstimations(allEstimations.Estimations);
+			var estimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Fetched fee rate from RPC node: {estimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
+			return estimations;
 		};
 
 	public static FeeRateProvider Composed(FeeRateProvider[] feeRateProviders) =>
