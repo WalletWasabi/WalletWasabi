@@ -38,14 +38,8 @@ public static partial class CurrencyInput
 			return false;
 		}
 
-		var corrected = parsedValue.ToString(CultureInfo.InvariantCulture);
-
-		// Enable max 8 decimals.
-		var dotIndex = corrected.IndexOf('.');
-		if (dotIndex != -1 && corrected.Length - (dotIndex + 1) > 8)
-		{
-			corrected = corrected[..(dotIndex + 1 + 8)];
-		}
+		// Use at most 8 decimals.
+		var corrected = parsedValue.ToString("0.########", CultureInfo.InvariantCulture);
 
 		if (corrected != original)
 		{
