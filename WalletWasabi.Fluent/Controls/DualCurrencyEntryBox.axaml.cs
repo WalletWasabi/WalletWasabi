@@ -251,11 +251,6 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better))
-			{
-				text = better;
-			}
-
 			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(decimalValue);
