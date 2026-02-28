@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             xmlns:c="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="vm:SendFeeViewModel"
@@ -220,7 +221,12 @@
                 <Setter Property="FontSize" Value="{StaticResource FontSizeH8}" />
               </Style>
             </StackPanel.Styles>
-            <TextBlock Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, StringFormat='Fee Rate: {0:0.0#####} sat/vByte'}" />
+            <TextBlock>
+            </TextBlock>
+            <TextBlock>
+              <Run Text="Fee Rate:"/>
+              <Run Text="{Binding CurrentSatoshiPerByte, Mode=OneWay, Converter={x:Static c:FeeRateConverters.FeeRateConverter}}" />
+            </TextBlock>
             <TextBlock Text="{Binding CurrentConfirmationTargetString, Mode=OneWay, StringFormat='Estimated Confirmation Time: \{0\}'}" />
           </StackPanel>
         </Panel>
