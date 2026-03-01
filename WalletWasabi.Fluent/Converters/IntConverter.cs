@@ -12,4 +12,7 @@ public static class IntConverter
 
 	public static readonly IValueConverter FPlusConverter =
 		new FuncValueConverter<int, string>(x => x > 0 ? "+" + x : x.ToString());
+
+	public static readonly IValueConverter ToRecipientNumber =
+		new FuncValueConverter<int, string>(x => $"Recipient {x + 2}");
 }

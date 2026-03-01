@@ -19,8 +19,8 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 
 	[AutoNotify] private string _to = "";
 	[AutoNotify] private decimal? _amountBtc;
-	[AutoNotify] private int _index;
 	[AutoNotify] private string? _amountError;
+	[AutoNotify] private bool _isSubtractFee;
 
 	public RecipientRowViewModel(
 		IWalletModel walletModel,
@@ -28,7 +28,8 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 		Action<RecipientRowViewModel> onRemove,
 		Action<RecipientRowViewModel> onInsertMax,
 		Func<Task<string?>> scanQrCodeAsync,
-		bool isQrButtonVisible)
+		bool isQrButtonVisible,
+		Func<bool> isRecalculating)
 	{
 		Network = network;
 		IsQrButtonVisible = isQrButtonVisible;
@@ -55,6 +56,12 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 				var parseResult = AddressParser.Parse(text ?? "", network);
 				ParsedAddress = parseResult.IsOk ? parseResult.Value : null;
 			});
+
+		// Clear IsSubtractFee when user manually changes amount
+		this.WhenAnyValue(x => x.AmountBtc)
+			.Skip(1)
+			.Where(_ => IsSubtractFee && !isRecalculating())
+			.Subscribe(_ => IsSubtractFee = false);
 	}
 
 	public Network Network { get; }
