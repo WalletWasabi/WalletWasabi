@@ -208,7 +208,13 @@ public static class TransactionModifierWalletExtensions
 			allowDoubleSpend: true,
 			tryToSign: true);
 
-		rbf.Transaction.Labels = LabelsArray.Merge(rbf.Transaction.Labels, transactionToSpeedUp.Labels);
+		// Merge labels from the transaction being replaced
+		var currentLabels = keyManager.GetTransactionLabels(rbf.Transaction.GetHash(), wallet.TransactionProcessor.TransactionStore);
+		var mergedLabels = LabelsArray.Merge(currentLabels, transactionToSpeedUp.Labels);
+		keyManager.SetTransactionLabels(rbf.Transaction.GetHash(), mergedLabels, wallet.TransactionProcessor.TransactionStore);
+
+		// Also update the transaction object for immediate use
+		rbf.Transaction.Labels = mergedLabels;
 
 		if (transactionToSpeedUp.IsCancellation)
 		{
