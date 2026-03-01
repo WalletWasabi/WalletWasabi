@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using NBitcoin;
 using NBitcoin.Protocol;
 using System.Linq;
@@ -7,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -50,7 +48,8 @@ public class WalletTests : IClassFixture<RegTestFixture>
 
 		// 2. Create wasabi synchronizer service.
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
+		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 
 		// 3. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, setup.Password, network);
@@ -91,7 +90,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Single(wallet.Coins);
 			var firstCoin = wallet.Coins.Single();
 			Assert.Equal(Money.Coins(0.1m), firstCoin.Amount);
-			Assert.Equal(new Height((int)bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight), firstCoin.Height);
 			Assert.InRange(firstCoin.Index, 0U, 1U);
 			Assert.True(firstCoin.IsAvailable());
 			Assert.Equal("foo label", firstCoin.HdPubKey.Labels);
@@ -117,9 +116,9 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			var thirdCoin = wallet.Coins.OrderBy(x => x.Height).Last();
 			Assert.Equal(Money.Coins(0.01m), secondCoin.Amount);
 			Assert.Equal(Money.Coins(0.02m), thirdCoin.Amount);
-			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, firstCoin.Height.Value);
-			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 1, secondCoin.Height.Value);
-			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), thirdCoin.Height);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight - 2u), firstCoin.Height);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight - 1u), secondCoin.Height);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight - 0u), thirdCoin.Height);
 			Assert.True(thirdCoin.IsAvailable());
 			Assert.Equal("foo label", firstCoin.HdPubKey.Labels);
 			Assert.Equal("bar label", secondCoin.HdPubKey.Labels);
@@ -152,7 +151,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(2);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 2);
 
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId4));
+			Assert.Contains(wallet.Coins, x => x.TransactionId == txId4);
 			var tip = await rpc.GetBestBlockHashAsync();
 			await rpc.InvalidateBlockAsync(tip); // Reorg 1
 			tip = await rpc.GetBestBlockHashAsync();
@@ -163,12 +162,12 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 3);
 
 			Assert.Equal(4, wallet.Coins.Count());
-			Assert.Empty(wallet.Coins.Where(x => x.TransactionId == txId4));
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == tx4bumpRes.TransactionId));
+			Assert.DoesNotContain(wallet.Coins, x => x.TransactionId == txId4);
+			Assert.Contains(wallet.Coins, x => x.TransactionId == tx4bumpRes.TransactionId);
 			var rbfCoin = wallet.Coins.Single(x => x.TransactionId == tx4bumpRes.TransactionId);
 
 			Assert.Equal(Money.Coins(0.03m), rbfCoin.Amount);
-			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight).Value - 2, rbfCoin.Height.Value);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight - 2), rbfCoin.Height);
 			Assert.True(rbfCoin.IsAvailable());
 			Assert.Equal("bar label", rbfCoin.HdPubKey.Labels);
 			Assert.Equal(key2.P2wpkhScript, rbfCoin.ScriptPubKey);
@@ -186,13 +185,13 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			Assert.Equal(85, keyManager.GetKeys(KeyState.Clean).Count());
 			Assert.Equal(87, keyManager.GetKeys().Count());
 
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "foo label"));
-			Assert.Single(keyManager.GetKeys(KeyState.Used, false).Where(x => x.Labels == "bar label"));
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false), x => x.Labels == "foo label");
+			Assert.Single(keyManager.GetKeys(KeyState.Used, false), x => x.Labels == "bar label");
 
 			// TEST MEMPOOL
 			var txId5 = await rpc.SendToAddressAsync(key.GetP2wpkhAddress(network), Money.Coins(0.1m));
 			await Task.Delay(1000); // Wait tx to arrive and get processed.
-			Assert.NotEmpty(wallet.Coins.Where(x => x.TransactionId == txId5));
+			Assert.Contains(wallet.Coins, x => x.TransactionId == txId5);
 			var mempoolCoin = wallet.Coins.Single(x => x.TransactionId == txId5);
 			Assert.Equal(Height.Mempool, mempoolCoin.Height);
 
@@ -200,7 +199,7 @@ public class WalletTests : IClassFixture<RegTestFixture>
 			await rpc.GenerateAsync(1);
 			await setup.WaitForFiltersToBeProcessedAsync(TimeSpan.FromSeconds(120), 1);
 			var res = await rpc.GetTxOutAsync(mempoolCoin.TransactionId, (int)mempoolCoin.Index, true);
-			Assert.Equal(new Height(bitcoinStore.SmartHeaderChain.TipHeight), mempoolCoin.Height);
+			Assert.Equal(new Height.ChainHeight(bitcoinStore.SmartHeaderChain.TipHeight), mempoolCoin.Height);
 		}
 		finally
 		{

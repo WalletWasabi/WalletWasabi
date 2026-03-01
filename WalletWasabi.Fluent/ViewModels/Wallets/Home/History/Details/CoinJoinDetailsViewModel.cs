@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -20,7 +21,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private Amount? _coinJoinFeeAmount;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
-	[AutoNotify] private int _confirmations;
+	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private bool _isConfirmationTimeVisible;
 	[AutoNotify] private FeeRate? _feeRate;

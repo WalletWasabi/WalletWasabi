@@ -8,12 +8,12 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 [AppLifetime]
-public class EditableSearchSourceSource : IEditableSearchSource
+public class EditableSearchSource : ISearchSource
 {
 	private readonly SourceCache<ISearchItem, ComposedKey> _actions = new(item => item.Key);
 	private readonly ISubject<string> _queriesSubject = new Subject<string>();
 
-	public EditableSearchSourceSource()
+	public EditableSearchSource()
 	{
 		var filter = _queriesSubject.Select(SearchSource.DefaultFilter);
 

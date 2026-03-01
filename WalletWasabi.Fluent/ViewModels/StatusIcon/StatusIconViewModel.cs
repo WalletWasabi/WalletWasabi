@@ -41,7 +41,7 @@ public partial class StatusIconViewModel : ViewModelBase
 			.BindTo(this, x => x.VersionText);
 	}
 
-	public IHealthMonitor HealthMonitor { get; }
+	public HealthMonitor HealthMonitor { get; }
 
 	public ICommand OpenTorStatusSiteCommand { get; }
 

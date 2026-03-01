@@ -25,7 +25,7 @@ public class CachedRpcClient : RpcClientBase
 	private static MemoryCacheEntryOptions GetPeersInfoCacheOptions { get; } = CacheOptions(size: 2, expireInSeconds: 0.5);
 	private static MemoryCacheEntryOptions GetMempoolInfoCacheOptions { get; } = CacheOptions(size: 1, expireInSeconds: 10);
 
-	private readonly object _cancellationTokenSourceLock = new();
+	private readonly Lock _cancellationTokenSourceLock = new();
 
 	private readonly IdempotencyRequestCache _idempotencyRequestCache;
 

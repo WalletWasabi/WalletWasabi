@@ -438,8 +438,8 @@ public record Shamir
 		var saltPrefix = extendable ? [] : Utils.Concat("shamir"u8.ToArray(), [(uint8) (id >> 8), (uint8) (id & 0xff)]);
 		var salt = Utils.Concat(saltPrefix, block);
 		var iters = (BASE_ITERATION_COUNT / ROUND_COUNT) << iterationExponent;
-		using var pbkdf2 = new Rfc2898DeriveBytes(key, salt, iters, HashAlgorithmName.SHA256);
-		return pbkdf2.GetBytes(block.Length);
+		var pbkdf2 =  Rfc2898DeriveBytes.Pbkdf2(key, salt, iters, HashAlgorithmName.SHA256, block.Length);
+		return pbkdf2;
 	}
 
 	private static byte[] Xor(byte[] a, byte[] b)

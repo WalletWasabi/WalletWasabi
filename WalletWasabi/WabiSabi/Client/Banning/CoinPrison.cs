@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
@@ -20,7 +21,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		NonBanned
 	}
 
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	public void Ban(SmartCoin coin, DateTimeOffset until)
 	{

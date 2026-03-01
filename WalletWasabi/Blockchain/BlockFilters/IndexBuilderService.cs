@@ -30,7 +30,7 @@ public record IndexBuilderServiceOptions(
 
 public class IndexBuilderService : BackgroundService
 {
-	private readonly BlockFilterGenerator? _generatorBlockFilter;
+	private readonly BlockFilterGenerator _generatorBlockFilter;
 
 	// Dependencies
 	private readonly IRPCClient _rpcClient;
@@ -137,7 +137,7 @@ public class IndexBuilderService : BackgroundService
 		{
 			if(!_indexStorage.TryRemoveLast(out var removedFilter))
 			{
-				Logger.LogInfo($"Failed to remove filter for REORG invalid block: {removedFilter.Header.BlockHash}");
+				Logger.LogInfo("Failed to remove filter for REORG invalid block");
 			}
 		}
 	}
@@ -157,20 +157,20 @@ public class IndexBuilderService : BackgroundService
 		}
 	}
 
-	public async Task<(Height bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
+	public async Task<(ChainHeight bestHeight, IEnumerable<FilterModel> filters, bool found)> GetFilterLinesExcludingAsync(uint256 bestKnownBlockHash, int count, CancellationToken cancellationToken = default)
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var filterModels = _indexStorage.FetchNewerThanBlockHash(bestKnownBlockHash, count).ToList();
 			if (filterModels.Count > 0)
 			{
-				return (new Height((uint)_indexStorage.GetBestHeight()), filterModels, true);
+				return (new Height.ChainHeight((uint)_indexStorage.GetBestHeight()), filterModels, true);
 			}
 
 			var lastFilter = GetLastFilterNoLock();
 			return  lastFilter is null
-				? (new Height(HeightType.Unknown), [], false)
-				: (new Height(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
+				? (ChainHeight.Genesis, [], false) // FIXME: This is an error return, we should use Result<S,E> here
+				: (new ChainHeight(lastFilter.Header.Height), [], lastFilter.Header.BlockHash == bestKnownBlockHash);
 		}
 	}
 

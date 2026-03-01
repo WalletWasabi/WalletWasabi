@@ -91,24 +91,23 @@ public class RegisterInputFailureTests
 	[Fact]
 	public async Task InputRegistrationTimedOutAsync()
 	{
-		WabiSabiConfig cfg = new() { StandardInputRegistrationTimeout = TimeSpan.Zero };
+		WabiSabiConfig cfg = new() { MaxInputCountByRound = 1, StandardInputRegistrationTimeout = TimeSpan.Zero };
 		var round = WabiSabiFactory.CreateRound(cfg);
+		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 		using Key key = new();
 		var coin = WabiSabiFactory.CreateCoin(key);
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
-		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync();
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).CreateAndStartAsync(round);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromSeconds(21));
-
-		arena.Rounds.Add(round);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
 		var ex = await Assert.ThrowsAsync<WrongPhaseException>(
 			async () => await arenaClient.RegisterInputAsync(round.Id, coin.Outpoint, ownershipProof, CancellationToken.None));
 		Assert.Equal(WabiSabiProtocolErrorCode.WrongPhase, ex.ErrorCode);
-		Assert.Equal(Phase.InputRegistration, round.Phase);
+		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 		await arena.StopAsync(CancellationToken.None);
 	}

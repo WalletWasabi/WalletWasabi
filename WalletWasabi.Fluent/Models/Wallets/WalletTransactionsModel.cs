@@ -3,6 +3,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,7 +24,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IWalletModel _walletModel;
@@ -46,13 +46,13 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 		NewTransactionArrived =
 			Observable.FromEventPattern<ProcessedResult>(wallet, nameof(wallet.WalletRelevantTransactionProcessed))
-					  .Select(x => (walletModel, x.EventArgs))
-					  .ObserveOn(RxApp.MainThreadScheduler);
-
-		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+				.Select(x => (walletModel, x.EventArgs))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		Cache = (RequestedCpfpInfoArrived is null ? TransactionProcessed : TransactionProcessed.Merge(RequestedCpfpInfoArrived))
+		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+			.ObserveOn(RxApp.MainThreadScheduler);
+
+		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
 			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)
 			.DisposeWith(_disposable);
 
@@ -66,7 +66,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<Unit> TransactionProcessed { get; }
 
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
-	public IObservable<Unit>? RequestedCpfpInfoArrived { get; }
+	public IObservable<Unit> RequestedCpfpInfoArrived { get; }
 
 	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
 	{

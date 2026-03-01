@@ -1,8 +1,8 @@
-using System;
 using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
@@ -13,7 +13,6 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
@@ -39,11 +38,12 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 		_wallet.Transactions.Cache.Connect()
 			.Transform(x => CreateViewModel(x))
-			.Sort(
+			.SortAndBind(
+				Transactions,
 				SortExpressionComparer<HistoryItemViewModelBase>
 					.Ascending(x => x.Transaction.IsConfirmed)
-					.ThenByDescending(x => x.Transaction.OrderIndex))
-			.Bind(Transactions)
+					.ThenByDescending(x => x.Transaction.OrderIndex)
+			)
 		.Subscribe();
 
 		_wallet.Transactions.IsEmpty
@@ -52,7 +52,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public IObservableCollection<HistoryItemViewModelBase> Transactions { get; } = new ObservableCollectionExtended<HistoryItemViewModelBase>();
 
-	public IEnumerable<SortableItem> Sortables { get; private set; }
+	public IEnumerable<SortableItem> Sortables { get; private set; } = [];
 
 	private static IColumn<HistoryItemViewModelBase> IndicatorsColumn()
 	{
@@ -139,7 +139,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		var txnItem = Transactions.FirstOrDefault(item =>
+		var transactionsSnapshot = Transactions.ToArray();
+		var txnItem = transactionsSnapshot.FirstOrDefault(item =>
 		{
 			if (item is CoinJoinsHistoryItemViewModel cjGroup)
 			{
@@ -156,7 +157,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 			// TDG has a visual glitch, if the item is not visible in the list, it will be glitched when gets expanded.
 			// Selecting first the root item, then the child solves the issue.
-			var index = Transactions.IndexOf(txnItem);
+			var index = transactionsSnapshot.IndexOf(txnItem);
 			Dispatcher.UIThread.Post(() => selection.SelectedIndex = new IndexPath(index));
 
 			if (txnItem is CoinJoinsHistoryItemViewModel cjGroup &&
@@ -188,6 +189,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		// Balance			BalanceColumnView			Balance (BTC)	Auto		145				210			true
 
 		// NOTE: When changing column width or min width please also change HistoryPlaceholderPanel column widths.
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed with the disposables
 		Source = new HierarchicalTreeDataGridSource<HistoryItemViewModelBase>(Transactions)
 		{
 			Columns =
@@ -199,6 +201,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 				ActionsColumn(),
 			}
 		}.DisposeWith(disposables);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 		Source.RowSelection!.SingleSelect = true;
 

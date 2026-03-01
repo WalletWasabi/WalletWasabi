@@ -4,6 +4,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -16,14 +17,34 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public partial class WalletRepository : ReactiveObject
+public partial interface IWalletRepository
 {
-	private readonly IAmountProvider _amountProvider;
+	IObservableCache<IWalletModel, WalletId> Wallets { get; }
+
+	string? DefaultWalletName { get; }
+
+	bool HasWallet { get; }
+
+	void StoreLastSelectedWallet(IWalletModel wallet);
+
+	string GetNextWalletName();
+
+	Task<WalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null);
+
+	IWalletModel SaveWallet(WalletSettingsModel walletSettings);
+
+	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
+
+	IWalletModel? GetExistingWallet(HwiEnumerateEntry device);
+}
+
+public partial class WalletRepository : ReactiveObject, IWalletRepository
+{
+	private readonly AmountProvider _amountProvider;
 	private readonly Dictionary<WalletId, WalletModel> _walletDictionary = new();
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletRepository(IAmountProvider amountProvider)
+	public WalletRepository(AmountProvider amountProvider)
 	{
 		_amountProvider = amountProvider;
 
@@ -61,7 +82,7 @@ public partial class WalletRepository : ReactiveObject
 		return Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
 	}
 
-	public async Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
+	public async Task<WalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
 	{
 		return options switch
 		{
@@ -73,7 +94,7 @@ public partial class WalletRepository : ReactiveObject
 		};
 	}
 
-	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
+	public IWalletModel SaveWallet(WalletSettingsModel walletSettings)
 	{
 		var id = walletSettings.Save();
 		var result = GetById(id);
@@ -96,7 +117,7 @@ public partial class WalletRepository : ReactiveObject
 		return null;
 	}
 
-	private async Task<IWalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
+	private async Task<WalletSettingsModel> CreateNewWalletAsync(WalletCreationOptions.AddNewWallet options)
 	{
 		var (walletName, walletBackup, _) = options;
 
@@ -133,7 +154,7 @@ public partial class WalletRepository : ReactiveObject
 		return new WalletSettingsModel(keyManager, true);
 	}
 
-	private async Task<IWalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
+	private async Task<WalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
 	{
 		var (walletName, device) = options;
 
@@ -149,7 +170,7 @@ public partial class WalletRepository : ReactiveObject
 		return result;
 	}
 
-	private async Task<IWalletSettingsModel> ImportWalletAsync(WalletCreationOptions.ImportWallet options)
+	private async Task<WalletSettingsModel> ImportWalletAsync(WalletCreationOptions.ImportWallet options)
 	{
 		var (walletName, filePath) = options;
 
@@ -160,7 +181,7 @@ public partial class WalletRepository : ReactiveObject
 		return new WalletSettingsModel(keyManager, true);
 	}
 
-	private async Task<IWalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
+	private async Task<WalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
 	{
 		var (walletName, walletBackup, minGapLimit) = options;
 

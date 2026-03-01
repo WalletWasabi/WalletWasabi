@@ -15,14 +15,13 @@ using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
-using WalletWasabi.Wallets.Exchange;
 
 namespace WalletWasabi.Fluent;
 
 public class App : Application
 {
 	private readonly bool _startInBg;
-	private readonly Func<Task>? _backendInitialiseAsync;
+	private readonly Func<Task>? _backendInitializeAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
 	public App()
@@ -30,10 +29,10 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitialiseAsync, bool startInBg) : this()
+	public App(Func<Task> backendInitializeAsync, bool startInBg) : this()
 	{
 		_startInBg = startInBg;
-		_backendInitialiseAsync = backendInitialiseAsync;
+		_backendInitializeAsync = backendInitializeAsync;
 	}
 
 	public override void Initialize()
@@ -64,7 +63,7 @@ public class App : Application
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{
-						await _backendInitialiseAsync!(); // Guaranteed not to be null when not in designer.
+						await _backendInitializeAsync!(); // Guaranteed not to be null when not in designer.
 
 						MainViewModel.Instance.Initialize();
 					});
@@ -82,8 +81,8 @@ public class App : Application
 	private void InitializeTrayIcons()
 	{
 		// TODO: This is temporary workaround until https://github.com/WalletWasabi/WalletWasabi/issues/8151 is fixed.
-		var trayIcon = TrayIcon.GetIcons(this).FirstOrDefault();
-		if (trayIcon is not null)
+		var trayIcons = TrayIcon.GetIcons(this);
+		if (trayIcons is not null && trayIcons.FirstOrDefault() is { } trayIcon)
 		{
 			if (this.TryFindResource("DefaultNativeMenu", out var nativeMenu))
 			{
@@ -93,7 +92,7 @@ public class App : Application
 	}
 
 	// It begins to show that we're re-inventing DI, aren't we?
-	private static IWalletRepository CreateWalletRepository(IAmountProvider amountProvider)
+	private static IWalletRepository CreateWalletRepository(AmountProvider amountProvider)
 	{
 		return new WalletRepository(amountProvider);
 	}
@@ -123,7 +122,7 @@ public class App : Application
 		return new TransactionBroadcasterModel(network);
 	}
 
-	private static IAmountProvider CreateAmountProvider()
+	private static AmountProvider CreateAmountProvider()
 	{
 		return new AmountProvider();
 	}
@@ -149,7 +148,7 @@ public class App : Application
 			applicationSettings,
 			CreateBroadcaster(applicationSettings.Network),
 			amountProvider,
-			new EditableSearchSourceSource(),
+			new EditableSearchSource(),
 			torStatusChecker,
 			new HealthMonitor(applicationSettings, torStatusChecker),
 			new ReleaseHighlights(),

@@ -7,8 +7,6 @@ namespace WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 
 public class TestAddress : ReactiveObject, IAddress
 {
-	private bool _isUsed;
-
 	public TestAddress(string address, ScriptType scriptType)
 	{
 		Text = address;
@@ -23,8 +21,8 @@ public class TestAddress : ReactiveObject, IAddress
 
 	public bool IsUsed
 	{
-		get => _isUsed;
-		set => this.RaiseAndSetIfChanged(ref _isUsed, value);
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public void Hide()

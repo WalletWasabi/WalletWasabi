@@ -143,7 +143,7 @@ public class IndexBuilderServiceTests
 
 		var result = await indexer.GetFilterLinesExcludingAsync(node.BlockChain.Keys.First(), 100);
 		Assert.True(result.found);
-		Assert.Equal(10, result.bestHeight.Value);
+		Assert.Equal((Height.ChainHeight)10u, result.bestHeight);
 		Assert.Equal(10, result.filters.Count());
 
 		var indexingStopTask = indexer.StopAsync(CancellationToken.None);
@@ -242,7 +242,7 @@ public class IndexBuilderServiceTests
 		Assert.Equal(bestBlockHash, lastFilter.Header.BlockHash);
 
 		bool neverCalled = true;
-		var continuation = node.Rpc.OnGetBlockchainInfoAsync;
+		var continuation = node.Rpc.OnGetBlockchainInfoAsync!;
 		node.Rpc.OnGetBlockchainInfoAsync = () =>
 		{
 			neverCalled = false;
@@ -276,7 +276,7 @@ public class IndexBuilderServiceTests
 
 		// Check results
 		Assert.True(result.found);
-		Assert.Equal(new Height((uint)10), result.bestHeight);
+		Assert.Equal((Height.ChainHeight)10u, result.bestHeight);
 		Assert.Equal(3, result.filters.Count()); // Should have filters for blocks 6, 7, 8
 
 		// Verify the first filter is for block 6
@@ -385,9 +385,9 @@ public class IndexBuilderServiceTests
 		// Add delay to RPC calls to increase chance of concurrency issues
 		var random = new Random(1234);
 
-		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync;
-		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync;
-		var onGetVerboseBlockAsyncFunc = node.Rpc.OnGetVerboseBlockAsync;
+		var onGetBlockchainInfoAsyncFunc = node.Rpc.OnGetBlockchainInfoAsync!;
+		var onGetBlockHashAsyncFunc = node.Rpc.OnGetBlockHashAsync!;
+		var onGetVerboseBlockAsyncFunc = node.Rpc.OnGetVerboseBlockAsync!;
 
 		node.Rpc.OnGetBlockchainInfoAsync = async () =>
 		{

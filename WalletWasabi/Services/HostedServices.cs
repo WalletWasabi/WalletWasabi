@@ -13,7 +13,7 @@ public class HostedServices : IDisposable
 
 	private readonly List<HostedService> _services = new();
 
-	private readonly object _servicesLock = new();
+	private readonly Lock _servicesLock = new();
 	private bool IsStartAllAsyncStarted { get; set; } = false;
 
 	public void Register<T>(Func<IHostedService> serviceFactory, string friendlyName) where T : class, IHostedService

@@ -128,7 +128,9 @@ public static class TransactionModifierWalletExtensions
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
 
-		var bestFeeRate = preferredFeeRate ?? wallet.FeeRateEstimations.GetFeeRate(2);
+		var bestFeeRate = preferredFeeRate
+						  ?? wallet.FeeRateEstimations?.GetFeeRate(2)
+						  ?? throw new InvalidOperationException("Cannot get fee estimations.");
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
@@ -206,7 +208,13 @@ public static class TransactionModifierWalletExtensions
 			allowDoubleSpend: true,
 			tryToSign: true);
 
-		rbf.Transaction.Labels = LabelsArray.Merge(rbf.Transaction.Labels, transactionToSpeedUp.Labels);
+		// Merge labels from the transaction being replaced
+		var currentLabels = keyManager.GetTransactionLabels(rbf.Transaction.GetHash(), wallet.TransactionProcessor.TransactionStore);
+		var mergedLabels = LabelsArray.Merge(currentLabels, transactionToSpeedUp.Labels);
+		keyManager.SetTransactionLabels(rbf.Transaction.GetHash(), mergedLabels, wallet.TransactionProcessor.TransactionStore);
+
+		// Also update the transaction object for immediate use
+		rbf.Transaction.Labels = mergedLabels;
 
 		if (transactionToSpeedUp.IsCancellation)
 		{

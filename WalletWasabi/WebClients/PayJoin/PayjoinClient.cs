@@ -90,10 +90,15 @@ public class PayjoinClient : IPayjoinClient
 			try
 			{
 				var error = JObject.Parse(errorStr);
-				throw new PayjoinReceiverException(
-					(int)bpuResponse.StatusCode,
-					error["errorCode"].Value<string>(),
-					error["message"].Value<string>());
+				if(error.TryGetValue("errorCode", out var errorCodeProperty) && error.TryGetValue("message", out var messageProperty))
+				{
+					var errorCode = errorCodeProperty.Value<string>()
+					                ?? throw new InvalidOperationException("Missing 'errorCode' in response.");
+					var message = messageProperty.Value<string>()
+					              ?? throw new InvalidOperationException("Missing 'message'  in response.");
+
+					throw new PayjoinReceiverException((int) bpuResponse.StatusCode, errorCode, message);
+				}
 			}
 			catch (JsonReaderException)
 			{

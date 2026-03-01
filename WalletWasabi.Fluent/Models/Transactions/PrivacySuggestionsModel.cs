@@ -22,7 +22,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Transactions;
 
-[AutoInterface]
 public partial class PrivacySuggestionsModel
 {
 	private const decimal MaximumDifferenceTolerance = Constants.BnBMaximumDifferenceTolerance;
@@ -31,7 +30,7 @@ public partial class PrivacySuggestionsModel
 	private static readonly Money LargePortionSpentMinAmount = new (1_000_000L);
 
 	/// <remarks>Guards use of <see cref="_singleRunCancellationTokenSource"/>.</remarks>
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	/// <summary>Allow at most one suggestion generation run.</summary>
 	private readonly AsyncLock _asyncLock = new();
@@ -51,9 +50,6 @@ public partial class PrivacySuggestionsModel
 		Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
-	/// <summary>
-	///
-	/// </summary>
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
 	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo transactionInfo, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken, bool includeSuggestions)
 	{
@@ -61,13 +57,13 @@ public partial class PrivacySuggestionsModel
 		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
+		using CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
 
 		lock (_lock)
 		{
 			_singleRunCancellationTokenSource?.Cancel();
 			_linkedCancellationTokenSource?.Cancel();
 			_singleRunCancellationTokenSource = singleRunCts;
-			CancellationTokenSource timeoutCts = new(TimeSpan.FromSeconds(15));
 			CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(timeoutCts.Token, singleRunCts.Token, cancellationToken);
 			_linkedCancellationTokenSource = linkedCts;
 		}
@@ -125,7 +121,7 @@ public partial class PrivacySuggestionsModel
 		var labels = transactionResult.SpentCoins.SelectMany(x => x.GetLabels(_wallet.AnonScoreTarget)).Except(recipient);
 		var labelsArray = new LabelsArray(labels);
 
-		if (labelsArray.Any())
+		if (!labelsArray.IsEmpty)
 		{
 			return new TransactionKnownAsYoursByWarning(labelsArray);
 		}

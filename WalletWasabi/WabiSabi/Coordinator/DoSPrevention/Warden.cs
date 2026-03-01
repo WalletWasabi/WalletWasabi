@@ -1,10 +1,10 @@
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Hosting;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 
@@ -12,10 +12,9 @@ namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
 public class Warden : BackgroundService
 {
-	public Warden(string prisonFilePath, WabiSabiConfig config)
+	public Warden(string prisonFilePath)
 	{
 		_prisonFilePath = prisonFilePath;
-		_config = config;
 		_offendersToSaveChannel = Channel.CreateUnbounded<Offender>();
 
 		Prison = DeserializePrison(_prisonFilePath, _offendersToSaveChannel.Writer);
@@ -24,11 +23,10 @@ public class Warden : BackgroundService
 	public Prison Prison { get; }
 
 	private readonly string _prisonFilePath;
-	private readonly WabiSabiConfig _config;
 
 	private readonly Channel<Offender> _offendersToSaveChannel;
 
-	private static Prison DeserializePrison( string prisonFilePath, ChannelWriter<Offender> channelWriter)
+	private static Prison DeserializePrison(string prisonFilePath, ChannelWriter<Offender> channelWriter)
 	{
 		IoHelpers.EnsureContainingDirectoryExists(prisonFilePath);
 		var offenders = new List<Offender>();

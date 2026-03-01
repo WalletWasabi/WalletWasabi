@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -56,8 +57,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _loaded;
 
-	private UiConfig _uiConfig { get; }
-
 	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
 	{
 		UiContext = uiContext;
@@ -66,8 +65,6 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 		Settings = new WalletSettingsViewModel(UiContext, WalletModel);
 		History = new HistoryViewModel(UiContext, WalletModel);
-
-		_uiConfig = Services.UiConfig;
 
 		var searchItems = CreateSearchItems();
 		this.WhenAnyValue(x => x.IsSelected)
@@ -133,6 +130,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		SendCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel)));
 		DonateCommand = ReactiveCommand.Create(() => Navigate().To().Send(walletModel, new SendFlowModel(wallet, walletModel, donate: true)));
 		SendManualControlCommand = ReactiveCommand.Create(() => Navigate().To().ManualControlDialog(walletModel, wallet));
+		_defaultSendCommand = SendCommand;
 
 		this.WhenAnyValue(x => x.Settings.DefaultSendWorkflow)
 			.Subscribe(value => DefaultSendCommand = value == SendWorkflow.Automatic ? SendCommand : SendManualControlCommand);
@@ -141,6 +139,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		TaprootReceiveCommand = SeveralReceivingScriptTypes ?
 			ReactiveCommand.Create(() => Navigate().To().Receive(WalletModel, ScriptType.Taproot)) :
 			null;
+		_defaultReceiveCommand = SegwitReceiveCommand;
 
 		this.WhenAnyValue(x => x.Settings.DefaultReceiveScriptType)
 			.Subscribe(value =>
@@ -175,8 +174,18 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		WalletCoinsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().WalletCoins(WalletModel));
 
 		CoinJoinStateViewModel = WalletModel.IsCoinJoinEnabled
-			? new CoinJoinStateViewModel(uiContext, WalletModel, WalletModel.Coinjoin!, Settings)
+			? new CoinJoinStateViewModel(uiContext, WalletModel, Wallet, WalletModel.Coinjoin!, Settings)
 			: null;
+
+		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel, Wallet));
+
+		if (WalletModel.IsCoinJoinEnabled)
+		{
+			var coinjoinPaymentsSearchItem = CreateCoinJoinPaymentsItem();
+			this.WhenAnyValue(x => x.IsSelected)
+				.Do(shouldDisplay => UiContext.EditableSearchSource.Toggle(coinjoinPaymentsSearchItem, shouldDisplay))
+				.Subscribe();
+		}
 
 		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
@@ -240,6 +249,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public ICommand WalletCoinsCommand { get; private set; }
 
 	public ICommand CoinJoinSettingsCommand { get; private set; }
+
+	public ICommand CoinJoinPaymentsCommand { get; private set; }
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 
@@ -305,6 +316,11 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private ISearchItem CreateDonateItem()
 	{
 		return new ActionableItem("Donate", "Donate to The Wasabi Wallet Developers", () => { DonateCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Send", "Action", "Donate" }) { Icon = "gift", IsDefault = true, Priority = 4 };
+	}
+
+	private ISearchItem CreateCoinJoinPaymentsItem()
+	{
+		return new ActionableItem("Coinjoin Payments", "View and manage queued coinjoin payments", () => { CoinJoinPaymentsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Payments", "Send", "Batch" }) { Icon = "wallet_action_send", IsDefault = true, Priority = 3 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()

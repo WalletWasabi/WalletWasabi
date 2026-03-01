@@ -18,6 +18,7 @@ using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using System.Collections.Immutable;
 using System.Text;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -37,13 +38,12 @@ public abstract record BroadcastOk
 public abstract record BroadcastError
 {
 	public record SpentError : BroadcastError;
-	public record SpentInputError(OutPoint SpentOutpoint) : BroadcastError;
 	public record RpcError(string RpcErrorMessage) : BroadcastError;
 	public record Unknown(string Message) : BroadcastError;
 	public record NotEnoughP2pNodes : BroadcastError;
 	public record AggregatedErrors(BroadcastError[] Errors) : BroadcastError;
 	public record Timeout(string Message) : BroadcastError;
-
+	public record FeeTooLowForPeers(FeeRate TxFeeRate, FeeRate MinPeerFeeRate, SmartTransaction Transaction) : BroadcastError;
 }
 
 public interface IBroadcaster
@@ -90,11 +90,20 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		new("MempoolSpace", ("https://mempool.space/testnet4", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/testnet4"), "/api/tx")
 	];
 
+	public static readonly ImmutableArray<ExternalBroadcasterInfo> SignetProviders =
+	[
+		new("MempoolSpace", ("https://mempool.space/signet", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet"), "/api/tx")
+	];
+
 	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
 	{
 		if (network == Network.Main)
 		{
 			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+		}
+		else if (network == Bitcoin.Instance.Signet)
+		{
+			Broadcaster = SignetProviders.First();
 		}
 		else
 		{
@@ -155,7 +164,21 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
 
-		var broadcastToNode = connectedNodes
+		Node[] nodesWillingToRelayTx = connectedNodes;
+		if (tx.TryGetFeeRate(out var txFeeRate))
+		{
+			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToArray();
+			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
+			{
+				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)
+				{
+					return BroadcastingResult.Fail(new BroadcastError.FeeTooLowForPeers(txFeeRate, minPeerFeeRate, tx));
+				}
+				return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
+			}
+		}
+
+		var broadcastToNode = nodesWillingToRelayTx
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
 			.Take(Math.Max(MinBroadcastNodes, 1 + connectedNodes.Length / 5))
@@ -238,8 +261,8 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 	{
 		var results = await broadcasters
 			.ToAsyncEnumerable()
-			.SelectAwait(async x => await x.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false))
-			.TakeUntil(x => x.IsOk)
+			.Select(async (x, ct) => await x.BroadcastAsync(tx, ct).ConfigureAwait(false))
+			.TakeUntilAsync(x => x.IsOk)
 			.ToArrayAsync(cancellationToken)
 			.ConfigureAwait(false);
 
@@ -266,20 +289,16 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 				Logger.LogInfo($"Failed to broadcast transaction via RPC. Reason: {rpcError.RpcErrorMessage}.");
 				break;
 			case BroadcastError.Timeout _:
-				Logger.LogWarning($"The transaction might have been broadcast but the propagation was not confirmed in time.");
+				Logger.LogWarning("The transaction might have been broadcast but the propagation was not confirmed in time.");
 				break;
 			case BroadcastError.SpentError _:
 				Logger.LogError("Failed to broadcast transaction. There are spent inputs.");
 				break;
-			case BroadcastError.SpentInputError spentInputError:
-				Logger.LogError($"Failed to broadcast transaction. Input {spentInputError.SpentOutpoint} is already spent.");
-				foreach (var coin in walletManager.CoinsByOutPoint(spentInputError.SpentOutpoint))
-				{
-					coin.SpentAccordingToNetwork = true;
-				}
-				break;
 			case BroadcastError.NotEnoughP2pNodes _:
 				Logger.LogInfo("Failed to broadcast transaction via peer-to-peer network: We are not connected to enough nodes.");
+				break;
+			case BroadcastError.FeeTooLowForPeers feeTooLow:
+				Logger.LogInfo($"Failed to broadcast transaction via peer-to-peer network: {feeTooLow.TxFeeRate} is below the minimum required {feeTooLow.MinPeerFeeRate}.");
 				break;
 			case BroadcastError.Unknown unknown:
 				Logger.LogInfo($"Failed to broadcast transaction: {unknown.Message}.");

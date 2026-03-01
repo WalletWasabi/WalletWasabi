@@ -240,7 +240,13 @@ public class CoinJoinCoinSelectionTests
 		SmartCoin smallerAnonCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet - 1);
 		var coinsToSelectFrom = Enumerable
 			.Range(0, 10)
-			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.Select(i =>
+			{
+				var coin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
+				// Otherwise these coins will be tagged as non-private
+				coin.IsSufficientlyDistancedFromExternalKeys = true;
+				return coin;
+			})
 			.Prepend(smallerAnonCoin)
 			.ToList();
 

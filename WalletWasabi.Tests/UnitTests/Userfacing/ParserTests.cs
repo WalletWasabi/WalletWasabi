@@ -59,12 +59,10 @@ public class EndpointParserTests
         }
     }
 
-    [Theory]
-    [InlineData(null)]
-    public void ParseEndpoint_WithEmptyOrNullString_ThrowsArgumentNullException(string endpointString)
+    [Fact]
+    public void ParseEndpoint_WithEmptyOrNullString_ThrowsArgumentNullException()
     {
-        // Act & Assert
-        Assert.Throws<ArgumentNullException>(() => EndPointParser.Parse(endpointString));
+        Assert.Throws<ArgumentNullException>(() => EndPointParser.Parse(endpointString: null!));
     }
 
     [Theory]
@@ -73,7 +71,6 @@ public class EndpointParserTests
     [InlineData("example.com:8080:extra")] // Extra colon
     public void ParseEndpoint_WithInvalidFormat_ThrowsFormatException(string endpointString)
     {
-        // Act & Assert
         Assert.Throws<FormatException>(() => EndPointParser.Parse(endpointString));
     }
 
@@ -83,7 +80,6 @@ public class EndpointParserTests
     public void ParseEndpoint_WithInvalidDefaultPort_ThrowsArgumentOutOfRangeException(
         string endpointString)
     {
-        // Act & Assert
         Assert.Throws<FormatException>(() => EndPointParser.Parse(endpointString));
     }
 }

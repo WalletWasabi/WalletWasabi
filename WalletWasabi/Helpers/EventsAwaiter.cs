@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Helpers;
@@ -28,7 +29,7 @@ public class EventsAwaiter<TEventArgs>
 	}
 
 	/// <remarks>Guards <see cref="EventsArrived"/>.</remarks>
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 
 	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	protected IReadOnlyList<TaskCompletionSource<TEventArgs>> EventsArrived { get; }

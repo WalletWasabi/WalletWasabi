@@ -4,7 +4,7 @@ using WalletWasabi.Backend.Models;
 
 namespace WalletWasabi.Stores;
 
-public interface IIndexStore
+public interface IFilterStore
 {
 	Task<FilterModel[]> FetchBatchAsync(uint fromHeight, int batchSize, CancellationToken cancellationToken);
 }

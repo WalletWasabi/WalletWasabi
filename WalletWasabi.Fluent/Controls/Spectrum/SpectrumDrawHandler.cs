@@ -20,9 +20,10 @@ public class SpectrumDrawHandler : IDrawHandler
 
 	private SKPaint? _blur = new()
 	{
-		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp),
-		FilterQuality = SKFilterQuality.Low
+		ImageFilter = SKImageFilter.CreateBlur(24, 24, SKShaderTileMode.Clamp)
 	};
+
+	private static readonly SKSamplingOptions LowSampling = new(SKFilterMode.Nearest, SKMipmapMode.None);
 
 	private float[] _data;
 	private bool _isGenerating;
@@ -143,6 +144,7 @@ public class SpectrumDrawHandler : IDrawHandler
 			snapshot,
 			new SKRect(0, 0, (float)TextureWidth, (float)TextureHeight),
 			new SKRect(0, 0, (float)bounds.Width, (float)bounds.Height),
+			LowSampling,
 			_blur);
 	}
 

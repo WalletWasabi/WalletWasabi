@@ -11,10 +11,10 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 [NavigationMetaData(Title = "Success")]
 public partial class AddedWalletPageViewModel : RoutableViewModel
 {
-	private readonly IWalletSettingsModel _walletSettings;
+	private readonly WalletSettingsModel _walletSettings;
 	private IWalletModel? _wallet;
 
-	private AddedWalletPageViewModel(IWalletSettingsModel walletSettings, WalletCreationOptions options)
+	private AddedWalletPageViewModel(WalletSettingsModel walletSettings, WalletCreationOptions options)
 	{
 		_walletSettings = walletSettings;
 

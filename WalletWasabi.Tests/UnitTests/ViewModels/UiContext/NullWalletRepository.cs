@@ -32,12 +32,12 @@ public class NullWalletRepository : IWalletRepository
 		return "Wallet";
 	}
 
-	public Task<IWalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
+	public Task<WalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
 	{
-		return Task.FromResult(default(IWalletSettingsModel)!);
+		return Task.FromResult(default(WalletSettingsModel)!);
 	}
 
-	public IWalletModel SaveWallet(IWalletSettingsModel walletSettings)
+	public IWalletModel SaveWallet(WalletSettingsModel walletSettings)
 	{
 		return default!;
 	}

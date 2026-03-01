@@ -1,9 +1,9 @@
 using System.Net.Http;
+using System.Net.Mime;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;
@@ -60,7 +60,7 @@ public class WabiSabiHttpApiClient : IWabiSabiApiRequestHandler
 	private async Task<HttpResponseMessage> InternalSendAsync(RemoteAction action, string jsonString, CancellationToken cancellationToken)
 	{
 		var httpClient = _httpClientFactory.CreateClient(_identity);
-		using StringContent content = new(jsonString, Encoding.UTF8, "application/json");
+		using StringContent content = new(jsonString, Encoding.UTF8, MediaTypeNames.Application.Json);
 		return await httpClient.PostAsync(GetUriEndPoint(action), content, cancellationToken).ConfigureAwait(false);
 	}
 

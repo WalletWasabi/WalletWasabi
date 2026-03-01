@@ -7,10 +7,10 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public static class WalletModelExtensions
 {
-	public static Money TotalAmount(this IEnumerable<ICoinModel> coins) => coins.Sum(x => x.Amount);
+	public static Money TotalAmount(this IEnumerable<CoinModel> coins) => coins.Sum(x => x.Amount);
 
-	public static decimal TotalBtcAmount(this IEnumerable<ICoinModel> coins) => coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
+	public static decimal TotalBtcAmount(this IEnumerable<CoinModel> coins) => coins.TotalAmount().ToDecimal(MoneyUnit.BTC);
 
-	public static IEnumerable<SmartCoin> GetSmartCoins(this IEnumerable<ICoinModel> coins) =>
+	public static IEnumerable<SmartCoin> GetSmartCoins(this IEnumerable<CoinModel> coins) =>
 		coins.Select(x => x.GetSmartCoin()).ToList();
 }

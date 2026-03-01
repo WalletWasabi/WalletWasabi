@@ -183,7 +183,23 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   # Create compressed package files (.zip and .tar.gz)
   PACKAGE_FILE_NAME=$PACKAGE_FILE_NAME_PREFIX-$ALTER_PLATFORM
   if [[ "${PLATFORM_PREFIX}" == "lin" ]]; then
-    tar -pczvf $PACKAGES_DIR/$PACKAGE_FILE_NAME.tar.gz $OUTPUT_DIR
+     if [ -z "$SOURCE_DATE_EPOCH" ]; then
+       export SOURCE_DATE_EPOCH=$(git log -1 --pretty=%ct)
+     fi
+
+     PARENT_DIR=$(dirname "$OUTPUT_DIR")
+     BASE_NAME=$(basename "$OUTPUT_DIR")
+
+     tar --sort=name \
+         --mtime="@${SOURCE_DATE_EPOCH}" \
+         --owner=0 \
+         --group=0 \
+         --numeric-owner \
+         --transform="s|^$BASE_NAME|WasabiWallet|" \
+         --pax-option=exthdr.name=%d/PaxHeaders/%f,delete=atime,delete=ctime \
+         -pczf $PACKAGES_DIR/$PACKAGE_FILE_NAME.tar.gz \
+         -C "$PARENT_DIR" \
+         "$BASE_NAME"
   fi
 
   pushd "$OUTPUT_DIR" || exit

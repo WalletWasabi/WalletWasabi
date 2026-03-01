@@ -4,12 +4,12 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AppLifetime]
-[AutoInterface]
 public partial class WalletSettingsModel : ReactiveObject
 {
 	private readonly KeyManager _keyManager;
@@ -23,8 +23,8 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
-	[AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
-	[AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
+	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
+	[AutoNotify] private SendWorkflow _defaultSendWorkflow;
 
 	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
@@ -109,7 +109,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_isDirty = true;
 	}
 
-	public void RescanWallet(int startingHeight = 0)
+	public void RescanWallet(uint startingHeight = 0)
 	{
 		_keyManager.SetBestHeight(startingHeight);
 	}

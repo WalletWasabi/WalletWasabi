@@ -1,6 +1,6 @@
 using System.Diagnostics;
 using Avalonia;
-using Avalonia.ReactiveUI;
+using Avalonia.Controls;
 using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
@@ -22,15 +22,37 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
+using ReactiveUI.Avalonia;
 
 namespace WalletWasabi.Fluent.Desktop;
 
 public class Program
 {
+	private static int IsShuttingDownFlag;
+
+	internal static bool IsShuttingDown => Volatile.Read(ref IsShuttingDownFlag) == 1;
+
+	internal static bool IsDbusMenuShutdownException(Exception exception)
+	{
+		if (exception is not NullReferenceException)
+		{
+			return false;
+		}
+
+		var declaringType = exception.TargetSite?.DeclaringType?.FullName;
+		if (declaringType?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true)
+		{
+			return true;
+		}
+
+		return exception.StackTrace?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true;
+	}
+
 	// Initialization code. Don't use any Avalonia, third-party APIs or any
 	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
 	// yet and stuff might break.
-	public static async Task<int> Main(string[] args)
+	[STAThread]
+	public static int Main(string[] args)
 	{
 		// Crash reporting must be before the "single instance checking".
 		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
@@ -60,7 +82,7 @@ public class Program
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			var exitCode = await app.RunAsGuiAsync();
+			var exitCode = app.RunAsGui();
 
 			if (app.TerminateService.GracefulCrashException is not null)
 			{
@@ -87,7 +109,21 @@ public class Program
 	/// </summary>
 	private static void TerminateApplication()
 	{
-		Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		Interlocked.Exchange(ref IsShuttingDownFlag, 1);
+		if (Application.Current is null)
+		{
+			return;
+		}
+
+		Dispatcher.UIThread.Post(() =>
+		{
+			if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+			{
+				DetachTrayIconMenus();
+			}
+
+			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
+		}, DispatcherPriority.Send);
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
@@ -111,6 +147,26 @@ public class Program
 
 	private static void LogUnhandledException(object? sender, Exception e) =>
 		Logger.LogWarning(e);
+
+	private static void DetachTrayIconMenus()
+	{
+		if (Application.Current is not Application app)
+		{
+			return;
+		}
+
+		var trayIcons = TrayIcon.GetIcons(app);
+		if (trayIcons is null)
+		{
+			return;
+		}
+
+		foreach (var icon in trayIcons)
+		{
+			// Detach the menu before shutdown to prevent DBus menu updates after disposal.
+			icon.Menu = null;
+		}
+	}
 
 	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
 	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
@@ -147,10 +203,9 @@ public class Program
 
 public static class WasabiAppExtensions
 {
-	public static async Task<ExitCode> RunAsGuiAsync(this WasabiApplication app)
+	public static ExitCode RunAsGui(this WasabiApplication app)
 	{
-		return await app.RunAsync(
-			afterStarting: () =>
+		return app.Run(afterStarting: () =>
 			{
 				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
 				{
@@ -167,23 +222,38 @@ public static class WasabiAppExtensions
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global!, uiConfig, app.SingleInstanceChecker, app.TerminateService);
+				Services.Initialize(app.Global, uiConfig, app.SingleInstanceChecker, app.TerminateService);
 
 				using CancellationTokenSource stopLoadingCts = new();
 
-				AppBuilder appBuilder = AppBuilder
-					.Configure(() => new App(
-						backendInitialiseAsync: async () =>
-						{
-							// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-							await app.Global!.InitializeNoWalletAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+				AppBuilder appBuilder = AppBuilder.Configure(() => new App(
+					backendInitializeAsync: async () =>
+					{
+						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
+						await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
 
-							// Make sure that wallet startup set correctly regarding RunOnSystemStartup
-							await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-						}, startInBg: runGuiInBackground))
+						// Make sure that wallet startup set correctly regarding RunOnSystemStartup
+						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+					}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
 					.SetupAppBuilder()
-					.AfterSetup(_ => ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light));
+					.AfterSetup(_ =>
+					{
+						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
+						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
+						{
+							Dispatcher.UIThread.UnhandledException += (_, e) =>
+							{
+								if (Program.IsShuttingDown &&
+									Program.IsDbusMenuShutdownException(e.Exception))
+								{
+									Logger.LogWarning("Suppressing DBusMenuExporter exception during shutdown.");
+									e.Handled = true;
+								}
+							};
+						}
+					});
 
 				if (app.TerminateService.CancellationToken.IsCancellationRequested)
 				{
@@ -194,8 +264,6 @@ public static class WasabiAppExtensions
 				{
 					appBuilder.StartWithClassicDesktopLifetime(app.AppConfig.Arguments);
 				}
-
-				return Task.CompletedTask;
 			});
 	}
 

@@ -8,9 +8,9 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
 
-public class BlockFilterIterator(IIndexStore indexStore, int maxNumberFiltersInMemory = 1000)
+public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersInMemory = 1000)
 {
-    private readonly IIndexStore _indexStore = indexStore ?? throw new ArgumentNullException(nameof(indexStore));
+    private readonly IFilterStore _filterStore = filterStore ?? throw new ArgumentNullException(nameof(filterStore));
     private readonly Dictionary<uint, FilterModel> _cache = new();
 	private readonly int _maxNumberFiltersInMemory = maxNumberFiltersInMemory > 0
 		? maxNumberFiltersInMemory
@@ -30,7 +30,7 @@ public class BlockFilterIterator(IIndexStore indexStore, int maxNumberFiltersInM
 		// We don't have the next filter to process, so fetch another batch of filters from the database.
 		_cache.Clear();
 
-		var filtersBatch = await _indexStore.FetchBatchAsync(height, _maxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+		var filtersBatch = await _filterStore.FetchBatchAsync(height, _maxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
 		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
 		if (filtersBatch.Length == 0)

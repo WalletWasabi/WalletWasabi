@@ -1,5 +1,6 @@
 using System.ComponentModel;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
@@ -63,11 +64,6 @@ public class ApplicationStateManager : IMainWindowService
 		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
-
-		Observable
-			.FromEventPattern(Services.SingleInstanceChecker, nameof(SingleInstanceChecker.OtherInstanceStarted))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => _stateMachine.Fire(Trigger.Show));
 
 		_stateMachine.Configure(State.InitialState)
 			.InitialTransition(initTransitionState)
@@ -189,10 +185,7 @@ public class ApplicationStateManager : IMainWindowService
 
 		MainViewModel.Instance.ApplyUiConfigWindowState();
 
-		if (_activatable is not null)
-		{
-			_activatable.TryLeaveBackground();
-		}
+		_activatable?.TryLeaveBackground();
 
 		var result = new MainWindow
 		{

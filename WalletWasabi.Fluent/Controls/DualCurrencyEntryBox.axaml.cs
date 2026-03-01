@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using Avalonia;
@@ -83,9 +84,11 @@ public class DualCurrencyEntryBox : TemplatedControl
 	public static readonly StyledProperty<bool> ValidatePasteBalanceProperty =
 		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(ValidatePasteBalance));
 
+	public static readonly StyledProperty<bool> IsFiatProperty =
+		AvaloniaProperty.Register<DualCurrencyEntryBox, bool>(nameof(IsFiat));
+
 	private CompositeDisposable? _disposable;
 	private Button? _swapButton;
-	private decimal? _amountBtc;
 	private bool _isTextInputFocused;
 	private bool _isConversationTextFocused;
 	private bool _skipProcessing;
@@ -109,20 +112,20 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public HorizontalAlignment HorizontalContentAlignment
 	{
-		get { return GetValue(HorizontalContentAlignmentProperty); }
-		set { SetValue(HorizontalContentAlignmentProperty, value); }
+		get => GetValue(HorizontalContentAlignmentProperty);
+		set => SetValue(HorizontalContentAlignmentProperty, value);
 	}
 
 	public VerticalAlignment VerticalContentAlignment
 	{
-		get { return GetValue(VerticalContentAlignmentProperty); }
-		set { SetValue(VerticalContentAlignmentProperty, value); }
+		get => GetValue(VerticalContentAlignmentProperty);
+		set => SetValue(VerticalContentAlignmentProperty, value);
 	}
 
 	public decimal? AmountBtc
 	{
-		get => _amountBtc;
-		set => SetAndRaise(AmountBtcProperty, ref _amountBtc, value);
+		get;
+		set => SetAndRaise(AmountBtcProperty, ref field, value);
 	}
 
 	public string? Text
@@ -227,6 +230,12 @@ public class DualCurrencyEntryBox : TemplatedControl
 		set => SetValue(ValidatePasteBalanceProperty, value);
 	}
 
+	public bool IsFiat
+	{
+		get => GetValue(IsFiatProperty);
+		set => SetValue(IsFiatProperty, value);
+	}
+
 	public ICommand FocusCommand { get; }
 
 	private void InputText(string? text)
@@ -242,11 +251,6 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var better))
-			{
-				text = better;
-			}
-
 			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(decimalValue);
@@ -381,6 +385,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 					return;
 				}
 
+				IsFiat = false;
 				_isTextInputFocused = x;
 				UpdateDisplay();
 			})
@@ -395,6 +400,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 					return;
 				}
 
+				IsFiat = true;
 				_isConversationTextFocused = x;
 				UpdateDisplay();
 			})

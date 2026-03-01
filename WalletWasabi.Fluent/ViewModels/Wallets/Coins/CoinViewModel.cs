@@ -1,4 +1,4 @@
-using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -9,7 +9,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class CoinViewModel : CoinListItem
 {
-    public CoinViewModel(LabelsArray labels, ICoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
+    public CoinViewModel(LabelsArray labels, CoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
 	{
 		Labels = labels;
 		Coin = coin;
@@ -18,7 +18,7 @@ public class CoinViewModel : CoinListItem
 		IsConfirmed = coin.IsConfirmed;
 		IsBanned = coin.IsBanned;
 		var confirmationCount = coin.Confirmations;
-		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural(confirmationCount)}";
+		ConfirmationStatus = $"{confirmationCount} confirmation{TextHelpers.AddSIfPlural((int)confirmationCount)}";
 		BannedUntilUtcToolTip = coin.BannedUntilUtcToolTip;
 		AnonymityScore = coin.AnonScore;
 		BannedUntilUtc = coin.BannedUntilUtc;
@@ -38,6 +38,6 @@ public class CoinViewModel : CoinListItem
         }
 	}
 
-	public ICoinModel Coin { get; }
+	public CoinModel Coin { get; }
 	public override string Key => Coin.Key.ToString();
 }

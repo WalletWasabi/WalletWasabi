@@ -14,6 +14,7 @@ using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using static WalletWasabi.Services.Workers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

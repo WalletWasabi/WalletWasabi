@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 	Searchable = false)]
 public partial class WalletInfoViewModel : RoutableViewModel
 {
-	private readonly IWalletInfoModel _model;
+	private readonly WalletInfoModel _model;
 
 	[AutoNotify] private bool _showSensitiveData;
 	[AutoNotify] private string _showButtonText = "Show sensitive data";

@@ -13,6 +13,7 @@ public class OutputsCoinViewModel : OutputsCoinListItem
 		BtcAddress = txOut.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 		ShowChange = isChange;
 		ShowOwn = !isChange && isOwn;
+		TitleText = "";
 	}
 
 	public OutputsCoinViewModel(OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? nbDiff)

@@ -35,7 +35,7 @@
           pname = "WalletWasabi";
           projectFile = [
              "WalletWasabi.Backend/WalletWasabi.Backend.csproj"
-             "WalletWasabi.Backend/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
              "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
           executables = [
             "WalletWasabi.Backend"
@@ -56,7 +56,8 @@
 
           preFixup = ''
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Fluent.Desktop $out/bin/wasabi
-            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Backend $out/bin/wbend
+            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Backend $out/bin/wasabi-indexer
+            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Coordinator $out/bin/wasabi-coordinator
           '';
 
           binaries = "Microservices/Binaries/lin64";

@@ -3,6 +3,7 @@ using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WebClients;
 using Xunit;
 

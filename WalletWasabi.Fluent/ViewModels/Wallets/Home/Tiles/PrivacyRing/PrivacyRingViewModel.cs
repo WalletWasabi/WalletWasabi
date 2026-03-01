@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.UI;
@@ -92,7 +93,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		PrivacyTile.Activate(disposables);
 	}
 
-	private void RenderRing(SourceList<PrivacyRingItemViewModel> list, IEnumerable<ICoinModel> coins)
+	private void RenderRing(SourceList<PrivacyRingItemViewModel> list, IEnumerable<CoinModel> coins)
 	{
 		if (Width == 0d)
 		{
@@ -106,7 +107,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		SetReferences(list);
 	}
 
-	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list, IEnumerable<ICoinModel> coins)
+	private void CreateSegments(IExtendedList<PrivacyRingItemViewModel> list, IEnumerable<CoinModel> coins)
 	{
 		list.Clear();
 
@@ -122,7 +123,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		list.AddRange(result);
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin(IEnumerable<ICoinModel> coins)
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByCoin(IEnumerable<CoinModel> coins)
 	{
 		var groupsByPrivacy =
 			coins.GroupBy(x => x.PrivacyLevel)
@@ -149,7 +150,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		}
 	}
 
-	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByPrivacyLevel(IEnumerable<ICoinModel> coins)
+	private IEnumerable<PrivacyRingItemViewModel> CreateSegmentsByPrivacyLevel(IEnumerable<CoinModel> coins)
 	{
 		var total = coins.TotalBtcAmount();
 		var start = 0.0m;

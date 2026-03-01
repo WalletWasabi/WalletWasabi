@@ -21,7 +21,7 @@ public class MemoryCache<TKey, TValue> where TKey : notnull
 		public bool IsExpired => Environment.TickCount64 > WhenToEvict;
 	}
 
-	private readonly object _syncObj = new();
+	private readonly Lock _syncObj = new();
 	private readonly ConcurrentDictionary<TKey, ExpirableValue> _internalDictionary = new();
 
 	// ReSharper disable once NotAccessedField.Local

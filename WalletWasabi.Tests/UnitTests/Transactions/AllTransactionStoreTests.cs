@@ -20,7 +20,7 @@ public class AllTransactionStoreTests
 		tx.LockTime = LockTime.Zero;
 		tx.Inputs.Add(new OutPoint(RandomUtils.GetUInt256(), 0), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		tx.Outputs.Add(Money.Coins(1), Script.Empty);
-		return new SmartTransaction(tx, new Height(height), blockHash);
+		return new SmartTransaction(tx, new Height.ChainHeight((uint)height), blockHash);
 	}
 
 	private void PrepareTestEnv(Network network, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3)
@@ -250,11 +250,11 @@ public class AllTransactionStoreTests
 		Assert.False(myUnconfirmedTx2.Confirmed);
 
 		// Create the same transaction but now with a Height to make it confirmed.
-		const int ReorgedBlockHeight = 34532;
+		Height.ChainHeight reorgedBlockHeight = new Height.ChainHeight(34532);
 		uint256 reorgedBlockHash = new(5);
 
-		var tx1Confirmed = new SmartTransaction(uTx1.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, labels: "buz, qux");
-		var tx2Confirmed = new SmartTransaction(uTx2.Transaction, new Height(ReorgedBlockHeight), blockHash: reorgedBlockHash, labels: "buz, qux");
+		var tx1Confirmed = new SmartTransaction(uTx1.Transaction, reorgedBlockHeight, blockHash: reorgedBlockHash, labels: "buz, qux");
+		var tx2Confirmed = new SmartTransaction(uTx2.Transaction, reorgedBlockHeight, blockHash: reorgedBlockHash, labels: "buz, qux");
 		Assert.True(txStore.TryUpdate(tx1Confirmed));
 		Assert.True(txStore.TryUpdate(tx2Confirmed));
 
@@ -301,7 +301,7 @@ public class AllTransactionStoreTests
 		var newestConfirmedTx = storedTxs.Last();
 		var tipHeight = blocks;
 		var tipHash = newestConfirmedTx.BlockHash;
-		Assert.Equal(tipHeight, newestConfirmedTx.Height.Value);
+		Assert.Equal(tipHeight, newestConfirmedTx.Height is Height.ChainHeight(var h) ? (int)h : 0);
 
 		// Reorgs non-existing block.
 		var reorgedTxs = txStore.ReleaseToMempoolFromBlock(RandomUtils.GetUInt256());

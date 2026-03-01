@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
 public static class EditableSearchSourceExtensions
 {
-	public static void Toggle(this IEditableSearchSource searchSource, ISearchItem searchItem, bool isDisplayed)
+	public static void Toggle(this EditableSearchSource searchSource, ISearchItem searchItem, bool isDisplayed)
 	{
 		if (isDisplayed)
 		{
@@ -18,7 +18,7 @@ public static class EditableSearchSourceExtensions
 		}
 	}
 
-	public static void Toggle(this IEditableSearchSource searchSource, IEnumerable<ISearchItem> searchItems, bool isDisplayed)
+	public static void Toggle(this EditableSearchSource searchSource, IEnumerable<ISearchItem> searchItems, bool isDisplayed)
 	{
 		if (isDisplayed)
 		{

@@ -41,7 +41,7 @@ public class PrivacyTextPresenter : UserControl
 	{
 		var privacyChar = UiConstants.PrivacyChar;
 
-		var glyphTypeface = new Typeface((FontFamily?)FontFamily).GlyphTypeface;
+		var glyphTypeface = new Typeface(FontFamily).GlyphTypeface;
 		var glyph = glyphTypeface.GetGlyph(privacyChar);
 
 		var scale = FontSize / glyphTypeface.Metrics.DesignEmHeight;

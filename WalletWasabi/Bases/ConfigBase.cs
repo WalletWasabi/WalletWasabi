@@ -1,5 +1,6 @@
 using System.IO;
 using System.Text;
+using System.Threading;
 using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Bases;
@@ -11,7 +12,7 @@ public abstract class ConfigBase : NotifyPropertyChangedBase
 		FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
 	}
 
-	private readonly object _fileLock = new();
+	private readonly Lock _fileLock = new();
 
 	public string FilePath { get; }
 

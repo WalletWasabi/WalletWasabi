@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using DynamicData;
 using ReactiveUI;
@@ -11,8 +12,18 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
-public abstract partial class CoinListModel : IDisposable
+public interface ICoinListModel
+{
+	IObservableCache<CoinModel, int> List { get; }
+
+	IObservableCache<Pocket, LabelsArray> Pockets { get; }
+
+	CoinModel GetCoinModel(SmartCoin smartCoin);
+
+	/* SKIPPED: Implements an interface */ /* void Dispose(); */
+}
+
+public abstract partial class CoinListModel : ICoinListModel, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
@@ -47,23 +58,23 @@ public abstract partial class CoinListModel : IDisposable
 	protected Wallet Wallet { get; }
 	protected IWalletModel WalletModel { get; }
 
-	public IObservableCache<ICoinModel, int> List { get; }
+	public IObservableCache<CoinModel, int> List { get; }
 
 	public IObservableCache<Pocket, LabelsArray> Pockets { get; }
 
-	public ICoinModel GetCoinModel(SmartCoin smartCoin)
+	public CoinModel GetCoinModel(SmartCoin smartCoin)
 	{
 		return List.Items.First(coinModel => coinModel.Key == smartCoin.Outpoint.GetHashCode());
 	}
 
-	protected ICoinModel CreateCoinModel(SmartCoin smartCoin)
+	protected CoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
 		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget);
 	}
 
 	protected abstract Pocket[] GetPockets();
 
-	protected abstract ICoinModel[] CreateCoinModels();
+	protected abstract CoinModel[] CreateCoinModels();
 
 	public void Dispose() => _disposables.Dispose();
 }

@@ -45,7 +45,7 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		var key = CreateNewKey(isInternal);
 		var scriptPubKey = key.PrivateKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
 		ScriptPubKeys.Add(scriptPubKey, key);
-		return scriptPubKey.GetDestinationAddress(Rpc.Network);
+		return scriptPubKey.GetDestinationAddress(Rpc.Network)!;
 	}
 
 	public (Transaction, Coin) CreateTemplateTransaction()

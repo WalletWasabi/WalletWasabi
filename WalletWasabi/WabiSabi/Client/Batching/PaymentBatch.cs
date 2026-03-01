@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
+using System.Threading;
 using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -21,7 +22,7 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 public class PaymentBatch
 {
 	private readonly List<Payment> _payments = new();
-	private readonly object _syncObj = new();
+	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
 	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
 

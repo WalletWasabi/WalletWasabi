@@ -33,7 +33,8 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 		BitcoinStore bitcoinStore = setup.BitcoinStore;
 
 		var filterProvider = new WebApiFilterProvider(10_000, RegTestFixture.IndexerHttpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
+		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 		var blockCount = await rpc.GetBlockCountAsync() + 1; // Plus one because of the zeroth.
 		// Test initial synchronization.
 		var times = 0;
@@ -72,7 +73,7 @@ public class FilterDownloaderTest : IClassFixture<RegTestFixture>
 
 		// Test filter block hashes are correct.
 		FilterModel[] filters =
-			await bitcoinStore.IndexStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
+			await bitcoinStore.FilterStore.FetchBatchAsync(fromHeight: 0, batchSize: -1, testDeadlineCts.Token);
 
 		for (int i = 0; i < 101; i++)
 		{

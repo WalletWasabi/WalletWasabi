@@ -52,7 +52,9 @@ public class LiveServerTests : IAsyncLifetime
 
 	private IndexerClient MakeIndexerClient(Network network)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope - HttpClient ownership transferred to IndexerClient
 		HttpClient httpClient = HttpClientFactory.CreateClient();
+#pragma warning restore CA2000
 		httpClient.BaseAddress =LiveServerTestsFixture.UriMappings[network];
 		return new IndexerClient(httpClient);
 	}

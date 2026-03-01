@@ -6,7 +6,6 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -54,7 +53,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["amount"] = x.Amount.Satoshi,
 				["anonymityScore"] = x.HdPubKey.AnonymitySet,
 				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["label"] = x.HdPubKey.Labels.ToString(),
 				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
 				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
@@ -81,7 +80,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["amount"] = x.Amount.Satoshi,
 				["anonymityScore"] = x.HdPubKey.AnonymitySet,
 				["confirmed"] = x.Confirmed,
-				["confirmations"] = x.Confirmed ? serverTipHeight - (uint)x.Height.Value + 1 : 0,
+				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
 				["address"] = x.HdPubKey.GetAddress(Global.Network).ToString(),
 				["spentBy"] = x.SpenderTransaction?.GetHash().ToString()
@@ -115,7 +114,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("loadwallet", initializable: false)]
 	public void LoadWallet(string walletName)
 	{
-		SelectWallet(walletName);
+		SelectWallet(walletName, ensureLoaded: true);
 	}
 
 	[JsonRpcMethod("getwalletinfo")]
@@ -162,7 +161,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			// The following elements are valid only after the wallet is fully synchronized
 			info["balance"] = activeWallet.Coins
-				.Where(c => !c.IsSpent() && !c.SpentAccordingToNetwork)
+				.Where(c => !c.IsSpent())
 				.Sum(c => c.Amount.Satoshi);
 			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
 		}
@@ -426,7 +425,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			x => new JsonRpcResult
 			{
 				["datetime"] = x.FirstSeen,
-				["height"] = x.Height.Value,
+				["height"] =  x.Height.ToString(),
 				["amount"] = x.Amount.Satoshi,
 				["label"] = x.Labels.ToString(),
 				["tx"] = x.GetHash(),
@@ -542,7 +541,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("query", initializable: false)]
-	public async Task<object> Execute(string script)
+	public async Task<object> ExecuteAsync(string script)
 	{
 		if (!Global.Config.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
 		{
@@ -592,7 +591,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
-	private void SelectWallet(string walletName)
+	private void SelectWallet(string walletName, bool ensureLoaded = false)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try
@@ -600,7 +599,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			var wallet = Global.WalletManager.GetWalletByName(walletName);
 
 			ActiveWallet = wallet;
-			if (!wallet.Loaded)
+			if (ensureLoaded &&!wallet.Loaded)
 			{
 				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
 			}
@@ -613,13 +612,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private void AssertWalletIsLoaded()
 	{
-		if (ActiveWallet is null)
+		if (ActiveWallet is not {Loaded: true})
 		{
 			throw new InvalidOperationException("There is no wallet loaded.");
-		}
-		if (!ActiveWallet.Loaded)
-		{
-			throw new InvalidOperationException("Wallet is not fully loaded yet.");
 		}
 	}
 

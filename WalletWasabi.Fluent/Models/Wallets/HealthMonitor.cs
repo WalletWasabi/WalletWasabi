@@ -2,6 +2,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
@@ -13,11 +14,6 @@ using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IHealthMonitor : IDisposable
-{
-}
-
-[AutoInterface]
 public partial class HealthMonitor : ReactiveObject
 {
 	private readonly ObservableAsPropertyHelper<ICollection<Issue>> _torIssues;
@@ -43,7 +39,7 @@ public partial class HealthMonitor : ReactiveObject
 		UseTor = Services.Config.UseTor;
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		CanUseBitcoinRpc = applicationSettings.UseBitcoinRpc && !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcCredentialString);
-		BitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
+		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
 
 		// Priority Fee
 		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
@@ -53,10 +49,8 @@ public partial class HealthMonitor : ReactiveObject
 			.Subscribe(priorityFee => PriorityFee = priorityFee.SatoshiPerByte);
 
 		// Blockchain Tip
-		var smartHeaderChain = Services.BitcoinStore.SmartHeaderChain;
-		Observable
-			.FromEventPattern(smartHeaderChain, nameof(smartHeaderChain.TipHeightUpdated))
-			.Select(value => value.EventArgs)
+		Services.EventBus.AsObservable<ServerTipHeightChanged>()
+			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(blockchainTip =>

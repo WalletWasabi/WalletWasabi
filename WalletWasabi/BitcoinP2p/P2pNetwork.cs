@@ -19,7 +19,7 @@ public static class P2pNetwork
 	/// <summary>Maximum number of nodes to establish connection to.</summary>
 	private const int MaximumNodeConnections = 12;
 
-	public static NodesGroup CreateNodesGroupForTestNet(P2pBehavior p2PBehavior)
+	public static NodesGroup CreateNodesGroupForRegTest(P2pBehavior p2PBehavior)
 	{
 		var nodesGroup = new NodesGroup(Network.RegTest);
 		try

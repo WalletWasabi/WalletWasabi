@@ -1,6 +1,7 @@
 using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
@@ -11,7 +12,6 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
@@ -38,7 +38,7 @@ public partial class WalletLoadWorkflow
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
-			.StartWith((uint)_wallet.KeyManager.GetBestHeight().Value)
+			.StartWith(_wallet.KeyManager.GetBestHeight().Height)
 			.Subscribe(x => _lastestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
@@ -108,9 +108,9 @@ public partial class WalletLoadWorkflow
 		}
 
 		// Wait until "client tip height" is initialized.
-		await Services.BitcoinStore.IndexStore.InitializedTcs.Task.ConfigureAwait(true);
+		await Services.BitcoinStore.FilterStore.InitializedTcs.Task.ConfigureAwait(true);
 
-		InitialHeight = (uint) _wallet.KeyManager.GetBestHeight().Value;
+		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 	}
 
 	private void UpdateProgress()
@@ -124,8 +124,8 @@ public partial class WalletLoadWorkflow
 			return;
 		}
 
-		var currentheight = _lastestProcessBlockHeight;
-		var percentProgress = 100 * ((currentheight - InitialHeight) / (double)(tipHeight - InitialHeight));
-		_progress.OnNext((RemainingFiltersToDownload, currentheight, tipHeight, percentProgress));
+		var currentHeight = _lastestProcessBlockHeight;
+		var percentProgress = 100 * ((currentHeight - InitialHeight) / (double)(tipHeight - InitialHeight));
+		_progress.OnNext((RemainingFiltersToDownload, currentHeight, tipHeight, percentProgress));
 	}
 }

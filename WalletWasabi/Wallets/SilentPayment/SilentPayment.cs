@@ -133,7 +133,7 @@ public static class SilentPayment
 			{
 				return null;
 			}
-			return ECXOnlyPubKey.Create(pubKeyParameters.ToBytes()).Q;
+			return ECXOnlyPubKey.Create(pubKeyParameters!.ToBytes()).Q;
 		}
 		if (txInWitness != WitScript.Empty && spk.IsScriptType(ScriptType.P2WPKH))
 		{
@@ -148,7 +148,7 @@ public static class SilentPayment
 		if (scriptSig != Script.Empty && spk.IsScriptType(ScriptType.P2PKH))
 		{
 			var pubKeyId = PayToPubkeyHashTemplate.Instance.ExtractScriptPubKeyParameters(spk);
-			var pubKeyHash = new uint160(pubKeyId.ToBytes());
+			var pubKeyHash = new uint160(pubKeyId!.ToBytes());
 
 			var scriptSigBytes = scriptSig.ToBytes();
 			var pubKeyBytes = Enumerable.Range(33, scriptSigBytes.Length-32)

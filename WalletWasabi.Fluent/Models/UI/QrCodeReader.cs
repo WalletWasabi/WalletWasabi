@@ -15,8 +15,14 @@ using ZXing;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-[AutoInterface]
-public partial class QrCodeReader
+public interface IQrCodeReader
+{
+	bool IsPlatformSupported { get; }
+
+	IObservable<(string decoded, Bitmap bitmap)> Read();
+}
+
+public partial class QrCodeReader : IQrCodeReader
 {
 	private readonly QRCodeReader _decoder = new();
 

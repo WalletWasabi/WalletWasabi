@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -126,20 +127,21 @@ public class KeyManager
 		new((network.Name, purpose) switch
 		{
 			("TestNet4", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/1h/0h",
+			("signet", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/1h/0h",
 			("RegTest", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/0h/0h",
 			("Main", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit)) => "m/84h/0h/0h",
 			("TestNet4", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/1h/0h",
+			("signet", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/1h/0h",
 			("RegTest", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/0h/0h",
 			("Main", KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86)) => "m/86h/0h/0h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
+			("signet", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
 			("RegTest", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/0h/0h/1h",
 			("Main",  KeyPurpose.SilentPaymentKey.ScanKey)=> "m/352h/0h/0h/1h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
+			("signet", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
 			("RegTest", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/0h/0h/0h",
 			("Main",  KeyPurpose.SilentPaymentKey.SpendKey)=> "m/352h/0h/0h/0h",
-			("TestNet4", KeyPurpose.SilentPaymentKey.Key) => "m/353h/1h/0h",
-			("RegTest", KeyPurpose.SilentPaymentKey.Key) => "m/353h/0h/0h",
-			("Main",  KeyPurpose.SilentPaymentKey.Key)=> "m/353h/0h/0h",
 			(_, KeyPurpose.LoudPaymentKey s) => throw new ArgumentException($"Unknown account for network '{network}' and script type {s.ScriptPubKeyType}."),
 			(_, KeyPurpose.SilentPaymentKey)=> throw new ArgumentException($"Unknown account for silentPayment and network '{network}'"),
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
@@ -204,6 +206,13 @@ public class KeyManager
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
+	/// <summary>
+	/// Transaction labels stored per-wallet for portability.
+	/// Key is txid as hex string, value is comma-separated labels.
+	/// This is the primary source for transaction labels; falls back to shared Transactions.sqlite.
+	/// </summary>
+	public Dictionary<string, string> TransactionLabels { get; private set; } = new();
+
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
@@ -258,7 +267,7 @@ public class KeyManager
 	private static KeyManager CreateNew(byte[] seed, string password, Network network, string? filePath = null)
 	{
 		var extKey = ExtKey.CreateFromSeed(seed);
-		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 		BlockchainState blockchainState = new(network);
@@ -302,7 +311,7 @@ public class KeyManager
 	private static KeyManager Recover(byte[] seed, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
 	{
 		ExtKey extKey = ExtKey.CreateFromSeed(seed);
-		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, Network.Main);
+		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
 
@@ -372,7 +381,7 @@ public class KeyManager
 		{
 			var (generator, generatorSetter) = purpose switch
 			{
-				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => ((HdPubKeyGenerator?) SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator?>) (g => SegwitExternalKeyGenerator = g)),
+				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => (SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator?>) (g => SegwitExternalKeyGenerator = g)),
 				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, g => TaprootExternalKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),
@@ -412,7 +421,7 @@ public class KeyManager
 
 	public HdPubKey GetNextSilentPaymentDummyKey(int scanKeyIndex, PubKey pubkey, LabelsArray labels, ECPubKey tweak)
 	{
-		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Key).Derive((uint)scanKeyIndex);
+		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Account).Derive((uint)scanKeyIndex);
 		lock (_criticalStateLock)
 		{
 			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1 ) + 1;
@@ -691,7 +700,7 @@ public class KeyManager
 
 	#region _blockchainState
 
-	public Height GetBestHeight()
+	public ChainHeight GetBestHeight()
 	{
 		lock (_criticalStateLock)
 		{
@@ -704,7 +713,7 @@ public class KeyManager
 		return _blockchainState.Network;
 	}
 
-	public void SetBestHeight(Height height, bool toFile = true)
+	public void SetBestHeight(ChainHeight height, bool toFile = true)
 	{
 		lock (_criticalStateLock)
 		{
@@ -716,7 +725,7 @@ public class KeyManager
 		}
 	}
 
-	public void SetMaxBestHeight(Height newHeight)
+	public void SetMaxBestHeight(ChainHeight newHeight)
 	{
 		lock (_criticalStateLock)
 		{
@@ -724,7 +733,7 @@ public class KeyManager
 			if (newHeight < prevHeight)
 			{
 				SetBestHeight(newHeight);
-				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - (int)newHeight}. From {prevHeight} to {newHeight}.");
+				Logger.LogWarning($"Wallet ({WalletName}) height has been set back by {prevHeight - newHeight}. From {prevHeight} to {newHeight}.");
 			}
 		}
 	}
@@ -751,6 +760,71 @@ public class KeyManager
 		ToFile();
 	}
 
+	/// <summary>
+	/// Gets transaction labels using dual-source logic: wallet-scoped labels first, then shared Transactions.sqlite.
+	/// </summary>
+	/// <param name="txid">Transaction ID</param>
+	/// <param name="transactionStore">Optional shared transaction store for fallback</param>
+	/// <returns>Labels for the transaction, or empty if not found</returns>
+	public LabelsArray GetTransactionLabels(uint256 txid, ITransactionStore? transactionStore = null)
+	{
+		var txidHex = txid.ToString();
+
+		// Priority 1: Wallet's own labels (portable, primary source)
+		if (TransactionLabels.TryGetValue(txidHex, out var labelString) && !string.IsNullOrEmpty(labelString))
+		{
+			return new LabelsArray(labelString);
+		}
+
+		// Priority 2: Shared store labels (for backward compatibility and cross-wallet sharing on same machine)
+		if (transactionStore is not null && transactionStore.TryGetTransaction(txid, out var tx))
+		{
+			return tx.Labels;
+		}
+
+		return LabelsArray.Empty;
+	}
+
+	/// <summary>
+	/// Sets transaction labels using dual-write strategy for backward compatibility.
+	/// Writes to both wallet-scoped storage (portable) and shared Transactions.sqlite (for cross-wallet sharing).
+	/// </summary>
+	/// <param name="txid">Transaction ID</param>
+	/// <param name="labels">Labels to set</param>
+	/// <param name="transactionStore">Optional shared transaction store for dual-write</param>
+	public void SetTransactionLabels(uint256 txid, LabelsArray labels, ITransactionStore? transactionStore = null)
+	{
+		var txidHex = txid.ToString();
+
+		// Write to wallet (portable, primary source)
+		if (labels.IsEmpty)
+		{
+			TransactionLabels.Remove(txidHex);
+		}
+		else
+		{
+			TransactionLabels[txidHex] = labels.ToString();
+		}
+		ToFile();
+
+		// Also write to shared store (for backward compatibility and cross-wallet sharing on same machine)
+		if (transactionStore is not null && transactionStore.TryGetTransaction(txid, out var tx))
+		{
+			// Create a new transaction with updated labels for the store
+			var txWithLabels = new SmartTransaction(tx.Transaction, tx.Height, tx.BlockHash, tx.BlockIndex, labels, tx.IsReplacement, tx.IsSpeedup, tx.IsCancellation, tx.FirstSeen);
+
+			// Update in the store if it supports updates
+			if (transactionStore is AllTransactionStore allStore)
+			{
+				allStore.AddOrUpdate(txWithLabels);
+			}
+			else if (transactionStore is TransactionStore singleStore)
+			{
+				singleStore.TryUpdate(txWithLabels);
+			}
+		}
+	}
+
 	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
@@ -774,6 +848,7 @@ public class KeyManager
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
+			("TransactionLabels", Encode.Dictionary(keyManager.TransactionLabels.ToDictionary(kvp => kvp.Key, kvp => (JsonNode)kvp.Value))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -781,8 +856,13 @@ public class KeyManager
 		Decode.Object(get =>
 		{
 			var fingerprint = Decode.Field("MasterFingerprint", Decode.HDFingerprint)(get.Value).Match(v => v, _ => (HDFingerprint?)null);
+
+			// todo: review again
+			var blockchainState = get.Required("BlockchainState", Decode.BlockchainState);
+			var network = blockchainState.Network;
+			var encryptedSecretDecoder = Decode.String.Map(s => new BitcoinEncryptedSecretNoEC(s, network));
 			var km = new KeyManager(
-				get.Optional("EncryptedSecret", Decode.BitcoinEncryptedSecretNoEC),
+				get.Optional("EncryptedSecret", encryptedSecretDecoder),
 				get.Optional("ChainCode", Decode.ByteArray),
 				fingerprint,
 
@@ -791,7 +871,7 @@ public class KeyManager
 				get.Optional("SilentPaymentScanExtPubKey", Decode.ExtPubKey),
 				get.Optional("SilentPaymentSpendExtPubKey", Decode.ExtPubKey),
 				get.Optional("MinGapLimit", Decode.Int),
-				get.Required("BlockchainState", Decode.BlockchainState),
+				blockchainState,
 				(string?) "",
 				get.Optional("AccountKeyPath", Decode.KeyPath),
 				get.Optional("TaprootAccountKeyPath", Decode.KeyPath)
@@ -806,7 +886,8 @@ public class KeyManager
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
-				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
+				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
+				TransactionLabels = get.Optional("TransactionLabels", Decode.Dictionary(Decode.String)) ?? new Dictionary<string, string>()
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;
@@ -838,7 +919,7 @@ public abstract record KeyPurpose
 {
 	public static readonly KeyPurpose Scan = new SilentPaymentKey.ScanKey();
 	public static readonly KeyPurpose Spend = new SilentPaymentKey.SpendKey();
-	public static readonly KeyPurpose Key = new SilentPaymentKey.Key();
+	public static readonly KeyPurpose Account = new SilentPaymentKey.AccountKey();
 	public static KeyPurpose Loud(ScriptPubKeyType spk) => new LoudPaymentKey(spk);
 
 	public abstract record SilentPaymentKey : KeyPurpose
@@ -846,7 +927,7 @@ public abstract record KeyPurpose
 		public record ScanKey : SilentPaymentKey;
 
 		public record SpendKey : SilentPaymentKey;
-		public record Key : SilentPaymentKey;
+		public record AccountKey : SilentPaymentKey;
 	};
 
 	public record LoudPaymentKey(ScriptPubKeyType ScriptPubKeyType) : KeyPurpose;

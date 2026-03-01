@@ -53,7 +53,7 @@ public class WalletManager : IWalletProvider
 	/// <remarks>All access must be guarded by <see cref="_lock"/> object.</remarks>
 	private readonly HashSet<Wallet> _wallets = new();
 
-	private readonly object _lock = new();
+	private readonly Lock _lock = new();
 	private readonly AsyncLock _startStopWalletLock = new();
 
 	private bool IsInitialized { get; set; }
@@ -313,23 +313,6 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public IEnumerable<SmartCoin> CoinsByOutPoint(OutPoint input)
-	{
-		lock (_lock)
-		{
-			var res = new List<SmartCoin>();
-			foreach (var wallet in _wallets.Where(x => x.Loaded))
-			{
-				if (wallet.Coins.TryGetByOutPoint(input, out var coin))
-				{
-					res.Add(coin);
-				}
-			}
-
-			return res;
-		}
-	}
-
 	public void Initialize()
 	{
 		IsInitialized = true;
@@ -339,7 +322,7 @@ public class WalletManager : IWalletProvider
 	{
 		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
 		{
-			km.SetMaxBestHeight(new Height(bestHeight));
+			km.SetMaxBestHeight(bestHeight);
 		}
 	}
 

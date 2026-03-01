@@ -14,7 +14,7 @@
                EnableBack="{Binding EnableBack}"
                EnableNext="True"
                NextContent="Done"
-               EnableCancel="{Binding EnableCancel}"
+               EnableCancel="False"
                IsBusy="{Binding IsBusy}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <ContentArea.Caption>The chosen coins will be excluded from coinjoin. It's important to note that there will be no increase in the privacy of those coins.</ContentArea.Caption>

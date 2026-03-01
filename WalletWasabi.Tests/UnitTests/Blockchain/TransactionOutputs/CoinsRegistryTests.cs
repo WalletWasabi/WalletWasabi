@@ -247,9 +247,9 @@ public class CoinsRegistryTests
 				SmartCoin finalCoin = Assert.Single(Coins);
 				Assert.Equal("E", finalCoin.HdPubKey.Labels);
 
-				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "B"));
-				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "C"));
-				Assert.Empty(Coins.AsAllCoinsView().Where(coin => coin.HdPubKey.Labels == "D"));
+				Assert.DoesNotContain(Coins.AsAllCoinsView(), coin => coin.HdPubKey.Labels == "B");
+				Assert.DoesNotContain(Coins.AsAllCoinsView(), coin => coin.HdPubKey.Labels == "C");
+				Assert.DoesNotContain(Coins.AsAllCoinsView(), coin => coin.HdPubKey.Labels == "D");
 
 				// Replaced transactions tx1 and tx2 have to be removed because tx3 replaced tx1.
 				Assert.False(Coins.IsKnown(tx1.GetHash()));
@@ -429,7 +429,7 @@ public class CoinsRegistryTests
 		tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		tx.Outputs.Add(amount, scriptPubKey);
 
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight((uint)height));
 	}
 
 	/// <summary>Creates a transaction that fully spends the given coin to a single outpoint (leaving rest for fees).</summary>

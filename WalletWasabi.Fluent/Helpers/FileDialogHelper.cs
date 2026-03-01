@@ -4,6 +4,7 @@ using Avalonia.Controls.ApplicationLifetimes;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net.Mime;
 using System.Runtime.InteropServices;
 using System.Threading.Tasks;
 using Avalonia.Platform.Storage;
@@ -23,14 +24,14 @@ public static class FileDialogHelper
 	{
 		Patterns = new[] { "*.json" },
 		AppleUniformTypeIdentifiers = new[] { "public.json" },
-		MimeTypes = new[] { "application/json" }
+		MimeTypes = new[] { MediaTypeNames.Application.Json }
 	};
 
 	private static FilePickerFileType Text { get; } = new("TXT files")
 	{
 		Patterns = new[] { "*.txt" },
 		AppleUniformTypeIdentifiers = new[] { "public.text" },
-		MimeTypes = new[] { "text/plain" }
+		MimeTypes = new[] { MediaTypeNames.Text.Plain }
 	};
 
 	private static FilePickerFileType Psbt { get; } = new("PSBT files")
@@ -49,7 +50,7 @@ public static class FileDialogHelper
 	{
 		Patterns = new[] { "*.png" },
 		AppleUniformTypeIdentifiers = new[] { "public.png" },
-		MimeTypes = new[] { "image/png" }
+		MimeTypes = new[] { MediaTypeNames.Image.Png }
 	};
 
 	private static IStorageProvider? GetStorageProvider()

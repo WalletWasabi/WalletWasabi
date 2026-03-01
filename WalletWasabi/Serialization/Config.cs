@@ -78,7 +78,7 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static readonly Decoder<EndPoint> EndPoint =
+	public static Decoder<EndPoint> EndPoint =>
 		String.AndThen(s =>
 		{
 			if (EndPointParser.TryParse(s, out EndPoint? endPoint))
@@ -89,10 +89,10 @@ public static partial class Decode
 			return Fail<EndPoint>($"Invalid endpoint format: '{s}'");
 		});
 
-	public static readonly Decoder<ExtPubKey> ExtPubKey =
+	public static Decoder<ExtPubKey> ExtPubKey =>
 		String.Map(s => NBitcoin.ExtPubKey.Parse(s, NBitcoin.Network.Main)).Catch();
 
-	public static readonly Decoder<AnnouncerConfig> AnnouncerConfig =
+	private static Decoder<AnnouncerConfig> AnnouncerConfig =>
 		Object(get => new AnnouncerConfig{
 			CoordinatorName = get.Required("CoordinatorName", String),
 			IsEnabled = get.Required("IsEnabled", Bool),

@@ -1,9 +1,8 @@
 using System.Net;
 using System.Net.Http;
-using System.Threading;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Mocks;
 
 public class MockHttpClientFactory : IHttpClientFactory
 {
@@ -15,7 +14,9 @@ public class MockHttpClientFactory : IHttpClientFactory
 
 	public static MockHttpClientFactory Create(params Func<HttpResponseMessage>[] responses)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope - MockHttpClient is returned via factory and disposed by caller
 		var mockHttpClient = new MockHttpClient();
+#pragma warning restore CA2000
 		var mockHttpClientFactory = new MockHttpClientFactory {OnCreateClient = _ => mockHttpClient};
 
 		var callCounter = 0;
@@ -27,14 +28,6 @@ public class MockHttpClientFactory : IHttpClientFactory
 		};
 		return mockHttpClientFactory;
 	}
-}
-
-public class MockHttpClientHandler : HttpClientHandler
-{
-	public Func<HttpRequestMessage, CancellationToken, Task<HttpResponseMessage>> OnSendAsync;
-
-	protected override Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken) =>
-		OnSendAsync(request, cancellationToken);
 }
 
 public static class HttpResponseMessageEx

@@ -2,7 +2,6 @@ using Microsoft.Data.Sqlite;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Threading;
@@ -19,9 +18,9 @@ namespace WalletWasabi.Stores;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class IndexStore : IIndexStore, IAsyncDisposable
+public class FilterStore : IFilterStore, IAsyncDisposable
 {
-	public IndexStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
+	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
 	{
 		_smartHeaderChain = smartHeaderChain;
 		_network = network;
@@ -29,15 +28,11 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
-		// Migration data.
-		_oldIndexFilePath = Path.Combine(workFolderPath, "MatureIndex.dat");
-		_oldImmatureIndexFilePath = Path.Combine(workFolderPath, "ImmatureIndex.dat");
-		_newIndexFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		_runMigration = File.Exists(_oldIndexFilePath);
+		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
 
 		if (network == Network.RegTest)
 		{
-			DeleteIndex(_newIndexFilePath);
+			DeleteIndex(_storageFilePath);
 		}
 
 		IndexStorage = CreateBlockFilterSqliteStorage();
@@ -47,13 +42,13 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	{
 		try
 		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: _newIndexFilePath, startingFilter: StartingFilters.GetStartingFilter(_network));
+			return BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath, startingFilter: StartingFilters.GetStartingFilter(_network));
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_newIndexFilePath}'.");
+			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
 
-			DeleteIndex(_newIndexFilePath);
+			DeleteIndex(_storageFilePath);
 			throw;
 		}
 	}
@@ -62,17 +57,8 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 	public event EventHandler<FilterModel[]>? NewFilters;
 
-	/// <summary>Mature index path for migration purposes.</summary>
-	private readonly string _oldIndexFilePath;
-
-	/// <summary>Immature index path for migration purposes.</summary>
-	private readonly string _oldImmatureIndexFilePath;
-
 	/// <summary>SQLite file path for migration purposes.</summary>
-	private readonly string _newIndexFilePath;
-
-	/// <summary>Run migration if SQLite file does not exist.</summary>
-	private readonly bool _runMigration;
+	private readonly string _storageFilePath;
 
 	/// <summary>NBitcoin network.</summary>
 	private readonly Network _network;
@@ -96,18 +82,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 			{
-				cancellationToken.ThrowIfCancellationRequested();
-
-				// Migration code.
-				if (_runMigration)
-				{
-					MigrateToSqliteNoLock(cancellationToken);
-				}
-
-				// If the automatic migration to SQLite is stopped, we would not delete the old index data.
-				// So check it every time.
-				RemoveOldIndexFilesIfExist();
-
 				if (_network == Network.Main && IndexStorage.GetPragmaUserVersion() == 0)
 				{
 					SmartResyncIfCorrupted();
@@ -124,93 +98,6 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 		{
 			InitializedTcs.SetResult(false);
 			throw;
-		}
-	}
-
-	private void RemoveOldIndexFilesIfExist()
-	{
-		if (File.Exists(_oldIndexFilePath))
-		{
-			try
-			{
-				File.Delete($"{_oldImmatureIndexFilePath}.dig"); // No exception is thrown if file does not exist.
-				File.Delete(_oldImmatureIndexFilePath);
-				File.Delete($"{_oldIndexFilePath}.dig");
-				File.Delete(_oldIndexFilePath);
-
-				Logger.LogInfo("Removed old index file data.");
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug(ex);
-			}
-		}
-	}
-
-	private void MigrateToSqliteNoLock(CancellationToken cancel)
-	{
-		int i = 0;
-
-		try
-		{
-			Logger.LogWarning("Migration of block filters to SQLite format is about to begin. Please wait a moment.");
-
-			Stopwatch stopwatch = Stopwatch.StartNew();
-
-			IndexStorage.Clear();
-
-			List<string> filters = new(capacity: 10_000);
-			using (FileStream fs = File.Open(_oldIndexFilePath, FileMode.Open, FileAccess.Read, FileShare.Read))
-			using (BufferedStream bs = new(fs))
-			using (StreamReader sr = new(bs))
-			{
-				while (true)
-				{
-					cancel.ThrowIfCancellationRequested();
-
-					i++;
-					string? line = sr.ReadLine();
-
-					if (line is null)
-					{
-						break;
-					}
-
-					// Starting filter is already added at this point.
-					if (i == 1)
-					{
-						continue;
-					}
-
-					filters.Add(line);
-
-					if (i % 10_000 == 0)
-					{
-						IndexStorage.BulkAppend(filters);
-						filters.Clear();
-					}
-				}
-			}
-
-			IndexStorage.BulkAppend(filters);
-
-			Logger.LogInfo($"Migration of {i} filters to SQLite was finished in {stopwatch.Elapsed} seconds.");
-		}
-		catch (OperationCanceledException)
-		{
-			throw;
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-
-			IndexStorage.Dispose();
-
-			// Do not run migration code again if it fails.
-			File.Delete(_newIndexFilePath);
-			File.Delete(_oldIndexFilePath);
-
-			IndexStorage = CreateBlockFilterSqliteStorage();
 		}
 	}
 
@@ -280,7 +167,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 	private bool IsCorrect(SmartHeaderChain c, FilterModel m)
 	{
 		// If this is the first filter that we receive then it is correct only if it is starting one.
-		if (c.Tip is not {} tip)
+		if (c.Tip is not { } tip)
 		{
 			return true;
 		}
@@ -492,13 +379,13 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 		var bestHeight = IndexStorage.GetBestHeight();
 
-		if(bestHeight == StartingFilters.GetStartingFilter(Network.Main).Header.Height)
+		if (bestHeight == StartingFilters.GetStartingFilter(Network.Main).Header.Height)
 		{
 			// Empty filters
 			return;
 		}
 
-		if(bestHeight <= deleteAllUnderHeight)
+		if (bestHeight <= deleteAllUnderHeight)
 		{
 			// It is not worth it to try to estimate when there are that few filters, just delete them.
 			// This will be really few users and those filters almost have no data anyway.
@@ -507,7 +394,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			return;
 		}
 
-		uint lastBatchToTest = (uint) Math.Min(bestHeight, lastHeightPotentiallyAffected) - batchSize + 1;
+		uint lastBatchToTest = (uint)Math.Min(bestHeight, lastHeightPotentiallyAffected) - batchSize + 1;
 		uint currentHeight = StartingFilters.GetStartingFilter(Network.Main).Header.Height;
 
 		while (true)
@@ -515,7 +402,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 			var batch = IndexStorage.Fetch(currentHeight, (int)batchSize).ToList();
 
 			var foundInvalid = batch.Any(x => x.FilterData[^1] == referenceByte &&
-			                                  !falsePositives.ContainsKey(x.Header.Height));
+											  !falsePositives.ContainsKey(x.Header.Height));
 
 			if (!foundInvalid)
 			{
@@ -529,7 +416,7 @@ public class IndexStore : IIndexStore, IAsyncDisposable
 
 			var firstInvalidHeight = batch.Min(x => x.Header.Height);
 
-			if(firstInvalidHeight <= deleteAllUnderHeight)
+			if (firstInvalidHeight <= deleteAllUnderHeight)
 			{
 				// A really old filter is invalid, better to delete everything
 				Logger.LogWarning($"A really old filter is corrupted ({firstInvalidHeight}), better to delete the index.");

@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -19,6 +20,7 @@ public partial class LoadingViewModel : RoutableViewModel
 	public LoadingViewModel(IWalletModel wallet)
 	{
 		_wallet = wallet;
+		_timeToCatchUp = "";
 	}
 
 	public string WalletName => _wallet.Name;

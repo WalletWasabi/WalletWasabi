@@ -46,7 +46,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 		ServiceConfiguration serviceConfiguration = setup.ServiceConfiguration;
 		string password = setup.Password;
 
-		bitcoinStore.IndexStore.NewFilters += setup.Wallet_NewFiltersProcessed;
+		bitcoinStore.FilterStore.NewFilters += setup.Wallet_NewFiltersProcessed;
 
 		// Create the services.
 		// 1. Create connection service.
@@ -61,7 +61,8 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 		// 3. Create wasabi synchronizer service.
 		var httpClientFactory = RegTestFixture.IndexerHttpClientFactory;
 		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, setup.EventBus);
-		using var synchronizer = Spawn("Synchronizer", Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus)));
+		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, setup.EventBus));
+		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 
 		// 4. Create key manager service.
 		var keyManager = KeyManager.CreateNew(out _, password, network);
@@ -337,7 +338,7 @@ public class SelfSpendSpeedupTests : IClassFixture<RegTestFixture>
 		}
 		finally
 		{
-			bitcoinStore.IndexStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
+			bitcoinStore.FilterStore.NewFilters -= setup.Wallet_NewFiltersProcessed;
 			await walletManager.RemoveAndStopAllAsync(CancellationToken.None);
 			nodes?.Dispose();
 			node?.Disconnect();

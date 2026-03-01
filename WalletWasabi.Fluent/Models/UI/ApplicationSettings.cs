@@ -9,6 +9,7 @@ using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
+using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -20,9 +21,77 @@ using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
+public interface IApplicationSettings
+{
+	bool EnableGpu { get; set; }
+
+	string IndexerUri { get; set; }
+
+	Network Network { get; set; }
+
+	bool UseBitcoinRpc { get; set; }
+
+	string BitcoinRpcUri { get; set; }
+
+	string BitcoinRpcCredentialString { get; set; }
+
+	string DustThreshold { get; set; }
+
+	string ExchangeRateProvider { get; set; }
+
+	string FeeRateEstimationProvider { get; set; }
+
+	string ExternalTransactionBroadcaster { get; set; }
+
+	string CoordinatorUri { get; set; }
+
+	string MaxCoinJoinMiningFeeRate { get; set; }
+
+	string AbsoluteMinInputCount { get; set; }
+
+	bool DarkModeEnabled { get; set; }
+
+	bool AutoCopy { get; set; }
+
+	bool AutoPaste { get; set; }
+
+	bool CustomChangeAddress { get; set; }
+
+	bool RunOnSystemStartup { get; set; }
+
+	bool HideOnClose { get; set; }
+
+	TorMode UseTor { get; set; }
+
+	bool TerminateTorOnExit { get; set; }
+
+	bool DownloadNewVersion { get; set; }
+
+	bool PrivacyMode { get; set; }
+
+	bool Oobe { get; set; }
+
+	Version LastVersionHighlightsDisplayed { get; set; }
+
+	WindowState WindowState { get; set; }
+
+	bool DoUpdateOnClose { get; set; }
+
+	string[] ExperimentalFeatures { get; set; }
+
+	bool IsOverridden { get; }
+
+	IObservable<bool> IsRestartNeeded { get; }
+
+	void ResetToDefault();
+
+	bool CheckIfRestartIsNeeded(PersistentConfig config);
+
+	bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString);
+}
+
 [AppLifetime]
-[AutoInterface]
-public partial class ApplicationSettings : ReactiveObject
+public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 {
 	private const int ThrottleTime = 500;
 
@@ -85,7 +154,47 @@ public partial class ApplicationSettings : ReactiveObject
 		_config = config;
 		_uiConfig = uiConfig;
 
-		ApplyConfigs(persistentConfig, uiConfig);
+		// Connections
+		_indexerUri = persistentConfig.IndexerUri;
+		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
+		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
+		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
+		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+
+		// Bitcoin
+		_network = persistentConfig.Network;
+		_useBitcoinRpc = persistentConfig.UseBitcoinRpc;
+		_bitcoinRpcUri = persistentConfig.BitcoinRpcUri;
+		_bitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
+		_dustThreshold = persistentConfig.DustThreshold.ToString();
+
+		// Coordinator
+		_coordinatorUri = persistentConfig.CoordinatorUri;
+
+		_maxCoinJoinMiningFeeRate = persistentConfig.MaxCoinJoinMiningFeeRate.ToString(CultureInfo.InvariantCulture);
+		_absoluteMinInputCount = persistentConfig.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+
+		// General
+		_darkModeEnabled = uiConfig.DarkModeEnabled;
+		_autoCopy = uiConfig.Autocopy;
+		_autoPaste = uiConfig.AutoPaste;
+		_customChangeAddress = uiConfig.IsCustomChangeAddress;
+		_runOnSystemStartup = uiConfig.RunOnSystemStartup;
+		_hideOnClose = uiConfig.HideOnClose;
+		_terminateTorOnExit = persistentConfig.TerminateTorOnExit;
+		_downloadNewVersion = persistentConfig.DownloadNewVersion;
+		_enableGpu = persistentConfig.EnableGpu;
+
+		// Experimental
+		_experimentalFeatures = persistentConfig.ExperimentalFeatures.ToArray();
+
+		// Privacy Mode
+		_privacyMode = uiConfig.PrivacyMode;
+
+		_oobe = uiConfig.Oobe;
+		_lastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
+
+		_windowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
 		SetupObservables();
 	}
 
@@ -210,14 +319,16 @@ public partial class ApplicationSettings : ReactiveObject
 			var network when network == Network.Main => PersistentConfigManager.DefaultMainNetConfig,
 			var network when network == Network.TestNet => PersistentConfigManager.DefaultTestNetConfig,
 			var network when network == Network.RegTest => PersistentConfigManager.DefaultRegTestConfig,
+			var network when network == Bitcoin.Instance.Signet => PersistentConfigManager.DefaultSignetConfig,
+			_ => throw new NotSupportedException($"Network '{_startupConfig.Network}' is not supported."),
 		};
 
 		var newPersistentConfig = defaultConfig with {CoordinatorUri = CoordinatorUri};
 
-		var newUiConfig = new UiConfig
+		var newUiConfig = new UiConfig(_uiConfig.FilePath)
 		{
 			Oobe = Oobe,
-			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed,
+			LastVersionHighlightsDisplayed = LastVersionHighlightsDisplayed
 		};
 
 		ApplyConfigs(newPersistentConfig, newUiConfig);
@@ -246,6 +357,7 @@ public partial class ApplicationSettings : ReactiveObject
 					}
 					var newConfig = ApplyChanges(currentConfig);
 					PersistentConfigManager.ToFile(_persistentConfigFilePath, newConfig);
+					PersistentConfigManager.UpdateNetwork(_persistentConfigFilePath, newConfig.Network);
 
 					_isRestartNeeded.OnNext(CheckIfRestartIsNeeded(newConfig));
 				}

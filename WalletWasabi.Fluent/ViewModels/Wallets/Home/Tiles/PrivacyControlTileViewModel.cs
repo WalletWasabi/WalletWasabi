@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using DynamicData;
@@ -94,7 +95,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 		UiContext.Navigate().To().PrivacyRing(_wallet);
 	}
 
-	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<ICoinModel> coins)
+	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<CoinModel> coins)
 	{
 		PercentText =
 			coins.TotalAmount() > Money.Zero

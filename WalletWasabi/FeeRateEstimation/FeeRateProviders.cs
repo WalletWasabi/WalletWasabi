@@ -49,7 +49,7 @@ public static class FeeRateProviders
 	public static FeeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetFeeRateEstimationsAsync("MempoolSpace",
 			("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/"),
-			"/api/v1/fees/recommended",
+			"/api/v1/fees/precise",
 			httpClientFactory, PickRandomUserAgent(), MempoolSpaceHandler(), cancellationToken);
 
 	public static FeeRateProvider NoneAsync() =>
@@ -58,9 +58,9 @@ public static class FeeRateProviders
 	public static FeeRateProvider RpcAsync(IRPCClient rpcClient) =>
 		async cancellationToken =>
 		{
-			var allEstimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
-			Logger.LogInfo($"Fetched fee rate from RPC node: {allEstimations.GetFeeRate(confirmationTarget: 2)}.");
-			return new FeeRateEstimations(allEstimations.Estimations);
+			var estimations = await rpcClient.EstimateAllFeeAsync(cancellationToken).ConfigureAwait(false);
+			Logger.LogInfo($"Fetched fee rate from RPC node: {estimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
+			return estimations;
 		};
 
 	public static FeeRateProvider Composed(FeeRateProvider[] feeRateProviders) =>
@@ -102,7 +102,7 @@ public static class FeeRateProviders
 			.Match(
 				estimations =>
 				{
-					Logger.LogInfo($"Fetched fee rate from {providerName}: {estimations.GetFeeRate(confirmationTarget: 2)}.");
+					Logger.LogInfo($"Fetched fee rate from {providerName}: {estimations.GetFeeRate(confirmationTarget: 2).SatoshiPerByte} sat/vB.");
 					return estimations;
 				},
 				ex => throw new InvalidOperationException($"Error parsing fee rate estimations provider response.", ex));

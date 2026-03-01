@@ -14,7 +14,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	private const double UprightAngle = Math.PI / 2d;
 	private const double SegmentWidth = 10.0;
 
-	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, ICoinModel coin, double start, double end)
+	public PrivacyRingItemViewModel(PrivacyRingViewModel parent, CoinModel coin, double start, double end)
 	{
 		OuterRadius = Math.Min(parent.Height / 2, parent.Width / 2);
 
@@ -68,7 +68,7 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 	public Amount Amount { get; }
 	public string PrivacyLevelText { get; }
 	public bool Unconfirmed { get; }
-	public int Confirmations { get; }
+	public uint Confirmations { get; }
 	public string Reference { get; }
 
 	private PathGeometry CreateGeometry(double start, double end, double outerRadius)

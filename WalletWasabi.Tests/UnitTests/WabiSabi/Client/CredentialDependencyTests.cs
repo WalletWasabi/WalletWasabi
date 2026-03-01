@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using Xunit;
 
@@ -12,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CredentialDependencyTests
 {
 	[Fact]
-	public async void AsyncDependencyGraphTraversalAsync()
+	public async Task AsyncDependencyGraphTraversalAsync()
 	{
 		var g = DependencyGraph.ResolveCredentialDependencies(
 			inputValues: new[] { (10000L, 1930L), (1000L, 1930L) },
@@ -170,7 +169,7 @@ public class CredentialDependencyTests
 		var edges = g.OutEdges(g.Vertices[0], CredentialType.Amount);
 
 		Assert.Equal(2, edges.Count());
-		Assert.Single(edges.Where(x => x.Value > 0));
+		Assert.Single(edges, x => x.Value > 0);
 
 		var nonZeroEdge = edges.OrderByDescending(e => e.Value).First();
 		Assert.Equal(1L, nonZeroEdge.Value);
@@ -257,7 +256,7 @@ public class CredentialDependencyTests
 	[InlineData("13,255 1,255 1,255 1,255 1,255 1,255", "3,255 3,255 3,255 3,255 3,255 3,255", 17)]
 	[InlineData("99991099,186 39991099,186 29991099,186 19991099,186 9991099,186", "33558431,31 33558431,31 33558431,31 33558431,31 33558431,31 28701813,31", 14)]
 	[InlineData("99991099,186 39991099,186 29991099,186 19991099,186 9991099,186", "33558431,31 33558431,31 33558431,31 33558431,31 33558431,31 28701813,31 3192645,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 17121,31 12067,31", 50)]
-	public async void ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
+	public async Task ResolveCredentialDependenciesAsync(string inputs, string outputs, int finalVertexCount)
 	{
 		// blackbox tests (apart from finalVertexCount, which leaks
 		// information about implementation) covering valid range

@@ -24,8 +24,7 @@ public partial class SearchBarViewModel : ReactiveObject
             .DisposeMany()
 			.Group(s => s.Category)
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
-			.Sort(SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
-			.Bind(out _groups)
+			.SortAndBind(out _groups, SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.DisposeMany()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe();

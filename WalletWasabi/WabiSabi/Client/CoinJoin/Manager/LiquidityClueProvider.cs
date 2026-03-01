@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
@@ -13,11 +14,11 @@ public class LiquidityClueProvider
 	public LiquidityClueProvider()
 	{
 		LiquidityClue = null;
-		_liquidityClueLock = new object();
+		_liquidityClueLock = new Lock();
 	}
 
 	private Money? LiquidityClue { get; set; }
-	private readonly object _liquidityClueLock;
+	private readonly Lock _liquidityClueLock;
 
 	public void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
 	{

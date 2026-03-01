@@ -1,11 +1,12 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.VisualTree;
-using Avalonia.Xaml.Interactions.Custom;
+using Avalonia.Xaml.Interactivity;
 using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;

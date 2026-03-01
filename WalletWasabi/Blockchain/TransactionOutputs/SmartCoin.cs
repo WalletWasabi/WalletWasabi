@@ -12,17 +12,11 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// <summary>
 /// An UTXO that knows more.
 /// </summary>
-[DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Label} OutPoint={Coin.Outpoint}")]
+[DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Labels} OutPoint={Coin.Outpoint}")]
 public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
 {
 	private Height _height;
-	private SmartTransaction? _spenderTransaction;
-	private bool _coinJoinInProgress;
-	private DateTimeOffset? _bannedUntilUtc;
-	private bool _spentAccordingToNetwork;
-
 	private bool _confirmed;
-	private bool _isExcludedFromCoinJoin;
 
 	public SmartCoin(SmartTransaction transaction, uint outputIndex, HdPubKey pubKey)
 	{
@@ -30,7 +24,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		Coin = new Coin(Transaction.Transaction, outputIndex);
 
 		_height = transaction.Height;
-		_confirmed = _height.Type == HeightType.Chain;
+		_confirmed = transaction.Confirmed;
 
 		HdPubKey = pubKey;
 
@@ -56,36 +50,27 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 		{
 			if (RaiseAndSetIfChanged(ref _height, value))
 			{
-				Confirmed = _height.Type == HeightType.Chain;
+				Confirmed = _height is ChainHeight;
 			}
 		}
 	}
 
 	public SmartTransaction? SpenderTransaction
 	{
-		get => _spenderTransaction;
-		set => RaiseAndSetIfChanged(ref _spenderTransaction, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public bool CoinJoinInProgress
 	{
-		get => _coinJoinInProgress;
-		set => RaiseAndSetIfChanged(ref _coinJoinInProgress, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public DateTimeOffset? BannedUntilUtc
 	{
-		get => _bannedUntilUtc;
-		set => RaiseAndSetIfChanged(ref _bannedUntilUtc, value);
-	}
-
-	/// <summary>
-	/// If the network thinks it's spent, but Wasabi does not yet know.
-	/// </summary>
-	public bool SpentAccordingToNetwork
-	{
-		get => _spentAccordingToNetwork;
-		set => RaiseAndSetIfChanged(ref _spentAccordingToNetwork, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	public HdPubKey HdPubKey { get; }
@@ -100,8 +85,8 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 
 	public bool IsExcludedFromCoinJoin
 	{
-		get => _isExcludedFromCoinJoin;
-		set => RaiseAndSetIfChanged(ref _isExcludedFromCoinJoin, value);
+		get;
+		set => RaiseAndSetIfChanged(ref field, value);
 	}
 
 	/// <returns>False if external, or the tx inputs are all external.</returns>
@@ -114,7 +99,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	/// <summary>
 	/// IsUnspent() AND !SpentAccordingToBackend AND !CoinJoinInProgress
 	/// </summary>
-	public bool IsAvailable() => SpenderTransaction is null && !SpentAccordingToNetwork && !CoinJoinInProgress;
+	public bool IsAvailable() => SpenderTransaction is null && !CoinJoinInProgress;
 
 	public override string ToString() => $"{TransactionId.ToString()[..7]}.. - {Index}, {ScriptPubKey.ToString()[..7]}.. - {Amount} BTC";
 
@@ -137,8 +122,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 			return false;
 		}
 
-		// Indices are fast to compare, so compare them first.
-		return (y.Index == x.Index) && (x.GetHashCode() == y.GetHashCode()) && (y.TransactionId == x.TransactionId);
+		return y.Outpoint == x.Outpoint;
 	}
 
 	public static bool operator !=(SmartCoin? x, SmartCoin? y) => !(x == y);

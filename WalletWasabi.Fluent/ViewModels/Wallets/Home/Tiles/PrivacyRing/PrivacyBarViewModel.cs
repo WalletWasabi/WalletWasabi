@@ -3,6 +3,7 @@ using DynamicData.Binding;
 using System.Linq;
 using NBitcoin;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 using System.Collections.Generic;
@@ -44,7 +45,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			.DisposeWith(disposables);
 	}
 
-	private void Update(IExtendedList<PrivacyBarItemViewModel> list, IReadOnlyCollection<ICoinModel> coins)
+	private void Update(IExtendedList<PrivacyBarItemViewModel> list, IReadOnlyCollection<CoinModel> coins)
 	{
 		TotalAmount = coins.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC));
 

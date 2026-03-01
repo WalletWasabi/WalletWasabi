@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -23,8 +24,8 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private string? _amountText = "";
-	[AutoNotify] private int _blockHeight;
-	[AutoNotify] private int _confirmations;
+	[AutoNotify] private uint _blockHeight;
+	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private TimeSpan? _confirmationTime;
 	[AutoNotify] private string? _dateString;
 	[AutoNotify] private bool _isConfirmationTimeVisible;

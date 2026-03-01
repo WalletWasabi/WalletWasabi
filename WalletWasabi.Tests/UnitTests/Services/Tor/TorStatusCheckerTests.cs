@@ -1,10 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
 using WalletWasabi.Serialization;
-using WalletWasabi.Tor.StatusChecker;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Services.Tor;
@@ -234,7 +229,7 @@ public class TorStatusCheckerTests
 		var deserialized = JsonDecoder.FromString(jsonResponseWithNoIssue, Decode.TorStatus);
 		Assert.NotNull(deserialized);
 		Assert.NotEmpty(deserialized.Systems);
-		Assert.NotEmpty(deserialized.Systems.Where(sys => new[]{ "v3 Onion Services", "Directory Authorities", "DNS" }.Contains(sys.Name)));
+		Assert.Contains(deserialized.Systems, sys => new[] { "v3 Onion Services", "Directory Authorities", "DNS" }.Contains(sys.Name));
 		Assert.All(deserialized.Systems, sys => Assert.Equal("ok", sys.Status));
 		Assert.All(deserialized.Systems, sys => Assert.Empty(sys.UnresolvedIssues));
 

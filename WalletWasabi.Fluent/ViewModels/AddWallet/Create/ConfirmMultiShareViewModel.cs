@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
@@ -87,7 +88,14 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 		ConfirmNotRequiredWords(_words);
 
-		SetCurrentWord();
+		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
+		{
+			_currentWord = nextWord;
+		}
+		else
+		{
+			_currentWord = _words.Last();
+		}
 	}
 
 	public ObservableCollectionExtended<RecoveryWordViewModel> ConfirmationWords { get; } = new();
@@ -216,18 +224,6 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		foreach (var word in _words)
 		{
 			word.Reset();
-		}
-	}
-
-	private void SetCurrentWord()
-	{
-		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
-		{
-			_currentWord = nextWord;
-		}
-		else
-		{
-			_currentWord = _words.Last();
 		}
 	}
 

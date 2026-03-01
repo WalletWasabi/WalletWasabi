@@ -14,27 +14,27 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class BitcoinStore
 {
-	/// <param name="indexStore">Not initialized index store.</param>
+	/// <param name="filterStore">Not initialized filter store.</param>
 	/// <param name="transactionStore">Not initialized transaction store.</param>
 	public BitcoinStore(
-		IndexStore indexStore,
+		FilterStore filterStore,
 		AllTransactionStore transactionStore,
 		MempoolService mempoolService,
 		SmartHeaderChain smartHeaderChain,
-		IFileSystemBlockRepository blockRepository)
+		FileSystemBlockRepository blockRepository)
 	{
-		IndexStore = indexStore;
+		FilterStore = filterStore;
 		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
 		SmartHeaderChain = smartHeaderChain;
 		BlockRepository = blockRepository;
 	}
 
-	public IndexStore IndexStore { get; }
+	public FilterStore FilterStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public SmartHeaderChain SmartHeaderChain { get; }
 	public MempoolService MempoolService { get; }
-	public IFileSystemBlockRepository BlockRepository { get; }
+	public FileSystemBlockRepository BlockRepository { get; }
 
 	/// <summary>
 	/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
@@ -46,7 +46,7 @@ public class BitcoinStore
 	{
 		var initTasks = new[]
 		{
-			IndexStore.InitializeAsync(cancel),
+			FilterStore.InitializeAsync(cancel),
 			TransactionStore.InitializeAsync(cancel)
 		};
 

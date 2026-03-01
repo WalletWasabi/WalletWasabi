@@ -1,4 +1,5 @@
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using NBitcoin;
 using ReactiveUI;
 using System.Reactive.Linq;
@@ -8,7 +9,6 @@ using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-[AutoInterface]
 public partial class CoinModel : ReactiveObject
 {
 	private bool _subscribedToCoinChanges;
@@ -19,7 +19,7 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private string? _bannedUntilUtcToolTip;
 	[AutoNotify] private string? _confirmedToolTip;
 	[AutoNotify] private int _anonScore;
-	[AutoNotify] private int _confirmations;
+	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
 	public CoinModel(SmartCoin coin, Network network, int anonScoreTarget)
@@ -96,9 +96,9 @@ public partial class CoinModel : ReactiveObject
 		_subscribedToCoinChanges = true;
 	}
 
-	public bool IsSameAddress(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.HdPubKey == Coin.HdPubKey;
+	public bool IsSameAddress(CoinModel anotherCoin) => anotherCoin.Coin.HdPubKey == Coin.HdPubKey;
 
-	public bool IsSame(ICoinModel anotherCoin) => anotherCoin is CoinModel cm && cm.Coin.Outpoint == Coin.Outpoint;
+	public bool IsSame(CoinModel anotherCoin) => anotherCoin.Coin.Outpoint == Coin.Outpoint;
 
 	// TODO: Leaky abstraction. This shouldn't exist.
 	public SmartCoin GetSmartCoin() => Coin;

@@ -104,10 +104,10 @@ public class TransactionProcessorTests
 		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
 
 		var tx1 = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
-		var blockHeight = new Height(77551);
+		var blockHeight = new Height.ChainHeight.ChainHeight(77551);
 		var tx2 = new SmartTransaction(tx1.Transaction, blockHeight);
 		var tx3 = CreateSpendingTransaction(tx2.Transaction.Outputs.AsCoins().First(), BitcoinFactory.CreateScript());
-		var blockHeight2 = new Height(77552);
+		var blockHeight2 = new Height.ChainHeight.ChainHeight(77552);
 		var tx4 = new SmartTransaction(tx3.Transaction, blockHeight2);
 		var results = transactionProcessor.Process(tx1, tx2, tx3, tx4).ToArray();
 		var res1 = results[0];
@@ -191,7 +191,7 @@ public class TransactionProcessorTests
 		Assert.Equal(Height.Mempool, coin.Height);
 
 		// Now it is confirmed
-		var blockHeight = new Height(77551);
+		var blockHeight = new Height.ChainHeight(77551);
 		tx = new SmartTransaction(tx.Transaction, blockHeight);
 		var relevant = transactionProcessor.Process(tx);
 
@@ -489,7 +489,7 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(tx3);
 
 		// Now it is confirmed
-		var blockHeight = new Height(77551);
+		var blockHeight = new Height.ChainHeight(77551);
 		tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
 		var relevant = transactionProcessor.Process(tx1);
 
@@ -544,7 +544,7 @@ public class TransactionProcessorTests
 		Assert.True(coinD.Transaction.IsRBF());
 
 		// Now it is confirmed
-		var blockHeight = new Height(77551);
+		var blockHeight = new Height.ChainHeight(77551);
 		tx1 = new SmartTransaction(tx1.Transaction, blockHeight);
 		var relevant = transactionProcessor.Process(tx1);
 
@@ -604,7 +604,7 @@ public class TransactionProcessorTests
 		var coin = Assert.Single(transactionProcessor.Coins);
 		Assert.False(coin.Confirmed);
 
-		var tx2 = new SmartTransaction(tx1.Transaction.Clone(), new Height(54321));
+		var tx2 = new SmartTransaction(tx1.Transaction.Clone(), new Height.ChainHeight(54321));
 
 		Assert.Equal(tx1.GetHash(), tx2.GetHash());
 		var res3 = transactionProcessor.Process(tx2);
@@ -1349,7 +1349,7 @@ public class TransactionProcessorTests
 
 		// reorg
 		Assert.True(changeCoinD.Confirmed);
-		transactionProcessor.UndoBlock(tx3.Height);
+		transactionProcessor.UndoBlock((Height.ChainHeight)tx3.Height); // FIXME: a confirmed tx can have a Height other than chain!?
 		Assert.False(changeCoinD.Confirmed);
 
 		Assert.Equal("A, B, C, D", changeCoinD.HdPubKey.ClusterLabels);
@@ -1488,15 +1488,15 @@ public class TransactionProcessorTests
 		Assert.True(expectedPockets.SetEquals(actualPockets));
 	}
 
-	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, int height = 0)
+	private static SmartTransaction CreateSpendingTransaction(Coin coin, Script? scriptPubKey = null, uint height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
 		tx.Inputs.Add(coin.Outpoint, Script.Empty, WitScript.Empty);
 		tx.Outputs.Add(coin.Amount, scriptPubKey ?? Script.Empty);
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight.ChainHeight(height));
 	}
 
-	private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, int height = 0)
+	private static SmartTransaction CreateSpendingTransaction(IEnumerable<Coin> coins, Script scriptPubKey, Script scriptPubKeyChange, bool replaceable = false, uint height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
 		var amount = Money.Zero;
@@ -1507,10 +1507,10 @@ public class TransactionProcessorTests
 		}
 		tx.Outputs.Add(amount.Percentage(60), scriptPubKey ?? Script.Empty);
 		tx.Outputs.Add(amount.Percentage(40), scriptPubKeyChange);
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight.ChainHeight(height));
 	}
 
-	private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount, int height = 0)
+	private static SmartTransaction CreateCreditingTransaction(Script scriptPubKey, Money amount, uint height = 0)
 	{
 		var tx = Network.RegTest.CreateTransaction();
 		tx.Version = 1;
@@ -1518,7 +1518,7 @@ public class TransactionProcessorTests
 		tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		tx.Inputs.Add(GetRandomOutPoint(), new Script(OpcodeType.OP_0, OpcodeType.OP_0), sequence: Sequence.Final);
 		tx.Outputs.Add(amount, scriptPubKey);
-		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height(height));
+		return new SmartTransaction(tx, height == 0 ? Height.Mempool : new Height.ChainHeight.ChainHeight(height));
 	}
 
 	private static OutPoint GetRandomOutPoint()

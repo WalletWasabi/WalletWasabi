@@ -1,8 +1,5 @@
-using Newtonsoft.Json;
-using System.ComponentModel;
 using System.IO;
 using System.Reactive.Linq;
-using System.Text.Json;
 using ReactiveUI;
 using WalletWasabi.Bases;
 using WalletWasabi.Serialization;
@@ -14,26 +11,54 @@ public class UiConfig : ConfigBase
 {
 	private bool _privacyMode;
 	private bool _isCustomChangeAddress;
-	private bool _autocopy = true;
-	private bool _darkModeEnabled = true;
+	private bool _autocopy;
+	private bool _darkModeEnabled;
 	private string? _lastSelectedWallet;
-	private string _windowState = "Normal";
+	private string _windowState;
 	private bool _runOnSystemStartup;
-	private bool _oobe = true;
-	private Version _lastVersionHighlightsDisplayed = new (2, 3, 1);
+	private bool _oobe;
+	private Version _lastVersionHighlightsDisplayed;
 	private bool _hideOnClose;
 	private bool _autoPaste;
-	private int _feeTarget = 2;
+	private int _feeTarget;
 	private bool _sendAmountConversionReversed;
 	private double? _windowWidth;
 	private double? _windowHeight;
 
-	public UiConfig() : base("./fakeUiConfig.for.testing.only.json")
+	public UiConfig(
+		string filePath,
+		bool privacyMode,
+		bool isCustomChangeAddress,
+		bool autocopy,
+		bool darkModeEnabled,
+		string? lastSelectedWallet,
+		string windowState,
+		bool runOnSystemStartup,
+		bool oobe,
+		Version lastVersionHighlightsDisplayed,
+		bool hideOnClose,
+		bool autoPaste,
+		int feeTarget,
+		bool sendAmountConversionReversed,
+		double? windowWidth,
+		double? windowHeight) : base(filePath)
 	{
-	}
+		_privacyMode = privacyMode;
+		_isCustomChangeAddress = isCustomChangeAddress;
+		_autocopy = autocopy;
+		_darkModeEnabled = darkModeEnabled;
+		_lastSelectedWallet = lastSelectedWallet;
+		_windowState = windowState;
+		_runOnSystemStartup = runOnSystemStartup;
+		_oobe = oobe;
+		_lastVersionHighlightsDisplayed = lastVersionHighlightsDisplayed;
+		_hideOnClose = hideOnClose;
+		_autoPaste = autoPaste;
+		_feeTarget = feeTarget;
+		_sendAmountConversionReversed = sendAmountConversionReversed;
+		_windowWidth = windowWidth;
+		_windowHeight = windowHeight;
 
-	public UiConfig(string filePath) : base(filePath)
-	{
 		this.WhenAnyValue(
 				x => x.Autocopy,
 				x => x.AutoPaste,
@@ -48,24 +73,42 @@ public class UiConfig : ConfigBase
 				x => x.HideOnClose,
 				x => x.FeeTarget,
 				(_, _, _, _, _, _, _, _, _, _, _, _) => Unit.Default)
-			.Throttle(TimeSpan.FromMilliseconds(500))
-			.Skip(1) // Won't save on UiConfig creation.
+			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(x => x.SendAmountConversionReversed)
-			.Throttle(TimeSpan.FromMilliseconds(500))
-			.Skip(1) // Won't save on UiConfig creation.
+			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ => ToFile());
 
 		this.WhenAnyValue(
 				x => x.WindowWidth,
 				x => x.WindowHeight)
-			.Throttle(TimeSpan.FromMilliseconds(500))
-			.Skip(1) // Won't save on UiConfig creation.
+			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ => ToFile());
+	}
+
+	public UiConfig(string filePath)
+		: this(
+			filePath,
+			privacyMode: false,
+			isCustomChangeAddress: false,
+			autocopy: true,
+			darkModeEnabled: true,
+			lastSelectedWallet: null,
+			windowState: "Normal",
+			runOnSystemStartup: false,
+			oobe: true,
+			lastVersionHighlightsDisplayed: new (2, 3, 1),
+			hideOnClose: false,
+			autoPaste: false,
+			feeTarget: 2,
+			sendAmountConversionReversed: false,
+			windowWidth: null,
+			windowHeight: null)
+	{
 	}
 
 	public bool Oobe

@@ -32,7 +32,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 	public SchemeConsoleViewModel(Daemon.Scheme schemeInterpreter)
 	{
 		_schemeInterpreter = schemeInterpreter;
-		CommandInput = string.Empty;
+		_commandInput = string.Empty;
 		CommandHistory = new();
 		Output = new();
 		IsExecuting = false;

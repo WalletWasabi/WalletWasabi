@@ -20,7 +20,6 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
-	private IWalletModel? _selectedWalletModel;
 
 	public NavBarViewModel(UiContext uiContext)
 	{
@@ -29,13 +28,17 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		UiContext.WalletRepository
-				 .Wallets
-				 .Connect()
-				 .Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
-				 .AutoRefresh(x => x.IsLoggedIn)
-				 .Sort(SortExpressionComparer<WalletPageViewModel>.Descending(i => i.IsLoggedIn).ThenByAscending(x => x.WalletModel.Name))
-				 .Bind(out var wallets)
-				 .Subscribe();
+			.Wallets
+			.Connect()
+			.Transform(newWallet => new WalletPageViewModel(UiContext, newWallet))
+			.AutoRefresh(x => x.IsLoggedIn)
+			.SortAndBind(
+				out var wallets,
+				SortExpressionComparer< WalletPageViewModel>
+					.Descending(i => i.IsLoggedIn)
+					.ThenByAscending(x => x.WalletModel.Name)
+			)
+			.Subscribe();
 
 		Wallets = wallets;
 	}
@@ -47,8 +50,8 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 	// AutoInterfaces (such as IWalletModel) cannot be seen by AutoNotifyGenerator.
 	public IWalletModel? SelectedWalletModel
 	{
-		get => _selectedWalletModel;
-		set => this.RaiseAndSetIfChanged(ref _selectedWalletModel, value);
+		get;
+		set => this.RaiseAndSetIfChanged(ref field, value);
 	}
 
 	IWalletViewModel? IWalletSelector.SelectedWallet => SelectedWallet?.WalletViewModel;
