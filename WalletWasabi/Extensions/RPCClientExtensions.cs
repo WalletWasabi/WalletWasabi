@@ -5,7 +5,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Blockchain.Analysis.FeesEstimation;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using FeeRateByConfirmationTarget = System.Collections.Generic.Dictionary<int, NBitcoin.FeeRate>;
@@ -36,7 +36,7 @@ public static class RPCClientExtensions
 	/// <summary>
 	/// Estimates fees for 1w, 3d, 1d, 12h, 6h, 3h, 1h, 30m, 20m.
 	/// </summary>
-	public static async Task<AllFeeEstimate> EstimateAllFeeAsync(this IRPCClient rpc, CancellationToken cancel = default)
+	public static async Task<FeeRateEstimations> EstimateAllFeeAsync(this IRPCClient rpc, CancellationToken cancel = default)
 	{
 		var smartEstimations = rpc.Network == Network.RegTest
 			? SimulateRegTestFeeEstimation()
@@ -49,7 +49,7 @@ public static class RPCClientExtensions
 			? smartEstimations
 			: SmartEstimationsWithMempoolInfo(smartEstimations, mempoolInfo);
 
-		return new AllFeeEstimate(finalEstimations);
+		return new FeeRateEstimations(finalEstimations);
 
 		static FeeRateByConfirmationTarget SimulateRegTestFeeEstimation() =>
 			Constants.ConfirmationTargets

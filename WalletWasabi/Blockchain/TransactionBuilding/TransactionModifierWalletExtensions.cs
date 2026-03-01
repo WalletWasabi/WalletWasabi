@@ -208,7 +208,13 @@ public static class TransactionModifierWalletExtensions
 			allowDoubleSpend: true,
 			tryToSign: true);
 
-		rbf.Transaction.Labels = LabelsArray.Merge(rbf.Transaction.Labels, transactionToSpeedUp.Labels);
+		// Merge labels from the transaction being replaced
+		var currentLabels = keyManager.GetTransactionLabels(rbf.Transaction.GetHash(), wallet.TransactionProcessor.TransactionStore);
+		var mergedLabels = LabelsArray.Merge(currentLabels, transactionToSpeedUp.Labels);
+		keyManager.SetTransactionLabels(rbf.Transaction.GetHash(), mergedLabels, wallet.TransactionProcessor.TransactionStore);
+
+		// Also update the transaction object for immediate use
+		rbf.Transaction.Labels = mergedLabels;
 
 		if (transactionToSpeedUp.IsCancellation)
 		{
@@ -290,9 +296,9 @@ public static class TransactionModifierWalletExtensions
 		Guard.NotNull(nameof(destination), destination);
 
 		// Request the unconfirmed transaction chain so we can extract the fee paid by tx + all the ancestors still unconfirmed.
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(20));
-		using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-		var cpfpInfoResult = await wallet.CpfpInfoProvider.GetCpfpInfoAsync(transactionToCpfp, lts.Token).ConfigureAwait(false);
+		// The HTTP request has its own 120-second timeout, so we don't impose an additional timeout here.
+		// The caller can cancel via the cancellationToken parameter if needed.
+		var cpfpInfoResult = await wallet.CpfpInfoProvider.GetCpfpInfoAsync(transactionToCpfp, cancellationToken).ConfigureAwait(false);
 
 		var cpfpInfo = cpfpInfoResult.Match(
 			v => v,

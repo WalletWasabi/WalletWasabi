@@ -305,7 +305,7 @@ public partial class CurrencyEntryBox : TextBox
 		}
 
 		// Ignore paste if there are invalid characters
-		if (!CurrencyInput.RegexValidCharsOnly().IsMatch(text))
+		if (!CurrencyInput.IsValidDecimal(text, out _))
 		{
 			return;
 		}
@@ -333,11 +333,6 @@ public partial class CurrencyEntryBox : TextBox
 	{
 		if (!IsFiat)
 		{
-			if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
-			{
-				text = corrected;
-			}
-
 			var money = ValidatePasteBalance
 				? ClipboardObserver.ParseToMoney(text, BalanceBtc)
 				: ClipboardObserver.ParseToMoney(text);
@@ -349,11 +344,6 @@ public partial class CurrencyEntryBox : TextBox
 		}
 		else
 		{
-			if (CurrencyInput.TryCorrectAmount(text, out var corrected))
-			{
-				text = corrected;
-			}
-
 			var usd = ValidatePasteBalance
 				? ClipboardObserver.ParseToUsd(text, BalanceUsd)
 				: ClipboardObserver.ParseToUsd(text);

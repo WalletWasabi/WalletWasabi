@@ -14,11 +14,6 @@ internal class ClipboardObserver
 			return null;
 		}
 
-		if (CurrencyInput.TryCorrectAmount(text, out var corrected))
-		{
-			text = corrected;
-		}
-
 		return decimal.TryParse(text, CurrencyInput.InvariantNumberFormat, out var n) ? n : (decimal?)default;
 	}
 
@@ -37,25 +32,15 @@ internal class ClipboardObserver
 			return null;
 		}
 
-		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
-		{
-			text = corrected;
-		}
-
 		return Money.TryParse(text, out var n) ? n : default;
 	}
 
 	public static string? ParseToMoney(string? text, Money balance)
 	{
 		// Ignore paste if there are invalid characters
-		if (text is null || !CurrencyInput.RegexValidCharsOnly().IsMatch(text))
+		if (text is null || !CurrencyInput.IsValidDecimal(text, out _))
 		{
 			return null;
-		}
-
-		if (CurrencyInput.TryCorrectBitcoinAmount(text, out var corrected))
-		{
-			text = corrected;
 		}
 
 		var money = ParseToMoney(text).Ensure(m => m <= balance);
