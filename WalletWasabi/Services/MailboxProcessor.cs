@@ -212,10 +212,6 @@ public static class Workers
 			{
 				await semaphore.WaitAsync().ConfigureAwait(false);
 			}
-			else
-			{
-				Logger.LogError("The loop is not active.");
-			}
 		}
 
 		Task ResumeAsync()
@@ -225,10 +221,6 @@ public static class Workers
 			if (semaphore is not null && semaphore.CurrentCount == 0)
 			{
 				semaphore.Release();
-			}
-			else
-			{
-				Logger.LogError("The loop is not active.");
 			}
 
 			return Task.CompletedTask;
