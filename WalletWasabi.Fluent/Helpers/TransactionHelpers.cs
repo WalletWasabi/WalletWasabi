@@ -54,17 +54,7 @@ public static class TransactionHelpers
 
 	private static BuildTransactionResult BuildPayToManyTransaction(Wallet wallet, TransactionInfo transactionInfo, bool tryToSign)
 	{
-		// The primary recipient's SubtractFee is on TransactionInfo itself.
-		// Additional recipients carry their own IsSubtractFee flag.
-		bool isFirst = true;
-		var requests = transactionInfo.AllRecipients.Select(r =>
-		{
-			bool subtractFee = isFirst ? transactionInfo.SubtractFee : r.IsSubtractFee;
-			isFirst = false;
-			return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
-		}).ToArray();
-
-		var intent = new PaymentIntent(requests);
+		var intent = BuildPayToManyIntent(transactionInfo);
 
 		return wallet.BuildTransaction(
 			password: wallet.Password,
@@ -90,14 +80,7 @@ public static class TransactionHelpers
 			PaymentIntent intent;
 			if (transactionInfo.IsPayToMany)
 			{
-				bool isFirst = true;
-				var requests = transactionInfo.AllRecipients.Select(r =>
-				{
-					bool subtractFee = isFirst ? transactionInfo.SubtractFee : r.IsSubtractFee;
-					isFirst = false;
-					return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
-				}).ToArray();
-				intent = new PaymentIntent(requests);
+				intent = BuildPayToManyIntent(transactionInfo);
 			}
 			else
 			{
@@ -172,6 +155,19 @@ public static class TransactionHelpers
 		}
 
 		return psbt.ExtractSmartTransaction();
+	}
+
+	private static PaymentIntent BuildPayToManyIntent(TransactionInfo transactionInfo)
+	{
+		var requests = transactionInfo.AllRecipients
+			.Select((r, index) =>
+			{
+				bool subtractFee = index == 0 ? transactionInfo.SubtractFee : r.IsSubtractFee;
+				return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
+			})
+			.ToArray();
+
+		return new PaymentIntent(requests);
 	}
 
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)

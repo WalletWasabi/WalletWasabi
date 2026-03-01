@@ -217,7 +217,7 @@
                 <DockPanel Margin="0,0,0,8">
                   <TextBlock DockPanel.Dock="Left" Text="{Binding Index, StringFormat='Recipient {0}'}"
                              Classes="h8" Opacity="0.6" VerticalAlignment="Center" MinWidth="80" />
-                  <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding RemoveCommand}" CommandParameter="{Binding}"
+                  <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding RemoveCommand}"
                           ToolTip.Tip="Remove recipient" VerticalAlignment="Center" Margin="5,0,0,0" Cursor="Hand">
                     <StackPanel Orientation="Horizontal" Spacing="4">
                       <PathIcon Data="{StaticResource dismiss_light}" Width="12" Height="12" />
@@ -229,7 +229,7 @@
                 <DockPanel Margin="0,0,0,5">
                   <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
                   <TextBox Text="{Binding To}" Classes="monoSpaced" MaxLength="250"
-                           Watermark="Bitcoin address">
+                           Watermark="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).AddressWatermark}">
                     <TextBox.InnerRightContent>
                       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
                         <AnimatedButton KeyboardNavigation.IsTabStop="False"
@@ -262,6 +262,8 @@
                                           ValidatePasteBalance="False" />
                   </DockPanel>
                 </DockPanel>
+                <TextBlock Text="{Binding AmountError}" IsVisible="{Binding AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Foreground="{DynamicResource SystemErrorTextColor}" FontSize="12" Margin="80,0,0,4" />
                 <!-- Recipient label -->
                 <DockPanel Margin="0,0,0,5">
                   <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />

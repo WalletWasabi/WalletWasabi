@@ -259,19 +259,12 @@ public partial class PrivacySuggestionsModel
 
 	private async IAsyncEnumerable<PrivacyItem> VerifyChangeAsync(Parameters parameters, CancellationTokenSource linkedCts)
 	{
-		bool hasChange;
-		if (parameters.TransactionInfo.IsPayToMany)
-		{
-			var destinationScripts = parameters.TransactionInfo.AllRecipients
-				.Select(r => r.Destination.GetScriptPubKey()).ToHashSet();
-			hasChange = parameters.Transaction.InnerWalletOutputs
-				.Any(x => !destinationScripts.Contains(x.ScriptPubKey));
-		}
-		else
-		{
-			var destinationScriptPubKey = parameters.TransactionInfo.Destination.GetScriptPubKey();
-			hasChange = parameters.Transaction.InnerWalletOutputs.Any(x => x.ScriptPubKey != destinationScriptPubKey);
-		}
+		var destinationScripts = parameters.TransactionInfo.AllRecipients
+			.Select(r => r.Destination.GetScriptPubKey())
+			.ToHashSet();
+
+		bool hasChange = parameters.Transaction.InnerWalletOutputs
+			.Any(x => !destinationScripts.Contains(x.ScriptPubKey));
 
 		if (hasChange)
 		{

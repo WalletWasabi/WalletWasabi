@@ -31,6 +31,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private double? _feeDiff;
 	[AutoNotify] private InputsCoinListViewModel? _inputList;
 	[AutoNotify] private OutputsCoinListViewModel? _outputList;
+	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = Array.Empty<RecipientSummaryViewModel>();
 
 	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, IWalletModel wallet, TransactionInfo info, bool isPreview = false)
 	{
@@ -55,8 +56,6 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	public bool IsPayJoin { get; }
 
 	public bool IsPayToMany { get; }
-
-	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = Array.Empty<RecipientSummaryViewModel>();
 
 	public void UpdateTransaction(BuildTransactionResult transactionResult, TransactionInfo info)
 	{
