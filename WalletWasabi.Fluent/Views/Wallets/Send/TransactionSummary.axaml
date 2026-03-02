@@ -97,7 +97,7 @@
             <StackPanel Margin="0,4" Spacing="2">
               <DockPanel>
                 <AmountControl DockPanel.Dock="Right" Classes="WithUsd" Amount="{Binding Amount}" Margin="10,0,0,0" />
-                <TextBlock Classes="monoSpaced" Text="{Binding AddressText}" TextTrimming="CharacterEllipsis" />
+                <TextBlock Classes="monoSpaced" Text="{Binding AddressText}" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding AddressText}" />
               </DockPanel>
               <LabelsItemsPresenter ItemsSource="{Binding Recipient}"
                                     HorizontalAlignment="Left"

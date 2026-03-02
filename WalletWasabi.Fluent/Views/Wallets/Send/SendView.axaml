@@ -75,7 +75,7 @@
         </StackPanel>
       </PrivacyContentControl>
     </ContentArea.TopContent>
-    <DockPanel LastChildFill="False">
+    <DockPanel LastChildFill="False" Margin="0,0,12,0">
       <DockPanel.Styles>
         <Style Selector="DockPanel > Label">
           <Setter Property="MinWidth" Value="80" />
@@ -293,7 +293,7 @@
 
       <!-- Add Recipient Button -->
       <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
-              Content="+ Add another recipient" Margin="80,0,0,10" HorizontalAlignment="Left"
+              Content="+ Add another address" Margin="80,0,0,10" HorizontalAlignment="Left"
               IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand" />
     </DockPanel>
   </ContentArea>
