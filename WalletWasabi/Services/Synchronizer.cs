@@ -20,9 +20,15 @@ using FilterFetchingResult = Result<FiltersResponse, TimeSpan>;
 
 public abstract record FiltersResponse
 {
-	public record AlreadyOnBestBlock : FiltersResponse;
+	public record AlreadyOnBestBlock : FiltersResponse
+	{
+		public static AlreadyOnBestBlock Instance { get; } = new();
+	}
 
-	public record BestBlockUnknown : FiltersResponse;
+	public record BestBlockUnknown : FiltersResponse
+	{
+		public static BestBlockUnknown Instance { get; } = new();
+	}
 
 	public record NewFiltersAvailable(uint BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
@@ -33,7 +39,6 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 	{
 		try
 		{
-			var filters = new List<FilterModel>();
 			var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 			var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
 			var stopAtHeight = fromHeight + nbOfFiltersToFetch;
@@ -42,7 +47,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 				.ConfigureAwait(false);
 			if (realBlockHash != fromHash)
 			{
-				return new FiltersResponse.BestBlockUnknown();
+				return FiltersResponse.BestBlockUnknown.Instance;
 			}
 
 			var heights = Enumerable.Range((int) fromHeight + 1, (int) (stopAtHeight - fromHeight)).ToArray();
@@ -59,26 +64,26 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 			await filterBatchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
 
+			var filters = new FilterModel[blockHashes.Length];
 			for (var i = 0; i < blockHashes.Length; i++)
 			{
 				var blockHash = blockHashes[i];
 				var filterResponse = filterResponses[i];
 				var height = (uint) heights[i];
 
-				var filter = new FilterModel(
-					new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow),
-					filterResponse.Filter);
+				var header = new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow);
+				var filter = new FilterModel(header, filterResponse.Filter);
 
-				filters.Add(filter);
+				filters[i] = filter;
 			}
 
-			return filters.Count == 0
-				? new FiltersResponse.AlreadyOnBestBlock()
-				: new FiltersResponse.NewFiltersAvailable((uint)currentHeight, filters.ToArray());
+			return filters.Length == 0
+				? FiltersResponse.AlreadyOnBestBlock.Instance
+				: new FiltersResponse.NewFiltersAvailable((uint)currentHeight, filters);
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
-			return new FiltersResponse.BestBlockUnknown();
+			return FiltersResponse.BestBlockUnknown.Instance;
 		}
 		catch (Exception e)
 		{
