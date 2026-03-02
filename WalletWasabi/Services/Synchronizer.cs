@@ -50,36 +50,40 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 				return FiltersResponse.BestBlockUnknown.Instance;
 			}
 
-			var heights = Enumerable.Range((int) fromHeight + 1, (int) (stopAtHeight - fromHeight)).ToArray();
-
-			var batchClient = bitcoinRpcClient.PrepareBatch();
-			var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
-			await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-			var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-
-			var filterBatchClient = bitcoinRpcClient.PrepareBatch();
-			var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken))
-				.ToArray();
-			await filterBatchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
-
-			var filters = new FilterModel[blockHashes.Length];
-			for (var i = 0; i < blockHashes.Length; i++)
+			if (stopAtHeight == fromHeight)
 			{
-				var blockHash = blockHashes[i];
-				var filterResponse = filterResponses[i];
-				var height = (uint) heights[i];
-
-				var header = new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow);
-				var filter = new FilterModel(header, filterResponse.Filter);
-
-				filters[i] = filter;
+				return FiltersResponse.AlreadyOnBestBlock.Instance;
 			}
+			else
+			{
+				var heights = Enumerable.Range((int) fromHeight + 1, (int) (stopAtHeight - fromHeight)).ToArray();
+				var batchClient = bitcoinRpcClient.PrepareBatch();
+				var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+				await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-			return filters.Length == 0
-				? FiltersResponse.AlreadyOnBestBlock.Instance
-				: new FiltersResponse.NewFiltersAvailable((uint)currentHeight, filters);
+				var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+
+				var filterBatchClient = bitcoinRpcClient.PrepareBatch();
+				var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken))
+					.ToArray();
+				await filterBatchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+				var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
+
+				var filters = new FilterModel[blockHashes.Length];
+				for (var i = 0; i < blockHashes.Length; i++)
+				{
+					var blockHash = blockHashes[i];
+					var filterResponse = filterResponses[i];
+					var height = (uint)heights[i];
+
+					var header = new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow);
+					var filter = new FilterModel(header, filterResponse.Filter);
+
+					filters[i] = filter;
+				}
+
+				return new FiltersResponse.NewFiltersAvailable((uint)currentHeight, filters);
+			}
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
