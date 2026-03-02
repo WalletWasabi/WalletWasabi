@@ -126,7 +126,11 @@
 
               # IDE
               pkgsUnfree.jetbrains.rider
-            ];
+
+              # Claude code
+              pkgsUnfree.claude-code
+              pkgs.python314 # claude loves python
+           ];
 
             DOTNET_CLI_TELEMETRY_OPTOUT = 1;
             DOTNET_NOLOGO = 1;
