@@ -21,7 +21,7 @@ shopt -s extglob nullglob
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
     echo "ERROR: Tor Browser version is required."
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip] [--debug]"
+    echo "Usage: $0 <version> [--skip-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip]"
     exit 1
 fi
 
@@ -31,7 +31,6 @@ SKIP_EXTRACT_BROWSER=false
 SKIP_EXTRACT_TOR=false
 SKIP_REPLACE_TOR=false
 SKIP_REPLACE_GEOIP=false
-DEBUG=false
 
 for arg in "$@"; do
     case "$arg" in
@@ -40,7 +39,6 @@ for arg in "$@"; do
         --skip-extract-tor)     SKIP_EXTRACT_TOR=true ;;
         --skip-replace-tor)     SKIP_REPLACE_TOR=true ;;
         --skip-replace-geoip)   SKIP_REPLACE_GEOIP=true ;;
-        --debug)                DEBUG=true ;;
     esac
 done
 
@@ -63,12 +61,6 @@ SEVEN_ZIP="7zz"
 # ──────────────────────────────────────────────────────────────────────────────
 #  Helpers
 # ──────────────────────────────────────────────────────────────────────────────
-
-log() {
-    if [[ "$DEBUG" == true ]]; then
-        echo "[DEBUG] $*" >&2
-    fi
-}
 
 info() {
     echo "[INFO]  $*"
@@ -181,7 +173,7 @@ if [[ "$SKIP_EXTRACT_TOR" != true ]]; then
     mkdir -p Tor/{win-x64,osx64,linux-x64,linux-arm64}
 
     # Linux x64
-    cp -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
+    cp -vvv -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
 
     # Linux arm64
     cp -a TorBrowser/linux-arm64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-arm64/ 2>/dev/null || true
