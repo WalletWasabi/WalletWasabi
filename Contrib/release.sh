@@ -162,8 +162,14 @@ for PLATFORM in "${PLATFORMS[@]}"; do
 
   # Remove bundled app binaries for other platforms
   BUNDLED_APPS_DIR="$OUTPUT_DIR/BundledApps/Binaries"
-  export PLATFORM_BUNDLED_APPS="${PLATFORM:0:3}${PLATFORM: -2}"
-  find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "$PLATFORM_BUNDLED_APPS" -exec rm -rf {} +
+
+  if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
+    # For macOS, the microservices binaries are stored in "osx64" and it supports both x64 and arm64.
+    find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" -exec rm -rf {} +
+  else
+    # For other platforms, the microservices binaries are stored in a folder with the same name as the platform (e.g. linux-x64, linux-arm64 and win-x64).
+    find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "$PLATFORM" -exec rm -rf {} +
+  fi
 
   # Hack! *.deps.json files contains this SHA516 that depends on the absolute path of
   # the nuget packages. This means that these files are different in different computers
