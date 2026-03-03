@@ -232,7 +232,7 @@
                   </Button>
                 </DockPanel>
                 <!-- To -->
-                <DockPanel Margin="0,0,0,5">
+                <DockPanel Margin="0,0,0,10">
                   <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
                   <TextBox Text="{Binding Value.To}" Classes="monoSpaced" MaxLength="250"
                            Watermark="(e.g. Bitcoin address or Silent Payment address)">
@@ -255,7 +255,7 @@
                   </TextBox>
                 </DockPanel>
                 <!-- Amount -->
-                <DockPanel Margin="0,0,0,5">
+                <DockPanel Margin="0,0,0,15">
                   <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
                   <DockPanel>
                     <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding Value.InsertMaxCommand}"
@@ -271,7 +271,7 @@
                 <TextBlock Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" FontSize="12" Margin="80,0,0,4" />
                 <!-- Recipient label -->
-                <DockPanel Margin="0,0,0,5">
+                <DockPanel Margin="0,0,0,10">
                   <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
                   <TagsBox VerticalAlignment="Top"
                            Watermark="{StaticResource LabelsWatermarkText}"
