@@ -207,15 +207,7 @@ public class TransactionProcessor
 			{
 				if (!foundKey.IsInternal)
 				{
-					// Get current labels using dual-source logic (wallet-scoped + shared store)
-					var currentLabels = KeyManager.GetTransactionLabels(tx.GetHash(), TransactionStore);
-					var mergedLabels = LabelsArray.Merge(currentLabels, foundKey.Labels);
-
-					// Set labels using dual-write (wallet-scoped + shared store)
-					KeyManager.SetTransactionLabels(tx.GetHash(), mergedLabels, TransactionStore);
-
-					// Also update the transaction object for immediate use
-					tx.Labels = mergedLabels;
+					tx.Labels = LabelsArray.Merge(tx.Labels, foundKey.Labels);
 				}
 
 				var couldBeDustAttack = CanBeConsideredDustAttack(output, foundKey, myInputs.Any());
