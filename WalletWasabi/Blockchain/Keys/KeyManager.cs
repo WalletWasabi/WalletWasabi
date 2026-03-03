@@ -9,7 +9,6 @@ using System.Text;
 using System.Text.Json.Nodes;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -205,13 +204,6 @@ public class KeyManager
 	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
-
-	/// <summary>
-	/// Transaction labels stored per-wallet for portability.
-	/// Key is txid as hex string, value is comma-separated labels.
-	/// This is the primary source for transaction labels; falls back to shared Transactions.sqlite.
-	/// </summary>
-	public Dictionary<string, string> TransactionLabels { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -760,71 +752,6 @@ public class KeyManager
 		ToFile();
 	}
 
-	/// <summary>
-	/// Gets transaction labels using dual-source logic: wallet-scoped labels first, then shared Transactions.sqlite.
-	/// </summary>
-	/// <param name="txid">Transaction ID</param>
-	/// <param name="transactionStore">Optional shared transaction store for fallback</param>
-	/// <returns>Labels for the transaction, or empty if not found</returns>
-	public LabelsArray GetTransactionLabels(uint256 txid, ITransactionStore? transactionStore = null)
-	{
-		var txidHex = txid.ToString();
-
-		// Priority 1: Wallet's own labels (portable, primary source)
-		if (TransactionLabels.TryGetValue(txidHex, out var labelString) && !string.IsNullOrEmpty(labelString))
-		{
-			return new LabelsArray(labelString);
-		}
-
-		// Priority 2: Shared store labels (for backward compatibility and cross-wallet sharing on same machine)
-		if (transactionStore is not null && transactionStore.TryGetTransaction(txid, out var tx))
-		{
-			return tx.Labels;
-		}
-
-		return LabelsArray.Empty;
-	}
-
-	/// <summary>
-	/// Sets transaction labels using dual-write strategy for backward compatibility.
-	/// Writes to both wallet-scoped storage (portable) and shared Transactions.sqlite (for cross-wallet sharing).
-	/// </summary>
-	/// <param name="txid">Transaction ID</param>
-	/// <param name="labels">Labels to set</param>
-	/// <param name="transactionStore">Optional shared transaction store for dual-write</param>
-	public void SetTransactionLabels(uint256 txid, LabelsArray labels, ITransactionStore? transactionStore = null)
-	{
-		var txidHex = txid.ToString();
-
-		// Write to wallet (portable, primary source)
-		if (labels.IsEmpty)
-		{
-			TransactionLabels.Remove(txidHex);
-		}
-		else
-		{
-			TransactionLabels[txidHex] = labels.ToString();
-		}
-		ToFile();
-
-		// Also write to shared store (for backward compatibility and cross-wallet sharing on same machine)
-		if (transactionStore is not null && transactionStore.TryGetTransaction(txid, out var tx))
-		{
-			// Create a new transaction with updated labels for the store
-			var txWithLabels = new SmartTransaction(tx.Transaction, tx.Height, tx.BlockHash, tx.BlockIndex, labels, tx.IsReplacement, tx.IsSpeedup, tx.IsCancellation, tx.FirstSeen);
-
-			// Update in the store if it supports updates
-			if (transactionStore is AllTransactionStore allStore)
-			{
-				allStore.AddOrUpdate(txWithLabels);
-			}
-			else if (transactionStore is TransactionStore singleStore)
-			{
-				singleStore.TryUpdate(txWithLabels);
-			}
-		}
-	}
-
 	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
@@ -848,7 +775,6 @@ public class KeyManager
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
-			("TransactionLabels", Encode.Dictionary(keyManager.TransactionLabels.ToDictionary(kvp => kvp.Key, kvp => (JsonNode)kvp.Value))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -886,8 +812,7 @@ public class KeyManager
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
-				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
-				TransactionLabels = get.Optional("TransactionLabels", Decode.Dictionary(Decode.String)) ?? new Dictionary<string, string>()
+				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;
