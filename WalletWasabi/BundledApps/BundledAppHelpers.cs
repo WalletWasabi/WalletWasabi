@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BundledApps;
 
-public static class MicroserviceHelpers
+public static class BundledAppHelpers
 {
 	public static OSPlatform GetCurrentPlatform()
 	{

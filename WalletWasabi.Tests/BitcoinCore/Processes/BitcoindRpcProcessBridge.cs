@@ -47,7 +47,7 @@ public class BitcoindRpcProcessBridge
 	public async Task StartAsync(CancellationToken cancel)
 	{
 		int ptcv = PrintToConsole ? 1 : 0;
-		string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+		string processPath = BundledAppHelpers.GetBinaryPath("bitcoind");
 		string networkArgument = NetworkTranslator.GetCommandLineArguments(Network);
 
 		// On Windows, if DataDir ends with '\', the Process can't be started.

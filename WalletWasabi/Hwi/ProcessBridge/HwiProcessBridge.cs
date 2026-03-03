@@ -10,7 +10,7 @@ public class HwiProcessBridge : IHwiProcessInvoker
 {
 	public HwiProcessBridge()
 	{
-		_processPath = MicroserviceHelpers.GetBinaryPath("hwi");
+		_processPath = BundledAppHelpers.GetBinaryPath("hwi");
 	}
 
 	private readonly string _processPath;
