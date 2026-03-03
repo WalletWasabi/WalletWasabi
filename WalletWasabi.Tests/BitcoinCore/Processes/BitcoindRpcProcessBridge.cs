@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Tests.BitcoinCore.Configuration;
 
 namespace WalletWasabi.Tests.BitcoinCore.Processes;

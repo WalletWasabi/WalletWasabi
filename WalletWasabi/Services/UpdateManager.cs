@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NNostr.Client;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.WebClients;
 using static WalletWasabi.Services.UpdateManager;
 

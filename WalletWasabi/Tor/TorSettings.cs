@@ -2,10 +2,10 @@ using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Tor;

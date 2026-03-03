@@ -36,23 +36,23 @@
 
 	<ItemGroup>
 		<!-- Tor. -->
-		<None Update="Microservices\Binaries\win-x64\Tor\**\*">
+		<None Update="BundledApps\Binaries\win-x64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\linux-x64\Tor\**\*">
+		<None Update="BundledApps\Binaries\linux-x64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\osx64\Tor\**\*">
+		<None Update="BundledApps\Binaries\osx64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<!-- HWI. -->
-		<None Update="Microservices\Binaries\linux-x64\hwi">
+		<None Update="BundledApps\Binaries\linux-x64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\osx64\hwi">
+		<None Update="BundledApps\Binaries\osx64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
-		<None Update="Microservices\Binaries\win-x64\hwi.exe">
+		<None Update="BundledApps\Binaries\win-x64\hwi.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<!-- GEOIP. -->

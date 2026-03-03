@@ -4,7 +4,7 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Microservices;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Services;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;

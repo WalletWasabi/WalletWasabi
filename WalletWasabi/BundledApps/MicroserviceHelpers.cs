@@ -2,7 +2,7 @@ using System.IO;
 using System.Runtime.InteropServices;
 using WalletWasabi.Helpers;
 
-namespace WalletWasabi.Microservices;
+namespace WalletWasabi.BundledApps;
 
 public static class MicroserviceHelpers
 {
@@ -31,7 +31,7 @@ public static class MicroserviceHelpers
 		platform ??= GetCurrentPlatform();
 
 		string fullBaseDirectory = EnvironmentHelpers.GetFullBaseDirectory();
-		string commonPartialPath = Path.Combine(fullBaseDirectory, "Microservices", "Binaries");
+		string commonPartialPath = Path.Combine(fullBaseDirectory, "BundledApps", "Binaries");
 
 		string path;
 		if (platform == OSPlatform.Windows)
