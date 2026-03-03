@@ -257,7 +257,7 @@ echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 USR_LOCAL_BIN_DIR="/usr/local/bin"
 INSTALL_DIR="${USR_LOCAL_BIN_DIR}/wasabiwallet"
 DEBIAN_POST_INST_SCRIPT_CONTENT="#!/usr/bin/env sh
-${INSTALL_DIR}/Microservices/Binaries/lin64/hwi installudevrules
+${INSTALL_DIR}/Microservices/Binaries/linux-x64/hwi installudevrules
 exit 0"
 echo "${DEBIAN_POST_INST_SCRIPT_CONTENT}" > $DEBIAN/postinst
 chmod 0775 ${DEBIAN}/postinst

@@ -36,11 +36,11 @@ public static class MicroserviceHelpers
 		string path;
 		if (platform == OSPlatform.Windows)
 		{
-			path = Path.Combine(commonPartialPath, "win64");
+			path = Path.Combine(commonPartialPath, "win-x64");
 		}
 		else if (platform == OSPlatform.Linux)
 		{
-			path = Path.Combine(commonPartialPath, "lin64");
+			path = Path.Combine(commonPartialPath, "linux-x64");
 		}
 		else if (platform == OSPlatform.OSX)
 		{
