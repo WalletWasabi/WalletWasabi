@@ -181,17 +181,17 @@ if [[ "$SKIP_EXTRACT_TOR" != true ]]; then
     mkdir -p Tor/{win-x64,osx64,linux-x64,linux-arm64}
 
     # Linux x64
-    cp -r TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
+    cp -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
 
     # Linux arm64
-    cp -r TorBrowser/linux-arm64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-arm64/ 2>/dev/null || true
+    cp -a TorBrowser/linux-arm64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-arm64/ 2>/dev/null || true
 
     # macOS
     # Note: path can vary slightly between versions — "Tor Browser.app" or "Tor Browser Alpha.app"
-    cp -r "TorBrowser/macOS/Tor Browser"*"/Tor Browser"*".app/Contents/MacOS/Tor/"* Tor/osx64/ 2>/dev/null || true
+    cp -a "TorBrowser/macOS/Tor Browser"*"/Tor Browser"*".app/Contents/MacOS/Tor/"* Tor/osx64/ 2>/dev/null || true
 
     # Windows
-    cp -r TorBrowser/Windows/Browser/TorBrowser/Tor/* Tor/win-x64/ 2>/dev/null || true
+    cp -a TorBrowser/Windows/Browser/TorBrowser/Tor/* Tor/win-x64/ 2>/dev/null || true
 
     # Remove PluggableTransports if accidentally copied
     rm -rf Tor/*/PluggableTransports 2>/dev/null || true
@@ -208,7 +208,7 @@ if [[ "$SKIP_REPLACE_TOR" != true ]]; then
     for platform in "${SUPPORTED_PLATFORMS[@]}"; do
         target_dir="${platform}/Tor"
         rm -rf "${target_dir:?}"/!(LICENSE|.gitattributes)
-        cp -r "${TEMP_DIR}/Tor/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
+        cp -a "${TEMP_DIR}/Tor/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
         info "Updated ${target_dir}"
     done
 else
