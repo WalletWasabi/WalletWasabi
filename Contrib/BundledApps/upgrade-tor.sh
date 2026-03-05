@@ -9,9 +9,9 @@
 #   - git (only for chmod +x marking via git update-index)
 #
 # Usage:
-#   ./upgrade-tor.sh 15.0.7
-#   ./upgrade-tor.sh 15.0.7 --skip-download
-#   ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser
+#   ./upgrade-tor.sh 15.0.7                                          # Download Tor Browser archives using curl, extract Tor binaries, update them in the repository.
+#   ./upgrade-tor.sh 15.0.7 --skip-download                          # Work Tor Browser archives from a previous script run.
+#   ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser   # Do not extrat Tor Browser archives. Continue with remaining steps.
 #
 
 set -euo pipefail
