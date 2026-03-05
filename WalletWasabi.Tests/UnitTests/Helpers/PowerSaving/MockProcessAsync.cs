@@ -1,7 +1,7 @@
-﻿using System.Diagnostics;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Microservices;
+using WalletWasabi.BundledApps;
 
 namespace WalletWasabi.Tests.UnitTests.Helpers.PowerSaving;
 

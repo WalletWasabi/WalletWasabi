@@ -5,7 +5,7 @@
 Invoke the following commands in your PowerShell 7+:
 
 ```powershell
-cd WalletWasabi/Microservices/Binaries
+cd WalletWasabi/BundledApps/Binaries
 
 # See what the latest released Tor Browser version is here: https://www.torproject.org/download/
 # Suppose it is "11.5.2". Then one can just call:
@@ -26,21 +26,21 @@ cd WalletWasabi/Microservices/Binaries
 
 1. Open `torbrowser-install-win64-<version>_en-US.exe` file in a zip decompressing tool (like 7zip).
 1. Navigate to `Browser\TorBrowser\Tor` folder in the archive.
-1. Unzip it to `WalletWasabi\Microservices\Binaries\win64\Tor` folder.
+1. Unzip it to `WalletWasabi\BundledApps\Binaries\win-x64\Tor` folder.
     * Do not copy the `PluggableTransports` folder.
 
 #### Linux
 
 1. Open `tor-browser-linux64-<version>_en-US.tar.xz` file in a zip decompressing tool (like 7zip).
 1. Navigate to `tor-browser_en-US\Browser\TorBrowser\Tor` folder in the archive.
-1. Unzip it to `WalletWasabi\Microservices\Binaries\lin64\Tor` folder.
+1. Unzip it to `WalletWasabi\BundledApps\Binaries\linux-x64\Tor` folder.
     * Do not copy the `PluggableTransports` folder.
 
 #### macOS
 
 1. Open `TorBrowser-<version>-osx64_en-US.dmg` file in a zip decompressing tool (like 7zip).
 1. Navigate to `Tor Browser.app\Contents\MacOS\Tor` folder in the archive.
-1. Unzip it to `WalletWasabi\Microservices\Binaries\osx64\Tor` folder but preserve the `Tor` file!
+1. Unzip it to `WalletWasabi\BundledApps\Binaries\osx64\Tor` folder but preserve the `Tor` file!
     * Do not copy the `PluggableTransports` folder.
 
 #### Upgrade Geoip files

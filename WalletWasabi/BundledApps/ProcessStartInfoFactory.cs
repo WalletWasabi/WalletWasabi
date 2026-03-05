@@ -1,7 +1,7 @@
 using System.Diagnostics;
 using System.Runtime.InteropServices;
 
-namespace WalletWasabi.Microservices;
+namespace WalletWasabi.BundledApps;
 
 /// <summary>
 /// Factory for <see cref="ProcessStartInfo"/> with pre-defined properties as needed in Wasabi Wallet.

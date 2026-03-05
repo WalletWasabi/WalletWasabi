@@ -1,9 +1,9 @@
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.CrashReport;
