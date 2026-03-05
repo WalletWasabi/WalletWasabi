@@ -5,7 +5,7 @@
 # Requirements:
 #   - bash on linux or git bash on Windows
 #   - curl
-#   - 7zz (7-Zip command line; apt install 7zip / brew install sevenzip / winget install --id 7zip.7zip)
+#   - 7zz (version 25.1+; 7-Zip command line; apt install 7zip-standalone / brew install sevenzip / winget install --id 7zip.7zip)
 #   - git (only for chmod +x marking via git update-index)
 #
 # Usage:
