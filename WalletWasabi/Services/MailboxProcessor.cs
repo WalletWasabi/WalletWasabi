@@ -32,7 +32,7 @@ public class Mailbox<TMsg>
 }
 
 public delegate Task Process<TMsg>(Mailbox<TMsg> mailbox, CancellationToken cancellationToken);
-public delegate Task<TState> MessageHandler<TMsg,TState>(TMsg msg, TState state, CancellationToken cancellationToken);
+public delegate Task<TState> MessageHandler<TMsg, TState>(TMsg msg, TState state, CancellationToken cancellationToken);
 public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken cancellationToken);
 
 public sealed class MailboxProcessor<TMsg>(
@@ -172,11 +172,53 @@ public static class Workers
 
 	public static (Func<Task>, Func<Task>, Process<Unit>) Continuously(MessageHandler<Unit> handler)
 	{
-		var semaphore = new SemaphoreSlim(1, 1);
+		SemaphoreSlim? currentSemaphore = null;
 
-		async Task Pause() => await semaphore.WaitAsync();
-		Task Resume() {
-			if (semaphore.CurrentCount == 0)
+		async Task LoopAsync(Mailbox<Unit> mailbox, CancellationToken cancellationToken)
+		{
+			var semaphore = new SemaphoreSlim(1, 1);
+			Volatile.Write(ref currentSemaphore, semaphore);
+
+			using (var disposable = semaphore)
+			{
+				while (!cancellationToken.IsCancellationRequested)
+				{
+					try
+					{
+						await semaphore.WaitAsync(cancellationToken).ConfigureAwait(false);
+						semaphore.Release();
+
+						_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
+					}
+					catch (OperationCanceledException)
+					{
+						// Ignore because it is expected.
+					}
+					catch (Exception e)
+					{
+						Logger.LogError(e);
+					}
+				}
+			}
+
+			Volatile.Write(ref currentSemaphore, null);
+		}
+
+		async Task PauseAsync()
+		{
+			var semaphore = Volatile.Read(ref currentSemaphore);
+
+			if (semaphore is not null)
+			{
+				await semaphore.WaitAsync().ConfigureAwait(false);
+			}
+		}
+
+		Task ResumeAsync()
+		{
+			var semaphore = Volatile.Read(ref currentSemaphore);
+
+			if (semaphore is not null && semaphore.CurrentCount == 0)
 			{
 				semaphore.Release();
 			}
@@ -184,32 +226,11 @@ public static class Workers
 			return Task.CompletedTask;
 		}
 
-		async Task Loop(Mailbox<Unit> mailbox, CancellationToken cancellationToken)
-		{
-			while (!cancellationToken.IsCancellationRequested)
-			{
-				try
-				{
-					await semaphore.WaitAsync(cancellationToken);
-					semaphore.Release();
 
-					_ = await handler(Unit.Instance, cancellationToken).ConfigureAwait(false);
-				}
-				catch (OperationCanceledException)
-				{
-					// Ignore because it is expected
-				}
-				catch (Exception e)
-				{
-					Logger.LogError(e);
-				}
-			}
-		}
-
-		return (Pause, Resume, Loop);
+		return (PauseAsync, ResumeAsync, LoopAsync);
 	}
 
-	public static Process<TMsg> EventDriven<TMsg,TState>(TState state,
+	public static Process<TMsg> EventDriven<TMsg, TState>(TState state,
 		MessageHandler<TMsg, TState> handler) =>
 		async (mailbox, cancellationToken) =>
 		{
@@ -224,14 +245,14 @@ public static class Workers
 				{
 					// Ignore because it is expected
 				}
-				catch (Exception e) when(e is not ChannelClosedException)
+				catch (Exception e) when (e is not ChannelClosedException)
 				{
 					Logger.LogError(e);
 				}
 			}
 		};
 
-	public static Process<TMsg> Periodically<TMsg,TState>(TimeSpan period, TState state,
+	public static Process<TMsg> Periodically<TMsg, TState>(TimeSpan period, TState state,
 		MessageHandler<TMsg, TState> handler) =>
 		async (inbox, cancellationToken) =>
 		{

@@ -60,13 +60,13 @@
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Coordinator $out/bin/wasabi-coordinator
           '';
 
-          binaries = "Microservices/Binaries/lin64";
-          microservices = "./WalletWasabi/${binaries}";
-          microservicesTest = "./WalletWasabi.Tests/${binaries}";
+          binaries = "BundledApps/Binaries/linux-x64";
+          bundledApps = "./WalletWasabi/${binaries}";
+          bundledAppsTest = "./WalletWasabi.Tests/${binaries}";
           preBuild = ''
-            cp -r ${pkgs.tor}/bin/tor ${microservices}/Tor/tor
-            cp ${pkgs.hwi}/bin/hwi ${microservices}/hwi
-            cp ${pkgs.bitcoind}/bin/bitcoind ${microservicesTest}/bitcoind
+            cp -r ${pkgs.tor}/bin/tor ${bundledApps}/Tor/tor
+            cp ${pkgs.hwi}/bin/hwi ${bundledApps}/hwi
+            cp ${pkgs.bitcoind}/bin/bitcoind ${bundledAppsTest}/bitcoind
           '';
         });
 
@@ -126,7 +126,11 @@
 
               # IDE
               pkgsUnfree.jetbrains.rider
-            ];
+
+              # Claude code
+              pkgsUnfree.claude-code
+              pkgs.python314 # claude loves python
+           ];
 
             DOTNET_CLI_TELEMETRY_OPTOUT = 1;
             DOTNET_NOLOGO = 1;
@@ -134,14 +138,14 @@
             DOTNET_GLOBAL_TOOLS_PATH = "${builtins.getEnv "HOME"}/.dotnet/tools";
             #DOTNET_ROLL_FORWARD = "latestPatch";
             LD_LIBRARY_PATH = "${skiaSharp};${pkgs.lib.makeLibraryPath libs}";
-            MICROSERVICE_BINARIES_PATH = "WalletWasabi/Microservices/Binaries/lin64";
-            MICROSERVICE_TEST_BINARIES_PATH = "WalletWasabi.Tests/Microservices/Binaries/lin64";
+            BUNDLED_APPS_BINARIES_PATH = "WalletWasabi/BundledApps/Binaries/linux-x64";
+            BUNDLED_APPS_TEST_BINARIES_PATH = "WalletWasabi.Tests/BundledApps/Binaries/linux-x64";
 
             shellHook = ''
               export PATH="$PATH:$DOTNET_GLOBAL_TOOLS_PATH"
-              cp $(which tor) "$MICROSERVICE_BINARIES_PATH/Tor/"
-              cp $(which hwi) "$MICROSERVICE_BINARIES_PATH/hwi"
-              cp $(which bitcoind) "$MICROSERVICE_TEST_BINARIES_PATH/"
+              cp $(which tor) "$BUNDLED_APPS_BINARIES_PATH/Tor/"
+              cp $(which hwi) "$BUNDLED_APPS_BINARIES_PATH/hwi"
+              cp $(which bitcoind) "$BUNDLED_APPS_TEST_BINARIES_PATH/"
 
               export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
             '';

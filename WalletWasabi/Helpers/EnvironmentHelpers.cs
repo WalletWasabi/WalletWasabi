@@ -6,9 +6,9 @@ using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Helpers;
 

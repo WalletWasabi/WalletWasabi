@@ -31,9 +31,9 @@ $ErrorActionPreference = "Stop"
 $distUri = "https://www.torproject.org/dist/torbrowser/${version}"
 
 $supportedPlatforms = @(
-  "win64",
+  "win-x64",
   "osx64",
-  "lin64"
+  "linux-x64"
 )
 # </Settings>
 
@@ -109,16 +109,16 @@ try {
     Remove-Item -Recurse -Force "Tor/*" -ErrorAction SilentlyContinue
 
     Write-Output "# Extract Tor binary for Windows."
-    mkdir -p "Tor/win64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/Windows/Browser/TorBrowser/Tor/*" -Destination "Tor/win64/" -Exclude "PluggableTransports"
+    mkdir -p "Tor/win-x64/"
+    Copy-item -Recurse -Force -Path "TorBrowser/Windows/Browser/TorBrowser/Tor/*" -Destination "Tor/win-x64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for macOs."
     mkdir -p "Tor/osx64/"
     Copy-item -Recurse -Force -Path "TorBrowser/macOS/Tor Browser/Tor Browser.app/Contents/MacOS/Tor/*" -Destination "Tor/osx64/" -Exclude "PluggableTransports"
 
     Write-Output "# Extract Tor binary for linux."
-    mkdir -p "Tor/lin64/"
-    Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/lin64/" -Exclude "PluggableTransports"
+    mkdir -p "Tor/linux-x64/"
+    Copy-item -Recurse -Force -Path "TorBrowser/linux/tor-browser/Browser/TorBrowser/Tor/*" -Destination "Tor/linux-x64/" -Exclude "PluggableTransports"
   }
 
   if ($skipReplacingTorBinaries) {

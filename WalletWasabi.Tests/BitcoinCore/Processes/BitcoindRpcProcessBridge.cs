@@ -3,11 +3,11 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 using WalletWasabi.Tests.BitcoinCore.Configuration;
 
 namespace WalletWasabi.Tests.BitcoinCore.Processes;
@@ -47,7 +47,7 @@ public class BitcoindRpcProcessBridge
 	public async Task StartAsync(CancellationToken cancel)
 	{
 		int ptcv = PrintToConsole ? 1 : 0;
-		string processPath = MicroserviceHelpers.GetBinaryPath("bitcoind");
+		string processPath = BundledAppHelpers.GetBinaryPath("bitcoind");
 		string networkArgument = NetworkTranslator.GetCommandLineArguments(Network);
 
 		// On Windows, if DataDir ends with '\', the Process can't be started.

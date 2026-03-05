@@ -1,6 +1,6 @@
 using System.Diagnostics;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Logging;
-using WalletWasabi.Microservices;
 
 namespace WalletWasabi.Helpers.PowerSaving;
 
