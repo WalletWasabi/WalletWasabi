@@ -1,7 +1,7 @@
+using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -10,12 +10,15 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = null)]
 public partial class LoadingViewModel : RoutableViewModel
 {
+	private const int CarouselSlideCount = 4;
+	private const int CarouselIntervalSeconds = 5;
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
 	[AutoNotify] private string _timeToCatchUp;
 	[AutoNotify] private bool _isLoading;
+	[AutoNotify] private int _carouselIndex;
 
 	public LoadingViewModel(IWalletModel wallet)
 	{
@@ -31,6 +34,12 @@ public partial class LoadingViewModel : RoutableViewModel
 					  .Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
 					  .Subscribe()
 					  .DisposeWith(disposables);
+
+		// Auto-advance carousel
+		Observable.Interval(TimeSpan.FromSeconds(CarouselIntervalSeconds))
+				  .ObserveOn(RxApp.MainThreadScheduler)
+				  .Subscribe(_ => CarouselIndex = (CarouselIndex + 1) % CarouselSlideCount)
+				  .DisposeWith(disposables);
 	}
 
 	private void UpdateStatus(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percentProgress)

@@ -10,59 +10,87 @@
   <ContentArea Title="{Binding WalletName, FallbackValue=My Wallet with a very long name}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Panel>
-      <Interaction.Behaviors>
-        <AdaptiveBehavior>
-          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
-        </AdaptiveBehavior>
-      </Interaction.Behaviors>
-
       <DockPanel VerticalAlignment="Center">
-        <DockPanel.Styles>
-          <Style Selector="Panel#WorldMap.small">
-            <Setter Property="IsVisible" Value="False" />
-          </Style>
-        </DockPanel.Styles>
+        <!-- Privacy Information Carousel -->
+        <Carousel x:Name="PrivacyCarousel"
+                  DockPanel.Dock="Top"
+                  Height="350"
+                  Margin="20"
+                  SelectedIndex="{Binding CarouselIndex}">
+          <Carousel.Styles>
+            <Style Selector="StackPanel.slide-content">
+              <Setter Property="VerticalAlignment" Value="Center" />
+              <Setter Property="HorizontalAlignment" Value="Center" />
+              <Setter Property="MaxWidth" Value="600" />
+              <Setter Property="Spacing" Value="20" />
+            </Style>
+            <Style Selector="TextBlock.slide-title">
+              <Setter Property="FontSize" Value="28" />
+              <Setter Property="FontWeight" Value="SemiBold" />
+              <Setter Property="TextAlignment" Value="Center" />
+              <Setter Property="TextWrapping" Value="Wrap" />
+            </Style>
+            <Style Selector="TextBlock.slide-description">
+              <Setter Property="FontSize" Value="16" />
+              <Setter Property="TextAlignment" Value="Center" />
+              <Setter Property="TextWrapping" Value="Wrap" />
+              <Setter Property="Opacity" Value="0.8" />
+              <Setter Property="LineHeight" Value="24" />
+            </Style>
+            <Style Selector="PathIcon.slide-icon">
+              <Setter Property="Width" Value="80" />
+              <Setter Property="Height" Value="80" />
+              <Setter Property="HorizontalAlignment" Value="Center" />
+            </Style>
+          </Carousel.Styles>
+          <Carousel.PageTransition>
+            <PageSlide Duration="0:0:0.5" SlideOutEasing="{StaticResource FluentEasing}"
+                       SlideInEasing="{StaticResource FluentEasing}" />
+          </Carousel.PageTransition>
 
-        <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-          <TextBlock Text="Downloading and processing Bitcoin data" TextAlignment="Center" FontSize="22"
-                     DockPanel.Dock="Bottom" />
-          <TextBlock
-            Text="This is done without any third party knowing your balance or transactions."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+          <!-- Slide 1: No Third Party -->
+          <StackPanel Classes="slide-content">
+            <PathIcon Classes="slide-icon" Data="M12 1L3 5v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V5l-9-4z" />
+            <TextBlock Classes="slide-title" Text="Your Privacy is Protected" />
+            <TextBlock Classes="slide-description">
+              Wasabi downloads and processes Bitcoin data directly from the network. No third party can track your balance or transactions.
+            </TextBlock>
+          </StackPanel>
 
-          <TextBlock
-            Text="It is slower on first launch, with larger wallets, or after long gaps between synchronizations."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+          <!-- Slide 2: CoinJoin -->
+          <StackPanel Classes="slide-content">
+            <PathIcon Classes="slide-icon" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-5-9h10v2H7v-2z" />
+            <TextBlock Classes="slide-title" Text="Break the Link" />
+            <TextBlock Classes="slide-description">
+              CoinJoin breaks the link between your Bitcoin addresses, making it extremely difficult to trace your transaction history on the blockchain.
+            </TextBlock>
+          </StackPanel>
 
-          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-          <TextBlock Margin="0 10 0 0" Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.8" />
-          <TextBlock Text="{Binding TimeToCatchUp}" TextAlignment="Center" Opacity="0.6" />
+          <!-- Slide 3: Tor Integration -->
+          <StackPanel Classes="slide-content">
+            <PathIcon Classes="slide-icon" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zM4 12c0-.61.08-1.21.21-1.78L8.99 15v1c0 1.1.9 2 2 2v1.93C7.06 19.43 4 16.07 4 12zm13.89 5.4c-.26-.81-1-1.4-1.9-1.4h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41C17.92 5.77 20 8.65 20 12c0 2.08-.81 3.98-2.11 5.4z" />
+            <TextBlock Classes="slide-title" Text="Anonymous Network Access" />
+            <TextBlock Classes="slide-description">
+              All connections are routed through Tor, hiding your IP address and location from network observers and preventing tracking.
+            </TextBlock>
+          </StackPanel>
+
+          <!-- Slide 4: Open Source -->
+          <StackPanel Classes="slide-content">
+            <PathIcon Classes="slide-icon" Data="M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm-1 17.93c-3.95-.49-7-3.85-7-7.93 0-.62.08-1.21.21-1.79L9 15v1c0 1.1.9 2 2 2v1.93zm6.9-2.54c-.26-.81-1-1.39-1.9-1.39h-1v-3c0-.55-.45-1-1-1H8v-2h2c.55 0 1-.45 1-1V7h2c1.1 0 2-.9 2-2v-.41c2.93 1.18 5 4.05 5 7.41 0 2.08-.8 3.97-2.1 5.39z" />
+            <TextBlock Classes="slide-title" Text="Fully Open Source" />
+            <TextBlock Classes="slide-description">
+              Wasabi Wallet is open source and auditable. Anyone can verify that the software does exactly what it claims to do.
+            </TextBlock>
+          </StackPanel>
+        </Carousel>
+
+        <!-- Progress Section -->
+        <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center" Margin="0 0 0 20">
+          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 10 0 0" />
+          <TextBlock Margin="0 10 0 0" Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.8" FontSize="14" />
+          <TextBlock Text="{Binding TimeToCatchUp}" TextAlignment="Center" Opacity="0.6" FontSize="12" />
         </StackPanel>
-
-        <Panel x:Name="WorldMap" Margin="20">
-          <Viewbox>
-            <Viewbox.Styles>
-              <Style Selector=":is(Control).City">
-                <Setter Property="Opacity" Value="0" />
-                <Setter Property="Transitions">
-                  <Transitions>
-                    <DoubleTransition Property="Opacity" Duration="0:0:0.75" Easing="{StaticResource FluentEasing}" />
-                  </Transitions>
-                </Setter>
-              </Style>
-            </Viewbox.Styles>
-            <Canvas Width="1042" Height="474" Name="WorldCanvas">
-              <Interaction.Behaviors>
-                <RandomizedWorldPointsBehavior />
-              </Interaction.Behaviors>
-              <Image Source="{StaticResource loading_control_world_map}" />
-              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-              <Image Source="{StaticResource loading_control_city_marker}" Classes="City" />
-            </Canvas>
-          </Viewbox>
-        </Panel>
       </DockPanel>
     </Panel>
   </ContentArea>
