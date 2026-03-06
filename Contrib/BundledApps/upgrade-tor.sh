@@ -236,16 +236,12 @@ else
 fi
 
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
-section "Marking Tor and HWI binaries executable in the git repository"
+section "Marking Tor binaries executable in the git repository"
 
 chmod +x ./{linux-x64,osx64,win-x64}/Tor/tor{,.exe} 2>/dev/null || true
 
 git update-index --chmod=+x ./{linux-x64,osx64}/Tor/tor 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/Tor/tor.exe 2>/dev/null || true
-
-chmod +x ./{linux-x64,osx64,win-x64}/hwi{,.exe} 2>/dev/null || true
-git update-index --chmod=+x ./{linux-x64,osx64}/hwi 2>/dev/null || true
-git update-index --chmod=+x ./win-x64/hwi.exe 2>/dev/null || true
 
 echo ""
 echo "Done."
