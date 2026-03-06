@@ -326,6 +326,13 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
+	public ChainHeight? GetEarliestBirthdayHeight() =>
+		GetWallets()
+			.Where(w => w.KeyManager.GetNetwork() == Network)
+			.Select(w => w.KeyManager.GetBirthdayHeight())
+			.Where(b => b is not null && b > 0)
+			.MinBy(b => b);
+
 	public Wallet GetWalletByName(string walletName)
 	{
 		lock (_lock)

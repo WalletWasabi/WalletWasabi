@@ -11,8 +11,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Exceptions;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -21,7 +19,6 @@ using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static WalletWasabi.Services.Workers;
 
@@ -44,12 +41,13 @@ public class P2pTests
 		var dataDir = Common.GetWorkDir();
 
 		SmartHeaderChain smartHeaderChain = new();
-		await using var filterStore = new FilterStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
+		await transactionStore.InitializeAsync(CancellationToken.None);
+		await using var filterStore = new FilterStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
+		await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain, blocks);
-		await bitcoinStore.InitializeAsync();
+		BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain);
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 		var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");

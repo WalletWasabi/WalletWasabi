@@ -10,8 +10,8 @@ namespace WalletWasabi.Wallets.FilterProcessor;
 
 public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersInMemory = 1000)
 {
-    private readonly IFilterStore _filterStore = filterStore ?? throw new ArgumentNullException(nameof(filterStore));
-    private readonly Dictionary<uint, FilterModel> _cache = new();
+	private readonly IFilterStore _filterStore = filterStore ?? throw new ArgumentNullException(nameof(filterStore));
+	private readonly Dictionary<uint, FilterModel> _cache = new();
 	private readonly int _maxNumberFiltersInMemory = maxNumberFiltersInMemory > 0
 		? maxNumberFiltersInMemory
 		: throw new ArgumentOutOfRangeException(nameof(maxNumberFiltersInMemory), "Must be greater than zero");
@@ -20,7 +20,7 @@ public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersI
 	/// Gets block filter for the block of specified height.
 	/// </summary>
 	/// <remarks>Filter is immediately removed from the cache once the method returns. Repeated calls for single height are thus expensive.</remarks>
-	public async Task<FilterModel> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
+	public async Task<FilterModel?> GetAndRemoveAsync(uint height, CancellationToken cancellationToken)
 	{
 		if (_cache.Remove(height, out var result))
 		{
@@ -32,12 +32,12 @@ public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersI
 
 		var filtersBatch = await _filterStore.FetchBatchAsync(height, _maxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
-		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
 		if (filtersBatch.Length == 0)
 		{
-			throw new UnreachableException($"No block was found for a batch starting with block height {height}.");
+			return null;
 		}
 
+		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
 		if (filtersBatch[0].Header.Height != height)
 		{
 			throw new UnreachableException($"Block filter for height {height} was not found.");

@@ -32,7 +32,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static BlockFilterSqliteStorage FromFile(string dataSource, FilterModel? startingFilter = null)
+	public static BlockFilterSqliteStorage FromFile(string dataSource)
 	{
 		// In case there is an exception, we need to dispose things properly.
 		SqliteConnection? connectionToDispose = null;
@@ -75,25 +75,6 @@ public class BlockFilterSqliteStorage : IDisposable
 			}
 
 			BlockFilterSqliteStorage storage = new(connection);
-			storageToDispose = storage;
-			connectionToDispose = null;
-
-			if (startingFilter is not null)
-			{
-				using SqliteCommand isEmptyCommand = connection.CreateCommand();
-				isEmptyCommand.CommandText = "SELECT EXISTS (SELECT 1 FROM filter)";
-				int existRows = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
-
-				if (existRows == 0)
-				{
-					if (!storage.TryAppend(startingFilter))
-					{
-						// Unrecoverable error.
-						throw new InvalidOperationException("Failed to add the first filter to the database.");
-					}
-				}
-			}
-
 			storageToDispose = null;
 			connectionToDispose = null;
 
@@ -274,6 +255,15 @@ public class BlockFilterSqliteStorage : IDisposable
 		command.CommandText = "PRAGMA user_version";
 		var tmp = Convert.ToInt32(command.ExecuteScalar());
 		return tmp;
+	}
+
+	public uint? GetMinimumBlockHeight()
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "SELECT MIN(block_height) FROM filter";
+
+		var result = command.ExecuteScalar();
+		return result is not null && result != DBNull.Value ? Convert.ToUInt32(result) : null;
 	}
 
 	/// <summary>

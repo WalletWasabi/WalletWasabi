@@ -120,7 +120,7 @@ public class ReorgTest : IClassFixture<RegTestFixture>
 			var filter = filters[i];
 			Assert.Equal(i, (int)filter.Header.Height.Height);
 			Assert.Equal(expectedHash, filter.Header.BlockHash);
-			if (i < 101) // Later other tests may fill the filter.
+			if (i < Constants.ResyncHeightMargin) // Later other tests may fill the filter.
 			{
 //				Assert.Equal(LegacyWasabiFilterGenerator.CreateDummyEmptyFilter(expectedHash).ToString(),
 //					filter.Filter.ToString());

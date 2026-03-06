@@ -45,5 +45,6 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 	public record RecoverWallet(
 		string? WalletName = null,
 		WalletBackup? WalletBackup = null,
-		int? MinGapLimit = null) : WalletCreationOptions(WalletName);
+		int? MinGapLimit = null,
+		uint? BirthHeight = null) : WalletCreationOptions(WalletName);
 }

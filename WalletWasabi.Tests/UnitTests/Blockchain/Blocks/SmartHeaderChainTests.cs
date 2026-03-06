@@ -150,7 +150,7 @@ public class SmartHeaderChainTests
 	/// <remarks>Dummy genesis header.</remarks>
 	private static SmartHeader CreateGenesisHeader()
 	{
-		return new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), header: uint256.Zero, height: 100, BlockTime);
+		return new(new uint256("000000000019d6689c085ae165831e934ff763ae46a2a6c172b3f1b60a8ce26f"), header: uint256.Zero, height: 0, BlockTime);
 	}
 
 	private static SmartHeader CreateSmartHeader(uint256 blockHash, uint256 prevHash, uint height)

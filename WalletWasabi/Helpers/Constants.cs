@@ -24,6 +24,7 @@ public static class Constants
 	/// </summary>
 	public const string ConfirmedTransactionsVersion = "2";
 
+	public const int ResyncHeightMargin = 101;
 	public const uint ProtocolVersionWitnessVersion = 70012;
 
 	public const int InputBaseSizeInBytes = 41;

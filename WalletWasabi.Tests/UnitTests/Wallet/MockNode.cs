@@ -91,7 +91,7 @@ public class MockNode
 
 		List<FilterModel> filters = new();
 
-		var startingFilter = StartingFilters.GetStartingFilter(Network);
+		var startingFilter = FilterCheckpoints.GetWasabiGenesisFilter(Network);
 		filters.Add(startingFilter);
 		foreach (var block in BlockChain.Values)
 		{

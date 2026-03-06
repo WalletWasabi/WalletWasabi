@@ -4,6 +4,7 @@ using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
@@ -111,6 +112,6 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	public void RescanWallet(uint startingHeight = 0)
 	{
-		_keyManager.SetBestHeight(startingHeight);
+		_keyManager.SetBestHeight(startingHeight + Constants.ResyncHeightMargin);
 	}
 }

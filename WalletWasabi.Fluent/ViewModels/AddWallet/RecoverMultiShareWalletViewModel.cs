@@ -8,6 +8,7 @@ using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using ReactiveUI;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
@@ -39,6 +40,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 		_requiredShares = multiShareBackup?.Settings.Threshold;
 		_shares = multiShareBackup?.Shares;
 
+		BirthHeight = CalculateBirthHeight();
 		Caption = _currentShare is not null && _requiredShares is not null
 			? $"Enter share #{_currentShare + 1} of required {_requiredShares} shares."
 			: "Enter any share";
@@ -107,12 +109,18 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
 	private int MinGapLimit { get; set; } = 114;
+	private uint BirthHeight { get; set; }
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
+	private uint CalculateBirthHeight()
+	{
+		return FilterCheckpoints.GetWasabiGenesisFilter(UiContext.ApplicationSettings.Network).Header.Height;
+	}
+
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, _, _) = options;
+		var (walletName, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		if (Share is not { } share)
@@ -130,7 +138,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 				Password: "",
 				Shares: shares,
 				CurrentShare: (byte) shares.Length);
-			options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit };
+			options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit, BirthHeight = BirthHeight};
 
 			Navigate().To().RecoverMultiShareWallet(options);
 		}
@@ -151,7 +159,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 					new MultiShareBackupSettings(Threshold: threshold, Shares: (byte)shares.Length),
 					password,
 					shares);
-				options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit };
+				options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit, BirthHeight = BirthHeight};
 				var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 				Navigate().To().AddedWalletPage(walletSettings, options);
 			}
@@ -168,10 +176,11 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await Navigate().To().AdvancedRecoveryOptions(MinGapLimit).GetResultAsync();
-		if (result is { } minGapLimit)
+		var result= await Navigate().To().AdvancedRecoveryOptions(MinGapLimit, BirthHeight).GetResultAsync();
+		if (result is { } parameters)
 		{
-			MinGapLimit = minGapLimit;
+			MinGapLimit = parameters.MinGapLimit;
+			BirthHeight = parameters.BirthHeight;
 		}
 	}
 

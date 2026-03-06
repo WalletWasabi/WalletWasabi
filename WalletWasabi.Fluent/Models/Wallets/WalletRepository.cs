@@ -183,7 +183,7 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 
 	private async Task<WalletSettingsModel> RecoverWalletAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, walletBackup, minGapLimit) = options;
+		var (walletName, walletBackup, minGapLimit, birthHeight) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(minGapLimit);
@@ -203,7 +203,8 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 						AccountKeyPath,
 						null,
 						"", // Make sure it is not saved into a file yet.
-						minGapLimit.Value),
+						minGapLimit.Value,
+						birthHeight: birthHeight),
 				MultiShareBackup multiShareBackup =>
 					KeyManager.Recover(
 						multiShareBackup.Shares,
@@ -212,7 +213,8 @@ public partial class WalletRepository : ReactiveObject, IWalletRepository
 						AccountKeyPath,
 						null,
 						"", // Make sure it is not saved into a file yet.
-						minGapLimit.Value),
+						minGapLimit.Value,
+						birthHeight: birthHeight),
 				_ => throw new ArgumentOutOfRangeException(nameof(walletBackup))
 			};
 

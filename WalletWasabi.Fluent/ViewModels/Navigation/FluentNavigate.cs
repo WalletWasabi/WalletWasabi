@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Reactive;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Daemon;
@@ -36,6 +37,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
@@ -254,13 +256,13 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new SendSuccessViewModel(UiContext, finalTransaction, title, caption), navigationMode);
 	}
 
-	public FluentDialog<int?> AdvancedRecoveryOptions(int minGapLimit, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<(int MinGapLimit, uint BirthHeight)?> AdvancedRecoveryOptions(int minGapLimit, uint genesisHeight, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new AdvancedRecoveryOptionsViewModel(minGapLimit);
+		var dialog = new AdvancedRecoveryOptionsViewModel(minGapLimit, genesisHeight);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<int?>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<(int, uint)?>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void RecoverMultiShareWallet(WalletCreationOptions.RecoverWallet options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -293,9 +295,9 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new SchemeConsoleViewModel(schemeInterpreter), navigationMode);
 	}
 
-	public FluentDialog<int?> ResyncWallet(NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<int?> ResyncWallet(uint birthHeight, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ResyncWalletViewModel();
+		var dialog = new ResyncWalletViewModel(birthHeight);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 

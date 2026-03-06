@@ -27,12 +27,7 @@ public abstract record FiltersResponse
 	public record NewFiltersAvailable(uint BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
-public interface ICompactFilterProvider
-{
-	Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken);
-}
-
-public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFilterProvider
+public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 {
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
@@ -98,10 +93,10 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient) : ICompactFil
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
+	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
 		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, bitcoinStore, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(ICompactFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		var smartHeaderChain = bitcoinStore.SmartHeaderChain;
 

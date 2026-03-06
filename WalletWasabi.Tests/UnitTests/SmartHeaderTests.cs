@@ -23,10 +23,10 @@ public class SmartHeaderTests
 	[Fact]
 	public void StartingHeaderTests()
 	{
-		var startingMain = SmartHeader.GetStartingHeader(Network.Main);
-		var startingTest = SmartHeader.GetStartingHeader(Network.TestNet);
-		var startingReg = SmartHeader.GetStartingHeader(Network.RegTest);
-		var startingSig = SmartHeader.GetStartingHeader(Bitcoin.Instance.Signet);
+		var startingMain = FilterCheckpoints.GetWasabiGenesisFilter(Network.Main).Header;
+		var startingTest = FilterCheckpoints.GetWasabiGenesisFilter(Network.TestNet).Header;
+		var startingReg = FilterCheckpoints.GetWasabiGenesisFilter(Network.RegTest).Header;
+		var startingSig = FilterCheckpoints.GetWasabiGenesisFilter(Bitcoin.Instance.Signet).Header;
 
 		var expectedHashMain = new uint256("0000000000000000001c8018d9cb3b742ef25114f27563e3fc4a1902167f9893");
 		var expectedHeaderMain = new uint256("8950b517b9246048f9fd27adeda6802e5b6d08bc7a94f628619c2d4dc4bb4d67");
@@ -47,8 +47,6 @@ public class SmartHeaderTests
 		var expectedHeaderSig = new uint256("0d56a463c236df12c9ef21ba12f27fa17ac4bf7792a36d1636cb231f822076f4");
 		var expectedHeightSig = new Height.ChainHeight(0);
 		var expectedTimeSig = Bitcoin.Instance.Signet.GetGenesis().Header.BlockTime;
-
-
 
 		Assert.Equal(expectedHashMain, startingMain.BlockHash);
 		Assert.Equal(expectedHeaderMain, startingMain.BlockFilterHeader);

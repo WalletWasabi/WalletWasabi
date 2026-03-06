@@ -15,6 +15,7 @@ using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -39,6 +40,7 @@ using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WabiSabi.Models;
 using static WalletWasabi.Services.Workers;
+using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
 
 namespace WalletWasabi.Daemon;
 
@@ -76,14 +78,14 @@ public class Global
 		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
-		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
+		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
 		NodesGroup = ConfigureNodesGroup(mempoolService);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(NodesGroup, BitcoinStore.BlockRepository);
+		var blockProvider = ConfigureBlockProvider(NodesGroup, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -95,8 +97,8 @@ public class Global
 
 		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
-		var broadcasters = CreateBroadcasters(NodesGroup);
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
+		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
 		Scheme = new Scheme(this);
 	}
@@ -272,7 +274,7 @@ public class Global
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		ICompactFilterProvider filtersProvider = await GetFilterProviderAsync() ??
+		var filtersProvider = await GetFilterProviderAsync() ??
 			throw new NotSupportedException("No Bitcoin RPC client able to provide compact filters exists.");
 
 		var (pause, resume, serviceLoop) =
@@ -294,7 +296,7 @@ public class Global
 
 		return;
 
-		async Task<ICompactFilterProvider?> GetFilterProviderAsync()
+		async Task<BitcoinRpcFilterProvider?> GetFilterProviderAsync()
 		{
 			if (_bitcoinRpcClient is not null)
 			{
@@ -381,18 +383,27 @@ public class Global
 	{
 		try
 		{
-			await BitcoinStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-			// Make sure that the height of the wallets will not be better than the current height of the filters.
-			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
+			await BitcoinStore.TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+			await BitcoinStore.FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
-			// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
 			Logger.LogError($"Bitcoin storage got corrupted. Resetting wallet(s) to the first block to rescan. Exception: {ex}");
-			WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+			WalletManager.SetMaxBestHeight(FilterCheckpoints.GetWasabiGenesisFilter(Network).Header.Height);
 			throw;
 		}
+	}
+
+	private ChainHeight CalculateSafestHeight()
+	{
+		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
+		var transactionHeight = BitcoinStore.TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
+		var birthdayHeight = WalletManager.GetEarliestBirthdayHeight();
+
+		var oldestBlockHeight = birthdayHeight is not null
+			? Height.Min(checkpointHeight, transactionHeight, birthdayHeight)
+			: Height.Min(checkpointHeight, transactionHeight);
+		return (ChainHeight) oldestBlockHeight;
 	}
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
@@ -556,7 +567,7 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup)
+	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService)
 	{
 		var broadcasters = new List<IBroadcaster>();
 		if (_bitcoinRpcClient is not null)
@@ -565,7 +576,7 @@ public class Global
 		}
 
 		broadcasters.AddRange([
-			new NetworkBroadcaster(BitcoinStore.MempoolService, nodesGroup),
+			new NetworkBroadcaster(mempoolService, nodesGroup),
 			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
 		]);
 

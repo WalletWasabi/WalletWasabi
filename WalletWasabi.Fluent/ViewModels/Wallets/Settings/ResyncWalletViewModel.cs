@@ -11,9 +11,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 public partial class ResyncWalletViewModel : DialogViewModelBase<int?>
 {
 	[AutoNotify] private string _startingHeight = "";
+	private readonly uint _birthHeight;
 
-	public ResyncWalletViewModel()
+	public ResyncWalletViewModel(uint birthHeight)
 	{
+		_birthHeight = birthHeight;
+		StartingHeight = birthHeight.ToString();
 		this.ValidateProperty(x => x.StartingHeight, ValidateStartingHeight);
 
 		SetupCancel(false, true, true);

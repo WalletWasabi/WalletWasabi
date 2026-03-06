@@ -35,8 +35,7 @@ public class RegTestSetup : IAsyncDisposable
 		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		MempoolService mempoolService = new();
-		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
-		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
+		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain);
 		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}
 
@@ -60,7 +59,8 @@ public class RegTestSetup : IAsyncDisposable
 		await setup.RpcClient.GenerateAsync(101).ConfigureAwait(false); // Make sure everything is confirmed.
 		await setup.AssertFiltersInitializedAsync().ConfigureAwait(false); // Make sure filters are created on the server side.
 
-		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
+		await setup.TransactionStore.InitializeAsync(CancellationToken.None);
+		await setup.FilterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 		return setup;
 	}

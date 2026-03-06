@@ -28,6 +28,12 @@
           <FocusOnAttachedBehavior />
         </Interaction.Behaviors>
       </TextBox>
+      <Label Content="Birth Height:" Target="TbBirthHeight" />
+      <TextBox Name="TbBirthHeight" Watermark="e.g., 481824"
+               Text="{Binding BirthHeight}"
+               DockPanel.Dock="Top"
+               Width="350"
+               Classes="hasCheckMark" />
     </StackPanel>
   </ContentArea>
 </UserControl>

@@ -62,7 +62,15 @@ public class WalletFilterProcessor : BackgroundService
 					}
 
 					var currentHeight = lastHeight + 1;
-					FilterModel filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
+					var filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
+					if (filter is null)
+					{
+						// The wallet best height is higher tha the filters. That means that the filters were
+						// resetted of the wallet was copied and pasted from a more updated setup.
+						// Wait for the index store to catch up.
+						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
+						continue;
+					}
 					var matchFound = await ProcessFilterModelAsync(filter, cancellationToken).ConfigureAwait(false);
 					_eventBus.Publish(new FilterProcessed(filter));
 
@@ -99,6 +107,7 @@ public class WalletFilterProcessor : BackgroundService
 			if (matchFound)
 			{
 				// Wait until downloaded.
+				Logger.LogInfo($"Obtaining block {filter.Header.BlockHash}...");
 				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancel).ConfigureAwait(false);
 				if (currentBlock is { })
 				{
