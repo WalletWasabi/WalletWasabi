@@ -65,7 +65,9 @@ info() {
 }
 
 error() {
+    echo ""
     echo "[ERROR] $*" >&2
+    echo ""
     exit 1
 }
 
@@ -121,12 +123,33 @@ if [[ "$SKIP_DOWNLOAD" != true ]]; then
 
     rm -rf TorBrowser Tor
 
+    # https://support.torproject.org/tor-browser/getting-started/verifying-tor-browser/
+    info "Fetching the Tor Developers key"
+    rm -rf ./tor.keyring
+    gpg --auto-key-locate nodefault,wkd --locate-keys torbrowser@torproject.org
+    gpg --output ./tor.keyring --export 0xEF6E286DDA85EA2A4BA7DE684E2C6E8793298290
+
     for platform in "${SUPPORTED_PLATFORMS[@]}"; do
         fname="${FILES[$platform]}"
         url="${DIST_URI}/${fname}"
 
         info "Downloading $fname from '$url' ..."
-        curl -fL --progress-bar -o "$fname" "$url" || error "Download failed: $url"
+        curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
+
+        url="${url}.asc"
+        asc_fname="${FILES[$platform]}.asc"
+
+        info "Downloading $asc_fname from '$url' ..."
+        curl -fL --progress-bar -o "$asc_fname" "$url" || error "Download of '$asc_fname' failed: $url"
+
+        if gpgv --keyring ./tor.keyring "$asc_fname" "$fname" >gpg-verify.log 2>&1; then
+            info "Signature OK for $fname"
+        else
+            error "Verification FAILED for $fname"
+            cat ./gpg-verify.log
+
+            exit 1
+        fi
     done
 else
     section "Skipping download"
