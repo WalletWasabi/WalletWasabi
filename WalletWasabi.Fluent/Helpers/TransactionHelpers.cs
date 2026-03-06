@@ -157,7 +157,7 @@ public static class TransactionHelpers
 		return psbt.ExtractSmartTransaction();
 	}
 
-	private static PaymentIntent BuildPayToManyIntent(TransactionInfo transactionInfo)
+	internal static PaymentIntent BuildPayToManyIntent(TransactionInfo transactionInfo)
 	{
 		var requests = transactionInfo.AllRecipients
 			.Select((r, index) =>

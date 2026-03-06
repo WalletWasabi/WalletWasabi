@@ -356,6 +356,18 @@ public partial class SendViewModel : RoutableViewModel
 			? IsPrimarySubtractFee
 			: amount == _parameters.AvailableCoins.TotalAmount() && !(IsFixedAmount || IsPayJoin);
 
+		// In pay-to-many, if total equals available balance and no one has subtract-fee,
+		// auto-set it on the last recipient so the fee can be deducted.
+		if (isPayToMany && !primarySubtractFee && !additionalRecipients.Any(r => r.IsSubtractFee))
+		{
+			var totalAmount = amount + additionalRecipients.Aggregate(Money.Zero, (sum, r) => sum + r.Amount);
+			if (totalAmount >= _parameters.AvailableCoins.TotalAmount())
+			{
+				var last = additionalRecipients[^1];
+				additionalRecipients[^1] = last with { IsSubtractFee = true };
+			}
+		}
+
 		var transactionInfo = new TransactionInfo(destination, _walletModel.Settings.AnonScoreTarget)
 		{
 			Amount = amount,
