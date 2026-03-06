@@ -126,9 +126,14 @@ public static class PersistentConfigManager
 	{
 		// On Tails and Whonix, Tor is already running system-wide
 		// We should only connect to it, not start our own instance
-		if (PlatformInformation.MustUseSystemWideTorProcess())
+		if (PlatformInformation.IsTailsOS())
 		{
-			Logger.LogInfo("Detected Tails or Whonix OS. Setting Tor mode to 'Connect Only' by default.");
+			Logger.LogInfo("Detected Tails operating system. Setting Tor mode to 'Connect Only' by default.");
+			return "EnabledOnlyRunning";
+		}
+		else if (PlatformInformation.IsWhonix())
+		{
+			Logger.LogInfo("Detected Whonix operating system. Setting Tor mode to 'Connect Only' by default.");
 			return "EnabledOnlyRunning";
 		}
 

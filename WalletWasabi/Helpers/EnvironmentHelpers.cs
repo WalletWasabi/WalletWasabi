@@ -301,7 +301,7 @@ public static class PlatformInformation
 
 	private static bool TryGetLinuxOSRelease([NotNullWhen(true)] out string? content)
 	{
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) &&  File.Exists("/etc/os-release"))
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists("/etc/os-release"))
 		{
 			try
 			{
@@ -310,7 +310,7 @@ public static class PlatformInformation
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug($"Failed to read /etc/os-release for Tails detection: {ex.Message}");
+				Logger.LogDebug($"Failed to read /etc/os-release for operating system detection: {ex.Message}");
 			}
 		}
 
@@ -318,17 +318,14 @@ public static class PlatformInformation
 		return false;
 	}
 
-	private static bool IsTailsOS() =>
+	public static bool IsTailsOS() =>
 		TryGetLinuxOSRelease(out var osReleaseContent) && (
 			osReleaseContent.Contains("ID=tails", StringComparison.OrdinalIgnoreCase) ||
 			osReleaseContent.Contains("NAME=\"Tails\"", StringComparison.OrdinalIgnoreCase));
 
-	private static bool IsWhonix() =>
+	public static bool IsWhonix() =>
 		TryGetLinuxOSRelease(out var osReleaseContent) && (
 			osReleaseContent.Contains("ID=whonix", StringComparison.OrdinalIgnoreCase) ||
 			osReleaseContent.Contains("NAME=\"Whonix\"", StringComparison.OrdinalIgnoreCase) ||
 			osReleaseContent.Contains("ID_LIKE=debian whonix", StringComparison.OrdinalIgnoreCase));
-
-	public static bool MustUseSystemWideTorProcess() =>
-		IsTailsOS() || IsWhonix();
 }
