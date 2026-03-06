@@ -15,7 +15,7 @@ public static class PersistentConfigManager
 		Network : Network.Main,
 		IndexerUri : Constants.IndexerUri,
 		CoordinatorUri : Constants.CoordinatorUri,
-		UseTor : "Enabled",
+		UseTor : GetDefaultTorMode(),
 		TerminateTorOnExit : false,
 		TorBridges : [],
 		DownloadNewVersion : true,
@@ -120,5 +120,23 @@ public static class PersistentConfigManager
 				"Config.Signet.json" => DefaultSignetConfig,
 				_ => throw new ArgumentException($"The file '{configFilePath}' is not a valid config file name.")
 			};
+	}
+
+	private static string GetDefaultTorMode()
+	{
+		// On Tails and Whonix, Tor is already running system-wide
+		// We should only connect to it, not start our own instance
+		if (PlatformInformation.IsTailsOS())
+		{
+			Logger.LogInfo("Detected Tails operating system. Setting Tor mode to 'Connect Only' by default.");
+			return "EnabledOnlyRunning";
+		}
+		else if (PlatformInformation.IsWhonix())
+		{
+			Logger.LogInfo("Detected Whonix operating system. Setting Tor mode to 'Connect Only' by default.");
+			return "EnabledOnlyRunning";
+		}
+
+		return "Enabled";
 	}
 }

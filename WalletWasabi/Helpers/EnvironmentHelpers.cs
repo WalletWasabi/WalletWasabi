@@ -1,6 +1,7 @@
 using Microsoft.Win32;
 using System.Collections.Concurrent;
 using System.Diagnostics;
+using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -297,4 +298,34 @@ public static class PlatformInformation
 
 		return false;
 	}
+
+	private static bool TryGetLinuxOSRelease([NotNullWhen(true)] out string? content)
+	{
+		if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux) && File.Exists("/etc/os-release"))
+		{
+			try
+			{
+				content = File.ReadAllText("/etc/os-release");
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Logger.LogDebug($"Failed to read /etc/os-release for operating system detection: {ex.Message}");
+			}
+		}
+
+		content = null;
+		return false;
+	}
+
+	public static bool IsTailsOS() =>
+		TryGetLinuxOSRelease(out var osReleaseContent) && (
+			osReleaseContent.Contains("ID=tails", StringComparison.OrdinalIgnoreCase) ||
+			osReleaseContent.Contains("NAME=\"Tails\"", StringComparison.OrdinalIgnoreCase));
+
+	public static bool IsWhonix() =>
+		TryGetLinuxOSRelease(out var osReleaseContent) && (
+			osReleaseContent.Contains("ID=whonix", StringComparison.OrdinalIgnoreCase) ||
+			osReleaseContent.Contains("NAME=\"Whonix\"", StringComparison.OrdinalIgnoreCase) ||
+			osReleaseContent.Contains("ID_LIKE=debian whonix", StringComparison.OrdinalIgnoreCase));
 }
