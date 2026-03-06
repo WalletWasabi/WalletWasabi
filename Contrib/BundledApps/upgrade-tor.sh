@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!nix-shell -i bash -p _7zz
 #
 # Downloads, extracts and upgrades Tor from Tor Browser binaries for Wasabi Wallet
 #
