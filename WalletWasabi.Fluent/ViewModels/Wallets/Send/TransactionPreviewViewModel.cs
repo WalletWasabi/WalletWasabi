@@ -42,6 +42,8 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 	[AutoNotify] private TransactionSummaryViewModel? _displayedTransactionSummary;
 	[AutoNotify] private bool _canUndo;
 	[AutoNotify] private bool _isCoinControlVisible;
+	[AutoNotify] private bool _isFeeAdjustable = true;
+	[AutoNotify] private string _feeAdjustToolTip = "Change transaction fee or confirmation time";
 
 	public TransactionPreviewViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel sendFlow)
 	{
@@ -148,11 +150,51 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 			Transaction = transaction;
 			_currentTransactionInfo = _info.Clone();
+
+			UpdateFeeAdjustability();
 		}
 
 		summary.UpdateTransaction(transaction, _info);
 
 		DisplayedTransactionSummary = summary;
+	}
+
+	private void UpdateFeeAdjustability()
+	{
+		if (Transaction is null || !_info.IsPayToMany)
+		{
+			IsFeeAdjustable = true;
+			FeeAdjustToolTip = "Change transaction fee or confirmation time";
+			return;
+		}
+
+		var hasSubtractFee = _info.SubtractFee || _info.AdditionalRecipients.Any(r => r.IsSubtractFee);
+
+		if (hasSubtractFee)
+		{
+			IsFeeAdjustable = true;
+			FeeAdjustToolTip = "Change transaction fee or confirmation time";
+			return;
+		}
+
+		// Check if the transaction has a change output (a wallet output that isn't a recipient destination)
+		var destinationScripts = _info.AllRecipients
+			.Select(r => r.Destination.GetScriptPubKey())
+			.ToHashSet();
+		var hasChange = Transaction.InnerWalletOutputs
+			.Any(c => !destinationScripts.Contains(c.ScriptPubKey));
+
+		if (hasChange)
+		{
+			IsFeeAdjustable = true;
+			FeeAdjustToolTip = "Change transaction fee or confirmation time";
+		}
+		else
+		{
+			// No change output and no SubtractFee — the fee is fixed to the leftover.
+			IsFeeAdjustable = false;
+			FeeAdjustToolTip = "Fee adjustment is not available because the difference between your inputs and payments is too small. Go back and adjust amounts or use Max on a recipient.";
+		}
 	}
 
 	private async Task OnAdjustFeeAsync()

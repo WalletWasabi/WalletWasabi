@@ -77,6 +77,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly Subject<Unit> _recipientsChanged = new();
 	private readonly ObservableCollection<RecipientRowViewModel> _additionalRecipients;
 	private bool _isRecalculating;
+	private bool _isAutoSubtractFee;
 
 	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
 	{
@@ -131,6 +132,7 @@ public partial class SendViewModel : RoutableViewModel
 		InsertMaxCommand = ReactiveCommand.Create(() =>
 		{
 			// Clear all other subtract fee flags and set primary
+			_isAutoSubtractFee = false;
 			foreach (var recipient in _additionalRecipients)
 			{
 				recipient.IsSubtractFee = false;
@@ -156,11 +158,15 @@ public partial class SendViewModel : RoutableViewModel
 			RecalculateMaxAmount();
 		};
 
-		// Recalculate max amount when any recipient amount or subtract fee flag changes
+		// Recalculate max amount and auto-detect subtract fee when any recipient changes
 		_recipientsChanged
 			.Throttle(TimeSpan.FromMilliseconds(50))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => RecalculateMaxAmount());
+			.Subscribe(_ =>
+			{
+				UpdateAutoSubtractFee();
+				RecalculateMaxAmount();
+			});
 
 		var primaryChanged = this.WhenAnyValue(
 				x => x.AmountBtc,
@@ -265,6 +271,46 @@ public partial class SendViewModel : RoutableViewModel
 		return Math.Max(0m, remaining);
 	}
 
+	private void UpdateAutoSubtractFee()
+	{
+		if (_additionalRecipients.Count == 0)
+		{
+			return;
+		}
+
+		// Don't override if the user has manually clicked Max on any recipient
+		if (IsPrimarySubtractFee || _additionalRecipients.Any(r => r.IsSubtractFee && !_isAutoSubtractFee))
+		{
+			_isAutoSubtractFee = false;
+			return;
+		}
+
+		var totalAmountBtc = (AmountBtc ?? 0m) + _additionalRecipients
+			.Where(r => r.AmountBtc.HasValue)
+			.Sum(r => r.AmountBtc!.Value);
+
+		var lastRecipient = _additionalRecipients[^1];
+
+		if (totalAmountBtc >= _parameters.AvailableAmountBtc)
+		{
+			if (!lastRecipient.IsSubtractFee)
+			{
+				_isRecalculating = true;
+				lastRecipient.IsSubtractFee = true;
+				_isRecalculating = false;
+				_isAutoSubtractFee = true;
+			}
+		}
+		else if (_isAutoSubtractFee && lastRecipient.IsSubtractFee)
+		{
+			// Total dropped below balance, clear the auto-set flag
+			_isRecalculating = true;
+			lastRecipient.IsSubtractFee = false;
+			_isRecalculating = false;
+			_isAutoSubtractFee = false;
+		}
+	}
+
 	private void ValidateAdditionalRecipientBalances()
 	{
 		var totalAmountBtc = (AmountBtc ?? 0m) + _additionalRecipients
@@ -294,6 +340,7 @@ public partial class SendViewModel : RoutableViewModel
 			onInsertMax: r =>
 			{
 				// Clear all other subtract fee flags and set this one
+				_isAutoSubtractFee = false;
 				IsPrimarySubtractFee = false;
 				foreach (var other in _additionalRecipients.Where(x => x != r))
 				{

@@ -193,6 +193,11 @@
           </DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
+      <!-- Fee subtraction indicator for primary recipient -->
+      <TextBlock DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                 Text="The transaction fee will be subtracted from this payment"
+                 ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
+                 IsVisible="{Binding IsPrimarySubtractFee}" />
       <!-- Recipient -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
@@ -270,6 +275,11 @@
                 </DockPanel>
                 <TextBlock Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" FontSize="12" Margin="80,0,0,4" />
+                <!-- Fee subtraction indicator -->
+                <TextBlock Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                           Text="The transaction fee will be subtracted from this payment"
+                           ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
+                           IsVisible="{Binding Value.IsSubtractFee}" />
                 <!-- Recipient label -->
                 <DockPanel Margin="0,0,0,10">
                   <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
