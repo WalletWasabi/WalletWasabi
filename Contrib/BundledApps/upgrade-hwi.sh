@@ -142,23 +142,15 @@ if [[ "$SKIP_DOWNLOAD" != true ]]; then
         info "Downloading $fname from '$url' ..."
         curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
 
-        # Verify downloaded file's SHA256 hash against hashes in SHA256SUMS.txt.asc.
+        # Verify downloaded .gz/.zip file's SHA256 hash against hashes in SHA256SUMS.txt.asc.
         actual_line=$(sha256sum --text $fname)
-        
-        found=false
-        while IFS= read -r current_line; do
-            if [ "$current_line" = "$actual_line" ]; then
-                found=true
-                break
-            fi
-        done < $CHECKSUM_FILE
-
-        if "$found"; then
-            info "SHA256 hash is OK for $fname"
-        else
+        found=$(grep --fixed-strings --line-regexp --quiet "$actual_line" "$CHECKSUM_FILE" && echo true || echo false)
+        if ! $found; then
             error "Line '$actual_line' not present in $CHECKSUM_FILE"
             exit 1
         fi
+        
+        info "SHA256 hash is OK for $fname"
     done
 else
     section "Skipping download"
