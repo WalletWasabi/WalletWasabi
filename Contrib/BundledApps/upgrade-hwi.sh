@@ -126,18 +126,40 @@ if [[ "$SKIP_DOWNLOAD" != true ]]; then
     info "Downloading $CHECKSUM_FILE from '$url' ..."
     curl -fL --progress-bar -o "$CHECKSUM_FILE" "$url" || error "Download of '$CHECKSUM_FILE' failed: $url"
 
+    # See https://achow101.com/contact/
+    url="http://achow101.com/achow101.pgp"
+    info "Downloading 'achow101.pgp' from '$url' ..."    
+    curl -fsSL --output achow101.pgp "${url}"
+    gpg --import ./achow101.pgp
+    gpg --list-keys --fingerprint 17565732E08E5E41
+    gpg --verify "${CHECKSUM_FILE}"
+    info "Signature OK for $CHECKSUM_FILE"
+
     for platform in "${SUPPORTED_PLATFORMS[@]}"; do
         fname="${FILES[$platform]}"
         url="${DIST_URI}/${fname}"
 
         info "Downloading $fname from '$url' ..."
         curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
-    done
 
-    # TODO:
-    # Verify all downloaded files match the signed checksums
-    # sha256sum --warn --ignore-missing --check $CHECKSUM_FILE || error "Checksum verification failed"
-    # success "All downloaded files verified: checksums match"
+        # Verify downloaded file's SHA256 hash against hashes in SHA256SUMS.txt.asc.
+        actual_line=$(sha256sum --text $fname)
+        
+        found=false
+        while IFS= read -r current_line; do
+            if [ "$current_line" = "$actual_line" ]; then
+                found=true
+                break
+            fi
+        done < $CHECKSUM_FILE
+
+        if "$found"; then
+            info "SHA256 hash is OK for $fname"
+        else
+            error "Line '$actual_line' not present in $CHECKSUM_FILE"
+            exit 1
+        fi
+    done
 else
     section "Skipping download"
 fi
