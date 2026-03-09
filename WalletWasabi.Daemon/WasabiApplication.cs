@@ -149,14 +149,30 @@ public class WasabiApplication
 		var networkFilePath = Path.Combine(Config.DataDir, "network");
 		Logger.LogInfo($"Loading network file '{networkFilePath}'.");
 
-		if (!File.Exists(networkFilePath))
+		Network? network;
+		var networkFileExists = File.Exists(networkFilePath);
+		if (Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName))
 		{
-			PersistentConfigManager.UpdateNetwork(networkFilePath, Network.Main);
+			network = Network.GetNetwork(networkName) ?? Network.Main;
+			if (!networkFileExists)
+			{
+				PersistentConfigManager.UpdateNetwork(networkFilePath, network);
+			}
+		}
+		else
+		{
+			if (networkFileExists)
+			{
+				networkName = File.ReadAllText(networkFilePath).Trim();
+				network = Network.GetNetwork(networkName) ?? Network.Main;
+			}
+			else
+			{
+				network = Network.Main;
+				PersistentConfigManager.UpdateNetwork(networkFilePath, network);
+			}
 		}
 
-		Config.GetCliArgsValue("network", AppConfig.Arguments, out var networkName);
-		networkName ??= File.ReadAllText(networkFilePath).Trim();
-		var network = Network.GetNetwork(networkName ?? "mainnet");
 		var configFileName = networkName switch
 		{
 			_ when network == Network.Main => "Config.json",
