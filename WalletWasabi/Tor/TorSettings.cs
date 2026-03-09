@@ -269,6 +269,8 @@ public class TorSettings
 				"-o", "rpc.enable=true",
 				"-o", "logging.log_sensitive_information=true",
 				"-o", $"\"proxy.socks_listen = {SocksPort}\"",
+				"-o", $"storage.cache_dir=\"{Path.Combine(TorDataDir, "cache").Replace("\\", "\\\\")}\"",
+				"-o", $"storage.state_dir=\"{Path.Combine(TorDataDir, "state").Replace("\\", "\\\\")}\""
 			];
 		}
 
