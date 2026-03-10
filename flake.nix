@@ -51,6 +51,9 @@
           testProjectFile = "WalletWasabi.Tests/WalletWasabi.Tests.csproj";
           dotnetTestFlags = ["--filter \"FullyQualifiedName~UnitTests\"" "--logger \"console\""];
 
+          # Disable parallel builds to avoid Avalonia resource file locking issues
+          enableParallelBuilding = false;
+
           # wrap manually, because we want not so ugly executable names
           dontDotnetFixup = true;
 
