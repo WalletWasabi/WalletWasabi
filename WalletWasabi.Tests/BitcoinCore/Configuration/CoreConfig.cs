@@ -34,7 +34,8 @@ public class CoreConfig
 		return myDic;
 	}
 
-	public override string ToString() => $"{Guard.Correct(string.Join(Environment.NewLine, _lines))}{Environment.NewLine}"; // Good practice to end with a newline.
+	public override string ToString() =>
+		$"{Guard.Correct(string.Join("\n", _lines))}\n"; // Good practice to end with a newline.
 
 	public bool AddOrUpdate(string configString)
 	{
