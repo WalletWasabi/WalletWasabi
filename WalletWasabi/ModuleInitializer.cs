@@ -6,7 +6,9 @@ using System.Runtime.CompilerServices;
 
 class ModuleInitializer
 {
+#pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries -- Moving this initializer to the apps did not work (https://github.com/WalletWasabi/WalletWasabi/pull/14364).
 	[ModuleInitializer]
+#pragma warning restore CA2255 // The 'ModuleInitializer' attribute should not be used in libraries
 	internal static void PatchTestNet()
 	{
 		// This is necessary to force the static members to be initialized
