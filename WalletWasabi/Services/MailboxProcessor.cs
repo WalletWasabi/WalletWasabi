@@ -67,7 +67,7 @@ public sealed class MailboxProcessor<TMsg>(
 		return !_isDisposed && _mailbox.Post(message);
 	}
 
-	public Task<TReply> PostAndReplyAsync<TReply>(Func<IReplyChannel<TReply>, TMsg> messageFactory,
+	public async Task<TReply> PostAndReplyAsync<TReply>(Func<IReplyChannel<TReply>, TMsg> messageFactory,
 		CancellationToken cancellationToken)
 	{
 		ObjectDisposedException.ThrowIf(_isDisposed, this);
@@ -92,8 +92,8 @@ public sealed class MailboxProcessor<TMsg>(
 				"It was not possible to write into an Unbounded channel, something that should always succeed."));
 		}
 
-		var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
-		return tcs.Task.WaitAsync(cts.Token);
+		using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
+		return await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
 	}
 
 	public void Dispose()

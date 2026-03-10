@@ -28,9 +28,7 @@ public record CachedCpfpInfo(CpfpInfo CpfpInfo, SmartTransaction Transaction);
 public class CpfpInfoProvider(MailboxProcessor<CpfpInfoMessage> cpfpUpdater)
 {
 	public Task<CachedCpfpInfo[]> GetCachedCpfpInfoAsync(CancellationToken cancellationToken) =>
-		cpfpUpdater
-			.PostAndReplyAsync<CachedCpfpInfo[]>(chan => new CpfpInfoMessage.GetCachedCpfpInfo(chan),
-				cancellationToken);
+		cpfpUpdater.PostAndReplyAsync<CachedCpfpInfo[]>(chan => new CpfpInfoMessage.GetCachedCpfpInfo(chan), cancellationToken);
 
 	public void ScheduleRequest(SmartTransaction tx) =>
 		cpfpUpdater.Post(new CpfpInfoMessage.PreFetchInfoForTransaction(tx));
