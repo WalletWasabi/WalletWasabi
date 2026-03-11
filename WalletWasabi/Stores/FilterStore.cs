@@ -146,7 +146,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			// We found a corrupted entry. Clear the corrupted database and stop here.
 			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
 			Logger.LogDebug(ex);
-			IndexStorage.Clear();
+			IndexStorage.SetPragmaUserVersion(0); // forces to recreate
 			throw;
 		}
 

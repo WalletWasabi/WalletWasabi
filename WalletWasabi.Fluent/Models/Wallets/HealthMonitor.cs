@@ -51,7 +51,7 @@ public partial class HealthMonitor : ReactiveObject
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(blockchainTip =>
 			{
-				BlockchainTip = (uint)blockchainTip;
+				BlockchainTip = blockchainTip;
 			});
 
 		// Tor Status
