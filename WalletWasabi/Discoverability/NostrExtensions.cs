@@ -27,7 +27,7 @@ public static class NostrClientFactory
 		{
 			0 => throw new ArgumentException("At least one relay is required.", nameof(relays)),
 			1 => new NostrClient(relays.First(), ConfigureSocket),
-			_ => new CompositeNostrClient(relays, ConfigureSocket)
+			_ => new WalletWasabi.WebClients.CompositeNostrClient(relays, ConfigureSocket)
 		};
 
 		void ConfigureSocket(WebSocket socket)
