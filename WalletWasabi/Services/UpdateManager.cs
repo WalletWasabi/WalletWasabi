@@ -39,7 +39,12 @@ public static class UpdateManager
 		{
 			// Connect to Nostr relays and check for release version updates
 			await wasabiNostrClient.ConnectAnsSubscribeAsync(cancellationToken).ConfigureAwait(false);
-			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, cancellationToken).ConfigureAwait(false);
+			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, cancellationToken)
+				.ConfigureAwait(false);
+		}
+		catch (AggregateException e)
+		{
+			Logger.LogWarning($"It was not possible to check for updates. {e.Message}");
 		}
 		finally
 		{
