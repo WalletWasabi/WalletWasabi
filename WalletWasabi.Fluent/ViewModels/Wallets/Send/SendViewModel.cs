@@ -73,6 +73,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private string? _bitcoinContent;
 	[AutoNotify] private bool _isPayToMany;
 	[AutoNotify] private bool _isPrimarySubtractFee;
+	[AutoNotify] private bool _isBip21;
 
 	private readonly Subject<Unit> _recipientsChanged = new();
 	private readonly ObservableCollection<RecipientRowViewModel> _additionalRecipients;
@@ -144,7 +145,10 @@ public partial class SendViewModel : RoutableViewModel
 
 		_additionalRecipients = new ObservableCollection<RecipientRowViewModel>();
 		AdditionalRecipients = new IndexedCollection<RecipientRowViewModel>(_additionalRecipients);
-		AddRecipientCommand = ReactiveCommand.Create(OnAddRecipient);
+
+		var canAddRecipient = this.WhenAnyValue(x => x.IsBip21)
+			.Select(isBip21 => !isBip21);
+		AddRecipientCommand = ReactiveCommand.Create(OnAddRecipient, canAddRecipient);
 
 		this.WhenAnyValue(x => x.IsPayToMany)
 			.Skip(1)
@@ -601,12 +605,14 @@ public partial class SendViewModel : RoutableViewModel
 			_parsingTo = false;
 			PayJoinEndPoint = null;
 			IsFixedAmount = false;
+			IsBip21 = false;
 			return false;
 		}
 
 		// Reset PayJoinEndPoint by default
 		PayJoinEndPoint = null;
 		IsFixedAmount = false;
+		IsBip21 = false;
 
 		var isSilentPayment = false;
 
@@ -618,6 +624,7 @@ public partial class SendViewModel : RoutableViewModel
 					switch (success)
 					{
 						case Address.Bip21Uri bip21:
+							IsBip21 = true;
 							To = bip21.Address.ToWif(_walletModel.Network);
 
 							if (bip21.Amount is not null)

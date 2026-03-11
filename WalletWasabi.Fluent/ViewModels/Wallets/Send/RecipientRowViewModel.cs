@@ -20,6 +20,7 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private string _to = "";
 	[AutoNotify] private decimal? _amountBtc;
 	[AutoNotify] private string? _amountError;
+	[AutoNotify] private string? _addressError;
 	[AutoNotify] private bool _isSubtractFee;
 
 	public RecipientRowViewModel(
@@ -54,7 +55,17 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 			.Subscribe(text =>
 			{
 				var parseResult = AddressParser.Parse(text ?? "", network);
-				ParsedAddress = parseResult.IsOk ? parseResult.Value : null;
+
+				if (parseResult is { IsOk: true, Value: Address.Bip21Uri })
+				{
+					ParsedAddress = null;
+					AddressError = "BIP21 payment URIs are not supported when paying to many recipients.";
+				}
+				else
+				{
+					ParsedAddress = parseResult.IsOk ? parseResult.Value : null;
+					AddressError = null;
+				}
 			});
 
 		// Clear IsSubtractFee when user manually changes amount
@@ -84,6 +95,7 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 		ParsedAddress is not null
 		&& AmountBtc is > 0
 		&& AmountError is null
+		&& AddressError is null
 		&& (SuggestionLabels.Labels.Count > 0 || SuggestionLabels.IsCurrentTextValid);
 
 	private async Task OnPasteAsync()

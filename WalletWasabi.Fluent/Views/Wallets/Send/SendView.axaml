@@ -259,6 +259,8 @@
                     </TextBox.InnerRightContent>
                   </TextBox>
                 </DockPanel>
+                <TextBlock Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Foreground="{DynamicResource SystemErrorTextColor}" FontSize="12" Margin="80,0,0,4" />
                 <!-- Amount -->
                 <DockPanel Margin="0,0,0,15">
                   <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
@@ -304,7 +306,14 @@
       <!-- Add Recipient Button -->
       <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
               Content="+ Add another payment" Margin="80,0,0,10" HorizontalAlignment="Left"
-              IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand" />
+              IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand"
+              ToolTip.ShowOnDisabled="True">
+        <Button.Styles>
+          <Style Selector="Button:disabled">
+            <Setter Property="ToolTip.Tip" Value="Pay to many is not available when using a BIP21 payment URI." />
+          </Style>
+        </Button.Styles>
+      </Button>
     </DockPanel>
   </ContentArea>
 </UserControl>
