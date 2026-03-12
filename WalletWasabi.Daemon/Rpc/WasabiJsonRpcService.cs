@@ -118,7 +118,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getwalletinfo")]
-	public JsonRpcResult WalletInfo()
+	public async Task<JsonRpcResult> WalletInfo()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
@@ -163,7 +163,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			info["balance"] = activeWallet.Coins
 				.Where(c => !c.IsSpent())
 				.Sum(c => c.Amount.Satoshi);
-			info["coinjoinStatus"] = GetCoinjoinStatus(activeWallet);
+			info["coinjoinStatus"] = await GetCoinjoinStatusAsync(activeWallet).ConfigureAwait(false);
 		}
 
 		return info;
@@ -577,10 +577,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 		return coinJoinManager;
 	}
 
-	private string GetCoinjoinStatus(Wallet wallet)
+	private async Task<string> GetCoinjoinStatusAsync(Wallet wallet)
 	{
 		var coinJoinManager = GetCoinJoinManager();
-		var walletCoinjoinClientState = coinJoinManager.GetCoinjoinClientState(wallet.WalletId);
+		var walletCoinjoinClientState = await coinJoinManager.GetCoinjoinClientStateAsync(wallet.WalletId, CancellationToken.None).ConfigureAwait(false);
 		return walletCoinjoinClientState switch
 		{
 			CoinJoinClientState.Idle => "Idle",
