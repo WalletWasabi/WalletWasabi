@@ -139,7 +139,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			if (string.IsNullOrWhiteSpace(BitcoinRpcCredentialString))
 			{
 				// Use default credentials if empty
-				credentials = RPCCredentialString.Parse("default:default");
+				credentials = new RPCCredentialString();
 			}
 			else if (!RPCCredentialString.TryParse(BitcoinRpcCredentialString, out credentials!))
 			{

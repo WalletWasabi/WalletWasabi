@@ -42,7 +42,7 @@
                Watermark="(rpcuser:rpcpassword or cookie file)"/>
     </DockPanel>
 
-    <DockPanel>
+    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
       <TextBlock Text="{Binding ConnectionStatusMessage}"
                  IsVisible="{Binding ConnectionStatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
                  Foreground="{Binding ConnectionStatusIsSuccess, Converter={StaticResource BoolToConnectionStatusBrush}}"
