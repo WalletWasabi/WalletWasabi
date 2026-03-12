@@ -10,9 +10,9 @@ public class CoreConfigTests
 	public void RemovesEmptyDuplications()
 	{
 		var configStringBuilder = new StringBuilder("foo=bar");
-		configStringBuilder.Append(Environment.NewLine);
-		configStringBuilder.Append(Environment.NewLine);
-		configStringBuilder.Append(Environment.NewLine);
+		configStringBuilder.Append('\n');
+		configStringBuilder.Append('\n');
+		configStringBuilder.Append('\n');
 		configStringBuilder.Append("bar=bar");
 
 		var config = new CoreConfig();
@@ -36,9 +36,9 @@ public class CoreConfigTests
 			foo = bar
 			""";
 
-		testConfig += Environment.NewLine;
-		testConfig += Environment.NewLine;
-		testConfig += Environment.NewLine;
+		testConfig += "\n";
+		testConfig += "\n";
+		testConfig += "\n";
 		testConfig +=
 			"""
 			 foo = bar
