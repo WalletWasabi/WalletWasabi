@@ -3,10 +3,16 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:converters="using:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="650"
              x:DataType="settings:BitcoinTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.BitcoinTabSettingsView"
              x:CompileBindings="True">
+  <UserControl.Resources>
+    <converters:ConnectionStatusBrushConverter x:Key="BoolToConnectionStatusBrush"
+                                                SuccessBrush="{StaticResource PositiveBrush}"
+                                                FailureBrush="{StaticResource DismissColor}" />
+  </UserControl.Resources>
   <StackPanel Classes="settingsLayout">
 
     <DockPanel>
@@ -34,6 +40,17 @@
       <TextBlock Text="Bitcoin RPC Credential String" />
       <TextBox Text="{Binding BitcoinRpcCredentialString}"
                Watermark="(rpcuser:rpcpassword or cookie file)"/>
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
+      <TextBlock Text="{Binding ConnectionStatusMessage}"
+                 IsVisible="{Binding ConnectionStatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
+                 Foreground="{Binding ConnectionStatusIsSuccess, Converter={StaticResource BoolToConnectionStatusBrush}}"
+                 VerticalAlignment="Center"
+                 Margin="0,0,10,0" />
+      <Button Content="Verify connection"
+              Command="{Binding VerifyConnectionCommand}"
+              HorizontalAlignment="Right" />
     </DockPanel>
 
     <DockPanel ToolTip.Tip="Payments (from others) below this value won't appear if you have already received coins to the same address.">
