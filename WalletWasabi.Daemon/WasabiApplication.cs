@@ -240,7 +240,7 @@ public class WasabiApplication
 
 	private void MigrateConfigFilesTo280()
 	{
-		void Upgrade(string configFileName)
+		static void Upgrade(string configFileName)
 		{
 			var configFilePath = Path.Combine(Config.DataDir, configFileName);
 			var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
@@ -266,7 +266,7 @@ public class WasabiApplication
 			AbsoluteMinInputCount: oldConfig.AbsoluteMinInputCount,
 			BitcoinRpcCredentialString: mustMigrateMain ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
 			BitcoinRpcUri: mustMigrateMain ? "https://rpc.wasabiwallet.io" : oldConfig.BitcoinRpcUri,
-			ConfigVersion: 3,
+			ConfigVersion: 4,
 			CoordinatorUri: oldConfig.CoordinatorUri,
 			CoordinatorIdentifier: oldConfig.CoordinatorIdentifier,
 			DownloadNewVersion: oldConfig.DownloadNewVersion,
@@ -284,7 +284,7 @@ public class WasabiApplication
 			TorBridges: oldConfig.TorBridges,
 			MaxCoinJoinMiningFeeRate: oldConfig.MaxCoinJoinMiningFeeRate,
 			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
-			ExperimentalFeatures: ValueList<string>.Empty
+			ExperimentalFeatures: []
 		);
 
 		static bool MustMigrate(PersistentConfig_2_6_0 cfg) =>
@@ -322,7 +322,7 @@ public class WasabiApplication
 			TorBridges : oldConfig.TorBridges,
 			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
 			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
-			ExperimentalFeatures: ValueList<string>.Empty
+			ExperimentalFeatures: []
 		);
 
 		oldConfig = configs260.TestNet;
@@ -409,7 +409,7 @@ public class WasabiApplication
 			TorBridges : new ValueList<string>(oldConfig.TorBridges),
 			MaxCoinJoinMiningFeeRate : oldConfig.MaxCoinJoinMiningFeeRate,
 			MaxDaysInMempool: oldConfig.MaxDaysInMempool,
-			ExperimentalFeatures: ValueList<string>.Empty
+			ExperimentalFeatures: []
 		);
 
 		var testConfig = mainConfig with

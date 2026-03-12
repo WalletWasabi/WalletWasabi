@@ -83,6 +83,14 @@
           nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
+        # dotnet gcdump
+        dotnet-gcdump = pkgs.buildDotnetGlobalTool {
+          pname = "dotnet-gcdump";
+          nugetName = "dotnet-gcdump";
+          version = "8.0.510501";
+          nugetSha256 = "sha256-y10InQA1sAvFYrRe+7I2+txKOvu1qQ1ii/7DnXvipxM=";
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+        };
 
         wasabi-shell =
           with {
@@ -106,6 +114,7 @@
               # tools
               dotnet-trace
               dotnet-dump
+              dotnet-gcdump
               dotnet-counters
 
               # dependencies

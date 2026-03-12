@@ -61,7 +61,7 @@ public static partial class Encode
 		String(Math.Max(0, height.Height - Constants.ResyncHeightMargin).ToString());
 
 	public static JsonNode BlockchainState(BlockchainState s) =>
-		Object(s.BirthdayHeight is null
+		Object(s.BirthHeight is not {} nonNullBirthHeight
 		? [
 			("Network", Network(s.Network)),
 			("Height", WalletHeight(s.Height)),
@@ -69,7 +69,7 @@ public static partial class Encode
 		: [
 			("Network", Network(s.Network)),
 			("Height", WalletHeight(s.Height)),
-			("BirthdayHeight", UInt((uint) s.BirthdayHeight?.Height!)),
+			("BirthHeight", UInt(nonNullBirthHeight.Height)),
 		]);
 
 	public static JsonNode PreferredScriptPubKeyType(PreferredScriptPubKeyType t) =>
@@ -162,7 +162,7 @@ public static partial class Decode
 		Object(get => new BlockchainState(
 			get.Required("Network", Network),
 			get.Required("Height", WalletHeight),
-			get.Optional("BirthdayHeight", WalletHeight)
+			get.Optional("BirthHeight", WalletHeight)
 			));
 
 	public static Decoder<BitcoinEncryptedSecretNoEC> BitcoinEncryptedSecretNoEC =>

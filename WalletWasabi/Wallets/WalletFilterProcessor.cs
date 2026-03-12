@@ -65,8 +65,9 @@ public class WalletFilterProcessor : BackgroundService
 					var filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
 					if (filter is null)
 					{
-						// The wallet best height is higher tha the filters. That means that the filters were
-						// resetted of the wallet was copied and pasted from a more updated setup.
+						// The wallet being processed had been synchronized until a blockchain height which is higher
+						// than the top filters that Wasabi has received. That means that the filters were
+						// resetted or, the wallet was copied and pasted from a more updated setup.
 						// Wait for the index store to catch up.
 						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
 						continue;
@@ -101,8 +102,7 @@ public class WalletFilterProcessor : BackgroundService
 		var matchFound = false;
 		if (toTestKeys.Any())
 		{
-			var compressedScriptPubKeys = toTestKeys;
-			matchFound = filter.Filter.MatchAny(compressedScriptPubKeys, filter.FilterKey);
+			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 
 			if (matchFound)
 			{

@@ -208,9 +208,9 @@ public static class FilterCheckpoints
 			new GolombRiceFilter(Convert.FromHexString("012e7640")))
 	];
 
-	public static FilterModel GetCheckpointForBirthday(ChainHeight birthdayHeight, Network network)
+	public static FilterModel GetCheckpointForBirthday(ChainHeight birthHeight, Network network)
 	{
-		var safeTarget = uint.Max(0u, birthdayHeight.Height);
+		var safeTarget = uint.Max(0u, birthHeight.Height);
 		var checkpoints = GetCheckpointsByNetwork(network);
 		return checkpoints.LastOrDefault(f => f.Header.Height <= safeTarget, checkpoints[0]);
 	}
@@ -221,7 +221,8 @@ public static class FilterCheckpoints
 			_ when network == Network.Main => MainNetCheckpoints,
 			_ when network == Network.TestNet => TestNet4Checkpoints,
 			_ when network == Network.RegTest => RegTestCheckpoints,
-			_ when network == Bitcoin.Instance.Signet => SigNetCheckpoints
+			_ when network == Bitcoin.Instance.Signet => SigNetCheckpoints,
+			_ => throw new NotSupportedException($"Unsupported network '{network.ChainName}'")
 		};
 
 	public static FilterModel GetWasabiGenesisFilter(Network network) =>

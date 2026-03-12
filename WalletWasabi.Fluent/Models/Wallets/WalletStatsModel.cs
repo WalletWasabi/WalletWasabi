@@ -54,7 +54,7 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 		_balance = Amount.Zero;
 		_confirmedBalance = Amount.Zero;
 		_unconfirmedBalance = Amount.Zero;
-		_birthHeight = wallet.KeyManager.GetBirthdayHeight() is { } h ? h.Height : 0u;
+		_birthHeight = wallet.KeyManager.GetBirthHeight() is { } h ? h.Height : 0u;
 
 		walletModel.Transactions.TransactionProcessed
 								.Do(_ => Update(walletModel, wallet))

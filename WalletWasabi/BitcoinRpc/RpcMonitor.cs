@@ -54,10 +54,12 @@ public static class RpcMonitor
 			{
 				return await rpcClient.GetPeersInfoAsync(cancel).ConfigureAwait(false);
 			}
-			catch (RPCException e) when(e is {RPCCode:RPCErrorCode.RPC_METHOD_NOT_FOUND})
+			catch (RPCException e)
 			{
 				// Connected to a shared readonly rpc
-				return Result<PeerInfo[], RPCResponse>.Ok([new PeerInfo()]);
+				return e is {RPCCode:RPCErrorCode.RPC_METHOD_NOT_FOUND}
+					? Result<PeerInfo[], RPCResponse>.Ok([new PeerInfo()])
+					: Result<PeerInfo[], RPCResponse>.Fail(e.RPCResult);
 			}
 		}
 	}

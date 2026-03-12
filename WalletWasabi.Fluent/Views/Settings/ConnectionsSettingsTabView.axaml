@@ -11,17 +11,6 @@
              x:DataType="settings:ConnectionsSettingsTabViewModel">
   <StackPanel Classes="settingsLayout">
 
-    <DockPanel ToolTip.Tip="The client will connect to this indexer. The indexer provides the block filters to synchronize the wallet.">
-      <TextBlock Text="Indexer URI" />
-      <TextBox Text="{Binding IndexerUri}">
-        <Interaction.Behaviors>
-          <TextBoxAutoSelectTextBehavior />
-          <WhitespacePasteRemovalBehavior />
-          <WhitespaceInputRemovalBehavior />
-        </Interaction.Behaviors>
-      </TextBox>
-    </DockPanel>
-
     <DockPanel ToolTip.Tip="The client will try to fetch the exchange rate from this provider. If unavailable, it will fallback to any other.">
       <TextBlock Text="Exchange Rate Provider" />
       <ComboBox ItemsSource="{Binding ExchangeRateProviders}"

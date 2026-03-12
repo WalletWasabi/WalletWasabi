@@ -150,7 +150,7 @@ public class App : Application
 			amountProvider,
 			new EditableSearchSource(),
 			torStatusChecker,
-			new HealthMonitor(applicationSettings, torStatusChecker),
+			new HealthMonitor(torStatusChecker),
 			new ReleaseHighlights(),
 			Services.Scheme);
 	}

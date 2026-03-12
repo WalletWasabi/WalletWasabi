@@ -72,7 +72,7 @@ public class PersistentConfigManagerTests
 			  "AbsoluteMinInputCount": 21,
 			  "MaxDaysInMempool": 30,
 			  "ExperimentalFeatures": [],
-			  "ConfigVersion": 3
+			  "ConfigVersion": 4
 			}
 			""";
 
@@ -111,13 +111,13 @@ public class PersistentConfigManagerTests
 			AbsoluteMinInputCount: 21,
 			MaxDaysInMempool: 30,
 			ExperimentalFeatures: new ValueList<string>(["taproot"]),
-			ConfigVersion: 2
+			ConfigVersion: 3
 		);
 
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
 
 		// Verify the migration
-		Assert.Equal(3, migratedConfig.ConfigVersion); // Version should be updated to e
+		Assert.Equal(4, migratedConfig.ConfigVersion); // Version should be updated to e
 
 		// RPC credentials should be preserved when UseBitcoinRpc=true and URI is valid
 		Assert.Equal("user:password", migratedConfig.BitcoinRpcCredentialString);
@@ -148,8 +148,8 @@ public class PersistentConfigManagerTests
 		MaxCoinJoinMiningFeeRate: 50.0m,
 		AbsoluteMinInputCount: 21,
 		MaxDaysInMempool: 30,
-		ExperimentalFeatures: ValueList<string>.Empty,
-		ConfigVersion: 2
+		ExperimentalFeatures: [],
+		ConfigVersion: 3
 	);
 
 	[Fact]
@@ -170,7 +170,7 @@ public class PersistentConfigManagerTests
 		// When UseBitcoinRpc=false and URI is invalid, should migrate to Wasabi RPC
 		Assert.Equal("wasabi:wasabi", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal("https://rpc.wasabiwallet.io", migratedConfig.BitcoinRpcUri);
-		Assert.Equal(3, migratedConfig.ConfigVersion);
+		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
 
 	[Fact]
@@ -191,7 +191,7 @@ public class PersistentConfigManagerTests
 		// When URI is valid, it should be preserved even if UseBitcoinRpc=false
 		Assert.Equal("wasabi:wasabi", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal("https://rpc.wasabiwallet.io", migratedConfig.BitcoinRpcUri);
-		Assert.Equal(3, migratedConfig.ConfigVersion);
+		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
 
 	[Fact]
@@ -211,7 +211,7 @@ public class PersistentConfigManagerTests
 		// When URI is valid, it should be preserved even if UseBitcoinRpc=false
 		Assert.Equal("user:password", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal("http://localhost:8332", migratedConfig.BitcoinRpcUri);
-		Assert.Equal(3, migratedConfig.ConfigVersion);
+		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
 
 	[Fact]
@@ -243,7 +243,7 @@ public class PersistentConfigManagerTests
 			AbsoluteMinInputCount: 50,
 			MaxDaysInMempool: 60,
 			ExperimentalFeatures: new ValueList<string>(["feature1", "feature2"]),
-			ConfigVersion: 2
+			ConfigVersion: 3
 		);
 
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
@@ -277,7 +277,7 @@ public class PersistentConfigManagerTests
 		Assert.Empty(migratedConfig.ExperimentalFeatures);
 
 		// ConfigVersion should be updated
-		Assert.Equal(3, migratedConfig.ConfigVersion);
+		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
 
 	[Fact]
@@ -301,14 +301,14 @@ public class PersistentConfigManagerTests
 	[Fact]
 	public void MigrateFromV2_6_0_ConfigVersionUpdated()
 	{
-		// Test that ConfigVersion is correctly updated from 2 to 3
+		// Test that ConfigVersion is correctly updated from 2 to 4
 		var v2_6_0Config = Template_2_6_0 with {
-			ConfigVersion = 2 // v2.6.0 uses ConfigVersion 2
+			ConfigVersion = 2 // v2.6.0 uses ConfigVersion 3
 		};
 
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
 
 		Assert.Equal(2, v2_6_0Config.ConfigVersion);
-		Assert.Equal(3, migratedConfig.ConfigVersion); // Should be 4 in v2.8.0
+		Assert.Equal(4, migratedConfig.ConfigVersion); // Should be 4 in v2.8.0
 	}
 }

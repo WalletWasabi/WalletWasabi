@@ -27,7 +27,7 @@ public abstract record Height : IComparable<Height>
 			: throw new ArgumentException($"{nameof(ChainHeight)} height can not be negative");
 
 		public static ChainHeight Max(ChainHeight h1, ChainHeight h2) => h1 > h2 ? h1 : h2;
-		public static ChainHeight Mim(ChainHeight h1, ChainHeight h2) => h1 < h2 ? h1 : h2;
+		public static ChainHeight Min(ChainHeight h1, ChainHeight h2) => h1 < h2 ? h1 : h2;
 	}
 
 	public static bool operator >(Height x, Height y) => x.CompareTo(y) > 0;

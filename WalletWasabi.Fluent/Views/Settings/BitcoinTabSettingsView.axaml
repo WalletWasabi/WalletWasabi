@@ -22,7 +22,7 @@
     </DockPanel>
 
     <DockPanel
-      ToolTip.Tip="Wasabi will download blocks from a full node you control.">
+      ToolTip.Tip="Wasabi will download blocks from this full node.">
       <TextBlock Text="Bitcoin RPC Endpoint" />
         <TextBox Text="{Binding BitcoinRpcUri}">
           <Interaction.Behaviors>
@@ -38,7 +38,7 @@
                Watermark="(rpcuser:rpcpassword or cookie file)"/>
     </DockPanel>
 
-    <DockPanel IsVisible="{Binding Settings.UseBitcoinRpc}">
+    <DockPanel>
       <TextBlock Text="{Binding ConnectionStatusMessage}"
                  IsVisible="{Binding ConnectionStatusMessage, Converter={x:Static ObjectConverters.IsNotNull}}"
                  Foreground="{Binding ConnectionStatusIsSuccess, Converter={StaticResource BoolToConnectionStatusBrush}}"

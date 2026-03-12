@@ -185,7 +185,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	private bool IsCorrect(SmartHeaderChain c, FilterModel m)
 	{
 		// If this is the first filter that we receive then it is correct only if it is starting one.
-		if (c.Tip is not { } tip)
+		if (c.Tip is null)
 		{
 			return true;
 		}

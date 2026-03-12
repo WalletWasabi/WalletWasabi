@@ -326,10 +326,10 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public ChainHeight? GetEarliestBirthdayHeight() =>
+	public ChainHeight? GetEarliestBirthHeight() =>
 		GetWallets()
 			.Where(w => w.KeyManager.GetNetwork() == Network)
-			.Select(w => w.KeyManager.GetBirthdayHeight())
+			.Select(w => w.KeyManager.GetBirthHeight())
 			.Where(b => b is not null && b > 0)
 			.MinBy(b => b);
 

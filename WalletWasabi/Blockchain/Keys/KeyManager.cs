@@ -263,8 +263,8 @@ public class KeyManager
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-		var birthdayHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
-		BlockchainState blockchainState = new(network, birthdayHeight: birthdayHeight);
+		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
+		BlockchainState blockchainState = new(network, birthHeight: birthHeight);
 		KeyPath segwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
 		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
 
@@ -281,14 +281,14 @@ public class KeyManager
 	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, ExtPubKey silentPaymentScanExtPubKey,ExtPubKey silentPaymentSpendExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
 		var network = Network.Main;
-		var birthdayHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey,  minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(network, birthdayHeight: birthdayHeight), filePath);
+		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey,  minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, ExtPubKey? silentPaymentScanExtPubKey, ExtPubKey? silentPaymentSpendExtPubKey, Network network, string? filePath = null)
 	{
-		var birthdayHeight = FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
-		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network, birthdayHeight: birthdayHeight), filePath);
+		var birthHeight = FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
+		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
 	}
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
@@ -320,8 +320,8 @@ public class KeyManager
 		ExtPubKey silentPaymentScanExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Scan)).Neuter();
 		ExtPubKey silentPaymentSpendExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Spend)).Neuter();
 
-		var birthdayHeight = birthHeight ?? FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
-		var blockchainState = new BlockchainState(network, height: birthdayHeight, birthdayHeight: birthdayHeight);
+		birthHeight ??= FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
+		var blockchainState = new BlockchainState(network, height: birthHeight, birthHeight: birthHeight);
 		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 		km.AssertCleanKeysIndexed();
 		return km;
@@ -708,11 +708,11 @@ public class KeyManager
 		return _blockchainState.Network;
 	}
 
-	public ChainHeight? GetBirthdayHeight()
+	public ChainHeight? GetBirthHeight()
 	{
 		lock (_criticalStateLock)
 		{
-			return _blockchainState.BirthdayHeight;
+			return _blockchainState.BirthHeight;
 		}
 	}
 

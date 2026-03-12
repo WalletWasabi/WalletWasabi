@@ -40,7 +40,7 @@ public static class PersistentConfigEncode
 			("AbsoluteMinInputCount", Int(cfg.AbsoluteMinInputCount)),
 			("MaxDaysInMempool", Int(cfg.MaxDaysInMempool)),
 			("ExperimentalFeatures", Array(cfg.ExperimentalFeatures.Select(String))),
-			("ConfigVersion", Int(3))
+			("ConfigVersion", Int(4))
 		]);
 }
 
@@ -63,7 +63,7 @@ public static class PersistentConfigDecode
 		Object(get =>
 		{
 			var ver = get.Required("ConfigVersion", Decode.Int);
-			if (ver == 3)
+			if (ver == 4)
 			{
 				return new PersistentConfig(
 					Network: Network.Main, // Network is not part of the config
@@ -168,7 +168,7 @@ public static class PersistentConfigDecode
 	public static readonly Decoder<IPersistentConfig> PersistentConfig =
 		OneOf([
 			PersistentConfig2_8_0.Map(IPersistentConfig (x) => x),
-			PersistentConfigPrev2_6_0.Map(IPersistentConfig (x) => x),
-			PersistentConfig2_6_0.Map(IPersistentConfig (x) => x)
+			PersistentConfig2_6_0.Map(IPersistentConfig (x) => x),
+			PersistentConfigPrev2_6_0.Map(IPersistentConfig (x) => x)
 		]);
 }

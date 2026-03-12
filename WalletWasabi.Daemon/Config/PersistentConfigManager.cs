@@ -33,8 +33,8 @@ public static class PersistentConfigManager
 		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
 		AbsoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
 		MaxDaysInMempool : Constants.DefaultMaxDaysInMempool,
-		ExperimentalFeatures: ValueList<string>.Empty,
-		ConfigVersion : 3);
+		ExperimentalFeatures: [],
+		ConfigVersion : 4);
 
 	public static readonly PersistentConfig DefaultTestNetConfig = DefaultMainNetConfig with
 	{
