@@ -1,4 +1,8 @@
 using System.Collections.Generic;
+using System.Net;
+using System.Net.Http;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using NBitcoin;
 using NBitcoin.RPC;
 using ReactiveUI;
@@ -6,7 +10,6 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Settings;
@@ -28,6 +31,8 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _bitcoinRpcUri;
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
+	[AutoNotify] private string? _connectionStatusMessage;
+	[AutoNotify] private bool _connectionStatusIsSuccess;
 
 	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
 	{
@@ -49,6 +54,17 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.Settings.DustThreshold)
 			.Subscribe(x => DustThreshold = x);
+
+		// Enable verify button only when URI is valid
+		var canVerify = this.WhenAnyValue(
+			x => x.BitcoinRpcUri,
+			(uri) => !string.IsNullOrWhiteSpace(uri) && Uri.TryCreate(uri, UriKind.Absolute, out _));
+
+		VerifyConnectionCommand = ReactiveCommand.CreateFromTask(VerifyConnectionAsync, canVerify);
+
+		// Clear status message when inputs change
+		this.WhenAnyValue(x => x.BitcoinRpcUri, x => x.BitcoinRpcCredentialString)
+			.Subscribe(_ => ConnectionStatusMessage = null);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
@@ -56,6 +72,8 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	public IApplicationSettings Settings { get; }
 
 	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Bitcoin.Instance.Signet, Network.RegTest };
+
+	public ICommand VerifyConnectionCommand { get; }
 
 	private void ValidateBitcoinRpcUri(IValidationErrors errors)
 	{
@@ -109,6 +127,48 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			{
 				Settings.DustThreshold = dustThreshold;
 			}
+		}
+	}
+
+	private async Task VerifyConnectionAsync()
+	{
+		try
+		{
+			// Parse credentials
+			RPCCredentialString credentials;
+			if (string.IsNullOrWhiteSpace(BitcoinRpcCredentialString))
+			{
+				// Use default credentials if empty
+				credentials = RPCCredentialString.Parse("default:default");
+			}
+			else if (!RPCCredentialString.TryParse(BitcoinRpcCredentialString, out credentials!))
+			{
+				ConnectionStatusIsSuccess = false;
+				ConnectionStatusMessage = "Invalid credentials format";
+				return;
+			}
+
+			// Create RPC client
+			var rpcClient = new RPCClient(credentials, BitcoinRpcUri, Settings.Network);
+
+			// Test connection with GetBlockchainInfo
+			await rpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
+
+			// Success
+			ConnectionStatusIsSuccess = true;
+			ConnectionStatusMessage = "Connected successfully";
+		}
+		catch (HttpRequestException ex) when (ex.StatusCode == HttpStatusCode.Unauthorized)
+		{
+			// Unauthorized
+			ConnectionStatusIsSuccess = false;
+			ConnectionStatusMessage = "Connection attempt failed (Unauthorized)";
+		}
+		catch (Exception)
+		{
+			// Connection failed
+			ConnectionStatusIsSuccess = false;
+			ConnectionStatusMessage = "Connection attempt failed";
 		}
 	}
 }
