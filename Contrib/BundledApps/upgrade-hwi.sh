@@ -12,7 +12,7 @@
 # Usage:
 #   ./upgrade-hwi.sh 3.1.0                                   # Download HWI archives using curl, extract HWI binaries, update them in the repository.
 #   ./upgrade-hwi.sh 3.1.0 --skip-download                   # Work with HWI archives from a previous script run.
-#   ./upgrade-hwi.sh 3.1.0 --skip-download --skip-extract    # Do not extrat HWI archives. Continue with remaining steps.
+#   ./upgrade-hwi.sh 3.1.0 --skip-download --skip-extract    # Do not extract HWI archives. Continue with remaining steps.
 #
 # See:
 # https://github.com/bitcoin-core/HWI/
