@@ -71,7 +71,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public IApplicationSettings Settings { get; }
 
-	public IEnumerable<Network> Networks { get; } = new[] { Network.Main, Network.TestNet, Bitcoin.Instance.Signet, Network.RegTest };
+	public IEnumerable<Network> Networks { get; } = [Network.Main, Network.TestNet, Bitcoin.Instance.Signet, Network.RegTest];
 
 	public ICommand VerifyConnectionCommand { get; }
 
@@ -148,8 +148,23 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 				return;
 			}
 
+
 			// Create RPC client
 			var rpcClient = new RPCClient(credentials, BitcoinRpcUri, Settings.Network);
+			if (new Uri(BitcoinRpcUri).DnsSafeHost.EndsWith(".onion"))
+			{
+				if (Settings.UseTor != TorMode.Disabled)
+				{
+					var httpClient = Services.HttpClientFactory.CreateClient("test-rpc-connection");
+					rpcClient.HttpClient = httpClient;
+				}
+				else
+				{
+					ConnectionStatusIsSuccess = false;
+					ConnectionStatusMessage = "Tor is disabled. Impossible to verify onion service";
+					return;
+				}
+			}
 
 			// Test connection with GetBlockchainInfo
 			await rpcClient.GetBlockchainInfoAsync().ConfigureAwait(false);
