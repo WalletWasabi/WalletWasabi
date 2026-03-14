@@ -108,7 +108,6 @@ public static class BitcoinFactory
 			stx.TryAddWalletOutput(sc);
 		}
 
-		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(stx);
 		return stx;
 	}
 
@@ -139,9 +138,7 @@ public static class BitcoinFactory
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
 		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
-		var sc = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
-		BlockchainAnalyzer.SetIsSufficientlyDistancedFromExternalKeys(sc);
-		return sc;
+		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
 	}
 
 	public static OutPoint CreateOutPoint()
