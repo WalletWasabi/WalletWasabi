@@ -12,7 +12,7 @@
 # Usage:
 #   ./upgrade-tor.sh 15.0.7                                          # Download Tor Browser archives using curl, extract Tor binaries, update them in the repository.
 #   ./upgrade-tor.sh 15.0.7 --skip-download                          # Work with Tor Browser archives from a previous script run.
-#   ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser   # Do not extrat Tor Browser archives. Continue with remaining steps.
+#   ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser   # Do not extract Tor Browser archives. Continue with remaining steps.
 #
 
 set -euo pipefail
@@ -97,6 +97,7 @@ if [[ "$OSTYPE" == "msys" || "$OSTYPE" == "cygwin" ]]; then
 fi
 
 require_command "$SEVEN_ZIP"
+require_command gpg
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Main logic
@@ -146,10 +147,8 @@ if [[ "$SKIP_DOWNLOAD" != true ]]; then
         if gpgv --keyring ./tor.keyring "$asc_fname" "$fname" >gpg-verify.log 2>&1; then
             info "Signature OK for $fname"
         else
-            error "Verification FAILED for $fname"
-            cat ./gpg-verify.log
-
-            exit 1
+            gpgLog=$(cat ./gpg-verify.log)
+            error "Verification FAILED for $fname" "$gpgLog"
         fi
     done
 else
@@ -160,21 +159,22 @@ fi
 if [[ "$SKIP_EXTRACT_BROWSER" != true ]]; then
     section "Extracting Tor Browser archives"
 
+    # Remove WalletWasabi/BundledApps/Binaries/temp/$VERSION/TorBrowser
     rm -rf TorBrowser
 
     # Linux x64
-    info "Extracting Linux x86_64 tar.xz (TorBrowser/linux-x64/tor-browser-linux-x86_64-${VERSION}.tar.xz)"
+    info "Extracting Linux x86_64 tar.xz (tor-browser-linux-x86_64-${VERSION}.tar.xz)"
     mkdir -p TorBrowser/linux-x64
     "$SEVEN_ZIP" x -y "tor-browser-linux-x86_64-${VERSION}.tar.xz" >/dev/null
     "$SEVEN_ZIP" x -y -oTorBrowser/linux-x64 "tor-browser-linux-x86_64-${VERSION}.tar" >/dev/null
 
     # macOS → .dmg
-    info "Extracting macOS DMG (TorBrowser/macOS/tor-browser-macos-${VERSION}.dmg)"
+    info "Extracting macOS DMG (tor-browser-macos-${VERSION}.dmg)"
     mkdir -p TorBrowser/macOS
     "$SEVEN_ZIP" x -y -oTorBrowser/macOS "tor-browser-macos-${VERSION}.dmg" >/dev/null
 
     # Windows → .exe
-    info "Extracting Windows installer (TorBrowser/Windows/tor-browser-windows-x86_64-portable-${VERSION}.exe)"
+    info "Extracting Windows installer (tor-browser-windows-x86_64-portable-${VERSION}.exe)"
     mkdir -p TorBrowser/Windows
     "$SEVEN_ZIP" x -y -oTorBrowser/Windows "tor-browser-windows-x86_64-portable-${VERSION}.exe" >/dev/null
 else
