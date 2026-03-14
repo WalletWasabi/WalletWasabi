@@ -68,7 +68,6 @@ public static class BlockchainAnalyzer
 		}
 
 		AnalyzeClusters(tx);
-		SetIsSufficientlyDistancedFromExternalKeys(tx);
 	}
 
 	private static void AnalyzeCancellation(SmartTransaction tx)
@@ -352,36 +351,6 @@ public static class BlockchainAnalyzer
 					newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
 				}
 			}
-		}
-	}
-
-	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartTransaction tx)
-	{
-		foreach (var output in tx.WalletOutputs)
-		{
-			SetIsSufficientlyDistancedFromExternalKeys(output);
-		}
-	}
-
-	/// <summary>
-	/// Sets output's IsSufficientlyDistancedFromExternalKeys property to false if external, or the tx inputs are all external.
-	/// </summary>
-	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/10567</remarks>
-	public static void SetIsSufficientlyDistancedFromExternalKeys(SmartCoin output)
-	{
-		if (output.Transaction.WalletInputs.Count == 0)
-		{
-			// If there's no wallet input, then money is coming from external sources.
-			output.IsSufficientlyDistancedFromExternalKeys = false;
-		}
-		else if (output.Transaction.WalletInputs.All(x => x.Transaction.WalletInputs.Count == 0))
-		{
-			// If there are wallet inputs, and each one of them are coming from external sources, then we consider this as not sufficiently distanced as well.
-			output.IsSufficientlyDistancedFromExternalKeys = false;
-		}
-		else
-		{
-			output.IsSufficientlyDistancedFromExternalKeys = true;
 		}
 	}
 
