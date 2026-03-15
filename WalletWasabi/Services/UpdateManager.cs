@@ -186,8 +186,9 @@ public static class ReleaseDownloader
 
 		async Task<string> GetExpectedInstallerHashAsync()
 		{
-			var lines = await File.ReadAllLinesAsync(sha256SumsTask.Result, cancellationToken).ConfigureAwait(false);
+			var lines = await File.ReadAllLinesAsync(sha256SumsAscTask.Result, cancellationToken).ConfigureAwait(false);
 			var s = lines.Select(l => l.Split("  ./", StringSplitOptions.TrimEntries | StringSplitOptions.RemoveEmptyEntries))
+				.Where(a => a.Length == 2)
 				.Select(a => (Hash: a[0], FileName: a[1]))
 				.FirstOrDefault(a => a.FileName == installerFileName)
 				.Hash ?? throw new InvalidOperationException($"{installerFileName} was not found.");
