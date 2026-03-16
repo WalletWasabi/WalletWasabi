@@ -8,20 +8,53 @@
 #   - curl
 #   - 7zz (version 25.1+; 7-Zip command line; apt install 7zip-standalone / brew install sevenzip / winget install --id 7zip.7zip)
 #   - git (only for chmod +x marking via git update-index)
-#
-# Usage:
-#   ./upgrade-bitcoin-core.sh 30.2                                                # Download Bitcoin Core archives using curl, extract binaries, update them in the repository.
-#   ./upgrade-bitcoin-core.sh 30.2 --skip-download                                # Work with Bitcoin Core archives from a previous script run.
-#   ./upgrade-bitcoin-core.sh 30.2 --skip-download --skip-extract --skip-replace  # Do not extract Tor Browser archives. Continue with remaining steps.
-#
 
 set -euo pipefail
 shopt -s extglob nullglob
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Show help and exit
+# ──────────────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << 'EOF'
+Downloads, extracts and upgrades bitcoind binaries from Bitcoin Core for Wasabi Wallet
+
+Usage:
+    ./upgrade-bitcoin-core.sh <version> [OPTIONS]
+
+Arguments:
+    <version>          Bitcoin Core version (required)  e.g. 30.2 or 29.3
+
+Options:
+    -h, --help         Show this help message and exit
+    --skip-download    Skip downloading the release archives (use previously downloaded files)
+    --skip-extract     Skip extracting the archives
+    --skip-replace     Skip replacing the binaries in the target directory/repository
+
+Examples:
+    ./upgrade-bitcoin-core.sh 30.2
+    ./upgrade-bitcoin-core.sh 30.2 --skip-download
+    ./upgrade-bitcoin-core.sh 29.3 --skip-download --skip-extract
+
+See also:
+    https://bitcoincore.org/en/download
+    https://github.com/bitcoin/bitcoin/releases
+EOF
+    exit 0
+}
+
+# Handle help flags early
+case "${1:-}" in
+    -h|--help)
+        show_help
+        ;;
+esac
+
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-    echo "ERROR: Bitcoin Core version is required."
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]"
+    echo "ERROR: Bitcoin Core version is required." >&2
+    echo "Use -h or --help for usage information." >&2
+    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]" >&2
     exit 1
 fi
 
