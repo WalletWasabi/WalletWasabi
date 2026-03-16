@@ -78,11 +78,12 @@ done
 DIST_URI="https://github.com/bitcoin-core/HWI/releases/download/${VERSION}"
 
 declare -A FILES
+FILES[linux-arm64]="hwi-${VERSION}-linux-aarch64.tar.gz"
 FILES[linux-x64]="hwi-${VERSION}-linux-x86_64.tar.gz"
 FILES[osx64]="hwi-${VERSION}-mac-x86_64.tar.gz"
 FILES[win-x64]="hwi-${VERSION}-windows-x86_64.zip"
 
-SUPPORTED_PLATFORMS=("linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -159,7 +160,7 @@ if [[ "$SKIP_DOWNLOAD" != true ]]; then
 
     # See https://achow101.com/contact/
     url="http://achow101.com/achow101.pgp"
-    info "Downloading 'achow101.pgp' from '$url' ..."    
+    info "Downloading 'achow101.pgp' from '$url' ..."
     curl -fsSL --output achow101.pgp "${url}"
     gpg --import ./achow101.pgp
     gpg --list-keys --fingerprint 17565732E08E5E41
@@ -192,6 +193,12 @@ if [[ "$SKIP_EXTRACT" != true ]]; then
     section "Extracting HWI archives"
 
     rm -rf HWI
+
+    # Linux arm64
+    info "Extracting Linux arm64 tar.xz (hwi-${VERSION}-linux-aarch64.tar.gz)"
+    mkdir -p HWI/linux-x64
+    "$SEVEN_ZIP" x -y "hwi-${VERSION}-linux-aarch64.tar.gz" >/dev/null
+    "$SEVEN_ZIP" x -y -oHWI/linux-arm64 "hwi-${VERSION}-linux-aarch64.tar" >/dev/null
 
     # Linux x64
     info "Extracting Linux x86_64 tar.xz (hwi-${VERSION}-linux-x86_64.tar.gz)"
@@ -236,9 +243,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking HWI binaries executable in the git repository"
 
-chmod +x ./{linux-x64,osx64,win-x64}/hwi{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/hwi{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-x64,osx64}/hwi 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/hwi 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/hwi.exe 2>/dev/null || true
 
 echo ""

@@ -80,11 +80,12 @@ done
 DIST_URI="https://www.torproject.org/dist/torbrowser/${VERSION}"
 
 declare -A FILES
+FILES[linux-arm64]="tor-browser-linux-aarch64-${VERSION}.tar.xz"
 FILES[linux-x64]="tor-browser-linux-x86_64-${VERSION}.tar.xz"
 FILES[osx64]="tor-browser-macos-${VERSION}.dmg"
 FILES[win-x64]="tor-browser-windows-x86_64-portable-${VERSION}.exe"
 
-SUPPORTED_PLATFORMS=("linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -193,6 +194,12 @@ if [[ "$SKIP_EXTRACT_BROWSER" != true ]]; then
     # Remove WalletWasabi/BundledApps/Binaries/temp/$VERSION/TorBrowser
     rm -rf TorBrowser
 
+    # Linux arm64
+    info "Extracting Linux aarch64 tar.xz (tor-browser-linux-aarch64-${VERSION}.tar.xz)"
+    mkdir -p TorBrowser/linux-arm64
+    "$SEVEN_ZIP" x -y "tor-browser-linux-aarch64-${VERSION}.tar.xz" >/dev/null
+    "$SEVEN_ZIP" x -y -oTorBrowser/linux-arm64 "tor-browser-linux-aarch64-${VERSION}.tar" >/dev/null
+
     # Linux x64
     info "Extracting Linux x86_64 tar.xz (tor-browser-linux-x86_64-${VERSION}.tar.xz)"
     mkdir -p TorBrowser/linux-x64
@@ -217,10 +224,13 @@ if [[ "$SKIP_EXTRACT_TOR" != true ]]; then
     section "Extracting Tor binaries only"
 
     rm -rf Tor
-    mkdir -p Tor/{win-x64,osx64,linux-x64}
+    mkdir -p Tor/{linux-arm64,linux-x64,osx64,win-x64}
+
+    # Linux arm64
+    cp -a TorBrowser/linux-arm64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-arm64/ 2>/dev/null || true
 
     # Linux x64
-    cp -vvv -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
+    cp -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
 
     # macOS
     # Note: path can vary slightly between versions — "Tor Browser.app" or "Tor Browser Alpha.app"
@@ -270,9 +280,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking Tor binaries executable in the git repository"
 
-chmod +x ./{linux-x64,osx64,win-x64}/Tor/tor{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/Tor/tor{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-x64,osx64}/Tor/tor 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/Tor/tor 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/Tor/tor.exe 2>/dev/null || true
 
 echo ""

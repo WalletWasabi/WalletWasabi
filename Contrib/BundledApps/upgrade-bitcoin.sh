@@ -78,11 +78,12 @@ done
 DIST_URI="https://bitcoincore.org/bin/bitcoin-core-${VERSION}"
 
 declare -A FILES
+FILES[linux-arm64]="bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz"
 FILES[linux-x64]="bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz"
 FILES[osx64]="bitcoin-${VERSION}-x86_64-apple-darwin.tar.gz"
 FILES[win-x64]="bitcoin-${VERSION}-win64.zip"
 
-SUPPORTED_PLATFORMS=("linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -199,8 +200,14 @@ if [[ "$SKIP_EXTRACT" != true ]]; then
     # Remove WalletWasabi.Tests/BundledApps/Binaries/temp/$VERSION/BitcoinCore
     rm -rf BitcoinCore
 
+    # Linux arm64
+    info "Extracting Linux arm64 tar.xz (bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz)"
+    mkdir -p BitcoinCore/linux-arm64
+    "$SEVEN_ZIP" x -y "bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz" >/dev/null
+    "$SEVEN_ZIP" x -y -oBitcoinCore/linux-arm64 "bitcoin-${VERSION}-aarch64-linux-gnu.tar" >/dev/null
+
     # Linux x64
-    info "Extracting Linux x86_64 tar.xz (tor-browser-linux-x86_64-${VERSION}.tar.xz)"
+    info "Extracting Linux x86_64 tar.xz (bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz)"
     mkdir -p BitcoinCore/linux-x64
     "$SEVEN_ZIP" x -y "bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz" >/dev/null
     "$SEVEN_ZIP" x -y -oBitcoinCore/linux-x64 "bitcoin-${VERSION}-x86_64-linux-gnu.tar" >/dev/null
@@ -247,9 +254,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking Bitcoin Core binaries executable in the git repository"
 
-chmod +x ./{linux-x64,osx64,win-x64}/bitcoind{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/bitcoind{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-x64,osx64}/bitcoind 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/bitcoind 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/bitcoind.exe 2>/dev/null || true
 
 echo ""
