@@ -8,22 +8,53 @@
 #   - curl
 #   - 7zz (version 25.1+; 7-Zip command line; apt install 7zip-standalone / brew install sevenzip / winget install --id 7zip.7zip)
 #   - git (only for chmod +x marking via git update-index)
-#
-# Usage:
-#   ./upgrade-hwi.sh 3.1.0                                   # Download HWI archives using curl, extract HWI binaries, update them in the repository.
-#   ./upgrade-hwi.sh 3.1.0 --skip-download                   # Work with HWI archives from a previous script run.
-#   ./upgrade-hwi.sh 3.1.0 --skip-download --skip-extract    # Do not extract HWI archives. Continue with remaining steps.
-#
-# See:
-# https://github.com/bitcoin-core/HWI/
 
 set -euo pipefail
 shopt -s extglob nullglob
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Show help and exit
+# ──────────────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << 'EOF'
+Downloads, extracts and upgrades Hardware Wallet Interface (HWI) binaries for Wasabi Wallet
+
+Usage:
+    ./upgrade-hwi.sh <version> [OPTIONS]
+
+Arguments:
+    <version>          HWI version (required)  e.g. 3.2.0 or 3.1.0
+
+Options:
+    -h, --help         Show this help message and exit
+    --skip-download    Skip downloading the release archives (use files from previous run)
+    --skip-extract     Skip extracting the downloaded archives
+    --skip-replace     Skip replacing the HWI binaries in the repository
+
+Examples:
+    ./upgrade-hwi.sh 3.2.0
+    ./upgrade-hwi.sh 3.1.0 --skip-download
+    ./upgrade-hwi.sh 3.2.0 --skip-download --skip-extract
+
+See also:
+    https://github.com/bitcoin-core/HWI/
+    https://github.com/bitcoin-core/HWI/releases
+EOF
+    exit 0
+}
+
+# Handle help flags early
+case "${1:-}" in
+    -h|--help)
+        show_help
+        ;;
+esac
+
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-    echo "ERROR: HWI version is required."
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]"
+    echo "ERROR: HWI version is required." >&2
+    echo "Use -h or --help for usage information." >&2
+    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]" >&2
     exit 1
 fi
 
