@@ -16,7 +16,7 @@ You can now spend coins using fee rates as low as 0.1 sat/vByte, letting you sav
 ### 🛡️ GUI support for batching payments inside coinjoin transactions
 Sending payments directly inside a coinjoin transaction uses block space more efficiently and improves privacy in several ways:
 
-- The age of your inputs is not revealed, so the receiver does not learn how long you’ve held. 
+- The age of your inputs is not revealed, so the receiver does not learn how long you’ve held your coins. 
 - The size of your change is not revealed, so the receiver does not learn the amount of coins you have left over. 
 - You can batch multiple payments into one transaction without revealing they originate from the same sender.
 
@@ -40,4 +40,4 @@ Continuous maintenance is done to keep Wasabi secure and compatible with new dev
 Whonix and Tails operating systems now configure Tor connections automatically. SLIP39 multi-share backups are now listed ahead of BIP39 recovery word backups. The default minimum and maximum values in the coinjoin settings were changed to better fit the current market and fee environment.
 
 ### 🔎 Bug fixes
-An issue with sending to BIP352 silent payment address was fixed. Hundreds of build warnings were fixed. Software verification and security patches are included thanks to Ledger’s Donjon team.
+An issue with sending to BIP352 silent payment addresses was fixed. Hundreds of build warnings were fixed. Software verification and security patches are included thanks to Ledger’s Donjon team.
