@@ -16,9 +16,9 @@ You can now spend coins using fee rates as low as 0.1 sat/vbyte, letting you sav
 ### 🛡️ GUI support for batching payments inside coinjoin transactions
 Sending payments directly inside a coinjoin transaction uses block space more efficiently and improves privacy in several ways:
 
--The age of your inputs is not revealed, so the receiver does not learn how long you’ve held. 
--The size of your change is not revealed, so the receiver does not learn the amount of coins you have left over. 
--You can batch multiple payments into one transaction without revealing they originate from the same sender.
+- The age of your inputs is not revealed, so the receiver does not learn how long you’ve held. 
+- The size of your change is not revealed, so the receiver does not learn the amount of coins you have left over. 
+- You can batch multiple payments into one transaction without revealing they originate from the same sender.
 
 ### 📜 Scheme scripting language
 Needs description
@@ -31,10 +31,10 @@ Signet is another test network that allows a set of signers to create blocks. Th
 ### 📎 Dependencies upgraded
 Continuous maintenance is done to keep Wasabi secure and compatible with new devices. Under the hood, here are the parts that were upgraded:
 
-.NET 8 -> .NET 10
-Tor 0.4.8.13 -> Tor 0.4.8.21
-Avalonia 11.2.7 -> Avalonia 11.3.11
-xUnit 2.6.6 -> xUnit 2.9.3
+- .NET 8 -> .NET 10
+- Tor 0.4.8.13 -> Tor 0.4.8.21
+- Avalonia 11.2.7 -> Avalonia 11.3.11
+- xUnit 2.6.6 -> xUnit 2.9.3
 
 ### ♻️ Updated default experience
 Whonix and Tails operating systems now configure Tor connections automatically. SLIP39 multi-share backups are now listed ahead of BIP39 recovery word backups. The default minimum and maximum values in the coinjoin settings were changed to better fit the current market and fee environment.
