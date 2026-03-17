@@ -42,14 +42,26 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	{
 		try
 		{
-			return BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath);
+			var storage = BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath);
+			if (storage.GetPragmaUserVersion() < 2)
+			{
+				storage.Dispose();
+				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
+				DeleteIndex(_storageFilePath);
+				storage = BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath);
+				storage.SetPragmaUserVersion(2);
+			}
+
+			return storage;
 		}
 		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
 		{
 			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
 
 			DeleteIndex(_storageFilePath);
-			throw;
+			var storage = BlockFilterSqliteStorage.FromFile(dataSource: _storageFilePath);
+			storage.SetPragmaUserVersion(2);
+			return storage;
 		}
 	}
 
@@ -84,12 +96,9 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			{
 				var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(oldestKnownTransactionHeight, _network);
 
-				if (IndexStorage.GetPragmaUserVersion() < 2)
+				if (!IndexStorage.FetchLast(1).Any())
 				{
-					Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-					IndexStorage.Clear();
 					IndexStorage.TryAppend(checkpoint);
-					IndexStorage.SetPragmaUserVersion(2);
 				}
 				else
 				{

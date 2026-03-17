@@ -389,7 +389,7 @@ public class Global
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			Logger.LogError($"Bitcoin storage got corrupted. Resetting wallet(s) to the first block to rescan. Exception: {ex}");
-			WalletManager.SetMaxBestHeight(FilterCheckpoints.GetWasabiGenesisFilter(Network).Header.Height);
+			WalletManager.SetMaxBestHeight(CalculateSafestHeight());
 			throw;
 		}
 	}
