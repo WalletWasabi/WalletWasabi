@@ -23,7 +23,7 @@ Sending payments directly inside a coinjoin transaction uses block space more ef
 ### 📜 Scheme scripting language
 Needs description
 
-### 🔑 Signet support (partial)
+### 🔑 Signet support
 Testnet3 and Testnet4 use proof of work for generating blocks, just like mainnet. Because testnet coins have no value, low mining difficulty allows an attacker with a small amount of hashpower to flood blocks or create long reorgs.
 
 Signet is another test network that allows a set of signers to create blocks. This reduces the unpredictable behavior so developers can work with a stable environment. Wasabi does not ship with a default signet indexer, so you must specify one in the signet config file or connect it to your signet node.
