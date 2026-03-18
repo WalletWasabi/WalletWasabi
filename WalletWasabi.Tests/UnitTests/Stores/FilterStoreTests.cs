@@ -27,7 +27,7 @@ public class FilterStoreTests
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
 		await using var filterStore = new FilterStore(directory, Network.Main, new SmartHeaderChain());
-		await filterStore.InitializeAsync(testCts.Token);
+		await filterStore.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.
 		FilterModel? filterModel = await filterStore.TryRemoveLastFilterAsync();

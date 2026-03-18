@@ -13,15 +13,13 @@ public static class PersistentConfigManager
 {
 	public static readonly PersistentConfig DefaultMainNetConfig = new (
 		Network : Network.Main,
-		IndexerUri : Constants.IndexerUri,
 		CoordinatorUri : Constants.CoordinatorUri,
 		UseTor : GetDefaultTorMode(),
 		TerminateTorOnExit : false,
 		TorBridges : [],
 		DownloadNewVersion : true,
-		UseBitcoinRpc : false,
-		BitcoinRpcCredentialString : string.Empty,
-		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri.ToString(),
+		BitcoinRpcCredentialString : "wasabi:wasabi",
+		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri,
 		JsonRpcServerEnabled : false,
 		JsonRpcUser : string.Empty,
 		JsonRpcPassword : string.Empty,
@@ -35,13 +33,12 @@ public static class PersistentConfigManager
 		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
 		AbsoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
 		MaxDaysInMempool : Constants.DefaultMaxDaysInMempool,
-		ExperimentalFeatures: ValueList<string>.Empty,
-		ConfigVersion : 2);
+		ExperimentalFeatures: [],
+		ConfigVersion : 4);
 
 	public static readonly PersistentConfig DefaultTestNetConfig = DefaultMainNetConfig with
 	{
 		Network = Network.TestNet,
-		IndexerUri = Constants.TestnetIndexerUri,
 		CoordinatorUri = Constants.TestnetCoordinatorUri,
 		BitcoinRpcCredentialString = string.Empty,
 		BitcoinRpcUri = Constants.DefaultTestNetBitcoinRpcUri,
@@ -53,7 +50,6 @@ public static class PersistentConfigManager
 	public static readonly PersistentConfig DefaultRegTestConfig = DefaultTestNetConfig with
 	{
 		Network = Network.RegTest,
-		IndexerUri = Constants.RegTestIndexerUri,
 		CoordinatorUri = Constants.RegTestCoordinatorUri,
 		BitcoinRpcUri = Constants.DefaultRegTestBitcoinRpcUri,
 	};
@@ -61,7 +57,6 @@ public static class PersistentConfigManager
 	public static readonly PersistentConfig DefaultSignetConfig = DefaultTestNetConfig with
 	{
 		Network = Bitcoin.Instance.Signet,
-		IndexerUri = Constants.SignetIndexerUri,
 		CoordinatorUri = Constants.SignetCoordinatorUri,
 		BitcoinRpcUri = Constants.DefaultSignetBitcoinRpcUri,
 	};

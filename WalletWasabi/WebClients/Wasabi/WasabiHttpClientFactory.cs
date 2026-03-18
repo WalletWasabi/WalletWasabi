@@ -128,19 +128,6 @@ public class CoordinatorHttpClientFactory : IHttpClientFactory
 	}
 }
 
-public class IndexerHttpClientFactory(Uri baseAddress, IHttpClientFactory internalHttpClientFactory)
-	: IHttpClientFactory
-{
-	public HttpClient CreateClient(string name)
-	{
-		var httpClient = internalHttpClientFactory.CreateClient(name);
-		httpClient.DefaultRequestVersion = HttpVersion.Version11;
-		httpClient.DefaultRequestHeaders.UserAgent.Clear();
-		httpClient.BaseAddress = baseAddress;
-		return httpClient;
-	}
-}
-
 public class NotifyHttpClientHandler(string name, Action<string> disposedCallback) : HttpClientHandler
 {
 	protected override void Dispose(bool disposing)

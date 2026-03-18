@@ -48,8 +48,8 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	{
 		var initTasks = new[]
 		{
-			MempoolStore.InitializeAsync($"{nameof(MempoolStore)}.{nameof(MempoolStore.InitializeAsync)}", cancellationToken),
-			ConfirmedStore.InitializeAsync($"{nameof(ConfirmedStore)}.{nameof(ConfirmedStore.InitializeAsync)}", cancellationToken)
+			MempoolStore.InitializeAsync(cancellationToken),
+			ConfirmedStore.InitializeAsync(cancellationToken)
 		};
 
 		await Task.WhenAll(initTasks).ConfigureAwait(false);
@@ -201,6 +201,18 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 			}
 			return reorgedTxs;
 		}
+	}
+
+	public bool TryGetOldestKnownTransactionHeight([NotNullWhen(true)] out ChainHeight? height)
+	{
+		if(ConfirmedStore.TryGetFirstSeenTransaction(out var tx))
+		{
+			height = (ChainHeight) tx.Height;
+			return true;
+		}
+
+		height = null;
+		return false;
 	}
 
 	/// <returns>Labels ordered by blockchain.</returns>

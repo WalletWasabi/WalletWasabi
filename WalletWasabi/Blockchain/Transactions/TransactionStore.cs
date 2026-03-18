@@ -39,7 +39,7 @@ public class TransactionStore : IAsyncDisposable
 	/// <remarks>Guarded by <see cref="_sqliteStorageLock"/>.</remarks>
 	private Dictionary<uint256, SmartTransaction> Transactions { get; } = new();
 
-	public Task InitializeAsync(string operationName, CancellationToken cancellationToken)
+	public Task InitializeAsync(CancellationToken cancellationToken)
 	{
 		lock (_sqliteStorageLock)
 		{
@@ -190,6 +190,15 @@ public class TransactionStore : IAsyncDisposable
 		lock (_sqliteStorageLock)
 		{
 			return Transactions.Values.OrderByBlockchain().ToList();
+		}
+	}
+
+	public bool TryGetFirstSeenTransaction([NotNullWhen(true)] out SmartTransaction? stx)
+	{
+		lock (_sqliteStorageLock)
+		{
+			stx = Transactions.Values.OrderByBlockchain().FirstOrDefault();
+			return stx != null;
 		}
 	}
 

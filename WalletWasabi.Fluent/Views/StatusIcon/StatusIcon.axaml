@@ -76,31 +76,6 @@
             </Style>
           </StackPanel.Styles>
 
-          <!-- Warning message TODO: use InfoMessage control-->
-          <DockPanel
-            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IndexerConnectionIssueDetected}}">
-            <PathIcon Data="{StaticResource info_regular}"
-                      DockPanel.Dock="Top"
-                      HorizontalAlignment="Center"
-                      Height="30" />
-            <TextBlock DockPanel.Dock="Bottom"
-                       Text="Wasabi was unable to connect to the server. Retrying..."
-                       TextWrapping="Wrap"
-                       TextAlignment="Center" />
-          </DockPanel>
-
-          <DockPanel
-            IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IncompatibleIndexer}}">
-            <PathIcon Data="{StaticResource info_regular}"
-                      DockPanel.Dock="Top"
-                      HorizontalAlignment="Center"
-                      Height="30" />
-            <TextBlock DockPanel.Dock="Bottom"
-                       Text="Wasabi is not compatible with the specified indexer. Update or change the index provider."
-                       TextWrapping="Wrap"
-                       TextAlignment="Center" />
-          </DockPanel>
-
           <!-- Status -->
           <StackPanel Spacing="16">
 
@@ -132,13 +107,6 @@
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Indexer"
-                          IsVisible="{Binding !HealthMonitor.CanUseBitcoinRpc, FallbackValue=True}"
-                          StatusText="{Binding HealthMonitor.IndexerStatus, Converter={x:Static converters:StatusConverters.IndexerStatusToString}}">
-              <StatusItem.Icon>
-                <PathIcon Data="{StaticResource connector_regular}" />
-              </StatusItem.Icon>
-            </StatusItem>
             <StatusItem
               Title="Peers" StatusText="{Binding HealthMonitor.Peers, Mode=OneWay, StringFormat={}{0} connected}">
               <StatusItem.Icon>
@@ -147,8 +115,7 @@
             </StatusItem>
             <StatusItem
               Title="Bitcoin RPC"
-              StatusText="{Binding HealthMonitor.BitcoinRpcStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}"
-              IsVisible="{Binding HealthMonitor.CanUseBitcoinRpc}">
+              StatusText="{Binding HealthMonitor.BitcoinRpcStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
               </StatusItem.Icon>
@@ -218,27 +185,12 @@
       Foreground="{DynamicResource SystemAccentColor}"
       Classes.rotate="{Binding $self.IsVisible}" />
 
-    <!-- Connection issue -->
-    <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IndexerConnectionIssueDetected}}"
-      Data="{StaticResource warning_circle}"
-      Foreground="Goldenrod"
-      VerticalAlignment="Center" HorizontalAlignment="Right"
-      Classes.blink="{Binding $self.IsVisible}" />
-
     <!-- Bitcoin Core Connection issue -->
     <PathIcon
       IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.BitcoinRpcIssueDetected}}"
       Data="{StaticResource warning_circle}"
       Foreground="Goldenrod"
       VerticalAlignment="Center" HorizontalAlignment="Right"
-      Classes.blink="{Binding $self.IsVisible}" />
-
-    <!--Critical update available-->
-    <PathIcon
-      IsVisible="{Binding HealthMonitor.State, Converter={x:Static converters:HealthMonitorStateVisibilityConverter.Instance}, ConverterParameter={x:Static models:HealthMonitorState.IncompatibleIndexer}}"
-      Data="{StaticResource download_circle}"
-      Foreground="{DynamicResource SystemErrorTextColor}"
       Classes.blink="{Binding $self.IsVisible}" />
 
     <!--Update available-->

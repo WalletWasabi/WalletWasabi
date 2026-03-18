@@ -20,9 +20,12 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase, filter0);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
 
-		bool added = indexStorage.TryAppend(filter1);
+		bool added = indexStorage.TryAppend(filter0);
+		Assert.True(added);
+
+		added = indexStorage.TryAppend(filter1);
 		Assert.True(added);
 
 		// The filter with the same block height is already present.
@@ -33,9 +36,10 @@ public class BlockFilterSqliteStorageTests
 	[Fact]
 	public void TryRemoveLast()
 	{
-		FilterModel startingFilter = StartingFilters.GetStartingFilter(Network.Main);
+		FilterModel startingFilter = FilterCheckpoints.GetWasabiGenesisFilter(Network.Main);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase, startingFilter);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		indexStorage.TryAppend(startingFilter);
 
 		bool result = indexStorage.TryRemoveLast(out FilterModel? filter1);
 		Assert.True(result);
@@ -53,7 +57,8 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase, filter0);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		indexStorage.TryAppend(filter0);
 
 		bool added = indexStorage.TryAppend(filter1);
 		Assert.True(added);
@@ -62,18 +67,18 @@ public class BlockFilterSqliteStorageTests
 		Assert.True(result);
 		Assert.NotNull(filterLast);
 		Assert.NotSame(filter1, filterLast);
-		Assert.Equal(1u, filterLast.Header.Height);
+		Assert.Equal(1u, filterLast.Header.Height.Height);
 		Assert.Equal(new uint256(2), filterLast.Header.BlockHash);
-		Assert.Equal(uint256.One, filterLast.Header.HeaderOrPrevBlockHash);
+		Assert.Equal(uint256.One, filterLast.Header.BlockFilterHeader);
 		Assert.Equal(1231006506, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 
 		result = indexStorage.TryRemoveLast(out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(0u, filterLast.Header.Height);
+		Assert.Equal(0u, filterLast.Header.Height.Height);
 		Assert.Equal(uint256.One, filterLast.Header.BlockHash);
-		Assert.Equal(uint256.Zero, filterLast.Header.HeaderOrPrevBlockHash);
+		Assert.Equal(uint256.Zero, filterLast.Header.BlockFilterHeader);
 		Assert.Equal(1231006505, filterLast.Header.EpochBlockTime);
 		Assert.Equal(DummyFilterData, filterLast.Filter.ToBytes());
 	}
@@ -86,8 +91,9 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter2 = CreateFilterModel(blockHeight: 2, blockHash: new uint256(3), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(2), blockTime: 1231006507);
 		FilterModel filter3 = CreateFilterModel(blockHeight: 3, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006508);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase, filter0);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
 
+		Assert.True(indexStorage.TryAppend(filter0));
 		Assert.True(indexStorage.TryAppend(filter1));
 		Assert.True(indexStorage.TryAppend(filter2));
 		Assert.True(indexStorage.TryAppend(filter3));
@@ -95,17 +101,17 @@ public class BlockFilterSqliteStorageTests
 		bool result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out FilterModel? filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(3u, filterLast.Header.Height);
+		Assert.Equal(3u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(2u, filterLast.Header.Height);
+		Assert.Equal(2u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.True(result);
 		Assert.NotNull(filterLast);
-		Assert.Equal(1u, filterLast.Header.Height);
+		Assert.Equal(1u, filterLast.Header.Height.Height);
 
 		result = indexStorage.TryRemoveLastIfNewerThan(height: 0, out filterLast);
 		Assert.False(result);
@@ -118,10 +124,11 @@ public class BlockFilterSqliteStorageTests
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase, filter0);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		bool result = indexStorage.TryAppend(filter0);
 
 		// Now the storage contains 2 rows.
-		bool result = indexStorage.TryAppend(filter1);
+		result = indexStorage.TryAppend(filter1);
 		Assert.True(result);
 
 		// Now we believe that the storage is empty.

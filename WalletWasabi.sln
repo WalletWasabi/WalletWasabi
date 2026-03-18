@@ -3,8 +3,6 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.3.32819.101
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Backend", "WalletWasabi.Backend\WalletWasabi.Backend.csproj", "{A378E063-1660-472F-9CB2-0A3E96A56A63}"
-EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Tests", "WalletWasabi.Tests\WalletWasabi.Tests.csproj", "{50BDFA09-7575-4EEE-B733-D41B65B06D00}"
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi", "WalletWasabi\WalletWasabi.csproj", "{526AC796-6CC0-4ADA-9A7E-C12267719A1A}"
@@ -48,14 +46,6 @@ Global
 		Release|x64 = Release|x64
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Debug|x64.ActiveCfg = Debug|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Debug|x64.Build.0 = Debug|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Release|Any CPU.Build.0 = Release|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Release|x64.ActiveCfg = Debug|Any CPU
-		{A378E063-1660-472F-9CB2-0A3E96A56A63}.Release|x64.Build.0 = Debug|Any CPU
 		{50BDFA09-7575-4EEE-B733-D41B65B06D00}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{50BDFA09-7575-4EEE-B733-D41B65B06D00}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{50BDFA09-7575-4EEE-B733-D41B65B06D00}.Debug|x64.ActiveCfg = Debug|Any CPU

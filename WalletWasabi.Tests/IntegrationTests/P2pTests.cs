@@ -11,16 +11,14 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Exceptions;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
 using Xunit;
 using static WalletWasabi.Services.Workers;
 
@@ -43,12 +41,13 @@ public class P2pTests
 		var dataDir = Common.GetWorkDir();
 
 		SmartHeaderChain smartHeaderChain = new();
-		await using var filterStore = new FilterStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
 		await using var transactionStore = new AllTransactionStore(Path.Combine(dataDir, "transactionStore"), network);
+		await transactionStore.InitializeAsync(CancellationToken.None);
+		await using var filterStore = new FilterStore(Path.Combine(dataDir, "indexStore"), network, smartHeaderChain);
+		await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 		var mempoolService = new MempoolService();
 		var blocks = new FileSystemBlockRepository(Path.Combine(dataDir, "blocks"), network);
-		BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain, blocks);
-		await bitcoinStore.InitializeAsync();
+		BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain);
 
 		var addressManagerFolderPath = Path.Combine(dataDir, "AddressManager");
 		var addressManagerFilePath = Path.Combine(addressManagerFolderPath, $"AddressManager{network}.dat");
@@ -85,8 +84,7 @@ public class P2pTests
 		using var nodes = new NodesGroup(network, connectionParameters, requirements: Constants.NodeRequirements);
 
 		KeyManager keyManager = KeyManager.CreateNew(out _, "password", network!);
-		var httpClientFactory = new CoordinatorHttpClientFactory(new Uri("http://localhost:12345"), new HttpClientFactory());
-		var filterProvider = new WebApiFilterProvider(10_000, httpClientFactory, eventBus);
+		var filterProvider = new BitcoinRpcFilterProvider(new MockRpcClient());
 		var (_, _, serviceLoop) = Continuously(Synchronizer.CreateFilterGenerator(filterProvider, bitcoinStore, eventBus));
 		using var synchronizer = Spawn("Synchronizer", serviceLoop);
 

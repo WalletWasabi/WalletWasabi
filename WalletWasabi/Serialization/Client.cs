@@ -5,6 +5,7 @@ using NBitcoin;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.WabiSabi.Client.Banning;
 
@@ -57,12 +58,18 @@ public static partial class Encode
 		Optional(s?.ToWif(), String);
 
 	public static JsonNode WalletHeight(ChainHeight height) =>
-		String(Math.Max(0, height.Height - 101).ToString());
+		String(Math.Max(0, height.Height - Constants.ResyncHeightMargin).ToString());
 
 	public static JsonNode BlockchainState(BlockchainState s) =>
-		Object([
+		Object(s.BirthHeight is not {} nonNullBirthHeight
+		? [
 			("Network", Network(s.Network)),
 			("Height", WalletHeight(s.Height)),
+		]
+		: [
+			("Network", Network(s.Network)),
+			("Height", WalletHeight(s.Height)),
+			("BirthHeight", UInt(nonNullBirthHeight.Height)),
 		]);
 
 	public static JsonNode PreferredScriptPubKeyType(PreferredScriptPubKeyType t) =>
@@ -154,7 +161,8 @@ public static partial class Decode
 	public static Decoder<BlockchainState> BlockchainState =>
 		Object(get => new BlockchainState(
 			get.Required("Network", Network),
-			get.Required("Height", WalletHeight)
+			get.Required("Height", WalletHeight),
+			get.Optional("BirthHeight", WalletHeight)
 			));
 
 	public static Decoder<BitcoinEncryptedSecretNoEC> BitcoinEncryptedSecretNoEC =>

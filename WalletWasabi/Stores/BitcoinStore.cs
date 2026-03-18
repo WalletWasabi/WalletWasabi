@@ -1,6 +1,7 @@
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -20,36 +21,22 @@ public class BitcoinStore
 		FilterStore filterStore,
 		AllTransactionStore transactionStore,
 		MempoolService mempoolService,
-		SmartHeaderChain smartHeaderChain,
-		FileSystemBlockRepository blockRepository)
+		SmartHeaderChain smartHeaderChain)
 	{
 		FilterStore = filterStore;
 		TransactionStore = transactionStore;
 		MempoolService = mempoolService;
 		SmartHeaderChain = smartHeaderChain;
-		BlockRepository = blockRepository;
 	}
 
 	public FilterStore FilterStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public SmartHeaderChain SmartHeaderChain { get; }
 	public MempoolService MempoolService { get; }
-	public FileSystemBlockRepository BlockRepository { get; }
 
 	/// <summary>
 	/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
 	/// So it should not be assumed it's some singleton.
 	/// </summary>
 	public P2pBehavior CreateUntrustedP2pBehavior() => new(MempoolService);
-
-	public async Task InitializeAsync(CancellationToken cancel = default)
-	{
-		var initTasks = new[]
-		{
-			FilterStore.InitializeAsync(cancel),
-			TransactionStore.InitializeAsync(cancel)
-		};
-
-		await Task.WhenAll(initTasks).ConfigureAwait(false);
-	}
 }

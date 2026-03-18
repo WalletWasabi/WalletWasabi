@@ -1,7 +1,6 @@
 using System.Text.Json.Nodes;
 using NBitcoin;
 using NBitcoin.DataEncoders;
-using WalletWasabi.Backend.Models.Responses;
 using WalletWasabi.Helpers;
 using ByteHelpers = WabiSabi.Helpers.ByteHelpers;
 
@@ -52,10 +51,6 @@ public static partial class Encode
 
 public static partial class Decode
 {
-	public static Decoder<VersionsResponse> VersionsResponse =>
-		Object(get =>
-			new VersionsResponse(get.Required("backenMajordVersion", String)));
-
 	private static Decoder<T> Catch<T>(this Decoder<T> decoder) =>
 		value =>
 		{

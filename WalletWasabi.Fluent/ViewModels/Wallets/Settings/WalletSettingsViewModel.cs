@@ -117,7 +117,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var heightToResync = await UiContext.Navigate().To().ResyncWallet().GetResultAsync();
+            var heightToResync = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight).GetResultAsync();
             if (heightToResync is not null)
             {
                 walletModel.Settings.RescanWallet((uint)heightToResync);

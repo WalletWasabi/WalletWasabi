@@ -13,13 +13,11 @@ public interface IPersistentConfig;
 
 public record PersistentConfig(
 	Network Network,
-	string IndexerUri,
 	string CoordinatorUri,
 	string UseTor,
 	bool TerminateTorOnExit,
 	ValueList<string> TorBridges,
 	bool DownloadNewVersion,
-	bool UseBitcoinRpc,
 	string BitcoinRpcCredentialString,
 	string BitcoinRpcUri,
 	bool JsonRpcServerEnabled,
@@ -49,6 +47,34 @@ public record PersistentConfig(
 			_ => throw new NotSupportedException("Unsupported network")
 		};
 }
+
+public record PersistentConfig_2_6_0(
+	Network Network,
+	string IndexerUri,
+	string CoordinatorUri,
+	string UseTor,
+	bool TerminateTorOnExit,
+	ValueList<string> TorBridges,
+	bool DownloadNewVersion,
+	bool UseBitcoinRpc,
+	string BitcoinRpcCredentialString,
+	string BitcoinRpcUri,
+	bool JsonRpcServerEnabled,
+	string JsonRpcUser,
+	string JsonRpcPassword,
+	ValueList<string> JsonRpcServerPrefixes,
+	Money DustThreshold,
+	bool EnableGpu,
+	string CoordinatorIdentifier,
+	string ExchangeRateProvider,
+	string FeeRateEstimationProvider,
+	string ExternalTransactionBroadcaster,
+	decimal MaxCoinJoinMiningFeeRate,
+	int AbsoluteMinInputCount,
+	int MaxDaysInMempool,
+	ValueList<string> ExperimentalFeatures,
+	int ConfigVersion
+) : IPersistentConfig;
 
 public record PersistentConfigPrev2_6_0(
 	string MainNetIndexerUri,
@@ -121,8 +147,8 @@ public record PersistentConfigPrev2_6_0(
 			) switch
 			{
 				({ } rpcUser, { } rpcPassword, _) => $"{rpcUser}:{rpcPassword}",
-				( _, null, { } cookieFilePath) => $"cookiefile={cookieFilePath}",
-				( _, null, _) => $"cookiefile={bitcoindatadir}/.cookie",
+				( _, null or "", { } cookieFilePath) => $"cookiefile={cookieFilePath}",
+				( _, null or "", _) => $"cookiefile={bitcoindatadir}/.cookie",
 				_ => null
 			};
 		static EndPoint GetRpcEndpoint(BitcoinConfig config, string network, int defaultPort) =>

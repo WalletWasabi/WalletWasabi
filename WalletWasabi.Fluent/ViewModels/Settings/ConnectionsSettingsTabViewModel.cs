@@ -21,18 +21,15 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	Category = "Settings",
 	Keywords = new[]
 	{
-			"Settings", "Connections", "Backend", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
+			"Settings", "Connections", "URI", "Exchange", "Rate", "Provider", "Fee", "Estimation", "Network", "Anonymization",
 			"Tor", "Terminate", "Wasabi", "Shut", "Reset"
 	},
 	IconName = "settings_general_regular")]
 public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 {
-	[AutoNotify] private string _indexerUri;
-
 	public ConnectionsSettingsTabViewModel(IApplicationSettings settings)
 	{
 		Settings = settings;
-		_indexerUri = settings.IndexerUri;
 
 		if (settings.Network == Network.Main)
 		{
@@ -42,11 +39,6 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 		{
 			ExternalBroadcastProviders = ExternalTransactionBroadcaster.TestNet4Providers.Select(x => x.Name);
 		}
-
-		this.ValidateProperty(x => x.IndexerUri, ValidateIndexerUri);
-
-		this.WhenAnyValue(x => x.Settings.IndexerUri)
-			.Subscribe(x => IndexerUri = x);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
@@ -59,22 +51,4 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public IEnumerable<TorMode> TorModes =>
 		Enum.GetValues(typeof(TorMode)).Cast<TorMode>();
-
-	private void ValidateIndexerUri(IValidationErrors errors)
-	{
-		var indexerUri = IndexerUri;
-
-		if (string.IsNullOrEmpty(indexerUri))
-		{
-			return;
-		}
-
-		if (!Uri.TryCreate(indexerUri, UriKind.Absolute, out _))
-		{
-			errors.Add(ErrorSeverity.Error, "Invalid URI.");
-			return;
-		}
-
-		Settings.IndexerUri = indexerUri;
-	}
 }

@@ -30,6 +30,8 @@ public interface IWalletStatsModel : IDisposable
 	int NonCoinjointransactionCount { get; set; }
 
 	int CoinjoinTransactionCount { get; set; }
+
+	uint BirthHeight { get; set; }
 }
 
 public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisposable
@@ -45,12 +47,14 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 	[AutoNotify] private int _totalTransactionCount;
 	[AutoNotify] private int _nonCoinjointransactionCount;
 	[AutoNotify] private int _coinjoinTransactionCount;
+	[AutoNotify] private uint _birthHeight;
 
 	public WalletStatsModel(IWalletModel walletModel, Wallet wallet)
 	{
 		_balance = Amount.Zero;
 		_confirmedBalance = Amount.Zero;
 		_unconfirmedBalance = Amount.Zero;
+		_birthHeight = wallet.KeyManager.GetBirthHeight() is { } h ? h.Height : 0u;
 
 		walletModel.Transactions.TransactionProcessed
 								.Do(_ => Update(walletModel, wallet))

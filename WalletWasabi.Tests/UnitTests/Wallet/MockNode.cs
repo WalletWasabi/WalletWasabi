@@ -91,7 +91,7 @@ public class MockNode
 
 		List<FilterModel> filters = new();
 
-		var startingFilter = StartingFilters.GetStartingFilter(Network);
+		var startingFilter = FilterCheckpoints.GetWasabiGenesisFilter(Network);
 		filters.Add(startingFilter);
 		foreach (var block in BlockChain.Values)
 		{
@@ -105,7 +105,7 @@ public class MockNode
 				.Select(output => output.ScriptPubKey);
 
 			var scripts = inputScriptPubKeys.Union(outputScriptPubKeys);
-			var entries = scripts.Select(x => x.ToBytes()).DefaultIfEmpty(LegacyWasabiFilterGenerator.DummyScript[0]);
+			var entries = scripts.Select(x => x.ToBytes());
 
 			var filter = new GolombRiceFilterBuilder()
 				.SetKey(block.GetHash())
@@ -113,7 +113,7 @@ public class MockNode
 				.Build();
 
 			var tipFilter = filters.Last();
-			var header = filter.GetHeader(tipFilter.Header.HeaderOrPrevBlockHash);
+			var header = filter.GetHeader(tipFilter.Header.BlockFilterHeader);
 			var smartHeader = new SmartHeader(block.GetHash(), header, tipFilter.Header.Height + 1, DateTimeOffset.UtcNow);
 			filters.Add(new FilterModel(smartHeader, filter));
 		}

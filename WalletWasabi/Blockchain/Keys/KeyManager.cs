@@ -9,6 +9,7 @@ using System.Text;
 using System.Text.Json.Nodes;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -262,7 +263,8 @@ public class KeyManager
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
 
 		HDFingerprint masterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-		BlockchainState blockchainState = new(network);
+		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
+		BlockchainState blockchainState = new(network, birthHeight: birthHeight);
 		KeyPath segwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
 		ExtPubKey segwitExtPubKey = extKey.Derive(segwitAccountKeyPath).Neuter();
 
@@ -275,32 +277,36 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
+	// TODO: move to testing
 	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, ExtPubKey silentPaymentScanExtPubKey,ExtPubKey silentPaymentSpendExtPubKey, string? filePath = null, int? minGapLimit = null)
 	{
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey,  minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(), filePath);
+		var network = Network.Main;
+		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey,  minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
 	}
 
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, ExtPubKey? silentPaymentScanExtPubKey, ExtPubKey? silentPaymentSpendExtPubKey, Network network, string? filePath = null)
 	{
-		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network), filePath);
+		var birthHeight = FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
+		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
 	}
 
-	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
 	{
 		Guard.NotNull(nameof(mnemonic), mnemonic);
 		password ??= "";
 		var seed = mnemonic.DeriveSeed(password);
-		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit);
+		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit, birthHeight);
 	}
 
-	public static KeyManager Recover(Share[] shares, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	public static KeyManager Recover(Share[] shares, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
 	{
 		password ??= "";
 		var seed = Shamir.Combine(shares, password);
-		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit);
+		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit, birthHeight);
 	}
 
-	private static KeyManager Recover(byte[] seed, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit)
+	private static KeyManager Recover(byte[] seed, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
 	{
 		ExtKey extKey = ExtKey.CreateFromSeed(seed);
 		var encryptedSecret = extKey.PrivateKey.GetEncryptedBitcoinSecret(password, network);
@@ -314,7 +320,9 @@ public class KeyManager
 		ExtPubKey silentPaymentScanExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Scan)).Neuter();
 		ExtPubKey silentPaymentSpendExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Spend)).Neuter();
 
-		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, new BlockchainState(network), filePath, segwitAccountKeyPath, taprootAccountKeyPath);
+		birthHeight ??= FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
+		var blockchainState = new BlockchainState(network, height: birthHeight, birthHeight: birthHeight);
+		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 		km.AssertCleanKeysIndexed();
 		return km;
 	}
@@ -470,18 +478,13 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos(bool isBIP158)
+	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos()
 	{
 		lock (_criticalStateLock)
 		{
-			return _hdPubKeyCache.Select(x => GetScriptPubKeyBytes(x));
+			return _hdPubKeyCache.Select(x => x.ScriptPubKeyBytes);
 		}
-
-		byte[] GetScriptPubKeyBytes(HdPubKeyInfo hdPubKeyInfo) =>
-			isBIP158
-				? hdPubKeyInfo.ScriptPubKeyBytes  // BIP158 compatible script to test against filters
-				: hdPubKeyInfo.CompressedScriptPubKeyBytes; // Legacy Wasabi backend scripts used to build filters
- 	}
+	}
 
 	public bool TryGetKeyForScriptPubKey(Script scriptPubKey, [NotNullWhen(true)] out HdPubKey? hdPubKey)
 	{
@@ -703,6 +706,14 @@ public class KeyManager
 	public Network GetNetwork()
 	{
 		return _blockchainState.Network;
+	}
+
+	public ChainHeight? GetBirthHeight()
+	{
+		lock (_criticalStateLock)
+		{
+			return _blockchainState.BirthHeight;
+		}
 	}
 
 	public void SetBestHeight(ChainHeight height, bool toFile = true)

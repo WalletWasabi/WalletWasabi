@@ -6,14 +6,6 @@ namespace WalletWasabi.Helpers;
 
 public static class Constants
 {
-	public const string BackendMajorVersion = "4";
-	public const string ClientSupportBackendVersion = "4";
-
-	public const string IndexerUri = "https://api.wasabiwallet.io/";
-	public const string TestnetIndexerUri = "https://api.wasabiwallet.co/";
-	public const string SignetIndexerUri = "";
-	public const string RegTestIndexerUri = "http://localhost:37127/";
-
 	public const string CoordinatorUri = "";
 	public const string TestnetCoordinatorUri = "";
 	public const string SignetCoordinatorUri = "";
@@ -32,6 +24,7 @@ public static class Constants
 	/// </summary>
 	public const string ConfirmedTransactionsVersion = "2";
 
+	public const int ResyncHeightMargin = 101;
 	public const uint ProtocolVersionWitnessVersion = 70012;
 
 	public const int InputBaseSizeInBytes = 41;
@@ -88,7 +81,7 @@ public static class Constants
 
 	public const string AppName = "Wasabi Wallet";
 
-	public static readonly string DefaultMainNetBitcoinRpcUri = $"http://localhost:{DefaultMainNetBitcoinRpcPort}";
+	public static readonly string DefaultMainNetBitcoinRpcUri = "https://rpc.wasabiwallet.io";
 	public static readonly string DefaultTestNetBitcoinRpcUri = $"http://localhost:{DefaultTestNetBitcoinRpcPort}";
 	public static readonly string DefaultSignetBitcoinRpcUri = $"http://localhost:{DefaultSignetBitcoinRpcPort}";
 	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";

@@ -3,12 +3,14 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using DynamicData;
 using DynamicData.Binding;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
@@ -28,6 +30,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
+		BirthHeight = CalculateBirthHeight();
 
 		Mnemonics.ToObservableChangeSet().ToCollection()
 			.Select(x => x.Count is 12 or 15 or 18 or 21 or 24 ? new Mnemonic(GetTagsAsConcatString().ToLowerInvariant()) : null)
@@ -49,15 +52,21 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		AdvancedRecoveryOptionsDialogCommand = ReactiveCommand.CreateFromTask(OnAdvancedRecoveryOptionsDialogAsync);
 	}
 
+	private uint CalculateBirthHeight()
+	{
+		return FilterCheckpoints.GetWasabiGenesisFilter(UiContext.ApplicationSettings.Network).Header.Height;
+	}
+
 	public ICommand AdvancedRecoveryOptionsDialogCommand { get; }
 
 	private int MinGapLimit { get; set; } = 114;
+	private uint BirthHeight { get; set; }
 
 	public ObservableCollection<string> Mnemonics { get; } = new();
 
 	private async Task OnNextAsync(WalletCreationOptions.RecoverWallet options)
 	{
-		var (walletName, _, _) = options;
+		var (walletName, _, _, _) = options;
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 
 		var password = await Navigate().To().CreatePasswordDialog("Add Passphrase", "If you used a passphrase when you created your wallet you must type it below, otherwise leave this empty.").GetResultAsync();
@@ -71,7 +80,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 		try
 		{
 			var recoveryWordsBackup = new RecoveryWordsBackup(password, currentMnemonics);
-			options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit };
+			options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit, BirthHeight = BirthHeight };
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 			Navigate().To().AddedWalletPage(walletSettings, options!);
 		}
@@ -86,10 +95,11 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 
 	private async Task OnAdvancedRecoveryOptionsDialogAsync()
 	{
-		var result = await Navigate().To().AdvancedRecoveryOptions(MinGapLimit).GetResultAsync();
-		if (result is { } minGapLimit)
+		var result= await Navigate().To().AdvancedRecoveryOptions(MinGapLimit, BirthHeight).GetResultAsync();
+		if (result is { } parameters)
 		{
-			MinGapLimit = minGapLimit;
+			MinGapLimit = parameters.MinGapLimit;
+			BirthHeight = parameters.BirthHeight;
 		}
 	}
 

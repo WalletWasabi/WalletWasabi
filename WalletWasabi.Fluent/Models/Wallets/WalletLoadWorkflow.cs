@@ -38,7 +38,7 @@ public partial class WalletLoadWorkflow
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
-			.StartWith(_wallet.KeyManager.GetBestHeight().Height)
+			.StartWith(_wallet.KeyManager.GetBestHeight())
 			.Subscribe(x => _lastestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 

@@ -17,9 +17,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.XunitConfiguration;
 using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
-using Xunit;
-using FiltersResponse = WalletWasabi.WebClients.Wasabi.FiltersResponse;
 
 namespace WalletWasabi.Tests.RegressionTests;
 
@@ -38,8 +35,7 @@ public class RegTestSetup : IAsyncDisposable
 		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		MempoolService mempoolService = new();
-		FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), Network);
-		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain, blocks);
+		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain);
 		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}
 
@@ -63,7 +59,8 @@ public class RegTestSetup : IAsyncDisposable
 		await setup.RpcClient.GenerateAsync(101).ConfigureAwait(false); // Make sure everything is confirmed.
 		await setup.AssertFiltersInitializedAsync().ConfigureAwait(false); // Make sure filters are created on the server side.
 
-		await setup.BitcoinStore.InitializeAsync().ConfigureAwait(false);
+		await setup.TransactionStore.InitializeAsync(CancellationToken.None);
+		await setup.FilterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 		return setup;
 	}
@@ -71,16 +68,17 @@ public class RegTestSetup : IAsyncDisposable
 	public async Task AssertFiltersInitializedAsync()
 	{
 		uint256 firstHash = await RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
-
+		var filterProvider = new BitcoinRpcFilterProvider(RpcClient);
 		while (true)
 		{
-			var client = new IndexerClient(RegTestFixture.IndexerHttpClientFactory.CreateClient("test"));
-			var filtersResponse = await client.GetFiltersAsync(firstHash, 1000).ConfigureAwait(false);
-			Assert.NotNull(filtersResponse);
+			var filtersResponse = await filterProvider.GetFiltersAsync(firstHash, 0, CancellationToken.None).ConfigureAwait(false);
 
-			if (filtersResponse is FiltersResponse.AlreadyOnBestBlock)
+			if (filtersResponse.IsOk)
 			{
-				break;
+				if (filtersResponse.Value is FiltersResponse.AlreadyOnBestBlock)
+				{
+					break;
+				}
 			}
 
 			await Task.Delay(100).ConfigureAwait(false);

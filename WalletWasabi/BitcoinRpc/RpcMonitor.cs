@@ -29,7 +29,7 @@ public static class RpcMonitor
 		try
 		{
 			var bci = await rpcClient.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
-			var pi = await PeerInfos().ConfigureAwait(false);
+			var pi = await PeersInfoAsync().ConfigureAwait(false);
 			var peerCount = pi.Map(x => x.Length);
 			return new ConnectedRpcStatus(bci.Headers, bci.Blocks, peerCount, bci.BestBlockHash, bci.Pruned,
 				bci.InitialBlockDownload);
@@ -40,15 +40,15 @@ public static class RpcMonitor
 			return Result<ConnectedRpcStatus, string>.Fail(
 				ex switch
 				{
-					HttpRequestException {StatusCode: HttpStatusCode.Unauthorized} => "Unauthorized (check rpc credentials)",
-					HttpRequestException {StatusCode: HttpStatusCode.NotFound} => "RPC sever not found (check rpc uri)",
-					HttpRequestException {StatusCode: HttpStatusCode.Forbidden} => "RPC forbidden (check rpc uri)",
+					HttpRequestException {StatusCode: HttpStatusCode.Unauthorized} => "Unauthorized (check RPC credentials)",
+					HttpRequestException {StatusCode: HttpStatusCode.NotFound} => "RPC sever not found (check RPC URI)",
+					HttpRequestException {StatusCode: HttpStatusCode.Forbidden} => "RPC forbidden (check RPC URI)",
 					HttpRequestException {StatusCode: null, Message: var msg} => msg,
 					_ => "is unresponsive"
 				});
 		}
 
-		async Task<Result<PeerInfo[], RPCResponse>> PeerInfos()
+		async Task<Result<PeerInfo[], RPCResponse>> PeersInfoAsync()
 		{
 			try
 			{
@@ -56,7 +56,10 @@ public static class RpcMonitor
 			}
 			catch (RPCException e)
 			{
-				return Result<PeerInfo[], RPCResponse>.Fail(e.RPCResult);
+				// Connected to a shared readonly rpc
+				return e is {RPCCode:RPCErrorCode.RPC_METHOD_NOT_FOUND}
+					? Result<PeerInfo[], RPCResponse>.Ok([new PeerInfo()])
+					: Result<PeerInfo[], RPCResponse>.Fail(e.RPCResult);
 			}
 		}
 	}

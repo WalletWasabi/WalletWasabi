@@ -133,9 +133,9 @@ public class SmartHeaderChain
 			{
 				SmartHeader lastHeader = _chain.Last!.Value;
 
-				if (lastHeader.Height != tip.Height - 1)
+				if (lastHeader.Height + 1 != tip.Height)
 				{
-					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Expected: {tip.Height - 1}.");
+					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Added: {tip.Height}.");
 				}
 			}
 
@@ -186,11 +186,11 @@ public class SmartHeaderChain
 	}
 
 	/// <remarks>Only for tests.</remarks>
-	public (uint height, SmartHeader header)[] GetChain()
+	public SmartHeader[] GetChain()
 	{
 		lock (_lock)
 		{
-			return _chain.Select(x => (x.Height, x)).ToArray();
+			return _chain.ToArray();
 		}
 	}
 
@@ -198,7 +198,7 @@ public class SmartHeaderChain
 	private void SetTipNoLock(SmartHeader? tip)
 	{
 		_tip = tip;
-		_tipHeight = tip?.Height ?? default;
+		_tipHeight = tip?.Height ?? 0;
 		_tipHash = tip?.BlockHash;
 		SetHashesLeftNoLock();
 	}

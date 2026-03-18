@@ -15,6 +15,7 @@ using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
@@ -39,6 +40,7 @@ using WalletWasabi.Wallets.Exchange;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WabiSabi.Models;
 using static WalletWasabi.Services.Workers;
+using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
 
 namespace WalletWasabi.Daemon;
 
@@ -76,14 +78,14 @@ public class Global
 		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
-		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain, fileSystemBlockRepository);
+		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
 		NodesGroup = ConfigureNodesGroup(mempoolService);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(NodesGroup, BitcoinStore.BlockRepository);
+		var blockProvider = ConfigureBlockProvider(NodesGroup, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -95,8 +97,8 @@ public class Global
 
 		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
 
-		var broadcasters = CreateBroadcasters(NodesGroup);
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), BitcoinStore.MempoolService, WalletManager);
+		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
 		Scheme = new Scheme(this);
 	}
@@ -105,7 +107,7 @@ public class Global
 	private readonly CancellationTokenSource _stoppingCts = new();
 
 	private TorProcessManager? _torManager;
-	private IRPCClient? _bitcoinRpcClient;
+	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
@@ -135,9 +137,8 @@ public class Global
 		var p2PNodesManager = new P2PNodesManager(Network, nodesGroup);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager);
-		BlockProvider[] blockProviders = _bitcoinRpcClient is { } rpc
-			? [fileSystemBlockProvider, BlockProviders.RpcBlockProvider(rpc), p2PBlockProvider]
-			: [fileSystemBlockProvider, p2PBlockProvider];
+		BlockProvider[] blockProviders =
+			[fileSystemBlockProvider, BlockProviders.RpcBlockProvider(_bitcoinRpcClient), p2PBlockProvider];
 
 		return BlockProviders.CachedBlockProvider(
 			BlockProviders.ComposedBlockProvider(blockProviders),
@@ -193,32 +194,33 @@ public class Global
 		p2pNetwork.Post(Unit.Instance);
 	}
 
-	private RpcClientBase? ConfigureBitcoinRpcClient()
+	private RpcClientBase ConfigureBitcoinRpcClient()
 	{
 		var credentialString = Config.BitcoinRpcCredentialString;
-		if (Config.UseBitcoinRpc && !string.IsNullOrWhiteSpace(credentialString))
+		RPCCredentialString? credentials;
+
+		if (string.IsNullOrWhiteSpace(credentialString))
+		{
+			credentials = new RPCCredentialString();
+		}
+		else if (!RPCCredentialString.TryParse(credentialString, out credentials))
 		{
 			// In case the credential string is malformed, we replace it with a valid but extremely improbable one.
 			// That results in the creation of a rpc instance that will fail to connect. In that way the RpcMonitor
 			// can detect the problem an inform to the user.
-			if (!RPCCredentialString.TryParse(credentialString, out var credentials))
-			{
-				var improbableString = Convert.ToHexString(RandomUtils.GetBytes(32));
-				credentials = RPCCredentialString.Parse($"{improbableString}:{improbableString}");
-			}
-
-			var bitcoinRpcUri = Config.BitcoinRpcUri;
-			var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
-			if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
-			{
-				internalRpcClient.HttpClient =
-					ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
-			}
-
-			return new RpcClientBase(internalRpcClient);
+			var improbableString = Convert.ToHexString(RandomUtils.GetBytes(32));
+			credentials = RPCCredentialString.Parse($"{improbableString}:{improbableString}");
 		}
 
-		return null;
+		var bitcoinRpcUri = Config.BitcoinRpcUri;
+		var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
+		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
+		{
+			internalRpcClient.HttpClient =
+				ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+		}
+
+		return new RpcClientBase(internalRpcClient);
 	}
 
 	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
@@ -240,11 +242,8 @@ public class Global
 			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'. Default: '{Constants.DefaultFeeRateEstimationProvider}'")
 		};
 
-		if (_bitcoinRpcClient is not null)
-		{
-			var rpcFeeProvider = FeeRateProviders.RpcAsync(_bitcoinRpcClient);
-			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
-		}
+		var rpcFeeProvider = FeeRateProviders.RpcAsync(_bitcoinRpcClient);
+		feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
 		var feeRateUpdater = Spawn("FeeRateUpdater",
 			Service("Mining Fee Rate Updater",
 				Periodically(
@@ -257,63 +256,59 @@ public class Global
 
 	private void ConfigureRpcMonitor(CancellationToken cancellationToken)
 	{
-		if (_bitcoinRpcClient is not null)
-		{
-			var rpcMonitor = Spawn(RpcMonitor.ServiceName,
-				Service("Bitcoin Rpc Interface Monitoring",
-					Periodically(
-						TimeSpan.FromSeconds(7),
-						Unit.Instance,
-						RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
-			rpcMonitor.DisposeUsing(_disposables);
-			EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
-		}
+		var rpcMonitor = Spawn(RpcMonitor.ServiceName,
+			Service("Bitcoin Rpc Interface Monitoring",
+				Periodically(
+					TimeSpan.FromSeconds(7),
+					Unit.Instance,
+					RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
+		rpcMonitor.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 	}
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
-		ICompactFilterProvider filtersProvider = await GetFilterProviderAsync() ??
-			throw new NotSupportedException("Neither backend URI is specified nor a Bitcoin RPC client able to provide compact filters exists.");
+		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
+		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient));
 
+		if (filtersProviderResult is {IsOk: false, Error: var isIndexDisabled})
+		{
+			if (isIndexDisabled)
+			{
+				throw new Exception("\nWasabi is connected to a bitcoin RPC that doesn't provides compact filters (BIP158)."
+								+ "\nCompact filters are disabled by default in Bitcoin and you have to enable them."
+								+ "\nIf you are using your own node then edit the bitcoin.conf file and add the line:"
+								+ "\nblockfilterindex=1"
+								+ "\n"
+								+ "\nIf you are connected to a personal server product, some of them allow the user to enable"
+								+ "\nthe block filters (BIP158) in the UI while others require you to edit the bitcoin config"
+								+ "\nfile manually."
+								+ "\n"
+								+ "\nRemember to restart your bitcoin node after changing the configuration and wait for"
+								+ "\nwait for it to create the filters, what can take some time."
+								+ "\n-----------------------------------------------------------------------------------------");
+			}
+			else
+			{
+				throw new Exception($"Wasabi was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided."
+				                    + "\n-----------------------------------------------------------------------------------------");
+			}
+		}
+
+		var filtersProvider = filtersProviderResult.Value;
 		var (pause, resume, serviceLoop) =
 			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus));
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
 
-		if (filtersProvider is BitcoinRpcFilterProvider)
+		EventBus.Subscribe<RpcStatusChanged>(e =>
 		{
-			EventBus.Subscribe<RpcStatusChanged>(e =>
-			{
-				var action = e.Status.Match(
-					x => x.Synchronized ? resume : pause,
-					_ => pause);
-				action();
-			});
-		}
-
-		return;
-
-		async Task<ICompactFilterProvider?> GetFilterProviderAsync()
-		{
-			if (_bitcoinRpcClient is not null)
-			{
-				var supportsBlockFilters = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-				if (supportsBlockFilters)
-				{
-					return new BitcoinRpcFilterProvider(_bitcoinRpcClient);
-				}
-			}
-
-			if (!string.IsNullOrEmpty(Config.BackendUri))
-			{
-				var maxFiltersToSync = Network == Network.Main ? 1000 : 10000; // On testnet, filters are empty, so it's faster to query them together
-				var indexerHttpClientFactory = new IndexerHttpClientFactory(new Uri(Config.BackendUri), BuildHttpClientFactory());
-				return new WebApiFilterProvider(maxFiltersToSync, indexerHttpClientFactory, EventBus);
-			}
-
-			return null;
-		}
+			var action = e.Status.Match(
+				x => x.Synchronized ? resume : pause,
+				_ => pause);
+			action();
+		});
 	}
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
@@ -388,18 +383,27 @@ public class Global
 	{
 		try
 		{
-			await BitcoinStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-
-			// Make sure that the height of the wallets will not be better than the current height of the filters.
-			WalletManager.SetMaxBestHeight(BitcoinStore.SmartHeaderChain.TipHeight);
+			await BitcoinStore.TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+			await BitcoinStore.FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
-			// If our internal data structures in the Bitcoin Store gets corrupted, then it's better to rescan all the wallets.
 			Logger.LogError($"Bitcoin storage got corrupted. Resetting wallet(s) to the first block to rescan. Exception: {ex}");
-			WalletManager.SetMaxBestHeight(SmartHeader.GetStartingHeader(Network).Height);
+			WalletManager.SetMaxBestHeight(CalculateSafestHeight());
 			throw;
 		}
+	}
+
+	private ChainHeight CalculateSafestHeight()
+	{
+		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
+		var transactionHeight = BitcoinStore.TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
+		var birthHeight = WalletManager.GetEarliestBirthHeight();
+
+		var oldestBlockHeight = birthHeight is not null
+			? Height.Min(checkpointHeight, transactionHeight, birthHeight)
+			: Height.Min(checkpointHeight, transactionHeight);
+		return (ChainHeight) oldestBlockHeight;
 	}
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
@@ -563,21 +567,12 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup)
-	{
-		var broadcasters = new List<IBroadcaster>();
-		if (_bitcoinRpcClient is not null)
-		{
-			broadcasters.Add(new RpcBroadcaster(_bitcoinRpcClient));
-		}
-
-		broadcasters.AddRange([
-			new NetworkBroadcaster(BitcoinStore.MempoolService, nodesGroup),
+	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService) =>
+		[
+			new RpcBroadcaster(_bitcoinRpcClient),
+			new NetworkBroadcaster(mempoolService, nodesGroup),
 			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
-		]);
-
-		return broadcasters;
-	}
+		];
 
 	public async Task DisposeAsync()
 	{

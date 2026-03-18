@@ -19,26 +19,13 @@
           src = ./.;
         };
 
-        # Build Wasabi Backend
-        buildBackend = buildWasabiModule.overrideAttrs (oldAttrs: rec {
-          pname = "WalletWasabi.Backend";
-          projectFile = "WalletWasabi.Backend/WalletWasabi.Backend.csproj";
-          executables = [ "WalletWasabi.Backend" ];
-          runtimeDeps = [ pkgs.openssl pkgs.zlib ];
-          postInstall = ''
-            ln -s ${deployScript}/bin/deploy $out
-          '';
-        });
-
         # Build all components and run tests (CI)
         buildEverything = buildWasabiModule.overrideAttrs (oldAttrs: rec {
           pname = "WalletWasabi";
           projectFile = [
-             "WalletWasabi.Backend/WalletWasabi.Backend.csproj"
              "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
              "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
           executables = [
-            "WalletWasabi.Backend"
             "WalletWasabi.Coordinator"
             "WalletWasabi.Fluent.Desktop" ];
           runtimeDeps = with pkgs; [
@@ -59,7 +46,6 @@
 
           preFixup = ''
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Fluent.Desktop $out/bin/wasabi
-            wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Backend $out/bin/wasabi-indexer
             wrapDotnetProgram $out/lib/${pname}/WalletWasabi.Coordinator $out/bin/wasabi-coordinator
           '';
 
@@ -97,6 +83,14 @@
           nugetSha256 = "sha256-gAexbRzKP/8VPhFy2OqnUCp6ze3CkcWLYR1nUqG71PI=";
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
         };
+        # dotnet gcdump
+        dotnet-gcdump = pkgs.buildDotnetGlobalTool {
+          pname = "dotnet-gcdump";
+          nugetName = "dotnet-gcdump";
+          version = "8.0.510501";
+          nugetSha256 = "sha256-y10InQA1sAvFYrRe+7I2+txKOvu1qQ1ii/7DnXvipxM=";
+          dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
+        };
 
         wasabi-shell =
           with {
@@ -120,6 +114,7 @@
               # tools
               dotnet-trace
               dotnet-dump
+              dotnet-gcdump
               dotnet-counters
 
               # dependencies
@@ -153,18 +148,9 @@
               export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
             '';
         };
-        migrateBackendFilters = {
-           type = "app";
-           program = "${(pkgs.writeShellScript "migrateBackendFilters" ''
-              ${pkgs.dotnetCorePackages.sdk_10_0}/bin/dotnet fsi ${./.}/Contrib/Migration/migrateBackendFilters.fsx;
-              '')}";
-        };
     in
     {
-      packages.x86_64-linux.default = buildBackend;
       packages.x86_64-linux.all = buildEverything;
       devShells.x86_64-linux.default = wasabi-shell;
-
-      apps.x86_64-linux.migrateFilters = migrateBackendFilters;
     };
 }

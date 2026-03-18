@@ -151,7 +151,6 @@ mkdir -p "$WASABI_DATADIR/Client"
 dotnet run --project WalletWasabi.Daemon -- \
   --network=regtest \
   --coordinatorUri="http://127.0.0.1:$COORDINATOR_PORT" \
-  --usebitcoinrpc=true \
   --bitcoinrpcendpoint="http://127.0.0.1:$BITCOIN_RPC_PORT/" \
   --bitcoinrpccredentialstring="regtest:regtest" \
   --rpcport=$WALLET_RPC_PORT \

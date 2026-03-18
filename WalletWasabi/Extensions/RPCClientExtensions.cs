@@ -196,19 +196,23 @@ public static class RPCClientExtensions
 	}
 
 
-	public static async Task<bool> SupportsBlockFiltersAsync(this IRPCClient rpc, CancellationToken cancellationToken)
+	public static async Task<Result<Unit,bool>> SupportsBlockFiltersAsync(this IRPCClient rpc, CancellationToken cancellationToken)
 	{
 		try
 		{
 			var blockHash = await rpc.GetBestBlockHashAsync(cancellationToken).ConfigureAwait(false);
 			await rpc.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
-			return true;
+			return Result<Unit,bool>.Ok(Unit.Instance);
+		}
+		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_MISC_ERROR &&
+		                             e.Message.Contains("Index is not enabled"))
+		{
+			return Result<Unit,bool>.Fail(true);
 		}
 		catch (Exception e)
 		{
-			Logger.LogWarning("Bitcoin RPC interface failed to fetch block filters");
 			Logger.LogWarning(e);
-			return false;
+			return Result<Unit,bool>.Fail(false);
 		}
 	}
 }

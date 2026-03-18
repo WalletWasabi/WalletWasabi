@@ -1,3 +1,6 @@
+using System.Linq;
+using System.Security.Cryptography;
+
 namespace WalletWasabi.Models;
 
 public abstract record Height : IComparable<Height>
@@ -24,7 +27,7 @@ public abstract record Height : IComparable<Height>
 			: throw new ArgumentException($"{nameof(ChainHeight)} height can not be negative");
 
 		public static ChainHeight Max(ChainHeight h1, ChainHeight h2) => h1 > h2 ? h1 : h2;
-		public static ChainHeight Mim(ChainHeight h1, ChainHeight h2) => h1 < h2 ? h1 : h2;
+		public static ChainHeight Min(ChainHeight h1, ChainHeight h2) => h1 < h2 ? h1 : h2;
 	}
 
 	public static bool operator >(Height x, Height y) => x.CompareTo(y) > 0;
@@ -45,8 +48,8 @@ public abstract record Height : IComparable<Height>
 			_ => throw new ArgumentOutOfRangeException()
 		};
 
-	public static Height Max(Height h1, Height h2) => h1 > h2 ? h1 : h2;
-	public static Height Mim(Height h1, Height h2) => h1 < h2 ? h1 : h2;
+	public static Height Max(Height h, params Height[] r) => r.Aggregate(h, (h1, h2) => h1 > h2 ? h1 : h2);
+	public static Height Min(Height h, params Height[] r) => r.Aggregate(h, (h1, h2) => h1 < h2 ? h1 : h2);
 
 	public static bool TryParse(string heightOrHeightType, out Height? height)
 	{

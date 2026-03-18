@@ -25,11 +25,7 @@ public interface IApplicationSettings
 {
 	bool EnableGpu { get; set; }
 
-	string IndexerUri { get; set; }
-
 	Network Network { get; set; }
-
-	bool UseBitcoinRpc { get; set; }
 
 	string BitcoinRpcUri { get; set; }
 
@@ -103,12 +99,10 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 	// Advanced
 	[AutoNotify] private bool _enableGpu;
-	[AutoNotify] private string _indexerUri;
 
 	// Bitcoin
 	[AutoNotify] private Network _network;
 
-	[AutoNotify] private bool _useBitcoinRpc;
 	[AutoNotify] private string _bitcoinRpcUri;
 	[AutoNotify] private string _bitcoinRpcCredentialString;
 	[AutoNotify] private string _dustThreshold;
@@ -155,7 +149,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		_uiConfig = uiConfig;
 
 		// Connections
-		_indexerUri = persistentConfig.IndexerUri;
 		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
@@ -163,7 +156,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 		// Bitcoin
 		_network = persistentConfig.Network;
-		_useBitcoinRpc = persistentConfig.UseBitcoinRpc;
 		_bitcoinRpcUri = persistentConfig.BitcoinRpcUri;
 		_bitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
 		_dustThreshold = persistentConfig.DustThreshold.ToString();
@@ -201,7 +193,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 	private void ApplyConfigs(PersistentConfig persistentConfig, UiConfig uiConfig)
 	{
 		// Connections
-		IndexerUri = persistentConfig.IndexerUri;
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
@@ -209,7 +200,6 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 
 		// Bitcoin
 		Network = persistentConfig.Network;
-		UseBitcoinRpc = persistentConfig.UseBitcoinRpc;
 		BitcoinRpcUri = persistentConfig.BitcoinRpcUri;
 		BitcoinRpcCredentialString = persistentConfig.BitcoinRpcCredentialString;
 		DustThreshold = persistentConfig.DustThreshold.ToString();
@@ -250,25 +240,23 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 			this.WhenAnyValue(
 					x => x.EnableGpu,
 					x => x.Network,
-					x => x.UseBitcoinRpc,
 					x => x.BitcoinRpcCredentialString,
 					x => x.BitcoinRpcUri,
 					x => x.DustThreshold,
 					x => x.UseTor,
 					x => x.TerminateTorOnExit,
 					x => x.DownloadNewVersion,
-					(_, _, _, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 		var configSaveTrigger2 =
 			this.WhenAnyValue(
 					x => x.MaxCoinJoinMiningFeeRate,
 					x => x.AbsoluteMinInputCount,
 					x => x.CoordinatorUri,
-					x => x.IndexerUri,
 					x => x.ExchangeRateProvider,
 					x => x.FeeRateEstimationProvider,
 					x => x.ExternalTransactionBroadcaster,
-					(_, _, _, _, _, _, _) => Unit.Default)
+					(_, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
 		Observable
@@ -382,12 +370,10 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		}
 
 		result = result with { CoordinatorUri = CoordinatorUri };
-		result = result with { IndexerUri = IndexerUri };
 
 		result = result with
 		{
 			Network = Network,
-			UseBitcoinRpc = UseBitcoinRpc,
 			DustThreshold = decimal.TryParse(DustThreshold, out var threshold) ?
 				Money.Coins(threshold) :
 				Money.Coins(Constants.DefaultDustThreshold),

@@ -32,7 +32,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static BlockFilterSqliteStorage FromFile(string dataSource, FilterModel? startingFilter = null)
+	public static BlockFilterSqliteStorage FromFile(string dataSource)
 	{
 		// In case there is an exception, we need to dispose things properly.
 		SqliteConnection? connectionToDispose = null;
@@ -75,25 +75,6 @@ public class BlockFilterSqliteStorage : IDisposable
 			}
 
 			BlockFilterSqliteStorage storage = new(connection);
-			storageToDispose = storage;
-			connectionToDispose = null;
-
-			if (startingFilter is not null)
-			{
-				using SqliteCommand isEmptyCommand = connection.CreateCommand();
-				isEmptyCommand.CommandText = "SELECT EXISTS (SELECT 1 FROM filter)";
-				int existRows = Convert.ToInt32(isEmptyCommand.ExecuteScalar());
-
-				if (existRows == 0)
-				{
-					if (!storage.TryAppend(startingFilter))
-					{
-						// Unrecoverable error.
-						throw new InvalidOperationException("Failed to add the first filter to the database.");
-					}
-				}
-			}
-
 			storageToDispose = null;
 			connectionToDispose = null;
 
@@ -138,37 +119,6 @@ public class BlockFilterSqliteStorage : IDisposable
 	}
 
 	/// <summary>
-	/// Returns <paramref name="n"/> filters after <paramref name="blockHash"/> in height.
-	/// Returns empty enumerable if <paramref name="blockHash"/> is not found
-	/// </summary>
-	public IEnumerable<FilterModel> FetchNewerThanBlockHash(uint256 blockHash, int n)
-	{
-		using SqliteCommand command = _connection.CreateCommand();
-		command.CommandText = """
-		                      WITH target_block AS (
-		                          SELECT block_height
-		                          FROM filter
-		                          WHERE block_hash = $blockHash
-		                      )
-		                      SELECT *
-		                      FROM filter
-		                      WHERE block_height > (SELECT block_height FROM target_block)
-		                      ORDER BY block_height ASC
-		                      LIMIT $n;
-		                      """;
-		command.Parameters.AddWithValue("$blockHash", blockHash.ToBytes(lendian: true));
-		command.Parameters.AddWithValue("$n", n);
-
-		using SqliteDataReader reader = command.ExecuteReader();
-
-		while (reader.Read())
-		{
-			FilterModel filter = ReadRow(reader);
-			yield return filter;
-		}
-	}
-
-	/// <summary>
 	/// Returns last <paramref name="n"/> filters from the database table.
 	/// </summary>
 	public IEnumerable<FilterModel> FetchLast(int n)
@@ -185,19 +135,6 @@ public class BlockFilterSqliteStorage : IDisposable
 			yield return filter;
 		}
 	}
-
-
-	public int GetBestHeight()
-	{
-		using SqliteCommand command = _connection.CreateCommand();
-		command.CommandText = "SELECT MAX(block_height) FROM filter";
-		using SqliteDataReader reader = command.ExecuteReader();
-
-		return reader.Read() ?
-			reader.GetInt32(0) :
-			0;
-	}
-
 
 	/// <summary>
 	/// Removes the filter with the highest height from the database table.
@@ -289,10 +226,10 @@ public class BlockFilterSqliteStorage : IDisposable
 				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
 				VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
 				""";
-			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height);
+			insertCommand.Parameters.AddWithValue("$block_height", filter.Header.Height.Height);
 			insertCommand.Parameters.AddWithValue("$block_hash", filter.Header.BlockHash.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$filter_data", filter.FilterData);
-			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.HeaderOrPrevBlockHash.ToBytes(lendian: true));
+			insertCommand.Parameters.AddWithValue("$previous_block_hash", filter.Header.BlockFilterHeader.ToBytes(lendian: true));
 			insertCommand.Parameters.AddWithValue("$epoch_block_time", filter.Header.EpochBlockTime);
 			int result = insertCommand.ExecuteNonQuery();
 
@@ -304,75 +241,6 @@ public class BlockFilterSqliteStorage : IDisposable
 		}
 	}
 
-	/// <summary>
-	/// Append filters in bulk to the table.
-	/// </summary>
-	/// <param name="filters">Raw filter lines from old mature index file.</param>
-	/// <remarks>The method is meant for migration purposes.</remarks>
-	/// <exception cref="SqliteException">If there is an issue with adding a new record.</exception>
-	public void BulkAppend(IReadOnlyList<string> filters)
-	{
-		using SqliteTransaction transaction = _connection.BeginTransaction();
-
-		using SqliteCommand command = _connection.CreateCommand();
-		command.CommandText = """
-			INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
-			VALUES ($block_height, $block_hash, $filter_data, $previous_block_hash, $epoch_block_time)
-			""";
-
-		SqliteParameter blockHeightParameter = command.CreateParameter();
-		blockHeightParameter.ParameterName = "$block_height";
-		command.Parameters.Add(blockHeightParameter);
-
-		SqliteParameter blockHashParameter = command.CreateParameter();
-		blockHashParameter.ParameterName = "$block_hash";
-		command.Parameters.Add(blockHashParameter);
-
-		SqliteParameter filterDataParameter = command.CreateParameter();
-		filterDataParameter.ParameterName = "$filter_data";
-		command.Parameters.Add(filterDataParameter);
-
-		SqliteParameter prevBlockHashParameter = command.CreateParameter();
-		prevBlockHashParameter.ParameterName = "$previous_block_hash";
-		command.Parameters.Add(prevBlockHashParameter);
-
-		SqliteParameter epochBlockTimeParameter = command.CreateParameter();
-		epochBlockTimeParameter.ParameterName = "$epoch_block_time";
-		command.Parameters.Add(epochBlockTimeParameter);
-
-		foreach (string line in filters)
-		{
-			ReadOnlySpan<char> span = line;
-
-			int m1 = line.IndexOf(':', 0);
-			int m2 = line.IndexOf(':', m1 + 1);
-			int m3 = line.IndexOf(':', m2 + 1);
-			int m4 = line.IndexOf(':', m3 + 1);
-
-			if (m1 == -1 || m2 == -1 || m3 == -1 || m4 == -1)
-			{
-				throw new ArgumentException(line, nameof(line));
-			}
-
-			uint blockHeight = uint.Parse(span[..m1]);
-			byte[] blockHash = Convert.FromHexString(span[(m1 + 1)..m2]);
-			Array.Reverse(blockHash);
-			byte[] filterData = Convert.FromHexString(span[(m2 + 1)..m3]);
-			byte[] prevBlockHash = Convert.FromHexString(span[(m3 + 1)..m4]);
-			Array.Reverse(prevBlockHash);
-			long blockTime = long.Parse(span[(m4 + 1)..]);
-
-			blockHeightParameter.Value = blockHeight;
-			blockHashParameter.Value = blockHash;
-			filterDataParameter.Value = filterData;
-			prevBlockHashParameter.Value = prevBlockHash;
-			epochBlockTimeParameter.Value = blockTime;
-
-			command.ExecuteNonQuery();
-		}
-
-		transaction.Commit();
-	}
 
 	public void SetPragmaUserVersion(int newUserVersion)
 	{
@@ -387,6 +255,15 @@ public class BlockFilterSqliteStorage : IDisposable
 		command.CommandText = "PRAGMA user_version";
 		var tmp = Convert.ToInt32(command.ExecuteScalar());
 		return tmp;
+	}
+
+	public uint? GetMinimumBlockHeight()
+	{
+		using SqliteCommand command = _connection.CreateCommand();
+		command.CommandText = "SELECT MIN(block_height) FROM filter";
+
+		var result = command.ExecuteScalar();
+		return result is not null && result != DBNull.Value ? Convert.ToUInt32(result) : null;
 	}
 
 	/// <summary>

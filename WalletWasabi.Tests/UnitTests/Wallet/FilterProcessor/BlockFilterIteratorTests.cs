@@ -49,28 +49,28 @@ public class BlockFilterIteratorTests
 
 		// Iterator needs to do a database lookup.
 		{
-			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_001, testCts.Token);
+			FilterModel? actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_001, testCts.Token);
 			Assert.Equal(filter1, actualFilter);
 			Assert.Equal(1, fetchCallCount);
 		}
 
 		// No database lookup is needed for block 610_001 as that one should be cached now.
 		{
-			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_002, testCts.Token);
+			FilterModel? actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_002, testCts.Token);
 			Assert.Equal(filter2, actualFilter);
 			Assert.Equal(1, fetchCallCount);
 		}
 
 		// No database lookup is needed for block 610_002 as that one should be cached now.
 		{
-			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_003, testCts.Token);
+			FilterModel? actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_003, testCts.Token);
 			Assert.Equal(filter3, actualFilter);
 			Assert.Equal(1, fetchCallCount);
 		}
 
 		// Iterator needs to do a database lookup, but now that lookup returns only 1 record and not 3 (we are close to the blockchain tip).
 		{
-			FilterModel actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_004, testCts.Token);
+			FilterModel? actualFilter = await filterIterator.GetAndRemoveAsync(height: 610_004, testCts.Token);
 			Assert.Equal(filter4, actualFilter);
 			Assert.Equal(2, fetchCallCount);
 		}

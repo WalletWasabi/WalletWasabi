@@ -1,13 +1,13 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Services;
+using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
@@ -37,14 +37,16 @@ public class P2pBasedTests
 			await rpc.CreateWalletAsync(walletName);
 
 			SmartHeaderChain smartHeaderChain = new();
-			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
+			await transactionStore.InitializeAsync(CancellationToken.None);
+
+			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
+			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
+
 			MempoolService mempoolService = coreNode.MempoolService;
-			FileSystemBlockRepository blocks = new(Path.Combine(dir, "blocks"), network);
 
 			// Construct BitcoinStore.
-			BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain, blocks);
-			await bitcoinStore.InitializeAsync();
+			BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain);
 
 			await rpc.GenerateAsync(blockCount: 101);
 
