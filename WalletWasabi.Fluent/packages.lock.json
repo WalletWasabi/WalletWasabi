@@ -636,7 +636,7 @@
           "WabiSabi": "[1.0.1.2, )"
         }
       },
-      "walletwasabi.daemon": {
+      "walletwasabi.daemonbase": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Caching.Memory": "[10.0.2, )",
