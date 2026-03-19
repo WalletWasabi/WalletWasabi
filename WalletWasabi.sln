@@ -38,7 +38,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "WalletWasabi.Daemon", "Wall
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Coordinator", "WalletWasabi.Coordinator\WalletWasabi.Coordinator.csproj", "{1D23E39D-8367-4ADB-9445-76B6546096B0}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.DaemonBase", "WalletWasabi.DaemonBase\WalletWasabi.DaemonBase.csproj", "{0E87395B-2659-336B-4577-E0172ECCFAE3}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WalletWasabi.Client", "WalletWasabi.Client\WalletWasabi.Client.csproj", "{0E87395B-2659-336B-4577-E0172ECCFAE3}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

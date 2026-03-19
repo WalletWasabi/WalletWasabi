@@ -29,7 +29,7 @@
 	</PropertyGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\WalletWasabi.DaemonBase\WalletWasabi.DaemonBase.csproj" />
+		<ProjectReference Include="..\WalletWasabi.Client\WalletWasabi.Client.csproj" />
 	</ItemGroup>
 
 </Project>
