@@ -33,6 +33,7 @@ using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using WalletWasabi.Models;
@@ -109,6 +110,7 @@ public class Global
 	private TorProcessManager? _torManager;
 	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
+	private CoordinatorPrison? _coordinatorPrison;
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
 	private readonly FilterStore _filterStore;
@@ -438,11 +440,20 @@ public class Global
 			{
 				if (Config.TryGetCoordinatorUri(out var coordinatorUri))
 				{
-					RegisterCoinJoinComponents(coordinatorUri);
+					_coordinatorPrison = CoordinatorPrison.CreateOrLoadFromFile(DataDir);
 
-					if (initializeSleepInhibitor)
+					if (_coordinatorPrison.IsBanned(coordinatorUri.Host, out var banReason))
 					{
-						await CreateSleepInhibitorAsync().ConfigureAwait(false);
+						Logger.LogError($"Coordinator '{coordinatorUri.Host}' is permanently banned. Reason: {banReason}. Skipping coinjoin registration.");
+					}
+					else
+					{
+						RegisterCoinJoinComponents(coordinatorUri);
+
+						if (initializeSleepInhibitor)
+						{
+							await CreateSleepInhibitorAsync().ConfigureAwait(false);
+						}
 					}
 				}
 
@@ -554,17 +565,28 @@ public class Global
 		var coordinatorHttpClientFactory = new CoordinatorHttpClientFactory(coordinatorUri, BuildHttpClientFactory(coordinatorHttpClientConfig));
 
 		var wabiSabiStatusProvider =  new WabiSabiHttpApiClient("satoshi-coordination", coordinatorHttpClientFactory);
+
+		// Verification clients on independent, short-lived Tor circuits to detect
+		// round ID consistency attacks by a malicious coordinator.
+		// The "bob-" prefix gives 40-second circuit lifetimes, rotating frequently
+		// so the coordinator cannot link them to the primary polling circuit.
+		var verificationHandlers = new IWabiSabiApiRequestHandler[]
+		{
+			new WabiSabiHttpApiClient("bob-verify-1", coordinatorHttpClientFactory),
+			new WabiSabiHttpApiClient("bob-verify-2", coordinatorHttpClientFactory),
+		};
+
 		var roundUpdater = Spawn("RoundUpdater",
 			Service("WabiSabi Rounds Updater",
 				EventDriven(
 					new RoundsState(DateTime.UtcNow, RoundStateProvider.QueryFrequency, new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
-					RoundStateUpdater.Create(wabiSabiStatusProvider))));
+					RoundStateUpdater.Create(wabiSabiStatusProvider, verificationHandlers))));
 		roundUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory!);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, _coordinatorPrison!, coordinatorUri, _bitcoinRpcClient, EventBus), "CoinJoin Manager");
 	}
 
 	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService) =>

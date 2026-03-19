@@ -4,8 +4,11 @@ using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using WabiSabi.Crypto;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using WalletWasabi.Serialization;
@@ -217,9 +220,249 @@ public class RoundStateUpdaterTests
 			await roundStatusProvider.CreateRoundAwaiterAsync(uint256.One, Phase.InputRegistration, cancellationTokenSource.Token));
 	}
 
+	[Fact]
+	public async Task ConsistentVerificationResponsesPassAsync()
+	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+
+		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
+		var cancellationToken = cancellationTokenSource.Token;
+
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
+
+		// Verification handler returns the same round data.
+		var verificationHandler = new MockStatusHandler(() =>
+			new RoundStateResponse([roundState with { Phase = Phase.InputRegistration }]));
+
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(
+			apiClient,
+			verificationHandlers: new IWabiSabiApiRequestHandler[] { verificationHandler });
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		roundStatusUpdater.Update();
+
+		var round = await roundIRTask;
+		Assert.Equal(roundState.Id, round.Id);
+		Assert.Equal(Phase.InputRegistration, round.Phase);
+	}
+
+	[Fact]
+	public async Task InconsistentRoundIdsDetectedAsync()
+	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+
+		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
+		var cancellationToken = cancellationTokenSource.Token;
+
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
+
+		// Verification handler returns an EMPTY round list — the round shown to the
+		// primary circuit is hidden from the verification circuit.
+		var verificationHandler = new MockStatusHandler(() =>
+			new RoundStateResponse([]));
+
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(
+			apiClient,
+			verificationHandlers: new IWabiSabiApiRequestHandler[] { verificationHandler });
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+
+		// First update: the inconsistency is detected, update fails, awaiter is NOT resolved.
+		roundStatusUpdater.Update();
+		await Task.Delay(TimeSpan.FromMilliseconds(200));
+		Assert.Equal(TaskStatus.WaitingForActivation, roundIRTask.Status);
+	}
+
+	[Fact]
+	public async Task InconsistentParametersDetectedAsync()
+	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+
+		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
+		var cancellationToken = cancellationTokenSource.Token;
+
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
+
+		// Create a round state with different credential issuer parameters.
+		var differentRandom = InsecureRandom.Instance;
+		var differentIssuerKey = new CredentialIssuerSecretKey(differentRandom);
+		var tamperedRoundState = roundState with
+		{
+			Phase = Phase.InputRegistration,
+			AmountCredentialIssuerParameters = differentIssuerKey.ComputeCredentialIssuerParameters()
+		};
+
+		var verificationHandler = new MockStatusHandler(() =>
+			new RoundStateResponse([tamperedRoundState]));
+
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(
+			apiClient,
+			verificationHandlers: new IWabiSabiApiRequestHandler[] { verificationHandler });
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+
+		// Update should fail due to parameter mismatch — awaiter stays pending.
+		roundStatusUpdater.Update();
+		await Task.Delay(TimeSpan.FromMilliseconds(200));
+		Assert.Equal(TaskStatus.WaitingForActivation, roundIRTask.Status);
+	}
+
+	[Fact]
+	public async Task VerificationFailureDoesNotBlockAsync()
+	{
+		RoundStateUpdater.MaxVerificationDelayMs = 0;
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+
+		using var cancellationTokenSource = new CancellationTokenSource(TestTimeOut);
+		var cancellationToken = cancellationTokenSource.Token;
+
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
+
+		// Verification handler throws — simulating network failure.
+		var verificationHandler = new MockStatusHandler(() =>
+			throw new HttpRequestException("Simulated Tor circuit failure"));
+
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(
+			apiClient,
+			verificationHandlers: new IWabiSabiApiRequestHandler[] { verificationHandler });
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+
+		var roundIRTask = roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cancellationToken);
+		roundStatusUpdater.Update();
+
+		// Despite verification failure, the primary response should still be accepted.
+		var round = await roundIRTask;
+		Assert.Equal(roundState.Id, round.Id);
+		Assert.Equal(Phase.InputRegistration, round.Phase);
+	}
+
+	[Fact]
+	public void CheckConsistencyDetectsNewRoundMissingFromVerification()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState };
+		var verification = Array.Empty<RoundState>();
+		var previouslyKnown = new HashSet<uint256>();
+
+		var ex = Assert.Throws<InconsistentRoundDataException>(() =>
+			RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown));
+		Assert.Contains("inconsistent", ex.Message, StringComparison.OrdinalIgnoreCase);
+	}
+
+	[Fact]
+	public void CheckConsistencyAllowsStaleRoundExpiry()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState };
+		var verification = Array.Empty<RoundState>();
+
+		// The round was seen in a previous poll cycle, so it's known.
+		// Missing from verification = it expired between queries.
+		var previouslyKnown = new HashSet<uint256> { roundState.Id };
+
+		// Should not throw.
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
+	}
+
+	[Fact]
+	public void CheckConsistencyAllowsVerificationPhaseAhead()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState with { Phase = Phase.InputRegistration } };
+		var verification = new[] { roundState with { Phase = Phase.Ended } };
+		var previouslyKnown = new HashSet<uint256>();
+
+		// Verification is ahead — round progressed between queries. Should not throw.
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
+	}
+
+	[Fact]
+	public void CheckConsistencyDetectsVerificationBehind()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState with { Phase = Phase.TransactionSigning } };
+		var verification = new[] { roundState with { Phase = Phase.InputRegistration } };
+		var previouslyKnown = new HashSet<uint256>();
+
+		// Verification is behind by 3 phases — suspicious.
+		var ex = Assert.Throws<InconsistentRoundDataException>(() =>
+			RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown));
+		Assert.Contains("Phase", ex.Message);
+	}
+
+	[Fact]
+	public void CheckConsistencyPassesWhenConsistent()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var primary = new[] { roundState };
+		var verification = new[] { roundState };
+		var previouslyKnown = new HashSet<uint256>();
+
+		// Should not throw.
+		RoundStateUpdater.CheckConsistency(primary, verification, previouslyKnown);
+	}
+
 	private static Func<HttpResponseMessage> RoundStateResponseBuilder(params RoundState[] roundStates) =>
 		() => HttpResponseMessageEx.Ok(
 			Encode.RoundStateResponse( new RoundStateResponse(roundStates)).ToJsonString());
+}
+
+/// <summary>
+/// Simple mock implementing <see cref="IWabiSabiApiRequestHandler"/> for verification queries.
+/// Only <see cref="GetStatusAsync"/> is implemented; all other methods throw.
+/// </summary>
+internal class MockStatusHandler : IWabiSabiApiRequestHandler
+{
+	private readonly Func<RoundStateResponse> _responseFactory;
+
+	public MockStatusHandler(Func<RoundStateResponse> responseFactory)
+	{
+		_responseFactory = responseFactory;
+	}
+
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)
+		=> Task.FromResult(_responseFactory());
+
+	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
+
+	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken)
+		=> throw new NotImplementedException();
 }
 
 public static class RoundStateUpdaterExtensions
