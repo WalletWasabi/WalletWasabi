@@ -78,7 +78,7 @@ public class Config
 			}
 		}
 
-		ServiceConfiguration = new ServiceConfiguration(BitcoinRpcUri, DustThreshold, DropUnconfirmedTransactionsAfterDays);
+		ServiceConfiguration = new ServiceConfiguration(DustThreshold, DropUnconfirmedTransactionsAfterDays);
 	}
 
 	private static readonly Dictionary<string, string> Help =
