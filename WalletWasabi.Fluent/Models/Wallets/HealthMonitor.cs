@@ -49,10 +49,7 @@ public partial class HealthMonitor : ReactiveObject
 			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(blockchainTip =>
-			{
-				BlockchainTip = blockchainTip;
-			});
+			.Subscribe(blockchainTip => BlockchainTip = blockchainTip);
 
 		// Tor Status
 		Services.EventBus.AsObservable<TorConnectionStateChanged>()

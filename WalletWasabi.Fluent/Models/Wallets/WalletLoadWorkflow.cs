@@ -16,7 +16,7 @@ public partial class WalletLoadWorkflow
 {
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
-	private uint _lastestProcessBlockHeight;
+	private uint _latestProcessBlockHeight;
 	private Subject<(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percent)> _progress;
 	[AutoNotify] private bool _isLoading;
 	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
@@ -39,7 +39,7 @@ public partial class WalletLoadWorkflow
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
 			.StartWith(_wallet.KeyManager.GetBestHeight())
-			.Subscribe(x => _lastestProcessBlockHeight = x)
+			.Subscribe(x => _latestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
 		LoadCompleted = Services.EventBus.AsObservable<WalletLoaded>()
@@ -66,11 +66,7 @@ public partial class WalletLoadWorkflow
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(
-					_ =>
-					{
-						UpdateProgress();
-					})
+				.Subscribe(_ => UpdateProgress())
 				.DisposeWith(_disposables);
 	}
 
@@ -119,12 +115,12 @@ public partial class WalletLoadWorkflow
 		var clientTipHeight = Services.SmartHeaderChain.TipHeight;
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		if (_lastestProcessBlockHeight == 0 || tipHeight == 0)
+		if (_latestProcessBlockHeight == 0 || tipHeight == 0)
 		{
 			return;
 		}
 
-		var currentHeight = _lastestProcessBlockHeight;
+		var currentHeight = _latestProcessBlockHeight;
 		var percentProgress = 100 * ((currentHeight - InitialHeight) / (double)(tipHeight - InitialHeight));
 		_progress.OnNext((RemainingFiltersToDownload, currentHeight, tipHeight, percentProgress));
 	}
