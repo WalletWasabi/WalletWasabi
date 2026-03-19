@@ -1,6 +1,5 @@
 using System.Linq;
 using Avalonia;
-using Avalonia.Media;
 using Avalonia.Skia;
 using Avalonia.Threading;
 using SkiaSharp;
@@ -40,14 +39,6 @@ public class SpectrumDrawHandler : IDrawHandler
 		SplashEffectDataSource.GeneratingDataStateChanged += OnGeneratingDataStateChanged;
 
 		_sources = new SpectrumDataSource[] { AuraSpectrumDataSource, SplashEffectDataSource };
-
-#if false
-		_invalidationTimer = new DispatcherTimer
-		{
-			Interval = TimeSpan.FromMilliseconds(1000.0 / Fps)
-		};
-		_invalidationTimer.Tick += (_, _) => _control.InvalidateVisual();
-#endif
 	}
 
 	public AuraSpectrumDataSource AuraSpectrumDataSource { get; }
@@ -60,11 +51,7 @@ public class SpectrumDrawHandler : IDrawHandler
 
 		if (_isGenerating)
 		{
-#if false
-			_invalidationTimer.Start();
-#else
 			Dispatcher.UIThread.Post(() => _control.Start());
-#endif
 		}
 	}
 
@@ -85,13 +72,6 @@ public class SpectrumDrawHandler : IDrawHandler
 		}
 	}
 
-	public void Render(DrawingContext context)
-	{
-		var custom = new SpectrumDrawOperation(_control.Bounds, Draw);
-
-		context.Custom(custom);
-	}
-
 	public void Draw(ISkiaSharpApiLease skia, Rect bounds)
 	{
 		for (int i = 0; i < NumBins; i++)
@@ -108,11 +88,7 @@ public class SpectrumDrawHandler : IDrawHandler
 		// Only stop the rendering once it fully disappeared. (== there is nothing to render)
 		if (!_isGenerating && _data.All(f => f <= 0))
 		{
-#if false
-			_invalidationTimer.Stop();
-#else
 			Dispatcher.UIThread.Post(() => _control.Stop());
-#endif
 		}
 
 		if (_surface is null)

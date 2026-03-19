@@ -55,5 +55,5 @@ public static class NBitcoinExtensions
 public class UnsafeTaprootFullPubKeyAccessor
 {
       [UnsafeAccessor(UnsafeAccessorKind.StaticMethod, Name = "ComputeTapTweak")]
-      public static extern void ComputeTapTweak(TaprootFullPubKey self, TaprootInternalPubKey pk, uint256? merkleRoot, Span<byte> buf);
+      public static extern void ComputeTapTweak(TaprootFullPubKey? self, TaprootInternalPubKey pk, uint256? merkleRoot, Span<byte> buf);
   }
