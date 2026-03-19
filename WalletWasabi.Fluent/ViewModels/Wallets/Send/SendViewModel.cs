@@ -157,20 +157,14 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			IsPayToMany = _additionalRecipients.Count > 0;
 			_recipientsChanged.OnNext(Unit.Default);
-			RecalculateMaxAmount();
 		};
-
-		// Recalculate max amount when any recipient changes
-		_recipientsChanged
-			.Throttle(TimeSpan.FromMilliseconds(50))
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => RecalculateMaxAmount());
 
 		var primaryChanged = this.WhenAnyValue(
 				x => x.AmountBtc,
 				x => x.To,
 				x => x.SuggestionLabels.Labels.Count,
-				x => x.SuggestionLabels.IsCurrentTextValid)
+				x => x.SuggestionLabels.IsCurrentTextValid,
+				x => x.IsPrimarySubtractFee)
 			.Select(_ => Unit.Default);
 
 		var nextCommandCanExecute = primaryChanged
@@ -281,7 +275,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		foreach (var row in _additionalRecipients)
 		{
-			if (overBudget && row.AmountBtc > 0)
+			if (overBudget && row.AmountBtc > 0 && !row.IsSubtractFee)
 			{
 				row.AmountError = "Insufficient funds to cover the total amount requested.";
 			}
@@ -498,23 +492,9 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Amount must be more than 0 BTC");
 		}
-		else if (_additionalRecipients.Count > 0)
-		{
-			var totalAmountBtc = AmountBtc.Value + _additionalRecipients.Where(r => r.AmountBtc.HasValue).Sum(r => r.AmountBtc!.Value);
-			if (totalAmountBtc > _parameters.AvailableAmountBtc)
-			{
-				errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the total amount requested.");
-			}
-			else if (totalAmountBtc == _parameters.AvailableAmountBtc
-				&& !IsPrimarySubtractFee
-				&& !_additionalRecipients.Any(r => r.IsSubtractFee))
-			{
-				errors.Add(ErrorSeverity.Error, "Total equals available balance. Use Max on one recipient to cover the transaction fee.");
-			}
-		}
 		else
 		{
-			var totalAmountBtc = AmountBtc.Value;
+			var totalAmountBtc = AmountBtc.Value + _additionalRecipients.Where(r => r.AmountBtc.HasValue).Sum(r => r.AmountBtc!.Value);
 			if (totalAmountBtc > _parameters.AvailableAmountBtc)
 			{
 				errors.Add(ErrorSeverity.Error, "Insufficient funds to cover the total amount requested.");
