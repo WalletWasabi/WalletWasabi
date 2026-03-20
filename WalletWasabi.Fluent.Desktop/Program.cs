@@ -18,6 +18,7 @@ using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
+using System.Runtime.CompilerServices;
 using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
@@ -230,16 +231,21 @@ public static class WasabiAppExtensions
 					backendInitializeAsync: async () =>
 					{
 						// macOS require that Avalonia is started with the UI thread. Hence this call must be delayed to this point.
-						await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+						if (!string.IsNullOrWhiteSpace(app.Config.BitcoinRpcUri))
+						{
+							await app.Global.InitializeAsync(initializeSleepInhibitor: true, app.TerminateService,
+								stopLoadingCts.Token).ConfigureAwait(false);
+						}
 
 						// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
-					}, startInBg: runGuiInBackground))
+					}, startInBg: runGuiInBackground, true))
 					.UseReactiveUI()
 					.SetupAppBuilder()
 					.AfterSetup(_ =>
 					{
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 						{

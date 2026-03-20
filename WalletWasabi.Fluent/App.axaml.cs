@@ -21,6 +21,7 @@ namespace WalletWasabi.Fluent;
 public class App : Application
 {
 	private readonly bool _startInBg;
+	private readonly bool _launchConfig;
 	private readonly Func<Task>? _backendInitializeAsync;
 	private ApplicationStateManager? _applicationStateManager;
 
@@ -29,9 +30,10 @@ public class App : Application
 		Name = "Wasabi Wallet";
 	}
 
-	public App(Func<Task> backendInitializeAsync, bool startInBg) : this()
+	public App(Func<Task> backendInitializeAsync, bool startInBg, bool launchConfig) : this()
 	{
 		_startInBg = startInBg;
+		_launchConfig = launchConfig;
 		_backendInitializeAsync = backendInitializeAsync;
 	}
 
@@ -52,6 +54,10 @@ public class App : Application
 					new ApplicationStateManager(desktop, uiContext, _startInBg);
 
 				DataContext = _applicationStateManager.ApplicationViewModel;
+				if (_launchConfig)
+				{
+					uiContext.Navigate().To().BitcoinTabSettings(uiContext.ApplicationSettings, NavigationTarget.FullScreen);
+				}
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 				desktop.Exit += (sender, args) =>
