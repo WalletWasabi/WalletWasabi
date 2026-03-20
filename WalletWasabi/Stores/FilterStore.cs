@@ -104,7 +104,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 				{
 					var currentMinHeight = IndexStorage.GetMinimumBlockHeight();
 
-					if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight - 100)
+					if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight)
 					{
 						Logger.LogInfo($"Recheckpointing filters: wallet with earlier birthday detected. " +
 						               $"Current minimum height: {currentMinHeight.Value}, " +
