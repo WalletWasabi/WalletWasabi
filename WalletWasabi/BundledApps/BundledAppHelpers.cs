@@ -40,7 +40,9 @@ public static class BundledAppHelpers
 		}
 		else if (platform == OSPlatform.Linux)
 		{
-			path = Path.Combine(commonPartialPath, "linux-x64");
+			path = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+				? Path.Combine(commonPartialPath, "linux-arm64")
+				: Path.Combine(commonPartialPath, "linux-x64");
 		}
 		else if (platform == OSPlatform.OSX)
 		{

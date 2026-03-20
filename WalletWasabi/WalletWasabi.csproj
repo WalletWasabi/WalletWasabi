@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 
 	<PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
@@ -36,7 +36,7 @@
 
 	<ItemGroup>
 		<!-- Tor. -->
-		<None Update="BundledApps\Binaries\win-x64\Tor\**\*">
+		<None Update="BundledApps\Binaries\linux-arm64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
 		<None Update="BundledApps\Binaries\linux-x64\Tor\**\*">
@@ -45,7 +45,13 @@
 		<None Update="BundledApps\Binaries\osx64\Tor\**\*">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="BundledApps\Binaries\win-x64\Tor\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<!-- HWI. -->
+		<None Update="BundledApps\Binaries\linux-arm64\hwi">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="BundledApps\Binaries\linux-x64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

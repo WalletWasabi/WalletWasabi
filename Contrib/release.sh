@@ -66,7 +66,7 @@ if [ "$1" = "wininstaller" ]; then
   PACKAGE_COORDINATOR="no"
 elif [ "$1" = "debian" ]; then
   # Supported platforms
-  PLATFORMS=("linux-x64")
+  PLATFORMS=("linux-x64" "linux-arm64")
   CREATE_WINDOWS_INSTALLER="no"
   CREATE_DEBIAN_PACKAGE="yes"
   RELEASE_NOTE="no"
@@ -217,10 +217,26 @@ done
 #------------------------------------------------------------------------------------#
 if [ "$CREATE_DEBIAN_PACKAGE" = "yes" ]; then
 # Create .deb package
-DEBIAN_PACKAGE_DIR=$BUILD_DIR/deb
+
+for DEBIAN_ZIP_PACKAGE in $PACKAGES_DIR/Wasabi*linux*.zip; do
+
+# Combine paths
+CURRENT_ARCH=$(echo "$DEBIAN_ZIP_PACKAGE" | grep -o 'arm64\|x64')
+ZIP_PACKAGE=$(basename "$DEBIAN_ZIP_PACKAGE")
+
+DEBIAN_PACKAGE_DIR=$BUILD_DIR/$ZIP_PACKAGE/deb
 DEBIAN=$DEBIAN_PACKAGE_DIR/DEBIAN
 DEBIAN_USR=$DEBIAN_PACKAGE_DIR/usr
 DEBIAN_BIN=$DEBIAN_USR/local/bin
+
+DEBIAN_ARCH_NAME=""
+DEBIAN_FULL_PLATFORM_NAME="linux-x64"
+
+if [ "$CURRENT_ARCH" = "arm64" ]; then
+  DEBIAN_ARCH_NAME="-arm64"
+  DEBIAN_FULL_PLATFORM_NAME="linux-arm64"
+fi
+
 
 # Create necessary directories
 mkdir -p $DEBIAN
@@ -236,7 +252,7 @@ for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
 done
 
 # Calculate package size (in kilobytes)
-DEBIAN_PACKAGE_SIZE=$(du -s $BUILD_DIR/linux-x64 | cut -f1)
+DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
 
 # Create the control file content
 DEBIAN_CONTROL_FILE_CONTENT="Package: ${EXECUTABLE_NAME}
@@ -260,7 +276,7 @@ echo "${DEBIAN_CONTROL_FILE_CONTENT}" > $DEBIAN/control
 USR_LOCAL_BIN_DIR="/usr/local/bin"
 INSTALL_DIR="${USR_LOCAL_BIN_DIR}/wasabiwallet"
 DEBIAN_POST_INST_SCRIPT_CONTENT="#!/usr/bin/env sh
-${INSTALL_DIR}/BundledApps/Binaries/linux-x64/hwi installudevrules
+${INSTALL_DIR}/BundledApps/Binaries/${DEBIAN_FULL_PLATFORM_NAME}/hwi installudevrules
 exit 0"
 echo "${DEBIAN_POST_INST_SCRIPT_CONTENT}" > $DEBIAN/postinst
 chmod 0775 ${DEBIAN}/postinst
@@ -284,7 +300,7 @@ echo "${DEBIAN_DESKTOP_CONTENT}" > $DEBIAN_DESKTOP
 chmod 0644 $DEBIAN_DESKTOP
 
 # Copy the build to into the debian package structure
-cp -a $BUILD_DIR/linux-x64 $DEBIAN_BIN/wasabiwallet
+cp -a "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" $DEBIAN_BIN/wasabiwallet
 
 # Create wrapper scripts
 echo "#!/usr/bin/env sh
@@ -312,7 +328,9 @@ if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
 fi
 
 # Build the .deb package
-dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}.deb"
+dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}${DEBIAN_ARCH_NAME}.deb"
+
+done
 fi
 
 #------------------------------------------------------------------------------------#

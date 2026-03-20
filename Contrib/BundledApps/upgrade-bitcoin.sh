@@ -8,20 +8,53 @@
 #   - curl
 #   - 7zz (version 25.1+; 7-Zip command line; apt install 7zip-standalone / brew install sevenzip / winget install --id 7zip.7zip)
 #   - git (only for chmod +x marking via git update-index)
-#
-# Usage:
-#   ./upgrade-bitcoin-core.sh 30.2                                                # Download Bitcoin Core archives using curl, extract binaries, update them in the repository.
-#   ./upgrade-bitcoin-core.sh 30.2 --skip-download                                # Work with Bitcoin Core archives from a previous script run.
-#   ./upgrade-bitcoin-core.sh 30.2 --skip-download --skip-extract --skip-replace  # Do not extract Tor Browser archives. Continue with remaining steps.
-#
 
 set -euo pipefail
 shopt -s extglob nullglob
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Show help and exit
+# ──────────────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << 'EOF'
+Downloads, extracts and upgrades bitcoind binaries from Bitcoin Core for Wasabi Wallet
+
+Usage:
+    ./upgrade-bitcoin-core.sh <version> [OPTIONS]
+
+Arguments:
+    <version>          Bitcoin Core version (required)  e.g. 30.2 or 29.3
+
+Options:
+    -h, --help         Show this help message and exit
+    --skip-download    Skip downloading the release archives (use previously downloaded files)
+    --skip-extract     Skip extracting the archives
+    --skip-replace     Skip replacing the binaries in the target directory/repository
+
+Examples:
+    ./upgrade-bitcoin-core.sh 30.2
+    ./upgrade-bitcoin-core.sh 30.2 --skip-download
+    ./upgrade-bitcoin-core.sh 29.3 --skip-download --skip-extract
+
+See also:
+    https://bitcoincore.org/en/download
+    https://github.com/bitcoin/bitcoin/releases
+EOF
+    exit 0
+}
+
+# Handle help flags early
+case "${1:-}" in
+    -h|--help)
+        show_help
+        ;;
+esac
+
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-    echo "ERROR: Bitcoin Core version is required."
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]"
+    echo "ERROR: Bitcoin Core version is required." >&2
+    echo "Use -h or --help for usage information." >&2
+    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]" >&2
     exit 1
 fi
 
@@ -45,11 +78,12 @@ done
 DIST_URI="https://bitcoincore.org/bin/bitcoin-core-${VERSION}"
 
 declare -A FILES
+FILES[linux-arm64]="bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz"
 FILES[linux-x64]="bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz"
 FILES[osx64]="bitcoin-${VERSION}-x86_64-apple-darwin.tar.gz"
 FILES[win-x64]="bitcoin-${VERSION}-win64.zip"
 
-SUPPORTED_PLATFORMS=("linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -166,8 +200,14 @@ if [[ "$SKIP_EXTRACT" != true ]]; then
     # Remove WalletWasabi.Tests/BundledApps/Binaries/temp/$VERSION/BitcoinCore
     rm -rf BitcoinCore
 
+    # Linux arm64
+    info "Extracting Linux arm64 tar.xz (bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz)"
+    mkdir -p BitcoinCore/linux-arm64
+    "$SEVEN_ZIP" x -y "bitcoin-${VERSION}-aarch64-linux-gnu.tar.gz" >/dev/null
+    "$SEVEN_ZIP" x -y -oBitcoinCore/linux-arm64 "bitcoin-${VERSION}-aarch64-linux-gnu.tar" >/dev/null
+
     # Linux x64
-    info "Extracting Linux x86_64 tar.xz (tor-browser-linux-x86_64-${VERSION}.tar.xz)"
+    info "Extracting Linux x86_64 tar.xz (bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz)"
     mkdir -p BitcoinCore/linux-x64
     "$SEVEN_ZIP" x -y "bitcoin-${VERSION}-x86_64-linux-gnu.tar.gz" >/dev/null
     "$SEVEN_ZIP" x -y -oBitcoinCore/linux-x64 "bitcoin-${VERSION}-x86_64-linux-gnu.tar" >/dev/null
@@ -214,9 +254,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking Bitcoin Core binaries executable in the git repository"
 
-chmod +x ./{linux-x64,osx64,win-x64}/bitcoind{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/bitcoind{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-x64,osx64}/bitcoind 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/bitcoind 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/bitcoind.exe 2>/dev/null || true
 
 echo ""

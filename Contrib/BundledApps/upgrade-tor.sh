@@ -8,20 +8,51 @@
 #   - curl
 #   - 7zz (version 25.1+; 7-Zip command line; apt install 7zip-standalone / brew install sevenzip / winget install --id 7zip.7zip)
 #   - git (only for chmod +x marking via git update-index)
-#
-# Usage:
-#   ./upgrade-tor.sh 15.0.7                                          # Download Tor Browser archives using curl, extract Tor binaries, update them in the repository.
-#   ./upgrade-tor.sh 15.0.7 --skip-download                          # Work with Tor Browser archives from a previous script run.
-#   ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser   # Do not extract Tor Browser archives. Continue with remaining steps.
-#
 
 set -euo pipefail
 shopt -s extglob nullglob
 
+# ──────────────────────────────────────────────────────────────────────────────
+# Show help and exit
+# ──────────────────────────────────────────────────────────────────────────────
+show_help() {
+    cat << 'EOF'
+Downloads, extracts and upgrades Tor from Tor Browser binaries for Wasabi Wallet
+
+Usage:
+    ./upgrade-tor.sh <version> [OPTIONS]
+
+Arguments:
+    <version>               Tor Browser version (required)  e.g. 15.0.7
+
+Options:
+    -h, --help              Show this help message and exit
+    --skip-download         Skip downloading archives (use previously downloaded files)
+    --skip-extract-browser  Skip extracting the Tor Browser archive
+    --skip-extract-tor      Skip extracting the embedded Tor from browser
+    --skip-replace-tor      Skip replacing the Tor binaries in the repository
+    --skip-replace-geoip    Skip replacing the GeoIP files
+
+Examples:
+    ./upgrade-tor.sh 15.0.7
+    ./upgrade-tor.sh 15.0.7 --skip-download
+    ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser --skip-replace-geoip
+EOF
+    exit 0
+}
+
+# Handle help flags early
+case "${1:-}" in
+    -h|--help)
+        show_help
+        ;;
+esac
+
 VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
-    echo "ERROR: Tor Browser version is required."
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip]"
+    echo "ERROR: Tor Browser version is required." >&2
+    echo "Use --help for usage information." >&2
+    echo "Usage: $0 <version> [--skip-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip]" >&2
     exit 1
 fi
 
@@ -49,11 +80,12 @@ done
 DIST_URI="https://www.torproject.org/dist/torbrowser/${VERSION}"
 
 declare -A FILES
+FILES[linux-arm64]="tor-browser-linux-aarch64-${VERSION}.tar.xz"
 FILES[linux-x64]="tor-browser-linux-x86_64-${VERSION}.tar.xz"
 FILES[osx64]="tor-browser-macos-${VERSION}.dmg"
 FILES[win-x64]="tor-browser-windows-x86_64-portable-${VERSION}.exe"
 
-SUPPORTED_PLATFORMS=("linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -162,6 +194,12 @@ if [[ "$SKIP_EXTRACT_BROWSER" != true ]]; then
     # Remove WalletWasabi/BundledApps/Binaries/temp/$VERSION/TorBrowser
     rm -rf TorBrowser
 
+    # Linux arm64
+    info "Extracting Linux aarch64 tar.xz (tor-browser-linux-aarch64-${VERSION}.tar.xz)"
+    mkdir -p TorBrowser/linux-arm64
+    "$SEVEN_ZIP" x -y "tor-browser-linux-aarch64-${VERSION}.tar.xz" >/dev/null
+    "$SEVEN_ZIP" x -y -oTorBrowser/linux-arm64 "tor-browser-linux-aarch64-${VERSION}.tar" >/dev/null
+
     # Linux x64
     info "Extracting Linux x86_64 tar.xz (tor-browser-linux-x86_64-${VERSION}.tar.xz)"
     mkdir -p TorBrowser/linux-x64
@@ -186,10 +224,13 @@ if [[ "$SKIP_EXTRACT_TOR" != true ]]; then
     section "Extracting Tor binaries only"
 
     rm -rf Tor
-    mkdir -p Tor/{win-x64,osx64,linux-x64}
+    mkdir -p Tor/{linux-arm64,linux-x64,osx64,win-x64}
+
+    # Linux arm64
+    cp -a TorBrowser/linux-arm64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-arm64/ 2>/dev/null || true
 
     # Linux x64
-    cp -vvv -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
+    cp -a TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/* Tor/linux-x64/ 2>/dev/null || true
 
     # macOS
     # Note: path can vary slightly between versions — "Tor Browser.app" or "Tor Browser Alpha.app"
@@ -212,6 +253,7 @@ if [[ "$SKIP_REPLACE_TOR" != true ]]; then
 
     for platform in "${SUPPORTED_PLATFORMS[@]}"; do
         target_dir="${platform}/Tor"
+        mkdir -p "${target_dir}"
         rm -rf "${target_dir:?}"/!(LICENSE|.gitattributes)
         cp -a "${TEMP_DIR}/Tor/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
         info "Updated ${target_dir}"
@@ -238,9 +280,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking Tor binaries executable in the git repository"
 
-chmod +x ./{linux-x64,osx64,win-x64}/Tor/tor{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/Tor/tor{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-x64,osx64}/Tor/tor 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/Tor/tor 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/Tor/tor.exe 2>/dev/null || true
 
 echo ""
