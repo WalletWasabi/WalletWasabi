@@ -1,7 +1,9 @@
+using Avalonia.Controls;
+using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -10,27 +12,36 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets;
 [NavigationMetaData(Title = null)]
 public partial class LoadingViewModel : RoutableViewModel
 {
-	private readonly IWalletModel _wallet;
+	private readonly IWalletModel _walletModel;
 
 	[AutoNotify] private double _percent;
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
 	[AutoNotify] private string _timeToCatchUp;
 	[AutoNotify] private bool _isLoading;
+	[AutoNotify] private bool _isBitcoinRpcUriValid;
 
-	public LoadingViewModel(IWalletModel wallet)
+	public LoadingViewModel(UiContext uiContext, IWalletModel walletModel)
 	{
-		_wallet = wallet;
+		UiContext = uiContext;
+		_walletModel = walletModel;
 		_timeToCatchUp = "";
+		HealthMonitor = uiContext.HealthMonitor;
+
+		this.WhenAnyValue(x => x.HealthMonitor.IsBitcoinRpcUriValid)
+			.Do(x => IsBitcoinRpcUriValid = x)
+			.Subscribe();
 	}
 
-	public string WalletName => _wallet.Name;
+	public HealthMonitor HealthMonitor { get; }
+
+	public string WalletName => _walletModel.Name;
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		_wallet.Loader.Progress
-					  .Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
-					  .Subscribe()
-					  .DisposeWith(disposables);
+		_walletModel.Loader.Progress
+			.Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
+			.Subscribe()
+			.DisposeWith(disposables);
 	}
 
 	private void UpdateStatus(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percentProgress)

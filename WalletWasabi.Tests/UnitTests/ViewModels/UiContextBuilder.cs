@@ -50,7 +50,7 @@ public class UiContextBuilder
 			Mock.Of<AmountProvider>(),
 			new EditableSearchSource(),
 			torStatusCheckerModel,
-			new HealthMonitor(torStatusCheckerModel),
+			new HealthMonitor(applicationSettings, torStatusCheckerModel),
 			Mock.Of<ReleaseHighlights>());
 
 		uiContext.RegisterNavigation(Navigate);

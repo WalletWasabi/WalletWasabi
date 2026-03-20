@@ -87,7 +87,7 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 	private void ShowWalletLoading()
 	{
-		CurrentPage = new LoadingViewModel(WalletModel);
+		CurrentPage = new LoadingViewModel(UiContext, WalletModel);
 		IsLoading = true;
 	}
 

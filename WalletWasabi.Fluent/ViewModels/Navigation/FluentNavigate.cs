@@ -75,7 +75,7 @@ public partial class FluentNavigate
 
 	public void Loading(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new LoadingViewModel(wallet), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new LoadingViewModel(UiContext, wallet), navigationMode);
 	}
 
 	public void WalletVerifyRecoveryWords(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

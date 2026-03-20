@@ -107,7 +107,7 @@ public class Global
 	private readonly CancellationTokenSource _stoppingCts = new();
 
 	private TorProcessManager? _torManager;
-	private IRPCClient _bitcoinRpcClient;
+	private IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly Timer _ticker;
 	private readonly AllTransactionStore _allTransactionStore;
@@ -137,8 +137,9 @@ public class Global
 		var p2PNodesManager = new P2PNodesManager(Network, nodesGroup);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager);
-		BlockProvider[] blockProviders =
-			[fileSystemBlockProvider, BlockProviders.RpcBlockProvider(_bitcoinRpcClient), p2PBlockProvider];
+		BlockProvider[] blockProviders = _bitcoinRpcClient is { } rpc
+			? [fileSystemBlockProvider, BlockProviders.RpcBlockProvider(rpc), p2PBlockProvider]
+			: [fileSystemBlockProvider, p2PBlockProvider];
 
 		return BlockProviders.CachedBlockProvider(
 			BlockProviders.ComposedBlockProvider(blockProviders),
@@ -194,8 +195,19 @@ public class Global
 		p2pNetwork.Post(Unit.Instance);
 	}
 
-	private RpcClientBase ConfigureBitcoinRpcClient()
+	private RpcClientBase? ConfigureBitcoinRpcClient()
 	{
+		var bitcoinRpcUri = Config.BitcoinRpcUri;
+		if (string.IsNullOrEmpty(bitcoinRpcUri))
+		{
+			if (!Config.IsGuiOn)
+			{
+				throw new Exception("Bitcoin RPC URI is not configured. Please set the 'BitcoinRpcUri' in your configuration file.");
+			}
+
+			return null;
+		}
+
 		var credentialString = Config.BitcoinRpcCredentialString;
 		RPCCredentialString? credentials;
 
@@ -212,7 +224,7 @@ public class Global
 			credentials = RPCCredentialString.Parse($"{improbableString}:{improbableString}");
 		}
 
-		var bitcoinRpcUri = Config.BitcoinRpcUri;
+		
 		var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
 		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
 		{
@@ -222,6 +234,7 @@ public class Global
 
 		return new RpcClientBase(internalRpcClient);
 	}
+
 
 	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
 		Config.UseTor != TorMode.Disabled
@@ -242,8 +255,12 @@ public class Global
 			var providerName => throw new ArgumentException( $"Not supported fee rate estimations provider '{providerName}'. Default: '{Constants.DefaultFeeRateEstimationProvider}'")
 		};
 
-		var rpcFeeProvider = FeeRateProviders.RpcAsync(_bitcoinRpcClient);
-		feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
+		if (_bitcoinRpcClient is not null)
+		{
+			var rpcFeeProvider = FeeRateProviders.RpcAsync(_bitcoinRpcClient);
+			feeRateProvider = FeeRateProviders.Composed([rpcFeeProvider, feeRateProvider]);
+		}
+
 		var feeRateUpdater = Spawn("FeeRateUpdater",
 			Service("Mining Fee Rate Updater",
 				Periodically(
@@ -256,6 +273,11 @@ public class Global
 
 	private void ConfigureRpcMonitor(CancellationToken cancellationToken)
 	{
+		if (_bitcoinRpcClient is null)
+		{
+			return;
+		}
+
 		var rpcMonitor = Spawn(RpcMonitor.ServiceName,
 			Service("Bitcoin Rpc Interface Monitoring",
 				Periodically(
@@ -268,6 +290,11 @@ public class Global
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
+		if (_bitcoinRpcClient is null)
+		{
+			return;
+		}
+
 		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
 		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient));
 
@@ -567,12 +594,15 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService) =>
-		[
-			new RpcBroadcaster(_bitcoinRpcClient),
-			new NetworkBroadcaster(mempoolService, nodesGroup),
-			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
-		];
+	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService)
+	{
+		var networkBroadcaster = new NetworkBroadcaster(mempoolService, nodesGroup);
+		var externalTransactionBroadcaster = new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory);
+
+		return _bitcoinRpcClient is not null
+			? [ new RpcBroadcaster(_bitcoinRpcClient), networkBroadcaster, externalTransactionBroadcaster ]
+			: [networkBroadcaster, externalTransactionBroadcaster];
+	}
 
 	public async Task DisposeAsync()
 	{

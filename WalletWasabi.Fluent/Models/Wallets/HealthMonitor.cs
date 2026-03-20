@@ -29,13 +29,15 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
+	[AutoNotify] private bool _isBitcoinRpcUriValid;
 
-	public HealthMonitor(ITorStatusCheckerModel torStatusChecker)
+	public HealthMonitor(IApplicationSettings applicationSettings, ITorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = Services.Config.UseTor;
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
+		_isBitcoinRpcUriValid = !string.IsNullOrWhiteSpace(applicationSettings.BitcoinRpcUri);
 
 		// Priority Fee
 		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
