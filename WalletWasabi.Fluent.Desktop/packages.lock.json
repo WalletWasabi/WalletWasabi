@@ -568,7 +568,7 @@
           "WabiSabi": "[1.0.1.2, )"
         }
       },
-      "walletwasabi.daemon": {
+      "walletwasabi.client": {
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Caching.Memory": "[10.0.2, )",
@@ -590,7 +590,7 @@
           "ReactiveUI.Avalonia": "[11.3.8, )",
           "SkiaSharp": "[3.119.2, )",
           "SkiaSharp.NativeAssets.Linux": "[3.119.2, )",
-          "WalletWasabi.Daemon": "[1.0.0, )",
+          "WalletWasabi.Client": "[1.0.0, )",
           "Xaml.Behaviors.Avalonia": "[11.3.9.4, )"
         }
       },
