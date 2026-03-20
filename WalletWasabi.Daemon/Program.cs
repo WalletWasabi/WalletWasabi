@@ -14,6 +14,7 @@ public class Program
 		var app = WasabiAppBuilder
 			.Create("Wasabi Daemon", args)
 			.EnsureSingleInstance()
+			.IsGui(false)
 			.OnUnhandledExceptions(LogUnhandledException)
 			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 			.Build();

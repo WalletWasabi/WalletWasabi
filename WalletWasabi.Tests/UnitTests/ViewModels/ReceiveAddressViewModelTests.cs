@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.ViewModels.TestDoubles;
 using WalletWasabi.Wallets;
@@ -28,7 +27,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var eventBus = new EventBus();
 		WalletWasabi.Fluent.Services.EventBus = eventBus;
-		WalletWasabi.Fluent.Services.Config = new Config(PersistentConfigManager.DefaultMainNetConfig, []);
+		WalletWasabi.Fluent.Services.Config = new Config(true, PersistentConfigManager.DefaultMainNetConfig, []);
 		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
 
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);
@@ -49,7 +48,7 @@ public class ReceiveAddressViewModelTests
 	{
 		var eventBus = new EventBus();
 		WalletWasabi.Fluent.Services.EventBus = eventBus;
-		WalletWasabi.Fluent.Services.Config = new Config(PersistentConfigManager.DefaultMainNetConfig, []);
+		WalletWasabi.Fluent.Services.Config = new Config(true, PersistentConfigManager.DefaultMainNetConfig, []);
 		WalletWasabi.Fluent.Services.Status = new StatusContainer(eventBus);
 
 		var clipboard = Mock.Of<IUiClipboard>(MockBehavior.Loose);

@@ -77,6 +77,7 @@ public class Program
 			var app = WasabiAppBuilder
 				.Create("Wasabi GUI", args)
 				.EnsureSingleInstance()
+				.IsGui(true)
 				.OnUnhandledExceptions(LogUnhandledException)
 				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 				.OnTermination(TerminateApplication)

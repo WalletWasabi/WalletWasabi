@@ -17,9 +17,10 @@ public class Config
 {
 	public static readonly IDictionary EnvironmentVariables = Environment.GetEnvironmentVariables();
 
-	public Config(PersistentConfig persistentConfig, string[] cliArgs)
+	public Config(bool isGuiOn, PersistentConfig persistentConfig, string[] cliArgs)
 	{
 		PersistentConfig = persistentConfig;
+		IsGuiOn = isGuiOn;
 		CliArgs = cliArgs;
 
 		LogMode[] defaultLogModes;
@@ -115,6 +116,7 @@ public class Config
 			[ nameof(ExperimentalFeatures) ] = "Colon-separated list of experimental features to enable. (features available: scripting)",
 		};
 	private Dictionary<string, IValue> Data { get; }
+	public bool IsGuiOn { get; }
 	public PersistentConfig PersistentConfig { get; }
 	public string[] CliArgs { get; }
 	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
