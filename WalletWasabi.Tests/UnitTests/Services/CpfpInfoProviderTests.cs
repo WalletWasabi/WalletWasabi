@@ -366,7 +366,7 @@ public class CpfpInfoProviderTests
 
 		// Assert - message was posted (we can't easily verify prefetch completed due to random delay)
 		// But we can verify the provider doesn't throw
-		Assert.True(true);
+		Assert.False(requestReceived);
 	}
 
 	[Fact]

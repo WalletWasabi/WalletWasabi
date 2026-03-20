@@ -98,7 +98,7 @@ public class P2pTests
 			BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes)),
 			blocks);
 
-		ServiceConfiguration serviceConfiguration = new($"http://{IPAddress.Loopback}:{network.DefaultPort}", Money.Coins(Constants.DefaultDustThreshold));
+		ServiceConfiguration serviceConfiguration = new(Money.Coins(Constants.DefaultDustThreshold));
 		var cpfpInfoProvider = new CpfpInfoProvider(Spawn("CpfpInfoProvider", EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 		var walletFactory = Wallet.CreateFactory(network, bitcoinStore, serviceConfiguration, blockProvider, eventBus, cpfpInfoProvider);
 		var wallet = walletFactory(keyManager);
