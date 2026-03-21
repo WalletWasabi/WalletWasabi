@@ -27,7 +27,6 @@ public enum CoinjoinError
 	CoinsRejected,
 	OnlyImmatureCoinsAvailable,
 	OnlyExcludedCoinsAvailable,
-	UneconomicalRound,
 	MiningFeeRateTooHigh,
 	MinInputCountTooLow,
 	CoordinatorLiedAboutInputs,
