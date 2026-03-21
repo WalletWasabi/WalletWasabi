@@ -399,11 +399,8 @@ public class Global
 		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
 		var transactionHeight = BitcoinStore.TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
 		var birthHeight = WalletManager.GetEarliestBirthHeight();
-
-		var oldestBlockHeight = birthHeight is not null
-			? Height.Min(checkpointHeight, transactionHeight, birthHeight)
-			: Height.Min(checkpointHeight, transactionHeight);
-		return (ChainHeight) oldestBlockHeight;
+		var worstBestHeight = WalletManager.GetWorstBestHeight();
+		return (ChainHeight) Height.Min(checkpointHeight, ((ChainHeight?[]) [transactionHeight, birthHeight, worstBestHeight]).DropNulls());
 	}
 
 	public async Task InitializeAsync(bool initializeSleepInhibitor, TerminateService terminateService, CancellationToken cancellationToken)
