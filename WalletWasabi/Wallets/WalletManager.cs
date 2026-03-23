@@ -333,6 +333,12 @@ public class WalletManager : IWalletProvider
 			.Where(b => b is not null && b > 0)
 			.MinBy(b => b);
 
+	public ChainHeight? GetWorstBestHeight() =>
+		GetWallets()
+			.Where(w => w.KeyManager.GetNetwork() == Network)
+			.Select(w => w.KeyManager.GetBestHeight())
+			.MinBy(b => b);
+
 	public Wallet GetWalletByName(string walletName)
 	{
 		lock (_lock)

@@ -1,5 +1,5 @@
+using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
 
 namespace WalletWasabi.Models;
 
@@ -48,8 +48,8 @@ public abstract record Height : IComparable<Height>
 			_ => throw new ArgumentOutOfRangeException()
 		};
 
-	public static Height Max(Height h, params Height[] r) => r.Aggregate(h, (h1, h2) => h1 > h2 ? h1 : h2);
-	public static Height Min(Height h, params Height[] r) => r.Aggregate(h, (h1, h2) => h1 < h2 ? h1 : h2);
+	public static Height Max(Height h, params IEnumerable<Height> r) => r.Aggregate(h, (h1, h2) => h1 > h2 ? h1 : h2);
+	public static Height Min(Height h, params IEnumerable<Height> r) => r.Aggregate(h, (h1, h2) => h1 < h2 ? h1 : h2);
 
 	public static bool TryParse(string heightOrHeightType, out Height? height)
 	{
