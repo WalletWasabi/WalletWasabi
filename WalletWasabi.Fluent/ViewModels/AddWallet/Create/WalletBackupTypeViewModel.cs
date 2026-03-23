@@ -23,14 +23,14 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 				[
 					new WalletBackupType.MultiShare(
 						new WalletBackupTypeOptions(
-							Description: "Multi-share backup",
+							Description: "Multi-share backup (SLIP39)",
 							HelpText: "Split your wallet backup into multiple parts. You’ll need some of them to restore your wallet, adding an extra layer of protection.",
-							ToolTipText: "Uses Shamir's Secret Sharing (SLIP-0039) to divide the wallet secret into multiple shares. A defined number of these shares are required to reconstruct the wallet’s master secret.")),
+							ToolTipText: "Uses Shamir's Secret Sharing to divide the wallet secret into multiple shares. A defined number of these shares are required to reconstruct the wallet’s master secret.")),
 					new WalletBackupType.RecoveryWords(
 						new WalletBackupTypeOptions(
-							Description: "Single mnemonic backup",
-							HelpText: "Back up your wallet using a set of secret words. Write them down and store them safely — you’ll need them to recover your wallet.",
-							ToolTipText: "Creates a BIP39 mnemonic phrase (12 words) that encodes the wallet's seed. This phrase can regenerate your private keys and restore access to your funds on compatible wallets.")),
+							Description: "Single mnemonic phrase (BIP39)",
+							HelpText: "Back up your wallet using a set of secret words. Write them down and store them safely.",
+							ToolTipText: "Creates a 12 word mnemonic phrase that encodes the wallet's seed. This phrase is used in addition to your passphrase to regenerate your private keys and restore access to your funds.")),
 				];
 
 				break;
