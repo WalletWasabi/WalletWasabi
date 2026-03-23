@@ -19,47 +19,56 @@ public record DependencyGraph
 
 	public ImmutableList<RequestNode> Vertices { get; init; } = [];
 
-	// Internal properties used to keep track of effective values and edges
+	// Internal properties used to keep track of effective values and edges.
 	public ImmutableList<CredentialEdgeSet> EdgeSets { get; init; }
 
 	private DependencyGraph(long maxAmountCredential, long maxVsizeCredential)
 	{
-		EdgeSets  = [ new AmountCredentialEdgeSet(maxAmountCredential), new VsizeCredentialEdgeSet(maxVsizeCredential) ];
+		EdgeSets = [new AmountCredentialEdgeSet(maxAmountCredential), new VsizeCredentialEdgeSet(maxVsizeCredential)];
 	}
 
-	/// <summary>Construct a graph from amounts, and resolve the
-	/// credential dependencies.</summary>
-	///
-	/// <remarks>Should only produce valid graphs. The elements of the
-	/// <see>Vertices</see> property will correspond to the given values in order,
-	/// and may contain additional nodes if reissuance requests are
-	/// required.</remarks>
-	///
-	public static DependencyGraph ResolveCredentialDependencies(IEnumerable<Money> effectiveValues, IEnumerable<TxOut> outputs, FeeRate feeRate, IEnumerable<long> availableVSizes, long maxAmountCredential, long maxVsizeCredential)
+	public static DependencyGraph ResolveCredentialDependencies(
+		IEnumerable<Money> effectiveValues,
+		IEnumerable<TxOut> outputs,
+		FeeRate feeRate,
+		IEnumerable<long> availableVSizes,
+		long maxAmountCredential,
+		long maxVsizeCredential)
 	{
-		var effectiveValuesInSats = effectiveValues.Select(x => x.Satoshi);
+		var effectiveValuesArr = effectiveValues as Money[] ?? effectiveValues.ToArray();
+		var outputsArr = outputs as TxOut[] ?? outputs.ToArray();
+		var availableVSizesArr = availableVSizes as long[] ?? availableVSizes.ToArray();
 
-		if (effectiveValues.Any(x => x <= Money.Zero))
+		if (effectiveValuesArr.Any(x => x <= Money.Zero))
 		{
 			throw new InvalidOperationException("Not enough funds to pay for the fees.");
 		}
 
-		var outputSizes = outputs.Select(x => (long)x.ScriptPubKey.EstimateOutputVsize());
-		var effectiveCostsInSats = outputs.Select(txout => txout.EffectiveCost(feeRate).Satoshi);
+		var effectiveValuesInSats = effectiveValuesArr.Select(x => x.Satoshi).ToArray();
+		var outputSizes = outputsArr.Select(x => (long)x.ScriptPubKey.EstimateOutputVsize()).ToArray();
+		var effectiveCostsInSats = outputsArr.Select(txout => txout.EffectiveCost(feeRate).Satoshi).ToArray();
+
 		return ResolveCredentialDependencies(
-			effectiveValuesInSats.Zip(availableVSizes).ToArray(),
+			effectiveValuesInSats.Zip(availableVSizesArr).ToArray(),
 			effectiveCostsInSats.Zip(outputSizes).ToArray(),
 			maxAmountCredential,
-			maxVsizeCredential
-		);
+			maxVsizeCredential);
 	}
 
-	public static DependencyGraph ResolveCredentialDependencies(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues, long maxAmountCredential, long maxVsizeCredential)
+	public static DependencyGraph ResolveCredentialDependencies(
+		AmountVsizePairArray inputValues,
+		AmountVsizePairArray outputValues,
+		long maxAmountCredential,
+		long maxVsizeCredential)
 		=> FromValues(inputValues, outputValues, maxAmountCredential, maxVsizeCredential).ResolveCredentials();
 
-	public static DependencyGraph FromValues(AmountVsizePairArray inputValues, AmountVsizePairArray outputValues, long maxAmountCredential, long maxVsizeCredential)
+	public static DependencyGraph FromValues(
+		AmountVsizePairArray inputValues,
+		AmountVsizePairArray outputValues,
+		long maxAmountCredential,
+		long maxVsizeCredential)
 	{
-		var allValues = Enumerable.Concat(inputValues, outputValues);
+		var allValues = inputValues.Concat(outputValues).ToArray();
 		if (allValues.Any(x => x.Amount < 0 || x.Vsize < 0))
 		{
 			throw new ArgumentException("All values must be positive.");
@@ -68,6 +77,7 @@ public record DependencyGraph
 		foreach (var credentialType in CredentialTypes)
 		{
 			long ValueExtractor(AmountVsizePair x) => credentialType is CredentialType.Amount ? x.Amount : x.Vsize;
+
 			var inputValuesSum = inputValues.Sum(ValueExtractor);
 			var outputValuesSum = outputValues.Sum(ValueExtractor);
 			if (inputValuesSum < outputValuesSum)
@@ -91,175 +101,69 @@ public record DependencyGraph
 					EdgeBalances = x.EdgeBalances.Add(node, 0),
 					InEdges = x.InEdges.Add(node, ImmutableHashSet<CredentialDependency>.Empty),
 					OutEdges = x.OutEdges.Add(node, ImmutableHashSet<CredentialDependency>.Empty)
-				}
-			).ToImmutableList(),
+				}).ToImmutableList(),
 		};
 
-	// Input nodes represent a combination of an input registration and
-	// connection confirmation. Connection confirmation requests actually
-	// have indegree K, not 0, which could be used to consolidate inputs
-	// early but using it implies connection confirmations may have
-	// dependencies, posing some complexity for a privacy preserving
-	// approach.
-	private DependencyGraph AddNodes(AmountVsizePairArray values, Func<AmountVsizePair, RequestNode> builder) =>
-		values.Aggregate(this, (g, v) => g.AddNode(builder(v)));
+	private DependencyGraph AddNodes(AmountVsizePairArray values, Func<AmountVsizePair, RequestNode> builder)
+		=> values.Aggregate(this, (g, v) => g.AddNode(builder(v)));
 
-
-	/// <summary>Resolve edges for all credential types</summary>
-	///
-	/// <remarks><para>We start with a bipartite graph of terminal sources
-	/// and sinks (corresponding to inputs and outputs or connection
-	/// confirmation and output registration requests).</para>
-	///
-	/// <para>Nodes are fully discharged when all of their in-edges are
-	/// accounted for. For output registrations this must exactly cancel out
-	/// their initial balance, since they make no output registration
-	/// requests.</para>
-	///
-	/// <para>Outgoing edges represent credential amounts to request and
-	/// present in a subsequent request, so for positive nodes if there is a
-	/// left over balance the outgoing degree is limited to K-1, since an
-	/// extra credential for the remaining amount must also be
-	/// requested.</para>
-	///
-	/// <para>At every iteration of the loop a single node of the largest
-	/// magnitude (source or sink) and one or more nodes of opposite sign
-	/// are selected. Unless these are the final nodes on the list, the
-	/// smaller magnitude nodes are selected to fully discharge the largest
-	/// magnitude node.</para>
-	///
-	/// <para>If the smaller nodes are too numerous K at a time are merged
-	/// into a reissuance node. When these are output registrations the
-	/// reissuance node's output edges always fully account for the
-	/// dependent requests, including the zero credentials required for
-	/// them. When the smaller nodes appear on the input side, the non-zero
-	/// values are sufficient to fill the reissuance node's in edge set and
-	/// requires only one edge to fully drain the (remaining) balance, so
-	/// there will be an extra zero valued credential (requested normally,
-	/// including range proof).</para>
-	///
-	/// <para>New reissuance nodes fully absorb the value of the nodes they
-	/// substitute with no additional dependencies required, so each one
-	/// reduces the bipartite graph problem to a smaller one (by K-1 == 1),
-	/// since the replaced nodes no longer need to be considered.</para>
-	///
-	/// <para>When the list of nodes has been reduced to the remaining
-	/// non-zero out degree of the largest magnitude node edges that cancel
-	/// out positive and negative values are added. This will fully
-	/// discharge the largest magnitude node, except when it is positive and
-	/// all of the remaining negative nodes on the graph add up to less than
-	/// it.</para>
-	///
-	/// <para>There are two related/composing special cases mainly affecting
-	/// vsize credentials - when the positive valued nodes with remaining
-	/// out degree > 1 have a uniform and sufficient balance to cover all of
-	/// the negative balances, instead of taking the largest node all of the
-	/// equal valued nodes are reduced together resulting in a more balanced
-	/// structure overall. This is combined with another special case that
-	/// checks if pairing positive and negative nodes in a 1:1
-	/// correspondence is possible after aggregation into reissuance nodes.
-	/// This can apply to amount credentials as well when consolidating
-	/// multiple equal valued inputs, but is only expected to regularly
-	/// occur for vbyte credentials.</para>
-	///
-	/// <para>After all negative value nodes have been discharged, the
-	/// remaining in-edges of all nodes must be filled with zero
-	/// credentials. These are added according to the graph order, by
-	/// extending new edges from nodes whose in-degree is already maximized
-	/// but whose out degree is not. This again deals only with a bipartite
-	/// graph, because reissuance nodes consolidating output nodes leave no
-	/// zero edges unaccounted for in the nodes they replace, whereas on the
-	/// input side the structure fans in so necessarily it leaves no nodes
-	/// with non-maximized in-degrees, it can only increase the available
-	/// out degree for nodes which are not fully consumed.</para></remarks>
-	private DependencyGraph ResolveCredentials() =>
-		ResolveNegativeBalanceNodes(CredentialType.Amount)
-		.ResolveNegativeBalanceNodes(CredentialType.Vsize)
-		.ResolveZeroCredentials(CredentialType.Amount)
-		.ResolveZeroCredentials(CredentialType.Vsize);
+	private DependencyGraph ResolveCredentials()
+		=> ResolveNegativeBalanceNodes(CredentialType.Amount)
+			.ResolveNegativeBalanceNodes(CredentialType.Vsize)
+			.ResolveZeroCredentials(CredentialType.Amount)
+			.ResolveZeroCredentials(CredentialType.Vsize);
 
 	private DependencyGraph ResolveNegativeBalanceNodes(CredentialType credentialType)
 	{
 		var g = ResolveUniformInputSpecialCases(credentialType);
-
 		var edgeSet = g.EdgeSets[(int)credentialType];
 
-		var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0);
-		var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0);
+		var positive = g.Vertices.Where(v => edgeSet.Balance(v) > 0).ToArray();
+		var negative = g.Vertices.Where(v => edgeSet.Balance(v) < 0).ToArray();
 
-		if (!negative.Any())
+		if (negative.Length == 0)
 		{
 			return g;
 		}
 
-		var (largestMagnitudeNode, smallMagnitudeNodes, fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
+		var (largestMagnitudeNode, smallMagnitudeNodesRaw, fanIn) = edgeSet.MatchNodesToDischarge(positive, negative);
+		var smallMagnitudeNodes = smallMagnitudeNodesRaw.ToArray();
 
 		var maxCount = fanIn
 			? edgeSet.RemainingInDegree(largestMagnitudeNode)
 			: edgeSet.RemainingOutDegree(largestMagnitudeNode);
 
-		switch (Math.Abs(edgeSet.Balance(largestMagnitudeNode)).CompareTo(Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x)))))
+		var largestAbs = Math.Abs(edgeSet.Balance(largestMagnitudeNode));
+		var smallAbs = Math.Abs(smallMagnitudeNodes.Sum(x => edgeSet.Balance(x)));
+
+		switch (largestAbs.CompareTo(smallAbs))
 		{
 			case 1:
-				// When we are draining a positive valued node into multiple
-				// negative nodes and we can't drain it completely, we need to
-				// leave an edge unused for the remaining amount.
-				// The corresponding condition can't actually happen for fan-in
-				// because the negative balance of the last loop iteration can't
-				// exceed the remaining positive elements, their total sum
-				// must be positive as checked in the constructor.
 				if (maxCount > 1)
 				{
-					// when the edge capacity makes it possible, we can just
-					// ensure the largest magnitude node ends up with an unused
-					// edge by reducing maxCount
 					maxCount--;
 				}
 				else
 				{
-					// otherwise, drain the largest magnitude node into a new
-					// reissuance node which will have room for an unused edge
-					// in its out edge set.
-					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode(new[] { largestMagnitudeNode }, credentialType);
+					(g, largestMagnitudeNode) = g.AggregateIntoReissuanceNode([largestMagnitudeNode], credentialType);
 				}
 				break;
 
 			case -1:
-				// When the total amount is less, it means the last node
-				// cannot be fully discharged, so we need to make sure its
-				// remaining degree is > 1
 				Func<RequestNode, int> smallNodeDegree = fanIn ? edgeSet.RemainingOutDegree : edgeSet.RemainingInDegree;
+				smallMagnitudeNodes = smallMagnitudeNodes.OrderBy(smallNodeDegree).ToArray();
 
-				// Order by degree, so that the nodes with only one
-				// remaining edge slot are discharged first.
-				smallMagnitudeNodes = smallMagnitudeNodes.OrderBy(smallNodeDegree);
-
-				// If all of the nodes have degree 1 and the remaining
-				// degree of the large magnitude node can cover all of them,
-				// we must force a reissuance as well. Because the sum of
-				// the small magnitude nodes is greater.
-				if (smallMagnitudeNodes.Count() <= maxCount && smallNodeDegree(smallMagnitudeNodes.Last()) == 1)
+				if (smallMagnitudeNodes.Length <= maxCount && smallNodeDegree(smallMagnitudeNodes[^1]) == 1)
 				{
-					// Make sure ReduceNodes will add at least one
-					// reissuance node (they are appended so the remaining
-					// degree for the last node is guaranteed to be > 1)
-					maxCount = Math.Min(smallMagnitudeNodes.Count() - 1, maxCount);
+					maxCount = Math.Min(smallMagnitudeNodes.Length - 1, maxCount);
 				}
-				break;
-
-			default:
-				// the large node and small nodes are exactly equal, so no
-				// amounts will be left over.
 				break;
 		}
 
-		// Reduce the number of small magnitude nodes to the number of edges
-		// available for use in the largest magnitude node
-		(g, smallMagnitudeNodes) = g.ReduceNodes(smallMagnitudeNodes, maxCount, credentialType);
+		maxCount = Math.Max(0, maxCount);
 
-		// After draining either the last small magnitude node or the
-		// largest magnitude node could still have a non-zero value.
-		g = g.DrainTerminal(largestMagnitudeNode, smallMagnitudeNodes, credentialType);
+		(g, var reducedNodes) = g.ReduceNodes(smallMagnitudeNodes, maxCount, credentialType);
+		g = g.DrainTerminal(largestMagnitudeNode, reducedNodes, credentialType);
 
 		return g.ResolveNegativeBalanceNodes(credentialType);
 	}
@@ -267,100 +171,84 @@ public record DependencyGraph
 	private DependencyGraph ResolveUniformInputSpecialCases(CredentialType credentialType)
 	{
 		var edgeSet = EdgeSets[(int)credentialType];
+		var negative = Vertices
+			.Where(v => edgeSet.Balance(v) < 0)
+			.OrderBy(v => edgeSet.Balance(v))
+			.ToArray();
 
-		// Evaluate the linq query eagerly since edgeSet is reassigned
-		RequestNodeList negative = Vertices.Where(v => edgeSet.Balance(v) < 0).OrderBy(v => edgeSet.Balance(v)).ToImmutableArray();
-
-		if (!negative.Any())
+		if (negative.Length == 0)
 		{
 			return this;
 		}
 
 		var g = this;
 
-		// Unconstrained nodes have a remaining out degree greater than 1,
-		// so they can produce arbitrary value outputs (final edge must leave
-		// balance = 0).
-		// The remaining outdegree > 1 condition is equivalent to == K for
-		// K=2, so that also implies the positive valued nodes haven't been
-		// used for this credential type yet.
-		var unconstrainedPositive = Vertices.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1).OrderByDescending(v => edgeSet.Balance(v)).ToImmutableArray();
+		var unconstrainedPositive = Vertices
+			.Where(v => edgeSet.Balance(v) > 0 && edgeSet.RemainingOutDegree(v) > 1)
+			.OrderByDescending(v => edgeSet.Balance(v))
+			.ToArray();
 
-		// First special case, if the unconstrained inputs have uniform values (should be the
-		// common case for vbyte credentials)...
-		if (unconstrainedPositive.Select(v => edgeSet.Balance(v)).Distinct().Count() == 1)
+		if (unconstrainedPositive.Length > 0)
 		{
-			// And if the total amount of the uniform unconstrained nodes is
-			// larger than the negative nodes, with room to spare
-			if (unconstrainedPositive.Length * edgeSet.Balance(unconstrainedPositive.First()) > -1 * negative.Count() * edgeSet.Balance(negative.First()))
+			var distinctPositiveBalances = unconstrainedPositive
+				.Select(v => edgeSet.Balance(v))
+				.Distinct()
+				.Count();
+
+			if (distinctPositiveBalances == 1)
 			{
-				// Aggregate the negative nodes if they are more numerous.
-				// Reducing to `unconstrainedPositive.Count()` (which can be
-				// significantly larger than K) creates a more balanced
-				// structure for the next special case, or later iterations.
-				if (negative.Count() > unconstrainedPositive.Length)
+				var positiveTotal = unconstrainedPositive.Length * edgeSet.Balance(unconstrainedPositive[0]);
+				var negativeTotalAbs = -negative.Length * edgeSet.Balance(negative[0]);
+
+				if (positiveTotal > negativeTotalAbs && negative.Length > unconstrainedPositive.Length)
 				{
-					(g, negative) = g.ReduceNodes(negative, unconstrainedPositive.Length, credentialType);
+					(g, var reducedNegative) = g.ReduceNodes(negative, unconstrainedPositive.Length, credentialType);
+					negative = reducedNegative.ToArray();
 				}
 			}
 		}
 
 		edgeSet = g.EdgeSets[(int)credentialType];
 
-		// Second special case, more general than the previous one.
-		// If negative nodes are all strictly smaller than the corresponding
-		// positive nodes (not necessarily of uniform value), discharge them
-		// in a 1:1 correspondence.
-		if (negative.Count() <= unconstrainedPositive.Length && Enumerable.Zip(unconstrainedPositive, negative).All(p => edgeSet.Balance(p.First) + edgeSet.Balance(p.Second) >= 0))
+		if (negative.Length <= unconstrainedPositive.Length &&
+			unconstrainedPositive.Zip(negative).All(p => edgeSet.Balance(p.First) + edgeSet.Balance(p.Second) >= 0))
 		{
-			g = Enumerable.Zip(unconstrainedPositive, negative).Aggregate(g, (g, p) => g.DrainTerminal(p.First, new RequestNode[] { p.Second }, credentialType));
+			g = unconstrainedPositive
+				.Zip(negative)
+				.Aggregate(g, (acc, p) => acc.DrainTerminal(p.First, [p.Second], credentialType));
 		}
 
 		return g;
 	}
 
-	// Build a k-ary tree bottom up to reduce a list of nodes to discharge
-	// to at most maxCount elements.
 	private (DependencyGraph, RequestNodeList) ReduceNodes(RequestNodeList nodes, int maxCount, CredentialType credentialType)
 	{
-		if (nodes.Count() <= maxCount)
+		var nodeArray = nodes as RequestNode[] ?? nodes.ToArray();
+
+		if (nodeArray.Length <= maxCount)
 		{
-			return (this, nodes);
+			return (this, nodeArray);
 		}
 
-		// Replace up to k nodes, possibly the entire queue, with a
-		// single reissuance node which combines their values. The total
-		// number of items might be less than K but still larger than
-		// maxCount.
-		var take = Math.Min(K, nodes.Count());
+		var take = Math.Min(K, nodeArray.Length);
+		var (g, reissuance) = AggregateIntoReissuanceNode(nodeArray.Take(take), credentialType);
 
-		// TODO order nodes by depth/height, so that this will produce a
-		// balanced structure. Currently nodes are just merged into a binary
-		// tree in the order given by the enumerable, but this can create an
-		// imbalance if a small magnitude node is a reissuance node left
-		// over from a previous iteration.
-		var (g, reissuance) = AggregateIntoReissuanceNode(nodes.Take(take), credentialType);
-
-		return g.ReduceNodes(nodes.Skip(take).Append(reissuance), maxCount, credentialType);
+		return g.ReduceNodes(nodeArray.Skip(take).Append(reissuance), maxCount, credentialType);
 	}
 
 	private (DependencyGraph, RequestNode) AggregateIntoReissuanceNode(RequestNodeList nodes, CredentialType credentialType)
 	{
+		var nodesArr = nodes as RequestNode[] ?? nodes.ToArray();
+
 		var reissuance = new ReissuanceNode();
 		var g = AddNode(reissuance);
 
-		g = g.DrainReissuance(reissuance, nodes, credentialType);
+		g = g.DrainReissuance(reissuance, nodesArr, credentialType);
 
-		// This is kind of a hack, also discharge 0 credentials for *previous*
-		// credential type from this reissuance node, which will eliminate
-		// it from the subsequent zero credential filling passes.
-		// The rationale behind this is that the reissuance node already has
-		// to be created and will have zero credentials to spare, so in this
-		// way the aggregated nodes are not dependent on any other node for
-		// zero credentials.
-		if (credentialType > 0)
+		// Also discharge 0 credentials for previous credential type.
+		if ((int)credentialType > 0)
 		{
-			g = nodes.Aggregate(g, (g, v) => g.DrainZeroCredentials(reissuance, v, 0));
+			g = nodesArr.Aggregate(g, (acc, v) => acc.DrainZeroCredentials(reissuance, v, (CredentialType)((int)credentialType - 1)));
 		}
 
 		return (g, reissuance);
@@ -368,17 +256,26 @@ public record DependencyGraph
 
 	private DependencyGraph DrainReissuance(RequestNode reissuance, RequestNodeList nodes, CredentialType credentialType)
 	{
+		var nodesArr = nodes as RequestNode[] ?? nodes.ToArray();
+
 		return Enumerable
 			.Range((int)credentialType, EdgeSets.Count - (int)credentialType)
-			.Aggregate(this, (graph, i) => graph with {
-					EdgeSets = graph.EdgeSets.SetItem(i, graph.EdgeSets[i].DrainReissuance(reissuance, nodes))});
+			.Aggregate(
+				this,
+				(graph, i) => graph with
+				{
+					EdgeSets = graph.EdgeSets.SetItem(i, graph.EdgeSets[i].DrainReissuance(reissuance, nodesArr))
+				});
 	}
 
 	private DependencyGraph DrainTerminal(RequestNode node, RequestNodeList nodes, CredentialType credentialType)
-		// Here we avoid opportunistically adding edges of other types as it
-		// provides no benefit with K=2. Stable sorting prevents edge
-		// crossing to a limited degree, but could be much better.
-		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainTerminal(node, nodes)) };
+		=> this with
+		{
+			EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainTerminal(node, nodes))
+		};
+
+	private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
+		=> ResolveZeroCredentialsCore(credentialType, terminalOnly: false);
 
 	private DependencyGraph ResolveZeroCredentialsCore(CredentialType credentialType, bool terminalOnly)
 	{
@@ -388,22 +285,18 @@ public record DependencyGraph
 		{
 			var edgeSet = graph.EdgeSets[(int)credentialType];
 
+			var verticesWithRemainingInDegree = graph.Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0);
 			var unresolved = terminalPass
-				? graph.Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0)
-				: graph.Vertices.Where(v => edgeSet.RemainingInDegree(v) > 0 && edgeSet.AvailableZeroOutDegree(v) > 0);
+				? verticesWithRemainingInDegree
+				: verticesWithRemainingInDegree.Where(v => edgeSet.AvailableZeroOutDegree(v) > 0);
 
 			var unresolvedArr = unresolved
 				.OrderByDescending(v => edgeSet.AvailableZeroOutDegree(v))
 				.ToArray();
 
-			// Fixed point for this pass:
-			// - in terminal pass => done
-			// - in non-terminal pass => switch once to terminal pass
 			if (unresolvedArr.Length == 0)
 			{
-				return terminalPass
-					? graph
-					: Step(graph, terminalPass: true);
+				return terminalPass ? graph : Step(graph, terminalPass: true);
 			}
 
 			var providers = graph.Vertices
@@ -419,19 +312,6 @@ public record DependencyGraph
 			return Step(next, terminalPass);
 		}
 	}
-
-	private DependencyGraph ResolveZeroCredentials(CredentialType credentialType)
-	{
-		// TODO Build edges in parallel to existing ones to reduce
-		// dependencies per request.
-		// This can be done in 3 depth first passes, which all consume nodes
-		// whose remaining in degree is 0 and available zero degree is >0.
-		// - discharge only to AvailableZeroOutDegree >0 nodes (should be at most one such node per donor node)
-		// - discharge to direct descendants even if a net reduction in zero creds because of available zero out degree of 0
-		// - discharge all remaining in degree >0 nodes by topological order
-		return ResolveZeroCredentialsCore(credentialType, terminalOnly: false);
-	}
-
 
 	private DependencyGraph DrainZeroCredentials(RequestNode from, RequestNode to, CredentialType credentialType)
 		=> this with { EdgeSets = EdgeSets.SetItem((int)credentialType, EdgeSets[(int)credentialType].DrainZeroCredentials(from, to)) };
