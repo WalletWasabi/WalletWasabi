@@ -46,7 +46,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 					new WalletBackupType.RecoveryWords(
 						new WalletBackupTypeOptions(
 							Description: "Single mnemonic phrase (BIP39)",
-							HelpText: "Use a backup that was exists of one set of words.")),
+							HelpText: "Use a backup generated from a set of 12, 18, or 24 words.")),
 				];
 
 				break;
