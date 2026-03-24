@@ -18,7 +18,6 @@
     <File Path="global.json" />
     <File Path="NuGet.Config" />
     <File Path="README.md" />
-    <File Path="Settings.StyleCop" />
   </Folder>
   <Project Path="WalletWasabi.Client/WalletWasabi.Client.csproj" />
   <Project Path="WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj" />
