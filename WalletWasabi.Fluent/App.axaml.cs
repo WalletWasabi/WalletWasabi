@@ -48,15 +48,14 @@ public class App : Application
 			{
 				var uiContext = CreateUiContext();
 				UiContext.Default = uiContext;
-				_applicationStateManager =
-					new ApplicationStateManager(desktop, uiContext, _startInBg);
-
-				DataContext = _applicationStateManager.ApplicationViewModel;
+				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, _startInBg);
+				var applicationViewModel = _applicationStateManager.ApplicationViewModel;
+				DataContext = applicationViewModel;
 
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 				desktop.Exit += (sender, args) =>
 				{
-					MainViewModel.Instance.ClearStacks();
+					applicationViewModel.MainViewModel.ClearStacks();
 					uiContext.HealthMonitor.Dispose();
 				};
 
@@ -65,7 +64,7 @@ public class App : Application
 					{
 						await _backendInitializeAsync!(); // Guaranteed not to be null when not in designer.
 
-						MainViewModel.Instance.Initialize();
+						applicationViewModel.MainViewModel.Initialize();
 					});
 
 				InitializeTrayIcons();

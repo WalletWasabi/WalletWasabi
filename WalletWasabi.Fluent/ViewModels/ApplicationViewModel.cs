@@ -14,12 +14,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
 
-	public ApplicationViewModel(UiContext uiContext, IMainWindowService mainWindowService)
+	public ApplicationViewModel(UiContext uiContext, MainViewModel mainViewModel, IMainWindowService mainWindowService)
 	{
 		_mainWindowService = mainWindowService;
 
 		UiContext = uiContext;
-		MainViewModel = new MainViewModel(UiContext);
+		MainViewModel = mainViewModel;
 
 		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
