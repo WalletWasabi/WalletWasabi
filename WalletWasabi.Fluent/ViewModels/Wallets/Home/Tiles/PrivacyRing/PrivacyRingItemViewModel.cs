@@ -2,7 +2,6 @@ using Avalonia;
 using Avalonia.Media;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 

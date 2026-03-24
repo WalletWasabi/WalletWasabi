@@ -14,12 +14,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
 
-	public ApplicationViewModel(UiContext uiContext, IMainWindowService mainWindowService)
+	public ApplicationViewModel(UiContext uiContext, MainViewModel mainViewModel, IMainWindowService mainWindowService)
 	{
 		_mainWindowService = mainWindowService;
 
 		UiContext = uiContext;
-		MainViewModel = new MainViewModel(UiContext);
+		MainViewModel = mainViewModel;
 
 		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));
 
@@ -50,12 +50,12 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	private void AboutExecute()
 	{
-		MainViewModel.Instance.DialogScreen.To().About(navigateBack: MainViewModel.Instance.DialogScreen.CurrentPage is not null);
+		MainViewModel.DialogScreen.To().About(navigateBack: MainViewModel.DialogScreen.CurrentPage is not null);
 	}
 
 	private IObservable<bool> AboutCanExecute()
 	{
-		return MainViewModel.Instance.DialogScreen
+		return MainViewModel.DialogScreen
 			.WhenAnyValue(x => x.CurrentPage)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x is null);
@@ -65,11 +65,11 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 
 	public void OnShutdownPrevented(bool restartRequest)
 	{
-		MainViewModel.Instance.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
+		MainViewModel.ApplyUiConfigWindowState(); // Will pop the window if it was minimized.
 
 		if (!MainViewCanShutdown() && !restartRequest)
 		{
-			MainViewModel.Instance.ShowDialogAlert();
+			MainViewModel.ShowDialogAlert();
 			return;
 		}
 
@@ -107,7 +107,7 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 		// Main view can shutdown when:
 		// - no open dialog
 		// - or no wallets available
-		return !MainViewModel.Instance.IsDialogOpen()
-			   || !MainViewModel.Instance.NavBar.Wallets.Any();
+		return !MainViewModel.IsDialogOpen()
+			   || !MainViewModel.NavBar.Wallets.Any();
 	}
 }
