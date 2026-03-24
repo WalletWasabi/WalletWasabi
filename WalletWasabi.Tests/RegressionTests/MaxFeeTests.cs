@@ -75,7 +75,6 @@ public class MaxFeeTests : IClassFixture<RegTestFixture>
 
 		var walletFactory = Wallet.CreateFactory(network, bitcoinStore, serviceConfiguration, blockProvider, setup.EventBus, setup.CpfpInfoProvider);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
-		walletManager.Initialize();
 
 		// Get some money, make it confirm.
 		var txId = await rpc.SendToAddressAsync(keyManager.GetNextReceiveKey("A").GetP2wpkhAddress(network), Money.Coins(1m));
