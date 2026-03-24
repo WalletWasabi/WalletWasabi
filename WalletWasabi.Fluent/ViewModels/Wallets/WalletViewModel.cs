@@ -191,7 +191,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		{
 			if (UiContext.MainViewModel is { } mainViewModel)
 			{
-				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
+				await mainViewModel.SettingsPage.ActivateCoordinatorTabAsync();
 			}
 		});
 
