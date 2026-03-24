@@ -2,9 +2,6 @@ using System.Globalization;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Extensions;
-using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -81,6 +78,16 @@ public static class CurrencyExtensions
 	public static string ToUsdAprox(this decimal n) => n != decimal.Zero ? $"≈{ToUsdFormatted(n)}" : "";
 
 	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
+
+	public static string ToUsdFormattedOrNotAvailable(this decimal n)
+	{
+		if (n == 0)
+		{
+			return "N/A";
+		}
+
+		return ToUsdAmountFormatted(n) + " USD";
+	}
 
 	public static string ToUsdFormatted(this decimal n)
 	{
