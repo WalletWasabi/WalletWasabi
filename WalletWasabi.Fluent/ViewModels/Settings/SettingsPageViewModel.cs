@@ -80,7 +80,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		await NavigateDialogAsync(this);
 	}
 
-	public async Task ActivateCoordinatorTab()
+	public async Task ActivateCoordinatorTabAsync()
 	{
 		SelectedTab = 2;
 		await NavigateDialogAsync(this);
