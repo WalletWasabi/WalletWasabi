@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -55,8 +54,6 @@ public class WalletManager : IWalletProvider
 
 	private readonly Lock _lock = new();
 	private readonly AsyncLock _startStopWalletLock = new();
-
-	private bool IsInitialized { get; set; }
 
 	private readonly WalletFactory _createWallet;
 	public Network Network { get; }
@@ -311,11 +308,6 @@ public class WalletManager : IWalletProvider
 				wallet.TransactionProcessor.Process(transaction);
 			}
 		}
-	}
-
-	public void Initialize()
-	{
-		IsInitialized = true;
 	}
 
 	public void SetMaxBestHeight(uint bestHeight)
