@@ -130,6 +130,7 @@ fi
 
 require_command "$SEVEN_ZIP"
 require_command gpg
+require_command rsync
 
 # ──────────────────────────────────────────────────────────────────────────────
 #  Main logic
@@ -255,7 +256,7 @@ if [[ "$SKIP_REPLACE_TOR" != true ]]; then
         target_dir="${platform}/Tor"
         mkdir -p "${target_dir}"
         rm -rf "${target_dir:?}"/!(LICENSE|.gitattributes)
-        cp -a "${TEMP_DIR}/Tor/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
+        rsync -a --exclude='geoip' --exclude='geoip6' --exclude='torrc' --exclude='torrc-defaults' "${TEMP_DIR}/Tor/${platform}/" "${BINARIES_DIR}/${target_dir}/"
         info "Updated ${target_dir}"
     done
 else

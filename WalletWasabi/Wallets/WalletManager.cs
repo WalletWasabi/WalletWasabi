@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -55,8 +54,6 @@ public class WalletManager : IWalletProvider
 
 	private readonly Lock _lock = new();
 	private readonly AsyncLock _startStopWalletLock = new();
-
-	private bool IsInitialized { get; set; }
 
 	private readonly WalletFactory _createWallet;
 	public Network Network { get; }
@@ -313,11 +310,6 @@ public class WalletManager : IWalletProvider
 		}
 	}
 
-	public void Initialize()
-	{
-		IsInitialized = true;
-	}
-
 	public void SetMaxBestHeight(uint bestHeight)
 	{
 		foreach (var km in GetWallets().Select(x => x.KeyManager).Where(x => x.GetNetwork() == Network))
@@ -331,6 +323,12 @@ public class WalletManager : IWalletProvider
 			.Where(w => w.KeyManager.GetNetwork() == Network)
 			.Select(w => w.KeyManager.GetBirthHeight())
 			.Where(b => b is not null && b > 0)
+			.MinBy(b => b);
+
+	public ChainHeight? GetWorstBestHeight() =>
+		GetWallets()
+			.Where(w => w.KeyManager.GetNetwork() == Network)
+			.Select(w => w.KeyManager.GetBestHeight())
 			.MinBy(b => b);
 
 	public Wallet GetWalletByName(string walletName)

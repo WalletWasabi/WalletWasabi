@@ -72,7 +72,6 @@ public class BuildTransactionReorgsTest : IClassFixture<RegTestFixture>
 
 		var walletFactory = Wallet.CreateFactory(network, bitcoinStore, serviceConfiguration, blockProvider, setup.EventBus, setup.CpfpInfoProvider);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
-		walletManager.Initialize();
 
 		var baseTip = await rpc.GetBestBlockHashAsync();
 

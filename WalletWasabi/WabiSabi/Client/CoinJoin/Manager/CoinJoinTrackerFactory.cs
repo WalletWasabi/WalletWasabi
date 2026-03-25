@@ -31,7 +31,7 @@ public class CoinJoinTrackerFactory
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet? outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await _liquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 
@@ -41,13 +41,13 @@ public class CoinJoinTrackerFactory
 		}
 
 		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
-		wallet.ConsolidationMode = outputWallet is not null && outputWallet.WalletId != wallet.WalletId;
+		wallet.ConsolidationMode = outputWallet.WalletId != wallet.WalletId;
 
 		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			outputWallet != null ? outputWallet.OutputProvider : wallet.OutputProvider,
+			outputWallet.OutputProvider,
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,

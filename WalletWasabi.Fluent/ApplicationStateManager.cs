@@ -32,10 +32,11 @@ public class ApplicationStateManager : IMainWindowService
 	private bool _restartRequest;
 	private IActivatableLifetime? _activatable;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, bool startInBg)
+	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, MainViewModel mainViewModel, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
+		MainViewModel = mainViewModel;
 
 		var activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
 
@@ -62,7 +63,7 @@ public class ApplicationStateManager : IMainWindowService
 		}
 
 		UiContext = uiContext;
-		ApplicationViewModel = new ApplicationViewModel(UiContext, this);
+		ApplicationViewModel = new ApplicationViewModel(UiContext, mainViewModel, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 
 		_stateMachine.Configure(State.InitialState)
@@ -107,7 +108,7 @@ public class ApplicationStateManager : IMainWindowService
 			.OnEntry(CreateAndShowMainWindow)
 			.Permit(Trigger.Hide, State.Closed)
 			.Permit(Trigger.MainWindowClosed, State.Closed)
-			.OnTrigger(Trigger.Show, MainViewModel.Instance.ApplyUiConfigWindowState);
+			.OnTrigger(Trigger.Show, mainViewModel.ApplyUiConfigWindowState);
 
 		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
 
@@ -133,6 +134,7 @@ public class ApplicationStateManager : IMainWindowService
 	}
 
 	internal UiContext UiContext { get; }
+	internal MainViewModel MainViewModel { get; }
 	internal ApplicationViewModel ApplicationViewModel { get; }
 
 	private void LifetimeOnShutdownRequested(object? sender, ShutdownRequestedEventArgs e)
@@ -183,13 +185,13 @@ public class ApplicationStateManager : IMainWindowService
 			return;
 		}
 
-		MainViewModel.Instance.ApplyUiConfigWindowState();
+		MainViewModel.ApplyUiConfigWindowState();
 
 		_activatable?.TryLeaveBackground();
 
 		var result = new MainWindow
 		{
-			DataContext = MainViewModel.Instance
+			DataContext = MainViewModel,
 		};
 
 		_compositeDisposable?.Dispose();
