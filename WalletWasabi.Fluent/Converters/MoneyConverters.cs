@@ -45,7 +45,7 @@ public static class MoneyConverters
 			{
 				if (t is '+' or '-' or '0' or '.' or ' ')
 				{
-					result = result.Remove(0, 1);
+					result = result[1..];
 					continue;
 				}
 

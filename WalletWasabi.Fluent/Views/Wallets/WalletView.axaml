@@ -38,6 +38,7 @@
               </StackPanel>
             </Button>
 
+            <!-- Send button -->
             <SubActionButton Content="Send"
                              Command="{Binding DefaultSendCommand}"
                              IsVisible="{Binding IsSendButtonVisible}"
@@ -64,6 +65,7 @@
               </SubActionButton.SubCommands>
             </SubActionButton>
 
+            <!-- Receive button -->
             <Button
               Classes="function"
               Command="{Binding SegwitReceiveCommand}"
@@ -100,6 +102,8 @@
                 </UICommandCollection>
               </SubActionButton.SubCommands>
             </SubActionButton>
+
+            <!-- Three-dot button -->
             <Button Classes="transparentFunction">
               <Button.Flyout>
                 <MenuFlyout Placement="Bottom">
@@ -132,7 +136,11 @@
       </StackPanel>
     </ContentArea.TopContent>
     <DockPanel Name="Panel" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+
+      <!-- Balance, privacy progress, exchange rate -->
       <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" Margin="-6 -6 0 0" />
+
+      <!-- Transaction history -->
       <history:HistoryTable Name="HistoryTable"
                             DataContext="{Binding History}"
                             HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
