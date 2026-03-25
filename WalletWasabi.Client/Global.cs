@@ -214,11 +214,8 @@ public class Global
 
 		var bitcoinRpcUri = Config.BitcoinRpcUri;
 		var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
-		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion") && Config.UseTor != TorMode.Disabled)
-		{
-			internalRpcClient.HttpClient =
+		internalRpcClient.HttpClient =
 				ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
-		}
 
 		return new RpcClientBase(internalRpcClient);
 	}

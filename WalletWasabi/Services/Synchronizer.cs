@@ -35,7 +35,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 		try
 		{
 			var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-			var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+			var nbOfFiltersToFetch = Math.Min(100, currentHeight - fromHeight);
 			var stopAtHeight = fromHeight + nbOfFiltersToFetch;
 
 			var realBlockHash = await bitcoinRpcClient.GetBlockHashAsync((int) fromHeight, cancellationToken)
