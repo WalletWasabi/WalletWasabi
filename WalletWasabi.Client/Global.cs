@@ -446,8 +446,6 @@ public class Global
 				await HostedServices.StartAllAsync(linkedCtsToken).ConfigureAwait(false);
 
 				await StartRpcServerAsync(terminateService, linkedCtsToken).ConfigureAwait(false);
-
-				WalletManager.Initialize();
 			}
 			finally
 			{

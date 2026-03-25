@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.Protocol;
 using NBitcoin;
@@ -9,7 +8,6 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -18,7 +16,6 @@ using WalletWasabi.Wallets;
 using Xunit;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Tests.UnitTests;
 using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Tests.RegressionTests;
@@ -73,7 +70,6 @@ public class CancelTests : IClassFixture<RegTestFixture>
 
 		var walletFactory = Wallet.CreateFactory(network, bitcoinStore, serviceConfiguration, blockProvider, setup.EventBus, setup.CpfpInfoProvider);
 		WalletManager walletManager = new(network, workDir, new WalletDirectories(network, workDir), walletFactory);
-		walletManager.Initialize();
 
 		// Get some money, make it confirm.
 		var key = keyManager.GetNextReceiveKey("foo");

@@ -170,7 +170,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			if (UiContext.MainViewModel is { } mainViewModel)
 			{
-				await mainViewModel.SettingsPage.ActivateCoordinatorTab();
+				await mainViewModel.SettingsPage.ActivateCoordinatorTabAsync();
 			}
 		});
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));

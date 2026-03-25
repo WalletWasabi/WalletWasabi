@@ -36,7 +36,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 				.Select(_ =>
 				{
 					var noError = !Validations.Any;
-					var somethingFilled = CustomFee is not null or "";
+					var somethingFilled = CustomFee is not "";
 
 					return noError && somethingFilled;
 				});
