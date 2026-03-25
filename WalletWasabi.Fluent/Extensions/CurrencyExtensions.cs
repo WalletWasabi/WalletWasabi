@@ -79,16 +79,6 @@ public static class CurrencyExtensions
 
 	public static string ToUsdAproxBetweenParens(this decimal n) => n != decimal.Zero ? $"({ToUsdAprox(n)})" : "";
 
-	public static string ToUsdFormattedOrNotAvailable(this decimal n)
-	{
-		if (n == 0)
-		{
-			return "N/A";
-		}
-
-		return ToUsdAmountFormatted(n) + " USD";
-	}
-
 	public static string ToUsdFormatted(this decimal n)
 	{
 		return ToUsdAmountFormatted(n) + " USD";

@@ -8,9 +8,6 @@ namespace WalletWasabi.Fluent.Converters;
 
 public static class MoneyConverters
 {
-	public static readonly IValueConverter ToUsdFormattedOrNotAvailable =
-		new FuncValueConverter<decimal, string>(n => n.ToUsdFormattedOrNotAvailable());
-
 	public static readonly IValueConverter ToUsdFormatted =
 		new FuncValueConverter<decimal, string>(n => n.ToUsdFormatted());
 
