@@ -31,7 +31,7 @@ You can now spend coins using fee rates as low as 0.1 sat/vByte, letting you sav
 You can now add multiple outputs to a transaction and save even more on fees. This significantly reduces the amount of block space used compared to sending multiple payments individually.
 
 ### 📎 Support for arm64 Linux, Tails, and Whonix
-Linux users with arm64 devices are now a part of the Wasabi family. Tails and Whonix intallations are now automatic and no longer require manual Tor configuration.
+Linux users with arm64 devices are now part of the Wasabi family. Tails and Whonix installations are now automatic and no longer require manual Tor configuration.
 
 ### 📜 Scheme scripting language
 Needs description
