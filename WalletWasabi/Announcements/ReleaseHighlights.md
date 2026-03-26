@@ -34,7 +34,7 @@ You can now pay to multiple addresses in the same transaction. This significantl
 Linux users with arm64 devices are now part of the Wasabi family. Tails and Whonix installations are now automatic and no longer require manual Tor configuration.
 
 ### 📜 Scheme scripting language
-Needs description
+The scripting language is an experimental feature that makes Wasabi programmable, queryable, and extensible.
 
 ### 🔑 Signet test network
 Testnet3 and Testnet4 use proof of work for generating blocks, just like mainnet. Because testnet coins have no value, low mining difficulty allows an attacker with a small amount of hashpower to flood blocks or create long reorgs.
