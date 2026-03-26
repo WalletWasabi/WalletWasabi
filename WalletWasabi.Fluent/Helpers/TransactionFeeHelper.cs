@@ -131,9 +131,20 @@ public static class TransactionFeeHelper
 		var maxFeeRate =
 			await Task.Run(() =>
 			{
-				var found = FeeHelpers.TryGetMaxFeeRate(wallet, info.Destination, info.Amount, info.Recipient, info.FeeRate, info.Coins, info.SubtractFee, out var maxFeeRate);
+				bool found;
+				FeeRate? rate;
 
-				return found ? maxFeeRate! : new FeeRate(0m);
+				if (info.IsPayToMany)
+				{
+					var intent = TransactionHelpers.BuildPayToManyIntent(info);
+					found = FeeHelpers.TryGetMaxFeeRateForPayToMany(wallet, intent, info.FeeRate, info.Coins, out rate);
+				}
+				else
+				{
+					found = FeeHelpers.TryGetMaxFeeRate(wallet, info.Destination, info.Amount, info.Recipient, info.FeeRate, info.Coins, info.SubtractFee, out rate);
+				}
+
+				return found ? rate! : new FeeRate(0m);
 			});
 
 		if (EnsureFeeRateIsPossible(wallet, maxFeeRate))

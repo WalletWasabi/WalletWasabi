@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -20,6 +21,11 @@ public static class TransactionHelpers
 {
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
+		if (transactionInfo.IsPayToMany)
+		{
+			return BuildPayToManyTransaction(wallet, transactionInfo, tryToSign);
+		}
+
 		if (transactionInfo.IsOptimized)
 		{
 			return wallet.BuildChangelessTransaction(
@@ -46,6 +52,19 @@ public static class TransactionHelpers
 			tryToSign: tryToSign);
 	}
 
+	private static BuildTransactionResult BuildPayToManyTransaction(Wallet wallet, TransactionInfo transactionInfo, bool tryToSign)
+	{
+		var intent = BuildPayToManyIntent(transactionInfo);
+
+		return wallet.BuildTransaction(
+			password: wallet.Password,
+			payments: intent,
+			feeStrategy: FeeStrategy.CreateFromFeeRate(transactionInfo.FeeRate),
+			allowUnconfirmed: true,
+			allowedInputs: transactionInfo.Coins.Select(c => c.Outpoint),
+			tryToSign: tryToSign);
+	}
+
 	public static bool TryBuildTransactionWithoutPrevTx(
 		KeyManager keyManager,
 		TransactionInfo transactionInfo,
@@ -54,15 +73,23 @@ public static class TransactionHelpers
 		string password,
 		out Money minimumAmount)
 	{
-		minimumAmount = transactionInfo.Amount;
+		minimumAmount = transactionInfo.IsPayToMany ? transactionInfo.TotalAmount : transactionInfo.Amount;
 
 		try
 		{
-			var intent = new PaymentIntent(
-				destination: transactionInfo.Destination,
-				amount: transactionInfo.Amount,
-				subtractFee: transactionInfo.SubtractFee,
-				label: transactionInfo.Recipient);
+			PaymentIntent intent;
+			if (transactionInfo.IsPayToMany)
+			{
+				intent = BuildPayToManyIntent(transactionInfo);
+			}
+			else
+			{
+				intent = new PaymentIntent(
+					destination: transactionInfo.Destination,
+					amount: transactionInfo.Amount,
+					subtractFee: transactionInfo.SubtractFee,
+					label: transactionInfo.Recipient);
+			}
 
 			var network = keyManager.GetNetwork();
 			var builder = new TransactionFactory(network, keyManager, allCoins, new EmptyTransactionStore(network), password);
@@ -128,6 +155,19 @@ public static class TransactionHelpers
 		}
 
 		return psbt.ExtractSmartTransaction();
+	}
+
+	internal static PaymentIntent BuildPayToManyIntent(TransactionInfo transactionInfo)
+	{
+		var requests = transactionInfo.AllRecipients
+			.Select((r, index) =>
+			{
+				bool subtractFee = index == 0 ? transactionInfo.SubtractFee : r.IsSubtractFee;
+				return new DestinationRequest(r.Destination, MoneyRequest.Create(r.Amount, subtractFee), r.Label);
+			})
+			.ToArray();
+
+		return new PaymentIntent(requests);
 	}
 
 	public static async Task<bool> ExportTransactionToBinaryAsync(BuildTransactionResult transaction)

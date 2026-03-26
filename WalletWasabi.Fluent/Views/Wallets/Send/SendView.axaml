@@ -11,6 +11,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
 
+  <UserControl.Resources>
+    <converters:BooleanConverter x:Key="AddressWatermarkConverter"
+                                 TrueValue="(e.g. Bitcoin address or Silent Payment address)"
+                                 FalseValue="(e.g. Bitcoin address, Silent Payment address or payjoin URL)" />
+  </UserControl.Resources>
+
   <UserControl.DataTemplates>
 
     <DataTemplate DataType="models:Suggestion">
@@ -69,7 +75,7 @@
         </StackPanel>
       </PrivacyContentControl>
     </ContentArea.TopContent>
-    <DockPanel LastChildFill="False">
+    <DockPanel LastChildFill="False" Margin="0,0,12,0">
       <DockPanel.Styles>
         <Style Selector="DockPanel > Label">
           <Setter Property="MinWidth" Value="80" />
@@ -94,13 +100,18 @@
         </Style>
       </DockPanel.Styles>
 
+      <!-- Recipient 1 header (only visible in pay-to-many) -->
+      <TextBlock DockPanel.Dock="Top" Text="Recipient 1"
+                 Classes="h8" Opacity="0.6" MinWidth="80" Margin="0,0,0,8"
+                 IsVisible="{Binding IsPayToMany}" />
+
       <!-- To -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
         <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
 
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  IsReadOnly="{Binding IsFixedAddress}"
-                 Watermark="(e.g. Bitcoin address, Silent Payment address or payjoin URL)"
+                 Watermark="{Binding IsPayToMany, Converter={StaticResource AddressWatermarkConverter}}"
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
@@ -148,16 +159,16 @@
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
           <DualCurrencyEntryBox x:Name="amountTb"
-                                KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
-                                IsReadOnly="{Binding IsFixedAmount}"
-                                AmountBtc="{Binding AmountBtc}"
-                                ConversionRate="{Binding ExchangeRate}"
-                                CurrencyCode="BTC"
-                                ConversionCurrencyCode="USD"
-                                IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
-                                BalanceBtc="{Binding Balance^.Btc}"
-                                BalanceUsd="{Binding Balance^.Usd^}"
-                                ValidatePasteBalance="False">
+                                  KeyboardNavigation.IsTabStop="{Binding !IsFixedAmount}"
+                                  IsReadOnly="{Binding IsFixedAmount}"
+                                  AmountBtc="{Binding AmountBtc}"
+                                  ConversionRate="{Binding ExchangeRate}"
+                                  CurrencyCode="BTC"
+                                  ConversionCurrencyCode="USD"
+                                  IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}"
+                                  BalanceBtc="{Binding Balance^.Btc}"
+                                  BalanceUsd="{Binding Balance^.Usd^}"
+                                  ValidatePasteBalance="False">
             <DualCurrencyEntryBox.Resources>
 
               <converters:BooleanConverter x:Key="SuggestionPlacementConverter"
@@ -170,11 +181,11 @@
               </EventTriggerBehavior>
 
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.LeftEntryBox}" Content="{Binding BitcoinContent}"
-                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                        PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <FlyoutSuggestionBehavior Target="{Binding #amountTb.RightEntryBox}" Content="{Binding UsdContent}"
-                                        EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
-                                        PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
+                                                  EqualityComparer="{x:Static helpers:AmountStringComparer.Instance}"
+                                                  PlacementMode="{Binding !ConversionReversed, Converter={StaticResource SuggestionPlacementConverter}}" />
               <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
                 <FocusControlActionCustom TargetControl="LabelTagBox"/>
               </KeyDownTrigger>
@@ -182,6 +193,11 @@
           </DualCurrencyEntryBox>
         </DockPanel>
       </DockPanel>
+      <!-- Fee subtraction indicator for primary recipient -->
+      <TextBlock DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                 Text="The transaction fee will be subtracted from this payment"
+                 ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
+                 IsVisible="{Binding IsPrimarySubtractFee}" />
       <!-- Recipient -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
         <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
@@ -201,6 +217,103 @@
                  ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}">
         </TagsBox>
       </DockPanel>
+
+      <!-- Additional Recipients -->
+      <ItemsControl DockPanel.Dock="Top" ItemsSource="{Binding AdditionalRecipients}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Margin="0,5,0,10" Padding="0,0,0,10" BorderBrush="{DynamicResource SystemBaseLowColor}" BorderThickness="0,0,0,1">
+              <StackPanel>
+                <!-- Recipient header with number and remove button -->
+                <DockPanel Margin="0,0,0,8">
+                  <TextBlock DockPanel.Dock="Left" Text="{Binding Index, Converter={x:Static converters:IntConverter.ToRecipientNumber}}"
+                             Classes="h8" Opacity="0.6" VerticalAlignment="Center" MinWidth="80" />
+                  <Button DockPanel.Dock="Right" Classes="plain" Command="{Binding Value.RemoveCommand}"
+                          ToolTip.Tip="Remove recipient" VerticalAlignment="Center" Margin="5,0,0,0" Cursor="Hand">
+                    <StackPanel Orientation="Horizontal" Spacing="4">
+                      <PathIcon Data="{StaticResource dismiss_light}" Width="12" Height="12" />
+                      <TextBlock Text="Remove" Opacity="0.6" FontSize="12" VerticalAlignment="Center" />
+                    </StackPanel>
+                  </Button>
+                </DockPanel>
+                <!-- To -->
+                <DockPanel Margin="0,0,0,10">
+                  <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
+                  <TextBox Text="{Binding Value.To}" Classes="monoSpaced" MaxLength="250"
+                           Watermark="(e.g. Bitcoin address or Silent Payment address)">
+                    <TextBox.InnerRightContent>
+                      <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+                        <AnimatedButton KeyboardNavigation.IsTabStop="False"
+                                          Focusable="False"
+                                          Command="{Binding Value.PasteCommand}"
+                                          ToolTip.Tip="Paste"
+                                          NormalIcon="{StaticResource paste_regular}"
+                                          ClickIcon="{StaticResource copy_confirmed}" />
+                        <AnimatedButton IsVisible="{Binding Value.IsQrButtonVisible}"
+                                          KeyboardNavigation.IsTabStop="False"
+                                          Focusable="False"
+                                          Command="{Binding Value.QrCommand}"
+                                          ToolTip.Tip="Scan QR Code"
+                                          NormalIcon="{StaticResource qr_code_regular}" />
+                      </StackPanel>
+                    </TextBox.InnerRightContent>
+                  </TextBox>
+                </DockPanel>
+                <TextBlock Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
+                <!-- Amount -->
+                <DockPanel Margin="0,0,0,15">
+                  <Label DockPanel.Dock="Left" Content="Amount:" MinWidth="80" />
+                  <DockPanel>
+                    <Button DockPanel.Dock="Right" Classes="activeHyperLink" Command="{Binding Value.InsertMaxCommand}"
+                            Content="Max" Margin="8,8,0,0" VerticalAlignment="Top" Focusable="False" />
+                    <DualCurrencyEntryBox AmountBtc="{Binding Value.AmountBtc}"
+                                          ConversionRate="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ExchangeRate}"
+                                          CurrencyCode="BTC"
+                                          ConversionCurrencyCode="USD"
+                                          IsConversionReversed="{Binding $parent[UserControl].((vm:SendViewModel)DataContext).ConversionReversed}"
+                                          ValidatePasteBalance="False" />
+                  </DockPanel>
+                </DockPanel>
+                <TextBlock Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                           Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
+                <!-- Fee subtraction indicator -->
+                <TextBlock Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                           Text="The transaction fee will be subtracted from this payment"
+                           ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
+                           IsVisible="{Binding Value.IsSubtractFee}" />
+                <!-- Recipient label -->
+                <DockPanel Margin="0,0,0,10">
+                  <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
+                  <TagsBox VerticalAlignment="Top"
+                           Watermark="{StaticResource LabelsWatermarkText}"
+                           TagSeparator=","
+                           SuggestionsAreCaseSensitive="True"
+                           RestrictInputToSuggestions="False"
+                           Items="{Binding Value.SuggestionLabels.Labels}"
+                           TopItems="{Binding Value.SuggestionLabels.TopSuggestions}"
+                           Suggestions="{Binding Value.SuggestionLabels.Suggestions}"
+                           MaxTextLength="{StaticResource MaxLabelLength}"
+                           IsCurrentTextValid="{Binding Value.SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}"
+                           ForceAdd="{Binding Value.SuggestionLabels.ForceAdd, Mode=TwoWay}" />
+                </DockPanel>
+              </StackPanel>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+      </ItemsControl>
+
+      <!-- Add Recipient Button -->
+      <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
+              Content="+ Add another payment" Margin="80,0,0,10" HorizontalAlignment="Left"
+              IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand"
+              ToolTip.ShowOnDisabled="True">
+        <Button.Styles>
+          <Style Selector="Button:disabled">
+            <Setter Property="ToolTip.Tip" Value="Pay to many is not available when using a BIP21 payment URI." />
+          </Style>
+        </Button.Styles>
+      </Button>
     </DockPanel>
   </ContentArea>
 </UserControl>
