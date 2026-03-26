@@ -6,9 +6,13 @@ using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
+using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Services;
 using WalletWasabi.Fluent.ViewModels.Dialogs.ReleaseHighlights;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -190,6 +194,15 @@ public partial class MainViewModel : ViewModelBase
 			.ToCollection()
 			.Select(x => x.Count != 0)
 			.BindTo(this, x => x.IsCoinJoinActive);
+
+		Services.EventBus.AsObservable<RpcStatusChanged>()
+			.Select(x => x.Status)
+			.Where(x => !x.IsOk)
+			.Take(1)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => NotificationHelpers.Show(
+				"Bitcoin RPC not configured",
+				$"Could not connect to Bitcoin Core: {x.Error}. Please configure RPC credentials in Settings."));
 
 		Notifications.StartListening();
 
