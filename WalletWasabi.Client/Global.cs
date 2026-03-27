@@ -214,9 +214,15 @@ public class Global
 
 		var bitcoinRpcUri = Config.BitcoinRpcUri;
 		var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
-		internalRpcClient.HttpClient =
-				ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+		
+		// If the RPC URI is a loopback (i.e., localhost)
+		// then we are bypassing Tor
+		if (!new Uri(bitcoinRpcUri).IsLoopback){
+			internalRpcClient.HttpClient =
+							ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 
+		}
+		
 		return new RpcClientBase(internalRpcClient);
 	}
 
