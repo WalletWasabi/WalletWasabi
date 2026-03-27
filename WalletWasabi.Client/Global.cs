@@ -217,10 +217,11 @@ public class Global
 		
 		// If the RPC URI is a loopback (i.e., localhost)
 		// then we are bypassing Tor
-		if (!new Uri(bitcoinRpcUri).IsLoopback){
+		var isBitcoinRpcLocal = new Uri(bitcoinRpcUri).IsLoopback;
+		if (!isBitcoinRpcLocal)
+		{
 			internalRpcClient.HttpClient =
 							ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
-
 		}
 		
 		return new RpcClientBase(internalRpcClient);
