@@ -563,7 +563,7 @@ public static partial class Decode
 
 	private static Decoder<RoundStateRequest> RoundStateRequest =>
 		Object(get => new RoundStateRequest(
-			get.Required("RoundCheckpoints", Array(RoundStateCheckpoint)).ToImmutableList()
+			(get.Required("RoundCheckpoints", Array(RoundStateCheckpoint)) ?? []).ToImmutableList()
 		));
 
 	private static  Decoder<RoundStateResponse> RoundStateResponse =>
