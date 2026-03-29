@@ -478,24 +478,24 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}
 		else if (finishedTask == participantsFinishedTask)
 		{
-			var participantsFinishedSuccessully = tasks
+			var participantsFinishedSuccessfully = tasks
 				.Where(t => t.IsCompletedSuccessfully)
 				.Select(t => t.Result)
 				.ToArray();
 
 			// In case some participants claim to have finished successfully then wait a second for seeing
 			// the coinjoin in the mempool. This seems really hard to believe but just in case.
-			if (participantsFinishedSuccessully.All(x => x is SuccessfulCoinJoinResult))
+			if (participantsFinishedSuccessfully.All(x => x is SuccessfulCoinJoinResult))
 			{
 				await Task.Delay(TimeSpan.FromSeconds(1));
 				var mempool = await rpc.GetRawMempoolAsync();
 				Assert.Single(mempool);
 			}
-			else if (participantsFinishedSuccessully.All(x => x is FailedCoinJoinResult))
+			else if (participantsFinishedSuccessfully.All(x => x is FailedCoinJoinResult))
 			{
 				throw new Exception("All participants finished, but CoinJoin still not in the mempool (no more blame rounds).");
 			}
-			else if (participantsFinishedSuccessully.Length == 0 && !cts.IsCancellationRequested)
+			else if (participantsFinishedSuccessfully.Length == 0 && !cts.IsCancellationRequested)
 			{
 				var exceptions = tasks
 					.Where(x => x.IsFaulted)

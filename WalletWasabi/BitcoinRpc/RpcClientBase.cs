@@ -59,11 +59,11 @@ public class RpcClientBase : IRPCClient
 		return await Rpc.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default)
+	public virtual async Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancellationToken = default)
 	{
 		try
 		{
-			var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancel, true)
+			var response = await Rpc.SendCommandAsync(RPCOperations.getmempoolinfo, cancellationToken, true)
 				.ConfigureAwait(false);
 
 			static IEnumerable<FeeRateGroup> ExtractFeeRateGroups(JToken jt) =>
@@ -81,7 +81,7 @@ public class RpcClientBase : IRPCClient
 								From = new FeeRate(p.Value.Value<decimal>("from_feerate")),
 								To = new FeeRate(Math.Min(50_000, p.Value.Value<decimal>("to_feerate")))
 							}),
-					_ => Enumerable.Empty<FeeRateGroup>()
+					_ => []
 				};
 
 			return new MemPoolInfo()
@@ -102,9 +102,9 @@ public class RpcClientBase : IRPCClient
 		}
 		catch (RPCException ex) when (ex.RPCCode == RPCErrorCode.RPC_MISC_ERROR)
 		{
-			cancel.ThrowIfCancellationRequested();
+			cancellationToken.ThrowIfCancellationRequested();
 
-			return await Rpc.GetMemPoolAsync(cancel).ConfigureAwait(false);
+			return await Rpc.GetMemPoolAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -202,7 +202,7 @@ public class RpcClientBase : IRPCClient
 		return await Rpc.GetRawTransactionAsync(txid, throwIfNotFound, cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual async Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel)
+	public virtual async Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken)
 	{
 		// 8 is half of the default rpcworkqueue
 		List<Transaction> acquiredTransactions = new();
@@ -212,10 +212,10 @@ public class RpcClientBase : IRPCClient
 			List<Task<Transaction>> tasks = new();
 			foreach (var txid in txidsChunk)
 			{
-				tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false, cancel));
+				tasks.Add(batchingRpc.GetRawTransactionAsync(txid, throwIfNotFound: false, cancellationToken));
 			}
 
-			await batchingRpc.SendBatchAsync(cancel).ConfigureAwait(false);
+			await batchingRpc.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 			foreach (var tx in await Task.WhenAll(tasks).ConfigureAwait(false))
 			{
@@ -223,7 +223,7 @@ public class RpcClientBase : IRPCClient
 				{
 					acquiredTransactions.Add(tx);
 				}
-				cancel.ThrowIfCancellationRequested();
+				cancellationToken.ThrowIfCancellationRequested();
 			}
 		}
 

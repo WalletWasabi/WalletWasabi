@@ -17,22 +17,21 @@ public static class RpcMonitor
 	public static MessageHandler<CheckMessage, Unit> CreateChecker(IRPCClient rpcClient, EventBus eventBus) =>
 		(_, _, cancellationToken) => CheckRpcStatusAsync(rpcClient, eventBus, cancellationToken);
 
-	private static async Task<Unit> CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancel)
+	private static async Task<Unit> CheckRpcStatusAsync(IRPCClient rpcClient, EventBus eventBus, CancellationToken cancellationToken)
 	{
-		var rpcStatus = await GetRpcStatusAsync(rpcClient, cancel).ConfigureAwait(false);
+		var rpcStatus = await GetRpcStatusAsync(rpcClient, cancellationToken).ConfigureAwait(false);
 		eventBus.Publish(new RpcStatusChanged(rpcStatus));
 		return Unit.Instance;
 	}
 
-	private static async Task<Result<ConnectedRpcStatus, string>> GetRpcStatusAsync(IRPCClient rpcClient, CancellationToken cancel)
+	private static async Task<Result<ConnectedRpcStatus, string>> GetRpcStatusAsync(IRPCClient rpcClient, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var bci = await rpcClient.GetBlockchainInfoAsync(cancel).ConfigureAwait(false);
+			var bci = await rpcClient.GetBlockchainInfoAsync(cancellationToken).ConfigureAwait(false);
 			var pi = await PeersInfoAsync().ConfigureAwait(false);
 			var peerCount = pi.Map(x => x.Length);
-			return new ConnectedRpcStatus(bci.Headers, bci.Blocks, peerCount, bci.BestBlockHash, bci.Pruned,
-				bci.InitialBlockDownload);
+			return new ConnectedRpcStatus(bci.Headers, bci.Blocks, peerCount, bci.BestBlockHash, bci.Pruned, bci.InitialBlockDownload);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException and not TimeoutException)
 		{
@@ -52,11 +51,11 @@ public static class RpcMonitor
 		{
 			try
 			{
-				return await rpcClient.GetPeersInfoAsync(cancel).ConfigureAwait(false);
+				return await rpcClient.GetPeersInfoAsync(cancellationToken).ConfigureAwait(false);
 			}
 			catch (RPCException e)
 			{
-				// Connected to a shared readonly rpc
+				// Connected to a shared readonly RPC.
 				return e is {RPCCode:RPCErrorCode.RPC_METHOD_NOT_FOUND}
 					? Result<PeerInfo[], RPCResponse>.Ok([new PeerInfo()])
 					: Result<PeerInfo[], RPCResponse>.Fail(e.RPCResult);

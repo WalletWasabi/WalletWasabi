@@ -50,13 +50,13 @@ public class Warden : BackgroundService
 		return new Prison(offenders, channelWriter);
 	}
 
-	protected override async Task ExecuteAsync(CancellationToken cancel)
+	protected override async Task ExecuteAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
-			while (!cancel.IsCancellationRequested)
+			while (!cancellationToken.IsCancellationRequested)
 			{
-				await foreach (var inmate in _offendersToSaveChannel.Reader.ReadAllAsync(cancel).ConfigureAwait(false))
+				await foreach (var inmate in _offendersToSaveChannel.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
 				{
 					await File.AppendAllLinesAsync(_prisonFilePath, [inmate.ToStringLine()], CancellationToken.None).ConfigureAwait(false);
 				}

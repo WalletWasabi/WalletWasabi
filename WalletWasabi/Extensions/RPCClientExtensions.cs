@@ -204,8 +204,7 @@ public static class RPCClientExtensions
 			await rpc.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
 			return Result<Unit,bool>.Ok(Unit.Instance);
 		}
-		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_MISC_ERROR &&
-		                             e.Message.Contains("Index is not enabled"))
+		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_MISC_ERROR && e.Message.Contains("Index is not enabled"))
 		{
 			return Result<Unit,bool>.Fail(true);
 		}

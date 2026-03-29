@@ -43,22 +43,22 @@ public class TransactionProcessor
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
-		var rets = new List<ProcessedResult>();
+		var results = new List<ProcessedResult>();
 
 		lock (Lock)
 		{
 			foreach (var tx in txs)
 			{
-				rets.Add(ProcessNoLock(tx));
+				results.Add(ProcessNoLock(tx));
 			}
 		}
 
-		foreach (var ret in rets.Where(x => x.IsNews))
+		foreach (var result in results.Where(x => x.IsNews))
 		{
-			WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			WalletRelevantTransactionProcessed?.Invoke(this, result);
 		}
 
-		return rets;
+		return results;
 	}
 
 	public IEnumerable<ProcessedResult> Process(params SmartTransaction[] txs)

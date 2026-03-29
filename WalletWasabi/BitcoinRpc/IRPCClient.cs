@@ -36,7 +36,7 @@ public interface IRPCClient
 
 	Task<uint256[]> GetRawMempoolAsync(CancellationToken cancellationToken = default);
 
-	Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancel = default);
+	Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancellationToken = default);
 
 	Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default);
 
@@ -58,7 +58,7 @@ public interface IRPCClient
 
 	Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default);
 
-	Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancel);
+	Task<IEnumerable<Transaction>> GetRawTransactionsAsync(IEnumerable<uint256> txids, CancellationToken cancellationToken);
 
 	Task<int> GetBlockCountAsync(CancellationToken cancellationToken = default);
 

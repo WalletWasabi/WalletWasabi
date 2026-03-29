@@ -205,7 +205,7 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 
 	public bool TryGetOldestKnownTransactionHeight([NotNullWhen(true)] out ChainHeight? height)
 	{
-		if(ConfirmedStore.TryGetFirstSeenTransaction(out var tx))
+		if (ConfirmedStore.TryGetFirstSeenTransaction(out var tx))
 		{
 			height = (ChainHeight) tx.Height;
 			return true;
