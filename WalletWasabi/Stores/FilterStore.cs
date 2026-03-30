@@ -88,6 +88,14 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
 	private readonly AsyncLock _indexLock = new();
 
+	/// <summary>
+	/// Returns the minimum block height stored in the filter index, or <c>null</c> if the index is empty.
+	/// </summary>
+	public uint? GetMinimumBlockHeight()
+	{
+		return IndexStorage.GetMinimumBlockHeight();
+	}
+
 	public async Task InitializeAsync(ChainHeight oldestKnownTransactionHeight, CancellationToken cancellationToken)
 	{
 		try

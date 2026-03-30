@@ -28,8 +28,7 @@
       </ContentArea.Styles>
       <DockPanel LastChildFill="True">
         <InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
-                              Margin="0 20 0 0"
-                              IsVisible="{Binding !IsWalletRecovery}">
+                              Margin="0 20 0 0">
           <Panel>
             <WrapPanel>
               <TextBlock Text="You can click this icon" />
@@ -48,14 +47,7 @@
         </InfoMessage>
         <TextBox Classes="monoSpaced wrap"
                  Theme="{DynamicResource SelectableTextBlockTextBox}"
-                 Text="{Binding Trace}"
-                 IsVisible="{Binding !IsWalletRecovery}" />
-        <TextBlock Text="{Binding Trace}"
-                   TextWrapping="Wrap"
-                   IsVisible="{Binding IsWalletRecovery}"
-                   VerticalAlignment="Center"
-                   HorizontalAlignment="Center"
-                   Margin="20" />
+                 Text="{Binding Trace}" />
       </DockPanel>
     </ContentArea>
   </Panel>
