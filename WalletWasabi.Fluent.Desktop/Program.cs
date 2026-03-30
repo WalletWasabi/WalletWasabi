@@ -22,7 +22,6 @@ using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
-using WalletWasabi.Services.Terminate;
 using ReactiveUI.Avalonia;
 
 namespace WalletWasabi.Fluent.Desktop;
@@ -146,18 +145,8 @@ public class Program
 		}
 	}
 
-	private static void LogUnhandledException(object? sender, Exception e)
-	{
+	private static void LogUnhandledException(object? sender, Exception e) =>
 		Logger.LogWarning(e);
-
-		// If the process is being terminated by an unhandled exception during a graceful crash
-		// (e.g. Avalonia/DBus disposal race during shutdown), invoke the crash reporter now
-		// because Program.Main will never get the chance to do so.
-		if (TerminateService.Instance?.GracefulCrashException is { } crashException)
-		{
-			CrashReporter.Invoke(crashException);
-		}
-	}
 
 	private static void DetachTrayIconMenus()
 	{
