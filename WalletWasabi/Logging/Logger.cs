@@ -27,10 +27,10 @@ public static class Logger
 		SetFilePath(filePath);
 
 #if RELEASE
-		logLevel ??= LogLevel.Info;
+		logLevel ??= LogLevel.Trace;
 		logModes ??= [LogMode.Console, LogMode.File];
 #else
-		logLevel ??= LogLevel.Debug;
+		logLevel ??= LogLevel.Trace;
 		logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
 #endif
 
