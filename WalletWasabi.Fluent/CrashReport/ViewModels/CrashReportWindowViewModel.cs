@@ -5,17 +5,16 @@ using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 using WalletWasabi.Models;
 using WalletWasabi.Helpers;
+using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Fluent.CrashReport.ViewModels;
 
 public class CrashReportWindowViewModel : ViewModelBase
 {
-	private const string WalletFilterNotFoundExceptionType = "WalletWasabi.Wallets.FilterProcessor.WalletFilterNotFoundException";
-
 	public CrashReportWindowViewModel(SerializableException serializedException)
 	{
 		SerializedException = serializedException;
-		IsWalletRecovery = serializedException.ExceptionType == WalletFilterNotFoundExceptionType;
+		IsWalletRecovery = serializedException.ExceptionType == typeof(WalletFilterNotFoundException).FullName;
 		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));
 		NextCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: false));
 
