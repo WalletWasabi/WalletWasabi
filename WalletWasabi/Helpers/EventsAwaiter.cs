@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Helpers;
 
@@ -40,7 +41,15 @@ public class EventsAwaiter<TEventArgs>
 
 	private void SubscriptionEventHandler(object? sender, TEventArgs e)
 	{
-		Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; argument: {e}");
+		if (e is SmartTransaction stx)
+		{
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; stx ({stx.GetHash()}): {stx}");
+		}
+		else
+		{
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; argument: {e}");
+		}
+
 
 		lock (_lock)
 		{
@@ -51,7 +60,16 @@ public class EventsAwaiter<TEventArgs>
 				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - task #{i} has status: {task.Status}");
 			}
 
+			i = 0;
+			foreach (var tcs in EventsArrived)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+			}
+
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - firstUnfinished={firstUnfinished}");
+
 			firstUnfinished?.TrySetResult(e);
 
 			// This is guaranteed to happen only once.
