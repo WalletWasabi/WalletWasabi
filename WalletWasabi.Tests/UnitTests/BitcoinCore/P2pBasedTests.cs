@@ -11,7 +11,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
@@ -20,9 +19,12 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 [Collection("Serial unit tests collection")]
 public class P2pBasedTests
 {
-	// [Fact]  FIXME: this test never fails locally while almost always fail in the CI server
+	[Fact]
 	public async Task MempoolNotifiesAsync()
 	{
+		for (int r = 0; r < 20; r++)
+		{
+		Console.WriteLine($"==== Run #{r} ====");
 		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
 
 		using var node = await coreNode.CreateNewP2pNodeAsync();
@@ -88,6 +90,7 @@ public class P2pBasedTests
 		{
 			node.DisconnectAsync();
 			await coreNode.TryStopAsync();
+		}
 		}
 	}
 }
