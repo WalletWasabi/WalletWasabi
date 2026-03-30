@@ -12,9 +12,6 @@ namespace WalletWasabi.BundledApps;
 /// </summary>
 public class ProcessAsync : IDisposable
 {
-	/// <summary>
-	/// To detect redundant calls.
-	/// </summary>
 	private bool _disposed = false;
 
 	public ProcessAsync(ProcessStartInfo startInfo) : this(new Process() { StartInfo = startInfo })
@@ -85,7 +82,7 @@ public class ProcessAsync : IDisposable
 	{
 		if (_process.HasExited)
 		{
-			Logger.LogTrace("_process has already exited.");
+			Logger.LogTrace("Process has already exited.");
 			return;
 		}
 
@@ -94,7 +91,7 @@ public class ProcessAsync : IDisposable
 			Logger.LogTrace($"Wait for the process to exit: '{_process.Id}'");
 			await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
-			Logger.LogTrace("_process has exited.");
+			Logger.LogTrace("Process has exited.");
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -103,7 +100,6 @@ public class ProcessAsync : IDisposable
 		}
 	}
 
-	// Protected implementation of Dispose pattern.
 	protected virtual void Dispose(bool disposing)
 	{
 		if (_disposed)
@@ -113,7 +109,6 @@ public class ProcessAsync : IDisposable
 
 		if (disposing)
 		{
-			// Dispose managed state (managed objects).
 			_process.Dispose();
 		}
 
@@ -122,10 +117,7 @@ public class ProcessAsync : IDisposable
 
 	public virtual void Dispose()
 	{
-		// Dispose of unmanaged resources.
 		Dispose(true);
-
-		// Suppress finalization.
 		GC.SuppressFinalize(this);
 	}
 }
