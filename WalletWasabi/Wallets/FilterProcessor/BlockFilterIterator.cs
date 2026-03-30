@@ -39,7 +39,7 @@ public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersI
 		// Check that we get a block filter and that the filter is actually the one we want as the previous command does not guarantee that we get such block.
 		if (filtersBatch[0].Header.Height != height)
 		{
-			throw new WalletFilterNotFoundException($"Block filter for height {height} was not found. This can happen during wallet recovery. Please restart the application to resume syncing.");
+			throw new UnreachableException($"Block filter for height {height} was not found.");
 		}
 
 		// _cache filters.
