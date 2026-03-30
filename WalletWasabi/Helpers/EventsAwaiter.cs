@@ -40,15 +40,29 @@ public class EventsAwaiter<TEventArgs>
 
 	private void SubscriptionEventHandler(object? sender, TEventArgs e)
 	{
+		Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; argument: {e}");
+
 		lock (_lock)
 		{
+			int i = 0;
+			foreach (var task in Tasks)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - task #{i} has status: {task.Status}");
+			}
+
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
 			firstUnfinished?.TrySetResult(e);
 
 			// This is guaranteed to happen only once.
 			if (Tasks.All(x => x.IsCompleted))
 			{
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - all tasks completed");
 				_unsubscribe(SubscriptionEventHandler);
+			}
+			else
+			{
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - not all tasks are completed");
 			}
 		}
 	}
