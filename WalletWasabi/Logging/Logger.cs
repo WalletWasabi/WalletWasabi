@@ -14,8 +14,8 @@ namespace WalletWasabi.Logging;
 public static class Logger
 {
 	private static readonly Lock Lock = new();
-	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
-	private static HashSet<LogMode> Modes { get; } = new();
+	private static LogLevel MinimumLevel { get; set; } = LogLevel.Trace;
+	private static HashSet<LogMode> Modes { get; } = new() { LogMode.Debug, LogMode.Console };
 	public static string FilePath { get; private set; } = "Log.txt";
 	public static string EntrySeparator { get; } = Environment.NewLine;
 	private static long MaximumLogFileSizeBytes { get; set; } = 10_000_000;
