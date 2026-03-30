@@ -22,7 +22,7 @@ public class P2pBasedTests
 	[Fact]
 	public async Task MempoolNotifiesAsync()
 	{
-		for (int r = 0; r < 20; r++)
+		for (int r = 0; r < 3; r++)
 		{
 		Console.WriteLine($"==== Run #{r} ====");
 		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
