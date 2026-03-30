@@ -44,7 +44,7 @@ public partial class Arena : PeriodicRunner
 	}
 
 	public HashSet<Round> Rounds { get; } = new();
-	private ImmutableList<RoundState> _roundStates = ImmutableList<RoundState>.Empty;
+	private ImmutableList<RoundState> _roundStates = [];
 	private readonly ConcurrentQueue<uint256> _disruptedRounds = new();
 	private readonly AsyncLock _asyncLock = new();
 	private readonly WabiSabiConfig _config;
@@ -55,32 +55,31 @@ public partial class Arena : PeriodicRunner
 	private readonly FeeRateProvider _feeRateProvider;
 	private readonly MaxSuggestedAmountProvider _maxSuggestedAmountProvider;
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
-		using (await _asyncLock.LockAsync(cancel).ConfigureAwait(false))
+		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			TimeoutRounds();
 
 			TimeoutAlices();
 
-			await StepTransactionSigningPhaseAsync(cancel).ConfigureAwait(false);
+			await StepTransactionSigningPhaseAsync(cancellationToken).ConfigureAwait(false);
 
 			StepOutputRegistrationPhase();
 
-			await StepConnectionConfirmationPhaseAsync(cancel).ConfigureAwait(false);
+			await StepConnectionConfirmationPhaseAsync(cancellationToken).ConfigureAwait(false);
 
-			await StepInputRegistrationPhaseAsync(cancel).ConfigureAwait(false);
+			await StepInputRegistrationPhaseAsync(cancellationToken).ConfigureAwait(false);
 
-			cancel.ThrowIfCancellationRequested();
+			cancellationToken.ThrowIfCancellationRequested();
 
 			// Ensure there's at least one non-blame round in input registration.
-			await CreateRoundsAsync(cancel).ConfigureAwait(false);
+			await CreateRoundsAsync(cancellationToken).ConfigureAwait(false);
 
 			AbortDisruptedRounds();
 
 			// RoundStates have to contain all states. Do not change stateId=0.
 			SetRoundStates();
-
 		}
 	}
 
@@ -89,9 +88,9 @@ public partial class Arena : PeriodicRunner
 		// Order rounds ascending by max suggested amount, then ascending by input count.
 		// This will make sure WW2.0.1 clients register according to our desired order.
 		var rounds = Rounds
-						.OrderBy(x => x.Parameters.MaxSuggestedAmount)
-						.ThenBy(x => x.InputCount)
-						.ToList();
+			.OrderBy(x => x.Parameters.MaxSuggestedAmount)
+			.ThenBy(x => x.InputCount)
+			.ToList();
 
 		_roundStates = rounds.Select(r => RoundState.FromRound(r, stateId: 0)).ToImmutableList();
 	}

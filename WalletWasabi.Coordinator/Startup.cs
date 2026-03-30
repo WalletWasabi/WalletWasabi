@@ -25,7 +25,6 @@ using WalletWasabi.Tor;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WebClients.Wasabi;
 using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
@@ -88,9 +87,9 @@ public class Startup(IConfiguration configuration)
 		    }
 
 		    RPCClient rpcClient = new(
-		            authenticationString: config.BitcoinRpcConnectionString,
-		            hostOrUri: host,
-		            network: config.Network);
+				authenticationString: config.BitcoinRpcConnectionString,
+				hostOrUri: host,
+				network: config.Network);
 
 		    IMemoryCache memoryCache = provider.GetRequiredService<IMemoryCache>();
 		    CachedRpcClient cachedRpc = new(rpcClient, memoryCache);
@@ -113,8 +112,8 @@ public class Startup(IConfiguration configuration)
 
 		services.AddSingleton<IHttpClientFactory>(s =>
 			config.PublishAsOnionService
-			? new OnionHttpClientFactory(torSetting.SocksEndpoint.ToUri("socks5"))
-			: new HttpClientFactory()
+				? new OnionHttpClientFactory(torSetting.SocksEndpoint.ToUri("socks5"))
+				: new HttpClientFactory()
 			);
 
 		services.AddSingleton<FeeRateProvider>(s =>

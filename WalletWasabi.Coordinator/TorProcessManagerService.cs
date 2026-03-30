@@ -19,7 +19,7 @@ public class TorProcessManagerService(TorSettings torSettings, WabiSabiConfig co
 		var urls = configuration["urls"];
 		if (urls is null)
 		{
-			Logger.LogWarning("The coordinator doesn't have urls configured!");
+			Logger.LogWarning("The coordinator doesn't have URLs configured!");
 			return;
 		}
 
@@ -28,7 +28,7 @@ public class TorProcessManagerService(TorSettings torSettings, WabiSabiConfig co
 
 		if (torControlClient is { } nonNullTorControlClient)
 		{
-			// multiple urls can be configured but that would need to create multiple onion services and we don't want to do that.
+			// Multiple URLs can be configured but that would need to create multiple onion services and we don't want to do that.
 			var address = urls.Split(";").First();
 			var uri = new Uri(address);
 			string onionServiceId;
