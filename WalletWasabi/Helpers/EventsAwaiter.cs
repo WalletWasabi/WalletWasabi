@@ -19,7 +19,7 @@ public class EventsAwaiter<TEventArgs>
 
 		for (int i = 0; i < count; i++)
 		{
-			eventsArrived.Add(new TaskCompletionSource<TEventArgs>());
+			eventsArrived.Add(new TaskCompletionSource<TEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously));
 		}
 
 		EventsArrived = eventsArrived;
@@ -64,7 +64,7 @@ public class EventsAwaiter<TEventArgs>
 			foreach (var tcs in EventsArrived)
 			{
 				i++;
-				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [FIRST] TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [FIRST] TCS #{i} has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
 			}
 
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
@@ -77,7 +77,7 @@ public class EventsAwaiter<TEventArgs>
 			foreach (var tcs in EventsArrived)
 			{
 				i++;
-				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [SECOND] TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [SECOND] TCS #{i} has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
 			}
 
 			// This is guaranteed to happen only once.
@@ -94,5 +94,9 @@ public class EventsAwaiter<TEventArgs>
 	}
 
 	public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
-		=> await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
+	{
+		Console.WriteLine($"EventsAwaiter.WaitAsync - Tasks count = {Tasks.Count}");
+
+		return await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
+	}
 }
