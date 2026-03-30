@@ -64,13 +64,21 @@ public class EventsAwaiter<TEventArgs>
 			foreach (var tcs in EventsArrived)
 			{
 				i++;
-				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [FIRST] TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
 			}
 
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
 			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - firstUnfinished={firstUnfinished}");
 
-			firstUnfinished?.TrySetResult(e);
+			bool? setResult = firstUnfinished?.TrySetResult(e);
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - set result = {setResult}");
+
+			i = 0;
+			foreach (var tcs in EventsArrived)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [SECOND] TCS #{i} not completed  has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+			}
 
 			// This is guaranteed to happen only once.
 			if (Tasks.All(x => x.IsCompleted))
