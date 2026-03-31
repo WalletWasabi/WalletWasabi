@@ -213,17 +213,31 @@ public class Global
 		}
 
 		var bitcoinRpcUri = Config.BitcoinRpcUri;
-		var internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
-		
-		// If the RPC URI is a loopback (i.e., localhost)
-		// then we are bypassing Tor
+		RPCClient internalRpcClient;
+
+		try
+		{
+			internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
+		}
+		catch (ArgumentException)
+		{
+			// The network has no default cookie file path registered (e.g. testnet4).
+			// Create a non-functional RPC client so the app can start and the user can
+			// configure credentials through the UI. RpcMonitor will report the problem.
+			var improbableString = Convert.ToHexString(RandomUtils.GetBytes(32));
+			credentials = RPCCredentialString.Parse($"{improbableString}:{improbableString}");
+			internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
+		}
+
+		// If the RPC URI is not a loopback (i.e., not localhost)
+		// then route through Tor
 		var isBitcoinRpcLocal = new Uri(bitcoinRpcUri).IsLoopback;
 		if (!isBitcoinRpcLocal)
 		{
 			internalRpcClient.HttpClient =
-							ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+				ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 		}
-		
+
 		return new RpcClientBase(internalRpcClient);
 	}
 
@@ -294,8 +308,9 @@ public class Global
 			}
 			else
 			{
-				throw new Exception($"Wasabi was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided."
-				                    + "\n-----------------------------------------------------------------------------------------");
+				Logger.LogWarning($"Was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided. " +
+				                  "Please configure valid RPC credentials in settings and restart.");
+				return;
 			}
 		}
 
