@@ -200,9 +200,14 @@ public partial class MainViewModel : ViewModelBase
 			.Where(x => !x.IsOk)
 			.Take(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => NotificationHelpers.Show(
-				"Bitcoin RPC not configured",
-				$"Could not connect to Bitcoin Core: {x.Error}. Please configure RPC credentials in Settings."));
+			.Subscribe(x => NotificationHelpers.ShowError(
+				"Could not connect to Bitcoin RPC",
+				$"\n>>Click here to verify Bitcoin RPC settings.<<",
+				onClick: () =>
+				{
+					SettingsPage.SelectedTab = 1; // Bitcoin Tab
+					UiContext.Navigate().To(SettingsPage);
+				}));
 
 		Notifications.StartListening();
 
