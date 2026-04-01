@@ -27,14 +27,15 @@ Arguments:
 
 Options:
     -h, --help         Show this help message and exit
-    --skip-download    Skip downloading the release archives (use previously downloaded files)
+    --force-download   Force download even if files already exist
     --skip-extract     Skip extracting the archives
     --skip-replace     Skip replacing the binaries in the target directory/repository
 
 Examples:
     ./upgrade-bitcoin-core.sh 30.2
-    ./upgrade-bitcoin-core.sh 30.2 --skip-download
-    ./upgrade-bitcoin-core.sh 29.3 --skip-download --skip-extract
+    ./upgrade-bitcoin-core.sh 30.2 --force-download
+    ./upgrade-bitcoin-core.sh 29.3 --skip-extract
+    ./upgrade-bitcoin-core.sh 30.2 --force-download --skip-extract
 
 See also:
     https://bitcoincore.org/en/download
@@ -54,18 +55,18 @@ VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
     echo "ERROR: Bitcoin Core version is required." >&2
     echo "Use -h or --help for usage information." >&2
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]" >&2
+    echo "Usage: $0 <version> [--force-download] [--skip-extract] [--skip-replace]" >&2
     exit 1
 fi
 
 # Parse flags
-SKIP_DOWNLOAD=false
+FORCE_DOWNLOAD=false
 SKIP_EXTRACT=false
 SKIP_REPLACE=false
 
 for arg in "$@"; do
     case "$arg" in
-        --skip-download)  SKIP_DOWNLOAD=true ;;
+        --force-download) FORCE_DOWNLOAD=true ;;
         --skip-extract)   SKIP_EXTRACT=true ;;
         --skip-replace)   SKIP_REPLACE=true ;;
     esac
@@ -113,6 +114,47 @@ require_command() {
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
+#  Functions
+# ──────────────────────────────────────────────────────────────────────────────
+
+download_checksums_file_and_pgp() {
+    info "Downloading and verifying SHA256SUMS and signatures..."
+
+    # Download checksum files
+    curl -fL -o SHA256SUMS "${DIST_URI}/SHA256SUMS" || error "Failed to download SHA256SUMS"
+    curl -fL -o SHA256SUMS.asc "${DIST_URI}/SHA256SUMS.asc" || error "Failed to download SHA256SUMS.asc"
+
+    # Import signing keys (Ava Chow + fanquake)
+    curl -fL -o achow101.gpg https://keys.openpgp.org/vks/v1/by-fingerprint/152812300785C96444D3334D17565732E08E5E41 || error "Failed to download achow101's key"
+    curl -fL -o fanquake.gpg https://keys.openpgp.org/vks/v1/by-fingerprint/E777299FC265DD04793070EB944D35F9AC3DB76A || error "Failed to download fanquake's key"
+
+    gpg --import achow101.gpg 2>/dev/null || true
+    gpg --import fanquake.gpg 2>/dev/null || true
+
+    # Verify signature
+    if ! gpg --verify SHA256SUMS.asc SHA256SUMS >gpg_result.log 2>&1 || ! grep -q "Good signature" gpg_result.log; then
+        error "GPG verification FAILED.\n\nOutput: $(cat gpg_result.log)"
+    fi
+
+    info "GPG verification PASSED: Good signature found on SHA256SUMS"
+}
+
+verify_checksums() {
+    gpg --verify SHA256SUMS.asc SHA256SUMS >gpg_result.log 2>&1 || true
+
+    if grep --fixed-strings -q "gpg: Good signature" gpg_result.log; then
+        info "GPG verification PASSED: at least one good signature found on SHA256SUMS"
+    else
+        error "GPG verification FAILED.\n\nOutput from gpg: $(gpg --verify SHA256SUMS.asc SHA256SUMS 2>&1)"
+    fi
+
+    if sha256sum -c --ignore-missing SHA256SUMS | grep -v "OK$"; then
+        error "Checksum verification FAILED — see output above"
+    fi
+    info "All checksums OK"
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
 #  Checks
 # ──────────────────────────────────────────────────────────────────────────────
 
@@ -151,47 +193,32 @@ pushd "$TEMP_DIR" >/dev/null || exit 1
 info "Change directory to $TEMP_DIR"
 
 # ─── Download ────────────────────────────────────────────────────────────────
-if [[ "$SKIP_DOWNLOAD" != true ]]; then
-    section "Downloading Bitcoin Core packages"
+section "Downloading Bitcoin Core packages"
 
-    rm -rf BitcoinCore
+downloadChecksumsFile=true
 
-    # Download checksums first
-    info "Downloading SHA256SUMS and its signature..."
-    echo "${DIST_URI}/SHA256SUMS"
-    curl -fL -o SHA256SUMS "${DIST_URI}/SHA256SUMS" || error "Failed to download SHA256SUMS"
-    curl -fL -o SHA256SUMS.asc "${DIST_URI}/SHA256SUMS.asc" || error "Failed to download SHA256SUMS.asc"
+# Download platform binaries only if missing or forced
+for platform in "${SUPPORTED_PLATFORMS[@]}"; do
+    fname="${FILES[$platform]}"
+    url="${DIST_URI}/${fname}"
 
-    # Ava Chow + Michael Ford (fanquake)
-    curl -fL -o achow101.gpg https://keys.openpgp.org/vks/v1/by-fingerprint/152812300785C96444D3334D17565732E08E5E41 || error "Failed to download achow101's gpg"
-    curl -fL -o fanquake.gpg https://keys.openpgp.org/vks/v1/by-fingerprint/E777299FC265DD04793070EB944D35F9AC3DB76A || error "Failed to download fanquake's gpg"
-    gpg --import achow101.gpg || true
-    gpg --import fanquake.gpg || true
-
-    gpg --verify SHA256SUMS.asc SHA256SUMS >gpg_result.log 2>&1 || true
-
-    if grep --fixed-strings -q "gpg: Good signature" gpg_result.log; then
-        info "GPG verification PASSED: at least one good signature found on SHA256SUMS"
-    else
-        error "GPG verification FAILED.\n\nOutput from gpg: $(gpg --verify SHA256SUMS.asc SHA256SUMS 2>&1)"
-    fi
-
-    for platform in "${SUPPORTED_PLATFORMS[@]}"; do
-        fname="${FILES[$platform]}"
-        url="${DIST_URI}/${fname}"
-
+    if [[ "$FORCE_DOWNLOAD" == true ]] || [[ ! -f "$fname" ]]; then
         info "Downloading $fname from '$url' ..."
+
+        # Call the function only when we are actually downloading a file
+        if [[ "$downloadChecksumsFile" == true ]]; then
+            download_checksums_file_and_pgp
+            downloadChecksumsFile=false
+        fi
+
         curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
-    done
-
-    if sha256sum -c --ignore-missing SHA256SUMS | grep -v "OK$"; then
-        error "Checksum verification FAILED — see output above"
+    else
+        info "File already exists: $fname (skipping download)"
     fi
+done
 
-    info "All checksums OK"
-else
-    section "Skipping download"
-fi
+# Verify all checksums (whether we downloaded some files or not)
+verify_checksums
 
 # ─── Extract Bitcoin Core archives ────────────────────────────────────────────────
 if [[ "$SKIP_EXTRACT" != true ]]; then
