@@ -10,8 +10,11 @@ namespace WalletWasabi.Blockchain.Analysis;
 
 public static class SmartTransactionExtensions
 {
-	public static bool IsSelfSpend(this SmartTransaction tx) => tx.ForeignInputs.Count == 0 && tx.ForeignOutputs.Count == 0;
-	public static bool IsMultiparty(this SmartTransaction tx) => tx.ForeignInputs.Count > 0 && tx.WalletInputs.Count > 0;
+	extension(SmartTransaction tx)
+	{
+		public bool IsSelfSpend() => tx.ForeignInputs.Count == 0 && tx.ForeignOutputs.Count == 0;
+		public bool IsMultiparty() => tx.ForeignInputs.Count > 0 && tx.WalletInputs.Count > 0;
+	}
 }
 
 
@@ -94,6 +97,39 @@ public record AnonymityScoreDb
 
 public static class Anonymity
 {
+	private static readonly object Lock = new();
+	public static AnonymityScoreDb _db = AnonymityScoreDb.Empty;
+
+	public static readonly long[] StdDenoms = new[]
+	{
+		5000L, 6561L, 8192L, 10000L, 13122L, 16384L, 19683L, 20000L, 32768L, 39366L, 50000L, 59049L, 65536L, 100000L, 118098L,
+		131072L, 177147L, 200000L, 262144L, 354294L, 500000L, 524288L, 531441L, 1000000L, 1048576L, 1062882L, 1594323L, 2000000L,
+		2097152L, 3188646L, 4194304L, 4782969L, 5000000L, 8388608L, 9565938L, 10000000L, 14348907L, 16777216L, 20000000L,
+		28697814L, 33554432L, 43046721L, 50000000L, 67108864L, 86093442L, 100000000L, 129140163L, 134217728L, 200000000L,
+		258280326L, 268435456L, 387420489L, 500000000L, 536870912L, 774840978L, 1000000000L, 1073741824L, 1162261467L,
+		2000000000L, 2147483648L, 2324522934L, 3486784401L, 4294967296L, 5000000000L, 6973568802L, 8589934592L, 10000000000L,
+		10460353203L, 17179869184L, 20000000000L, 20920706406L, 31381059609L, 34359738368L, 50000000000L, 62762119218L,
+		68719476736L, 94143178827L, 100000000000L, 137438953472L
+	};
+
+	public static AnonymityScore GetScore(SmartCoin coin)
+	{
+		lock (Lock)
+		{
+			var (score, updatedDb) = GetScore(coin, _db);
+			_db = updatedDb;
+			return score;
+		}
+	}
+
+	public static void SetScore(SmartCoin coin, AnonymityScore score)
+	{
+		lock (Lock)
+		{
+			_db = _db.SetAnonymityScore(coin, score);
+		}
+	}
+
 	public static (AnonymityScore AnonymityScore, AnonymityScoreDb Db) GetScore(SmartCoin coin, AnonymityScoreDb db)
 	{
 		if (db.TryGetAnonymityScore(coin, out var anonymityScore))

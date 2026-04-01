@@ -56,7 +56,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		_isWasabi2Cj = new Lazy<bool>(
 			() => Transaction.Outputs.Count >= 2 // Sanity check.
 			&& Transaction.Inputs.Count >= 21 // 21 is the absolute minimum input count
-			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Count(x => Anonymity.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
 			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
 			isThreadSafe: true);
 	}

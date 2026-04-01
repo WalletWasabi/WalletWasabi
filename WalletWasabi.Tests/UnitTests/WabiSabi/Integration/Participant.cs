@@ -85,7 +85,6 @@ internal class Participant
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
 			var hdPubKey = new HdPubKey(extPubKey.PubKey, KeyPath.Parse($"m/84'/0/0/0/{extPubKey.Child}"), LabelsArray.Empty, KeyState.Clean);
-			hdPubKey.SetAnonymitySet(1); // bug if not settled
 			return hdPubKey;
 		}
 
