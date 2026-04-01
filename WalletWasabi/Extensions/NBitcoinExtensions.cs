@@ -339,7 +339,7 @@ public static class NBitcoinExtensions
 	public static Money EffectiveValue(this ICoin coin, FeeRate feeRate)
 		=> EffectiveValue(coin.TxOut.Value, virtualSize: coin.TxOut.ScriptPubKey.EstimateInputVsize(), feeRate);
 
-	public static Money EffectiveValue(this ISmartCoin coin, FeeRate feeRate)
+	public static Money EffectiveValue(this SmartCoin coin, FeeRate feeRate)
 		=> EffectiveValue(coin.Amount, virtualSize: coin.ScriptType.EstimateInputVsize(), feeRate);
 
 	private static Money EffectiveValue(Money amount, int virtualSize, FeeRate feeRate)
