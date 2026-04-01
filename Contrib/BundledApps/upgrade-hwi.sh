@@ -27,14 +27,15 @@ Arguments:
 
 Options:
     -h, --help         Show this help message and exit
-    --skip-download    Skip downloading the release archives (use files from previous run)
+    --force-download   Force download even if files already exist
     --skip-extract     Skip extracting the downloaded archives
     --skip-replace     Skip replacing the HWI binaries in the repository
 
 Examples:
     ./upgrade-hwi.sh 3.2.0
-    ./upgrade-hwi.sh 3.1.0 --skip-download
-    ./upgrade-hwi.sh 3.2.0 --skip-download --skip-extract
+    ./upgrade-hwi.sh 3.2.0 --force-download
+    ./upgrade-hwi.sh 3.2.0 --skip-extract
+    ./upgrade-hwi.sh 3.2.0 --force-download --skip-extract
 
 See also:
     https://github.com/bitcoin-core/HWI/
@@ -54,20 +55,20 @@ VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
     echo "ERROR: HWI version is required." >&2
     echo "Use -h or --help for usage information." >&2
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract] [--skip-replace]" >&2
+    echo "Usage: $0 <version> [--force-download] [--skip-extract] [--skip-replace]" >&2
     exit 1
 fi
 
 # Parse flags
-SKIP_DOWNLOAD=false
+FORCE_DOWNLOAD=false
 SKIP_EXTRACT=false
 SKIP_REPLACE=false
 
 for arg in "$@"; do
     case "$arg" in
-        --skip-download) SKIP_DOWNLOAD=true ;;
-        --skip-extract)  SKIP_EXTRACT=true ;;
-        --skip-replace)  SKIP_REPLACE=true ;;
+        --force-download) FORCE_DOWNLOAD=true ;;
+        --skip-extract)   SKIP_EXTRACT=true ;;
+        --skip-replace)   SKIP_REPLACE=true ;;
     esac
 done
 
@@ -82,6 +83,8 @@ FILES[linux-arm64]="hwi-${VERSION}-linux-aarch64.tar.gz"
 FILES[linux-x64]="hwi-${VERSION}-linux-x86_64.tar.gz"
 FILES[osx64]="hwi-${VERSION}-mac-x86_64.tar.gz"
 FILES[win-x64]="hwi-${VERSION}-windows-x86_64.zip"
+
+CHECKSUM_FILE="SHA256SUMS.txt.asc"
 
 SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
 
@@ -110,6 +113,37 @@ section() {
 
 require_command() {
     command -v "$1" >/dev/null 2>&1 || error "Required command not found: $1"
+}
+
+# ──────────────────────────────────────────────────────────────────────────────
+#  Functions
+# ──────────────────────────────────────────────────────────────────────────────
+
+download_checksums_file_and_pgp() {
+    # Download checksum file and import key only if needed
+    info "Downloading checksum file and signing key..."
+
+    # Download SHA256SUMS.txt.asc
+    local url="${DIST_URI}/$CHECKSUM_FILE"
+    info "Downloading $CHECKSUM_FILE from '$url' ..."
+    curl -fL --progress-bar -o "$CHECKSUM_FILE" "$url" || error "Download of '$CHECKSUM_FILE' failed"
+
+    # Download achow101.pgp
+    # See https://achow101.com/contact/
+    url="http://achow101.com/achow101.pgp"
+    info "Downloading 'achow101.pgp' from '$url' ..."
+    curl -fsSL --output achow101.pgp "${url}"
+    gpg --import ./achow101.pgp
+    gpg --list-keys --fingerprint 17565732E08E5E41
+    gpg --verify "${CHECKSUM_FILE}"
+    info "Signature OK for $CHECKSUM_FILE"
+}
+
+verify_checksums() {
+    # Verify the checksum signature
+    gpg --verify "${CHECKSUM_FILE}" 2>&1 | grep -q "Good signature" || error "GPG verification of $CHECKSUM_FILE failed"
+
+    info "Signature verification passed for $CHECKSUM_FILE"
 }
 
 # ──────────────────────────────────────────────────────────────────────────────
@@ -149,44 +183,39 @@ pushd "$TEMP_DIR" >/dev/null || exit 1
 info "Change directory to $TEMP_DIR"
 
 # ─── Download ────────────────────────────────────────────────────────────────
-if [[ "$SKIP_DOWNLOAD" != true ]]; then
-    section "Downloading HWI packages"
+section "Downloading HWI packages"
 
-    CHECKSUM_FILE="SHA256SUMS.txt.asc"
+downloadChecksumsFile=true
 
-    url="${DIST_URI}/$CHECKSUM_FILE"
-    info "Downloading $CHECKSUM_FILE from '$url' ..."
-    curl -fL --progress-bar -o "$CHECKSUM_FILE" "$url" || error "Download of '$CHECKSUM_FILE' failed: $url"
+# Download platform binaries only if missing or forced
+for platform in "${SUPPORTED_PLATFORMS[@]}"; do
+    fname="${FILES[$platform]}"
+    url="${DIST_URI}/${fname}"
 
-    # See https://achow101.com/contact/
-    url="http://achow101.com/achow101.pgp"
-    info "Downloading 'achow101.pgp' from '$url' ..."
-    curl -fsSL --output achow101.pgp "${url}"
-    gpg --import ./achow101.pgp
-    gpg --list-keys --fingerprint 17565732E08E5E41
-    gpg --verify "${CHECKSUM_FILE}"
-    info "Signature OK for $CHECKSUM_FILE"
+    if [[ "$FORCE_DOWNLOAD" == true ]] || [[ ! -f "$fname" ]]; then
+        info "Downloading $fname ..."
 
-    for platform in "${SUPPORTED_PLATFORMS[@]}"; do
-        fname="${FILES[$platform]}"
-        url="${DIST_URI}/${fname}"
-
-        info "Downloading $fname from '$url' ..."
-        curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
-
-        # Verify downloaded .gz/.zip file's SHA256 hash against hashes in SHA256SUMS.txt.asc.
-        actual_line=$(sha256sum --text $fname)
-        found=$(grep --fixed-strings --line-regexp --quiet "$actual_line" "$CHECKSUM_FILE" && echo true || echo false)
-        if ! $found; then
-            error "Line '$actual_line' not present in $CHECKSUM_FILE"
-            exit 1
+        # Call the function only when we are actually downloading a file
+        if [[ "$downloadChecksumsFile" == true ]]; then
+            download_checksums_file_and_pgp
+            downloadChecksumsFile=false
         fi
-        
-        info "SHA256 hash is OK for $fname"
-    done
-else
-    section "Skipping download"
-fi
+
+        curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed"
+    else
+        info "File already exists: $fname (skipping download)"
+    fi
+
+    # Verify SHA256 hash against the checksum file
+    actual_line=$(sha256sum --text "$fname")
+    if ! grep -qF "$actual_line" "$CHECKSUM_FILE"; then
+        error "SHA256 hash verification FAILED for $fname"
+    fi
+
+    info "SHA256 hash is OK for $fname"
+done
+
+verify_checksums
 
 # ─── Extract only HWI archives ────────────────────────────────────────────────
 if [[ "$SKIP_EXTRACT" != true ]]; then
