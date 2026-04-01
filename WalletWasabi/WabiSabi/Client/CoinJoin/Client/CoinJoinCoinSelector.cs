@@ -47,8 +47,7 @@ public class CoinJoinCoinSelector
 			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
-	public ImmutableList<TCoin> SelectCoinsForRound<TCoin>(IEnumerable<TCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
-		where TCoin : class, ISmartCoin, IEquatable<TCoin>
+	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
 	{
 		liquidityClue = liquidityClue > Money.Zero
 			? liquidityClue
@@ -64,7 +63,7 @@ public class CoinJoinCoinSelector
 		if (filteredCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
-			return ImmutableList<TCoin>.Empty;
+			return ImmutableList<SmartCoin>.Empty;
 		}
 
 		var privateCoins = filteredCoins
@@ -82,7 +81,7 @@ public class CoinJoinCoinSelector
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
 			Logger.LogDebug("No suitable coins for this round.");
-			return ImmutableList<TCoin>.Empty;
+			return ImmutableList<SmartCoin>.Empty;
 		}
 
 		Logger.LogDebug($"Coin selection started:");
@@ -135,7 +134,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"Largest non-private coins: {string.Join(", ", largestNonPrivateCoins.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Select a group of coins those are close to each other by anonymity score.
-		Dictionary<int, IEnumerable<TCoin>> groups = new();
+		Dictionary<int, IEnumerable<SmartCoin>> groups = new();
 
 		// Create a bunch of combinations.
 		var sw1 = Stopwatch.StartNew();
@@ -170,7 +169,7 @@ public class CoinJoinCoinSelector
 		if (groups.Count == 0)
 		{
 			Logger.LogDebug($"Couldn't create any combinations, ending.");
-			return ImmutableList<TCoin>.Empty;
+			return ImmutableList<SmartCoin>.Empty;
 		}
 		Logger.LogDebug($"Created {groups.Count} combinations within {(int)sw1.Elapsed.TotalSeconds} seconds.");
 
@@ -196,7 +195,7 @@ public class CoinJoinCoinSelector
 		if (selectedNonPrivateCoin is null)
 		{
 			Logger.LogDebug($"Couldn't select largest non-private coin, ending.");
-			return ImmutableList<TCoin>.Empty;
+			return ImmutableList<SmartCoin>.Empty;
 		}
 		Logger.LogDebug($"Randomly selected large non-private coin: {selectedNonPrivateCoin.Amount.ToString(false, true)}.");
 
@@ -206,14 +205,14 @@ public class CoinJoinCoinSelector
 		if (finalCandidate is null)
 		{
 			Logger.LogDebug($"Couldn't select final selection candidate, ending.");
-			return ImmutableList<TCoin>.Empty;
+			return ImmutableList<SmartCoin>.Empty;
 		}
 		Logger.LogDebug($"Selected the final selection candidate: {finalCandidate.Count()} coins, {string.Join(", ", finalCandidate.Select(x => x.Amount.ToString(false, true)).ToArray())} BTC.");
 
 		// Let's remove some coins coming from the same tx in the final candidate, allow 2 on average.
 		int sameTxAllowance = _generator.GetRandomBiasedSameTxAllowance(67);
 
-		List<TCoin> winner = new()
+		List<SmartCoin> winner = new()
 		{
 			selectedNonPrivateCoin
 		};
@@ -243,12 +242,12 @@ public class CoinJoinCoinSelector
 		// Only stay in the while if we are above the liquidityClue (we are a whale) AND the weightedAnonLoss is not tolerable.
 		while (winner.Sum(x => x.Amount) > liquidityClue && winnerAnonLoss > MaxWeightedAnonLoss)
 		{
-			List<TCoin> bestReducedWinner = winner;
+			List<SmartCoin> bestReducedWinner = winner;
 			var bestAnonLoss = winnerAnonLoss;
 			bool winnerChanged = false;
 
 			// We always want to keep the non-private coins.
-			foreach (TCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
+			foreach (SmartCoin coin in winner.Except(new[] { selectedNonPrivateCoin }))
 			{
 				var reducedWinner = winner.Except(new[] { coin });
 				var anonLoss = GetAnonLoss(reducedWinner);
@@ -302,18 +301,17 @@ public class CoinJoinCoinSelector
 		return winner.ToShuffled(Rnd).ToImmutableList();
 	}
 
-	private IEnumerable<TCoin> AnonScoreTxSourceBiasedShuffle<TCoin>(TCoin[] coins)
-		where TCoin : ISmartCoin
+	private IEnumerable<SmartCoin> AnonScoreTxSourceBiasedShuffle(SmartCoin[] coins)
 	{
-		var orderedCoins = new List<TCoin>();
+		var orderedCoins = new List<SmartCoin>();
 		for (int i = 0; i < coins.Length; i++)
 		{
 			// Order by anonscore first.
 			var remaining = coins.Except(orderedCoins).OrderBy(x => x.AnonymitySet);
 
 			// Then manipulate the list so repeating tx sources go to the end.
-			var alternating = new List<TCoin>();
-			var skipped = new List<TCoin>();
+			var alternating = new List<SmartCoin>();
+			var skipped = new List<SmartCoin>();
 			foreach (var c in remaining)
 			{
 				if (alternating.Any(x => x.TransactionId == c.TransactionId) || orderedCoins.Any(x => x.TransactionId == c.TransactionId))
@@ -333,8 +331,7 @@ public class CoinJoinCoinSelector
 		}
 	}
 
-	private static bool TryAddGroup<TCoin>(UtxoSelectionParameters parameters, Dictionary<int, IEnumerable<TCoin>> groups, IEnumerable<TCoin> group)
-		where TCoin : ISmartCoin
+	private static bool TryAddGroup(UtxoSelectionParameters parameters, Dictionary<int, IEnumerable<SmartCoin>> groups, IEnumerable<SmartCoin> group)
 	{
 		var effectiveInputSum = group.Sum(x => x.EffectiveValue(parameters.MiningFeeRate));
 		if (effectiveInputSum >= parameters.MinAllowedOutputAmount)
@@ -346,14 +343,12 @@ public class CoinJoinCoinSelector
 		return false;
 	}
 
-	private static double GetAnonLoss<TCoin>(IEnumerable<TCoin> coins)
-		where TCoin : ISmartCoin
+	private static double GetAnonLoss(IEnumerable<SmartCoin> coins)
 	{
 		double minimumAnonScore = coins.Min(x => x.AnonymitySet);
 		return coins.Sum(x => (x.AnonymitySet - minimumAnonScore) * x.Amount.Satoshi) / coins.Sum(x => x.Amount.Satoshi);
 	}
 
-	private static int GetReps<TCoin>(IEnumerable<TCoin> group)
-		where TCoin : ISmartCoin
+	private static int GetReps(IEnumerable<SmartCoin> group)
 		=> group.GroupBy(x => x.TransactionId).Sum(coinsInTxGroup => coinsInTxGroup.Count() - 1);
 }

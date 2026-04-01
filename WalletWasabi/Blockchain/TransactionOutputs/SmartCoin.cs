@@ -13,7 +13,7 @@ namespace WalletWasabi.Blockchain.TransactionOutputs;
 /// An UTXO that knows more.
 /// </summary>
 [DebuggerDisplay("{Amount}BTC {Confirmed} {HdPubKey.Labels} OutPoint={Coin.Outpoint}")]
-public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination, ISmartCoin
+public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDestination
 {
 	private Height _height;
 	private bool _confirmed;

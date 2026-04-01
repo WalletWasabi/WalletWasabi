@@ -4,22 +4,12 @@ namespace WalletWasabi.Helpers;
 
 public static class CoinHelpers
 {
-	public static bool IsPrivate<TCoin>(this TCoin coin, int privateThreshold)
-		where TCoin : class, ISmartCoin, IEquatable<TCoin>
+	extension(SmartCoin coin)
 	{
-		return coin.AnonymitySet >= privateThreshold;
-	}
+		public bool IsPrivate(int privateThreshold) => coin.AnonymitySet >= privateThreshold;
 
-	public static bool IsSemiPrivate<TCoin>(this TCoin coin, int privateThreshold, int semiPrivateThreshold = Constants.SemiPrivateThreshold)
-		where TCoin : class, ISmartCoin, IEquatable<TCoin>
-	{
-		var anonymitySet = coin.AnonymitySet;
-		return anonymitySet >= semiPrivateThreshold && anonymitySet < privateThreshold;
-	}
+		public bool IsSemiPrivate(int privateThreshold, int semiPrivateThreshold = Constants.SemiPrivateThreshold) => coin.AnonymitySet >= semiPrivateThreshold && coin.AnonymitySet < privateThreshold;
 
-	public static bool IsRedCoin<TCoin>(this TCoin coin, int semiPrivateThreshold = Constants.SemiPrivateThreshold)
-		where TCoin : class, ISmartCoin, IEquatable<TCoin>
-	{
-		return coin.AnonymitySet < semiPrivateThreshold;
+		public bool IsRedCoin(int semiPrivateThreshold = Constants.SemiPrivateThreshold) => coin.AnonymitySet < semiPrivateThreshold;
 	}
 }
