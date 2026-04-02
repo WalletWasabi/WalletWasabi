@@ -81,6 +81,7 @@ public class Wallet : BackgroundService, IWallet
 	public CoinsRegistry Coins { get; }
 
 	public bool NonPrivateCoinIsolation => KeyManager.NonPrivateCoinIsolation;
+	public bool SingleRoundCoinjoin => KeyManager.SingleRoundCoinjoin;
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
