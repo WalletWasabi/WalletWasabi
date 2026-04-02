@@ -279,7 +279,7 @@ if [[ "$SKIP_REPLACE_GEOIP" != true ]]; then
     mkdir -p "$geoip_target"
 
     # Usually taken from one of the Linux extractions
-    cp -f "${TEMP_DIR}/TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Data/Tor/geoip"* "$geoip_target/" 2>/dev/null
+    cp -f "${TEMP_DIR}/TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/geoip"* "$geoip_target/" 2>/dev/null
 
     info "GeoIP files updated in ${geoip_target}"
 else
