@@ -74,6 +74,7 @@ public partial class SendViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPayToMany;
 	[AutoNotify] private bool _isPrimarySubtractFee;
 	[AutoNotify] private bool _isBip21;
+	[AutoNotify] private bool _validClipboardContent;
 
 	private readonly Subject<Unit> _recipientsChanged = new();
 	private readonly ObservableCollection<RecipientRowViewModel> _additionalRecipients;
@@ -131,6 +132,8 @@ public partial class SendViewModel : RoutableViewModel
 			.Subscribe(_ => IsPrimarySubtractFee = false);
 
 		PasteCommand = ReactiveCommand.CreateFromTask(async () => await OnPasteAsync());
+		OnToGotFocusCommand = ReactiveCommand.CreateFromTask(async () => await OnToGotFocusAsync());
+
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
 		InsertMaxCommand = ReactiveCommand.Create(() =>
 		{
@@ -202,7 +205,7 @@ public partial class SendViewModel : RoutableViewModel
 	public bool IsNotInDonationWorkflow => !_parameters.Donate;
 
 	public ICommand PasteCommand { get; }
-
+	public ICommand OnToGotFocusCommand { get; }
 	public ICommand AutoPasteCommand { get; }
 
 	public ICommand QrCommand { get; }
@@ -437,6 +440,14 @@ public partial class SendViewModel : RoutableViewModel
 				To = text;
 			}
 		}
+	}
+
+	private async Task OnToGotFocusAsync()
+	{
+		var text = await ApplicationHelper.GetTextAsync();
+
+		// Not empty or not just whitespace.
+		ValidClipboardContent = (text is not null && text.AsSpan().Trim() != "");
 	}
 
 	private IPayjoinClient? GetPayjoinClient(string? endPoint)

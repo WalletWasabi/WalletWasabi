@@ -116,6 +116,9 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
           <Interaction.Behaviors>
+            <EventTriggerBehavior EventName="GotFocus">
+              <InvokeCommandAction Command="{Binding OnToGotFocusCommand}" />
+            </EventTriggerBehavior>
             <FocusOnAttachedBehavior />
             <ExecuteCommandOnActivatedBehavior Command="{Binding AutoPasteCommand}" />
             <FocusNextWhenValidBehavior />
@@ -127,17 +130,26 @@
           </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
+              <!-- Paste button -->
               <AnimatedButton KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
-                                IsVisible="{Binding IsNotInDonationWorkflow}"
                                 Command="{Binding PasteCommand}"
                                 ToolTip.Tip="Paste"
                                 NormalIcon="{StaticResource paste_regular}"
                                 ClickIcon="{StaticResource copy_confirmed}">
+
+                <AnimatedButton.IsVisible>
+                  <MultiBinding Converter="{x:Static BoolConverters.And}">
+                    <Binding Path="ValidClipboardContent" />
+                    <Binding Path="IsNotInDonationWorkflow" />
+                  </MultiBinding>
+                </AnimatedButton.IsVisible>
+
                 <Interaction.Behaviors>
                   <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
                 </Interaction.Behaviors>
               </AnimatedButton>
+              <!-- Scan QR code button -->
               <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
                                 KeyboardNavigation.IsTabStop="False"
                                 Focusable="False"
