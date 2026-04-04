@@ -9,6 +9,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.BitcoinCore.Configuration;
+using System.Diagnostics;
 
 namespace WalletWasabi.Tests.BitcoinCore.Processes;
 
@@ -38,7 +39,7 @@ public class BitcoindRpcProcessBridge
 	public string DataDir { get; }
 	public bool PrintToConsole { get; }
 	public PidFile PidFile { get; }
-	private ProcessAsync? Process { get; set; }
+	private Process? Process { get; set; }
 	private int? CachedPid { get; set; }
 
 	/// <summary>
@@ -58,8 +59,12 @@ public class BitcoindRpcProcessBridge
 		string args = $"{networkArgument} -datadir=\"{dataDir}\" -printtoconsole={ptcv}";
 
 		// Start bitcoind process.
-		Process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
-		Process.Start();
+		Process = new Process()
+		{
+			StartInfo = ProcessStartInfoFactory.Make(processPath, args),
+		};
+
+		Process.StartAndLogException();
 
 		// Store PID in PID file.
 		await PidFile.WriteFileAsync(Process.Id).ConfigureAwait(false);
@@ -132,7 +137,7 @@ public class BitcoindRpcProcessBridge
 		}
 
 		// "process" variable is guaranteed to be non-null at this point.
-		ProcessAsync process = Process;
+		Process process = Process;
 
 		using var cts = new CancellationTokenSource(_reasonableCoreShutdownTimeout);
 		int? pid = await PidFile.TryReadAsync().ConfigureAwait(false);

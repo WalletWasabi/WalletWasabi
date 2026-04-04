@@ -11,7 +11,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	/// <remarks>Guarded by <see cref="StateLock"/>.</remarks>
 	private bool _isDone;
 
-	protected BaseInhibitorTask(TimeSpan period, string reason, ProcessAsync process)
+	protected BaseInhibitorTask(TimeSpan period, string reason, Process process)
 	{
 		BasePeriod = period;
 		Reason = reason;
@@ -42,7 +42,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	/// <summary>Reason why the power saving is inhibited.</summary>
 	public string Reason { get; }
 
-	private readonly ProcessAsync _process;
+	private readonly Process _process;
 	private readonly CancellationTokenSource _cts;
 	private readonly TaskCompletionSource _stoppedTcs = new();
 
@@ -146,7 +146,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
 			ProcessStartInfo processStartInfo = GetProcessStartInfo(command, "--help");
-			Process process = System.Diagnostics.Process.Start(processStartInfo)!;
+			Process process = Process.Start(processStartInfo)!;
 
 			await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 			bool success = process.ExitCode == 0;

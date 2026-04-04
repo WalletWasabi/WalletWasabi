@@ -133,8 +133,12 @@ public static class EnvironmentHelpers
 
 		if (waitForExit)
 		{
-			using var process = new ProcessAsync(startInfo);
-			process.Start();
+			using var process = new Process()
+			{
+				StartInfo = startInfo
+			};
+
+			process.StartAndLogException();
 
 			if (readResult)
 			{
