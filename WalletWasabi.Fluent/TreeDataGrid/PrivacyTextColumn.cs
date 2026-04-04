@@ -17,7 +17,7 @@ internal class PrivacyTextColumn<T> : ColumnBase<T>
 		object? header,
 		Func<T, string?> getter,
 		GridLength? width,
-		ColumnOptions<T>? options,
+		ColumnOptions<T> options,
 		PrivacyCellType type,
 		int numberOfPrivacyChars = 0,
 		bool ignorePrivacyMode = false)
