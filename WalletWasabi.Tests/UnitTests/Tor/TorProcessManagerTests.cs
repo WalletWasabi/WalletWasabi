@@ -83,11 +83,6 @@ public class TorProcessManagerTests
 		string distributionFolder = "tempDistributionDir";
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
-		// Mock Tor process.
-		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.SetupGet(p => p.Handle).Returns(IntPtr.Zero); // Any value is fine.
-		mockProcess.Setup(p => p.Dispose());
-
 		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
