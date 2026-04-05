@@ -88,7 +88,7 @@ public class TorProcessManagerTests
 			.ReturnsAsync(true);
 
 		mockTorProcessManager.Setup(c => c.GetTorProcesses())
-			.Returns(runningTorOsProcesses == 0 ? Array.Empty<Process>() : new[] { new Process() /* Dummy process */ });
+			.Returns(runningTorOsProcesses == 0 ? [] : new[] { new Process() /* Dummy process */ });
 
 		// Cookie file is stored in the profile of that different user, not ours.
 		mockTorProcessManager.Setup(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
