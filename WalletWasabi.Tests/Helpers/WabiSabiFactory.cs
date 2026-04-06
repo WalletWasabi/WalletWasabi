@@ -336,7 +336,7 @@ public static class WabiSabiFactory
 	{
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
-		var coinjoinClient = new TesteableCoinJoinClient(
+		var coinjoinClient = new TestableCoinJoinClient(
 			apiClientFactory,
 			keyChain,
 			outputProvider,
@@ -403,9 +403,9 @@ public static class WabiSabiFactory
 	}
 }
 
-public class TesteableCoinJoinClient : CoinJoinClient
+public class TestableCoinJoinClient : CoinJoinClient
 {
-	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
+	public TestableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
 	{
 	}
 
