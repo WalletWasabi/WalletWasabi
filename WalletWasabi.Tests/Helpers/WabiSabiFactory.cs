@@ -351,21 +351,22 @@ public static class WabiSabiFactory
 
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
-		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
-			.Returns(CreateRoundParameters(cfg)
+		RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
+			CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
-			.Returns(CreateRoundParameters(cfg)
+			};
+
+		RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
+			CreateRoundParameters(cfg)
 				with
 			{
 				MinInputCountByRound = cfg.MinInputCountByBlameRound,
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		return mockRoundParameterFactory.Object;
+			};
+
+		return new RoundParameterFactory(cfg, network, CreateRoundParameter, CreateBlameRoundParameter);
 	}
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
