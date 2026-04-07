@@ -2,55 +2,38 @@ using NBitcoin;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
+public delegate RoundParameters RoundParameterCreator(FeeRate feeRate, Money maxSuggestedAmount);
+public delegate RoundParameters BlameRoundParameterCreator(FeeRate feeRate, Round blameOf);
+
 public class RoundParameterFactory
 {
-	private readonly Func<FeeRate, Money, RoundParameters>? _createRoundParameterFn;
-	private readonly Func<FeeRate, Round, RoundParameters>? _createBlameRoundParameterFn;
-
-	public RoundParameterFactory(WabiSabiConfig config, Network network) : this(config, network, createRoundParameterFn: null, createBlameRoundParameterFn: null)
-	{
-	}
+	private readonly RoundParameterCreator _createRoundParameterCreator;
+	private readonly BlameRoundParameterCreator _createBlameRoundParameterCreator;
 
 	public RoundParameterFactory(
 		WabiSabiConfig config,
 		Network network,
-		Func<FeeRate, Money, RoundParameters>? createRoundParameterFn = null,
-		Func<FeeRate, Round, RoundParameters>? createBlameRoundParameterFn = null)
+		RoundParameterCreator? createRoundParameterCreator = null,
+		BlameRoundParameterCreator? createBlameRoundParameterCreator = null)
 	{
 		Config = config;
 		Network = network;
-		_createRoundParameterFn = createRoundParameterFn;
-		_createBlameRoundParameterFn = createBlameRoundParameterFn;
+		_createRoundParameterCreator = createRoundParameterCreator ?? DefaultCreateRoundParameters;
+		_createBlameRoundParameterCreator = createBlameRoundParameterCreator ?? DefaultBlameRoundParameters;
 	}
 
 	public WabiSabiConfig Config { get; }
 	public Network Network { get; }
 
-	public virtual RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount)
-	{
-		if (_createRoundParameterFn is not null)
-		{
-			return _createRoundParameterFn(feeRate, maxSuggestedAmount);
-		}
+	public RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
+		_createRoundParameterCreator(feeRate, maxSuggestedAmount);
 
-		return RoundParameters.Create(
-			Config,
-			Network,
-			feeRate,
-			maxSuggestedAmount);
-	}
+	public RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
+		_createBlameRoundParameterCreator(feeRate, blameOf);
 
-	public virtual RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf)
-	{
-		if (_createBlameRoundParameterFn is not null)
-		{
-			return _createBlameRoundParameterFn(feeRate, blameOf);
-		}
+	private RoundParameters DefaultCreateRoundParameters(FeeRate feeRate, Money maxSuggestedAmount) =>
+		RoundParameters.Create(Config, Network, feeRate, maxSuggestedAmount);
 
-		return RoundParameters.Create(
-			Config,
-			Network,
-			feeRate,
-			blameOf.Parameters.MaxSuggestedAmount);
-	}
+	private RoundParameters DefaultBlameRoundParameters(FeeRate feeRate, Round blameOf) =>
+		RoundParameters.Create(Config, Network, feeRate, blameOf.Parameters.MaxSuggestedAmount);
 }
