@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 
@@ -45,7 +46,11 @@ public record RoundStateAwaiter
 
 		if (_roundId is not null && !allRoundStates.ContainsKey(_roundId))
 		{
-			_taskCompletionSource.TrySetException(new InvalidOperationException($"Round {_roundId} is not running anymore."));
+			// Throw the same exception type used by the coordinator's HTTP API when a round
+			// is not found. This allows callers to handle round disappearance uniformly,
+			// whether detected via the round state updater or via an HTTP response.
+			_taskCompletionSource.TrySetException(
+				new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound, $"Round {_roundId} is not running anymore."));
 			return true;
 		}
 

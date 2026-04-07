@@ -528,7 +528,13 @@ public class CoinJoinClient
 		var remainingTime = roundState.InputRegistrationEnd - safetyBuffer;
 		var scheduledDates = remainingTime.GetScheduledDates(smartCoins.Count());
 
-		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
+		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration).
+		// Each coin's registration is delayed to its Poisson-scheduled time.
+		//
+		// We use linkedRegistrationsCts here (not timeoutAndGlobalCts) so that when registrationsCts
+		// is cancelled (e.g., due to RoundNotFound), all pending delays are immediately interrupted.
+		// timeoutAndGlobalCts does not include registrationsCts, so without this, coins would continue
+		// sleeping until their originally scheduled time before discovering the round is gone.
 		var aliceClients = smartCoins.Zip(
 			scheduledDates,
 			async (coin, date) =>
@@ -536,8 +542,14 @@ public class CoinJoinClient
 				var delay = date - DateTimeOffset.UtcNow;
 				if (delay > TimeSpan.Zero)
 				{
-					await Task.Delay(delay, timeoutAndGlobalCts.Token).ConfigureAwait(false);
+					await Task.Delay(delay, linkedRegistrationsCts.Token).ConfigureAwait(false);
 				}
+
+				// Check cancellation before entering RegisterInputAsync to avoid performing
+				// synchronous work (ArenaClient/Tor handler creation, ownership proof computation)
+				// when we already know the round is gone.
+				linkedRegistrationsCts.Token.ThrowIfCancellationRequested();
+
 				return await RegisterInputAsync(coin).ConfigureAwait(false);
 			})
 			.ToImmutableArray();
