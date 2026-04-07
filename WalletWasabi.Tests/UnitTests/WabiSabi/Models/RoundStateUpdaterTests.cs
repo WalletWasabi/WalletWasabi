@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
+using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
 using WalletWasabi.Serialization;
@@ -90,9 +91,9 @@ public class RoundStateUpdaterTests
 		// At this point in time all the rounds have disappeared and then the awaiter that was waiting for round1 to broadcast
 		// the transaction has to fail to let the sleeping component that the round doesn't exist any more.
 		roundStatusUpdater.Update();
-		var ex = await Assert.ThrowsAsync<InvalidOperationException>(async () => await round1TBTask);
+		var ex = await Assert.ThrowsAsync<WabiSabiProtocolException>(async () => await round1TBTask);
+		Assert.Equal(WabiSabiProtocolErrorCode.RoundNotFound, ex.ErrorCode);
 		Assert.Contains(round1.Id.ToString(), ex.Message);
-		Assert.Contains("not running", ex.Message);
 
 		// `Round2` awaiter has to be cancelled immediately when we stop the updater.
 		Assert.Equal(TaskStatus.WaitingForActivation, round2TBTask.Status);
