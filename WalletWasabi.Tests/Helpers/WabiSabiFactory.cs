@@ -1,4 +1,3 @@
-using Moq;
 using NBitcoin;
 using NBitcoin.Crypto;
 using NBitcoin.RPC;
@@ -336,7 +335,7 @@ public static class WabiSabiFactory
 	{
 		var semiPrivateThreshold = redCoinIsolation ? Constants.SemiPrivateThreshold : 0;
 		var coinSelector = new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: semiPrivateThreshold);
-		var coinjoinClient = new TesteableCoinJoinClient(
+		var coinjoinClient = new TestableCoinJoinClient(
 			apiClientFactory,
 			keyChain,
 			outputProvider,
@@ -351,21 +350,22 @@ public static class WabiSabiFactory
 
 	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
 	{
-		var mockRoundParameterFactory = new Mock<RoundParameterFactory>(cfg, network);
-		mockRoundParameterFactory.Setup(x => x.CreateRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Money>()))
-			.Returns(CreateRoundParameters(cfg)
+		RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
+			CreateRoundParameters(cfg)
 				with
 			{
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		mockRoundParameterFactory.Setup(x => x.CreateBlameRoundParameter(It.IsAny<FeeRate>(), It.IsAny<Round>()))
-			.Returns(CreateRoundParameters(cfg)
+			};
+
+		RoundParameters CreateBlameRoundParameter(FeeRate feeRate, Round blameOf) =>
+			CreateRoundParameters(cfg)
 				with
 			{
 				MinInputCountByRound = cfg.MinInputCountByBlameRound,
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
-			});
-		return mockRoundParameterFactory.Object;
+			};
+
+		return new RoundParameterFactory(cfg, network, CreateRoundParameter, CreateBlameRoundParameter);
 	}
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
@@ -403,9 +403,9 @@ public static class WabiSabiFactory
 	}
 }
 
-public class TesteableCoinJoinClient : CoinJoinClient
+public class TestableCoinJoinClient : CoinJoinClient
 {
-	public TesteableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
+	public TestableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
 	{
 	}
 
