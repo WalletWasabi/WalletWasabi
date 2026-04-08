@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Bases;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
@@ -41,7 +42,8 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public Script ScriptPubKey => TxOut.ScriptPubKey;
 	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
 	public Money Amount => TxOut.Value;
-	public double AnonymitySet => HdPubKey.AnonymitySet;
+
+	public double AnonymitySet => 1.0 / (double)Anonymity.GetScore(this);
 
 	public Height Height
 	{

@@ -36,7 +36,7 @@ public partial class CoinModel : ReactiveObject
 
 		IsExcludedFromCoinJoin = coin.IsExcludedFromCoinJoin;
 		IsConfirmed = coin.Confirmed;
-		AnonScore = (int)coin.HdPubKey.AnonymitySet;
+		AnonScore = (int)coin.AnonymitySet;
 		IsCoinJoinInProgress = coin.CoinJoinInProgress;
 		IsBanned = coin.IsBanned;
 		BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {coin.BannedUntilUtc}";
@@ -81,7 +81,7 @@ public partial class CoinModel : ReactiveObject
 
 		this.WhenAnyValue(c => c.Coin.IsExcludedFromCoinJoin).BindTo(this, x => x.IsExcludedFromCoinJoin).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.Confirmed).BindTo(this, x => x.IsConfirmed).DisposeWith(disposable);
-		this.WhenAnyValue(c => c.Coin.HdPubKey.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore).DisposeWith(disposable);
+		this.WhenAnyValue(c => c.Coin.AnonymitySet).Select(x => (int)x).BindTo(this, x => x.AnonScore).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.CoinJoinInProgress).BindTo(this, x => x.IsCoinJoinInProgress).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).Select(_ => Coin.IsBanned).BindTo(this, x => x.IsBanned).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(disposable);
