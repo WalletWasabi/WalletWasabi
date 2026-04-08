@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Helpers;
 
@@ -18,7 +19,7 @@ public class EventsAwaiter<TEventArgs>
 
 		for (int i = 0; i < count; i++)
 		{
-			eventsArrived.Add(new TaskCompletionSource<TEventArgs>());
+			eventsArrived.Add(new TaskCompletionSource<TEventArgs>(TaskCreationOptions.RunContinuationsAsynchronously));
 		}
 
 		EventsArrived = eventsArrived;
@@ -40,19 +41,62 @@ public class EventsAwaiter<TEventArgs>
 
 	private void SubscriptionEventHandler(object? sender, TEventArgs e)
 	{
+		if (e is SmartTransaction stx)
+		{
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; stx ({stx.GetHash()}): {stx}");
+		}
+		else
+		{
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler was called; argument: {e}");
+		}
+
+
 		lock (_lock)
 		{
+			int i = 0;
+			foreach (var task in Tasks)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - task #{i} has status: {task.Status}");
+			}
+
+			i = 0;
+			foreach (var tcs in EventsArrived)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [FIRST] TCS #{i} has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+			}
+
 			var firstUnfinished = EventsArrived.FirstOrDefault(x => !x.Task.IsCompleted);
-			firstUnfinished?.TrySetResult(e);
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - firstUnfinished={firstUnfinished}");
+
+			bool? setResult = firstUnfinished?.TrySetResult(e);
+			Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - set result = {setResult}");
+
+			i = 0;
+			foreach (var tcs in EventsArrived)
+			{
+				i++;
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - [SECOND] TCS #{i} has status: {tcs.Task.Status} ({tcs.Task.IsCompleted})");
+			}
 
 			// This is guaranteed to happen only once.
 			if (Tasks.All(x => x.IsCompleted))
 			{
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - all tasks completed");
 				_unsubscribe(SubscriptionEventHandler);
+			}
+			else
+			{
+				Console.WriteLine($"EventsAwaiter.SubscriptionEventHandler - not all tasks are completed");
 			}
 		}
 	}
 
 	public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
-		=> await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
+	{
+		Console.WriteLine($"EventsAwaiter.WaitAsync - Tasks count = {Tasks.Count}");
+
+		return await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
+	}
 }

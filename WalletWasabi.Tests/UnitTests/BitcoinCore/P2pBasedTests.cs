@@ -11,7 +11,6 @@ using WalletWasabi.Models;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
@@ -20,15 +19,19 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 [Collection("Serial unit tests collection")]
 public class P2pBasedTests
 {
-	// [Fact]  FIXME: this test never fails locally while almost always fail in the CI server
+	[Fact]
 	public async Task MempoolNotifiesAsync()
 	{
+		for (int r = 0; r < 3; r++)
+		{
+		Console.WriteLine($"==== Run #{r} ====");
 		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
 
 		using var node = await coreNode.CreateNewP2pNodeAsync();
 
 		try
 		{
+			Console.WriteLine($"MempoolNotifiesAsync - 1st");
 			string dir = Common.GetWorkDir();
 			var network = coreNode.Network;
 			var rpc = coreNode.RpcClient;
@@ -36,10 +39,12 @@ public class P2pBasedTests
 			var walletName = "wallet";
 			await rpc.CreateWalletAsync(walletName);
 
+			Console.WriteLine($"MempoolNotifiesAsync - 2nd");
 			SmartHeaderChain smartHeaderChain = new();
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
+			Console.WriteLine($"MempoolNotifiesAsync - 3rd");
 			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
 			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
@@ -48,6 +53,7 @@ public class P2pBasedTests
 			// Construct BitcoinStore.
 			BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain);
 
+			Console.WriteLine($"MempoolNotifiesAsync - 4th");
 			await rpc.GenerateAsync(blockCount: 101);
 
 			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
@@ -59,25 +65,31 @@ public class P2pBasedTests
 			// Number of transactions to send.
 			const int TransactionsCount = 3;
 
+			Console.WriteLine($"MempoolNotifiesAsync - 5th");
 			EventsAwaiter<SmartTransaction> eventAwaiter = new(
 				subscribe: h => mempoolService.TransactionReceived += h,
 				unsubscribe: h => mempoolService.TransactionReceived -= h,
 				count: TransactionsCount);
 
+			Console.WriteLine($"MempoolNotifiesAsync - 6th");
 			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];
 
 			// Add to the batch 10 RPC commands: Send 1 coin to the same address.
 			for (int i = 0; i < TransactionsCount; i++)
 			{
+				Console.WriteLine($"MempoolNotifiesAsync - 7th - {i}");
 				Task<uint256> txidTask = rpc.SendToAddressAsync(address, Money.Coins(1));
 				txHashesTasks[i] = txidTask;
 			}
 
+			Console.WriteLine($"MempoolNotifiesAsync - 8th");
 			uint256[] txHashes = await Task.WhenAll(txHashesTasks);
 
+			Console.WriteLine($"MempoolNotifiesAsync - 9th");
 			// Wait until the mempool service receives all the sent transactions.
 			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
 
+			Console.WriteLine($"MempoolNotifiesAsync - 10th");
 			// Check that all the received transaction hashes are in the set of sent transaction hashes.
 			foreach (SmartTransaction tx in mempoolSmartTxs)
 			{
@@ -88,6 +100,7 @@ public class P2pBasedTests
 		{
 			node.DisconnectAsync();
 			await coreNode.TryStopAsync();
+		}
 		}
 	}
 }
