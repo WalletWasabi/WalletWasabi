@@ -1,9 +1,6 @@
 using System.Collections.Generic;
-using System.Reactive.Subjects;
-using Moq;
 using NBitcoin;
 using WalletWasabi.Daemon;
-using WalletWasabi.Fluent;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Services;
 using Xunit;
