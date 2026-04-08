@@ -320,7 +320,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private ISearchItem CreateCoinJoinPaymentsItem()
 	{
-		return new ActionableItem("Coinjoin Payments", "View and manage queued coinjoin payments", () => { CoinJoinPaymentsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Payments", "Send", "Batch" }) { Icon = "embedded_payment", IsDefault = true, Priority = 3 };
+		return new ActionableItem("Coinjoin Payments", "Manage queued coinjoin payments", () => { CoinJoinPaymentsCommand.ExecuteIfCan(); return Task.CompletedTask; }, "Wallet", new[] { "Wallet", "Coinjoin", "Payments", "Send", "Batch" }) { Icon = "embedded_payment", IsDefault = true, Priority = 3 };
 	}
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
