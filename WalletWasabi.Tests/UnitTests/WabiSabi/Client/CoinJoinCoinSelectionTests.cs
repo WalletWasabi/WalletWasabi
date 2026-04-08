@@ -1,8 +1,6 @@
 using System.Linq;
-using Moq;
 using NBitcoin;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
@@ -29,7 +27,7 @@ public class CoinJoinCoinSelectionTests
 
 		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: 10, semiPrivateThreshold: 0, generator);
 		var coins = coinJoinCoinSelector.SelectCoinsForRound(
-			coins: Enumerable.Empty<SmartCoin>(),
+			coins: [],
 			CreateUtxoSelectionParameters(),
 			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
 
@@ -49,7 +47,7 @@ public class CoinJoinCoinSelectionTests
 			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
 			.ToList();
 
-		// We gotta make sure the distance from external keys is sufficient.
+		// Make sure the distance from external keys is sufficient.
 		foreach (var sc in coinsToSelectFrom)
 		{
 			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
@@ -266,7 +264,7 @@ public class CoinJoinCoinSelectionTests
 		var utxoSelectionParameter = CreateUtxoSelectionParameters();
 		coinsToSelectFrom.Add(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), utxoSelectionParameter.AllowedInputAmounts.Min - Money.Satoshis(1), anonymitySet: AnonymitySet - 1));
 
-		// We gotta make sure the distance from external keys is sufficient.
+		// Make sure the distance from external keys is sufficient.
 		foreach (var sc in coinsToSelectFrom)
 		{
 			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
@@ -287,18 +285,18 @@ public class CoinJoinCoinSelectionTests
 
 	private static CoinJoinCoinSelectorRandomnessGenerator CreateSelectorGenerator(int inputTarget, int? sameTxAllowance = null)
 	{
-		WasabiRandom rng = InsecureRandom.Instance;
-		Mock<CoinJoinCoinSelectorRandomnessGenerator> mockGenerator = new(MockBehavior.Loose, CoinJoinCoinSelector.MaxInputsRegistrableByWallet, rng) { CallBase = true };
-		mockGenerator.Setup(c => c.GetInputTarget())
-			.Returns(inputTarget);
+		GetInputTargetSelector fixedInputTarget = () => inputTarget;
+		GetSameTxAllowanceSelector? fixedSameTxAllowance = sameTxAllowance is not null
+				? (percent) => sameTxAllowance.Value
+				: null;
 
-		if (sameTxAllowance is not null)
-		{
-			mockGenerator.Setup(c => c.GetRandomBiasedSameTxAllowance(It.IsAny<int>()))
-				.Returns(sameTxAllowance.Value);
-		}
+		var generator = new CoinJoinCoinSelectorRandomnessGenerator(
+			CoinJoinCoinSelector.MaxInputsRegistrableByWallet,
+			InsecureRandom.Instance,
+			fixedInputTarget,
+			fixedSameTxAllowance);
 
-		return mockGenerator.Object;
+		return generator;
 	}
 
 	private static RoundParameters CreateMultipartyTransactionParameters()
