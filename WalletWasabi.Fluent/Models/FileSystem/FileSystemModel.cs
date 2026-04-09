@@ -4,7 +4,7 @@ using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Models.FileSystem;
 
-public class FileSystemModel : IFileSystem
+public class FileSystemModel
 {
 	public Task OpenFileInTextEditorAsync(string filePath)
 	{

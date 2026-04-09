@@ -9,7 +9,6 @@ using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -21,73 +20,8 @@ using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public interface IApplicationSettings
-{
-	bool EnableGpu { get; set; }
-
-	Network Network { get; set; }
-
-	string BitcoinRpcUri { get; set; }
-
-	string BitcoinRpcCredentialString { get; set; }
-
-	string DustThreshold { get; set; }
-
-	string ExchangeRateProvider { get; set; }
-
-	string FeeRateEstimationProvider { get; set; }
-
-	string ExternalTransactionBroadcaster { get; set; }
-
-	string CoordinatorUri { get; set; }
-
-	string MaxCoinJoinMiningFeeRate { get; set; }
-
-	string AbsoluteMinInputCount { get; set; }
-
-	bool DarkModeEnabled { get; set; }
-
-	bool AutoCopy { get; set; }
-
-	bool AutoPaste { get; set; }
-
-	bool CustomChangeAddress { get; set; }
-
-	bool RunOnSystemStartup { get; set; }
-
-	bool HideOnClose { get; set; }
-
-	TorMode UseTor { get; set; }
-
-	bool TerminateTorOnExit { get; set; }
-
-	bool DownloadNewVersion { get; set; }
-
-	bool PrivacyMode { get; set; }
-
-	bool Oobe { get; set; }
-
-	Version LastVersionHighlightsDisplayed { get; set; }
-
-	WindowState WindowState { get; set; }
-
-	bool DoUpdateOnClose { get; set; }
-
-	string[] ExperimentalFeatures { get; set; }
-
-	bool IsOverridden { get; }
-
-	IObservable<bool> IsRestartNeeded { get; }
-
-	void ResetToDefault();
-
-	bool CheckIfRestartIsNeeded(PersistentConfig config);
-
-	bool TryProcessCoordinatorConnectionString(CoordinatorConnectionString coordinatorConnectionString);
-}
-
 [AppLifetime]
-public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
+public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
 
@@ -186,7 +120,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		_oobe = uiConfig.Oobe;
 		_lastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+		_windowState = Enum.Parse<WindowState>(uiConfig.WindowState);
 		SetupObservables();
 	}
 
@@ -230,7 +164,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		Oobe = uiConfig.Oobe;
 		LastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		WindowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+		WindowState = Enum.Parse<WindowState>(uiConfig.WindowState);
 	}
 
 	private void SetupObservables()

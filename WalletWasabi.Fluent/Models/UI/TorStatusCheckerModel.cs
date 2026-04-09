@@ -7,12 +7,7 @@ using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public interface ITorStatusCheckerModel
-{
-	IObservable<IList<Issue>> Issues { get; }
-}
-
-public partial class TorStatusCheckerModel : ITorStatusCheckerModel
+public partial class TorStatusCheckerModel
 {
 	public TorStatusCheckerModel()
 	{

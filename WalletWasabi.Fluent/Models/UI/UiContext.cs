@@ -18,19 +18,19 @@ public class UiContext
 
 	private INavigate? _navigate;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator,
-		IQrCodeReader qrCodeReader,
-		IUiClipboard clipboard,
-		IWalletRepository walletRepository,
+	public UiContext(QrCodeGenerator qrCodeGenerator,
+		QrCodeReader qrCodeReader,
+		UiClipboard clipboard,
+		WalletRepository walletRepository,
 		CoinjoinModel coinJoinModel,
-		IHardwareWalletInterface hardwareWalletInterface,
-		IFileSystem fileSystem,
-		IClientConfig config,
-		IApplicationSettings applicationSettings,
-		ITransactionBroadcasterModel transactionBroadcaster,
+		HardwareWalletInterface hardwareWalletInterface,
+		FileSystemModel fileSystem,
+		ClientConfigModel config,
+		ApplicationSettings applicationSettings,
+		TransactionBroadcasterModel transactionBroadcaster,
 		AmountProvider amountProvider,
 		EditableSearchSource editableSearchSource,
-		ITorStatusCheckerModel torStatusChecker,
+		TorStatusCheckerModel torStatusChecker,
 		HealthMonitor healthMonitor,
 		ReleaseHighlights releaseHighlights,
 		Daemon.Scheme? scheme = null)
@@ -53,19 +53,19 @@ public class UiContext
 		Scheme = scheme;
 	}
 
-	public IUiClipboard Clipboard { get; }
-	public IQrCodeGenerator QrCodeGenerator { get; }
-	public IWalletRepository WalletRepository { get; }
+	public UiClipboard Clipboard { get; }
+	public QrCodeGenerator QrCodeGenerator { get; }
+	public WalletRepository WalletRepository { get; }
 	public CoinjoinModel CoinjoinModel { get; }
-	public IQrCodeReader QrCodeReader { get; }
-	public IHardwareWalletInterface HardwareWalletInterface { get; }
-	public IFileSystem FileSystem { get; }
-	public IClientConfig Config { get; }
-	public IApplicationSettings ApplicationSettings { get; }
-	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
+	public QrCodeReader QrCodeReader { get; }
+	public HardwareWalletInterface HardwareWalletInterface { get; }
+	public FileSystemModel FileSystem { get; }
+	public ClientConfigModel Config { get; }
+	public ApplicationSettings ApplicationSettings { get; }
+	public TransactionBroadcasterModel TransactionBroadcaster { get; }
 	public AmountProvider AmountProvider { get; }
 	public EditableSearchSource EditableSearchSource { get; }
-	public ITorStatusCheckerModel TorStatusChecker { get; }
+	public TorStatusCheckerModel TorStatusChecker { get; }
 	public HealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
 	public Daemon.Scheme? Scheme { get; }

@@ -91,33 +91,32 @@ public class App : Application
 		}
 	}
 
-	// It begins to show that we're re-inventing DI, aren't we?
-	private static IWalletRepository CreateWalletRepository(AmountProvider amountProvider)
+	private static WalletRepository CreateWalletRepository(AmountProvider amountProvider)
 	{
 		return new WalletRepository(amountProvider);
 	}
 
-	private static IHardwareWalletInterface CreateHardwareWalletInterface()
+	private static HardwareWalletInterface CreateHardwareWalletInterface()
 	{
 		return new HardwareWalletInterface();
 	}
 
-	private static IFileSystem CreateFileSystem()
+	private static FileSystemModel CreateFileSystem()
 	{
 		return new FileSystemModel();
 	}
 
-	private static IClientConfig CreateConfig()
+	private static ClientConfigModel CreateConfig()
 	{
 		return new ClientConfigModel();
 	}
 
-	private static IApplicationSettings CreateApplicationSettings()
+	private static ApplicationSettings CreateApplicationSettings()
 	{
 		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
-	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
+	private static TransactionBroadcasterModel CreateBroadcaster(Network network)
 	{
 		return new TransactionBroadcasterModel(network);
 	}
