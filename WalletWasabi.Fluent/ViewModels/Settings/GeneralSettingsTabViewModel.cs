@@ -18,12 +18,12 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class GeneralSettingsTabViewModel : RoutableViewModel
 {
-	public GeneralSettingsTabViewModel(IApplicationSettings settings)
+	public GeneralSettingsTabViewModel(ApplicationSettings settings)
 	{
 		Settings = settings;
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
-	public IApplicationSettings Settings { get; }
+	public ApplicationSettings Settings { get; }
 }

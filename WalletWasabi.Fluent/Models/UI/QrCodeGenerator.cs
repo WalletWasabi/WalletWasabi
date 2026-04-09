@@ -4,12 +4,7 @@ using Gma.QrCodeNet.Encoding;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
-public interface IQrCodeGenerator
-{
-	IObservable<bool[,]> Generate(string data);
-}
-
-public partial class QrCodeGenerator : IQrCodeGenerator
+public partial class QrCodeGenerator
 {
 	private readonly QrEncoder _encoder = new();
 

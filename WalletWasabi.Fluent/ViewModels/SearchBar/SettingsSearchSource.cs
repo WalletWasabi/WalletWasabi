@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar;
 public class SettingsSearchSource : ReactiveObject, ISearchSource
 {
 	private readonly UiContext _uiContext;
-	private readonly IApplicationSettings _applicationSettings;
+	private readonly ApplicationSettings _applicationSettings;
 
 	public SettingsSearchSource(UiContext uiContext, IObservable<string> query)
 	{

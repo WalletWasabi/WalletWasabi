@@ -112,12 +112,12 @@ public class App : Application
 		return new ClientConfigModel();
 	}
 
-	private static IApplicationSettings CreateApplicationSettings()
+	private static ApplicationSettings CreateApplicationSettings()
 	{
 		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
 	}
 
-	private static ITransactionBroadcasterModel CreateBroadcaster(Network network)
+	private static TransactionBroadcasterModel CreateBroadcaster(Network network)
 	{
 		return new TransactionBroadcasterModel(network);
 	}

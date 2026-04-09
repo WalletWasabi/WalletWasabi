@@ -18,7 +18,7 @@ public class UiContext
 
 	private INavigate? _navigate;
 
-	public UiContext(IQrCodeGenerator qrCodeGenerator,
+	public UiContext(QrCodeGenerator qrCodeGenerator,
 		QrCodeReader qrCodeReader,
 		UiClipboard clipboard,
 		IWalletRepository walletRepository,
@@ -26,11 +26,11 @@ public class UiContext
 		HardwareWalletInterface hardwareWalletInterface,
 		FileSystemModel fileSystem,
 		ClientConfigModel config,
-		IApplicationSettings applicationSettings,
-		ITransactionBroadcasterModel transactionBroadcaster,
+		ApplicationSettings applicationSettings,
+		TransactionBroadcasterModel transactionBroadcaster,
 		AmountProvider amountProvider,
 		EditableSearchSource editableSearchSource,
-		ITorStatusCheckerModel torStatusChecker,
+		TorStatusCheckerModel torStatusChecker,
 		HealthMonitor healthMonitor,
 		ReleaseHighlights releaseHighlights,
 		Daemon.Scheme? scheme = null)
@@ -54,18 +54,18 @@ public class UiContext
 	}
 
 	public UiClipboard Clipboard { get; }
-	public IQrCodeGenerator QrCodeGenerator { get; }
+	public QrCodeGenerator QrCodeGenerator { get; }
 	public IWalletRepository WalletRepository { get; }
 	public CoinjoinModel CoinjoinModel { get; }
 	public QrCodeReader QrCodeReader { get; }
 	public HardwareWalletInterface HardwareWalletInterface { get; }
 	public FileSystemModel FileSystem { get; }
 	public ClientConfigModel Config { get; }
-	public IApplicationSettings ApplicationSettings { get; }
-	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
+	public ApplicationSettings ApplicationSettings { get; }
+	public TransactionBroadcasterModel TransactionBroadcaster { get; }
 	public AmountProvider AmountProvider { get; }
 	public EditableSearchSource EditableSearchSource { get; }
-	public ITorStatusCheckerModel TorStatusChecker { get; }
+	public TorStatusCheckerModel TorStatusChecker { get; }
 	public HealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
 	public Daemon.Scheme? Scheme { get; }

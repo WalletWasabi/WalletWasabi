@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 {
-	public ConnectionsSettingsTabViewModel(IApplicationSettings settings)
+	public ConnectionsSettingsTabViewModel(ApplicationSettings settings)
 	{
 		Settings = settings;
 
@@ -43,7 +43,7 @@ public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
-	public IApplicationSettings Settings { get; }
+	public ApplicationSettings Settings { get; }
 
 	public IEnumerable<string> ExchangeRateProviders => WalletWasabi.Wallets.Exchange.ExchangeRateProviders.Providers;
 	public IEnumerable<string> FeeRateEstimationProviders => FeeRateProviders.Providers;

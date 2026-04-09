@@ -34,7 +34,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string? _connectionStatusMessage;
 	[AutoNotify] private bool _connectionStatusIsSuccess;
 
-	public BitcoinTabSettingsViewModel(IApplicationSettings settings)
+	public BitcoinTabSettingsViewModel(ApplicationSettings settings)
 	{
 		Settings = settings;
 
@@ -69,7 +69,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
-	public IApplicationSettings Settings { get; }
+	public ApplicationSettings Settings { get; }
 
 	public IEnumerable<Network> Networks { get; } = [Network.Main, Network.TestNet, Bitcoin.Instance.Signet, Network.RegTest];
 

@@ -9,18 +9,7 @@ using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.Models;
 
-public interface ITransactionBroadcasterModel
-{
-	SmartTransaction? Parse(string text);
-
-	Task<SmartTransaction> LoadFromFileAsync(string filePath);
-
-	TransactionBroadcastInfo GetBroadcastInfo(SmartTransaction transaction);
-
-	Task SendAsync(SmartTransaction transaction);
-}
-
-public partial class TransactionBroadcasterModel : ITransactionBroadcasterModel
+public partial class TransactionBroadcasterModel
 {
 	private readonly Network _network;
 

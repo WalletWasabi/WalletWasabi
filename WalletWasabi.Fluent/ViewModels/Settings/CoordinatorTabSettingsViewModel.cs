@@ -27,7 +27,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
-	public CoordinatorTabSettingsViewModel(IApplicationSettings settings)
+	public CoordinatorTabSettingsViewModel(ApplicationSettings settings)
 	{
 		Settings = settings;
 
@@ -56,7 +56,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
-	public IApplicationSettings Settings { get; }
+	public ApplicationSettings Settings { get; }
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{
