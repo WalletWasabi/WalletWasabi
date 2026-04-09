@@ -7,7 +7,7 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 
 public abstract record PaymentState
 {
-	protected PaymentState(PaymentState previousState)
+	protected PaymentState(PaymentState? previousState)
 	{
 		PreviousState = previousState;
 	}
