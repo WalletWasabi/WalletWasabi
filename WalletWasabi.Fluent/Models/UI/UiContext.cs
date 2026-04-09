@@ -19,13 +19,13 @@ public class UiContext
 	private INavigate? _navigate;
 
 	public UiContext(IQrCodeGenerator qrCodeGenerator,
-		IQrCodeReader qrCodeReader,
-		IUiClipboard clipboard,
+		QrCodeReader qrCodeReader,
+		UiClipboard clipboard,
 		IWalletRepository walletRepository,
 		CoinjoinModel coinJoinModel,
-		IHardwareWalletInterface hardwareWalletInterface,
-		IFileSystem fileSystem,
-		IClientConfig config,
+		HardwareWalletInterface hardwareWalletInterface,
+		FileSystemModel fileSystem,
+		ClientConfigModel config,
 		IApplicationSettings applicationSettings,
 		ITransactionBroadcasterModel transactionBroadcaster,
 		AmountProvider amountProvider,
@@ -53,14 +53,14 @@ public class UiContext
 		Scheme = scheme;
 	}
 
-	public IUiClipboard Clipboard { get; }
+	public UiClipboard Clipboard { get; }
 	public IQrCodeGenerator QrCodeGenerator { get; }
 	public IWalletRepository WalletRepository { get; }
 	public CoinjoinModel CoinjoinModel { get; }
-	public IQrCodeReader QrCodeReader { get; }
-	public IHardwareWalletInterface HardwareWalletInterface { get; }
-	public IFileSystem FileSystem { get; }
-	public IClientConfig Config { get; }
+	public QrCodeReader QrCodeReader { get; }
+	public HardwareWalletInterface HardwareWalletInterface { get; }
+	public FileSystemModel FileSystem { get; }
+	public ClientConfigModel Config { get; }
 	public IApplicationSettings ApplicationSettings { get; }
 	public ITransactionBroadcasterModel TransactionBroadcaster { get; }
 	public AmountProvider AmountProvider { get; }

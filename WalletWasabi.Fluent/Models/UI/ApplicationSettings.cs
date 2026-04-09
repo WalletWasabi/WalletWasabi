@@ -9,7 +9,6 @@ using System.Reactive.Subjects;
 using WalletWasabi.Bases;
 using WalletWasabi.Daemon;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Exceptions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -186,7 +185,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		_oobe = uiConfig.Oobe;
 		_lastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		_windowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+		_windowState = Enum.Parse<WindowState>(uiConfig.WindowState);
 		SetupObservables();
 	}
 
@@ -230,7 +229,7 @@ public partial class ApplicationSettings : ReactiveObject, IApplicationSettings
 		Oobe = uiConfig.Oobe;
 		LastVersionHighlightsDisplayed = uiConfig.LastVersionHighlightsDisplayed;
 
-		WindowState = (WindowState)Enum.Parse(typeof(WindowState), uiConfig.WindowState);
+		WindowState = Enum.Parse<WindowState>(uiConfig.WindowState);
 	}
 
 	private void SetupObservables()

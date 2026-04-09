@@ -97,17 +97,17 @@ public class App : Application
 		return new WalletRepository(amountProvider);
 	}
 
-	private static IHardwareWalletInterface CreateHardwareWalletInterface()
+	private static HardwareWalletInterface CreateHardwareWalletInterface()
 	{
 		return new HardwareWalletInterface();
 	}
 
-	private static IFileSystem CreateFileSystem()
+	private static FileSystemModel CreateFileSystem()
 	{
 		return new FileSystemModel();
 	}
 
-	private static IClientConfig CreateConfig()
+	private static ClientConfigModel CreateConfig()
 	{
 		return new ClientConfigModel();
 	}
