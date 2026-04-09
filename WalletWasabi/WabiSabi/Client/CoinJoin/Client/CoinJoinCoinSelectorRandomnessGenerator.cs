@@ -4,14 +4,28 @@ using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
+public delegate int GetInputTargetSelector();
+public delegate int GetSameTxAllowanceSelector(int percent);
+
 /// <summary>
 /// Generator of randomness for <see cref="CoinJoinCoinSelector"/>.
 /// </summary>
 public class CoinJoinCoinSelectorRandomnessGenerator
 {
-	public CoinJoinCoinSelectorRandomnessGenerator(int maxInputsCount, WasabiRandom rnd)
+	private readonly GetInputTargetSelector _inputTargetSelector;
+	private readonly GetSameTxAllowanceSelector _sameTxAllowanceSelector;
+
+	/// <param name="fixedInputTarget">Only for testing purposes.</param>
+	/// <param name="fixedSameTxAllowance">Only for testing purposes.</param>
+	public CoinJoinCoinSelectorRandomnessGenerator(
+		int maxInputsCount,
+		WasabiRandom rnd,
+		GetInputTargetSelector? fixedInputTarget = null,
+		GetSameTxAllowanceSelector? fixedSameTxAllowance = null)
 	{
 		Rnd = rnd;
+		_inputTargetSelector = fixedInputTarget ?? DefaultGetInputTarget;
+		_sameTxAllowanceSelector = fixedSameTxAllowance ?? DefaultGetRandomBiasedSameTxAllowance;
 		_maxInputsCount = maxInputsCount;
 
 		// Until our UTXO count target isn't reached, let's register as few coins as we can to reach it.
@@ -25,25 +39,16 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	private readonly int _maxInputsCount;
 	private Dictionary<int, int> Distance { get; } = new();
 
-	public virtual int GetRandomBiasedSameTxAllowance(int percent)
-	{
-		for (int num = 0; num <= 100; num++)
-		{
-			if (Rnd.GetInt(1, 101) <= percent)
-			{
-				return num;
-			}
-		}
+	public int GetInputTarget() => _inputTargetSelector();
 
-		return 0;
-	}
+	public int GetRandomBiasedSameTxAllowance(int percent) => _sameTxAllowanceSelector(percent);
 
 	/// <summary>
 	/// Calculates how many inputs are desirable to be registered.
 	/// Note: Random biasing is applied.
 	/// </summary>
 	/// <returns>A number: 1, 2, .., <see cref="CoinJoinCoinSelector.MaxInputsRegistrableByWallet"/>.</returns>
-	public virtual int GetInputTarget()
+	private int DefaultGetInputTarget()
 	{
 		foreach (var best in Distance.OrderBy(x => x.Value))
 		{
@@ -54,5 +59,18 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 		}
 
 		return _maxInputsCount;
+	}
+
+	private int DefaultGetRandomBiasedSameTxAllowance(int percent)
+	{
+		for (int num = 0; num <= 100; num++)
+		{
+			if (Rnd.GetInt(1, 101) <= percent)
+			{
+				return num;
+			}
+		}
+
+		return 0;
 	}
 }

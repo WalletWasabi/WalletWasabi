@@ -371,9 +371,7 @@ public static class WabiSabiFactory
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()
 	{
 		var channel = Channel.CreateUnbounded<Offender>();
-		var prison = new Prison(
-			Enumerable.Empty<Offender>(),
-			channel.Writer);
+		var prison = new Prison([], channel.Writer);
 		return (prison, channel.Reader);
 	}
 
