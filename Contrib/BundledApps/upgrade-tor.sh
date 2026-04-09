@@ -27,7 +27,7 @@ Arguments:
 
 Options:
     -h, --help              Show this help message and exit
-    --skip-download         Skip downloading archives (use previously downloaded files)
+    --force-download        Force download Tor Browser archives even if they already exist
     --skip-extract-browser  Skip extracting the Tor Browser archive
     --skip-extract-tor      Skip extracting the embedded Tor from browser
     --skip-replace-tor      Skip replacing the Tor binaries in the repository
@@ -35,8 +35,8 @@ Options:
 
 Examples:
     ./upgrade-tor.sh 15.0.7
-    ./upgrade-tor.sh 15.0.7 --skip-download
-    ./upgrade-tor.sh 15.0.7 --skip-download --skip-extract-browser --skip-replace-geoip
+    ./upgrade-tor.sh 15.0.7 --force-download
+    ./upgrade-tor.sh 15.0.7 --skip-extract-browser --skip-replace-geoip
 EOF
     exit 0
 }
@@ -52,12 +52,12 @@ VERSION="${1:-}"
 if [[ -z "$VERSION" ]]; then
     echo "ERROR: Tor Browser version is required." >&2
     echo "Use --help for usage information." >&2
-    echo "Usage: $0 <version> [--skip-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip]" >&2
+    echo "Usage: $0 <version> [--force-download] [--skip-extract-browser] [--skip-extract-tor] [--skip-replace-tor] [--skip-replace-geoip]" >&2
     exit 1
 fi
 
 # Parse flags
-SKIP_DOWNLOAD=false
+FORCE_DOWNLOAD=false
 SKIP_EXTRACT_BROWSER=false
 SKIP_EXTRACT_TOR=false
 SKIP_REPLACE_TOR=false
@@ -65,7 +65,7 @@ SKIP_REPLACE_GEOIP=false
 
 for arg in "$@"; do
     case "$arg" in
-        --skip-download)        SKIP_DOWNLOAD=true ;;
+        --force-download)       FORCE_DOWNLOAD=true ;;
         --skip-extract-browser) SKIP_EXTRACT_BROWSER=true ;;
         --skip-extract-tor)     SKIP_EXTRACT_TOR=true ;;
         --skip-replace-tor)     SKIP_REPLACE_TOR=true ;;
@@ -153,43 +153,51 @@ pushd "$TEMP_DIR" >/dev/null || exit 1
 info "Change directory to $TEMP_DIR"
 
 # ─── Download ────────────────────────────────────────────────────────────────
-if [[ "$SKIP_DOWNLOAD" != true ]]; then
-    section "Downloading Tor Browser packages"
+section "Downloading Tor Browser packages (if needed)"
 
-    rm -rf TorBrowser Tor
-
-    # https://support.torproject.org/tor-browser/getting-started/verifying-tor-browser/
+if [[ "$FORCE_DOWNLOAD" == true ]] || [[ ! -f "./tor.keyring" ]]; then
     info "Fetching the Tor Developers key"
-    rm -rf ./tor.keyring
-    gpg --auto-key-locate nodefault,wkd --locate-keys torbrowser@torproject.org
-    gpg --output ./tor.keyring --export 0xEF6E286DDA85EA2A4BA7DE684E2C6E8793298290
+    
+    # https://support.torproject.org/tor-browser/getting-started/verifying-tor-browser/
+    gpg --auto-key-locate nodefault,wkd --locate-keys torbrowser@torproject.org    # Import key from Web Key Directory (WKD)
+    gpg --output ./tor.keyring --export 0xEF6E286DDA85EA2A4BA7DE684E2C6E8793298290 # Export the specific key to a local keyring file
 
-    for platform in "${SUPPORTED_PLATFORMS[@]}"; do
-        fname="${FILES[$platform]}"
-        url="${DIST_URI}/${fname}"
+    info "Tor Developers keyring created/updated"
+else
+    info "Tor keyring already exists. Skipping fetch."
+fi
 
+for platform in "${SUPPORTED_PLATFORMS[@]}"; do
+    fname="${FILES[$platform]}"
+    url="${DIST_URI}/${fname}"
+
+    asc_fname="${fname}.asc"
+    asc_url="${url}.asc"
+
+    # Download only if file doesn't exist, unless --force-download is used.
+    if [[ "$FORCE_DOWNLOAD" == true ]] || [[ ! -f "$fname" ]] || [[ ! -f "$asc_fname" ]]; then
         info "Downloading $fname from '$url' ..."
         curl -fL --progress-bar -o "$fname" "$url" || error "Download of '$fname' failed: $url"
 
-        url="${url}.asc"
-        asc_fname="${FILES[$platform]}.asc"
+        info "Downloading $asc_fname from '$asc_url' ..."
+        curl -fL --progress-bar -o "$asc_fname" "$asc_url" || error "Download of '$asc_fname' failed: $asc_url"
+    else
+        info "File already exists: $fname (skipping download)"
+    fi
 
-        info "Downloading $asc_fname from '$url' ..."
-        curl -fL --progress-bar -o "$asc_fname" "$url" || error "Download of '$asc_fname' failed: $url"
-
-        if gpgv --keyring ./tor.keyring "$asc_fname" "$fname" >gpg-verify.log 2>&1; then
-            info "Signature OK for $fname"
-        else
-            gpgLog=$(cat ./gpg-verify.log)
-            error "Verification FAILED for $fname" "$gpgLog"
-        fi
-    done
-else
-    section "Skipping download"
-fi
+    # Verify signature
+    if gpgv --keyring ./tor.keyring "$asc_fname" "$fname" >gpg-verify.log 2>&1; then
+        info "Signature OK for $fname"
+    else
+        gpgLog=$(cat ./gpg-verify.log)
+        error "Verification FAILED for $fname" "$gpgLog"
+    fi
+done
 
 # ─── Extract browser archives ────────────────────────────────────────────────
 if [[ "$SKIP_EXTRACT_BROWSER" != true ]]; then
+    rm -rf TorBrowser Tor
+
     section "Extracting Tor Browser archives"
 
     # Remove WalletWasabi/BundledApps/Binaries/temp/$VERSION/TorBrowser
@@ -271,7 +279,7 @@ if [[ "$SKIP_REPLACE_GEOIP" != true ]]; then
     mkdir -p "$geoip_target"
 
     # Usually taken from one of the Linux extractions
-    cp -f "${TEMP_DIR}/TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Data/Tor/geoip"* "$geoip_target/" 2>/dev/null
+    cp -f "${TEMP_DIR}/TorBrowser/linux-x64/tor-browser/Browser/TorBrowser/Tor/geoip"* "$geoip_target/" 2>/dev/null
 
     info "GeoIP files updated in ${geoip_target}"
 else
