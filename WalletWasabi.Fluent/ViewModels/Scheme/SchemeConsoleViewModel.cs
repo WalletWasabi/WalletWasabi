@@ -15,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.Scheme;
 	IconName = "nav_wallet_24_regular",
 	Order = 3,
 	Category = "General",
-	Keywords = ["Wallet", "Coins", "UTXO", "Scripting"],
+	Keywords = ["Wallet", "Scripting", "Scheme", "Program", "Query", "Command"],
 	NavBarPosition = NavBarPosition.None,
 	NavigationTarget = NavigationTarget.DialogScreen,
 	Searchable = true)]
