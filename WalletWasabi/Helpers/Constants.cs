@@ -95,8 +95,6 @@ public static class Constants
 	public static readonly Version ClientVersion = new(2, 8, 0);
 	public static readonly string VersionName = "";
 
-	public static readonly Version HwiVersion = new("3.2.0");
-
 	public static readonly FeeRate MinRelayFeeRate = new(0.1m);
 	public static readonly FeeRate AbsurdlyHighFeeRate = new(10_000m);
 

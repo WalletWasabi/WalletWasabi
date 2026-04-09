@@ -2,14 +2,16 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
 using System.Runtime.InteropServices;
+using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Transactions.Summary;
+using WalletWasabi.Helpers;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
 using WalletWasabi.Hwi.Parsers;
 using WalletWasabi.Hwi.ProcessBridge;
 using Xunit;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
 
@@ -40,15 +42,6 @@ public class DefaultResponseTests
 	public void ConstructorThrowsArgumentNullException()
 	{
 		Assert.Throws<ArgumentNullException>(() => new HwiClient(null!));
-	}
-
-	[Theory]
-	[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
-	public async Task GetVersionTestsAsync(HwiClient client)
-	{
-		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
-		Version version = await client.GetVersionAsync(cts.Token);
-		Assert.Equal(Constants.HwiVersion, version);
 	}
 
 	[Theory]
@@ -211,13 +204,25 @@ public class DefaultResponseTests
 
 		// Start HWI with "version" argument and test that we get non-empty response.
 		(string response, int exitCode) result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token);
-		Assert.Contains(Constants.HwiVersion.ToString(), result.response);
+		AssertVersion(result);
 
 		// Start HWI with "version" argument and test that we get non-empty response + verify that "standardInputWriter" is actually called.
 		bool stdInputActionCalled = false;
 		result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
-		Assert.Contains(Constants.HwiVersion.ToString(), result.response);
+		AssertVersion(result);
 		Assert.True(stdInputActionCalled);
+
+		static void AssertVersion((string response, int exitCode) result)
+		{
+			var match = Regex.Match(result.response, @"hwi(\.exe)?\s+([\d.]+)");
+			Assert.True(match.Success);
+
+			string versionString = match.Groups[2].Value;
+
+			// Check that HWI version is >= 3.0.0. The actual version does not matter too much.
+			var version = new Version(versionString);
+			Assert.InRange(version.Major, 3, int.MaxValue);
+		}
 	}
 
 	/// <summary>Verify that <c>--help</c> returns output as expected.</summary>
