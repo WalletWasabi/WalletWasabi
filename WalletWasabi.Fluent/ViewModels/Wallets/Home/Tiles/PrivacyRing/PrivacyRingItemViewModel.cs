@@ -104,11 +104,12 @@ public class PrivacyRingItemViewModel : IPrivacyRingPreviewItem
 
 		return new PathGeometry()
 		{
-			Figures =
+			Figures = new PathFigures()
 			{
 				new PathFigure
 				{
-					StartPoint = origin1, IsClosed = true,
+					StartPoint = origin1,
+					IsClosed = true,
 					Segments = new PathSegments
 					{
 						new ArcSegment { Size = arc1Size, Point = arc1, IsLargeArc = isLargeArc },
