@@ -51,7 +51,7 @@ public class TorProcessManager : IAsyncDisposable
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
 	/// <para>Guarded by <see cref="_stateLock"/>.</para>
 	/// </remarks>
-	private ProcessAsync? TorProcess { get; set; }
+	private Process? TorProcess { get; set; }
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
@@ -223,7 +223,7 @@ public class TorProcessManager : IAsyncDisposable
 
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			ProcessAsync? process = null;
+			Process? process = null;
 			TorControlClient? controlClient = null;
 			Exception? exception = null;
 			bool setNewTcs = true;
@@ -248,7 +248,7 @@ public class TorProcessManager : IAsyncDisposable
 					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - disposed in finally clause
-					process = new ProcessAsync(Process.GetProcessById(processId));
+					process = Process.GetProcessById(processId);
 #pragma warning restore CA2000
 
 					try
@@ -428,7 +428,7 @@ public class TorProcessManager : IAsyncDisposable
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
-	internal virtual async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
+	internal virtual async Task<bool> EnsureRunningAsync(Process process, CancellationToken token)
 	{
 		int i = 0;
 		while (true)
@@ -462,7 +462,7 @@ public class TorProcessManager : IAsyncDisposable
 	}
 
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
-	internal virtual ProcessAsync StartProcess(string arguments)
+	internal virtual Process StartProcess(string arguments)
 	{
 		ProcessStartInfo startInfo = new()
 		{
@@ -486,8 +486,11 @@ public class TorProcessManager : IAsyncDisposable
 		}
 
 		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
-		ProcessAsync process = new(startInfo);
-		process.Start();
+		Process process = new()
+		{
+			StartInfo = startInfo,
+		};
+		process.StartAndLogException();
 
 		return process;
 	}
@@ -545,7 +548,7 @@ public class TorProcessManager : IAsyncDisposable
 
 		_loopCts.Dispose();
 
-		ProcessAsync? process;
+		Process? process;
 		TorControlClient? torControlClient;
 
 		lock (_stateLock)
