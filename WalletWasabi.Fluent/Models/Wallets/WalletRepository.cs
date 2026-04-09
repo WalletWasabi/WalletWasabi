@@ -17,28 +17,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial interface IWalletRepository
-{
-	IObservableCache<IWalletModel, WalletId> Wallets { get; }
-
-	string? DefaultWalletName { get; }
-
-	bool HasWallet { get; }
-
-	void StoreLastSelectedWallet(IWalletModel wallet);
-
-	string GetNextWalletName();
-
-	Task<WalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null);
-
-	IWalletModel SaveWallet(WalletSettingsModel walletSettings);
-
-	(ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName);
-
-	IWalletModel? GetExistingWallet(HwiEnumerateEntry device);
-}
-
-public partial class WalletRepository : ReactiveObject, IWalletRepository
+public partial class WalletRepository : ReactiveObject
 {
 	private readonly AmountProvider _amountProvider;
 	private readonly Dictionary<WalletId, WalletModel> _walletDictionary = new();

@@ -21,7 +21,7 @@ public class UiContext
 	public UiContext(QrCodeGenerator qrCodeGenerator,
 		QrCodeReader qrCodeReader,
 		UiClipboard clipboard,
-		IWalletRepository walletRepository,
+		WalletRepository walletRepository,
 		CoinjoinModel coinJoinModel,
 		HardwareWalletInterface hardwareWalletInterface,
 		FileSystemModel fileSystem,
@@ -55,7 +55,7 @@ public class UiContext
 
 	public UiClipboard Clipboard { get; }
 	public QrCodeGenerator QrCodeGenerator { get; }
-	public IWalletRepository WalletRepository { get; }
+	public WalletRepository WalletRepository { get; }
 	public CoinjoinModel CoinjoinModel { get; }
 	public QrCodeReader QrCodeReader { get; }
 	public HardwareWalletInterface HardwareWalletInterface { get; }

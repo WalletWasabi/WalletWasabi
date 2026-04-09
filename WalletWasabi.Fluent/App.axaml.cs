@@ -91,8 +91,7 @@ public class App : Application
 		}
 	}
 
-	// It begins to show that we're re-inventing DI, aren't we?
-	private static IWalletRepository CreateWalletRepository(AmountProvider amountProvider)
+	private static WalletRepository CreateWalletRepository(AmountProvider amountProvider)
 	{
 		return new WalletRepository(amountProvider);
 	}
