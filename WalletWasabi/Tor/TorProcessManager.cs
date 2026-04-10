@@ -316,7 +316,7 @@ public class TorProcessManager : IAsyncDisposable
 					_tcs.SetResult((cts.Token, controlClient));
 				}
 
-				await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				await WaitForTorProcessExitAsync(process, cancellationToken).ConfigureAwait(false);
 
 				Logger.LogDebug("Tor process exited.");
 			}
@@ -395,6 +395,12 @@ public class TorProcessManager : IAsyncDisposable
 				}
 			}
 		}
+	}
+
+	/// <remarks>The method exist to avoid mocking <see cref="Process"/>. Do not call the method outside this class.</remarks>
+	internal virtual async Task WaitForTorProcessExitAsync(ProcessAsync process, CancellationToken cancellationToken)
+	{
+		await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private void OnTorStop(bool willWaitForTorRestart, Exception? exception, CancellationTokenSource torStoppedCts, CancellationToken globalCancellationToken)
