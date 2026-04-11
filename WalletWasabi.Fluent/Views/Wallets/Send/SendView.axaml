@@ -124,26 +124,30 @@
             <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
               <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
             </KeyDownTrigger>
+            <ShowTargetControlWhenClipboardHasValueBehavior TargetControl="{Binding ElementName=PasteButtonForTo}" />
           </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
-              <AnimatedButton KeyboardNavigation.IsTabStop="False"
-                                Focusable="False"
-                                IsVisible="{Binding IsNotInDonationWorkflow}"
-                                Command="{Binding PasteCommand}"
-                                ToolTip.Tip="Paste"
-                                NormalIcon="{StaticResource paste_regular}"
-                                ClickIcon="{StaticResource copy_confirmed}">
+              <!-- Paste button. -->
+              <AnimatedButton x:Name="PasteButtonForTo"
+                              KeyboardNavigation.IsTabStop="False"
+                              Focusable="False"
+                              IsVisible="{Binding IsNotInDonationWorkflow}"
+                              Command="{Binding PasteCommand}"
+                              ToolTip.Tip="Paste"
+                              NormalIcon="{StaticResource paste_regular}"
+                              ClickIcon="{StaticResource copy_confirmed}">
                 <Interaction.Behaviors>
                   <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
                 </Interaction.Behaviors>
               </AnimatedButton>
+              <!-- Scan QR code button. -->
               <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
-                                KeyboardNavigation.IsTabStop="False"
-                                Focusable="False"
-                                Command="{Binding QrCommand}"
-                                ToolTip.Tip="Scan QR Code"
-                                NormalIcon="{StaticResource qr_code_regular}" />
+                              KeyboardNavigation.IsTabStop="False"
+                              Focusable="False"
+                              Command="{Binding QrCommand}"
+                              ToolTip.Tip="Scan QR Code"
+                              NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
           </TextBox.InnerRightContent>
         </TextBox>

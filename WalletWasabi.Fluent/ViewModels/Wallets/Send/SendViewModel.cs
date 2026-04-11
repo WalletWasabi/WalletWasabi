@@ -103,6 +103,9 @@ public partial class SendViewModel : RoutableViewModel
 
 		_defaultLabel = _parameters.Donate ? "Wasabi team" : "";
 
+		_additionalRecipients = new ObservableCollection<RecipientRowViewModel>();
+		AdditionalRecipients = new IndexedCollection<RecipientRowViewModel>(_additionalRecipients);
+
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = parameters.IsManual;
@@ -140,9 +143,6 @@ public partial class SendViewModel : RoutableViewModel
 			RecalculateMaxAmount();
 		});
 		QrCommand = ReactiveCommand.Create(ShowQrCameraAsync);
-
-		_additionalRecipients = new ObservableCollection<RecipientRowViewModel>();
-		AdditionalRecipients = new IndexedCollection<RecipientRowViewModel>(_additionalRecipients);
 
 		var canAddRecipient = this.WhenAnyValue(x => x.IsBip21)
 			.Select(isBip21 => !isBip21);
