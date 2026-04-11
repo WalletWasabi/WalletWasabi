@@ -213,7 +213,7 @@ public class TorSettings
 				{
 					"obfs4" => "lyrebird", // obfs4 was renamed to lyrebird.
 					"webtunnel" => "webtunnel-client",
-					"snowflake" => "snowflake-client",
+					"snowflake" => "lyrebird",
 					_ => throw new NotSupportedException($"Unknown Tor pluggable transport '{plugin}'."),
 				};
 
