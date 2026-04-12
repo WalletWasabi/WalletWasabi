@@ -124,7 +124,7 @@
             <KeyDownTrigger Key="Enter" EventRoutingStrategy="Tunnel" MarkAsHandled="False">
               <InvokeCommandAction Command="{Binding #amountTb.FocusCommand}"/>
             </KeyDownTrigger>
-            <ShowTargetControlWhenClipboardHasValueBehavior TargetControl="{Binding ElementName=PasteButtonForTo}" />
+            <ShowWhenClipboardNotEmptyBehavior TargetControl="{Binding ElementName=PasteButtonForTo}" />
           </Interaction.Behaviors>
           <TextBox.InnerRightContent>
             <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">

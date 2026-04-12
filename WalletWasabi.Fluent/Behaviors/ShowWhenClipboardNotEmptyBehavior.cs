@@ -9,10 +9,10 @@ namespace WalletWasabi.Fluent.Behaviors;
 /// <summary>
 /// User clicks a text box and if the clipboard has a value (not whitespace), the target control (e.g. a paste button) will be shown.
 /// </summary>
-public class ShowTargetControlWhenClipboardHasValueBehavior : Behavior<TextBox>
+public class ShowWhenClipboardNotEmptyBehavior : Behavior<TextBox>
 {
 	public static readonly StyledProperty<Control?> TargetControlProperty =
-		AvaloniaProperty.Register<ShowTargetControlWhenClipboardHasValueBehavior, Control?>(nameof(TargetControl));
+		AvaloniaProperty.Register<ShowWhenClipboardNotEmptyBehavior, Control?>(nameof(TargetControl));
 
 	public Control? TargetControl
 	{
