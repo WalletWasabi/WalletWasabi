@@ -206,11 +206,6 @@ public class TorProcessManager : IAsyncDisposable
 			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
 			return isTorRunning;
 		}
-		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.TimedOut && cancellationToken.IsCancellationRequested)
-		{
-			// The expectation is that if the conditions are met that the user really canceled the operation. Rarely it might not be true but it's a reasonable assumption.
-			throw new OperationCanceledException("The operation was canceled.", socketException);
-		}
 		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
 		{
 			_eventBus.Publish(new TorConnectionStateChanged(false));
