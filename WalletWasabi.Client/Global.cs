@@ -1,4 +1,7 @@
 using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using NBitcoin.RPC;
 using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
@@ -10,11 +13,8 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.RPC;
-using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
@@ -22,23 +22,24 @@ using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
 using WalletWasabi.Tor;
+using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.Wallets;
-using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Models;
-using WalletWasabi.Wallets.Exchange;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.Wallets;
+using WalletWasabi.Wallets.Exchange;
+using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Services.Workers;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
 
@@ -647,7 +648,13 @@ public class Global
 				if (_torManager is { } torManager)
 				{
 					using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
-					var (_, torControlClient) = await _torManager.WaitForNextAttemptAsync(cts.Token).ConfigureAwait(false);
+
+					var torControlClient =
+						Result<(CancellationToken, TorControlClient), Exception>
+						.Catch(async () => await _torManager.WaitForNextAttemptAsync(cts.Token).ConfigureAwait(false))
+						.Map(x => x.Result.Item2)
+						.AsNullable();
+
 					if (OnionServiceUri is { } nonNullOnionServiceUri && torControlClient is { } nonNullTorControlClient)
 					{
 						try
