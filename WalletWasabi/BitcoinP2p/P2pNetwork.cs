@@ -24,8 +24,8 @@ public static class P2pNetwork
 		var nodesGroup = new NodesGroup(Network.RegTest);
 		try
 		{
-			var localNodelEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
-			var node = Node.Connect(Network.RegTest, localNodelEndpoint);
+			var localNodeEndpoint = new IPEndPoint(IPAddress.Loopback, Network.RegTest.DefaultPort);
+			var node = Node.Connect(Network.RegTest, localNodeEndpoint);
 			node.Behaviors.Add(p2PBehavior);
 			node.VersionHandshake(CancellationToken.None);
 			Logger.LogInfo("Start connecting to mempool serving regtest node...");
@@ -58,6 +58,7 @@ public static class P2pNetwork
 		connectionParameters.UserAgent = userAgent;
 		connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 		connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
+
 		if (p2PBehavior is not null)
 		{
 			connectionParameters.TemplateBehaviors.Add(p2PBehavior);
@@ -65,8 +66,8 @@ public static class P2pNetwork
 
 		if (useTor)
 		{
-			connectionParameters.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5EndPoint,
-				onlyForOnionHosts: false, networkCredential: null, streamIsolation: true));
+			SocksSettingsBehavior behavior = new(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true);
+			connectionParameters.TemplateBehaviors.Add(behavior);
 		}
 
 		return new NodesGroup(network, connectionParameters, Constants.NodeRequirements);
@@ -92,8 +93,7 @@ public static class P2pNetwork
 			{
 				if (sender is NodesCollection nodesCollection)
 				{
-					if (nodesGroup.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector
-					    bestEffortEndPointConnector)
+					if (nodesGroup.NodeConnectionParameters.EndpointConnector is BestEffortEndpointConnector bestEffortEndPointConnector)
 					{
 						bestEffortEndPointConnector.UpdateConnectedNodesCounter(nodesCollection.Count);
 					}
