@@ -324,7 +324,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 			case BroadcastOk.BroadcastByNetwork n:
 				foreach (var propagator in n.Nodes)
 				{
-					Logger.LogInfo($"Transaction is successfully progagated {txId} confirmed by {propagator}.");
+					Logger.LogInfo($"Transaction is successfully propagated {txId} confirmed by {propagator}.");
 				}
 				break;
 			case BroadcastOk.BroadcastByExternalParty apiName:
