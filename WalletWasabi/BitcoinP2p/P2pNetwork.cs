@@ -66,7 +66,7 @@ public static class P2pNetwork
 
 		if (useTor)
 		{
-			SocksSettingsBehavior behavior = new(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true);
+			var behavior = new SocksSettingsBehavior(torSocks5EndPoint, onlyForOnionHosts: false, networkCredential: null, streamIsolation: true);
 			connectionParameters.TemplateBehaviors.Add(behavior);
 		}
 
