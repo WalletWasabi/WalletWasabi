@@ -12,7 +12,7 @@ namespace WalletWasabi.Coordinator;
 
 public class TorManagerService(TorSettings torSettings, WabiSabiConfig config, IConfiguration configuration) : IHostedService
 {
-	private readonly TorManager _torManager = new(torSettings, new EventBus());
+	private readonly TorManager _torManager = new(torSettings, new ProcessManager(torSettings, new EventBus()));
 
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
