@@ -18,7 +18,7 @@ namespace WalletWasabi.Tor;
 
 /// <summary>Manages lifetime of Tor process.</summary>
 /// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
-public class TorProcessManager : IAsyncDisposable
+public class TorManager : IAsyncDisposable
 {
 	internal const string TorProcessStartedByDifferentUser = "Tor was started by another user and we can't use it nor kill it.";
 
@@ -26,7 +26,7 @@ public class TorProcessManager : IAsyncDisposable
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
 	/// <summary>For tests.</summary>
-	public TorProcessManager(TorSettings settings, EventBus eventBus)
+	public TorManager(TorSettings settings, EventBus eventBus)
 	{
 		TorProcess = null;
 		TorControlClient = null;
