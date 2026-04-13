@@ -184,7 +184,7 @@ public class TorControlClient : IAsyncDisposable
 
 	public async Task<(string, string)> CreateKeylessOnionServiceAsync(int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
-		var reply = await CreateOnionServiceCommand("NEW:ED25519-V3", "", virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
+		var reply = await CreateOnionServiceCommandAsync("NEW:ED25519-V3", "", virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
 
 		const string ServiceIdMarker = "ServiceID=";
 		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(ServiceIdMarker, StringComparison.Ordinal));
@@ -211,7 +211,7 @@ public class TorControlClient : IAsyncDisposable
 
 	private async Task<string> CreateOnionServiceAsync(string key, string flags, int virtualPort, int remotePort, CancellationToken cancellationToken)
 	{
-		var reply = await CreateOnionServiceCommand(key, flags, virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
+		var reply = await CreateOnionServiceCommandAsync(key, flags, virtualPort, remotePort, cancellationToken).ConfigureAwait(false);
 
 		const string Marker = "ServiceID=";
 		var serviceLine = reply.ResponseLines.FirstOrDefault(x => x.StartsWith(Marker, StringComparison.Ordinal));
@@ -224,7 +224,7 @@ public class TorControlClient : IAsyncDisposable
 		return serviceId;
 	}
 
-	private async Task<TorControlReply> CreateOnionServiceCommand(string key, string flags, int virtualPort,
+	private async Task<TorControlReply> CreateOnionServiceCommandAsync(string key, string flags, int virtualPort,
 		int remotePort, CancellationToken cancellationToken)
 	{
 		var reply = await SendCommandAsync($"ADD_ONION {key} {flags} Port={virtualPort},{remotePort}\r\n", cancellationToken).ConfigureAwait(false);
