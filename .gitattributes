@@ -18,6 +18,7 @@
 *.md           text eol=lf
 *.xaml         text eol=lf
 *.axaml        text eol=lf
+*.sha256       text eol=lf
 
 ###############################################################################
 # Set the merge driver for project and solution files
