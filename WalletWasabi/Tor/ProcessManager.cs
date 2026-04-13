@@ -26,7 +26,7 @@ public class ProcessManager
 	private readonly EventBus _eventBus;
 
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
-	public virtual ProcessAsync StartProcess(string arguments)
+	public virtual Process StartProcess(string arguments)
 	{
 		ProcessStartInfo startInfo = new()
 		{
@@ -50,23 +50,22 @@ public class ProcessManager
 		}
 
 		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
-		ProcessAsync process = new(startInfo);
-		process.Start();
+		var process = new Process()
+		{
+			StartInfo = startInfo,
+		};
+
+		process.StartWithExceptionLogging();
 
 		return process;
 	}
 
-	public virtual async Task WaitForProcessExitAsync(ProcessAsync process, CancellationToken cancellationToken)
+	public virtual async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken)
 	{
-		await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+		await process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public virtual void KillProcess(Process process)
-	{
-		process.Kill();
-	}
-
-	public virtual void KillProcess(ProcessAsync process)
 	{
 		process.Kill();
 	}
@@ -110,7 +109,7 @@ public class ProcessManager
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
-	public virtual async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken token)
+	public virtual async Task<bool> EnsureRunningAsync(Process process, CancellationToken token)
 	{
 		int i = 0;
 		while (true)

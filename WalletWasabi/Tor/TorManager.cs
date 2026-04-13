@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BundledApps;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
@@ -45,7 +44,7 @@ public class TorManager : IAsyncDisposable
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
 	/// <para>Guarded by <see cref="_stateLock"/>.</para>
 	/// </remarks>
-	private ProcessAsync? TorProcess { get; set; }
+	private Process? TorProcess { get; set; }
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.
@@ -184,7 +183,7 @@ public class TorManager : IAsyncDisposable
 
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			ProcessAsync? process = null;
+			Process? process = null;
 			TorControlClient? controlClient = null;
 			Exception? exception = null;
 			bool setNewTcs = true;
@@ -209,7 +208,7 @@ public class TorManager : IAsyncDisposable
 					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - disposed in finally clause
-					process = new ProcessAsync(Process.GetProcessById(processId));
+					process = Process.GetProcessById(processId);
 #pragma warning restore CA2000
 
 					try
@@ -405,7 +404,7 @@ public class TorManager : IAsyncDisposable
 
 		_loopCts.Dispose();
 
-		ProcessAsync? process;
+		Process? process;
 		TorControlClient? torControlClient;
 
 		lock (_stateLock)

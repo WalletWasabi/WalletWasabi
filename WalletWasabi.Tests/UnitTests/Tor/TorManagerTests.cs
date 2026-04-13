@@ -3,7 +3,6 @@ using System.IO;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.BundledApps;
 using WalletWasabi.Services;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
@@ -103,13 +102,13 @@ public class TorManagerTests
 		{
 		}
 
-		public override ProcessAsync StartProcess(string arguments)
+		public override Process StartProcess(string arguments)
 		{
 			StartProcessCallCount++;
 			return base.StartProcess(arguments);
 		}
 
-		public override async Task WaitForProcessExitAsync(ProcessAsync process, CancellationToken cancellationToken)
+		public override async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken)
 		{
 			if (WaitForTorProcessDelay is not null)
 			{
@@ -130,7 +129,7 @@ public class TorManagerTests
 			return await base.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
 		}
 
-		public override async Task<bool> EnsureRunningAsync(ProcessAsync process, CancellationToken cancellationToken)
+		public override async Task<bool> EnsureRunningAsync(Process process, CancellationToken cancellationToken)
 		{
 			if (EnsureRunningAsyncResult is not null)
 			{
