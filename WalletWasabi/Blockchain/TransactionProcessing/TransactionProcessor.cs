@@ -8,6 +8,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
@@ -264,9 +265,22 @@ public class TransactionProcessor
 		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)
 		{
 			TransactionStore.AddOrUpdate(tx);
-		}
 
-		BlockchainAnalyzer.Analyze(result.Transaction);
+			// Update anonymity scores for all wallet outputs
+			foreach (var coin in tx.WalletOutputs)
+			{
+				var ascore = 1.0 / (double)Anonymity.GetScore(coin);
+				// Set clusters.
+
+				if (ascore < Constants.SemiPrivateThreshold)
+				{
+					foreach (var spentCoin in tx.WalletInputs)
+					{
+						coin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
+					}
+				}
+			}
+		}
 
 		return result;
 	}
