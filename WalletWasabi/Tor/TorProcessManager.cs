@@ -537,9 +537,17 @@ public class TorProcessManager : IAsyncDisposable
 
 		if (LoopTask is Task t)
 		{
-			if (!t.IsFaulted)
+			try
 			{
 				await t.ConfigureAwait(false);
+			}
+			catch (OperationCanceledException)
+			{
+				// Expected, do nothing.
+			}
+			catch (Exception e)
+			{
+				Logger.LogError("Exception occurred while waiting for the loop task to finish.", e);
 			}
 		}
 
