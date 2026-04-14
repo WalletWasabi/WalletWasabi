@@ -50,7 +50,7 @@ public class RegisterInputFailureTests
 		var round = arena.Rounds.First();
 		var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key, coin.Outpoint);
 
-		foreach (Phase phase in Enum.GetValues(typeof(Phase)))
+		foreach (Phase phase in Enum.GetValues<Phase>())
 		{
 			if (phase != Phase.InputRegistration)
 			{
