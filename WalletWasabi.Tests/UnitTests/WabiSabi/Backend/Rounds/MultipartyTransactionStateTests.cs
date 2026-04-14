@@ -79,7 +79,7 @@ public class MultipartyTransactionStateTests
 	{
 		WabiSabiConfig config = new();
 
-		RoundParameterFactory roundParameterFactory = new(config, Network.Main);
+		RoundParameterFactory roundParameterFactory = new(config);
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
 		RoundParameters parameters = roundParameterFactory.CreateRoundParameter(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		Round roundLargest = new(parameters, SecureRandom.Instance);
