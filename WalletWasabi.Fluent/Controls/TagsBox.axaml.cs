@@ -384,12 +384,7 @@ public class TagsBox : TemplatedControl
 
 	private void UpdateCounters()
 	{
-		if (_containerControl is null)
-		{
-			return;
-		}
-
-		var tagItems = _containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
+		var tagItems = _containerControl?.GetVisualDescendants().OfType<TagControl>().ToArray() ?? [];
 
 		for (var i = 0; i < tagItems.Length; i++)
 		{
