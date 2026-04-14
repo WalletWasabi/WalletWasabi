@@ -346,7 +346,7 @@ public static class WabiSabiFactory
 		return coinjoinClient;
 	}
 
-	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice)
+	public static RoundParametersFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice)
 	{
 		RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
 			CreateRoundParameters(cfg)
@@ -363,7 +363,7 @@ public static class WabiSabiFactory
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 			};
 
-		return new RoundParameterFactory(cfg, CreateRoundParameter, CreateBlameRoundParameter);
+		return new RoundParametersFactory(cfg, CreateRoundParameter, CreateBlameRoundParameter);
 	}
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()

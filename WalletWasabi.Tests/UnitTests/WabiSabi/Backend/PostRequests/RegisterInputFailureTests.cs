@@ -50,7 +50,7 @@ public class RegisterInputFailureTests
 		var round = arena.Rounds.First();
 		var req = WabiSabiFactory.CreateInputRegistrationRequest(round, key: key, coin.Outpoint);
 
-		foreach (Phase phase in Enum.GetValues(typeof(Phase)))
+		foreach (Phase phase in Enum.GetValues<Phase>())
 		{
 			if (phase != Phase.InputRegistration)
 			{
@@ -360,9 +360,9 @@ public class RegisterInputFailureTests
 		var coin = WabiSabiFactory.CreateCoin(key);
 
 		var rpc = WabiSabiFactory.CreatePreconfiguredRpcClient(coin);
-		RoundParameterFactory roundParameterFactory = WabiSabiFactory.CreateRoundParametersFactory(cfg, maxVsizeAllocationPerAlice: 0);
-		Round round = WabiSabiFactory.CreateRound(roundParameterFactory.CreateRoundParameter(new FeeRate(10m), Money.Zero));
-		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(roundParameterFactory).CreateAndStartAsync(round);
+		RoundParametersFactory roundParametersFactory = WabiSabiFactory.CreateRoundParametersFactory(cfg, maxVsizeAllocationPerAlice: 0);
+		Round round = WabiSabiFactory.CreateRound(roundParametersFactory.CreateRoundParameters(new FeeRate(10m), Money.Zero));
+		using Arena arena = await ArenaBuilder.From(cfg).With(rpc).With(roundParametersFactory).CreateAndStartAsync(round);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id);
 
 		var arenaClient = WabiSabiFactory.CreateArenaClient(arena);
