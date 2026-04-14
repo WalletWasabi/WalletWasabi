@@ -22,7 +22,7 @@ public class ArenaBuilder
 	public WabiSabiConfig? Config { get; set; }
 	public IRPCClient? Rpc { get; set; }
 	public Prison? Prison { get; set; }
-	public RoundParameterFactory? RoundParameterFactory { get; set; }
+	public RoundParametersFactory? RoundParametersFactory { get; set; }
 
 	/// <param name="rounds">Rounds to initialize <see cref="Arena"/> with.</param>
 	public Arena Create(params Round[] rounds)
@@ -31,10 +31,10 @@ public class ArenaBuilder
 		Prison prison = Prison ?? WabiSabiFactory.CreatePrison();
 		WabiSabiConfig config = Config ?? new();
 		IRPCClient rpc = Rpc ?? WabiSabiFactory.CreatePreconfiguredRpcClient();
-		RoundParameterFactory roundParameterFactory = RoundParameterFactory ?? CreateRoundParameterFactory(config);
+		RoundParametersFactory roundParametersFactory = RoundParametersFactory ?? CreateRoundParametersFactory(config);
 		FeeRateProvider feeProvider = FeeRateProviders.RpcAsync(rpc);
 
-		Arena arena = new(config, rpc, prison, roundParameterFactory, feeProvider, period:period);
+		Arena arena = new(config, rpc, prison, roundParametersFactory, feeProvider, period:period);
 
 		foreach (var round in rounds)
 		{
@@ -71,9 +71,9 @@ public class ArenaBuilder
 		return this;
 	}
 
-	public ArenaBuilder With(RoundParameterFactory roundParameterFactory)
+	public ArenaBuilder With(RoundParametersFactory roundParametersFactory)
 	{
-		RoundParameterFactory = roundParameterFactory;
+		RoundParametersFactory = roundParametersFactory;
 		return this;
 	}
 
@@ -83,6 +83,6 @@ public class ArenaBuilder
 
 	public static ArenaBuilder From(WabiSabiConfig cfg, IRPCClient mockRpc, Prison prison) => new() { Config = cfg, Rpc = mockRpc, Prison = prison };
 
-	private static RoundParameterFactory CreateRoundParameterFactory(WabiSabiConfig cfg) =>
+	private static RoundParametersFactory CreateRoundParametersFactory(WabiSabiConfig cfg) =>
 		WabiSabiFactory.CreateRoundParametersFactory(cfg, Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize);
 }

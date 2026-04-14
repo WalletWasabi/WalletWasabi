@@ -28,7 +28,7 @@ public partial class Arena : PeriodicRunner
 		WabiSabiConfig config,
 		IRPCClient rpc,
 		Prison prison,
-		RoundParameterFactory roundParameterFactory,
+		RoundParametersFactory roundParametersFactory,
 		FeeRateProvider feeRateProvider,
 		CoinJoinScriptStore? coinJoinScriptStore = null,
 		TimeSpan? period = null
@@ -38,7 +38,7 @@ public partial class Arena : PeriodicRunner
 		_rpc = rpc;
 		_prison = prison;
 		_coinJoinScriptStore = coinJoinScriptStore;
-		_roundParameterFactory = roundParameterFactory;
+		_roundParametersFactory = roundParametersFactory;
 		_feeRateProvider = feeRateProvider;
 		_maxSuggestedAmountProvider = new(_config);
 	}
@@ -51,7 +51,7 @@ public partial class Arena : PeriodicRunner
 	private readonly IRPCClient _rpc;
 	private readonly Prison _prison;
 	private readonly CoinJoinScriptStore? _coinJoinScriptStore;
-	private readonly RoundParameterFactory _roundParameterFactory;
+	private readonly RoundParametersFactory _roundParametersFactory;
 	private readonly FeeRateProvider _feeRateProvider;
 	private readonly MaxSuggestedAmountProvider _maxSuggestedAmountProvider;
 
@@ -457,7 +457,7 @@ public partial class Arena : PeriodicRunner
 			.Where(x => !_prison.IsBanned(x, _config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
-		RoundParameters parameters = _roundParameterFactory.CreateBlameRoundParameter(feeRate, round) with
+		RoundParameters parameters = _roundParametersFactory.CreateBlameRoundParameters(feeRate, round) with
 		{
 			MinInputCountByRound = _config.MinInputCountByBlameRound
 		};
@@ -475,7 +475,7 @@ public partial class Arena : PeriodicRunner
 		for (int i = 0; i < roundsToCreate; i++)
 		{
 			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-			RoundParameters parameters = _roundParameterFactory.CreateRoundParameter(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
+			RoundParameters parameters = _roundParametersFactory.CreateRoundParameters(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			AddRound(r);
