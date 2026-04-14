@@ -384,7 +384,7 @@ public class TagsBox : TemplatedControl
 
 	private void UpdateCounters()
 	{
-		var tagItems = _containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
+		var tagItems = _containerControl?.GetVisualDescendants().OfType<TagControl>().ToArray() ?? [];
 
 		for (var i = 0; i < tagItems.Length; i++)
 		{
@@ -396,7 +396,7 @@ public class TagsBox : TemplatedControl
 	{
 		base.OnGotFocus(e);
 
-		_autoCompleteBox.InternalTextBox?.Focus();
+		_autoCompleteBox?.InternalTextBox?.Focus();
 	}
 
 	private void CheckIsInputEnabled()
