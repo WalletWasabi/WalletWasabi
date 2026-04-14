@@ -389,16 +389,11 @@ public class TagsBox : TemplatedControl
 			return;
 		}
 
-		int i = 0;
-		foreach (var visual in _containerControl.GetVisualDescendants())
-		{
-			if (visual is not TagControl tag)
-			{
-				continue;
-			}
+		var tagItems = _containerControl.GetVisualDescendants().OfType<TagControl>().ToArray();
 
-			i++;
-			tag.OrdinalIndex = i;
+		for (var i = 0; i < tagItems.Length; i++)
+		{
+			tagItems[i].OrdinalIndex = i + 1;
 		}
 	}
 
