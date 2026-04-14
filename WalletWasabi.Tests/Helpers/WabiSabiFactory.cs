@@ -73,7 +73,6 @@ public static class WabiSabiFactory
 	public static RoundParameters CreateRoundParameters(WabiSabiConfig cfg) =>
 		RoundParameters.Create(
 			cfg,
-			Network.Main,
 			new FeeRate(100m),
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
@@ -289,7 +288,6 @@ public static class WabiSabiFactory
 	{
 		var roundParameters = RoundParameters.Create(
 				cfg,
-				round.Parameters.Network,
 				round.Parameters.MiningFeeRate,
 				round.Parameters.MaxSuggestedAmount) with
 		{
@@ -348,7 +346,7 @@ public static class WabiSabiFactory
 		return coinjoinClient;
 	}
 
-	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, Network network, int maxVsizeAllocationPerAlice)
+	public static RoundParameterFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice)
 	{
 		RoundParameters CreateRoundParameter(FeeRate feeRate, Money maxSuggestedAmount) =>
 			CreateRoundParameters(cfg)
@@ -365,7 +363,7 @@ public static class WabiSabiFactory
 				MaxVsizeAllocationPerAlice = maxVsizeAllocationPerAlice
 			};
 
-		return new RoundParameterFactory(cfg, network, CreateRoundParameter, CreateBlameRoundParameter);
+		return new RoundParameterFactory(cfg, CreateRoundParameter, CreateBlameRoundParameter);
 	}
 
 	public static (Prison, ChannelReader<Offender>) CreateObservablePrison()

@@ -16,10 +16,9 @@ public class ConstructionStateTests
 		var miningFeeRate = new FeeRate(8m);
 		var cfg = new WabiSabiConfig();
 		var roundParameters = RoundParameters.Create(
-				cfg,
-				Network.Main,
-				miningFeeRate,
-				Money.Coins(10));
+			cfg,
+			miningFeeRate,
+			Money.Coins(10));
 
 		var round = WabiSabiFactory.CreateRound(roundParameters);
 		var state = round.Assert<ConstructionState>();
