@@ -457,11 +457,7 @@ public partial class Arena : PeriodicRunner
 			.Where(x => !_prison.IsBanned(x, _config.GetDoSConfiguration(), DateTimeOffset.UtcNow))
 			.ToHashSet();
 
-		RoundParameters parameters = _roundParametersFactory.CreateBlameRoundParameters(feeRate, round) with
-		{
-			MinInputCountByRound = _config.MinInputCountByBlameRound
-		};
-
+		RoundParameters parameters = _roundParametersFactory(feeRate, round.Parameters.MaxSuggestedAmount, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
 		AddRound(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
@@ -475,7 +471,7 @@ public partial class Arena : PeriodicRunner
 		for (int i = 0; i < roundsToCreate; i++)
 		{
 			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
-			RoundParameters parameters = _roundParametersFactory.CreateRoundParameters(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
+			RoundParameters parameters = _roundParametersFactory(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
 			AddRound(r);

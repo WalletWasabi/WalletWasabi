@@ -101,7 +101,11 @@ public class Startup(IConfiguration configuration)
 
 		services.AddSingleton<Prison>(s => s.GetRequiredService<Warden>().Prison);
 		services.AddSingleton<Warden>(s => new Warden(Path.Combine(dataDir, "Prison.txt")));
-		services.AddSingleton<RoundParametersFactory>();
+		services.AddSingleton<RoundParametersFactory>(s =>
+		{
+			var config = s.GetRequiredService<WabiSabiConfig>();
+			return (feeRate, maxSuggestedAmount, minInputCountByRound) => RoundParameters.Create(config, feeRate, maxSuggestedAmount);
+		});
 		services.AddBackgroundService<Arena>();
 
 		if (config.AnnouncerConfig.IsEnabled)

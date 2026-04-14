@@ -78,9 +78,8 @@ public class MultipartyTransactionStateTests
 	{
 		WabiSabiConfig config = new();
 
-		RoundParametersFactory roundParametersFactory = new(config);
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
-		RoundParameters parameters = roundParametersFactory.CreateRoundParameters(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+		RoundParameters parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 		Round roundLargest = new(parameters, SecureRandom.Instance);
 
 		// First Round is the largest.
@@ -91,7 +90,7 @@ public class MultipartyTransactionStateTests
 		for (int i = 0; i < 63; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
-			parameters = roundParametersFactory.CreateRoundParameters(new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
+			parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 			Round round = new(parameters, SecureRandom.Instance);
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
@@ -128,7 +127,7 @@ public class MultipartyTransactionStateTests
 		maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 		Assert.Equal(Money.Coins(0.1m), maxSuggestedAmountProvider.MaxSuggestedAmount);
 
-		RoundParameters blameParameters = roundParametersFactory.CreateBlameRoundParameters(new FeeRate(12m), roundLargest) with
+		RoundParameters blameParameters = RoundParameters.Create(config, new FeeRate(12m), roundLargest.Parameters.MaxSuggestedAmount) with
 		{
 			MinInputCountByRound = config.MinInputCountByBlameRound
 		};
