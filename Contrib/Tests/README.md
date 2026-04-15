@@ -25,7 +25,7 @@ The script uses the following default configuration (editable at the top of the 
 - `BITCOIN_RPC_PORT` - `18443` - Bitcoin RPC port
 - `BITCOIN_P2P_PORT` - `18444` - Bitcoin P2P port
 - `COORDINATOR_PORT` - `37126` - Wasabi Coordinator port
-- `WALLET_RPC_PORT` - `37128` - Wasabi Wallet RPC port
+- `WASABI_WALLET_RPC_PORT` - `37128` - Wasabi Wallet RPC port
 - `NUM_WALLETS` - `5` - Number of wallets to create
 - `ADDRESSES_PER_WALLET` - `4` - Addresses per wallet to fund
 - `TEST_TIMEOUT` - `600` - Timeout in seconds (10 minutes)
@@ -33,16 +33,11 @@ The script uses the following default configuration (editable at the top of the 
 ## Usage
 
 ```bash
-# Make the script executable
-chmod +x regtest-coinjoin-test.sh
-
-# Run the script
 ./regtest-coinjoin-test.sh
 ```
 
 ## References
 
-- Wasabi Wallet GitHub: https://github.com/zkSNACKs/WalletWasabi
+- Wasabi Wallet GitHub: https://github.com/WalletWasabi/WalletWasabi
 - Bitcoin Core regtest documentation
 - Wasabi RPC API documentation
-```

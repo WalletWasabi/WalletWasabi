@@ -567,11 +567,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private CoinJoinManager GetCoinJoinManager()
 	{
-		var coinJoinManager = Global.HostedServices.GetOrDefault<CoinJoinManager>();
-		if (coinJoinManager is null)
-		{
-			throw new InvalidOperationException("No coordinator configured.");
-		}
+		var coinJoinManager = Global.HostedServices.GetOrDefault<CoinJoinManager>()
+			?? throw new InvalidOperationException("No coordinator configured.");
 
 		return coinJoinManager;
 	}
