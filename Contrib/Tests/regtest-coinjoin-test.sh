@@ -136,12 +136,11 @@ cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
 }
 EOF
 
-dotnet run --project WalletWasabi.Coordinator -- \
-  --datadir="$WASABI_COORDINATOR_DATADIR" &> /dev/null &
+dotnet run --project WalletWasabi.Coordinator -- --logevel=debug --datadir="$WASABI_COORDINATOR_DATADIR" &> /dev/null &
 COORDINATOR_PID=$!
 
 sleep 5
-echo -e "${GREEN}✓ Coordinator started (PID: $COORDINATOR_PID)${NC}"
+echo -e "${GREEN}✓ Coordinator started (PID: $COORDINATOR_PID; Directory: $WASABI_COORDINATOR_DATADIR)${NC}"
 
 echo -e "${YELLOW}Starting Wasabi Wallet Client${NC}"
 
@@ -149,6 +148,7 @@ mkdir -p "$WASABI_DATADIR/Client"
 
 # Start wallet daemon
 dotnet run --project WalletWasabi.Daemon -- \
+  --loglevel=trace \
   --network=regtest \
   --coordinatorUri="http://127.0.0.1:$COORDINATOR_PORT" \
   --bitcoinrpcendpoint="http://127.0.0.1:$BITCOIN_RPC_PORT/" \
@@ -158,11 +158,11 @@ dotnet run --project WalletWasabi.Daemon -- \
   --jsonrpcserverenabled=true \
   --maxcoinjoinminingfeerate=500 \
   --absolutemininputcount=4 \
-  --usetor="disabled" &> /dev/null &
+  --usetor="disabled" &> "$WASABI_DATADIR/Client/stdout.log" &
 
 WALLET_PID=$!
 
-echo -e "${YELLOW}Wait for Wasabi Wallet Daemon to start...${NC}"
+echo -e "${YELLOW}Wait for Wasabi Wallet Daemon (PID $WALLET_PID) to fully start...${NC}"
 sleep 5
 
 echo -e "${YELLOW}Creating Wasabi Wallets${NC}"
@@ -185,6 +185,7 @@ create_and_fund_wallet() {
   local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
   echo "← $response"
 
+  local i
   for (( i = 0; i < 4; i++ )); do
     echo -e "${YELLOW}Generating address #$i for $wallet_name...${NC}"
     local request='{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["label"]}'
@@ -242,6 +243,7 @@ done
 echo -e "${GREEN}✓ All wallets started and coinjoins initiated${NC}"
 echo -e "${YELLOW}Bitcoin node PID: $BITCOIN_PID${NC}"
 echo -e "${YELLOW}Coordinator PID: $COORDINATOR_PID${NC}"
+echo -e "${YELLOW}Wasabi Wallet Daemon PID: $WALLET_PID${NC}"
 echo -e "${YELLOW}Bitcoin datadir: $BITCOIN_DATADIR${NC}"
 echo -e "${YELLOW}Wasabi datadir: $WASABI_DATADIR${NC}"
 
