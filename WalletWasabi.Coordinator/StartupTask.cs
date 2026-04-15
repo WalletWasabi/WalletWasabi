@@ -67,8 +67,11 @@ public class StartupTask
 					{
 						throw new NotSupportedException($"{nameof(blocks)} == 0");
 					}
-					Logger.LogInfo($"Generated 101 block on {Network.RegTest}. Number of blocks {blocks}.");
+
+					Logger.LogInfo($"Generated 101 block on {Network.RegTest}.");
 				}
+
+				Logger.LogDebug($"Number of blocks is {blocks}.");
 			}
 		}
 		catch (WebException)
