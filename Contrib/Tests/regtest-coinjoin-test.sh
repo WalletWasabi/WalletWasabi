@@ -41,7 +41,7 @@ bitcoind \
   -fallbackfee=0.0001 \
   -daemon
 
-sleep 3
+sleep 5
 
 echo -e "${GREEN}✓ Bitcoin node started${NC}"
 
@@ -136,7 +136,8 @@ cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
 }
 EOF
 
-dotnet run --project WalletWasabi.Coordinator -- --logevel=debug --datadir="$WASABI_COORDINATOR_DATADIR" &> /dev/null &
+export ASPNETCORE_HTTP_PORTS="$COORDINATOR_PORT"
+dotnet run --project WalletWasabi.Coordinator -- --logevel=debug --datadir="$WASABI_COORDINATOR_DATADIR" &> "$WASABI_COORDINATOR_DATADIR/stdout.log" &
 COORDINATOR_PID=$!
 
 sleep 5
@@ -188,7 +189,7 @@ create_and_fund_wallet() {
   local i
   for (( i = 0; i < 4; i++ )); do
     echo -e "${YELLOW}Generating address #$i for $wallet_name...${NC}"
-    local request='{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["label"]}'
+    local request='{"jsonrpc":"2.0","id":"3","method":"getnewaddress","params":["label"]}'
     echo "→ $request"
     local response=$(curl -s -X POST http://127.0.0.1:$WASABI_WALLET_RPC_PORT/$wallet_name -H "Content-Type: application/json" -d "$request")
     echo "← $response"
