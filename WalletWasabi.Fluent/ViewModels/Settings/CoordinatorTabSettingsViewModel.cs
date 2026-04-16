@@ -72,7 +72,6 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		if (result is not null)
 		{
 			Settings.CoordinatorUri = result.CoordinatorUri.ToString();
-			Settings.AbsoluteMinInputCount = result.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
 		}
 	}
 

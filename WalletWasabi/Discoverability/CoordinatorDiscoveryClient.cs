@@ -13,24 +13,6 @@ public static class CoordinatorDiscoveryClient
 {
 	private const int CoordinatorAnnouncementKind = 15750;
 
-	private static bool NetworkMatches(string eventNetwork, Network clientNetwork)
-	{
-		var tag = eventNetwork.Trim().ToLowerInvariant();
-		if (clientNetwork == Network.Main)
-		{
-			return tag is "main" or "mainnet";
-		}
-		if (clientNetwork == Network.TestNet)
-		{
-			return tag is "test" or "testnet" or "testnet4";
-		}
-		if (clientNetwork == Network.RegTest)
-		{
-			return tag is "reg" or "regtest";
-		}
-		return string.Equals(tag, clientNetwork.ChainName.ToString(), StringComparison.OrdinalIgnoreCase);
-	}
-
 	public static async Task<IReadOnlyList<DiscoveredCoordinator>> FetchAsync(
 		INostrClient client,
 		Network network,
@@ -152,7 +134,8 @@ public static class CoordinatorDiscoveryClient
 				return false;
 			}
 
-			if (!tags.TryGetValue("network", out var eventNetwork) || !NetworkMatches(eventNetwork, network))
+			if (!tags.TryGetValue("network", out var eventNetwork) ||
+				Network.GetNetwork(eventNetwork.Trim().ToLowerInvariant()) != network)
 			{
 				return false;
 			}

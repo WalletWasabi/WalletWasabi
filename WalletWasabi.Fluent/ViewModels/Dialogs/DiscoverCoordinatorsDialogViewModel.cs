@@ -74,14 +74,19 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 		_refreshCts = new CancellationTokenSource();
 		var token = _refreshCts.Token;
 
+		if (Services.Config?.UseTor is TorMode.Disabled)
+		{
+			StatusMessage = "Coordinator discovery requires Tor. Enable Tor in Connections settings.";
+			return;
+		}
+
 		IsBusy = true;
 		StatusMessage = "Fetching coordinators from Nostr relays...";
 
 		try
 		{
 			var relayUris = Constants.DefaultNostrRelayUris.Select(x => new Uri(x)).ToArray();
-			var torEndpoint = Services.Config?.UseTor is TorMode.Disabled ? null : Services.TorSettings?.SocksEndpoint;
-			using var client = NostrClientFactory.Create(relayUris, torEndpoint);
+			using var client = NostrClientFactory.Create(relayUris, Services.TorSettings.SocksEndpoint);
 
 			var discovered = await CoordinatorDiscoveryClient
 				.FetchAsync(client, _network, CollectionWindow, token)
@@ -116,7 +121,7 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 		catch (Exception ex)
 		{
 			Logger.LogError($"Coordinator discovery failed: {ex}");
-			StatusMessage = "Could not reach Nostr relays. Check your connection and try again.";
+			StatusMessage = "Failed to fetch coordinators. See logs for details.";
 		}
 		finally
 		{
