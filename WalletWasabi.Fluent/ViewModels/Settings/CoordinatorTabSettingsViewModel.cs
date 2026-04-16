@@ -1,4 +1,5 @@
 using System.Globalization;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
@@ -27,7 +28,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
-	public CoordinatorTabSettingsViewModel(ApplicationSettings settings)
+	private CoordinatorTabSettingsViewModel(ApplicationSettings settings)
 	{
 		Settings = settings;
 
@@ -52,11 +53,28 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.Settings.AbsoluteMinInputCount)
 			.ToSignal()
 			.Subscribe(x => AbsoluteMinInputCount = Settings.AbsoluteMinInputCount);
+
+		BrowseCoordinatorsCommand = ReactiveCommand.CreateFromTask(OnBrowseCoordinatorsAsync);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public ApplicationSettings Settings { get; }
+
+	public ICommand BrowseCoordinatorsCommand { get; }
+
+	private async System.Threading.Tasks.Task OnBrowseCoordinatorsAsync()
+	{
+		var result = await UiContext.Navigate().To()
+			.DiscoverCoordinators(Settings.Network, Settings.CoordinatorUri)
+			.GetResultAsync();
+
+		if (result is not null)
+		{
+			Settings.CoordinatorUri = result.CoordinatorUri.ToString();
+			Settings.AbsoluteMinInputCount = result.AbsoluteMinInputCount.ToString(CultureInfo.InvariantCulture);
+		}
+	}
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{

@@ -18,6 +18,13 @@ public static class Constants
 
 	public const string WasabiTeamNostrPubKey = "npub129hpcwy3h7uhpzwzts6utkt2p5st7lf4qpzp3d2j0p6z56lvkpgspngzeq";
 
+	public static readonly string[] DefaultNostrRelayUris =
+	[
+		"wss://relay.primal.net",
+		"wss://nos.lol",
+		"wss://relay.damus.io"
+	];
+
 	/// <summary>
 	/// By changing this, we can force to start over the transactions file, so old incorrect transactions would be cleared.
 	/// It is also important to force the KeyManagers to be reindexed when this is changed by renaming the BlockState Height related property.
