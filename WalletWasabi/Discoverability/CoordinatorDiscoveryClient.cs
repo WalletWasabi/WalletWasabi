@@ -164,10 +164,12 @@ public static class CoordinatorDiscoveryClient
 
 			var name = tags.TryGetValue("name", out var n) ? n : coordinatorUri.Host;
 
-			var minInputCount = 2;
-			if (tags.TryGetValue("absolutemininputcount", out var minInputCountStr))
+			var minInputCount = 0;
+			if (tags.TryGetValue("absolutemininputcount", out var minInputCountStr) &&
+				int.TryParse(minInputCountStr, out var parsed) &&
+				parsed > 0)
 			{
-				int.TryParse(minInputCountStr, out minInputCount);
+				minInputCount = parsed;
 			}
 
 			Uri? readMoreUri = null;

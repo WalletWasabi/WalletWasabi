@@ -179,6 +179,7 @@ public class DiscoveredCoordinatorItem
 	public string Name => Coordinator.Name;
 	public string CoordinatorUriString => Coordinator.CoordinatorUri.ToString();
 	public int AbsoluteMinInputCount => Coordinator.AbsoluteMinInputCount;
+	public bool HasMinInputCount => Coordinator.AbsoluteMinInputCount > 0;
 	public string Description => string.IsNullOrWhiteSpace(Coordinator.Description) ? Coordinator.Name : Coordinator.Description;
 	public bool HasDescription => !string.IsNullOrWhiteSpace(Coordinator.Description);
 }

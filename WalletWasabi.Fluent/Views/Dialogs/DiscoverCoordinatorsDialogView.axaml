@@ -58,7 +58,8 @@
                          Opacity="0.8" />
               <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
                          Opacity="0.6"
-                         FontSize="11">
+                         FontSize="11"
+                         IsVisible="{Binding HasMinInputCount}">
                 <Run Text="Min inputs:" />
                 <Run Text="{Binding AbsoluteMinInputCount}" />
               </TextBlock>
