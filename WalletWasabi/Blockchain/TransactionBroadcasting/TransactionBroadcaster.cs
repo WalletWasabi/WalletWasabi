@@ -99,7 +99,8 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	{
 		if (network == Network.Main)
 		{
-			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase))
+				?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
 		}
 		else if (network == Bitcoin.Instance.Signet)
 		{
@@ -259,26 +260,20 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 {
 	public async Task SendTransactionAsync(SmartTransaction tx, CancellationToken cancellationToken = default)
 	{
-		var results = await broadcasters
-			.ToAsyncEnumerable()
-			.Select(async (x, ct) => await x.BroadcastAsync(tx, ct).ConfigureAwait(false))
-			.TakeUntilAsync(x => x.IsOk)
-			.ToArrayAsync(cancellationToken)
-			.ConfigureAwait(false);
-
-		foreach (var error in results.TakeWhile(x => !x.IsOk).Select(x => x.Error))
+		foreach (var broadcaster in broadcasters)
 		{
-			ReportError(error);
+			BroadcastingResult result = await broadcaster.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false);
+			if (result.IsOk)
+			{
+				ReportSuccessfulBroadcast(result.Value, tx.GetHash());
+				BelieveTransaction(tx);
+				break;
+			}
+
+			ReportError(result.Error);
 		}
 
-		if (results.LastOrDefault(x => x.IsOk) is not { } ok)
-		{
-			throw new InvalidOperationException("Error while sending transaction.");
-		}
-
-		ReportSuccessfulBroadcast(ok.Value, tx.GetHash());
-
-		BelieveTransaction(tx);
+		throw new InvalidOperationException("Error while sending transaction.");
 	}
 
 	private void ReportError(BroadcastError broadcastError)
