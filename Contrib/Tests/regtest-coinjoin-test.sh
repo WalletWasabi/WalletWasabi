@@ -8,7 +8,7 @@ WASABI_DATADIR="/tmp/wasabi"
 BITCOIN_RPC_PORT=18443
 BITCOIN_P2P_PORT=18444
 COORDINATOR_PORT=37126
-WALLET_RPC_PORT=37128
+WASABI_WALLET_RPC_PORT=37128
 
 # Colors for output
 RED='\033[0;31m'
@@ -41,15 +41,15 @@ bitcoind \
   -fallbackfee=0.0001 \
   -daemon
 
-sleep 3
+sleep 5
 
-echo -e "${GREEN}Bitcoin node started${NC}"
+echo -e "${GREEN}✓ Bitcoin node started${NC}"
 
 # Wait for bitcoin to be ready
 echo -e "${YELLOW}Waiting for Bitcoin RPC to be ready...${NC}"
 for i in {1..30}; do
   if bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest getblockchaininfo &>/dev/null; then
-    echo -e "${GREEN}Bitcoin RPC is ready${NC}"
+    echo -e "${GREEN}✓ Bitcoin RPC is ready${NC}"
     break
   fi
   sleep 1
@@ -67,13 +67,16 @@ bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=re
 echo -e "${YELLOW}Generating initial blocks...${NC}"
 bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest generatetoaddress 150 $(bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" getnewaddress) > /dev/null
 
+echo -e "${YELLOW}Build all Wasabi projects from source...${NC}"
+dotnet build > /dev/null 2>&1 || { echo -e "${RED}Failed to build.${NC}"; exit 1; }
+
 echo -e "${YELLOW}Starting Wasabi Coordinator...${NC}"
 mkdir -p "$WASABI_DATADIR/Coordinator"
 
 # Start coordinator in background
 WASABI_COORDINATOR_DATADIR="$WASABI_DATADIR/Coordinator"
 WASABI_COORDINATOR_LOGFILE="$WASABI_COORDINATOR_DATADIR/Logs.txt"
-rm ""$WASABI_COORDINATOR_LOGFILE""
+rm ""$WASABI_COORDINATOR_LOGFILE"" || true
 
 cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
 {
@@ -136,12 +139,12 @@ cat > $WASABI_COORDINATOR_DATADIR/Config.json << EOF
 }
 EOF
 
-dotnet run --project WalletWasabi.Coordinator -- \
-  --datadir="$WASABI_COORDINATOR_DATADIR" &> /dev/null &
+export ASPNETCORE_HTTP_PORTS="$COORDINATOR_PORT"
+dotnet run --project WalletWasabi.Coordinator -- --logevel=debug --datadir="$WASABI_COORDINATOR_DATADIR" &> "$WASABI_COORDINATOR_DATADIR/stdout.log" &
 COORDINATOR_PID=$!
 
 sleep 5
-echo -e "${GREEN}Coordinator started (PID: $COORDINATOR_PID)${NC}"
+echo -e "${GREEN}✓ Coordinator started (PID: $COORDINATOR_PID; Directory: $WASABI_COORDINATOR_DATADIR)${NC}"
 
 echo -e "${YELLOW}Starting Wasabi Wallet Client${NC}"
 
@@ -149,40 +152,60 @@ mkdir -p "$WASABI_DATADIR/Client"
 
 # Start wallet daemon
 dotnet run --project WalletWasabi.Daemon -- \
+  --loglevel=trace \
   --network=regtest \
   --coordinatorUri="http://127.0.0.1:$COORDINATOR_PORT" \
   --bitcoinrpcendpoint="http://127.0.0.1:$BITCOIN_RPC_PORT/" \
   --bitcoinrpccredentialstring="regtest:regtest" \
-  --rpcport=$WALLET_RPC_PORT \
+  --rpcport=$WASABI_WALLET_RPC_PORT \
   --datadir="$WASABI_DATADIR/Client" \
   --jsonrpcserverenabled=true \
   --maxcoinjoinminingfeerate=500 \
   --absolutemininputcount=4 \
-  --usetor="disabled" &> /dev/null &
+  --usetor="disabled" &> "$WASABI_DATADIR/Client/stdout.log" &
 
 WALLET_PID=$!
-sleep 3
+
+echo -e "${YELLOW}Wait for Wasabi Wallet Daemon (PID $WALLET_PID) to fully start...${NC}"
+sleep 5
 
 echo -e "${YELLOW}Creating Wasabi Wallets${NC}"
 
 # Function to start a wallet and perform coinjoin
 create_and_fund_wallet() {
   local wallet_name=$1
-  local wallet_num=$2
 
-  echo -e "${YELLOW}Create wallet $wallet_name...${NC}"
-  curl -s -X POST http://127.0.0.1:$WALLET_RPC_PORT/ \
-    -H "Content-Type: application/json" \
-    -d "{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"createwallet\",\"params\":[\"$wallet_name\", \"\"]}" | jq -r '.result'
+  echo -e "${YELLOW}Creating Wasabi wallet $wallet_name...${NC}"
+  local request="{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"createwallet\",\"params\":[\"$wallet_name\", \"\"]}"
+  echo "→ $request"
 
-  echo -e "${YELLOW}Generating addresses for $wallet_name...${NC}"
+  local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
+  echo "← $response"
+
+  echo -e "${YELLOW}Loading wallet $wallet_name...${NC}"
+  local request="{\"jsonrpc\":\"2.0\",\"id\":\"2\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\"]}"
+  echo "→ $request"
+
+  local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
+  echo "← $response"
+
+  local i
   for (( i = 0; i < 4; i++ )); do
-    local address=$(curl -s -X POST http://127.0.0.1:$WALLET_RPC_PORT/$wallet_name \
-      -H "Content-Type: application/json" \
-      -d '{"jsonrpc":"2.0","id":"1","method":"getnewaddress","params":["label"]}' | jq -r '.result.address')
+    echo -e "${YELLOW}Generating address #$i for $wallet_name...${NC}"
+    local request='{"jsonrpc":"2.0","id":"3","method":"getnewaddress","params":["label"]}'
+    echo "→ $request"
+    local response=$(curl -s -X POST http://127.0.0.1:$WASABI_WALLET_RPC_PORT/$wallet_name -H "Content-Type: application/json" -d "$request")
+    echo "← $response"
+
+    local address=$(echo "$response" | jq -r '.result.address')
+
+    if [[ -z "$address" || "$address" == "null" ]]; then
+        echo -e "${RED}Error: Failed to get new address for wallet '$wallet_name'${NC}"
+        exit 1
+    fi
 
     echo -e "${YELLOW}Sending funds to $wallet_name ($address)...${NC}"
-    bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default"\
+    bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" \
       sendtoaddress "$address" 1.0 > /dev/null
   done
 }
@@ -191,22 +214,22 @@ start_coinjoin()
 {
   local wallet_name=$1
   echo -e "${YELLOW}Starting coinjoin...${NC}"
-  curl -s -X POST http://127.0.0.1:$WALLET_RPC_PORT/$wallet_name \
+  curl -s -X POST http://127.0.0.1:$WASABI_WALLET_RPC_PORT/$wallet_name \
       -H "Content-Type: application/json" \
       -d '{"jsonrpc":"2.0","id":"1","method":"startcoinjoin","params":[]}' > /dev/null
 
-  echo -e "${GREEN}Coinjoin initiated for $wallet_name${NC}"
+  echo -e "${GREEN}✓ Coinjoin initiated for $wallet_name${NC}"
 }
 
 # Start multiple wallets and initiate coinjoins
 echo -e "${YELLOW}Starting multiple wallets and initiating coinjoins...${NC}"
 
 for (( i = 0; i < 5; i++ )); do
-  create_and_fund_wallet "wallet$i" &
+  create_and_fund_wallet "wallet$i"
   sleep 2
 done
 
-echo -e "${GREEN}Wallets created and well funded${NC}"
+echo -e "${GREEN}✓ Wallets created and well funded${NC}"
 
 # Generate a block to confirm
 echo -e "${YELLOW}Mine a new block to confirm all transactions${NC}"
@@ -221,23 +244,23 @@ for (( i = 0; i < 5; i++ )); do
   sleep 2
 done
 
-echo -e "${GREEN}All wallets started and coinjoins initiated${NC}"
+echo -e "${GREEN}✓ All wallets started and coinjoins initiated${NC}"
 echo -e "${YELLOW}Bitcoin node PID: $BITCOIN_PID${NC}"
 echo -e "${YELLOW}Coordinator PID: $COORDINATOR_PID${NC}"
+echo -e "${YELLOW}Wasabi Wallet Daemon PID: $WALLET_PID${NC}"
 echo -e "${YELLOW}Bitcoin datadir: $BITCOIN_DATADIR${NC}"
 echo -e "${YELLOW}Wasabi datadir: $WASABI_DATADIR${NC}"
 
 
 # Keep script running
-echo -e "${GREEN}Setup complete. Press Ctrl+C to stop all services.${NC}"
+echo -e "${GREEN}✓ Setup complete. Wait for coinjoin, or press Ctrl+C to stop all services.${NC}"
 TEST_TIMEOUT=600
 
 timeout $TEST_TIMEOUT tail -f "$WASABI_COORDINATOR_LOGFILE" | grep -q "Successfully broadcast the coinjoin"
 
 if [ $? -eq 0 ]; then
-  echo -e "${GREEN}WE HAVE A COINJOIN!!!!${NC}"
+  echo -e "${GREEN}✓ WE HAVE A COINJOIN!!!!${NC}"
 else
-  echo "${RED}Timeout: No coinjoin after $TEST_TIMEOUT seconds"
+  echo -e "${RED}Timeout: No coinjoin after $TEST_TIMEOUT seconds.${NC}"
   exit 1
 fi
-
