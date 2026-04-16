@@ -67,6 +67,9 @@ bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=re
 echo -e "${YELLOW}Generating initial blocks...${NC}"
 bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest generatetoaddress 150 $(bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" getnewaddress) > /dev/null
 
+echo -e "${YELLOW}Build all Wasabi projects from source...${NC}"
+dotnet build > /dev/null 2>&1 || { echo -e "${RED}Failed to build.${NC}"; exit 1; }
+
 echo -e "${YELLOW}Starting Wasabi Coordinator...${NC}"
 mkdir -p "$WASABI_DATADIR/Coordinator"
 
