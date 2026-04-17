@@ -13,7 +13,6 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
 using WalletWasabi.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 
@@ -26,11 +25,13 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 	public TransactionsSearchSource(IObservable<string> queries)
 	{
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed with the disposables
 		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key)
 			.DisposeWith(_disposables);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 
 		var results = queries
-			.Select(query => query.Length >= MinQueryLength ? Search(query) : Enumerable.Empty<ISearchItem>())
+			.Select(query => query.Length >= MinQueryLength ? Search(query) : [])
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		sourceCache
