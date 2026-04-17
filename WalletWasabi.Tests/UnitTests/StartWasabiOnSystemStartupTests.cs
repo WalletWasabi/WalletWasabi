@@ -58,22 +58,14 @@ public class StartWasabiOnSystemStartupTests
 	}
 
 	[Fact]
-	public void RunOnSystemStartupGetsSetCorrectly()
+	public async Task RunOnSystemStartupGetsSetCorrectlyAsync()
 	{
-		// Imitate fresh UiConfig file
-		string workDir = Common.GetWorkDir();
-		IoHelpers.EnsureDirectoryExists(workDir);
+		// Imitate fresh UiConfig file.
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		UiConfig config = UiConfig.LoadFile(Path.Combine(workDir, "UiConfig.json"));
 		Assert.True(config.Oobe);
-		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows) || RuntimeInformation.IsOSPlatform(OSPlatform.OSX))
-		{
-			Assert.True(config.RunOnSystemStartup);
-		}
-		else
-		{
-			Assert.False(config.RunOnSystemStartup);
-		}
-		File.Delete(config.FilePath);
+		Assert.False(config.RunOnSystemStartup);
 	}
 
 	private UiConfig GetUiConfig()

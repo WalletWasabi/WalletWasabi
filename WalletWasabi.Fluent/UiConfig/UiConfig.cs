@@ -171,7 +171,6 @@ public class UiConfig : ConfigBase
 		set => RaiseAndSetIfChanged(ref _lastSelectedWallet, value);
 	}
 
-	// OnDeserialized changes this default on Linux.
 	public bool RunOnSystemStartup
 	{
 		get => _runOnSystemStartup;
