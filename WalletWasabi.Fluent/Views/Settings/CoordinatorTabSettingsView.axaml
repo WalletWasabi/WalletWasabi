@@ -20,6 +20,14 @@
       </TextBox>
     </DockPanel>
 
+    <DockPanel ToolTip.Tip="Browse a list of coordinators that have recently advertised themselves on Nostr.">
+      <TextBlock Text="Discover coordinators" />
+      <Button Content="Browse..."
+              Command="{Binding BrowseCoordinatorsCommand}"
+              HorizontalAlignment="Right"
+              Cursor="Hand" />
+    </DockPanel>
+
     <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vB) higher than the value indicated here.">
       <TextBlock Text="Max Coinjoin Mining Fee Rate" />
       <CurrencyEntryBox Classes="standalone" Name="CoinJoinMiningFeeRateTextBox" Text="{Binding MaxCoinJoinMiningFeeRate}" CurrencyCode="sat/vB"/>
