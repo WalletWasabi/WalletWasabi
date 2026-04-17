@@ -14,7 +14,7 @@ internal class PlainTextColumn<T> : ColumnBase<T>
 		object? header,
 		Func<T, string?> getter,
 		GridLength? width,
-		ColumnOptions<T>? options)
+		ColumnOptions<T> options)
 		: base(header, width, options)
 	{
 		_sortAscending = options?.CompareAscending;
