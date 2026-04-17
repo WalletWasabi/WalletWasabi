@@ -142,7 +142,7 @@ public class Startup(IConfiguration configuration)
 
 		if (config.PublishAsOnionService)
 		{
-			services.AddBackgroundService<TorProcessManagerService>();
+			services.AddBackgroundService<TorManagerService>();
 		}
 	}
 
