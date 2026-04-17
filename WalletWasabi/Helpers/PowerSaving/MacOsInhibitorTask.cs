@@ -9,7 +9,7 @@ namespace WalletWasabi.Helpers.PowerSaving;
 /// </summary>
 public class MacOsInhibitorTask : BaseInhibitorTask
 {
-	private MacOsInhibitorTask(TimeSpan period, string reason, ProcessAsync process)
+	private MacOsInhibitorTask(TimeSpan period, string reason, Process process)
 		: base(period, reason, process)
 	{
 	}
@@ -36,8 +36,12 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
-		ProcessAsync process = new(startInfo);
-		process.Start();
+		Process process = new()
+		{
+		 	StartInfo = startInfo,
+		};
+
+		process.StartAndLogException();
 		MacOsInhibitorTask task = new(basePeriod, reason, process);
 
 		return task;

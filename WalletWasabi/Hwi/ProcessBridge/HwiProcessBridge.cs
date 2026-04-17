@@ -39,7 +39,10 @@ public class HwiProcessBridge : IHwiProcessInvoker
 
 	private async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter>? standardInputWriter = null)
 	{
-		using var processAsync = new ProcessAsync(startInfo);
+		using var processAsync = new Process()
+		{
+			StartInfo = startInfo,
+		};
 
 		if (standardInputWriter is { })
 		{

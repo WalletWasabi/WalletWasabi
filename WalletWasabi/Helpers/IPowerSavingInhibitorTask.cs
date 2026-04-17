@@ -13,6 +13,6 @@ public interface IPowerSavingInhibitorTask
 	bool Prolong(TimeSpan timeSpan);
 
 	/// <summary>Stop the internal power saving mechanism.</summary>
-	/// <remarks>Once the task is stopped, computer may go idle/reboot, etc. Operating systems' power saving timers may be reseted or not - we provide no guarantees here.</remarks>
+	/// <remarks>Once the task is stopped, computer may go idle/reboot, etc. Operating systems' power saving timers may be reset or not - we provide no guarantees here.</remarks>
 	Task StopAsync();
 }

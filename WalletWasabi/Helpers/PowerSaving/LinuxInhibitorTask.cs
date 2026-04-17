@@ -11,7 +11,7 @@ namespace WalletWasabi.Helpers.PowerSaving;
 /// <seealso href="https://www.freedesktop.org/wiki/Software/systemd/inhibit/"/>
 public class LinuxInhibitorTask : BaseInhibitorTask
 {
-	private LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, ProcessAsync process)
+	private LinuxInhibitorTask(InhibitWhat what, TimeSpan period, string reason, Process process)
 		: base(period, reason, process)
 	{
 		What = what;
@@ -92,8 +92,12 @@ public class LinuxInhibitorTask : BaseInhibitorTask
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
-		ProcessAsync process = new(startInfo);
-		process.Start();
+		Process process = new()
+		{
+			StartInfo = startInfo,
+		};
+
+		process.StartAndLogException();
 		LinuxInhibitorTask task = new(what, basePeriod, reason, process);
 
 		return task;
