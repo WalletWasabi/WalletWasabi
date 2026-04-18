@@ -45,4 +45,4 @@ Tails and Whonix are privacy-oriented OSs, so it makes sense to use them with Wa
 
 Wasabi automatically detects if it is running on Tails or Whonix and will use the already running system-wide Tor instance, instead of starting its own.
 
-On Wasabi version [2.7.2](https://github.com/WalletWasabi/WalletWasabi/releases/tag/v2.7.2) and earlier, Wasabi should be started with the following start up parameter: `--UseTor=EnabledOnlyRunning`.
+On Wasabi version [2.7.2](https://github.com/WalletWasabi/WalletWasabi/releases/tag/v2.7.2) and earlier, Wasabi should be started with the following startup parameter: `--UseTor=EnabledOnlyRunning`.
