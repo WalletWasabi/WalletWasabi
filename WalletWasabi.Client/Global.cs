@@ -107,7 +107,7 @@ public class Global
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
-	private TorProcessManager? _torManager;
+	private TorManager? _torManager;
 	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly Timer _ticker;
@@ -518,9 +518,9 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			_torManager = new TorProcessManager(TorSettings, EventBus);
+			_torManager = new TorManager(TorSettings, EventBus);
 			await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-			Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+			Logger.LogInfo($"{nameof(TorManager)} is initialized.");
 
 			var (_, torControlClient) = await _torManager.WaitForNextAttemptAsync(cancellationToken).ConfigureAwait(false);
 			if (Config is { JsonRpcServerEnabled: true, RpcOnionEnabled: true } && torControlClient is { } nonNullTorControlClient)
