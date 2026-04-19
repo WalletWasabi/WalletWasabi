@@ -397,12 +397,12 @@ public class FeeRateEstimationsTests
 		mockRpc.OnGetPeersInfoAsync = () =>
 			Task.FromResult(hasPeersInfo
 				? new[] { new PeerInfo() }
-				: Array.Empty<PeerInfo>());
+				: []);
 		mockRpc.OnGetMempoolInfoAsync = () =>
 			Task.FromResult(new MemPoolInfo
 			{
 				MemPoolMinFee = memPoolMinFee, // 1 s/b (default value)
-				Histogram = Array.Empty<FeeRateGroup>()
+				Histogram = []
 			});
 
 		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(500));
