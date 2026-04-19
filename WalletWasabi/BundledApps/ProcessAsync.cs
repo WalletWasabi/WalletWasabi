@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.BundledApps;
 
@@ -49,22 +48,7 @@ public class ProcessAsync : IDisposable
 	/// <inheritdoc cref="_process.Start()"/>
 	public void Start()
 	{
-		try
-		{
-			_process.Start();
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-
-			Logger.LogInfo($"{nameof(Process.StartInfo.FileName)}: {_process.StartInfo.FileName}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.Arguments)}: {_process.StartInfo.Arguments}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.RedirectStandardOutput)}: {_process.StartInfo.RedirectStandardOutput}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.UseShellExecute)}: {_process.StartInfo.UseShellExecute}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.CreateNoWindow)}: {_process.StartInfo.CreateNoWindow}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.WindowStyle)}: {_process.StartInfo.WindowStyle}.");
-			throw;
-		}
+		_process.StartWithExceptionLogging();
 	}
 
 	/// <inheritdoc cref="_process.Kill(bool)"/>
@@ -80,24 +64,7 @@ public class ProcessAsync : IDisposable
 	/// <returns><see cref="Task"/>.</returns>
 	public virtual async Task WaitForExitAsync(CancellationToken cancellationToken)
 	{
-		if (_process.HasExited)
-		{
-			Logger.LogTrace("Process has already exited.");
-			return;
-		}
-
-		try
-		{
-			Logger.LogTrace($"Wait for the process to exit: '{_process.Id}'");
-			await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-
-			Logger.LogTrace("Process has exited.");
-		}
-		catch (OperationCanceledException ex)
-		{
-			Logger.LogTrace("User canceled waiting for process exit.");
-			throw new TaskCanceledException("Waiting for process exiting was canceled.", ex, cancellationToken);
-		}
+		await _process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	protected virtual void Dispose(bool disposing)
