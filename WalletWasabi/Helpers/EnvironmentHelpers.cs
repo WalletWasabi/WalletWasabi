@@ -133,15 +133,19 @@ public static class EnvironmentHelpers
 
 		if (waitForExit)
 		{
-			using var process = new ProcessAsync(startInfo);
-			process.Start();
+			using var process = new Process()
+			{
+				StartInfo = startInfo
+			};
+
+			process.StartWithExceptionLogging();
 
 			if (readResult)
 			{
 				output = process.StandardOutput.ReadToEnd();
 			}
 
-			await process.WaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
+			await process.GracefulWaitForExitAsync(CancellationToken.None).ConfigureAwait(false);
 			if (process.ExitCode != 0)
 			{
 				Logger.LogError($"{nameof(ShellExecAsync)} command: {cmd} exited with exit code: {process.ExitCode}, instead of 0.");
