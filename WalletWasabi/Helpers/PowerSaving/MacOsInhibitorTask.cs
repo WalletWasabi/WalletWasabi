@@ -37,7 +37,7 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
 		ProcessAsync process = new(startInfo);
-		process.Start();
+		process.StartWithExceptionLogging();
 		MacOsInhibitorTask task = new(basePeriod, reason, process);
 
 		return task;

@@ -316,7 +316,7 @@ public class TorProcessManager : IAsyncDisposable
 					_tcs.SetResult((cts.Token, controlClient));
 				}
 
-				await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				await process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 
 				Logger.LogDebug("Tor process exited.");
 			}
@@ -487,7 +487,7 @@ public class TorProcessManager : IAsyncDisposable
 
 		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
 		ProcessAsync process = new(startInfo);
-		process.Start();
+		process.StartWithExceptionLogging();
 
 		return process;
 	}
