@@ -548,7 +548,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 		try
 		{
-			var expressionResult = await Global.Scheme.Execute(script);
+			var expressionResult = await Global.Scheme.ExecuteAsync(script);
 			var result = Scheme.ToObject(Interpreter.ToNativeObject(expressionResult));
 			return result;
 		}

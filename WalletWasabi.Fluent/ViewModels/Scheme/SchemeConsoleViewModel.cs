@@ -2,7 +2,6 @@ using System.Collections.ObjectModel;
 using System.Text.Json;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Newtonsoft.Json;
 using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Scheme;
@@ -72,7 +71,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 	{
 		try
 		{
-			Expression expressionResult = await _schemeInterpreter.Execute(command);
+			Expression expressionResult = await _schemeInterpreter.ExecuteAsync(command);
 			return _schemeInterpreter.ToJson(expressionResult);
 		}
 		catch (Exception ex)
