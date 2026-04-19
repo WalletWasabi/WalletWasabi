@@ -1,9 +1,10 @@
-using System.IO;
-using System.Linq;
 using NBitcoin;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
-using Newtonsoft.Json;
+using System.IO;
+using System.Linq;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using WalletWasabi.Extensions;
 using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
@@ -13,7 +14,7 @@ namespace WalletWasabi.Tests.UnitTests.Wallet;
 public class SilentPaymentTests
 {
 	[Theory]
-	[MemberData(nameof(SilentPaymentTestVector.TestCasesData), MemberType = typeof(SilentPaymentTestVector))]
+	[MemberData(nameof(TestCasesData))]
 	public void TestVectors(SilentPaymentTestVector test)
 	{
 		// Sending functionality
@@ -50,7 +51,7 @@ public class SilentPaymentTests
 			{
 				var prevOuts = givenInputs.Select(x => OutPoint.Parse(x.TxId + "-" + x.Vout)).ToArray();
 				var pubKeys = givenInputs.Select(ExtractPubKey).DropNulls().ToArray();
-				if (!pubKeys.Any())
+				if (pubKeys.Length == 0)
 				{
 					continue; // if there are no pubkeys then nothing can be done
 				}
@@ -63,12 +64,13 @@ public class SilentPaymentTests
 				var baseAddress = new SilentPaymentAddress(0, scanKey.CreatePubKey(), spendKey.CreatePubKey());
 
 				// Creates a lookup table Dic<SilentPaymentAddress, (ECPrivKey labelSecret, ECPubKey labelPubKey)>
+				Func<(LabelInfo LabelInfo, SilentPaymentAddress Address), SilentPaymentAddress> keySelector = x => x.Address;
 				var addressesTable = labels
 					.Select(label => SilentPayment.CreateLabel(scanKey, (uint) label))
 					.Select(labelSecret => new LabelInfo.Full(labelSecret, labelSecret.CreatePubKey()))
 					.Select(labelInfo => (LabelInfo: (LabelInfo)labelInfo, Address: baseAddress.DeriveAddressForLabel(labelInfo.PubKey)!)) // each label has a different address
 					.Prepend((LabelInfo: new LabelInfo.None(), baseAddress))
-					.ToDictionary(x => x.Address, x => x.LabelInfo);
+					.ToDictionary(keySelector, x => x.LabelInfo);
 
 				var addresses = addressesTable.Keys.ToArray();
 				var expectedAddresses = expected.Addresses.Select(x => SilentPaymentAddress.Parse(x, Network.Main));
@@ -142,36 +144,71 @@ public class SilentPaymentTests
 		var txInWitness = string.IsNullOrEmpty(vin.TxInWitness) ? null : new WitScript(Encoders.Hex.DecodeData(vin.TxInWitness));
 		return SilentPayment.ExtractPubKey(scriptSig, txInWitness!, spk);
 	}
+
+	public static TheoryData<SilentPaymentTestVector> TestCasesData
+	{
+		get
+		{
+			var json = File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json");
+			var vectors = JsonSerializer.Deserialize<SilentPaymentTestVector[]>(json);
+			Assert.NotNull(vectors);
+
+			var theoryData = new TheoryData<SilentPaymentTestVector>();
+			theoryData.AddRange(vectors);
+
+			return theoryData;
+		}
+	}
 }
 
-public record ScriptPubKey(string Hex);
-public record Output(ScriptPubKey ScriptPubKey);
+public record ScriptPubKey([property: JsonPropertyName("hex")] string Hex);
+public record Output([property: JsonPropertyName("scriptPubKey")] ScriptPubKey ScriptPubKey);
 
-public record ReceivingExpectedOutput(string Priv_key_tweak, string Pub_key, string Signature);
-public record ReceivingVin( string TxId, int Vout, Output PrevOut, string? ScriptSig, string? TxInWitness);
-public record SendingVin( string TxId, int Vout, string Private_Key, Output PrevOut);
-public record SendingGiven(SendingVin[] Vin, string[] Recipients);
+public record ReceivingExpectedOutput(
+	[property: JsonPropertyName("priv_key_tweak")] string Priv_key_tweak,
+	[property: JsonPropertyName("pub_key")] string Pub_key,
+	[property: JsonPropertyName("signature")] string Signature);
+public record ReceivingVin(
+	[property: JsonPropertyName("txid")] string TxId,
+	[property: JsonPropertyName("vout")] int Vout,
+	[property: JsonPropertyName("prevout")] Output PrevOut,
+	[property: JsonPropertyName("scriptSig")] string? ScriptSig,
+	[property: JsonPropertyName("txinwitness")] string? TxInWitness);
+public record SendingVin(
+	[property: JsonPropertyName("txid")] string TxId,
+	[property: JsonPropertyName("vout")] int Vout,
+	[property: JsonPropertyName("private_key")] string Private_Key,
+	[property: JsonPropertyName("prevout")] Output PrevOut);
+public record SendingGiven(
+	[property: JsonPropertyName("vin")] SendingVin[] Vin,
+	[property: JsonPropertyName("recipients")] string[] Recipients);
 
-public record KeyMaterial(string Spend_priv_key, string Scan_priv_key);
-public record ReceivingGiven(ReceivingVin[] Vin, string[] Outputs, KeyMaterial Key_Material, int[] Labels);
-public record SendingExpected(string[][] Outputs);
+public record KeyMaterial(
+	[property: JsonPropertyName("spend_priv_key")] string Spend_priv_key,
+	[property: JsonPropertyName("scan_priv_key")] string Scan_priv_key);
+public record ReceivingGiven(
+	[property: JsonPropertyName("vin")] ReceivingVin[] Vin,
+	[property: JsonPropertyName("outputs")] string[] Outputs,
+	[property: JsonPropertyName("key_material")] KeyMaterial Key_Material,
+	[property: JsonPropertyName("labels")] int[] Labels);
+public record SendingExpected([property: JsonPropertyName("outputs")] string[][] Outputs);
 
-public record ReceivingExpected(string[] Addresses, ReceivingExpectedOutput[] Outputs);
+public record ReceivingExpected(
+	[property: JsonPropertyName("addresses")] string[] Addresses,
+	[property: JsonPropertyName("outputs")] ReceivingExpectedOutput[] Outputs);
 
-public record Sending(SendingGiven Given, SendingExpected Expected);
-public record Receiving(ReceivingGiven Given, ReceivingExpected Expected);
+public record Sending(
+	[property: JsonPropertyName("given")] SendingGiven Given,
+	[property: JsonPropertyName("expected")] SendingExpected Expected);
+public record Receiving(
+	[property: JsonPropertyName("given")] ReceivingGiven Given,
+	[property: JsonPropertyName("expected")] ReceivingExpected Expected);
 
-public record SilentPaymentTestVector(string Comment, Sending[] Sending, Receiving[] Receiving)
+public record SilentPaymentTestVector(
+	[property: JsonPropertyName("comment")] string Comment,
+	[property: JsonPropertyName("sending")] Sending[] Sending,
+	[property: JsonPropertyName("receiving")] Receiving[] Receiving)
 {
-	private static SilentPaymentTestVector[] VectorsData() =>
-		JsonConvert.DeserializeObject<SilentPaymentTestVector[]>(
-			File.ReadAllText("./UnitTests/Data/SilentPaymentTestVectors.json"))!;
-
-	private static readonly SilentPaymentTestVector[] TestCases = VectorsData().ToArray();
-
-	public static object[][] TestCasesData =>
-		TestCases.Select(testCase => new object[] { testCase }).ToArray();
-
 	public override string ToString() => Comment;
 }
 
