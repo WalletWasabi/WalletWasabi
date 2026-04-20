@@ -25,7 +25,6 @@ public class TorManager : IAsyncDisposable
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
-	/// <summary>For tests.</summary>
 	public TorManager(TorSettings settings, EventBus eventBus)
 	{
 		TorProcess = null;
