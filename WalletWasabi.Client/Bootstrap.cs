@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
-using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.JsonConverters;
@@ -13,6 +12,7 @@ using WalletWasabi.Wallets;
 using static WalletWasabi.Scheme.Interpreter;
 
 namespace WalletWasabi.Daemon;
+
 using Environment = System.Collections.Immutable.ImmutableDictionary<string, Expression>;
 
 public class Scheme
@@ -72,7 +72,7 @@ public class Scheme
 		return result!;
 	}
 
-	public async Task<Expression> Execute(string prg)
+	public async Task<Expression> ExecuteAsync(string prg)
 	{
 		await InitializeAsync();
 		var parsingResult = Parse(Tokenizer.Tokenize(prg).ToArray());
