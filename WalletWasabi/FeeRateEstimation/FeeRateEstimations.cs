@@ -2,7 +2,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using NBitcoin;
-using Newtonsoft.Json;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 
@@ -44,7 +43,6 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 	/// <summary>
 	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
 	/// </summary>
-	[JsonProperty]
 	public Dictionary<int, FeeRate> Estimations { get; }
 
 	/// <summary>

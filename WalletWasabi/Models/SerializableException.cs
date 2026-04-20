@@ -1,4 +1,3 @@
-using Newtonsoft.Json;
 using System.Text;
 using WalletWasabi.Serialization;
 
