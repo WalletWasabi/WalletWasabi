@@ -131,6 +131,7 @@
            ];
 
             DOTNET_CLI_TELEMETRY_OPTOUT = 1;
+            AVALONIA_TELEMETRY_OPTOUT=1
             DOTNET_NOLOGO = 1;
             DOTNET_ROOT = "${pkgs.dotnetCorePackages.sdk_10_0}";
             DOTNET_GLOBAL_TOOLS_PATH = "${builtins.getEnv "HOME"}/.dotnet/tools";
