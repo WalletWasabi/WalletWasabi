@@ -14,6 +14,7 @@ using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Cache;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
@@ -26,7 +27,6 @@ using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WebClients.Wasabi;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 [assembly: ApiController]
 

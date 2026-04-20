@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Controllers;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
@@ -14,10 +15,8 @@ using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Coordinator.Statistics;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
