@@ -77,7 +77,7 @@ public class LiquidityClueProvider
 	private static bool TryCalculateLiquidityClue(IEnumerable<Money> foreignOutputsValues, out Money? value)
 	{
 		var denoms = foreignOutputsValues
-			.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
+			.Where(x => Anonymity.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
 			.Distinct()
 			.ToList();
 
