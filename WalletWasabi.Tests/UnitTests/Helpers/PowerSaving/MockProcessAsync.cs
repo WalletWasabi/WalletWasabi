@@ -28,9 +28,9 @@ public class MockProcessAsync : ProcessAsync
 		OnHandle?.Invoke()
 		?? throw new NotImplementedException($"{nameof(Handle)} was invoked but never assigned.");
 
-	public override Task WaitForExitAsync(CancellationToken cancellationToken) =>
+	public override Task GracefulWaitForExitAsync(CancellationToken cancellationToken) =>
 		OnWaitForExitAsync?.Invoke(cancellationToken)
-		?? throw new NotImplementedException($"{nameof(WaitForExitAsync)} was invoked but never assigned.");
+		?? throw new NotImplementedException($"{nameof(GracefulWaitForExitAsync)} was invoked but never assigned.");
 
 	public override void Kill(bool entireProcessTree = false) =>
 		OnKill?.Invoke(entireProcessTree);

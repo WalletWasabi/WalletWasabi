@@ -2,12 +2,11 @@ using System.Diagnostics;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.BundledApps;
 
 /// <summary>
-/// Async wrapper class for <see cref="System.Diagnostics._process"/> class that implements <see cref="WaitForExitAsync(CancellationToken)"/>
+/// Async wrapper class for <see cref="System.Diagnostics._process"/> class that implements <see cref="GracefulWaitForExitAsync(CancellationToken)"/>
 /// to asynchronously wait for a process to exit.
 /// </summary>
 public class ProcessAsync : IDisposable
@@ -25,49 +24,33 @@ public class ProcessAsync : IDisposable
 
 	private readonly Process _process;
 
-	/// <inheritdoc cref="_process.StartInfo"/>
+	/// <inheritdoc cref="Process.StartInfo"/>
 	public ProcessStartInfo StartInfo => _process.StartInfo;
 
-	/// <inheritdoc cref="_process.ExitCode"/>
+	/// <inheritdoc cref="Process.ExitCode"/>
 	public int ExitCode => _process.ExitCode;
 
-	/// <inheritdoc cref="_process.HasExited"/>
+	/// <inheritdoc cref="Process.HasExited"/>
 	public virtual bool HasExited => _process.HasExited;
 
-	/// <inheritdoc cref="_process.Id"/>
+	/// <inheritdoc cref="Process.Id"/>
 	public int Id => _process.Id;
 
-	/// <inheritdoc cref="_process.Handle"/>
+	/// <inheritdoc cref="Process.Handle"/>
 	public virtual IntPtr Handle => _process.Handle;
 
-	/// <inheritdoc cref="_process.StandardInput"/>
+	/// <inheritdoc cref="Process.StandardInput"/>
 	public StreamWriter StandardInput => _process.StandardInput;
 
-	/// <inheritdoc cref="_process.StandardOutput"/>
+	/// <inheritdoc cref="Process.StandardOutput"/>
 	public StreamReader StandardOutput => _process.StandardOutput;
 
-	/// <inheritdoc cref="_process.Start()"/>
-	public void Start()
+	public void StartWithExceptionLogging()
 	{
-		try
-		{
-			_process.Start();
-		}
-		catch (Exception ex)
-		{
-			Logger.LogError(ex);
-
-			Logger.LogInfo($"{nameof(Process.StartInfo.FileName)}: {_process.StartInfo.FileName}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.Arguments)}: {_process.StartInfo.Arguments}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.RedirectStandardOutput)}: {_process.StartInfo.RedirectStandardOutput}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.UseShellExecute)}: {_process.StartInfo.UseShellExecute}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.CreateNoWindow)}: {_process.StartInfo.CreateNoWindow}.");
-			Logger.LogInfo($"{nameof(Process.StartInfo.WindowStyle)}: {_process.StartInfo.WindowStyle}.");
-			throw;
-		}
+		_process.StartWithExceptionLogging();
 	}
 
-	/// <inheritdoc cref="_process.Kill(bool)"/>
+	/// <inheritdoc cref="Process.Kill(bool)"/>
 	public virtual void Kill(bool entireProcessTree = false)
 	{
 		_process.Kill(entireProcessTree);
@@ -78,26 +61,9 @@ public class ProcessAsync : IDisposable
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns><see cref="Task"/>.</returns>
-	public virtual async Task WaitForExitAsync(CancellationToken cancellationToken)
+	public virtual async Task GracefulWaitForExitAsync(CancellationToken cancellationToken)
 	{
-		if (_process.HasExited)
-		{
-			Logger.LogTrace("Process has already exited.");
-			return;
-		}
-
-		try
-		{
-			Logger.LogTrace($"Wait for the process to exit: '{_process.Id}'");
-			await _process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
-
-			Logger.LogTrace("Process has exited.");
-		}
-		catch (OperationCanceledException ex)
-		{
-			Logger.LogTrace("User canceled waiting for process exit.");
-			throw new TaskCanceledException("Waiting for process exiting was canceled.", ex, cancellationToken);
-		}
+		await _process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	protected virtual void Dispose(bool disposing)
