@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Immutable;
 using System.Linq;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -10,7 +11,6 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 

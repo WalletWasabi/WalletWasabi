@@ -5,10 +5,10 @@ using Microsoft.AspNetCore.Mvc;
 using NBitcoin;
 using WalletWasabi.Cache;
 using WalletWasabi.Coordinator.Filters;
+using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 
 namespace WalletWasabi.Coordinator.Controllers;
 

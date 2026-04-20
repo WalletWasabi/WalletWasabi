@@ -22,8 +22,8 @@ using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using Arena = WalletWasabi.WabiSabi.Coordinator.Rounds.Arena;
 using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.Coordinator.WabiSabi;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
