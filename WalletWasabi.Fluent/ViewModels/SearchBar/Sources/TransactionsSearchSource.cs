@@ -8,6 +8,7 @@ using DynamicData;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -22,9 +23,12 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private const int MinQueryLength = 3;
 
 	private readonly CompositeDisposable _disposables = new();
+	private readonly NavBarViewModel _navBarViewModel;
 
-	public TransactionsSearchSource(IObservable<string> queries)
+	public TransactionsSearchSource(NavBarViewModel navBarViewModel, IObservable<string> queries)
 	{
+		_navBarViewModel = navBarViewModel;
+
 #pragma warning disable CA2000 // Dispose objects before losing scope - disposed with the disposables
 		var sourceCache = new SourceCache<ISearchItem, ComposedKey>(x => x.Key)
 			.DisposeWith(_disposables);
@@ -53,16 +57,16 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		return historyItemViewModelBase.Transaction.Id.ToString().Contains(queryStr, StringComparison.CurrentCultureIgnoreCase);
 	}
 
-	private static Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
+	private Task NavigateTo(WalletViewModel wallet, HistoryItemViewModelBase item)
 	{
-		var walletPageViewModel = MainViewModel.Instance.NavBar.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
-		if (walletPageViewModel == MainViewModel.Instance.NavBar.SelectedWallet)
+		var walletPageViewModel = _navBarViewModel.Wallets.FirstOrDefault(x => x.WalletViewModel == wallet);
+		if (walletPageViewModel == _navBarViewModel.SelectedWallet)
 		{
 			wallet.SelectTransaction(item.Transaction.Id);
 		}
 		else
 		{
-			MainViewModel.Instance.NavBar.SelectedWallet = walletPageViewModel;
+			_navBarViewModel.SelectedWallet = walletPageViewModel;
 			wallet.NavigateAndHighlight(item.Transaction.Id);
 		}
 
@@ -85,7 +89,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		return walletTransactions.SelectMany(t => t.Transactions.Select(item => (t.Wallet, HistoryItem: item)));
 	}
 
-	private static ISearchItem ToSearchItem(WalletViewModel wallet, HistoryItemViewModelBase item)
+	private ISearchItem ToSearchItem(WalletViewModel wallet, HistoryItemViewModelBase item)
 	{
 		return new ActionableItem(
 			item.Transaction.Id.ToString(),
@@ -98,11 +102,11 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 		};
 	}
 
-	private static IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> GetTransactionsByWallet()
+	private IEnumerable<(WalletViewModel Wallet, IEnumerable<HistoryItemViewModelBase> Transactions)> GetTransactionsByWallet()
 	{
 		// TODO: This is a workaround to get all the transactions from currently loaded wallets. REMOVE after UIDecoupling #26
 
-		return MainViewModel.Instance.NavBar.Wallets
+		return _navBarViewModel.Wallets
 			.Where(x => x is {IsLoggedIn: true, Wallet.Loaded: true})
 			.Select(x => x.WalletViewModel)
 			.WhereNotNull()
@@ -111,14 +115,14 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 					x.History.Transactions.Concat(x.History.Transactions.OfType<CoinJoinsHistoryItemViewModel>().SelectMany(y => y.Children))));
 	}
 
-	private static IEnumerable<ISearchItem> Search(string query)
+	private IEnumerable<ISearchItem> Search(string query)
 	{
 		return Filter(query)
 			.Take(MaxResultCount)
 			.Select(tuple => ToSearchItem(tuple.Item1, tuple.Item2));
 	}
 
-	private static IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
+	private IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
 		.Where(tuple => NBitcoinHelpers.TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?

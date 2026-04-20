@@ -6,7 +6,6 @@ using Avalonia.Controls;
 using DynamicData;
 using NBitcoin;
 using ReactiveUI;
-using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -23,6 +22,7 @@ using WalletWasabi.Fluent.ViewModels.StatusIcon;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 using WalletWasabi.Helpers;
+using System.Diagnostics.CodeAnalysis;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -222,7 +222,7 @@ public partial class MainViewModel : ViewModelBase
 		WindowState = UiContext.ApplicationSettings.WindowState;
 	}
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Same lifecycle as the application. Won't be disposed separately.")]
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Same lifecycle as the application. Won't be disposed separately.")]
 	private SearchBarViewModel CreateSearchBar()
 	{
 		// This subject is created to solve the circular dependency between the sources and SearchBarViewModel
@@ -231,7 +231,7 @@ public partial class MainViewModel : ViewModelBase
 		var source = new CompositeSearchSource(
 			new ActionsSearchSource(UiContext, querySubject),
 			new SettingsSearchSource(UiContext, querySubject),
-			new TransactionsSearchSource(querySubject),
+			new TransactionsSearchSource(NavBar, querySubject),
 			UiContext.EditableSearchSource);
 
 		var searchBar = new SearchBarViewModel(source);
