@@ -69,7 +69,7 @@ public class Round
 	public TimeFrame TransactionSigningTimeFrame { get; set; }
 	public DateTimeOffset End { get; private set; }
 	public EndRoundState EndRoundState { get; set; }
-	public int RemainingInputVsizeAllocation => Parameters.InitialInputVsizeAllocation - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
+	public int RemainingInputVsizeAllocation => Parameters.MaxTransactionSize - MultipartyTransactionParameters.SharedOverhead - (InputCount * Parameters.MaxVsizeAllocationPerAlice);
 
 	public bool FastSigningPhase { get; set; }
 

@@ -69,8 +69,6 @@ public static partial class Encode
 			("BlameInputRegistrationTimeout", TimeSpan(p.BlameInputRegistrationTimeout) ),
 			("MinAmountCredentialValue", MoneySatoshis(p.MinAmountCredentialValue) ),
 			("MaxAmountCredentialValue", MoneySatoshis(p.MaxAmountCredentialValue) ),
-			("InitialInputVsizeAllocation", Int(p.InitialInputVsizeAllocation) ),
-			("MaxVsizeCredentialValue", Int(p.MaxVsizeCredentialValue) ),
 			("MaxVsizeAllocationPerAlice", Int(p.MaxVsizeAllocationPerAlice) ),
 			("CoordinationIdentifier", String(p.CoordinationIdentifier) ),
 			("DelayTransactionSigning", Bool(p.DelayTransactionSigning) ),
@@ -408,8 +406,8 @@ public static partial class Decode
 			? Succeed((ScriptType) n)
 			: Fail<ScriptType>("Invalid ScriptType, it is greater than ScriptType.Taproot"));
 
-	private static Decoder<T> Cast<T, R>(Decoder<R> decoder) where R : T =>
-		decoder.Map(r => (T) r);
+	private static Decoder<TSource> Cast<TSource, TTarget>(Decoder<TTarget> decoder) where TTarget : TSource =>
+		decoder.Map(r => (TSource) r);
 
 	private static Decoder<IEvent> RoundEvent =>
 		Field("Type", String)
