@@ -161,22 +161,31 @@ public class Global
 			}
 		}
 
-		var p2pDataDir = GetBitcoinP2pNetworkDirectory();
-
-		var p2PBehavior = new P2pBehavior(mempoolService);
-		var chainBehavior = new ChainBehavior(new ConcurrentChain());
-		var blockHeaders = new ConcurrentChain();
+		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
+		var blockHeaders = LoadBlockHeaders(p2PDataDir);
 		var chainBehavior = new ChainBehavior(blockHeaders);
+		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
 			? P2pNetwork.CreateNodesGroupForRegTest(p2PBehavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-				p2pDataDir,
+				p2PDataDir,
 				Config.BlockOnlyMode ? [chainBehavior] : [chainBehavior, p2PBehavior]);
 
 		return nodesGroup;
+	}
+
+	private ConcurrentChain LoadBlockHeaders(string p2PDataDir)
+	{
+		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+		var blockHeaders = Result<byte[], Exception>
+			.Catch(() => File.ReadAllBytes(blockHeadersFilePath))
+			.Match(
+				bytes => new ConcurrentChain(bytes, Network),
+				_ => new ConcurrentChain(Network));
+		return blockHeaders;
 	}
 
 	private void ConfigureBitcoinNetwork()
