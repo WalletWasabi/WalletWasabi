@@ -151,8 +151,6 @@ public class Global
 
 	private NodesGroup ConfigureNodesGroup(MempoolService mempoolService)
 	{
-		var behavior = new P2pBehavior(mempoolService);
-
 		// NBitcoin doesn't have these dnsSeeds for signet
 		if (Network == Bitcoin.Instance.Signet)
 		{
@@ -163,13 +161,16 @@ public class Global
 			}
 		}
 
+		var p2PBehavior = new P2pBehavior(mempoolService);
+		var chainBehavior = new ChainBehavior(new ConcurrentChain());
+
 		var nodesGroup = Network == Network.RegTest
-			? P2pNetwork.CreateNodesGroupForRegTest(behavior)
+			? P2pNetwork.CreateNodesGroupForRegTest(p2PBehavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
 				GetBitcoinP2pNetworkDirectory(),
-				Config.BlockOnlyMode ? null : behavior);
+				Config.BlockOnlyMode ? [chainBehavior] : [chainBehavior, p2PBehavior]);
 
 		return nodesGroup;
 	}
