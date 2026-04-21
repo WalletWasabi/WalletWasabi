@@ -59,7 +59,7 @@ public class BitcoindRpcProcessBridge
 
 		// Start bitcoind process.
 		Process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
-		Process.StartWithExceptionLogging();
+		Process.Start();
 
 		// Store PID in PID file.
 		await PidFile.WriteFileAsync(Process.Id).ConfigureAwait(false);
@@ -163,7 +163,7 @@ public class BitcoindRpcProcessBridge
 				if (!isKilled)
 				{
 					Logger.LogDebug($"Wait until the process is stopped.");
-					await process.GracefulWaitForExitAsync(cts.Token).ConfigureAwait(false);
+					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 				}
 			}
 			finally

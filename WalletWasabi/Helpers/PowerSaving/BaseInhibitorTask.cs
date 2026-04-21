@@ -22,7 +22,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	}
 
 	/// <remarks>Guards <see cref="_isDone"/>.</remarks>
-	protected object StateLock { get; } = new();
+	protected Lock StateLock { get; } = new();
 
 	/// <inheritdoc/>
 	public bool IsDone
@@ -50,7 +50,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	{
 		try
 		{
-			await _process.GracefulWaitForExitAsync(_cts.Token).ConfigureAwait(false);
+			await _process.WaitForExitAsync(_cts.Token).ConfigureAwait(false);
 
 			// This should be hit only when somebody externally kills the inhibiting process.
 			Logger.LogError("Inhibit process ended prematurely.");
