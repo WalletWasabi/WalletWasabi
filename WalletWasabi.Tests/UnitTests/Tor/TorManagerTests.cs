@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.UnitTests.Helpers.PowerSaving;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
@@ -34,17 +35,15 @@ public class TorManagerTests
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		// Mock Tor process.
-		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.Setup(p => p.GracefulWaitForExitAsync(It.IsAny<CancellationToken>()))
-			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
-		mockProcess.Setup(p => p.Dispose());
+		using var mockProcess = new MockProcessAsync(new ProcessStartInfo());
+		mockProcess.OnWaitForExitAsync = (cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken);
 
 		// Mock TorManager.
 		Mock<TorManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(false);
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
-			.Returns(mockProcess.Object);
+			.Returns(mockProcess);
 		mockTorProcessManager.Setup(c => c.EnsureRunningAsync(It.IsAny<ProcessAsync>(), It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 		mockTorProcessManager.SetupSequence(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
