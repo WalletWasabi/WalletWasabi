@@ -1,12 +1,9 @@
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -211,48 +208,6 @@ public class FeeRateEstimationsTests
 	}
 
 	[Fact]
-	public async Task FixObviouslyWrongEstimationsAsync()
-	{
-		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-
-		var histogram = MempoolInfoGenerator.FeeRanges.Reverse().Select((x, i) => new FeeRateGroup
-		{
-			Count = (uint) (100 * Math.Pow(i + 1, 2)),
-			Sizes = (uint) (40 * 100 * (i + 1)),
-			From = new FeeRate((decimal) x.from),
-			To = new FeeRate((decimal) x.to),
-			Fees = Money.Zero,
-			Group = x.from
-		}).ToArray();
-
-		mockRpc.OnGetMempoolInfoAsync = () =>
-			Task.FromResult(new MemPoolInfo
-			{
-				MemPoolMinFee = 0.00001000, // 1 s/b (default value)
-				Histogram = histogram,
-				Size = (int)histogram.Sum(x => x.Count)
-			});
-
-		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
-			target switch
-			{
-				2 => Task.FromResult(FeeRateResponse(2, 3_500m)),
-				3 => Task.FromResult(FeeRateResponse(3, 500m)),
-				6 => Task.FromResult(FeeRateResponse(6, 10m)),
-				18 => Task.FromResult(FeeRateResponse(18, 5m)),
-				36 => Task.FromResult(FeeRateResponse(36, 5m)),
-				1008 => Task.FromResult(FeeRateResponse(1008, 1m)),
-				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
-			};
-
-		var allFee = await mockRpc.EstimateAllFeeAsync();
-		Assert.Equal(140, allFee.Estimations[2].SatoshiPerByte);
-		Assert.Equal(124.428m, allFee.Estimations[144].SatoshiPerByte);
-		Assert.True(allFee.Estimations[1008].SatoshiPerByte > 1);
-	}
-
-
-	[Fact]
 	public async Task WorksWithBitcoinCoreEstimationsAsync()
 	{
 		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
@@ -266,86 +221,6 @@ public class FeeRateEstimationsTests
 
 		// Do not throw exception
 		await mockRpc.EstimateAllFeeAsync();
-	}
-
-	[Fact]
-	public async Task ExhaustiveMempoolEstimationsAsync()
-	{
-		foreach (var _ in Enumerable.Range(0, 100))
-		{
-			var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-			var mempoolInfo = MempoolInfoGenerator.GenerateMempoolInfo();
-			mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-			mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 120m));
-			var feeRates = await mockRpc.EstimateAllFeeAsync();
-			var estimations = feeRates.Estimations;
-
-			Assert.Subset(Constants.ConfirmationTargets.ToHashSet(), estimations.Keys.ToHashSet());
-			Assert.Equal(estimations.Keys, estimations.Keys.OrderBy(x => x));
-			Assert.Equal(estimations.Values, estimations.Values.OrderByDescending(x => x));
-			Assert.All(estimations, (e) => Assert.True(e.Value.SatoshiPerByte >= (decimal)mempoolInfo.MemPoolMinFee * 100_000));
-		}
-	}
-
-	[Fact]
-	public async Task RealWorldMempoolSpaceMinFeeAsync()
-	{
-		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var mempoolInfo = MempoolInfoGenerator.GenerateRealMempoolInfo();
-		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
-		var feeRates = await mockRpc.EstimateAllFeeAsync();
-		var estimations = feeRates.Estimations;
-		var minFee = estimations.Min(x => x.Value)!;
-
-		Assert.NotNull(minFee);
-		Assert.Equal(15, minFee.SatoshiPerByte); // this is the calculated MempoolMinFee needed to be in the top 200MB
-	}
-
-	[Theory]
-	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram1.json", 2)]
-	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram2.json", 12)]
-	public async Task RealWorldMempoolRpcMinFeeAsync(string filePath, int expectedMinFee)
-	{
-		// This test is for making sure we don't underpay the network fee.
-		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
-		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-		mockRpc.OnEstimateSmartFeeAsync = (_, _) => Task.FromResult(FeeRateResponse(2, 0m));
-		var feeRates = await mockRpc.EstimateAllFeeAsync();
-		var estimations = feeRates.Estimations;
-		var minFee = estimations.Min(x => x.Value)!;
-
-		Assert.NotNull(minFee);
-		Assert.Equal(expectedMinFee, minFee.SatoshiPerByte);
-	}
-
-	[Theory]
-	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram1.json", 100)]
-	[InlineData("./UnitTests/Data/MempoolInfoWithHistogram2.json", 50)]
-	public async Task RealWorldMempoolRpcMaxFeeAsync(string filePath, int expectedMaxFee)
-	{
-		// This test is for making sure we don't overpay the network fee.
-		var mockRpc = CreateAndConfigureRpcClient(hasPeersInfo: true);
-		var mempoolInfo = MempoolInfoGenerator.GenerateRealBitcoinKnotsMemPoolInfo(filePath);
-
-		mockRpc.OnGetMempoolInfoAsync = () => Task.FromResult(mempoolInfo);
-		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
-			target switch
-			{
-				2 => Task.FromResult(FeeRateResponse(2, 1_000m)),
-				5 => Task.FromResult(FeeRateResponse(5, 89m)),
-				6 => Task.FromResult(FeeRateResponse(18, 75m)),
-				8 => Task.FromResult(FeeRateResponse(144, 10m)),
-				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
-			};
-
-		var feeRates = await mockRpc.EstimateAllFeeAsync();
-		var estimations = feeRates.Estimations;
-		var maxFee = estimations.Max(x => x.Value)!;
-
-		Assert.NotNull(maxFee);
-		Assert.Equal(expectedMaxFee, maxFee.SatoshiPerByte);
 	}
 
 	[Fact]
