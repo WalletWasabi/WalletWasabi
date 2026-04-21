@@ -10,9 +10,9 @@ using WalletWasabi.WabiSabi.Coordinator;
 
 namespace WalletWasabi.Coordinator;
 
-public class TorProcessManagerService(TorSettings torSettings, WabiSabiConfig config, IConfiguration configuration) : IHostedService
+public class TorManagerService(TorSettings torSettings, WabiSabiConfig config, IConfiguration configuration) : IHostedService
 {
-	private readonly TorProcessManager _torManager = new(torSettings, new EventBus());
+	private readonly TorManager _torManager = new(torSettings, new EventBus());
 
 	public async Task StartAsync(CancellationToken cancellationToken)
 	{
@@ -24,7 +24,7 @@ public class TorProcessManagerService(TorSettings torSettings, WabiSabiConfig co
 		}
 
 		var (_, torControlClient) = await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
-		Logger.LogInfo($"{nameof(TorProcessManager)} is initialized.");
+		Logger.LogInfo($"{nameof(TorManager)} is initialized.");
 
 		if (torControlClient is { } nonNullTorControlClient)
 		{

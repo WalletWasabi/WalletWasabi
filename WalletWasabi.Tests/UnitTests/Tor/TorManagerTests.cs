@@ -13,12 +13,12 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
 
-/// <summary>Tests for <see cref="TorProcessManager"/> class.</summary>
-public class TorProcessManagerTests
+/// <summary>Tests for <see cref="TorManager"/> class.</summary>
+public class TorManagerTests
 {
 	/// <summary>
 	/// Simulates: Tor OS process is fully started. The process crashes after 2 seconds.
-	/// Then we simulate then user asked to cancel TorProcessManager as the application shuts down.
+	/// Then we simulate then user asked to cancel TorManager as the application shuts down.
 	/// </summary>
 	[Fact]
 	public async Task StartProcessAsync()
@@ -39,8 +39,8 @@ public class TorProcessManagerTests
 			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
 		mockProcess.Setup(p => p.Dispose());
 
-		// Mock TorProcessManager.
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
+		// Mock TorManager.
+		Mock<TorManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(false);
 		mockTorProcessManager.Setup(c => c.StartProcess(It.IsAny<string>()))
@@ -51,7 +51,7 @@ public class TorProcessManagerTests
 			.ReturnsAsync(() => new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)) // (1)
 			.ThrowsAsync(new OperationCanceledException()); // (2)
 
-		await using (TorProcessManager manager = mockTorProcessManager.Object)
+		await using (TorManager manager = mockTorProcessManager.Object)
 		{
 			// No exception is expected here.
 			(CancellationToken ct1, TorControlClient? client1) = await manager.StartAsync(timeoutCts.Token);
@@ -83,7 +83,7 @@ public class TorProcessManagerTests
 		string distributionFolder = "tempDistributionDir";
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
-		Mock<TorProcessManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
+		Mock<TorManager> mockTorProcessManager = new(MockBehavior.Strict, settings, new EventBus()) { CallBase = true };
 		mockTorProcessManager.Setup(c => c.IsTorRunningAsync(It.IsAny<CancellationToken>()))
 			.ReturnsAsync(true);
 
@@ -94,10 +94,10 @@ public class TorProcessManagerTests
 		mockTorProcessManager.Setup(c => c.InitTorControlAsync(It.IsAny<CancellationToken>()))
 			.ThrowsAsync(new TorControlException("Cookie file does not exist."));
 
-		await using (TorProcessManager torProcessManager = mockTorProcessManager.Object)
+		await using (TorManager torProcessManager = mockTorProcessManager.Object)
 		{
 			NotSupportedException ex = await Assert.ThrowsAsync<NotSupportedException>(async () => await torProcessManager.StartAsync(timeoutCts.Token).ConfigureAwait(false));
-			Assert.Equal(TorProcessManager.TorProcessStartedByDifferentUser, ex.Message);
+			Assert.Equal(TorManager.TorProcessStartedByDifferentUser, ex.Message);
 		}
 
 		mockTorProcessManager.VerifyAll();
