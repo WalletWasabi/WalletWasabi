@@ -185,6 +185,19 @@ public class Global
 			.Match(
 				bytes => new ConcurrentChain(bytes, Network),
 				_ => new ConcurrentChain(Network));
+
+		var blockHeaderSaver = Spawn("Block Headers persistence",
+			Service("Bitcoin Block Headers persistence",
+				Periodically(
+					TimeSpan.FromSeconds(30),
+					Unit.Instance,
+					async (Unit _, Unit _, CancellationToken ct) =>
+					{
+						await File.WriteAllBytesAsync(blockHeadersFilePath, blockHeaders.ToBytes(), ct);
+						return Unit.Instance;
+					})));
+		blockHeaderSaver.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
 		return blockHeaders;
 	}
 
