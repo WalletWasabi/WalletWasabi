@@ -22,7 +22,7 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 	}
 
 	/// <remarks>Guards <see cref="_isDone"/>.</remarks>
-	protected object StateLock { get; } = new();
+	protected Lock StateLock { get; } = new();
 
 	/// <inheritdoc/>
 	public bool IsDone
