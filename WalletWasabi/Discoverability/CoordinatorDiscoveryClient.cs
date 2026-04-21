@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
@@ -21,8 +20,7 @@ public static class CoordinatorDiscoveryClient
 	{
 		var subscriptionId = Guid.NewGuid().ToString();
 		var latestByPubKey = new Dictionary<string, NostrEvent>();
-		var relaysByPubKey = new Dictionary<string, HashSet<Uri>>();
-		var lockObj = new object();
+		var gate = new object();
 
 		void OnEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
 		{
@@ -31,9 +29,7 @@ public static class CoordinatorDiscoveryClient
 				return;
 			}
 
-			var relayUri = (sender as NostrClient)?.Relay;
-
-			lock (lockObj)
+			lock (gate)
 			{
 				foreach (var nostrEvent in args.events)
 				{
@@ -47,53 +43,18 @@ public static class CoordinatorDiscoveryClient
 					{
 						latestByPubKey[nostrEvent.PublicKey] = nostrEvent;
 					}
-
-					if (relayUri is not null)
-					{
-						if (!relaysByPubKey.TryGetValue(nostrEvent.PublicKey, out var relays))
-						{
-							relays = new HashSet<Uri>();
-							relaysByPubKey[nostrEvent.PublicKey] = relays;
-						}
-						relays.Add(relayUri);
-					}
 				}
 			}
 		}
 
 		client.EventsReceived += OnEventsReceived;
-
 		try
 		{
 			await client.ConnectAndWaitUntilConnected(cancellationToken).ConfigureAwait(false);
-
-			var filter = new NostrSubscriptionFilter
-			{
-				Kinds = [CoordinatorAnnouncementKind]
-			};
-
+			var filter = new NostrSubscriptionFilter { Kinds = [CoordinatorAnnouncementKind] };
 			await client.CreateSubscription(subscriptionId, [filter], cancellationToken).ConfigureAwait(false);
-
-			using var windowCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-			windowCts.CancelAfter(collectionWindow);
-
-			try
-			{
-				await Task.Delay(collectionWindow, windowCts.Token).ConfigureAwait(false);
-			}
-			catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
-			{
-				// Collection window elapsed normally.
-			}
-
-			try
-			{
-				await client.CloseSubscription(subscriptionId, cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug($"Failed to close Nostr subscription: {ex.Message}");
-			}
+			await Task.Delay(collectionWindow, cancellationToken).ConfigureAwait(false);
+			await client.CloseSubscription(subscriptionId, cancellationToken).ConfigureAwait(false);
 		}
 		finally
 		{
@@ -108,78 +69,36 @@ public static class CoordinatorDiscoveryClient
 			}
 		}
 
-		var results = new List<DiscoveredCoordinator>();
-
-		foreach (var (pubKey, evt) in latestByPubKey)
-		{
-			if (TryParse(pubKey, evt, network, relaysByPubKey.TryGetValue(pubKey, out var relays) ? relays.Count : 1, out var coordinator))
-			{
-				results.Add(coordinator);
-			}
-		}
-
-		return results;
+		return latestByPubKey
+			.Select(x => TryParse(x.Key, x.Value, network))
+			.OfType<DiscoveredCoordinator>()
+			.ToList();
 	}
 
-	private static bool TryParse(string pubKey, NostrEvent evt, Network network, int relayCount, out DiscoveredCoordinator coordinator)
+	private static DiscoveredCoordinator? TryParse(string pubKey, NostrEvent evt, Network network)
 	{
-		coordinator = null!;
+		string? Tag(string id) => evt.Tags.FirstOrDefault(t => t.TagIdentifier == id)?.Data.FirstOrDefault();
 
-		try
+		if (Tag("type") != "wabisabi")
 		{
-			var tags = evt.Tags.ToImmutableDictionary(t => t.TagIdentifier ?? string.Empty, t => t.Data.FirstOrDefault() ?? string.Empty);
-
-			if (!tags.TryGetValue("type", out var type) || type != "wabisabi")
-			{
-				return false;
-			}
-
-			if (!tags.TryGetValue("network", out var eventNetwork) ||
-				Network.GetNetwork(eventNetwork.Trim().ToLowerInvariant()) != network)
-			{
-				return false;
-			}
-
-			if (!tags.TryGetValue("endpoint", out var endpoint) || !Uri.TryCreate(endpoint, UriKind.Absolute, out var coordinatorUri))
-			{
-				return false;
-			}
-
-			var name = tags.TryGetValue("name", out var n) ? n : coordinatorUri.Host;
-
-			var minInputCount = 0;
-			if (tags.TryGetValue("absolutemininputcount", out var minInputCountStr) &&
-				int.TryParse(minInputCountStr, out var parsed) &&
-				parsed > 0)
-			{
-				minInputCount = parsed;
-			}
-
-			Uri? readMoreUri = null;
-			if (tags.TryGetValue("readmore", out var readMore))
-			{
-				Uri.TryCreate(readMore, UriKind.Absolute, out readMoreUri);
-			}
-
-			var createdAt = evt.CreatedAt ?? DateTimeOffset.MinValue;
-
-			coordinator = new DiscoveredCoordinator(
-				pubKey,
-				name,
-				evt.Content ?? string.Empty,
-				network,
-				coordinatorUri,
-				minInputCount,
-				readMoreUri,
-				createdAt,
-				relayCount);
-
-			return true;
+			return null;
 		}
-		catch (Exception ex)
+
+		if (Network.GetNetwork(Tag("network") ?? "") != network)
 		{
-			Logger.LogDebug($"Failed to parse coordinator announcement {evt.Id}: {ex.Message}");
-			return false;
+			return null;
 		}
+
+		if (!Uri.TryCreate(Tag("endpoint"), UriKind.Absolute, out var endpoint))
+		{
+			return null;
+		}
+
+		return new DiscoveredCoordinator(
+			pubKey,
+			Tag("name") ?? endpoint.Host,
+			evt.Content ?? "",
+			endpoint,
+			evt.CreatedAt ?? DateTimeOffset.MinValue);
 	}
 }

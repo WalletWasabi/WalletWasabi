@@ -8,7 +8,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.DiscoverCoordinatorsDialogView">
   <ContentArea Title="{Binding Title}"
-               Caption="These coordinators are self-advertised on Nostr and are not verified. A listing does not guarantee the coordinator is honest, reachable, or currently running."
+               Caption="These coordinators are self-advertised on Nostr. There is no guarantee that they are reachable."
                EnableNext="True" NextContent="Use Selected"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}">
@@ -54,15 +54,12 @@
                          Margin="10,0,0,0"
                          IsVisible="{Binding IsCurrentlyConnected}" />
               <TextBlock Grid.Row="1" Grid.Column="0" Grid.ColumnSpan="2"
-                         Text="{Binding CoordinatorUriString}"
+                         Text="{Binding UriString}"
                          Opacity="0.8" />
               <TextBlock Grid.Row="2" Grid.Column="0" Grid.ColumnSpan="2"
+                         Text="{Binding FirstSeenDescription}"
                          Opacity="0.6"
-                         FontSize="11"
-                         IsVisible="{Binding HasMinInputCount}">
-                <Run Text="Min inputs:" />
-                <Run Text="{Binding AbsoluteMinInputCount}" />
-              </TextBlock>
+                         FontSize="11" />
             </Grid>
           </DataTemplate>
         </ListBox.ItemTemplate>

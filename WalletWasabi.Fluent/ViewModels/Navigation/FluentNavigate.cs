@@ -431,13 +431,13 @@ public partial class FluentNavigate
 		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public FluentDialog<CoordinatorConnectionString?> DiscoverCoordinators(Network network, string currentCoordinatorUri, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<Uri?> DiscoverCoordinators(Network network, string currentCoordinatorUri, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialog = new DiscoverCoordinatorsDialogViewModel(UiContext, network, currentCoordinatorUri);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<CoordinatorConnectionString?>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<Uri?>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void ReceiveAddresses(IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

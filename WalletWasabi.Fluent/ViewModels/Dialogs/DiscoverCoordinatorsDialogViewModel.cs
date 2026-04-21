@@ -18,14 +18,13 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
 [NavigationMetaData(Title = "Discover Coordinators", NavigationTarget = NavigationTarget.DialogScreen)]
-public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<CoordinatorConnectionString?>
+public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<Uri?>
 {
 	private static readonly TimeSpan FreshnessWindow = TimeSpan.FromHours(4);
 	private static readonly TimeSpan CollectionWindow = TimeSpan.FromSeconds(8);
-	private const int MaxResults = 10;
 
 	private readonly Network _network;
-	private readonly string _currentCoordinatorUri;
+	private readonly Uri? _currentCoordinator;
 	private CancellationTokenSource? _refreshCts;
 
 	[AutoNotify] private DiscoveredCoordinatorItem? _selectedCoordinator;
@@ -35,7 +34,7 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 	{
 		UiContext = context;
 		_network = network;
-		_currentCoordinatorUri = currentCoordinatorUri;
+		Uri.TryCreate(currentCoordinatorUri, UriKind.Absolute, out _currentCoordinator);
 
 		Coordinators = new ObservableCollection<DiscoveredCoordinatorItem>();
 
@@ -43,7 +42,7 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 		EnableBack = true;
 
 		var canUseSelected = this.WhenAnyValue(x => x.SelectedCoordinator).Select(x => x is not null);
-		NextCommand = ReactiveCommand.Create(OnUseSelected, canUseSelected);
+		NextCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Normal, SelectedCoordinator?.Uri), canUseSelected);
 
 		var canRefresh = this.WhenAnyValue(x => x.IsBusy).Select(busy => !busy);
 		RefreshCommand = ReactiveCommand.CreateFromTask(RefreshAsync, canRefresh);
@@ -92,15 +91,15 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 				.FetchAsync(client, _network, CollectionWindow, token)
 				.ConfigureAwait(true);
 
-			var cutoff = DateTimeOffset.UtcNow - FreshnessWindow;
+			var registry = CoordinatorRegistry.CreateOrLoadFromFile(Services.DataDir);
+			var now = DateTimeOffset.UtcNow;
+			registry.Register(discovered.Select(c => c.PubKey), now);
 
+			var cutoff = now - FreshnessWindow;
 			var items = discovered
 				.Where(c => c.CreatedAt >= cutoff)
-				.Where(c => !IsPlaceholderUri(c.CoordinatorUri))
-				.OrderByDescending(c => c.AbsoluteMinInputCount)
-				.ThenByDescending(c => c.CreatedAt)
-				.Take(MaxResults)
-				.Select(c => new DiscoveredCoordinatorItem(c, IsCurrent(c.CoordinatorUri)))
+				.OrderBy(c => registry.GetFirstSeen(c.PubKey))
+				.Select(c => new DiscoveredCoordinatorItem(c, registry.GetFirstSeen(c.PubKey), now, IsCurrent(c.CoordinatorUri)))
 				.ToList();
 
 			Coordinators.Clear();
@@ -129,62 +128,42 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<C
 		}
 	}
 
-	private static bool IsPlaceholderUri(Uri coordinatorUri)
-	{
-		var host = coordinatorUri.Host;
-		return string.Equals(host, "api.example.com", StringComparison.OrdinalIgnoreCase)
-			|| string.Equals(host, "example.com", StringComparison.OrdinalIgnoreCase)
-			|| string.Equals(host, "localhost", StringComparison.OrdinalIgnoreCase);
-	}
-
-	private bool IsCurrent(Uri coordinatorUri)
-	{
-		if (string.IsNullOrWhiteSpace(_currentCoordinatorUri))
-		{
-			return false;
-		}
-
-		if (!Uri.TryCreate(_currentCoordinatorUri, UriKind.Absolute, out var currentUri))
-		{
-			return false;
-		}
-
-		return Uri.Compare(currentUri, coordinatorUri, UriComponents.HttpRequestUrl, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) == 0;
-	}
-
-	private void OnUseSelected()
-	{
-		if (SelectedCoordinator is not { } selected)
-		{
-			return;
-		}
-
-		var coordinator = selected.Coordinator;
-		var connection = new CoordinatorConnectionString(
-			coordinator.Name,
-			coordinator.Network,
-			coordinator.CoordinatorUri,
-			coordinator.AbsoluteMinInputCount,
-			coordinator.ReadMoreUri ?? coordinator.CoordinatorUri);
-
-		Close(DialogResultKind.Normal, connection);
-	}
+	private bool IsCurrent(Uri coordinatorUri) =>
+		_currentCoordinator is not null &&
+		Uri.Compare(_currentCoordinator, coordinatorUri, UriComponents.HttpRequestUrl, UriFormat.Unescaped, StringComparison.OrdinalIgnoreCase) == 0;
 }
 
 public class DiscoveredCoordinatorItem
 {
-	public DiscoveredCoordinatorItem(DiscoveredCoordinator coordinator, bool isCurrentlyConnected)
+	public DiscoveredCoordinatorItem(DiscoveredCoordinator coordinator, DateTimeOffset firstSeen, DateTimeOffset now, bool isCurrentlyConnected)
 	{
-		Coordinator = coordinator;
+		Name = coordinator.Name;
+		Uri = coordinator.CoordinatorUri;
+		Description = coordinator.Description;
+		HasDescription = !string.IsNullOrWhiteSpace(coordinator.Description);
 		IsCurrentlyConnected = isCurrentlyConnected;
+		FirstSeenDescription = DescribeAge(now - firstSeen);
 	}
 
-	public DiscoveredCoordinator Coordinator { get; }
+	public string Name { get; }
+	public Uri Uri { get; }
+	public string UriString => Uri.ToString();
+	public string Description { get; }
+	public bool HasDescription { get; }
 	public bool IsCurrentlyConnected { get; }
-	public string Name => Coordinator.Name;
-	public string CoordinatorUriString => Coordinator.CoordinatorUri.ToString();
-	public int AbsoluteMinInputCount => Coordinator.AbsoluteMinInputCount;
-	public bool HasMinInputCount => Coordinator.AbsoluteMinInputCount > 0;
-	public string Description => string.IsNullOrWhiteSpace(Coordinator.Description) ? Coordinator.Name : Coordinator.Description;
-	public bool HasDescription => !string.IsNullOrWhiteSpace(Coordinator.Description);
+	public string FirstSeenDescription { get; }
+
+	private static string DescribeAge(TimeSpan age)
+	{
+		if (age < TimeSpan.FromMinutes(1))
+		{
+			return "new";
+		}
+		if (age < TimeSpan.FromDays(1))
+		{
+			return "first seen today";
+		}
+		var days = (int)Math.Round(age.TotalDays);
+		return days == 1 ? "first seen yesterday" : $"first seen {days} days ago";
+	}
 }
