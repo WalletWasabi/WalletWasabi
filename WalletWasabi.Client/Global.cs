@@ -161,15 +161,19 @@ public class Global
 			}
 		}
 
+		var p2pDataDir = GetBitcoinP2pNetworkDirectory();
+
 		var p2PBehavior = new P2pBehavior(mempoolService);
 		var chainBehavior = new ChainBehavior(new ConcurrentChain());
+		var blockHeaders = new ConcurrentChain();
+		var chainBehavior = new ChainBehavior(blockHeaders);
 
 		var nodesGroup = Network == Network.RegTest
 			? P2pNetwork.CreateNodesGroupForRegTest(p2PBehavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-				GetBitcoinP2pNetworkDirectory(),
+				p2pDataDir,
 				Config.BlockOnlyMode ? [chainBehavior] : [chainBehavior, p2PBehavior]);
 
 		return nodesGroup;
