@@ -39,29 +39,32 @@ public class HwiProcessBridge : IHwiProcessInvoker
 
 	private async Task<(string response, int exitCode)> SendCommandAsync(ProcessStartInfo startInfo, CancellationToken token, Action<StreamWriter>? standardInputWriter = null)
 	{
-		using var processAsync = new ProcessAsync(startInfo);
+		using var process = new Process()
+		{
+			StartInfo = startInfo
+		};
 
 		if (standardInputWriter is { })
 		{
-			processAsync.StartInfo.RedirectStandardInput = true;
+			process.StartInfo.RedirectStandardInput = true;
 		}
 
-		processAsync.StartWithExceptionLogging();
+		process.StartWithExceptionLogging();
 
 		if (standardInputWriter is { })
 		{
-			standardInputWriter(processAsync.StandardInput);
-			processAsync.StandardInput.Close();
+			standardInputWriter(process.StandardInput);
+			process.StandardInput.Close();
 		}
 
-		Task<string> readPipeTask = processAsync.StartInfo.UseShellExecute
+		Task<string> readPipeTask = process.StartInfo.UseShellExecute
 			? Task.FromResult(string.Empty)
-			: processAsync.StandardOutput.ReadToEndAsync();
+			: process.StandardOutput.ReadToEndAsync();
 
-		await processAsync.GracefulWaitForExitAsync(token).ConfigureAwait(false);
+		await process.GracefulWaitForExitAsync(token).ConfigureAwait(false);
 
 		string output = await readPipeTask.ConfigureAwait(false);
 
-		return (output, exitCode: processAsync.ExitCode);
+		return (output, exitCode: process.ExitCode);
 	}
 }
