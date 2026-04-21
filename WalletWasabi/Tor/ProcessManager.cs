@@ -14,9 +14,9 @@ using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor;
 
-public class ProcessManager
+public class TorProcessManager
 {
-	public ProcessManager(TorSettings settings, EventBus eventBus)
+	public TorProcessManager(TorSettings settings, EventBus eventBus)
 	{
 		_settings = settings;
 		_eventBus = eventBus;

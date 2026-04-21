@@ -19,7 +19,7 @@ public class TorManager : IAsyncDisposable
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
-	public TorManager(TorSettings settings, ProcessManager osProcessManager)
+	public TorManager(TorSettings settings, TorProcessManager osProcessManager)
 	{
 		TorProcess = null;
 		TorControlClient = null;
@@ -38,7 +38,7 @@ public class TorManager : IAsyncDisposable
 	private readonly CancellationTokenSource _loopCts;
 
 	private readonly TorSettings _settings;
-	private readonly ProcessManager _processManager;
+	private readonly TorProcessManager _processManager;
 
 	/// <remarks>
 	/// Only set if <see cref="TorMode.Enabled"/> is not on.

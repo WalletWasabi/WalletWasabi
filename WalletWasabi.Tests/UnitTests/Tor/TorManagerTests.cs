@@ -87,7 +87,7 @@ public class TorManagerTests
 		Assert.Equal(TorManager.TorProcessStartedByDifferentUser, ex.Message);
 	}
 
-	class TestProcessManager : ProcessManager
+	class TestProcessManager : TorProcessManager
 	{
 		public int StartProcessCallCount { get; private set; }
 		public TimeSpan? WaitForTorProcessDelay { get; set; }
