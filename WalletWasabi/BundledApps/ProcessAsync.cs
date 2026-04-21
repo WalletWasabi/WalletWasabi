@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 namespace WalletWasabi.BundledApps;
 
 /// <summary>
-/// Async wrapper class for <see cref="System.Diagnostics._process"/> class that implements <see cref="GracefulWaitForExitAsync(CancellationToken)"/>
+/// Async wrapper class for <see cref="System.Diagnostics._process"/> class that implements <see cref="WaitForExitAsync(CancellationToken)"/>
 /// to asynchronously wait for a process to exit.
 /// </summary>
 public class ProcessAsync : IDisposable
@@ -45,7 +45,7 @@ public class ProcessAsync : IDisposable
 	/// <inheritdoc cref="Process.StandardOutput"/>
 	public StreamReader StandardOutput => _process.StandardOutput;
 
-	public void StartWithExceptionLogging()
+	public void Start()
 	{
 		_process.StartWithExceptionLogging();
 	}
@@ -61,7 +61,7 @@ public class ProcessAsync : IDisposable
 	/// </summary>
 	/// <param name="cancellationToken">Cancellation token.</param>
 	/// <returns><see cref="Task"/>.</returns>
-	public virtual async Task GracefulWaitForExitAsync(CancellationToken cancellationToken)
+	public virtual async Task WaitForExitAsync(CancellationToken cancellationToken)
 	{
 		await _process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}

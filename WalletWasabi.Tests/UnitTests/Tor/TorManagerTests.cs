@@ -35,7 +35,7 @@ public class TorManagerTests
 
 		// Mock Tor process.
 		Mock<ProcessAsync> mockProcess = new(MockBehavior.Strict, new ProcessStartInfo());
-		mockProcess.Setup(p => p.GracefulWaitForExitAsync(It.IsAny<CancellationToken>()))
+		mockProcess.Setup(p => p.WaitForExitAsync(It.IsAny<CancellationToken>()))
 			.Returns((CancellationToken cancellationToken) => Task.Delay(torProcessCrashPeriod, cancellationToken));
 		mockProcess.Setup(p => p.Dispose());
 

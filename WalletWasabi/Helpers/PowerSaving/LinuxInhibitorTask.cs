@@ -93,7 +93,7 @@ public class LinuxInhibitorTask : BaseInhibitorTask
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
 
 		ProcessAsync process = new(startInfo);
-		process.StartWithExceptionLogging();
+		process.Start();
 		LinuxInhibitorTask task = new(what, basePeriod, reason, process);
 
 		return task;
