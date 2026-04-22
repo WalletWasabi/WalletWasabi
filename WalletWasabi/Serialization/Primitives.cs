@@ -13,6 +13,7 @@ using JsonException = System.Text.Json.JsonException;
 namespace WalletWasabi.Serialization;
 
 public delegate JsonNode Encoder<in T>(T value);
+public delegate JsonNode? OptionalEncoder<in T>(T value);
 public delegate Result<T, string> Decoder<T>(JsonElement value);
 
 // Define encoders for primitive types.
@@ -56,7 +57,7 @@ public static partial class Encode
 	public static JsonNode Int64(long value) => JsonValue.Create(value);
 
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
-	public static JsonNode? Optional<T>(T? value, Encoder<T> encoder) =>
+	public static JsonNode? Optional<T>(T? value, OptionalEncoder<T> encoder) =>
 		value is { } nonNullValue ? encoder(nonNullValue) : null;
 }
 
