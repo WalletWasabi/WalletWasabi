@@ -482,7 +482,8 @@ public class KeyManager
 	{
 		lock (_criticalStateLock)
 		{
-			return _hdPubKeyCache.Select(x => x.ScriptPubKeyBytes);
+			// A copy must be returned because the cache may change.
+			return _hdPubKeyCache.Select(x => x.ScriptPubKeyBytes).ToArray();
 		}
 	}
 
