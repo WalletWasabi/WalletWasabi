@@ -431,15 +431,6 @@ public partial class FluentNavigate
 		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public FluentDialog<Uri?> DiscoverCoordinators(Network network, string currentCoordinatorUri, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
-	{
-		var dialog = new DiscoverCoordinatorsDialogViewModel(UiContext, network, currentCoordinatorUri);
-		var target = UiContext.Navigate(navigationTarget);
-		target.To(dialog, navigationMode);
-
-		return new FluentDialog<Uri?>(target.NavigateDialogAsync(dialog, navigationMode));
-	}
-
 	public void ReceiveAddresses(IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new ReceiveAddressesViewModel(UiContext, wallet, scriptType), navigationMode);
@@ -510,7 +501,7 @@ public partial class FluentNavigate
 
 	public void CoordinatorTabSettings(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(UiContext, settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(settings), navigationMode);
 	}
 
 	public void WalletBackupType(WalletCreationOptions options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
