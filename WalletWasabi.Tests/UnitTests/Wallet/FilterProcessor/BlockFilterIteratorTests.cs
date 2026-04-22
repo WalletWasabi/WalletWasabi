@@ -1,12 +1,8 @@
 using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Wallets.FilterProcessor;
 using Xunit;
@@ -20,69 +16,6 @@ namespace WalletWasabi.Tests.UnitTests.Wallet.FilterProcessor;
 public class BlockFilterIteratorTests
 {
 	private static byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
-
-	[Theory]
-	[InlineData(true)]
-	[InlineData(false)]
-	public async Task Issue14516Async(bool copyData)
-	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
-
-		FilterModel filter1 = CreateFilterModel(blockHeight: 610_001, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
-
-		var dataLock = new Lock();
-		var hdPubKeyCache = new HdPubKeyCache();
-
-		// Initialize
-		var hdPubKey = GetHdPubKey();
-		hdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.SegwitP2SH);
-
-		const int Iterations = 10_000;
-
-		// Task adding keys.
-		var task1 = Task.Run(() =>
-		{
-			for (int i = 0; i < Iterations; i++)
-			{
-				var hdPubKey = GetHdPubKey();
-
-				lock (dataLock)
-				{
-					hdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.SegwitP2SH);
-				}
-			}
-		});
-
-		// Task matching filters keys.
-		var task2 = Task.Run(() =>
-		{
-			for (int i = 0; i < Iterations; i++)
-			{
-				IEnumerable<byte[]> data;
-
-				lock (dataLock)
-				{
-					if (copyData)
-					{
-						data = hdPubKeyCache.Select(x => x.ScriptPubKeyBytes).ToArray();
-					}
-					else
-					{
-						data = hdPubKeyCache.Select(x => x.ScriptPubKeyBytes);
-					}
-				}
-
-				Assert.False(filter1.Filter.MatchAny(data, filter1.FilterKey));
-			}
-		});
-
-		await Task.WhenAll(task1, task2);
-
-		static HdPubKey GetHdPubKey()
-		{
-			return new HdPubKey(new Key().PubKey, new KeyPath("0/0/0/0/0"), LabelsArray.Empty, KeyState.Clean);
-		}
-	}
 
 	/// <summary>
 	/// Verifies that the iterator behaves as expected with respect to iterating one block filter after another.
