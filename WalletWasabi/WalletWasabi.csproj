@@ -72,6 +72,9 @@
 		<None Update="Announcements\ReleaseHighlights.md">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="Discoverability\KnownCoordinators.json">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="Scheme\Wasabilib.scm">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>

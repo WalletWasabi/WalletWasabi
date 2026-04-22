@@ -102,6 +102,8 @@ public class Global
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
 
 		Scheme = new Scheme(this);
+
+		CoordinatorDirectory = CoordinatorDirectory.LoadBundled();
 	}
 
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -130,6 +132,7 @@ public class Global
 	public Uri? OnionServiceUri { get; private set; }
 	public EventBus EventBus { get; }
 	public Scheme Scheme { get; }
+	public CoordinatorDirectory CoordinatorDirectory { get; }
 
 	private string GetBitcoinP2pNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 

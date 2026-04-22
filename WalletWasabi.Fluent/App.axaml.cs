@@ -151,6 +151,7 @@ public class App : Application
 			torStatusChecker,
 			new HealthMonitor(torStatusChecker),
 			new ReleaseHighlights(),
+			Services.CoordinatorDirectory,
 			Services.Scheme);
 	}
 }

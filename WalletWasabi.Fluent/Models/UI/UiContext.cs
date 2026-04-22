@@ -1,4 +1,5 @@
 using WalletWasabi.Announcements;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -33,6 +34,7 @@ public class UiContext
 		TorStatusCheckerModel torStatusChecker,
 		HealthMonitor healthMonitor,
 		ReleaseHighlights releaseHighlights,
+		CoordinatorDirectory coordinatorDirectory,
 		Daemon.Scheme? scheme = null)
 	{
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
@@ -50,6 +52,7 @@ public class UiContext
 		TorStatusChecker = torStatusChecker ?? throw new ArgumentNullException(nameof(torStatusChecker));
 		HealthMonitor = healthMonitor ?? throw new ArgumentNullException(nameof(healthMonitor));
 		ReleaseHighlights = releaseHighlights ?? throw new ArgumentNullException(nameof(releaseHighlights));
+		CoordinatorDirectory = coordinatorDirectory ?? throw new ArgumentNullException(nameof(coordinatorDirectory));
 		Scheme = scheme;
 	}
 
@@ -68,6 +71,7 @@ public class UiContext
 	public TorStatusCheckerModel TorStatusChecker { get; }
 	public HealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
+	public CoordinatorDirectory CoordinatorDirectory { get; }
 	public Daemon.Scheme? Scheme { get; }
 	public MainViewModel? MainViewModel { get; private set; }
 

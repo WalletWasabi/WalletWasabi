@@ -3,6 +3,7 @@ using System.Net.Http;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Daemon;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
@@ -46,6 +47,7 @@ public static class Services
 	public static EventBus EventBus { get;  set; } = null!;
 
 	public static Daemon.Scheme Scheme { get; set; } = null!;
+	public static CoordinatorDirectory CoordinatorDirectory { get; private set; } = null!;
 	public static bool IsInitialized { get; private set; }
 
 	/// <summary>
@@ -79,6 +81,7 @@ public static class Services
 		EventBus = global.EventBus;
 		Status = global.Status;
 		Scheme = global.Scheme;
+		CoordinatorDirectory = global.CoordinatorDirectory;
 
 		IsInitialized = true;
 	}
