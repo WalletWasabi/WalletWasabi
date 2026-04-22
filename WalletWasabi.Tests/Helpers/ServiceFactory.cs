@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -89,13 +90,28 @@ public static class ServiceFactory
 		Mnemonic mnemonic = new(Wordlist.English, WordCount.Twelve);
 		ExtKey extKey = mnemonic.DeriveExtKey();
 
-		return KeyManager.CreateNewWatchOnly(
+		return CreateNewWatchOnly(
 			Derive(extKey, KeyPurpose.Loud(ScriptPubKeyType.Segwit)),
 			Derive(extKey, KeyPurpose.Loud(ScriptPubKeyType.TaprootBIP86)),
 			Derive(extKey, KeyPurpose.Scan),
 			Derive(extKey, KeyPurpose.Spend));
 
-		ExtPubKey Derive(ExtKey extKey, KeyPurpose purpose) =>
+		static ExtPubKey Derive(ExtKey extKey, KeyPurpose purpose) =>
 			extKey.Derive(KeyManager.GetAccountKeyPath(Network.Main, purpose)).Neuter();
+	}
+
+	public static KeyManager CreateNewWatchOnly(
+		ExtPubKey segwitExtPubKey,
+		ExtPubKey taprootExtPubKey,
+		ExtPubKey silentPaymentScanExtPubKey,
+		ExtPubKey silentPaymentSpendExtPubKey,
+		string? filePath = null,
+		int? minGapLimit = null)
+	{
+		var network = Network.Main;
+		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
+		var blockchainState = new BlockchainState(network, birthHeight: birthHeight);
+		int gapLimit = minGapLimit ?? KeyManager.AbsoluteMinGapLimit;
+		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, gapLimit, blockchainState, filePath);
 	}
 }

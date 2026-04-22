@@ -277,14 +277,6 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	// TODO: move to testing
-	public static KeyManager CreateNewWatchOnly(ExtPubKey segwitExtPubKey, ExtPubKey taprootExtPubKey, ExtPubKey silentPaymentScanExtPubKey,ExtPubKey silentPaymentSpendExtPubKey, string? filePath = null, int? minGapLimit = null)
-	{
-		var network = Network.Main;
-		var birthHeight = FilterCheckpoints.GetMostRecentCheckpoint(network).Header.Height;
-		return new KeyManager(null, null, null, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey,  minGapLimit ?? AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
-	}
-
 	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, ExtPubKey? silentPaymentScanExtPubKey, ExtPubKey? silentPaymentSpendExtPubKey, Network network, string? filePath = null)
 	{
 		var birthHeight = FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
@@ -756,7 +748,7 @@ public class KeyManager
 	#endregion _blockchainState
 
 	private static HdPubKey CreateHdPubKey((KeyPath KeyPath, ExtPubKey ExtPubKey) x) =>
-		new(x.ExtPubKey.PubKey, x.KeyPath, Analysis.Clustering.LabelsArray.Empty, KeyState.Clean);
+		new(x.ExtPubKey.PubKey, x.KeyPath, LabelsArray.Empty, KeyState.Clean);
 
 	internal void SetExcludedCoinsFromCoinJoin(IEnumerable<OutPoint> excludedOutpoints)
 	{
