@@ -54,8 +54,10 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 		RefreshPayments();
 		_refreshTimer.Start();
 
+#pragma warning disable CA2000 // Dispose objects before losing scope
 		Disposable.Create(() => _refreshTimer.Stop())
 			.DisposeWith(disposables);
+#pragma warning restore CA2000 // Dispose objects before losing scope
 	}
 
 	private void OnAddPayment()
