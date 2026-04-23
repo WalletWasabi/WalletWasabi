@@ -573,7 +573,7 @@ public class Global
 		var roundUpdater = Spawn("RoundUpdater",
 			Service("WabiSabi Rounds Updater",
 				EventDriven(
-					new RoundsState(DateTime.UtcNow, RoundStateProvider.QueryFrequency, new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+					new RoundsState(DateTime.UtcNow, RoundStateProvider.QueryFrequency, new Dictionary<uint256, RoundState>(), []),
 					RoundStateUpdater.Create(wabiSabiStatusProvider))));
 		roundUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
