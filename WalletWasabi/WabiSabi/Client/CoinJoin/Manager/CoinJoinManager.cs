@@ -111,7 +111,7 @@ public class CoinJoinManager : BackgroundService
 		var state = new ManagerState();
 
 		// Detects and notifies about wallets that can participate in a coinjoin.
-		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
+		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(state, stoppingToken), stoppingToken);
 
 		// Coinjoin handling Start / Stop and finalization.
 		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(state, stoppingToken);
@@ -122,9 +122,10 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
 	}
 
-	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
+	private async Task MonitorWalletsAsync(ManagerState state, CancellationToken stoppingToken)
 	{
-		var trackedWallets = new Dictionary<WalletId, IWallet>();
+		var trackedWallets = state.TrackedWallets;
+
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var mixableWallets = await GetMixableWalletsAsync().ConfigureAwait(false);
@@ -823,12 +824,15 @@ public class CoinJoinManager : BackgroundService
 	private record CoinJoinClientStateHolder(CoinJoinClientState CoinJoinClientState, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 
-	// TODO: Some properties are still missing in this record: TrackedWallets, ScheduledRestarts, WalletsBlockedByUi, CoinJoinClientStates, CoinsInCriticalPhase.
+	// TODO: Some properties are still missing in this record: ScheduledRestarts, WalletsBlockedByUi, CoinJoinClientStates, CoinsInCriticalPhase.
+	/// <param name="TrackedWallets">The type is not a concurrent dictionary because it is only accessed within a single method with a single thread.</param>
 	private record ManagerState(
+		Dictionary<WalletId, IWallet> TrackedWallets,
 		ConcurrentDictionary<WalletId, CoinJoinTracker> TrackedCoinJoins,
 		ConcurrentDictionary<IWallet, TrackedAutoStart> TrackedAutoStarts)
 	{
 		public ManagerState() : this(
+			new Dictionary<WalletId, IWallet>(),
 			new ConcurrentDictionary<WalletId, CoinJoinTracker>(),
 			new ConcurrentDictionary<IWallet, TrackedAutoStart>())
 		{
