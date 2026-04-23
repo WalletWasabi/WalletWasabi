@@ -1,3 +1,4 @@
+using System.Text.Encodings.Web;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 using System.Threading;
@@ -36,7 +37,7 @@ public class RpcTests
 				{
 					// Invalid (wrong number of arguments) request
 					Request("3", "substract", new { subtrahend = 23 }),
-					Error("3", -32602, "A value for the \\u0027minuend\\u0027 is missing.")
+					Error("3", -32602, "A value for the 'minuend' is missing.")
 				},
 				{
 					// Invalid (wrong number of arguments) request
@@ -162,6 +163,7 @@ public class RpcTests
 		var options = new JsonSerializerOptions()
 		{
 			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
 		};
 
 		return JsonSerializer.Serialize(o, options);
