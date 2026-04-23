@@ -46,7 +46,7 @@ public class CoinJoinManager : BackgroundService
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
-	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = ImmutableDictionary<WalletId, ImmutableList<SmartCoin>>.Empty;
+	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = [];
 	private readonly IWalletProvider _walletProvider;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
@@ -67,7 +67,7 @@ public class CoinJoinManager : BackgroundService
 		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
 
-	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = ImmutableDictionary<WalletId, CoinJoinClientStateHolder>.Empty;
+	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = [];
 
 	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
 	private readonly IDisposable _serverTipHeightChangeSubscription;
@@ -302,87 +302,87 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(trackedAutoStarts), trackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-private record CoinSelectionResult(SmartCoin[] CandidateCoins, SmartCoin[] BannedCoins, SmartCoin[] ImmatureCoins, SmartCoin[] UnconfirmedCoins, SmartCoin[] ExcludedCoins)
-{
-    public CoinSelectionResult() : this([], [], [], [], []) { }
-}
+	private record CoinSelectionResult(SmartCoin[] CandidateCoins, SmartCoin[] BannedCoins, SmartCoin[] ImmatureCoins, SmartCoin[] UnconfirmedCoins, SmartCoin[] ExcludedCoins)
+	{
+		public CoinSelectionResult() : this([], [], [], [], []) { }
+	}
 
-private async Task<CoinSelectionResult> GetCoinSelectionAsync(IWallet wallet)
-{
-    var coinCandidates = new CoinsView(await wallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
-        .Available()
-        .Where(x => !_coinRefrigerator.IsFrozen(x))
-        .ToArray();
+	private async Task<CoinSelectionResult> GetCoinSelectionAsync(IWallet wallet)
+	{
+		var coinCandidates = new CoinsView(await wallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+			.Available()
+			.Where(x => !_coinRefrigerator.IsFrozen(x))
+			.ToArray();
 
-    if (coinCandidates.Length == 0)
-    {
-        return new CoinSelectionResult();
-    }
+		if (coinCandidates.Length == 0)
+		{
+			return new CoinSelectionResult();
+		}
 
-    var bannedCoins = coinCandidates.Where(x => _coinPrison.IsBanned(x.Outpoint)).ToArray();
-    var immatureCoins = _serverTipHeight > 0
-	    ? coinCandidates.Where(x => x.Transaction.IsImmature(_serverTipHeight)).ToArray()
-	    : [];
-    var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
-    var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
+		var bannedCoins = coinCandidates.Where(x => _coinPrison.IsBanned(x.Outpoint)).ToArray();
+		var immatureCoins = _serverTipHeight > 0
+			? coinCandidates.Where(x => x.Transaction.IsImmature(_serverTipHeight)).ToArray()
+			: [];
+		var unconfirmedCoins = coinCandidates.Where(x => !x.Confirmed).ToArray();
+		var excludedCoins = coinCandidates.Where(x => x.IsExcludedFromCoinJoin).ToArray();
 
-    var availableCoins = coinCandidates
-        .Except(bannedCoins)
-        .Except(immatureCoins)
-        .Except(unconfirmedCoins)
-        .Except(excludedCoins)
-        .ToArray();
+		var availableCoins = coinCandidates
+			.Except(bannedCoins)
+			.Except(immatureCoins)
+			.Except(unconfirmedCoins)
+			.Except(excludedCoins)
+			.ToArray();
 
-    return new CoinSelectionResult(
-        availableCoins,
-        bannedCoins,
-        immatureCoins,
-        unconfirmedCoins,
-        excludedCoins);
-}
+		return new CoinSelectionResult(
+			availableCoins,
+			bannedCoins,
+			immatureCoins,
+			unconfirmedCoins,
+			excludedCoins);
+	}
 
-private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet)
-{
-    var result = await GetCoinSelectionAsync(wallet).ConfigureAwait(false);
+	private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet)
+	{
+		var result = await GetCoinSelectionAsync(wallet).ConfigureAwait(false);
 
-    if (result.CandidateCoins.Length > 0)
-    {
-	    return result;
-    }
+		if (result.CandidateCoins.Length > 0)
+		{
+			return result;
+		}
 
-    var anyNonPrivateUnconfirmed = result.UnconfirmedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-    var anyNonPrivateImmature = result.ImmatureCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-    var anyNonPrivateBanned = result.BannedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-    var anyNonPrivateExcluded = result.ExcludedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		var anyNonPrivateUnconfirmed = result.UnconfirmedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		var anyNonPrivateImmature = result.ImmatureCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		var anyNonPrivateBanned = result.BannedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		var anyNonPrivateExcluded = result.ExcludedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
 
-    var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} " +
-                       $"{nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} " +
-                       $"{nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} " +
-                       $"{nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
+		var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} " +
+			$"{nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} " +
+			$"{nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} " +
+			$"{nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
 
-    if (anyNonPrivateUnconfirmed)
-    {
-	    throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
-    }
+		if (anyNonPrivateUnconfirmed)
+		{
+			throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
+		}
 
-    if (anyNonPrivateImmature)
-    {
-	    throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
-    }
+		if (anyNonPrivateImmature)
+		{
+			throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
+		}
 
-    if (anyNonPrivateBanned)
-    {
-	    throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
-    }
+		if (anyNonPrivateBanned)
+		{
+			throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
+		}
 
-    if (anyNonPrivateExcluded)
-    {
-	    throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
-    }
+		if (anyNonPrivateExcluded)
+		{
+			throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
+		}
 
-    throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
+		throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
 
-}
+	}
 
 	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
 	{
@@ -484,7 +484,7 @@ private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(IWallet wallet
 
 		foreach (var wallet in wallets)
 		{
-			ImmutableList<SmartCoin> coinsInCoinjoin = ImmutableList<SmartCoin>.Empty;
+			ImmutableList<SmartCoin> coinsInCoinjoin = [];
 
 			if (trackedCoinJoins.TryGetValue(wallet.WalletId, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
 			{
