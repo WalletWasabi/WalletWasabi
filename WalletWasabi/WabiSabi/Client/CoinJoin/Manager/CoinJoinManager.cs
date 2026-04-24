@@ -342,9 +342,9 @@ public class CoinJoinManager : BackgroundService
 
 	}
 
-	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
+	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<WalletId, TrackedAutoStart> trackedAutoStarts, IWallet wallet)
 	{
-		if (trackedAutoStarts.TryRemove(wallet, out var trackedAutoStart))
+		if (trackedAutoStarts.TryRemove(wallet.WalletId, out var trackedAutoStart))
 		{
 			trackedAutoStart.CancellationTokenSource.Cancel();
 			trackedAutoStart.CancellationTokenSource.Dispose();
@@ -353,10 +353,10 @@ public class CoinJoinManager : BackgroundService
 		return false;
 	}
 
-	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<IWallet, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, IWallet outputWallet, CancellationToken stoppingToken)
+	private void ScheduleRestartAutomatically(IWallet walletToStart, ConcurrentDictionary<WalletId, TrackedAutoStart> trackedAutoStarts, bool stopWhenAllMixed, bool overridePlebStop, IWallet outputWallet, CancellationToken stoppingToken)
 	{
 		var skipDelay = false;
-		if (trackedAutoStarts.TryGetValue(walletToStart, out var trackedAutoStart))
+		if (trackedAutoStarts.TryGetValue(walletToStart.WalletId, out var trackedAutoStart))
 		{
 			if (stopWhenAllMixed == trackedAutoStart.StopWhenAllMixed && overridePlebStop == trackedAutoStart.OverridePlebStop && outputWallet.WalletId == trackedAutoStart.OutputWallet.WalletId)
 			{
@@ -394,7 +394,7 @@ public class CoinJoinManager : BackgroundService
 					linkedCts.Dispose();
 				}
 
-				if (trackedAutoStarts.TryRemove(walletToStart, out _))
+				if (trackedAutoStarts.TryRemove(walletToStart.WalletId, out _))
 				{
 					await StartAsync(walletToStart, outputWallet, stopWhenAllMixed, overridePlebStop, stoppingToken).ConfigureAwait(false);
 				}
@@ -405,7 +405,7 @@ public class CoinJoinManager : BackgroundService
 			},
 			linkedCts.Token);
 
-		if (trackedAutoStarts.TryAdd(walletToStart, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, outputWallet, linkedCts)))
+		if (trackedAutoStarts.TryAdd(walletToStart.WalletId, new TrackedAutoStart(restartTask, stopWhenAllMixed, overridePlebStop, outputWallet, linkedCts)))
 		{
 			restartTask.Start();
 		}
@@ -420,7 +420,11 @@ public class CoinJoinManager : BackgroundService
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			// Handles coinjoin finalization and notification.
-			var finishedCoinJoins = _state.TrackedCoinJoins.Where(x => x.Value.IsCompleted).Select(x => x.Value).ToImmutableArray();
+			var finishedCoinJoins = _state.TrackedCoinJoins
+				.Where(x => x.Value.IsCompleted)
+				.Select(x => x.Value)
+				.ToImmutableArray();
+
 			foreach (var finishedCoinJoin in finishedCoinJoins)
 			{
 				await HandleCoinJoinFinalizationAsync(finishedCoinJoin, stoppingToken).ConfigureAwait(false);
@@ -470,7 +474,7 @@ public class CoinJoinManager : BackgroundService
 
 				clientState = new(trackerState, coinJoinTracker.StopWhenAllMixed, coinJoinTracker.OverridePlebStop, coinJoinTracker.OutputWallet);
 			}
-			else if (_state.TrackedAutoStarts.TryGetValue(wallet, out var autoStartTracker))
+			else if (_state.TrackedAutoStarts.TryGetValue(wallet.WalletId, out var autoStartTracker))
 			{
 				clientState = new(CoinJoinClientState.InSchedule, autoStartTracker.StopWhenAllMixed, autoStartTracker.OverridePlebStop, autoStartTracker.OutputWallet);
 			}
@@ -782,12 +786,12 @@ public class CoinJoinManager : BackgroundService
 	/// </param>
 	private record ManagerState(
 		ConcurrentDictionary<WalletId, CoinJoinTracker> TrackedCoinJoins,
-		ConcurrentDictionary<IWallet, TrackedAutoStart> TrackedAutoStarts,
+		ConcurrentDictionary<WalletId, TrackedAutoStart> TrackedAutoStarts,
 		ConcurrentDictionary<WalletId, UiBlockedStateHolder> WalletsBlockedByUi)
 	{
 		public ManagerState() : this(
 			new ConcurrentDictionary<WalletId, CoinJoinTracker>(),
-			new ConcurrentDictionary<IWallet, TrackedAutoStart>(),
+			new ConcurrentDictionary<WalletId, TrackedAutoStart>(),
 			new ConcurrentDictionary<WalletId, UiBlockedStateHolder>())
 		{
 		}
