@@ -14,11 +14,8 @@ public interface IWallet
 	string WalletName { get; }
 	WalletId WalletId { get; }
 	Money PlebStopThreshold { get; }
-	bool IsMixable { get; }
 
-	/// <summary>
-	/// Watch only wallets have no key chains.
-	/// </summary>
+	/// <summary>Watch only wallets have no key chains.</summary>
 	IKeyChain? KeyChain { get; }
 
 	IDestinationProvider DestinationProvider { get; }
