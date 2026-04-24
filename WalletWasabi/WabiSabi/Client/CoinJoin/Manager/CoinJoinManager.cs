@@ -132,14 +132,12 @@ public class CoinJoinManager : BackgroundService
 			foreach (var openedWallet in openedWallets.Select(x => x.Value))
 			{
 				trackedWallets.Add(openedWallet.WalletId, openedWallet);
-				NotifyMixableWalletLoaded(openedWallet);
 			}
 
 			// Notifies when a wallet no longer meets the criteria for participating in a coinjoin.
 			var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
 			foreach (var closedWallet in closedWallets.Select(x => x.Value))
 			{
-				NotifyMixableWalletUnloaded(closedWallet);
 				trackedWallets.Remove(closedWallet.WalletId);
 			}
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
@@ -680,12 +678,6 @@ public class CoinJoinManager : BackgroundService
 
 	private void NotifyCoinJoinStartError(IWallet openedWallet, CoinjoinError error) =>
 		StatusChanged.SafeInvoke(this, new StartErrorEventArgs(openedWallet, error));
-
-	private void NotifyMixableWalletUnloaded(IWallet closedWallet) =>
-		StatusChanged.SafeInvoke(this, new StoppedEventArgs(closedWallet, StopReason.WalletUnloaded));
-
-	private void NotifyMixableWalletLoaded(IWallet openedWallet) =>
-		StatusChanged.SafeInvoke(this, new LoadedEventArgs(openedWallet));
 
 	private void NotifyCoinJoinCompletion(CoinJoinTracker finishedCoinJoin)
 	{
