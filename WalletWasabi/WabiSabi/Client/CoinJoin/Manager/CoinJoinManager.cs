@@ -108,40 +108,9 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		// Detects and notifies about wallets that can participate in a coinjoin.
-		var walletsMonitoringTask = Task.Run(() => MonitorWalletsAsync(stoppingToken), stoppingToken);
-
 		// Coinjoin handling Start / Stop and finalization.
 		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
-
-		await Task.WhenAny(walletsMonitoringTask, monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
-
-		await WaitAndHandleResultOfTasksAsync(nameof(walletsMonitoringTask), walletsMonitoringTask).ConfigureAwait(false);
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
-	}
-
-	private async Task MonitorWalletsAsync(CancellationToken stoppingToken)
-	{
-		var trackedWallets = new Dictionary<WalletId, IWallet>();
-		while (!stoppingToken.IsCancellationRequested)
-		{
-			var mixableWallets = await GetMixableWalletsAsync().ConfigureAwait(false);
-
-			// Notifies when a wallet meets the criteria for participating in a coinjoin.
-			var openedWallets = mixableWallets.Where(x => !trackedWallets.ContainsKey(x.Key)).ToImmutableList();
-			foreach (var openedWallet in openedWallets.Select(x => x.Value))
-			{
-				trackedWallets.Add(openedWallet.WalletId, openedWallet);
-			}
-
-			// Notifies when a wallet no longer meets the criteria for participating in a coinjoin.
-			var closedWallets = trackedWallets.Where(x => !mixableWallets.ContainsKey(x.Key)).ToImmutableList();
-			foreach (var closedWallet in closedWallets.Select(x => x.Value))
-			{
-				trackedWallets.Remove(closedWallet.WalletId);
-			}
-			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
-		}
 	}
 
 	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
@@ -697,11 +666,6 @@ public class CoinJoinManager : BackgroundService
 		StatusChanged.SafeInvoke(
 			this,
 			new CoinJoinStatusEventArgs(wallet, coinJoinProgressEventArgs));
-
-	private async Task<ImmutableDictionary<WalletId, IWallet>> GetMixableWalletsAsync() =>
-		(await _walletProvider.GetWalletsAsync().ConfigureAwait(false))
-			.Where(x => x.IsMixable)
-			.ToImmutableDictionary(x => x.WalletId, x => x);
 
 	private static async Task WaitAndHandleResultOfTasksAsync(string logPrefix, params Task[] tasks)
 	{
