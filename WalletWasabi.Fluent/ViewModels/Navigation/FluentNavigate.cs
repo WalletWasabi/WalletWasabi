@@ -501,7 +501,16 @@ public partial class FluentNavigate
 
 	public void CoordinatorTabSettings(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(UiContext, settings), navigationMode);
+	}
+
+	public FluentDialog<Uri?> DiscoverCoordinators(Network network, Uri? currentCoordinator, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		var dialog = new DiscoverCoordinatorsDialogViewModel(network, currentCoordinator);
+		var target = UiContext.Navigate(navigationTarget);
+		target.To(dialog, navigationMode);
+
+		return new FluentDialog<Uri?>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void WalletBackupType(WalletCreationOptions options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

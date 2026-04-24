@@ -1,4 +1,6 @@
 using System.Globalization;
+using System.Threading.Tasks;
+using System.Windows.Input;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
@@ -27,8 +29,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
 
-	public CoordinatorTabSettingsViewModel(ApplicationSettings settings)
+	public CoordinatorTabSettingsViewModel(UiContext uiContext, ApplicationSettings settings)
 	{
+		UiContext = uiContext;
 		Settings = settings;
 
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
@@ -52,11 +55,27 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.Settings.AbsoluteMinInputCount)
 			.ToSignal()
 			.Subscribe(x => AbsoluteMinInputCount = Settings.AbsoluteMinInputCount);
+
+		BrowseCoordinatorsCommand = ReactiveCommand.CreateFromTask(OnBrowseCoordinatorsAsync);
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public ApplicationSettings Settings { get; }
+
+	public ICommand BrowseCoordinatorsCommand { get; }
+
+	private async Task OnBrowseCoordinatorsAsync()
+	{
+		Uri.TryCreate(Settings.CoordinatorUri, UriKind.Absolute, out var current);
+
+		var result = await UiContext.Navigate().To().DiscoverCoordinators(Settings.Network, current).GetResultAsync();
+
+		if (result is not null)
+		{
+			Settings.CoordinatorUri = result.ToString();
+		}
+	}
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{

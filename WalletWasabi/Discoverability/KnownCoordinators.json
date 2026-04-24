@@ -1,0 +1,23 @@
+[
+	{
+		"Name": "Kruw.io",
+		"CoordinatorUri": "https://coinjoin.kruw.io/",
+		"Description": "Fast confirmation speed. No coordinator fees charged.",
+		"ReadMoreUri": "https://kruw.io/",
+		"Network": "Main"
+	},
+	{
+		"Name": "Coinjoiner",
+		"CoordinatorUri": "https://api.coinjoiner.com/",
+		"Description": "A WabiSabi coordinator which aims to improve Bitcoin privacy",
+		"ReadMoreUri": "https://coinjoiner.com/",
+		"Network": "Main"
+	},
+	{
+		"Name": "OpenCoordinator",
+		"CoordinatorUri": "https://api.opencoordinator.org/",
+		"Description": "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x. It is open to everyone, no country blocklists, no UTXO blocklists. OpenCoordinator is run by experienced team of anonymous freedom activists.",
+		"ReadMoreUri": "https://opencoordinator.org/",
+		"Network": "Main"
+	}
+]

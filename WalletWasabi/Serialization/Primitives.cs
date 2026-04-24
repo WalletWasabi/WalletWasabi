@@ -120,6 +120,11 @@ public static partial class Decode
 	public static Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
 
+	public static Decoder<Uri> Uri =>
+		String.AndThen(s => System.Uri.TryCreate(s, UriKind.Absolute, out var uri)
+			? Succeed(uri)
+			: Fail<Uri>($"'{s}' is not an absolute URI."));
+
 	public static Decoder<T> Succeed<T>(T output) =>
 		_ => output;
 

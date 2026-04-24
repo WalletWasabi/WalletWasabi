@@ -11,6 +11,7 @@
 
     <DockPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
       <TextBlock Text="Coordinator URI" />
+      <Button DockPanel.Dock="Right" Content="Browse..." Command="{Binding BrowseCoordinatorsCommand}" Margin="8,0,0,0" />
       <TextBox Name="CoordinatorTextBox" Text="{Binding CoordinatorUri}">
         <Interaction.Behaviors>
           <TextBoxAutoSelectTextBehavior />
