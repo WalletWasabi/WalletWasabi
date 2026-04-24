@@ -52,9 +52,10 @@ public static class MainViewModelExtensions
 		OpenLogsViewModel.RegisterLazy(() => new OpenLogsViewModel(uiContext));
 		OpenTorLogsViewModel.RegisterLazy(() => new OpenTorLogsViewModel(uiContext));
 		OpenConfigFileViewModel.RegisterLazy(() => new OpenConfigFileViewModel(uiContext));
-		if (uiContext.ApplicationSettings.ExperimentalFeatures.Contains("scripting",
-			    StringComparer.InvariantCultureIgnoreCase))
+
+		if (uiContext.ApplicationSettings.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
 		{
+			ArgumentNullException.ThrowIfNull(uiContext.Scheme, nameof(uiContext.Scheme));
 			SchemeConsoleViewModel.Register(new SchemeConsoleViewModel(uiContext.Scheme));
 		}
 	}
