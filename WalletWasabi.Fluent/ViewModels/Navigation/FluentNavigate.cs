@@ -506,7 +506,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<Uri?> DiscoverCoordinators(Network network, Uri? currentCoordinator, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new DiscoverCoordinatorsDialogViewModel(UiContext, network, currentCoordinator);
+		var dialog = new DiscoverCoordinatorsDialogViewModel(network, currentCoordinator);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 

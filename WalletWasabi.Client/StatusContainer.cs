@@ -1,5 +1,10 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using WalletWasabi.Discoverability;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Daemon;
@@ -12,6 +17,7 @@ public class StatusContainer : IDisposable
 	public uint BestHeight { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
+	public IReadOnlyList<KnownCoordinator> KnownCoordinators { get; }
 
 	private readonly IDisposable _torConnectionSubscription;
 	private readonly IDisposable _feeRateSubscription;
@@ -40,8 +46,21 @@ public class StatusContainer : IDisposable
 		InstallOnClose = installOnClose;
 		_installOnCloseSubscription =
 			eventBus.Subscribe<InstallOnClosedPreferenceChanged>(e => InstallOnClose = e.InstallOnClose);
+
+		KnownCoordinators = LoadBundledKnownCoordinators();
 	}
 
+	private static IReadOnlyList<KnownCoordinator> LoadBundledKnownCoordinators()
+	{
+		var path = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Discoverability", "KnownCoordinators.json");
+		if (!File.Exists(path))
+		{
+			return [];
+		}
+
+		var parsed = JsonDecoder.FromString(Decode.Array(Decode.KnownCoordinator))(File.ReadAllText(path));
+		return parsed.Match<IReadOnlyList<KnownCoordinator>>(coords => coords, _ => []);
+	}
 
 	public void Dispose()
 	{

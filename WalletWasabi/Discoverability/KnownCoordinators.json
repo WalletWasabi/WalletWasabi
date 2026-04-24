@@ -15,9 +15,9 @@
 	},
 	{
 		"Name": "OpenCoordinator",
-		"CoordinatorUri": "https://opencoordinator.org/",
+		"CoordinatorUri": "https://api.opencoordinator.org/",
 		"Description": "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x. It is open to everyone, no country blocklists, no UTXO blocklists. OpenCoordinator is run by experienced team of anonymous freedom activists.",
-		"ReadMoreUri": "https://api.opencoordinator.org/",
+		"ReadMoreUri": "https://opencoordinator.org/",
 		"Network": "Main"
 	}
 ]

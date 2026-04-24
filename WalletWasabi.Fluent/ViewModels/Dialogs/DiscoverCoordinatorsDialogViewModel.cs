@@ -4,7 +4,6 @@ using System.Reactive.Linq;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Models;
@@ -16,12 +15,10 @@ public partial class DiscoverCoordinatorsDialogViewModel : DialogViewModelBase<U
 {
 	[AutoNotify] private KnownCoordinatorItem? _selectedCoordinator;
 
-	public DiscoverCoordinatorsDialogViewModel(UiContext uiContext, Network network, Uri? currentCoordinator)
+	public DiscoverCoordinatorsDialogViewModel(Network network, Uri? currentCoordinator)
 	{
-		UiContext = uiContext;
-
-		Coordinators = uiContext.CoordinatorDirectory
-			.For(network)
+		Coordinators = Services.Status.KnownCoordinators
+			.Where(c => c.Network == network)
 			.Select(c => new KnownCoordinatorItem(c, IsCurrent(c.CoordinatorUri, currentCoordinator)))
 			.ToList();
 
