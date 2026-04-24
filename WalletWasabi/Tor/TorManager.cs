@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BundledApps;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
@@ -204,47 +205,53 @@ public class TorManager : IAsyncDisposable
 					Logger.LogInfo($"Tor is already running on {_settings.SocksEndpoint}");
 					controlClient = await _processManager.InitTorControlAsync(cancellationToken).ConfigureAwait(false);
 
-					// Tor process can crash even between these two commands too.
-					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
-
-#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in finally clause
-					process = Process.GetProcessById(processId);
-#pragma warning restore CA2000
-
-					try
+					if (_settings.TorBackend == TorBackend.CTor)
 					{
-						// Note: This is a workaround how to check whether we have sufficient permissions for the process.
-						// Especially, we want to make sure that Tor is running under our user and not a different one.
-						// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
-						nint _ = process.Handle;
+						// Tor process can crash even between these two commands too.
+						int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
+
+						process = Process.GetProcessById(processId);
+
+						try
+						{
+							// Note: This is a workaround how to check whether we have sufficient permissions for the process.
+							// Especially, we want to make sure that Tor is running under our user and not a different one.
+							// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
+							nint _ = process.Handle;
+						}
+						catch (Exception ex)
+						{
+							throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+						}
+
+						TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
+						if (!clientTransportPluginReply.Success)
+						{
+							throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
+						}
+
+						// Check if the bridges in the running Tor instance are the same as user requested.
+						TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
+						if (!bridgeReply.Success)
+						{
+							throw new InvalidOperationException("Tor control failed to report active bridges.");
+						}
+
+						// Compare as two unordered sets.
+						string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
+						bool areBridgesAsRequired = currentBridges.SequenceEqual(_settings.Bridges.Order());
+
+						if (!areBridgesAsRequired)
+						{
+							Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
+							await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
+							continue;
+						}
 					}
-					catch (Exception ex)
+					else
 					{
-						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
-					}
-
-					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
-					if (!clientTransportPluginReply.Success)
-					{
-						throw new InvalidOperationException("Tor control failed to report the current transport plugin.");
-					}
-
-					// Check if the bridges in the running Tor instance are the same as user requested.
-					TorControlReply bridgeReply = await controlClient.GetConfAsync(keyword: "Bridge", cancellationToken).ConfigureAwait(false);
-					if (!bridgeReply.Success)
-					{
-						throw new InvalidOperationException("Tor control failed to report active bridges.");
-					}
-
-					// Compare as two unordered sets.
-					string[] currentBridges = bridgeReply.ResponseLines.Where(x => x != "Bridge").Select(x => x.Split('=', 2)[1]).Order().ToArray();
-					bool areBridgesAsRequired = currentBridges.SequenceEqual(_settings.Bridges.Order());
-
-					if (!areBridgesAsRequired)
-					{
-						Logger.LogInfo("Tor bridges of the running Tor instance are different than required. Restarting Tor.");
-						await controlClient.SignalShutdownAsync(cancellationToken).ConfigureAwait(false);
-						continue;
+						// There is no API to get Arti's process ID, so we can't monitor it properly.
+						// Arti with Tor Bridges is not supported yet.
 					}
 				}
 				else
@@ -266,6 +273,19 @@ public class TorManager : IAsyncDisposable
 				}
 
 				Logger.LogInfo("Tor is running.");
+				if (_settings.TorBackend == TorBackend.Arti)
+				{
+					var clientStatus = await controlClient.GetClientStatusRpcAsync(cancellationToken).ConfigureAwait(false);
+					if (!clientStatus.Deconstruct(out var result, out var error))
+					{
+						Logger.LogError($"Client status RPC failed with error: {error}");
+						throw new InvalidOperationException("Client status RPC request failed.");
+					}
+
+					// TODO
+					// Logger.LogInfo("Watch events.");
+					// var watchResponse = await controlClient.StartWatchingClientStatusRpcAsync(cancellationToken).ConfigureAwait(false);
+				}
 
 				// Only now we know that Tor process is fully started.
 				lock (_stateLock)
@@ -276,7 +296,16 @@ public class TorManager : IAsyncDisposable
 					_tcs.SetResult((cts.Token, controlClient));
 				}
 
-				await _processManager.WaitForProcessExitAsync(process, cancellationToken).ConfigureAwait(false);
+				// If we have a process instance, then we can wait for it to exist, otherwise we just wait indefinitely until cancellation is requested.
+				// TODO: Figure out, how to retrieve already-running Arti's process ID.
+				if (process is not null)
+				{
+					await process.WaitForExitAsync(cancellationToken).ConfigureAwait(false);
+				}
+				else
+				{
+					await Task.Delay(Timeout.Infinite, cancellationToken).ConfigureAwait(false);
+				}
 
 				Logger.LogDebug("Tor process exited.");
 			}

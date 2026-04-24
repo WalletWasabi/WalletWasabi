@@ -26,7 +26,7 @@ public class TorManagerTests
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(TorBackend.CTor, dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		var processManager = new TestProcessManager(settings, new EventBus())
 		{
@@ -34,7 +34,7 @@ public class TorManagerTests
 			WaitForTorProcessDelay = TimeSpan.FromSeconds(2),
 			IsTorRunningAsyncResult = false,
 			EnsureRunningAsyncResult = true,
-			InitTorControlAsyncResult = new TorControlClient(pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)  // (1)
+			InitTorControlAsyncResult = new TorControlClient(TorBackend.CTor, pipeReader: new Pipe().Reader, pipeWriter: new Pipe().Writer)  // (1)
 		};
 
 		await using (TorManager manager = new(settings, processManager))
@@ -69,7 +69,7 @@ public class TorManagerTests
 		// Tor settings.
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(TorBackend.CTor, dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		var processManager = new TestProcessManager(settings, new EventBus())
 		{
