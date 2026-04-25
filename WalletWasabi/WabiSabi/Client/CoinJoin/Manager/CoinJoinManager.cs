@@ -211,7 +211,8 @@ public class CoinJoinManager : BackgroundService
 				}
 
 				// If there are pending payments, ignore already achieved privacy.
-				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
+				// If single round coinjoin is enabled, skip privacy checks entirely.
+				if (!walletToStart.BatchedPayments.AreTherePendingPayments && !walletToStart.SingleRoundCoinjoin)
 				{
 					// If all coins are already private, then don't mix.
 					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
@@ -530,6 +531,7 @@ public class CoinJoinManager : BackgroundService
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;
+		var wasSuccessfulBroadcast = false;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -538,6 +540,7 @@ public class CoinJoinManager : BackgroundService
 				_coinRefrigerator.Freeze(successfulCoinjoin.Coins);
 				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
 				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
+				wasSuccessfulBroadcast = true;
 				Logger.LogInfo(FormatLog($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.", wallet));
 			}
 			else
@@ -620,6 +623,11 @@ public class CoinJoinManager : BackgroundService
 			|| finishedCoinJoin.IsStopped
 			|| cancellationToken.IsCancellationRequested)
 		{
+			NotifyWalletStoppedCoinJoin(wallet);
+		}
+		else if (wasSuccessfulBroadcast && wallet.SingleRoundCoinjoin)
+		{
+			Logger.LogInfo(FormatLog("Single round coinjoin completed successfully. Stopping.", wallet));
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
 		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false))

@@ -38,6 +38,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	[AutoNotify] private bool _economicalProfileSelected;
 
 	[AutoNotify] private bool _autoCoinJoin;
+	[AutoNotify] private bool _singleRoundCoinjoin;
 	[AutoNotify] private string _plebStopThreshold;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
@@ -50,9 +51,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		UiContext = uiContext;
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
+		_singleRoundCoinjoin = _wallet.Settings.SingleRoundCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
-		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
+		_nonPrivateCoinIsolation = _singleRoundCoinjoin ? false : _wallet.Settings.NonPrivateCoinIsolation;
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -72,6 +74,18 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		{
 			_wallet.Settings.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
 			_wallet.Settings.Save();
+			return Task.CompletedTask;
+		});
+
+		SetSingleRoundCoinjoinCommand = ReactiveCommand.CreateFromTask(() =>
+		{
+			_wallet.Settings.SingleRoundCoinjoin = SingleRoundCoinjoin;
+			_wallet.Settings.Save();
+
+			// Show non-private coin isolation as false when single-round is on,
+			// restore the persisted value when turned off.
+			NonPrivateCoinIsolation = SingleRoundCoinjoin ? false : _wallet.Settings.NonPrivateCoinIsolation;
+
 			return Task.CompletedTask;
 		});
 
@@ -128,6 +142,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
+	public ICommand SetSingleRoundCoinjoinCommand { get; }
 	public ICommand SelectMaximizePrivacySettings { get; }
 	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }

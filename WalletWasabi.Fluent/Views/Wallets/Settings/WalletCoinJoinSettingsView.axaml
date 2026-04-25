@@ -15,7 +15,8 @@
             Spacing="40"
             HorizontalAlignment="Center"
             Orientation="Horizontal"
-            Classes="settingsLayout">
+            Classes="settingsLayout"
+            IsEnabled="{Binding !SingleRoundCoinjoin}">
       <Button Theme="{StaticResource FunctionButton}"
               Height="37"
               Command="{Binding SelectMaximizePrivacySettings}"
@@ -48,12 +49,12 @@
       </Button>
     </StackPanel>
 
-    <DockPanel ToolTip.Tip="Each round can register at most one non-private coin.">
+    <DockPanel ToolTip.Tip="Each round can register at most one non-private coin." IsEnabled="{Binding !SingleRoundCoinjoin}">
       <TextBlock Text="Non-private coin isolation" />
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
-    <DockPanel>
+    <DockPanel IsEnabled="{Binding !SingleRoundCoinjoin}">
       <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score to consider a coin private." />
       <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3" />
     </DockPanel>
@@ -63,6 +64,11 @@
     <DockPanel>
       <TextBlock Text="Automatically start coinjoin" />
       <ToggleSwitch IsChecked="{Binding AutoCoinJoin}" Command="{Binding SetAutoCoinJoin}" />
+    </DockPanel>
+
+    <DockPanel ToolTip.Tip="Participate in exactly one coinjoin transaction, then stop. Privacy settings are ignored.">
+      <TextBlock Text="Single round coinjoin" />
+      <ToggleSwitch IsChecked="{Binding SingleRoundCoinjoin}" Command="{Binding SetSingleRoundCoinjoinCommand}" />
     </DockPanel>
 
     <DockPanel>
