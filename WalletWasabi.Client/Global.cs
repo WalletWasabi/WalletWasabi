@@ -390,7 +390,7 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaders));
+		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => FilterProviders.CreateBitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaders));
 
 		if (filtersProviderResult is {IsOk: false, Error: var isIndexDisabled})
 		{

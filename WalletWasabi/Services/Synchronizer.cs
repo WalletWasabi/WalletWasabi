@@ -24,45 +24,22 @@ public abstract record FiltersResponse
 	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
-public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain)
+public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint256 fromHash, CancellationToken cancellationToken);
+
+public static class FilterProviders
 {
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
 	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters) => new(bestHeight, filters);
 
-	private async Task<uint256[]> GetBlockHashesAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
-	{
-		if (blockHeaderChain.Tip?.Height > fromHeight)
-		{
-			return blockHeaderChain
-				.EnumerateAfter(fromHash)
-				.Select(x => x.HashBlock)
-				.Take(1_000)
-				.ToArray();
-		}
+	public static FilterProvider CreateBitcoinRpcFilterProvider(IRPCClient bitcoinClient, ConcurrentChain blockHeaderChain) =>
+		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, blockHeaderChain, fromHash, fromHeight, cancellationToken);
 
-		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
-		if (nbOfFiltersToFetch == 0)
-		{
-			return [];
-		}
-
-		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
-			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
-			.ToArray();
-		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		return blockHashes;
-	}
-
-	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var blockHashes = await GetBlockHashesAsync(fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			var blockHashes = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -103,14 +80,41 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentCha
 			return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
 		}
 	}
+
+	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	{
+		if (blockHeaderChain.Tip?.Height > fromHeight)
+		{
+			return blockHeaderChain
+				.EnumerateAfter(fromHash)
+				.Select(x => x.HashBlock)
+				.Take(1_000)
+				.ToArray();
+		}
+
+		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+		if (nbOfFiltersToFetch == 0)
+		{
+			return [];
+		}
+
+		var heights = Enumerable.Range((int) fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
+		var batchClient = bitcoinRpcClient.PrepareBatch();
+		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+		return blockHashes;
+	}
 }
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
+	public static MessageHandler<Unit> CreateFilterGenerator(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
 		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, filterHeaderChain, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		// Don't attempt synchronization without a valid tip hash
 		if (filterHeaderChain.TipHash is null)
@@ -119,7 +123,7 @@ public static class Synchronizer
 			return Unit.Instance;
 		}
 
-		var response = await filtersProvider.GetFiltersAsync(filterHeaderChain.TipHash, filterHeaderChain.TipHeight, cancellationToken)
+		var response = await filtersProvider(filterHeaderChain.TipHeight, filterHeaderChain.TipHash, cancellationToken)
 			.ConfigureAwait(false);
 
 		if (response.IsOk)
