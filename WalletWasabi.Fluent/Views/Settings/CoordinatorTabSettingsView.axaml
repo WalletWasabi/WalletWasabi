@@ -37,8 +37,7 @@
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="discoverability:KnownCoordinator">
             <StackPanel Spacing="2" Margin="4,4">
-              <TextBlock Text="{Binding Name}" FontWeight="Bold" />
-              <TextBlock Text="{Binding CoordinatorUri}" Opacity="0.7" FontSize="12" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding CoordinatorUri}" FontWeight="Bold" TextTrimming="CharacterEllipsis" />
               <TextBlock Text="{Binding FirstSeen, StringFormat='First seen {0:yyyy-MM-dd}'}" Opacity="0.6" FontSize="11" />
             </StackPanel>
           </DataTemplate>
