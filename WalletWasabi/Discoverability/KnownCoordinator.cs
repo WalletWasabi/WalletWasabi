@@ -7,4 +7,5 @@ public record KnownCoordinator(
 	Uri CoordinatorUri,
 	string Description,
 	Uri? ReadMoreUri,
-	Network Network);
+	Network Network,
+	DateOnly FirstSeen);

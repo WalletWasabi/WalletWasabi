@@ -1,7 +1,8 @@
+using System.Collections.Generic;
 using System.Globalization;
-using System.Threading.Tasks;
-using System.Windows.Input;
+using System.Linq;
 using ReactiveUI;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -28,6 +29,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
+	[AutoNotify] private IReadOnlyList<KnownCoordinator> _knownCoordinators = [];
 
 	public CoordinatorTabSettingsViewModel(UiContext uiContext, ApplicationSettings settings)
 	{
@@ -56,26 +58,19 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 			.ToSignal()
 			.Subscribe(x => AbsoluteMinInputCount = Settings.AbsoluteMinInputCount);
 
-		BrowseCoordinatorsCommand = ReactiveCommand.CreateFromTask(OnBrowseCoordinatorsAsync);
+		this.WhenAnyValue(x => x.Settings.Network)
+			.Subscribe(network =>
+				KnownCoordinators = Fluent.Services.Status.KnownCoordinators
+					.Where(c => c.Network == network)
+					.ToList());
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public ApplicationSettings Settings { get; }
 
-	public ICommand BrowseCoordinatorsCommand { get; }
-
-	private async Task OnBrowseCoordinatorsAsync()
-	{
-		Uri.TryCreate(Settings.CoordinatorUri, UriKind.Absolute, out var current);
-
-		var result = await UiContext.Navigate().To().DiscoverCoordinators(Settings.Network, current).GetResultAsync();
-
-		if (result is not null)
-		{
-			Settings.CoordinatorUri = result.ToString();
-		}
-	}
+	public void ApplyKnownCoordinator(KnownCoordinator item) =>
+		Settings.CoordinatorUri = item.CoordinatorUri.ToString();
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{

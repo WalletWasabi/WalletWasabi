@@ -120,6 +120,11 @@ public static partial class Decode
 	public static Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
 
+	public static Decoder<DateOnly> DateOnly =>
+		String.AndThen(s => System.DateOnly.TryParse(s, System.Globalization.CultureInfo.InvariantCulture, out var d)
+			? Succeed(d)
+			: Fail<DateOnly>($"'{s}' is not a valid date (expected yyyy-MM-dd)."));
+
 	public static Decoder<Uri> Uri =>
 		String.AndThen(s => System.Uri.TryCreate(s, UriKind.Absolute, out var uri)
 			? Succeed(uri)

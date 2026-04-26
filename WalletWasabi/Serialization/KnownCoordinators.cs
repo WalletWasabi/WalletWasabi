@@ -10,5 +10,6 @@ public static partial class Decode
 			get.Required("CoordinatorUri", Uri),
 			get.Required("Description", String),
 			get.Optional("ReadMoreUri", Uri),
-			get.Required("Network", Network)));
+			get.Required("Network", Network),
+			get.Required("FirstSeen", DateOnly)));
 }
