@@ -1,3 +1,4 @@
+using System.Diagnostics;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Linq;
@@ -5,9 +6,12 @@ using System.Net.Http;
 using System.Net.Sockets;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin.Protocol;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Stores;
@@ -81,7 +85,8 @@ public static class FilterProviders
 		}
 	}
 
-	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		if (blockHeaderChain.Tip?.Height > fromHeight)
 		{
@@ -99,13 +104,40 @@ public static class FilterProviders
 			return [];
 		}
 
-		var heights = Enumerable.Range((int) fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
+		var heights = Enumerable.Range((int) fromHeight + 1, (int) nbOfFiltersToFetch).ToArray();
 		var batchClient = bitcoinRpcClient.PrepareBatch();
 		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
 		return blockHashes;
+	}
+
+	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinP2pAsync(ConcurrentChain headersChain,
+		NodesGroup nodes, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	{
+		var currentHeight = headersChain.Tip.Height;
+		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+		var stopAtHeight = fromHeight + nbOfFiltersToFetch;
+		var stopAtHash = headersChain.GetBlock((int) stopAtHeight).HashBlock;
+
+		var node = nodes.ConnectedNodes.RandomElement(SecureRandom.Instance)!;
+		var filters = await node.GetFiltersAsync(fromHeight, stopAtHash, cancellationToken).ConfigureAwait(false);
+		Debug.Assert(filters.Length == nbOfFiltersToFetch);
+
+		var ret = new FilterModel[nbOfFiltersToFetch];
+		var prevHeader = uint256.Zero;
+		foreach (var (f, i) in filters.Select((f, i) => (f, i)))
+		{
+			var grfilter = new GolombRiceFilter(f.FilterBytes);
+			var grheader = grfilter.GetHeader(prevHeader);
+			var header = new SmartHeader(f.BlockHash, grheader, (uint) (currentHeight + i), DateTimeOffset.UtcNow);
+			var filter = new FilterModel(header, grfilter);
+			prevHeader = grheader;
+			ret[i] = filter;
+		}
+
+		return NewFiltersAvailable((uint) currentHeight, ret);
 	}
 }
 
