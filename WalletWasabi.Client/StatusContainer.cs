@@ -4,6 +4,7 @@ using System.IO;
 using WalletWasabi.Discoverability;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 
@@ -58,7 +59,11 @@ public class StatusContainer : IDisposable
 			return [];
 		}
 
-		var parsed = JsonDecoder.FromString(Decode.Array(Decode.KnownCoordinator))(File.ReadAllText(path));
+		var decoder = Decode.ArraySkipInvalid(
+			Decode.KnownCoordinator,
+			onError: error => Logger.LogWarning($"Skipping invalid known coordinator entry: {error}"));
+
+		var parsed = JsonDecoder.FromString(decoder)(File.ReadAllText(path));
 		return parsed.Match<IReadOnlyList<KnownCoordinator>>(coords => coords, _ => []);
 	}
 

@@ -38,5 +38,13 @@
 		"ReadMoreUri": "http://3dtfckhmf3ttwcmh6xqhx2hsj6yw35sgxzwmltpiu43wx3eihyq337qd.onion/",
 		"Network": "Main",
 		"FirstSeen": "2026-03-01"
+	},
+	{
+		"Name": "Testing ArraySkipInvalid",
+		"CoordinatorUri": "blahblahblah spam spam",
+		"Description": "",
+		"ReadMoreUri": "empty",
+		"Network": "Main",
+		"FirstSeen": "2026-03-01"
 	}
 ]

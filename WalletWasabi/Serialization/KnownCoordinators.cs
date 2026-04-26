@@ -7,9 +7,9 @@ public static partial class Decode
 	public static Decoder<KnownCoordinator> KnownCoordinator =>
 		Object(get => new KnownCoordinator(
 			get.Required("Name", String),
-			get.Required("CoordinatorUri", Uri),
+			get.Required("CoordinatorUri", HttpUri),
 			get.Required("Description", String),
-			get.Optional("ReadMoreUri", Uri),
+			get.Optional("ReadMoreUri", HttpUri),
 			get.Required("Network", Network),
 			get.Required("FirstSeen", DateOnly)));
 }
