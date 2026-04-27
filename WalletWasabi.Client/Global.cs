@@ -80,7 +80,7 @@ public class Global
 		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
-		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain);
+		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, smartHeaderChain);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -92,6 +92,7 @@ public class Global
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
 			BitcoinStore,
+			mempoolService,
 			Config.ServiceConfiguration,
 			blockProvider,
 			EventBus,

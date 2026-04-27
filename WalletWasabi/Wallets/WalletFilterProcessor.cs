@@ -116,8 +116,7 @@ public class WalletFilterProcessor : BackgroundService
 					{
 						Transaction tx = currentBlock.Transactions[i];
 						txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i,
-							firstSeen: currentBlock.Header.BlockTime,
-							labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+							firstSeen: currentBlock.Header.BlockTime));
 					}
 
 					_transactionProcessor.Process(txsToProcess);

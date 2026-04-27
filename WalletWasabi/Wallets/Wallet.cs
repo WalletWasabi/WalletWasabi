@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -31,15 +32,16 @@ public class Wallet : BackgroundService, IWallet
 	private readonly IDisposable _feeRateSubscription;
 	private readonly IDisposable _newTransactionInMempoolSubscription;
 
-	public static WalletFactory CreateFactory(Network network, BitcoinStore bitcoinStore, ServiceConfiguration serviceConfiguration,
+	public static WalletFactory CreateFactory(Network network, BitcoinStore bitcoinStore, MempoolService mempoolService, ServiceConfiguration serviceConfiguration,
 		BlockProvider blockProvider, EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, bitcoinStore, blockProvider, serviceConfiguration, cpfpInfoProvider, eventBus);
+		keyManager => new Wallet(network, keyManager, bitcoinStore, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
 
 	private Wallet(
 		Network network,
 		KeyManager keyManager,
 		BitcoinStore bitcoinStore,
 		BlockProvider blockProvider,
+		MempoolService mempoolService,
 		ServiceConfiguration serviceConfiguration,
 		CpfpInfoProvider cpfpInfoProvider,
 		EventBus eventBus)
@@ -52,7 +54,7 @@ public class Wallet : BackgroundService, IWallet
 		CpfpInfoProvider = cpfpInfoProvider;
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 
-		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, BitcoinStore.MempoolService, keyManager, ServiceConfiguration.DustThreshold);
+		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold);
 		WalletFilterProcessor = new WalletFilterProcessor(keyManager, BitcoinStore, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch();

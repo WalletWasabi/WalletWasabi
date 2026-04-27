@@ -15,17 +15,14 @@ public class BitcoinStore
 	public BitcoinStore(
 		FilterStore filterStore,
 		AllTransactionStore transactionStore,
-		MempoolService mempoolService,
 		SmartHeaderChain smartHeaderChain)
 	{
 		FilterStore = filterStore;
 		TransactionStore = transactionStore;
-		MempoolService = mempoolService;
 		SmartHeaderChain = smartHeaderChain;
 	}
 
 	public FilterStore FilterStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public SmartHeaderChain SmartHeaderChain { get; }
-	public MempoolService MempoolService { get; }
 }
