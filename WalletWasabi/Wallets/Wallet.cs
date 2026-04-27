@@ -29,6 +29,7 @@ public delegate Wallet WalletFactory(KeyManager keyManager);
 public class Wallet : BackgroundService, IWallet
 {
 	private readonly IDisposable _feeRateSubscription;
+	private readonly IDisposable _newTransactionInMempoolSubscription;
 
 	public static WalletFactory CreateFactory(Network network, BitcoinStore bitcoinStore, ServiceConfiguration serviceConfiguration,
 		BlockProvider blockProvider, EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
@@ -62,7 +63,8 @@ public class Wallet : BackgroundService, IWallet
 			EventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate);
 
 		TransactionProcessor.WalletRelevantTransactionProcessed += TransactionProcessor_WalletRelevantTransactionProcessed;
-		BitcoinStore.MempoolService.TransactionReceived += Mempool_TransactionReceived;
+		_newTransactionInMempoolSubscription =
+			EventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction));
 	}
 
 	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
@@ -287,7 +289,7 @@ public class Wallet : BackgroundService, IWallet
 		WalletFilterProcessor.Dispose();
 
 		BitcoinStore.FilterStore.NewFilters -= IndexDownloader_NewFiltersAsync;
-		BitcoinStore.MempoolService.TransactionReceived -= Mempool_TransactionReceived;
+		_newTransactionInMempoolSubscription.Dispose();
 		TransactionProcessor.WalletRelevantTransactionProcessed -= TransactionProcessor_WalletRelevantTransactionProcessed;
 	}
 
@@ -307,7 +309,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 	}
 
-	private void Mempool_TransactionReceived(object? sender, SmartTransaction tx)
+	private void Mempool_TransactionReceived(SmartTransaction tx)
 	{
 		try
 		{

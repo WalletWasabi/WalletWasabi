@@ -34,7 +34,7 @@ public class RegTestSetup : IAsyncDisposable
 		SmartHeaderChain smartHeaderChain = new();
 		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
-		MempoolService mempoolService = new();
+		var mempoolService = new MempoolService(EventBus);
 		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain);
 		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}

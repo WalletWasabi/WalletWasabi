@@ -71,7 +71,7 @@ public class Global
 		Status = new StatusContainer(EventBus, installOnClose: Config.DownloadNewVersion);
 		HostedServices = new HostedServices();
 
-		var mempoolService = new MempoolService();
+		var mempoolService = new MempoolService(EventBus);
 		var smartHeaderChain = new SmartHeaderChain(maxChainSize: 20_000);
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);

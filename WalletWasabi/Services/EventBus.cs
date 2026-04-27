@@ -8,6 +8,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
 using System.Threading;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -122,3 +123,5 @@ public record BitcoinPeersChanged(bool Added, int NodesCount);
 public record CpfpInfoArrived;
 
 public record WalletLoaded(Wallet Wallet);
+
+public record NewTransactionInMempool(SmartTransaction Transaction);
