@@ -105,6 +105,12 @@ public class FilterHeaderChain
 			{
 				SmartHeader lastHeader = _chain[^1];
 
+				// The header is old
+				if (tip.Height <= lastHeader.Height)
+				{
+					return;
+				}
+
 				if (lastHeader.Height + 1 != tip.Height)
 				{
 					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Added: {tip.Height}.");
