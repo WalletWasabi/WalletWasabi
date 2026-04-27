@@ -20,6 +20,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Client.Configuration;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
