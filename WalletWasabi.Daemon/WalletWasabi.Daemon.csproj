@@ -10,8 +10,6 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<Authors>zkSNACKs Ltd</Authors>
-		<Company>zkSNACKs Ltd</Company>
 		<NeutralLanguage>en-US</NeutralLanguage>
 		<AssemblyTitle>Wasabi Wallet Daemon</AssemblyTitle>
 		<Description>
