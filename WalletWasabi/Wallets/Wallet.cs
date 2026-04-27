@@ -101,10 +101,6 @@ public class Wallet : BackgroundService, IWallet
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode { get; set; }
 
-	public bool IsMixable =>
-		Loaded // Only running wallets
-		&& KeyChain is not null; // that are not watch-only wallets and contain a keychain
-
 	public Money PlebStopThreshold => KeyManager.PlebStopThreshold;
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
