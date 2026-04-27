@@ -108,17 +108,15 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
+		var state = new ManagerState();
+
 		// Coinjoin handling Start / Stop and finalization.
-		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
+		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(state, stoppingToken);
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
 	}
 
-	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
+	private async Task MonitorAndHandleCoinJoinsAsync(ManagerState state, CancellationToken stoppingToken)
 	{
-		// This is a shared resource and that's why it is concurrent. Alternatives are locking structures,
-		// using a single lock around its access or use a channel.
-		var state = new ManagerState();
-
 		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(state, stoppingToken), stoppingToken);
 		var monitorCoinJoinTask = Task.Run(() => MonitorAndHandlingCoinJoinFinalizationAsync(state, stoppingToken), stoppingToken);
 
@@ -781,7 +779,7 @@ public class CoinJoinManager : BackgroundService
 	private record CoinJoinClientStateHolder(CoinJoinClientState CoinJoinClientState, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, IWallet OutputWallet);
 
-	// TODO: Some properties are still missing in this record: TrackedWallets, ScheduledRestarts, WalletsBlockedByUi, CoinJoinClientStates, CoinsInCriticalPhase.
+	// TODO: Some properties are still missing in this record: ScheduledRestarts, WalletsBlockedByUi, CoinJoinClientStates, CoinsInCriticalPhase.
 	private record ManagerState(
 		ConcurrentDictionary<WalletId, CoinJoinTracker> TrackedCoinJoins,
 		ConcurrentDictionary<IWallet, TrackedAutoStart> TrackedAutoStarts)
