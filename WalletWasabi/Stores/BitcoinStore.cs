@@ -1,4 +1,3 @@
-using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -29,10 +28,4 @@ public class BitcoinStore
 	public AllTransactionStore TransactionStore { get; }
 	public SmartHeaderChain SmartHeaderChain { get; }
 	public MempoolService MempoolService { get; }
-
-	/// <summary>
-	/// This should not be a property, but a creator function, because it'll be cloned left and right by NBitcoin later.
-	/// So it should not be assumed it's some singleton.
-	/// </summary>
-	public P2pBehavior CreateUntrustedP2pBehavior() => new(MempoolService);
 }

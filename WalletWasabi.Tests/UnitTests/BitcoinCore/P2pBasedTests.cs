@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
@@ -50,7 +51,7 @@ public class P2pBasedTests
 
 			await rpc.GenerateAsync(blockCount: 101);
 
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			node.Behaviors.Add(new P2pBehavior(mempoolService));
 			node.VersionHandshake();
 
 			using Key k = new();
