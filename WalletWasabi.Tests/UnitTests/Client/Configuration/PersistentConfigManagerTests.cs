@@ -2,14 +2,14 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Bases;
+using WalletWasabi.Client.Configuration;
 using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Bases;
+namespace WalletWasabi.Tests.UnitTests.Client.Configuration;
 
 /// <summary>
 /// Tests for <see cref="PersistentConfigManager"/>
@@ -92,7 +92,7 @@ public class PersistentConfigManagerTests
 			CoordinatorUri: "https://wasabiwallet.io/",
 			UseTor: "Enabled",
 			TerminateTorOnExit: false,
-			TorBridges: ValueList<string>.Empty,
+			TorBridges: [],
 			DownloadNewVersion: true,
 			UseBitcoinRpc: true,
 			BitcoinRpcCredentialString: "user:password",
@@ -130,7 +130,7 @@ public class PersistentConfigManagerTests
 		CoordinatorUri: "https://wasabiwallet.io/",
 		UseTor: "Enabled",
 		TerminateTorOnExit: false,
-		TorBridges: ValueList<string>.Empty,
+		TorBridges: [],
 		DownloadNewVersion: true,
 		UseBitcoinRpc: false,
 		BitcoinRpcCredentialString: "",

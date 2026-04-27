@@ -7,7 +7,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 
-namespace WalletWasabi.Bases;
+namespace WalletWasabi.Client.Configuration;
 
 public static class PersistentConfigManager
 {

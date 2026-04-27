@@ -5,7 +5,6 @@ using System.IO;
 using System.Reactive;
 using System.Reactive.Concurrency;
 using System.Runtime.InteropServices;
-using System.Threading.Tasks;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Threading;
 using ReactiveUI;
@@ -23,6 +22,7 @@ using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
 using ReactiveUI.Avalonia;
+using WalletWasabi.Client.Configuration;
 
 namespace WalletWasabi.Fluent.Desktop;
 
