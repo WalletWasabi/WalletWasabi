@@ -126,11 +126,9 @@ public static partial class Decode
 			: Fail<DateOnly>($"'{s}' is not a valid date (expected yyyy-MM-dd)."));
 
 	public static Decoder<Uri> HttpUri =>
-		String.AndThen(s =>
-			System.Uri.TryCreate(s, UriKind.Absolute, out var uri)
-			&& (uri.Scheme == System.Uri.UriSchemeHttp || uri.Scheme == System.Uri.UriSchemeHttps)
-				? Succeed(uri)
-				: Fail<Uri>($"'{s}' is not an absolute http(s) URI."));
+		String.AndThen(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+			? Succeed(uri)
+			: Fail<Uri>($"'{s}' is not an absolute HTTP(s) URI."));
 
 	public static Decoder<T> Succeed<T>(T output) =>
 		_ => output;
@@ -198,7 +196,7 @@ public static partial class Decode
 			return Result<T[], string>.Fail("It is not an array");
 		};
 
-	public static Decoder<T[]> ArraySkipInvalid<T>(Decoder<T> decoder, Action<string>? onError = null) =>
+	public static Decoder<T[]> ArraySkipInvalid<T>(Decoder<T> decoder, Action<string>? onItemError = null) =>
 		value =>
 		{
 			if (value.ValueKind != JsonValueKind.Array)
@@ -209,7 +207,7 @@ public static partial class Decode
 			List<T> list = [];
 			foreach (var elem in value.EnumerateArray())
 			{
-				decoder(elem).MatchDo(list.Add, e => onError?.Invoke(e));
+				decoder(elem).MatchDo(list.Add, e => onItemError?.Invoke(e));
 			}
 			return list.ToArray();
 		};

@@ -53,18 +53,25 @@ public class StatusContainer : IDisposable
 
 	private static IReadOnlyList<KnownCoordinator> LoadBundledKnownCoordinators()
 	{
-		var path = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Discoverability", "KnownCoordinators.json");
-		if (!File.Exists(path))
+		try
 		{
-			return [];
+			var path = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Discoverability", "KnownCoordinators.json");
+			if (File.Exists(path))
+			{
+				var decoder = Decode.ArraySkipInvalid(
+					Decode.KnownCoordinator,
+					onItemError: error => Logger.LogWarning($"Skipping invalid known coordinator entry: {error}"));
+
+				var parsed = JsonDecoder.FromString(decoder)(File.ReadAllText(path));
+				return parsed.Match<IReadOnlyList<KnownCoordinator>>(coords => coords, _ => []);
+			}
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
 		}
 
-		var decoder = Decode.ArraySkipInvalid(
-			Decode.KnownCoordinator,
-			onError: error => Logger.LogWarning($"Skipping invalid known coordinator entry: {error}"));
-
-		var parsed = JsonDecoder.FromString(decoder)(File.ReadAllText(path));
-		return parsed.Match<IReadOnlyList<KnownCoordinator>>(coords => coords, _ => []);
+		return [];
 	}
 
 	public void Dispose()

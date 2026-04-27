@@ -45,7 +45,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 
 		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
 		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
-		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext, UiContext.ApplicationSettings);
+		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext.ApplicationSettings);
 		ConnectionsSettingsTab = new ConnectionsSettingsTabViewModel(UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));

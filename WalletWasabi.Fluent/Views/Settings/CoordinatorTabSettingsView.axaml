@@ -8,11 +8,6 @@
              x:DataType="settings:CoordinatorTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.CoordinatorTabSettingsView"
              x:CompileBindings="True">
-  <UserControl.Styles>
-    <Style Selector="ComboBox.knownCoordinators">
-      <Setter Property="Width" Value="220" />
-    </Style>
-  </UserControl.Styles>
   <StackPanel Classes="settingsLayout">
 
     <DockPanel ToolTip.Tip="The client will connect to this coordinator that will manage coinjoins.">
@@ -29,7 +24,7 @@
     <DockPanel ToolTip.Tip="Pick a coordinator that has advertised itself on Nostr to fill in the URI above.">
       <TextBlock Text="Select a coordinator from self-advertised on Nostr" />
       <ComboBox Name="KnownCoordinatorsComboBox"
-                Classes="knownCoordinators"
+                Width="220"
                 PlaceholderText="Known Coordinators"
                 MaxDropDownHeight="300"
                 ItemsSource="{Binding KnownCoordinators}"
@@ -38,7 +33,7 @@
           <DataTemplate x:DataType="discoverability:KnownCoordinator">
             <StackPanel Spacing="2" Margin="4,4">
               <TextBlock Text="{Binding CoordinatorUri}" FontWeight="Bold" TextTrimming="CharacterEllipsis" />
-              <TextBlock Text="{Binding FirstSeen, StringFormat='First seen {0:yyyy-MM-dd}'}" Opacity="0.6" FontSize="11" />
+              <TextBlock Text="{Binding FirstSeen, StringFormat='First seen on {0:yyyy-MM-dd}'}" Opacity="0.6" FontSize="11" />
             </StackPanel>
           </DataTemplate>
         </ComboBox.ItemTemplate>

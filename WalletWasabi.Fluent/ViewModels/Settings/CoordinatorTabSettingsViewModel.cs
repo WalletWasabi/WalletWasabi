@@ -31,9 +31,8 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _absoluteMinInputCount;
 	[AutoNotify] private IReadOnlyList<KnownCoordinator> _knownCoordinators = [];
 
-	public CoordinatorTabSettingsViewModel(UiContext uiContext, ApplicationSettings settings)
+	public CoordinatorTabSettingsViewModel(ApplicationSettings settings)
 	{
-		UiContext = uiContext;
 		Settings = settings;
 
 		this.ValidateProperty(x => x.CoordinatorUri, ValidateCoordinatorUri);
