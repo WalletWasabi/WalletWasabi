@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
+using System.Net.Mime;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -130,7 +131,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 
 			using var httpClient = HttpClientFactory.CreateClient($"{Broadcaster.Name}-{tx.GetHash()}");
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
-			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
+			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, MediaTypeNames.Application.Json);
 
 			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
@@ -139,11 +140,9 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		}
 		catch (HttpRequestException ex)
 		{
-			if (RpcErrorTools.IsSpentError(ex.Message))
-			{
-				return BroadcastingResult.Fail(new BroadcastError.SpentError());
-			}
-			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
+			return RpcErrorTools.IsSpentError(ex.Message)
+				? BroadcastingResult.Fail(new BroadcastError.SpentError())
+				: BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
 		catch (Exception ex)
 		{
