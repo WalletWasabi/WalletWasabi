@@ -13,6 +13,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Extensions;
 using Xunit;
@@ -299,14 +300,14 @@ public class TransactionProcessorTests
 	public async Task ConfirmedDoubleSpendAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 
 		int doubleSpendReceived = 0;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 		{
-			var doubleSpentCoins = e.SuccessfullyDoubleSpentCoins;
+			var doubleSpentCoins = e.Result.SuccessfullyDoubleSpentCoins;
 			if (doubleSpentCoins.Count != 0)
 			{
 				var coin = Assert.Single(doubleSpentCoins);
@@ -316,14 +317,14 @@ public class TransactionProcessorTests
 
 				doubleSpendReceived++;
 			}
-		};
+		});
 
 		int coinReceivedCalled = 0;
 
 		// The coin with the confirmed tx should win.
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 		{
-			foreach (var c in e.NewlyReceivedCoins)
+			foreach (var c in e.Result.NewlyReceivedCoins)
 			{
 				switch (coinReceivedCalled)
 				{
@@ -336,7 +337,7 @@ public class TransactionProcessorTests
 
 				coinReceivedCalled++;
 			}
-		};
+		});
 
 		// An unconfirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m), height: 54321);
@@ -378,11 +379,12 @@ public class TransactionProcessorTests
 		//
 
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
 		int replaceTransactionReceivedCalled = 0;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(x =>
 		{
+			var e = x.Result;
 			if (e.ReplacedCoins.Count != 0 || e.RestoredCoins.Count != 0)
 			{
 				if (e.RestoredCoins.Count != 0)
@@ -400,7 +402,7 @@ public class TransactionProcessorTests
 
 				replaceTransactionReceivedCalled++;
 			}
-		};
+		});
 
 		// A confirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(transactionProcessor.NewKey("A").P2wpkhScript, Money.Coins(1.0m), height: 54321);
@@ -559,12 +561,13 @@ public class TransactionProcessorTests
 	public async Task ConfirmTransactionTestAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
 		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
 		int confirmed = 0;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(x =>
 		{
+			var e = x.Result;
 			if (e.NewlySpentCoins.Count != 0)
 			{
 				throw new InvalidOperationException("We are not spending the coin.");
@@ -573,7 +576,7 @@ public class TransactionProcessorTests
 			{
 				confirmed++;
 			}
-		};
+		});
 
 		// A confirmed segwit transaction for us
 		var tx1 = CreateCreditingTransaction(keys[0].PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
@@ -754,9 +757,11 @@ public class TransactionProcessorTests
 	public async Task ReceiveTransactionForWalletAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 		SmartCoin? receivedCoin = null;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) => receivedCoin = e.NewlyReceivedCoins.Single();
+
+		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
+		receivedCoin = e.Result.NewlyReceivedCoins.Single());
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 
@@ -781,15 +786,16 @@ public class TransactionProcessorTests
 	public async Task SpendCoinAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 		SmartCoin? spentCoin = null;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+
+		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 		{
-			if (e.NewlySpentCoins.Count != 0)
+			if (e.Result.NewlySpentCoins.Count != 0)
 			{
-				spentCoin = e.NewlySpentCoins.Single();
+				spentCoin = e.Result.NewlySpentCoins.Single();
 			}
-		};
+		});
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx0);
@@ -819,15 +825,15 @@ public class TransactionProcessorTests
 	public async Task CorrectSpenderAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 		SmartCoin? spentCoin = null;
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e) =>
+		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
 		{
-			if (e.NewlySpentCoins.Count != 0)
+			if (e.Result.NewlySpentCoins.Count != 0)
 			{
-				spentCoin = e.NewlySpentCoins.Single();
+				spentCoin = e.Result.NewlySpentCoins.Single();
 			}
-		};
+		});
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var tx0 = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(1.0m));
 		transactionProcessor.Process(tx0);
@@ -964,11 +970,11 @@ public class TransactionProcessorTests
 	public async Task ReceiveTransactionWithDustFromOurselvesAsync()
 	{
 		await using var txStore = await CreateTransactionStoreAsync();
-		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
 		// The dust coin should raise an event, but it shouldn't be fully processed.
-		transactionProcessor.WalletRelevantTransactionProcessed += (s, e)
-			=> Assert.Empty(e.ReceivedDusts); // small coins received from us are not an attack.
+		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
+			Assert.Empty(e.Result.ReceivedDusts)); // small coins received from us are not an attack.
 
 		var keys = transactionProcessor.KeyManager.GetKeys();
 		var creditingTx = CreateCreditingTransaction(keys.First().P2wpkhScript, Money.Coins(0.0001001m));
@@ -1533,15 +1539,19 @@ public class TransactionProcessorTests
 		return txStore;
 	}
 
-	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore)
+	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore) =>
+		CreateTransactionProcessor(transactionStore, out _);
+
+	private TransactionProcessor CreateTransactionProcessor(AllTransactionStore transactionStore, out EventBus eventBus)
 	{
 		var keyManager = KeyManager.CreateNew(out _, "password", Network.Main);
-
+		eventBus = new EventBus();
 		return new TransactionProcessor(
 			transactionStore,
 			null,
 			keyManager,
-			Money.Coins(0.0001m));
+			Money.Coins(0.0001m),
+			eventBus);
 	}
 
 	private List<TxOut> CreateRandomIndistinguishableOutputs(long amount, int count)

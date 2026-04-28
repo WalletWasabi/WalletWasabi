@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -19,19 +20,28 @@ namespace WalletWasabi.Wallets;
 
 public class WalletFilterProcessor : BackgroundService
 {
-	public WalletFilterProcessor(KeyManager keyManager, BitcoinStore bitcoinStore, TransactionProcessor transactionProcessor, BlockProvider blockProvider, EventBus eventBus)
+	public WalletFilterProcessor(
+		KeyManager keyManager,
+		AllTransactionStore transactionStore,
+		FilterStore filterStore,
+		SmartHeaderChain smartHeaderChain,
+		TransactionProcessor transactionProcessor,
+		BlockProvider blockProvider,
+		EventBus eventBus)
 	{
 		_keyManager = keyManager;
-		_bitcoinStore = bitcoinStore;
+		_transactionStore = transactionStore;
+		_smartHeaderChain = smartHeaderChain;
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
-		_blockFilterIterator = new(_bitcoinStore.FilterStore);
+		_blockFilterIterator = new(filterStore);
 		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
 
 	private readonly KeyManager _keyManager;
-	private readonly BitcoinStore _bitcoinStore;
+	private readonly AllTransactionStore _transactionStore;
+	private readonly SmartHeaderChain _smartHeaderChain;
 	private readonly TransactionProcessor _transactionProcessor;
 	private readonly BlockProvider _blockProvider;
 	private readonly EventBus _eventBus;
@@ -54,7 +64,7 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					var lastHeight = _keyManager.GetBestHeight();
 
-					if (lastHeight == _bitcoinStore.SmartHeaderChain.TipHeight)
+					if (lastHeight == _smartHeaderChain.TipHeight)
 					{
 						_initialSynchronizationFinished.TrySetResult();
 						await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
@@ -75,7 +85,7 @@ public class WalletFilterProcessor : BackgroundService
 					var matchFound = await ProcessFilterModelAsync(filter, cancellationToken).ConfigureAwait(false);
 					_eventBus.Publish(new FilterProcessed(filter));
 
-					var reachedBlockChainTip = currentHeight == _bitcoinStore.SmartHeaderChain.TipHeight;
+					var reachedBlockChainTip = currentHeight == _smartHeaderChain.TipHeight;
 					bool storeToDisk = matchFound || reachedBlockChainTip;
 					_keyManager.SetBestHeight(currentHeight, storeToDisk);
 				}
@@ -116,8 +126,7 @@ public class WalletFilterProcessor : BackgroundService
 					{
 						Transaction tx = currentBlock.Transactions[i];
 						txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i,
-							firstSeen: currentBlock.Header.BlockTime,
-							labels: _bitcoinStore.MempoolService.TryGetLabel(tx.GetHash())));
+							firstSeen: currentBlock.Header.BlockTime));
 					}
 
 					_transactionProcessor.Process(txsToProcess);
@@ -131,7 +140,7 @@ public class WalletFilterProcessor : BackgroundService
 		return matchFound;
 	}
 
-	private async void ReorgedAsync(object? sender, FilterModel invalidFilter)
+	private async void ReorgedAsync(FilterModel invalidFilter)
 	{
 		try
 		{
@@ -142,7 +151,7 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				_keyManager.SetMaxBestHeight(newBestHeight);
 				_transactionProcessor.UndoBlock(invalidFilter.Header.Height);
-				_bitcoinStore.TransactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
+				_transactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				_blockFilterIterator.RemoveNewerThan(newBestHeight);
 			}
 		}
@@ -153,15 +162,16 @@ public class WalletFilterProcessor : BackgroundService
 	}
 
 
+	private IDisposable? _chainReorgSubscription;
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		_bitcoinStore.FilterStore.Reorged += ReorgedAsync;
+		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.Filter));
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
-		_bitcoinStore.FilterStore.Reorged -= ReorgedAsync;
+		_chainReorgSubscription?.Dispose();
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

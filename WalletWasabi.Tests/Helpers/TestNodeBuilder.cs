@@ -6,6 +6,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.BitcoinCore.Endpointing;
 
@@ -13,22 +14,13 @@ namespace WalletWasabi.Tests.Helpers;
 
 public static class TestNodeBuilder
 {
+	public static readonly EventBus EventBus = new();
 	public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
+		mempoolService ??= new MempoolService(EventBus);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
-	}
-
-	public static async Task<CoreNode> CreateForHeavyConcurrencyAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
-	{
-		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
-
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService ?? new MempoolService(), dataDir);
-		nodeParameters.RpcWorkQueue = 32;
+		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService, dataDir);
 		return await CoreNode.CreateAsync(
 			nodeParameters,
 			CancellationToken.None);
@@ -39,7 +31,7 @@ public static class TestNodeBuilder
 #pragma warning disable CA2000 // Dispose objects before losing scope - MemoryCache ownership transferred to CoreNodeParams
 		var nodeParameters = new CoreNodeParams(
 				Network.RegTest,
-				mempoolService ?? new MempoolService(),
+				mempoolService,
 				dataDir,
 				tryRestart: true,
 				tryDeleteDataDir: true,

@@ -2,6 +2,7 @@ using System.IO;
 using System.Net.Http;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
@@ -19,9 +20,11 @@ public static class Services
 
 	public static TorSettings TorSettings { get; private set; } = null!;
 
-	public static BitcoinStore BitcoinStore { get; private set; } = null!;
+	public static FilterStore FilterStore { get; private set; } = null!;
 
-	public static SmartHeaderChain SmartHeaderChain => BitcoinStore.SmartHeaderChain;
+	public static SmartHeaderChain SmartHeaderChain { get; private set; } = null!;
+
+	public static AllTransactionStore TransactionStore { get; private set; } = null!;
 
 	public static IHttpClientFactory HttpClientFactory { get; private set; } = null!;
 
@@ -56,7 +59,9 @@ public static class Services
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
-		Guard.NotNull(nameof(global.BitcoinStore), global.BitcoinStore);
+		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
+		Guard.NotNull(nameof(global.SmartHeaderChain), global.SmartHeaderChain);
+		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
 		Guard.NotNull(nameof(global.ExternalSourcesHttpClientFactory), global.ExternalSourcesHttpClientFactory);
 		Guard.NotNull(nameof(global.Config), global.Config);
 		Guard.NotNull(nameof(global.WalletManager), global.WalletManager);
@@ -67,7 +72,9 @@ public static class Services
 
 		DataDir = global.DataDir;
 		TorSettings = global.TorSettings;
-		BitcoinStore = global.BitcoinStore;
+		FilterStore = global.FilterStore;
+		SmartHeaderChain = global.SmartHeaderChain;
+		TransactionStore = global.TransactionStore;
 		HttpClientFactory = global.ExternalSourcesHttpClientFactory;
 		PersistentConfig = global.Config.PersistentConfig;
 		WalletManager = global.WalletManager;

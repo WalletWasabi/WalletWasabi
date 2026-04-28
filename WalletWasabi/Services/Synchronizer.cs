@@ -95,13 +95,11 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus) =>
-		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, bitcoinStore, eventBus, cancellationToken);
+	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus) =>
+		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, smartHeaderChain, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, BitcoinStore bitcoinStore, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
-		var smartHeaderChain = bitcoinStore.SmartHeaderChain;
-
 		// Don't attempt synchronization without a valid tip hash
 		if (smartHeaderChain.TipHash is null)
 		{
@@ -114,7 +112,7 @@ public static class Synchronizer
 
 		if (response.IsOk)
 		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value, bitcoinStore, eventBus).ConfigureAwait(false);
+			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, smartHeaderChain, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
@@ -128,28 +126,27 @@ public static class Synchronizer
 		return Unit.Instance;
 	}
 
-	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, BitcoinStore bitcoinStore, EventBus eventBus)
+	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus)
 	{
 		switch (response)
 		{
 			case FiltersResponse.AlreadyOnBestBlock:
 				// Already synchronized. Nothing to do.
-				var tip = bitcoinStore.SmartHeaderChain.TipHeight;
-				bitcoinStore.SmartHeaderChain.SetServerTipHeight(tip);
+				var tip = smartHeaderChain.TipHeight;
+				smartHeaderChain.SetServerTipHeight(tip);
 				eventBus.Publish(new ServerTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
-				FilterModel reorgedFilter = await bitcoinStore.FilterStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
+				FilterModel reorgedFilter = await filterStore.TryRemoveLastFilterAsync().ConfigureAwait(false)
 					?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}  Height {reorgedFilter.Header.Height}.");
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
-				var hashChain = bitcoinStore.SmartHeaderChain;
-				var localTipHeight = hashChain.TipHeight;
+				var localTipHeight = smartHeaderChain.TipHeight;
 
-				hashChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
+				smartHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
 				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;
@@ -166,14 +163,14 @@ public static class Synchronizer
 				{
 					// We have a problem.
 					// We have wrong filters, the heights are not in sync with the server's.
-					string details = FormatInconsistencyDetails(hashChain, firstNewFilter);
+					string details = FormatInconsistencyDetails(smartHeaderChain, firstNewFilter);
 					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}{details}");
 
-					await bitcoinStore.FilterStore.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
+					await filterStore.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
 				}
 				else
 				{
-					await bitcoinStore.FilterStore.AddNewFiltersAsync(newFilters).ConfigureAwait(false);
+					await filterStore.AddNewFiltersAsync(newFilters).ConfigureAwait(false);
 
 					Logger.LogInfo(newFilters.Length == 1
 						? $"Downloaded filter for block {firstNewFilter.Header.Height}."

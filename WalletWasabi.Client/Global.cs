@@ -71,16 +71,14 @@ public class Global
 		Status = new StatusContainer(EventBus, installOnClose: Config.DownloadNewVersion);
 		HostedServices = new HostedServices();
 
-		var mempoolService = new MempoolService();
-		var smartHeaderChain = new SmartHeaderChain(maxChainSize: 20_000);
+		var mempoolService = new MempoolService(EventBus);
+		SmartHeaderChain = new SmartHeaderChain(maxChainSize: 20_000);
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
-		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, SmartHeaderChain, EventBus);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
-
-		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, mempoolService, smartHeaderChain);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -91,7 +89,10 @@ public class Global
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
-			BitcoinStore,
+			FilterStore,
+			TransactionStore,
+			SmartHeaderChain,
+			mempoolService,
 			Config.ServiceConfiguration,
 			blockProvider,
 			EventBus,
@@ -112,14 +113,15 @@ public class Global
 	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
 	private readonly Timer _ticker;
-	private readonly AllTransactionStore _allTransactionStore;
-	private readonly FilterStore _filterStore;
 	private readonly ComposedDisposable _disposables = new();
 
 	public StatusContainer Status { get; }
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
-	public BitcoinStore BitcoinStore { get; }
+
+	public SmartHeaderChain SmartHeaderChain { get; }
+	public FilterStore FilterStore { get; }
+	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
@@ -318,7 +320,7 @@ public class Global
 
 		var filtersProvider = filtersProviderResult.Value;
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, SmartHeaderChain, EventBus));
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
@@ -404,8 +406,8 @@ public class Global
 	{
 		try
 		{
-			await BitcoinStore.TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-			await BitcoinStore.FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
+			await TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
+			await FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -418,7 +420,7 @@ public class Global
 	private ChainHeight CalculateSafestHeight()
 	{
 		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
-		var transactionHeight = BitcoinStore.TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
+		var transactionHeight = TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
 		var birthHeight = WalletManager.GetEarliestBirthHeight();
 		var worstBestHeight = WalletManager.GetWorstBestHeight();
 		return (ChainHeight) Height.Min(checkpointHeight, ((ChainHeight?[]) [transactionHeight, birthHeight, worstBestHeight]).DropNulls());
@@ -680,10 +682,10 @@ public class Global
 
 				try
 				{
-					await _filterStore.DisposeAsync().ConfigureAwait(false);
+					await FilterStore.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(FilterStore)} is disposed.");
 
-					await _allTransactionStore.DisposeAsync().ConfigureAwait(false);
+					await TransactionStore.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
 				}
 				catch (Exception ex)

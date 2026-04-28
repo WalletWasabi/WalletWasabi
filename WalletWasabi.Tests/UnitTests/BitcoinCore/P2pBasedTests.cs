@@ -1,13 +1,16 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
@@ -40,17 +43,14 @@ public class P2pBasedTests
 			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain);
+			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, smartHeaderChain, TestNodeBuilder.EventBus);
 			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 			MempoolService mempoolService = coreNode.MempoolService;
 
-			// Construct BitcoinStore.
-			BitcoinStore bitcoinStore = new(filterStore, transactionStore, mempoolService, smartHeaderChain);
-
 			await rpc.GenerateAsync(blockCount: 101);
 
-			node.Behaviors.Add(bitcoinStore.CreateUntrustedP2pBehavior());
+			node.Behaviors.Add(new P2pBehavior(mempoolService));
 			node.VersionHandshake();
 
 			using Key k = new();
@@ -59,10 +59,9 @@ public class P2pBasedTests
 			// Number of transactions to send.
 			const int TransactionsCount = 3;
 
-			EventsAwaiter<SmartTransaction> eventAwaiter = new(
-				subscribe: h => mempoolService.TransactionReceived += h,
-				unsubscribe: h => mempoolService.TransactionReceived -= h,
-				count: TransactionsCount);
+			var eventBus = TestNodeBuilder.EventBus;
+			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+			var awaiter = eventBus.WaitForAsync<NewTransactionInMempool,SmartTransaction>(TransactionsCount, e => e.Transaction, cts.Token);
 
 			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];
 
@@ -76,7 +75,7 @@ public class P2pBasedTests
 			uint256[] txHashes = await Task.WhenAll(txHashesTasks);
 
 			// Wait until the mempool service receives all the sent transactions.
-			IEnumerable<SmartTransaction> mempoolSmartTxs = await eventAwaiter.WaitAsync(TimeSpan.FromMinutes(4));
+			IEnumerable<SmartTransaction> mempoolSmartTxs = await awaiter;
 
 			// Check that all the received transaction hashes are in the set of sent transaction hashes.
 			foreach (SmartTransaction tx in mempoolSmartTxs)
@@ -91,3 +90,29 @@ public class P2pBasedTests
 		}
 	}
 }
+
+public static class EventBusExtensions
+{
+	public static Task<TResult[]> WaitForAsync<TEvent,TResult>(this EventBus eventBus, int count, Func<TEvent,TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
+	{
+		var evnts = new List<TEvent>();
+		var completion = new TaskCompletionSource<TResult[]>();
+		var subscription = eventBus.Subscribe<TEvent>(e =>
+		{
+			evnts.Add(e);
+			if (evnts.Count == count)
+			{
+				completion.SetResult(evnts.Select(conv).ToArray());
+			}
+		});
+		return completion.Task
+			.WithCancellation(cancellationToken)
+			.ContinueWith(r =>
+				{
+					subscription.Dispose();
+					return r.Result;
+				},
+				cancellationToken);
+	}
+}
+

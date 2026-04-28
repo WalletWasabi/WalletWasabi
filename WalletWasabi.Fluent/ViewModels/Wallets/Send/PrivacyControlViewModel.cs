@@ -9,11 +9,10 @@ using DynamicData;
 using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
@@ -73,8 +72,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		// TODO: Decoupling
-		Observable
-			.FromEventPattern(_wallet.TransactionProcessor, nameof(Wallet.TransactionProcessor.WalletRelevantTransactionProcessed))
+		Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);

@@ -24,7 +24,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletTransactionsModel : ReactiveObject, IDisposable
+public class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
@@ -38,15 +38,15 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		_treeBuilder = new TransactionTreeBuilder(wallet);
 
 		TransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
-				.Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
+			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(Services.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			Observable.FromEventPattern<ProcessedResult>(wallet, nameof(wallet.WalletRelevantTransactionProcessed))
-				.Select(x => (walletModel, x.EventArgs))
+			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
@@ -92,7 +92,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(uint256 id, CancellationToken cancellationToken)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
@@ -125,7 +125,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
 		}
@@ -154,7 +154,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public CancellingTransaction CreateCancellingTransaction(TransactionModel transaction)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
 		}
@@ -226,7 +226,7 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IEnumerable<BitcoinAddress> GetDestinationAddresses(uint256 id)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}

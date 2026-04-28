@@ -8,13 +8,12 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Cache;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.Mempool;
 
-public class MempoolService
+public class MempoolService(EventBus eventBus)
 {
-	public event EventHandler<SmartTransaction>? TransactionReceived;
-
 	private readonly MemoryCache<uint256, bool> _cache = new(TimeSpan.FromMinutes(30));
 
 	/// <summary>Transactions that we would reply to INV messages.</summary>
@@ -70,7 +69,7 @@ public class MempoolService
 		if(_cache.TryAdd(txId, true, TimeSpan.FromHours(1)))
 		{
 			var txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(txId));
-			TransactionReceived?.Invoke(this, txAdded);
+			eventBus.Publish(new NewTransactionInMempool(txAdded));
 		}
 	}
 

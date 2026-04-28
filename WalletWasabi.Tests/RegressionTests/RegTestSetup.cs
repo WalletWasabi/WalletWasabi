@@ -32,16 +32,13 @@ public class RegTestSetup : IAsyncDisposable
 
 		EventBus = new EventBus();
 		SmartHeaderChain smartHeaderChain = new();
-		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain);
+		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain, EventBus);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
-		MempoolService mempoolService = new();
-		BitcoinStore = new BitcoinStore(FilterStore, TransactionStore, mempoolService, smartHeaderChain);
 		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}
 
 	public RegTestFixture RegTestFixture { get; }
 	public FilterStore FilterStore { get; }
-	public BitcoinStore BitcoinStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IRPCClient RpcClient => RegTestFixture.IndexerRegTestNode.RpcClient;
 	public Network Network => RpcClient.Network;

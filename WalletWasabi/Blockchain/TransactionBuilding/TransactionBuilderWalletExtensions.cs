@@ -49,12 +49,12 @@ public static class TransactionBuilderWalletExtensions
 			TryToSign: tryToSign,
 			OverrideFeeOverpaymentProtection: overrideFeeOverpaymentProtection);
 
-		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.BitcoinStore.TransactionStore, password);
+		var factory = new TransactionFactory(wallet.Network, wallet.KeyManager, wallet.Coins, wallet.TransactionStore, password);
 		return factory.BuildTransaction(
 			parameters,
 			lockTimeSelector: () =>
 			{
-				var currentTipHeight = wallet.BitcoinStore.SmartHeaderChain.TipHeight;
+				var currentTipHeight = wallet.SmartHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
 			payjoinClient);

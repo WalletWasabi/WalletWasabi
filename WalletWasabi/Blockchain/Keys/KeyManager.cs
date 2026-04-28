@@ -470,7 +470,7 @@ public class KeyManager
 	/// It's unsafe because it doesn't assert that the GapLimit is respected.
 	/// GapLimit should be enforced whenever a transaction is discovered.
 	/// </summary>
-	public IEnumerable<byte[]> UnsafeGetSynchronizationInfos()
+	public byte[][] UnsafeGetSynchronizationInfos()
 	{
 		lock (_criticalStateLock)
 		{

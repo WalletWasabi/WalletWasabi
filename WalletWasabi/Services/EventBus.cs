@@ -8,6 +8,8 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
 using System.Threading;
+using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -106,6 +108,7 @@ public class EventBus
 public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
 public record ServerTipHeightChanged(uint Height);
+public record ClientTipHeightChanged(uint Height);
 public record NewSoftwareVersionAvailable(UpdateManager.UpdateStatus UpdateStatus);
 public record NewSoftwareVersionInstallerAvailable(string InstallerPath);
 
@@ -122,3 +125,8 @@ public record BitcoinPeersChanged(bool Added, int NodesCount);
 public record CpfpInfoArrived;
 
 public record WalletLoaded(Wallet Wallet);
+
+public record NewTransactionInMempool(SmartTransaction Transaction);
+public record ChainReorganized(FilterModel Filter);
+public record FiltersReceived(FilterModel[] Filters);
+public record WalletRelevantTransactionProcessed(ProcessedResult Result);
