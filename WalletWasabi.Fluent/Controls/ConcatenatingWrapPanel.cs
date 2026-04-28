@@ -73,19 +73,13 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 		set => SetValue(ItemHeightProperty, value);
 	}
 
-	/// <summary>
-	/// Gets the next control in the specified direction.
-	/// </summary>
-	/// <param name="direction">The movement direction.</param>
-	/// <param name="from">The control from which movement begins.</param>
-	/// <param name="wrap">Whether to wrap around when the first or last item is reached.</param>
-	/// <returns>The control.</returns>
-	IInputElement INavigableContainer.GetControl(NavigationDirection direction, IInputElement? from, bool wrap)
+	/// <inheritdoc/>
+	IInputElement? INavigableContainer.GetControl(NavigationDirection direction, IInputElement? from, bool wrap)
 	{
 		var orientation = Orientation;
 		var children = Children.Concat(ConcatenatedChildren).ToList();
 		bool isHorizontal = orientation == Orientation.Horizontal;
-		int index = Children.IndexOf((Control)from);
+		int index = from is Control control ? Children.IndexOf(control) : -1;
 
 		switch (direction)
 		{
@@ -128,7 +122,7 @@ public class ConcatenatingWrapPanel : Panel, INavigableContainer
 		}
 		else
 		{
-			return null!;
+			return null;
 		}
 	}
 
