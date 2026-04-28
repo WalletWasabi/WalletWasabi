@@ -1,20 +1,31 @@
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Fluent.Extensions;
 
 public static class EventBusExtensions
 {
-	public static IObservable<TEvent> AsObservable<TEvent>(this EventBus eventBus) where TEvent : notnull
+	extension(EventBus eventBus)
 	{
-		return Observable.Create<TEvent>(observer =>
+		public IObservable<TEvent> AsObservable<TEvent>() where TEvent : notnull
 		{
-			var subscription = eventBus.Subscribe<TEvent>(eventItem =>
+			return Observable.Create<TEvent>(observer =>
 			{
-				observer.OnNext(eventItem);
-			});
+				var subscription = eventBus.Subscribe<TEvent>(eventItem =>
+				{
+					observer.OnNext(eventItem);
+				});
 
-			return subscription;
-		});
+				return subscription;
+			});
+		}
+
+		public async Task<TEvent> WaitForEventAsync<TEvent>() where TEvent : notnull
+		{
+			var tcs = new TaskCompletionSource<TEvent>();
+			using var _ = eventBus.Subscribe<TEvent>(e => tcs.SetResult(e));
+			return await tcs.Task.ConfigureAwait(true);
+		}
 	}
 }

@@ -100,11 +100,17 @@ public partial class WalletLoadWorkflow
 		if (isBackendAvailable)
 		{
 			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
-			await Services.SmartHeaderChain.ServerTipInitializedTcs.Task.ConfigureAwait(true);
+			if (Services.SmartHeaderChain.ServerTipHeight is 0)
+			{
+				await Services.EventBus.WaitForEventAsync<ServerTipHeightChanged>();
+			}
 		}
 
 		// Wait until "client tip height" is initialized.
-		await Services.BitcoinStore.FilterStore.InitializedTcs.Task.ConfigureAwait(true);
+		if (Services.SmartHeaderChain.Tip is null)
+		{
+			await Services.EventBus.WaitForEventAsync<ClientTipHeightChanged>();
+		}
 
 		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 	}

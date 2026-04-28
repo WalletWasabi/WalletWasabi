@@ -75,10 +75,6 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	private readonly SmartHeaderChain _smartHeaderChain;
 	private readonly EventBus _eventBus;
 
-	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
-	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
-	public TaskCompletionSource<bool> InitializedTcs { get; } = new();
-
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
 	private BlockFilterSqliteStorage IndexStorage { get; set; }
@@ -96,41 +92,30 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 
 	public async Task InitializeAsync(ChainHeight oldestKnownTransactionHeight, CancellationToken cancellationToken)
 	{
-		try
+		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
-			using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
-			{
-				var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(oldestKnownTransactionHeight, _network);
+			var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(oldestKnownTransactionHeight, _network);
 
-				if (!IndexStorage.FetchLast(1).Any())
+			if (!IndexStorage.FetchLast(1).Any())
+			{
+				IndexStorage.TryAppend(checkpoint);
+			}
+			else
+			{
+				var currentMinHeight = IndexStorage.GetMinimumBlockHeight();
+
+				if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight)
 				{
+					Logger.LogInfo($"Recheckpointing filters: wallet with earlier birthday detected. " +
+								   $"Current minimum height: {currentMinHeight.Value}, " +
+								   $"Desired checkpoint: {checkpoint.Header.Height}");
+
+					IndexStorage.Clear();
 					IndexStorage.TryAppend(checkpoint);
 				}
-				else
-				{
-					var currentMinHeight = IndexStorage.GetMinimumBlockHeight();
-
-					if (currentMinHeight is { } minHeight && checkpoint.Header.Height < minHeight)
-					{
-						Logger.LogInfo($"Recheckpointing filters: wallet with earlier birthday detected. " +
-						               $"Current minimum height: {currentMinHeight.Value}, " +
-						               $"Desired checkpoint: {checkpoint.Header.Height}");
-
-						IndexStorage.Clear();
-						IndexStorage.TryAppend(checkpoint);
-					}
-				}
-
-				await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
-
-				// Initialization succeeded.
-				InitializedTcs.SetResult(true);
 			}
-		}
-		catch (Exception)
-		{
-			InitializedTcs.SetResult(false);
-			throw;
+
+			await InitializeFiltersNoLockAsync(cancellationToken).ConfigureAwait(false);
 		}
 	}
 
@@ -179,6 +164,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			}
 
 			_smartHeaderChain.AppendTip(filter.Header);
+			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
 
 			if (enqueue)
 			{
@@ -287,6 +273,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			}
 
 			_smartHeaderChain.RemoveTip();
+			_eventBus.Publish(new ClientTipHeightChanged(_smartHeaderChain.TipHeight));
 		}
 
 		_eventBus.Publish(new ChainReorganized(filter));
