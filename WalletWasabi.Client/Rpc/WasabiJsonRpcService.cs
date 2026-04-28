@@ -44,7 +44,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		var serverTipHeight = activeWallet.SmartHeaderChain.ServerTipHeight;
 		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(
 			x => new JsonRpcResult
 			{
@@ -67,7 +67,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = activeWallet.BitcoinStore.SmartHeaderChain.ServerTipHeight;
+		var serverTipHeight = activeWallet.SmartHeaderChain.ServerTipHeight;
 		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");

@@ -8,6 +8,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
 using System.Threading;
+using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.Services;
@@ -125,3 +126,6 @@ public record CpfpInfoArrived;
 public record WalletLoaded(Wallet Wallet);
 
 public record NewTransactionInMempool(SmartTransaction Transaction);
+public record ChainReorganized(FilterModel Filter);
+public record FiltersReceived(FilterModel[] Filters);
+public record WalletRelevantTransactionProcessed(ProcessedResult Result);

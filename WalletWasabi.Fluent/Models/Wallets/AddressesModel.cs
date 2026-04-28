@@ -6,14 +6,15 @@ using System.Reactive.Subjects;
 using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionProcessing;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 [AppLifetime]
-public partial class AddressesModel
+public class AddressesModel
 {
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
 	private readonly Wallet _wallet;
@@ -25,9 +26,7 @@ public partial class AddressesModel
 		_source = new SourceList<HdPubKey>();
 		_source.AddRange(GetUnusedKeys());
 
-		Observable.FromEventPattern<ProcessedResult>(
-				h => wallet.WalletRelevantTransactionProcessed += h,
-				h => wallet.WalletRelevantTransactionProcessed -= h)
+		Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 			.Do(_ => UpdateUnusedKeys())
 			.Subscribe();
 

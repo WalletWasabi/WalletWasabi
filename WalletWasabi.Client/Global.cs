@@ -77,7 +77,7 @@ public class Global
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		_allTransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain);
+		_filterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, smartHeaderChain, EventBus);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
 		BitcoinStore = new BitcoinStore(_filterStore, _allTransactionStore, smartHeaderChain);
@@ -319,7 +319,7 @@ public class Global
 
 		var filtersProvider = filtersProviderResult.Value;
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, BitcoinStore.FilterStore, BitcoinStore.SmartHeaderChain, EventBus));
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);

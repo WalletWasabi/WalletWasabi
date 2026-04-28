@@ -9,6 +9,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -18,16 +19,16 @@ public class TransactionProcessor
 		AllTransactionStore transactionStore,
 		MempoolService? mempoolService,
 		KeyManager keyManager,
-		Money dustThreshold)
+		Money dustThreshold,
+		EventBus eventBus)
 	{
 		TransactionStore = transactionStore;
 		_mempoolService = mempoolService;
+		_eventBus = eventBus;
 		KeyManager = keyManager;
 		DustThreshold = dustThreshold;
 		Coins = new();
 	}
-
-	public event EventHandler<ProcessedResult>? WalletRelevantTransactionProcessed;
 
 	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
 	public static object Lock { get; } = new();
@@ -40,6 +41,7 @@ public class TransactionProcessor
 	public CoinsRegistry Coins { get; }
 	public Money DustThreshold { get; }
 	private readonly MempoolService? _mempoolService;
+	private readonly EventBus _eventBus;
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -55,7 +57,7 @@ public class TransactionProcessor
 
 		foreach (var result in results.Where(x => x.IsNews))
 		{
-			WalletRelevantTransactionProcessed?.Invoke(this, result);
+			_eventBus.Publish(new WalletRelevantTransactionProcessed(result));
 		}
 
 		return results;
@@ -85,7 +87,7 @@ public class TransactionProcessor
 		}
 		if (ret.IsNews)
 		{
-			WalletRelevantTransactionProcessed?.Invoke(this, ret);
+			_eventBus.Publish(new WalletRelevantTransactionProcessed(ret));
 		}
 		return ret;
 	}

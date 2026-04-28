@@ -9,9 +9,9 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Stores;
 
@@ -20,10 +20,11 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class FilterStore : IFilterStore, IAsyncDisposable
 {
-	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain)
+	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain, EventBus eventBus)
 	{
 		_network = network;
 		_smartHeaderChain = smartHeaderChain;
+		_eventBus = eventBus;
 
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
@@ -65,10 +66,6 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 		}
 	}
 
-	public event EventHandler<FilterModel>? Reorged;
-
-	public event EventHandler<FilterModel[]>? NewFilters;
-
 	/// <summary>SQLite file path for migration purposes.</summary>
 	private readonly string _storageFilePath;
 
@@ -76,6 +73,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	private readonly Network _network;
 
 	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly EventBus _eventBus;
 
 	/// <summary>Task completion source that is completed once a <see cref="InitializeAsync(CancellationToken)"/> finishes.</summary>
 	/// <remarks><c>true</c> if it finishes successfully, <c>false</c> in all other cases.</remarks>
@@ -243,7 +241,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 
 				if (processed > 0)
 				{
-					NewFilters.SafeInvoke(this, filters.Take(processed).ToArray());
+					_eventBus.Publish(new FiltersReceived(filters.Take(processed).ToArray()));
 				}
 			}
 		}
@@ -291,7 +289,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			_smartHeaderChain.RemoveTip();
 		}
 
-		Reorged?.Invoke(this, filter);
+		_eventBus.Publish(new ChainReorganized(filter));
 
 		return filter;
 	}

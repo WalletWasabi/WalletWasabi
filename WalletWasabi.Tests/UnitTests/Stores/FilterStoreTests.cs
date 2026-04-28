@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
+using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -26,7 +27,7 @@ public class FilterStoreTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		await using var filterStore = new FilterStore(directory, Network.Main, new SmartHeaderChain());
+		await using var filterStore = new FilterStore(directory, Network.Main, new SmartHeaderChain(), new EventBus());
 		await filterStore.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.

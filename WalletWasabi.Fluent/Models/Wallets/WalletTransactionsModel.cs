@@ -24,7 +24,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletTransactionsModel : ReactiveObject, IDisposable
+public class WalletTransactionsModel : ReactiveObject, IDisposable
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
@@ -38,15 +38,15 @@ public partial class WalletTransactionsModel : ReactiveObject, IDisposable
 		_treeBuilder = new TransactionTreeBuilder(wallet);
 
 		TransactionProcessed =
-			Observable.FromEventPattern<ProcessedResult?>(wallet, nameof(wallet.WalletRelevantTransactionProcessed)).ToSignal()
-				.Merge(Observable.FromEventPattern(wallet, nameof(wallet.NewFiltersProcessed)).ToSignal())
+			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(Services.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			Observable.FromEventPattern<ProcessedResult>(wallet, nameof(wallet.WalletRelevantTransactionProcessed))
-				.Select(x => (walletModel, x.EventArgs))
+			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
 		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
