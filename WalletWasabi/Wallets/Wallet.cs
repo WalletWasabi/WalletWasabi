@@ -31,14 +31,18 @@ public class Wallet : BackgroundService, IWallet
 {
 	private readonly ComposedDisposable _disposables = new();
 
-	public static WalletFactory CreateFactory(Network network, BitcoinStore bitcoinStore, MempoolService mempoolService, ServiceConfiguration serviceConfiguration,
-		BlockProvider blockProvider, EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, bitcoinStore, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
+	public static WalletFactory CreateFactory(
+		Network network, FilterStore filterStore, AllTransactionStore transactionStore, SmartHeaderChain smartHeaderChain,
+		MempoolService mempoolService, ServiceConfiguration serviceConfiguration, BlockProvider blockProvider,
+		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
+		keyManager => new Wallet(network, keyManager, filterStore, transactionStore, smartHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
 
 	private Wallet(
 		Network network,
 		KeyManager keyManager,
-		BitcoinStore bitcoinStore,
+		FilterStore filterStore,
+		AllTransactionStore transactionStore,
+		SmartHeaderChain smartHeaderChain,
 		BlockProvider blockProvider,
 		MempoolService mempoolService,
 		ServiceConfiguration serviceConfiguration,
@@ -48,13 +52,15 @@ public class Wallet : BackgroundService, IWallet
 		Password = "";
 		Network = network;
 		KeyManager = keyManager;
-		BitcoinStore = bitcoinStore;
 		ServiceConfiguration = serviceConfiguration;
 		CpfpInfoProvider = cpfpInfoProvider;
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
+		_filterStore = filterStore;
+		TransactionStore = transactionStore;
+		SmartHeaderChain = smartHeaderChain;
 
-		TransactionProcessor = new TransactionProcessor(BitcoinStore.TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
-		WalletFilterProcessor = new WalletFilterProcessor(keyManager, BitcoinStore.TransactionStore, BitcoinStore.FilterStore, BitcoinStore.SmartHeaderChain, TransactionProcessor, blockProvider, eventBus);
+		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
+		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, SmartHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
@@ -70,15 +76,16 @@ public class Wallet : BackgroundService, IWallet
 	}
 
 	private readonly EventBus _eventBus;
+	private readonly FilterStore _filterStore;
+	public AllTransactionStore TransactionStore { get; }
+	public SmartHeaderChain SmartHeaderChain { get; }
 
 	public WalletId WalletId { get; }
 	public bool Loaded { get; private set; }
-	public BitcoinStore BitcoinStore { get; }
 	public KeyManager KeyManager { get; }
 	public ServiceConfiguration ServiceConfiguration { get; }
 	public FeeRateEstimations? FeeRateEstimations { get; private set; }
 	public string WalletName => KeyManager.WalletName;
-	public SmartHeaderChain SmartHeaderChain => BitcoinStore.SmartHeaderChain;
 
 	public CoinsRegistry Coins { get; }
 
@@ -325,7 +332,7 @@ public class Wallet : BackgroundService, IWallet
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
-		TransactionProcessor.Process(BitcoinStore.TransactionStore.ConfirmedStore.GetTransactions());
+		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
 		var lastHashesLeft = SmartHeaderChain.HashesLeft;
@@ -345,7 +352,7 @@ public class Wallet : BackgroundService, IWallet
 
 	private void LoadDummyMempool()
 	{
-		if (BitcoinStore.TransactionStore.MempoolStore.IsEmpty())
+		if (TransactionStore.MempoolStore.IsEmpty())
 		{
 			return;
 		}
@@ -354,7 +361,7 @@ public class Wallet : BackgroundService, IWallet
 		if (SmartHeaderChain.HashesLeft == 0)
 		{
 			var txsToProcess = new List<SmartTransaction>();
-			foreach (var tx in BitcoinStore.TransactionStore.MempoolStore.GetTransactions())
+			foreach (var tx in TransactionStore.MempoolStore.GetTransactions())
 			{
 				var txid = tx.GetHash();
 				if (DateTimeOffset.UtcNow - tx.FirstSeen < TimeSpan.FromDays(ServiceConfiguration.DropUnconfirmedTransactionsAfterDays))
@@ -363,7 +370,7 @@ public class Wallet : BackgroundService, IWallet
 				}
 				else
 				{
-					if (BitcoinStore.TransactionStore.MempoolStore.TryRemove(txid, out _))
+					if (TransactionStore.MempoolStore.TryRemove(txid, out _))
 					{
 						Logger.LogInfo(FormatLog($"Transaction {txid} dropped after {ServiceConfiguration.DropUnconfirmedTransactionsAfterDays} days being unconfirmed.", this));
 					}
@@ -374,7 +381,7 @@ public class Wallet : BackgroundService, IWallet
 		}
 		else
 		{
-			TransactionProcessor.Process(BitcoinStore.TransactionStore.MempoolStore.GetTransactions());
+			TransactionProcessor.Process(TransactionStore.MempoolStore.GetTransactions());
 		}
 	}
 

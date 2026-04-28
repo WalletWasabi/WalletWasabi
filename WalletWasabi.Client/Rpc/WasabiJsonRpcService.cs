@@ -44,7 +44,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = activeWallet.SmartHeaderChain.ServerTipHeight;
+		var serverTipHeight = Global.SmartHeaderChain.ServerTipHeight;
 		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(
 			x => new JsonRpcResult
 			{
@@ -67,7 +67,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = activeWallet.SmartHeaderChain.ServerTipHeight;
+		var serverTipHeight = Global.SmartHeaderChain.ServerTipHeight;
 		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
@@ -91,7 +91,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public object CreateWallet(string walletName, string password)
 	{
 		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
-		walletGenerator.TipHeight = Global.BitcoinStore.SmartHeaderChain.TipHeight;
+		walletGenerator.TipHeight = Global.SmartHeaderChain.TipHeight;
 		var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password, mnemonic: null);
 		Global.WalletManager.AddWallet(keyManager);
 		return mnemonic.ToString();
@@ -193,7 +193,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
-		var smartHeaderChain = Global.BitcoinStore.SmartHeaderChain;
+		var smartHeaderChain = Global.SmartHeaderChain;
 
 		return new JsonRpcResult
 		{
@@ -372,7 +372,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		activeWallet.TryLogin(password, out _);
-		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
 		{
 			throw new NotSupportedException($"Unknown transaction {txId}");
@@ -389,7 +389,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		activeWallet.TryLogin(password, out _);
-		var mempoolStore = Global.BitcoinStore.TransactionStore.MempoolStore;
+		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
 		{
 			throw new NotSupportedException($"Unknown transaction {txId}");

@@ -92,7 +92,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(uint256 id, CancellationToken cancellationToken)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}
@@ -125,7 +125,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
 		}
@@ -154,7 +154,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public CancellingTransaction CreateCancellingTransaction(TransactionModel transaction)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {transaction.Id}");
 		}
@@ -226,7 +226,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IEnumerable<BitcoinAddress> GetDestinationAddresses(uint256 id)
 	{
-		if (!_wallet.BitcoinStore.TransactionStore.TryGetTransaction(id, out var smartTransaction))
+		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
 		{
 			throw new InvalidOperationException($"Transaction not found! ID: {id}");
 		}

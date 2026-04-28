@@ -67,7 +67,7 @@ public partial class TransactionBroadcasterModel
 		return new TransactionBroadcastInfo(transactionId, tx.Inputs.Count, tx.Outputs.Count , spendingAmount, outputAmount, networkFee);
 
 		static TxOut? GetOutput(OutPoint outpoint) =>
-			Services.BitcoinStore.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+			Services.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
 				? prevTxn.Transaction.Outputs[outpoint.N]
 				: null;
 	}
