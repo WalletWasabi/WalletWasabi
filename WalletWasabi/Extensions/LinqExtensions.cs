@@ -164,18 +164,6 @@ public static class LinqExtensions
 		}
 	}
 
-	public static async IAsyncEnumerable<T> TakeUntilAsync<T>(this IAsyncEnumerable<T> list, Func<T, bool> predicate)
-	{
-		await foreach (T el in list)
-		{
-			yield return el;
-			if (predicate(el))
-			{
-				yield break;
-			}
-		}
-	}
-
 	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: class =>
 		source.Where(x => x is not null).Select(x => x!);
 
