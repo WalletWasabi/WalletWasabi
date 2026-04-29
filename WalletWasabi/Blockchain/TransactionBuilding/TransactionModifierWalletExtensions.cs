@@ -129,8 +129,8 @@ public static class TransactionModifierWalletExtensions
 		var network = wallet.Network;
 
 		var bestFeeRate = preferredFeeRate
-						  ?? wallet.FeeRateEstimations?.GetFeeRate(2)
-						  ?? throw new InvalidOperationException("Cannot get fee estimations.");
+			?? wallet.FeeRateEstimations?.GetFeeRate(2)
+			?? throw new InvalidOperationException("Cannot get fee estimations.");
 		Guard.NotNull(nameof(bestFeeRate), bestFeeRate);
 
 		var txSizeBytes = transactionToSpeedUp.Transaction.GetVirtualSize();
@@ -175,15 +175,15 @@ public static class TransactionModifierWalletExtensions
 
 		if (foreignOutputs.Length != 0)
 		{
-			// If we have no own output, then we substract the fee from the largest foreign output.
-			var largestForeignOuput = foreignOutputs.First();
-			var largestForeignOuputDestReq = new DestinationRequest(
-				scriptPubKey: largestForeignOuput.TxOut.ScriptPubKey,
+			// If we have no own output, then we subtract the fee from the largest foreign output.
+			var largestForeignOutput = foreignOutputs.First();
+			var largestForeignOutputDestReq = new DestinationRequest(
+				scriptPubKey: largestForeignOutput.TxOut.ScriptPubKey,
 				ownOutput is null
 					? MoneyRequest.CreateAllRemaining(subtractFee: true)
-					: MoneyRequest.Create(largestForeignOuput.TxOut.Value),
+					: MoneyRequest.Create(largestForeignOutput.TxOut.Value),
 				labels: transactionToSpeedUp.Labels);
-			payments.Add(largestForeignOuputDestReq);
+			payments.Add(largestForeignOutputDestReq);
 
 			foreach (var output in foreignOutputs.Skip(1))
 			{
