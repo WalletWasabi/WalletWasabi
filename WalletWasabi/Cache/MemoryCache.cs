@@ -9,15 +9,14 @@ public class MemoryCache<TKey, TValue> where TKey : notnull
 {
 	private readonly record struct ExpirableValue
 	{
-		public readonly TValue Value;
-		public readonly long WhenToEvict;
-
 		public ExpirableValue(TValue value, TimeSpan expiration)
 		{
 			Value = value;
 			WhenToEvict = Environment.TickCount64 + (long) expiration.TotalMilliseconds;
 		}
 
+		public TValue Value { get; }
+		public long WhenToEvict { get; }
 		public bool IsExpired => Environment.TickCount64 > WhenToEvict;
 	}
 
@@ -29,9 +28,8 @@ public class MemoryCache<TKey, TValue> where TKey : notnull
 
 	public MemoryCache(TimeSpan evictionInterval)
 	{
-		void Evict(object? _) => EvictExpiredCallback();
 		_evictionTimer = new Timer(
-			callback: Evict,
+			callback: _ => EvictExpiredCallback(),
 			state: null,
 			dueTime: evictionInterval,
 			period: evictionInterval);
@@ -43,14 +41,13 @@ public class MemoryCache<TKey, TValue> where TKey : notnull
 		{
 			if (expirationValue.IsExpired)
 			{
-				KeyValuePair<TKey, ExpirableValue>
-					kv = new KeyValuePair<TKey, ExpirableValue>(key, expirationValue);
+				var kv = new KeyValuePair<TKey, ExpirableValue>(key, expirationValue);
 				_internalDictionary.TryRemove(kv);
 				value = default;
 				return false;
 			}
 
-			value = expirationValue!.Value!;
+			value = expirationValue.Value!;
 			return true;
 		}
 
