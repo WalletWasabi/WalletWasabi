@@ -11,5 +11,5 @@ public static class TransactionSummaryExtensions
 	}
 
 	public static uint GetConfirmations(this TransactionSummary model)
-		=> model.Transaction.GetConfirmations(Services.SmartHeaderChain.ServerTipHeight);
+		=> model.Transaction.GetConfirmations(Services.Instance.GetServerTipHeight());
 }

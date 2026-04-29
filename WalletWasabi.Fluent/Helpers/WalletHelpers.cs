@@ -20,13 +20,13 @@ public static class WalletHelpers
 	}
 
 	/// <returns>Labels ordered by blockchain.</returns>
-	public static IEnumerable<LabelsArray> GetTransactionLabels() => Services.TransactionStore.GetLabels();
+	public static IEnumerable<LabelsArray> GetTransactionLabels() => Services.Instance.GetTransactionLabels();
 
 	public static List<LabelsByWallet> GetLabelsByWallets()
 	{
 		var result = new List<LabelsByWallet>();
 
-		foreach (var wallet in Services.WalletManager.GetWallets())
+		foreach (var wallet in Services.Instance.GetWallets())
 		{
 			var (changeLabels, receiveLabels) = wallet.KeyManager.GetLabels();
 			result.Add(new LabelsByWallet(wallet.WalletId, changeLabels, receiveLabels));

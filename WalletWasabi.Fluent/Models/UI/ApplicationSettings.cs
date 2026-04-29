@@ -76,7 +76,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_persistentConfigFilePath = Services.PersistentConfigFilePath;
+		_persistentConfigFilePath = Services.Instance.PersistentConfigFilePath;
 		_startupConfig = persistentConfig;
 
 		_config = config;
@@ -230,7 +230,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
-			.Do(x => Services.EventBus.Publish(new InstallOnClosedPreferenceChanged(x)))
+			.Do(x => Services.Instance.EventBus.Publish(new InstallOnClosedPreferenceChanged(x)))
 			.Subscribe();
 	}
 

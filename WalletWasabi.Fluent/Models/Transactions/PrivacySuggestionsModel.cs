@@ -46,8 +46,8 @@ public partial class PrivacySuggestionsModel
 	{
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
-		_cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
-		Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
+		_cjManager = Services.Instance.GetHostedService<CoinJoinManager>();
+		Services.Instance.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>

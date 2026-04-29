@@ -46,6 +46,6 @@ public partial class CoinjoinModel : ReactiveObject
 
 	private CoinJoinManager? GetCoinjoinManager()
 	{
-		return _coinJoinManager ??= Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		return _coinJoinManager ??= Services.Instance.GetHostedService<CoinJoinManager>();
 	}
 }

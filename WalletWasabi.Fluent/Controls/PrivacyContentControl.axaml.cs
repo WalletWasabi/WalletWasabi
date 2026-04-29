@@ -31,7 +31,7 @@ public class PrivacyContentControl : ContentControl
 
 	private readonly CompositeDisposable _disposables = new();
 
-	private readonly UiConfig _uiConfig = Services.UiConfig;
+	private readonly UiConfig _uiConfig = Services.Instance.UiConfig;
 
 	public PrivacyContentControl()
 	{

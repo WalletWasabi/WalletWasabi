@@ -111,7 +111,7 @@ public class TreeDataGridPrivacyTextCell : TreeDataGridCell
 
 		_subscription = PrivacyModeHelper.DelayedRevealAndHide(
 				this.WhenAnyValue(x => x.IsPointerOver),
-				Services.UiConfig.WhenAnyValue(x => x.PrivacyMode))
+				Services.Instance.UiConfig.WhenAnyValue(x => x.PrivacyMode))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SkipWhile(_ => _ignorePrivacyMode)
 			.Do(SetContentVisible)

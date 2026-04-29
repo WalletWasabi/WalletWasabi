@@ -27,14 +27,14 @@ public partial class WalletLoadWorkflow
 		_progress = new();
 		_progress.OnNext((0, 0, 0, 0));
 
-		Services.EventBus.AsObservable<ServerTipHeightChanged>()
+		Services.Instance.EventBus.AsObservable<ServerTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(e => true)
 			.Take(1)
 			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
 			.DisposeWith(_disposables);
 
-		Services.EventBus.AsObservable<FilterProcessed>()
+		Services.Instance.EventBus.AsObservable<FilterProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
@@ -42,7 +42,7 @@ public partial class WalletLoadWorkflow
 			.Subscribe(x => _latestProcessBlockHeight = x)
 			.DisposeWith(_disposables);
 
-		LoadCompleted = Services.EventBus.AsObservable<WalletLoaded>()
+		LoadCompleted = Services.Instance.EventBus.AsObservable<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Where(x => x.Wallet == _wallet)
 			.Select(x => x.Wallet.Loaded)
@@ -54,7 +54,7 @@ public partial class WalletLoadWorkflow
 	public IObservable<Unit> LoadCompleted { get; }
 
 	private uint InitialHeight { get; set; }
-	private uint RemainingFiltersToDownload => (uint)Services.SmartHeaderChain.HashesLeft;
+	private uint RemainingFiltersToDownload => (uint)Services.Instance.GetHashesLeft();
 
 	public void Start()
 	{
@@ -83,7 +83,7 @@ public partial class WalletLoadWorkflow
 
 		try
 		{
-			await Task.Run(async () => await Services.WalletManager.StartWalletAsync(_wallet));
+			await Task.Run(async () => await Services.Instance.StartWalletAsync(_wallet));
 		}
 		catch (OperationCanceledException ex)
 		{
@@ -100,21 +100,21 @@ public partial class WalletLoadWorkflow
 		if (isBackendAvailable)
 		{
 			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
-			await Services.EventBus.WaitForEventAsync<ServerTipHeightChanged>(
-				() => Services.SmartHeaderChain.ServerTipHeight > 0);
+			await Services.Instance.EventBus.WaitForEventAsync<ServerTipHeightChanged>(
+				() => Services.Instance.GetServerTipHeight() > 0);
 		}
 
 		// Wait until "client tip height" is initialized.
-		await Services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
-			() => Services.SmartHeaderChain.Tip is not null);
+		await Services.Instance.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
+			() => Services.Instance.GetTip() is not null);
 
 		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 	}
 
 	private void UpdateProgress()
 	{
-		var serverTipHeight = Services.SmartHeaderChain.ServerTipHeight;
-		var clientTipHeight = Services.SmartHeaderChain.TipHeight;
+		var serverTipHeight = Services.Instance.GetServerTipHeight();
+		var clientTipHeight = Services.Instance.GetTipHeight();
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
 		if (_latestProcessBlockHeight == 0 || tipHeight == 0)

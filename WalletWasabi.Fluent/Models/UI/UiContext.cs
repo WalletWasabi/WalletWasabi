@@ -12,7 +12,9 @@ public class UiContext
 {
 	private INavigate? _navigate;
 
-	public UiContext(QrCodeGenerator qrCodeGenerator,
+	public UiContext(
+		IServices services,
+		QrCodeGenerator qrCodeGenerator,
 		QrCodeReader qrCodeReader,
 		UiClipboard clipboard,
 		WalletRepository walletRepository,
@@ -29,6 +31,7 @@ public class UiContext
 		ReleaseHighlights releaseHighlights,
 		Daemon.Scheme? scheme = null)
 	{
+		Services = services ?? throw new ArgumentNullException(nameof(services));
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
 		QrCodeReader = qrCodeReader ?? throw new ArgumentNullException(nameof(qrCodeReader));
 		Clipboard = clipboard ?? throw new ArgumentNullException(nameof(clipboard));
@@ -47,6 +50,7 @@ public class UiContext
 		Scheme = scheme;
 	}
 
+	public IServices Services { get; }
 	public UiClipboard Clipboard { get; }
 	public QrCodeGenerator QrCodeGenerator { get; }
 	public WalletRepository WalletRepository { get; }

@@ -99,7 +99,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		_coinjoin = new(() =>
 		{
-			var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+			var coinJoinManager = Services.Instance.GetHostedService<CoinJoinManager>();
 			return coinJoinManager is not null
 				? new WalletCoinjoinModel(Wallet, coinJoinManager, Settings)
 				: null;
@@ -111,7 +111,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 		Addresses = new AddressesModel(Wallet);
 
-		Loaded = Services.EventBus.AsObservable<WalletLoaded>()
+		Loaded = Services.Instance.EventBus.AsObservable<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => Wallet.Loaded);
 
@@ -210,7 +210,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public void Rename(string newWalletName)
 	{
-		Services.WalletManager.RenameWallet(Wallet, newWalletName);
+		Services.Instance.RenameWallet(Wallet, newWalletName);
 		this.RaisePropertyChanged(nameof(Name));
 	}
 }

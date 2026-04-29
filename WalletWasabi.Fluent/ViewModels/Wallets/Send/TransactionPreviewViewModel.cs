@@ -476,7 +476,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 	private async Task SendTransactionAsync(SmartTransaction transaction)
 	{
-		await Services.TransactionBroadcaster.SendTransactionAsync(transaction);
+		await UiContext.Services.SendTransactionAsync(transaction);
 	}
 
 	private async Task<SmartTransaction> GetFinalTransactionAsync(SmartTransaction transaction, TransactionInfo transactionInfo)
@@ -515,7 +515,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 			return;
 		}
 
-		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		var cjManager = UiContext.Services.GetHostedService<CoinJoinManager>();
 
 		var usedCoins = transaction.SpentCoins;
 		var pockets = _sendFlow.GetPockets();

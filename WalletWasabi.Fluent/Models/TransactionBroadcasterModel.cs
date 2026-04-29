@@ -67,13 +67,13 @@ public partial class TransactionBroadcasterModel
 		return new TransactionBroadcastInfo(transactionId, tx.Inputs.Count, tx.Outputs.Count , spendingAmount, outputAmount, networkFee);
 
 		static TxOut? GetOutput(OutPoint outpoint) =>
-			Services.TransactionStore.TryGetTransaction(outpoint.Hash, out var prevTxn)
+			Services.Instance.TryGetTransaction(outpoint.Hash, out var prevTxn)
 				? prevTxn.Transaction.Outputs[outpoint.N]
 				: null;
 	}
 
 	public Task SendAsync(SmartTransaction transaction)
 	{
-		return Services.TransactionBroadcaster.SendTransactionAsync(transaction);
+		return Services.Instance.SendTransactionAsync(transaction);
 	}
 }

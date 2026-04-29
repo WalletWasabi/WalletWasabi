@@ -222,7 +222,7 @@ public static class WasabiAppExtensions
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global, uiConfig, app.SingleInstanceChecker, app.TerminateService);
+				Services.Initialize(app.Global, uiConfig, app.TerminateService);
 
 				using CancellationTokenSource stopLoadingCts = new();
 

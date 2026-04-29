@@ -112,7 +112,7 @@ public class App : Application
 
 	private static ApplicationSettings CreateApplicationSettings()
 	{
-		return new ApplicationSettings(Services.PersistentConfig, Services.Config, Services.UiConfig);
+		return new ApplicationSettings(Services.Instance.PersistentConfig, Services.Instance.Config, Services.Instance.UiConfig);
 	}
 
 	private static TransactionBroadcasterModel CreateBroadcaster(Network network)
@@ -135,6 +135,7 @@ public class App : Application
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
+			Services.Instance,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
@@ -150,6 +151,6 @@ public class App : Application
 			torStatusChecker,
 			new HealthMonitor(torStatusChecker),
 			new ReleaseHighlights(),
-			Services.Scheme);
+			Services.Instance.Scheme);
 	}
 }

@@ -54,7 +54,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	{
 		var blockTarget = FeeChart.CurrentConfirmationTarget;
 		_transactionInfo.ConfirmationTimeSpan = TransactionFeeHelper.CalculateConfirmationTime(blockTarget);
-		Services.UiConfig.FeeTarget = (int)blockTarget;
+		UiContext.Services.SetFeeTarget((int)blockTarget);
 		Close(DialogResultKind.Normal, new FeeRate(FeeChart.GetSatoshiPerByte(blockTarget)));
 	}
 
@@ -99,7 +99,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		base.OnNavigatedTo(isInHistory, disposables);
 
-		Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+		UiContext.Services.EventBus.AsObservable<MiningFeeRatesChanged>()
 			.Select(e =>
 			{
 				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _wallet.Network, out var estimates);

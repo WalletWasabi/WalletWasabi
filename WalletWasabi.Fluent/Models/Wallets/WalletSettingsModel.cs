@@ -43,7 +43,7 @@ public partial class WalletSettingsModel : ReactiveObject
 
 		if (!isNewWallet)
 		{
-			_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+			_outputWalletId = Services.Instance.GetWalletByName(_keyManager.WalletName).WalletId;
 		}
 
 		_defaultReceiveScriptType = ScriptType.FromEnum(_keyManager.DefaultReceiveScriptType);
@@ -86,15 +86,15 @@ public partial class WalletSettingsModel : ReactiveObject
 
 			if (IsNewWallet)
 			{
-				Services.WalletManager.AddWallet(_keyManager);
+				Services.Instance.AddWallet(_keyManager);
 				IsNewWallet = false;
-				OutputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+				OutputWalletId = Services.Instance.GetWalletByName(_keyManager.WalletName).WalletId;
 			}
 
 			_isDirty = false;
 		}
 
-		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+		return Services.Instance.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
 
 	private void SetValues()

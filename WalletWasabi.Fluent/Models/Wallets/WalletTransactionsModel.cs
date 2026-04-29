@@ -38,18 +38,18 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		_treeBuilder = new TransactionTreeBuilder(wallet);
 
 		TransactionProcessed =
-			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
-				.Merge(Services.EventBus.AsObservable<FiltersReceived>().ToSignal())
+			Services.Instance.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(Services.Instance.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+			Services.Instance.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+		RequestedCpfpInfoArrived = Services.Instance.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
@@ -199,7 +199,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task SendAsync(BuildTransactionResult transaction)
 	{
-		await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
+		await Services.Instance.SendTransactionAsync(transaction.Transaction);
 		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 	}
 

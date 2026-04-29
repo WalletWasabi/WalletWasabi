@@ -336,7 +336,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	private void SetSkip()
 	{
 #if RELEASE
-		IsSkipEnabled = Services.WalletManager.Network != NBitcoin.Network.Main || System.Diagnostics.Debugger.IsAttached;
+		IsSkipEnabled = UiContext.Services.GetNetwork() != NBitcoin.Network.Main || System.Diagnostics.Debugger.IsAttached;
 #else
 		IsSkipEnabled = true;
 #endif

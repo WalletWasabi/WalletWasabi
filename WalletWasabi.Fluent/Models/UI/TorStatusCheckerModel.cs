@@ -11,7 +11,7 @@ public partial class TorStatusCheckerModel
 {
 	public TorStatusCheckerModel()
 	{
-		Issues = Services.EventBus
+		Issues = Services.Instance.EventBus
 			.AsObservable<TorNetworkStatusChanged>()
 			.Select(e => e.ReportedIssues.ToList());
 	}

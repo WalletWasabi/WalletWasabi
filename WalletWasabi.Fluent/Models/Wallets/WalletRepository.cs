@@ -28,12 +28,12 @@ public partial class WalletRepository : ReactiveObject
 		_amountProvider = amountProvider;
 
 		var signals =
-			Observable.FromEventPattern<Wallet>(Services.WalletManager, nameof(WalletManager.WalletAdded))
+			Observable.FromEventPattern<Wallet>(Services.Instance.WalletManager, nameof(WalletManager.WalletAdded))
 					  .Select(_ => System.Reactive.Unit.Default)
 					  .StartWith(System.Reactive.Unit.Default);
 
 		Wallets =
-			signals.Fetch(() => Services.WalletManager.GetWallets(), x => x.WalletId)
+			signals.Fetch(() => Services.Instance.GetWallets(), x => x.WalletId)
 				   .DisposeWith(_disposable)
 				   .Connect()
 				   .TransformWithInlineUpdate(CreateWalletModel, (_, _) => { })
@@ -41,24 +41,24 @@ public partial class WalletRepository : ReactiveObject
 				   .AsObservableCache()
 				   .DisposeWith(_disposable);
 
-		DefaultWalletName = Services.UiConfig.LastSelectedWallet;
+		DefaultWalletName = Services.Instance.GetLastSelectedWallet();
 	}
 
 	public IObservableCache<IWalletModel, WalletId> Wallets { get; }
 
 	public string? DefaultWalletName { get; }
-	public bool HasWallet => Services.WalletManager.HasWallet();
+	public bool HasWallet => Services.Instance.HasWallet();
 
-	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.WalletManager.Network, ScriptPubKeyType.Segwit);
+	private KeyPath AccountKeyPath { get; } = KeyManager.GetAccountKeyPath(Services.Instance.GetNetwork(), ScriptPubKeyType.Segwit);
 
 	public void StoreLastSelectedWallet(IWalletModel wallet)
 	{
-		Services.UiConfig.LastSelectedWallet = wallet.Name;
+		Services.Instance.SetLastSelectedWallet(wallet.Name);
 	}
 
 	public string GetNextWalletName()
 	{
-		return Services.WalletManager.WalletDirectories.GetNextWalletName("Wallet");
+		return Services.Instance.GetNextWalletName("Wallet");
 	}
 
 	public async Task<WalletSettingsModel> NewWalletAsync(WalletCreationOptions options, CancellationToken? cancelToken = null)
@@ -83,12 +83,12 @@ public partial class WalletRepository : ReactiveObject
 
 	public (ErrorSeverity Severity, string Message)? ValidateWalletName(string walletName)
 	{
-		return Services.WalletManager.ValidateWalletName(walletName);
+		return Services.Instance.ValidateWalletName(walletName);
 	}
 
 	public IWalletModel? GetExistingWallet(HwiEnumerateEntry device)
 	{
-		var existingWallet = Services.WalletManager.GetWallets().FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
+		var existingWallet = Services.Instance.GetWallets().FirstOrDefault(x => x.KeyManager.MasterFingerprint == device.Fingerprint);
 		if (existingWallet is { })
 		{
 			return GetById(existingWallet.WalletId);
@@ -108,10 +108,10 @@ public partial class WalletRepository : ReactiveObject
 				() =>
 				{
 					var walletGenerator = new WalletGenerator(
-						Services.WalletManager.WalletDirectories.WalletsDir,
-						Services.WalletManager.Network)
+						Services.Instance.GetWalletsDir(),
+						Services.Instance.GetNetwork())
 					{
-						TipHeight = Services.SmartHeaderChain.TipHeight
+						TipHeight = Services.Instance.GetTipHeight()
 					};
 
 					return walletBackup switch
@@ -141,8 +141,8 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentNullException.ThrowIfNull(device);
 		ArgumentNullException.ThrowIfNull(cancelToken);
 
-		var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
-		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.WalletManager.Network, cancelToken.Value);
+		var walletFilePath = Services.Instance.GetWalletFilePath(walletName);
+		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, Services.Instance.GetNetwork(), cancelToken.Value);
 		keyManager.SetIcon(device.WalletType);
 
 		var result = new WalletSettingsModel(keyManager, true);
@@ -156,7 +156,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentException.ThrowIfNullOrEmpty(filePath);
 
-		var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.WalletManager, walletName, filePath);
+		var keyManager = await ImportWalletHelper.ImportWalletAsync(Services.Instance.WalletManager, walletName, filePath);
 		return new WalletSettingsModel(keyManager, true);
 	}
 
@@ -170,7 +170,7 @@ public partial class WalletRepository : ReactiveObject
 
 		var keyManager = await Task.Run(() =>
 		{
-			var walletFilePath = Services.WalletManager.WalletDirectories.GetWalletFilePaths(walletName);
+			var walletFilePath = Services.Instance.GetWalletFilePath(walletName);
 
 			var result = walletBackup switch
 			{
@@ -178,7 +178,7 @@ public partial class WalletRepository : ReactiveObject
 					KeyManager.Recover(
 						recoveryWordsBackup.Mnemonic,
 						recoveryWordsBackup.Password,
-						Services.WalletManager.Network,
+						Services.Instance.GetNetwork(),
 						AccountKeyPath,
 						null,
 						"", // Make sure it is not saved into a file yet.
@@ -188,7 +188,7 @@ public partial class WalletRepository : ReactiveObject
 					KeyManager.Recover(
 						multiShareBackup.Shares,
 						multiShareBackup.Password,
-						Services.WalletManager.Network,
+						Services.Instance.GetNetwork(),
 						AccountKeyPath,
 						null,
 						"", // Make sure it is not saved into a file yet.

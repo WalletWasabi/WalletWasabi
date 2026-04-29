@@ -155,7 +155,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 			{
 				if (Settings.UseTor != TorMode.Disabled)
 				{
-					var httpClient = Services.HttpClientFactory.CreateClient("test-rpc-connection");
+					var httpClient = UiContext.Services.CreateHttpClient("test-rpc-connection");
 					rpcClient.HttpClient = httpClient;
 				}
 				else

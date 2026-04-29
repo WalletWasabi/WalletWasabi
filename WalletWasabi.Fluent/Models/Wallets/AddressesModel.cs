@@ -26,7 +26,7 @@ public class AddressesModel
 		_source = new SourceList<HdPubKey>();
 		_source.AddRange(GetUnusedKeys());
 
-		Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		Services.Instance.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 			.Do(_ => UpdateUnusedKeys())
 			.Subscribe();
 
