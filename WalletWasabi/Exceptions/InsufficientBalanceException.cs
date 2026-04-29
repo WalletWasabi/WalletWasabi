@@ -6,8 +6,8 @@ public class InsufficientBalanceException : Exception
 {
 	public InsufficientBalanceException(Money minimum, Money actual) : base($"Needed: {minimum.ToString(false, true)} BTC, got only: {actual.ToString(false, true)} BTC.")
 	{
-		Minimum = minimum ?? Money.Zero;
-		Actual = actual ?? Money.Zero;
+		Minimum = minimum;
+		Actual = actual;
 	}
 
 	public Money Minimum { get; }
