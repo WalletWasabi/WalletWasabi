@@ -25,7 +25,8 @@ public partial class LabelSelectionViewModel : ViewModelBase
 	private Pocket _semiPrivatePocket = Pocket.Empty;
 	private Pocket[] _allPockets = Array.Empty<Pocket>();
 
-	public LabelSelectionViewModel(KeyManager keyManager, string password, TransactionInfo info, bool isSilent)
+	public LabelSelectionViewModel(UiContext uiContext, KeyManager keyManager, string password, TransactionInfo info,
+		bool isSilent) : base(uiContext)
 	{
 		_keyManager = keyManager;
 		_password = password;
@@ -194,7 +195,7 @@ public partial class LabelSelectionViewModel : ViewModelBase
 		NonPrivatePockets = _allPockets.Where(x => x != _privatePocket && x != _semiPrivatePocket).ToArray();
 
 		var allLabels = LabelsArray.Merge(NonPrivatePockets.Select(x => x.Labels));
-		AllLabelsViewModel = allLabels.Select(x => new LabelViewModel(this, x)).ToArray();
+		AllLabelsViewModel = allLabels.Select(x => new LabelViewModel(UiContext, this, x)).ToArray();
 
 		if (AllLabelsViewModel.FirstOrDefault(x => x.Value == CoinPocketHelper.UnlabelledFundsText) is { } unlabelledViewModel)
 		{

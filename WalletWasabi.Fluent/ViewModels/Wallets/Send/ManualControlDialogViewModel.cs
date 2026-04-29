@@ -1,6 +1,3 @@
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -29,9 +26,9 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 
-	private ManualControlDialogViewModel(IWalletModel walletModel, Wallet wallet)
+	public ManualControlDialogViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
 	{
-		CoinList = new CoinListViewModel(walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
+		CoinList = new CoinListViewModel(uiContext, walletModel.Coins, [], allowCoinjoiningCoinSelection: true, ignorePrivacyMode: true, allowSelection: true);
 
 		var nextCommandCanExecute =
 			CoinList.Selection

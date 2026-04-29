@@ -11,20 +11,17 @@ using System.Threading.Tasks;
 using System.Windows.Input;
 using Avalonia.Threading;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client;
@@ -79,9 +76,8 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ObservableCollection<RecipientRowViewModel> _additionalRecipients;
 	private bool _isRecalculating;
 
-	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters)
+	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters) : base(uiContext)
 	{
-		UiContext = uiContext;
 		_to = "";
 
 		_wallet = parameters.Wallet;
@@ -99,7 +95,7 @@ public partial class SendViewModel : RoutableViewModel
 			? Observable.Return(_walletModel.AmountProvider.Create(_parameters.AvailableAmount))
 			: _walletModel.Balances;
 
-		_suggestionLabels = new SuggestionLabelsViewModel(_walletModel, Intent.Send, 3);
+		_suggestionLabels = new SuggestionLabelsViewModel(uiContext, _walletModel, Intent.Send, 3);
 
 		_defaultLabel = _parameters.Donate ? "Wasabi team" : "";
 
@@ -293,6 +289,7 @@ public partial class SendViewModel : RoutableViewModel
 	private void OnAddRecipient()
 	{
 		var row = new RecipientRowViewModel(
+			UiContext,
 			_walletModel,
 			_walletModel.Network,
 			onRemove: r =>
@@ -582,6 +579,7 @@ public partial class SendViewModel : RoutableViewModel
 							if (!string.IsNullOrEmpty(bip21.Label))
 							{
 								SuggestionLabels = new SuggestionLabelsViewModel(
+									UiContext,
 									_walletModel,
 									Intent.Send,
 									3,

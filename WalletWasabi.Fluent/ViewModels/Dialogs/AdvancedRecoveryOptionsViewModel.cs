@@ -16,7 +16,8 @@ public partial class AdvancedRecoveryOptionsViewModel : DialogViewModelBase<(int
 
 	private readonly uint _wasabiGenesisHeight;
 
-	public AdvancedRecoveryOptionsViewModel(int minGapLimit, Height.ChainHeight wasabiGenesisHeight)
+	public AdvancedRecoveryOptionsViewModel(UiContext uiContext, int minGapLimit,
+		Height.ChainHeight wasabiGenesisHeight) : base(uiContext)
 	{
 		_minGapLimit = minGapLimit.ToString();
 		_wasabiGenesisHeight = wasabiGenesisHeight;

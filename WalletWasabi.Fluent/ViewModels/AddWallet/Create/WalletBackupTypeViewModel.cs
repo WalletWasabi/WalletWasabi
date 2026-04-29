@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -13,7 +11,7 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 	[AutoNotify] private WalletBackupType _walletBackupType;
 	[AutoNotify] private List<WalletBackupType> _walletBackupTypes;
 
-	private WalletBackupTypeViewModel(WalletCreationOptions options)
+	public WalletBackupTypeViewModel(UiContext uiContext, WalletCreationOptions options) : base(uiContext)
 	{
 		switch (options)
 		{

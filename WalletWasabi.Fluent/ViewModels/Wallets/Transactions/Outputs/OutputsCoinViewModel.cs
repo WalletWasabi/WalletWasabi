@@ -6,8 +6,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 public class OutputsCoinViewModel : OutputsCoinListItem
 {
-    public OutputsCoinViewModel(TxOut txOut, Network network, bool isOwn, bool isChange)
-	{
+    public OutputsCoinViewModel(UiContext uiContext, TxOut txOut, Network network, bool isOwn, bool isChange) : base(uiContext)
+    {
 		TxOut = txOut;
 		Amount = new Amount(txOut.Value);
 		BtcAddress = txOut.ScriptPubKey.GetDestinationAddress(network)?.ToString();
@@ -16,7 +16,7 @@ public class OutputsCoinViewModel : OutputsCoinListItem
 		TitleText = "";
 	}
 
-	public OutputsCoinViewModel(OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? nbDiff)
+	public OutputsCoinViewModel(UiContext uiContext, OutputsCoinViewModel[] coins, int outputCount, bool isExpanded, int? nbDiff) : base(uiContext)
 	{
 		Amount = new Amount(coins.Sum(x => x.Amount.Btc));
 		Children = coins;

@@ -1,11 +1,8 @@
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -16,7 +13,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 	[AutoNotify] private byte? _shares;
 	[AutoNotify] private byte? _threshold;
 
-	private MultiShareOptionsViewModel(WalletCreationOptions.AddNewWallet options)
+	public MultiShareOptionsViewModel(UiContext uiContext, WalletCreationOptions.AddNewWallet options) : base(uiContext)
 	{
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 

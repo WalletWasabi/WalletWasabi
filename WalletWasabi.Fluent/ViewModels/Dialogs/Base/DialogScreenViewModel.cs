@@ -13,7 +13,7 @@ public partial class DialogScreenViewModel : TargettedNavigationStack
 	[AutoNotify] private bool _isDialogOpen;
 	[AutoNotify] private bool _showAlert;
 
-	public DialogScreenViewModel(NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(navigationTarget)
+	public DialogScreenViewModel(UiContext uiContext, NavigationTarget navigationTarget = NavigationTarget.DialogScreen) : base(uiContext, navigationTarget)
 	{
 		this.WhenAnyValue(x => x.IsDialogOpen)
 			.Skip(1) // Skip the initial value change (which is false).

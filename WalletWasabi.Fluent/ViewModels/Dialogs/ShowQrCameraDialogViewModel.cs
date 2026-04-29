@@ -20,12 +20,11 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 	[AutoNotify] private string _errorMessage = "";
 	[AutoNotify] private string _qrContent = "";
 
-	public ShowQrCameraDialogViewModel(UiContext context, Network network)
+	public ShowQrCameraDialogViewModel(UiContext uiContext, Network network) : base(uiContext)
 	{
 		_network = network;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-		UiContext = context;
 	}
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)

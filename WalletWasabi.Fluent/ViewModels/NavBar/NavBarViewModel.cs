@@ -2,11 +2,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
@@ -21,10 +17,8 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 {
 	[AutoNotify] private WalletPageViewModel? _selectedWallet;
 
-	public NavBarViewModel(UiContext uiContext)
+	public NavBarViewModel(UiContext uiContext) : base(uiContext)
 	{
-		UiContext = uiContext;
-
 		BottomItems = new ObservableCollection<NavBarItemViewModel>();
 
 		UiContext.WalletRepository
@@ -93,7 +87,7 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 
 			if (viewModel is INavBarItem navBarItem)
 			{
-				BottomItems.Add(new NavBarItemViewModel(navBarItem));
+				BottomItems.Add(new NavBarItemViewModel(UiContext, navBarItem));
 			}
 		}
 	}

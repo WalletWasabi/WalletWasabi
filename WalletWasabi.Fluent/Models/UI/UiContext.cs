@@ -10,12 +10,6 @@ namespace WalletWasabi.Fluent.Models.UI;
 
 public class UiContext
 {
-	/// <summary>
-	///     The use of this property is a temporary workaround until we finalize the refactoring of all ViewModels (to be
-	///     testable)
-	/// </summary>
-	public static UiContext Default;
-
 	private INavigate? _navigate;
 
 	public UiContext(QrCodeGenerator qrCodeGenerator,

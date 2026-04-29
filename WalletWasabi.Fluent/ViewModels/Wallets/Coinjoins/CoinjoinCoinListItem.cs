@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using NBitcoin;
-using ReactiveUI;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -17,7 +16,7 @@ public abstract partial class CoinjoinCoinListItem : ViewModelBase, ITreeDataGri
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 
-	protected CoinjoinCoinListItem()
+	protected CoinjoinCoinListItem(UiContext uiContext) : base(uiContext)
 	{
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 

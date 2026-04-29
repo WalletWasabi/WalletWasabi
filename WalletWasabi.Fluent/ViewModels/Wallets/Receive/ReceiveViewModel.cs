@@ -1,12 +1,8 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData;
-using DynamicData.Binding;
 using DynamicData.Aggregation;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -30,7 +26,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 	private readonly ScriptType _scriptType;
 	private readonly CompositeDisposable _disposables = new();
 
-	private ReceiveViewModel(IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType)
+	public ReceiveViewModel(UiContext uiContext, IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType) : base(uiContext)
 	{
 		_wallet = wallet;
 		_scriptType = scriptType;
@@ -39,7 +35,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 
 		EnableBack = false;
 
-		SuggestionLabels = new SuggestionLabelsViewModel(wallet, Intent.Receive, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(uiContext, wallet, Intent.Receive, 3);
 
 		var nextCommandCanExecute =
 			SuggestionLabels

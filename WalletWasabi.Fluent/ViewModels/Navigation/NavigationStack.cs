@@ -12,7 +12,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 	[AutoNotify] private bool _canNavigateBack;
 	private bool _operationsEnabled = true;
 
-	protected NavigationStack()
+	protected NavigationStack(UiContext uiContext) : base(uiContext)
 	{
 		_backStack = new Stack<T>();
 	}

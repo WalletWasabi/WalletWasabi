@@ -5,7 +5,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 public class RecipientSummaryViewModel : ViewModelBase
 {
-	public RecipientSummaryViewModel(string addressText, Amount amount, LabelsArray recipient)
+	public RecipientSummaryViewModel(UiContext uiContext, string addressText, Amount amount, LabelsArray recipient) : base(uiContext)
 	{
 		AddressText = addressText;
 		Amount = amount;

@@ -3,21 +3,15 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
-using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Fluent.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 
@@ -28,7 +22,7 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 	[AutoNotify] private bool _isMnemonicsValid;
 
-	private RecoverWalletViewModel(WalletCreationOptions.RecoverWallet options)
+	public RecoverWalletViewModel(UiContext uiContext, WalletCreationOptions.RecoverWallet options) : base(uiContext)
 	{
 		Suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 		BirthHeight = CalculateBirthHeight();

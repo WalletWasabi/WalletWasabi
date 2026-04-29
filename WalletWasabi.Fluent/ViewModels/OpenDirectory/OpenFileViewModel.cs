@@ -1,17 +1,10 @@
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
-public abstract class OpenFileViewModel : TriggerCommandViewModel
+public abstract class OpenFileViewModel(UiContext uiContext) : TriggerCommandViewModel(uiContext)
 {
-	public OpenFileViewModel(UiContext uiContext)
-	{
-		UiContext = uiContext;
-	}
-
 	public abstract string FilePath { get; }
 
 	public override ICommand TargetCommand =>

@@ -1,5 +1,4 @@
 using System.Windows.Input;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -15,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	IconName = "person_support_regular")]
 public partial class UserSupportViewModel : TriggerCommandViewModel
 {
-	private UserSupportViewModel()
+	public UserSupportViewModel(UiContext uiContext) : base(uiContext)
 	{
 		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 	}

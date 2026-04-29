@@ -1,11 +1,8 @@
 using System.Reactive.Linq;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
@@ -14,9 +11,8 @@ public partial class StatusIconViewModel : ViewModelBase
 {
 	[AutoNotify] private string? _versionText;
 
-	public StatusIconViewModel(UiContext uiContext)
+	public StatusIconViewModel(UiContext uiContext) : base(uiContext)
 	{
-		UiContext = uiContext;
 		HealthMonitor = uiContext.HealthMonitor;
 
 		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://wasabiwallet.io/#download"));

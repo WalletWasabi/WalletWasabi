@@ -1,8 +1,6 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
 using NBitcoin;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -10,7 +8,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
 [NavigationMetaData(Title = "Recovery Words")]
 public partial class RecoveryWordsViewModel : RoutableViewModel
 {
-	private RecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options)
+	public RecoveryWordsViewModel(UiContext uiContext, WalletCreationOptions.AddNewWallet options) : base(uiContext)
 	{
 		var recoveryWordsBackup = options.SelectedWalletBackup as RecoveryWordsBackup;
 
@@ -52,7 +50,7 @@ public partial class RecoveryWordsViewModel : RoutableViewModel
 
 		for (int i = 0; i < mnemonic.Words.Length; i++)
 		{
-			result.Add(new RecoveryWordViewModel(i + 1, mnemonic.Words[i]));
+			result.Add(new RecoveryWordViewModel(UiContext, i + 1, mnemonic.Words[i]));
 		}
 
 		return result;

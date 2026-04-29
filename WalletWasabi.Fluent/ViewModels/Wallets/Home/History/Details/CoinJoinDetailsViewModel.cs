@@ -4,7 +4,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
@@ -27,17 +26,15 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _feeRateVisible;
 
-	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
+	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext)
 	{
-		InputList = new CoinjoinCoinListViewModel(transaction.WalletInputs, wallet.Network, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count);
-		OutputList = new CoinjoinCoinListViewModel(transaction.WalletOutputs, wallet.Network, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count);
+		InputList = new CoinjoinCoinListViewModel(uiContext, transaction.WalletInputs, wallet.Network, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count);
+		OutputList = new CoinjoinCoinListViewModel(uiContext, transaction.WalletOutputs, wallet.Network, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count);
 
 		_wallet = wallet;
 		_transaction = transaction;
 
 		TransactionHex = transaction.Hex.Value;
-
-		UiContext = uiContext;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;

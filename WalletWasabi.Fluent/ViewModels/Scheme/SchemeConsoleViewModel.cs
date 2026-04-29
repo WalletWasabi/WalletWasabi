@@ -28,7 +28,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 
 	public ICommand ExecuteCommand { get; private set; }
 
-	public SchemeConsoleViewModel(Daemon.Scheme schemeInterpreter)
+	public SchemeConsoleViewModel(UiContext uiContext, Daemon.Scheme schemeInterpreter) : base(uiContext)
 	{
 		_schemeInterpreter = schemeInterpreter;
 		_commandInput = string.Empty;

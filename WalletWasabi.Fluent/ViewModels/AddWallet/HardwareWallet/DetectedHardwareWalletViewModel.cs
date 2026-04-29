@@ -2,10 +2,8 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
@@ -15,7 +13,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
-	private DetectedHardwareWalletViewModel(WalletCreationOptions.ConnectToHardwareWallet options)
+	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
 		var (walletName, device) = options;
 

@@ -8,11 +8,9 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
@@ -20,7 +18,6 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -57,9 +54,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	private string _title = "";
 	[AutoNotify(SetterModifier = AccessModifier.Protected)] private bool _loaded;
 
-	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet)
+	public WalletViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
 	{
-		UiContext = uiContext;
 		WalletModel = walletModel;
 		Wallet = wallet;
 
@@ -325,14 +321,14 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	private IEnumerable<ActivatableViewModel> GetTiles()
 	{
-		yield return new WalletBalanceTileViewModel(WalletModel.Balances);
+		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
 		if (!IsWatchOnly)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
 
-		yield return new BtcPriceTileViewModel(UiContext.AmountProvider);
+		yield return new BtcPriceTileViewModel(UiContext, UiContext.AmountProvider);
 	}
 
 	private async Task<bool> AuthorizeForPasswordAsync()

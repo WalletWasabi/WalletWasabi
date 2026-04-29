@@ -12,7 +12,7 @@ public partial class NavBarItemViewModel : RoutableViewModel
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
 
-	public NavBarItemViewModel(INavBarItem item)
+	public NavBarItemViewModel(UiContext uiContext, INavBarItem item) : base(uiContext)
 	{
 		_item = item;
 

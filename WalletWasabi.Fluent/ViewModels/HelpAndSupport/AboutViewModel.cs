@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Windows.Input;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Helpers;
 
@@ -23,10 +21,8 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AboutViewModel : RoutableViewModel
 {
-	public AboutViewModel(UiContext uiContext, bool navigateBack = false)
+	public AboutViewModel(UiContext uiContext, bool navigateBack = false) : base(uiContext)
 	{
-		UiContext = uiContext;
-
 		EnableBack = navigateBack;
 
 		Links = new List<ViewModelBase>()
@@ -37,42 +33,42 @@ public partial class AboutViewModel : RoutableViewModel
 					Description = "Documentation",
 					IsClickable = true
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = SourceCodeLink,
 					Description = "Source Code (GitHub)",
 					IsClickable = true
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = ClearnetLink,
 					Description = "Website (Clearnet)",
 					IsClickable = true
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = TorLink,
 					Description = "Website (Tor)",
 					IsClickable = false
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = UserSupportLink,
 					Description = "User Support",
 					IsClickable = true
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = BugReportLink,
 					Description = "Bug Report",
 					IsClickable = true
 				},
-				new SeparatorViewModel(),
+				new SeparatorViewModel(UiContext),
 				new LinkViewModel(UiContext)
 				{
 					Link = FAQLink,

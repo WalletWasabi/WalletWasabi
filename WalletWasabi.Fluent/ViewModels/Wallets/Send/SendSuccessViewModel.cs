@@ -1,6 +1,5 @@
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -10,7 +9,7 @@ public partial class SendSuccessViewModel : RoutableViewModel
 {
 	private readonly SmartTransaction _finalTransaction;
 
-	private SendSuccessViewModel(SmartTransaction finalTransaction, string? title = null, string? caption = null)
+	public SendSuccessViewModel(UiContext uiContext, SmartTransaction finalTransaction, string? title = null, string? caption = null) : base(uiContext)
 	{
 		_finalTransaction = finalTransaction;
 		Title = title ?? "Payment successful";

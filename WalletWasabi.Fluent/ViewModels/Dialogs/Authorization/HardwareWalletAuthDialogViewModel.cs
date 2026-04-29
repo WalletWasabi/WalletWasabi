@@ -11,7 +11,8 @@ public partial class HardwareWalletAuthDialogViewModel : AuthorizationDialogBase
 	private readonly IHardwareWalletModel _wallet;
 	private readonly TransactionAuthorizationInfo _transactionAuthorizationInfo;
 
-	public HardwareWalletAuthDialogViewModel(IHardwareWalletModel wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+	public HardwareWalletAuthDialogViewModel(UiContext uiContext, IHardwareWalletModel wallet,
+		TransactionAuthorizationInfo transactionAuthorizationInfo) : base(uiContext)
 	{
 		_wallet = wallet;
 		_transactionAuthorizationInfo = transactionAuthorizationInfo;

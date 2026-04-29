@@ -9,7 +9,7 @@ public partial class RecoveryWordViewModel : ViewModelBase
 	[AutoNotify] private bool _isEnabled;
 	[AutoNotify] private string? _selectedWord;
 
-	public RecoveryWordViewModel(int index, string word)
+	public RecoveryWordViewModel(UiContext uiContext, int index, string word) : base(uiContext)
 	{
 		Index = index;
 		Word = word;

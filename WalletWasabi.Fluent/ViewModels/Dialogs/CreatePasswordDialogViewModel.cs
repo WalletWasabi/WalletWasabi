@@ -13,7 +13,8 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 	[AutoNotify] private string? _confirmPassword;
 	[AutoNotify] private string? _password;
 
-	public CreatePasswordDialogViewModel(string title, string caption = "", bool enableEmpty = true)
+	public CreatePasswordDialogViewModel(UiContext uiContext, string title, string caption = "",
+		bool enableEmpty = true) : base(uiContext)
 	{
 		Title = title;
 		Caption = caption;

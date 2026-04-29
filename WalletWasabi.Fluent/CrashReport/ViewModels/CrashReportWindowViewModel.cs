@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.CrashReport.ViewModels;
 
 public class CrashReportWindowViewModel : ViewModelBase
 {
-	public CrashReportWindowViewModel(SerializableException serializedException)
+	public CrashReportWindowViewModel(UiContext uiContext, SerializableException serializedException) : base(uiContext)
 	{
 		SerializedException = serializedException;
 		CancelCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: false, restart: true));

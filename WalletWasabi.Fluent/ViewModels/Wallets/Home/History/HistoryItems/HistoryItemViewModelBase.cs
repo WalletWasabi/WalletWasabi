@@ -3,9 +3,7 @@ using System.Collections.ObjectModel;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 
@@ -20,7 +18,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	[AutoNotify] private bool _isSelected;
 	[AutoNotify] private bool _isParentSelected;
 
-	protected HistoryItemViewModelBase(TransactionModel transaction)
+	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : base(uiContext)
 	{
 		Transaction = transaction;
 		IsChild = transaction.IsChild;
@@ -56,11 +54,6 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 			.Subscribe();
 	}
 
-	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : this(transaction)
-	{
-		UiContext = uiContext;
-	}
-
 	/// <summary>
 	/// Proxy property to prevent stack overflow due to internal bug in Avalonia where the OneWayToSource Binding
 	/// is replaced by a TwoWay one.when
@@ -90,7 +83,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	public ICommand? ClipboardCopyCommand { get; protected set; }
 
 	public ICommand? SpeedUpTransactionCommand { get; protected set; }
-	
+
 	public bool HasBeenSpedUp { get; set; }
 
 	public bool CanBeSpedUp { get; protected set; }

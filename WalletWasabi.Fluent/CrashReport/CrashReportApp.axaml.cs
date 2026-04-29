@@ -32,7 +32,7 @@ public class CrashReportApp : Application
 		{
 			desktop.MainWindow = new CrashReportWindow
 			{
-				DataContext = new CrashReportWindowViewModel(_serializableException)
+				DataContext = new CrashReportWindowViewModel(null!, _serializableException)
 			};
 		}
 

@@ -2,7 +2,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
@@ -18,7 +17,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 	[AutoNotify] private bool _enableCancel;
 	[AutoNotify] private bool _isActive;
 
-	protected RoutableViewModel()
+	protected RoutableViewModel(UiContext uiContext) : base(uiContext)
 	{
 		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), this.WhenAnyValue(model => model.IsBusy, b => !b));
 		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
@@ -118,7 +117,7 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 				? NavigationTarget.CompactDialogScreen
 				: NavigationTarget.DialogScreen;
 
-		await Navigate(target).ShowErrorAsync(title, message, caption);
+		await Navigate(target).ShowErrorAsync(UiContext, title, message, caption);
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed, bool escapeGoesBack = false)

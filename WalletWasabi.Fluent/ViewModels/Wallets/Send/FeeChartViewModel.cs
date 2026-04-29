@@ -29,7 +29,7 @@ public partial class FeeChartViewModel : ViewModelBase
 	[AutoNotify] private bool _enableCursor = true;
 	private bool _updatingCurrentValue;
 
-	public FeeChartViewModel()
+	public FeeChartViewModel(UiContext uiContext) : base(uiContext)
 	{
 		_sliderMinimum = 0;
 		_sliderMaximum = 9;

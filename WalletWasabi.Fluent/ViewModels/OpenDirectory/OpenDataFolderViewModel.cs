@@ -1,5 +1,4 @@
 using System.Windows.Input;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
@@ -15,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 	IconName = "folder_regular")]
 public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 {
-	private OpenDataFolderViewModel()
+	public OpenDataFolderViewModel(UiContext uiContext) : base(uiContext)
 	{
 		TargetCommand = ReactiveCommand.Create(() => UiContext.FileSystem.OpenFolderInFileExplorer(UiContext.Config.DataDir));
 	}

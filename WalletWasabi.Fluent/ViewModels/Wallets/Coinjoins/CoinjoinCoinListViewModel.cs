@@ -12,9 +12,9 @@ public class CoinjoinCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinjoinCoinListViewModel(IEnumerable<SmartCoin> availableCoins, Network network, int totalCoinsOnSideCount)
+	public CoinjoinCoinListViewModel(UiContext uiContext, IEnumerable<SmartCoin> availableCoins, Network network, int totalCoinsOnSideCount) : base(uiContext)
 	{
-		var coinItems = availableCoins.Select(x => new CoinjoinCoinViewModel(x, network)).ToList();
+		var coinItems = availableCoins.Select(x => new CoinjoinCoinViewModel(uiContext, x, network)).ToList();
 		foreach (var coin in coinItems)
 		{
 			coin.IsChild = true;
@@ -25,7 +25,7 @@ public class CoinjoinCoinListViewModel : ViewModelBase, IDisposable
 			coinItems.Last().IsLastChild = true;
 		}
 
-		var parentItem = new CoinjoinCoinViewModel(coinItems.ToArray(), totalCoinsOnSideCount);
+		var parentItem = new CoinjoinCoinViewModel(uiContext, coinItems.ToArray(), totalCoinsOnSideCount);
 		coinItems.Insert(0, parentItem);
 		_disposables.Add(parentItem);
 

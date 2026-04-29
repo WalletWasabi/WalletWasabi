@@ -3,13 +3,10 @@ using System.Reactive.Linq;
 using System.Reactive.Subjects;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DynamicData;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Services;
 using WalletWasabi.Fluent.ViewModels.Dialogs.ReleaseHighlights;
@@ -34,18 +31,17 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
 
-	public MainViewModel(UiContext uiContext)
+	public MainViewModel(UiContext uiContext) : base(uiContext)
 	{
-		UiContext = uiContext;
 		UiContext.SetMainViewModel(this);
 
 		ApplyUiConfigWindowState();
 
-		DialogScreen = new DialogScreenViewModel();
-		FullScreen = new DialogScreenViewModel(NavigationTarget.FullScreen);
-		CompactDialogScreen = new DialogScreenViewModel(NavigationTarget.CompactDialogScreen);
+		DialogScreen = new DialogScreenViewModel(UiContext);
+		FullScreen = new DialogScreenViewModel(UiContext, NavigationTarget.FullScreen);
+		CompactDialogScreen = new DialogScreenViewModel(UiContext, NavigationTarget.CompactDialogScreen);
 		NavBar = new NavBarViewModel(UiContext);
-		MainScreen = new TargettedNavigationStack(NavigationTarget.HomeScreen);
+		MainScreen = new TargettedNavigationStack(UiContext, NavigationTarget.HomeScreen);
 		UiContext.RegisterNavigation(new NavigationState(UiContext, MainScreen, DialogScreen, FullScreen, CompactDialogScreen, NavBar));
 
 		NavBar.Activate();
@@ -53,7 +49,7 @@ public partial class MainViewModel : ViewModelBase
 		StatusIcon = new StatusIconViewModel(UiContext);
 
 		SettingsPage = new SettingsPageViewModel(UiContext);
-		PrivacyMode = new PrivacyModeViewModel(UiContext.ApplicationSettings);
+		PrivacyMode = new PrivacyModeViewModel(UiContext, UiContext.ApplicationSettings);
 		Notifications = new WalletNotificationsViewModel(UiContext, NavBar);
 
 		NavigationManager.RegisterType(NavBar);

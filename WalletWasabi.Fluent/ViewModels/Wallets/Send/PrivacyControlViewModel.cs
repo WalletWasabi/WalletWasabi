@@ -27,7 +27,8 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent)
+	public PrivacyControlViewModel(UiContext uiContext, Wallet wallet, SendFlowModel sendFlow,
+		TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent) : base(uiContext)
 	{
 		_wallet = wallet;
 		_sendFlow = sendFlow;
@@ -35,7 +36,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		_isSilent = isSilent;
 		_usedCoins = usedCoins;
 
-		LabelSelection = new LabelSelectionViewModel(wallet.KeyManager, wallet.Password, _transactionInfo, isSilent);
+		LabelSelection = new LabelSelectionViewModel(uiContext, wallet.KeyManager, wallet.Password, _transactionInfo, isSilent);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false);
 		EnableBack = true;

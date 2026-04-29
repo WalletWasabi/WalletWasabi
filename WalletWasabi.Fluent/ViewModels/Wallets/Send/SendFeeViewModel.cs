@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -7,7 +6,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
@@ -31,14 +29,14 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 	private readonly TransactionInfo _transactionInfo;
 	private readonly bool _isSilent;
 
-	private SendFeeViewModel(Wallet wallet, TransactionInfo transactionInfo, bool isSilent)
+	public SendFeeViewModel(UiContext uiContext, Wallet wallet, TransactionInfo transactionInfo, bool isSilent) : base(uiContext)
 	{
 		_isSilent = isSilent;
 		IsBusy = isSilent;
 		_wallet = wallet;
 		_transactionInfo = transactionInfo;
 
-		FeeChart = new FeeChartViewModel();
+		FeeChart = new FeeChartViewModel(uiContext);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: false, escapeGoesBack: true);
 		EnableBack = true;
@@ -71,7 +69,7 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 	private async Task<FeeRate?> ShowCustomFeeRateDialogAsync()
 	{
-		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(_transactionInfo), NavigationTarget.CompactDialogScreen);
+		var result = await NavigateDialogAsync(new CustomFeeRateDialogViewModel(UiContext, _transactionInfo), NavigationTarget.CompactDialogScreen);
 		return result.Result;
 	}
 

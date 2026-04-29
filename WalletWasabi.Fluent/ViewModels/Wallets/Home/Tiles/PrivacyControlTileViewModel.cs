@@ -4,10 +4,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using DynamicData;
 using DynamicData.Aggregation;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
@@ -22,7 +20,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	[AutoNotify] private Amount _balancePrivate;
 	[AutoNotify] private bool _hasPrivateBalance;
 
-	private PrivacyControlTileViewModel(IWalletModel wallet)
+	public PrivacyControlTileViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 
@@ -32,7 +30,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 		ShowDetailsCommand = ReactiveCommand.Create(ShowDetails, canShowDetails);
 
-		PrivacyBar = new PrivacyBarViewModel(wallet);
+		PrivacyBar = new PrivacyBarViewModel(uiContext, wallet);
 
 		var coinList =
 			_wallet.Coins.List

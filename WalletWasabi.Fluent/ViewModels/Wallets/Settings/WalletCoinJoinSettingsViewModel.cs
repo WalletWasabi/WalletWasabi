@@ -5,15 +5,11 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using DynamicData;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.CoinJoinProfiles;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -45,9 +41,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private CompositeDisposable _disposable = new();
 
-	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
+	public WalletCoinJoinSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
 	{
-		UiContext = uiContext;
 		_wallet = walletModel;
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();

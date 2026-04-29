@@ -1,7 +1,4 @@
-using ReactiveUI;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Helpers;
 using Unit = System.Reactive.Unit;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.ReleaseHighlights;
@@ -9,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.ReleaseHighlights;
 [NavigationMetaData(NavigationTarget = NavigationTarget.DialogScreen, Title = "")]
 public partial class ReleaseHighlightsDialogViewModel: DialogViewModelBase<Unit>
 {
-	public ReleaseHighlightsDialogViewModel(UiContext uiContext)
+	public ReleaseHighlightsDialogViewModel(UiContext uiContext) : base(uiContext)
 	{
 		ReleaseHighlights = uiContext.ReleaseHighlights;
 

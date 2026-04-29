@@ -27,7 +27,7 @@ namespace WalletWasabi.Fluent.ViewModels.Settings;
 	IconName = "settings_general_regular")]
 public partial class ConnectionsSettingsTabViewModel : RoutableViewModel
 {
-	public ConnectionsSettingsTabViewModel(ApplicationSettings settings)
+	public ConnectionsSettingsTabViewModel(UiContext uiContext, ApplicationSettings settings) : base(uiContext)
 	{
 		Settings = settings;
 

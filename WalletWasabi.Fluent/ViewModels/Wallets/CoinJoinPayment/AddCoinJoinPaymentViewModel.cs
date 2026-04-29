@@ -4,12 +4,10 @@ using System.Reactive.Concurrency;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
 using Address = WalletWasabi.Userfacing.Address;
@@ -31,7 +29,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _conversionReversed;
 
-	private AddCoinJoinPaymentViewModel(IWalletModel walletModel, Wallet wallet)
+	public AddCoinJoinPaymentViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 		_walletModel = walletModel;
@@ -74,7 +72,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 			AmountBtc = null;
 			ClearValidations();
 		}
-		
+
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 	}
 

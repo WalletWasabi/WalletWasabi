@@ -1,4 +1,3 @@
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -22,7 +21,7 @@ public partial class WalletInfoViewModel : RoutableViewModel
 	[AutoNotify] private string _showButtonText = "Show sensitive data";
 	[AutoNotify] private string _lockIconString = "eye_show_regular";
 
-	private WalletInfoViewModel(IWalletModel wallet)
+	public WalletInfoViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_model = wallet.GetWalletInfo();
 		IsHardwareWallet = wallet.IsHardwareWallet;

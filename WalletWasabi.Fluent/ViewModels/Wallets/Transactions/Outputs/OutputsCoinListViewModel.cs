@@ -12,7 +12,7 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public OutputsCoinListViewModel(List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Network network, ISet<Script>? destinationScripts = null, bool? isExpanded = null, int? oldOutputCount = null)
+	public OutputsCoinListViewModel(UiContext uiContext, List<TxOut> ownOutputs, List<TxOut> foreignOutputs, Network network, ISet<Script>? destinationScripts = null, bool? isExpanded = null, int? oldOutputCount = null) : base(uiContext)
 	{
 
 		var outputCount = ownOutputs.Count + foreignOutputs.Count;
@@ -22,6 +22,7 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 			.OrderByDescending(x => x.Value)
 			.Select(x =>
 				new OutputsCoinViewModel(
+					UiContext,
 					x,
 					network,
 					ownOutputs.Contains(x),
@@ -43,7 +44,7 @@ public class OutputsCoinListViewModel : ViewModelBase, IDisposable
 			NbDiff = outputCount - oldOutputCount;
 		}
 
-		var parentItem = new OutputsCoinViewModel(coinItems.ToArray(), outputCount, isExpanded.GetValueOrDefault(), NbDiff);
+		var parentItem = new OutputsCoinViewModel(UiContext, coinItems.ToArray(), outputCount, isExpanded.GetValueOrDefault(), NbDiff);
 		coinItems.Insert(0, parentItem);
 		_disposables.Add(parentItem);
 

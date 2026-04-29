@@ -24,17 +24,18 @@ public partial class RecipientRowViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private bool _isSubtractFee;
 
 	public RecipientRowViewModel(
+		UiContext uiContext,
 		IWalletModel walletModel,
 		Network network,
 		Action<RecipientRowViewModel> onRemove,
 		Action<RecipientRowViewModel> onInsertMax,
 		Func<Task<string?>> scanQrCodeAsync,
 		bool isQrButtonVisible,
-		Func<bool> isRecalculating)
+		Func<bool> isRecalculating) : base(uiContext)
 	{
 		Network = network;
 		IsQrButtonVisible = isQrButtonVisible;
-		SuggestionLabels = new SuggestionLabelsViewModel(walletModel, Intent.Send, 3);
+		SuggestionLabels = new SuggestionLabelsViewModel(uiContext, walletModel, Intent.Send, 3);
 		SuggestionLabels.Activate(_disposables);
 
 		RemoveCommand = ReactiveCommand.Create(() => onRemove(this));

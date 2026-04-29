@@ -18,7 +18,7 @@ public partial class LabelViewModel : ViewModelBase
 	[AutoNotify] private bool _isPointerOver;
 	[AutoNotify] private string _toolTip;
 
-	public LabelViewModel(LabelSelectionViewModel owner, string label)
+	public LabelViewModel(UiContext uiContext, LabelSelectionViewModel owner, string label) : base(uiContext)
 	{
 		Value = label;
 

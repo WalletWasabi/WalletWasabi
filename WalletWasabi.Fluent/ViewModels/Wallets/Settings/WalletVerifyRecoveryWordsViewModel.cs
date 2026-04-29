@@ -3,16 +3,12 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
@@ -22,7 +18,7 @@ public partial class WalletVerifyRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify] private IEnumerable<string>? _suggestions;
 	[AutoNotify] private Mnemonic? _currentMnemonics;
 
-	private WalletVerifyRecoveryWordsViewModel(IWalletModel wallet)
+	public WalletVerifyRecoveryWordsViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_suggestions = new Mnemonic(Wordlist.English, WordCount.Twelve).WordList.GetWords();
 

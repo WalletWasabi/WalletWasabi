@@ -21,9 +21,8 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private ScriptType _scriptType;
 	[AutoNotify] private LabelsArray _labels;
 
-	public AddressViewModel(UiContext context, AddressFunc onEdit, AddressAction onShow, IAddress address)
+	public AddressViewModel(UiContext uiContext, AddressFunc onEdit, AddressAction onShow, IAddress address) : base(uiContext)
 	{
-		UiContext = context;
 		Address = address;
 		_addressText = address.ShortenedText;
 
@@ -51,7 +50,7 @@ public partial class AddressViewModel : ViewModelBase, IDisposable
 
 	private async Task PromptHideAddressAsync()
 	{
-		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(Address.Labels));
+		var result = await UiContext.Navigate().NavigateDialogAsync(new ConfirmHideAddressViewModel(UiContext, Address.Labels));
 
 		if (result.Result == false)
 		{
