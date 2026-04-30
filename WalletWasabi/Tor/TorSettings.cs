@@ -61,6 +61,8 @@ public class TorSettings
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
+		SocksPort = socksPort;
+		ControlPort = controlPort;
 		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
 		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
 		Bridges = bridges ?? [];
@@ -80,7 +82,7 @@ public class TorSettings
 		}
 
 		TorMode = torMode;
-		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
+		TerminateOnExit = TorMode != TorMode.EnabledOnlyRunning && terminateOnExit;
 
 		Log = log;
 		_geoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
@@ -134,6 +136,10 @@ public class TorSettings
 
 	/// <summary>Tor control endpoint.</summary>
 	public EndPoint ControlEndpoint { get; }
+
+	public int SocksPort { get; set; }
+	public int ControlPort { get; set; }
+
 	private readonly string _geoIpPath;
 	private readonly string _geoIp6Path;
 
