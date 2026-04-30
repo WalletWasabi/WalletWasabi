@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 {
-	public HardwareWalletModel(Wallet wallet, AmountProvider amountProvider) : base(wallet, amountProvider)
+	public HardwareWalletModel(IServices services, Wallet wallet, AmountProvider amountProvider) : base(services, wallet, amountProvider)
 	{
 		if (!wallet.KeyManager.IsHardwareWallet)
 		{

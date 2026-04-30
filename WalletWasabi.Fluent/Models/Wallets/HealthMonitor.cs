@@ -30,29 +30,29 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
 
-	public HealthMonitor(TorStatusCheckerModel torStatusChecker)
+	public HealthMonitor(IServices services, TorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
-		UseTor = Services.Instance.GetUseTor();
+		UseTor = services.GetUseTor();
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
 		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
 
 		// Priority Fee
-		Services.Instance.EventBus.AsObservable<MiningFeeRatesChanged>()
+		services.EventBus.AsObservable<MiningFeeRatesChanged>()
 			.Select(e => e.AllFeeEstimate.Estimations.FirstOrDefault(x => x.Key == 2).Value)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(priorityFee => PriorityFee = priorityFee.SatoshiPerByte);
 
 		// Blockchain Tip
-		Services.Instance.EventBus.AsObservable<ServerTipHeightChanged>()
+		services.EventBus.AsObservable<ServerTipHeightChanged>()
 			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(blockchainTip => BlockchainTip = blockchainTip);
 
 		// Tor Status
-		Services.Instance.EventBus.AsObservable<TorConnectionStateChanged>()
+		services.EventBus.AsObservable<TorConnectionStateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(status => (UseTor, status.IsTorRunning) switch
 			{
@@ -76,14 +76,14 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		var nodesCount = 0;
-		var peersObservable = Services.Instance.EventBus.AsObservable<BitcoinPeersChanged>();
+		var peersObservable = services.EventBus.AsObservable<BitcoinPeersChanged>();
 		peersObservable.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => nodesCount = x.NodesCount)
 			.DisposeWith(Disposables);
 
 		// Peers
 		Observable.Merge( peersObservable.ToSignal()
-			.Merge(Services.Instance.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
+			.Merge(services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ =>
 				  UseTor != TorMode.Disabled && TorStatus == TorStatus.NotRunning ? 0 : nodesCount)
@@ -91,7 +91,7 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Bitcoin Core Status
-		Services.Instance.EventBus.AsObservable<RpcStatusChanged>()
+		services.EventBus.AsObservable<RpcStatusChanged>()
 			.Select(x => x.Status)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(x => BitcoinRpcStatus = x)
@@ -105,7 +105,7 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		// Update Available
-		Services.Instance.EventBus.AsObservable<NewSoftwareVersionAvailable>()
+		services.EventBus.AsObservable<NewSoftwareVersionAvailable>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(e =>
 			{

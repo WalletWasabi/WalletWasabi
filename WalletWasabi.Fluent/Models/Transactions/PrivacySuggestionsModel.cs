@@ -42,12 +42,12 @@ public partial class PrivacySuggestionsModel
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
 
-	public PrivacySuggestionsModel(SendFlowModel sendFlow)
+	public PrivacySuggestionsModel(IServices services, SendFlowModel sendFlow)
 	{
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
-		_cjManager = Services.Instance.GetHostedService<CoinJoinManager>();
-		Services.Instance.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
+		_cjManager = services.GetHostedService<CoinJoinManager>();
+		services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>

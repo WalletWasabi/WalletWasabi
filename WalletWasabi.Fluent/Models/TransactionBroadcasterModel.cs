@@ -11,10 +11,12 @@ namespace WalletWasabi.Fluent.Models;
 
 public partial class TransactionBroadcasterModel
 {
+	private readonly IServices _services;
 	private readonly Network _network;
 
-	public TransactionBroadcasterModel(Network network)
+	public TransactionBroadcasterModel(IServices services, Network network)
 	{
+		_services = services;
 		_network = network;
 	}
 
@@ -66,14 +68,14 @@ public partial class TransactionBroadcasterModel
 
 		return new TransactionBroadcastInfo(transactionId, tx.Inputs.Count, tx.Outputs.Count , spendingAmount, outputAmount, networkFee);
 
-		static TxOut? GetOutput(OutPoint outpoint) =>
-			Services.Instance.TryGetTransaction(outpoint.Hash, out var prevTxn)
+		TxOut? GetOutput(OutPoint outpoint) =>
+			_services.TryGetTransaction(outpoint.Hash, out var prevTxn)
 				? prevTxn.Transaction.Outputs[outpoint.N]
 				: null;
 	}
 
 	public Task SendAsync(SmartTransaction transaction)
 	{
-		return Services.Instance.SendTransactionAsync(transaction);
+		return _services.SendTransactionAsync(transaction);
 	}
 }

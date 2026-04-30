@@ -90,14 +90,14 @@ public class App : Application
 		}
 	}
 
-	private static WalletRepository CreateWalletRepository(AmountProvider amountProvider)
+	private static WalletRepository CreateWalletRepository(IServices services, AmountProvider amountProvider)
 	{
-		return new WalletRepository(amountProvider);
+		return new WalletRepository(services, amountProvider);
 	}
 
-	private static HardwareWalletInterface CreateHardwareWalletInterface()
+	private static HardwareWalletInterface CreateHardwareWalletInterface(IServices services)
 	{
-		return new HardwareWalletInterface();
+		return new HardwareWalletInterface(services);
 	}
 
 	private static FileSystemModel CreateFileSystem()
@@ -105,52 +105,53 @@ public class App : Application
 		return new FileSystemModel();
 	}
 
-	private static ClientConfigModel CreateConfig()
+	private static ClientConfigModel CreateConfig(IServices services)
 	{
-		return new ClientConfigModel();
+		return new ClientConfigModel(services);
 	}
 
-	private static ApplicationSettings CreateApplicationSettings()
+	private static ApplicationSettings CreateApplicationSettings(IServices services)
 	{
-		return new ApplicationSettings(Services.Instance.PersistentConfig, Services.Instance.Config, Services.Instance.UiConfig);
+		return new ApplicationSettings(services, services.PersistentConfig, services.Config, services.UiConfig);
 	}
 
-	private static TransactionBroadcasterModel CreateBroadcaster(Network network)
+	private static TransactionBroadcasterModel CreateBroadcaster(IServices services, Network network)
 	{
-		return new TransactionBroadcasterModel(network);
+		return new TransactionBroadcasterModel(services, network);
 	}
 
-	private static AmountProvider CreateAmountProvider()
+	private static AmountProvider CreateAmountProvider(IServices services)
 	{
-		return new AmountProvider();
+		return new AmountProvider(services);
 	}
 
 	private UiContext CreateUiContext()
 	{
-		var amountProvider = CreateAmountProvider();
+		var services = Services.Instance;
+		var amountProvider = CreateAmountProvider(services);
 
-		var applicationSettings = CreateApplicationSettings();
-		var torStatusChecker = new TorStatusCheckerModel();
+		var applicationSettings = CreateApplicationSettings(services);
+		var torStatusChecker = new TorStatusCheckerModel(services);
 
 		// This class (App) represents the actual Avalonia Application and it's sole presence means we're in the actual runtime context (as opposed to unit tests)
 		// Once all ViewModels have been refactored to receive UiContext as a constructor parameter, this static singleton property can be removed.
 		return new UiContext(
-			Services.Instance,
+			services,
 			new QrCodeGenerator(),
 			new QrCodeReader(),
 			new UiClipboard(),
-			CreateWalletRepository(amountProvider),
-			new CoinjoinModel(),
-			CreateHardwareWalletInterface(),
+			CreateWalletRepository(services, amountProvider),
+			new CoinjoinModel(services),
+			CreateHardwareWalletInterface(services),
 			CreateFileSystem(),
-			CreateConfig(),
+			CreateConfig(services),
 			applicationSettings,
-			CreateBroadcaster(applicationSettings.Network),
+			CreateBroadcaster(services, applicationSettings.Network),
 			amountProvider,
 			new EditableSearchSource(),
 			torStatusChecker,
-			new HealthMonitor(torStatusChecker),
+			new HealthMonitor(services, torStatusChecker),
 			new ReleaseHighlights(),
-			Services.Instance.Scheme);
+			services.Scheme);
 	}
 }

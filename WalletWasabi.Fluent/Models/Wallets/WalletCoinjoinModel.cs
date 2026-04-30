@@ -15,13 +15,15 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AppLifetime]
 public partial class WalletCoinjoinModel : ReactiveObject
 {
+	private readonly IServices _services;
 	private readonly Wallet _wallet;
 	private readonly WalletSettingsModel _settings;
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
 
-	public WalletCoinjoinModel(Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
+	public WalletCoinjoinModel(IServices services, Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
 	{
+		_services = services;
 		_wallet = wallet;
 		_settings = settings;
 		_coinJoinManager = coinjoinManager;
@@ -86,7 +88,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		Wallet outputWallet = Services.Instance.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
+		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
 		await _coinJoinManager.StartAsync(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
