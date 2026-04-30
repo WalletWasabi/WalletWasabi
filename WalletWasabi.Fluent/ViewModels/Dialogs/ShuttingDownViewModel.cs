@@ -1,9 +1,7 @@
-using ReactiveUI;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Reactive.Concurrency;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
@@ -14,7 +12,7 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 	private readonly ApplicationViewModel _applicationViewModel;
 	private readonly bool _restart;
 
-	private ShuttingDownViewModel(ApplicationViewModel applicationViewModel, bool restart)
+	public ShuttingDownViewModel(UiContext uiContext, ApplicationViewModel applicationViewModel, bool restart) : base(uiContext)
 	{
 		_applicationViewModel = applicationViewModel;
 		_restart = restart;

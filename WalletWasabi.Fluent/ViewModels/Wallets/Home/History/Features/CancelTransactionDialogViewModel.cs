@@ -3,9 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -18,7 +16,7 @@ public partial class CancelTransactionDialogViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 	private readonly CancellingTransaction _cancellingTransaction;
 
-	private CancelTransactionDialogViewModel(IWalletModel wallet, CancellingTransaction cancellingTransaction)
+	public CancelTransactionDialogViewModel(UiContext uiContext, IWalletModel wallet, CancellingTransaction cancellingTransaction) : base(uiContext)
 	{
 		_wallet = wallet;
 		_cancellingTransaction = cancellingTransaction;

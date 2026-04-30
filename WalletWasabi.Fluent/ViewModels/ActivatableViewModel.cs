@@ -2,7 +2,7 @@ using System.Reactive.Disposables;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
-public class ActivatableViewModel : ViewModelBase
+public class ActivatableViewModel(UiContext uiContext) : ViewModelBase(uiContext)
 {
 	protected virtual void OnActivated(CompositeDisposable disposables)
 	{

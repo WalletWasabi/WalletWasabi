@@ -1,12 +1,8 @@
-using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Logging;
@@ -19,7 +15,7 @@ public partial class SpeedUpTransactionDialogViewModel : RoutableViewModel
 	private readonly SpeedupTransaction _speedupTransaction;
 	private readonly IWalletModel _wallet;
 
-	private SpeedUpTransactionDialogViewModel(IWalletModel wallet, SpeedupTransaction speedupTransaction)
+	public SpeedUpTransactionDialogViewModel(UiContext uiContext, IWalletModel wallet, SpeedupTransaction speedupTransaction) : base(uiContext)
 	{
 		_wallet = wallet;
 		_speedupTransaction = speedupTransaction;

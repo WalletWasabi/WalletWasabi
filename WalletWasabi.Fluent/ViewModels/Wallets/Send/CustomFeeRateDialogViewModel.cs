@@ -18,7 +18,7 @@ public partial class CustomFeeRateDialogViewModel : DialogViewModelBase<FeeRate>
 
 	[AutoNotify] private string _customFee;
 
-	public CustomFeeRateDialogViewModel(TransactionInfo transactionInfo)
+	public CustomFeeRateDialogViewModel(UiContext uiContext, TransactionInfo transactionInfo) : base(uiContext)
 	{
 		_transactionInfo = transactionInfo;
 

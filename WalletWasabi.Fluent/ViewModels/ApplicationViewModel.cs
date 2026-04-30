@@ -1,9 +1,7 @@
 using System.Linq;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 
 namespace WalletWasabi.Fluent.ViewModels;
@@ -14,11 +12,10 @@ public partial class ApplicationViewModel : ViewModelBase, ICanShutdownProvider
 	private readonly IMainWindowService _mainWindowService;
 	[AutoNotify] private bool _isMainWindowShown = true;
 
-	public ApplicationViewModel(UiContext uiContext, MainViewModel mainViewModel, IMainWindowService mainWindowService)
+	public ApplicationViewModel(UiContext uiContext, MainViewModel mainViewModel, IMainWindowService mainWindowService) : base(uiContext)
 	{
 		_mainWindowService = mainWindowService;
 
-		UiContext = uiContext;
 		MainViewModel = mainViewModel;
 
 		QuitCommand = ReactiveCommand.Create(() => Shutdown(false));

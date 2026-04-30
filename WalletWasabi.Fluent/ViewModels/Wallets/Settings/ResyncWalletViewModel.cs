@@ -13,7 +13,7 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<int?>
 	[AutoNotify] private string _startingHeight = "";
 	private readonly uint _birthHeight;
 
-	public ResyncWalletViewModel(uint birthHeight)
+	public ResyncWalletViewModel(UiContext uiContext, uint birthHeight) : base(uiContext)
 	{
 		_birthHeight = birthHeight;
 		StartingHeight = birthHeight.ToString();

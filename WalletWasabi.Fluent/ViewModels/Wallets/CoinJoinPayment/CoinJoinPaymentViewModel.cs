@@ -14,7 +14,7 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 
 	[AutoNotify] private string _status;
 
-	public CoinJoinPaymentViewModel(Payment payment, Network network)
+	public CoinJoinPaymentViewModel(UiContext uiContext, Payment payment, Network network) : base(uiContext)
 	{
 		_payment = payment;
 		_network = network;

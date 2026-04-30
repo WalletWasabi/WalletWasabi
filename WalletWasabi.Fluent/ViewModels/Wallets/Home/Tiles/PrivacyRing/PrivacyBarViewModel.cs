@@ -15,7 +15,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 	[AutoNotify] private bool _hasProgress;
 	[AutoNotify] private decimal _totalAmount;
 
-	public PrivacyBarViewModel(IWalletModel wallet)
+	public PrivacyBarViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		Wallet = wallet;
 	}
@@ -62,7 +62,7 @@ public partial class PrivacyBarViewModel : ActivatableViewModel
 			coins
 				.GroupBy(x => x.PrivacyLevel)
 				.OrderBy(x => (int)x.Key)
-				.Select(x => new PrivacyBarItemViewModel(x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
+				.Select(x => new PrivacyBarItemViewModel(UiContext, x.Key, x.Sum(x => x.Amount.ToDecimal(MoneyUnit.BTC))))
 				.ToList();
 
 		HasProgress = segments.Any(x => x.PrivacyLevel != PrivacyLevel.NonPrivate);

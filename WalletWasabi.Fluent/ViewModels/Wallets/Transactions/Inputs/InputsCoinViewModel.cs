@@ -7,7 +7,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
 
 public class InputsCoinViewModel : InputsCoinListItem
 {
-    public InputsCoinViewModel(SmartCoin coin, Network network)
+	public InputsCoinViewModel(UiContext uiContext, SmartCoin coin, Network network) : base(uiContext)
 	{
 		Coin = coin;
 		Amount = new Amount(coin.Amount);
@@ -23,7 +23,7 @@ public class InputsCoinViewModel : InputsCoinListItem
 		}
 	}
 
-	public InputsCoinViewModel(InputsCoinViewModel[] coins, int inputCount, bool isExpanded, int? nbDiff)
+	public InputsCoinViewModel(UiContext uiContext, InputsCoinViewModel[] coins, int inputCount, bool isExpanded, int? nbDiff) : base(uiContext)
 	{
 		Amount = new Amount(coins.Sum(x => x.Amount.Btc));
 		Children = coins;

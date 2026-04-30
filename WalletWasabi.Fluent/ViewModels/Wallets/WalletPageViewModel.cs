@@ -1,7 +1,6 @@
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Login;
@@ -24,7 +23,7 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 	[AutoNotify] private RoutableViewModel? _currentPage;
 	[AutoNotify] private string? _title;
 
-	private WalletPageViewModel(IWalletModel walletModel)
+	public WalletPageViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
 	{
 		WalletModel = walletModel;
 
@@ -82,12 +81,12 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 	private void ShowLogin()
 	{
-		CurrentPage = new LoginViewModel(WalletModel);
+		CurrentPage = new LoginViewModel(UiContext, WalletModel);
 	}
 
 	private void ShowWalletLoading()
 	{
-		CurrentPage = new LoadingViewModel(WalletModel);
+		CurrentPage = new LoadingViewModel(UiContext, WalletModel);
 		IsLoading = true;
 	}
 

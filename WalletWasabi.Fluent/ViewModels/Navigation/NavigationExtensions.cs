@@ -11,9 +11,9 @@ public static class NavigationExtensions
 		navigate.Navigate(target).To(viewModel, mode);
 	}
 
-	public static async Task ShowErrorAsync(this INavigationStack<RoutableViewModel> navigate, string title, string message, string caption)
+	public static async Task ShowErrorAsync(this INavigationStack<RoutableViewModel> navigate, UiContext uiContext, string title, string message, string caption)
 	{
-		var dialog = new ShowErrorDialogViewModel(message, title, caption);
+		var dialog = new ShowErrorDialogViewModel(uiContext, message, title, caption);
 		await navigate.NavigateDialogAsync(dialog);
 	}
 

@@ -7,7 +7,7 @@ public class ShowErrorDialogViewModel : DialogViewModelBase<bool>
 {
 	private string _title;
 
-	public ShowErrorDialogViewModel(string message, string title, string caption)
+	public ShowErrorDialogViewModel(UiContext uiContext, string message, string title, string caption) : base(uiContext)
 	{
 		Message = message;
 		_title = title;

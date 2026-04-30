@@ -36,6 +36,7 @@ public class ApplicationStateManager : IMainWindowService
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
+		UiContext = uiContext;
 		MainViewModel = mainViewModel;
 
 		var activatableLifetime = Application.Current?.TryGetFeature<IActivatableLifetime>();
@@ -62,7 +63,6 @@ public class ApplicationStateManager : IMainWindowService
 			}
 		}
 
-		UiContext = uiContext;
 		ApplicationViewModel = new ApplicationViewModel(UiContext, mainViewModel, this);
 		State initTransitionState = startInBg ? State.Closed : State.Open;
 

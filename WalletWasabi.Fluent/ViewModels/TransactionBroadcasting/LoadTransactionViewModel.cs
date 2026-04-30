@@ -2,11 +2,9 @@ using System.IO;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 
@@ -17,10 +15,8 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 {
 	[AutoNotify] private SmartTransaction? _finalTransaction;
 
-	public LoadTransactionViewModel(UiContext uiContext)
+	public LoadTransactionViewModel(UiContext uiContext) : base(uiContext)
 	{
-		UiContext = uiContext;
-
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		EnableBack = false;

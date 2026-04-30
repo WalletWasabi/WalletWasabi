@@ -14,8 +14,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Wallets.Slip39;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -33,7 +31,7 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte? _requiredShares;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string? _caption;
 
-	private RecoverMultiShareWalletViewModel(WalletCreationOptions.RecoverWallet options)
+	public RecoverMultiShareWalletViewModel(UiContext uiContext, WalletCreationOptions.RecoverWallet options) : base(uiContext)
 	{
 		var multiShareBackup = options.WalletBackup as MultiShareBackup;
 

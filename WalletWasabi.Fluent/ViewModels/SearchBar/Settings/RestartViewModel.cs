@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
 public class RestartViewModel : ViewModelBase
 {
-	public RestartViewModel(string message)
+	public RestartViewModel(UiContext uiContext, string message) : base(uiContext)
 	{
 		Message = message;
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));

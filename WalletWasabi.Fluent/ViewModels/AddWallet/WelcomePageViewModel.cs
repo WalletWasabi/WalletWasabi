@@ -1,6 +1,5 @@
 using System.Reactive;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -13,7 +12,7 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private string? _nextLabel;
 	[AutoNotify] private bool _enableNextKey = true;
 
-	private WelcomePageViewModel()
+	public WelcomePageViewModel(UiContext uiContext) : base(uiContext)
 	{
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 

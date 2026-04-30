@@ -5,9 +5,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Threading.Tasks;
 using Avalonia.Controls;
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
 using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -22,7 +19,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 
 	[AutoNotify] private FlatTreeDataGridSource<AddressViewModel> _source = new(Enumerable.Empty<AddressViewModel>());
 
-	private ReceiveAddressesViewModel(IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType)
+	public ReceiveAddressesViewModel(UiContext uiContext, IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType) : base(uiContext)
 	{
 		_wallet = wallet;
 		_scriptType = scriptType;
@@ -59,7 +56,7 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 	}
 
-	private AddressViewModel CreateAddressViewModel(IAddress address)
+	public AddressViewModel CreateAddressViewModel(IAddress address)
 	{
 		return new AddressViewModel(UiContext, OnEditAddressAsync, OnShowAddressAsync, address);
 	}

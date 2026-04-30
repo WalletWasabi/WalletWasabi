@@ -7,8 +7,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
 public class CoinjoinCoinViewModel : CoinjoinCoinListItem
 {
-    public CoinjoinCoinViewModel(SmartCoin coin, Network network)
-	{
+    public CoinjoinCoinViewModel(UiContext uiContext, SmartCoin coin, Network network) : base(uiContext)
+    {
 		Coin = coin;
 		Amount = new Amount(coin.Amount);
 		BtcAddress = coin.ScriptPubKey.GetDestinationAddress(network)?.ToString();
@@ -23,7 +23,7 @@ public class CoinjoinCoinViewModel : CoinjoinCoinListItem
 		}
 	}
 
-	public CoinjoinCoinViewModel(CoinjoinCoinViewModel[] coins, int coinjoinInputCount)
+	public CoinjoinCoinViewModel(UiContext uiContext, CoinjoinCoinViewModel[] coins, int coinjoinInputCount) : base(uiContext)
 	{
 		Amount = new Amount(coins.Sum(x => x.Amount.Btc));
 		Children = coins;

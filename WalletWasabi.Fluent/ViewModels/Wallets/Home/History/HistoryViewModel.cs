@@ -7,10 +7,7 @@ using Avalonia.Controls;
 using Avalonia.Controls.Models.TreeDataGrid;
 using Avalonia.Controls.Templates;
 using Avalonia.Threading;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Controls.Sorting;
 using WalletWasabi.Fluent.Infrastructure;
@@ -32,7 +29,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)]
 	private bool _isTransactionHistoryEmpty;
 
-	private HistoryViewModel(IWalletModel wallet)
+	public HistoryViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 
@@ -214,7 +211,7 @@ public partial class HistoryViewModel : ActivatableViewModel
 		];
 	}
 
-	private HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
+	public HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
 	{
 		HistoryItemViewModelBase viewModel = transaction.Type switch
 		{

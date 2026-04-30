@@ -1,6 +1,5 @@
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -21,7 +20,7 @@ public partial class WalletStatsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private IWalletStatsModel? _model;
 
-	private WalletStatsViewModel(IWalletModel wallet)
+	public WalletStatsViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 

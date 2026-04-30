@@ -3,7 +3,6 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets;
 using System.Reactive.Disposables;
-using WalletWasabi.Fluent.Models;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet;
@@ -14,7 +13,7 @@ public partial class AddedWalletPageViewModel : RoutableViewModel
 	private readonly WalletSettingsModel _walletSettings;
 	private IWalletModel? _wallet;
 
-	private AddedWalletPageViewModel(WalletSettingsModel walletSettings, WalletCreationOptions options)
+	public AddedWalletPageViewModel(UiContext uiContext, WalletSettingsModel walletSettings, WalletCreationOptions options) : base(uiContext)
 	{
 		_walletSettings = walletSettings;
 

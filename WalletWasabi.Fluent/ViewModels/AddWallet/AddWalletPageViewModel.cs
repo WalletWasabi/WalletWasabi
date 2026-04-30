@@ -3,10 +3,8 @@ using System.Reactive;
 using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Logging;
 
@@ -26,7 +24,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet;
 	NavBarSelectionMode = NavBarSelectionMode.Button)]
 public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 {
-	private AddWalletPageViewModel()
+	public AddWalletPageViewModel(UiContext uiContext) : base(uiContext)
 	{
 		CreateWalletCommand = ReactiveCommand.Create(OnCreateWallet);
 

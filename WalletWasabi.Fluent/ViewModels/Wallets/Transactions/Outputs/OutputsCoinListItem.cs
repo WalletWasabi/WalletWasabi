@@ -17,7 +17,7 @@ public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGrid
 	[AutoNotify] private bool _isControlPointerOver;
 	[AutoNotify] private bool _isExpanded;
 
-	protected OutputsCoinListItem()
+	protected OutputsCoinListItem(UiContext uiContext) : base(uiContext)
 	{
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
 

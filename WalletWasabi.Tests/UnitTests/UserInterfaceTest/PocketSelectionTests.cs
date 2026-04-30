@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models;
+using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -31,7 +32,7 @@ public class PocketSelectionTests
 			Recipient = recipient
 		};
 
-		return new LabelSelectionViewModel(km, pw, info, isSilent: false);
+		return new LabelSelectionViewModel(null!,  km, pw, info, isSilent: false);
 	}
 
 	[Fact]

@@ -57,7 +57,7 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new TransactionDetailsViewModel(UiContext, wallet, model), navigationMode);
 	}
 
-	public FluentDialog<WalletWasabi.Blockchain.Analysis.Clustering.LabelsArray?> AddressLabelEdit(IWalletModel wallet, IAddress address, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<LabelsArray?> AddressLabelEdit(IWalletModel wallet, IAddress address, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialog = new AddressLabelEditViewModel(UiContext, wallet, address);
 		var target = UiContext.Navigate(navigationTarget);
@@ -68,7 +68,7 @@ public partial class FluentNavigate
 
 	public void Loading(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new LoadingViewModel(wallet), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new LoadingViewModel(UiContext, wallet), navigationMode);
 	}
 
 	public void WalletVerifyRecoveryWords(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -78,7 +78,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<bool> PasswordAuthDialog(IWalletModel wallet, string continueText = "Continue", NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new PasswordAuthDialogViewModel(wallet, continueText);
+		var dialog = new PasswordAuthDialogViewModel(UiContext, wallet, continueText);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -97,7 +97,7 @@ public partial class FluentNavigate
 
 	public void NavBarItem(INavBarItem item, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new NavBarItemViewModel(item), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new NavBarItemViewModel(UiContext, item), navigationMode);
 	}
 
 	public void About(bool navigateBack = false, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -107,7 +107,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<bool> ShowErrorDialog(string message, string title, string caption, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ShowErrorDialogViewModel(message, title, caption);
+		var dialog = new ShowErrorDialogViewModel(UiContext, message, title, caption);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -155,7 +155,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<bool> HardwareWalletAuthDialog(IHardwareWalletModel wallet, TransactionAuthorizationInfo transactionAuthorizationInfo, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new HardwareWalletAuthDialogViewModel(wallet, transactionAuthorizationInfo);
+		var dialog = new HardwareWalletAuthDialogViewModel(UiContext, wallet, transactionAuthorizationInfo);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -164,7 +164,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<IEnumerable<SmartCoin>> PrivacyControl(Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new PrivacyControlViewModel(wallet, sendFlow, transactionInfo, usedCoins, isSilent);
+		var dialog = new PrivacyControlViewModel(UiContext, wallet, sendFlow, transactionInfo, usedCoins, isSilent);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -176,18 +176,18 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new PrivacyRingViewModel(UiContext, wallet), navigationMode);
 	}
 
-	public FluentDialog<IEnumerable<WalletWasabi.Blockchain.TransactionOutputs.SmartCoin>> SelectCoinsDialog(IWalletModel wallet, IList<CoinModel> selectedCoins, SendFlowModel sendFlow, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<IEnumerable<SmartCoin>> SelectCoinsDialog(IWalletModel wallet, IList<CoinModel> selectedCoins, SendFlowModel sendFlow, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new SelectCoinsDialogViewModel(wallet, selectedCoins, sendFlow);
+		var dialog = new SelectCoinsDialogViewModel(UiContext, wallet, selectedCoins, sendFlow);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<IEnumerable<WalletWasabi.Blockchain.TransactionOutputs.SmartCoin>>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<IEnumerable<SmartCoin>>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void BitcoinTabSettings(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new BitcoinTabSettingsViewModel(settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new BitcoinTabSettingsViewModel(UiContext, settings), navigationMode);
 	}
 
 	public void TransactionPreview(IWalletModel walletModel, SendFlowModel sendFlow, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -197,12 +197,12 @@ public partial class FluentNavigate
 
 	public void Login(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new LoginViewModel(wallet), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new LoginViewModel(UiContext, wallet), navigationMode);
 	}
 
 	public FluentDialog<string?> CreatePasswordDialog(string title, string caption = "", bool enableEmpty = true, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new CreatePasswordDialogViewModel(title, caption, enableEmpty);
+		var dialog = new CreatePasswordDialogViewModel(UiContext, title, caption, enableEmpty);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -230,13 +230,13 @@ public partial class FluentNavigate
 		return new FluentDialog<System.Reactive.Unit>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public FluentDialog<NBitcoin.FeeRate> CustomFeeRateDialog(TransactionInfo transactionInfo, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<FeeRate> CustomFeeRateDialog(TransactionInfo transactionInfo, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new CustomFeeRateDialogViewModel(transactionInfo);
+		var dialog = new CustomFeeRateDialogViewModel(UiContext, transactionInfo);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<NBitcoin.FeeRate>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<FeeRate>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void DetectedHardwareWallet(WalletCreationOptions.ConnectToHardwareWallet options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -251,7 +251,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<(int MinGapLimit, uint BirthHeight)?> AdvancedRecoveryOptions(int minGapLimit, uint genesisHeight, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new AdvancedRecoveryOptionsViewModel(minGapLimit, genesisHeight);
+		var dialog = new AdvancedRecoveryOptionsViewModel(UiContext, minGapLimit, genesisHeight);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -285,12 +285,12 @@ public partial class FluentNavigate
 
 	public void SchemeConsole(Daemon.Scheme schemeInterpreter, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new SchemeConsoleViewModel(schemeInterpreter), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new SchemeConsoleViewModel(UiContext, schemeInterpreter), navigationMode);
 	}
 
 	public FluentDialog<int?> ResyncWallet(uint birthHeight, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ResyncWalletViewModel(birthHeight);
+		var dialog = new ResyncWalletViewModel(UiContext, birthHeight);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -299,12 +299,12 @@ public partial class FluentNavigate
 
 	public void GeneralSettingsTab(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new GeneralSettingsTabViewModel(settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new GeneralSettingsTabViewModel(UiContext, settings), navigationMode);
 	}
 
 	public void ConnectionsSettingsTab(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new ConnectionsSettingsTabViewModel(settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new ConnectionsSettingsTabViewModel(UiContext, settings), navigationMode);
 	}
 
 	public FluentDialog<System.Reactive.Unit> SettingsPage(NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -337,7 +337,7 @@ public partial class FluentNavigate
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<System.Collections.Generic.IEnumerable<WalletWasabi.Blockchain.TransactionOutputs.SmartCoin>>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<IEnumerable<SmartCoin>>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void AddCoinJoinPayment(IWalletModel walletModel, Wallet wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -352,7 +352,7 @@ public partial class FluentNavigate
 
 	public FluentDialog<bool> ConfirmHideAddress(LabelsArray labels, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ConfirmHideAddressViewModel(labels);
+		var dialog = new ConfirmHideAddressViewModel(UiContext, labels);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -400,12 +400,12 @@ public partial class FluentNavigate
 
 	public void PrivacyMode(ApplicationSettings applicationSettings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new PrivacyModeViewModel(applicationSettings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new PrivacyModeViewModel(UiContext, applicationSettings), navigationMode);
 	}
 
 	public FluentDialog<System.Reactive.Unit> ExcludedCoins(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ExcludedCoinsViewModel(wallet);
+		var dialog = new ExcludedCoinsViewModel(UiContext, wallet);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
@@ -501,7 +501,7 @@ public partial class FluentNavigate
 
 	public void CoordinatorTabSettings(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(settings), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new CoordinatorTabSettingsViewModel(UiContext, settings), navigationMode);
 	}
 
 	public void WalletBackupType(WalletCreationOptions options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

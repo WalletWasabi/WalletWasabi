@@ -10,7 +10,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
@@ -29,9 +28,8 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 	[AutoNotify] private Thickness _margin;
 	[AutoNotify] private Thickness _negativeMargin;
 
-	public PrivacyRingViewModel(UiContext uiContext, IWalletModel wallet)
+	public PrivacyRingViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
-		UiContext = uiContext;
 		_wallet = wallet;
 
 		NextCommand = CancelCommand;

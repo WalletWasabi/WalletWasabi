@@ -56,7 +56,7 @@ public static class MainViewModelExtensions
 		if (uiContext.ApplicationSettings.ExperimentalFeatures.Contains("scripting", StringComparer.InvariantCultureIgnoreCase))
 		{
 			ArgumentNullException.ThrowIfNull(uiContext.Scheme, nameof(uiContext.Scheme));
-			SchemeConsoleViewModel.Register(new SchemeConsoleViewModel(uiContext.Scheme));
+			SchemeConsoleViewModel.Register(new SchemeConsoleViewModel(uiContext, uiContext.Scheme));
 		}
 	}
 }

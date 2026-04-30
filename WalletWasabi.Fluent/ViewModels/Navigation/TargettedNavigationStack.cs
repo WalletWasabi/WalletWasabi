@@ -4,7 +4,7 @@ public class TargettedNavigationStack : NavigationStack<RoutableViewModel>
 {
 	private readonly NavigationTarget _target;
 
-	public TargettedNavigationStack(NavigationTarget target)
+	public TargettedNavigationStack(UiContext uiContext, NavigationTarget target) : base(uiContext)
 	{
 		_target = target;
 	}

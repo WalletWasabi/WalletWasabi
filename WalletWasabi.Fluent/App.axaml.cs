@@ -47,7 +47,6 @@ public class App : Application
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
 				var uiContext = CreateUiContext();
-				UiContext.Default = uiContext;
 				var mainViewModel = new MainViewModel(uiContext);
 				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, mainViewModel, _startInBg);
 				var applicationViewModel = _applicationStateManager.ApplicationViewModel;

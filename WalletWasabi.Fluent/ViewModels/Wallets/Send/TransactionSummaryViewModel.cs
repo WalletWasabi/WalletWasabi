@@ -8,7 +8,6 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
 using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -33,7 +32,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 	[AutoNotify] private OutputsCoinListViewModel? _outputList;
 	[AutoNotify] private IReadOnlyList<RecipientSummaryViewModel> _recipients = Array.Empty<RecipientSummaryViewModel>();
 
-	private TransactionSummaryViewModel(TransactionPreviewViewModel parent, IWalletModel wallet, TransactionInfo info, bool isPreview = false)
+	public TransactionSummaryViewModel(UiContext uiContext, TransactionPreviewViewModel parent, IWalletModel wallet, TransactionInfo info, bool isPreview = false) : base(uiContext)
 	{
 		Parent = parent;
 		_wallet = wallet;
@@ -75,6 +74,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			{
 				var displayAmount = r.IsSubtractFee ? r.Amount - fee : r.Amount;
 				return new RecipientSummaryViewModel(
+					UiContext,
 					r.Destination.ToString(_wallet.Network),
 					UiContext.AmountProvider.Create(displayAmount),
 					r.Label);
@@ -103,6 +103,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 		FeeRate = info.FeeRate;
 
 		InputList = new InputsCoinListViewModel(
+			UiContext,
 			transactionResult.Transaction.WalletInputs,
 			_wallet.Network,
 			transactionResult.Transaction.WalletInputs.Count + transactionResult.Transaction.ForeignInputs.Count,
@@ -110,6 +111,7 @@ public partial class TransactionSummaryViewModel : ViewModelBase
 			!IsPreview ? null : Parent.CurrentTransactionSummary.InputList?.TreeDataGridSource.Items.First().Children.Count);
 
 		OutputList = new OutputsCoinListViewModel(
+			UiContext,
 			transactionResult.Transaction.WalletOutputs.Select(x => x.TxOut).ToList(),
 			transactionResult.Transaction.ForeignOutputs.Select(x => x.TxOut).ToList(),
 			_wallet.Network,

@@ -7,7 +7,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 
@@ -28,7 +27,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 
-	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction)
+	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext)
 	{
 		_wallet = wallet;
 		_transaction = transaction;
@@ -50,10 +49,8 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		var freshInputs = allInputs.Where(x => !allOutputs.Contains(x));
 		var finalOutputs = allOutputs.Where(x => !allInputs.Contains(x));
 
-		InputList = new CoinjoinCoinListViewModel(freshWalletInputs, wallet.Network, freshWalletInputs.Count + freshInputs.Count());
-		OutputList = new CoinjoinCoinListViewModel(finalWalletOutputs, wallet.Network, finalWalletOutputs.Count + finalOutputs.Count());
-
-		UiContext = uiContext;
+		InputList = new CoinjoinCoinListViewModel(UiContext, freshWalletInputs, wallet.Network, freshWalletInputs.Count + freshInputs.Count());
+		OutputList = new CoinjoinCoinListViewModel(UiContext, finalWalletOutputs, wallet.Network, finalWalletOutputs.Count + finalOutputs.Count());
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		NextCommand = CancelCommand;

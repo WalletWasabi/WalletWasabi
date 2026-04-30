@@ -126,7 +126,7 @@ public static class TransactionFeeHelper
 	/// <remarks>The method does not throw any exception.</remarks>
 	/// <remarks>Stores the found fee rate in the received <see cref="TransactionInfo"/> object. </remarks>
 	/// <returns>True if the seeking was successful, False if not.</returns>
-	public static async Task<bool> TrySetMaxFeeRateAsync(Wallet wallet, TransactionInfo info)
+	public static async Task<bool> TrySetMaxFeeRateAsync(UiContext uiContext, Wallet wallet, TransactionInfo info)
 	{
 		var maxFeeRate =
 			await Task.Run(() =>
@@ -147,7 +147,7 @@ public static class TransactionFeeHelper
 				return found ? rate! : new FeeRate(0m);
 			});
 
-		if (EnsureFeeRateIsPossible(wallet, maxFeeRate))
+		if (EnsureFeeRateIsPossible(uiContext, wallet, maxFeeRate))
 		{
 			info.MaximumPossibleFeeRate = maxFeeRate;
 			info.FeeRate = maxFeeRate;
@@ -166,14 +166,14 @@ public static class TransactionFeeHelper
 	/// It is needed otherwise we cannot predict the confirmation time and the fee chart would crash.
 	/// TODO: Remove this hack when the issues mentioned above are fixed.
 	/// </summary>
-	private static bool EnsureFeeRateIsPossible(Wallet wallet, FeeRate feeRate)
+	private static bool EnsureFeeRateIsPossible(UiContext uiContext, Wallet wallet, FeeRate feeRate)
 	{
 		if (!TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
 			return false;
 		}
 
-		var feeChartViewModel = new FeeChartViewModel();
+		var feeChartViewModel = new FeeChartViewModel(uiContext);
 		feeChartViewModel.UpdateFeeEstimates(feeEstimates.WildEstimations);
 
 		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))

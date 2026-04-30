@@ -1,11 +1,10 @@
 using System.Windows.Input;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
 public partial class LinkViewModel : ViewModelBase
 {
-	private LinkViewModel()
+	public LinkViewModel(UiContext uiContext) : base(uiContext)
 	{
 		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.FileSystem.OpenBrowserAsync(link));
 

@@ -17,7 +17,7 @@ public partial class LoadingViewModel : RoutableViewModel
 	[AutoNotify] private string _timeToCatchUp;
 	[AutoNotify] private bool _isLoading;
 
-	public LoadingViewModel(IWalletModel wallet)
+	public LoadingViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 		_timeToCatchUp = "";

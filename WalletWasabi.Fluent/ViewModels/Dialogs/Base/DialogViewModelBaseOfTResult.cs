@@ -1,6 +1,5 @@
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
@@ -15,7 +14,7 @@ public abstract class DialogViewModelBase<TResult> : DialogViewModelBase
 	private readonly IDisposable _disposable;
 	private TaskCompletionSource<DialogResult<TResult>>? _currentTaskCompletionSource;
 
-	protected DialogViewModelBase()
+	protected DialogViewModelBase(UiContext uiContext) : base(uiContext)
 	{
 		_currentTaskCompletionSource = new TaskCompletionSource<DialogResult<TResult>>();
 

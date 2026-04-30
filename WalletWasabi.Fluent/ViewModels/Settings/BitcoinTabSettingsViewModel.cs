@@ -34,7 +34,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string? _connectionStatusMessage;
 	[AutoNotify] private bool _connectionStatusIsSuccess;
 
-	public BitcoinTabSettingsViewModel(ApplicationSettings settings)
+	public BitcoinTabSettingsViewModel(UiContext uiContext, ApplicationSettings settings) : base(uiContext)
 	{
 		Settings = settings;
 

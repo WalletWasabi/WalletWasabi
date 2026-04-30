@@ -4,7 +4,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
 public class PrivacyBarItemViewModel : ViewModelBase
 {
-	public PrivacyBarItemViewModel(PrivacyLevel privacyLevel, decimal amount)
+	public PrivacyBarItemViewModel(UiContext uiContext, PrivacyLevel privacyLevel, decimal amount) : base(uiContext)
 	{
 		PrivacyLevel = privacyLevel;
 		Amount = amount;

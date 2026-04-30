@@ -3,10 +3,8 @@ using System.Reactive.Concurrency;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
 
@@ -30,9 +28,8 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _isModified;
 	[AutoNotify] private int _selectedTab;
 
-	public SettingsPageViewModel(UiContext uiContext)
+	public SettingsPageViewModel(UiContext uiContext) : base(uiContext)
 	{
-		UiContext = uiContext;
 		_selectedTab = 0;
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -43,10 +40,10 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 			return Task.CompletedTask;
 		});
 
-		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext.ApplicationSettings);
-		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext.ApplicationSettings);
-		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext.ApplicationSettings);
-		ConnectionsSettingsTab = new ConnectionsSettingsTabViewModel(UiContext.ApplicationSettings);
+		GeneralSettingsTab = new GeneralSettingsTabViewModel(UiContext, UiContext.ApplicationSettings);
+		BitcoinTabSettings = new BitcoinTabSettingsViewModel(UiContext, UiContext.ApplicationSettings);
+		CoordinatorTabSettings = new CoordinatorTabSettingsViewModel(UiContext, UiContext.ApplicationSettings);
+		ConnectionsSettingsTab = new ConnectionsSettingsTabViewModel(UiContext, UiContext.ApplicationSettings);
 
 		RestartCommand = ReactiveCommand.Create(() => AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true));
 		NextCommand = ReactiveCommand.Create(() => Close());
@@ -62,7 +59,7 @@ public partial class SettingsPageViewModel : DialogViewModelBase<Unit>
 		// Show restart notification when needed only if this page is not active.
 		UiContext.ApplicationSettings.IsRestartNeeded
 				 .Where(x => x && !IsActive)
-				 .Do(_ => NotificationHelpers.Show(new RestartViewModel("To apply the new setting, Wasabi Wallet needs to be restarted")))
+				 .Do(_ => NotificationHelpers.Show(new RestartViewModel(UiContext, "To apply the new setting, Wasabi Wallet needs to be restarted")))
 				 .Subscribe();
 	}
 

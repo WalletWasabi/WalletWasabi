@@ -1,7 +1,6 @@
 using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Logging;
@@ -12,7 +11,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private IWalletModel _wallet;
 
-	private TransactionHistoryItemViewModel(IWalletModel wallet, TransactionModel transaction) : base(transaction)
+	public TransactionHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext, transaction)
 	{
 		_wallet = wallet;
 

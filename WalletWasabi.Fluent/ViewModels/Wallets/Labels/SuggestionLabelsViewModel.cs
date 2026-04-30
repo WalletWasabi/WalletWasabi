@@ -23,7 +23,7 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 	[AutoNotify] private bool _isCurrentTextValid;
 	[AutoNotify] private bool _forceAdd;
 
-	public SuggestionLabelsViewModel(IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null)
+	public SuggestionLabelsViewModel(UiContext uiContext, IWalletModel wallet, Intent intent, int topSuggestionsCount, IEnumerable<string>? labels = null) : base(uiContext)
 	{
 		_wallet = wallet;
 		_topSuggestionsCount = topSuggestionsCount;
@@ -52,14 +52,14 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 			mostUsedLabels
 				.OrderByDescending(x => x.Score)
 				.DistinctBy(x => x.Label, StringComparer.OrdinalIgnoreCase)
-				.Select(x => new SuggestionLabelViewModel(x.Label, x.Score)));
+				.Select(x => new SuggestionLabelViewModel(UiContext, x.Label, x.Score)));
 	}
 
 	protected override void OnActivated(CompositeDisposable disposables)
 	{
 		_topSuggestions.Clear();
 		_suggestions.Clear();
-		
+
 		var suggestionLabelsFilter = this.WhenAnyValue(x => x.Labels).ToSignal()
 			.Merge(Observable.FromEventPattern(Labels, nameof(Labels.CollectionChanged)).ToSignal())
 			.Select(_ => SuggestionLabelsFilter());

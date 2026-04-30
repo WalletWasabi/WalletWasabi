@@ -1,4 +1,3 @@
-using DynamicData;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionProcessing;
@@ -16,7 +15,7 @@ public partial class WalletNotificationsViewModel : ViewModelBase
 	private readonly IWalletSelector _walletSelector;
 	[AutoNotify] private bool _isBusy;
 
-	private WalletNotificationsViewModel(IWalletSelector walletSelector)
+	public WalletNotificationsViewModel(UiContext uiContext, IWalletSelector walletSelector) : base(uiContext)
 	{
 		_walletSelector = walletSelector;
 	}

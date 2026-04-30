@@ -4,10 +4,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -24,7 +20,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _caption = "";
 
-	private ConfirmRecoveryWordsViewModel(WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words)
+	public ConfirmRecoveryWordsViewModel(UiContext uiContext, WalletCreationOptions.AddNewWallet options, List<RecoveryWordViewModel> words) : base(uiContext)
 	{
 		_options = options;
 		_availableWords = new List<RecoveryWordViewModel>();
@@ -83,7 +79,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		confirmationWordsSourceList.AddRange(_words);
 
 		AvailableWords = confirmationWordsSourceList.Items
-			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.Select(x => new RecoveryWordViewModel(UiContext, x.Index, x.Word))
 			.OrderBy(x => x.Word)
 			.ToList();
 

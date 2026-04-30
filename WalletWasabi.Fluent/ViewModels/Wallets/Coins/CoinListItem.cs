@@ -28,7 +28,7 @@ public abstract partial class CoinListItem : ViewModelBase, ITreeDataGridExpande
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
 	[AutoNotify] private bool _canBeSelected;
 
-	protected CoinListItem()
+	protected CoinListItem(UiContext uiContext) : base(uiContext)
 	{
 		// Temporarily enable the selection no matter what.
 		// Should be again restricted once https://github.com/WalletWasabi/WalletWasabi/issues/9972 is implemented.

@@ -5,10 +5,6 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Security.Cryptography;
 using System.Threading.Tasks;
-using DynamicData;
-using DynamicData.Binding;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.AddWallet.Create;
@@ -52,7 +48,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allWordsConfirmed;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private string _caption = "";
 
-	private ConfirmMultiShareViewModel(WalletCreationOptions.AddNewWallet options, Dictionary<int, List<RecoveryWordViewModel>> wordsDictionary)
+	public ConfirmMultiShareViewModel(UiContext uiContext, WalletCreationOptions.AddNewWallet options, Dictionary<int, List<RecoveryWordViewModel>> wordsDictionary) : base(uiContext)
 	{
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
@@ -160,7 +156,7 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 		ConfirmNotRequiredWords(_words);
 
 		AvailableWords = confirmationWordsSourceList.Items
-			.Select(x => new RecoveryWordViewModel(x.Index, x.Word))
+			.Select(x => new RecoveryWordViewModel(UiContext, x.Index, x.Word))
 			.OrderBy(x => x.Word)
 			.ToList();
 

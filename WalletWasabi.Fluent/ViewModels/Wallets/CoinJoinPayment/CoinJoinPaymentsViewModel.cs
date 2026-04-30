@@ -4,7 +4,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Windows.Input;
 using Avalonia.Threading;
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Wallets;
@@ -27,7 +26,7 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 	[AutoNotify] private bool _hasCompletedPayments;
 	[AutoNotify] private int _totalPaymentCount;
 
-	private CoinJoinPaymentsViewModel(IWalletModel walletModel, Wallet wallet)
+	public CoinJoinPaymentsViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
 	{
 		_wallet = wallet;
 		_walletModel = walletModel;
@@ -90,7 +89,7 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 
 		foreach (var payment in payments)
 		{
-			var vm = new CoinJoinPaymentViewModel(payment, network);
+			var vm = new CoinJoinPaymentViewModel(UiContext, payment, network);
 			if (vm.IsPending)
 			{
 				pending.Add(vm);

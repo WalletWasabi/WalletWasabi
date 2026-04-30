@@ -8,21 +8,21 @@ namespace WalletWasabi.Fluent.Helpers;
 // TODO: Remove this entire class after SendViewModel is decoupled.
 public static class AuthorizationHelpers
 {
-	public static AuthorizationDialogBase GetAuthorizationDialog(IWalletModel wallet, BuildTransactionResult transaction)
+	public static AuthorizationDialogBase GetAuthorizationDialog(UiContext uiContext, IWalletModel wallet, BuildTransactionResult transaction)
 	{
 		var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
-		return GetAuthorizationDialog(wallet, transactionAuthorizationInfo);
+		return GetAuthorizationDialog(uiContext, wallet, transactionAuthorizationInfo);
 	}
 
-	public static AuthorizationDialogBase GetAuthorizationDialog(IWalletModel wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
+	public static AuthorizationDialogBase GetAuthorizationDialog(UiContext uiContext, IWalletModel wallet, TransactionAuthorizationInfo transactionAuthorizationInfo)
 	{
 		if (wallet is IHardwareWalletModel hwm)
 		{
-			return new HardwareWalletAuthDialogViewModel(hwm, transactionAuthorizationInfo);
+			return new HardwareWalletAuthDialogViewModel(uiContext, hwm, transactionAuthorizationInfo);
 		}
 		else
 		{
-			return new PasswordAuthDialogViewModel(wallet, "Send");
+			return new PasswordAuthDialogViewModel(uiContext, wallet, "Send");
 		}
 	}
 }

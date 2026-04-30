@@ -2,15 +2,12 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
-using System.Reactive.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Inputs;
 using WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
@@ -35,13 +32,13 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _isFeeRateVisible;
 
-	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model) : base(uiContext)
 	{
-		UiContext = uiContext;
 		_wallet = wallet;
 
-		InputList = new InputsCoinListViewModel(model.WalletInputs, wallet.Network, model.WalletInputs.Count + model.ForeignInputs.Value.Count);
+		InputList = new InputsCoinListViewModel(uiContext, model.WalletInputs, wallet.Network, model.WalletInputs.Count + model.ForeignInputs.Value.Count);
 		OutputList = new OutputsCoinListViewModel(
+			uiContext,
 			model.WalletOutputs.Select(x => x.TxOut).ToList(),
 			model.ForeignOutputs.Value.Select(x => x.TxOut).ToList(),
 			wallet.Network);

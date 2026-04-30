@@ -1,7 +1,5 @@
 using System.Collections.Generic;
 using System.Reactive.Disposables;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Wallets.Slip39;
 
@@ -13,7 +11,7 @@ public partial class MultiShareViewModel : RoutableViewModel
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _currentShare;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private byte _totalShares;
 
-	private MultiShareViewModel(WalletCreationOptions.AddNewWallet options)
+	public MultiShareViewModel(UiContext uiContext, WalletCreationOptions.AddNewWallet options) : base(uiContext)
 	{
 		var multiShareBackup = options.SelectedWalletBackup as MultiShareBackup;
 
@@ -103,7 +101,7 @@ public partial class MultiShareViewModel : RoutableViewModel
 
 		for (var i = 0; i < words.Length; i++)
 		{
-			result.Add(new RecoveryWordViewModel(i + 1, words[i]));
+			result.Add(new RecoveryWordViewModel(UiContext, i + 1, words[i]));
 		}
 
 		return result;

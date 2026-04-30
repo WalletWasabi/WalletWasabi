@@ -9,8 +9,8 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;
 
 public class CoinViewModel : CoinListItem
 {
-    public CoinViewModel(LabelsArray labels, CoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode)
-	{
+    public CoinViewModel(UiContext uiContext, LabelsArray labels, CoinModel coin, bool canSelectWhenCoinjoining, bool ignorePrivacyMode) : base(uiContext)
+    {
 		Labels = labels;
 		Coin = coin;
 		BtcAddress = coin.BtcAddress;

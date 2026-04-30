@@ -1,17 +1,13 @@
 using System.Collections.Generic;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
-using WalletWasabi.Models;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
@@ -39,9 +35,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
 
-    public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel)
+    public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
-        UiContext = uiContext;
         _wallet = walletModel;
         _walletName = walletModel.Name;
         _preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;

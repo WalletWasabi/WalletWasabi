@@ -1,5 +1,4 @@
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
@@ -16,7 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 	IconName = "book_question_mark_regular")]
 public partial class FindCoordinatorLinkViewModel : TriggerCommandViewModel
 {
-	private FindCoordinatorLinkViewModel()
+	public FindCoordinatorLinkViewModel(UiContext uiContext) : base(uiContext)
 	{
 		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
 	}

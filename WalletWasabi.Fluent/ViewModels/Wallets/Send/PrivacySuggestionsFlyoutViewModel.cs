@@ -25,7 +25,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
 
-	public PrivacySuggestionsFlyoutViewModel(IWalletModel wallet, SendFlowModel sendParameters)
+	public PrivacySuggestionsFlyoutViewModel(UiContext uiContext, IWalletModel wallet, SendFlowModel sendParameters) : base(uiContext)
 	{
 		_privacySuggestionsModel = wallet.GetPrivacySuggestionsModel(sendParameters);
 	}

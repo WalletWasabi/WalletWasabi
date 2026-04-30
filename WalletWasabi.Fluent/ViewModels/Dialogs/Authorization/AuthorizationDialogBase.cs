@@ -11,7 +11,7 @@ public abstract partial class AuthorizationDialogBase : DialogViewModelBase<bool
 	[AutoNotify(SetterModifier = AccessModifier.Protected)]
 	private string _authorizationFailedMessage = "The Authorization has failed, please try again.";
 
-	protected AuthorizationDialogBase()
+	protected AuthorizationDialogBase(UiContext uiContext) : base(uiContext)
 	{
 		NextCommand = ReactiveCommand.CreateFromTask(AuthorizeCoreAsync);
 

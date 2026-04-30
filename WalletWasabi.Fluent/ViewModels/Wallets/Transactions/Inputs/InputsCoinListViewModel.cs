@@ -14,9 +14,9 @@ public class InputsCoinListViewModel : ViewModelBase, IDisposable
 {
 	private readonly CompositeDisposable _disposables = new();
 
-	public InputsCoinListViewModel(IEnumerable<SmartCoin> availableCoins, Network network, int inputCount, bool? isExpanded = null, int? oldInputCount = null)
+	public InputsCoinListViewModel(UiContext uiContext, IEnumerable<SmartCoin> availableCoins, Network network, int inputCount, bool? isExpanded = null, int? oldInputCount = null) : base(uiContext)
 	{
-		var coinItems = availableCoins.OrderByDescending(x => x.Amount).Select(x => new InputsCoinViewModel(x, network)).ToList();
+		var coinItems = availableCoins.OrderByDescending(x => x.Amount).Select(x => new InputsCoinViewModel(uiContext, x, network)).ToList();
 		foreach (var coin in coinItems)
 		{
 			coin.IsChild = true;
@@ -32,7 +32,7 @@ public class InputsCoinListViewModel : ViewModelBase, IDisposable
 			NbDiff = inputCount - oldInputCount;
 		}
 
-		var parentItem = new InputsCoinViewModel(coinItems.ToArray(), inputCount, isExpanded.GetValueOrDefault(), NbDiff);
+		var parentItem = new InputsCoinViewModel(uiContext, coinItems.ToArray(), inputCount, isExpanded.GetValueOrDefault(), NbDiff);
 		coinItems.Insert(0, parentItem);
 		_disposables.Add(parentItem);
 

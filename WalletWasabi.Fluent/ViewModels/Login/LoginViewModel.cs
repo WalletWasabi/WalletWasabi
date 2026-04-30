@@ -16,7 +16,7 @@ public partial class LoginViewModel : RoutableViewModel
 	[AutoNotify] private bool _isPasswordNeeded;
 	[AutoNotify] private string _errorMessage;
 
-	public LoginViewModel(IWalletModel wallet)
+	public LoginViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_password = "";
 		_errorMessage = "";
