@@ -21,11 +21,16 @@ public static class EventBusExtensions
 			});
 		}
 
-		public async Task<TEvent> WaitForEventAsync<TEvent>() where TEvent : notnull
+		public async Task WaitForEventAsync<TEvent>(Func<bool> check) where TEvent : notnull
 		{
-			var tcs = new TaskCompletionSource<TEvent>();
-			using var _ = eventBus.Subscribe<TEvent>(e => tcs.SetResult(e));
-			return await tcs.Task.ConfigureAwait(true);
+			var tcs = new TaskCompletionSource();
+			using var _ = eventBus.Subscribe<TEvent>(_ => tcs.TrySetResult());
+			if (check())
+			{
+				tcs.TrySetResult();
+			}
+
+			await tcs.Task.ConfigureAwait(true);
 		}
 	}
 }
