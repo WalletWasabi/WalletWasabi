@@ -24,7 +24,7 @@ public static class EventBusExtensions
 		public async Task WaitForEventAsync<TEvent>(Func<bool> check) where TEvent : notnull
 		{
 			var tcs = new TaskCompletionSource();
-			using var _ = eventBus.Subscribe<TEvent>(_ => tcs.SetResult());
+			using var _ = eventBus.Subscribe<TEvent>(_ => tcs.TrySetResult());
 			if (check())
 			{
 				tcs.TrySetResult();
