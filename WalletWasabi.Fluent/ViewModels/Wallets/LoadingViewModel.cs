@@ -1,13 +1,12 @@
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets;
 
-[NavigationMetaData(Title = null)]
+[NavigationMetaData(Title = "")]
 public partial class LoadingViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
@@ -28,9 +27,9 @@ public partial class LoadingViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_wallet.Loader.Progress
-					  .Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
-					  .Subscribe()
-					  .DisposeWith(disposables);
+			.Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
+			.Subscribe()
+			.DisposeWith(disposables);
 	}
 
 	private void UpdateStatus(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percentProgress)

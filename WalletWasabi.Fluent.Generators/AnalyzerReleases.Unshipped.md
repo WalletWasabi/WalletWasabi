@@ -5,5 +5,3 @@
 
 Rule ID | Category | Severity | Notes
 --------|----------|----------|-------
-WW001 | Wasabi Wallet | Error | UiContextAnalyzer
-WW002 | Wasabi Wallet | Error | UiContextAnalyzer

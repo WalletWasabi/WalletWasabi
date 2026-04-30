@@ -6,7 +6,7 @@ public sealed class NavigationMetaData
 {
 	public bool Searchable { get; init; } = true;
 
-	public string? Title { get; init; }
+	public required string Title { get; init; }
 
 	public string? Caption { get; init; }
 

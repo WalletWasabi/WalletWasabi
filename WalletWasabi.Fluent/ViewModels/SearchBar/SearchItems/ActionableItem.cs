@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;

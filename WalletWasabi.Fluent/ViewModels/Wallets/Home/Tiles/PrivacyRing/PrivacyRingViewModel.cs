@@ -1,8 +1,5 @@
 using Avalonia;
-using DynamicData;
-using DynamicData.Binding;
 using NBitcoin;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive;
@@ -15,9 +12,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
 
-[NavigationMetaData(
-	Title = "Privacy Progress",
-	NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "Privacy Progress", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class PrivacyRingViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
