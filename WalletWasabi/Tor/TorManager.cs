@@ -238,7 +238,7 @@ public class TorManager : IAsyncDisposable
 							continue;
 						}
 
-						throw new NotSupportedException("Tor was started by another user and we can't use it nor kill it. All attempts to launch a new instance in different prots have failed.");
+						throw new NotSupportedException("Tor was started by another user and we can't use it nor kill it. All attempts to launch a new instance in different ports have failed.");
 					}
 
 					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
