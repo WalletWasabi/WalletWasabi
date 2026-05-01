@@ -72,9 +72,9 @@
       },
       "NBitcoin": {
         "type": "Direct",
-        "requested": "[9.0.5, )",
-        "resolved": "9.0.5",
-        "contentHash": "twjb1YfGcOW2UaR+GWMDGMPKQgjwVyzARML4oGxSSZQO8CyzULel2ipOUC6nhCpP6XN1fVGNQmOWfbD5AI8ksw==",
+        "requested": "[10.0.3, )",
+        "resolved": "10.0.3",
+        "contentHash": "nuzZn+IziBmZXySg+G48UT2g2YZ7SgjsK9qdIefkRjsbw2ddeQEXuoHFtvB0w2A6YlQgjio09g5Y5PnMHMfZwA==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "13.0.1"

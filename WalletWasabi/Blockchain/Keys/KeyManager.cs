@@ -20,11 +20,11 @@ using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
-using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
 using Decode = WalletWasabi.Serialization.Decode;
 using Encode = WalletWasabi.Serialization.Encode;
 using Network = NBitcoin.Network;
 using OutPoint = NBitcoin.OutPoint;
+using NBitcoin.WalletPolicies;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -147,14 +147,14 @@ public class KeyManager
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
 		});
 
-	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
+	public WalletPolicy GetWpkhWalletPolicy(string password, Network network)
 	{
 		if (!MasterFingerprint.HasValue)
 		{
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
 		}
 
-		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
+		return WpkhWalletPolicyHelper.Get(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
 	}
 
 	#region Properties

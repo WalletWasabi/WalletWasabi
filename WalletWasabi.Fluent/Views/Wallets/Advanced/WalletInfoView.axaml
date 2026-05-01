@@ -69,34 +69,15 @@
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <StackPanel Spacing="10" IsVisible="{Binding HasOutputDescriptors}">
+      <StackPanel Spacing="10" IsVisible="{Binding HasWpkhWalletPolicy}">
         <PreviewItem Icon="{StaticResource key_regular}"
-                       Label="Public External Output descriptor"
-                       CopyableContent="{Binding PublicExternalOutputDescriptor}">
-          <PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
-        </PreviewItem>
-        <PreviewItem Icon="{StaticResource key_regular}"
-                       Label="Public Internal Output descriptor"
-                       CopyableContent="{Binding PublicInternalOutputDescriptor}">
-          <PrivacyContentControl Classes="monoSpaced" Content="{Binding PublicInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
-        </PreviewItem>
-
-        <PreviewItem Icon="{StaticResource key_regular}"
-                       Label="Private External Output descriptor"
-                       IsVisible="{Binding !!PrivateExternalOutputDescriptor}"
-                       PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding PrivateExternalOutputDescriptor}">
-          <PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateExternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
-        </PreviewItem>
-        <PreviewItem Icon="{StaticResource key_regular}"
-                       Label="Private Internal Output descriptor"
-                       IsVisible="{Binding !!PrivateInternalOutputDescriptor}"
-                       PrivacyModeEnabled="{Binding !ShowSensitiveData}"
-                       CopyableContent="{Binding PrivateInternalOutputDescriptor}">
-          <PrivacyContentControl Classes="monoSpaced" Content="{Binding PrivateInternalOutputDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
+                     Label="Full Wallet Policy Descriptor"
+                     CopyableContent="{Binding WpkhWalletPolicyFullDescriptor}"
+                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+          <PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhWalletPolicyFullDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </PreviewItem>
       </StackPanel>
-      <Separator IsVisible="{Binding HasOutputDescriptors}" />
+      <Separator IsVisible="{Binding HasWpkhWalletPolicy}" />
 
       <PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (SegWit)"
