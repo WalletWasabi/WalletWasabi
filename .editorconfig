@@ -249,6 +249,9 @@ csharp_style_prefer_range_operator = true:error
 # IDE0071: Simplify interpolation
 dotnet_style_prefer_simplified_interpolation = true:error
 
+# IDE0080: Remove unnecessary suppression operator
+dotnet_diagnostic.IDE0080.severity = warning
+
 # IDE0130: Warn and provide code fixes for when namespaces do not match the folder structure.
 dotnet_diagnostic.IDE0130.severity = warning
 
