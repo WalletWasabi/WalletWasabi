@@ -20,6 +20,7 @@ using System.Collections.Immutable;
 using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
+using System.Net.Mime;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -99,7 +100,8 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	{
 		if (network == Network.Main)
 		{
-			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase)) ?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
+			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase))
+				?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
 		}
 		else if (network == Bitcoin.Instance.Signet)
 		{
@@ -129,7 +131,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 
 			using var httpClient = HttpClientFactory.CreateClient($"{Broadcaster.Name}-{tx.GetHash()}");
 			httpClient.DefaultRequestHeaders.TryAddWithoutValidation("User-Agent", _userAgentGetter());
-			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, "application/json");
+			using var content = new StringContent($"{tx.Transaction.ToHex()}", Encoding.UTF8, MediaTypeNames.Application.Json);
 
 			using var response = await httpClient.PostAsync($"{requestUri}{Broadcaster.ApiEndpoint}", content, cancellationToken).ConfigureAwait(false);
 			response.EnsureSuccessStatusCode($"Error broadcasting tx {tx.GetHash()} to {Broadcaster.Name}");
@@ -138,11 +140,9 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		}
 		catch (HttpRequestException ex)
 		{
-			if (RpcErrorTools.IsSpentError(ex.Message))
-			{
-				return BroadcastingResult.Fail(new BroadcastError.SpentError());
-			}
-			return BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
+			return RpcErrorTools.IsSpentError(ex.Message)
+				? BroadcastingResult.Fail(new BroadcastError.SpentError())
+				: BroadcastingResult.Fail(new BroadcastError.Unknown(ex.Message));
 		}
 		catch (Exception ex)
 		{
@@ -259,26 +259,20 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 {
 	public async Task SendTransactionAsync(SmartTransaction tx, CancellationToken cancellationToken = default)
 	{
-		var results = await broadcasters
-			.ToAsyncEnumerable()
-			.Select(async (x, ct) => await x.BroadcastAsync(tx, ct).ConfigureAwait(false))
-			.TakeUntilAsync(x => x.IsOk)
-			.ToArrayAsync(cancellationToken)
-			.ConfigureAwait(false);
-
-		foreach (var error in results.TakeWhile(x => !x.IsOk).Select(x => x.Error))
+		foreach (var broadcaster in broadcasters)
 		{
-			ReportError(error);
+			BroadcastingResult result = await broadcaster.BroadcastAsync(tx, cancellationToken).ConfigureAwait(false);
+			if (result.IsOk)
+			{
+				ReportSuccessfulBroadcast(result.Value, tx.GetHash());
+				BelieveTransaction(tx);
+				return;
+			}
+
+			ReportError(result.Error);
 		}
 
-		if (results.LastOrDefault(x => x.IsOk) is not { } ok)
-		{
-			throw new InvalidOperationException("Error while sending transaction.");
-		}
-
-		ReportSuccessfulBroadcast(ok.Value, tx.GetHash());
-
-		BelieveTransaction(tx);
+		throw new InvalidOperationException("Error while sending transaction.");
 	}
 
 	private void ReportError(BroadcastError broadcastError)
