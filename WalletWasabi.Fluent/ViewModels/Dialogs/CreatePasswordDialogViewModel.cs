@@ -1,5 +1,4 @@
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 using WalletWasabi.Models;
@@ -7,7 +6,7 @@ using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "Add Passphrase", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?>
 {
 	[AutoNotify] private string? _confirmPassword;
@@ -55,8 +54,6 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);
 		CancelCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Cancel), cancelCommandCanExecute);
 	}
-
-	public override sealed string Title { get; protected set; }
 
 	public string Caption { get; }
 

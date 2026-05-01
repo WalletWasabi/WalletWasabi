@@ -8,7 +8,6 @@ using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -60,7 +59,7 @@ public class P2pBasedTests
 			const int TransactionsCount = 3;
 
 			var eventBus = TestNodeBuilder.EventBus;
-			var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
+			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
 			var awaiter = eventBus.WaitForAsync<NewTransactionInMempool,SmartTransaction>(TransactionsCount, e => e.Transaction, cts.Token);
 
 			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];

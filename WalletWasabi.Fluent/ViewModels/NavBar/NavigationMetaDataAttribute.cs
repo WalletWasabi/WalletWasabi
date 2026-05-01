@@ -7,7 +7,7 @@ public sealed class NavigationMetaDataAttribute : Attribute
 {
 	public bool Searchable { get; set; }
 
-	public string? Title { get; set; }
+	public required string Title { get; set; }
 
 	public string? Caption { get; set; }
 

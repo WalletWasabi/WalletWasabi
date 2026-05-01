@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -8,13 +7,14 @@ namespace WalletWasabi.Fluent.ViewModels.NavBar;
 public partial class NavBarItemViewModel : RoutableViewModel
 {
 	private readonly INavBarItem _item;
-	private string? _title;
+	private string _title;
 	[AutoNotify] private string? _iconName;
 	[AutoNotify] private string? _iconNameFocused;
 
 	public NavBarItemViewModel(UiContext uiContext, INavBarItem item) : base(uiContext)
 	{
 		_item = item;
+		_title = item.Title;
 
 		item.WhenAnyValue(x => x.Title)
 			.BindTo(this, x => x.Title);

@@ -197,7 +197,7 @@ public class NavigationMetaDataGenerator : IIncrementalGenerator
 				{
 					source.AppendLine(
 						"""
-							public override string Title { get => MetaData.Title!; protected set {} }
+							public override string Title { get => MetaData.Title; protected set {} }
 						""");
 				}
 			}
@@ -206,7 +206,7 @@ public class NavigationMetaDataGenerator : IIncrementalGenerator
 			{
 				source.AppendLine(
 					"""
-						public string IconName => MetaData.IconName!;
+						public string? IconName => MetaData.IconName;
 					""");
 			}
 
@@ -214,15 +214,12 @@ public class NavigationMetaDataGenerator : IIncrementalGenerator
 			{
 				source.AppendLine(
 					"""
-						public string IconNameFocused => MetaData.IconNameFocused!;
+						public string? IconNameFocused => MetaData.IconNameFocused;
 					""");
 			}
 		}
 
-		source.Append(
-			"""
-			}
-			""");
+		source.Append('}');
 
 		return source.ToString();
 	}
