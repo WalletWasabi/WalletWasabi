@@ -36,11 +36,10 @@ public static class TransactionFeeHelper
 			return feeEstimates;
 		}
 
-
 		throw new InvalidOperationException("Couldn't get the fee estimations.");
 	}
 
-	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
+	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations? feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
 	{
 		if (TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
 		{
