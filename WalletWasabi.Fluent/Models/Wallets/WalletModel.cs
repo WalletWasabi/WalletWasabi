@@ -107,7 +107,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 				: null;
 		});
 
-		_coins = new(() => new WalletCoinsModel(wallet, this));
+		_coins = new(() => new WalletCoinsModel(wallet, this, services));
 
 		Transactions = new WalletTransactionsModel(services, this, wallet);
 
@@ -192,7 +192,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
-		return Wallet.GetLabelsWithRanking(intent);
+		return Wallet.GetLabelsWithRanking(intent, _services);
 	}
 
 	public IWalletStatsModel GetWalletStats()

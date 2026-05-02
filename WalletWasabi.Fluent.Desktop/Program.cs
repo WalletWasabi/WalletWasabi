@@ -168,9 +168,6 @@ public class Program
 		}
 	}
 
-	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
-	private static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure(() => new App()).UseReactiveUI().SetupAppBuilder();
-
 	/// <summary>
 	/// Sets up and initializes the crash reporting UI.
 	/// </summary>
@@ -222,7 +219,7 @@ public static class WasabiAppExtensions
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
-				Services.Initialize(app.Global, uiConfig, app.TerminateService);
+				var services = Services.Create(app.Global, uiConfig, app.TerminateService);
 
 				using CancellationTokenSource stopLoadingCts = new();
 
@@ -236,7 +233,7 @@ public static class WasabiAppExtensions
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 					}, startInBg: runGuiInBackground))
 					.UseReactiveUI()
-					.SetupAppBuilder()
+					.SetupAppBuilder(services.Config.EnableGpu)
 					.AfterSetup(_ =>
 					{
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);

@@ -37,7 +37,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		_services = services;
 		_walletModel = walletModel;
 		_wallet = wallet;
-		_treeBuilder = new TransactionTreeBuilder(wallet);
+		_treeBuilder = new TransactionTreeBuilder(wallet, services);
 
 		TransactionProcessed =
 			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()

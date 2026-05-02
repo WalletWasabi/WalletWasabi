@@ -6,7 +6,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class UserSelectionCoinListModel(Wallet wallet, IWalletModel walletModel, SmartCoin[] selectedCoins) : CoinListModel(wallet, walletModel)
+public partial class UserSelectionCoinListModel(Wallet wallet, IWalletModel walletModel, SmartCoin[] selectedCoins, IServices services)
+	: CoinListModel(wallet, walletModel, services)
 {
 	protected override CoinModel[] CreateCoinModels()
 	{

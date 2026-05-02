@@ -139,8 +139,9 @@ public class Services : IServices
 	// TerminateService wrapper functions
 	public bool IsForcefulTerminationRequested() => _terminateService.ForcefulTerminationRequestedTask.IsCompletedSuccessfully;
 
-	public static void Initialize(Global global, UiConfig uiConfig, TerminateService terminateService)
+	public static Services Create(Global global, UiConfig uiConfig, TerminateService terminateService)
 	{
 		Instance = new Services(global, uiConfig, terminateService);
+		return Instance;
 	}
 }
