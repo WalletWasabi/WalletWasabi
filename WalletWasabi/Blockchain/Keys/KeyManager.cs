@@ -32,6 +32,7 @@ public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
+	public const bool DefaultSingleRoundCoinjoin = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -197,6 +198,8 @@ public class KeyManager
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
 
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
+
+	public bool SingleRoundCoinjoin { get; set; } = DefaultSingleRoundCoinjoin;
 
 	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;
 
@@ -775,6 +778,7 @@ public class KeyManager
 			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
 			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
 			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
+			("SingleRoundCoinjoin", Encode.Bool(keyManager.SingleRoundCoinjoin)),
 			("DefaultReceiveScriptType", Encode.ScriptPubKeyType(keyManager.DefaultReceiveScriptType)),
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
@@ -813,6 +817,7 @@ public class KeyManager
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
+				SingleRoundCoinjoin = get.Optional("SingleRoundCoinjoin", Decode.Bool, false),
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),

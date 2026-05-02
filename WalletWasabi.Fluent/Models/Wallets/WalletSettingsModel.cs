@@ -23,6 +23,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
+	[AutoNotify] private bool _singleRoundCoinjoin;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
 	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
@@ -42,6 +43,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
+		_singleRoundCoinjoin = _keyManager.SingleRoundCoinjoin;
 
 		if (!isNewWallet)
 		{
@@ -59,7 +61,8 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PreferPsbtWorkflow,
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
-				x => x.NonPrivateCoinIsolation)
+				x => x.NonPrivateCoinIsolation,
+				x => x.SingleRoundCoinjoin)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -106,6 +109,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
+		_keyManager.SingleRoundCoinjoin = SingleRoundCoinjoin;
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
 		_keyManager.ChangeScriptPubKeyType = ChangeScriptPubKeyType;
