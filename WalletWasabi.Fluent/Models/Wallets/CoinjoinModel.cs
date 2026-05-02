@@ -7,7 +7,13 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class CoinjoinModel : ReactiveObject
 {
+	private readonly IServices _services;
 	private CoinJoinManager? _coinJoinManager;
+
+	public CoinjoinModel(IServices services)
+	{
+		_services = services;
+	}
 
 	public bool CanShutdown()
 	{
@@ -46,6 +52,6 @@ public partial class CoinjoinModel : ReactiveObject
 
 	private CoinJoinManager? GetCoinjoinManager()
 	{
-		return _coinJoinManager ??= Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		return _coinJoinManager ??= _services.GetHostedService<CoinJoinManager>();
 	}
 }

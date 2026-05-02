@@ -26,30 +26,32 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class WalletTransactionsModel : ReactiveObject, IDisposable
 {
+	private readonly IServices _services;
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
 	private readonly TransactionTreeBuilder _treeBuilder;
 	private readonly CompositeDisposable _disposable = new();
 
-	public WalletTransactionsModel(IWalletModel walletModel, Wallet wallet)
+	public WalletTransactionsModel(IServices services, IWalletModel walletModel, Wallet wallet)
 	{
+		_services = services;
 		_walletModel = walletModel;
 		_wallet = wallet;
-		_treeBuilder = new TransactionTreeBuilder(wallet);
+		_treeBuilder = new TransactionTreeBuilder(wallet, services);
 
 		TransactionProcessed =
-			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
-				.Merge(Services.EventBus.AsObservable<FiltersReceived>().ToSignal())
+			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
-			Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
-		RequestedCpfpInfoArrived = Services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
+		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
@@ -199,7 +201,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public async Task SendAsync(BuildTransactionResult transaction)
 	{
-		await Services.TransactionBroadcaster.SendTransactionAsync(transaction.Transaction);
+		await _services.SendTransactionAsync(transaction.Transaction);
 		_wallet.UpdateUsedHdPubKeysLabels(transaction.HdPubKeysWithNewLabels);
 	}
 

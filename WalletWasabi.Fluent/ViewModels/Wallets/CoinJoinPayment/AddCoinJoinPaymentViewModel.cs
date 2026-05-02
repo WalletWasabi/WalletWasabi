@@ -34,8 +34,8 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		_wallet = wallet;
 		_walletModel = walletModel;
 
-		_exchangeRate = Services.Status.UsdExchangeRate;
-		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
+		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = true;
@@ -78,7 +78,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 	private async Task OnAutoPasteAsync()
 	{
-		var isAutoPasteEnabled = Services.UiConfig.AutoPaste;
+		var isAutoPasteEnabled = UiContext.Services.GetAutoPaste();
 
 		if (string.IsNullOrWhiteSpace(To) && isAutoPasteEnabled)
 		{

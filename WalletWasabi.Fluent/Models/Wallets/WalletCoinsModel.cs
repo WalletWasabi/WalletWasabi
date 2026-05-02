@@ -10,7 +10,8 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
-public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel) : CoinListModel(wallet, walletModel)
+public partial class WalletCoinsModel(Wallet wallet, IWalletModel walletModel, IServices services)
+	: CoinListModel(wallet, walletModel, services)
 {
 	public async Task UpdateExcludedCoinsFromCoinjoinAsync(CoinModel[] coinsToExclude)
 	{

@@ -79,7 +79,7 @@ public partial class ManualControlDialogViewModel : DialogViewModelBase<IEnumera
 	{
 		var coins = CoinList.Selection.GetSmartCoins().ToList();
 
-		var sendParameters = new SendFlowModel(_wallet, _walletModel, coins);
+		var sendParameters = new SendFlowModel(_wallet, _walletModel, coins, UiContext.Services);
 
 		Navigate().To().Send(_walletModel, sendParameters);
 	}

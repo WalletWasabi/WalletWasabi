@@ -8,10 +8,8 @@ namespace WalletWasabi.Fluent.Desktop.Extensions;
 
 public static class AppBuilderExtension
 {
-	public static AppBuilder SetupAppBuilder(this AppBuilder appBuilder)
+	public static AppBuilder SetupAppBuilder(this AppBuilder appBuilder, bool enableGpu)
 	{
-		bool enableGpu = Services.PersistentConfig is not null && Services.PersistentConfig.EnableGpu;
-
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			appBuilder

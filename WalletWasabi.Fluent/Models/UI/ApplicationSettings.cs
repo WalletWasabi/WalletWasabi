@@ -25,6 +25,7 @@ public partial class ApplicationSettings : ReactiveObject
 {
 	private const int ThrottleTime = 500;
 
+	private readonly IServices _services;
 	private readonly Subject<bool> _isRestartNeeded = new();
 	private readonly string _persistentConfigFilePath;
 	private readonly PersistentConfig _startupConfig;
@@ -74,9 +75,10 @@ public partial class ApplicationSettings : ReactiveObject
 	// Experimental
 	[AutoNotify] private string[] _experimentalFeatures;
 
-	public ApplicationSettings(PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
+	public ApplicationSettings(IServices services, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{
-		_persistentConfigFilePath = Services.PersistentConfigFilePath;
+		_services = services;
+		_persistentConfigFilePath = services.PersistentConfigFilePath;
 		_startupConfig = persistentConfig;
 
 		_config = config;
@@ -230,7 +232,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		// Apply DoUpdateOnClose
 		this.WhenAnyValue(x => x.DoUpdateOnClose)
-			.Do(x => Services.EventBus.Publish(new InstallOnClosedPreferenceChanged(x)))
+			.Do(x => _services.EventBus.Publish(new InstallOnClosedPreferenceChanged(x)))
 			.Subscribe();
 	}
 

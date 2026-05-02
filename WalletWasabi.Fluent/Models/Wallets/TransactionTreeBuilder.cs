@@ -9,7 +9,6 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -17,10 +16,12 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 public class TransactionTreeBuilder
 {
 	private readonly Wallet _wallet;
+	private readonly IServices _services;
 
-	public TransactionTreeBuilder(Wallet wallet)
+	public TransactionTreeBuilder(Wallet wallet, IServices services)
 	{
 		_wallet = wallet;
+		_services = services;
 	}
 
 	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
@@ -118,8 +119,9 @@ public class TransactionTreeBuilder
 	{
 		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
-		var confirmations = transactionSummary.GetConfirmations();
-		var status = GetItemStatus(transactionSummary);
+		var serverHeight = _services.GetServerTipHeight();
+		var confirmations = transactionSummary.GetConfirmations(serverHeight);
+		var status = GetItemStatus(transactionSummary, serverHeight);
 		var haveFeeEstimations = _wallet.FeeRateEstimations is not null;
 
 		return new TransactionModel
@@ -153,8 +155,9 @@ public class TransactionTreeBuilder
 	private async Task<TransactionModel> CreateCoinjoinGroupAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
-		var confirmations = transactionSummary.GetConfirmations();
-		var status = GetItemStatus(transactionSummary);
+		var serverHeight = _services.GetServerTipHeight();
+		var confirmations = transactionSummary.GetConfirmations(serverHeight);
+		var status = GetItemStatus(transactionSummary, serverHeight);
 
 		return new TransactionModel
 		{
@@ -276,8 +279,9 @@ public class TransactionTreeBuilder
 	private async Task<TransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
-		var confirmations = transactionSummary.GetConfirmations();
-		var status = GetItemStatus(transactionSummary);
+		var serverHeight = _services.GetServerTipHeight();
+		var confirmations = transactionSummary.GetConfirmations(serverHeight);
+		var status = GetItemStatus(transactionSummary, serverHeight);
 
 		return new TransactionModel
 		{
@@ -335,9 +339,9 @@ public class TransactionTreeBuilder
 		return TransactionType.Unknown;
 	}
 
-	private static TransactionStatus GetItemStatus(TransactionSummary transactionSummary)
+	private static TransactionStatus GetItemStatus(TransactionSummary transactionSummary, uint serverHeight)
 	{
-		return transactionSummary.IsConfirmed() ? TransactionStatus.Confirmed : TransactionStatus.Pending;
+		return transactionSummary.IsConfirmed(serverHeight) ? TransactionStatus.Confirmed : TransactionStatus.Pending;
 	}
 
 	private async Task<string> GetConfirmationToolTipAsync(TransactionStatus status, uint confirmations, SmartTransaction smartTransaction, CancellationToken cancellationToken)

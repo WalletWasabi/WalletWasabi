@@ -72,7 +72,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 		var address = _wallet.Addresses.NextReceiveAddress(SuggestionLabels.Labels, ScriptType.ToScriptPubKeyType(_scriptType));
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To().ReceiveAddress(_wallet, address, Services.UiConfig.Autocopy);
+		Navigate().To().ReceiveAddress(_wallet, address, UiContext.Services.GetAutocopy());
 	}
 
 	private void OnShowExistingAddresses()

@@ -4,13 +4,20 @@ namespace WalletWasabi.Fluent.Models.ClientConfig;
 
 public class ClientConfigModel
 {
-	public string DataDir => Services.DataDir;
+	private readonly IServices _services;
 
-	public string WalletsDir => Services.WalletManager.WalletDirectories.WalletsDir;
+	public ClientConfigModel(IServices services)
+	{
+		_services = services;
+	}
 
-	public string ConfigFilePath => Services.PersistentConfigFilePath;
+	public string DataDir => _services.DataDir;
 
-	public string TorLogFilePath => Services.TorSettings.LogFilePath;
+	public string WalletsDir => _services.GetWalletsDir();
+
+	public string ConfigFilePath => _services.PersistentConfigFilePath;
+
+	public string TorLogFilePath => _services.GetTorLogFilePath();
 
 	public string LoggerFilePath => Logger.FilePath;
 }

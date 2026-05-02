@@ -7,11 +7,11 @@ namespace WalletWasabi.Fluent.Helpers;
 
 public static class LabelHelpers
 {
-	public static IEnumerable<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent)
+	public static IEnumerable<(string Label, int Score)> GetLabelsWithRanking(this Wallet wallet, Intent intent, IServices services)
 	{
 		var labelPool = new Dictionary<string, int>(); // int: score.
 
-		var labelsByWalletId = WalletHelpers.GetLabelsByWallets();
+		var labelsByWalletId = WalletHelpers.GetLabelsByWallets(services.GetWallets());
 
 		// Make recent and receive labels count more for the current wallet.
 		var multiplier = 100;
@@ -52,7 +52,7 @@ public static class LabelHelpers
 		}
 
 		multiplier = 100; // Make recent labels count more.
-		foreach (var label in WalletHelpers.GetTransactionLabels().SelectMany(x => x).Reverse())
+		foreach (var label in services.GetTransactionLabels().SelectMany(x => x).Reverse())
 		{
 			var score = (intent == Intent.Send ? 100 : 1) * multiplier;
 			if (!labelPool.TryAdd(label, score))

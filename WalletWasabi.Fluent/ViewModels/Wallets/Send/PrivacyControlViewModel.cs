@@ -27,8 +27,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	private readonly bool _isSilent;
 	private readonly IEnumerable<SmartCoin>? _usedCoins;
 
-	public PrivacyControlViewModel(UiContext uiContext, Wallet wallet, SendFlowModel sendFlow,
-		TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent) : base(uiContext)
+	public PrivacyControlViewModel(UiContext uiContext, Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent) : base(uiContext)
 	{
 		_wallet = wallet;
 		_sendFlow = sendFlow;
@@ -59,7 +58,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 	{
 		var privateThreshold = _wallet.AnonScoreTarget;
 
-		var cjManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		var cjManager = UiContext.Services.GetHostedService<CoinJoinManager>();
 		var coinsToExclude = cjManager?.CoinsInCriticalPhase[_wallet.WalletId].ToList() ?? [];
 
 		var pockets = _sendFlow.GetPockets();
@@ -73,7 +72,7 @@ public partial class PrivacyControlViewModel : DialogViewModelBase<IEnumerable<S
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		// TODO: Decoupling
-		Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		UiContext.Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.SubscribeAsync(_ => InitializeLabelsAsync())
 			.DisposeWith(disposables);

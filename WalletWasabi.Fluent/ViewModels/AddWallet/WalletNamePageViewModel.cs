@@ -35,7 +35,7 @@ public partial class WalletNamePageViewModel : RoutableViewModel
 		IsBusy = true;
 
 		// Makes sure we can create a wallet with this wallet name.
-		await Task.Run(() => WalletGenerator.GetWalletFilePath(WalletName, Services.WalletManager.WalletDirectories.WalletsDir));
+		await Task.Run(() => WalletGenerator.GetWalletFilePath(WalletName, UiContext.Services.GetWalletsDir()));
 
 		IsBusy = false;
 

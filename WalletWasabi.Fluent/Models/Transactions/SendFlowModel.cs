@@ -1,8 +1,6 @@
 using NBitcoin;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -28,8 +26,8 @@ public record SendFlowModel
 	}
 
 	/// <summary>Manual Control Send Flow. Uses only the specified coins.</summary>
-	public SendFlowModel(Wallet wallet, IWalletModel walletModel, IEnumerable<SmartCoin> coins, bool donate = false):
-		this(wallet, new CoinsView(coins), new UserSelectionCoinListModel(wallet, walletModel, coins.ToArray()), donate)
+	public SendFlowModel(Wallet wallet, IWalletModel walletModel, IEnumerable<SmartCoin> coins, IServices services, bool donate = false):
+		this(wallet, new CoinsView(coins), new UserSelectionCoinListModel(wallet, walletModel, coins.ToArray(), services), donate)
 	{
 	}
 

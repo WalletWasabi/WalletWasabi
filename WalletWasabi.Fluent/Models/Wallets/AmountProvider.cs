@@ -10,16 +10,16 @@ public partial class AmountProvider : ReactiveObject
 {
 	[AutoNotify] private decimal _usdExchangeRate;
 
-	public AmountProvider()
+	public AmountProvider(IServices services)
 	{
-		BtcToUsdExchangeRate = Services.EventBus
+		BtcToUsdExchangeRate = services.EventBus
 			.AsObservable<ExchangeRateChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(x => x.UsdBtcRate);
 
 		BtcToUsdExchangeRate.Subscribe(x => UsdExchangeRate = x);
 
-		UsdExchangeRate = Services.Status.UsdExchangeRate;
+		UsdExchangeRate = services.GetUsdExchangeRate();
 	}
 
 	public IObservable<decimal> BtcToUsdExchangeRate { get; }

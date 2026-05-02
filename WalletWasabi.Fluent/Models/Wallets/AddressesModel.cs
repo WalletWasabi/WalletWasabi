@@ -20,13 +20,13 @@ public class AddressesModel
 	private readonly Wallet _wallet;
 	private readonly SourceList<HdPubKey> _source;
 
-	public AddressesModel(Wallet wallet)
+	public AddressesModel(IServices services, Wallet wallet)
 	{
 		_wallet = wallet;
 		_source = new SourceList<HdPubKey>();
 		_source.AddRange(GetUnusedKeys());
 
-		Services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+		services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 			.Do(_ => UpdateUnusedKeys())
 			.Subscribe();
 

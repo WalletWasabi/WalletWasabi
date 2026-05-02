@@ -11,6 +11,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 
 public partial class CoinModel : ReactiveObject
 {
+	private readonly IServices _services;
 	private bool _subscribedToCoinChanges;
 
 	[AutoNotify] private bool _isExcludedFromCoinJoin;
@@ -22,8 +23,9 @@ public partial class CoinModel : ReactiveObject
 	[AutoNotify] private uint _confirmations;
 	[AutoNotify] private bool _isConfirmed;
 
-	public CoinModel(SmartCoin coin, Network network, int anonScoreTarget)
+	public CoinModel(SmartCoin coin, Network network, int anonScoreTarget, IServices services)
 	{
+		_services = services;
 		Coin = coin;
 		PrivacyLevel = coin.GetPrivacyLevel(anonScoreTarget);
 		Amount = coin.Amount;
@@ -41,7 +43,7 @@ public partial class CoinModel : ReactiveObject
 		IsBanned = coin.IsBanned;
 		BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {coin.BannedUntilUtc}";
 
-		var confirmations = coin.GetConfirmations();
+		var confirmations = coin.GetConfirmations(services.GetServerTipHeight());
 		Confirmations = confirmations;
 		ConfirmedToolTip = TextHelpers.GetConfirmationText(confirmations);
 	}
@@ -86,7 +88,7 @@ public partial class CoinModel : ReactiveObject
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).Select(_ => Coin.IsBanned).BindTo(this, x => x.IsBanned).DisposeWith(disposable);
 		this.WhenAnyValue(c => c.Coin.BannedUntilUtc).WhereNotNull().Subscribe(x => BannedUntilUtcToolTip = $"Can't participate in coinjoin until: {x:g}").DisposeWith(disposable);
 
-		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations()).Subscribe(
+		this.WhenAnyValue(c => c.Coin.Height).Select(_ => Coin.GetConfirmations(_services.GetServerTipHeight())).Subscribe(
 			confirmations =>
 			{
 				Confirmations = confirmations;

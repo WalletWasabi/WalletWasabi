@@ -25,10 +25,12 @@ public interface ICoinListModel
 
 public abstract partial class CoinListModel : ICoinListModel, IDisposable
 {
+	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
 
-	public CoinListModel(Wallet wallet, IWalletModel walletModel)
+	public CoinListModel(Wallet wallet, IWalletModel walletModel, IServices services)
 	{
+		_services = services;
 		Wallet = wallet;
 		WalletModel = walletModel;
 		var transactionProcessed = walletModel.Transactions.TransactionProcessed;
@@ -69,7 +71,7 @@ public abstract partial class CoinListModel : ICoinListModel, IDisposable
 
 	protected CoinModel CreateCoinModel(SmartCoin smartCoin)
 	{
-		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget);
+		return new CoinModel(smartCoin, WalletModel.Network, WalletModel.Settings.AnonScoreTarget, _services);
 	}
 
 	protected abstract Pocket[] GetPockets();

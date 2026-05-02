@@ -81,6 +81,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 [AppLifetime]
 public partial class WalletModel : ReactiveObject, IWalletModel
 {
+	private readonly IServices _services;
 	private readonly Lazy<WalletCoinjoinModel?> _coinjoin;
 	private readonly Lazy<WalletCoinsModel> _coins;
 
@@ -88,30 +89,31 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	[AutoNotify] private bool _isLoaded;
 	[AutoNotify] private bool _isSelected;
 
-	public WalletModel(Wallet wallet, AmountProvider amountProvider)
+	public WalletModel(IServices services, Wallet wallet, AmountProvider amountProvider)
 	{
+		_services = services;
 		Wallet = wallet;
 		AmountProvider = amountProvider;
 
 		Auth = new WalletAuthModel(Wallet);
-		Loader = new WalletLoadWorkflow(Wallet);
-		Settings = new WalletSettingsModel(Wallet.KeyManager);
+		Loader = new WalletLoadWorkflow(services, Wallet);
+		Settings = new WalletSettingsModel(services, Wallet.KeyManager);
 
 		_coinjoin = new(() =>
 		{
-			var coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+			var coinJoinManager = services.GetHostedService<CoinJoinManager>();
 			return coinJoinManager is not null
-				? new WalletCoinjoinModel(Wallet, coinJoinManager, Settings)
+				? new WalletCoinjoinModel(services, Wallet, coinJoinManager, Settings)
 				: null;
 		});
 
-		_coins = new(() => new WalletCoinsModel(wallet, this));
+		_coins = new(() => new WalletCoinsModel(wallet, this, services));
 
-		Transactions = new WalletTransactionsModel(this, wallet);
+		Transactions = new WalletTransactionsModel(services, this, wallet);
 
-		Addresses = new AddressesModel(Wallet);
+		Addresses = new AddressesModel(services, Wallet);
 
-		Loaded = Services.EventBus.AsObservable<WalletLoaded>()
+		Loaded = services.EventBus.AsObservable<WalletLoaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ => Wallet.Loaded);
 
@@ -190,7 +192,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public IEnumerable<(string Label, int Score)> GetMostUsedLabels(Intent intent)
 	{
-		return Wallet.GetLabelsWithRanking(intent);
+		return Wallet.GetLabelsWithRanking(intent, _services);
 	}
 
 	public IWalletStatsModel GetWalletStats()
@@ -205,12 +207,12 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public PrivacySuggestionsModel GetPrivacySuggestionsModel(SendFlowModel sendFlow)
 	{
-		return new PrivacySuggestionsModel(sendFlow);
+		return new PrivacySuggestionsModel(_services, sendFlow);
 	}
 
 	public void Rename(string newWalletName)
 	{
-		Services.WalletManager.RenameWallet(Wallet, newWalletName);
+		_services.RenameWallet(Wallet, newWalletName);
 		this.RaisePropertyChanged(nameof(Name));
 	}
 }

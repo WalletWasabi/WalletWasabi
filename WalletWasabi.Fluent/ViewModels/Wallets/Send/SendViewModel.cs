@@ -83,12 +83,12 @@ public partial class SendViewModel : RoutableViewModel
 		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
 		_parameters = parameters;
-		_coinJoinManager = Services.HostedServices.GetOrDefault<CoinJoinManager>();
+		_coinJoinManager = UiContext.Services.GetHostedService<CoinJoinManager>();
 
-		_conversionReversed = Services.UiConfig.SendAmountConversionReversed;
+		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
-		_exchangeRate = Services.Status.UsdExchangeRate;
-		Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
+		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		UiContext.Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 
 		Balance =
 			_parameters.IsManual
@@ -186,7 +186,7 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.ConversionReversed)
 			.Skip(1)
-			.Subscribe(x => Services.UiConfig.SendAmountConversionReversed = x);
+			.Subscribe(x => UiContext.Services.SetSendAmountConversionReversed(x));
 	}
 
 	public IObservable<Amount> Balance { get; }
@@ -442,7 +442,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (Services.Config.UseTor != TorMode.Disabled)
+			if (UiContext.Services.GetUseTor() != TorMode.Disabled)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
@@ -457,7 +457,7 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
-			HttpClient httpClient = Services.HttpClientFactory.CreateClient(endPoint);
+			HttpClient httpClient = UiContext.Services.CreateHttpClient(endPoint);
 			httpClient.BaseAddress = new Uri(endPoint);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}

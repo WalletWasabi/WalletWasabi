@@ -19,14 +19,11 @@ public static class WalletHelpers
 		return keyManager.IsHardwareWallet ? WalletType.Hardware : WalletType.Normal;
 	}
 
-	/// <returns>Labels ordered by blockchain.</returns>
-	public static IEnumerable<LabelsArray> GetTransactionLabels() => Services.TransactionStore.GetLabels();
-
-	public static List<LabelsByWallet> GetLabelsByWallets()
+	public static List<LabelsByWallet> GetLabelsByWallets(IEnumerable<Wallet> wallets)
 	{
 		var result = new List<LabelsByWallet>();
 
-		foreach (var wallet in Services.WalletManager.GetWallets())
+		foreach (var wallet in wallets)
 		{
 			var (changeLabels, receiveLabels) = wallet.KeyManager.GetLabels();
 			result.Add(new LabelsByWallet(wallet.WalletId, changeLabels, receiveLabels));

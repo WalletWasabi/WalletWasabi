@@ -13,6 +13,7 @@ namespace WalletWasabi.Fluent.Models.Wallets;
 [AppLifetime]
 public partial class WalletSettingsModel : ReactiveObject
 {
+	private readonly IServices _services;
 	private readonly KeyManager _keyManager;
 	private bool _isDirty;
 
@@ -27,8 +28,9 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
 	[AutoNotify] private SendWorkflow _defaultSendWorkflow;
 
-	public WalletSettingsModel(KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
+	public WalletSettingsModel(IServices services, KeyManager keyManager, bool isNewWallet = false, bool isCoinJoinPaused = false)
 	{
+		_services = services;
 		_keyManager = keyManager;
 
 		_isNewWallet = isNewWallet;
@@ -43,7 +45,7 @@ public partial class WalletSettingsModel : ReactiveObject
 
 		if (!isNewWallet)
 		{
-			_outputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+			_outputWalletId = services.GetWalletByName(_keyManager.WalletName).WalletId;
 		}
 
 		_defaultReceiveScriptType = ScriptType.FromEnum(_keyManager.DefaultReceiveScriptType);
@@ -86,15 +88,15 @@ public partial class WalletSettingsModel : ReactiveObject
 
 			if (IsNewWallet)
 			{
-				Services.WalletManager.AddWallet(_keyManager);
+				_services.AddWallet(_keyManager);
 				IsNewWallet = false;
-				OutputWalletId = Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+				OutputWalletId = _services.GetWalletByName(_keyManager.WalletName).WalletId;
 			}
 
 			_isDirty = false;
 		}
 
-		return Services.WalletManager.GetWalletByName(_keyManager.WalletName).WalletId;
+		return _services.GetWalletByName(_keyManager.WalletName).WalletId;
 	}
 
 	private void SetValues()

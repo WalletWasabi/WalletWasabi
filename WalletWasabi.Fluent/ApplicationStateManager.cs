@@ -214,7 +214,7 @@ public class ApplicationStateManager : IMainWindowService
 
 				// _hideRequest flag is used to distinguish what is the user's intent.
 				// It is only true when the request comes from the Tray.
-				if (Services.UiConfig.HideOnClose || _hideRequest)
+				if (UiContext.Services.GetHideOnClose() || _hideRequest)
 				{
 					_hideRequest = false; // request processed, set it back to the default.
 					return;
@@ -253,8 +253,8 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void SetWindowSize(Window window)
 	{
-		var configWidth = Services.UiConfig.WindowWidth;
-		var configHeight = Services.UiConfig.WindowHeight;
+		var configWidth = UiContext.Services.GetWindowWidth();
+		var configHeight = UiContext.Services.GetWindowHeight();
 		var currentScreen = window.Screens.ScreenFromPoint(window.Position);
 
 		if (configWidth is null || configHeight is null || currentScreen is null)
@@ -280,8 +280,8 @@ public class ApplicationStateManager : IMainWindowService
 			.Where(b => b != default && window.WindowState == WindowState.Normal)
 			.Subscribe(b =>
 			{
-				Services.UiConfig.WindowWidth = b.Width;
-				Services.UiConfig.WindowHeight = b.Height;
+				UiContext.Services.SetWindowWidth(b.Width);
+				UiContext.Services.SetWindowHeight(b.Height);
 			})
 			.DisposeWith(disposables);
 	}

@@ -9,9 +9,9 @@ namespace WalletWasabi.Fluent.Models.UI;
 
 public partial class TorStatusCheckerModel
 {
-	public TorStatusCheckerModel()
+	public TorStatusCheckerModel(IServices services)
 	{
-		Issues = Services.EventBus
+		Issues = services.EventBus
 			.AsObservable<TorNetworkStatusChanged>()
 			.Select(e => e.ReportedIssues.ToList());
 	}
