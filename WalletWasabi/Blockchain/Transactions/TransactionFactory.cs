@@ -356,6 +356,7 @@ public class TransactionBuilderWithSilentPaymentSupport
 	{
 		_network = network;
 		_builder = network.CreateTransactionBuilder();
+		_builder.SetVersion(2);
 		_builder.StandardTransactionPolicy.MinRelayTxFee = Constants.MinRelayFeeRate;
 	}
 	private Key[]? _keys;
