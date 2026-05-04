@@ -461,7 +461,7 @@ public partial class Arena : PeriodicRunner
 
 		RoundParameters parameters = _roundParametersFactory(feeRate, round.Parameters.MaxSuggestedAmount, _config.MinInputCountByBlameRound);
 		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
-		AddRound(blameRound);
+		Rounds.Add(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
 	}
 
@@ -476,7 +476,7 @@ public partial class Arena : PeriodicRunner
 			RoundParameters parameters = _roundParametersFactory(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
 			var r = new Round(parameters, SecureRandom.Instance);
-			AddRound(r);
+			Rounds.Add(r);
 			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
 		}
 	}
@@ -551,11 +551,6 @@ public partial class Arena : PeriodicRunner
 		}
 
 		return coordinatorScriptPubKey;
-	}
-
-	private void AddRound(Round round)
-	{
-		Rounds.Add(round);
 	}
 
 	private void AbortDisruptedRounds()

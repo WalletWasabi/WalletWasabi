@@ -213,7 +213,7 @@ public class RegisterOutputTests
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(round));
 
-		foreach (Phase phase in Enum.GetValues(typeof(Phase)))
+		foreach (Phase phase in Enum.GetValues<Phase>())
 		{
 			if (phase != Phase.OutputRegistration)
 			{
