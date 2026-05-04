@@ -264,5 +264,5 @@ public static class LoggerTools
 	public static string FormatLog(string msg, RoundState round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, AliceClient aliceClient) =>
 		FormatLog(msg, $"Round {ShortString(aliceClient.RoundId)} Alice {ShortString(aliceClient.AliceId)} EffValue {aliceClient.EffectiveValue}");
-	public static string FormatLog(string msg, IWallet wallet) => FormatLog(msg, $"Wallet '{wallet.WalletName}'");
+	public static string FormatLog(string msg, Wallet wallet) => FormatLog(msg, $"Wallet '{wallet.WalletName}'");
 }

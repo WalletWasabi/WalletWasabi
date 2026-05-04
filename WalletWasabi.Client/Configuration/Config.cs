@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
-using WalletWasabi.Daemon;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -118,40 +117,40 @@ public class Config
 	private Dictionary<string, IValue> Data { get; }
 	public PersistentConfig PersistentConfig { get; }
 	public string[] CliArgs { get; }
-	public Network Network => GetEffectiveValue<NetworkValue, Network>(nameof(Network));
+	public Network Network => GetEffectiveValue<Network>(nameof(Network));
 
-	public string CoordinatorUri => GetEffectiveValue<StringValue, string>(nameof(CoordinatorUri));
-	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorModeValue, TorMode>(nameof(UseTor));
-	public string? TorFolder => GetEffectiveValue<NullableStringValue, string?>(nameof(TorFolder));
-	public int TorSocksPort => GetEffectiveValue<IntValue, int>(nameof(TorSocksPort));
-	public int TorControlPort => GetEffectiveValue<IntValue, int>(nameof(TorControlPort));
-	public string[] TorBridges => GetEffectiveValue<StringArrayValue, string[]>(nameof(TorBridges));
-	public bool TerminateTorOnExit => GetEffectiveValue<BoolValue, bool>(nameof(TerminateTorOnExit));
-	public bool DownloadNewVersion => GetEffectiveValue<BoolValue, bool>(nameof(DownloadNewVersion));
-	public string BitcoinRpcCredentialString => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcCredentialString));
-	public string BitcoinRpcUri => GetEffectiveValue<StringValue, string>(nameof(BitcoinRpcUri));
-	public bool JsonRpcServerEnabled => GetEffectiveValue<BoolValue, bool>(nameof(JsonRpcServerEnabled));
-	public string JsonRpcUser => GetEffectiveValue<StringValue, string>(nameof(JsonRpcUser));
-	public string JsonRpcPassword => GetEffectiveValue<StringValue, string>(nameof(JsonRpcPassword));
-	public string[] JsonRpcServerPrefixes => GetEffectiveValue<StringArrayValue, string[]>(nameof(JsonRpcServerPrefixes));
-	public bool RpcOnionEnabled => GetEffectiveValue<BoolValue, bool>(nameof(RpcOnionEnabled));
-	public Money DustThreshold => GetEffectiveValue<MoneyValue, Money>(nameof(DustThreshold));
-	public bool BlockOnlyMode => GetEffectiveValue<BoolValue, bool>(nameof(BlockOnlyMode));
-	public string LogLevel => GetEffectiveValue<StringValue, string>(nameof(LogLevel));
-	public LogMode[] LogModes => GetEffectiveValue<LogModeArrayValue, LogMode[]>(nameof(LogModes));
-	public string ExchangeRateProvider => GetEffectiveValue<StringValue, string>(nameof(ExchangeRateProvider));
-	public string FeeRateEstimationProvider => GetEffectiveValue<StringValue, string>(nameof(FeeRateEstimationProvider));
-	public string ExternalTransactionBroadcaster => GetEffectiveValue<StringValue, string>(nameof(ExternalTransactionBroadcaster));
-	public int DropUnconfirmedTransactionsAfterDays => GetEffectiveValue<IntValue, int>(nameof(DropUnconfirmedTransactionsAfterDays));
+	public string CoordinatorUri => GetEffectiveValue<string>(nameof(CoordinatorUri));
+	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorMode>(nameof(UseTor));
+	public string? TorFolder => GetEffectiveValue<string?>(nameof(TorFolder));
+	public int TorSocksPort => GetEffectiveValue<int>(nameof(TorSocksPort));
+	public int TorControlPort => GetEffectiveValue<int>(nameof(TorControlPort));
+	public string[] TorBridges => GetEffectiveValue<string[]>(nameof(TorBridges));
+	public bool TerminateTorOnExit => GetEffectiveValue<bool>(nameof(TerminateTorOnExit));
+	public bool DownloadNewVersion => GetEffectiveValue<bool>(nameof(DownloadNewVersion));
+	public string BitcoinRpcCredentialString => GetEffectiveValue<string>(nameof(BitcoinRpcCredentialString));
+	public string BitcoinRpcUri => GetEffectiveValue<string>(nameof(BitcoinRpcUri));
+	public bool JsonRpcServerEnabled => GetEffectiveValue<bool>(nameof(JsonRpcServerEnabled));
+	public string JsonRpcUser => GetEffectiveValue<string>(nameof(JsonRpcUser));
+	public string JsonRpcPassword => GetEffectiveValue<string>(nameof(JsonRpcPassword));
+	public string[] JsonRpcServerPrefixes => GetEffectiveValue<string[]>(nameof(JsonRpcServerPrefixes));
+	public bool RpcOnionEnabled => GetEffectiveValue<bool>(nameof(RpcOnionEnabled));
+	public Money DustThreshold => GetEffectiveValue<Money>(nameof(DustThreshold));
+	public bool BlockOnlyMode => GetEffectiveValue<bool>(nameof(BlockOnlyMode));
+	public string LogLevel => GetEffectiveValue<string>(nameof(LogLevel));
+	public LogMode[] LogModes => GetEffectiveValue<LogMode[]>(nameof(LogModes));
+	public string ExchangeRateProvider => GetEffectiveValue<string>(nameof(ExchangeRateProvider));
+	public string FeeRateEstimationProvider => GetEffectiveValue<string>(nameof(FeeRateEstimationProvider));
+	public string ExternalTransactionBroadcaster => GetEffectiveValue<string>(nameof(ExternalTransactionBroadcaster));
+	public int DropUnconfirmedTransactionsAfterDays => GetEffectiveValue<int>(nameof(DropUnconfirmedTransactionsAfterDays));
 
-	public bool EnableGpu => GetEffectiveValue<BoolValue, bool>(nameof(EnableGpu));
-	public string CoordinatorIdentifier => GetEffectiveValue<StringValue, string>(nameof(CoordinatorIdentifier));
-	public decimal MaxCoinjoinMiningFeeRate => GetEffectiveValue<DecimalValue, decimal>(nameof(MaxCoinjoinMiningFeeRate));
+	public bool EnableGpu => GetEffectiveValue<bool>(nameof(EnableGpu));
+	public string CoordinatorIdentifier => GetEffectiveValue<string>(nameof(CoordinatorIdentifier));
+	public decimal MaxCoinjoinMiningFeeRate => GetEffectiveValue<decimal>(nameof(MaxCoinjoinMiningFeeRate));
 	public int AbsoluteMinInputCount => int.Max(
-		GetEffectiveValue<IntValue, int>(nameof(AbsoluteMinInputCount)),
+		GetEffectiveValue<int>(nameof(AbsoluteMinInputCount)),
 		Constants.AbsoluteMinInputCount);
 
-	public string[] ExperimentalFeatures => GetEffectiveValue<StringArrayValue, string[]>(nameof(ExperimentalFeatures));
+	public string[] ExperimentalFeatures => GetEffectiveValue<string[]>(nameof(ExperimentalFeatures));
 
 	public ServiceConfiguration ServiceConfiguration { get; }
 
@@ -290,7 +289,7 @@ public class Config
 	{
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
-			string[] overrideValues = overrideValue.Split(';', StringSplitOptions.None);
+			string[] overrideValues = overrideValue.Split(';');
 			return new StringArrayValue(arrayValues, overrideValues, valueSource.Value);
 		}
 
@@ -415,7 +414,7 @@ public class Config
 		return false;
 	}
 
-	private TValue GetEffectiveValue<TStorage, TValue>(string key) where TStorage : ITypedValue<TValue>
+	private TValue GetEffectiveValue<TValue>(string key)
 	{
 		if (Data.TryGetValue(key, out IValue? value) && value is ITypedValue<TValue> typedValue)
 		{

@@ -6,17 +6,14 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Platform;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.Providers;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.Views;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using Avalonia.Threading;
 
 namespace WalletWasabi.Fluent;

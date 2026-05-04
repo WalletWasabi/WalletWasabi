@@ -9,8 +9,8 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
-using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -76,7 +76,7 @@ public class Services : IServices
 	public UiConfig UiConfig { get; }
 	public Config Config { get; }
 	public EventBus EventBus { get; }
-	public Daemon.Scheme Scheme { get; }
+	public Client.Scheme Scheme { get; }
 
 	// Chain info
 	public uint GetTipHeight() => _smartHeaderChain.TipHeight;

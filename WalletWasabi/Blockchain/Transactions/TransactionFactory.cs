@@ -361,9 +361,8 @@ public class TransactionBuilderWithSilentPaymentSupport
 	}
 	private Key[]? _keys;
 
-	public Func<OutPoint, ICoin> CoinFinder
+	public Func<OutPoint, ICoin>? CoinFinder
 	{
-		get => _builder.CoinFinder;
 		set => _builder.CoinFinder = value;
 	}
 
@@ -494,6 +493,7 @@ public class TransactionBuilderWithSilentPaymentSupport
 
 		var spentCoins = psbt.Inputs
 			.Select(x => x.GetCoin())
+			.DropNulls()
 			.Select(x => new Utxo(x.Outpoint, GetKeyForScriptPubKey(x.ScriptPubKey), x.ScriptPubKey))
 			.ToArray();
 		var paymentAddresses = _silentPayments.Select(x => x.Value);

@@ -27,7 +27,7 @@ namespace WalletWasabi.Wallets;
 
 public delegate Wallet WalletFactory(KeyManager keyManager);
 
-public class Wallet : BackgroundService, IWallet
+public class Wallet : BackgroundService
 {
 	private readonly ComposedDisposable _disposables = new();
 

@@ -16,7 +16,7 @@ using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.Wallets;
 
-public class WalletManager : IWalletProvider
+public class WalletManager
 {
 	/// <remarks>All access must be guarded by <see cref="_lock"/> object.</remarks>
 	private volatile bool _disposedValue = false;
@@ -144,7 +144,7 @@ public class WalletManager : IWalletProvider
 		return null;
 	}
 
-	public Task<IEnumerable<IWallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<IWallet>>(GetWallets());
+	public Task<IEnumerable<Wallet>> GetWalletsAsync() => Task.FromResult<IEnumerable<Wallet>>(GetWallets());
 
 	public IEnumerable<Wallet> GetWallets()
 	{

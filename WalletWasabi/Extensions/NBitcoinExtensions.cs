@@ -13,8 +13,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.Extensions;
 

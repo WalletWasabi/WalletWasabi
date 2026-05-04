@@ -1,8 +1,8 @@
-using NBitcoin;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -10,7 +10,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services.Terminate;
 using Constants = WalletWasabi.Helpers.Constants;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public class WasabiApplication
 {

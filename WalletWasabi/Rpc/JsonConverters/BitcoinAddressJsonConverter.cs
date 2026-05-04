@@ -16,7 +16,7 @@ public class BitcoinAddressJsonConverter : JsonConverter<BitcoinAddress>
 		}
 		else
 		{
-			return NBitcoinHelpers.BetterParseBitcoinAddress(bitcoinAddressString);
+			return BetterParseBitcoinAddress(bitcoinAddressString);
 		}
 	}
 
@@ -25,5 +25,29 @@ public class BitcoinAddressJsonConverter : JsonConverter<BitcoinAddress>
 	{
 		var stringValue = value?.ToString() ?? throw new ArgumentNullException(nameof(value));
 		writer.WriteValue(stringValue);
+	}
+
+	private BitcoinAddress BetterParseBitcoinAddress(string bitcoinAddressString)
+	{
+		bitcoinAddressString = Guard.NotNullOrEmptyOrWhitespace(nameof(bitcoinAddressString), bitcoinAddressString, trim: true);
+
+		BitcoinAddress ba;
+		try
+		{
+			ba = BitcoinAddress.Create(bitcoinAddressString, Network.Main);
+		}
+		catch
+		{
+			try
+			{
+				ba = BitcoinAddress.Create(bitcoinAddressString, Network.TestNet);
+			}
+			catch
+			{
+				ba = BitcoinAddress.Create(bitcoinAddressString, Network.RegTest);
+			}
+		}
+
+		return ba;
 	}
 }

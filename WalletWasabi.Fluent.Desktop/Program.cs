@@ -13,15 +13,14 @@ using WalletWasabi.Fluent.CrashReport;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Fluent.Desktop.Extensions;
 using System.Net.Sockets;
 using System.Collections.ObjectModel;
-using WalletWasabi.Daemon;
 using LogLevel = WalletWasabi.Logging.LogLevel;
 using System.Threading;
 using WalletWasabi.Services;
 using ReactiveUI.Avalonia;
+using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
 
 namespace WalletWasabi.Fluent.Desktop;
@@ -122,7 +121,7 @@ public class Program
 				DetachTrayIconMenus();
 			}
 
-			(Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
+			(Application.Current.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close();
 		}, DispatcherPriority.Send);
 	}
 
@@ -150,7 +149,7 @@ public class Program
 
 	private static void DetachTrayIconMenus()
 	{
-		if (Application.Current is not Application app)
+		if (Application.Current is not { } app)
 		{
 			return;
 		}

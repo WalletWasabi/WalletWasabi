@@ -2,7 +2,6 @@ using System;
 using System.IO;
 using System.Text;
 using NBitcoin;
-using WalletWasabi.Daemon;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;

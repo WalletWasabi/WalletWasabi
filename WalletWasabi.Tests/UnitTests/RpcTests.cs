@@ -5,7 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Daemon.Rpc;
+using WalletWasabi.Client.Rpc;
 using WalletWasabi.Rpc;
 using Xunit;
 

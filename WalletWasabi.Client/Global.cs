@@ -1,11 +1,5 @@
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -13,6 +7,11 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -21,6 +20,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client.Configuration;
+using WalletWasabi.Client.Rpc;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
@@ -44,7 +44,7 @@ using WalletWasabi.WebClients.Wasabi;
 using static WalletWasabi.Services.Workers;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public class Global
 {
@@ -503,7 +503,7 @@ public class Global
 		var jsonRpcServerConfig = new JsonRpcServerConfiguration(Config.JsonRpcServerEnabled, Config.JsonRpcUser, Config.JsonRpcPassword, prefixes, Config.Network);
 		if (jsonRpcServerConfig.IsEnabled)
 		{
-			var wasabiJsonRpcService = new Rpc.WasabiJsonRpcService(global: this);
+			var wasabiJsonRpcService = new WasabiJsonRpcService(global: this);
 			RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig, terminateService);
 			try
 			{
@@ -581,9 +581,9 @@ public class Global
 		roundUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
 
-		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory!);
+		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
 	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService) =>

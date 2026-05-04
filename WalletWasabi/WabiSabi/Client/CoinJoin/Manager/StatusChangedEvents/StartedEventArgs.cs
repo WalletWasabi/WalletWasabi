@@ -4,7 +4,7 @@ namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class StartedEventArgs : StatusChangedEventArgs
 {
-	public StartedEventArgs(IWallet wallet, TimeSpan registrationTimeout)
+	public StartedEventArgs(Wallet wallet, TimeSpan registrationTimeout)
 		: base(wallet)
 	{
 		RegistrationTimeout = registrationTimeout;

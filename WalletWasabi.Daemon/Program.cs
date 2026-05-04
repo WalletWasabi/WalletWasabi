@@ -3,6 +3,7 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
+using WalletWasabi.Client;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Daemon;

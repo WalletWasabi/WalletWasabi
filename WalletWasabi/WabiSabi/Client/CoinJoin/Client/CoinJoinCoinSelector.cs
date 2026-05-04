@@ -40,7 +40,7 @@ public class CoinJoinCoinSelector
 	private WasabiRandom Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
-	public static CoinJoinCoinSelector FromWallet(IWallet wallet) =>
+	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
 		new(
 			wallet.ConsolidationMode,
 			wallet.AnonScoreTarget,

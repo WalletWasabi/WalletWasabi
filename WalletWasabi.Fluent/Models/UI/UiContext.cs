@@ -29,7 +29,7 @@ public class UiContext
 		TorStatusCheckerModel torStatusChecker,
 		HealthMonitor healthMonitor,
 		ReleaseHighlights releaseHighlights,
-		Daemon.Scheme? scheme = null)
+		Client.Scheme? scheme = null)
 	{
 		Services = services ?? throw new ArgumentNullException(nameof(services));
 		QrCodeGenerator = qrCodeGenerator ?? throw new ArgumentNullException(nameof(qrCodeGenerator));
@@ -66,7 +66,7 @@ public class UiContext
 	public TorStatusCheckerModel TorStatusChecker { get; }
 	public HealthMonitor HealthMonitor { get; }
 	public ReleaseHighlights ReleaseHighlights { get; }
-	public Daemon.Scheme? Scheme { get; }
+	public Client.Scheme? Scheme { get; }
 	public MainViewModel? MainViewModel { get; private set; }
 
 	public void RegisterNavigation(INavigate navigate)

@@ -30,7 +30,7 @@ public class CoinJoinTrackerFactory
 	private readonly CancellationToken _cancellationToken;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 
-	public async Task<CoinJoinTracker> CreateAndStartAsync(IWallet wallet, IWallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task<CoinJoinTracker> CreateAndStartAsync(Wallet wallet, Wallet outputWallet, Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		await _liquidityClueProvider.InitLiquidityClueAsync(wallet).ConfigureAwait(false);
 

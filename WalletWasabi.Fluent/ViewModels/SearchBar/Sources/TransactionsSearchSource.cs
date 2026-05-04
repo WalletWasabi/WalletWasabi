@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -125,7 +126,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	private IEnumerable<(WalletViewModel, HistoryItemViewModelBase)> Filter(string queryStr)
 	{
 		return Flatten(GetTransactionsByWallet())
-		.Where(tuple => NBitcoinHelpers.TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
+		.Where(tuple => TryParseBitcoinAddress(tuple.Item1.WalletModel.Network, queryStr, out var address) ?
 			ContainsDestinationAddress(tuple.Item1, tuple.Item2, address) :
 			ContainsId(tuple.Item2, queryStr));
 	}
@@ -134,5 +135,19 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 	{
 		var txid = historyItem.Transaction.Id;
 		return walletViewModel.WalletModel.Transactions.GetDestinationAddresses(txid).Contains(address);
+	}
+
+	private bool TryParseBitcoinAddress(Network network, string queryStr, [NotNullWhen(true)] out BitcoinAddress? address)
+	{
+		address = null;
+		try
+		{
+			address = BitcoinAddress.Create(queryStr, network);
+			return true;
+		}
+		catch (FormatException)
+		{
+			return false;
+		}
 	}
 }

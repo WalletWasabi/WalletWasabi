@@ -33,7 +33,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private async Task<InputRegistrationResponse> RegisterInputCoreAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		var (coin, confirmations) = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
+		var coin = await OutpointToCoinAsync(request, cancellationToken).ConfigureAwait(false);
 
 		using (await _asyncLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
@@ -339,7 +339,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			await zeroVsizeTask.ConfigureAwait(false));
 	}
 
-	public async Task<(Coin coin, int Confirmations)> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+	private async Task<Coin> OutpointToCoinAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
 		OutPoint input = request.Input;
 
@@ -350,12 +350,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputUnconfirmed);
 		}
 
-		if (txOutResponse.IsCoinBase && txOutResponse.Confirmations <= 100)
+		if (txOutResponse is {IsCoinBase: true, Confirmations: <= 100})
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputImmature);
 		}
 
-		return (new Coin(input, txOutResponse.TxOut), txOutResponse.Confirmations);
+		return new Coin(input, txOutResponse.TxOut);
 	}
 
 	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken)

@@ -1,6 +1,6 @@
 using System;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public enum ExitCode
 {

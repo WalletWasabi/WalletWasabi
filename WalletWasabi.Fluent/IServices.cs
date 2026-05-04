@@ -23,7 +23,7 @@ public interface IServices
 	UiConfig UiConfig { get; }
 	Config Config { get; }
 	EventBus EventBus { get; }
-	Daemon.Scheme Scheme { get; }
+	Client.Scheme Scheme { get; }
 
 	uint GetTipHeight();
 	uint GetServerTipHeight();

@@ -52,7 +52,4 @@ public class EventsAwaiter<TEventArgs>
 			}
 		}
 	}
-
-	public async Task<IEnumerable<TEventArgs>> WaitAsync(TimeSpan timeout)
-		=> await Task.WhenAll(Tasks).WaitAsync(timeout).ConfigureAwait(false);
 }
