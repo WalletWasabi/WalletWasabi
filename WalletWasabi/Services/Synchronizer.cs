@@ -21,14 +21,14 @@ public abstract record FiltersResponse
 {
 	public record AlreadyOnBestBlock : FiltersResponse;
 	public record BestBlockUnknown : FiltersResponse;
-	public record NewFiltersAvailable(uint BestHeight, FilterModel[] Filters) : FiltersResponse;
+	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
 public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 {
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
-	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(uint bestHeight, FilterModel[] filters) => new(bestHeight, filters);
+	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters) => new(bestHeight, filters);
 
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{

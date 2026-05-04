@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
+using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
 
@@ -94,7 +95,7 @@ public class SmartHeaderChainTests
 	public void ServerTipHeightTests()
 	{
 		SmartHeaderChain chain = new();
-		Assert.Equal(0u, chain.ServerTipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		chain.SetServerTipHeight(2);
 		Assert.Equal(2, chain.HashesLeft);
@@ -124,7 +125,7 @@ public class SmartHeaderChainTests
 	public void HashCountTests()
 	{
 		SmartHeaderChain chain = new(maxChainSize: 2);
-		Assert.Equal(0u, chain.ServerTipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		// Add 1st header.
 		SmartHeader header = CreateGenesisHeader();
@@ -162,8 +163,8 @@ public class SmartHeaderChainTests
 	{
 		Assert.Equal(0, chain.HashCount);
 		Assert.Equal(0, chain.HashesLeft);
-		Assert.Equal(0u, chain.ServerTipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 		Assert.Null(chain.TipHash);
-		Assert.Equal(0u, chain.TipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.TipHeight);
 	}
 }
