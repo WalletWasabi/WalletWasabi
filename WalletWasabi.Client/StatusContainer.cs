@@ -2,7 +2,7 @@ using System;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public class StatusContainer : IDisposable
 {

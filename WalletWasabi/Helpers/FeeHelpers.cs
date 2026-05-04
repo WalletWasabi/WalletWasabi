@@ -15,23 +15,6 @@ namespace WalletWasabi.Helpers;
 
 public static class FeeHelpers
 {
-	public static bool TryGetMaxFeeRateForChangeless(
-		Wallet wallet,
-		Destination destination,
-		LabelsArray labels,
-		FeeRate startingFeeRate,
-		IEnumerable<SmartCoin> coins,
-		[NotNullWhen(true)] out FeeRate? maxFeeRate,
-		bool allowDoubleSpend = false,
-		bool tryToSign = false)
-	{
-		maxFeeRate = SeekMaxFeeRate(
-			startingFeeRate,
-			feeRate => wallet.BuildChangelessTransaction(destination, labels, feeRate, coins, allowDoubleSpend, tryToSign));
-
-		return maxFeeRate is not null;
-	}
-
 	public static bool TryGetMaxFeeRate(
 		Wallet wallet,
 		Destination destination,

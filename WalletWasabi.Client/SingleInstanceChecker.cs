@@ -2,7 +2,7 @@ using System;
 using System.IO;
 using WalletWasabi.Logging;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public class SingleInstanceChecker : IDisposable
 {

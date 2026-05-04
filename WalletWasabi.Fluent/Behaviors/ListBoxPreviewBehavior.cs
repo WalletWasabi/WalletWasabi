@@ -7,7 +7,6 @@ using Avalonia.Controls;
 using Avalonia.Input;
 using Avalonia.VisualTree;
 using Avalonia.Xaml.Interactivity;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 

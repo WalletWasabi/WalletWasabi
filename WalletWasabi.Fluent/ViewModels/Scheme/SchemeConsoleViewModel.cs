@@ -20,7 +20,7 @@ namespace WalletWasabi.Fluent.ViewModels.Scheme;
 	Searchable = true)]
 public partial class SchemeConsoleViewModel : RoutableViewModel
 {
-	private readonly Daemon.Scheme _schemeInterpreter;
+	private readonly Client.Scheme _schemeInterpreter;
 	[AutoNotify] private string _commandInput;
 	[AutoNotify] private bool _isExecuting;
 	public ObservableCollection<SchemeOutput> Output { get; private set; }
@@ -28,7 +28,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 
 	public ICommand ExecuteCommand { get; private set; }
 
-	public SchemeConsoleViewModel(UiContext uiContext, Daemon.Scheme schemeInterpreter) : base(uiContext)
+	public SchemeConsoleViewModel(UiContext uiContext, Client.Scheme schemeInterpreter) : base(uiContext)
 	{
 		_schemeInterpreter = schemeInterpreter;
 		_commandInput = string.Empty;

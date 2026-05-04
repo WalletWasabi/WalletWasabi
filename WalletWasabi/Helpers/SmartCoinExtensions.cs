@@ -2,7 +2,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 
 namespace WalletWasabi.Helpers;
 
-public static class CoinHelpers
+public static class SmartCoinExtensions
 {
 	extension(SmartCoin coin)
 	{

@@ -1,4 +1,3 @@
-using NBitcoin;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -6,6 +5,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -23,7 +23,7 @@ using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
 
-namespace WalletWasabi.Daemon.Rpc;
+namespace WalletWasabi.Client.Rpc;
 
 [SuppressMessage("ReSharper", "CoVariantArrayConversion")]
 [SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
@@ -68,7 +68,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		var serverTipHeight = Global.SmartHeaderChain.ServerTipHeight;
-		if (activeWallet.Coins is not CoinsRegistry coinRegistry)
+		if (activeWallet.Coins is not { } coinRegistry)
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
 		}
@@ -531,7 +531,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var wallets = await Global.WalletManager.GetWalletsAsync().ConfigureAwait(false);
 		return wallets
-			.Cast<Wallet>()
 			.Select(x => new JsonRpcResult
 			{
 				["walletName"] = x.WalletName

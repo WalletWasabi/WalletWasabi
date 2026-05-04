@@ -283,7 +283,7 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new OpenWalletsFolderViewModel(UiContext), navigationMode);
 	}
 
-	public void SchemeConsole(Daemon.Scheme schemeInterpreter, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void SchemeConsole(Client.Scheme schemeInterpreter, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new SchemeConsoleViewModel(UiContext, schemeInterpreter), navigationMode);
 	}

@@ -15,12 +15,12 @@ public class CoinJoinTracker : IDisposable
 	private bool _disposedValue;
 
 	public CoinJoinTracker(
-		IWallet wallet,
+		Wallet wallet,
 		CoinJoinClient coinJoinClient,
 		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
-		IWallet outputWallet,
+		Wallet outputWallet,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
@@ -40,11 +40,11 @@ public class CoinJoinTracker : IDisposable
 	private readonly CoinJoinClient _coinJoinClient;
 	private readonly CancellationTokenSource _cancellationTokenSource;
 
-	public IWallet Wallet { get; }
+	public Wallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
-	public IWallet OutputWallet { get; }
+	public Wallet OutputWallet { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }

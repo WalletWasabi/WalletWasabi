@@ -161,7 +161,7 @@ public class RandomizedWorldPointsBehavior : Behavior<Canvas>
 					return;
 				}
 
-				_targetControls = targets.Cast<Control>().ToList();
+				_targetControls = targets.ToList();
 				_cts?.Dispose();
 				_cts = new CancellationTokenSource();
 

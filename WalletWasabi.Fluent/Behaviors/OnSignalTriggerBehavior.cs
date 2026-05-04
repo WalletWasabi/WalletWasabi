@@ -2,7 +2,6 @@ using System.Reactive;
 using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Xaml.Interactivity;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 

@@ -2,7 +2,7 @@ using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 
-namespace WalletWasabi.Daemon;
+namespace WalletWasabi.Client;
 
 public static class ArgumentHelpers
 {
