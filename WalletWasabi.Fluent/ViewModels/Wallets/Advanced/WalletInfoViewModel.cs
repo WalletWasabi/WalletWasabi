@@ -56,9 +56,10 @@ public partial class WalletInfoViewModel : RoutableViewModel
 
 	public string? ExtendedMasterZprv => _model.ExtendedMasterZprv;
 
-	public bool HasWpkhWalletPolicy => _model.WpkhWalletPolicy is not null;
+	public bool HasWpkhWalletPolicies => _model.WpkhWalletPolicies is not null;
 
-	public string? WpkhWalletPolicyFullDescriptor => _model.WpkhWalletPolicy?.FullDescriptor.ToString();
+	public string? WpkhWalletPrivatePolicyFullDescriptor => _model.WpkhWalletPolicies?.Private.FullDescriptor.ToString();
+	public string? WpkhWalletPublicPolicyFullDescriptor => _model.WpkhWalletPolicies?.Public.FullDescriptor.ToString();
 
 	public bool IsHardwareWallet { get; }
 }

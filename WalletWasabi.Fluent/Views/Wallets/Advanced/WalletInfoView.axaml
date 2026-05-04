@@ -69,15 +69,21 @@
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 
-      <StackPanel Spacing="10" IsVisible="{Binding HasWpkhWalletPolicy}">
+      <StackPanel Spacing="10" IsVisible="{Binding HasWpkhWalletPolicies}">
         <PreviewItem Icon="{StaticResource key_regular}"
-                     Label="Full Wallet Policy Descriptor"
-                     CopyableContent="{Binding WpkhWalletPolicyFullDescriptor}"
+                     Label="Private Wallet Policy"
+                     CopyableContent="{Binding WpkhWalletPrivatePolicyFullDescriptor}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-          <PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhWalletPolicyFullDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
+          <PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhWalletPrivatePolicyFullDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
+        </PreviewItem>
+        <PreviewItem Icon="{StaticResource key_regular}"
+                     Label="Public Wallet Policy"
+                     CopyableContent="{Binding WpkhWalletPublicPolicyFullDescriptor}">
+          <PrivacyContentControl Classes="monoSpaced" Content="{Binding WpkhWalletPublicPolicyFullDescriptor}" ForceShow="{Binding ShowSensitiveData}" />
         </PreviewItem>
       </StackPanel>
-      <Separator IsVisible="{Binding HasWpkhWalletPolicy}" />
+
+      <Separator IsVisible="{Binding HasWpkhWalletPolicies}" />
 
       <PreviewItem Icon="{StaticResource key_regular}"
                      Label="Extended Account Public Key (SegWit)"
