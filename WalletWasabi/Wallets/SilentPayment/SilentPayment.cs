@@ -16,6 +16,8 @@ public static class SilentPayment
 	private static readonly byte[] NUMS =
 		Encoders.Hex.DecodeData("50929b74c1a04954b78b4b6035e97a5e078a5a0f28ec96d547bfee9ace803ac0");
 
+	private const uint K_MAX = 2323;
+
 	public static ECPubKey ComputeSharedSecretReceiver(OutPoint[] prevOuts, GE[] pubKeys, ECPrivKey b) =>
 		ComputeSharedSecret(prevOuts, A: SumPublicKeys(pubKeys), b);
 
@@ -28,6 +30,11 @@ public static class SilentPayment
 	public static Dictionary<SilentPaymentAddress, ECXOnlyPubKey[]> GetPubKeys(IEnumerable<SilentPaymentAddress> recipients, Utxo[] utxos) =>
 		recipients
 			.GroupBy(x => x.ScanKey, (scanKey, addresses) => {
+				var addressCount = addresses.Count();
+				if (addressCount > K_MAX)
+				{
+					throw new ArgumentException($"Too many outputs for single scan key. Maximum is {K_MAX}, got {addressCount}", nameof(recipients));
+				}
 				var sharedSecret = ComputeSharedSecretSender(utxos, scanKey);
 				return addresses.Select((addr, k) => (
 					Address: addr,
