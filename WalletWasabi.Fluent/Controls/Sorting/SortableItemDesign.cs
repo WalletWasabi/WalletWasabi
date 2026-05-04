@@ -4,9 +4,9 @@ namespace WalletWasabi.Fluent.Controls.Sorting;
 
 public class SortableItemDesign : ISortableItem
 {
-	public ICommand SortByDescendingCommand { get; set; }
-	public ICommand SortByAscendingCommand { get; set; }
-	public string Name { get; set; }
+	public ICommand SortByDescendingCommand { get; set; } = null!;
+	public ICommand SortByAscendingCommand { get; set; } = null!;
+	public string Name { get; set; } = null!;
 	public bool IsDescendingActive { get; set; }
 	public bool IsAscendingActive { get; set; }
 }
