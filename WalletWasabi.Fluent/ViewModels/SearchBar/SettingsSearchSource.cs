@@ -1,9 +1,6 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive.Linq;
-using DynamicData;
-using ReactiveUI;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Settings;
@@ -43,8 +40,8 @@ public class SettingsSearchSource : ReactiveObject, ISearchSource
 		yield return new ContentSearchItem(content: Setting(selector: x => x.EnableGpu), name: "Enable GPU", category: "Settings", keywords: new List<string>(), icon: "nav_settings_regular", isEnabled) { IsDefault = false, Priority = 6 };
 	}
 
-	private Setting<ApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<ApplicationSettings, TProperty>> selector)
+	private Setting<ApplicationSettings, TProperty> Setting<TProperty>(Expression<Func<ApplicationSettings, TProperty?>> selector)
 	{
-		return new Setting<ApplicationSettings, TProperty>((ApplicationSettings)_applicationSettings, selector);
+		return new Setting<ApplicationSettings, TProperty>(_applicationSettings, selector);
 	}
 }
