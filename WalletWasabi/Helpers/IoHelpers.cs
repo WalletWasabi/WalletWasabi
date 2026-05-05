@@ -18,15 +18,8 @@ public static class IoHelpers
 	{
 		Guard.NotNull(nameof(directory), directory);
 
-		if (maxRetries < 1)
-		{
-			throw new ArgumentOutOfRangeException(nameof(maxRetries));
-		}
-
-		if (millisecondsDelay < 1)
-		{
-			throw new ArgumentOutOfRangeException(nameof(millisecondsDelay));
-		}
+		ArgumentOutOfRangeException.ThrowIfLessThan(maxRetries, 1, nameof(maxRetries));
+		ArgumentOutOfRangeException.ThrowIfLessThan(millisecondsDelay, 1, nameof(millisecondsDelay));
 
 		for (int i = 0; i < maxRetries; ++i)
 		{
