@@ -32,7 +32,7 @@ public class P2pBasedTests
 		try
 		{
 			Console.WriteLine($"MempoolNotifiesAsync - 1st");
-			string dir = Common.GetWorkDir();
+			string dir = await Common.GetEmptyWorkDirAsync();
 			var network = coreNode.Network;
 			var rpc = coreNode.RpcClient;
 
