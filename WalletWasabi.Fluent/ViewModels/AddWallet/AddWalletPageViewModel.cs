@@ -103,8 +103,11 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 	public async Task Activate()
 	{
-		MainViewModel.Instance.IsOobeBackgroundVisible = true;
+		var mainViewModel = UiContext.MainViewModel
+			?? throw new InvalidOperationException("MainViewModel is not initialized.");
+
+		mainViewModel.IsOobeBackgroundVisible = true;
 		await NavigateDialogAsync(this, NavigationTarget.DialogScreen);
-		MainViewModel.Instance.IsOobeBackgroundVisible = false;
+		mainViewModel.IsOobeBackgroundVisible = false;
 	}
 }
