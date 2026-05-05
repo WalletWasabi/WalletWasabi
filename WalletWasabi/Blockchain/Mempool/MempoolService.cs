@@ -69,6 +69,7 @@ public class MempoolService(EventBus eventBus)
 		if (_cache.TryAdd(txId, true, TimeSpan.FromHours(1)))
 		{
 			var txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(txId));
+			Console.WriteLine($"MempoolService.Process - processing transaction {tx.GetHash()}, tx={tx}");
 			eventBus.Publish(new NewTransactionInMempool(txAdded));
 		}
 	}

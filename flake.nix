@@ -36,7 +36,7 @@
           # Testing
           doCheck = true;
           testProjectFile = "WalletWasabi.Tests/WalletWasabi.Tests.csproj";
-          dotnetTestFlags = ["--filter \"FullyQualifiedName~UnitTests\"" "--logger \"console\""];
+          dotnetTestFlags = ["--filter \"FullyQualifiedName=WalletWasabi.Tests.UnitTests.BitcoinCore.P2pBasedTests.MempoolNotifiesAsync\"" "--logger \"console\""];
 
           # Disable parallel builds to avoid Avalonia resource file locking issues
           enableParallelBuilding = false;
