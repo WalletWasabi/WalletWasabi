@@ -8,7 +8,7 @@ public sealed class NavigationMetaData
 
 	public required string Title { get; init; }
 
-	public string? Caption { get; init; }
+	public string Caption { get; init; } = "";
 
 	public string? IconName { get; init; }
 
