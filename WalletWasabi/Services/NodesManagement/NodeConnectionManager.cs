@@ -35,7 +35,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(3);
 
 	private readonly Network _network;
-	private readonly Func<NodeBehavior>[] _behaviorFactories;
+	private readonly List<NodeBehavior> _templateBehaviors = [];
 	private readonly EventBus _eventBus;
 	private readonly IDnsResolver _dnsResolver;
 	private readonly TimeSpan _connectionTimeout;
@@ -56,7 +56,6 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 
 	public NodeConnectionManager(
 		Network network,
-		Func<NodeBehavior>[] behaviorFactories,
 		EventBus eventBus,
 		IDnsResolver dnsResolver,
 		TimeSpan connectionTimeout,
@@ -64,7 +63,6 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 		EndPoint? torSocks5 = null)
 	{
 		_network = network;
-		_behaviorFactories = behaviorFactories;
 		_eventBus = eventBus;
 		_dnsResolver = dnsResolver;
 		_connectionTimeout = connectionTimeout;
@@ -73,6 +71,15 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 	}
 
 	public Node[] Nodes => _connectedNodes.Values.Select(x => x.Node).ToArray();
+
+	public void AddBehavior(NodeBehavior behavior)
+	{
+		_templateBehaviors.Add(behavior);
+		foreach (var (_, node) in _connectedNodes)
+		{
+			node.Node.Behaviors.Add(behavior);
+		}
+	}
 
 	public void Start(CancellationToken cancellationToken)
 	{
@@ -232,6 +239,11 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 				UserAgent = Constants.UserAgents[Random.Shared.Next(Constants.UserAgents.Length)]
 			};
 
+			foreach (var behavior in _templateBehaviors)
+			{
+				connParams.TemplateBehaviors.Add(behavior);
+			}
+
 			if (peerInfo.Endpoint.IsTor() && _torSocks5 is { } torEndpoint)
 			{
 				connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false,
@@ -246,11 +258,6 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 			{
 				node.DisconnectAsync();
 				return;
-			}
-
-			foreach (var behaviorFactory in _behaviorFactories)
-			{
-				node.Behaviors.Add(behaviorFactory());
 			}
 
 			node.Disconnected += OnNodeDisconnected;
@@ -325,6 +332,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 		var availablePeers = await GetAvailablePeersAsync(cancellationToken).ConfigureAwait(false);
 		var bestDiscoveredNode = availablePeers
 			.OrderByDescending(p => p.Score)
+			.ThenByDescending(p => p.SupportsCompactFilters)
 			.FirstOrDefault();
 
 		if (bestDiscoveredNode is null)

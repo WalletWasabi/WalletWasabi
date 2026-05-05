@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace WalletWasabi.Blockchain.Blocks;

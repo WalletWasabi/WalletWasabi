@@ -264,14 +264,6 @@ public class Global
 			}
 		}
 
-		// Create behavior factories - each node gets its own instances
-		Func<NodeBehavior>[] behaviorFactories = Config.BlockOnlyMode
-			? []
-			: [
-				() => new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus),
-				() => new P2pBehavior(_mempoolService)
-			];
-
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
 		IDnsResolver dnsResolver = torEndpoint is not null
 			? new DnsSocksResolver(torEndpoint)
@@ -280,12 +272,17 @@ public class Global
 #pragma warning disable CA2000 // Dispose objects before losing scope -- disposed using disposables
 		var manager = new NodeConnectionManager(
 			Network,
-			behaviorFactories,
 			EventBus,
 			dnsResolver,
 			TimeSpan.FromSeconds(15),
 			torSocks5: torEndpoint);
 #pragma warning restore CA2000 // Dispose objects before losing scope
+
+		if (!Config.BlockOnlyMode)
+		{
+			manager.AddBehavior(new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus));
+			manager.AddBehavior(new P2pBehavior(_mempoolService));
+		}
 
 		manager.DisposeUsing(_disposables);
 		return manager;
@@ -390,13 +387,39 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => FilterProviders.CreateBitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaders));
+		var filtersProvider = supportsBlockFiltersResult
+			.Map(_ => FilterProviders.CreateBitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaders))
+			.Match(
+				rpcProvider => rpcProvider,
+				_ =>
+				{
+					var tip = FilterStore.GetTip()!.Header;
+					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
+					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
-		if (filtersProviderResult is {IsOk: false, Error: var isIndexDisabled})
+					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
+				});
+
+
+		var (pause, resume, serviceLoop) =
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
+
+		if (supportsBlockFiltersResult.IsOk)
 		{
-			if (isIndexDisabled)
+			EventBus.Subscribe<RpcStatusChanged>(e =>
 			{
-				throw new Exception("\nWasabi is connected to a bitcoin RPC that doesn't provides compact filters (BIP158)."
+				var action = e.Status.Match(
+					x => x.Synchronized ? resume : pause,
+					_ => pause);
+				action();
+			}).DisposeUsing(_disposables);
+		}
+		else
+		{
+			var errorBecauseIndexIsDisabled = supportsBlockFiltersResult.Error;
+			if( errorBecauseIndexIsDisabled)
+			{
+				Logger.LogInfo("\nWasabi is connected to a bitcoin RPC that doesn't provides compact filters (BIP158)."
 								+ "\nCompact filters are disabled by default in Bitcoin and you have to enable them."
 								+ "\nIf you are using your own node then edit the bitcoin.conf file and add the line:"
 								+ "\nblockfilterindex=1"
@@ -413,25 +436,13 @@ public class Global
 			{
 				Logger.LogWarning($"Was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided. " +
 				                  "Please configure valid RPC credentials in settings and restart.");
-				return;
 			}
-		}
 
-		var filtersProvider = filtersProviderResult.Value;
-		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
+			await resume().ConfigureAwait(false);
+		}
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
-
-		EventBus.Subscribe<RpcStatusChanged>(e =>
-		{
-			var action = e.Status.Match(
-				x => x.Synchronized ? resume : pause,
-				_ => pause);
-			action();
-		}).DisposeUsing(_disposables);
-
 
 		EventBus.Subscribe<RpcStatusChanged>(e =>
 		{
