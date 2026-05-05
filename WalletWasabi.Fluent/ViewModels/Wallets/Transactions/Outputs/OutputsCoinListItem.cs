@@ -3,7 +3,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.TreeDataGrid;
 
@@ -11,7 +10,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Transactions.Outputs;
 
 public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGridExpanderItem, IDisposable
 {
-	protected readonly CompositeDisposable _disposables = new();
+	private readonly CompositeDisposable _disposables = new();
 
 	[AutoNotify] private bool _isParentPointerOver;
 	[AutoNotify] private bool _isControlPointerOver;
@@ -54,9 +53,9 @@ public abstract partial class OutputsCoinListItem : ViewModelBase, ITreeDataGrid
 	public bool HasChildren => Children.Count > 0;
 	public bool IsChild { get; set; }
 	public bool IsLastChild { get; set; }
-	public bool IsParentSelected { get; set; } = false;
+	public bool IsParentSelected { get; set; }
 
-	public string TitleText { get; set; }
+	public string TitleText { get; set; } = "";
 
 	public int? NbDiff { get; set; }
 
