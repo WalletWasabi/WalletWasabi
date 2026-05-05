@@ -13,7 +13,7 @@ namespace WalletWasabi.Tor;
 /// <summary>
 /// All Tor-related settings.
 /// </summary>
-public class TorSettings
+public record TorSettings
 {
 	/// <summary>Tor binary file name without extension.</summary>
 	public const string TorBinaryFileName = "tor";
@@ -61,8 +61,8 @@ public class TorSettings
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
 		TorDataDir = Path.Combine(dataDir, "tordata2");
-		SocksEndpoint = new IPEndPoint(IPAddress.Loopback, socksPort);
-		ControlEndpoint = new IPEndPoint(IPAddress.Loopback, controlPort);
+		SocksPort = socksPort;
+		ControlPort = controlPort;
 		Bridges = bridges ?? [];
 		OwningProcessId = owningProcessId;
 
@@ -80,7 +80,7 @@ public class TorSettings
 		}
 
 		TorMode = torMode;
-		TerminateOnExit = TorMode == TorMode.EnabledOnlyRunning ? false : terminateOnExit;
+		TerminateOnExit = TorMode != TorMode.EnabledOnlyRunning && terminateOnExit;
 
 		Log = log;
 		_geoIpPath = Path.Combine(DistributionFolder, "Tor", "Geoip", "geoip");
@@ -129,11 +129,18 @@ public class TorSettings
 	/// <summary>Full path to Tor cookie file.</summary>
 	public string CookieAuthFilePath { get; }
 
+	/// <summary>Tor SOCKS5 endpoint's port.</summary>
+	public int SocksPort { get; init; }
+
+	/// <summary>Tor control endpoint's port.</summary>
+	public int ControlPort { get; init; }
+
 	/// <summary>Tor SOCKS5 endpoint.</summary>
-	public EndPoint SocksEndpoint { get; }
+	public EndPoint SocksEndpoint => new IPEndPoint(IPAddress.Loopback, SocksPort);
 
 	/// <summary>Tor control endpoint.</summary>
-	public EndPoint ControlEndpoint { get; }
+	public EndPoint ControlEndpoint => new IPEndPoint(IPAddress.Loopback, ControlPort);
+
 	private readonly string _geoIpPath;
 	private readonly string _geoIp6Path;
 

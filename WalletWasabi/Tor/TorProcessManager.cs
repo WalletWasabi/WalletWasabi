@@ -1,5 +1,6 @@
 using System.Diagnostics;
 using System.IO;
+using System.Net;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
 using System.Threading;
@@ -14,28 +15,20 @@ using WalletWasabi.Tor.Control.Messages;
 
 namespace WalletWasabi.Tor;
 
-public class TorProcessManager
+public class TorProcessManager(EventBus eventBus)
 {
-	public TorProcessManager(TorSettings settings, EventBus eventBus)
-	{
-		_settings = settings;
-		_eventBus = eventBus;
-	}
-
-	private readonly TorSettings _settings;
-	private readonly EventBus _eventBus;
-
 	/// <param name="arguments">Command line arguments to start Tor OS process with.</param>
-	public virtual Process StartProcess(string arguments)
+	public virtual Process StartProcess(string arguments, TorSettings settings)
 	{
 		ProcessStartInfo startInfo = new()
 		{
-			FileName = _settings.TorBinaryFilePath,
+			FileName = settings.TorBinaryFilePath,
 			Arguments = arguments,
 			UseShellExecute = false,
 			CreateNoWindow = true,
 			RedirectStandardOutput = true,
-			WorkingDirectory = _settings.TorBinaryDir
+			RedirectStandardError = true,
+			WorkingDirectory = settings.TorBinaryDir
 		};
 
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
@@ -43,13 +36,13 @@ public class TorProcessManager
 			var env = startInfo.EnvironmentVariables;
 
 			env["LD_LIBRARY_PATH"] = !env.ContainsKey("LD_LIBRARY_PATH") || string.IsNullOrEmpty(env["LD_LIBRARY_PATH"])
-				? _settings.TorBinaryDir
-				: _settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
+				? settings.TorBinaryDir
+				: settings.TorBinaryDir + Path.PathSeparator + env["LD_LIBRARY_PATH"];
 
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
+		Logger.LogInfo(settings.IsCustomTorFolder ? $"Starting Tor process in folder '{settings.TorBinaryDir}'…" : "Starting Tor process…");
 		var process = new Process()
 		{
 			StartInfo = startInfo,
@@ -65,22 +58,22 @@ public class TorProcessManager
 		await process.GracefulWaitForExitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual void KillProcess(Process process)
+	public void KillProcess(Process process)
 	{
 		process.Kill();
 	}
 
-	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
+	public virtual async Task<bool> IsTorRunningAsync(EndPoint socksEndpoint, CancellationToken cancellationToken)
 	{
 		// This function connects to the Tor Socks5 proxy and starts the handshaking process
-		if (!_settings.SocksEndpoint.TryGetHostAndPort(out var host, out var port))
+		if (!socksEndpoint.TryGetHostAndPort(out var host, out var port))
 		{
 			throw new InvalidOperationException("The Tor socks5 endpoint is not supported.");
 		}
 
 		try
 		{
-			using var tcp = new TcpClient(_settings.SocksEndpoint.AddressFamily);
+			using var tcp = new TcpClient(socksEndpoint.AddressFamily);
 			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 			byte[] msg =
 			[
@@ -93,7 +86,7 @@ public class TorProcessManager
 			var read = await tcp.Client.ReceiveAsync(response, cancellationToken).ConfigureAwait(false);
 			var isTorRunning = read == 2 && response is [0x05, 0x00];
 
-			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
+			eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
 			return isTorRunning;
 		}
 		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.TimedOut && cancellationToken.IsCancellationRequested)
@@ -103,20 +96,20 @@ public class TorProcessManager
 		}
 		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
 		{
-			_eventBus.Publish(new TorConnectionStateChanged(false));
+			eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
 	}
 
 	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
-	public virtual async Task<bool> EnsureRunningAsync(Process process, CancellationToken token)
+	public virtual async Task<bool> EnsureRunningAsync(Process process, EndPoint socksEndpoint, CancellationToken token)
 	{
 		int i = 0;
 		while (true)
 		{
 			i++;
 
-			bool isRunning = await IsTorRunningAsync(token).ConfigureAwait(false);
+			bool isRunning = await IsTorRunningAsync(socksEndpoint, token).ConfigureAwait(false);
 
 			if (isRunning)
 			{
@@ -150,22 +143,22 @@ public class TorProcessManager
 	/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
-	public virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)
+	public virtual async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken token)
 	{
 		// If the cookie file does not exist, we know our Tor starting procedure is corrupted somehow. Best to start from scratch.
-		if (!File.Exists(_settings.CookieAuthFilePath))
+		if (!File.Exists(settings.CookieAuthFilePath))
 		{
 			throw new TorControlException("Cookie file does not exist.");
 		}
 
 		// Get cookie.
-		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
+		string cookieString = Convert.ToHexString(File.ReadAllBytes(settings.CookieAuthFilePath));
 
 		// Authenticate.
 		TorControlClientFactory factory = new();
-		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
+		TorControlClient client = await factory.ConnectAndAuthenticateAsync(settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
 
-		if (_settings.TerminateOnExit)
+		if (settings.TerminateOnExit)
 		{
 			// This is necessary for the scenario when Tor was started by a previous WW instance with TerminateTorOnExit=false configuration option.
 			TorControlReply takeReply = await client.TakeOwnershipAsync(token).ConfigureAwait(false);
