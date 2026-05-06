@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -104,13 +105,18 @@ public static class EventBusExtensions
 {
 	public static Task<TResult[]> WaitForAsync<TEvent, TResult>(this EventBus eventBus, int count, Func<TEvent, TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
 	{
-		var events = new List<TEvent>();
+		var events = new ConcurrentQueue<TEvent>();
 		var completion = new TaskCompletionSource<TResult[]>();
 		var subscription = eventBus.Subscribe<TEvent>(e =>
 		{
-			events.Add(e);
+			Console.WriteLine($"EventBusExtensions.WaitForAsync - event {e} received");
+			events.Enqueue(e);
+
+			Console.WriteLine($"EventBusExtensions.WaitForAsync - events: {events.Count} / {count}");
+
 			if (events.Count == count)
 			{
+				Console.WriteLine($"EventBusExtensions.WaitForAsync - set result");
 				completion.SetResult(events.Select(conv).ToArray());
 			}
 		});

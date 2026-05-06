@@ -65,11 +65,13 @@ public class MempoolService(EventBus eventBus)
 
 	public void Process(Transaction tx)
 	{
+		Console.WriteLine($"MempoolService.Process - processing transaction {tx.GetHash()}; tx={tx}");
+
 		var txId = tx.GetHash();
 		if (_cache.TryAdd(txId, true, TimeSpan.FromHours(1)))
 		{
 			var txAdded = new SmartTransaction(tx, Height.Mempool, labels: TryGetLabel(txId));
-			Console.WriteLine($"MempoolService.Process - processing transaction {tx.GetHash()}, tx={tx}");
+			Console.WriteLine($"MempoolService.Process - processing transaction {tx.GetHash()} which was found in cache; tx={tx}");
 			eventBus.Publish(new NewTransactionInMempool(txAdded));
 		}
 	}
