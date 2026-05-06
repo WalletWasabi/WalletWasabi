@@ -61,10 +61,10 @@
       <Separator />
 
       <PreviewItem Icon="{StaticResource private_key_regular}"
-                     Label="Extended Account Private Key xpriv"
-                     CopyableContent="{Binding ExtendedAccountPrivateKey}"
-                     IsVisible="{Binding !!ExtendedAccountPrivateKey}"
-                     PrivacyModeEnabled="{Binding !ShowSensitiveData}">
+                   Label="Extended Account Private Key xpriv"
+                   CopyableContent="{Binding ExtendedAccountPrivateKey}"
+                   IsVisible="{Binding !!ExtendedAccountPrivateKey}"
+                   PrivacyModeEnabled="{Binding !ShowSensitiveData}">
         <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountPrivateKey}" />
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
