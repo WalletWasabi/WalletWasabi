@@ -16,14 +16,10 @@ public class WpkhWalletPolicyHelperTests
 		var keyPath = new KeyPath("84'/0'/0'");
 		var masterFingerprint = new HDFingerprint(0x2fc4a4f3);
 
-		var walletPolicies = WpkhWalletPolicyHelper.Get(testNet, masterFingerprint, accountPrivateKey, keyPath);
+		var walletPolicy = WpkhWalletPolicyHelper.Get(testNet, masterFingerprint, accountPrivateKey, keyPath);
 
-		var expected = "wpkh([f3a4c42f/84'/0'/0']tprv8ghYQhz7XQhoqDZG8SzbkqGCDTwAzyVVmUN3cUerPhUgK91Xvc4FaMJpYwrjuQ48WD7KdQ7Y6znKnaY9PXP8SiDLv1srjjs8NVYGuM7Hrrk/<0;1>/*)";
-		var actual = walletPolicies.Private.FullDescriptor.ToString();
-		Assert.Equal(expected, actual);
-
-		expected = "wpkh([f3a4c42f/84'/0'/0']tpubDDPaZ82MfnPUigb426fCAEvJnVT7AJgQLmxptzh9oyH59dGJYzsqkqvgj6SyY9eBHhFmG286cfj66Dzv1kYAnC3o7LRxohvo7mwWPr26uje/<0;1>/*)";
-		actual = walletPolicies.Public.FullDescriptor.ToString();
+		var expected = "wpkh([f3a4c42f/84'/0'/0']tpubDDPaZ82MfnPUigb426fCAEvJnVT7AJgQLmxptzh9oyH59dGJYzsqkqvgj6SyY9eBHhFmG286cfj66Dzv1kYAnC3o7LRxohvo7mwWPr26uje/<0;1>/*)";
+		var actual = walletPolicy.FullDescriptor.ToString();
 		Assert.Equal(expected, actual);
 	}
 }

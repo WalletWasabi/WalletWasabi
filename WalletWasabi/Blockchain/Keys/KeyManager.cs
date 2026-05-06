@@ -1,5 +1,6 @@
 using NBitcoin;
 using NBitcoin.Secp256k1;
+using NBitcoin.WalletPolicies;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
@@ -147,7 +148,7 @@ public class KeyManager
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
 		});
 
-	public WpkhWalletPolicies GetWpkhWalletPolicies(string password, Network network)
+	public WalletPolicy GetWpkhWalletPolicy(string password, Network network)
 	{
 		if (!MasterFingerprint.HasValue)
 		{
