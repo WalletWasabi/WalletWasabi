@@ -15,35 +15,34 @@ namespace WalletWasabi.Tests.Helpers;
 public static class TestNodeBuilder
 {
 	public static readonly EventBus EventBus = new();
-	public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "", MempoolService? mempoolService = null)
+
+	public static async Task<CoreNode> CreateAsync([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "", string additionalFolder = "")
 	{
 		var dataDir = Path.Combine(Common.GetWorkDir(callerFilePath, callerMemberName), additionalFolder);
-		mempoolService ??= new MempoolService(EventBus);
+		var mempoolService = new MempoolService(EventBus);
+		var nodeParameters = CreateDefaultCoreNodeParams(mempoolService, dataDir);
 
-		CoreNodeParams nodeParameters = CreateDefaultCoreNodeParams(mempoolService, dataDir);
-		return await CoreNode.CreateAsync(
-			nodeParameters,
-			CancellationToken.None);
+		return await CoreNode.CreateAsync(nodeParameters, CancellationToken.None).ConfigureAwait(false);
 	}
 
 	private static CoreNodeParams CreateDefaultCoreNodeParams(MempoolService mempoolService, string dataDir)
 	{
 #pragma warning disable CA2000 // Dispose objects before losing scope - MemoryCache ownership transferred to CoreNodeParams
 		var nodeParameters = new CoreNodeParams(
-				Network.RegTest,
-				mempoolService,
-				dataDir,
-				tryRestart: true,
-				tryDeleteDataDir: true,
-				EndPointStrategy.Random,
-				EndPointStrategy.Random,
-				txIndex: 1,
-				prune: 0,
-				disableWallet: 0,
-				mempoolReplacement: "fee,optin",
-				userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
-				fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524
-				new MemoryCache(new MemoryCacheOptions()));
+			Network.RegTest,
+			mempoolService,
+			dataDir,
+			tryRestart: true,
+			tryDeleteDataDir: true,
+			EndPointStrategy.Random,
+			EndPointStrategy.Random,
+			txIndex: 1,
+			prune: 0,
+			disableWallet: 0,
+			mempoolReplacement: "fee,optin",
+			userAgent: $"/WasabiClient:{Constants.ClientVersion}/",
+			fallbackFee: Money.Coins(0.0002m), // https://github.com/bitcoin/bitcoin/pull/16524
+			new MemoryCache(new MemoryCacheOptions()));
 #pragma warning restore CA2000
 		nodeParameters.ListenOnion = 0;
 		nodeParameters.Discover = 0;
