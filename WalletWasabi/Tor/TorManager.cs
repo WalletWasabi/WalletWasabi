@@ -25,6 +25,7 @@ public class TorManager : IAsyncDisposable
 		_loopCts = new();
 		LoopTask = null;
 		_settings = settings;
+		CurrentSettings = settings;
 		_processManager = processManager;
 	}
 
@@ -50,6 +51,25 @@ public class TorManager : IAsyncDisposable
 	/// <para>Guarded by <see cref="_stateLock"/>.</para>
 	/// </remarks>
 	private TorControlClient? TorControlClient { get; set; }
+
+	public TorSettings CurrentSettings
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return field;
+			}
+		}
+
+		set
+		{
+			lock (_stateLock)
+			{
+				field = value;
+			}
+		}
+	}
 
 	/// <inheritdoc cref="StartAsync(int, CancellationToken)"/>
 	public Task<(CancellationToken, TorControlClient?)> StartAsync(CancellationToken cancellationToken)
@@ -180,11 +200,15 @@ public class TorManager : IAsyncDisposable
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, _loopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
-		const int MaxPortRetries = 5;
 		const int PortScanningOffset = 10;
 
+		// If SocksPort is 0 (default), it means that user wants to use any available port. In that case, we want to try some ports
+		// in case of conflicts with other Tor instances.
+		int maxPortRetries = _settings.SocksPort == 0 ? 5 : 0;
+
 		var portRetryAttempt = 0;
-		var currentSettings = _settings;
+		CurrentSettings = InitializePorts(_settings);
+		var currentSettings = CurrentSettings;
 
 		while (!cancellationToken.IsCancellationRequested)
 		{
@@ -223,12 +247,14 @@ public class TorManager : IAsyncDisposable
 						Logger.LogInfo($"Cannot access Tor process on port {currentSettings.SocksPort}.", canAccessProcessResult.Error);
 
 						// Tor is running but owned by another user. Try alternate ports.
-						if (portRetryAttempt < MaxPortRetries)
+						if (portRetryAttempt < maxPortRetries)
 						{
-							// Lets try new ports
-							currentSettings = SetNewPorts();
+							// Let's try new ports.
+							CurrentSettings = SetNewPorts(currentSettings, $"Cannot access Tor process on SOCKS5 port {currentSettings.SocksPort}.");
+							currentSettings = CurrentSettings;
+							portRetryAttempt++;
 
-							// Clean up current control client before switching ports
+							// Clean up current control client before switching ports.
 							await controlClient.DisposeAsync().ConfigureAwait(false);
 							controlClient = null;
 							process.Dispose();
@@ -316,33 +342,16 @@ public class TorManager : IAsyncDisposable
 				else
 				{
 					// If Tor was already started, we don't have Tor process ID (pid), so it's harder to kill it.
-					Process[] torProcesses = _processManager.GetTorProcesses();
-
-					bool killAttempt = false;
-
-					foreach (Process torProcess in torProcesses)
-					{
-						try
-						{
-							// This throws if we can't access MainModule of an elevated process from a non elevated one.
-							if (torProcess.MainModule?.FileName == currentSettings.TorBinaryFilePath)
-							{
-								Logger.LogInfo("Kill running Tor process to restart it again.");
-								killAttempt = true;
-								_processManager.KillProcess(torProcess);
-							}
-						}
-						catch
-						{
-						}
-					}
+					bool killAttempt = _processManager.KillBundledRunningTorProcesses(currentSettings, out Process[] torProcesses);
 
 					// Tor was started by another user and we can't kill it. Try different ports.
 					if (torProcesses.Length == 0 || !killAttempt)
 					{
-						if (portRetryAttempt < MaxPortRetries)
+						if (portRetryAttempt < maxPortRetries)
 						{
-							currentSettings = SetNewPorts();
+							CurrentSettings = SetNewPorts(currentSettings, $"Cannot access Tor control port {currentSettings.ControlPort}.");
+							currentSettings = CurrentSettings;
+							portRetryAttempt++;
 							continue;
 						}
 
@@ -379,15 +388,35 @@ public class TorManager : IAsyncDisposable
 			}
 		}
 
-		TorSettings SetNewPorts()
+		static TorSettings InitializePorts(TorSettings settings)
 		{
-			portRetryAttempt++;
-			var newSocksPort = currentSettings.SocksPort + PortScanningOffset;
-			var newControlPort = currentSettings.ControlPort + PortScanningOffset;
+			var result = settings;
 
-			Logger.LogInfo($"Cannot control Tor on port {currentSettings.SocksPort}. Trying different ports: SOCKS={newSocksPort}, Control={newControlPort}");
+			if (settings.SocksPort == 0 || settings.ControlPort == 0)
+			{
+				result = settings with
+				{
+					SocksPort = settings.SocksPort == 0 ? TorSettings.DefaultSocksPort : settings.SocksPort,
+					ControlPort = settings.ControlPort == 0 ? TorSettings.DefaultControlPort : settings.ControlPort
+				};
 
-			return currentSettings with
+				Logger.LogInfo($"Defaulting to ports: SOCKS={result.SocksPort}, Control={result.ControlPort}");
+			}
+			else
+			{
+				Logger.LogInfo($"Using user ports: SOCKS={result.SocksPort}, Control={result.ControlPort}");
+			}
+
+			return result;
+		}
+
+		static TorSettings SetNewPorts(TorSettings settings, string message)
+		{
+			var newSocksPort = settings.SocksPort + PortScanningOffset;
+			var newControlPort = settings.ControlPort + PortScanningOffset;
+			Logger.LogInfo($"{message} Trying different ports: SOCKS={newSocksPort}, Control={newControlPort}");
+
+			return settings with
 			{
 				SocksPort = newSocksPort,
 				ControlPort = newControlPort

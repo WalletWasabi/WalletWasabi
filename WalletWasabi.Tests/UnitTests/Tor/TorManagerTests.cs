@@ -12,7 +12,9 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Tor;
 
-/// <summary>Tests for <see cref="TorManager"/> class.</summary>
+/// <summary>
+/// Tests for <see cref="TorManager"/> class.
+/// </summary>
 public class TorManagerTests
 {
 	/// <summary>
@@ -75,7 +77,7 @@ public class TorManagerTests
 		var processManager = new TestProcessManager(new EventBus())
 		{
 			IsTorRunningAsyncResult = true,
-			GetTorProcessesResult = runningTorOsProcesses == 0 ? [] : [new Process() /* Dummy process */],
+			GetTorProcessesResult = runningTorOsProcesses == 0 ? [] : new[] { new Process() /* Dummy process */ },
 
 			// Cookie file is stored in the profile of that different user, not ours.
 			InitTorControlAsyncException = new TorControlException("Cookie file does not exist.")

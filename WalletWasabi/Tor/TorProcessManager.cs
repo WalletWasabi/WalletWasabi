@@ -140,6 +140,31 @@ public class TorProcessManager(EventBus eventBus)
 		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
 	}
 
+	public bool KillBundledRunningTorProcesses(TorSettings settings, out Process[] torProcesses)
+	{
+		torProcesses = GetTorProcesses();
+		bool killAttempt = false;
+		foreach (Process torProcess in torProcesses)
+		{
+			try
+			{
+				// Kill only the Tor processes that are running from the bundled folder. Not system Tor processes.
+				// This throws if we can't access MainModule of an elevated process from a non elevated one.
+				if (torProcess.MainModule?.FileName == settings.TorBinaryFilePath)
+				{
+					Logger.LogInfo("Kill running Tor process to restart it again.");
+					killAttempt = true;
+					KillProcess(torProcess);
+				}
+			}
+			catch
+			{
+			}
+		}
+
+		return killAttempt;
+	}
+
 	/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
