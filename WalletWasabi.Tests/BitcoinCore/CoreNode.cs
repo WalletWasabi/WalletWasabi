@@ -254,7 +254,7 @@ public class CoreNode
 		{
 			coreNode.Bridge = new BitcoindRpcProcessBridge(coreNode.RpcClient, coreNode.DataDir, printToConsole: false);
 			await coreNode.Bridge.StartAsync(cancel).ConfigureAwait(false);
-			Logger.LogInfo($"Started Bitcoin Node.");
+			Logger.LogInfo("Started Bitcoin Node.");
 		}
 
 		return coreNode;
@@ -274,22 +274,11 @@ public class CoreNode
 		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	/// <summary>
-	/// This method disposes resources but it does not necessarily mean that we need to stop bitcoind process
-	/// because it might not have been started by us.
-	/// <para>Use <see cref="TryStopAsync(bool)"/> to stop bitcoind process.</para>
-	/// </summary>
-	public async Task DisposeAsync()
-	{
-	}
-
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 	public async Task<bool> TryStopAsync(bool onlyOwned = true)
 	{
-		await DisposeAsync().ConfigureAwait(false);
-
 		BitcoindRpcProcessBridge? bridge = null;
-		if (Bridge is { })
+		if (Bridge is not null)
 		{
 			bridge = Bridge;
 		}
@@ -298,7 +287,7 @@ public class CoreNode
 			bridge = new BitcoindRpcProcessBridge(RpcClient, DataDir, printToConsole: false);
 		}
 
-		if (bridge is { })
+		if (bridge is not null)
 		{
 			try
 			{
