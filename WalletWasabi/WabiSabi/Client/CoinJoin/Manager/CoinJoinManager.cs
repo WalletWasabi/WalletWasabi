@@ -58,11 +58,9 @@ public class CoinJoinManager : BackgroundService
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private uint _serverTipHeight;
 
-	public CoinJoinClientState HighestCoinJoinClientState => CoinJoinClientStates.Values.Any()
-		? CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
+	public CoinJoinClientState HighestCoinJoinClientState => _state.CoinJoinClientStates.Values.Any()
+		? _state.CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
-
-	private ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = [];
 
 	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
 	private readonly IDisposable _serverTipHeightChangeSubscription;
@@ -92,7 +90,7 @@ public class CoinJoinManager : BackgroundService
 
 	public CoinJoinClientState GetCoinjoinClientState(WalletId walletId)
 	{
-		if (CoinJoinClientStates.TryGetValue(walletId, out var coinJoinClientStateHolder))
+		if (_state.CoinJoinClientStates.TryGetValue(walletId, out var coinJoinClientStateHolder))
 		{
 			return coinJoinClientStateHolder.CoinJoinClientState;
 		}
@@ -434,7 +432,7 @@ public class CoinJoinManager : BackgroundService
 			// Updates coinjoin client states.
 			var wallets = await _getWalletsAsync().ConfigureAwait(false);
 
-			CoinJoinClientStates = GetCoinJoinClientStates(wallets);
+			_state.CoinJoinClientStates = GetCoinJoinClientStates(wallets);
 			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
@@ -685,7 +683,7 @@ public class CoinJoinManager : BackgroundService
 
 	public void WalletEnteredSendWorkflow(WalletId walletId)
 	{
-		if (CoinJoinClientStates.TryGetValue(walletId, out var stateHolder))
+		if (_state.CoinJoinClientStates.TryGetValue(walletId, out var stateHolder))
 		{
 			_state.WalletsBlockedByUi.TryAdd(walletId, new UiBlockedStateHolder(NeedRestart: false, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet));
 		}
@@ -713,7 +711,7 @@ public class CoinJoinManager : BackgroundService
 			return;
 		}
 
-		if (!CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder))
+		if (!_state.CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder))
 		{
 			Logger.LogDebug(FormatLog("Wallet tried to enter sending but state was missing.", wallet));
 			return;
@@ -732,7 +730,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		foreach (var wallet in await _getWalletsAsync().ConfigureAwait(false))
 		{
-			if (CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
+			if (_state.CoinJoinClientStates.TryGetValue(wallet.WalletId, out var stateHolder) && stateHolder.CoinJoinClientState is not CoinJoinClientState.Idle)
 			{
 				if (!_state.WalletsBlockedByUi.TryAdd(wallet.WalletId, new UiBlockedStateHolder(true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet)))
 				{
@@ -778,7 +776,7 @@ public class CoinJoinManager : BackgroundService
 	private record CoinJoinClientStateHolder(CoinJoinClientState CoinJoinClientState, bool StopWhenAllMixed, bool OverridePlebStop, Wallet OutputWallet);
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, Wallet OutputWallet);
 
-	// TODO: Some properties are still missing in this record: ScheduledRestarts, CoinJoinClientStates, CoinsInCriticalPhase.
+	// TODO: Some properties are still missing in this record: ScheduledRestarts, CoinsInCriticalPhase.
 	/// <param name="WalletsBlockedByUi">
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
 	/// The state holder has 3 boolean value, the first one indicates if the CJ needs to be restarted or not after leaving the blocking UI dialogs.
@@ -790,6 +788,8 @@ public class CoinJoinManager : BackgroundService
 		ConcurrentDictionary<WalletId, TrackedAutoStart> TrackedAutoStarts,
 		ConcurrentDictionary<WalletId, UiBlockedStateHolder> WalletsBlockedByUi)
 	{
+		public ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = [];
+
 		public ManagerState() : this(
 			new ConcurrentDictionary<WalletId, CoinJoinTracker>(),
 			new ConcurrentDictionary<WalletId, TrackedAutoStart>(),
