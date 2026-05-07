@@ -4,7 +4,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Primitives;
 using Avalonia.Media;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -94,9 +93,9 @@ public class PreviewItem : ContentControl
 	protected override void OnApplyTemplate(TemplateAppliedEventArgs e)
 	{
 		var button = e.NameScope.Find<ClipboardCopyButton>("PART_ClipboardCopyButton");
+		ArgumentNullException.ThrowIfNull(button, nameof(button));
 
-		var isCopyButtonVisible =
-			button.CopyCommand.IsExecuting
+		var isCopyButtonVisible = button.CopyCommand.IsExecuting
 			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
 			.Select(x => x.First || x.Second)
 			.CombineLatest(this.WhenAnyValue(x => x.IsCopyButtonEnabled))
