@@ -10,28 +10,17 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// <remarks>Class is thread-safe.</remarks>
 public class FilterHeaderChain
 {
-	private const int Unlimited = 0;
-
 	private SmartHeader? _tip;
 
-	private ChainHeight _serverTipHeight;
+	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
 
 	private int _hashesLeft;
 
 	private int _hashesCount;
 
-	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
-	public FilterHeaderChain(int maxChainSize = Unlimited)
-	{
-		_serverTipHeight = ChainHeight.Genesis;
-		_maxChainSize = maxChainSize;
-	}
-
-	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
-	private readonly int _maxChainSize;
-
-	private readonly LinkedList<SmartHeader> _chain = [];
+	private readonly List<SmartHeader> _chain = [];
 	private readonly Lock _lock = new();
+	private uint _baseHeight;
 
 	public SmartHeader? Tip
 	{
@@ -114,23 +103,22 @@ public class FilterHeaderChain
 		{
 			if (_chain.Count > 0)
 			{
-				SmartHeader lastHeader = _chain.Last!.Value;
+				SmartHeader lastHeader = _chain[^1];
 
 				if (lastHeader.Height + 1 != tip.Height)
 				{
 					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Added: {tip.Height}.");
 				}
 			}
+			else
+			{
+				// First element - set the base height
+				_baseHeight = tip.Height;
+			}
 
-			_chain.AddLast(tip);
+			_chain.Add(tip);
 			_hashesCount++;
 			SetTipNoLock(tip);
-
-			if (_maxChainSize != Unlimited && _chain.Count > _maxChainSize)
-			{
-				// Intentionally, we do not modify hashes count here.
-				_chain.RemoveFirst();
-			}
 		}
 	}
 
@@ -142,10 +130,10 @@ public class FilterHeaderChain
 		{
 			if (_chain.Count > 0)
 			{
-				_chain.RemoveLast();
+				_chain.RemoveAt(_chain.Count - 1);
 				_hashesCount--;
 
-				SmartHeader? newTip = _chain.Count > 0 ? _chain.Last!.Value : null;
+				SmartHeader? newTip = _chain.Count > 0 ? _chain[^1] : null;
 				SetTipNoLock(newTip);
 
 				result = true;
@@ -173,5 +161,21 @@ public class FilterHeaderChain
 	private void SetHashesLeftNoLock()
 	{
 		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - TipHeight);
+	}
+
+	public SmartHeader? this[uint height]
+	{
+		get
+		{
+			lock (_lock)
+			{
+				var index = (int)(height - _baseHeight);
+				if (index < 0 || index >= _chain.Count)
+				{
+					return null;
+				}
+				return _chain[index];
+			}
+		}
 	}
 }

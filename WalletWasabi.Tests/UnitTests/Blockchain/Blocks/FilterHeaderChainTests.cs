@@ -124,7 +124,7 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void HashCountTests()
 	{
-		FilterHeaderChain chain = new(maxChainSize: 2);
+		FilterHeaderChain chain = new();
 		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		// Add 1st header.
