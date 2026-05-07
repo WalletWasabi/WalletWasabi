@@ -31,8 +31,8 @@ public class RegTestSetup : IAsyncDisposable
 		ServiceConfiguration = new ServiceConfiguration(Money.Coins(Constants.DefaultDustThreshold));
 
 		EventBus = new EventBus();
-		SmartHeaderChain smartHeaderChain = new();
-		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, smartHeaderChain, EventBus);
+		FilterHeaderChain filterHeaderChain = new();
+		FilterStore = new FilterStore(Path.Combine(dir, "indexStore"), Network, filterHeaderChain, EventBus);
 		TransactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), Network);
 		CpfpInfoProvider = new CpfpInfoProvider(Workers.Spawn("CpfpInfoProvider", Workers.EventDriven(Unit.Instance, CpfpInfoUpdater.CreateForRegTest())));
 	}

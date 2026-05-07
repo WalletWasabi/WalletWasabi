@@ -24,14 +24,14 @@ public class WalletFilterProcessor : BackgroundService
 		KeyManager keyManager,
 		AllTransactionStore transactionStore,
 		FilterStore filterStore,
-		SmartHeaderChain smartHeaderChain,
+		FilterHeaderChain filterHeaderChain,
 		TransactionProcessor transactionProcessor,
 		BlockProvider blockProvider,
 		EventBus eventBus)
 	{
 		_keyManager = keyManager;
 		_transactionStore = transactionStore;
-		_smartHeaderChain = smartHeaderChain;
+		_filterHeaderChain = filterHeaderChain;
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
@@ -41,7 +41,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	private readonly KeyManager _keyManager;
 	private readonly AllTransactionStore _transactionStore;
-	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly TransactionProcessor _transactionProcessor;
 	private readonly BlockProvider _blockProvider;
 	private readonly EventBus _eventBus;
@@ -64,7 +64,7 @@ public class WalletFilterProcessor : BackgroundService
 				{
 					var lastHeight = _keyManager.GetBestHeight();
 
-					if (lastHeight == _smartHeaderChain.TipHeight)
+					if (lastHeight == _filterHeaderChain.TipHeight)
 					{
 						_initialSynchronizationFinished.TrySetResult();
 						await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
@@ -85,7 +85,7 @@ public class WalletFilterProcessor : BackgroundService
 					var matchFound = await ProcessFilterModelAsync(filter, cancellationToken).ConfigureAwait(false);
 					_eventBus.Publish(new FilterProcessed(filter));
 
-					var reachedBlockChainTip = currentHeight == _smartHeaderChain.TipHeight;
+					var reachedBlockChainTip = currentHeight == _filterHeaderChain.TipHeight;
 					bool storeToDisk = matchFound || reachedBlockChainTip;
 					_keyManager.SetBestHeight(currentHeight, storeToDisk);
 				}

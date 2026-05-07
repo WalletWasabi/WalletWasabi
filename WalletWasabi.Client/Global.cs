@@ -72,12 +72,12 @@ public class Global
 		HostedServices = new HostedServices();
 
 		var mempoolService = new MempoolService(EventBus);
-		SmartHeaderChain = new SmartHeaderChain(maxChainSize: 20_000);
+		FilterHeaderChain = new FilterHeaderChain();
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, SmartHeaderChain, EventBus);
+		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaderChain, EventBus);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
@@ -91,7 +91,7 @@ public class Global
 			Config.Network,
 			FilterStore,
 			TransactionStore,
-			SmartHeaderChain,
+			FilterHeaderChain,
 			mempoolService,
 			Config.ServiceConfiguration,
 			blockProvider,
@@ -119,7 +119,7 @@ public class Global
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
 
-	public SmartHeaderChain SmartHeaderChain { get; }
+	public FilterHeaderChain FilterHeaderChain { get; }
 	public FilterStore FilterStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
@@ -347,7 +347,7 @@ public class Global
 
 		var filtersProvider = filtersProviderResult.Value;
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, SmartHeaderChain, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaderChain, EventBus));
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);

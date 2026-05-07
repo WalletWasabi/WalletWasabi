@@ -8,7 +8,7 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// High performance chain index and cache.
 /// </summary>
 /// <remarks>Class is thread-safe.</remarks>
-public class SmartHeaderChain
+public class FilterHeaderChain
 {
 	private const int Unlimited = 0;
 
@@ -21,7 +21,7 @@ public class SmartHeaderChain
 	private int _hashesCount;
 
 	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
-	public SmartHeaderChain(int maxChainSize = Unlimited)
+	public FilterHeaderChain(int maxChainSize = Unlimited)
 	{
 		_serverTipHeight = ChainHeight.Genesis;
 		_maxChainSize = maxChainSize;
