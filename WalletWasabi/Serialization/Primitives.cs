@@ -41,6 +41,10 @@ public static partial class Encode
 	public static JsonNode Object(IEnumerable<(string, JsonNode?)> values) => new JsonObject(values.ToDictionary(x => x.Item1, x => x.Item2));
 
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static JsonNode ObjectWithOptionalProperties(IEnumerable<(string, JsonNode?)?> values) =>
+		Object(values.Where(x => x is not null).Cast<(string, JsonNode?)>());
+
+	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static JsonNode Array(IEnumerable<JsonNode> values) => new JsonArray(values.ToArray());
 
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
@@ -58,6 +62,10 @@ public static partial class Encode
 	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
 	public static JsonNode? Optional<T>(T? value, Encoder<T> encoder) =>
 		value is { } nonNullValue ? encoder(nonNullValue) : null;
+
+	[Pure, MethodImpl(MethodImplOptions.AggressiveInlining)]
+	public static (string, JsonNode?)? OptionalProperty<T>(string propertyName, T? value, Encoder<T> encoder) =>
+		value is null ? null : (propertyName, encoder(value));
 }
 
 
@@ -117,7 +125,7 @@ public static partial class Decode
 	public static Decoder<double> Double =>
 		Decimal.Map(d => (double) d);
 
-	public static Decoder<DateTimeOffset> DateTimeOffset =
+	public static readonly Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
 
 	public static Decoder<T> Succeed<T>(T output) =>
@@ -131,18 +139,6 @@ public static partial class Decode
 		{
 			var m = decoder(value);
 			return m.IsOk ? f(m.Value) : m.Error;
-		};
-
-	public static Decoder<T> Map2<T, R, U>(Func<R, U, T> ctor, Decoder<R> d1, Decoder<U> d2) =>
-		value =>
-		{
-			var (m1, m2) = (d1(value), d2(value));
-			return (m1.IsOk, m2.IsOk) switch
-			{
-				(true, true) => ctor(m1.Value, m2.Value),
-				(false, _) => Result<T, string>.Fail(m1.Error),
-				(_, false) => Result<T, string>.Fail(m2.Error),
-			};
 		};
 
 	public static Decoder<T> Index<T>(int index, Decoder<T> decoder) =>

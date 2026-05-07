@@ -758,10 +758,10 @@ public class KeyManager
 	}
 
 	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
-		Encode.Object([
-			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
-			("ChainCode", Encode.Optional(keyManager.ChainCode, Encode.ChainCode)),
-			("MasterFingerprint", Encode.Optional(keyManager.MasterFingerprint, Encode.HDFingerprint)),
+		Encode.ObjectWithOptionalProperties([
+			Encode.OptionalProperty("EncryptedSecret", keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC),
+			Encode.OptionalProperty("ChainCode", keyManager.ChainCode, Encode.ChainCode),
+			Encode.OptionalProperty("MasterFingerprint", keyManager.MasterFingerprint, Encode.HDFingerprint),
 			("ExtPubKey", Encode.ExtPubKey(keyManager.SegwitExtPubKey)),
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),

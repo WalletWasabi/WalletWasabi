@@ -19,8 +19,8 @@ public static partial class Encode
 	public static JsonNode ByteArray(byte[] bytes) =>
 		String(Convert.ToBase64String(bytes));
 
-	public static JsonNode? ChainCode(byte[]? bytes) =>
-		Optional(bytes, ByteArray);
+	public static JsonNode ChainCode(byte[] bytes) =>
+		ByteArray(bytes);
 
 	public static JsonNode PubKey(PubKey pk) =>
 		String(pk.ToHex());
@@ -51,11 +51,18 @@ public static partial class Encode
 			("TweakData", ECPubKey(hd.TweakData!))
 		]);
 
-	public static JsonNode? HDFingerprint(HDFingerprint? fp) =>
-		Optional(fp?.ToString(), String);
+	public static JsonNode HDFingerprint(HDFingerprint? fp)
+	{
+		if (fp is null)
+		{
+			throw new ArgumentNullException(nameof(fp));
+		}
 
-	public static JsonNode? BitcoinEncryptedSecretNoEC(BitcoinEncryptedSecretNoEC? s) =>
-		Optional(s?.ToWif(), String);
+		return String(fp.Value.ToString());
+	}
+
+	public static JsonNode BitcoinEncryptedSecretNoEC(BitcoinEncryptedSecretNoEC s) =>
+		String(s.ToWif());
 
 	public static JsonNode WalletHeight(ChainHeight height) =>
 		String(Math.Max(0, height.Height - Constants.ResyncHeightMargin).ToString());
