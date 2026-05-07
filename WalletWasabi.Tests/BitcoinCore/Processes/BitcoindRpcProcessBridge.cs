@@ -6,7 +6,6 @@ using NBitcoin;
 using WalletWasabi.BundledApps;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tests.BitcoinCore.Configuration;
 
@@ -37,7 +36,7 @@ public class BitcoindRpcProcessBridge
 	public IRPCClient RpcClient { get; }
 	public string DataDir { get; }
 	public bool PrintToConsole { get; }
-	public PidFile PidFile { get; }
+	private PidFile PidFile { get; }
 	private ProcessAsync? Process { get; set; }
 	private int? CachedPid { get; set; }
 
@@ -52,8 +51,8 @@ public class BitcoindRpcProcessBridge
 
 		// On Windows, if DataDir ends with '\', the Process can't be started.
 		string dataDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && DataDir.EndsWith('\\')
-					 ? DataDir[..^1]
-					 : DataDir;
+			? DataDir[..^1]
+			: DataDir;
 
 		string args = $"{networkArgument} -datadir=\"{dataDir}\" -printtoconsole={ptcv}";
 
@@ -162,13 +161,13 @@ public class BitcoindRpcProcessBridge
 
 				if (!isKilled)
 				{
-					Logger.LogDebug($"Wait until the process is stopped.");
+					Logger.LogDebug("Wait until the process is stopped.");
 					await process.WaitForExitAsync(cts.Token).ConfigureAwait(false);
 				}
 			}
 			finally
 			{
-				Logger.LogDebug($"Wait until the process is stopped.");
+				Logger.LogDebug("Wait until the process is stopped.");
 				process.Dispose();
 				Process = null;
 				PidFile.TryDelete();

@@ -274,20 +274,9 @@ public class CoreNode
 		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
-	/// <summary>
-	/// This method disposes resources but it does not necessarily mean that we need to stop bitcoind process
-	/// because it might not have been started by us.
-	/// <para>Use <see cref="TryStopAsync(bool)"/> to stop bitcoind process.</para>
-	/// </summary>
-	public async Task DisposeAsync()
-	{
-	}
-
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>
 	public async Task<bool> TryStopAsync(bool onlyOwned = true)
 	{
-		await DisposeAsync().ConfigureAwait(false);
-
 		BitcoindRpcProcessBridge? bridge = null;
 		if (Bridge is { })
 		{
