@@ -27,6 +27,7 @@ using static WalletWasabi.Logging.LoggerTools;
 namespace WalletWasabi.WabiSabi.Client;
 
 public delegate Task<IEnumerable<Wallet>> WalletProvider();
+
 public class CoinJoinManager : BackgroundService
 {
 	public CoinJoinManager(
@@ -49,7 +50,7 @@ public class CoinJoinManager : BackgroundService
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
 
 	private readonly ManagerState _state;
-	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = [];
+	public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase => _state.CoinsInCriticalPhase;
 	private readonly WalletProvider _getWalletsAsync;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
@@ -433,7 +434,7 @@ public class CoinJoinManager : BackgroundService
 			var wallets = await _getWalletsAsync().ConfigureAwait(false);
 
 			_state.CoinJoinClientStates = GetCoinJoinClientStates(wallets);
-			CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
+			_state.CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
 
 			await Task.Delay(TimeSpan.FromSeconds(1), stoppingToken).ConfigureAwait(false);
 		}
@@ -776,7 +777,7 @@ public class CoinJoinManager : BackgroundService
 	private record CoinJoinClientStateHolder(CoinJoinClientState CoinJoinClientState, bool StopWhenAllMixed, bool OverridePlebStop, Wallet OutputWallet);
 	private record UiBlockedStateHolder(bool NeedRestart, bool StopWhenAllMixed, bool OverridePlebStop, Wallet OutputWallet);
 
-	// TODO: Some properties are still missing in this record: ScheduledRestarts, CoinsInCriticalPhase.
+	// TODO: Some properties are still missing in this record: ScheduledRestarts.
 	/// <param name="WalletsBlockedByUi">
 	/// The Dictionary is used for tracking the wallets that are blocked from CJs by UI.
 	/// The state holder has 3 boolean value, the first one indicates if the CJ needs to be restarted or not after leaving the blocking UI dialogs.
@@ -789,6 +790,7 @@ public class CoinJoinManager : BackgroundService
 		ConcurrentDictionary<WalletId, UiBlockedStateHolder> WalletsBlockedByUi)
 	{
 		public ImmutableDictionary<WalletId, CoinJoinClientStateHolder> CoinJoinClientStates { get; set; } = [];
+		public ImmutableDictionary<WalletId, ImmutableList<SmartCoin>> CoinsInCriticalPhase { get; set; } = [];
 
 		public ManagerState() : this(
 			new ConcurrentDictionary<WalletId, CoinJoinTracker>(),
