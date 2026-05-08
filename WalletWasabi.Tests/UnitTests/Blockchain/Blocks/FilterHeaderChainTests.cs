@@ -1,20 +1,21 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
+using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
 
 /// <summary>
-/// Tests for <see cref="SmartHeaderChain"/>.
+/// Tests for <see cref="FilterHeaderChain"/>.
 /// </summary>
-public class SmartHeaderChainTests
+public class FilterHeaderChainTests
 {
 	private static DateTimeOffset BlockTime { get; } = DateTimeOffset.UtcNow;
 
 	[Fact]
 	public void InvalidAddTests()
 	{
-		SmartHeaderChain chain = new();
+		FilterHeaderChain chain = new();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
@@ -34,7 +35,7 @@ public class SmartHeaderChainTests
 	[Fact]
 	public void ReplaceTests()
 	{
-		SmartHeaderChain chain = new();
+		FilterHeaderChain chain = new();
 
 		SmartHeader header = CreateGenesisHeader();
 		chain.AppendTip(header);
@@ -58,7 +59,7 @@ public class SmartHeaderChainTests
 	[Fact]
 	public void AddAndRemoveTests()
 	{
-		SmartHeaderChain chain = new();
+		FilterHeaderChain chain = new();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
@@ -93,8 +94,8 @@ public class SmartHeaderChainTests
 	[Fact]
 	public void ServerTipHeightTests()
 	{
-		SmartHeaderChain chain = new();
-		Assert.Equal(0u, chain.ServerTipHeight);
+		FilterHeaderChain chain = new();
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		chain.SetServerTipHeight(2);
 		Assert.Equal(2, chain.HashesLeft);
@@ -123,8 +124,8 @@ public class SmartHeaderChainTests
 	[Fact]
 	public void HashCountTests()
 	{
-		SmartHeaderChain chain = new(maxChainSize: 2);
-		Assert.Equal(0u, chain.ServerTipHeight);
+		FilterHeaderChain chain = new();
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		// Add 1st header.
 		SmartHeader header = CreateGenesisHeader();
@@ -158,12 +159,12 @@ public class SmartHeaderChainTests
 		return new SmartHeader(blockHash, prevHash, height, BlockTime);
 	}
 
-	private static void AssertEverythingDefault(SmartHeaderChain chain)
+	private static void AssertEverythingDefault(FilterHeaderChain chain)
 	{
 		Assert.Equal(0, chain.HashCount);
 		Assert.Equal(0, chain.HashesLeft);
-		Assert.Equal(0u, chain.ServerTipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 		Assert.Null(chain.TipHash);
-		Assert.Equal(0u, chain.TipHeight);
+		Assert.Equal(ChainHeight.Genesis, chain.TipHeight);
 	}
 }

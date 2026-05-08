@@ -28,7 +28,7 @@ public class Services : IServices
 
 	private readonly TorSettings _torSettings;
 	private readonly FilterStore _filterStore;
-	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly AllTransactionStore _transactionStore;
 	private readonly IHttpClientFactory _httpClientFactory;
 	private readonly TransactionBroadcaster _transactionBroadcaster;
@@ -41,7 +41,7 @@ public class Services : IServices
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
 		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
-		Guard.NotNull(nameof(global.SmartHeaderChain), global.SmartHeaderChain);
+		Guard.NotNull(nameof(global.FilterHeaderChain), global.FilterHeaderChain);
 		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
 		Guard.NotNull(nameof(global.ExternalSourcesHttpClientFactory), global.ExternalSourcesHttpClientFactory);
 		Guard.NotNull(nameof(global.Config), global.Config);
@@ -53,7 +53,7 @@ public class Services : IServices
 
 		_torSettings = global.TorSettings;
 		_filterStore = global.FilterStore;
-		_smartHeaderChain = global.SmartHeaderChain;
+		_filterHeaderChain = global.FilterHeaderChain;
 		_transactionStore = global.TransactionStore;
 		_httpClientFactory = global.ExternalSourcesHttpClientFactory;
 		_transactionBroadcaster = global.TransactionBroadcaster;
@@ -79,10 +79,10 @@ public class Services : IServices
 	public Client.Scheme Scheme { get; }
 
 	// Chain info
-	public uint GetTipHeight() => _smartHeaderChain.TipHeight;
-	public uint GetServerTipHeight() => _smartHeaderChain.ServerTipHeight;
-	public int GetHashesLeft() => _smartHeaderChain.HashesLeft;
-	public SmartHeader? GetTip() => _smartHeaderChain.Tip;
+	public uint GetTipHeight() => _filterHeaderChain.TipHeight;
+	public uint GetServerTipHeight() => _filterHeaderChain.ServerTipHeight;
+	public int GetHashesLeft() => _filterHeaderChain.HashesLeft;
+	public SmartHeader? GetTip() => _filterHeaderChain.Tip;
 
 	// Filters info
 	public uint? GetMinimumBlockHeight() => _filterStore.GetMinimumBlockHeight();

@@ -54,7 +54,7 @@ public static class TransactionBuilderWalletExtensions
 			parameters,
 			lockTimeSelector: () =>
 			{
-				var currentTipHeight = wallet.SmartHeaderChain.TipHeight;
+				var currentTipHeight = wallet.FilterHeaderChain.TipHeight;
 				return LockTimeSelector.Instance.GetLockTimeBasedOnDistribution(currentTipHeight);
 			},
 			payjoinClient);

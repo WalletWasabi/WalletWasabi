@@ -20,10 +20,10 @@ namespace WalletWasabi.Stores;
 /// </summary>
 public class FilterStore : IFilterStore, IAsyncDisposable
 {
-	public FilterStore(string workFolderPath, Network network, SmartHeaderChain smartHeaderChain, EventBus eventBus)
+	public FilterStore(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		_network = network;
-		_smartHeaderChain = smartHeaderChain;
+		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
 
 		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
@@ -72,7 +72,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	/// <summary>NBitcoin network.</summary>
 	private readonly Network _network;
 
-	private readonly SmartHeaderChain _smartHeaderChain;
+	private readonly FilterHeaderChain _filterHeaderChain;
 	private readonly EventBus _eventBus;
 
 	/// <summary>Filter disk storage.</summary>
@@ -90,13 +90,18 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 		return IndexStorage.GetMinimumBlockHeight();
 	}
 
+	public FilterModel? GetTip()
+	{
+		return IndexStorage.FetchLast(1).LastOrDefault();
+	}
+
 	public async Task InitializeAsync(ChainHeight oldestKnownTransactionHeight, CancellationToken cancellationToken)
 	{
 		using (await _indexLock.LockAsync(cancellationToken).ConfigureAwait(false))
 		{
 			var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(oldestKnownTransactionHeight, _network);
 
-			if (!IndexStorage.FetchLast(1).Any())
+			if (GetTip() is null)
 			{
 				IndexStorage.TryAppend(checkpoint);
 			}
@@ -158,12 +163,7 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 	{
 		try
 		{
-			if (!IsCorrect(_smartHeaderChain, filter))
-			{
-				throw new InvalidOperationException($"Header doesn't point to previous header.");
-			}
-
-			_smartHeaderChain.AppendTip(filter.Header);
+			_filterHeaderChain.AppendTip(filter.Header);
 			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
 
 			if (enqueue)
@@ -181,24 +181,6 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 			Logger.LogError(ex);
 			return false;
 		}
-	}
-
-	private bool IsCorrect(SmartHeaderChain c, FilterModel m)
-	{
-		// If this is the first filter that we receive then it is correct only if it is starting one.
-		if (c.Tip is null)
-		{
-			return true;
-		}
-
-		// We received a bip158-compatible filter, and it matches the tip's header, which means the previous filter
-		// was also a bip158-compatible one, and it is the correct one.
-		if (m.Filter.GetHeader(c.Tip.BlockFilterHeader) == m.Header.BlockFilterHeader)
-		{
-			return true;
-		}
-
-		return false;
 	}
 
 	public async Task AddNewFiltersAsync(IEnumerable<FilterModel> filters)
@@ -267,13 +249,13 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 				}
 			}
 
-			if (_smartHeaderChain.TipHeight != filter.Header.Height)
+			if (_filterHeaderChain.TipHeight != filter.Header.Height)
 			{
-				throw new InvalidOperationException($"{nameof(SmartHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
+				throw new InvalidOperationException($"{nameof(FilterHeaderChain)} and {nameof(IndexStorage)} are not in sync.");
 			}
 
-			_smartHeaderChain.RemoveTip();
-			_eventBus.Publish(new ClientTipHeightChanged(_smartHeaderChain.TipHeight));
+			_filterHeaderChain.RemoveTip();
+			_eventBus.Publish(new ClientTipHeightChanged(_filterHeaderChain.TipHeight));
 		}
 
 		_eventBus.Publish(new ChainReorganized(filter));

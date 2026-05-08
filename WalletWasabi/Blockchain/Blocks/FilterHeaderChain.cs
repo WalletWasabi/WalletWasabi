@@ -8,39 +8,19 @@ namespace WalletWasabi.Blockchain.Blocks;
 /// High performance chain index and cache.
 /// </summary>
 /// <remarks>Class is thread-safe.</remarks>
-public class SmartHeaderChain
+public class FilterHeaderChain
 {
-	public const int Unlimited = 0;
-
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
-	private uint _tipHeight;
-
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private SmartHeader? _tip;
 
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
-	private uint256? _tipHash;
+	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
 
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
-	private uint _serverTipHeight;
-
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private int _hashesLeft;
 
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private int _hashesCount;
 
-	/// <param name="maxChainSize"><see cref="Unlimited"/> for no limit, otherwise the chain is capped to the specified number of elements.</param>
-	public SmartHeaderChain(int maxChainSize = Unlimited)
-	{
-		_maxChainSize = maxChainSize;
-	}
-
-	/// <remarks>Useful to save memory by removing elements at the beginning of the chain.</remarks>
-	private readonly int _maxChainSize;
-
-	private readonly LinkedList<SmartHeader> _chain = new();
+	private readonly List<SmartHeader> _chain = [];
 	private readonly Lock _lock = new();
+	private uint _baseHeight;
 
 	public SmartHeader? Tip
 	{
@@ -53,13 +33,13 @@ public class SmartHeaderChain
 		}
 	}
 
-	public uint TipHeight
+	public ChainHeight TipHeight
 	{
 		get
 		{
 			lock (_lock)
 			{
-				return _tipHeight;
+				return _tip?.Height ?? ChainHeight.Genesis;
 			}
 		}
 	}
@@ -70,12 +50,12 @@ public class SmartHeaderChain
 		{
 			lock (_lock)
 			{
-				return _tipHash;
+				return _tip?.BlockHash;
 			}
 		}
 	}
 
-	public uint ServerTipHeight
+	public ChainHeight ServerTipHeight
 	{
 		get
 		{
@@ -123,23 +103,22 @@ public class SmartHeaderChain
 		{
 			if (_chain.Count > 0)
 			{
-				SmartHeader lastHeader = _chain.Last!.Value;
+				SmartHeader lastHeader = _chain[^1];
 
 				if (lastHeader.Height + 1 != tip.Height)
 				{
 					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Added: {tip.Height}.");
 				}
 			}
+			else
+			{
+				// First element - set the base height
+				_baseHeight = tip.Height;
+			}
 
-			_chain.AddLast(tip);
+			_chain.Add(tip);
 			_hashesCount++;
 			SetTipNoLock(tip);
-
-			if (_maxChainSize != Unlimited && _chain.Count > _maxChainSize)
-			{
-				// Intentionally, we do not modify hashes count here.
-				_chain.RemoveFirst();
-			}
 		}
 	}
 
@@ -151,10 +130,10 @@ public class SmartHeaderChain
 		{
 			if (_chain.Count > 0)
 			{
-				_chain.RemoveLast();
+				_chain.RemoveAt(_chain.Count - 1);
 				_hashesCount--;
 
-				SmartHeader? newTip = (_chain.Count > 0) ? _chain.Last!.Value : null;
+				SmartHeader? newTip = _chain.Count > 0 ? _chain[^1] : null;
 				SetTipNoLock(newTip);
 
 				result = true;
@@ -164,7 +143,7 @@ public class SmartHeaderChain
 		return result;
 	}
 
-	public void SetServerTipHeight(uint height)
+	public void SetServerTipHeight(ChainHeight height)
 	{
 		lock (_lock)
 		{
@@ -173,18 +152,30 @@ public class SmartHeaderChain
 		}
 	}
 
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private void SetTipNoLock(SmartHeader? tip)
 	{
 		_tip = tip;
-		_tipHeight = tip?.Height ?? 0;
-		_tipHash = tip?.BlockHash;
 		SetHashesLeftNoLock();
 	}
 
-	/// <remarks>Guarded by <see cref="_lock"/>.</remarks>
 	private void SetHashesLeftNoLock()
 	{
-		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - _tipHeight);
+		_hashesLeft = (int)Math.Max(0, (long)_serverTipHeight - TipHeight);
+	}
+
+	public SmartHeader? this[uint height]
+	{
+		get
+		{
+			lock (_lock)
+			{
+				var index = (int)(height - _baseHeight);
+				if (index < 0 || index >= _chain.Count)
+				{
+					return null;
+				}
+				return _chain[index];
+			}
+		}
 	}
 }

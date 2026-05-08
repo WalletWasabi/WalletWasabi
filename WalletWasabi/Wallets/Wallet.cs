@@ -32,17 +32,17 @@ public class Wallet : BackgroundService
 	private readonly ComposedDisposable _disposables = new();
 
 	public static WalletFactory CreateFactory(
-		Network network, FilterStore filterStore, AllTransactionStore transactionStore, SmartHeaderChain smartHeaderChain,
+		Network network, FilterStore filterStore, AllTransactionStore transactionStore, FilterHeaderChain filterHeaderChain,
 		MempoolService mempoolService, ServiceConfiguration serviceConfiguration, BlockProvider blockProvider,
 		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, filterStore, transactionStore, smartHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
+		keyManager => new Wallet(network, keyManager, filterStore, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
 
 	private Wallet(
 		Network network,
 		KeyManager keyManager,
 		FilterStore filterStore,
 		AllTransactionStore transactionStore,
-		SmartHeaderChain smartHeaderChain,
+		FilterHeaderChain filterHeaderChain,
 		BlockProvider blockProvider,
 		MempoolService mempoolService,
 		ServiceConfiguration serviceConfiguration,
@@ -57,10 +57,10 @@ public class Wallet : BackgroundService
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
 		_filterStore = filterStore;
 		TransactionStore = transactionStore;
-		SmartHeaderChain = smartHeaderChain;
+		FilterHeaderChain = filterHeaderChain;
 
 		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
-		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, SmartHeaderChain, TransactionProcessor, blockProvider, eventBus);
+		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
@@ -78,7 +78,7 @@ public class Wallet : BackgroundService
 	private readonly EventBus _eventBus;
 	private readonly FilterStore _filterStore;
 	public AllTransactionStore TransactionStore { get; }
-	public SmartHeaderChain SmartHeaderChain { get; }
+	public FilterHeaderChain FilterHeaderChain { get; }
 
 	public WalletId WalletId { get; }
 	public bool Loaded { get; private set; }
@@ -331,16 +331,16 @@ public class Wallet : BackgroundService
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
-		var lastHashesLeft = SmartHeaderChain.HashesLeft;
-		while (SmartHeaderChain.HashesLeft > 0)
+		var lastHashesLeft = FilterHeaderChain.HashesLeft;
+		while (FilterHeaderChain.HashesLeft > 0)
 		{
 			cancel.ThrowIfCancellationRequested();
-			if (lastHashesLeft == SmartHeaderChain.HashesLeft)
+			if (lastHashesLeft == FilterHeaderChain.HashesLeft)
 			{
 				await Task.Delay(100, cancel).ConfigureAwait(false);
 				continue;
 			}
-			lastHashesLeft = SmartHeaderChain.HashesLeft;
+			lastHashesLeft = FilterHeaderChain.HashesLeft;
 		}
 
 		await WalletFilterProcessor.InitialSynchronizationFinished.ConfigureAwait(false);
@@ -354,7 +354,7 @@ public class Wallet : BackgroundService
 		}
 
 		// Only clean the mempool if we're fully synchronized.
-		if (SmartHeaderChain.HashesLeft == 0)
+		if (FilterHeaderChain.HashesLeft == 0)
 		{
 			var txsToProcess = new List<SmartTransaction>();
 			foreach (var tx in TransactionStore.MempoolStore.GetTransactions())

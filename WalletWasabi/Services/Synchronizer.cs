@@ -21,14 +21,14 @@ public abstract record FiltersResponse
 {
 	public record AlreadyOnBestBlock : FiltersResponse;
 	public record BestBlockUnknown : FiltersResponse;
-	public record NewFiltersAvailable(uint BestHeight, FilterModel[] Filters) : FiltersResponse;
+	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
 public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 {
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
-	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(uint bestHeight, FilterModel[] filters) => new(bestHeight, filters);
+	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters) => new(bestHeight, filters);
 
 	public async Task<FilterFetchingResult> GetFiltersAsync(uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
@@ -95,24 +95,24 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus) =>
-		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, smartHeaderChain, eventBus, cancellationToken);
+	public static MessageHandler<Unit> CreateFilterGenerator(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
+		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStore, filterHeaderChain, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(BitcoinRpcFilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		// Don't attempt synchronization without a valid tip hash
-		if (smartHeaderChain.TipHash is null)
+		if (filterHeaderChain.TipHash is null)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken).ConfigureAwait(false);
 			return Unit.Instance;
 		}
 
-		var response = await filtersProvider.GetFiltersAsync(smartHeaderChain.TipHash, smartHeaderChain.TipHeight, cancellationToken)
+		var response = await filtersProvider.GetFiltersAsync(filterHeaderChain.TipHash, filterHeaderChain.TipHeight, cancellationToken)
 			.ConfigureAwait(false);
 
 		if (response.IsOk)
 		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, smartHeaderChain, eventBus).ConfigureAwait(false);
+			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
@@ -126,14 +126,14 @@ public static class Synchronizer
 		return Unit.Instance;
 	}
 
-	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, SmartHeaderChain smartHeaderChain, EventBus eventBus)
+	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		switch (response)
 		{
 			case FiltersResponse.AlreadyOnBestBlock:
 				// Already synchronized. Nothing to do.
-				var tip = smartHeaderChain.TipHeight;
-				smartHeaderChain.SetServerTipHeight(tip);
+				var tip = filterHeaderChain.TipHeight;
+				filterHeaderChain.SetServerTipHeight(tip);
 				eventBus.Publish(new ServerTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
@@ -144,9 +144,9 @@ public static class Synchronizer
 				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}  Height {reorgedFilter.Header.Height}.");
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
-				var localTipHeight = smartHeaderChain.TipHeight;
+				var localTipHeight = filterHeaderChain.TipHeight;
 
-				smartHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
+				filterHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
 				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;
@@ -163,7 +163,7 @@ public static class Synchronizer
 				{
 					// We have a problem.
 					// We have wrong filters, the heights are not in sync with the server's.
-					string details = FormatInconsistencyDetails(smartHeaderChain, firstNewFilter);
+					string details = FormatInconsistencyDetails(filterHeaderChain, firstNewFilter);
 					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}{details}");
 
 					await filterStore.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
@@ -186,7 +186,7 @@ public static class Synchronizer
 	}
 
 
-	private static string FormatInconsistencyDetails(SmartHeaderChain hashChain, FilterModel firstFilter)
+	private static string FormatInconsistencyDetails(FilterHeaderChain hashChain, FilterModel firstFilter)
 	{
 		return string.Join(
 			Environment.NewLine,
