@@ -125,7 +125,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
 
-		async void StartCoinJoinCommand(StartCoinJoinCommand startCommand)
+		async void StartCoinJoinCommandAsync(StartCoinJoinCommand startCommand)
 		{
 			var walletToStart = startCommand.Wallet;
 
@@ -243,7 +243,7 @@ public class CoinJoinManager : BackgroundService
 			switch (command)
 			{
 				case StartCoinJoinCommand startCommand:
-					StartCoinJoinCommand(startCommand);
+					StartCoinJoinCommandAsync(startCommand);
 					break;
 
 				case StopCoinJoinCommand stopCommand:
