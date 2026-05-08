@@ -103,19 +103,8 @@ public class CoinJoinManager : BackgroundService
 
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		// Coinjoin handling Start / Stop and finalization.
-		var monitorAndHandleCoinjoinsTask = MonitorAndHandleCoinJoinsAsync(stoppingToken);
-		await monitorAndHandleCoinjoinsTask.ConfigureAwait(false);
-
-		await WaitAndHandleResultOfTasksAsync(nameof(monitorAndHandleCoinjoinsTask), monitorAndHandleCoinjoinsTask).ConfigureAwait(false);
-	}
-
-	private async Task MonitorAndHandleCoinJoinsAsync(CancellationToken stoppingToken)
-	{
 		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(stoppingToken), stoppingToken);
 		var monitorCoinJoinTask = Task.Run(() => MonitorAndHandlingCoinJoinFinalizationAsync(stoppingToken), stoppingToken);
-
-		await Task.WhenAny(commandsHandlingTask, monitorCoinJoinTask).ConfigureAwait(false);
 
 		await WaitAndHandleResultOfTasksAsync(nameof(commandsHandlingTask), commandsHandlingTask).ConfigureAwait(false);
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorCoinJoinTask), monitorCoinJoinTask).ConfigureAwait(false);
