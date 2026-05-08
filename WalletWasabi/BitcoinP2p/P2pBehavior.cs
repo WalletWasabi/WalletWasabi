@@ -21,7 +21,7 @@ public class P2pBehavior : NodeBehavior
 
 	public P2pBehavior(MempoolService mempoolService)
 	{
-		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+		MempoolService = mempoolService;
 	}
 
 	public MempoolService MempoolService { get; }
@@ -51,6 +51,8 @@ public class P2pBehavior : NodeBehavior
 	{
 		try
 		{
+			Logger.LogDebug($"P2pBehavior.MessageReceived: Received {message.Message} from {node} (payload={message.Message.Payload})");
+
 			if (message.Message.Payload is GetDataPayload getDataPayload)
 			{
 				await ProcessGetDataAsync(node, getDataPayload).ConfigureAwait(false);
