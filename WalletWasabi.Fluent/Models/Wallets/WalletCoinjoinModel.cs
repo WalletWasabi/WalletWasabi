@@ -90,11 +90,11 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	{
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
-		await _coinJoinManager.StartAsync(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
+		await _coinJoinManager.RequestCoinJoinStartAsync(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None);
 	}
 
 	public async Task StopAsync()
 	{
-		await _coinJoinManager.StopAsync(_wallet, CancellationToken.None);
+		await _coinJoinManager.RequestCoinJoinStopAsync(_wallet, CancellationToken.None);
 	}
 }
