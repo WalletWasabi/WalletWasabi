@@ -151,8 +151,6 @@ public class Global
 
 	private NodesGroup ConfigureNodesGroup(MempoolService mempoolService)
 	{
-		var behavior = new P2pBehavior(mempoolService);
-
 		// NBitcoin doesn't have these dnsSeeds for signet
 		if (Network == Bitcoin.Instance.Signet)
 		{
@@ -163,15 +161,44 @@ public class Global
 			}
 		}
 
+		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
+		var blockHeaders = LoadBlockHeaders(p2PDataDir);
+		var chainBehavior = new ChainBehavior(blockHeaders);
+		var p2PBehavior = new P2pBehavior(mempoolService);
+
 		var nodesGroup = Network == Network.RegTest
-			? P2pNetwork.CreateNodesGroupForRegTest(behavior)
+			? P2pNetwork.CreateNodesGroupForRegTest(p2PBehavior)
 			: P2pNetwork.CreateNodesGroup(
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
-				GetBitcoinP2pNetworkDirectory(),
-				Config.BlockOnlyMode ? null : behavior);
+				p2PDataDir,
+				Config.BlockOnlyMode ? [chainBehavior] : [chainBehavior, p2PBehavior]);
 
 		return nodesGroup;
+	}
+
+	private ConcurrentChain LoadBlockHeaders(string p2PDataDir)
+	{
+		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+		var blockHeaders = Result<byte[], Exception>
+			.Catch(() => File.ReadAllBytes(blockHeadersFilePath))
+			.Match(
+				bytes => new ConcurrentChain(bytes, Network),
+				_ => new ConcurrentChain(Network));
+
+		var blockHeaderSaver = Spawn("Block Headers persistence",
+			Service("Bitcoin Block Headers persistence",
+				Periodically(
+					TimeSpan.FromSeconds(30),
+					Unit.Instance,
+					async (Unit _, Unit _, CancellationToken ct) =>
+					{
+						await File.WriteAllBytesAsync(blockHeadersFilePath, blockHeaders.ToBytes(), ct);
+						return Unit.Instance;
+					})));
+		blockHeaderSaver.DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
+		return blockHeaders;
 	}
 
 	private void ConfigureBitcoinNetwork()

@@ -40,11 +40,9 @@ public static class P2pNetwork
 		}
 	}
 
-	public static NodesGroup CreateNodesGroup(Network network, EndPoint? torSocks5EndPoint, string workDir, P2pBehavior? p2PBehavior = null)
+	public static NodesGroup CreateNodesGroup(Network network, EndPoint? torSocks5EndPoint, string workDir, NodeBehavior[] behaviors)
 	{
 		var addressManagerFilePath = Path.Combine(workDir, $"AddressManager{network}.dat");
-		var connectionParameters = new NodeConnectionParameters();
-
 		var addressManager = LoadOrCreateAddressManager(addressManagerFilePath);
 
 		var useTor = torSocks5EndPoint is not null;
@@ -55,13 +53,14 @@ public static class P2pNetwork
 		};
 
 		var userAgent = Constants.UserAgents.RandomElement(SecureRandom.Instance);
+		var connectionParameters = new NodeConnectionParameters();
 		connectionParameters.UserAgent = userAgent;
 		connectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
 		connectionParameters.EndpointConnector = new BestEffortEndpointConnector(MaximumNodeConnections / 2);
 
-		if (p2PBehavior is not null)
+		foreach (var behavior in behaviors)
 		{
-			connectionParameters.TemplateBehaviors.Add(p2PBehavior);
+			connectionParameters.TemplateBehaviors.Add(behavior);
 		}
 
 		if (useTor)
