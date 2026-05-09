@@ -1,4 +1,6 @@
 using NBitcoin;
+using NBitcoin.Secp256k1;
+using NBitcoin.WalletPolicies;
 using System.Collections.Generic;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
@@ -7,7 +9,6 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Text.Json.Nodes;
-using NBitcoin.Secp256k1;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
@@ -20,7 +21,7 @@ using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
-using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
+using static WalletWasabi.Blockchain.Keys.WpkhWalletPolicyHelper;
 using Decode = WalletWasabi.Serialization.Decode;
 using Encode = WalletWasabi.Serialization.Encode;
 using Network = NBitcoin.Network;
@@ -147,14 +148,14 @@ public class KeyManager
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
 		});
 
-	public WpkhDescriptors GetOutputDescriptors(string password, Network network)
+	public WalletPolicy GetWpkhWalletPolicy(string password, Network network)
 	{
 		if (!MasterFingerprint.HasValue)
 		{
 			throw new InvalidOperationException($"{nameof(MasterFingerprint)} is not defined.");
 		}
 
-		return WpkhOutputDescriptorHelper.GetOutputDescriptors(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
+		return WpkhWalletPolicyHelper.Get(network, MasterFingerprint.Value, GetMasterExtKey(password), SegwitAccountKeyPath);
 	}
 
 	#region Properties

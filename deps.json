@@ -115,11 +115,6 @@
     "hash": "sha256-ZDNqbc2Rq1Sf7PvTPM+pDog7Lv4vcz2013EOe57w5FA="
   },
   {
-    "pname": "Castle.Core",
-    "version": "5.1.1",
-    "hash": "sha256-oVkQB+ON7S6Q27OhXrTLaxTL0kWB58HZaFFuiw4iTrE="
-  },
-  {
     "pname": "ColorDocument.Avalonia",
     "version": "11.0.3-a1",
     "hash": "sha256-Pkh5FX+4pBzep5oCCyhIiR559QyFCEb1vrfEgG0wREw="
@@ -560,14 +555,9 @@
     "hash": "sha256-zcL1+QbI452viyARfy6kNsdOuR2dRR86ex9vmAY81T8="
   },
   {
-    "pname": "Moq",
-    "version": "4.18.4",
-    "hash": "sha256-JOmYlcTJdQOthRxnT0jAD6WG+NVLMmIV2BM9rNhNg3Q="
-  },
-  {
     "pname": "NBitcoin",
-    "version": "8.0.14",
-    "hash": "sha256-Ut/0TdRutL5dljFhsUyrTISqyWe+rBuciKvC7ORBGqc="
+    "version": "10.0.3",
+    "hash": "sha256-jX5gKpVucJiIAs42UtbCl8Qt05WN/NVBQFWg85nIa5M="
   },
   {
     "pname": "NBitcoin.Secp256k1",
@@ -803,11 +793,6 @@
     "pname": "System.Diagnostics.EventLog",
     "version": "10.0.2",
     "hash": "sha256-rezZk0M4+MWRxwGSFzXfvekrhL8qLTp7Pc8YsSy/4nE="
-  },
-  {
-    "pname": "System.Diagnostics.EventLog",
-    "version": "6.0.0",
-    "hash": "sha256-zUXIQtAFKbiUMKCrXzO4mOTD5EUphZzghBYKXprowSM="
   },
   {
     "pname": "System.Diagnostics.FileVersionInfo",

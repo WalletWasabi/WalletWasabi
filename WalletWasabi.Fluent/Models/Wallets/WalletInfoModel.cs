@@ -1,7 +1,8 @@
+using NBitcoin.WalletPolicies;
 using WalletWasabi.Extensions;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
-using static WalletWasabi.Blockchain.Keys.WpkhOutputDescriptorHelper;
+using static WalletWasabi.Blockchain.Keys.WpkhWalletPolicyHelper;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -19,7 +20,7 @@ public partial class WalletInfoModel
 			ExtendedMasterZprv = secret.ToZPrv(network);
 
 			// TODO: Should work for every type of wallet, temporarily disabling it.
-			WpkhOutputDescriptors = wallet.KeyManager.GetOutputDescriptors(wallet.Password, network);
+			WpkhWalletPolicy = wallet.KeyManager.GetWpkhWalletPolicy(wallet.Password, network);
 		}
 
 		SegWitExtendedAccountPublicKey = wallet.KeyManager.SegwitExtPubKey.ToString(network);
@@ -46,5 +47,5 @@ public partial class WalletInfoModel
 
 	public string? ExtendedMasterZprv { get; }
 
-	public WpkhDescriptors? WpkhOutputDescriptors { get; }
+	public WalletPolicy? WpkhWalletPolicy { get; }
 }
