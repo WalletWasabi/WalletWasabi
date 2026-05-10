@@ -163,7 +163,7 @@ public class Global
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
 		var blockHeaders = LoadBlockHeaders(p2PDataDir);
-		var chainBehavior = new ChainBehavior(blockHeaders);
+		var chainBehavior = new BlockHeadersChainBehavior(blockHeaders, FilterHeaderChain, EventBus);
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
