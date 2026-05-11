@@ -65,7 +65,7 @@ public class RegTestSetup : IAsyncDisposable
 	public async Task AssertFiltersInitializedAsync()
 	{
 		uint256 firstHash = await RpcClient.GetBlockHashAsync(0).ConfigureAwait(false);
-		var filterProvider = new BitcoinRpcFilterProvider(RpcClient);
+		var filterProvider = new BitcoinRpcFilterProvider(RpcClient, new ConcurrentChain());
 		while (true)
 		{
 			var filtersResponse = await filterProvider.GetFiltersAsync(firstHash, 0, CancellationToken.None).ConfigureAwait(false);

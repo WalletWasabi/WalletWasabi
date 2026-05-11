@@ -105,8 +105,7 @@
     ))
 
 (define network                 (__get 'network (global)))
-(define bitcoin-store           (__get 'bitcoinstore (global)))
-(define header-chain            (__get 'smartheaderchain bitcoin-store))
+(define header-chain            (__get 'filterheaderchain (global)))
 
 (define (remote-tip-height)     (__get 'servertipheight header-chain))
 (define (local-tip-height)      (__get 'tipheight header-chain))

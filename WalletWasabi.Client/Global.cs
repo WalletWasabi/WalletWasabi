@@ -25,6 +25,7 @@ using WalletWasabi.Discoverability;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
@@ -112,6 +113,7 @@ public class Global
 	private TorManager? _torManager;
 	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
+	private ConcurrentChain? _blockHeaderChain;
 	private readonly Timer _ticker;
 	private readonly ComposedDisposable _disposables = new();
 
@@ -162,8 +164,8 @@ public class Global
 		}
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
-		var blockHeaders = LoadBlockHeaders(p2PDataDir);
-		var chainBehavior = new BlockHeadersChainBehavior(blockHeaders, FilterHeaderChain, EventBus);
+		_blockHeaderChain = LoadBlockHeaders(p2PDataDir);
+		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaderChain, FilterHeaderChain, EventBus);
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
@@ -181,9 +183,13 @@ public class Global
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
 		var blockHeaders = Result<byte[], Exception>
-			.Catch(() => File.ReadAllBytes(blockHeadersFilePath))
+			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
 			.Match(
-				bytes => new ConcurrentChain(bytes, Network),
+				bytes => bytes switch
+				{
+					[] => new ConcurrentChain(Network),
+					_ => new ConcurrentChain(bytes, Network)
+				},
 				_ => new ConcurrentChain(Network));
 
 		var blockHeaderSaver = Spawn("Block Headers persistence",
@@ -191,10 +197,14 @@ public class Global
 				Periodically(
 					TimeSpan.FromSeconds(30),
 					Unit.Instance,
-					async (Unit _, Unit _, CancellationToken ct) =>
+					(Unit _, Unit _, CancellationToken ct) =>
 					{
-						await File.WriteAllBytesAsync(blockHeadersFilePath, blockHeaders.ToBytes(), ct);
-						return Unit.Instance;
+						if (blockHeaders.Tip is not null)
+						{
+							File.SafelyWriteAllBytes(blockHeadersFilePath, blockHeaders.ToBytes());
+						}
+
+						return Task.FromResult(Unit.Instance);
 					})));
 		blockHeaderSaver.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
@@ -267,6 +277,7 @@ public class Global
 		{
 			internalRpcClient.HttpClient =
 				ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
+			internalRpcClient.HttpClient.Timeout = TimeSpan.FromMinutes(2);
 		}
 
 		return new RpcClientBase(internalRpcClient);
@@ -318,7 +329,7 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient));
+		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaderChain));
 
 		if (filtersProviderResult is {IsOk: false, Error: var isIndexDisabled})
 		{
