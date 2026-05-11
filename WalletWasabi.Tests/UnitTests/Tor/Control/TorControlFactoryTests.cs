@@ -4,8 +4,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using Xunit;
+using static WalletWasabi.Tor.Control.PipeReaderLineReaderExtension;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 
@@ -37,13 +39,13 @@ public class TorControlFactoryTests
 		Pipe toServer = new();
 		Pipe toClient = new();
 
-		await using TorControlClient testClient = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+		await using TorControlClient testClient = new(TorBackend.CTor, pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 		Logger.LogTrace("Client: Start authentication task.");
 		Task<TorControlClient> authenticationTask = clientFactory.AuthSafeCookieOrThrowAsync(testClient, cookieString, timeoutCts.Token);
 
 		Logger.LogTrace("Server: Read 'AUTHCHALLENGE SAFECOOKIE' command from the client.");
-		string authChallengeCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+		string authChallengeCommand = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 
 		Logger.LogTrace($"Server: Received AUTHCHALLENGE line: '{authChallengeCommand}'.");
 		Assert.Equal("AUTHCHALLENGE SAFECOOKIE 6F14C18D5B00BF54E16E4728A4BFC81B1FF469F0B012CD71D9724BFBE14DB5E6", authChallengeCommand);
@@ -53,7 +55,7 @@ public class TorControlFactoryTests
 		await toClient.Writer.WriteAsciiAndFlushAsync(challengeResponse, timeoutCts.Token);
 
 		Logger.LogTrace("Server: Read 'AUTHENTICATE' command from the client.");
-		string authCommand = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+		string authCommand = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 
 		Logger.LogTrace($"Server: Received auth line: '{authCommand}'.");
 		Assert.Equal("AUTHENTICATE 6013EA09D4E36B6CF01C18A707D350C1B5AFF8C1A21527266B9FC40C89BDCB4A", authCommand);
