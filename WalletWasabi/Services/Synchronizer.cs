@@ -24,7 +24,7 @@ public abstract record FiltersResponse
 	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse;
 }
 
-public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
+public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain)
 {
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
@@ -34,28 +34,20 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 	{
 		try
 		{
-			var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-			var nbOfFiltersToFetch = Math.Min(100, currentHeight - fromHeight);
-			var stopAtHeight = fromHeight + nbOfFiltersToFetch;
-
-			var realBlockHash = await bitcoinRpcClient.GetBlockHashAsync((int) fromHeight, cancellationToken)
-				.ConfigureAwait(false);
-			if (realBlockHash != fromHash)
+			if (blockHeaderChain.Tip is null)
 			{
 				return BestBlockUnknown;
 			}
+			var blockHashes = blockHeaderChain
+				.EnumerateAfter(fromHash)
+				.Select(x => x.HashBlock)
+				.Take(1_000)
+				.ToArray();
 
-			if (stopAtHeight == fromHeight)
+			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
 			}
-
-			var heights = Enumerable.Range((int) fromHeight + 1, (int) (stopAtHeight - fromHeight)).ToArray();
-			var batchClient = bitcoinRpcClient.PrepareBatch();
-			var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
-			await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-			var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
 
 			var filterBatchClient = bitcoinRpcClient.PrepareBatch();
 			var filterTasks = blockHashes.Select(hash => filterBatchClient.GetBlockFilterAsync(hash, cancellationToken))
@@ -64,19 +56,20 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient)
 			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
 
 			var filters = new FilterModel[blockHashes.Length];
+			var height = fromHeight + 1;
 			for (var i = 0; i < blockHashes.Length; i++)
 			{
 				var blockHash = blockHashes[i];
 				var filterResponse = filterResponses[i];
-				var height = (uint)heights[i];
 
 				var header = new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow);
 				var filter = new FilterModel(header, filterResponse.Filter);
 
 				filters[i] = filter;
+				height++;
 			}
 
-			return NewFiltersAvailable((uint)currentHeight, filters);
+			return NewFiltersAvailable(height, filters);
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{

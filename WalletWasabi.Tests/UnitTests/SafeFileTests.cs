@@ -217,7 +217,7 @@ public class SafeFileTests
 	{
 		try
 		{
-			SafeFile.ReadAllText(file, Encoding.UTF8);
+			File.SafelyReadAllText(file, Encoding.UTF8);
 			return true;
 		}
 		catch
@@ -228,7 +228,7 @@ public class SafeFileTests
 
 	private static Task<string[]> ReadAllLinesAsync(string file)
 	{
-		string text = SafeFile.ReadAllText(file, Encoding.Default);
+		string text = File.SafelyReadAllText(file, Encoding.Default);
 		string[] lines = text.Split('\n', StringSplitOptions.RemoveEmptyEntries);
 		return Task.FromResult(lines);
 	}
