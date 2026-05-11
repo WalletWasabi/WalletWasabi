@@ -21,7 +21,6 @@ using WalletWasabi.Serialization;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
-using static WalletWasabi.Blockchain.Keys.WpkhWalletPolicyHelper;
 using Decode = WalletWasabi.Serialization.Decode;
 using Encode = WalletWasabi.Serialization.Encode;
 using Network = NBitcoin.Network;
@@ -117,7 +116,7 @@ public class KeyManager
 		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
 		TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
 		_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
-		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(network, KeyPurpose.Scan) , MinGapLimit);
+		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(network, KeyPurpose.Scan), MinGapLimit);
 		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(network, KeyPurpose.Spend), MinGapLimit);
 	}
 
@@ -138,13 +137,13 @@ public class KeyManager
 			("TestNet4", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
 			("signet", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/1h/0h/1h",
 			("RegTest", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/0h/0h/1h",
-			("Main",  KeyPurpose.SilentPaymentKey.ScanKey)=> "m/352h/0h/0h/1h",
+			("Main", KeyPurpose.SilentPaymentKey.ScanKey) => "m/352h/0h/0h/1h",
 			("TestNet4", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
 			("signet", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/1h/0h/0h",
 			("RegTest", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/0h/0h/0h",
-			("Main",  KeyPurpose.SilentPaymentKey.SpendKey)=> "m/352h/0h/0h/0h",
+			("Main", KeyPurpose.SilentPaymentKey.SpendKey) => "m/352h/0h/0h/0h",
 			(_, KeyPurpose.LoudPaymentKey s) => throw new ArgumentException($"Unknown account for network '{network}' and script type {s.ScriptPubKeyType}."),
-			(_, KeyPurpose.SilentPaymentKey)=> throw new ArgumentException($"Unknown account for silentPayment and network '{network}'"),
+			(_, KeyPurpose.SilentPaymentKey) => throw new ArgumentException($"Unknown account for silentPayment and network '{network}'"),
 			_ => throw new ArgumentException($"Unknown account for network '{network}' and key purpose.")
 		});
 
@@ -378,7 +377,7 @@ public class KeyManager
 				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, g => TaprootExternalKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),
-				KeyPurpose.LoudPaymentKey(var scriptPubKeyType) => throw new NotSupportedException( $"Script type '{scriptPubKeyType}' is not supported."),
+				KeyPurpose.LoudPaymentKey(var scriptPubKeyType) => throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported."),
 				_ => throw new NotSupportedException($"Key purpose is unknown.")
 			};
 
@@ -417,7 +416,7 @@ public class KeyManager
 		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Account).Derive((uint)scanKeyIndex);
 		lock (_criticalStateLock)
 		{
-			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1 ) + 1;
+			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1) + 1;
 			var hdPubKey = new HdPubKey(pubkey, dummyKeyFullPath.Derive((uint)nextIndex), labels, KeyState.Clean);
 			hdPubKey.TweakData = tweak;
 			_hdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.TaprootBIP86);
