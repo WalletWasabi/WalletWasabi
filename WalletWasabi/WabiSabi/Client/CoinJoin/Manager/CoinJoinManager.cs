@@ -5,7 +5,6 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
-using System.Threading.Channels;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -45,6 +44,7 @@ public class CoinJoinManager : BackgroundService
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
 		_serverTipHeightChangeSubscription = eventBus.Subscribe<NetworkTipHeightChanged>(h => _serverTipHeight = h.Height);
+		_mailboxProcessor = new MailboxProcessor<CoinJoinCommand>(HandleCoinJoinCommandsAsync, _stopCts.Token);
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
@@ -58,12 +58,13 @@ public class CoinJoinManager : BackgroundService
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private uint _serverTipHeight;
+	private readonly MailboxProcessor<CoinJoinCommand> _mailboxProcessor;
+	private readonly CancellationTokenSource _stopCts = new();
 
 	public CoinJoinClientState HighestCoinJoinClientState => _state.CoinJoinClientStates.Values.Any()
 		? _state.CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
 
-	private readonly Channel<CoinJoinCommand> _commandChannel = Channel.CreateUnbounded<CoinJoinCommand>();
 	private readonly IDisposable _serverTipHeightChangeSubscription;
 
 	private static bool IsUnderPlebStop(SmartCoin[] coinCandidates, Money plebStopThreshold) => coinCandidates.Sum(x => x.Amount) < plebStopThreshold;
@@ -82,12 +83,12 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		var command = new StartCoinJoinCommand(wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
-		await _commandChannel.Writer.WriteAsync(command, cancellationToken).ConfigureAwait(false);
+		_mailboxProcessor.Post(command);
 	}
 
 	public async Task RequestCoinJoinStopAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		await _commandChannel.Writer.WriteAsync(new StopCoinJoinCommand(wallet), cancellationToken).ConfigureAwait(false);
+		_mailboxProcessor.Post(new StopCoinJoinCommand(wallet));
 	}
 
 	public CoinJoinClientState GetCoinjoinClientState(WalletId walletId)
@@ -101,32 +102,53 @@ public class CoinJoinManager : BackgroundService
 
 	#endregion Public API (Start | Stop | TryGetWalletStatus)
 
+	public override Task StartAsync(CancellationToken cancellationToken)
+	{
+		_mailboxProcessor.Start();
+		return base.StartAsync(cancellationToken);
+	}
+
 	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
 	{
-		var commandsHandlingTask = Task.Run(() => HandleCoinJoinCommandsAsync(stoppingToken), stoppingToken);
 		var monitorCoinJoinTask = Task.Run(() => MonitorAndHandlingCoinJoinFinalizationAsync(stoppingToken), stoppingToken);
 
-		await WaitAndHandleResultOfTasksAsync(nameof(commandsHandlingTask), commandsHandlingTask).ConfigureAwait(false);
 		await WaitAndHandleResultOfTasksAsync(nameof(monitorCoinJoinTask), monitorCoinJoinTask).ConfigureAwait(false);
 	}
 
-	private async Task HandleCoinJoinCommandsAsync(CancellationToken stoppingToken)
+	public override Task StopAsync(CancellationToken cancellationToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
+		_stopCts.Cancel();
+		return base.StopAsync(cancellationToken);
+	}
 
-		while (!stoppingToken.IsCancellationRequested)
+	private async Task HandleCoinJoinCommandsAsync(Mailbox<CoinJoinCommand> mailbox, CancellationToken cancellationToken)
+	{
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, cancellationToken);
+
+		while (!cancellationToken.IsCancellationRequested)
 		{
-			var command = await _commandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
-
-			switch (command)
+			try
 			{
-				case StartCoinJoinCommand startCommand:
-					HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory);
-					break;
+				var command = await mailbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
 
-				case StopCoinJoinCommand stopCommand:
-					HandleStopCoinJoinCommand(stopCommand);
-					break;
+				switch (command)
+				{
+					case StartCoinJoinCommand startCommand:
+						HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory);
+						break;
+
+					case StopCoinJoinCommand stopCommand:
+						HandleStopCoinJoinCommand(stopCommand);
+						break;
+				}
+			}
+			catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+			{
+				Logger.LogDebug("Handling of commands in CoinJoinManager was stopped.");
+			}
+			catch (Exception e)
+			{
+				Logger.LogError($"Error while handling CoinJoin command: {e}");
 			}
 		}
 
@@ -755,6 +777,8 @@ public class CoinJoinManager : BackgroundService
 
 	public override void Dispose()
 	{
+		_mailboxProcessor.Dispose();
+		_stopCts.Dispose();
 		_serverTipHeightChangeSubscription.Dispose();
 		base.Dispose();
 	}
