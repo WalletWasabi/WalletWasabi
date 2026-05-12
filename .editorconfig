@@ -99,7 +99,7 @@ dotnet_style_qualification_for_method = false:warning
 dotnet_style_qualification_for_property = false:warning
 
 dotnet_style_object_initializer = false:warning
-dotnet_style_collection_initializer = true:warning
+dotnet_style_collection_initializer = true:suggestion
 dotnet_style_explicit_tuple_names = true:warning
 
 csharp_prefer_simple_default_expression = true:warning
