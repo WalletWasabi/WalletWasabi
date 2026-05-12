@@ -61,7 +61,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentCha
 	{
 		try
 		{
-			var blockHashes = await GetBlockHashesAsync(fromHash, fromHeight, cancellationToken);
+			var blockHashes = await GetBlockHashesAsync(fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -195,7 +195,6 @@ public static class Synchronizer
 
 		return false;
 	}
-
 
 	private static string FormatInconsistencyDetails(FilterHeaderChain hashChain, FilterModel firstFilter)
 	{
