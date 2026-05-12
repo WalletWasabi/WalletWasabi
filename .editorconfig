@@ -327,4 +327,4 @@ dotnet_diagnostic.CA2200.severity = warning
 dotnet_diagnostic.xUnit1030.severity = warning
 
 # RS0030: Do not use banned APIs
-dotnet_diagnostic.RS0030.severity = warning
+dotnet_diagnostic.RS0030.severity = error
