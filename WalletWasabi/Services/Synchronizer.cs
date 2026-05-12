@@ -48,9 +48,10 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentCha
 			return [];
 		}
 
-		var heights = Enumerable.Range((int) fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
+			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
+			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
