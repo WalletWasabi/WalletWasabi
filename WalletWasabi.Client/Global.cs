@@ -165,7 +165,7 @@ public class Global
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
 		_blockHeaderChain = ConfigureBlockHeaderChain(p2PDataDir);
-		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaderChain, FilterHeaderChain, EventBus);
+		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaderChain, FilterHeaderChain, EventBus) { StripHeader = true};
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
@@ -182,7 +182,7 @@ public class Global
 	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
-		var concurrentChain = Result<byte[], Exception>
+		var blockHeaders = Result<byte[], Exception>
 			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
 			.Match(
 				bytes => bytes switch
@@ -199,9 +199,9 @@ public class Global
 					Unit.Instance,
 					(Unit _, Unit _, CancellationToken ct) =>
 					{
-						if (concurrentChain.Tip is not null)
+						if (blockHeaders.Tip is not null)
 						{
-							File.SafelyWriteAllBytes(blockHeadersFilePath, concurrentChain.ToBytes());
+							File.SafelyWriteAllBytes(blockHeadersFilePath, blockHeaders.ToBlockHashesBytes());
 						}
 
 						return Task.FromResult(Unit.Instance);
@@ -209,7 +209,7 @@ public class Global
 		blockHeaderSaver.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
 
-		return concurrentChain;
+		return blockHeaders;
 	}
 
 	private void ConfigureBitcoinNetwork()
@@ -741,6 +741,25 @@ public class Global
 				_stoppingCts.Dispose();
 				Logger.LogTrace("Dispose finished.");
 			}
+		}
+	}
+}
+
+static class NBitcoinExtensions
+{
+	extension(ConcurrentChain blockHeaders)
+	{
+		public byte[] ToBlockHashesBytes()
+		{
+			return blockHeaders.ToBytes(new ConcurrentChain.ChainSerializationFormat
+				{SerializeBlockHeader = false, SerializePrecomputedBlockHash = true});
+		}
+
+		private byte[] ToBytes(ConcurrentChain.ChainSerializationFormat format)
+		{
+			var ms = new MemoryStream();
+			blockHeaders.WriteTo(ms, format);
+			return ms.ToArray();
 		}
 	}
 }
