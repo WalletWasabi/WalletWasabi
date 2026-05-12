@@ -48,9 +48,10 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentCha
 			return [];
 		}
 
-		var heights = Enumerable.Range((int) fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
+			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
+			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
@@ -61,7 +62,7 @@ public class BitcoinRpcFilterProvider(IRPCClient bitcoinRpcClient, ConcurrentCha
 	{
 		try
 		{
-			var blockHashes = await GetBlockHashesAsync(fromHash, fromHeight, cancellationToken);
+			var blockHashes = await GetBlockHashesAsync(fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -195,7 +196,6 @@ public static class Synchronizer
 
 		return false;
 	}
-
 
 	private static string FormatInconsistencyDetails(FilterHeaderChain hashChain, FilterModel firstFilter)
 	{

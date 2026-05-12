@@ -164,7 +164,7 @@ public class Global
 		}
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
-		_blockHeaderChain = LoadBlockHeaders(p2PDataDir);
+		_blockHeaderChain = ConfigureBlockHeaderChain(p2PDataDir);
 		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaderChain, FilterHeaderChain, EventBus);
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
@@ -179,10 +179,10 @@ public class Global
 		return nodesGroup;
 	}
 
-	private ConcurrentChain LoadBlockHeaders(string p2PDataDir)
+	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
-		var blockHeaders = Result<byte[], Exception>
+		var concurrentChain = Result<byte[], Exception>
 			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
 			.Match(
 				bytes => bytes switch
@@ -199,16 +199,17 @@ public class Global
 					Unit.Instance,
 					(Unit _, Unit _, CancellationToken ct) =>
 					{
-						if (blockHeaders.Tip is not null)
+						if (concurrentChain.Tip is not null)
 						{
-							File.SafelyWriteAllBytes(blockHeadersFilePath, blockHeaders.ToBytes());
+							File.SafelyWriteAllBytes(blockHeadersFilePath, concurrentChain.ToBytes());
 						}
 
 						return Task.FromResult(Unit.Instance);
 					})));
 		blockHeaderSaver.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
-		return blockHeaders;
+
+		return concurrentChain;
 	}
 
 	private void ConfigureBitcoinNetwork()
