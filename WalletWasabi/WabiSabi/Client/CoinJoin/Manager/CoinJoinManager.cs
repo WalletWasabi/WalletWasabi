@@ -114,117 +114,6 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, stoppingToken);
 
-		async void StartCoinJoinCommandAsync(StartCoinJoinCommand startCommand)
-		{
-			var walletToStart = startCommand.Wallet;
-
-			if (_state.TrackedCoinJoins.TryGetValue(walletToStart.WalletId, out var tracker))
-			{
-				if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
-				{
-					tracker.StopWhenAllMixed = startCommand.StopWhenAllMixed;
-					Logger.LogDebug(FormatLog($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.", walletToStart));
-				}
-				else
-				{
-					Logger.LogDebug(FormatLog("Cannot start coinjoin, because it is already running.", walletToStart));
-				}
-
-				// On cancelling the shutdown prevention, we need to set it back to false, otherwise we won't continue CJing.
-				tracker.IsStopped = false;
-
-				return;
-			}
-
-			async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
-			{
-				if (_state.WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
-				{
-					throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
-				}
-
-				var coinSelectionResult = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
-				var coinCandidates = coinSelectionResult.CandidateCoins;
-
-				if (IsUnderPlebStop(coinCandidates, walletToStart.PlebStopThreshold) && !startCommand.OverridePlebStop)
-				{
-					Logger.LogTrace(FormatLog("PlebStop preventing coinjoin.", walletToStart));
-
-					if(!IsUnderPlebStop(coinCandidates.Union(coinSelectionResult.UnconfirmedCoins).ToArray(), walletToStart.PlebStopThreshold))
-					{
-						throw new CoinJoinClientException(CoinjoinError.NotEnoughConfirmedUnprivateBalance);
-					}
-
-					throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
-				}
-
-				// If there are pending payments, ignore already achieved privacy.
-				if (!walletToStart.BatchedPayments.AreTherePendingPayments)
-				{
-					// If all coins are already private, then don't mix.
-					if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
-					{
-						Logger.LogTrace(FormatLog("All mixed!", walletToStart));
-						throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
-					}
-
-					// If all coin candidates are private it makes no sense to mix.
-					if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)))
-					{
-						throw new CoinJoinClientException(
-							CoinjoinError.NoCoinsEligibleToMix,
-							$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
-					}
-				}
-
-				NotifyWalletStartedCoinJoin(walletToStart);
-
-				return coinCandidates;
-			}
-
-			var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
-
-			if (!_state.TrackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
-			{
-				// This should never happen.
-				Logger.LogError(FormatLog($"{nameof(CoinJoinTracker)} was already added.", walletToStart));
-				coinJoinTracker.Stop();
-				coinJoinTracker.Dispose();
-				return;
-			}
-
-			coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
-
-			var registrationTimeout = TimeSpan.MaxValue;
-			NotifyCoinJoinStarted(walletToStart, registrationTimeout);
-
-			Logger.LogDebug(FormatLog($"{nameof(CoinJoinClient)} started.", walletToStart));
-			Logger.LogDebug(FormatLog($"{nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.", walletToStart));
-
-			// In case there was another start scheduled just remove it.
-			TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStart);
-		}
-
-		void StopCoinJoinCommand(StopCoinJoinCommand stopCommand)
-		{
-			var walletToStop = stopCommand.Wallet;
-
-			var autoStartRemoved = TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStop);
-
-			if (_state.TrackedCoinJoins.TryGetValue(walletToStop.WalletId, out var coinJoinTrackerToStop))
-			{
-				coinJoinTrackerToStop.Stop();
-				if (coinJoinTrackerToStop.InCriticalCoinJoinState)
-				{
-					Logger.LogWarning(FormatLog("Coinjoin is in critical phase, it cannot be stopped - it won't restart later.", walletToStop));
-				}
-			}
-			else if (autoStartRemoved)
-			{
-				NotifyWalletStoppedCoinJoin(walletToStop);
-			}
-		}
-
 		while (!stoppingToken.IsCancellationRequested)
 		{
 			var command = await _commandChannel.Reader.ReadAsync(stoppingToken).ConfigureAwait(false);
@@ -232,11 +121,11 @@ public class CoinJoinManager : BackgroundService
 			switch (command)
 			{
 				case StartCoinJoinCommand startCommand:
-					StartCoinJoinCommandAsync(startCommand);
+					HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory);
 					break;
 
 				case StopCoinJoinCommand stopCommand:
-					StopCoinJoinCommand(stopCommand);
+					HandleStopCoinJoinCommand(stopCommand);
 					break;
 			}
 		}
@@ -248,6 +137,117 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
+	}
+
+	private async void HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
+	{
+		var walletToStart = startCommand.Wallet;
+
+		if (_state.TrackedCoinJoins.TryGetValue(walletToStart.WalletId, out var tracker))
+		{
+			if (startCommand.StopWhenAllMixed != tracker.StopWhenAllMixed)
+			{
+				tracker.StopWhenAllMixed = startCommand.StopWhenAllMixed;
+				Logger.LogDebug(FormatLog($"Cannot start coinjoin, because it is already running - but updated the value of {nameof(startCommand.StopWhenAllMixed)} to {startCommand.StopWhenAllMixed}.", walletToStart));
+			}
+			else
+			{
+				Logger.LogDebug(FormatLog("Cannot start coinjoin, because it is already running.", walletToStart));
+			}
+
+			// On cancelling the shutdown prevention, we need to set it back to false, otherwise we won't continue CJing.
+			tracker.IsStopped = false;
+
+			return;
+		}
+
+		async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
+		{
+			if (_state.WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
+			{
+				throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
+			}
+
+			var coinSelectionResult = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
+			var coinCandidates = coinSelectionResult.CandidateCoins;
+
+			if (IsUnderPlebStop(coinCandidates, walletToStart.PlebStopThreshold) && !startCommand.OverridePlebStop)
+			{
+				Logger.LogTrace(FormatLog("PlebStop preventing coinjoin.", walletToStart));
+
+				if (!IsUnderPlebStop(coinCandidates.Union(coinSelectionResult.UnconfirmedCoins).ToArray(), walletToStart.PlebStopThreshold))
+				{
+					throw new CoinJoinClientException(CoinjoinError.NotEnoughConfirmedUnprivateBalance);
+				}
+
+				throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
+			}
+
+			// If there are pending payments, ignore already achieved privacy.
+			if (!walletToStart.BatchedPayments.AreTherePendingPayments)
+			{
+				// If all coins are already private, then don't mix.
+				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
+				{
+					Logger.LogTrace(FormatLog("All mixed!", walletToStart));
+					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
+				}
+
+				// If all coin candidates are private it makes no sense to mix.
+				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)))
+				{
+					throw new CoinJoinClientException(
+						CoinjoinError.NoCoinsEligibleToMix,
+						$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
+				}
+			}
+
+			NotifyWalletStartedCoinJoin(walletToStart);
+
+			return coinCandidates;
+		}
+
+		var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+
+		if (!_state.TrackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
+		{
+			// This should never happen.
+			Logger.LogError(FormatLog($"{nameof(CoinJoinTracker)} was already added.", walletToStart));
+			coinJoinTracker.Stop();
+			coinJoinTracker.Dispose();
+			return;
+		}
+
+		coinJoinTracker.WalletCoinJoinProgressChanged += CoinJoinTracker_WalletCoinJoinProgressChanged;
+
+		var registrationTimeout = TimeSpan.MaxValue;
+		NotifyCoinJoinStarted(walletToStart, registrationTimeout);
+
+		Logger.LogDebug(FormatLog($"{nameof(CoinJoinClient)} started.", walletToStart));
+		Logger.LogDebug(FormatLog($"{nameof(startCommand.StopWhenAllMixed)}:'{startCommand.StopWhenAllMixed}' {nameof(startCommand.OverridePlebStop)}:'{startCommand.OverridePlebStop}'.", walletToStart));
+
+		// In case there was another start scheduled just remove it.
+		TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStart);
+	}
+
+	private void HandleStopCoinJoinCommand(StopCoinJoinCommand stopCommand)
+	{
+		var walletToStop = stopCommand.Wallet;
+
+		var autoStartRemoved = TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStop);
+
+		if (_state.TrackedCoinJoins.TryGetValue(walletToStop.WalletId, out var coinJoinTrackerToStop))
+		{
+			coinJoinTrackerToStop.Stop();
+			if (coinJoinTrackerToStop.InCriticalCoinJoinState)
+			{
+				Logger.LogWarning(FormatLog("Coinjoin is in critical phase, it cannot be stopped - it won't restart later.", walletToStop));
+			}
+		}
+		else if (autoStartRemoved)
+		{
+			NotifyWalletStoppedCoinJoin(walletToStop);
+		}
 	}
 
 	private record CoinSelectionResult(SmartCoin[] CandidateCoins, SmartCoin[] BannedCoins, SmartCoin[] ImmatureCoins, SmartCoin[] UnconfirmedCoins, SmartCoin[] ExcludedCoins)
