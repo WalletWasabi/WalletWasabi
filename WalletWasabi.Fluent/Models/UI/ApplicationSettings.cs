@@ -43,7 +43,7 @@ public partial class ApplicationSettings : ReactiveObject
 	[AutoNotify] private string _dustThreshold;
 	[AutoNotify] private string _exchangeRateProvider;
 	[AutoNotify] private string _feeRateEstimationProvider;
-	[AutoNotify] private string _externalTransactionBroadcaster;
+	[AutoNotify] private string[] _externalTransactionBroadcasters;
 
 	// Coordinator
 	[AutoNotify] private string _coordinatorUri;
@@ -88,7 +88,7 @@ public partial class ApplicationSettings : ReactiveObject
 		_useTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		_exchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		_feeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
-		_externalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+		_externalTransactionBroadcasters = persistentConfig.ExternalTransactionBroadcasters.ToArray();
 
 		// Bitcoin
 		_network = persistentConfig.Network;
@@ -132,7 +132,7 @@ public partial class ApplicationSettings : ReactiveObject
 		UseTor = Config.ObjectToTorMode(persistentConfig.UseTor);
 		ExchangeRateProvider = persistentConfig.ExchangeRateProvider;
 		FeeRateEstimationProvider = persistentConfig.FeeRateEstimationProvider;
-		ExternalTransactionBroadcaster = persistentConfig.ExternalTransactionBroadcaster;
+		ExternalTransactionBroadcasters = persistentConfig.ExternalTransactionBroadcasters.ToArray();
 
 		// Bitcoin
 		Network = persistentConfig.Network;
@@ -191,7 +191,7 @@ public partial class ApplicationSettings : ReactiveObject
 					x => x.CoordinatorUri,
 					x => x.ExchangeRateProvider,
 					x => x.FeeRateEstimationProvider,
-					x => x.ExternalTransactionBroadcaster,
+					x => x.ExternalTransactionBroadcasters,
 					(_, _, _, _, _, _) => Unit.Default)
 				.Skip(1);
 
@@ -321,7 +321,7 @@ public partial class ApplicationSettings : ReactiveObject
 				Constants.DefaultAbsoluteMinInputCount,
 			ExchangeRateProvider = ExchangeRateProvider,
 			FeeRateEstimationProvider = FeeRateEstimationProvider,
-			ExternalTransactionBroadcaster = ExternalTransactionBroadcaster
+			ExternalTransactionBroadcasters = new ValueList<string>(ExternalTransactionBroadcasters),
 		};
 
 		// General

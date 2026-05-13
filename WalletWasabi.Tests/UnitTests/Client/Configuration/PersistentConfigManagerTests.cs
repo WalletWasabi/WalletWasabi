@@ -67,7 +67,10 @@ public class PersistentConfigManagerTests
 			  "CoordinatorIdentifier": "CoinJoinCoordinatorIdentifier",
 			  "ExchangeRateProvider": "MempoolSpace",
 			  "FeeRateEstimationProvider": "MempoolSpace",
-			  "ExternalTransactionBroadcaster": "MempoolSpace",
+			  "ExternalTransactionBroadcasters": [
+			    "MempoolSpace",
+			    "BlockstreamInfo"
+			  ],
 			  "MaxCoinJoinMiningFeeRate": 50.0,
 			  "AbsoluteMinInputCount": 21,
 			  "MaxDaysInMempool": 30,
@@ -268,7 +271,7 @@ public class PersistentConfigManagerTests
 		Assert.Equal("CustomCoordinator", migratedConfig.CoordinatorIdentifier);
 		Assert.Equal("Binance", migratedConfig.ExchangeRateProvider);
 		Assert.Equal("Custom", migratedConfig.FeeRateEstimationProvider);
-		Assert.Equal("Custom", migratedConfig.ExternalTransactionBroadcaster);
+		Assert.Equal(["Custom"], migratedConfig.ExternalTransactionBroadcasters);
 		Assert.Equal(100.5m, migratedConfig.MaxCoinJoinMiningFeeRate);
 		Assert.Equal(50, migratedConfig.AbsoluteMinInputCount);
 		Assert.Equal(60, migratedConfig.MaxDaysInMempool);

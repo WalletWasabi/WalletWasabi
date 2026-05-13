@@ -21,6 +21,7 @@ using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 using System.Net.Mime;
+using System.Collections.Generic;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -96,22 +97,39 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		new("MempoolSpace", ("https://mempool.space/signet", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet"), "/api/tx")
 	];
 
-	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
+	/// <summary>Gets the sorted list of external transaction broadcasters with the preferred provider first.</summary>
+	public static ExternalBroadcasterInfo[] GetExternalBroadcasters(string[] selectedProviders, Network network)
 	{
-		if (network == Network.Main)
+		var providers = network switch
 		{
-			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase))
-				?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
-		}
-		else if (network == Bitcoin.Instance.Signet)
+			var n when n == Network.Main => Providers,
+			var n when n == Network.TestNet => TestNet4Providers,
+			var n when n == Bitcoin.Instance.Signet => SignetProviders,
+			_ => throw new NotSupportedException($"Network '{network}' is not supported."),
+		};
+
+		var result = new List<ExternalBroadcasterInfo>();
+
+		foreach	(var selectedProvider in selectedProviders)
 		{
-			Broadcaster = SignetProviders.First();
-		}
-		else
-		{
-			Broadcaster = TestNet4Providers.First();
+			var broadcasterInfo = Providers.FirstOrDefault(x => x.Name.Equals(selectedProvider, StringComparison.InvariantCultureIgnoreCase));
+
+			if (broadcasterInfo is not null)
+			{
+				result.Add(broadcasterInfo);
+			}
+			else 
+			{
+				Logger.LogWarning($"Provider '{selectedProvider}' does not exist.");
+			}
 		}
 
+		return result.ToArray();
+	}
+
+	public ExternalTransactionBroadcaster(ExternalBroadcasterInfo broadcaster, IHttpClientFactory httpClientFactory)
+	{
+		Broadcaster = broadcaster;
 		HttpClientFactory = httpClientFactory;
 		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}

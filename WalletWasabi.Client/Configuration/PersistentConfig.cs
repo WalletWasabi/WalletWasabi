@@ -29,7 +29,7 @@ public record PersistentConfig(
 	string CoordinatorIdentifier,
 	string ExchangeRateProvider,
 	string FeeRateEstimationProvider,
-	string ExternalTransactionBroadcaster,
+	ValueList<string> ExternalTransactionBroadcasters,
 	decimal MaxCoinJoinMiningFeeRate,
 	int AbsoluteMinInputCount,
 	int MaxDaysInMempool,

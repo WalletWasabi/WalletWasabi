@@ -625,12 +625,21 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService) =>
-		[
+	private List<IBroadcaster> CreateBroadcasters(NodesGroup nodesGroup, MempoolService mempoolService)
+	{
+		var result = new List<IBroadcaster>()
+		{
 			new RpcBroadcaster(_bitcoinRpcClient),
 			new NetworkBroadcaster(mempoolService, nodesGroup),
-			new ExternalTransactionBroadcaster(Config.ExternalTransactionBroadcaster, Network, ExternalSourcesHttpClientFactory),
-		];
+		};
+
+		foreach (var info in ExternalTransactionBroadcaster.GetExternalBroadcasters(Config.ExternalTransactionBroadcasters, Network))
+		{
+			result.Add(new ExternalTransactionBroadcaster(info, ExternalSourcesHttpClientFactory));
+		}
+
+		return result;
+	}
 
 	public async Task DisposeAsync()
 	{

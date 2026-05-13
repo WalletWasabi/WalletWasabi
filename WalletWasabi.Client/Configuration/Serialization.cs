@@ -35,7 +35,7 @@ public static class PersistentConfigEncode
 			("CoordinatorIdentifier", String(cfg.CoordinatorIdentifier)),
 			("ExchangeRateProvider", String(cfg.ExchangeRateProvider)),
 			("FeeRateEstimationProvider", String(cfg.FeeRateEstimationProvider)),
-			("ExternalTransactionBroadcaster", String(cfg.ExternalTransactionBroadcaster)),
+			("ExternalTransactionBroadcasters", Array(cfg.ExternalTransactionBroadcasters.Select(String))),
 			("MaxCoinJoinMiningFeeRate", Decimal(cfg.MaxCoinJoinMiningFeeRate)),
 			("AbsoluteMinInputCount", Int(cfg.AbsoluteMinInputCount)),
 			("MaxDaysInMempool", Int(cfg.MaxDaysInMempool)),
@@ -82,15 +82,15 @@ public static class PersistentConfigDecode
 					EnableGpu: get.Required("EnableGpu", Decode.Bool),
 					ExchangeRateProvider: get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
 					FeeRateEstimationProvider: get.Optional("FeeRateEstimationProvider", Decode.String) ??
-					                           "BlockstreamInfo",
-					ExternalTransactionBroadcaster: get.Optional("ExternalTransactionBroadcaster", Decode.String) ??
-					                                "MempoolSpace",
+						"BlockstreamInfo",
+					ExternalTransactionBroadcasters: get.Optional("ExternalTransactionBroadcasters", ValueList(Decode.String)) ??
+						(get.Optional("ExternalTransactionBroadcaster", Decode.String) is { } singleProvider ? new ValueList<string>([singleProvider]) : null) ??
+						new ValueList<string>(Constants.DefaultExternalTransactionBroadcasters),
 					CoordinatorIdentifier: get.Required("CoordinatorIdentifier", Decode.String),
 					MaxCoinJoinMiningFeeRate: get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
 					AbsoluteMinInputCount: get.Required("AbsoluteMinInputCount", Decode.Int),
 					MaxDaysInMempool: get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
-					ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ??
-					                      Helpers.ValueList<string>.Empty,
+					ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ?? [],
 					ConfigVersion: get.Required("ConfigVersion", Decode.Int)
 				);
 			}

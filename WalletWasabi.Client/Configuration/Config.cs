@@ -57,7 +57,7 @@ public class Config
 			[ nameof(AbsoluteMinInputCount)] = GetLongValue("AbsoluteMinInputCount", PersistentConfig.AbsoluteMinInputCount, cliArgs),
 			[ nameof(ExchangeRateProvider)] = GetStringValue("ExchangeRateProvider", PersistentConfig.ExchangeRateProvider, cliArgs),
 			[ nameof(FeeRateEstimationProvider) ] = GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs),
-			[ nameof(ExternalTransactionBroadcaster) ] = GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs),
+			[ nameof(ExternalTransactionBroadcasters) ] = GetStringArrayValue("ExternalTransactionBroadcasters", PersistentConfig.ExternalTransactionBroadcasters.ToArray(), cliArgs),
 			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs),
 			[ nameof(ExperimentalFeatures) ] = GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs)
 		};
@@ -110,7 +110,7 @@ public class Config
 			[ nameof(AbsoluteMinInputCount)] = "Minimum number of inputs the client is willing to accept to participate into a round",
 			[ nameof(ExchangeRateProvider)] = "The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockstreamInfo, CoinGecko or None",
 			[ nameof(FeeRateEstimationProvider) ] = "The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo, BlockXyz or None",
-			[ nameof(ExternalTransactionBroadcaster) ] = "Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
+			[ nameof(ExternalTransactionBroadcasters) ] = "Third party transaction broadcasters. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
 			[ nameof(DropUnconfirmedTransactionsAfterDays) ] = "The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
 			[ nameof(ExperimentalFeatures) ] = "Colon-separated list of experimental features to enable. (features available: scripting)",
 		};
@@ -140,7 +140,7 @@ public class Config
 	public LogMode[] LogModes => GetEffectiveValue<LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<string>(nameof(ExchangeRateProvider));
 	public string FeeRateEstimationProvider => GetEffectiveValue<string>(nameof(FeeRateEstimationProvider));
-	public string ExternalTransactionBroadcaster => GetEffectiveValue<string>(nameof(ExternalTransactionBroadcaster));
+	public string[] ExternalTransactionBroadcasters => GetEffectiveValue<string[]>(nameof(ExternalTransactionBroadcasters));
 	public int DropUnconfirmedTransactionsAfterDays => GetEffectiveValue<int>(nameof(DropUnconfirmedTransactionsAfterDays));
 
 	public bool EnableGpu => GetEffectiveValue<bool>(nameof(EnableGpu));

@@ -28,7 +28,7 @@ public static class PersistentConfigManager
 		CoordinatorIdentifier : "CoinJoinCoordinatorIdentifier",
 		ExchangeRateProvider : Constants.DefaultExchangeRateProvider,
 		FeeRateEstimationProvider : Constants.DefaultFeeRateEstimationProvider,
-		ExternalTransactionBroadcaster : Constants.DefaultExternalTransactionBroadcaster,
+		ExternalTransactionBroadcasters : new ValueList<string>(Constants.DefaultExternalTransactionBroadcasters),
 		MaxCoinJoinMiningFeeRate : Constants.DefaultMaxCoinJoinMiningFeeRate,
 		AbsoluteMinInputCount : Constants.DefaultAbsoluteMinInputCount,
 		MaxDaysInMempool : Constants.DefaultMaxDaysInMempool,
