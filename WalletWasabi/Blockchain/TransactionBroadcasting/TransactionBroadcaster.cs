@@ -107,19 +107,15 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 			_ => throw new NotSupportedException($"Network '{network}' is not supported."),
 		};
 
-		// The main provider will be the first one in the list, so it will be tried first.
-		var sortedProviders = providers
-			.OrderBy(p => p.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
-			.ToArray();
-
-		// If the main provider is not present, the user wants to use a provider that is not supported.
-		if (sortedProviders.FirstOrDefault() is not ExternalBroadcasterInfo firstProvider
-			|| !firstProvider.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase))
+		if (!providers.Any(x => x.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase)))
 		{
 			throw new NotSupportedException($"Transaction broadcaster '{mainProviderName}' is not supported");
 		}
 
-		return sortedProviders;
+		// The main provider will be the first one in the list, so it will be tried first.
+		return providers
+			.OrderBy(p => p.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+			.ToArray();
 	}
 
 	public ExternalTransactionBroadcaster(ExternalBroadcasterInfo broadcaster, IHttpClientFactory httpClientFactory)

@@ -633,10 +633,9 @@ public class Global
 			new NetworkBroadcaster(mempoolService, nodesGroup),
 		};
 
-		foreach (var info in ExternalTransactionBroadcaster.GetSortedBroadcasters(Config.ExternalTransactionBroadcaster, Network))
-		{
-			result.Add(new ExternalTransactionBroadcaster(info, ExternalSourcesHttpClientFactory));
-		}
+		var external = ExternalTransactionBroadcaster.GetSortedBroadcasters(Config.ExternalTransactionBroadcaster, Network)
+			.Select(info => new ExternalTransactionBroadcaster(info, ExternalSourcesHttpClientFactory));
+		result.AddRange(external);
 
 		return result;
 	}
