@@ -11,7 +11,6 @@ using Avalonia.Interactivity;
 using Avalonia.Layout;
 using Avalonia.VisualTree;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Userfacing;
 
@@ -238,6 +237,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 
 	public ICommand FocusCommand { get; }
 
+	/// <param name="text">Text is a valid decimal value with correct decimal separator. However, it can contain spaces.</param>
 	private void InputText(string? text)
 	{
 		if (!_isTextInputFocused)
@@ -251,7 +251,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			if (decimal.TryParse(text.Replace(" ", ""), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(decimalValue);
 			}
@@ -273,7 +273,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (decimal.TryParse(text, NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			if (decimal.TryParse(text.Replace(" ", ""), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(FiatToBitcoin(decimalValue));
 			}
@@ -463,7 +463,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 	}
 
 	// this is ugly, but I couldn't find another way to make tab key and automatic focus to work properly
-	// setting Grid.Column via pseudoclass based style doesn't work, not even using AffectsMeasure()... Avalonia bug?
+	// setting Grid.Column via pseudo-class based style doesn't work, not even using AffectsMeasure()... Avalonia bug?
 	private void ReorganizeVisuals()
 	{
 		if (LeftEntryBox is { } && RightEntryBox is { })
