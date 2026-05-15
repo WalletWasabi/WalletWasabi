@@ -129,4 +129,4 @@ public record WalletLoaded(Wallet Wallet);
 public record NewTransactionInMempool(SmartTransaction Transaction);
 public record ChainReorganized(FilterModel Filter);
 public record FiltersReceived(FilterModel[] Filters);
-public record WalletRelevantTransactionProcessed(ProcessedResult Result);
+public record WalletRelevantTransactionProcessed(string WalletName, ProcessedResult Result);

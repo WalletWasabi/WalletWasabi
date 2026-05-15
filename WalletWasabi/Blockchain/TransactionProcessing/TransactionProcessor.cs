@@ -57,7 +57,7 @@ public class TransactionProcessor
 
 		foreach (var result in results.Where(x => x.IsNews))
 		{
-			_eventBus.Publish(new WalletRelevantTransactionProcessed(result));
+			_eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
 		}
 
 		return results;
@@ -79,17 +79,19 @@ public class TransactionProcessor
 
 	public ProcessedResult Process(SmartTransaction tx)
 	{
-		ProcessedResult ret;
+		ProcessedResult result;
 		lock (Lock)
 		{
 			_aware.Add(tx.GetHash());
-			ret = ProcessNoLock(tx);
+			result = ProcessNoLock(tx);
 		}
-		if (ret.IsNews)
+
+		if (result.IsNews)
 		{
-			_eventBus.Publish(new WalletRelevantTransactionProcessed(ret));
+			_eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
 		}
-		return ret;
+
+		return result;
 	}
 
 	private ProcessedResult ProcessNoLock(SmartTransaction tx)

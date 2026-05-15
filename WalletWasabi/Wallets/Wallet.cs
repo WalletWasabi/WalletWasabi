@@ -69,7 +69,13 @@ public class Wallet : BackgroundService
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
 			.DisposeUsing(_disposables);
-		_eventBus.Subscribe<WalletRelevantTransactionProcessed>(e => WalletRelevantTransactionProcessed(e.Result))
+		_eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
+		{
+			if (e.WalletName == WalletName)
+			{
+				WalletRelevantTransactionProcessed(e.Result);
+			}
+		})
 			.DisposeUsing(_disposables);
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
