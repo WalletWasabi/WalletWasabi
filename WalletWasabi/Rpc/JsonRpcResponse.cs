@@ -64,5 +64,7 @@ public record JsonRpcErrorResponse : JsonRpcResponse
 	[JsonProperty("error", Order = 1)]
 	public ErrorObject Error { get; }
 
+#pragma warning disable IDE1006 // Naming Styles -- The property names are defined by the JSON-RPC 2.0 specification.
 	public record ErrorObject(JsonRpcErrorCodes code, string message);
+#pragma warning restore IDE1006 // Naming Styles
 }
