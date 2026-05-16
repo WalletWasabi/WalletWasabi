@@ -199,12 +199,6 @@ public class WalletManager
 		}
 	}
 
-	public Task<Wallet> AddAndStartWalletAsync(KeyManager keyManager)
-	{
-		var wallet = AddWallet(keyManager);
-		return StartWalletAsync(wallet);
-	}
-
 	public Wallet AddWallet(KeyManager keyManager)
 	{
 		Wallet wallet =  _createWallet(keyManager);
