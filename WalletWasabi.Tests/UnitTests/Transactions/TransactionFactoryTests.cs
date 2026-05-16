@@ -239,7 +239,7 @@ public class TransactionFactoryTests
 		}
 
 		var coinsView = new CoinsView(sCoins.ToArray());
-		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
 		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, password);
 
 		// Two 0.9btc coins are enough
@@ -877,7 +877,7 @@ public class TransactionFactoryTests
 		var coinsView = new CoinsView([
 			new SmartCoin(creditingTx, 0, pubkey)
 		]);
-		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
 		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, "password");
 
 		// Create a silent payment address to receive a 0.9 payment
@@ -927,7 +927,7 @@ public class TransactionFactoryTests
 		var coinsView = new CoinsView([
 			new SmartCoin(creditingTx, 0, pubkey)
 		]);
-		await using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
+		using var mockTransactionStore = new AllTransactionStore(".", Network.Main);
 		var transactionFactory = new TransactionFactory(Network.Main, keyManager, coinsView, mockTransactionStore, "password");
 
 		// Create a silent payment address to receive a 0.9 payment

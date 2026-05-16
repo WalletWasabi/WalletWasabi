@@ -39,10 +39,10 @@ public class P2pBasedTests
 			await rpc.CreateWalletAsync(walletName);
 
 			FilterHeaderChain filterHeaderChain = new();
-			await using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
+			using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			await using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
+			using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
 			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 			MempoolService mempoolService = coreNode.MempoolService;

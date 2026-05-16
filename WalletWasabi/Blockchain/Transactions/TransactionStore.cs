@@ -13,7 +13,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class TransactionStore : IAsyncDisposable
+public class TransactionStore : IDisposable
 {
 	public TransactionStore(string workFolderPath, Network network)
 	{
@@ -226,10 +226,8 @@ public class TransactionStore : IAsyncDisposable
 		}
 	}
 
-	public ValueTask DisposeAsync()
+	public void Dispose()
 	{
 		_sqliteStorage.Dispose();
-
-		return ValueTask.CompletedTask;
 	}
 }
