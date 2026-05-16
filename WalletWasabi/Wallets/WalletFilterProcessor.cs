@@ -110,7 +110,7 @@ public class WalletFilterProcessor : BackgroundService
 		var toTestKeys = _keyManager.UnsafeGetSynchronizationInfos();
 
 		var matchFound = false;
-		if (toTestKeys.Any())
+		if (toTestKeys.Length != 0)
 		{
 			matchFound = filter.Filter.MatchAny(toTestKeys, filter.FilterKey);
 
