@@ -251,7 +251,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (decimal.TryParse(text.Replace(" ", ""), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			if (decimal.TryParse(RemoveFormat(text), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(decimalValue);
 			}
@@ -273,7 +273,7 @@ public class DualCurrencyEntryBox : TemplatedControl
 		}
 		else
 		{
-			if (decimal.TryParse(text.Replace(" ", ""), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
+			if (decimal.TryParse(RemoveFormat(text), NumberStyles.Number, CurrencyInput.InvariantNumberFormat, out var decimalValue))
 			{
 				SetBtcAmount(FiatToBitcoin(decimalValue));
 			}
