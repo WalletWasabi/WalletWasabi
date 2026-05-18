@@ -23,6 +23,7 @@ public class FilterHeaderChainTests
 		AssertEverythingDefault(chain);
 
 		SmartHeader header = CreateGenesisHeader();
+		// The header is known and it's silently ignored.
 		chain.AppendTip(header);
 
 		chain.AppendTip(header);

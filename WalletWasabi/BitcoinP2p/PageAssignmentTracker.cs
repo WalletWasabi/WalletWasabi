@@ -78,7 +78,7 @@ public class PageAssignmentTracker<TPage>(uint initialHeight = 0, TimeProvider? 
 	/// <summary>
 	/// Checks if there are any pending pages.
 	/// </summary>
-	public bool HasPendingPages => _pendingPages.Any();
+	public bool HasPendingPages => _pendingPages.Count > 0;
 
 	/// <summary>
 	/// Updates the last processed/emitted height.

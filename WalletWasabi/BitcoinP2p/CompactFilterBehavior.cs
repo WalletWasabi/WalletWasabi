@@ -704,7 +704,7 @@ public class FilterSynchronizationState
 				$"State after filter page completion - active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount}, next expected: {_filterTracker.LastHeight + 1}");
 
 			// Try to make the next page ready for consumption
-			TryMakeNextFilterPageReady();
+			TryMakeNextFilterPageReadyNoLock();
 		}
 	}
 
@@ -741,11 +741,11 @@ public class FilterSynchronizationState
 			Logger.LogDebug($"Filter page consumed, now at height {_filterTracker.LastHeight}");
 
 			// Try to make the next page ready
-			TryMakeNextFilterPageReady();
+			TryMakeNextFilterPageReadyNoLock();
 		}
 	}
 
-	private void TryMakeNextFilterPageReady()
+	private void TryMakeNextFilterPageReadyNoLock()
 	{
 		// Don't make a new page ready if one is already waiting
 		if (_readyFilterPage is not null)
