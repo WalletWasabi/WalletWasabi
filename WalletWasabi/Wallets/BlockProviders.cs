@@ -23,7 +23,7 @@ public static class BlockProviders
 			}
 			catch (Exception ex)
 			{
-				Logger.LogDebug(ex);
+				Logger.LogDebug($"RPC block provider failed to retrieve block {blockHash}: {ex}");
 				return null;
 			}
 		};
