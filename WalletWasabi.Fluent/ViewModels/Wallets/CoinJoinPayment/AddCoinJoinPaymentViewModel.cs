@@ -15,9 +15,7 @@ using Constants = WalletWasabi.Helpers.Constants;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 
-[NavigationMetaData(
-	Title = "Add Coinjoin Payment",
-	NavigationTarget = NavigationTarget.DialogScreen)]
+[NavigationMetaData(Title = "Add Coinjoin Payment", NavigationTarget = NavigationTarget.DialogScreen)]
 public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
@@ -56,11 +54,16 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
+		QrCommand = ReactiveCommand.Create(ShowQrCameraAsync);
 	}
+
+	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
 
 	public ICommand PasteCommand { get; }
 
 	public ICommand AutoPasteCommand { get; }
+
+	public ICommand QrCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -74,6 +77,15 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		}
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
+	}
+
+	private async Task ShowQrCameraAsync()
+	{
+		var result = await Navigate().To().ShowQrCameraDialog(_walletModel.Network).GetResultAsync();
+		if (!string.IsNullOrWhiteSpace(result))
+		{
+			To = result;
+		}
 	}
 
 	private async Task OnAutoPasteAsync()

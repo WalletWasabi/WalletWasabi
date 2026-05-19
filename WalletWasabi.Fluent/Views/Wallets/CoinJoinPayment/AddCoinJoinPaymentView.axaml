@@ -78,6 +78,13 @@
                   <PasteButtonFlashBehavior FlashAnimation="flash" CurrentAddress="{Binding To}" />
                 </Interaction.Behaviors>
               </AnimatedButton>
+              <!-- Scan QR code button. -->
+              <AnimatedButton IsVisible="{Binding IsQrButtonVisible}"
+                              KeyboardNavigation.IsTabStop="False"
+                              Focusable="False"
+                              Command="{Binding QrCommand}"
+                              ToolTip.Tip="Scan QR Code"
+                              NormalIcon="{StaticResource qr_code_regular}" />
             </StackPanel>
           </TextBox.InnerRightContent>
         </TextBox>
