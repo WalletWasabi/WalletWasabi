@@ -9,7 +9,7 @@ public class StatusContainer : IDisposable
 	public bool IsTorRunning { get; private set; }
 	public decimal UsdExchangeRate { get; private set; }
 	public FeeRateEstimations? FeeRates { get; private set; }
-	public uint BestHeight { get; private set; }
+	public uint BestNetworkHeight { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
 
@@ -32,7 +32,7 @@ public class StatusContainer : IDisposable
 			eventBus.Subscribe<ExchangeRateChanged>(e => UsdExchangeRate = e.UsdBtcRate);
 
 		_bestHeightSubscription =
-			eventBus.Subscribe<ServerTipHeightChanged>(e => BestHeight = e.Height);
+			eventBus.Subscribe<NetworkTipHeightChanged>(e => BestNetworkHeight = e.Height);
 
 		_installerAvailableSubscription =
 			eventBus.Subscribe<NewSoftwareVersionInstallerAvailable>(e => InstallerFilePath = e.InstallerPath);

@@ -146,7 +146,7 @@ public static class Synchronizer
 				// Already synchronized. Nothing to do.
 				var tip = filterHeaderChain.TipHeight;
 				filterHeaderChain.SetServerTipHeight(tip);
-				eventBus.Publish(new ServerTipHeightChanged(tip));
+				eventBus.Publish(new NetworkTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
@@ -159,7 +159,7 @@ public static class Synchronizer
 				var localTipHeight = filterHeaderChain.TipHeight;
 
 				filterHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
-				eventBus.Publish(new ServerTipHeightChanged(newFiltersAvailable.BestHeight));
+				eventBus.Publish(new NetworkTipHeightChanged(newFiltersAvailable.BestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;
 				var newFilters = downloadedFilters.Where(x => localTipHeight < x.Header.Height).ToArray();

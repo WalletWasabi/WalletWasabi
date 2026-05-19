@@ -29,7 +29,7 @@ public partial class WalletLoadWorkflow
 		_progress = new();
 		_progress.OnNext((0, 0, 0, 0));
 
-		services.EventBus.AsObservable<ServerTipHeightChanged>()
+		services.EventBus.AsObservable<NetworkTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(e => true)
 			.Take(1)
@@ -102,7 +102,7 @@ public partial class WalletLoadWorkflow
 		if (isBackendAvailable)
 		{
 			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
-			await _services.EventBus.WaitForEventAsync<ServerTipHeightChanged>(
+			await _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
 				() => _services.GetServerTipHeight() > 0);
 		}
 

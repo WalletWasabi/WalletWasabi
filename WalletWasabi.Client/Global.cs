@@ -83,6 +83,10 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
+
+		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
+		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
+
 		NodesGroup = ConfigureNodesGroup(mempoolService);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
@@ -113,7 +117,7 @@ public class Global
 	private TorManager? _torManager;
 	private IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
-	private ConcurrentChain? _blockHeaderChain;
+	private readonly ConcurrentChain _blockHeaders;
 	private readonly Timer _ticker;
 	private readonly ComposedDisposable _disposables = new();
 
@@ -167,8 +171,7 @@ public class Global
 		}
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
-		_blockHeaderChain = ConfigureBlockHeaderChain(p2PDataDir);
-		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaderChain, FilterHeaderChain, EventBus) { StripHeader = true};
+		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaders, FilterHeaderChain, EventBus);
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
@@ -177,7 +180,7 @@ public class Global
 				Network,
 				Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null,
 				p2PDataDir,
-				Config.BlockOnlyMode ? [chainBehavior] : [chainBehavior, p2PBehavior]);
+				Config.BlockOnlyMode ? [] : [chainBehavior, p2PBehavior]);
 
 		return nodesGroup;
 	}
@@ -194,23 +197,6 @@ public class Global
 					_ => new ConcurrentChain(bytes, Network)
 				},
 				_ => new ConcurrentChain(Network));
-
-		var blockHeaderSaver = Spawn("Block Headers persistence",
-			Service("Bitcoin Block Headers persistence",
-				Periodically(
-					TimeSpan.FromSeconds(30),
-					Unit.Instance,
-					(Unit _, Unit _, CancellationToken ct) =>
-					{
-						if (blockHeaders.Tip is not null)
-						{
-							File.SafelyWriteAllBytes(blockHeadersFilePath, blockHeaders.ToBlockHashesBytes());
-						}
-
-						return Task.FromResult(Unit.Instance);
-					})));
-		blockHeaderSaver.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => blockHeaderSaver.Post(Unit.Instance));
 
 		return blockHeaders;
 	}
@@ -333,7 +319,7 @@ public class Global
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
 	{
 		var supportsBlockFiltersResult = await _bitcoinRpcClient.SupportsBlockFiltersAsync(cancellationToken).ConfigureAwait(false);
-		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaderChain));
+		var filtersProviderResult = supportsBlockFiltersResult.Map(_ => new BitcoinRpcFilterProvider(_bitcoinRpcClient, _blockHeaders));
 
 		if (filtersProviderResult is {IsOk: false, Error: var isIndexDisabled})
 		{
@@ -373,7 +359,18 @@ public class Global
 				x => x.Synchronized ? resume : pause,
 				_ => pause);
 			action();
-		});
+		}).DisposeUsing(_disposables);
+
+
+		EventBus.Subscribe<RpcStatusChanged>(e =>
+		{
+			if (e.Status.IsOk)
+			{
+				var serverTip = (uint)e.Status.Value.Headers;
+				FilterHeaderChain.SetServerTipHeight(new ChainHeight(serverTip));
+				EventBus.Publish(new NetworkTipHeightChanged(serverTip));
+			}
+		}).DisposeUsing(_disposables);
 	}
 
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
@@ -663,6 +660,14 @@ public class Global
 				catch (Exception ex)
 				{
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
+				}
+
+				if (_blockHeaders.Tip is not null)
+				{
+					var p2PDataDir = GetBitcoinP2pNetworkDirectory();
+					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+					File.SafelyWriteAllBytes(blockHeadersFilePath, _blockHeaders.ToBytes());
+					Logger.LogInfo($"{nameof(_blockHeaders)} saved.");
 				}
 
 				Status.Dispose();
