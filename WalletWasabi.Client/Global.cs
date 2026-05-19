@@ -143,8 +143,11 @@ public class Global
 		var p2PNodesManager = new P2PNodesManager(Network, nodesGroup);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager);
-		BlockProvider[] blockProviders =
-			[fileSystemBlockProvider, BlockProviders.RpcBlockProvider(_bitcoinRpcClient), p2PBlockProvider];
+
+		// Bitcoin RPC of the Wasabi server does not provide blocks.
+		BlockProvider[] blockProviders = Config.BitcoinRpcUri.StartsWith(Constants.DefaultMainNetBitcoinRpcUri, StringComparison.OrdinalIgnoreCase)
+			? [fileSystemBlockProvider, p2PBlockProvider]
+			: [fileSystemBlockProvider, BlockProviders.RpcBlockProvider(_bitcoinRpcClient), p2PBlockProvider];
 
 		return BlockProviders.CachedBlockProvider(
 			BlockProviders.ComposedBlockProvider(blockProviders),
