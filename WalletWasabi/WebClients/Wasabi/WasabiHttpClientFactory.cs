@@ -61,7 +61,7 @@ public class HttpClientFactory : IHttpClientFactory
 
 	protected virtual HttpClientHandler CreateHttpClientHandler(string name)
 	{
-		Logger.LogDebug($"Create handler {name}");
+		Logger.LogDebug($"Create HTTP handler {name}");
 		SetExpirationDate(name);
 		var handler = new RetryHttpClientHandler(name,
 			handlerName =>
