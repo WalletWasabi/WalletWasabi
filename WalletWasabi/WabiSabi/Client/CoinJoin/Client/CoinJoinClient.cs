@@ -846,7 +846,7 @@ public class CoinJoinClient
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
-		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} Alices have signed the coinjoin tx.", roundState));
+		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} your Alices have signed the coinjoin transaction.", roundState));
 
 		return (unsignedCoinJoin.Transaction, alicesToSign);
 	}
