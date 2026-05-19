@@ -37,7 +37,7 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinRpcFilterProvider(IRPCClient bitcoinClient, ConcurrentChain blockHeaderChain) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, blockHeaderChain, fromHash, fromHeight, cancellationToken);
 
-	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
+	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, cancellationToken);
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
@@ -117,7 +117,7 @@ public static class FilterProviders
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinP2pAsync(
 		FilterHeaderChain filterHeadersChain,
 		ConcurrentChain blockHeadersChain,
-		FilterSynchronizationState synchronizationState,
+		CompactFilterBehavior.FilterSynchronizationState synchronizationState,
 		uint fromHeight,
 		CancellationToken cancellationToken)
 	{
@@ -154,7 +154,7 @@ public static class FilterProviders
 
 			try
 			{
-				await foreach (var filter in synchronizationState.GetNextPageFiltersAsync(linkedCts.Token).ConfigureAwait(false))
+				await foreach (var filter in synchronizationState.GetNextRangeFiltersAsync(linkedCts.Token).ConfigureAwait(false))
 				{
 					filters.Add(filter);
 				}

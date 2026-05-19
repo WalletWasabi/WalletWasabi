@@ -1,14 +1,16 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
+using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
-using System.Threading.Tasks;
+using System.Threading.Channels;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -16,7 +18,7 @@ using WalletWasabi.Services;
 namespace WalletWasabi.BitcoinP2p;
 
 public class CompactFilterBehavior(
-	FilterSynchronizationState synchronizationState,
+	CompactFilterBehavior.FilterSynchronizationState synchronizationState,
 	ConcurrentChain blockHeaderChain,
 	EventBus eventBus)
 	: NodeBehavior
@@ -25,11 +27,10 @@ public class CompactFilterBehavior(
 
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
 
-	private PageAssignment? _assignedHeaderPage;
-	private PageAssignment? _assignedFilterPage;
+	private RangeRequest? _assignedHeaderRange;
+	private RangeRequest? _assignedFilterRange;
 
 	private volatile bool _invalidReceived;
-
 
 	public CompactFilterBehavior(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders, ChainHeight tipHeight,
 		EventBus eventBus)
@@ -69,7 +70,7 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		if (node.PeerVersion?.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) != true)
+		if (!node.SupportsCompactFilters)
 		{
 			Logger.LogDebug($"Node {node.Peer.Endpoint} does not support NODE_COMPACT_FILTERS, will not sync");
 			return;
@@ -102,27 +103,27 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		if (_assignedHeaderPage is {} headerPageAssignment &&
+		if (_assignedHeaderRange is { } assignedHeaderRange &&
 		    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
 		{
-			HandleFilterHeaderMessage(node, cfHeaders, headerPageAssignment);
+			HandleFilterHeaderMessage(node, cfHeaders, assignedHeaderRange);
 			return;
 		}
 
-		if (_assignedFilterPage is {} filterPageAssignment &&
+		if (_assignedFilterRange is { } assignedFilterRange &&
 		    message.Message.Payload is CompactFilterPayload {FilterType: FilterType.Basic} filterPayload)
 		{
-			HandleFilterMessage(node, filterPayload, filterPageAssignment);
+			HandleFilterMessage(node, filterPayload, assignedFilterRange);
 		}
 	}
 
-	private void HandleFilterHeaderMessage(Node node, CompactFilterHeadersPayload cfHeaders, PageAssignment assignment)
+	private void HandleFilterHeaderMessage(Node node, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
 	{
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
 
 		Logger.LogDebug(
-			$"Received {batchCount} filter headers from {node.Peer.Endpoint} for page {assignment.StartHeight}-{assignment.StopHeight}");
+			$"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment}");
 
 		if (batchCount == 0)
 		{
@@ -165,33 +166,33 @@ public class CompactFilterBehavior(
 		if (validatedHeaders is null)
 		{
 			Logger.LogWarning(
-				$"Validation failed for filter header page {assignment.StartHeight}-{assignment.StopHeight}");
+				$"Validation failed for filter header range {assignment}");
 			HandleInvalid(node, "Invalid compact filter headers received");
 			return;
 		}
 
-		Logger.LogInfo($"Successfully validated filter header page {assignment.StartHeight}-{assignment.StopHeight}");
+		Logger.LogInfo($"Successfully validated filter header range {assignment}");
 
 		// Report success to shared state
-		synchronizationState.OnHeaderPageCompleted(assignment.StartHeight, validatedHeaders);
-		_assignedHeaderPage = null;
+		synchronizationState.OnHeaderCompleted(assignment.StartHeight, validatedHeaders);
+		_assignedHeaderRange = null;
 
-		// Immediately try to fetch the next page
+		// Immediately try to fetch the next range
 		TrySync(node);
 	}
 
-	private void HandleFilterMessage(Node node, CompactFilterPayload filterPayload, PageAssignment assignment)
+	private void HandleFilterMessage(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
 		_collectedFilters.Add(filterPayload);
 
-		// Check if we've received all filters for this page
+		// Check if we've received all filters for this range
 		if (filterPayload.BlockHash != assignment.StopHash && _collectedFilters.Count < assignment.Count)
 		{
 			return;
 		}
 
 		Logger.LogDebug(
-			$"Page {assignment.StartHeight}-{assignment.StopHeight} complete ({_collectedFilters.Count}/{assignment.Count} filters)");
+			$"Range {assignment} complete ({_collectedFilters.Count}/{assignment.Count} filters)");
 
 		var filters = _collectedFilters.ToArray();
 		_collectedFilters.Clear();
@@ -202,18 +203,18 @@ public class CompactFilterBehavior(
 		if (validatedFilters is null)
 		{
 			// Validation failed - disconnect and release assignment
-			Logger.LogWarning($"Validation failed for page {assignment.StartHeight}-{assignment.StopHeight}");
+			Logger.LogWarning($"Validation failed for range {assignment}");
 			HandleInvalid(node, "Invalid compact filters received");
 			return;
 		}
 
-		Logger.LogInfo($"Successfully validated page {assignment.StartHeight}-{assignment.StopHeight}");
+		Logger.LogInfo($"Successfully validated range {assignment}");
 
 		// Report success
-		synchronizationState.OnFilterPageCompleted(assignment.StartHeight, validatedFilters);
-		_assignedFilterPage = null;
+		synchronizationState.OnFilterRangeCompleted(assignment.StartHeight, validatedFilters);
+		_assignedFilterRange = null;
 
-		// Immediately try to fetch the next page
+		// Immediately try to fetch the next range
 		TrySync(node);
 	}
 
@@ -310,19 +311,19 @@ public class CompactFilterBehavior(
 
 	private void TrySyncFilters(Node node)
 	{
-		if (_assignedFilterPage is not null)
+		if (_assignedFilterRange is not null)
 		{
 			return;
 		}
 
-		if (!synchronizationState.TryAssignFilterPage(out var filterAssignment))
+		if (!synchronizationState.TryAssignFilterRange(out var filterAssignment))
 		{
 			return;
 		}
 
-		_assignedFilterPage = filterAssignment;
+		_assignedFilterRange = filterAssignment;
 		Logger.LogDebug(
-			$"Assigned page {filterAssignment.StartHeight}-{filterAssignment.StopHeight} to node {node.Peer.Endpoint}");
+			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
 		_collectedFilters.Clear();
 
@@ -333,18 +334,18 @@ public class CompactFilterBehavior(
 
 	private void TrySyncHeaders(Node node)
 	{
-		if (_assignedHeaderPage is not null)
+		if (_assignedHeaderRange is not null)
 		{
 			return;
 		}
 
-		if (!synchronizationState.TryAssignHeaderPage(out var headerAssignment))
+		if (!synchronizationState.TryAssignHeaderRange(out var headerAssignment))
 		{
 			return;
 		}
 
-		_assignedHeaderPage = headerAssignment;
-		Logger.LogDebug($"Assigned filter header page {headerAssignment.StartHeight}-{headerAssignment.StopHeight} to node {node.Peer.Endpoint}");
+		_assignedHeaderRange = headerAssignment;
+		Logger.LogDebug($"Assigned filter header range {headerAssignment} to node {node.Peer.Endpoint}");
 
 		var payload = new GetCompactFilterHeadersPayload(FilterType.Basic, headerAssignment.StartHeight,
 			headerAssignment.StopHash);
@@ -365,16 +366,16 @@ public class CompactFilterBehavior(
 
 	private void ReleaseAssignments()
 	{
-		if (_assignedHeaderPage is not null)
+		if (_assignedHeaderRange is not null)
 		{
-			synchronizationState.OnHeaderNodeDisconnected(_assignedHeaderPage);
-			_assignedHeaderPage = null;
+			synchronizationState.OnHeaderNodeDisconnected(_assignedHeaderRange);
+			_assignedHeaderRange = null;
 		}
 
-		if (_assignedFilterPage is not null)
+		if (_assignedFilterRange is not null)
 		{
-			synchronizationState.OnFilterNodeDisconnected(_assignedFilterPage);
-			_assignedFilterPage = null;
+			synchronizationState.OnFilterNodeDisconnected(_assignedFilterRange);
+			_assignedFilterRange = null;
 		}
 
 		_collectedFilters.Clear();
@@ -387,410 +388,485 @@ public class CompactFilterBehavior(
 			return false;
 		}
 
-		if (node is not {State: NodeState.HandShaked})
+		return node is {State: NodeState.HandShaked};
+	}
+
+	public class FilterSynchronizationState
+	{
+		private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
+		private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(50);
+		private const int HeadersPerRequest = 1_100;
+		private const int FiltersPerRequest = 400;
+		private const int MaxLookaheadRanges = 25;
+
+		private readonly Lock _lock = new();
+		private readonly ConcurrentChain _blockHeaderChain;
+		private readonly FilterHeaderChain _filterHeaderChain;
+		private readonly TimeProvider _timeProvider;
+
+		private readonly RequestTracker<HeaderResponse> _headerTracker;
+		private readonly RequestTracker<FilterResponse> _filterTracker;
+
+		private readonly Channel<FilterResponse> _readyFiltersChannel;
+
+		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain,
+			TimeProvider? timeProvider = null)
 		{
-			return false;
+			_blockHeaderChain = blockHeaderChain;
+			_filterHeaderChain = filterHeaderChain;
+			_timeProvider = timeProvider ?? TimeProvider.System;
+
+			var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
+			_headerTracker = new RequestTracker<HeaderResponse>(initialHeaderHeight, _timeProvider);
+			_filterTracker = new RequestTracker<FilterResponse>(0, _timeProvider);
+
+			_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
 		}
 
-		return true;
-	}
-}
-
-public class FilterSynchronizationState
-{
-	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(30);
-	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(60);
-	private const int HeaderPageSize = 1_000;
-	private const int FilterPageSize = 400;
-
-	private readonly Lock _lock = new();
-	private readonly ConcurrentChain _blockHeaderChain;
-	private readonly FilterHeaderChain _filterHeaderChain;
-	private readonly TimeProvider _timeProvider;
-
-	private readonly PageAssignmentTracker<HeaderPage> _headerTracker;
-	private readonly PageAssignmentTracker<FilterPage> _filterTracker;
-
-
-	// Currently assigned filter fetches: pageStartHeight -> in-progress
-
-	// The filter page currently waiting to be consumed by the Synchronizer (null if none)
-	private FilterPage? _readyFilterPage;
-
-	// Signal for when a new filter page becomes ready
-	private TaskCompletionSource _filterPageReadySignal = new();
-
-	public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain,
-		TimeProvider? timeProvider = null)
-	{
-		_blockHeaderChain = blockHeaderChain;
-		_filterHeaderChain = filterHeaderChain;
-		_timeProvider = timeProvider ?? TimeProvider.System;
-
-		var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
-		_headerTracker = new PageAssignmentTracker<HeaderPage>(initialHeaderHeight, _timeProvider);
-		_filterTracker = new PageAssignmentTracker<FilterPage>(0, _timeProvider);
-	}
-
-	public FilterSynchronizationState(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders,
-		ChainHeight tipHeight, TimeProvider? timeProvider = null)
-		: this(blockHeaders, filterHeaders, timeProvider)
-	{
-		_filterTracker = new PageAssignmentTracker<FilterPage>(tipHeight, _timeProvider);
-	}
-
-	#region Filter Header Methods
-
-	public bool TryAssignHeaderPage([NotNullWhen(true)] out PageAssignment? assignment)
-	{
-		assignment = null;
-		lock (_lock)
+		public FilterSynchronizationState(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders,
+			ChainHeight tipHeight, TimeProvider? timeProvider = null)
+			: this(blockHeaders, filterHeaders, timeProvider)
 		{
-			// Check for and release any stale header assignments
-			if (_headerTracker.GetOldestStaleAssignment(HeaderAssignmentTimeout) is { } staleHeaderHeight)
+			_filterTracker = new RequestTracker<FilterResponse>(tipHeight, _timeProvider);
+		}
+
+		internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
+		{
+			assignment = null;
+			lock (_lock)
 			{
-				_headerTracker.RemoveActiveAssignment(staleHeaderHeight);
+				// Check for and release any stale header assignments
+				if (_headerTracker.GetOldestStaleAssignment(HeaderAssignmentTimeout) is { } staleHeaderHeight)
+				{
+					_headerTracker.RemoveActiveAssignment(staleHeaderHeight);
+					Logger.LogWarning(
+						$"Auto-released stale filter header assignment at height {staleHeaderHeight}");
+				}
+
+				var chainTip = _blockHeaderChain.Tip;
+
+				// Find the next range to assign (respecting max lookahead limit)
+				if (!_headerTracker.TryGetNextRangeStartHeight(HeadersPerRequest, MaxLookaheadRanges, out var nextRangeStart))
+				{
+					Logger.LogTrace(
+						$"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
+					return false;
+				}
+
+				// Nothing to fetch if we're caught up
+				if (nextRangeStart > chainTip.Height)
+				{
+					return false;
+				}
+
+				// Calculate stop height (limited by chain tip and the ma number of headers to request)
+				var stopHeight = (uint) Math.Min(nextRangeStart + HeadersPerRequest - 1, chainTip.Height);
+
+				// Get the stop block hash
+				var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
+
+				// Don't assign this range if we don't have the previous filter header yet
+				if (!TryGetPreviousFilterHeader(nextRangeStart, out _))
+				{
+					return false;
+				}
+
+				// Track this assignment so other nodes don't get the same range
+				_headerTracker.AddActiveAssignment(nextRangeStart);
+
+				assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
+				return true;
+			}
+		}
+
+		public void OnHeaderCompleted(uint rangeStartHeight, SmartHeader[] headers)
+		{
+			lock (_lock)
+			{
+				// Remove from active assignments
+				_headerTracker.MoveActiveToPendingAssignment(rangeStartHeight,
+					new HeaderResponse(rangeStartHeight, headers));
+
+				// Process any ranges that are now ready
+				ProcessPendingHeaderRanges();
+			}
+		}
+
+		internal void OnHeaderNodeDisconnected(RangeRequest assignment)
+		{
+			lock (_lock)
+			{
+				_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
+			}
+
+			Logger.LogDebug(
+				$"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
+		}
+
+		internal SmartHeader[]? ValidateFilterHeaders(
+			RangeRequest assignment,
+			uint256[] filterHashes,
+			uint256 declaredPreviousFilterHeader)
+		{
+			// Recalculate the expected previous filter header from the chain
+			if (!TryGetPreviousFilterHeader(assignment.StartHeight, out var expectedPreviousFilterHeader))
+			{
 				Logger.LogWarning(
-					$"Auto-released stale filter header assignment at height {staleHeaderHeight} (timeout: 60s)");
-			}
-
-			var chainTip = _blockHeaderChain.Tip;
-
-			// Find the next page to assign
-			var nextPageStart = _headerTracker.GetNextPageStartHeight(HeaderPageSize);
-
-			// Nothing to fetch if we're caught up
-			if (nextPageStart > chainTip.Height)
-			{
-				return false;
-			}
-
-			// Calculate stop height (limited by chain tip and page size)
-			var stopHeight = (uint) Math.Min(nextPageStart + HeaderPageSize - 1, chainTip.Height);
-
-			// Get the stop block hash
-			var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
-
-			// Capture the expected previous filter header for this page
-			var expectedPreviousFilterHeader = nextPageStart == 1
-				? uint256.Zero
-				: _filterHeaderChain[nextPageStart - 1]?.BlockFilterHeader;
-
-			// Don't assign this page if we don't have the previous filter header yet
-			if (expectedPreviousFilterHeader is null)
-			{
-				return false;
-			}
-
-			// Track this assignment so other nodes don't get the same page
-			_headerTracker.AddActiveAssignment(nextPageStart);
-
-			assignment = new PageAssignment(nextPageStart, stopHeight, stopBlock.HashBlock);
-			return true;
-		}
-	}
-
-	public void OnHeaderPageCompleted(uint pageStartHeight, SmartHeader[] headers)
-	{
-		lock (_lock)
-		{
-			// Remove from active assignments
-			_headerTracker.MoveActiveToPendingAssignment(pageStartHeight, new HeaderPage(pageStartHeight, headers));
-
-			// Process any pages that are now ready
-			ProcessPendingHeaderPages();
-		}
-	}
-
-	public void OnHeaderNodeDisconnected(PageAssignment assignedPage)
-	{
-		lock (_lock)
-		{
-			_headerTracker.RemoveActiveAssignment(assignedPage.StartHeight);
-		}
-
-		Logger.LogDebug($"Node disconnected, released filter header page {assignedPage.StartHeight} for reassignment");
-	}
-
-	public SmartHeader[]? ValidateFilterHeaders(
-		PageAssignment assignment,
-		uint256[] filterHashes,
-		uint256 declaredPreviousFilterHeader)
-	{
-		// Recalculate the expected previous filter header from the chain
-		var expectedPreviousFilterHeader = assignment.StartHeight == 1
-			? uint256.Zero
-			: _filterHeaderChain[assignment.StartHeight - 1]?.BlockFilterHeader;
-
-		if (expectedPreviousFilterHeader is null)
-		{
-			Logger.LogWarning($"Cannot validate: previous filter header not available for page {assignment.StartHeight}");
-			return null;
-		}
-
-		// Validate against the expected previous filter header
-		if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
-		{
-			Logger.LogWarning(
-				$"Previous filter header mismatch for page {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}");
-			return null;
-		}
-
-		var result = new SmartHeader[filterHashes.Length];
-		var prevFilterHeader = declaredPreviousFilterHeader;
-
-		for (var i = 0; i < filterHashes.Length; i++)
-		{
-			var height = assignment.StartHeight + (uint) i;
-			var block = _blockHeaderChain.GetBlock((int) height);
-			if (block == null)
-			{
-				Logger.LogWarning($"Block header not found at height {height}, aborting batch validation");
+					$"Cannot validate: previous filter header not available for range {assignment.StartHeight}");
 				return null;
 			}
 
-			var filterHash = filterHashes[i];
-			var filterHeader = ComputeFilterHeader(filterHash, prevFilterHeader);
-
-			result[i] = new SmartHeader(
-				block.HashBlock,
-				filterHeader,
-				height,
-				block.Header.BlockTime);
-
-			prevFilterHeader = filterHeader;
-		}
-
-		return result;
-	}
-
-	private void ProcessPendingHeaderPages()
-	{
-		// Process pages in order
-		while (true)
-		{
-			var nextExpectedStart = _headerTracker.LastHeight + 1;
-
-			if (!_headerTracker.TryRemovePendingPage(nextExpectedStart, out var pendingPage))
+			// Validate against the expected previous filter header
+			if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
 			{
-				// Next page not available yet
-				break;
+				Logger.LogWarning(
+					$"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}");
+				return null;
 			}
 
-			// Append all headers from this page
-			foreach (var header in pendingPage.Headers)
+			var result = new SmartHeader[filterHashes.Length];
+			var prevFilterHeader = declaredPreviousFilterHeader;
+
+			for (var i = 0; i < filterHashes.Length; i++)
 			{
-				try
+				var height = assignment.StartHeight + (uint) i;
+				var block = _blockHeaderChain.GetBlock((int) height);
+				if (block == null)
 				{
-					_filterHeaderChain.AppendTip(header);
-					_headerTracker.SetLastHeight(header.Height);
+					Logger.LogWarning($"Block header not found at height {height}, aborting batch validation");
+					return null;
 				}
-				catch (InvalidOperationException ex)
-				{
-					Logger.LogError($"Failed to append filter header at height {header.Height}: {ex.Message}");
-					// Stop processing - this shouldn't happen since headers were pre-validated
-					return;
-				}
+
+				var filterHash = filterHashes[i];
+				var filterHeader = ComputeFilterHeader(filterHash, prevFilterHeader);
+
+				result[i] = new SmartHeader(
+					block.HashBlock,
+					filterHeader,
+					height,
+					block.Header.BlockTime);
+
+				prevFilterHeader = filterHeader;
 			}
 
-			Logger.LogInfo(
-				$"Successfully processed filter header page {pendingPage.StartHeight}, new tip at height {_headerTracker.LastHeight}");
-		}
-	}
-
-	private static uint256 ComputeFilterHeader(uint256 filterHash, uint256 prevFilterHeader)
-	{
-		Span<byte> data = stackalloc byte[64];
-		filterHash.ToBytes(data[..32]);
-		prevFilterHeader.ToBytes(data[32..]);
-		Span<byte> hash = stackalloc byte[32];
-		SHA256.HashData(SHA256.HashData(data), hash);
-		return new uint256(hash);
-	}
-
-	#endregion
-
-
-	public async IAsyncEnumerable<FilterModel> GetNextPageFiltersAsync(
-		[EnumeratorCancellation] CancellationToken cancellationToken)
-	{
-		var page = await WaitForReadyPageAsync(cancellationToken).ConfigureAwait(false);
-
-		Logger.LogDebug($"Starting to yield {page.Filters.Length} filters from page {page.StartHeight}");
-
-		foreach (var filter in page.Filters)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-			yield return filter;
+			return result;
 		}
 
-		var lastFilter = page.Filters[^1];
-		AcknowledgeFilterPageConsumed(lastFilter.Header.Height);
-	}
-
-	private async ValueTask<FilterPage> WaitForReadyPageAsync(CancellationToken cancellationToken)
-	{
-		while (true)
+		private void ProcessPendingHeaderRanges()
 		{
-			Task waitTask;
+			// Process ranges in order
+			while (true)
+			{
+				var nextExpectedStart = _headerTracker.LastHeight + 1;
 
+				if (!_headerTracker.TryRemovePendingRange(nextExpectedStart, out var pendingRange))
+				{
+					// Next range not available yet
+					break;
+				}
+
+				// Append all headers from this range
+				foreach (var header in pendingRange.Headers)
+				{
+					try
+					{
+						_filterHeaderChain.AppendTip(header);
+						_headerTracker.SetLastHeight(header.Height);
+					}
+					catch (InvalidOperationException ex)
+					{
+						Logger.LogError($"Failed to append filter header at height {header.Height}: {ex.Message}");
+						// Stop processing - this shouldn't happen since headers were pre-validated
+						return;
+					}
+				}
+
+				Logger.LogInfo(
+					$"Successfully processed filter header range {pendingRange.StartHeight}, new tip at height {_headerTracker.LastHeight}");
+			}
+		}
+
+		private static uint256 ComputeFilterHeader(uint256 filterHash, uint256 prevFilterHeader)
+		{
+			Span<byte> data = stackalloc byte[64];
+			filterHash.ToBytes(data[..32]);
+			prevFilterHeader.ToBytes(data[32..]);
+			Span<byte> hash = stackalloc byte[32];
+			SHA256.HashData(SHA256.HashData(data), hash);
+			return new uint256(hash);
+		}
+
+		private bool TryGetPreviousFilterHeader(uint startHeight, [NotNullWhen(true)] out uint256? header)
+		{
+			header = startHeight == 1
+				? uint256.Zero
+				: _filterHeaderChain[startHeight - 1]?.BlockFilterHeader;
+
+			return header is not null;
+		}
+
+		public async IAsyncEnumerable<FilterModel> GetNextRangeFiltersAsync(
+			[EnumeratorCancellation] CancellationToken cancellationToken)
+		{
+			// Read the next range from the channel
+			var filterResponse = await _readyFiltersChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
+
+			Logger.LogDebug(
+				$"Starting to yield {filterResponse.Filters.Length} filters from range {filterResponse.StartHeight}");
+
+			foreach (var filter in filterResponse.Filters)
+			{
+				cancellationToken.ThrowIfCancellationRequested();
+				yield return filter;
+			}
+
+			Logger.LogDebug(
+				$"Filter range {filterResponse.StartHeight} consumed ({filterResponse.Filters.Length} filters)");
+		}
+
+		internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment)
+		{
+			assignment = null;
 			lock (_lock)
 			{
-				if (_readyFilterPage is { } page)
+				// Check for and release any stale filter assignments
+				if (_filterTracker.GetOldestStaleAssignment(FilterAssignmentTimeout) is { } staleFilterHeight)
 				{
-					return page;
+					_filterTracker.RemoveActiveAssignment(staleFilterHeight);
+					Logger.LogWarning($"Auto-released stale filter assignment at height {staleFilterHeight}");
 				}
 
-				waitTask = _filterPageReadySignal.Task;
+				// Check if filter headers are synced ahead
+				var filterHeadersTip = _filterHeaderChain.Tip!;
 
-				Logger.LogTrace($"No page ready yet - pending pages: {_filterTracker.PendingCount}, active assignments: {_filterTracker.ActiveCount}");
+				// Find the next range to assign (respecting max lookahead limit)
+				if (!_filterTracker.TryGetNextRangeStartHeight(FiltersPerRequest, MaxLookaheadRanges, out var nextRangeStart))
+				{
+					Logger.LogTrace(
+						$"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
+					return false;
+				}
+
+				// Nothing to fetch if we're caught up with filter headers
+				if (nextRangeStart > filterHeadersTip.Height)
+				{
+					Logger.LogTrace(
+						$"caught up (next range start {nextRangeStart} > filter headers tip {filterHeadersTip.Height})");
+					return false;
+				}
+
+				// Calculate stop height (limited by filter headers tip and page size)
+				var stopHeight = Math.Min(nextRangeStart+ FiltersPerRequest - 1, filterHeadersTip.Height);
+
+				// Get the stop block hash
+				var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
+
+				// Track this assignment so other nodes don't get the same page
+				_filterTracker.AddActiveAssignment(nextRangeStart);
+
+				Logger.LogDebug(
+					$"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
+
+				assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
+				return true;
+			}
+		}
+
+		public void OnFilterRangeCompleted(uint rangeStartHeight, FilterModel[] filters)
+		{
+			lock (_lock)
+			{
+				_filterTracker.MoveActiveToPendingAssignment(rangeStartHeight,
+					new FilterResponse(rangeStartHeight, filters));
+
+				Logger.LogTrace(
+					$"State after filter range completion - active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount}, next expected: {_filterTracker.LastHeight + 1}");
+
+				// Try to make the next range ready for consumption
+				TryMakeNextFilterRangeReadyNoLock();
+			}
+		}
+
+		internal void OnFilterNodeDisconnected(RangeRequest assignment)
+		{
+			lock (_lock)
+			{
+				_filterTracker.RemoveActiveAssignment(assignment.StartHeight);
 			}
 
-			await waitTask.WaitAsync(cancellationToken).ConfigureAwait(false);
+			Logger.LogDebug($"Node disconnected, released filter range {assignment.StartHeight} for reassignment");
+		}
+
+		public uint256? GetExpectedFilterHeader(uint height)
+		{
+			return _filterHeaderChain[height]?.BlockFilterHeader;
+		}
+
+		private void TryMakeNextFilterRangeReadyNoLock()
+		{
+			var lastQueuedHeight = _filterTracker.LastHeight;
+
+			while (true)
+			{
+				var nextExpectedStart = lastQueuedHeight + 1;
+
+				if (!_filterTracker.TryRemovePendingRange(nextExpectedStart, out var pendingRange))
+				{
+					// Next page not available yet
+					if (_filterTracker.HasPendingRanges)
+					{
+						var pendingHeights = string.Join(", ", _filterTracker.GetPendingHeights());
+						Logger.LogTrace(
+							$"Next expected filter range {nextExpectedStart} not available yet. Pending ranges at heights: {pendingHeights}");
+					}
+					else
+					{
+						Logger.LogTrace(
+							$"Next expected filter range {nextExpectedStart} not available yet. No pending ranges.");
+					}
+
+					return;
+				}
+
+				// Write to channel (always succeeds with unbounded channel)
+				_readyFiltersChannel.Writer.TryWrite(pendingRange);
+
+				lastQueuedHeight = pendingRange.Filters[^1].Header.Height;
+				_filterTracker.SetLastHeight(lastQueuedHeight);
+
+				Logger.LogDebug(
+					$"Filter range {pendingRange.StartHeight} queued for consumption ({pendingRange.Filters.Length} filters)");
+			}
 		}
 	}
 
-	public bool TryAssignFilterPage([NotNullWhen(true)] out PageAssignment? assignment)
+	class RequestTracker<TProcessedResponse>(uint initialHeight = 0, TimeProvider? timeProvider = null) where TProcessedResponse : Response
 	{
-		assignment = null;
-		lock (_lock)
+		private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+		private readonly SortedDictionary<uint, TProcessedResponse> _pendingResponses = [];
+		private readonly SortedDictionary<uint, DateTime> _activeAssignments = [];
+
+		/// <summary>
+		/// The last height that was processed/emitted.
+		/// </summary>
+		public uint LastHeight { get; private set; } = initialHeight;
+
+		/// <summary>
+		/// Number of pages currently being fetched.
+		/// </summary>
+		public int ActiveCount => _activeAssignments.Count;
+
+		/// <summary>
+		/// Number of completed pages awaiting processing.
+		/// </summary>
+		public int PendingCount => _pendingResponses.Count;
+
+		/// <summary>
+		/// Marks a page as actively being fetched.
+		/// </summary>
+		public void AddActiveAssignment(uint startHeight)
 		{
-			// Check for and release any stale filter assignments (older than 60 seconds)
-			if (_filterTracker.GetOldestStaleAssignment(FilterAssignmentTimeout) is { } staleFilterHeight)
+			_activeAssignments.Add(startHeight, _timeProvider.GetUtcNow().UtcDateTime);
+		}
+
+		/// <summary>
+		/// Removes an active assignment (on completion or node disconnect).
+		/// </summary>
+		public void RemoveActiveAssignment(uint startHeight)
+		{
+			_activeAssignments.Remove(startHeight);
+		}
+
+		public void MoveActiveToPendingAssignment(uint startHeight, TProcessedResponse range)
+		{
+			// Remove from active assignments
+			RemoveActiveAssignment(startHeight);
+			_pendingResponses[startHeight] = range;
+		}
+
+		/// <summary>
+		/// Attempts to remove and return a pending range at the specified height.
+		/// </summary>
+		public bool TryRemovePendingRange(uint startHeight, [NotNullWhen(true)] out TProcessedResponse? range)
+		{
+			if (_pendingResponses.Remove(startHeight, out var removedResponse))
 			{
-				_filterTracker.RemoveActiveAssignment(staleFilterHeight);
-				Logger.LogWarning(
-					$"Auto-released stale filter assignment at height {staleFilterHeight} (timeout: 60s)");
+				range = removedResponse;
+				return true;
 			}
 
-			// Check if filter headers are synced ahead
-			var filterHeadersTip = _filterHeaderChain.Tip!;
+			range = null;
+			return false;
+		}
 
-			// Find the next page to assign
-			var nextPageStart = _filterTracker.GetNextPageStartHeight(FilterPageSize);
+		/// <summary>
+		/// Gets all pending range heights (for logging).
+		/// </summary>
+		public IEnumerable<uint> GetPendingHeights()
+		{
+			return _pendingResponses.Keys.OrderBy(k => k);
+		}
 
-			// Nothing to fetch if we're caught up with filter headers
-			if (nextPageStart > filterHeadersTip.Height)
+		/// <summary>
+		/// Checks if there are any pending pages.
+		/// </summary>
+		public bool HasPendingRanges => _pendingResponses.Count > 0;
+
+		/// <summary>
+		/// Updates the last processed/emitted height.
+		/// </summary>
+		public void SetLastHeight(uint height)
+		{
+			LastHeight = height;
+		}
+
+		public bool TryGetNextRangeStartHeight(uint rangeSize, int maxLookaheadRanges, [NotNullWhen(true)] out uint startHeight)
+		{
+			var nextStart = LastHeight + 1;
+
+			// Skip over any pages that are already assigned or pending
+			while (_activeAssignments.ContainsKey(nextStart) || _pendingResponses.ContainsKey(nextStart))
 			{
-				Logger.LogTrace(
-					$"TryAssignFilterPage - caught up (next page start {nextPageStart} > filter headers tip {filterHeadersTip.Height})");
+				nextStart += rangeSize;
+			}
+
+			// Check if we would exceed the maximum lookahead limit
+			var lookaheadRanges = (nextStart - LastHeight - 1) / rangeSize;
+			if (lookaheadRanges >= maxLookaheadRanges)
+			{
+				startHeight = 0u;
 				return false;
 			}
 
-			// Calculate stop height (limited by filter headers tip and page size)
-			var stopHeight = Math.Min(nextPageStart + FilterPageSize - 1, filterHeadersTip.Height);
-
-			// Get the stop block hash
-			var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
-
-			// Track this assignment so other nodes don't get the same page
-			_filterTracker.AddActiveAssignment(nextPageStart);
-
-			Logger.LogDebug(
-				$"Assigned filter page {nextPageStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
-
-			assignment = new PageAssignment(nextPageStart, stopHeight, stopBlock.HashBlock);
+			startHeight = nextStart;
 			return true;
 		}
-	}
 
-	public void OnFilterPageCompleted(uint pageStartHeight, FilterModel[] filters)
-	{
-		lock (_lock)
+		/// <summary>
+		/// Finds the oldest active assignment that is older than the specified timeout.
+		/// Returns null if no stale assignments found.
+		/// </summary>
+		public uint? GetOldestStaleAssignment(TimeSpan timeout)
 		{
-			_filterTracker.MoveActiveToPendingAssignment(pageStartHeight, new FilterPage(pageStartHeight, filters));
+			var cutoffTime = _timeProvider.GetUtcNow().UtcDateTime - timeout;
 
-			Logger.LogTrace(
-				$"State after filter page completion - active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount}, next expected: {_filterTracker.LastHeight + 1}");
-
-			// Try to make the next page ready for consumption
-			TryMakeNextFilterPageReadyNoLock();
+			return _activeAssignments
+				.Where(kvp => kvp.Value < cutoffTime)
+				.OrderBy(kvp => kvp.Value)
+				.Select(kvp => (uint?) kvp.Key)
+				.FirstOrDefault();
 		}
 	}
 
-	public void OnFilterNodeDisconnected(PageAssignment assignedFilterPage)
+	internal record RangeRequest(uint StartHeight, uint StopHeight, uint256 StopHash)
 	{
-		lock (_lock)
-		{
-			_filterTracker.RemoveActiveAssignment(assignedFilterPage.StartHeight);
-		}
-
-		Logger.LogDebug($"Node disconnected, released filter page {assignedFilterPage.StartHeight} for reassignment");
+		public uint Count => StopHeight - StartHeight + 1;
+		public override string ToString() => $"{StartHeight}-{StopHeight}";
 	}
 
-	public uint256? GetExpectedFilterHeader(uint height)
-	{
-		return _filterHeaderChain[height]?.BlockFilterHeader;
-	}
+	private abstract record Response(uint StartHeight);
 
-	private void AcknowledgeFilterPageConsumed(uint pageEndHeight)
-	{
-		lock (_lock)
-		{
-			if (_readyFilterPage is null)
-			{
-				return;
-			}
+	private record HeaderResponse(uint StartHeight, SmartHeader[] Headers) : Response(StartHeight);
 
-			_filterTracker.SetLastHeight(pageEndHeight);
-			_readyFilterPage = null;
-
-			// Reset the signal for the next page
-			_filterPageReadySignal = new TaskCompletionSource();
-
-			Logger.LogDebug($"Filter page consumed, now at height {_filterTracker.LastHeight}");
-
-			// Try to make the next page ready
-			TryMakeNextFilterPageReadyNoLock();
-		}
-	}
-
-	private void TryMakeNextFilterPageReadyNoLock()
-	{
-		// Don't make a new page ready if one is already waiting
-		if (_readyFilterPage is not null)
-		{
-			Logger.LogTrace(
-				$"TryMakeNextFilterPageReady - page {_readyFilterPage.StartHeight} already ready, not making new page ready");
-			return;
-		}
-
-		var nextExpectedStart = _filterTracker.LastHeight + 1;
-
-		if (!_filterTracker.TryRemovePendingPage(nextExpectedStart, out var pendingPage))
-		{
-			// Next page not available yet
-			if (_filterTracker.HasPendingPages)
-			{
-				var pendingHeights = string.Join(", ", _filterTracker.GetPendingPageHeights());
-				Logger.LogTrace(
-					$"Next expected filter page {nextExpectedStart} not available yet. Pending pages at heights: {pendingHeights}");
-			}
-			else
-			{
-				Logger.LogTrace($"Next expected filter page {nextExpectedStart} not available yet. No pending pages.");
-			}
-
-			return;
-		}
-
-		_readyFilterPage = pendingPage;
-
-		Logger.LogDebug(
-			$"Filter page {pendingPage.StartHeight} ready for consumption ({pendingPage.Filters.Length} filters)");
-
-		// Signal that a page is ready
-		_filterPageReadySignal.TrySetResult();
-	}
+	private record FilterResponse(uint StartHeight, FilterModel[] Filters) : Response(StartHeight);
 }
-
-public record PageAssignment(uint StartHeight, uint StopHeight, uint256 StopHash)
-{
-	public uint Count => StopHeight - StartHeight + 1;
-}
-
-public abstract record Page(uint StartHeight);
-
-public record HeaderPage(uint StartHeight, SmartHeader[] Headers) : Page(StartHeight);
-
-public record FilterPage(uint StartHeight, FilterModel[] Filters) : Page(StartHeight);

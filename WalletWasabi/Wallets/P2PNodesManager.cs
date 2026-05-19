@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -51,10 +50,18 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (_nodesRegistry.Nodes.Length > 5)
+		// Always keep at least 5 nodes connected
+		if (_nodesRegistry.Nodes.Length <= 5)
 		{
-			DisconnectNode(node, reason);
+			return;
 		}
+
+		if (node.SupportsCompactFilters)
+		{
+			return;
+		}
+
+		DisconnectNode(node, reason);
 	}
 
 	public void DisconnectNode(Node node, string reason)
