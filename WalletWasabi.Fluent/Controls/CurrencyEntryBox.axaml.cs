@@ -239,7 +239,7 @@ public partial class CurrencyEntryBox : TextBox
 			return false;
 		}
 
-		// Reject and dont process the input if the string doesn't match.
+		// Reject and don't process the input if the string doesn't match.
 		if (!match.Success)
 		{
 			return false;
