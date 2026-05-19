@@ -42,6 +42,13 @@ public partial class LoadingViewModel : RoutableViewModel
 
 		Percent = percentProgress;
 
+		if (chainTip < currentHeight)
+		{
+			StatusText = "Initializing blockchain data…";
+			TimeToCatchUp = "";
+			return;
+		}
+
 		var remainingBlocks = chainTip - currentHeight;
 		var hoursRemaining = remainingBlocks / 6.0m;
 
@@ -55,16 +62,14 @@ public partial class LoadingViewModel : RoutableViewModel
 			_ => $"{Math.Ceiling(hoursRemaining / 8760)} years"
 		};
 
-		var blocksRemaining = chainTip - currentHeight;
-
-		if (blocksRemaining == 0)
+		if (remainingBlocks == 0)
 		{
 			StatusText = "Done!";
 			TimeToCatchUp = "";
 			return;
 		}
 
-		StatusText = $"{blocksRemaining:N0} blocks remaining";
+		StatusText = $"{remainingBlocks:N0} blocks remaining";
 		TimeToCatchUp = $"{remainingTimeString} of Bitcoin history";
 	}
 }
