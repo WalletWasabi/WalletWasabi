@@ -45,7 +45,7 @@ public partial class HealthMonitor : ReactiveObject
 			.Subscribe(priorityFee => PriorityFee = priorityFee.SatoshiPerByte);
 
 		// Blockchain Tip
-		services.EventBus.AsObservable<ServerTipHeightChanged>()
+		services.EventBus.AsObservable<NetworkTipHeightChanged>()
 			.Select(value => value.Height)
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)

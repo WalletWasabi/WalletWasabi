@@ -1,4 +1,5 @@
 using NBitcoin;
+using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
@@ -14,12 +15,26 @@ public class BlockHeadersChainBehavior(
 	protected override void AttachCore()
 	{
 		base.AttachCore();
-		var myBestFilterHeight = filterHeaderChain.ServerTipHeight;
-		var theirBestFilterHeight = AttachedNode.MyVersion.StartHeight;
-		if (theirBestFilterHeight > myBestFilterHeight)
+		AttachedNode.StateChanged += AttachedNodeOnStateChanged;
+	}
+
+	protected override void DetachCore()
+	{
+		AttachedNode.StateChanged -= AttachedNodeOnStateChanged;
+		base.DetachCore();
+	}
+
+	private void AttachedNodeOnStateChanged(Node node, NodeState oldState)
+	{
+		if (node.State == NodeState.HandShaked)
 		{
-			filterHeaderChain.SetServerTipHeight((uint)theirBestFilterHeight);
-			eventBus.Publish(new ServerTipHeightChanged((uint)theirBestFilterHeight));
+			var myBestFilterHeight = filterHeaderChain.ServerTipHeight;
+			var theirBestFilterHeight = AttachedNode.PeerVersion.StartHeight;
+			if (theirBestFilterHeight > myBestFilterHeight)
+			{
+				filterHeaderChain.SetServerTipHeight((uint)theirBestFilterHeight);
+				eventBus.Publish(new NetworkTipHeightChanged((uint)theirBestFilterHeight));
+			}
 		}
 	}
 

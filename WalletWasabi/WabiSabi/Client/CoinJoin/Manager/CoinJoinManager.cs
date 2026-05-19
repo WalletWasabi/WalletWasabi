@@ -44,7 +44,7 @@ public class CoinJoinManager : BackgroundService
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
-		_serverTipHeightChangeSubscription = eventBus.Subscribe<ServerTipHeightChanged>(h => _serverTipHeight = h.Height);
+		_serverTipHeightChangeSubscription = eventBus.Subscribe<NetworkTipHeightChanged>(h => _serverTipHeight = h.Height);
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;
