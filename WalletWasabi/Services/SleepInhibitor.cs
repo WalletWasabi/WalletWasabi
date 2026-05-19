@@ -79,7 +79,6 @@ public class SleepInhibitor : PeriodicRunner
 		switch (highestCoinJoinClientState)
 		{
 			case CoinJoinClientState.Idle:
-				Logger.LogTrace("Computer idle state is allowed again.");
 				await StopTaskAsync().ConfigureAwait(false);
 				break;
 
@@ -116,6 +115,7 @@ public class SleepInhibitor : PeriodicRunner
 	{
 		if (_powerSavingTask is not null)
 		{
+			Logger.LogTrace("Computer idle state is allowed again.");
 			await _powerSavingTask.StopAsync().ConfigureAwait(false);
 			_powerSavingTask = null;
 		}
