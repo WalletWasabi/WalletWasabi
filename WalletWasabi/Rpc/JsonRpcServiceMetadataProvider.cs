@@ -77,7 +77,10 @@ public class JsonRpcServiceMetadataProvider
 					var parameters = new List<(string name, Type type, bool isOptional, object defaultValue)>();
 					foreach (var p in methodInfo.GetParameters())
 					{
-						parameters.Add((p.Name, p.ParameterType, p.IsOptional, p.DefaultValue));
+						var parameterName = p.Name ??
+							throw new NotSupportedException($"Parameter name cannot be null for method: {methodInfo.Name}");
+
+						parameters.Add((parameterName, p.ParameterType, p.IsOptional, p.DefaultValue));
 					}
 
 					yield return new JsonRpcMethodMetadata(
