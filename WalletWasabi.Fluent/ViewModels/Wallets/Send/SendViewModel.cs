@@ -11,6 +11,7 @@ using System.Windows.Input;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -423,6 +424,7 @@ public partial class SendViewModel : RoutableViewModel
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
 		var text = await ApplicationHelper.GetTextAsync();
+		text = text.WithoutWhitespace();
 
 		if (!TryParseUrl(text) && pasteIfInvalid)
 		{
