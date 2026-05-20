@@ -44,6 +44,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 		NewTransactionArrived =
 			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+				.Where(x => x.WalletName == wallet.WalletName)
 				.Select(x => (walletModel, x.Result))
 				.ObserveOn(RxApp.MainThreadScheduler);
 
