@@ -4,7 +4,6 @@ using System.Linq;
 using WalletWasabi.BundledApps;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.CrashReport;
 

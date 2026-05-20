@@ -42,7 +42,10 @@ public record SerializableException
 	public static SerializableException FromBase64String(string base64String)
 	{
 		var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
-		return JsonDecoder.FromString(json, Decode.SerializableException);
+		var result = JsonDecoder.FromString(json, Decode.SerializableException);
+		ArgumentNullException.ThrowIfNull(result, nameof(result));
+
+		return result;
 	}
 
 	public override string ToString()
