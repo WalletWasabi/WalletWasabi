@@ -95,7 +95,7 @@ public class JsonRpcRequestHandler<TService>
 		try
 		{
 			var methodParameters = procedureMetadata.Parameters;
-			var parameters = new List<object>();
+			var parameters = new List<object?>();
 
 			if (jsonRpcRequest.Parameters is JArray jArray)
 			{
