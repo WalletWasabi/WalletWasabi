@@ -42,8 +42,8 @@ public record SerializableException
 	public static SerializableException FromBase64String(string base64String)
 	{
 		var json = Encoding.UTF8.GetString(Convert.FromBase64String(base64String));
-		var result = JsonDecoder.FromString(json, Decode.SerializableException);
-		ArgumentNullException.ThrowIfNull(result, nameof(result));
+		var result = JsonDecoder.FromString(json, Decode.SerializableException)
+			?? throw new ArgumentNullException();
 
 		return result;
 	}
