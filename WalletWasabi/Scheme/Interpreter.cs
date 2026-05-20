@@ -29,7 +29,7 @@ public static class Interpreter
 
 	private delegate Expression ExpressionsProcessor(Expression args);
 
-	private delegate EvalContext SpecialExpressionsProcessor(Environment env, Expression args);
+	public delegate EvalContext SpecialExpressionsProcessor(Environment env, Expression args);
 
 	private record Number(decimal Value) : Expression;
 
@@ -51,9 +51,9 @@ public static class Interpreter
 
 	private record Function(ExpressionsProcessor Fn) : Expression;
 
-	private record Procedure(SpecialExpressionsProcessor Fn) : Expression;
+	public record Procedure(SpecialExpressionsProcessor Fn) : Expression;
 
-	private record NativeObject(object Value) : Expression;
+	public record NativeObject(object Value) : Expression;
 
 	private record DummyExpression(string Val) : Expression;
 
@@ -522,7 +522,7 @@ public static class Interpreter
 				var o => new NativeObject(o)
 			};
 
-		object ConvertSchemeToNative(Expression e) => Interpreter.ToNativeObject(e);
+		object ConvertSchemeToNative(Expression e) => ToNativeObject(e);
 
 		Expression WrapNativeFunction(Expression exprs)
 		{
@@ -533,7 +533,7 @@ public static class Interpreter
 		}
 
 		var fnative = new Function(WrapNativeFunction);
-		return env.Add(fname, fnative);
+		return env.SetItem(fname, fnative);
 	}
 
 	private static ImmutableArray<Expression> FlatPairChain(List p) =>
@@ -620,6 +620,8 @@ public static class Interpreter
 			Symbol (var symValue) => symValue,
 			Pair pairValue => FlatPairChain(pairValue).Select(ToNativeObject),
 			Nil _ => false,
+			Procedure (var p) => p,
+			Function f => f,
 			DummyExpression _ => "Done",
 			_ => throw new Exception("Undefined")
 		};
