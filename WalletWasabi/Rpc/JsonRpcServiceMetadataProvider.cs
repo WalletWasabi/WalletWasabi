@@ -74,7 +74,7 @@ public class JsonRpcServiceMetadataProvider
 			{
 				if (attr is JsonRpcMethodAttribute jsonRpcMethodAttr)
 				{
-					var parameters = new List<(string name, Type type, bool isOptional, object defaultValue)>();
+					var parameters = new List<(string name, Type type, bool isOptional, object? defaultValue)>();
 					foreach (var p in methodInfo.GetParameters())
 					{
 						var parameterName = p.Name ??

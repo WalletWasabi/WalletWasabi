@@ -8,7 +8,7 @@ namespace WalletWasabi.Rpc;
 /// </summary>
 public class JsonRpcMethodMetadata
 {
-	public JsonRpcMethodMetadata(string name, MethodInfo mi, bool ri, List<(string name, Type type, bool isOptional, object defaultValue)> parameters)
+	public JsonRpcMethodMetadata(string name, MethodInfo mi, bool ri, List<(string name, Type type, bool isOptional, object? defaultValue)> parameters)
 	{
 		Name = name;
 		RequiresInitialization = ri;
@@ -20,5 +20,5 @@ public class JsonRpcMethodMetadata
 	public string Name { get; }
 	public MethodInfo MethodInfo { get; }
 	public bool RequiresInitialization { get; }
-	public List<(string name, Type type, bool isOptional, object defaultValue)> Parameters { get; }
+	public List<(string name, Type type, bool isOptional, object? defaultValue)> Parameters { get; }
 }
