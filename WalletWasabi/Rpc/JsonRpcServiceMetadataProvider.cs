@@ -72,7 +72,7 @@ public class JsonRpcServiceMetadataProvider
 			var attrs = methodInfo.GetCustomAttributes();
 			foreach (Attribute attr in attrs)
 			{
-				if (attr is JsonRpcMethodAttribute attribute)
+				if (attr is JsonRpcMethodAttribute jsonRpcMethodAttr)
 				{
 					var parameters = new List<(string name, Type type, bool isOptional, object defaultValue)>();
 					foreach (var p in methodInfo.GetParameters())
@@ -80,7 +80,6 @@ public class JsonRpcServiceMetadataProvider
 						parameters.Add((p.Name, p.ParameterType, p.IsOptional, p.DefaultValue));
 					}
 
-					var jsonRpcMethodAttr = attribute;
 					yield return new JsonRpcMethodMetadata(
 						jsonRpcMethodAttr.Name,
 						methodInfo,
