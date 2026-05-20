@@ -21,7 +21,13 @@ public static class StrobeHasherExtensions
 	{
 		return scriptTypes
 			.Select((scriptType, idx) => (scriptType, idx))
-			.Aggregate(me, (hasher, scriptTypeIdxPair) => hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, Enum.GetName(scriptTypeIdxPair.scriptType)));
+			.Aggregate(me, (hasher, scriptTypeIdxPair) =>
+			{
+				var scriptTypeName = Enum.GetName(scriptTypeIdxPair.scriptType)
+					?? throw new NotSupportedException($"Unknown ScriptType {scriptTypeIdxPair.scriptType}");
+
+				return hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, scriptTypeName);
+			});
 	}
 
 	public static StrobeHasher Append(this StrobeHasher hasher, string fieldName, decimal value)
