@@ -6,13 +6,12 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
-using Avalonia.Threading;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Controls;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
@@ -44,14 +43,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 	Searchable = false)]
 public partial class SendViewModel : RoutableViewModel
 {
-	private readonly Lock _parsingLock = new();
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
-	private bool _parsingTo;
 	private Address? _parsedAddress;
 
 	[AutoNotify] private string _caption = "";
@@ -111,7 +108,8 @@ public partial class SendViewModel : RoutableViewModel
 
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
-			.Subscribe(ParseToField);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe((x) => TryParseUrl(x));
 
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
@@ -426,13 +424,11 @@ public partial class SendViewModel : RoutableViewModel
 	private async Task OnPasteAsync(bool pasteIfInvalid = true)
 	{
 		var text = await ApplicationHelper.GetTextAsync();
+		text = text.WithoutWhitespace();
 
-		lock (_parsingLock)
+		if (!TryParseUrl(text) && pasteIfInvalid)
 		{
-			if (!TryParseUrl(text) && pasteIfInvalid)
-			{
-				To = text;
-			}
+			To = text;
 		}
 	}
 
@@ -524,28 +520,12 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private void ParseToField(string s)
-	{
-		lock (_parsingLock)
-		{
-			Dispatcher.UIThread.Post(() => TryParseUrl(s));
-		}
-	}
-
 	private bool TryParseUrl(string? text)
 	{
-		if (_parsingTo)
-		{
-			return false;
-		}
-
-		_parsingTo = true;
-
 		text = text?.Trim();
 
 		if (string.IsNullOrEmpty(text))
 		{
-			_parsingTo = false;
 			PayJoinEndPoint = null;
 			IsFixedAmount = false;
 			IsBip21 = false;
@@ -608,8 +588,6 @@ public partial class SendViewModel : RoutableViewModel
 				_ => false);
 
 		DisplaySilentPaymentInfo = isSilentPayment && _parameters.Donate;
-
-		Dispatcher.UIThread.Post(() => _parsingTo = false);
 
 		return result;
 	}
