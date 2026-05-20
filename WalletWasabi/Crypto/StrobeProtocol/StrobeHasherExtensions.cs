@@ -23,8 +23,8 @@ public static class StrobeHasherExtensions
 			.Select((scriptType, idx) => (scriptType, idx))
 			.Aggregate(me, (hasher, scriptTypeIdxPair) =>
 			{
-				var scriptTypeName = Enum.GetName(scriptTypeIdxPair.scriptType);
-				ArgumentNullException.ThrowIfNull(scriptTypeName);
+				var scriptTypeName = Enum.GetName(scriptTypeIdxPair.scriptType)
+					?? throw new NotSupportedException($"Unknown ScriptType {scriptTypeIdxPair.scriptType}");
 
 				return hasher.Append(fieldName + "-" + scriptTypeIdxPair.idx, scriptTypeName);
 			});
