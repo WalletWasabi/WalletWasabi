@@ -702,6 +702,70 @@ public class CompactFilterBehavior(
 			return _filterHeaderChain[height]?.BlockFilterHeader;
 		}
 
+		public bool IsReorg(uint fromHeight, uint256 fromHash)
+		{
+			lock (_lock)
+			{
+				var filterTip = _filterHeaderChain.Tip;
+				if (filterTip is null)
+				{
+					return false;
+				}
+
+				var anchorBlock = _blockHeaderChain.GetBlock((int)fromHeight);
+				if (anchorBlock is null || anchorBlock.HashBlock != fromHash)
+				{
+					return MarkReorg($"Block {fromHash} at height {fromHeight} not found or mismatched in block header chain. Reorg detected.");
+				}
+
+				var start = filterTip.Height;
+				var endInclusive = Math.Max(0, start - 100 + 1);
+
+				// Compare filter headers against block headers from tip backwards.
+				for (long height = start; height >= endInclusive; height--)
+				{
+					var h = (uint)height;
+
+					var filterHeader = _filterHeaderChain[h];
+					if (filterHeader is null)
+					{
+						return MarkReorg($"Missing filter header at height {h}. Reorg detected.");
+					}
+
+					var block = _blockHeaderChain.GetBlock((int)h);
+					if (block is null)
+					{
+						return MarkReorg($"Missing block header at height {h}. Reorg detected.");
+					}
+
+					if (filterHeader.BlockHash != block.HashBlock)
+					{
+						return MarkReorg($"Hash mismatch at height {h}. Filter={filterHeader.BlockHash}, Block={block.HashBlock}. Reorg detected.");
+					}
+				}
+
+				return false;
+
+				bool MarkReorg(string message)
+				{
+					Logger.LogInfo(message);
+					ClearPendingStateNoLock();
+					return true;
+				}
+			}
+		}
+
+		private void ClearPendingStateNoLock()
+		{
+			// Clear all pending header ranges
+			_headerTracker.ClearAllPending();
+
+			// Clear all pending filter ranges
+			_filterTracker.ClearAllPending();
+
+			Logger.LogDebug("Cleared all pending filter header and filter assignments due to reorg");
+		}
+
 		private void TryMakeNextFilterRangeReadyNoLock()
 		{
 			var lastQueuedHeight = _filterTracker.LastHeight;
@@ -855,6 +919,14 @@ public class CompactFilterBehavior(
 				.OrderBy(kvp => kvp.Value)
 				.Select(kvp => (uint?) kvp.Key)
 				.FirstOrDefault();
+		}
+
+		/// <summary>
+		/// Clears all pending assignments. Used when a reorg is detected.
+		/// </summary>
+		public void ClearAllPending()
+		{
+			_pendingResponses.Clear();
 		}
 	}
 

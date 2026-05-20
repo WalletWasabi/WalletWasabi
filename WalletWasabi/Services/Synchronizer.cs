@@ -38,7 +38,7 @@ public static class FilterProviders
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, blockHeaderChain, fromHash, fromHeight, cancellationToken);
 
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
-		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, cancellationToken);
+		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
@@ -119,11 +119,11 @@ public static class FilterProviders
 		ConcurrentChain blockHeadersChain,
 		CompactFilterBehavior.FilterSynchronizationState synchronizationState,
 		uint fromHeight,
+		uint256 fromHash,
 		CancellationToken cancellationToken)
 	{
 		try
 		{
-			// Wait until the filter headers chain is synchronized ahead of our current position.
 			var filterHeadersTip = filterHeadersChain.Tip;
 			if (filterHeadersTip is null)
 			{
@@ -136,6 +136,12 @@ public static class FilterProviders
 				// Filter headers not yet synced past our position; wait and retry.
 				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
+			// Check if a reorg has occurred - filter headers don't match current block chain
+			if (synchronizationState.IsReorg(fromHeight, fromHash))
+			{
+				return BestBlockUnknown;
 			}
 
 			// Check if we're already caught up
