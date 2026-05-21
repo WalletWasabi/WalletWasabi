@@ -73,12 +73,12 @@ public class Global
 		HostedServices = new HostedServices();
 
 		var mempoolService = new MempoolService(EventBus);
-		FilterHeaderChain = new FilterHeaderChain();
+		FilterHeaders = new FilterHeaderChain();
 		var networkWorkFolderPath = Path.Combine(DataDir, "BitcoinStore", Network.ToString());
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
-		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaderChain, EventBus);
+		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
@@ -96,7 +96,7 @@ public class Global
 			Config.Network,
 			FilterStore,
 			TransactionStore,
-			FilterHeaderChain,
+			FilterHeaders,
 			mempoolService,
 			Config.ServiceConfiguration,
 			blockProvider,
@@ -125,7 +125,7 @@ public class Global
 	public string DataDir { get; }
 	public TorSettings TorSettings { get; }
 
-	public FilterHeaderChain FilterHeaderChain { get; }
+	public FilterHeaderChain FilterHeaders { get; }
 	public FilterStore FilterStore { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
@@ -171,7 +171,7 @@ public class Global
 		}
 
 		var p2PDataDir = GetBitcoinP2pNetworkDirectory();
-		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaders, FilterHeaderChain, EventBus);
+		var chainBehavior = new BlockHeadersChainBehavior(_blockHeaders, FilterHeaders, EventBus);
 		var p2PBehavior = new P2pBehavior(mempoolService);
 
 		var nodesGroup = Network == Network.RegTest
@@ -348,7 +348,7 @@ public class Global
 
 		var filtersProvider = filtersProviderResult.Value;
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaderChain, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
 
 		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
@@ -367,7 +367,7 @@ public class Global
 			if (e.Status.IsOk)
 			{
 				var serverTip = (uint)e.Status.Value.Headers;
-				FilterHeaderChain.SetServerTipHeight(new ChainHeight(serverTip));
+				FilterHeaders.SetServerTipHeight(new ChainHeight(serverTip));
 				EventBus.Publish(new NetworkTipHeightChanged(serverTip));
 			}
 		}).DisposeUsing(_disposables);
