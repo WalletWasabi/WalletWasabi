@@ -154,24 +154,20 @@ public static class FilterProviders
 			Logger.LogDebug($"Requesting filters from height {fromHeight + 1} (filter headers tip: {filterHeadersTip.Height})");
 
 			// Consume filters from the async stream (one page at a time)
-			var filters = new List<FilterModel>();
 			using var timeoutCts = new CancellationTokenSource(TimeSpan.FromSeconds(90));
 			using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, timeoutCts.Token);
 
 			try
 			{
-				await foreach (var filter in synchronizationState.GetNextRangeFiltersAsync(linkedCts.Token).ConfigureAwait(false))
-				{
-					filters.Add(filter);
-				}
+				var filters = await synchronizationState.GetNextRangeFiltersAsync(linkedCts.Token).ConfigureAwait(false);
 
-				if (filters.Count == 0)
+				if (filters.Length == 0)
 				{
 					Logger.LogWarning("Received 0 filters from P2P, retrying in 1 second");
 					return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 				}
 
-				Logger.LogDebug($"Successfully received {filters.Count} filters from P2P (heights {filters[0].Header.Height}-{filters[^1].Header.Height})");
+				Logger.LogDebug($"Successfully received {filters.Length} filters from P2P (heights {filters[0].Header.Height}-{filters[^1].Header.Height})");
 				return NewFiltersAvailable((uint)blockHeadersChain.Tip.Height, filters.ToArray());
 			}
 			catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)

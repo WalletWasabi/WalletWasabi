@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Runtime.CompilerServices;
 using System.Security.Cryptography;
 using System.Threading;
 using System.Threading.Channels;
+using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
@@ -604,23 +604,11 @@ public class CompactFilterBehavior(
 			return header is not null;
 		}
 
-		public async IAsyncEnumerable<FilterModel> GetNextRangeFiltersAsync(
-			[EnumeratorCancellation] CancellationToken cancellationToken)
+		public async Task<FilterModel[]> GetNextRangeFiltersAsync(CancellationToken cancellationToken)
 		{
-			// Read the next range from the channel
 			var filterResponse = await _readyFiltersChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
-
-			Logger.LogDebug(
-				$"Starting to yield {filterResponse.Filters.Length} filters from range {filterResponse.StartHeight}");
-
-			foreach (var filter in filterResponse.Filters)
-			{
-				cancellationToken.ThrowIfCancellationRequested();
-				yield return filter;
-			}
-
-			Logger.LogDebug(
-				$"Filter range {filterResponse.StartHeight} consumed ({filterResponse.Filters.Length} filters)");
+			Logger.LogDebug($"Filter range {filterResponse.StartHeight} consumed ({filterResponse.Filters.Length} filters)");
+			return filterResponse.Filters;
 		}
 
 		internal bool TryAssignFilterRange([NotNullWhen(true)] out RangeRequest? assignment)
