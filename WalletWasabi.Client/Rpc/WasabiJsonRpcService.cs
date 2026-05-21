@@ -44,7 +44,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = Global.FilterHeaderChain.ServerTipHeight;
+		var serverTipHeight = Global.FilterHeaders.ServerTipHeight;
 		return activeWallet.Coins.Where(x => !x.IsSpent()).Select(
 			x => new JsonRpcResult
 			{
@@ -67,7 +67,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		AssertWalletIsLoaded();
-		var serverTipHeight = Global.FilterHeaderChain.ServerTipHeight;
+		var serverTipHeight = Global.FilterHeaders.ServerTipHeight;
 		if (activeWallet.Coins is not { } coinRegistry)
 		{
 			throw new ArgumentException($"{nameof(activeWallet.Coins)} was not {typeof(CoinsRegistry)}.");
@@ -91,7 +91,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public object CreateWallet(string walletName, string password)
 	{
 		var walletGenerator = new WalletGenerator(Global.WalletManager.WalletDirectories.WalletsDir, Global.Network);
-		walletGenerator.TipHeight = Global.FilterHeaderChain.TipHeight;
+		walletGenerator.TipHeight = Global.FilterHeaders.TipHeight;
 		var (keyManager, mnemonic) = walletGenerator.GenerateWallet(walletName, password, mnemonic: null);
 		Global.WalletManager.AddWallet(keyManager);
 		return mnemonic.ToString();
@@ -193,7 +193,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("getstatus", initializable: false)]
 	public JsonRpcResult GetStatus()
 	{
-		var smartHeaderChain = Global.FilterHeaderChain;
+		var smartHeaderChain = Global.FilterHeaders;
 
 		return new JsonRpcResult
 		{

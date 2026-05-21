@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Client;
 using WalletWasabi.Client.Configuration;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
@@ -28,7 +27,7 @@ public class Services : IServices
 
 	private readonly TorSettings _torSettings;
 	private readonly FilterStore _filterStore;
-	private readonly FilterHeaderChain _filterHeaderChain;
+	private readonly FilterHeaderChain _filterHeaders;
 	private readonly AllTransactionStore _transactionStore;
 	private readonly IHttpClientFactory _httpClientFactory;
 	private readonly TransactionBroadcaster _transactionBroadcaster;
@@ -41,7 +40,7 @@ public class Services : IServices
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
 		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
-		Guard.NotNull(nameof(global.FilterHeaderChain), global.FilterHeaderChain);
+		Guard.NotNull(nameof(global.FilterHeaders), global.FilterHeaders);
 		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
 		Guard.NotNull(nameof(global.ExternalSourcesHttpClientFactory), global.ExternalSourcesHttpClientFactory);
 		Guard.NotNull(nameof(global.Config), global.Config);
@@ -53,7 +52,7 @@ public class Services : IServices
 
 		_torSettings = global.TorSettings;
 		_filterStore = global.FilterStore;
-		_filterHeaderChain = global.FilterHeaderChain;
+		_filterHeaders = global.FilterHeaders;
 		_transactionStore = global.TransactionStore;
 		_httpClientFactory = global.ExternalSourcesHttpClientFactory;
 		_transactionBroadcaster = global.TransactionBroadcaster;
@@ -79,10 +78,10 @@ public class Services : IServices
 	public Client.Scheme Scheme { get; }
 
 	// Chain info
-	public uint GetTipHeight() => _filterHeaderChain.TipHeight;
-	public uint GetServerTipHeight() => _filterHeaderChain.ServerTipHeight;
-	public int GetHashesLeft() => _filterHeaderChain.HashesLeft;
-	public SmartHeader? GetTip() => _filterHeaderChain.Tip;
+	public uint GetTipHeight() => _filterHeaders.TipHeight;
+	public uint GetServerTipHeight() => _filterHeaders.ServerTipHeight;
+	public int GetHashesLeft() => _filterHeaders.HashesLeft;
+	public SmartHeader? GetTip() => _filterHeaders.Tip;
 
 	// Filters info
 	public uint? GetMinimumBlockHeight() => _filterStore.GetMinimumBlockHeight();
