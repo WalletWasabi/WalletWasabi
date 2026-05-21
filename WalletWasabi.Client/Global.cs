@@ -394,7 +394,7 @@ public class Global
 				_ =>
 				{
 					var tip = FilterStore.GetTip()!.Header;
-					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
+					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
 					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
