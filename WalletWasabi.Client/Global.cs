@@ -637,7 +637,7 @@ public class Global
 		if (!_disposeRequested)
 		{
 			_disposeRequested = true;
-			_stoppingCts.Cancel();
+			await _stoppingCts.CancelAsync().ConfigureAwait(false);
 		}
 		else
 		{
