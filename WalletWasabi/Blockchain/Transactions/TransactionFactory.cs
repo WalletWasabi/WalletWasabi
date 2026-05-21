@@ -74,8 +74,8 @@ public class TransactionFactory
 		}
 
 		List<SmartCoin> allowedSmartCoinInputs = parameters.AllowUnconfirmed // Inputs that can be used to build the transaction.
-				? availableCoinsView.ToList()
-				: availableCoinsView.Confirmed().ToList();
+			? availableCoinsView.ToList()
+			: availableCoinsView.Confirmed().ToList();
 		if (parameters.AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
 			if (!parameters.AllowedInputs.Any())
@@ -323,10 +323,13 @@ public class TransactionFactory
 		{
 			Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
 
+			var masterFingerprint = KeyManager.MasterFingerprint
+				?? throw new ArgumentNullException(nameof(KeyManager.MasterFingerprint));
+
 			psbt = payjoinClient.RequestPayjoin(
 				psbt,
 				KeyManager.SegwitExtPubKey,
-				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.SegwitAccountKeyPath),
+				new RootedKeyPath(masterFingerprint, KeyManager.SegwitAccountKeyPath),
 				changeHdPubKey,
 				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 			builder.SignPSBT(psbt);
