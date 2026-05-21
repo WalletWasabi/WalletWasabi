@@ -159,7 +159,7 @@ public static class FilterProviders
 
 			try
 			{
-				var filters = await synchronizationState.GetNextRangeFiltersAsync(linkedCts.Token).ConfigureAwait(false);
+				var filters = await synchronizationState.GetNextFilterBatchAsync(linkedCts.Token).ConfigureAwait(false);
 
 				if (filters.Length == 0)
 				{

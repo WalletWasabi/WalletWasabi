@@ -604,7 +604,7 @@ public class CompactFilterBehavior(
 			return header is not null;
 		}
 
-		public async Task<FilterModel[]> GetNextRangeFiltersAsync(CancellationToken cancellationToken)
+		public async Task<FilterModel[]> GetNextFilterBatchAsync(CancellationToken cancellationToken)
 		{
 			var filterResponse = await _readyFiltersChannel.Reader.ReadAsync(cancellationToken).ConfigureAwait(false);
 			Logger.LogDebug($"Filter range {filterResponse.StartHeight} consumed ({filterResponse.Filters.Length} filters)");
