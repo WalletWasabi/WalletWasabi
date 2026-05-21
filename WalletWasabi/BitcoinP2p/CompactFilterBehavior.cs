@@ -409,16 +409,15 @@ public class CompactFilterBehavior(
 
 		private readonly Channel<FilterResponse> _readyFiltersChannel;
 
-		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain,
-			TimeProvider? timeProvider = null)
+		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, TimeProvider? timeProvider = null)
 		{
 			_blockHeaderChain = blockHeaderChain;
 			_filterHeaderChain = filterHeaderChain;
 			_timeProvider = timeProvider ?? TimeProvider.System;
 
 			var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
-			_headerTracker = new RequestTracker<HeaderResponse>(initialHeaderHeight, _timeProvider);
-			_filterTracker = new RequestTracker<FilterResponse>(0, _timeProvider);
+			_headerTracker = new RequestTracker<HeaderResponse>(_timeProvider, initialHeaderHeight);
+			_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, 0);
 
 			_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
 		}
@@ -427,7 +426,7 @@ public class CompactFilterBehavior(
 			ChainHeight tipHeight, TimeProvider? timeProvider = null)
 			: this(blockHeaders, filterHeaders, timeProvider)
 		{
-			_filterTracker = new RequestTracker<FilterResponse>(tipHeight, _timeProvider);
+			_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
 		}
 
 		internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
@@ -804,9 +803,9 @@ public class CompactFilterBehavior(
 		}
 	}
 
-	class RequestTracker<TProcessedResponse>(uint initialHeight = 0, TimeProvider? timeProvider = null) where TProcessedResponse : Response
+	class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint initialHeight = 0) where TProcessedResponse : Response
 	{
-		private readonly TimeProvider _timeProvider = timeProvider ?? TimeProvider.System;
+		private readonly TimeProvider _timeProvider = timeProvider;
 		private readonly SortedDictionary<uint, TProcessedResponse> _pendingResponses = [];
 		private readonly SortedDictionary<uint, DateTime> _activeAssignments = [];
 
