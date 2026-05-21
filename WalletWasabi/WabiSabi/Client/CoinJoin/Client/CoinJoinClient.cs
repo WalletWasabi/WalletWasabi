@@ -247,8 +247,8 @@ public class CoinJoinClient
 
 		try
 		{
-			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
-			IEnumerable<TxOut> outputTxOuts = Enumerable.Empty<TxOut>();
+			ImmutableArray<AliceClient> aliceClientsThatSigned = [];
+			IEnumerable<TxOut> outputTxOuts = [];
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
@@ -547,6 +547,7 @@ public class CoinJoinClient
 		var successfulAlices = aliceClients
 			.Select(x => x.Result)
 			.Where(r => r is not null)
+			.Cast<AliceClient>()
 			.ToImmutableArray();
 
 		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
