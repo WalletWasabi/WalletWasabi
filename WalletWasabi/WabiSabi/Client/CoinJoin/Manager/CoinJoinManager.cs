@@ -125,6 +125,7 @@ public class CoinJoinManager : BackgroundService
 	{
 		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, cancellationToken);
 
+		// TODO: Use Workers.EventDriven once we get state ready for it.
 		while (!cancellationToken.IsCancellationRequested)
 		{
 			try
