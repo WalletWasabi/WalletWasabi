@@ -40,6 +40,34 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
+	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+	ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	{
+		if (blockHeaderChain.Tip?.Height > fromHeight)
+		{
+			return blockHeaderChain
+				.EnumerateAfter(fromHash)
+				.Select(x => x.HashBlock)
+				.Take(1_000)
+				.ToArray();
+		}
+
+		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+		if (nbOfFiltersToFetch == 0)
+		{
+			return [];
+		}
+
+		var heights = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
+		var batchClient = bitcoinRpcClient.PrepareBatch();
+		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
+
+		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+		return blockHashes;
+	}
+
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		try
@@ -84,34 +112,6 @@ public static class FilterProviders
 			Logger.LogError($"{msg} - {e.Message}. Retrying in 15 seconds...");
 			return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
 		}
-	}
-
-	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
-		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
-	{
-		if (blockHeaderChain.Tip?.Height > fromHeight)
-		{
-			return blockHeaderChain
-				.EnumerateAfter(fromHash)
-				.Select(x => x.HashBlock)
-				.Take(1_000)
-				.ToArray();
-		}
-
-		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
-		if (nbOfFiltersToFetch == 0)
-		{
-			return [];
-		}
-
-		var heights = Enumerable.Range((int) fromHeight + 1, (int) nbOfFiltersToFetch).ToArray();
-		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
-		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		return blockHashes;
 	}
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinP2pAsync(
