@@ -247,8 +247,8 @@ public class CoinJoinClient
 
 		try
 		{
-			ImmutableArray<AliceClient> aliceClientsThatSigned = ImmutableArray<AliceClient>.Empty;
-			IEnumerable<TxOut> outputTxOuts = Enumerable.Empty<TxOut>();
+			ImmutableArray<AliceClient> aliceClientsThatSigned = [];
+			IEnumerable<TxOut> outputTxOuts = [];
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
