@@ -12,7 +12,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -248,11 +247,11 @@ public class TransactionFactory
 			builder.SignPSBT(psbt);
 
 			// Try to pay using payjoin
-			if (payjoinClient is not null)
+			if (payjoinClient is not null && KeyManager.MasterFingerprint is { } masterFingerprint)
 			{
 #pragma warning disable CS8604 // Possible null reference argument.
 				// changeHdPubKey is never null
-				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, masterFingerprint, changeHdPubKey);
 #pragma warning restore CS8604 // Possible null reference argument.
 				psbt.AddKeyPaths(KeyManager);
 				psbt.AddPrevTxs(_transactionStore);
@@ -317,14 +316,16 @@ public class TransactionFactory
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
-	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilderWithSilentPaymentSupport builder, PSBT psbt, HdPubKey changeHdPubKey)
+	private PSBT TryNegotiatePayjoin(
+		IPayjoinClient payjoinClient,
+		TransactionBuilderWithSilentPaymentSupport builder,
+		PSBT psbt,
+		HDFingerprint masterFingerprint,
+		HdPubKey changeHdPubKey)
 	{
 		try
 		{
 			Logger.LogInfo($"Negotiating payjoin payment with `{payjoinClient.PaymentUrl}`.");
-
-			var masterFingerprint = KeyManager.MasterFingerprint
-				?? throw new ArgumentNullException(nameof(KeyManager.MasterFingerprint));
 
 			psbt = payjoinClient.RequestPayjoin(
 				psbt,
