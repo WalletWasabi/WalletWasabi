@@ -96,22 +96,31 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 		new("MempoolSpace", ("https://mempool.space/signet", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion/signet"), "/api/tx")
 	];
 
-	public ExternalTransactionBroadcaster(string providerName, Network network, IHttpClientFactory httpClientFactory)
+	/// <summary>Gets the sorted list of external transaction broadcasters with the preferred provider first.</summary>
+	public static ExternalBroadcasterInfo[] GetSortedBroadcasters(string mainProviderName, Network network)
 	{
-		if (network == Network.Main)
+		var providers = network switch
 		{
-			Broadcaster = Providers.FirstOrDefault(x => x.Name.Equals(providerName, StringComparison.InvariantCultureIgnoreCase))
-				?? throw new NotSupportedException($"Transaction broadcaster '{providerName}' is not supported");
-		}
-		else if (network == Bitcoin.Instance.Signet)
+			var n when n == Network.Main => Providers,
+			var n when n == Network.TestNet => TestNet4Providers,
+			var n when n == Bitcoin.Instance.Signet => SignetProviders,
+			_ => throw new NotSupportedException($"Network '{network}' is not supported."),
+		};
+
+		if (!providers.Any(x => x.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase)))
 		{
-			Broadcaster = SignetProviders.First();
-		}
-		else
-		{
-			Broadcaster = TestNet4Providers.First();
+			throw new NotSupportedException($"Transaction broadcaster '{mainProviderName}' is not supported");
 		}
 
+		// The main provider will be the first one in the list, so it will be tried first.
+		return providers
+			.OrderBy(p => p.Name.Equals(mainProviderName, StringComparison.InvariantCultureIgnoreCase) ? 0 : 1)
+			.ToArray();
+	}
+
+	public ExternalTransactionBroadcaster(ExternalBroadcasterInfo broadcaster, IHttpClientFactory httpClientFactory)
+	{
+		Broadcaster = broadcaster;
 		HttpClientFactory = httpClientFactory;
 		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 	}
