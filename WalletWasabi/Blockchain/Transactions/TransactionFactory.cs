@@ -12,7 +12,6 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -74,8 +73,8 @@ public class TransactionFactory
 		}
 
 		List<SmartCoin> allowedSmartCoinInputs = parameters.AllowUnconfirmed // Inputs that can be used to build the transaction.
-				? availableCoinsView.ToList()
-				: availableCoinsView.Confirmed().ToList();
+			? availableCoinsView.ToList()
+			: availableCoinsView.Confirmed().ToList();
 		if (parameters.AllowedInputs is not null) // If allowedInputs are specified then select the coins from them.
 		{
 			if (!parameters.AllowedInputs.Any())
@@ -248,11 +247,11 @@ public class TransactionFactory
 			builder.SignPSBT(psbt);
 
 			// Try to pay using payjoin
-			if (payjoinClient is not null)
+			if (payjoinClient is not null && KeyManager.MasterFingerprint is { } masterFingerprint)
 			{
 #pragma warning disable CS8604 // Possible null reference argument.
 				// changeHdPubKey is never null
-				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, changeHdPubKey);
+				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, masterFingerprint, changeHdPubKey);
 #pragma warning restore CS8604 // Possible null reference argument.
 				psbt.AddKeyPaths(KeyManager);
 				psbt.AddPrevTxs(_transactionStore);
@@ -317,7 +316,12 @@ public class TransactionFactory
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
 	}
 
-	private PSBT TryNegotiatePayjoin(IPayjoinClient payjoinClient, TransactionBuilderWithSilentPaymentSupport builder, PSBT psbt, HdPubKey changeHdPubKey)
+	private PSBT TryNegotiatePayjoin(
+		IPayjoinClient payjoinClient,
+		TransactionBuilderWithSilentPaymentSupport builder,
+		PSBT psbt,
+		HDFingerprint masterFingerprint,
+		HdPubKey changeHdPubKey)
 	{
 		try
 		{
@@ -326,7 +330,7 @@ public class TransactionFactory
 			psbt = payjoinClient.RequestPayjoin(
 				psbt,
 				KeyManager.SegwitExtPubKey,
-				new RootedKeyPath(KeyManager.MasterFingerprint.Value, KeyManager.SegwitAccountKeyPath),
+				new RootedKeyPath(masterFingerprint, KeyManager.SegwitAccountKeyPath),
 				changeHdPubKey,
 				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 			builder.SignPSBT(psbt);
