@@ -44,7 +44,7 @@ public class CoinJoinManager : BackgroundService
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
 		_serverTipHeightChangeSubscription = eventBus.Subscribe<NetworkTipHeightChanged>(h => _serverTipHeight = h.Height);
-		_mailboxProcessor = new MailboxProcessor<CoinJoinCommand>(HandleCoinJoinCommandsAsync, _stopCts.Token);
+		_mailboxProcessor = new MailboxProcessor<CoinJoinCommand>(HandleCoinJoinCommandsAsync, null, _stopCts.Token);
 	}
 
 	public event EventHandler<StatusChangedEventArgs>? StatusChanged;

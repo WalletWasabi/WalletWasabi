@@ -1,4 +1,5 @@
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -8,14 +9,17 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Services;
 
 // A typed message queue for asynchronous message processing.
-public class Mailbox<TMsg>
+public class Mailbox<TMsg>(Comparer<TMsg>? comparer)
 {
-	private readonly Channel<TMsg> _channel = Channel.CreateUnbounded<TMsg>(
-		new UnboundedChannelOptions
-		{
+	private readonly Channel<TMsg> _channel = comparer is not null
+		? Channel.CreateUnboundedPrioritized(new UnboundedPrioritizedChannelOptions<TMsg> {
+			Comparer = comparer,
+			SingleReader = true,
+			AllowSynchronousContinuations = true})
+		: Channel.CreateUnbounded<TMsg>(new UnboundedChannelOptions {
 			SingleReader = true,
 			SingleWriter = false,
-			AllowSynchronousContinuations = false
+			AllowSynchronousContinuations = true
 		});
 
 	// Posts a message to the mailbox.
@@ -37,9 +41,10 @@ public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken canc
 
 public sealed class MailboxProcessor<TMsg>(
 	Process<TMsg> body,
+	Comparer<TMsg>? comparer = null,
 	CancellationToken? cancellationToken = null) : IDisposable
 {
-	private readonly Mailbox<TMsg> _mailbox = new();
+	private readonly Mailbox<TMsg> _mailbox = new(comparer);
 
 	private readonly Process<TMsg> _body =
 		body ?? throw new ArgumentNullException(nameof(body));
@@ -144,7 +149,7 @@ public static class Workers
 {
 	private static readonly ConcurrentDictionary<string, object> Processors = new();
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, Comparer<TMsg>? comparer = null, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
@@ -154,7 +159,7 @@ public static class Workers
 			throw new ArgumentException($"A worker named '{name}' already exists.", nameof(name));
 		}
 
-		var processor = new MailboxProcessor<TMsg>(body, cancellationToken);
+		var processor = new MailboxProcessor<TMsg>(body, comparer, cancellationToken);
 		processor.Start();
 		Processors[name] = processor;
 		return processor;

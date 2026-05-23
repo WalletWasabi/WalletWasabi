@@ -1,3 +1,4 @@
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -5,19 +6,20 @@ using NBitcoin.Protocol;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Services.NodesManagement;
 
 namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	public P2PNodesManager(Network network, NodesGroup nodes)
+	public P2PNodesManager(Network network, NodeConnectionManager nodes)
 	{
 		_network = network;
 		_nodes = nodes;
 	}
 
 	private readonly Network _network;
-	private readonly NodesGroup _nodes;
+	private readonly NodeConnectionManager  _nodes;
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
 
@@ -25,13 +27,14 @@ public class P2PNodesManager
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			if (_nodes.ConnectedNodes.Count == 0)
+			if (_nodes.Count == 0)
 			{
 				await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
 				continue;
 			}
 
-			var node = _nodes.ConnectedNodes.RandomElement(SecureRandom.Instance);
+			var nodes = _nodes.Nodes.ToArray();
+			var node = nodes.RandomElement(SecureRandom.Instance);
 
 			if (node is not null && node.IsConnected)
 			{
@@ -48,7 +51,7 @@ public class P2PNodesManager
 
 	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
 	{
-		if (_nodes.ConnectedNodes.Count > 5)
+		if (_nodes.Count > 5)
 		{
 			DisconnectNode(node, reason);
 		}
@@ -63,7 +66,7 @@ public class P2PNodesManager
 	public double GetCurrentTimeout()
 	{
 		// More permissive timeout if few nodes are connected to avoid exhaustion.
-		return _nodes.ConnectedNodes.Count < 3
+		return _nodes.Count < 3
 			? Math.Min(_currentTimeoutSeconds * 1.5, 600)
 			: _currentTimeoutSeconds;
 	}

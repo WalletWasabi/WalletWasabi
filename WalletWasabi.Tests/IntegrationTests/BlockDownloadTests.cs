@@ -1,13 +1,11 @@
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Client.Configuration;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
+using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Wallets;
 using Xunit;
 
@@ -33,23 +31,12 @@ public class BlockDownloadTests
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(10));
 
-		string addressManagerFilePath = Path.Combine(Config.DataDir, "BitcoinP2pNetwork", $"AddressManager{Network.Main}.dat");
-		AddressManager addressManager = AddressManager.LoadPeerFile(addressManagerFilePath);
-		AddressManagerBehavior addressManagerBehavior = new(addressManager)
-		{
-			Mode = AddressManagerBehaviorMode.Discover
-		};
-
-		using NodesGroup nodes = new(Network.Main);
-		nodes.NodeConnectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-		nodes.Connect();
-
-		while (nodes.ConnectedNodes.Count == 0)
-		{
-			await Task.Delay(1000, testCts.Token);
-		}
-
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodes));
+		using var discoveryService = new NodeDiscoveryService(Network.Main);
+		Task.Run(async () => await discoveryService.StartAsync(testCts.Token));
+		var connectionsManager = new NodeConnectionManager(discoveryService, [], new EventBus());
+		await Task.Delay(TimeSpan.FromSeconds(5));
+		await connectionsManager.ReevaluateConnectionsAsync(testCts.Token);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, connectionsManager));
 
 		Stopwatch stopwatch = Stopwatch.StartNew();
 		var tasks = new List<Task<Block?>>();

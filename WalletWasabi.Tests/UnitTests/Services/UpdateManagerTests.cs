@@ -188,5 +188,5 @@ public class RoundStateUpdaterForTesting
 	public static MailboxProcessor<RoundUpdateMessage> Create(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken = null) =>
 		Spawn($"RoundStateUpdater-{Random.Shared.Next()}", EventDriven(
 			new RoundsState(DateTime.UtcNow, TimeSpan.FromSeconds(0), new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
-			RoundStateUpdater.Create(api)), cancellationToken);
+			RoundStateUpdater.Create(api)), cancellationToken: cancellationToken);
 }

@@ -210,13 +210,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["filtersLeft"] = smartHeaderChain.HashesLeft,
 			["network"] = Global.Network.Name,
 			["exchangeRate"] = Global.Status.UsdExchangeRate,
-			["peers"] = Global.NodesGroup.ConnectedNodes.Select(
+			["peers"] = Global.GetNodes().Select(
 				x => new JsonRpcResult
 				{
 					["isConnected"] = x.IsConnected,
 					["lastSeen"] = x.LastSeen,
-					["endpoint"] = x.Peer.Endpoint.ToString(),
-					["userAgent"] = x.PeerVersion.UserAgent,
+					["endpoint"] = x.Peer?.Endpoint?.ToString() ?? x.RemoteSocketEndpoint?.ToString() ?? "unknown",
+					["userAgent"] = x.PeerVersion?.UserAgent ?? "unknown",
 				}).ToArray(),
 		};
 	}
