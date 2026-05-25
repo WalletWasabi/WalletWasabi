@@ -41,8 +41,19 @@ public static class CpfpInfoUpdater
 {
 	private delegate Task<Result<CpfpInfo,string>> CpfpInfoGetter(SmartTransaction stx);
 
-	public static MessageHandler<CpfpInfoMessage, Unit> CreateForRegTest() =>
-		(_, _, _) => Task.FromResult(Unit.Instance);
+	public static MessageHandler<CpfpInfoMessage, Unit> CreateForRegTest()
+	{
+		return (msg, _, _) =>
+		{
+			// CPFP is not properly supported in RegTest yet.
+			if (msg is CpfpInfoMessage.GetCachedCpfpInfo m)
+			{
+				m.ReplyChannel.Reply([]);
+			}
+
+			return Task.FromResult(Unit.Instance);
+		};
+	}
 
 	public static MessageHandler<CpfpInfoMessage, Unit> Create(
 		IHttpClientFactory httpClientFactory, Network network, EventBus eventBus)
