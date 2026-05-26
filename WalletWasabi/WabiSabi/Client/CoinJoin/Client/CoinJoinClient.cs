@@ -573,15 +573,20 @@ public class CoinJoinClient
 
 	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)
 	{
+		var consolidatedOutputs = expectedOutputs
+			.GroupBy(x => x.ScriptPubKey)
+			.Select(g => new TxOut(g.Sum(x => x.Value), g.Key))
+			.ToList();
+
 		bool AllExpectedScriptsArePresent() =>
 			coinJoinOutputs
 				.Select(x => x.ScriptPubKey)
-				.IsSuperSetOf(expectedOutputs.Select(x => x.ScriptPubKey));
+				.IsSuperSetOf(consolidatedOutputs.Select(x => x.ScriptPubKey));
 
 		bool AllOutputsHaveAtLeastTheExpectedValue() =>
 			coinJoinOutputs
 				.Join(
-					expectedOutputs,
+					consolidatedOutputs,
 					x => x.ScriptPubKey,
 					x => x.ScriptPubKey,
 					(coinjoinOutput, expectedOutput) => coinjoinOutput.Value - expectedOutput.Value)
