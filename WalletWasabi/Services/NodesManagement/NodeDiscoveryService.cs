@@ -365,7 +365,7 @@ public class NodeDiscoveryService : IDisposable
 	public void Dispose()
 	{
 		_coordinator.Dispose();
-		foreach (var crawler in _crawlers ?? [])
+		foreach (var crawler in _crawlers)
 		{
 			crawler.Dispose();
 		}
