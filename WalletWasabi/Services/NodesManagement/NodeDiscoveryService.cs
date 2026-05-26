@@ -279,7 +279,7 @@ public class NodeDiscoveryService : IDisposable
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		timeoutCts.CancelAfter(_harvestTimeout);
 		var token = timeoutCts.Token;
-		await using var _ = token.Register(() => tcs.TrySetCanceled(token));
+		using var _ = token.Register(() => tcs.TrySetCanceled(token));
 
 		node.MessageReceived += OnMessage;
 		try
