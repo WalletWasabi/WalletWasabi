@@ -71,7 +71,7 @@ public static class FeeRateProviders
 				try
 				{
 					var estimations = await provider(cancellationToken).ConfigureAwait(false);
-					if (estimations.Estimations.Any())
+					if (estimations.Estimations.Count != 0)
 					{
 						return estimations;
 					}
