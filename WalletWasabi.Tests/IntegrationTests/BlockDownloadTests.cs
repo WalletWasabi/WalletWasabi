@@ -33,7 +33,7 @@ public class BlockDownloadTests
 
 		using var discoveryService = new NodeDiscoveryService(Network.Main);
 		Task.Run(async () => await discoveryService.StartAsync(testCts.Token));
-		var connectionsManager = new NodeConnectionManager(discoveryService, [], new EventBus());
+		using var connectionsManager = new NodeConnectionManager(discoveryService, [], new EventBus());
 		await Task.Delay(TimeSpan.FromSeconds(5));
 		await connectionsManager.ReevaluateConnectionsAsync(testCts.Token);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, connectionsManager));
