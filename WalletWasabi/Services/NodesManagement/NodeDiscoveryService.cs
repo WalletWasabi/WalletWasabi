@@ -95,7 +95,7 @@ public class NodeDiscoveryService : IDisposable
 	{
 		Logger.LogInfo("Stopping node discovery service.");
 
-		await _cts.CancelAsync();
+		await _cts.CancelAsync().ConfigureAwait(false);
 
 		Logger.LogInfo("Node discovery service stopped.");
 	}
@@ -343,11 +343,11 @@ public class NodeDiscoveryService : IDisposable
 			var dnsQueryResult = await t;
 			if (dnsQueryResult.IsOk)
 			{
-				var endpoinst = dnsQueryResult.Value
+				var endpoints = dnsQueryResult.Value
 					.Select(x => new IPEndPoint(x, _network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
-				NotifyCoordinator(new HarvastedEndpointsMessage(endpoinst));
+				NotifyCoordinator(new HarvastedEndpointsMessage(endpoints));
 			}
 		}
 
