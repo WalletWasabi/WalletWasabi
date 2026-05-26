@@ -338,9 +338,10 @@ public class NodeDiscoveryService : IDisposable
 			.Select(x => x.Host)
 			.Select(GetAddressesFromDnsAsync);
 
-		await foreach (var t in Task.WhenEach(tasks).WithCancellation(cancellationToken))
+		await foreach (var task in Task.WhenEach(tasks).WithCancellation(cancellationToken))
 		{
-			var dnsQueryResult = await t;
+			var dnsQueryResult = await task.ConfigureAwait(false);
+
 			if (dnsQueryResult.IsOk)
 			{
 				var endpoints = dnsQueryResult.Value
