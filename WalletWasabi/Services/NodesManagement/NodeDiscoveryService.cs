@@ -259,7 +259,6 @@ public class NodeDiscoveryService : IDisposable
 
 			NotifyCoordinator(new PeerDiscoveredMessage(peer));
 
-			// Harvest addresses
 			await HarvestAddressesAsync(node, timeoutCts.Token).ConfigureAwait(false);
 		}
 		catch
