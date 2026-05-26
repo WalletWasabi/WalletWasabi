@@ -128,7 +128,7 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, bool stopWhenAllMixed, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, CancellationToken cancellationToken)
 	{
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
