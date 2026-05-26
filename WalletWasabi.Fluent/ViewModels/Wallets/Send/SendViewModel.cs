@@ -46,6 +46,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly Wallet _wallet;
 	private readonly IWalletModel _walletModel;
 	private readonly SendFlowModel _parameters;
+	private readonly ShowQrCodeCameraDialog _showQrCodeCameraDialog;
 	private readonly CoinJoinManager? _coinJoinManager;
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
@@ -73,13 +74,14 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ObservableCollection<RecipientRowViewModel> _additionalRecipients;
 	private bool _isRecalculating;
 
-	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters) : base(uiContext)
+	public SendViewModel(UiContext uiContext, IWalletModel walletModel, SendFlowModel parameters, ShowQrCodeCameraDialog showQrCodeCameraDialog) : base(uiContext)
 	{
 		_to = "";
 
 		_wallet = parameters.Wallet;
 		_walletModel = walletModel;
 		_parameters = parameters;
+		_showQrCodeCameraDialog = showQrCodeCameraDialog;
 		_coinJoinManager = UiContext.Services.GetHostedService<CoinJoinManager>();
 
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
@@ -136,7 +138,7 @@ public partial class SendViewModel : RoutableViewModel
 			IsPrimarySubtractFee = true;
 			RecalculateMaxAmount();
 		});
-		QrCommand = ReactiveCommand.Create(ShowQrCameraAsync);
+		QrCommand = ReactiveCommand.Create(ShowQrCameraDialogAsync);
 
 		var canAddRecipient = this.WhenAnyValue(x => x.IsBip21)
 			.Select(isBip21 => !isBip21);
@@ -306,7 +308,7 @@ public partial class SendViewModel : RoutableViewModel
 				r.IsSubtractFee = true;
 				RecalculateMaxAmount();
 			},
-			scanQrCodeAsync: async () => await Navigate().To().ShowQrCameraDialog(_walletModel.Network).GetResultAsync(),
+			scanQrCodeAsync: async () => await _showQrCodeCameraDialog(this, _walletModel.Network),
 			isQrButtonVisible: IsQrButtonVisible,
 			isRecalculating: () => _isRecalculating);
 
@@ -461,12 +463,13 @@ public partial class SendViewModel : RoutableViewModel
 		return null;
 	}
 
-	private async Task ShowQrCameraAsync()
+	private async Task ShowQrCameraDialogAsync()
 	{
-		var result = await Navigate().To().ShowQrCameraDialog(_walletModel.Network).GetResultAsync();
-		if (!string.IsNullOrWhiteSpace(result))
+		var textContent = await _showQrCodeCameraDialog(this, _walletModel.Network);
+
+		if (!string.IsNullOrWhiteSpace(textContent))
 		{
-			To = result;
+			To = textContent;
 		}
 	}
 

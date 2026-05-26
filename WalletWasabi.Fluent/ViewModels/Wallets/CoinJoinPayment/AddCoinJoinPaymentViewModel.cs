@@ -19,6 +19,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 {
 	private readonly Wallet _wallet;
+	private readonly ShowQrCodeCameraDialog _showQrCodeCameraDialog;
 	private readonly IWalletModel _walletModel;
 	private Address? _parsedAddress;
 
@@ -27,9 +28,10 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 	[AutoNotify] private decimal _exchangeRate;
 	[AutoNotify] private bool _conversionReversed;
 
-	public AddCoinJoinPaymentViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet) : base(uiContext)
+	public AddCoinJoinPaymentViewModel(UiContext uiContext, IWalletModel walletModel, Wallet wallet, ShowQrCodeCameraDialog showQrCodeCameraDialog) : base(uiContext)
 	{
 		_wallet = wallet;
+		_showQrCodeCameraDialog = showQrCodeCameraDialog;
 		_walletModel = walletModel;
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
@@ -54,7 +56,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 		AutoPasteCommand = ReactiveCommand.CreateFromTask(OnAutoPasteAsync);
-		QrCommand = ReactiveCommand.Create(ShowQrCameraAsync);
+		QrCommand = ReactiveCommand.Create(ShowQrCameraDialogAsync);
 	}
 
 	public bool IsQrButtonVisible => UiContext.QrCodeReader.IsPlatformSupported;
@@ -79,12 +81,13 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 	}
 
-	private async Task ShowQrCameraAsync()
+	private async Task ShowQrCameraDialogAsync()
 	{
-		var result = await Navigate().To().ShowQrCameraDialog(_walletModel.Network).GetResultAsync();
-		if (!string.IsNullOrWhiteSpace(result))
+		var textContext = await _showQrCodeCameraDialog(this, _walletModel.Network);
+
+		if (!string.IsNullOrWhiteSpace(textContext))
 		{
-			To = result;
+			To = textContext;
 		}
 	}
 

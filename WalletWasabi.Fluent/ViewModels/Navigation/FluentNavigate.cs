@@ -30,8 +30,11 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Wallets;
+using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
+
+public delegate Task<string?> ShowQrCodeCameraDialog(RoutableViewModel routableViewModel, Network network);
 
 public partial class FluentNavigate
 {
@@ -41,6 +44,12 @@ public partial class FluentNavigate
 	}
 
 	public UiContext UiContext { get; }
+
+	private async Task<string?> ShowQrCodeCameraDialogAsync(RoutableViewModel routableViewModel, Network network)
+	{
+		return await routableViewModel.Navigate().To().ShowQrCameraDialog(network).GetResultAsync();
+	}
+
 	public FluentDialog<string?> ShowQrCameraDialog(Network network, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialog = new ShowQrCameraDialogViewModel(UiContext, network);
@@ -340,7 +349,8 @@ public partial class FluentNavigate
 
 	public void AddCoinJoinPayment(IWalletModel walletModel, Wallet wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new AddCoinJoinPaymentViewModel(UiContext, walletModel, wallet), navigationMode);
+		var viewModel = new AddCoinJoinPaymentViewModel(UiContext, walletModel, wallet, ShowQrCodeCameraDialogAsync);
+		UiContext.Navigate(navigationTarget).To(viewModel, navigationMode);
 	}
 
 	public void MultiShare(WalletCreationOptions.AddNewWallet options, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
@@ -393,7 +403,8 @@ public partial class FluentNavigate
 
 	public void Send(IWalletModel walletModel, SendFlowModel parameters, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new SendViewModel(UiContext, walletModel, parameters), navigationMode);
+		var viewModel = new SendViewModel(UiContext, walletModel, parameters, ShowQrCodeCameraDialogAsync);
+		UiContext.Navigate(navigationTarget).To(viewModel, navigationMode);
 	}
 
 	public void PrivacyMode(ApplicationSettings applicationSettings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
