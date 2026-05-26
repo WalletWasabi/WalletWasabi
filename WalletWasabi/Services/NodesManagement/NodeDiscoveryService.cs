@@ -364,13 +364,14 @@ public class NodeDiscoveryService : IDisposable
 
 	public void Dispose()
 	{
+		_cts.Cancel();
+
 		_coordinator.Dispose();
 		foreach (var crawler in _crawlers)
 		{
 			crawler.Dispose();
 		}
 
-		_cts.Cancel();
 		_cts.Dispose();
 	}
 }
