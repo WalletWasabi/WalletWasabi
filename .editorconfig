@@ -231,6 +231,10 @@ dotnet_naming_style.T_pascal_case_style.capitalization = pascal_case
 # IDE0004: Remove Unnecessary Cast
 dotnet_diagnostic.IDE0004.severity = warning
 
+# IDE0007: Use var instead of explicit type
+csharp_style_var_when_type_is_apparent = true
+csharp_style_var_elsewhere = true
+
 # IDE0019: Use pattern matching
 csharp_style_pattern_matching_over_as_with_null_check = true:warning
 
