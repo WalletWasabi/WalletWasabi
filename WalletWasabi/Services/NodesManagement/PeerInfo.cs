@@ -23,7 +23,7 @@ public sealed record PeerInfo
 	public bool SupportsBlocksLimited => Services.HasFlag(NodeServices.NODE_NETWORK_LIMITED);
 
 	private bool IsOnion => Endpoint is DnsEndPoint dns &&
-	                        dns.Host.EndsWith(".onion", StringComparison.OrdinalIgnoreCase);
+		dns.Host.EndsWith(".onion", StringComparison.OrdinalIgnoreCase);
 
 	public double ComputeScore()
 	{
