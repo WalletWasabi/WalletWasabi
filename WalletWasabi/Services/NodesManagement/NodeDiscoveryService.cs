@@ -76,12 +76,12 @@ public class NodeDiscoveryService : IDisposable
 		MailboxProcessor<CrawlerMessage> ProbeWorkerAsync(string workerName, CancellationToken cancellationToken) =>
 			Spawn(workerName, EventDriven<CrawlerMessage, TimeSpan>(TimeSpan.Zero, ProbeAsync),
 				comparer: _crawlerMessagePriority,
-				cancellationToken: cancellationToken);
+				cancellationToken);
 
 		MailboxProcessor<CoordinatorMessage> Coordinator(CancellationToken cancellationToken) =>
 			Spawn("crawler-coordinator",
 				EventDriven<CoordinatorMessage, CrawlingState>(new CrawlingState([], 0), BalanceCrawlingAsync),
-				cancellationToken: cancellationToken);
+				cancellationToken);
 	}
 
 	public async Task StartAsync(CancellationToken cancellationToken)

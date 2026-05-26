@@ -312,7 +312,7 @@ public class Global
 				Periodically(
 					TimeSpan.FromMinutes(15),
 					FeeRateEstimations.Empty,
-					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))), cancellationToken: cancellationToken);
+					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))), cancellationToken);
 		feeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
 	}
@@ -324,7 +324,7 @@ public class Global
 				Periodically(
 					TimeSpan.FromSeconds(7),
 					Unit.Instance,
-					RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken: cancellationToken);
+					RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
 		rpcMonitor.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
 	}
@@ -363,7 +363,7 @@ public class Global
 		var (pause, resume, serviceLoop) =
 			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
 
-		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken: cancellationToken)
+		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
 
 		EventBus.Subscribe<RpcStatusChanged>(e =>
@@ -407,7 +407,7 @@ public class Global
 					Periodically(
 						TimeSpan.FromMinutes(20),
 						0m,
-						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken: cancellationToken);
+						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeFeeRateUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
 	}
@@ -435,7 +435,7 @@ public class Global
 				Periodically(
 					TimeSpan.FromHours(12),
 					Unit.Instance,
-					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))), cancellationToken: cancellationToken);
+					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))), cancellationToken);
 		wasabiVersionUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
 	}

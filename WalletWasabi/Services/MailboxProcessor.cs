@@ -149,7 +149,10 @@ public static class Workers
 {
 	private static readonly ConcurrentDictionary<string, object> Processors = new();
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, Comparer<TMsg>? comparer = null, CancellationToken? cancellationToken = null)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
+		=> Spawn(name, body, null, cancellationToken);
+
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, Comparer<TMsg>? comparer, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
