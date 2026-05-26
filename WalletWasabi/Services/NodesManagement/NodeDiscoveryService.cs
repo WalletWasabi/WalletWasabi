@@ -17,7 +17,7 @@ namespace WalletWasabi.Services.NodesManagement;
 public class NodeDiscoveryService : IDisposable
 {
 	abstract record CoordinatorMessage;
-	record HarvastedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
+	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	record PeerFailedMessage(EndPoint Endpoint) : CoordinatorMessage;
 	record PeerQuickDisconnectMessage(EndPoint Endpoint) : CoordinatorMessage;
@@ -122,7 +122,7 @@ public class NodeDiscoveryService : IDisposable
 	{
 		switch (msg)
 		{
-			case HarvastedEndpointsMessage (Endpoints: var endpoints):
+			case HarvestedEndpointsMessage (Endpoints: var endpoints):
 				var n = state.LastCrawlerIndex;
 				foreach (var endPoint in endpoints)
 				{
@@ -286,7 +286,7 @@ public class NodeDiscoveryService : IDisposable
 		{
 			await node.SendMessageAsync(new GetAddrPayload()).ConfigureAwait(false);
 			var harvestedEndpoints = await tcs.Task.ConfigureAwait(false);
-			NotifyCoordinator(new HarvastedEndpointsMessage(harvestedEndpoints));
+			NotifyCoordinator(new HarvestedEndpointsMessage(harvestedEndpoints));
 		}
 		catch (OperationCanceledException) when (token.IsCancellationRequested)
 		{
@@ -348,7 +348,7 @@ public class NodeDiscoveryService : IDisposable
 					.Select(x => new IPEndPoint(x, _network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
-				NotifyCoordinator(new HarvastedEndpointsMessage(endpoints));
+				NotifyCoordinator(new HarvestedEndpointsMessage(endpoints));
 			}
 		}
 
@@ -356,7 +356,7 @@ public class NodeDiscoveryService : IDisposable
 			.Select(x => x.Endpoint)
 			.ToArray();
 
-		NotifyCoordinator(new HarvastedEndpointsMessage(endpointsFromSeedNodes));
+		NotifyCoordinator(new HarvestedEndpointsMessage(endpointsFromSeedNodes));
 	}
 
 	private void NotifyCoordinator(CoordinatorMessage msg) =>
