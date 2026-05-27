@@ -102,7 +102,8 @@ public class Global
 			EventBus,
 			cpfpProvider);
 
-		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
+		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
+		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
 		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);

@@ -8,10 +8,8 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.WabiSabi.Client;
 using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.Wallets;
@@ -23,13 +21,10 @@ public class WalletManager
 
 	public WalletManager(
 		Network network,
-		string workDir,
 		WalletDirectories walletDirectories,
 		WalletFactory createWallet)
 	{
 		Network = network;
-		_workDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
-		Directory.CreateDirectory(_workDir);
 		WalletDirectories = walletDirectories;
 		_createWallet = createWallet;
 		_cancelAllTasksToken = _cancelAllTasks.Token;
@@ -58,7 +53,6 @@ public class WalletManager
 	private readonly WalletFactory _createWallet;
 	public Network Network { get; }
 	public WalletDirectories WalletDirectories { get; }
-	private readonly string _workDir;
 
 	private void LoadWalletListFromFileSystem()
 	{
@@ -178,7 +172,7 @@ public class WalletManager
 			}
 
 			// Throw an exception if the wallet was not added to the WalletManager.
-			_wallets.Single(x => x == wallet);
+			_ = _wallets.Single(x => x == wallet);
 		}
 
 		using (await _startStopWalletLock.LockAsync(_cancelAllTasks.Token).ConfigureAwait(false))
