@@ -12,14 +12,14 @@ namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	public P2PNodesManager(Network network, NodeConnectionManager nodes)
+	public P2PNodesManager(Network network, NodesRegistry nodes)
 	{
 		_network = network;
 		_nodes = nodes;
 	}
 
 	private readonly Network _network;
-	private readonly NodeConnectionManager  _nodes;
+	private readonly NodesRegistry _nodes;
 	private int _timeoutsCounter;
 	private int _currentTimeoutSeconds = 16;
 

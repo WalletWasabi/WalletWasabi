@@ -12,6 +12,26 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.NodesManagement;
 
+public class NodesRegistry : IDisposable
+{
+	private readonly ConcurrentDictionary<EndPoint, Node> _nodes = [];
+	private readonly ComposedDisposable _disposables = new();
+
+	public NodesRegistry(EventBus eventBus)
+	{
+		eventBus.Subscribe<BitcoinNodeAdded>(e => _nodes.TryAdd(e.EndPoint, e.Node)).DisposeUsing(_disposables);
+		eventBus.Subscribe<BitcoinNodeRemoved>(e => _nodes.TryRemove(e.EndPoint, out _)).DisposeUsing(_disposables);
+	}
+
+	public int Count => _nodes.Count;
+	public Node[] Nodes => _nodes.Values.ToArray();
+
+	public void Dispose()
+	{
+		_disposables.Dispose();
+	}
+}
+
 public class NodeConnectionManager : IDisposable
 {
 	private const int TargetConnections = 12;
@@ -21,10 +41,10 @@ public class NodeConnectionManager : IDisposable
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(1);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private const int MaintainEverySeconds = 5;
-	private const int AdjustDiscoveryPaceEverySeconds = 10;
 	private const int RotateEverySeconds = 300;
 
-	private readonly NodeDiscoveryService _discoveryService;
+	private readonly Network _network;
+	private readonly NodeDiscoveryCoordinator.PeersInfoProvider _getPeersInfo;
 	private readonly Func<NodeBehavior>[] _behaviorFactories;
 	private readonly EventBus _eventBus;
 	private readonly TimeSpan _connectionTimeout;
@@ -39,13 +59,15 @@ public class NodeConnectionManager : IDisposable
 	private bool _isDisposed;
 
 	public NodeConnectionManager(
-		NodeDiscoveryService discoveryService,
+		Network network,
+		NodeDiscoveryCoordinator.PeersInfoProvider getPeersInfo,
 		Func<NodeBehavior>[] behaviorFactories,
 		EventBus eventBus,
 		TimeSpan? connectionTimeout = null,
 		EndPoint? torSocks5 = null)
 	{
-		_discoveryService = discoveryService;
+		_network = network;
+		_getPeersInfo = getPeersInfo;
 		_behaviorFactories = behaviorFactories;
 		_eventBus = eventBus;
 		_connectionTimeout = connectionTimeout ?? TimeSpan.FromSeconds(15);
@@ -64,16 +86,6 @@ public class NodeConnectionManager : IDisposable
 	public async Task ReevaluateConnectionsAsync(CancellationToken cancellationToken)
 	{
 		_tickCounter++;
-
-		if (_tickCounter % AdjustDiscoveryPaceEverySeconds == 0 && Count >= TargetConnections)
-		{
-			_discoveryService.SlowDownCrawling();
-		}
-
-		if (_tickCounter % AdjustDiscoveryPaceEverySeconds == 0  && Count < TargetConnections / 3)
-		{
-			_discoveryService.SpeedUpCrawling();
-		}
 
 		if (_tickCounter % MaintainEverySeconds == 0 || Count == 0)
 		{
@@ -130,7 +142,7 @@ public class NodeConnectionManager : IDisposable
 		bool IsAvailable(EndPoint endpoint) =>
 			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
 
-		var peers = await _discoveryService.GetKnownPeersAsync(cancellationToken).ConfigureAwait(false);
+		var peers = await _getPeersInfo(cancellationToken).ConfigureAwait(false);
 		var filterPeers = filterNodesNeeded > 0
 			? peers
 				.Where(p => p.SupportsCompactFilters)
@@ -178,9 +190,9 @@ public class NodeConnectionManager : IDisposable
 					networkCredential: null, streamIsolation: true));
 			}
 
-			var node = await Node.ConnectAsync(_discoveryService.Network, peerInfo.Endpoint, connParams)
+			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
 			if (node.State != NodeState.HandShaked)
 			{
@@ -200,7 +212,7 @@ public class NodeConnectionManager : IDisposable
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
 				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()})");
-				_eventBus.Publish(new BitcoinPeersChanged(Added: true, Count));
+				_eventBus.Publish(new BitcoinNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
 			{
@@ -246,10 +258,10 @@ public class NodeConnectionManager : IDisposable
 
 			if (connectionDuration < QuickDisconnectThreshold)
 			{
-				_discoveryService.ReportQuickDisconnect(removed.PeerInfo.Endpoint);
+				_eventBus.Publish(new NodeDisconnectedQuickly(removed.PeerInfo.Endpoint, node));
 			}
 
-			_eventBus.Publish(new BitcoinPeersChanged(Added: false, Count));
+			_eventBus.Publish(new BitcoinNodeRemoved(removed.PeerInfo.Endpoint, node));
 		}
 	}
 
@@ -285,7 +297,7 @@ public class NodeConnectionManager : IDisposable
 		bool IsAvailable(EndPoint endpoint) =>
 			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
 
-		var peers = await _discoveryService.GetKnownPeersAsync(cancellationToken).ConfigureAwait(false);
+		var peers = await _getPeersInfo(cancellationToken).ConfigureAwait(false);
 		var bestDiscovered = peers
 			.OrderByDescending(p => p.ComputeScore())
 			.FirstOrDefault(p => IsAvailable(p.Endpoint));
@@ -307,7 +319,7 @@ public class NodeConnectionManager : IDisposable
 			if (_connectedNodes.TryRemove(worstConnected.Key, out var nodeToRemove))
 			{
 				DisconnectNode(nodeToRemove.Node);
-				_eventBus.Publish(new BitcoinPeersChanged(Added: false, Count));
+				_eventBus.Publish(new BitcoinNodeRemoved(nodeToRemove.PeerInfo.Endpoint, nodeToRemove.Node));
 			}
 
 			// Connect to better peer
@@ -328,7 +340,7 @@ public class NodeConnectionManager : IDisposable
 			if (_connectedNodes.TryRemove(key, out _))
 			{
 				node.Disconnected -= OnNodeDisconnected;
-				_eventBus.Publish(new BitcoinPeersChanged(Added: false, Count));
+				_eventBus.Publish(new BitcoinNodeRemoved(key, node));
 			}
 		}
 	}
@@ -362,7 +374,7 @@ public class NodeConnectionManager : IDisposable
 
 }
 
-public static class Extensions
+public static partial class Extensions
 {
 	public static string AsCsv(this NodeServices ns)
 	{

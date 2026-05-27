@@ -3,6 +3,7 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -14,120 +15,77 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public class NodeDiscoveryService : IDisposable
+public static class NodeDiscoveryCoordinator
 {
-	abstract record CoordinatorMessage;
+	public delegate Task<PeerInfo[]> PeersInfoProvider(CancellationToken cancellationToken);
+
+	public abstract record CoordinatorMessage;
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	record PeerFailedMessage(EndPoint Endpoint) : CoordinatorMessage;
 	record PeerQuickDisconnectMessage(EndPoint Endpoint) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
-	record SlowDownCrawlingMessage : CoordinatorMessage;
-	record SpeedUpCrawlingMessage : CoordinatorMessage;
 
-	abstract record CrawlerMessage;
-
+	public abstract record CrawlerMessage;
 	record CrawlMessage(EndPoint EndPoint) : CrawlerMessage;
 	record SlowDownMessage : CrawlerMessage;
-	record SpeedUpMessage : CrawlerMessage;
+	record StopHarvestingMessage : CrawlerMessage;
 
-	record CrawlingState(
+	public record CrawlingCoordinationState(
 		ImmutableDictionary<EndPoint, PeerInfo> Peers,
+		bool Harvesting,
+		bool SlowedDown,
 		int LastCrawlerIndex);
 
-	private readonly TimeSpan _connectionTimeout;
-	private readonly TimeSpan _harvestTimeout;
-
-	private MailboxProcessor<CoordinatorMessage> _coordinator;
-	private MailboxProcessor<CrawlerMessage>[] _crawlers;
-	private readonly CancellationTokenSource _cts = new();
-	private readonly Network _network;
-	private readonly EndPoint? _torSocks5;
-	private readonly int _maxConcurrency;
+	public record CrawlerState(
+		TimeSpan DelayBeforeVisitingNode,
+		bool HarvestEndpoints);
 
 	private static int PriorityOf(CrawlerMessage m) => m switch
 	{
 		SlowDownMessage => 0,  // highest priority (smallest)
-		SpeedUpMessage  => 1,
+		StopHarvestingMessage  => 1,
 		_               => 2,  // lowest priority
 	};
 
-	private readonly Comparer<CrawlerMessage> _crawlerMessagePriority =
+	public static readonly Comparer<CrawlerMessage> CrawlerMessagePriority =
 		Comparer<CrawlerMessage>.Create((a, b) => PriorityOf(a).CompareTo(PriorityOf(b)));
 
-	public NodeDiscoveryService(Network network,
-		EndPoint? torSocks5 = null,
-		int maxConcurrency = 15,
-		TimeSpan? connectionTimeout = null,
-		TimeSpan? harvestTimeout = null)
-	{
-		_network = network;
-		_torSocks5 = torSocks5;
-		_maxConcurrency = maxConcurrency;
-		_connectionTimeout = connectionTimeout ?? TimeSpan.FromSeconds(10);
-		_harvestTimeout = harvestTimeout ?? TimeSpan.FromSeconds(3);
+	public static MessageHandler<CoordinatorMessage, CrawlingCoordinationState> CreateDiscovery(
+		MailboxProcessor<CrawlerMessage>[] crawlers) =>
+		(msg, state, token) => CrawlingAsync(crawlers, msg, state, token);
 
-		_coordinator = Coordinator(_cts.Token);
-		_crawlers = Enumerable
-			.Range(0, maxConcurrency)
-			.Select(n => ProbeWorkerAsync($"crawler-{n}", _cts.Token))
-			.ToArray();
-
-		MailboxProcessor<CrawlerMessage> ProbeWorkerAsync(string workerName, CancellationToken cancellationToken) =>
-			Spawn(workerName, EventDriven<CrawlerMessage, TimeSpan>(TimeSpan.Zero, ProbeAsync),
-				comparer: _crawlerMessagePriority,
-				cancellationToken);
-
-		MailboxProcessor<CoordinatorMessage> Coordinator(CancellationToken cancellationToken) =>
-			Spawn("crawler-coordinator",
-				EventDriven<CoordinatorMessage, CrawlingState>(new CrawlingState([], 0), BalanceCrawlingAsync),
-				cancellationToken);
-	}
-
-	public async Task StartAsync(CancellationToken cancellationToken)
-	{
-		Logger.LogInfo("Starting node discovery service.");
-
-		await SeedFromDnsAsync(cancellationToken).ConfigureAwait(false);
-	}
-
-	public async Task StopAsync()
-	{
-		Logger.LogInfo("Stopping node discovery service.");
-
-		await _cts.CancelAsync().ConfigureAwait(false);
-
-		Logger.LogInfo("Node discovery service stopped.");
-	}
-
-	public Network Network => _network;
-
-	public void SlowDownCrawling() =>
-		_coordinator.Post(new SlowDownCrawlingMessage());
-
-	public void SpeedUpCrawling() =>
-		_coordinator.Post(new SpeedUpCrawlingMessage());
-
-	public void ReportQuickDisconnect(EndPoint endpoint) =>
-		_coordinator.Post(new PeerQuickDisconnectMessage(endpoint));
-
-	public async Task<PeerInfo[]> GetKnownPeersAsync(CancellationToken cancellationToken = default)
-	{
-		return await _coordinator.PostAndReplyAsync<PeerInfo[]>(
-			reply => new GetPeersMessage(reply),
-			cancellationToken).ConfigureAwait(false);
-	}
-
-	private Task<CrawlingState> BalanceCrawlingAsync(CoordinatorMessage msg, CrawlingState state, CancellationToken cancellationToken)
+	private static Task<CrawlingCoordinationState> CrawlingAsync(MailboxProcessor<CrawlerMessage>[] crawlers, CoordinatorMessage msg, CrawlingCoordinationState state, CancellationToken token)
 	{
 		switch (msg)
 		{
 			case HarvestedEndpointsMessage (Endpoints: var endpoints):
+				if (state is {Harvesting: true, LastCrawlerIndex: > 15_000})
+				{
+					var speedUpMessage = new StopHarvestingMessage();
+					foreach (var crawler in crawlers)
+					{
+						crawler.Post(speedUpMessage);
+					}
+
+					state = state with {Harvesting = false};
+				}
+				if (state is {SlowedDown: false , Peers.Count: > 300})
+				{
+					var speedUpMessage = new SlowDownMessage();
+					foreach (var crawler in crawlers)
+					{
+						crawler.Post(speedUpMessage);
+					}
+
+					state = state with {SlowedDown = true};
+				}
+
 				var n = state.LastCrawlerIndex;
 				foreach (var endPoint in endpoints)
 				{
-					var wi = n % _maxConcurrency;
-					_crawlers[wi].Post(new CrawlMessage(endPoint));
+					var wi = n % crawlers.Length;
+					crawlers[wi].Post(new CrawlMessage(endPoint));
 					n++;
 				}
 
@@ -165,51 +123,51 @@ public class NodeDiscoveryService : IDisposable
 			case GetPeersMessage (ReplyChannel: var replyChannel):
 				replyChannel.Reply(state.Peers.Values.ToArray());
 				break;
-
-			case SlowDownCrawlingMessage:
-				var slowDownMessage = new SlowDownMessage();
-				foreach (var crawler in _crawlers)
-				{
-					crawler.Post(slowDownMessage);
-				}
-				break;
-
-			case SpeedUpCrawlingMessage:
-				var speedUpMessage = new SpeedUpMessage();
-				foreach (var crawler in _crawlers)
-				{
-					crawler.Post(speedUpMessage);
-				}
-				break;
-
 		}
 
 		return Task.FromResult(state);
 	}
 
-	private async Task<TimeSpan> ProbeAsync(CrawlerMessage msg, TimeSpan delay, CancellationToken cancellationToken)
+
+	public static MessageHandler<CrawlerMessage, CrawlerState> CreateCrawler(Network network,
+		EndPoint? torSocks5, TimeSpan connectionTimeout,
+		TimeSpan harvestTimeout) =>
+		async (msg, state, token) => await ProbeAsync(network, torSocks5, connectionTimeout, harvestTimeout, msg, state, token).ConfigureAwait(false);
+
+	private static async Task<CrawlerState> ProbeAsync(Network network, EndPoint? torSocks5, TimeSpan connectionTimeout,
+		TimeSpan harvestTimeout, CrawlerMessage msg, CrawlerState state, CancellationToken cancellationToken)
 	{
 		switch (msg)
 		{
 			case CrawlMessage (var endpoint):
-				await CrawlEndpointAsync(endpoint, delay, cancellationToken).ConfigureAwait(false);
+				await Task.Delay(state.DelayBeforeVisitingNode, cancellationToken).ConfigureAwait(false);
+				Node? node = null;
+				try
+				{
+					node = await VisitEndpointAsync(endpoint, network, torSocks5, connectionTimeout, cancellationToken).ConfigureAwait(false);
+					if (node is not null && state.HarvestEndpoints)
+					{
+						await HarvestAddressesAsync(node, harvestTimeout, cancellationToken).ConfigureAwait(false);
+					}
+				}
+				finally
+				{
+					node?.DisconnectAsync();
+				}
 				break;
 			case SlowDownMessage:
-				delay += TimeSpan.FromSeconds(1);
-				break;
-			case SpeedUpMessage:
-				delay = TimeSpan.Zero;
-				break;
+				return state with {DelayBeforeVisitingNode = state.DelayBeforeVisitingNode + TimeSpan.FromSeconds(1)};
+			case StopHarvestingMessage:
+				return state with {HarvestEndpoints = false};
 		}
 
-		return delay;
+		return state;
 	}
 
-	private async Task CrawlEndpointAsync(EndPoint endpoint, TimeSpan delay, CancellationToken cancellationToken)
+	private static async Task<Node?> VisitEndpointAsync(EndPoint endpoint, Network network, EndPoint? torSocks5, TimeSpan connectionTimeout, CancellationToken cancellationToken)
 	{
-		await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeoutCts.CancelAfter(_connectionTimeout);
+		timeoutCts.CancelAfter(connectionTimeout);
 
 		var connParams = new NodeConnectionParameters
 		{
@@ -220,27 +178,28 @@ public class NodeDiscoveryService : IDisposable
 
 		if (endpoint.IsTor())
 		{
-			if (_torSocks5 is null)
+			if (torSocks5 is null)
 			{
-				return;
+				return null;
 			}
 
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(_torSocks5));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torSocks5));
 		}
 
 		Node? node = null;
 		var sw = Stopwatch.StartNew();
 		try
 		{
-			node = await Node.ConnectAsync(_network, endpoint, connParams).ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			node = await Node.ConnectAsync(network, endpoint, connParams).ConfigureAwait(false);
+			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
 			sw.Stop();
 
 			if (node.State != NodeState.HandShaked)
 			{
 				NotifyCoordinator(new PeerFailedMessage(endpoint));
-				return;
+				node.DisconnectAsync();
+				return null;
 			}
 
 			var now = DateTimeOffset.UtcNow;
@@ -258,27 +217,24 @@ public class NodeDiscoveryService : IDisposable
 			};
 
 			NotifyCoordinator(new PeerDiscoveredMessage(peer));
-
-			await HarvestAddressesAsync(node, timeoutCts.Token).ConfigureAwait(false);
 		}
 		catch
 		{
 			NotifyCoordinator(new PeerFailedMessage(endpoint));
-		}
-		finally
-		{
 			node?.DisconnectAsync();
+			return null;
 		}
+		return node;
 	}
 
-	private async Task HarvestAddressesAsync(Node node, CancellationToken cancellationToken)
+	private static async Task HarvestAddressesAsync(Node node, TimeSpan harvestTimeout, CancellationToken cancellationToken)
 	{
 		var tcs = new TaskCompletionSource<EndPoint[]>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeoutCts.CancelAfter(_harvestTimeout);
+		timeoutCts.CancelAfter(harvestTimeout);
 		var token = timeoutCts.Token;
-		using var _ = token.Register(() => tcs.TrySetCanceled(token));
+		var _ = token.Register(() => tcs.TrySetCanceled(token));
 
 		node.MessageReceived += OnMessage;
 		try
@@ -317,7 +273,7 @@ public class NodeDiscoveryService : IDisposable
 		}
 	}
 
-	private async Task SeedFromDnsAsync(CancellationToken cancellationToken)
+	public static async Task SeedFromDnsAsync(Network network, CancellationToken cancellationToken)
 	{
 		Logger.LogInfo("Seeding from DNS...");
 
@@ -333,7 +289,7 @@ public class NodeDiscoveryService : IDisposable
 			}
 		}
 
-		var tasks = _network.DNSSeeds
+		var tasks = network.DNSSeeds
 			.Select(x => x.Host)
 			.Select(GetAddressesFromDnsAsync);
 
@@ -343,34 +299,111 @@ public class NodeDiscoveryService : IDisposable
 
 			if (dnsQueryResult.IsOk)
 			{
-				var endpoints = dnsQueryResult.Value
-					.Select(x => new IPEndPoint(x, _network.DefaultPort))
+				var endpoinst = dnsQueryResult.Value
+					.Select(x => new IPEndPoint(x, network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
-				NotifyCoordinator(new HarvestedEndpointsMessage(endpoints));
+				NotifyCoordinator(new HarvestedEndpointsMessage(endpoinst));
 			}
 		}
 
-		var endpointsFromSeedNodes = _network.SeedNodes
+		var endpointsFromSeedNodes = network.SeedNodes
 			.Select(x => x.Endpoint)
 			.ToArray();
 
 		NotifyCoordinator(new HarvestedEndpointsMessage(endpointsFromSeedNodes));
 	}
 
-	private void NotifyCoordinator(CoordinatorMessage msg) =>
-		Tell("crawler-coordinator", msg);
+	public static PeersInfoProvider GetPeersProvider(MailboxProcessor<CoordinatorMessage> coordinator) =>
+		async cancellationToken =>
+			await coordinator.PostAndReplyAsync<PeerInfo[]>(
+			reply => new GetPeersMessage(reply),
+			cancellationToken).ConfigureAwait(false);
 
-	public void Dispose()
+	public static void ReportQuickDisconnect(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
+		coordinator.Post(new PeerQuickDisconnectMessage(endpoint));
+
+	private static void NotifyCoordinator(CoordinatorMessage msg) =>
+		Tell("Bitcoin Node Discovery Service", msg);
+}
+
+public static partial class Extensions
+{
+	extension(Node node)
 	{
-		_cts.Cancel();
-
-		_coordinator.Dispose();
-		foreach (var crawler in _crawlers)
+		private VersionPayload _PeerVersion
 		{
-			crawler.Dispose();
+			set => NodeAccessors.GetPeerVersion(node) = value;
+		}
+		private NodeState _State
+		{
+			set => NodeAccessors.GetState(node) = value;
 		}
 
-		_cts.Dispose();
+		private void _SetVersion(uint version) =>
+			NodeAccessors.CallSetVersion(node, version);
+
+		public async Task VersionHandshakeAsync(CancellationToken cancellationToken)
+		{
+			if (node.State == NodeState.HandShaked)
+			{
+				throw new InvalidOperationException("Already handshaked");
+			}
+
+			using var listener = node.CreateListener()
+				.Where(p => p.Message.Payload is VersionPayload or VerAckPayload);
+
+			await node.SendMessageAsync(node.MyVersion).ConfigureAwait(false);
+
+			var version = listener.ReceivePayload<VersionPayload>(cancellationToken);
+
+			node._PeerVersion = version;
+			node._SetVersion(Math.Min(node.MyVersion.Version, version.Version));
+
+			if (node.ProtocolCapabilities.PeerTooOld)
+			{
+				Logger.LogWarning("Outdated version {version} disconnecting", version.Version);
+				node.Disconnect("Outdated version");
+				return;
+			}
+
+			// As a courtesy we do not send sendaddr to nodes that do not support it.
+			if (node.ProtocolCapabilities.SupportAddrv2)
+			{
+				// Signal ADDRv2 support (BIP155).
+				await node.SendMessageAsync(new SendAddrV2Payload()).ConfigureAwait(false);
+			}
+
+			await node.SendMessageAsync(new VerAckPayload()).ConfigureAwait(false);
+
+			listener.ReceivePayload<VerAckPayload>(cancellationToken);
+
+			node._State = NodeState.HandShaked;
+
+			if (node.Advertize)
+			{
+				if (node.MyVersion.AddressFrom is IPEndPoint iPEndPoint && !iPEndPoint.Address.IsRoutable(true))
+				{
+					return;
+				}
+
+				await node.SendMessageAsync(new AddrPayload(new NetworkAddress(node.MyVersion.AddressFrom)
+				{
+					Time = DateTimeOffset.UtcNow
+				})).ConfigureAwait(false);
+			}
+		}
 	}
+
+}
+public static class NodeAccessors
+{
+	[UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_PeerVersion")]
+	public static extern ref VersionPayload GetPeerVersion(Node node);
+
+	[UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_State")]
+	public static extern ref NodeState GetState(Node node);
+
+	[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "SetVersion")]
+	public static extern void CallSetVersion(Node node, uint version);
 }

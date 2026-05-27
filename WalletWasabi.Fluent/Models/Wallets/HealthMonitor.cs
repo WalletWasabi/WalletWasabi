@@ -76,13 +76,17 @@ public partial class HealthMonitor : ReactiveObject
 			.DisposeWith(Disposables);
 
 		var nodesCount = 0;
-		var peersObservable = services.EventBus.AsObservable<BitcoinPeersChanged>();
-		peersObservable.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => nodesCount = x.NodesCount)
+		var peerAddedObservable = services.EventBus.AsObservable<BitcoinNodeAdded>();
+		peerAddedObservable.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => nodesCount++)
+			.DisposeWith(Disposables);
+		var peerRemovedObservable = services.EventBus.AsObservable<BitcoinNodeRemoved>();
+		peerRemovedObservable.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => nodesCount--)
 			.DisposeWith(Disposables);
 
 		// Peers
-		Observable.Merge( peersObservable.ToSignal()
+		Observable.Merge( peerAddedObservable.ToSignal().Merge(peerRemovedObservable.ToSignal())
 			.Merge(services.EventBus.AsObservable<TorConnectionStateChanged>().ToSignal()))
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(_ =>

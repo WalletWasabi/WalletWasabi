@@ -162,7 +162,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, NodeConnectionManager nodes) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, NodesRegistry nodes) : IBroadcaster
 {
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
