@@ -148,6 +148,8 @@ public static class CpfpInfoUpdater
 
 	private static async Task<Result<CpfpInfo, string>> GetCpfpInfoAsync(SmartTransaction tx, IHttpClientFactory httpClientFactory, Uri uri, Dictionary<uint256, CachedCpfpInfo> cache, CancellationToken cancellationToken)
 	{
+		cancellationToken.ThrowIfCancellationRequested();
+
 		var txid = tx.GetHash();
 		if (cache.TryGetValue(txid, out var cachedCpfpInfo))
 		{
@@ -159,6 +161,10 @@ public static class CpfpInfoUpdater
 			var cpfpInfo = await GetCpfpInfoAsync(txid, httpClientFactory, uri, cancellationToken).ConfigureAwait(false);
 			cache.Add(txid, new CachedCpfpInfo(cpfpInfo, tx));
 			return cpfpInfo;
+		}
+		catch (OperationCanceledException)
+		{
+			throw;
 		}
 		catch (Exception e)
 		{
