@@ -1,4 +1,3 @@
-using System.Net;
 using NBitcoin;
 using NBitcoin.Protocol;
 
