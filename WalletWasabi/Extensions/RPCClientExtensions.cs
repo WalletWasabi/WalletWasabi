@@ -125,7 +125,7 @@ public static class RPCClientExtensions
 		    .ToDictionary(x => x.target, x => x.feeRate);
 		
 		// If all confirmation targets collapsed to the same block number, the node lacks sufficient
-		// fee history to produce useful estimates. Throw so Composed falls through to the next provider.
+		// fee history to produce useful estimates. Do not return such an estimate to let a next provider do the job.
 		if (result.Count < 2)
 		{
 			return FeeRateEstimations.Empty;
