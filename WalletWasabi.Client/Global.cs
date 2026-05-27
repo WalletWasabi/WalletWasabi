@@ -106,7 +106,7 @@ public class Global
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
 		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
-		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
+		TransactionBroadcaster = new TransactionBroadcaster(EventBus, broadcasters.ToArray(), mempoolService);
 
 		Scheme = new Scheme(this);
 	}
@@ -132,7 +132,7 @@ public class Global
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
 	public NodesGroup NodesGroup { get; }
-	public TransactionBroadcaster TransactionBroadcaster { get; set; }
+	public TransactionBroadcaster TransactionBroadcaster { get; }
 	public HostedServices HostedServices { get; }
 	public Network Network => Config.Network;
 	public JsonRpcServer? RpcServer { get; private set; }

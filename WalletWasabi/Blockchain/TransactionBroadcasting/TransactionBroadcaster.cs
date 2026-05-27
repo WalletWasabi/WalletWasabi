@@ -21,6 +21,7 @@ using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 using System.Net.Mime;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -264,7 +265,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 	}
 }
 
-public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService mempoolService, WalletManager walletManager)
+public class TransactionBroadcaster(EventBus eventBus, IBroadcaster[] broadcasters, MempoolService mempoolService)
 {
 	public async Task SendTransactionAsync(SmartTransaction tx, CancellationToken cancellationToken = default)
 	{
@@ -344,8 +345,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 		}
 
 		mempoolService.TryAddToBroadcastStore(transaction);
-
-		walletManager.Process(transaction);
+		eventBus.Publish(new NewTransactionInMempool(transaction));
 	}
 }
 

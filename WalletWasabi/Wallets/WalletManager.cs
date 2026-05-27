@@ -6,7 +6,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -285,17 +284,6 @@ public class WalletManager
 		}
 
 		_cancelAllTasks.Dispose();
-	}
-
-	public void Process(SmartTransaction transaction)
-	{
-		lock (_lock)
-		{
-			foreach (var wallet in _wallets.Where(x => x.Loaded))
-			{
-				wallet.TransactionProcessor.Process(transaction);
-			}
-		}
 	}
 
 	public void SetMaxBestHeight(uint bestHeight)
