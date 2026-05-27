@@ -37,6 +37,7 @@ public class PrivacyContentControl : ContentControl
 	{
 		if (Design.IsDesignMode)
 		{
+			IsContentRevealed = null!; // Design-time value, won't be used at runtime.
 			return;
 		}
 
