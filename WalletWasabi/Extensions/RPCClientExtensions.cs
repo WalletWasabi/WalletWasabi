@@ -128,10 +128,8 @@ public static class RPCClientExtensions
 		// fee history to produce useful estimates. Do not return such an estimate to let a next provider do the job.
 		if (result.Count < 2)
 		{
-			return FeeRateEstimations.Empty;
+			return [];
 		}
-		
-		return result;
 	}
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
