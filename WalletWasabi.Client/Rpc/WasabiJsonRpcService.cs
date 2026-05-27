@@ -471,7 +471,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 		AssertWalletIsLoggedIn(activeWallet, password ?? "");
-		coinJoinManager.RequestCoinJoinStartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop, CancellationToken.None).ConfigureAwait(false);
+		coinJoinManager.RequestCoinJoinStartAsync(activeWallet, activeWallet, stopWhenAllMixed, overridePlebStop).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("startcoinjoinsweep")]
@@ -501,7 +501,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			await Global.WalletManager.StartWalletAsync(outputWallet).ConfigureAwait(false);
 		}
 
-		await coinJoinManager.RequestCoinJoinStartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true, CancellationToken.None).ConfigureAwait(false);
+		await coinJoinManager.RequestCoinJoinStartAsync(activeWallet, outputWallet, stopWhenAllMixed: false, overridePlebStop: true).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("stopcoinjoin")]
@@ -512,7 +512,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 
-		coinJoinManager.RequestCoinJoinStopAsync(activeWallet, CancellationToken.None).ConfigureAwait(false);
+		coinJoinManager.RequestCoinJoinStopAsync(activeWallet).ConfigureAwait(false);
 	}
 
 	[JsonRpcMethod("getfeerates", initializable: false)]
