@@ -128,7 +128,7 @@ public static class RPCClientExtensions
 		// fee history to produce useful estimates. Throw so Composed falls through to the next provider.
 		if (result.Count < 2)
 		{
-		    throw new NoEstimationException(result.Keys.FirstOrDefault());
+			return FeeRateEstimations.Empty;
 		}
 		
 		return result;
