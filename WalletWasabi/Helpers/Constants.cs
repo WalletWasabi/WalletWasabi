@@ -81,13 +81,14 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 
 	public static readonly string DefaultMainNetBitcoinRpcUri = "https://rpc.wasabiwallet.io";
+	public static readonly string DefaultMainNetBitcoinRpcOnionUri = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/rpc";
 	public static readonly string DefaultTestNetBitcoinRpcUri = $"http://localhost:{DefaultTestNetBitcoinRpcPort}";
 	public static readonly string DefaultSignetBitcoinRpcUri = $"http://localhost:{DefaultSignetBitcoinRpcPort}";
 	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";
 
-	public static readonly string DefaultExchangeRateProvider = "MempoolSpace";
-	public static readonly string DefaultFeeRateEstimationProvider = "MempoolSpace";
-	public static readonly string DefaultExternalTransactionBroadcaster= "MempoolSpace";
+	public const string DefaultExchangeRateProvider = "MempoolSpace";
+	public const string DefaultFeeRateEstimationProvider = "MempoolSpace";
+	public const string DefaultExternalTransactionBroadcaster= "MempoolSpace";
 
 	public static readonly Money MaximumNumberOfBitcoinsMoney = Money.Coins(MaximumNumberOfBitcoins);
 
