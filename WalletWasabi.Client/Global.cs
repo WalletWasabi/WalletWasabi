@@ -102,7 +102,8 @@ public class Global
 			EventBus,
 			cpfpProvider);
 
-		WalletManager = new WalletManager(Config.Network, DataDir, new WalletDirectories(Config.Network, DataDir), walletFactory);
+		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
+		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
 		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService, WalletManager);
@@ -148,7 +149,10 @@ public class Global
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager);
 
 		// Bitcoin RPC of the Wasabi server does not provide blocks.
-		BlockProvider[] blockProviders = Config.BitcoinRpcUri.StartsWith(Constants.DefaultMainNetBitcoinRpcUri, StringComparison.OrdinalIgnoreCase)
+		var isWasabiRpcUri = Config.BitcoinRpcUri.StartsWith(Constants.DefaultMainNetBitcoinRpcUri, StringComparison.OrdinalIgnoreCase) ||
+			Config.BitcoinRpcUri.StartsWith(Constants.DefaultMainNetBitcoinRpcOnionUri, StringComparison.OrdinalIgnoreCase);
+
+		BlockProvider[] blockProviders = isWasabiRpcUri
 			? [fileSystemBlockProvider, p2PBlockProvider]
 			: [fileSystemBlockProvider, BlockProviders.RpcBlockProvider(_bitcoinRpcClient), p2PBlockProvider];
 

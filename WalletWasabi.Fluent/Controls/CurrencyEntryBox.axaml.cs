@@ -135,9 +135,10 @@ public partial class CurrencyEntryBox : TextBox
 	protected override void OnTextInput(TextInputEventArgs e)
 	{
 		var input = e.Text == null ? "" : e.Text.TotalTrim();
+		var currentText = Text ?? "";
 
 		// Reject space char input when there's no text.
-		if (string.IsNullOrWhiteSpace(Text) && string.IsNullOrWhiteSpace(input))
+		if (string.IsNullOrWhiteSpace(currentText) && string.IsNullOrWhiteSpace(input))
 		{
 			e.Handled = true;
 			base.OnTextInput(e);
@@ -153,7 +154,7 @@ public partial class CurrencyEntryBox : TextBox
 
 		if (IsInsertingImplicitDecimal(input))
 		{
-			var result = InsertLeadingZeroForDecimal(e);
+			var result = InsertLeadingZeroForDecimal(currentText, e);
 			base.OnTextInput(result);
 			return;
 		}
@@ -195,10 +196,10 @@ public partial class CurrencyEntryBox : TextBox
 		return new TextInputEventArgs { Text = finalText };
 	}
 
-	private TextInputEventArgs InsertLeadingZeroForDecimal(TextInputEventArgs e)
+	private TextInputEventArgs InsertLeadingZeroForDecimal(string currentText, TextInputEventArgs e)
 	{
 		var prependText = "0" + e.Text;
-		SetCurrentValue(TextProperty, Text.Insert(0, prependText));
+		SetCurrentValue(TextProperty, currentText.Insert(0, prependText));
 		SetCurrentValue(CaretIndexProperty, CaretIndex + prependText.Length);
 		return new TextInputEventArgs { Text = "" };
 	}

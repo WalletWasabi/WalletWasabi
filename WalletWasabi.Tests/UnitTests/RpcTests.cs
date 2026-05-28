@@ -1,6 +1,3 @@
-using System.Text.Encodings.Web;
-using System.Text.Json;
-using System.Text.Json.Serialization;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -21,64 +18,64 @@ public class RpcTests
 			{
 				{
 					// Invalid (broken) request
-					Request("1", "substract").Replace("\"id\":", "\"id\","),
-					Error(null!, -32700, "Parse error")
+					"""{"jsonrpc":"2.0","method":"substract","params":[],"id","1"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}"""
 				},
 				{
-					// Invalid (missing jsonrpc) request
-					Request("1", "substract", 42, 23).Replace("\"jsonrpc\":\"2.0\",", ""),
-					Ok("1", 19)
+					// Invalid request (missing jsonrpc)
+					"""{"method":"substract","params":[42,23],"id":"1"}""",
+					"""{"jsonrpc":"2.0","result":19,"id":"1"}"""
 				},
 				{
-					// Invalid (missing method) request
-					Request("1", "", "[42, 23]").Replace("\"method\":\"\",", ""),
-					Error(null!, -32700, "Parse error")
+					// Invalid request (missing method)
+					"""{"jsonrpc":"2.0","params":["[42, 23]"],"id":"1"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32700,"message":"Parse error"},"id":null}"""
 				},
 				{
-					// Invalid (wrong number of arguments) request
-					Request("3", "substract", new { subtrahend = 23 }),
-					Error("3", -32602, "A value for the 'minuend' is missing.")
+					// Invalid request (wrong number of arguments)
+					"""{"jsonrpc":"2.0","method":"substract","params":{"subtrahend":23},"id":"3"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32602,"message":"A value for the 'minuend' is missing."},"id":"3"}"""
 				},
 				{
-					// Invalid (wrong number of arguments) request
-					Request("3", "substract", 23),
-					Error("3", -32602, "2 parameters were expected but 1 were received.")
+					// Invalid request (wrong number of arguments)
+					"""{"jsonrpc":"2.0","method":"substract","params":[23],"id":"3"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32602,"message":"2 parameters were expected but 1 were received."},"id":"3"}"""
 				},
 				{
 					// Valid request with params by order
-					Request("1", "substract", 42, 23),
-					Ok("1", 19)
+					"""{"jsonrpc":"2.0","method":"substract","params":[42,23],"id":"1"}""",
+					"""{"jsonrpc":"2.0","result":19,"id":"1"}"""
 				},
 				{
 					// Valid request with params by name
-					Request("2", "substract", new { minuend = 42, subtrahend = 23 }),
-					Ok("2", 19)
+					"""{"jsonrpc":"2.0","method":"substract","params":{"minuend":42,"subtrahend":23},"id":"2"}""",
+					"""{"jsonrpc":"2.0","result":19,"id":"2"}"""
 				},
 				{
 					// Valid request (Notification)
-					Request(null!, "substract", 42, 23),
+					"""{"jsonrpc":"2.0","method":"substract","params":[42,23],"id":null}""",
 					""
 				},
 				{
 					// Valid request for void procedure
-					Request("log-id-01", "writelog", "blah blah blah"),
-					Ok("log-id-01", null!)
+					"""{"jsonrpc":"2.0","method":"writelog","params":["blah blah blah"],"id":"log-id-01"}""",
+					"""{"jsonrpc":"2.0","result":null,"id":"log-id-01"}"""
 				},
 				{
 					// Valid request for async procedure with cancellation token
-					Request("1", "format", "c:"),
-					Ok("1", null!)
+					"""{"jsonrpc":"2.0","method":"format","params":["c:"],"id":"1"}""",
+					"""{"jsonrpc":"2.0","result":null,"id":"1"}"""
 				},
 				{
 					// Valid request but internal server error
-					Request("1", "fail", "c:"),
-					Error("1", -32603, "the error")
+					"""{"jsonrpc":"2.0","method":"fail","params":["c:"],"id":"1"}""",
+					"""{"jsonrpc":"2.0","error":{"code":-32603,"message":"the error"},"id":"1"}"""
 				},
 				{
 					// Valid request to async method
-					Request("7", "substractasync", new { minuend = 42, subtrahend = 23 }),
-					Ok("7", 19)
-				}
+					"""{"jsonrpc":"2.0","method":"substractasync","params":{"minuend":42,"subtrahend":23},"id":"7"}""",
+					"""{"jsonrpc":"2.0","result":19,"id":"7"}"""
+				},
 			};
 
 			return result;
@@ -125,47 +122,5 @@ public class RpcTests
 		Assert.Throws<ArgumentException>(() => BuildTransaction(feeRate: 20, feeTarget: 8));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeRate: 20));
 		Assert.Throws<InvalidOperationException>(() => BuildTransaction(feeTarget: 1008));
-	}
-
-	private static string Request(string id, string methodName, params object[] parameters)
-	{
-		return ToJson(new
-		{
-			jsonrpc = "2.0",
-			method = methodName,
-			@params = parameters.Length == 1 && (parameters[0].GetType().IsClass && parameters[0] is not string) ? parameters[0] : parameters,
-			id
-		});
-	}
-
-	private static string Ok(string id, object content)
-	{
-		return ToJson(new
-		{
-			jsonrpc = "2.0",
-			result = content,
-			id
-		});
-	}
-
-	private static string Error(string id, int code, string message)
-	{
-		return ToJson(new
-		{
-			jsonrpc = "2.0",
-			error = new { code, message },
-			id
-		});
-	}
-
-	private static string ToJson(object o)
-	{
-		var options = new JsonSerializerOptions()
-		{
-			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
-			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
-		};
-
-		return JsonSerializer.Serialize(o, options);
 	}
 }

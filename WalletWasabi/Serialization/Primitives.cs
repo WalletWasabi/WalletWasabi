@@ -6,6 +6,7 @@ using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Text.Json;
 using System.Text.Json.Nodes;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
 using JsonException = System.Text.Json.JsonException;
@@ -117,7 +118,7 @@ public static partial class Decode
 	public static Decoder<double> Double =>
 		Decimal.Map(d => (double) d);
 
-	public static Decoder<DateTimeOffset> DateTimeOffset =
+	public static readonly Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
 
 	public static Decoder<T> Succeed<T>(T output) =>
@@ -131,18 +132,6 @@ public static partial class Decode
 		{
 			var m = decoder(value);
 			return m.IsOk ? f(m.Value) : m.Error;
-		};
-
-	public static Decoder<T> Map2<T, R, U>(Func<R, U, T> ctor, Decoder<R> d1, Decoder<U> d2) =>
-		value =>
-		{
-			var (m1, m2) = (d1(value), d2(value));
-			return (m1.IsOk, m2.IsOk) switch
-			{
-				(true, true) => ctor(m1.Value, m2.Value),
-				(false, _) => Result<T, string>.Fail(m1.Error),
-				(_, false) => Result<T, string>.Fail(m2.Error),
-			};
 		};
 
 	public static Decoder<T> Index<T>(int index, Decoder<T> decoder) =>
@@ -317,8 +306,9 @@ public static class JsonEncoder
 {
 	private static readonly JsonSerializerOptions Indented = new()
 	{
+		DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull,
 		WriteIndented = true,
-		Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping
+		Encoder = System.Text.Encodings.Web.JavaScriptEncoder.UnsafeRelaxedJsonEscaping,
 	};
 
 	public static string ToString<T>(T obj, Encoder<T> encoder) =>
