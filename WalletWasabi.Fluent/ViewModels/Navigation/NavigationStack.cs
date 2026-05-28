@@ -132,7 +132,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 		}
 	}
 
-	public void To(T viewModel, NavigationMode mode = NavigationMode.Normal)
+	public void To(T? viewModel, NavigationMode mode = NavigationMode.Normal)
 	{
 		var oldPage = CurrentPage;
 
