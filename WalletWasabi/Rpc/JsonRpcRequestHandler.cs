@@ -29,7 +29,7 @@ public class JsonRpcRequestHandler<TService>
 		_metadataProvider = new JsonRpcServiceMetadataProvider(service.GetType());
 		_defaultSettings = new()
     	{
-    		NullValueHandling = NullValueHandling.Ignore,
+    		NullValueHandling = NullValueHandling.Include,
     		ReferenceLoopHandling = ReferenceLoopHandling.Ignore,
 
     		Converters = new List<JsonConverter>
