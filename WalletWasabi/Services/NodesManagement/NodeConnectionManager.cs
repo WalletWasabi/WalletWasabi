@@ -143,22 +143,23 @@ public class NodeConnectionManager : IDisposable
 			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
 
 		var peers = await _getPeersInfo(cancellationToken).ConfigureAwait(false);
+		var availablePeers = peers.Where(p => IsAvailable(p.Endpoint)).ToArray();
+
 		var filterPeers = filterNodesNeeded > 0
-			? peers
-				.Where(p => p.SupportsCompactFilters)
+			? availablePeers
+				.Where(p => p.SupportsCompactFilters )
 				.OrderByDescending(p => p.ComputeScore())
 				.Take(filterNodesNeeded * 2)
 				.ToArray()
 			: [];
 
-		var otherPeers = peers.Except(filterPeers)
+		var otherPeers = availablePeers.Except(filterPeers)
 			.OrderByDescending(p => p.ComputeScore())
 			.Take(totalNeeded * 2)
 			.ToArray();
 
 		return filterPeers
 			.Concat(otherPeers)
-			.Where(p => IsAvailable(p.Endpoint))
 			.DistinctBy(p => p.Endpoint)
 			.Take(totalNeeded)
 			.ToArray();

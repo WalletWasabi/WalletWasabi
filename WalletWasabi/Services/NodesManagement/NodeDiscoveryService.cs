@@ -17,6 +17,7 @@ namespace WalletWasabi.Services.NodesManagement;
 
 public static class NodeDiscoveryCoordinator
 {
+	public static readonly string ServiceName = "BitcoinP2pNodeDiscoveryServiceCoordinator";
 	public delegate Task<PeerInfo[]> PeersInfoProvider(CancellationToken cancellationToken);
 
 	public abstract record CoordinatorMessage;
@@ -273,7 +274,7 @@ public static class NodeDiscoveryCoordinator
 		}
 	}
 
-	public static async Task SeedFromDnsAsync(Network network, CancellationToken cancellationToken)
+	public static async Task SeedFromDnsAsync(Network network, IDnsResolver dns, CancellationToken cancellationToken)
 	{
 		Logger.LogInfo("Seeding from DNS...");
 
@@ -281,7 +282,7 @@ public static class NodeDiscoveryCoordinator
 		{
 			try
 			{
-				return await Dns.GetHostAddressesAsync(dnsServerHost, cancellationToken).ConfigureAwait(false);
+				return await dns.GetHostAddressesAsync(dnsServerHost, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception e)
 			{
@@ -289,9 +290,12 @@ public static class NodeDiscoveryCoordinator
 			}
 		}
 
-		var tasks = network.DNSSeeds
-			.Select(x => x.Host)
-			.Select(GetAddressesFromDnsAsync);
+		var dnsHosts = network.DNSSeeds.Select(x => x.Host);
+		if (dns is DnsSocksResolver)
+		{
+			dnsHosts = Enumerable.Repeat(dnsHosts, 16).SelectMany(x => x).Shuffle();
+		}
+		var tasks = dnsHosts.Select(GetAddressesFromDnsAsync);
 
 		await foreach (var task in Task.WhenEach(tasks).WithCancellation(cancellationToken))
 		{
@@ -324,7 +328,7 @@ public static class NodeDiscoveryCoordinator
 		coordinator.Post(new PeerQuickDisconnectMessage(endpoint));
 
 	private static void NotifyCoordinator(CoordinatorMessage msg) =>
-		Tell("Bitcoin Node Discovery Service", msg);
+		Tell(ServiceName, msg);
 }
 
 public static partial class Extensions

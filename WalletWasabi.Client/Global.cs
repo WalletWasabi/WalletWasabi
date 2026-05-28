@@ -183,7 +183,7 @@ public class Global
 	{
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
 		var crawlers = Enumerable
-			.Range(0, 1)
+			.Range(0, 10)
 			.Select(n =>
 				Spawn($"crawler-{n}",
 					EventDriven(
@@ -194,11 +194,12 @@ public class Global
 			.ToArray();
 		_disposables.AddRange(crawlers);
 
-		var discoverer = Spawn("Bitcoin Node Discovery Service",
-			EventDriven(
-				new NodeDiscoveryCoordinator.CrawlingCoordinationState(Harvesting: true, SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
-				NodeDiscoveryCoordinator.CreateDiscovery(crawlers)),
-			cancellationToken: cancellationToken);
+		var discoverer = Spawn(NodeDiscoveryCoordinator.ServiceName,
+			Service("Bitcoin Node Discovery Service",
+				EventDriven(
+					new NodeDiscoveryCoordinator.CrawlingCoordinationState(Harvesting: true, SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
+					NodeDiscoveryCoordinator.CreateDiscovery(crawlers))),
+					cancellationToken);
 		discoverer.DisposeUsing(_disposables);
 
 		// NBitcoin doesn't have these dnsSeeds for signet
@@ -230,11 +231,26 @@ public class Global
 		var manager = new NodeConnectionManager(Network, peersProvider, behaviorFactories, EventBus, torSocks5: torEndpoint);
 		manager.DisposeUsing(_disposables);
 
-		NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, cancellationToken);
+		IDnsResolver dnsResolver = torEndpoint is not null
+			? new DnsSocksResolver(torEndpoint)
+			: DnsResolver.Instance;
+
+		Spawn("NodeBoostrap",
+			Service<Unit>("Node Endpoints Boostrap",
+				(_, ct) => NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, dnsResolver, ct)));
+
 		// Subscribe to ticks for slow-mode discovery and rotation
-		EventBus.Subscribe<Tick>(async _ =>
-			await manager.ReevaluateConnectionsAsync(cancellationToken).ConfigureAwait(false)
-		).DisposeUsing(_disposables);
+		EventBus.Subscribe<Tick>(async void (_) =>
+		{
+			try
+			{
+				await manager.ReevaluateConnectionsAsync(cancellationToken).ConfigureAwait(false);
+			}
+			catch (Exception e)
+			{
+				Logger.LogWarning(e.Message);
+			}
+		}).DisposeUsing(_disposables);
 
 		EventBus.Subscribe<NodeDisconnectedQuickly>(e =>
 			NodeDiscoveryCoordinator.ReportQuickDisconnect(discoverer, e.EndPoint)
@@ -772,25 +788,6 @@ public class Global
 				_stoppingCts.Dispose();
 				Logger.LogTrace("Dispose finished.");
 			}
-		}
-	}
-}
-
-static class NBitcoinExtensions
-{
-	extension(ConcurrentChain blockHeaders)
-	{
-		public byte[] ToBlockHashesBytes()
-		{
-			return blockHeaders.ToBytes(new ConcurrentChain.ChainSerializationFormat
-				{SerializeBlockHeader = false, SerializePrecomputedBlockHash = true});
-		}
-
-		private byte[] ToBytes(ConcurrentChain.ChainSerializationFormat format)
-		{
-			var ms = new MemoryStream();
-			blockHeaders.WriteTo(ms, format);
-			return ms.ToArray();
 		}
 	}
 }
