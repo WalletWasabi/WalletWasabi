@@ -375,7 +375,7 @@ public class KeyManager
 			var (generator, generatorSetter) = purpose switch
 			{
 				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.Segwit) => (SegwitExternalKeyGenerator, (Action<HdPubKeyGenerator>) (g => SegwitExternalKeyGenerator = g)),
-				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, (Action<HdPubKeyGenerator>)(g => TaprootExternalKeyGenerator = g)),
+				KeyPurpose.LoudPaymentKey(ScriptPubKeyType.TaprootBIP86) => (TaprootExternalKeyGenerator, g => TaprootExternalKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.ScanKey => (_silentPaymentScanKeyGenerator, g => _silentPaymentScanKeyGenerator = g),
 				KeyPurpose.SilentPaymentKey.SpendKey => (_silentPaymentSpendKeyGenerator, g => _silentPaymentSpendKeyGenerator = g),
 				KeyPurpose.LoudPaymentKey(var scriptPubKeyType) => throw new NotSupportedException( $"Script type '{scriptPubKeyType}' is not supported."),
