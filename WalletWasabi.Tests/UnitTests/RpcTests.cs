@@ -162,7 +162,7 @@ public class RpcTests
 	{
 		var options = new JsonSerializerOptions()
 		{
-			DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingDefault,
+			DefaultIgnoreCondition = JsonIgnoreCondition.Never,
 			Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
 		};
 
