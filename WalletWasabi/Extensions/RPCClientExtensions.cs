@@ -130,6 +130,8 @@ public static class RPCClientExtensions
 		{
 			return [];
 		}
+
+		return result;
 	}
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
