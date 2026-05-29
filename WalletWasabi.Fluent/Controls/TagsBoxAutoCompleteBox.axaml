@@ -42,7 +42,7 @@
         <ControlTemplate>
           <Grid x:Name="PART_LayoutRoot">
             <TextBox x:Name="PART_TextBox"
-                     Watermark="{TemplateBinding Watermark}"
+                     PlaceholderText="{TemplateBinding Watermark}"
                      Width="{TemplateBinding Width}"
                      Foreground="{TemplateBinding Foreground}"
                      Background="{TemplateBinding Background}"

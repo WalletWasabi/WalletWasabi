@@ -52,7 +52,7 @@
                  MaxLength="250"
                  Text="{Binding To}"
                  Classes="monoSpaced"
-                 Watermark="Bitcoin address"
+                 PlaceholderText="Bitcoin address"
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">

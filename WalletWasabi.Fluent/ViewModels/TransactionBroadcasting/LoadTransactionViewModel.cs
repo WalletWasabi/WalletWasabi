@@ -23,10 +23,10 @@ public partial class LoadTransactionViewModel : DialogViewModelBase<SmartTransac
 
 		this.WhenAnyValue(x => x.FinalTransaction)
 			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(finalTransaction => Close(result: finalTransaction));
 
-		ImportTransactionCommand = ReactiveCommand.CreateFromTask(OnImportTransactionAsync, outputScheduler: RxApp.MainThreadScheduler);
+		ImportTransactionCommand = ReactiveCommand.CreateFromTask(OnImportTransactionAsync, outputScheduler: RxSchedulers.MainThreadScheduler);
 
 		PasteCommand = ReactiveCommand.CreateFromTask(OnPasteAsync);
 	}

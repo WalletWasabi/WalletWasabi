@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class ShowErrorDialogView : UserControl
+public partial class ShowErrorDialogView : UserControl
 {
 	public ShowErrorDialogView()
 	{

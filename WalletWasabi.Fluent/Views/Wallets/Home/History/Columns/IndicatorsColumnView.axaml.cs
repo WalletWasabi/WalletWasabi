@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Columns;
 
-public class IndicatorsColumnView : UserControl
+public partial class IndicatorsColumnView : UserControl
 {
 	public IndicatorsColumnView()
 	{

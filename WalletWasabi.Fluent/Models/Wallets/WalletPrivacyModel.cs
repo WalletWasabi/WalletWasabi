@@ -13,7 +13,7 @@ public partial class WalletPrivacyModel
 		ProgressUpdated =
 			walletModel.Transactions.TransactionProcessed
 					   .Merge(walletModel.Settings.WhenAnyValue(x => x.AnonScoreTarget).ToSignal())
-					   .ObserveOn(RxApp.MainThreadScheduler)
+					   .ObserveOn(RxSchedulers.MainThreadScheduler)
 					   .Skip(1);
 
 		Progress = ProgressUpdated.Select(_ => wallet.GetPrivacyPercentage());

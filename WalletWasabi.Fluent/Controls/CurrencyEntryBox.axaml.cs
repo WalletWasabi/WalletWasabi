@@ -123,7 +123,7 @@ public partial class CurrencyEntryBox : TextBox
 		return fiatValue / ConversionRate;
 	}
 
-	protected override void OnGotFocus(GotFocusEventArgs e)
+	protected override void OnGotFocus(FocusChangedEventArgs e)
 	{
 		base.OnGotFocus(e);
 

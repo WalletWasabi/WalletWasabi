@@ -39,7 +39,7 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 
 	protected override IDisposable OnAttachedToVisualTreeOverride()
 	{
-		RxApp.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync(forceCheck: false));
+		RxSchedulers.MainThreadScheduler.Schedule(async () => await CheckClipboardForValidAddressAsync(forceCheck: false));
 
 		var disposables = new CompositeDisposable();
 
@@ -49,14 +49,14 @@ public class PasteButtonFlashBehavior : AttachedToVisualTreeBehavior<AnimatedBut
 				.FromEventPattern(mainWindow, nameof(mainWindow.Activated)).ToSignal()
 				.Merge(this.WhenAnyValue(x => x.CurrentAddress).ToSignal())
 				.Throttle(TimeSpan.FromMilliseconds(100))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.ObserveOn(RxSchedulers.MainThreadScheduler)
 				.SelectMany(_ => Observable.FromAsync(() => CheckClipboardForValidAddressAsync(forceCheck: true)))
 				.Subscribe()
 				.DisposeWith(disposables);
 
 			Observable
 				.Interval(TimeSpan.FromMilliseconds(500))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.ObserveOn(RxSchedulers.MainThreadScheduler)
 				.Where(_ => mainWindow.IsActive)
 				.SelectMany(_ => Observable.FromAsync(() => CheckClipboardForValidAddressAsync(forceCheck: false)))
 				.Subscribe()

@@ -262,7 +262,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		RxSchedulers.MainThreadScheduler.Schedule(async () =>
 		{
 			await Task.Delay(500);
 			History.SelectTransaction(txid);

@@ -71,7 +71,7 @@
                            Opacity="0.5"
                            Padding="15 0"
                            VerticalAlignment="Center"
-                           Text="{TemplateBinding Watermark}" />
+                           Text="{TemplateBinding PlaceholderText}" />
                 <ItemsControl Name="PART_ItemsPresenter"
                               ItemsSource="{TemplateBinding Items}"
                               ClipToBounds="False"

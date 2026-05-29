@@ -34,7 +34,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			.Select(x => x.EventArgs)
 			.Where(x => x is WalletStartedCoinJoinEventArgs or WalletStoppedCoinJoinEventArgs or StartErrorEventArgs
 				or CoinJoinStatusEventArgs or CompletedEventArgs or StartedEventArgs)
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		settings.WhenAnyValue(x => x.AutoCoinjoin)
 				.Skip(1) // The first one is triggered at the creation.
@@ -71,13 +71,13 @@ public partial class WalletCoinjoinModel : ReactiveObject
 		IsRunning =
 			coinjoinInputStarted.Merge(coinjoinStopped)
 				.Merge(coinjoinCompleted)
-						   .ObserveOn(RxApp.MainThreadScheduler);
+						   .ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		IsRunning.BindTo(this, x => x.IsCoinjoining);
 
 		IsStarted =
 			coinjoinStarted.Merge(coinjoinStopped)
-				.ObserveOn(RxApp.MainThreadScheduler);
+				.ObserveOn(RxSchedulers.MainThreadScheduler);
 	}
 
 	public IObservable<StatusChangedEventArgs> StatusUpdated { get; }

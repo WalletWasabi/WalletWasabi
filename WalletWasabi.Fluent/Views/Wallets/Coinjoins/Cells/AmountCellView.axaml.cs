@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Coinjoins.Cells;
 
-public class AmountCellView : UserControl
+public partial class AmountCellView : UserControl
 {
 	public AmountCellView()
 	{

@@ -35,7 +35,7 @@
     <DockPanel>
       <TextBlock Text="Bitcoin RPC Credential String" />
       <TextBox Text="{Binding BitcoinRpcCredentialString}"
-               Watermark="(rpcuser:rpcpassword or cookie file)"/>
+               PlaceholderText="(rpcuser:rpcpassword or cookie file)"/>
     </DockPanel>
 
     <DockPanel>

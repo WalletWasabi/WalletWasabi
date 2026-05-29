@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.Tiles;
 
-public class PrivacyControlTileView : UserControl
+public partial class PrivacyControlTileView : UserControl
 {
 	public PrivacyControlTileView()
 	{

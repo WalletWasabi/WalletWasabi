@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs.Authorization;
 
-public class HardwareWalletAuthDialogView : UserControl
+public partial class HardwareWalletAuthDialogView : UserControl
 {
 	public HardwareWalletAuthDialogView()
 	{

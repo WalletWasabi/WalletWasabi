@@ -39,17 +39,17 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
 				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.ObserveOn(RxSchedulers.MainThreadScheduler)
 				.StartWith(Unit.Default);
 
 		NewTransactionArrived =
 			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
 				.Where(x => x.WalletName == wallet.WalletName)
 				.Select(x => (walletModel, x.Result))
-				.ObserveOn(RxApp.MainThreadScheduler);
+				.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		RequestedCpfpInfoArrived = services.EventBus.AsObservable<CpfpInfoArrived>().ToSignal()
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
 			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)

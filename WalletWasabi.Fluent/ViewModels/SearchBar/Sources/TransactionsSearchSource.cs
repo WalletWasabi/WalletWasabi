@@ -37,7 +37,7 @@ public class TransactionsSearchSource : ReactiveObject, ISearchSource, IDisposab
 
 		var results = queries
 			.Select(query => query.Length >= MinQueryLength ? Search(query) : [])
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		sourceCache
 			.RefillFrom(results)

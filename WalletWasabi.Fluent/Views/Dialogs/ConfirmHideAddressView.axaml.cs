@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class ConfirmHideAddressView : UserControl
+public partial class ConfirmHideAddressView : UserControl
 {
 	public ConfirmHideAddressView()
 	{

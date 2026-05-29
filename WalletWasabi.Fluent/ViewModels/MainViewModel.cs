@@ -56,11 +56,11 @@ public partial class MainViewModel : ViewModelBase
 
 		this.RegisterAllViewModels(UiContext);
 
-		RxApp.MainThreadScheduler.Schedule(async () => await NavBar.InitialiseAsync());
+		RxSchedulers.MainThreadScheduler.Schedule(async () => await NavBar.InitialiseAsync());
 
 		this.WhenAnyValue(x => x.WindowState)
 			.Where(state => state != WindowState.Minimized)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(state => UiContext.ApplicationSettings.WindowState = state);
 
 		IsMainContentEnabled =
@@ -69,7 +69,7 @@ public partial class MainViewModel : ViewModelBase
 					x => x.FullScreen.IsDialogOpen,
 					x => x.CompactDialogScreen.IsDialogOpen,
 					(dialogIsOpen, fullScreenIsOpen, compactIsOpen) => !(dialogIsOpen || fullScreenIsOpen || compactIsOpen))
-				.ObserveOn(RxApp.MainThreadScheduler);
+				.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		CurrentWallet =
 			this.WhenAnyValue(x => x.MainScreen.CurrentPage)
@@ -79,7 +79,7 @@ public partial class MainViewModel : ViewModelBase
 		IsOobeBackgroundVisible = UiContext.ApplicationSettings.Oobe;
 		var isFirstLaunch = !UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe;
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		RxSchedulers.MainThreadScheduler.Schedule(async () =>
 		{
 			if (isFirstLaunch)
 			{
@@ -183,7 +183,7 @@ public partial class MainViewModel : ViewModelBase
 			.Select(x => x.Status)
 			.Where(x => !x.IsOk)
 			.Take(1)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(x => NotificationHelpers.ShowError(
 				"Could not connect to Bitcoin RPC",
 				$"\n>>Click here to verify Bitcoin RPC settings.<<",

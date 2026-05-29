@@ -33,7 +33,7 @@ public partial class ShowQrCameraDialogViewModel : DialogViewModelBase<string?>
 
 		UiContext.QrCodeReader
 			.Read()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(
 				onNext: result =>
 					AddressParser.Parse(result.decoded, _network).MatchDo(

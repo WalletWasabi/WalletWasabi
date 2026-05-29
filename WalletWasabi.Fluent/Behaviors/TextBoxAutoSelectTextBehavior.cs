@@ -24,7 +24,7 @@ internal class TextBoxAutoSelectTextBehavior : AttachedToVisualTreeBehavior<Text
 		return isFocused
 			.Throttle(TimeSpan.FromSeconds(0.1))
 			.DistinctUntilChanged()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Where(focused => focused)
 			.Do(_ => AssociatedObject.SelectAll())
 			.Subscribe();

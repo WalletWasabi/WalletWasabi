@@ -39,8 +39,8 @@ public class TagsBox : TemplatedControl
 	public static readonly StyledProperty<bool> ForceAddProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(ForceAdd));
 
-	public static readonly StyledProperty<string?> WatermarkProperty =
-		TextBox.WatermarkProperty.AddOwner<TagsBox>();
+	public static readonly StyledProperty<string?> PlaceholderTextProperty =
+		TextBox.PlaceholderTextProperty.AddOwner<TagsBox>();
 
 	public static readonly StyledProperty<bool> RestrictInputToSuggestionsProperty =
 		AvaloniaProperty.Register<TagsBox, bool>(nameof(RestrictInputToSuggestions));
@@ -111,10 +111,10 @@ public class TagsBox : TemplatedControl
 		set => SetAndRaise(TopItemsProperty, ref field, value);
 	}
 
-	public string? Watermark
+	public string? PlaceholderText
 	{
-		get => GetValue(WatermarkProperty);
-		set => SetValue(WatermarkProperty, value);
+		get => GetValue(PlaceholderTextProperty);
+		set => SetValue(PlaceholderTextProperty, value);
 	}
 
 	public bool RequestAdd
@@ -280,7 +280,7 @@ public class TagsBox : TemplatedControl
 		Observable.Merge(
 				this.WhenAnyValue(x => x.RequestAdd).Where(x => x).Throttle(TimeSpan.FromMilliseconds(10)).ToSignal(),
 				this.WhenAnyValue(x => x.ForceAdd).Where(x => x).ToSignal())
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Select(_ => CurrentText)
 			.Subscribe(currentText =>
 			{
@@ -392,7 +392,7 @@ public class TagsBox : TemplatedControl
 		}
 	}
 
-	protected override void OnGotFocus(GotFocusEventArgs e)
+	protected override void OnGotFocus(FocusChangedEventArgs e)
 	{
 		base.OnGotFocus(e);
 

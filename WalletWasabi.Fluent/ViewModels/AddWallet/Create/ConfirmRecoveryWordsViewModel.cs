@@ -42,7 +42,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		confirmationWordsSourceList
 			.DisposeWith(disposables)
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Bind(ConfirmationWords)
 			.OnItemAdded(x => x.Reset())
 			.Subscribe()
@@ -67,7 +67,7 @@ public partial class ConfirmRecoveryWordsViewModel : RoutableViewModel
 		this.WhenAnyValue(
 				x => x.CurrentWord,
 				x => x.AllWordsConfirmed)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
 				Caption = AllWordsConfirmed ? "Recovery words confirmed." : $"Click the recovery word #{CurrentWord.Index}";

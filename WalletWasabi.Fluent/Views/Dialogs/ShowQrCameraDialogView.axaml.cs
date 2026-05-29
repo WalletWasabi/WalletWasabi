@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Dialogs;
 
-public class ShowQrCameraDialogView : UserControl
+public partial class ShowQrCameraDialogView : UserControl
 {
 	// NASTY HACK! DO NOT USE IN PRODUCTION. kiminuo
 	public static volatile Image? QrImage;

@@ -393,7 +393,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.Transaction)
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Do(
 				_ =>
 				{
@@ -411,7 +411,7 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 
 		if (!isInHistory)
 		{
-			RxApp.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
+			RxSchedulers.MainThreadScheduler.Schedule(async () => await InitialiseViewModelAsync());
 		}
 	}
 

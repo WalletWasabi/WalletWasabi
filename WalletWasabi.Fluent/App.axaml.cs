@@ -56,7 +56,7 @@ public class App : Application
 					uiContext.HealthMonitor.Dispose();
 				};
 
-				RxApp.MainThreadScheduler.Schedule(
+				RxSchedulers.MainThreadScheduler.Schedule(
 					async () =>
 					{
 						await _backendInitializeAsync!(); // Guaranteed not to be null when not in designer.
@@ -69,9 +69,6 @@ public class App : Application
 		}
 
 		base.OnFrameworkInitializationCompleted();
-#if DEBUG
-		this.AttachDevTools();
-#endif
 	}
 
 	private void InitializeTrayIcons()

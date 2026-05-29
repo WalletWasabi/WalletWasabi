@@ -3,7 +3,6 @@ using System.Linq;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Input;
-using Avalonia.Interactivity;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -134,14 +133,14 @@ public partial class CopyablePasswordTextBox : TextBox
 		}
 	}
 
-	protected override void OnGotFocus(GotFocusEventArgs e)
+	protected override void OnGotFocus(FocusChangedEventArgs e)
 	{
 		base.OnGotFocus(e);
 
 		UpdateCommandStates();
 	}
 
-	protected override void OnLostFocus(RoutedEventArgs e)
+	protected override void OnLostFocus(FocusChangedEventArgs e)
 	{
 		base.OnLostFocus(e);
 

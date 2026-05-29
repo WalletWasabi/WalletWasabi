@@ -26,7 +26,7 @@ public partial class SearchBarViewModel : ReactiveObject
 			.Transform(group => new SearchItemGroup(group.Key, group.Cache.Connect()))
 			.SortAndBind(out _groups, SortExpressionComparer<SearchItemGroup>.Ascending(x => x.Title))
 			.DisposeMany()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe();
 
 		var activateFirstItemCommand = ReactiveCommand.Create(

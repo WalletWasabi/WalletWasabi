@@ -35,7 +35,7 @@ public class NavigationState : ReactiveObject, INavigate
 				x => x.HomeScreen.CurrentPage,
 				(dialog, compactDialog, fullScreenDialog, mainScreen) => compactDialog ?? dialog ?? fullScreenDialog ?? mainScreen)
 			.WhereNotNull()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Do(OnCurrentPageChanged)
 			.Subscribe();
 

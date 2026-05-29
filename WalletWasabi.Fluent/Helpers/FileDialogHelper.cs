@@ -62,8 +62,7 @@ public static class FileDialogHelper
 
 		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
 		{
-			var visualRoot = mainView.GetVisualRoot();
-			if (visualRoot is TopLevel topLevel)
+			if (TopLevel.GetTopLevel(mainView) is TopLevel topLevel)
 			{
 				return topLevel.StorageProvider;
 			}
