@@ -36,12 +36,12 @@ public class NodeConnectionManager : IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
-	private const double RotationScoreThreshold = 1.20;
+	private const double RotationScoreThreshold = 1.1;
 
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(1);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
-	private const int MaintainEverySeconds = 5;
-	private const int RotateEverySeconds = 300;
+	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
+	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
 
 	private readonly Network _network;
 	private readonly NodeDiscoveryCoordinator.PeersInfoProvider _getPeersInfo;
@@ -55,7 +55,9 @@ public class NodeConnectionManager : IDisposable
 	private readonly ConcurrentDictionary<EndPoint, DateTimeOffset> _connectionAttempts = new();
 
 	private int _currentTipHeight;
-	private int _tickCounter;
+	private int _isReevaluating;
+	private DateTimeOffset _lastMaintainTime;
+	private DateTimeOffset _lastRotateTime;
 	private bool _isDisposed;
 
 	public NodeConnectionManager(
@@ -83,18 +85,31 @@ public class NodeConnectionManager : IDisposable
 
 	public int Count => Nodes.Length;
 
-	public async Task ReevaluateConnectionsAsync(CancellationToken cancellationToken)
+	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, CancellationToken cancellationToken)
 	{
-		_tickCounter++;
-
-		if (_tickCounter % MaintainEverySeconds == 0 || Count == 0)
+		if (Interlocked.CompareExchange(ref _isReevaluating, 1, 0) != 0)
 		{
-			await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
+			return;
 		}
 
-		if (_tickCounter % RotateEverySeconds == 0 && Count > (TargetConnections - 3))
+		try
 		{
-			await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+			if (now - _lastMaintainTime >= MaintainInterval || Count == 0)
+			{
+				_lastMaintainTime = now;
+				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
+			}
+
+			if ((now - _lastRotateTime >= RotateInterval && Count > TargetConnections - 3) ||
+			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsBlocksLimited) < MinCompactFilterNodes))
+			{
+				_lastRotateTime = now;
+				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+			}
+		}
+		finally
+		{
+			Interlocked.Exchange(ref _isReevaluating, 0);
 		}
 	}
 
@@ -193,7 +208,7 @@ public class NodeConnectionManager : IDisposable
 
 			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
-			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
+			node.VersionHandshake(timeoutCts.Token);
 
 			if (node.State != NodeState.HandShaked)
 			{
@@ -328,7 +343,7 @@ public class NodeConnectionManager : IDisposable
 		}
 		else
 		{
-			Logger.LogDebug($"Best peer candidate for rotation is worst than all already connect peers. Scored {bestDiscoveredScore}");
+			Logger.LogDebug($"Best peer candidate for rotation is not much better than all already connect peers. Scored {bestDiscoveredScore}");
 		}
 	}
 

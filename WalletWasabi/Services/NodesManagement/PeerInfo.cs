@@ -28,7 +28,7 @@ public sealed record PeerInfo
 	public double ComputeScore()
 	{
 		double score =
-			(Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) ? 15 : 0) +
+			(Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) ? 30 : 0) +
 			(Services.HasFlag(NodeServices.Network) ? 20 : -10) +
 			(Services.HasFlag(NodeServices.NODE_WITNESS) ? 5 : 0);
 

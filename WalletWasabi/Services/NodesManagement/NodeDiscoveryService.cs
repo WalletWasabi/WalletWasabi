@@ -71,16 +71,6 @@ public static class NodeDiscoveryCoordinator
 
 					state = state with {Harvesting = false};
 				}
-				if (state is {SlowedDown: false , Peers.Count: > 300})
-				{
-					var speedUpMessage = new SlowDownMessage();
-					foreach (var crawler in crawlers)
-					{
-						crawler.Post(speedUpMessage);
-					}
-
-					state = state with {SlowedDown = true};
-				}
 
 				var n = state.LastCrawlerIndex;
 				foreach (var endPoint in endpoints)
@@ -99,6 +89,17 @@ public static class NodeDiscoveryCoordinator
 					: peer;
 
 				state = state with {Peers = state.Peers.SetItem(peer.Endpoint, updatedPeer)};
+
+				if (state is {SlowedDown: false , Peers.Count: > 300})
+				{
+					var speedUpMessage = new SlowDownMessage();
+					foreach (var crawler in crawlers)
+					{
+						crawler.Post(speedUpMessage);
+					}
+
+					state = state with {SlowedDown = true};
+				}
 				break;
 
 			case PeerFailedMessage (Endpoint: var endpoint):
@@ -192,7 +193,7 @@ public static class NodeDiscoveryCoordinator
 		try
 		{
 			node = await Node.ConnectAsync(network, endpoint, connParams).ConfigureAwait(false);
-			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
+			node.VersionHandshake(timeoutCts.Token);
 
 			sw.Stop();
 
@@ -329,85 +330,4 @@ public static class NodeDiscoveryCoordinator
 
 	private static void NotifyCoordinator(CoordinatorMessage msg) =>
 		Tell(ServiceName, msg);
-}
-
-public static partial class Extensions
-{
-	extension(Node node)
-	{
-		private VersionPayload _PeerVersion
-		{
-			set => NodeAccessors.GetPeerVersion(node) = value;
-		}
-		private NodeState _State
-		{
-			set => NodeAccessors.GetState(node) = value;
-		}
-
-		private void _SetVersion(uint version) =>
-			NodeAccessors.CallSetVersion(node, version);
-
-		public async Task VersionHandshakeAsync(CancellationToken cancellationToken)
-		{
-			if (node.State == NodeState.HandShaked)
-			{
-				throw new InvalidOperationException("Already handshaked");
-			}
-
-			using var listener = node.CreateListener()
-				.Where(p => p.Message.Payload is VersionPayload or VerAckPayload);
-
-			await node.SendMessageAsync(node.MyVersion).ConfigureAwait(false);
-
-			var version = listener.ReceivePayload<VersionPayload>(cancellationToken);
-
-			node._PeerVersion = version;
-			node._SetVersion(Math.Min(node.MyVersion.Version, version.Version));
-
-			if (node.ProtocolCapabilities.PeerTooOld)
-			{
-				Logger.LogWarning("Outdated version {version} disconnecting", version.Version);
-				node.Disconnect("Outdated version");
-				return;
-			}
-
-			// As a courtesy we do not send sendaddr to nodes that do not support it.
-			if (node.ProtocolCapabilities.SupportAddrv2)
-			{
-				// Signal ADDRv2 support (BIP155).
-				await node.SendMessageAsync(new SendAddrV2Payload()).ConfigureAwait(false);
-			}
-
-			await node.SendMessageAsync(new VerAckPayload()).ConfigureAwait(false);
-
-			listener.ReceivePayload<VerAckPayload>(cancellationToken);
-
-			node._State = NodeState.HandShaked;
-
-			if (node.Advertize)
-			{
-				if (node.MyVersion.AddressFrom is IPEndPoint iPEndPoint && !iPEndPoint.Address.IsRoutable(true))
-				{
-					return;
-				}
-
-				await node.SendMessageAsync(new AddrPayload(new NetworkAddress(node.MyVersion.AddressFrom)
-				{
-					Time = DateTimeOffset.UtcNow
-				})).ConfigureAwait(false);
-			}
-		}
-	}
-
-}
-public static class NodeAccessors
-{
-	[UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_PeerVersion")]
-	public static extern ref VersionPayload GetPeerVersion(Node node);
-
-	[UnsafeAccessor(UnsafeAccessorKind.Field, Name = "_State")]
-	public static extern ref NodeState GetState(Node node);
-
-	[UnsafeAccessor(UnsafeAccessorKind.Method, Name = "SetVersion")]
-	public static extern void CallSetVersion(Node node, uint version);
 }

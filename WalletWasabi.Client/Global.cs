@@ -255,7 +255,7 @@ public class Global
 		{
 			try
 			{
-				await manager.ReevaluateConnectionsAsync(cancellationToken).ConfigureAwait(false);
+				await manager.ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
 			}
 			catch (Exception e)
 			{
