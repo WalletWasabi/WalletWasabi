@@ -156,7 +156,8 @@ public class Wallet : BackgroundService
 	/// <remarks>Transaction amount specifies how it affected your final wallet balance (spend some bitcoin, received some bitcoin, or no change).</remarks>
 	public async Task<List<TransactionSummary>> BuildHistorySummaryAsync(bool sortForUi = false, CancellationToken cancellationToken = default)
 	{
-		var cpfpInfos = await CpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
+		// var cpfpInfos = await CpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
+		CachedCpfpInfo[] cpfpInfos = [];
 
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
