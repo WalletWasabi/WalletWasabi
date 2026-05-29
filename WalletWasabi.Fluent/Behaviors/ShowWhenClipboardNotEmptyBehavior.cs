@@ -32,7 +32,7 @@ public class ShowWhenClipboardNotEmptyBehavior : Behavior<TextBox>
 		AssociatedObject?.GotFocus -= OnGotFocusAsync;
 	}
 
-	private async void OnGotFocusAsync(object? sender, GotFocusEventArgs e)
+	private async void OnGotFocusAsync(object? sender, FocusChangedEventArgs e)
 	{
 		if (AssociatedObject is null || TargetControl is null)
 		{

@@ -79,7 +79,7 @@ public class FlyoutSuggestionBehavior : AttachedToVisualTreeBehavior<Control>
 
 		var showOnGotFocus = focusChanges
 			.Where(focus => focus)
-			.Delay(TimeSpan.FromSeconds(0.2), RxApp.MainThreadScheduler)
+			.Delay(TimeSpan.FromSeconds(0.2), RxSchedulers.MainThreadScheduler)
 			.WithLatestFrom(targets, (_, target) => target)
 			.WithLatestFrom(contents, (tb, newText) => new { TextBox = tb, NewText = newText, CurrentText = tb.Text })
 			.Where(arg => !string.IsNullOrWhiteSpace(arg.NewText))

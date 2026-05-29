@@ -197,7 +197,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 		Observable
 			.Merge(configSaveTrigger1, configSaveTrigger2)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Throttle(TimeSpan.FromMilliseconds(ThrottleTime))
 			.Do(_ => Save())
 			.Subscribe();
@@ -269,7 +269,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	private void Save()
 	{
-		RxApp.MainThreadScheduler.Schedule(
+		RxSchedulers.MainThreadScheduler.Schedule(
 			() =>
 			{
 				try

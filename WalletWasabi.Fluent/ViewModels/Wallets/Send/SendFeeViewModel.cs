@@ -107,11 +107,11 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 			})
 			.WhereNotNull()
 			.Where(x => x.Estimations.Count != 0)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(estimations => FeeChart.UpdateFeeEstimates(estimations.WildEstimations, _transactionInfo.MaximumPossibleFeeRate))
 			.DisposeWith(disposables);
 
-		RxApp.MainThreadScheduler.Schedule(async () =>
+		RxSchedulers.MainThreadScheduler.Schedule(async () =>
 		{
 			FeeRateEstimations feeRateEstimations;
 			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));

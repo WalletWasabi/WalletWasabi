@@ -47,7 +47,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 			.Return(Unit.Default)
 			.Delay(TimeSpan.FromMilliseconds(0)) // Wait for Ring animation to render TODO: Calculate delay based on the number of segments
 			.Concat(this.WhenAnyValue(x => x.SelectedItem).Where(x => x is null).ToSignal())
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Do(_ => SelectedItem = PrivacyTile)
 			.Subscribe()
 			.DisposeWith(disposables);
@@ -55,7 +55,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		itemsSourceList
 			.DisposeWith(disposables)
 			.Connect()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Bind(Items)
 			.DisposeMany()
 			.Subscribe()
@@ -78,7 +78,7 @@ public partial class PrivacyRingViewModel : RoutableViewModel
 		_wallet.Privacy.ProgressUpdated
 					   .Merge(sizeTrigger)
 					   .WithLatestFrom(coinsList)
-					   .ObserveOn(RxApp.MainThreadScheduler)
+					   .ObserveOn(RxSchedulers.MainThreadScheduler)
 					   .Do(t => RenderRing(itemsSourceList, t.Second))
 					   .Subscribe()
 					   .DisposeWith(disposables);

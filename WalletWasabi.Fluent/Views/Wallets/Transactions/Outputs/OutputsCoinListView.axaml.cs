@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Transactions.Outputs;
 
-public class OutputsCoinListView : UserControl
+public partial class OutputsCoinListView : UserControl
 {
 	public OutputsCoinListView()
 	{

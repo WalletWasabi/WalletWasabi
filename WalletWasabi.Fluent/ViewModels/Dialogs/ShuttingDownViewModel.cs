@@ -27,10 +27,10 @@ public partial class ShuttingDownViewModel : RoutableViewModel
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
-		RxApp.MainThreadScheduler.Schedule(async () => await UiContext.CoinjoinModel.SignalToStopCoinjoinsAsync());
+		RxSchedulers.MainThreadScheduler.Schedule(async () => await UiContext.CoinjoinModel.SignalToStopCoinjoinsAsync());
 
 		Observable.Interval(TimeSpan.FromSeconds(3))
-				  .ObserveOn(RxApp.MainThreadScheduler)
+				  .ObserveOn(RxSchedulers.MainThreadScheduler)
 				  .Subscribe(_ =>
 				  {
 					  if (UiContext.CoinjoinModel.CanShutdown())

@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets;
 
-public class HardwareWalletView : UserControl
+public partial class HardwareWalletView : UserControl
 {
 	public HardwareWalletView()
 	{

@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Settings;
 
-public class BitcoinTabSettingsView : UserControl
+public partial class BitcoinTabSettingsView : UserControl
 {
 	public BitcoinTabSettingsView()
 	{

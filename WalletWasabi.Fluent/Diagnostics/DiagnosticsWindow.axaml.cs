@@ -19,9 +19,6 @@ public partial class DiagnosticsWindow : Window
 	public DiagnosticsWindow()
 	{
 		InitializeComponent();
-#if DEBUG
-		this.AttachDevTools();
-#endif
 	}
 
 	public DiagnosticsWindow(Control control)
@@ -31,10 +28,6 @@ public partial class DiagnosticsWindow : Window
 		_control = control;
 
 		DefaultDiagnostics();
-
-#if DEBUG
-		this.AttachDevTools();
-#endif
 	}
 
 	public TopLevel? Root { get; set; }

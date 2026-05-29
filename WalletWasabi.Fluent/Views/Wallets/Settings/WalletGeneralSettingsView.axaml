@@ -17,7 +17,7 @@
     <TextBox MaxLength="{StaticResource WalletNameMaxLength}"
              Text="{Binding WalletName}"
              VerticalAlignment="Top"
-             Watermark="Wallet name">
+             PlaceholderText="Wallet name">
     </TextBox>
   </DockPanel>
 

@@ -29,7 +29,7 @@
                  TagSeparator=","
                  SuggestionsAreCaseSensitive="True"
                  RestrictInputToSuggestions="False"
-                 Watermark="{StaticResource LabelsWatermarkText}"
+                 PlaceholderText="{StaticResource LabelsWatermarkText}"
                  Suggestions="{Binding Suggestions}"
                  MaxTextLength="{StaticResource MaxLabelLength}"
                  IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"

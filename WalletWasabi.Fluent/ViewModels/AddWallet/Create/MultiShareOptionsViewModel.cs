@@ -35,7 +35,7 @@ public partial class MultiShareOptionsViewModel : RoutableViewModel
 
 					return OptionsAreValid() && !Validations.Any;
 				})
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		NextCommand = ReactiveCommand.Create(() => OnNext(options), nextCommandCanExecute);
 

@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Settings;
 
-public class WalletGeneralSettingsView : UserControl
+public partial class WalletGeneralSettingsView : UserControl
 {
 	public WalletGeneralSettingsView()
 	{

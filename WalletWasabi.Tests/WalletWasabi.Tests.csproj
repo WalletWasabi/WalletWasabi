@@ -5,11 +5,13 @@
 		<IsPackable>false</IsPackable>
 		<NoWarn>1701;1702;1705;1591;CA1031;CA1822</NoWarn>
 		<ApplicationIcon />
-		<OutputType>Library</OutputType>
+		<OutputType>Exe</OutputType>
 		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
-		<!-- TODO: PathMap breaks Verifier.Verify -->
-		<!--<PathMap>$(MSBuildProjectDirectory)\=WalletWasabi.Tests</PathMap>-->
+
+		<!-- https://xunit.net/docs/getting-started/v3/microsoft-testing-platform -->
+		<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+		<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -20,13 +22,7 @@
 		<PackageReference Include="Microsoft.AspNetCore.Mvc.Testing" />
 		<PackageReference Include="Microsoft.CodeAnalysis.Common" />
 		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" />
-		<PackageReference Include="xunit" />
-		<PackageReference Include="xunit.runner.visualstudio">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
-		<DotNetCliToolReference Include="dotnet-xunit" Version="2.3.1" />
+		<PackageReference Include="xunit.v3" />
 		<PackageReference Include="Avalonia.Headless.XUnit" />
 	</ItemGroup>
 
@@ -52,9 +48,6 @@
 		</None>
 		<None Update="UnitTests\QrDecode\QrResources\QRwithZebraBackground.png">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
-		<None Update="xunit.runner.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="UnitTests\Data\Slip39TestVectors.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>

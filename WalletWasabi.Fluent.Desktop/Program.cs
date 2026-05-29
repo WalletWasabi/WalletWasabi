@@ -175,13 +175,14 @@ public class Program
 	{
 		var result = AppBuilder
 			.Configure(() => new CrashReportApp(serializableException))
-			.UseReactiveUI();
+			.UseReactiveUI((builder) => { });
 
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
 			result
 				.UseWin32()
-				.UseSkia();
+				.UseSkia()
+				.UseHarfBuzz();
 		}
 		else
 		{
@@ -203,18 +204,6 @@ public static class WasabiAppExtensions
 	{
 		return app.Run(afterStarting: () =>
 			{
-				RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
-				{
-					if (Debugger.IsAttached)
-					{
-						Debugger.Break();
-					}
-
-					Logger.LogError(ex);
-
-					RxApp.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", ex));
-				});
-
 				Logger.LogInfo("Wasabi GUI started.");
 				bool runGuiInBackground = app.AppConfig.Arguments.Any(arg => arg.Contains(StartupHelper.SilentArgument));
 				UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
@@ -231,10 +220,17 @@ public static class WasabiAppExtensions
 						// Make sure that wallet startup set correctly regarding RunOnSystemStartup
 						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
 					}, startInBg: runGuiInBackground))
-					.UseReactiveUI()
+					.UseReactiveUI((builder) => {
+
+						builder.WithCoreServices();
+						builder.WithPlatformServices();
+						builder.WithExceptionHandler(new CrashReportExceptionHandler());
+					})
 					.SetupAppBuilder(services.Config.EnableGpu)
 					.AfterSetup(_ =>
 					{
+						uiConfig.StartObserving();
+
 						ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
 
 						if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
@@ -268,5 +264,33 @@ public static class WasabiAppExtensions
 		Directory.CreateDirectory(dataDir);
 
 		return UiConfig.LoadFile(Path.Combine(dataDir, "UiConfig.json"));
+	}
+}
+
+public class CrashReportExceptionHandler : IObserver<Exception>
+{
+	public void OnCompleted() { }
+
+	public void OnError(Exception error)
+	{
+		HandleException(error);
+	}
+
+	public void OnNext(Exception value)
+	{
+		HandleException(value);
+	}
+
+	private void HandleException(Exception e)
+	{
+		if (Debugger.IsAttached)
+		{
+			Debugger.Break();
+		}
+
+		Logger.LogError(e);
+
+		// Re-throw on the main thread (your original behavior).
+		RxSchedulers.MainThreadScheduler.Schedule(() => throw new ApplicationException("Exception has been thrown in unobserved ThrownExceptions", e));
 	}
 }

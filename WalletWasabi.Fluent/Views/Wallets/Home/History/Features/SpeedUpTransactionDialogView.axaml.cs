@@ -3,7 +3,7 @@ using Avalonia.Markup.Xaml;
 
 namespace WalletWasabi.Fluent.Views.Wallets.Home.History.Features;
 
-public class SpeedUpTransactionDialogView : UserControl
+public partial class SpeedUpTransactionDialogView : UserControl
 {
 	public SpeedUpTransactionDialogView()
 	{

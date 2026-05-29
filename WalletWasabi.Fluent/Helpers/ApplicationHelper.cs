@@ -98,12 +98,8 @@ public class ApplicationHelper
 
 		if (Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime { MainView: { } mainView })
 		{
-			var visualRoot = mainView.GetVisualRoot();
-			if (visualRoot is TopLevel topLevel)
-			{
-				clipboard = topLevel.Clipboard;
-				return clipboard is not null;
-			}
+			clipboard = TopLevel.GetTopLevel(mainView)?.Clipboard;
+			return clipboard is not null;
 		}
 
 		return false;

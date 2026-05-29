@@ -26,7 +26,7 @@ public class WhitespacePasteRemovalBehavior : DisposingBehavior<TextBox>
 				true) // Always mark the attempt to paste as handled, so we'll always use the customized paste.
 			.Select(_ =>
 				Observable.FromAsync(ApplicationHelper.GetTextAsync,
-					scheduler: RxApp.MainThreadScheduler)) // Executes get text asynchronously using the UI thread
+					scheduler: RxSchedulers.MainThreadScheduler)) // Executes get text asynchronously using the UI thread
 			.Concat() // Concatenates the results of the requests into a single observable
 			.Do(clipboardText => Paste(clipboardText, tb)) // Pastes the text
 			.Subscribe();

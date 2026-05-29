@@ -14,7 +14,8 @@ public static class AppBuilderExtension
 		{
 			appBuilder
 				.UseWin32()
-				.UseSkia();
+				.UseSkia()
+				.UseHarfBuzz();
 		}
 		else if (RuntimeInformation.IsOSPlatform(OSPlatform.Linux))
 		{

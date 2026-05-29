@@ -38,7 +38,7 @@ public class QrCode : Control
 	public QrCode()
 	{
 		this.WhenAnyValue(x => x.Matrix)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(matrix =>
 			{
 				if (matrix is { })

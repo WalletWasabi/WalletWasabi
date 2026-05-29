@@ -38,7 +38,7 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 		NavigateToExistingWalletLoginCommand = ReactiveCommand.Create(OnNavigateToExistingWalletLogin);
 
 		this.WhenAnyValue(x => x.Message)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Subscribe(message => ConfirmationRequired = !string.IsNullOrEmpty(message));
 	}
 

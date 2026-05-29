@@ -111,7 +111,7 @@
 
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  IsReadOnly="{Binding IsFixedAddress}"
-                 Watermark="{Binding IsPayToMany, Converter={StaticResource AddressWatermarkConverter}}"
+                 PlaceholderText="{Binding IsPayToMany, Converter={StaticResource AddressWatermarkConverter}}"
                  ScrollViewer.HorizontalScrollBarVisibility="Hidden"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
                  AcceptsReturn="False">
@@ -209,7 +209,7 @@
         <TagsBox x:Name="LabelTagBox"
                  DefaultLabel="{Binding DefaultLabel}"
                  VerticalAlignment="Top"
-                 Watermark="{StaticResource LabelsWatermarkText}"
+                 PlaceholderText="{StaticResource LabelsWatermarkText}"
                  TagSeparator=","
                  SuggestionsAreCaseSensitive="True"
                  RestrictInputToSuggestions="False"
@@ -244,7 +244,7 @@
                 <DockPanel Margin="0,0,0,10">
                   <Label DockPanel.Dock="Left" Content="To:" MinWidth="80" />
                   <TextBox Text="{Binding Value.To}" Classes="monoSpaced" MaxLength="250"
-                           Watermark="(e.g. Bitcoin address or Silent Payment address)">
+                           PlaceholderText="(e.g. Bitcoin address or Silent Payment address)">
                     <TextBox.InnerRightContent>
                       <StackPanel Orientation="Horizontal" VerticalAlignment="Center" Spacing="10" Margin="10 0">
                         <AnimatedButton KeyboardNavigation.IsTabStop="False"
@@ -290,7 +290,7 @@
                 <DockPanel Margin="0,0,0,10">
                   <Label DockPanel.Dock="Left" Content="Recipient:" MinWidth="80" />
                   <TagsBox VerticalAlignment="Top"
-                           Watermark="{StaticResource LabelsWatermarkText}"
+                           PlaceholderText="{StaticResource LabelsWatermarkText}"
                            TagSeparator=","
                            SuggestionsAreCaseSensitive="True"
                            RestrictInputToSuggestions="False"

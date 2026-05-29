@@ -28,7 +28,7 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 		EnableBack = false;
 
-		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+		var backCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		var nextCommandCanExecute = this.WhenAnyValue(
 				x => x.IsDialogOpen,
@@ -46,9 +46,9 @@ public partial class CreatePasswordDialogViewModel : DialogViewModelBase<string?
 							(!string.IsNullOrEmpty(Password) && !string.IsNullOrEmpty(ConfirmPassword) &&
 							 !Validations.Any));
 				})
-			.ObserveOn(RxApp.MainThreadScheduler);
+			.ObserveOn(RxSchedulers.MainThreadScheduler);
 
-		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxApp.MainThreadScheduler);
+		var cancelCommandCanExecute = this.WhenAnyValue(x => x.IsDialogOpen).ObserveOn(RxSchedulers.MainThreadScheduler);
 
 		BackCommand = ReactiveCommand.Create(() => Close(DialogResultKind.Back), backCommandCanExecute);
 		NextCommand = ReactiveCommand.Create(() => Close(result: Password), nextCommandCanExecute);

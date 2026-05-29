@@ -30,14 +30,14 @@ public partial class WalletLoadWorkflow
 		_progress.OnNext((0, 0, 0, 0));
 
 		services.EventBus.AsObservable<NetworkTipHeightChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Select(e => true)
 			.Take(1)
 			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
 			.DisposeWith(_disposables);
 
 		services.EventBus.AsObservable<FilterProcessed>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Select(x => x.Filter.Header.Height)
 			.Sample(TimeSpan.FromSeconds(1))
 			.StartWith(_wallet.KeyManager.GetBestHeight())
@@ -45,7 +45,7 @@ public partial class WalletLoadWorkflow
 			.DisposeWith(_disposables);
 
 		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Where(x => x.Wallet == _wallet)
 			.Select(x => x.Wallet.Loaded)
 			.ToSignal();
@@ -61,13 +61,13 @@ public partial class WalletLoadWorkflow
 	public void Start()
 	{
 		Observable.FromAsync(() => InitialRequestTcs.Task)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Take(1)
 			.SubscribeAsync(LoadWalletAsync)
 			.DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
+				.ObserveOn(RxSchedulers.MainThreadScheduler)
 				.Subscribe(_ => UpdateProgress())
 				.DisposeWith(_disposables);
 	}

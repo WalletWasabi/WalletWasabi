@@ -70,7 +70,7 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
 			.Top(_topSuggestionsCount)
 			.Transform(x => x.Label)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Bind(_topSuggestions)
 			.Subscribe()
 			.DisposeWith(disposables);
@@ -80,7 +80,7 @@ public partial class SuggestionLabelsViewModel : ActivatableViewModel
 			.Filter(suggestionLabelsFilter)
 			.Sort(SortExpressionComparer<SuggestionLabelViewModel>.Descending(x => x.Score).ThenByAscending(x => x.Label))
 			.Transform(x => x.Label)
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Bind(_suggestions)
 			.Subscribe()
 			.DisposeWith(disposables);

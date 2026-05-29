@@ -114,7 +114,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 		Addresses = new AddressesModel(services, Wallet);
 
 		Loaded = services.EventBus.AsObservable<WalletLoaded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
+			.ObserveOn(RxSchedulers.MainThreadScheduler)
 			.Select(_ => Wallet.Loaded);
 
 		Privacy = new WalletPrivacyModel(this, Wallet);

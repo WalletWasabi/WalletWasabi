@@ -8,7 +8,7 @@ using Avalonia.VisualTree;
 
 namespace WalletWasabi.Fluent.Views.Shell;
 
-public class TitleBar : UserControl
+public partial class TitleBar : UserControl
 {
 	public static readonly StyledProperty<Popup> SearchResultsPopupProperty = AvaloniaProperty.Register<TitleBar, Popup>(nameof(SearchResultsPopup));
 

@@ -269,7 +269,7 @@ public class Dialog : ContentControl
 			}
 			else
 			{
-				if (this.GetVisualRoot() is TopLevel topLevel)
+				if (TopLevel.GetTopLevel(this) is TopLevel topLevel)
 				{
 					topLevel.Focus();
 				}
@@ -313,7 +313,7 @@ public class Dialog : ContentControl
 		_dismissPanel = e.NameScope.Find<Panel>("PART_Dismiss");
 		_overlayPanel = e.NameScope.Find<Panel>("PART_Overlay");
 
-		if (this.GetVisualRoot() is TopLevel topLevel)
+		if (TopLevel.GetTopLevel(this) is TopLevel topLevel)
 		{
 			topLevel.AddHandler(PointerPressedEvent, CancelPointerPressed, RoutingStrategies.Bubble);
 			topLevel.AddHandler(KeyDownEvent, CancelKeyDown, RoutingStrategies.Tunnel);
