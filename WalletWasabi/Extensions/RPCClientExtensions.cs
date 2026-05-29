@@ -118,11 +118,20 @@ public static class RPCClientExtensions
 		}
 
 		// EstimateSmartFeeAsync returns the block number where estimate was found - not always what the requested one.
-		return rpcFeeEstimationTasks
-			.Where(x => x.IsCompletedSuccessfully)
-			.Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
-			.DistinctBy(x => x.target)
-			.ToDictionary(x => x.target, x => x.feeRate);
+		var result = rpcFeeEstimationTasks
+		    .Where(x => x.IsCompletedSuccessfully)
+		    .Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
+		    .DistinctBy(x => x.target)
+		    .ToDictionary(x => x.target, x => x.feeRate);
+		
+		// If all confirmation targets collapsed to the same block number, the node lacks sufficient
+		// fee history to produce useful estimates. Do not return such an estimate to let a next provider do the job.
+		if (result.Count < 2)
+		{
+			return [];
+		}
+
+		return result;
 	}
 
 	private static FeeRateByConfirmationTarget GetFeeEstimationsFromMempoolInfo(MemPoolInfo mempoolInfo)
