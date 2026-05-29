@@ -239,7 +239,7 @@ public class Global
 			];
 
 		var peersProvider = NodeDiscoveryCoordinator.GetPeersProvider(discoverer);
-		var manager = new NodeConnectionManager(Network, peersProvider, behaviorFactories, EventBus, torSocks5: torEndpoint);
+		var manager = new NodeConnectionManager(Network, peersProvider, behaviorFactories, EventBus, TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 		manager.DisposeUsing(_disposables);
 
 		IDnsResolver dnsResolver = torEndpoint is not null

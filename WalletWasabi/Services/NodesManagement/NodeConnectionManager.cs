@@ -32,7 +32,14 @@ public class NodesRegistry : IDisposable
 	}
 }
 
-public class NodeConnectionManager : IDisposable
+public class NodeConnectionManager(
+	Network network,
+	NodeDiscoveryCoordinator.PeersInfoProvider getPeersInfo,
+	Func<NodeBehavior>[] behaviorFactories,
+	EventBus eventBus,
+	TimeSpan connectionTimeout,
+	EndPoint? torSocks5 = null)
+	: IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
@@ -43,47 +50,18 @@ public class NodeConnectionManager : IDisposable
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
 
-	private readonly Network _network;
-	private readonly NodeDiscoveryCoordinator.PeersInfoProvider _getPeersInfo;
-	private readonly Func<NodeBehavior>[] _behaviorFactories;
-	private readonly EventBus _eventBus;
-	private readonly TimeSpan _connectionTimeout;
-	private readonly EndPoint? _torSocks5Endpoint;
-	private readonly IDisposable _heightSubscription;
-
 	private readonly ConcurrentDictionary<EndPoint, (Node Node, PeerInfo PeerInfo, DateTimeOffset ConnectedAt)> _connectedNodes = new();
 	private readonly ConcurrentDictionary<EndPoint, DateTimeOffset> _connectionAttempts = new();
 
-	private int _currentTipHeight;
 	private int _isReevaluating;
 	private DateTimeOffset _lastMaintainTime;
 	private DateTimeOffset _lastRotateTime;
 	private bool _isDisposed;
 
-	public NodeConnectionManager(
-		Network network,
-		NodeDiscoveryCoordinator.PeersInfoProvider getPeersInfo,
-		Func<NodeBehavior>[] behaviorFactories,
-		EventBus eventBus,
-		TimeSpan? connectionTimeout = null,
-		EndPoint? torSocks5 = null)
-	{
-		_network = network;
-		_getPeersInfo = getPeersInfo;
-		_behaviorFactories = behaviorFactories;
-		_eventBus = eventBus;
-		_connectionTimeout = connectionTimeout ?? TimeSpan.FromSeconds(15);
-		_torSocks5Endpoint = torSocks5;
-
-		_heightSubscription = eventBus.Subscribe<NetworkTipHeightChanged>(e => _currentTipHeight = (int)e.Height);
-	}
-
 	public Node[] Nodes => _connectedNodes.Values
 		.Select(x => x.Node)
 		.Where(n => n.IsConnected)
 		.ToArray();
-
-	public int Count => Nodes.Length;
 
 	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, CancellationToken cancellationToken)
 	{
@@ -94,13 +72,16 @@ public class NodeConnectionManager : IDisposable
 
 		try
 		{
-			if (now - _lastMaintainTime >= MaintainInterval || Count == 0)
+			PurgeDisconnectedNodes();
+
+			var count = _connectedNodes.Count;
+			if ((now - _lastMaintainTime >= MaintainInterval && count < TargetConnections) || count == 0)
 			{
 				_lastMaintainTime = now;
 				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
 			}
 
-			if ((now - _lastRotateTime >= RotateInterval && Count > TargetConnections - 3) ||
+			if ((now - _lastRotateTime >= RotateInterval && count > TargetConnections - 3) ||
 			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsBlocksLimited) < MinCompactFilterNodes))
 			{
 				_lastRotateTime = now;
@@ -115,38 +96,39 @@ public class NodeConnectionManager : IDisposable
 
 	private async Task ConnectToBestPeersAsync(CancellationToken cancellationToken)
 	{
-		PurgeDisconnectedNodes();
-
-		var currentCount = Count;
-		if (currentCount >= TargetConnections)
-		{
-			return;
-		}
-
 		var filterNodeCount = _connectedNodes.Values
 			.Count(n => n.Node.IsConnected && n.PeerInfo.SupportsCompactFilters);
 
-		var peers = await SelectPeersForConnectionAsync(
-			filterNodesNeeded: Math.Max(0, MinCompactFilterNodes - filterNodeCount),
-			totalNeeded: TargetConnections - currentCount,
-			cancellationToken).ConfigureAwait(false);
+		var filterNodesNeeded = Math.Max(0, MinCompactFilterNodes - filterNodeCount);
+		var totalNeeded = TargetConnections - _connectedNodes.Count;
+		var availablePeers = await GetAvailablePeersAsync(cancellationToken).ConfigureAwait(false);
 
-		if (peers.Length == 0)
+		var filterPeers = availablePeers
+			.Where(p => p.SupportsCompactFilters)
+			.OrderByDescending(p => p.Score)
+			.Take(filterNodesNeeded * 2)
+			.ToArray();
+
+		var otherPeers = availablePeers.Except(filterPeers)
+			.OrderByDescending(p => p.Score)
+			.Take(totalNeeded * 2)
+			.ToArray();
+
+		var peers = filterPeers
+			.Concat(otherPeers)
+			.DistinctBy(p => p.Endpoint)
+			.Take(totalNeeded)
+			.ToArray();
+
+		if (peers.Length > 0)
 		{
-			return;
+			Logger.LogDebug($"Connecting to {peers.Length} peers (current: {_connectedNodes.Count}).");
+			await Task.WhenAll(peers.Select(p => ConnectToPeerAsync(p, cancellationToken))).ConfigureAwait(false);
 		}
-
-		Logger.LogDebug($"Connecting to {peers.Length} peers (current: {currentCount}).");
-		await Task.WhenAll(peers.Select(p => ConnectToPeerAsync(p, cancellationToken))).ConfigureAwait(false);
 	}
 
-	private async Task<PeerInfo[]> SelectPeersForConnectionAsync(int filterNodesNeeded, int totalNeeded, CancellationToken cancellationToken)
+	private async Task<PeerInfo[]> GetAvailablePeersAsync(CancellationToken cancellationToken)
 	{
-		if (totalNeeded <= 0)
-		{
-			return [];
-		}
-
 		var connectedKeys = _connectedNodes.Keys.ToHashSet();
 		var now = DateTimeOffset.UtcNow;
 		var cooldownEndpoints = _connectionAttempts
@@ -154,30 +136,12 @@ public class NodeConnectionManager : IDisposable
 			.Select(kvp => kvp.Key)
 			.ToHashSet();
 
+		var peers = await getPeersInfo(cancellationToken).ConfigureAwait(false);
+		var availablePeers = peers.Where(p => IsAvailable(p.Endpoint)).ToArray();
+		return availablePeers;
+
 		bool IsAvailable(EndPoint endpoint) =>
 			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
-
-		var peers = await _getPeersInfo(cancellationToken).ConfigureAwait(false);
-		var availablePeers = peers.Where(p => IsAvailable(p.Endpoint)).ToArray();
-
-		var filterPeers = filterNodesNeeded > 0
-			? availablePeers
-				.Where(p => p.SupportsCompactFilters )
-				.OrderByDescending(p => p.ComputeScore())
-				.Take(filterNodesNeeded * 2)
-				.ToArray()
-			: [];
-
-		var otherPeers = availablePeers.Except(filterPeers)
-			.OrderByDescending(p => p.ComputeScore())
-			.Take(totalNeeded * 2)
-			.ToArray();
-
-		return filterPeers
-			.Concat(otherPeers)
-			.DistinctBy(p => p.Endpoint)
-			.Take(totalNeeded)
-			.ToArray();
 	}
 
 	private async Task ConnectToPeerAsync(PeerInfo peerInfo, CancellationToken cancellationToken)
@@ -190,7 +154,7 @@ public class NodeConnectionManager : IDisposable
 		try
 		{
 			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-			timeoutCts.CancelAfter(_connectionTimeout);
+			timeoutCts.CancelAfter(connectionTimeout);
 
 			var connParams = new NodeConnectionParameters
 			{
@@ -200,13 +164,13 @@ public class NodeConnectionManager : IDisposable
 			};
 
 			// Add Tor support if endpoint is onion
-			if (peerInfo.Endpoint.IsTor() && _torSocks5Endpoint is { } torEndpoint)
+			if (peerInfo.Endpoint.IsTor() && torSocks5 is { } torEndpoint)
 			{
 				connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false,
 					networkCredential: null, streamIsolation: true));
 			}
 
-			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
+			var node = await Node.ConnectAsync(network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
 			node.VersionHandshake(timeoutCts.Token);
 
@@ -217,7 +181,7 @@ public class NodeConnectionManager : IDisposable
 			}
 
 			// Attach behaviors (each node gets its own instances)
-			foreach (var behaviorFactory in _behaviorFactories)
+			foreach (var behaviorFactory in behaviorFactories)
 			{
 				node.Behaviors.Add(behaviorFactory());
 			}
@@ -228,7 +192,7 @@ public class NodeConnectionManager : IDisposable
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
 				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()})");
-				_eventBus.Publish(new BitcoinNodeAdded(peerInfo.Endpoint, node));
+				eventBus.Publish(new BitcoinNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
 			{
@@ -274,72 +238,53 @@ public class NodeConnectionManager : IDisposable
 
 			if (connectionDuration < QuickDisconnectThreshold)
 			{
-				_eventBus.Publish(new NodeDisconnectedQuickly(removed.PeerInfo.Endpoint, node));
+				eventBus.Publish(new NodeDisconnectedQuickly(removed.PeerInfo.Endpoint, node));
 			}
 
-			_eventBus.Publish(new BitcoinNodeRemoved(removed.PeerInfo.Endpoint, node));
+			eventBus.Publish(new BitcoinNodeRemoved(removed.PeerInfo.Endpoint, node));
 		}
 	}
 
 	private async Task RotateToBetterPeersAsync(CancellationToken cancellationToken)
 	{
 		// Get current worst-scoring connected peer
-		var connectedPeersWithScores = _connectedNodes.Values
+		var rankedConnectedNodes = _connectedNodes.Values
 			.Where(n => n.Node.IsConnected)
-			.Select(n => new
-			{
-				Node = n,
-				Key = n.PeerInfo.Endpoint,
-				Score = n.PeerInfo.ComputeScore()
-			})
-			.OrderBy(x => x.Score)
+			.OrderBy(x => x.PeerInfo.Score)
 			.ToArray();
 
-		if (connectedPeersWithScores.Length == 0)
+		if (rankedConnectedNodes is not [var worstConnectedNode, ..])
 		{
 			return;
 		}
 
-		var worstConnected = connectedPeersWithScores.First();
+		var availablePeers = await GetAvailablePeersAsync(cancellationToken).ConfigureAwait(false);
+		var bestDiscoveredNode = availablePeers
+			.OrderByDescending(p => p.Score)
+			.FirstOrDefault();
 
-		// Get best discovered peer not currently connected and not in cooldown
-		var connectedKeys = _connectedNodes.Keys.ToHashSet();
-		var now = DateTimeOffset.UtcNow;
-		var cooldownEndpoints = _connectionAttempts
-			.Where(kvp => now - kvp.Value < ReconnectCooldown)
-			.Select(kvp => kvp.Key)
-			.ToHashSet();
-
-		bool IsAvailable(EndPoint endpoint) =>
-			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
-
-		var peers = await _getPeersInfo(cancellationToken).ConfigureAwait(false);
-		var bestDiscovered = peers
-			.OrderByDescending(p => p.ComputeScore())
-			.FirstOrDefault(p => IsAvailable(p.Endpoint));
-
-		if (bestDiscovered is null)
+		if (bestDiscoveredNode is null)
 		{
 			Logger.LogDebug("There no best peer candidate");
 			return;
 		}
 
-		var bestDiscoveredScore = bestDiscovered.ComputeScore();
+		var bestDiscoveredScore = bestDiscoveredNode.Score;
 
-		// Only rotate if significantly better (20% threshold)
-		if (bestDiscoveredScore > worstConnected.Score * RotationScoreThreshold)
+		// Only rotate if significantly better
+		if (bestDiscoveredScore > worstConnectedNode.PeerInfo.Score * RotationScoreThreshold)
 		{
-			Logger.LogInfo($"Rotating peer: replacing {worstConnected.Key} (score: {worstConnected.Score:F1}) with {bestDiscovered.Endpoint} (score: {bestDiscoveredScore:F1})");
+			Logger.LogInfo($"Rotating peer: replacing {worstConnectedNode.PeerInfo.Endpoint} (score: {worstConnectedNode.PeerInfo.Score:F1}) with {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1})");
 
 			// Disconnect worst
-			if (_connectedNodes.TryRemove(worstConnected.Key, out var nodeToRemove))
+			if (_connectedNodes.TryRemove(worstConnectedNode.PeerInfo.Endpoint, out var nodeToRemove))
 			{
 				DisconnectNode(nodeToRemove.Node);
-				_eventBus.Publish(new BitcoinNodeRemoved(nodeToRemove.PeerInfo.Endpoint, nodeToRemove.Node));
+				eventBus.Publish(new BitcoinNodeRemoved(nodeToRemove.PeerInfo.Endpoint, nodeToRemove.Node));
 			}
 
 			// Connect to better peer
-			await ConnectToPeerAsync(bestDiscovered, cancellationToken).ConfigureAwait(false);
+			await ConnectToPeerAsync(bestDiscoveredNode, cancellationToken).ConfigureAwait(false);
 		}
 		else
 		{
@@ -356,7 +301,7 @@ public class NodeConnectionManager : IDisposable
 			if (_connectedNodes.TryRemove(key, out _))
 			{
 				node.Disconnected -= OnNodeDisconnected;
-				_eventBus.Publish(new BitcoinNodeRemoved(key, node));
+				eventBus.Publish(new BitcoinNodeRemoved(key, node));
 			}
 		}
 	}
@@ -383,14 +328,13 @@ public class NodeConnectionManager : IDisposable
 			return;
 		}
 
-		_heightSubscription.Dispose();
 		_isDisposed = true;
 		DisconnectAll();
 	}
 
 }
 
-public static partial class Extensions
+public static class Extensions
 {
 	public static string AsCsv(this NodeServices ns)
 	{

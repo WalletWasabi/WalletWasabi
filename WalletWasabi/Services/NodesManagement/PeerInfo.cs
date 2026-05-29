@@ -25,7 +25,9 @@ public sealed record PeerInfo
 	private bool IsOnion => Endpoint is DnsEndPoint dns &&
 		dns.Host.EndsWith(".onion", StringComparison.OrdinalIgnoreCase);
 
-	public double ComputeScore()
+	public double Score => ComputeScore();
+
+	private double ComputeScore()
 	{
 		double score =
 			(Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) ? 30 : 0) +
