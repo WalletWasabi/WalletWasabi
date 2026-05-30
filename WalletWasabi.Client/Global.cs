@@ -81,6 +81,7 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
 		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
+		_ticker.DisposeUsing(_disposables);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -187,9 +188,9 @@ public class Global
 			.Select(n =>
 				Spawn($"crawler-{n}",
 					EventDriven(
-						new NodeDiscoveryCoordinator.CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero, HarvestEndpoints: true),
+						new NodeDiscoveryCoordinator.CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero),
 						NodeDiscoveryCoordinator.CreateCrawler(Network, torEndpoint, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(3))),
-					comparer: NodeDiscoveryCoordinator.CrawlerMessagePriority,
+					capacity: 1_000,
 					cancellationToken: cancellationToken) )
 			.ToArray();
 		_disposables.AddRange(crawlers);
@@ -197,7 +198,7 @@ public class Global
 		var discoverer = Spawn(NodeDiscoveryCoordinator.ServiceName,
 			Service("Bitcoin Node Discovery Service",
 				EventDriven(
-					new NodeDiscoveryCoordinator.CrawlingCoordinationState(Harvesting: true, SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
+					new NodeDiscoveryCoordinator.CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
 					NodeDiscoveryCoordinator.CreateDiscovery(crawlers))),
 					cancellationToken);
 		discoverer.DisposeUsing(_disposables);
@@ -248,7 +249,8 @@ public class Global
 
 		Spawn("NodeBoostrap",
 			Service<Unit>("Node Endpoints Boostrap",
-				(_, ct) => NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, dnsResolver, ct)));
+				(_, ct) => NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, dnsResolver, ct)),
+			cancellationToken);
 
 		// Subscribe to ticks for slow-mode discovery and rotation
 		EventBus.Subscribe<Tick>(async void (_) =>
@@ -478,7 +480,8 @@ public class Global
 					Unit.Instance,
 					Network == Network.RegTest
 					? CpfpInfoUpdater.CreateForRegTest()
-					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))));
+					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))),
+			_stoppingCts.Token);
 		cpfpUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<FilterProcessed>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()));
 		return new CpfpInfoProvider(cpfpUpdater);
@@ -629,7 +632,8 @@ public class Global
 				Periodically(
 					TimeSpan.FromHours(1),
 					Unit.Instance,
-					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)));
+					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)),
+				_stoppingCts.Token);
 			torStatusChecker.DisposeUsing(_disposables);
 			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
 		}
@@ -659,7 +663,8 @@ public class Global
 			Service("WabiSabi Rounds Updater",
 				EventDriven(
 					new RoundsState(DateTime.UtcNow, RoundStateProvider.QueryFrequency, new Dictionary<uint256, RoundState>(), []),
-					RoundStateUpdater.Create(wabiSabiStatusProvider))));
+					RoundStateUpdater.Create(wabiSabiStatusProvider))),
+			_stoppingCts.Token);
 		roundUpdater.DisposeUsing(_disposables);
 		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
 

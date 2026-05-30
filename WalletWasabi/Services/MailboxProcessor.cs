@@ -9,13 +9,13 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Services;
 
 // A typed message queue for asynchronous message processing.
-public class Mailbox<TMsg>(Comparer<TMsg>? comparer)
+public class Mailbox<TMsg>(int? capacity = 0)
 {
-	private readonly Channel<TMsg> _channel = comparer is not null
-		? Channel.CreateUnboundedPrioritized(new UnboundedPrioritizedChannelOptions<TMsg> {
-			Comparer = comparer,
+	private readonly Channel<TMsg> _channel = capacity > 0
+		? Channel.CreateBounded<TMsg>(new BoundedChannelOptions(1_000) {
 			SingleReader = true,
-			AllowSynchronousContinuations = true})
+			AllowSynchronousContinuations = true
+		})
 		: Channel.CreateUnbounded<TMsg>(new UnboundedChannelOptions {
 			SingleReader = true,
 			SingleWriter = false,
@@ -41,10 +41,10 @@ public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken canc
 
 public sealed class MailboxProcessor<TMsg>(
 	Process<TMsg> body,
-	Comparer<TMsg>? comparer = null,
+	int? capacity = -1,
 	CancellationToken? cancellationToken = null) : IDisposable
 {
-	private readonly Mailbox<TMsg> _mailbox = new(comparer);
+	private readonly Mailbox<TMsg> _mailbox = new(capacity);
 
 	private readonly Process<TMsg> _body =
 		body ?? throw new ArgumentNullException(nameof(body));
@@ -152,7 +152,7 @@ public static class Workers
 	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
 		=> Spawn(name, body, null, cancellationToken);
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, Comparer<TMsg>? comparer, CancellationToken? cancellationToken = null)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, int? capacity = -1, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
@@ -162,7 +162,7 @@ public static class Workers
 			throw new ArgumentException($"A worker named '{name}' already exists.", nameof(name));
 		}
 
-		var processor = new MailboxProcessor<TMsg>(body, comparer, cancellationToken);
+		var processor = new MailboxProcessor<TMsg>(body, capacity, cancellationToken);
 		processor.Start();
 		Processors[name] = processor;
 		return processor;

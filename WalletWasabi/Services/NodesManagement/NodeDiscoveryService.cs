@@ -3,7 +3,6 @@ using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
-using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
@@ -30,27 +29,14 @@ public static class NodeDiscoveryCoordinator
 	public abstract record CrawlerMessage;
 	record CrawlMessage(EndPoint EndPoint) : CrawlerMessage;
 	record SlowDownMessage : CrawlerMessage;
-	record StopHarvestingMessage : CrawlerMessage;
 
 	public record CrawlingCoordinationState(
 		ImmutableDictionary<EndPoint, PeerInfo> Peers,
-		bool Harvesting,
 		bool SlowedDown,
 		int LastCrawlerIndex);
 
 	public record CrawlerState(
-		TimeSpan DelayBeforeVisitingNode,
-		bool HarvestEndpoints);
-
-	private static int PriorityOf(CrawlerMessage m) => m switch
-	{
-		SlowDownMessage => 0,  // highest priority (smallest)
-		StopHarvestingMessage  => 1,
-		_               => 2,  // lowest priority
-	};
-
-	public static readonly Comparer<CrawlerMessage> CrawlerMessagePriority =
-		Comparer<CrawlerMessage>.Create((a, b) => PriorityOf(a).CompareTo(PriorityOf(b)));
+		TimeSpan DelayBeforeVisitingNode);
 
 	public static MessageHandler<CoordinatorMessage, CrawlingCoordinationState> CreateDiscovery(
 		MailboxProcessor<CrawlerMessage>[] crawlers) =>
@@ -61,17 +47,6 @@ public static class NodeDiscoveryCoordinator
 		switch (msg)
 		{
 			case HarvestedEndpointsMessage (Endpoints: var endpoints):
-				if (state is {Harvesting: true, LastCrawlerIndex: > 15_000})
-				{
-					var speedUpMessage = new StopHarvestingMessage();
-					foreach (var crawler in crawlers)
-					{
-						crawler.Post(speedUpMessage);
-					}
-
-					state = state with {Harvesting = false};
-				}
-
 				var n = state.LastCrawlerIndex;
 				foreach (var endPoint in endpoints)
 				{
@@ -92,10 +67,10 @@ public static class NodeDiscoveryCoordinator
 
 				if (state is {SlowedDown: false , Peers.Count: > 300})
 				{
-					var speedUpMessage = new SlowDownMessage();
+					var slowDownMessage = new SlowDownMessage();
 					foreach (var crawler in crawlers)
 					{
-						crawler.Post(speedUpMessage);
+						crawler.Post(slowDownMessage);
 					}
 
 					state = state with {SlowedDown = true};
@@ -147,7 +122,7 @@ public static class NodeDiscoveryCoordinator
 				try
 				{
 					node = await VisitEndpointAsync(endpoint, network, torSocks5, connectionTimeout, cancellationToken).ConfigureAwait(false);
-					if (node is not null && state.HarvestEndpoints)
+					if (node is not null)
 					{
 						await HarvestAddressesAsync(node, harvestTimeout, cancellationToken).ConfigureAwait(false);
 					}
@@ -158,9 +133,7 @@ public static class NodeDiscoveryCoordinator
 				}
 				break;
 			case SlowDownMessage:
-				return state with {DelayBeforeVisitingNode = state.DelayBeforeVisitingNode + TimeSpan.FromSeconds(1)};
-			case StopHarvestingMessage:
-				return state with {HarvestEndpoints = false};
+				return new CrawlerState(DelayBeforeVisitingNode: state.DelayBeforeVisitingNode + TimeSpan.FromSeconds(1));
 		}
 
 		return state;
