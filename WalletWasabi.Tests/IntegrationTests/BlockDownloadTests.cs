@@ -52,7 +52,7 @@ public class BlockDownloadTests
 		using var nodesRegistry = new NodesRegistry(eventBus);
 		foreach (var node in nodes.ConnectedNodes)
 		{
-			eventBus.Publish(new BitcoinNodeAdded(node.RemoteSocketEndpoint, node));
+			eventBus.Publish(new P2pNodeAdded(node.RemoteSocketEndpoint, node));
 		}
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry));
 

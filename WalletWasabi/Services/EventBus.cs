@@ -123,8 +123,8 @@ public record RpcStatusChanged(Result<ConnectedRpcStatus, string> Status);
 public record FilterProcessed(FilterModel Filter);
 public record Tick(DateTime DateTime);
 
-public record BitcoinNodeAdded(EndPoint EndPoint, Node Node);
-public record BitcoinNodeRemoved(EndPoint EndPoint, Node Node);
+public record P2pNodeAdded(EndPoint EndPoint, Node Node);
+public record P2pNodeRemoved(EndPoint EndPoint, Node Node);
 public record CpfpInfoArrived;
 
 public record WalletLoaded(Wallet Wallet);

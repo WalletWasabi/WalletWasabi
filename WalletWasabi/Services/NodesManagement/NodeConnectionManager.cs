@@ -19,8 +19,8 @@ public class NodesRegistry : IDisposable
 
 	public NodesRegistry(EventBus eventBus)
 	{
-		eventBus.Subscribe<BitcoinNodeAdded>(e => _nodes.TryAdd(e.EndPoint, e.Node)).DisposeUsing(_disposables);
-		eventBus.Subscribe<BitcoinNodeRemoved>(e => _nodes.TryRemove(e.EndPoint, out _)).DisposeUsing(_disposables);
+		eventBus.Subscribe<P2pNodeAdded>(e => _nodes.TryAdd(e.EndPoint, e.Node)).DisposeUsing(_disposables);
+		eventBus.Subscribe<P2pNodeRemoved>(e => _nodes.TryRemove(e.EndPoint, out _)).DisposeUsing(_disposables);
 	}
 
 	public int Count => _nodes.Count;
@@ -187,7 +187,7 @@ public class NodeConnectionManager(
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
 				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()})");
-				eventBus.Publish(new BitcoinNodeAdded(peerInfo.Endpoint, node));
+				eventBus.Publish(new P2pNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
 			{
@@ -236,7 +236,7 @@ public class NodeConnectionManager(
 				eventBus.Publish(new NodeDisconnectedQuickly(removed.PeerInfo.Endpoint, node));
 			}
 
-			eventBus.Publish(new BitcoinNodeRemoved(removed.PeerInfo.Endpoint, node));
+			eventBus.Publish(new P2pNodeRemoved(removed.PeerInfo.Endpoint, node));
 		}
 	}
 
@@ -275,7 +275,7 @@ public class NodeConnectionManager(
 			if (_connectedNodes.TryRemove(worstConnectedNode.PeerInfo.Endpoint, out var nodeToRemove))
 			{
 				DisconnectNode(nodeToRemove.Node);
-				eventBus.Publish(new BitcoinNodeRemoved(nodeToRemove.PeerInfo.Endpoint, nodeToRemove.Node));
+				eventBus.Publish(new P2pNodeRemoved(nodeToRemove.PeerInfo.Endpoint, nodeToRemove.Node));
 			}
 
 			// Connect to better peer
@@ -296,7 +296,7 @@ public class NodeConnectionManager(
 			if (_connectedNodes.TryRemove(key, out _))
 			{
 				node.Disconnected -= OnNodeDisconnected;
-				eventBus.Publish(new BitcoinNodeRemoved(key, node));
+				eventBus.Publish(new P2pNodeRemoved(key, node));
 			}
 		}
 	}
