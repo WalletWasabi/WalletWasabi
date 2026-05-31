@@ -58,11 +58,6 @@ public class NodeConnectionManager(
 	private DateTimeOffset _lastRotateTime;
 	private bool _isDisposed;
 
-	public Node[] Nodes => _connectedNodes.Values
-		.Select(x => x.Node)
-		.Where(n => n.IsConnected)
-		.ToArray();
-
 	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, CancellationToken cancellationToken)
 	{
 		if (Interlocked.CompareExchange(ref _isReevaluating, 1, 0) != 0)
