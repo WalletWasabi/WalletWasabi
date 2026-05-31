@@ -40,9 +40,9 @@ public static class NodeDiscoveryCoordinator
 
 	public static MessageHandler<CoordinatorMessage, CrawlingCoordinationState> CreateDiscovery(
 		MailboxProcessor<CrawlerMessage>[] crawlers) =>
-		(msg, state, token) => CrawlingAsync(crawlers, msg, state, token);
+		(msg, state, token) => CrawlingAsync(crawlers, msg, state);
 
-	private static Task<CrawlingCoordinationState> CrawlingAsync(MailboxProcessor<CrawlerMessage>[] crawlers, CoordinatorMessage msg, CrawlingCoordinationState state, CancellationToken token)
+	private static Task<CrawlingCoordinationState> CrawlingAsync(MailboxProcessor<CrawlerMessage>[] crawlers, CoordinatorMessage msg, CrawlingCoordinationState state)
 	{
 		switch (msg)
 		{
