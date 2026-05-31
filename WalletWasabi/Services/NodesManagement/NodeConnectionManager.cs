@@ -186,7 +186,7 @@ public class NodeConnectionManager(
 
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
-				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()})");
+				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
 				eventBus.Publish(new P2pNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
@@ -229,7 +229,7 @@ public class NodeConnectionManager(
 		{
 			node.Disconnected -= OnNodeDisconnected;
 			var connectionDuration = DateTimeOffset.UtcNow - removed.ConnectedAt;
-			Logger.LogDebug($"Peer disconnected: {node.Peer.Endpoint} (after {connectionDuration.TotalSeconds:F1}s)");
+			Logger.LogDebug($"Peer disconnected: {node.Peer.Endpoint} (after {connectionDuration.TotalSeconds:F1}s). Total connected peers: {_connectedNodes.Count}.");
 
 			if (connectionDuration < QuickDisconnectThreshold)
 			{
