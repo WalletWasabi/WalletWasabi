@@ -215,8 +215,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 				{
 					["isConnected"] = x.IsConnected,
 					["lastSeen"] = x.LastSeen,
-					["endpoint"] = x.Peer?.Endpoint?.ToString() ?? x.RemoteSocketEndpoint?.ToString() ?? "unknown",
-					["userAgent"] = x.PeerVersion?.UserAgent ?? "unknown",
+					["endpoint"] = x.Peer.Endpoint.ToString(),
+					["userAgent"] = x.PeerVersion.UserAgent,
 				}).ToArray(),
 		};
 	}

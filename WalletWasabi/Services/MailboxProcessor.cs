@@ -41,7 +41,7 @@ public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken canc
 
 public sealed class MailboxProcessor<TMsg>(
 	Process<TMsg> body,
-	int? capacity = -1,
+	int? capacity = 0,
 	CancellationToken? cancellationToken = null) : IDisposable
 {
 	private readonly Mailbox<TMsg> _mailbox = new(capacity);
@@ -152,7 +152,7 @@ public static class Workers
 	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
 		=> Spawn(name, body, null, cancellationToken);
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, int? capacity = -1, CancellationToken? cancellationToken = null)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, int? capacity = 0, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));

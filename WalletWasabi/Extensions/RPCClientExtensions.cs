@@ -14,7 +14,7 @@ namespace WalletWasabi.Extensions;
 
 public static class RPCClientExtensions
 {
-	private const EstimateSmartFeeMode EstimateMode = EstimateSmartFeeMode.Economical;
+	private const EstimateSmartFeeMode EstimateMode = EstimateSmartFeeMode.Conservative;
 
 	/// <summary>
 	/// If null is returned, no exception is thrown, so the test was successful.
