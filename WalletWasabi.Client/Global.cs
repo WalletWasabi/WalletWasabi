@@ -240,7 +240,11 @@ public class Global
 			];
 
 		var peersProvider = NodeDiscoveryCoordinator.GetPeersProvider(discoverer);
+
+#pragma warning disable CA2000 // Dispose objects before losing scope -- disposed using disposables
 		var manager = new NodeConnectionManager(Network, peersProvider, behaviorFactories, EventBus, TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
+#pragma warning restore CA2000 // Dispose objects before losing scope
+
 		manager.DisposeUsing(_disposables);
 
 		IDnsResolver dnsResolver = torEndpoint is not null
