@@ -1,12 +1,9 @@
 using NBitcoin;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
-using WalletWasabi.Client.Configuration;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Wallets;
@@ -56,7 +53,6 @@ public class BlockDownloadTests
 		}
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry));
 
-		Stopwatch stopwatch = Stopwatch.StartNew();
 		var tasks = new List<Task<Block?>>();
 
 		foreach (uint256 blockHash in HeightToBlockHash)
@@ -72,8 +68,5 @@ public class BlockDownloadTests
 			var block = await task;
 			Assert.NotNull(block);
 		}
-
-		stopwatch.Stop();
-		Logger.LogInfo($"Test finished in {stopwatch.ElapsedMilliseconds} ms");
 	}
 }
