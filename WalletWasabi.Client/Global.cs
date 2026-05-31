@@ -149,7 +149,7 @@ public class Global
 	{
 		var p2PNodesManager = new P2PNodesManager(Network, nodes);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager, EventBus);
 
 		// Bitcoin RPC of the Wasabi server does not provide blocks.
 		var isWasabiRpcUri = Config.BitcoinRpcUri.StartsWith(Constants.DefaultMainNetBitcoinRpcUri, StringComparison.OrdinalIgnoreCase) ||
@@ -271,6 +271,12 @@ public class Global
 
 		EventBus.Subscribe<NodeDisconnectedQuickly>(e =>
 			NodeDiscoveryCoordinator.ReportQuickDisconnect(discoverer, e.EndPoint)
+		).DisposeUsing(_disposables);
+		EventBus.Subscribe<MisbehavingNodeDetected>(e =>
+			NodeDiscoveryCoordinator.ReportMisbehavior(discoverer, e.EndPoint)
+		).DisposeUsing(_disposables);
+		EventBus.Subscribe<NodeTimeoutDownloadingBlock>(e =>
+			NodeDiscoveryCoordinator.PunishSlowNode(discoverer, e.EndPoint)
 		).DisposeUsing(_disposables);
 	}
 

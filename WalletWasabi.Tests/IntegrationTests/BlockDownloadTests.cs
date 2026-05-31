@@ -51,7 +51,7 @@ public class BlockDownloadTests
 		{
 			eventBus.Publish(new P2pNodeAdded(node.RemoteSocketEndpoint, node));
 		}
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry));
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry), eventBus);
 
 		var tasks = new List<Task<Block?>>();
 

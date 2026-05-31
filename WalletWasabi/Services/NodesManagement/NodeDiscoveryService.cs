@@ -19,11 +19,18 @@ public static class NodeDiscoveryCoordinator
 	public static readonly string ServiceName = "BitcoinP2pNodeDiscoveryServiceCoordinator";
 	public delegate Task<PeerInfo[]> PeersInfoProvider(CancellationToken cancellationToken);
 
+	public enum MisbehaviorType
+	{
+		DisconnectedQuickly,
+		ProvidedInvalidData,
+		TimedOutDownloadingBlock
+	}
+
 	public abstract record CoordinatorMessage;
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	record PeerFailedMessage(EndPoint Endpoint) : CoordinatorMessage;
-	record PeerQuickDisconnectMessage(EndPoint Endpoint) : CoordinatorMessage;
+	record NodeMisBehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
 	public abstract record CrawlerMessage;
@@ -87,13 +94,21 @@ public static class NodeDiscoveryCoordinator
 				}
 				break;
 
-			case PeerQuickDisconnectMessage (Endpoint: var disconnectedEndpoint):
-				if (state.Peers.TryGetValue(disconnectedEndpoint, out var unstablePeer))
+			case NodeMisBehaveMessage (Endpoint: var disconnectedEndpoint, Behavior: var behavior):
+				if (state.Peers.TryGetValue(disconnectedEndpoint, out var offendingNode))
 				{
-					var quickDisconnects = unstablePeer.QuickDisconnects + 1;
-					state = quickDisconnects >= 3
-						? state with {Peers = state.Peers.Remove(disconnectedEndpoint)}
-						: state with {Peers = state.Peers.SetItem(disconnectedEndpoint, unstablePeer with {QuickDisconnects = quickDisconnects})};
+					state = behavior switch
+					{
+						MisbehaviorType.TimedOutDownloadingBlock or MisbehaviorType.DisconnectedQuickly when offendingNode.Score > 30 =>
+							state with
+							{
+								Peers = state.Peers.SetItem(disconnectedEndpoint,
+									offendingNode with {Score = offendingNode.Score - 10})
+							},
+						MisbehaviorType.DisconnectedQuickly or MisbehaviorType.ProvidedInvalidData =>
+							state with {Peers = state.Peers.Remove(disconnectedEndpoint)},
+						_ => throw new ArgumentOutOfRangeException()
+					};
 				}
 				break;
 
@@ -179,17 +194,9 @@ public static class NodeDiscoveryCoordinator
 
 			var now = DateTimeOffset.UtcNow;
 			var pv = node.PeerVersion;
-			var peer = new PeerInfo
-			{
-				Endpoint = endpoint,
-				UserAgent = pv.UserAgent ?? "Unknown",
-				ProtocolVersion = pv.Version,
-				Services = pv.Services,
-				StartHeight = pv.StartHeight,
-				ConnectionTime = sw.Elapsed,
-				DiscoveredAt = now,
-				LastSeen = now
-			};
+			var peer = new PeerInfo(endpoint: endpoint, userAgent: pv.UserAgent ?? "Unknown",
+				protocolVersion: pv.Version, services: pv.Services, startHeight: pv.StartHeight,
+				connectionTime: sw.Elapsed, discoveredAt: now, lastSeen: now);
 
 			NotifyCoordinator(new PeerDiscoveredMessage(peer));
 		}
@@ -299,7 +306,13 @@ public static class NodeDiscoveryCoordinator
 			cancellationToken).ConfigureAwait(false);
 
 	public static void ReportQuickDisconnect(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new PeerQuickDisconnectMessage(endpoint));
+		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.DisconnectedQuickly));
+
+	public static void ReportMisbehavior(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
+		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.ProvidedInvalidData));
+
+	public static void PunishSlowNode(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
+		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.TimedOutDownloadingBlock));
 
 	private static void NotifyCoordinator(CoordinatorMessage msg) =>
 		Tell(ServiceName, msg);

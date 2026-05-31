@@ -134,3 +134,5 @@ public record ChainReorganized(FilterModel Filter);
 public record FiltersReceived(FilterModel[] Filters);
 public record WalletRelevantTransactionProcessed(string WalletName, ProcessedResult Result);
 public record NodeDisconnectedQuickly(EndPoint EndPoint, Node Node);
+public record MisbehavingNodeDetected(EndPoint EndPoint, Node Node);
+public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
