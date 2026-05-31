@@ -12,7 +12,7 @@ public sealed record PeerInfo
 	public required int StartHeight { get; init; }
 	public required TimeSpan ConnectionTime { get; init; }
 	public required DateTimeOffset DiscoveredAt { get; init; }
-	public DateTimeOffset LastSeen { get; set; }
+	public DateTimeOffset LastSeen { get; init; }
 	public int SuccessfulProbes { get; init; } = 1;
 	public int FailedProbes { get; init; }
 	public int QuickDisconnects { get; init; }
