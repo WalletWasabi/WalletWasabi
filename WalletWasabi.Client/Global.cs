@@ -247,8 +247,8 @@ public class Global
 			? new DnsSocksResolver(torEndpoint)
 			: DnsResolver.Instance;
 
-		Spawn("NodeBoostrap",
-			Service<Unit>("Node Endpoints Boostrap",
+		Spawn("NodeBootstrap",
+			Service<Unit>("Node Endpoints Bootstrap",
 				(_, ct) => NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, dnsResolver, ct)),
 			cancellationToken);
 
