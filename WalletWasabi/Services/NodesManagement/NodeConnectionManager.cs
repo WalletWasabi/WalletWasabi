@@ -349,7 +349,7 @@ public static class Extensions
 			((NodeServices)2048, "P2P v2")
 		];
 
-		var nscopy = ns;
+		var nsCopy = ns;
 		var supportedServices = new List<string>(7);
 
 		foreach (var (flag, name) in flagNames)
@@ -357,13 +357,13 @@ public static class Extensions
 			if (ns.HasFlag(flag))
 			{
 				supportedServices.Add(name);
-				nscopy &= ~flag;
+				nsCopy &= ~flag;
 			}
 		}
 
-		if (nscopy > 0)
+		if (nsCopy > 0)
 		{
-			supportedServices.Add(((long)nscopy).ToString());
+			supportedServices.Add(((long)nsCopy).ToString());
 		}
 
 		return string.Join(" | ", supportedServices);
