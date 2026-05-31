@@ -277,11 +277,11 @@ public static class NodeDiscoveryCoordinator
 
 			if (dnsQueryResult.IsOk)
 			{
-				var endpoinst = dnsQueryResult.Value
+				var endpoints = dnsQueryResult.Value
 					.Select(x => new IPEndPoint(x, network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
-				NotifyCoordinator(new HarvestedEndpointsMessage(endpoinst));
+				NotifyCoordinator(new HarvestedEndpointsMessage(endpoints));
 			}
 		}
 
