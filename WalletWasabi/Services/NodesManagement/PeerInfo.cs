@@ -34,11 +34,6 @@ public sealed record PeerInfo
 			(Services.HasFlag(NodeServices.Network) ? 20 : -10) +
 			(Services.HasFlag(NodeServices.NODE_WITNESS) ? 5 : 0);
 
-		if (IsOnion)
-		{
-			score += 5;
-		}
-
 		var total = SuccessfulProbes + FailedProbes;
 		if (total > 0)
 		{
