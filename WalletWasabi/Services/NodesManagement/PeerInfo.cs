@@ -27,9 +27,9 @@ public sealed record PeerInfo
 	private double ComputeScore()
 	{
 		double score =
-			(Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) ? 30 : 0) +
-			(Services.HasFlag(NodeServices.Network) ? 20 : -10) +
-			(Services.HasFlag(NodeServices.NODE_WITNESS) ? 5 : 0);
+			(SupportsCompactFilters ? 30 : 0) +
+			(SupportsFullBlocks ? 20 : -10) +
+			(SupportsWitness ? 5 : 0);
 
 		var total = SuccessfulProbes + FailedProbes;
 		if (total > 0)
