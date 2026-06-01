@@ -12,7 +12,7 @@ namespace WalletWasabi.Services;
 public class Mailbox<TMsg>(int? capacity = 0)
 {
 	private readonly Channel<TMsg> _channel = capacity > 0
-		? Channel.CreateBounded<TMsg>(new BoundedChannelOptions(1_000) {
+		? Channel.CreateBounded<TMsg>(new BoundedChannelOptions(capacity) {
 			SingleReader = true,
 			AllowSynchronousContinuations = true
 		})
