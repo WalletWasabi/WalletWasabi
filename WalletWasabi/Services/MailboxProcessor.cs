@@ -9,7 +9,7 @@ using WalletWasabi.Logging;
 namespace WalletWasabi.Services;
 
 // A typed message queue for asynchronous message processing.
-public class Mailbox<TMsg>(int? capacity = 0)
+public class Mailbox<TMsg>(int capacity)
 {
 	private readonly Channel<TMsg> _channel = capacity > 0
 		? Channel.CreateBounded<TMsg>(new BoundedChannelOptions(capacity) {
@@ -41,10 +41,10 @@ public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken canc
 
 public sealed class MailboxProcessor<TMsg>(
 	Process<TMsg> body,
-	int? capacity = 0,
+	int? capacity = null,
 	CancellationToken? cancellationToken = null) : IDisposable
 {
-	private readonly Mailbox<TMsg> _mailbox = new(capacity);
+	private readonly Mailbox<TMsg> _mailbox = new(capacity ?? 0);
 
 	private readonly Process<TMsg> _body =
 		body ?? throw new ArgumentNullException(nameof(body));
@@ -150,9 +150,9 @@ public static class Workers
 	private static readonly ConcurrentDictionary<string, object> Processors = new();
 
 	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, CancellationToken? cancellationToken = null)
-		=> Spawn(name, body, null, cancellationToken);
+		=> Spawn(name, body, 0, cancellationToken);
 
-	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, int? capacity = 0, CancellationToken? cancellationToken = null)
+	public static MailboxProcessor<TMsg> Spawn<TMsg>(string name, Process<TMsg> body, int capacity, CancellationToken? cancellationToken = null)
 	{
 		ArgumentException.ThrowIfNullOrWhiteSpace(name, nameof(name));
 		ArgumentNullException.ThrowIfNull(body, nameof(body));
