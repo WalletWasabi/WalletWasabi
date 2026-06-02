@@ -242,7 +242,7 @@ public static class NodeDiscoveryCoordinator
 			}
 
 			var harvested = new List<EndPoint>();
-			foreach (var a in addr.Addresses)
+			foreach (var a in addr.Addresses.OrderByDescending(x => x.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS)))
 			{
 				if (a.Endpoint is { } ep)
 				{
@@ -284,7 +284,7 @@ public static class NodeDiscoveryCoordinator
 			if (dnsQueryResult.IsOk)
 			{
 				var endpoints = dnsQueryResult.Value
-					.Select(x => new IPEndPoint(x, network.DefaultPort))
+					.Select(x => new IPEndPoint(x.MapToIPv6(), network.DefaultPort))
 					.Cast<EndPoint>()
 					.ToArray();
 				NotifyCoordinator(new HarvestedEndpointsMessage(endpoints));
