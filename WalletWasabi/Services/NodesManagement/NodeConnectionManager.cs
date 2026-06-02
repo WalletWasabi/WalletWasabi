@@ -77,7 +77,7 @@ public class NodeConnectionManager(
 			}
 
 			if ((now - _lastRotateTime >= RotateInterval && count > TargetConnections - 3) ||
-			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsBlocksLimited) < MinCompactFilterNodes))
+			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters) < MinCompactFilterNodes))
 			{
 				_lastRotateTime = now;
 				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
@@ -186,7 +186,7 @@ public class NodeConnectionManager(
 
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
-				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
+				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (score: {peerInfo.Score:F1}, services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
 				eventBus.Publish(new P2pNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
@@ -229,7 +229,7 @@ public class NodeConnectionManager(
 		{
 			node.Disconnected -= OnNodeDisconnected;
 			var connectionDuration = DateTimeOffset.UtcNow - removed.ConnectedAt;
-			Logger.LogDebug($"Peer disconnected: {node.Peer.Endpoint} (after {connectionDuration.TotalSeconds:F1}s). Total connected peers: {_connectedNodes.Count}.");
+			Logger.LogDebug($"Peer {node.Peer.Endpoint} (score: {removed.PeerInfo.Score:F1}) disconnected (after {connectionDuration.TotalSeconds:F1}s). Total connected peers: {_connectedNodes.Count}.");
 
 			if (connectionDuration < QuickDisconnectThreshold)
 			{
@@ -260,7 +260,7 @@ public class NodeConnectionManager(
 
 		if (bestDiscoveredNode is null)
 		{
-			Logger.LogDebug("There no best peer candidate");
+			Logger.LogDebug("There is no best peer candidate");
 			return;
 		}
 

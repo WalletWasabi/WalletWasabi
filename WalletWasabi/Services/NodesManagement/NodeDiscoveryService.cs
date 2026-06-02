@@ -21,6 +21,7 @@ public static class NodeDiscoveryCoordinator
 
 	public enum MisbehaviorType
 	{
+		FailedToConnect,
 		DisconnectedQuickly,
 		ProvidedInvalidData,
 		TimedOutDownloadingBlock
@@ -29,7 +30,6 @@ public static class NodeDiscoveryCoordinator
 	public abstract record CoordinatorMessage;
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
-	record PeerFailedMessage(EndPoint Endpoint) : CoordinatorMessage;
 	record NodeMisBehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
@@ -67,7 +67,7 @@ public static class NodeDiscoveryCoordinator
 
 			case PeerDiscoveredMessage (PeerInfo: var peer):
 				var updatedPeer = state.Peers.TryGetValue(peer.Endpoint, out var existingPeer)
-					? existingPeer with { LastSeen = DateTimeOffset.UtcNow, SuccessfulProbes = existingPeer.SuccessfulProbes + 1}
+					? existingPeer with { LastSeen = DateTimeOffset.UtcNow, Score = double.Min(70, existingPeer.Score + 2) }
 					: peer;
 
 				state = state with {Peers = state.Peers.SetItem(peer.Endpoint, updatedPeer)};
@@ -84,30 +84,19 @@ public static class NodeDiscoveryCoordinator
 				}
 				break;
 
-			case PeerFailedMessage (Endpoint: var endpoint):
-				if (state.Peers.TryGetValue(endpoint, out var failingPeer))
-				{
-					var failures = failingPeer.FailedProbes + 1;
-					state = failures > failingPeer.SuccessfulProbes * 2 && failures >= 3
-						? state with {Peers = state.Peers.Remove(endpoint)}
-						: state with {Peers = state.Peers.SetItem(endpoint, failingPeer with {FailedProbes = failures})};
-				}
-				break;
-
-			case NodeMisBehaveMessage (Endpoint: var disconnectedEndpoint, Behavior: var behavior):
-				if (state.Peers.TryGetValue(disconnectedEndpoint, out var offendingNode))
+			case NodeMisBehaveMessage (Endpoint: var offendingEndpoint, Behavior: var behavior):
+				if (state.Peers.TryGetValue(offendingEndpoint, out var offendingNode))
 				{
 					state = behavior switch
 					{
-						MisbehaviorType.TimedOutDownloadingBlock or MisbehaviorType.DisconnectedQuickly when offendingNode.Score > 30 =>
-							state with
-							{
-								Peers = state.Peers.SetItem(disconnectedEndpoint,
-									offendingNode with {Score = offendingNode.Score - 10})
-							},
-						MisbehaviorType.DisconnectedQuickly or MisbehaviorType.ProvidedInvalidData =>
-							state with {Peers = state.Peers.Remove(disconnectedEndpoint)},
-						_ => throw new ArgumentOutOfRangeException()
+						MisbehaviorType.TimedOutDownloadingBlock when offendingNode.Score > 30 =>
+							Punish(offendingEndpoint, offendingNode),
+						MisbehaviorType.DisconnectedQuickly when offendingNode.Score > 30 =>
+							Punish(offendingEndpoint, offendingNode),
+						MisbehaviorType.FailedToConnect when offendingNode.Score > 30 =>
+							Punish(offendingEndpoint, offendingNode),
+						_ =>
+							Remove(offendingEndpoint)
 					};
 				}
 				break;
@@ -118,6 +107,16 @@ public static class NodeDiscoveryCoordinator
 		}
 
 		return Task.FromResult(state);
+
+		CrawlingCoordinationState Punish(EndPoint offendingEndpoint, PeerInfo offendingNode) =>
+			state with
+			{
+				Peers = state.Peers.SetItem(offendingEndpoint,
+					offendingNode with {Score = offendingNode.Score - 10})
+			};
+
+		CrawlingCoordinationState Remove(EndPoint offendingEndpoint) =>
+			state with {Peers = state.Peers.Remove(offendingEndpoint)} ;
 	}
 
 
@@ -187,7 +186,7 @@ public static class NodeDiscoveryCoordinator
 
 			if (node.State != NodeState.HandShaked)
 			{
-				NotifyCoordinator(new PeerFailedMessage(endpoint));
+				NotifyCoordinator(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 				node.DisconnectAsync();
 				return null;
 			}
@@ -202,7 +201,7 @@ public static class NodeDiscoveryCoordinator
 		}
 		catch
 		{
-			NotifyCoordinator(new PeerFailedMessage(endpoint));
+			NotifyCoordinator(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 			node?.DisconnectAsync();
 			return null;
 		}

@@ -38,19 +38,8 @@ public sealed record PeerInfo
 
 	public double Score { get; init; }
 
-	private double ComputeScore()
-	{
-		double score =
-			(SupportsCompactFilters ? 30 : 0) +
-			(SupportsFullBlocks ? 20 : -10) +
-			(SupportsWitness ? 5 : 0);
-
-		var total = SuccessfulProbes + FailedProbes;
-		if (total > 0)
-		{
-			score += (double)SuccessfulProbes / total * 15;
-		}
-
-		return score;
-	}
+	private double ComputeScore() =>
+		(SupportsCompactFilters ? 30 : 0) +
+		(SupportsFullBlocks ? 20 : -10) +
+		(SupportsWitness ? 5 : 0);
 }
