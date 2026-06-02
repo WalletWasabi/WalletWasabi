@@ -106,7 +106,7 @@ public class Global
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
 		var broadcasters = CreateBroadcasters(NodesGroup, mempoolService);
-		TransactionBroadcaster = new TransactionBroadcaster(EventBus, broadcasters.ToArray(), mempoolService);
+		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), mempoolService);
 
 		Scheme = new Scheme(this);
 	}
