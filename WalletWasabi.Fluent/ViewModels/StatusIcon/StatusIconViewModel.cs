@@ -3,6 +3,7 @@ using System.Windows.Input;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.StatusIcon;
 
@@ -15,7 +16,7 @@ public partial class StatusIconViewModel : ViewModelBase
 	{
 		HealthMonitor = uiContext.HealthMonitor;
 
-		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 		UpdateCommand = ReactiveCommand.Create(
 			() =>
 			{
@@ -25,7 +26,7 @@ public partial class StatusIconViewModel : ViewModelBase
 
 		AskMeLaterCommand = ReactiveCommand.Create(() => HealthMonitor.CheckForUpdates = false);
 
-		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://status.torproject.org"));
+		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => IoHelpers.OpenBrowserAsync("https://status.torproject.org"));
 
 		this.WhenAnyValue(
 				x => x.HealthMonitor.UpdateAvailable,

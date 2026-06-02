@@ -8,7 +8,6 @@ using Avalonia.Markup.Xaml;
 using NBitcoin;
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
-using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -97,11 +96,6 @@ public class App : Application
 		return new HardwareWalletInterface(services);
 	}
 
-	private static FileSystemModel CreateFileSystem()
-	{
-		return new FileSystemModel();
-	}
-
 	private static ClientConfigModel CreateConfig(IServices services)
 	{
 		return new ClientConfigModel(services);
@@ -140,7 +134,6 @@ public class App : Application
 			CreateWalletRepository(services, amountProvider),
 			new CoinjoinModel(services),
 			CreateHardwareWalletInterface(services),
-			CreateFileSystem(),
 			CreateConfig(services),
 			applicationSettings,
 			CreateBroadcaster(services, applicationSettings.Network),

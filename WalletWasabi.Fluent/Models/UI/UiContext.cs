@@ -1,6 +1,5 @@
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
-using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -20,7 +19,6 @@ public class UiContext
 		WalletRepository walletRepository,
 		CoinjoinModel coinJoinModel,
 		HardwareWalletInterface hardwareWalletInterface,
-		FileSystemModel fileSystem,
 		ClientConfigModel config,
 		ApplicationSettings applicationSettings,
 		TransactionBroadcasterModel transactionBroadcaster,
@@ -38,7 +36,6 @@ public class UiContext
 		WalletRepository = walletRepository ?? throw new ArgumentNullException(nameof(walletRepository));
 		CoinjoinModel = coinJoinModel ?? throw new ArgumentNullException(nameof(coinJoinModel));
 		HardwareWalletInterface = hardwareWalletInterface ?? throw new ArgumentNullException(nameof(hardwareWalletInterface));
-		FileSystem = fileSystem ?? throw new ArgumentNullException(nameof(fileSystem));
 		Config = config ?? throw new ArgumentNullException(nameof(config));
 		ApplicationSettings = applicationSettings ?? throw new ArgumentNullException(nameof(applicationSettings));
 		TransactionBroadcaster = transactionBroadcaster ?? throw new ArgumentNullException(nameof(transactionBroadcaster));
@@ -57,7 +54,6 @@ public class UiContext
 	public CoinjoinModel CoinjoinModel { get; }
 	public QrCodeReader QrCodeReader { get; }
 	public HardwareWalletInterface HardwareWalletInterface { get; }
-	public FileSystemModel FileSystem { get; }
 	public ClientConfigModel Config { get; }
 	public ApplicationSettings ApplicationSettings { get; }
 	public TransactionBroadcasterModel TransactionBroadcaster { get; }

@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using WalletWasabi.Fluent.Extensions;
+using WalletWasabi.Fluent.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
@@ -12,7 +13,7 @@ public abstract class OpenFileViewModel(UiContext uiContext) : TriggerCommandVie
 		{
 			try
 			{
-				await UiContext.FileSystem.OpenFileInTextEditorAsync(FilePath);
+				await FileHelpers.OpenFileInTextEditorAsync(FilePath);
 			}
 			catch (Exception ex)
 			{

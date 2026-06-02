@@ -1,6 +1,7 @@
 using System.Windows.Input;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
@@ -14,7 +15,7 @@ public partial class NewCoordinatorConfirmationDialogViewModel : DialogViewModel
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
 		NextCommand = ReactiveCommand.Create(() => Close(result: true));
-		OpenReadMoreCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(coordinatorConnection.ReadMore.ToString()));
+		OpenReadMoreCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(coordinatorConnection.ReadMore.ToString()));
 	}
 
 	public CoordinatorConnectionString CoordinatorConnection { get; }

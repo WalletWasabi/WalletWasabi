@@ -84,7 +84,7 @@ public partial class AboutViewModel : RoutableViewModel
 			IsClickable = true
 		};
 
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(x => UiContext.FileSystem.OpenBrowserAsync(x));
+		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(x => IoHelpers.OpenBrowserAsync(x));
 
 		ReleaseHighlightsDialogCommand = ReactiveCommand.CreateFromTask(async () => await Navigate().To().ReleaseHighlightsDialog().GetResultAsync());
 

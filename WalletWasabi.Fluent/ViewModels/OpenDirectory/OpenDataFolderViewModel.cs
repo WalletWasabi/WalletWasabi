@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.OpenDirectory;
 
@@ -16,7 +17,7 @@ public partial class OpenDataFolderViewModel : TriggerCommandViewModel
 {
 	public OpenDataFolderViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.Create(() => UiContext.FileSystem.OpenFolderInFileExplorer(UiContext.Config.DataDir));
+		TargetCommand = ReactiveCommand.Create(() => IoHelpers.OpenFolderInFileExplorer(UiContext.Config.DataDir));
 	}
 
 	public override ICommand TargetCommand { get; }

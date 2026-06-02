@@ -1,5 +1,6 @@
 using System.Windows.Input;
 using WalletWasabi.Fluent.ViewModels.Wallets;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -17,7 +18,7 @@ public partial class FindCoordinatorLinkViewModel : TriggerCommandViewModel
 {
 	public FindCoordinatorLinkViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
 	}
 
 	public override ICommand TargetCommand { get; }

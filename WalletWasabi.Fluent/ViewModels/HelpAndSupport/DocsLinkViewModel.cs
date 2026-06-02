@@ -1,4 +1,5 @@
 using System.Windows.Input;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.HelpAndSupport;
 
@@ -16,7 +17,7 @@ public partial class DocsLinkViewModel : TriggerCommandViewModel
 {
 	public DocsLinkViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.DocsLink));
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await IoHelpers.OpenBrowserAsync(AboutViewModel.DocsLink));
 	}
 
 	public override ICommand TargetCommand { get; }
