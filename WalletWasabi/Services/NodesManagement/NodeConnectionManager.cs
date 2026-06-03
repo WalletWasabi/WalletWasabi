@@ -12,34 +12,18 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public class NodesRegistry : IDisposable
+public interface INodesRegistry
 {
-	private readonly ConcurrentDictionary<EndPoint, Node> _nodes = [];
-	private readonly ComposedDisposable _disposables = new();
-
-	public NodesRegistry(EventBus eventBus)
-	{
-		eventBus.Subscribe<P2pNodeAdded>(e => _nodes.TryAdd(e.EndPoint, e.Node)).DisposeUsing(_disposables);
-		eventBus.Subscribe<P2pNodeRemoved>(e => _nodes.TryRemove(e.EndPoint, out _)).DisposeUsing(_disposables);
-	}
-
-	public int Count => _nodes.Count;
-	public Node[] Nodes => _nodes.Values.ToArray();
-
-	public void Dispose()
-	{
-		_disposables.Dispose();
-	}
+	Node[] Nodes { get; }
 }
 
 public class NodeConnectionManager(
 	Network network,
-	NodeDiscoveryCoordinator.PeersInfoProvider getPeersInfo,
 	Func<NodeBehavior>[] behaviorFactories,
 	EventBus eventBus,
 	TimeSpan connectionTimeout,
 	EndPoint? torSocks5 = null)
-	: IDisposable
+	: INodesRegistry, IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
@@ -58,7 +42,10 @@ public class NodeConnectionManager(
 	private DateTimeOffset _lastRotateTime;
 	private bool _isDisposed;
 
-	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, CancellationToken cancellationToken)
+	public Node[] Nodes => _connectedNodes.Values.Select(x => x.Node).ToArray();
+
+	public async Task ReevaluateConnectionsAsync(DateTimeOffset now, PeersInfoProvider peersProvider,
+		CancellationToken cancellationToken)
 	{
 		if (Interlocked.CompareExchange(ref _isReevaluating, 1, 0) != 0)
 		{
@@ -73,15 +60,19 @@ public class NodeConnectionManager(
 			if ((now - _lastMaintainTime >= MaintainInterval && count < TargetConnections) || count == 0)
 			{
 				_lastMaintainTime = now;
-				await ConnectToBestPeersAsync(cancellationToken).ConfigureAwait(false);
+				await ConnectToBestPeersAsync(peersProvider, cancellationToken).ConfigureAwait(false);
 			}
 
 			if ((now - _lastRotateTime >= RotateInterval && count > TargetConnections - 3) ||
 			    (now - _lastRotateTime >= TimeSpan.FromSeconds(4) && _connectedNodes.Count(x => x.Value.PeerInfo.SupportsCompactFilters) < MinCompactFilterNodes))
 			{
 				_lastRotateTime = now;
-				await RotateToBetterPeersAsync(cancellationToken).ConfigureAwait(false);
+				await RotateToBetterPeersAsync(peersProvider, cancellationToken).ConfigureAwait(false);
 			}
+		}
+		catch (Exception e)
+		{
+			Logger.LogWarning(e.Message);
 		}
 		finally
 		{
@@ -89,14 +80,14 @@ public class NodeConnectionManager(
 		}
 	}
 
-	private async Task ConnectToBestPeersAsync(CancellationToken cancellationToken)
+	private async Task ConnectToBestPeersAsync(PeersInfoProvider peersProvider, CancellationToken cancellationToken)
 	{
 		var filterNodeCount = _connectedNodes.Values
 			.Count(n => n.Node.IsConnected && n.PeerInfo.SupportsCompactFilters);
 
 		var filterNodesNeeded = Math.Max(0, MinCompactFilterNodes - filterNodeCount);
 		var totalNeeded = TargetConnections - _connectedNodes.Count;
-		var availablePeers = await GetAvailablePeersAsync(cancellationToken).ConfigureAwait(false);
+		var availablePeers = await GetAvailablePeersAsync(peersProvider, cancellationToken).ConfigureAwait(false);
 
 		var filterPeers = availablePeers
 			.Where(p => p.SupportsCompactFilters)
@@ -123,7 +114,8 @@ public class NodeConnectionManager(
 		}
 	}
 
-	private async Task<PeerInfo[]> GetAvailablePeersAsync(CancellationToken cancellationToken)
+	private async Task<PeerInfo[]> GetAvailablePeersAsync(PeersInfoProvider getPeersInfo,
+		CancellationToken cancellationToken)
 	{
 		var connectedKeys = _connectedNodes.Keys.ToHashSet();
 		var now = DateTimeOffset.UtcNow;
@@ -241,7 +233,7 @@ public class NodeConnectionManager(
 		}
 	}
 
-	private async Task RotateToBetterPeersAsync(CancellationToken cancellationToken)
+	private async Task RotateToBetterPeersAsync(PeersInfoProvider peersProvider, CancellationToken cancellationToken)
 	{
 		// Get current worst-scoring connected peer
 		var rankedConnectedNodes = _connectedNodes.Values
@@ -254,7 +246,7 @@ public class NodeConnectionManager(
 			return;
 		}
 
-		var availablePeers = await GetAvailablePeersAsync(cancellationToken).ConfigureAwait(false);
+		var availablePeers = await GetAvailablePeersAsync(peersProvider, cancellationToken).ConfigureAwait(false);
 		var bestDiscoveredNode = availablePeers
 			.OrderByDescending(p => p.Score)
 			.FirstOrDefault();

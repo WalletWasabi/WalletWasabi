@@ -92,10 +92,10 @@ public class Global
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
-		_nodesRegistry = new NodesRegistry(EventBus);
+		_nodeConnectionManager = ConfigureNodeConnectionManager();
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(_nodesRegistry, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(_nodeConnectionManager, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -111,7 +111,7 @@ public class Global
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
-		var broadcasters = CreateBroadcasters(_nodesRegistry, _mempoolService);
+		var broadcasters = CreateBroadcasters(_nodeConnectionManager, _mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
@@ -125,7 +125,7 @@ public class Global
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
-	private readonly NodesRegistry _nodesRegistry;
+	private readonly NodeConnectionManager _nodeConnectionManager;
 	private TorManager? _torManager;
 	private readonly IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
@@ -155,7 +155,7 @@ public class Global
 
 	private string GetBitcoinP2PNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
-	private BlockProvider ConfigureBlockProvider(NodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
+	private BlockProvider ConfigureBlockProvider(INodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
 	{
 		var p2PNodesManager = new P2PNodesManager(Network, nodesRegistry);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
@@ -190,29 +190,8 @@ public class Global
 		return blockHeaders;
 	}
 
-	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
+	private NodeConnectionManager ConfigureNodeConnectionManager()
 	{
-		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
-		var crawlers = Enumerable
-			.Range(0, 10)
-			.Select(n =>
-				Spawn($"crawler-{n}",
-					EventDriven(
-						new NodeDiscoveryCoordinator.CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero),
-						NodeDiscoveryCoordinator.CreateCrawler(Network, torEndpoint, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(3))),
-					capacity: 1_000,
-					cancellationToken: cancellationToken) )
-			.ToArray();
-		_disposables.AddRange(crawlers);
-
-		var discoverer = Spawn(NodeDiscoveryCoordinator.ServiceName,
-			Service("Bitcoin Node Discovery Service",
-				EventDriven(
-					new NodeDiscoveryCoordinator.CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
-					NodeDiscoveryCoordinator.CreateDiscovery(crawlers))),
-					cancellationToken);
-		discoverer.DisposeUsing(_disposables);
-
 		// NBitcoin doesn't have these dnsSeeds for signet
 		if (Network == Network.Main)
 		{
@@ -294,13 +273,37 @@ public class Global
 				() => new P2pBehavior(_mempoolService)
 			];
 
-		var peersProvider = NodeDiscoveryCoordinator.GetPeersProvider(discoverer);
-
+		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
 #pragma warning disable CA2000 // Dispose objects before losing scope -- disposed using disposables
-		var manager = new NodeConnectionManager(Network, peersProvider, behaviorFactories, EventBus, TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
+		var manager = new NodeConnectionManager(Network, behaviorFactories, EventBus, TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 		manager.DisposeUsing(_disposables);
+		return manager;
+	}
+
+	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
+	{
+		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
+		var crawlers = Enumerable
+			.Range(0, 10)
+			.Select(n =>
+				Spawn($"crawler-{n}",
+					EventDriven(
+						new NodeDiscoveryCoordinator.CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero),
+						NodeDiscoveryCoordinator.CreateCrawler(Network, torEndpoint, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(3))),
+					capacity: 1_000,
+					cancellationToken: cancellationToken) )
+			.ToArray();
+		_disposables.AddRange(crawlers);
+
+		var discoverer = Spawn(NodeDiscoveryCoordinator.ServiceName,
+			Service("Bitcoin Node Discovery Service",
+				EventDriven(
+					new NodeDiscoveryCoordinator.CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
+					NodeDiscoveryCoordinator.CreateDiscovery(crawlers))),
+					cancellationToken);
+		discoverer.DisposeUsing(_disposables);
 
 		IDnsResolver dnsResolver = torEndpoint is not null
 			? new DnsSocksResolver(torEndpoint)
@@ -314,25 +317,25 @@ public class Global
 		// Subscribe to ticks for slow-mode discovery and rotation
 		EventBus.Subscribe<Tick>(async void (_) =>
 		{
-			try
-			{
-				await manager.ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, cancellationToken).ConfigureAwait(false);
-			}
-			catch (Exception e)
-			{
-				Logger.LogWarning(e.Message);
-			}
+			var peersProvider = NodeDiscoveryCoordinator.GetPeersProvider(discoverer);
+			await _nodeConnectionManager.ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, peersProvider, cancellationToken).ConfigureAwait(false);
 		}).DisposeUsing(_disposables);
 
+
 		EventBus.Subscribe<NodeDisconnectedQuickly>(e =>
-			NodeDiscoveryCoordinator.ReportQuickDisconnect(discoverer, e.EndPoint)
+			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.DisconnectedQuickly)
 		).DisposeUsing(_disposables);
 		EventBus.Subscribe<MisbehavingNodeDetected>(e =>
-			NodeDiscoveryCoordinator.ReportMisbehavior(discoverer, e.EndPoint)
+			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.ProvidedInvalidData)
 		).DisposeUsing(_disposables);
 		EventBus.Subscribe<NodeTimeoutDownloadingBlock>(e =>
-			NodeDiscoveryCoordinator.PunishSlowNode(discoverer, e.EndPoint)
+			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.TimedOutDownloadingBlock)
 		).DisposeUsing(_disposables);
+
+		return;
+
+		void ReportMisbehavior(EndPoint endpoint, NodeDiscoveryCoordinator.MisbehaviorType misbehavior) =>
+			discoverer.Post(new NodeDiscoveryCoordinator.NodeMisBehaveMessage(endpoint, misbehavior));
 	}
 
 	private RpcClientBase ConfigureBitcoinRpcClient()
@@ -747,7 +750,7 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(NodesRegistry nodes, MempoolService mempoolService)
+	private List<IBroadcaster> CreateBroadcasters(INodesRegistry nodes, MempoolService mempoolService)
 	{
 		var result = new List<IBroadcaster>()
 		{
@@ -762,7 +765,7 @@ public class Global
 		return result;
 	}
 
-	public Node[] GetNodes() => _nodesRegistry.Nodes;
+	public Node[] GetNodes() => _nodeConnectionManager.Nodes;
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.
