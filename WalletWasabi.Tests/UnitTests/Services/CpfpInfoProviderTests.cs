@@ -528,7 +528,7 @@ public class CpfpInfoProviderTests
 					await handler(message, Unit.Instance, ct);
 				}
 			},
-			cancellationToken);
+			cancellationToken: cancellationToken);
 
 		processor.Start();
 		return processor;
@@ -1012,7 +1012,7 @@ public class CpfpInfoProviderCancellationTests
 					await handler(message, Unit.Instance, ct);
 				}
 			},
-			cancellationToken);
+			cancellationToken: cancellationToken);
 
 		processor.Start();
 		return processor;

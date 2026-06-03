@@ -1,40 +1,45 @@
 using System.Collections.Generic;
-using System.Linq;
 
 public class ComposedDisposable : IDisposable
 {
-    private readonly List<IDisposable> _disposables = new();
-    private bool _isDisposed = false;
+	private readonly List<IDisposable> _disposables = new();
+	private bool _isDisposed = false;
 
-    public void Add(IDisposable disposable)
-    {
-	    ObjectDisposedException.ThrowIf(_isDisposed, this);
+	public void Add(IDisposable disposable)
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
 		_disposables.Add(disposable);
-    }
+	}
 
-    public void Dispose()
-    {
-        Dispose(true);
-        GC.SuppressFinalize(this);
-    }
+	public void Dispose()
+	{
+		Dispose(true);
+		GC.SuppressFinalize(this);
+	}
 
-    protected virtual void Dispose(bool disposing)
-    {
-        if (!_isDisposed)
-        {
-            if (disposing)
-            {
-	            _disposables.Reverse();
-                foreach (var disposable in _disposables)
-                {
-                    disposable.Dispose();
-                }
-                _disposables.Clear();
-            }
+	protected virtual void Dispose(bool disposing)
+	{
+		if (!_isDisposed)
+		{
+			if (disposing)
+			{
+				_disposables.Reverse();
+				foreach (var disposable in _disposables)
+				{
+					disposable.Dispose();
+				}
 
-            _isDisposed = true;
-        }
-    }
+				_disposables.Clear();
+			}
+
+			_isDisposed = true;
+		}
+	}
+
+	public void AddRange(IEnumerable<IDisposable> disposables)
+	{
+		_disposables.AddRange(disposables);
+	}
 }
 
 public static class DisposableExtensions

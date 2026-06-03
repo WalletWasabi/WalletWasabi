@@ -4,6 +4,7 @@ using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
+using WalletWasabi.Services;
 
 namespace WalletWasabi.Wallets;
 
@@ -28,7 +29,7 @@ public static class BlockProviders
 			}
 		};
 
-	public static BlockProvider P2pBlockProvider(P2PNodesManager p2PNodesManager) =>
+	public static BlockProvider P2pBlockProvider(P2PNodesManager p2PNodesManager, EventBus eventBus) =>
 		async (blockHash, cancellationToken) =>
 		{
 			while (!cancellationToken.IsCancellationRequested)
@@ -53,14 +54,11 @@ public static class BlockProviders
 					{
 						p2PNodesManager.DisconnectNode(node,
 							$"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
-
+						eventBus.Publish(new MisbehavingNodeDetected(node.RemoteSocketEndpoint, node));
 						continue;
 					}
 
 					Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-					p2PNodesManager.DisconnectNodeIfEnoughPeers(node,
-						$"Disconnected node: {node.RemoteSocketAddress}. Block downloaded.");
-
 					await p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
 
 					return block;
@@ -72,6 +70,7 @@ public static class BlockProviders
 						await p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
 						p2PNodesManager.DisconnectNodeIfEnoughPeers(node,
 							$"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
+						eventBus.Publish(new NodeTimeoutDownloadingBlock(node.RemoteSocketEndpoint, node));
 					}
 					else
 					{

@@ -20,6 +20,7 @@ using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
 using System.Net.Mime;
+using WalletWasabi.Services.NodesManagement;
 
 namespace WalletWasabi.Blockchain.TransactionBroadcasting;
 
@@ -161,12 +162,12 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, NodesRegistry nodes) : IBroadcaster
 {
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		var connectedNodes = nodes.ConnectedNodes.Where(x => x.IsConnected).ToArray();
+		var connectedNodes = nodes.Nodes.Where(x => x.IsConnected).ToArray();
 		if (connectedNodes.Length < MinBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());

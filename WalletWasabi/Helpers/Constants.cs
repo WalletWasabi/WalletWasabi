@@ -1,5 +1,4 @@
 using NBitcoin;
-using NBitcoin.Protocol;
 
 namespace WalletWasabi.Helpers;
 
@@ -103,20 +102,6 @@ public static class Constants
 
 	// Defined in hours. Do not modify these values or the order!
 	public static readonly int[] CoinJoinFeeRateMedianTimeFrames = new[] { 24, 168, 720 };
-
-	public static readonly NodeRequirement NodeRequirements = new()
-	{
-		RequiredServices = NodeServices.NODE_WITNESS,
-		MinVersion = ProtocolVersionWitnessVersion,
-		MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true, SupportMempoolQuery = true }
-	};
-
-	public static readonly NodeRequirement LocalNodeRequirements = new()
-	{
-		RequiredServices = NodeServices.NODE_WITNESS,
-		MinVersion = ProtocolVersionWitnessVersion,
-		MinProtocolCapabilities = new ProtocolCapabilities { SupportGetBlock = true, SupportWitness = true }
-	};
 
 	public static readonly string[] UserAgents = new[]
 	{

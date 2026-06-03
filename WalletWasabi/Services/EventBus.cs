@@ -1,5 +1,6 @@
 using System.Linq;
 using System.Collections.Generic;
+using System.Net;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
@@ -8,6 +9,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.Wallets;
 using System.Threading;
+using NBitcoin.Protocol;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -121,7 +123,8 @@ public record RpcStatusChanged(Result<ConnectedRpcStatus, string> Status);
 public record FilterProcessed(FilterModel Filter);
 public record Tick(DateTime DateTime);
 
-public record BitcoinPeersChanged(bool Added, int NodesCount);
+public record P2pNodeAdded(EndPoint EndPoint, Node Node);
+public record P2pNodeRemoved(EndPoint EndPoint, Node Node);
 public record CpfpInfoArrived;
 
 public record WalletLoaded(Wallet Wallet);
@@ -130,3 +133,6 @@ public record NewTransactionInMempool(SmartTransaction Transaction);
 public record ChainReorganized(FilterModel Filter);
 public record FiltersReceived(FilterModel[] Filters);
 public record WalletRelevantTransactionProcessed(string WalletName, ProcessedResult Result);
+public record NodeDisconnectedQuickly(EndPoint EndPoint, Node Node);
+public record MisbehavingNodeDetected(EndPoint EndPoint, Node Node);
+public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
