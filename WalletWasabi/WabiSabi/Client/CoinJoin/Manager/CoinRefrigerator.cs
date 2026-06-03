@@ -1,34 +1,43 @@
 using System.Collections.Generic;
+using System.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
 
-namespace WalletWasabi.WabiSabi.Client;
+namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
 public class CoinRefrigerator
 {
+	private static readonly TimeSpan FreezeTime = TimeSpan.FromSeconds(90);
+
+	private readonly Lock _lock = new();
 	private Dictionary<SmartCoin, DateTimeOffset> FrozenCoins { get; } = new();
-	private readonly TimeSpan _freezeTime = TimeSpan.FromSeconds(90);
 
 	public void Freeze(IEnumerable<SmartCoin> coins)
 	{
-		foreach (var coin in coins)
+		lock (_lock)
 		{
-			FrozenCoins[coin] = DateTimeOffset.UtcNow;
+			foreach (var coin in coins)
+			{
+				FrozenCoins[coin] = DateTimeOffset.UtcNow;
+			}
 		}
 	}
 
 	public bool IsFrozen(SmartCoin coin)
 	{
-		if (!FrozenCoins.TryGetValue(coin, out var startTime))
+		lock (_lock)
 		{
+			if (!FrozenCoins.TryGetValue(coin, out var startTime))
+			{
+				return false;
+			}
+
+			if (startTime.Add(FreezeTime) > DateTimeOffset.UtcNow)
+			{
+				return true;
+			}
+
+			FrozenCoins.Remove(coin);
 			return false;
 		}
-
-		if (startTime.Add(_freezeTime) > DateTimeOffset.UtcNow)
-		{
-			return true;
-		}
-
-		FrozenCoins.Remove(coin);
-		return false;
 	}
 }

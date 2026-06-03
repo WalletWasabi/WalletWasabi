@@ -15,6 +15,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -352,7 +353,6 @@ public class CoinJoinManager : BackgroundService
 		}
 
 		throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
-
 	}
 
 	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<WalletId, TrackedAutoStart> trackedAutoStarts, Wallet wallet)
@@ -641,7 +641,7 @@ public class CoinJoinManager : BackgroundService
 	/// </summary>
 	private void MarkDestinationsUsed(IDestinationProvider destinationProvider, ImmutableList<Script> outputs)
 	{
-		destinationProvider.TrySetScriptStates(KeyState.Used, outputs.ToHashSet());
+		destinationProvider.TrySetScriptStates(KeyState.Used, outputs);
 	}
 
 	private void NotifyWalletStartedCoinJoin(Wallet openedWallet) =>
