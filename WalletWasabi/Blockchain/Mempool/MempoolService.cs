@@ -23,6 +23,9 @@ public class MempoolService(EventBus eventBus)
 	/// <summary>Guards <see cref="_broadcastStore"/>.</summary>
 	private readonly Lock _broadcastStoreLock = new();
 
+	public void ReportSuccessfullyBroadcastedTransaction(SmartTransaction transaction) =>
+		eventBus.Publish(new NewTransactionInMempool(transaction));
+
 	public bool TryAddToBroadcastStore(SmartTransaction transaction)
 	{
 		lock (_broadcastStoreLock)
@@ -47,7 +50,7 @@ public class MempoolService(EventBus eventBus)
 		}
 	}
 
-	public LabelsArray TryGetLabel(uint256 txid)
+	private LabelsArray TryGetLabel(uint256 txid)
 	{
 		var label = LabelsArray.Empty;
 		if (TryGetFromBroadcastStore(txid, out var entry))

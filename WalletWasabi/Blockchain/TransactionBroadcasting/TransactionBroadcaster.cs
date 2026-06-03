@@ -14,7 +14,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
-using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.Wasabi;
 using System.Collections.Immutable;
 using System.Text;
@@ -264,7 +263,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, NodesGroup nodes)
 	}
 }
 
-public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService mempoolService, WalletManager walletManager)
+public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService mempoolService)
 {
 	public async Task SendTransactionAsync(SmartTransaction tx, CancellationToken cancellationToken = default)
 	{
@@ -344,8 +343,7 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 		}
 
 		mempoolService.TryAddToBroadcastStore(transaction);
-
-		walletManager.Process(transaction);
+		mempoolService.ReportSuccessfullyBroadcastedTransaction(transaction);
 	}
 }
 
