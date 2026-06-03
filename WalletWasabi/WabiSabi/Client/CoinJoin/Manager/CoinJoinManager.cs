@@ -211,7 +211,7 @@ public class CoinJoinManager : BackgroundService
 			if (!walletToStart.BatchedPayments.AreTherePendingPayments)
 			{
 				// If all coins are already private, then don't mix.
-				if (await walletToStart.IsWalletPrivateAsync().ConfigureAwait(false))
+				if (walletToStart.IsWalletPrivate())
 				{
 					Logger.LogTrace(FormatLog("All mixed!", walletToStart));
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
@@ -597,7 +597,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (await wallet.IsWalletPrivateAsync().ConfigureAwait(false))
+		else if (wallet.IsWalletPrivate())
 		{
 			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
 			if (!finishedCoinJoin.StopWhenAllMixed)

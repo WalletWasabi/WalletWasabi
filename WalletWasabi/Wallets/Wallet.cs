@@ -120,8 +120,6 @@ public class Wallet : BackgroundService
 
 	public ICoinsView GetAllCoins() => Coins.AsAllCoinsView();
 
-	public Task<bool> IsWalletPrivateAsync() => Task.FromResult(IsWalletPrivate());
-
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
 	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
