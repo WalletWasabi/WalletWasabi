@@ -45,7 +45,7 @@ public class NodeConnectionManager(
 	private const int MinCompactFilterNodes = 5;
 	private const double RotationScoreThreshold = 1.1;
 
-	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(1);
+	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
@@ -113,6 +113,7 @@ public class NodeConnectionManager(
 			.Concat(otherPeers)
 			.DistinctBy(p => p.Endpoint)
 			.Take(totalNeeded)
+			.Shuffle()
 			.ToArray();
 
 		if (peers.Length > 0)
