@@ -1,3 +1,4 @@
+using System.Linq;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
@@ -46,11 +47,7 @@ public class BlockDownloadTests
 		}
 
 		var eventBus = new EventBus();
-		using var nodesRegistry = new NodesRegistry(eventBus);
-		foreach (var node in nodes.ConnectedNodes)
-		{
-			eventBus.Publish(new P2pNodeAdded(node.RemoteSocketEndpoint, node));
-		}
+		var nodesRegistry = new TestNodesRegistry(nodes.ConnectedNodes.ToArray());
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry), eventBus);
 
 		var tasks = new List<Task<Block?>>();
@@ -68,5 +65,10 @@ public class BlockDownloadTests
 			var block = await task;
 			Assert.NotNull(block);
 		}
+	}
+
+	private class TestNodesRegistry(Node[] nodes) : INodesRegistry
+	{
+		public Node[] Nodes => nodes;
 	}
 }

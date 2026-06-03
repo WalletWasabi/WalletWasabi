@@ -192,7 +192,6 @@ public class Global
 
 	private NodeConnectionManager ConfigureNodeConnectionManager()
 	{
-		// NBitcoin doesn't have these dnsSeeds for signet
 		if (Network == Network.Main)
 		{
 			if (Network.DNSSeeds is List<DNSSeedData> dnsSeeds)
@@ -274,8 +273,18 @@ public class Global
 			];
 
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
+		IDnsResolver dnsResolver = torEndpoint is not null
+			? new DnsSocksResolver(torEndpoint)
+			: DnsResolver.Instance;
+
 #pragma warning disable CA2000 // Dispose objects before losing scope -- disposed using disposables
-		var manager = new NodeConnectionManager(Network, behaviorFactories, EventBus, TimeSpan.FromSeconds(15), torSocks5: torEndpoint);
+		var manager = new NodeConnectionManager(
+			Network,
+			behaviorFactories,
+			EventBus,
+			dnsResolver,
+			TimeSpan.FromSeconds(15),
+			torSocks5: torEndpoint);
 #pragma warning restore CA2000 // Dispose objects before losing scope
 
 		manager.DisposeUsing(_disposables);
@@ -284,58 +293,7 @@ public class Global
 
 	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
 	{
-		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
-		var crawlers = Enumerable
-			.Range(0, 10)
-			.Select(n =>
-				Spawn($"crawler-{n}",
-					EventDriven(
-						new NodeDiscoveryCoordinator.CrawlerState(DelayBeforeVisitingNode: TimeSpan.Zero),
-						NodeDiscoveryCoordinator.CreateCrawler(Network, torEndpoint, TimeSpan.FromSeconds(10), TimeSpan.FromSeconds(3))),
-					capacity: 1_000,
-					cancellationToken: cancellationToken) )
-			.ToArray();
-		_disposables.AddRange(crawlers);
-
-		var discoverer = Spawn(NodeDiscoveryCoordinator.ServiceName,
-			Service("Bitcoin Node Discovery Service",
-				EventDriven(
-					new NodeDiscoveryCoordinator.CrawlingCoordinationState(SlowedDown: false, Peers: [], LastCrawlerIndex: 0),
-					NodeDiscoveryCoordinator.CreateDiscovery(crawlers))),
-					cancellationToken);
-		discoverer.DisposeUsing(_disposables);
-
-		IDnsResolver dnsResolver = torEndpoint is not null
-			? new DnsSocksResolver(torEndpoint)
-			: DnsResolver.Instance;
-
-		Spawn("NodeBootstrap",
-			Service<Unit>("Node Endpoints Bootstrap",
-				(_, ct) => NodeDiscoveryCoordinator.SeedFromDnsAsync(Network, dnsResolver, ct)),
-			cancellationToken);
-
-		// Subscribe to ticks for slow-mode discovery and rotation
-		EventBus.Subscribe<Tick>(async void (_) =>
-		{
-			var peersProvider = NodeDiscoveryCoordinator.GetPeersProvider(discoverer);
-			await _nodeConnectionManager.ReevaluateConnectionsAsync(DateTimeOffset.UtcNow, peersProvider, cancellationToken).ConfigureAwait(false);
-		}).DisposeUsing(_disposables);
-
-
-		EventBus.Subscribe<NodeDisconnectedQuickly>(e =>
-			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.DisconnectedQuickly)
-		).DisposeUsing(_disposables);
-		EventBus.Subscribe<MisbehavingNodeDetected>(e =>
-			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.ProvidedInvalidData)
-		).DisposeUsing(_disposables);
-		EventBus.Subscribe<NodeTimeoutDownloadingBlock>(e =>
-			ReportMisbehavior(e.EndPoint, NodeDiscoveryCoordinator.MisbehaviorType.TimedOutDownloadingBlock)
-		).DisposeUsing(_disposables);
-
-		return;
-
-		void ReportMisbehavior(EndPoint endpoint, NodeDiscoveryCoordinator.MisbehaviorType misbehavior) =>
-			discoverer.Post(new NodeDiscoveryCoordinator.NodeMisBehaveMessage(endpoint, misbehavior));
+		_nodeConnectionManager.Start(cancellationToken);
 	}
 
 	private RpcClientBase ConfigureBitcoinRpcClient()
