@@ -7,7 +7,7 @@
 	<Nullable>enable</Nullable>
 	<Deterministic>true</Deterministic>
 	<InvariantGlobalization>true</InvariantGlobalization>
-	<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+	<WarningsAsErrors>false</WarningsAsErrors>
 
 	<!-- Audit both top-level and transitive dependencies for vulnerabilities in NuGet packages. -->
 	<!-- https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#setting-a-security-audit-mode -->

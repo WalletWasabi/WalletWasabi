@@ -195,7 +195,7 @@ public partial class NavigationStack<T> : ViewModelBase, INavigationStack<T> whe
 
 		var t = dialog as T;
 
-		if (t is not null && CurrentPage != t)
+		if (CurrentPage != t)
 		{
 			To(t, navigationMode);
 		}
