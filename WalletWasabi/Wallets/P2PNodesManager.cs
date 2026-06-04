@@ -33,7 +33,7 @@ public class P2PNodesManager
 				continue;
 			}
 
-			var nodes = _nodesRegistry.Nodes.ToArray();
+			var nodes = _nodesRegistry.Nodes;
 			var node = nodes.RandomElement(SecureRandom.Instance);
 
 			if (node is not null && node.IsConnected)
