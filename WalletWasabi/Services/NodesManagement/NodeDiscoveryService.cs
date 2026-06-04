@@ -1,13 +1,14 @@
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.Protocol.Behaviors;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Net;
+using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using static WalletWasabi.Services.Workers;
@@ -184,7 +185,7 @@ public static class NodeDiscoveryCoordinator
 		try
 		{
 			node = await Node.ConnectAsync(network, endpoint, connParams).ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			await VersionHandshakeAsync(node, new NodeRequirement(), timeoutCts.Token).ConfigureAwait(false);
 
 			sw.Stop();
 
@@ -210,6 +211,86 @@ public static class NodeDiscoveryCoordinator
 			return null;
 		}
 		return node;
+	}
+
+	/// <summary>
+	/// Method copied from NBitcoin's to fix un-awaited async calls and to add cancellation support.
+	/// </summary>
+	/// <seealso href="https://github.com/MetacoSA/NBitcoin/blob/a5f5f8dd1962001bff4df633016de8e74d00b842/NBitcoin/Protocol/Node.cs#L1075-L1132"/>
+	private static async Task VersionHandshakeAsync(Node node, NodeRequirement requirements, CancellationToken cancellationToken)
+	{
+		if (node.State == NodeState.HandShaked)
+		{
+			throw new InvalidOperationException("Already handshaked");
+		}
+
+		using var listener = node.CreateListener()
+			.Where(p => p.Message.Payload is VersionPayload || p.Message.Payload is VerAckPayload);
+
+		await node.SendMessageAsync(node.MyVersion).ConfigureAwait(false);
+
+		var version = listener.ReceivePayload<VersionPayload>(cancellationToken);
+
+		// node._PeerVersion = version;
+		var peerVersionField = node.GetType().GetField("_PeerVersion", BindingFlags.NonPublic | BindingFlags.Instance);
+		ArgumentNullException.ThrowIfNull(peerVersionField);
+		peerVersionField.SetValue(node, version);
+
+		// node.SetVersion(Math.Min(node.MyVersion.Version, version.Version));
+		var versionToSet = Math.Min(node.MyVersion.Version, version.Version);
+		var setVersionMethod = node.GetType().GetMethod("SetVersion", BindingFlags.NonPublic | BindingFlags.Instance);
+		ArgumentNullException.ThrowIfNull(setVersionMethod);
+		setVersionMethod.Invoke(node, [versionToSet]);
+
+		var receiverAddress = version.AddressReceiver.GetStringAddress();
+		var addressFrom = node.MyVersion.AddressFrom.GetStringAddress();
+
+		if (receiverAddress != addressFrom)
+		{
+			Logger.LogWarning($"Different external address detected by the node {receiverAddress} instead of {addressFrom}");
+		}
+
+		if (node.ProtocolCapabilities.PeerTooOld)
+		{
+			Logger.LogWarning("Outdated version {version} disconnecting", version.Version);
+			node.Disconnect("Outdated version");
+			return;
+		}
+
+		if (!requirements.Check(version, node.ProtocolCapabilities))
+		{
+			node.Disconnect("The peer does not support the required services requirement");
+			return;
+		}
+
+		// As a courtesy we do not send sendaddr to nodes that do not support it.
+		if (node.ProtocolCapabilities.SupportAddrv2)
+		{
+			// Signal ADDRv2 support (BIP155).
+			await node.SendMessageAsync(new SendAddrV2Payload()).ConfigureAwait(false);
+		}
+
+		await node.SendMessageAsync(new VerAckPayload()).ConfigureAwait(false);
+
+		listener.ReceivePayload<VerAckPayload>(cancellationToken);
+
+		// node.State = NodeState.HandShaked;
+		var stateField = node.GetType().GetField("_State", BindingFlags.NonPublic | BindingFlags.Instance);
+		ArgumentNullException.ThrowIfNull(stateField);
+		stateField.SetValue(node, NodeState.HandShaked);
+
+		if (node.Advertize)
+		{
+			if (node.MyVersion.AddressFrom is IPEndPoint iPEndPoint && !iPEndPoint.Address.IsRoutable(true))
+			{
+				return;
+			}
+
+			await node.SendMessageAsync(new AddrPayload(new NetworkAddress(node.MyVersion.AddressFrom)
+			{
+				Time = DateTimeOffset.UtcNow
+			})).ConfigureAwait(false);
+		}
 	}
 
 	private static async Task HarvestAddressesAsync(Node node, TimeSpan harvestTimeout, CancellationToken cancellationToken)
