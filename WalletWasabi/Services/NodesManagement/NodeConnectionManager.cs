@@ -155,7 +155,7 @@ public class NodeConnectionManager(
 			var connParams = new NodeConnectionParameters
 			{
 				ConnectCancellation = timeoutCts.Token,
-				IsRelay = false,
+				IsRelay = true,
 				UserAgent = Constants.UserAgents[Random.Shared.Next(Constants.UserAgents.Length)]
 			};
 
