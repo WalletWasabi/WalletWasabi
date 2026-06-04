@@ -118,7 +118,7 @@ public class NodeConnectionManager(
 
 		if (peers.Length > 0)
 		{
-			Logger.LogDebug($"Connecting to {peers.Length} peers (current: {_connectedNodes.Count}).");
+			Logger.LogTrace($"Connecting to {peers.Length} peers (current: {_connectedNodes.Count}).");
 			await Task.WhenAll(peers.Select(p => ConnectToPeerAsync(p, cancellationToken))).ConfigureAwait(false);
 		}
 	}
@@ -187,7 +187,7 @@ public class NodeConnectionManager(
 
 			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
 			{
-				Logger.LogDebug($"Connected to peer: {peerInfo.Endpoint} (score: {peerInfo.Score:F1}, services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
+				Logger.LogDebug($"Connected to peer {peerInfo.Endpoint} (score: {peerInfo.Score:F1}, services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
 				eventBus.Publish(new P2pNodeAdded(peerInfo.Endpoint, node));
 			}
 			else
@@ -230,7 +230,7 @@ public class NodeConnectionManager(
 		{
 			node.Disconnected -= OnNodeDisconnected;
 			var connectionDuration = DateTimeOffset.UtcNow - removed.ConnectedAt;
-			Logger.LogDebug($"Peer {node.Peer.Endpoint} (score: {removed.PeerInfo.Score:F1}) disconnected (after {connectionDuration.TotalSeconds:F1}s). Total connected peers: {_connectedNodes.Count}.");
+			Logger.LogDebug($"Peer {node.Peer.Endpoint} (score: {removed.PeerInfo.Score:F1}) disconnected after {connectionDuration.TotalSeconds:F1}s. Total connected peers: {_connectedNodes.Count}.");
 
 			if (connectionDuration < QuickDisconnectThreshold)
 			{
@@ -261,7 +261,7 @@ public class NodeConnectionManager(
 
 		if (bestDiscoveredNode is null)
 		{
-			Logger.LogDebug("There is no best peer candidate");
+			Logger.LogTrace("There is no best peer candidate");
 			return;
 		}
 
@@ -270,7 +270,7 @@ public class NodeConnectionManager(
 		// Only rotate if significantly better
 		if (bestDiscoveredScore > worstConnectedNode.PeerInfo.Score * RotationScoreThreshold)
 		{
-			Logger.LogInfo($"Rotating peer: replacing {worstConnectedNode.PeerInfo.Endpoint} (score: {worstConnectedNode.PeerInfo.Score:F1}) with {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1})");
+			Logger.LogInfo($"Replacing peer {worstConnectedNode.PeerInfo.Endpoint} (score: {worstConnectedNode.PeerInfo.Score:F1}) with {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1})");
 
 			// Disconnect worst
 			if (_connectedNodes.TryRemove(worstConnectedNode.PeerInfo.Endpoint, out var nodeToRemove))
@@ -284,7 +284,7 @@ public class NodeConnectionManager(
 		}
 		else
 		{
-			Logger.LogDebug($"Best peer candidate for rotation is not much better than all already connect peers. Scored {bestDiscoveredScore}");
+			Logger.LogDebug($"Peer candidate {bestDiscoveredNode.Endpoint} (score: {bestDiscoveredScore:F1}) is not significantly better than our worst peer (score: {worstConnectedNode.PeerInfo.Score:F1}). Skipping rotation.");
 		}
 	}
 

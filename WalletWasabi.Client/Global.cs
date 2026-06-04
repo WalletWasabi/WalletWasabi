@@ -88,10 +88,10 @@ public class Global
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
-		_nodesGroup = new NodesRegistry(EventBus);
+		_nodesRegistry = new NodesRegistry(EventBus);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(_nodesGroup, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(_nodesRegistry, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -107,7 +107,7 @@ public class Global
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
-		var broadcasters = CreateBroadcasters(_nodesGroup, _mempoolService);
+		var broadcasters = CreateBroadcasters(_nodesRegistry, _mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
@@ -116,7 +116,7 @@ public class Global
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
-	private readonly NodesRegistry _nodesGroup;
+	private readonly NodesRegistry _nodesRegistry;
 	private TorManager? _torManager;
 	private readonly IRPCClient _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
@@ -145,9 +145,9 @@ public class Global
 
 	private string GetBitcoinP2PNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
-	private BlockProvider ConfigureBlockProvider(NodesRegistry nodes, FileSystemBlockRepository fileSystemBlockRepository)
+	private BlockProvider ConfigureBlockProvider(NodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
 	{
-		var p2PNodesManager = new P2PNodesManager(Network, nodes);
+		var p2PNodesManager = new P2PNodesManager(Network, nodesRegistry);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
 		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager, EventBus);
 
@@ -698,7 +698,7 @@ public class Global
 		return result;
 	}
 
-	public Node[] GetNodes() => _nodesGroup.Nodes;
+	public Node[] GetNodes() => _nodesRegistry.Nodes;
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.

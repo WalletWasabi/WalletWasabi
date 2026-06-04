@@ -30,7 +30,7 @@ public static class NodeDiscoveryCoordinator
 	public abstract record CoordinatorMessage;
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
-	record NodeMisBehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
+	record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType BehaviorType) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
 	public abstract record CrawlerMessage;
@@ -84,17 +84,17 @@ public static class NodeDiscoveryCoordinator
 				}
 				break;
 
-			case NodeMisBehaveMessage (Endpoint: var offendingEndpoint, Behavior: var behavior):
+			case NodeMisbehaveMessage (Endpoint: var offendingEndpoint, BehaviorType: var misbehaviorType):
 				if (state.Peers.TryGetValue(offendingEndpoint, out var offendingNode))
 				{
-					state = behavior switch
+					state = misbehaviorType switch
 					{
 						MisbehaviorType.TimedOutDownloadingBlock when offendingNode.Score > 30 =>
-							Punish(offendingEndpoint, offendingNode),
+							Punish(offendingEndpoint, offendingNode, misbehaviorType),
 						MisbehaviorType.DisconnectedQuickly when offendingNode.Score > 30 =>
-							Punish(offendingEndpoint, offendingNode),
+							Punish(offendingEndpoint, offendingNode, misbehaviorType),
 						MisbehaviorType.FailedToConnect when offendingNode.Score > 30 =>
-							Punish(offendingEndpoint, offendingNode),
+							Punish(offendingEndpoint, offendingNode, misbehaviorType),
 						_ =>
 							Remove(offendingEndpoint)
 					};
@@ -108,12 +108,16 @@ public static class NodeDiscoveryCoordinator
 
 		return Task.FromResult(state);
 
-		CrawlingCoordinationState Punish(EndPoint offendingEndpoint, PeerInfo offendingNode) =>
-			state with
+		CrawlingCoordinationState Punish(EndPoint offendingEndpoint, PeerInfo offendingNode, MisbehaviorType misbehaviorType)
+		{
+			var newPeerInfo = offendingNode with { Score = offendingNode.Score - 10 };
+			Logger.LogDebug($"Peer {offendingNode.Endpoint} was punished for {misbehaviorType}. Score {offendingNode.Score:F1} -> {newPeerInfo.Score:F1}.");
+
+			return state with
 			{
-				Peers = state.Peers.SetItem(offendingEndpoint,
-					offendingNode with {Score = offendingNode.Score - 10})
+				Peers = state.Peers.SetItem(offendingEndpoint, newPeerInfo)
 			};
+		}
 
 		CrawlingCoordinationState Remove(EndPoint offendingEndpoint) =>
 			state with {Peers = state.Peers.Remove(offendingEndpoint)} ;
@@ -186,7 +190,7 @@ public static class NodeDiscoveryCoordinator
 
 			if (node.State != NodeState.HandShaked)
 			{
-				NotifyCoordinator(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
+				NotifyCoordinator(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 				node.DisconnectAsync();
 				return null;
 			}
@@ -201,7 +205,7 @@ public static class NodeDiscoveryCoordinator
 		}
 		catch
 		{
-			NotifyCoordinator(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
+			NotifyCoordinator(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 			node?.DisconnectAsync();
 			return null;
 		}
@@ -305,13 +309,13 @@ public static class NodeDiscoveryCoordinator
 			cancellationToken).ConfigureAwait(false);
 
 	public static void ReportQuickDisconnect(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.DisconnectedQuickly));
+		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.DisconnectedQuickly));
 
 	public static void ReportMisbehavior(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.ProvidedInvalidData));
+		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.ProvidedInvalidData));
 
 	public static void PunishSlowNode(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.TimedOutDownloadingBlock));
+		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.TimedOutDownloadingBlock));
 
 	private static void NotifyCoordinator(CoordinatorMessage msg) =>
 		Tell(ServiceName, msg);
