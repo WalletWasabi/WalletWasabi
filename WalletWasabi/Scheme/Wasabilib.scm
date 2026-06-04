@@ -105,7 +105,7 @@
     ))
 
 (define network                 (__get 'network (global)))
-(define header-chain            (__get 'filterheaderchain (global)))
+(define header-chain            (__get 'filterheaders (global)))
 
 (define (remote-tip-height)     (__get 'servertipheight header-chain))
 (define (local-tip-height)      (__get 'tipheight header-chain))
