@@ -11,7 +11,7 @@ public class TestRunner : PeriodicRunner
 		MaxNextRoundWaitTime = maxNextRoundWaitTime;
 	}
 
-	public SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
+	private SemaphoreSlim Semaphore { get; } = new SemaphoreSlim(initialCount: 0, maxCount: 1);
 
 	public int RoundCounter { get; private set; }
 	private TimeSpan MaxNextRoundWaitTime { get; }
@@ -27,6 +27,6 @@ public class TestRunner : PeriodicRunner
 
 	public async Task<bool> WaitForNextRoundAsync()
 	{
-		return await Semaphore.WaitAsync(MaxNextRoundWaitTime);
+		return await Semaphore.WaitAsync(MaxNextRoundWaitTime).ConfigureAwait(false);
 	}
 }

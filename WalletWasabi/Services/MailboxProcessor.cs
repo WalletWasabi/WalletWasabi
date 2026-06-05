@@ -1,5 +1,5 @@
 using System.Collections.Concurrent;
-using System.Collections.Generic;
+using System.Diagnostics;
 using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
@@ -39,7 +39,9 @@ public delegate Task Process<TMsg>(Mailbox<TMsg> mailbox, CancellationToken canc
 public delegate Task<TState> MessageHandler<TMsg, TState>(TMsg msg, TState state, CancellationToken cancellationToken);
 public delegate Task<Unit> MessageHandler<TMsg>(TMsg msg, CancellationToken cancellationToken);
 
+[DebuggerDisplay($"{{{nameof(GetDebuggerDisplay)}(),nq}}")]
 public sealed class MailboxProcessor<TMsg>(
+	string name,
 	Process<TMsg> body,
 	int? capacity = null,
 	CancellationToken? cancellationToken = null) : IDisposable
@@ -56,6 +58,8 @@ public sealed class MailboxProcessor<TMsg>(
 	private Task? _processingTask;
 	private bool _isDisposed;
 	public CancellationToken CancellationToken => _cts.Token;
+
+	public string Name { get; } = name;
 
 	public void Start()
 	{
@@ -100,6 +104,10 @@ public sealed class MailboxProcessor<TMsg>(
 		using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, CancellationToken);
 		return await tcs.Task.WaitAsync(cts.Token).ConfigureAwait(false);
 	}
+
+	public override string ToString() => $"MailboxProcessor '{Name}'";
+
+	private string GetDebuggerDisplay() => ToString();
 
 	public void Dispose()
 	{
@@ -162,7 +170,7 @@ public static class Workers
 			throw new ArgumentException($"A worker named '{name}' already exists.", nameof(name));
 		}
 
-		var processor = new MailboxProcessor<TMsg>(body, capacity, cancellationToken);
+		var processor = new MailboxProcessor<TMsg>(name, body, capacity, cancellationToken);
 		processor.Start();
 		Processors[name] = processor;
 		return processor;

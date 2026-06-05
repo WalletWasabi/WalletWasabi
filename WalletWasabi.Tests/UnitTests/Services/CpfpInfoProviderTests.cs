@@ -520,6 +520,7 @@ public class CpfpInfoProviderTests
 		CancellationToken cancellationToken)
 	{
 		var processor = new MailboxProcessor<CpfpInfoMessage>(
+			nameof(CpfpInfoUpdaterTests),
 			async (mailbox, ct) =>
 			{
 				while (!ct.IsCancellationRequested)
@@ -1004,6 +1005,7 @@ public class CpfpInfoProviderCancellationTests
 		CancellationToken cancellationToken)
 	{
 		var processor = new MailboxProcessor<CpfpInfoMessage>(
+			name: nameof(CpfpInfoUpdaterTests),
 			async (mailbox, ct) =>
 			{
 				while (!ct.IsCancellationRequested)
