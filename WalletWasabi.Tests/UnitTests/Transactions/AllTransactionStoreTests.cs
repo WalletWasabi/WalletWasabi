@@ -55,7 +55,7 @@ public class AllTransactionStoreTests
 	[MemberData(nameof(GetDifferentNetworkValues))]
 	public async Task CanInitializeEmptyAsync(Network network)
 	{
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 		await txStore.InitializeAsync();
 
 		Assert.NotNull(txStore.ConfirmedStore);
@@ -85,7 +85,7 @@ public class AllTransactionStoreTests
 		var cTx2 = SmartTransaction.FromLine("af73b4c173da1bd24063e35a755babfa40728a282d6f56eeef4ce5a81ab26ee7:01000000013c81d2dcb25ad36781d1a6f9faa68f4a8b927f40e0b4e4b6184bb4761ebfc0dd0000000000ffffffff016f052e0000000000160014ae6e31ee9dae103f50979f761c2f9b44661da24f00000000:1580176:0000000034522ee38f074e1f4330b9c2f20c6a2b9a96de6f474a5f5f8fa76e2b:346::1569940633:False", network);
 		var cTx3 = SmartTransaction.FromLine("ebcef423f6b03ef89dce076b53e624c966381f76e5d8b2b5034d3615ae950b2f:01000000000101296d58df626f1e250c661bd45497d159647526eb8166aec86852eb37104c37950100000000ffffffff01facb100300000000160014d5461e0e7077d62c4cf9c18a4e9ba10efd4930340247304402206d2c5b2b182474531ed07587e44ea22b136a37d5ddbd35aa2d984da7be5f7e5202202abd8435d9856e3d0892dbd54e9c05f2a20d9d5f333247314b925947a480a2eb01210321dd0574c773a35d4a7ebf17bf8f974b5665c0183598f1db53153e74c876768500000000:1580673:0000000017b09a77b815f3df513ff698d1f3b0e8c5e16ac0d6558e2d831f3bf9:130::1570462988:False", network);
 
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 
 		txStore.AddOrUpdate(uTx1);
 		txStore.AddOrUpdate(uTx2);
@@ -132,7 +132,7 @@ public class AllTransactionStoreTests
 		Network network = Network.TestNet;
 		PrepareTestEnv(network, out SmartTransaction uTx1, out SmartTransaction uTx2, out SmartTransaction uTx3, out SmartTransaction cTx1, out SmartTransaction cTx2, out SmartTransaction cTx3);
 
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 
 		txStore.AddOrUpdate(uTx1);
 		txStore.AddOrUpdate(uTx2);
@@ -166,7 +166,7 @@ public class AllTransactionStoreTests
 
 		SmartTransaction[] expectedArray = new[] { uTx1, uTx2, uTx3, cTx1, cTx2, cTx3 }.OrderByBlockchain().ToArray();
 
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 
 		txStore.AddOrUpdate(uTx2);
 		txStore.AddOrUpdate(uTx1);
@@ -200,7 +200,7 @@ public class AllTransactionStoreTests
 	[MemberData(nameof(GetDifferentNetworkValues))]
 	public async Task DoesntUpdateAsync(Network network)
 	{
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 		await txStore.InitializeAsync();
 
 		var tx = BitcoinFactory.CreateSmartTransaction();
@@ -233,7 +233,7 @@ public class AllTransactionStoreTests
 			out SmartTransaction cTx2,
 			out SmartTransaction cTx3);
 
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 		await txStore.InitializeAsync();
 
 		txStore.AddOrUpdate(uTx1);
@@ -285,7 +285,7 @@ public class AllTransactionStoreTests
 		int transactionsPerBlock = 3;
 
 		var network = Network.Main;
-		await using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
+		using AllTransactionStore txStore = new(SqliteStorageHelper.InMemoryDatabase, network);
 
 		foreach (var height in Enumerable.Range(1, blocks))
 		{

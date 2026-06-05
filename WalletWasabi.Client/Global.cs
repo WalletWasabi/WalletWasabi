@@ -71,7 +71,10 @@ public class Global
 
 		EventBus = new EventBus();
 		Status = new StatusContainer(EventBus, installOnClose: Config.DownloadNewVersion);
+		Status.DisposeUsing(_disposables);
+
 		HostedServices = new HostedServices();
+		HostedServices.DisposeUsing(_disposables);
 
 		_mempoolService = new MempoolService(EventBus);
 		FilterHeaders = new FilterHeaderChain();
@@ -79,9 +82,10 @@ public class Global
 		var fileSystemBlockRepository = new FileSystemBlockRepository(Path.Combine(networkWorkFolderPath, "Blocks"), Network);
 
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
+		TransactionStore.DisposeUsing(_disposables);
+
 		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
-		_ticker.DisposeUsing(_disposables);
+		FilterStore.DisposeUsing(_disposables);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -111,6 +115,11 @@ public class Global
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
+
+		_ticker = new Timer(_ => EventBus.Publish(new Tick(DateTime.UtcNow)));
+		_ticker.DisposeUsing(_disposables);
+
+		_stoppingCts.DisposeUsing(_disposables);
 	}
 
 	private readonly AsyncLock _initializationAsyncLock = new();
@@ -124,6 +133,7 @@ public class Global
 	private readonly Timer _ticker;
 	private readonly ComposedDisposable _disposables = new();
 	private readonly MempoolService _mempoolService;
+	private readonly ComposedAsyncDisposable _asyncDisposables = new();
 
 	public StatusContainer Status { get; }
 	public string DataDir { get; }
@@ -356,7 +366,8 @@ public class Global
 					FeeRateEstimations.Empty,
 					FeeRateEstimationUpdater.CreateUpdater(feeRateProvider, EventBus))), cancellationToken);
 		feeRateUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()));
+		EventBus.Subscribe<Tick>(_ => feeRateUpdater.Post(new FeeRateEstimationUpdater.UpdateMessage()))
+			.DisposeUsing(_disposables);
 	}
 
 	private void ConfigureRpcMonitor(CancellationToken cancellationToken)
@@ -368,7 +379,8 @@ public class Global
 					Unit.Instance,
 					RpcMonitor.CreateChecker(_bitcoinRpcClient, EventBus))), cancellationToken);
 		rpcMonitor.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()));
+		EventBus.Subscribe<Tick>(_ => rpcMonitor.Post(new RpcMonitor.CheckMessage()))
+			.DisposeUsing(_disposables);
 	}
 
 	private async Task ConfigureSynchronizerAsync(CancellationToken cancellationToken)
@@ -451,7 +463,8 @@ public class Global
 						0m,
 						ExchangeRateUpdater.CreateExchangeRateUpdater(exchangeRateProvider, EventBus))), cancellationToken);
 		exchangeFeeRateUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()));
+		EventBus.Subscribe<Tick>(_ => exchangeFeeRateUpdater.Post(new ExchangeRateUpdater.UpdateMessage()))
+			.DisposeUsing(_disposables);
 	}
 
 	private void ConfigureWasabiUpdater(CancellationToken cancellationToken)
@@ -479,7 +492,8 @@ public class Global
 					Unit.Instance,
 					UpdateManager.CreateUpdater(nostrClientFactory, installerDownloader, EventBus))), cancellationToken);
 		wasabiVersionUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()));
+		EventBus.Subscribe<Tick>(_ => wasabiVersionUpdater.Post(new UpdateManager.UpdateMessage()))
+			.DisposeUsing(_disposables);
 	}
 
 	private CpfpInfoProvider ConfigureCpfpInfoProvider()
@@ -493,7 +507,8 @@ public class Global
 					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))),
 			_stoppingCts.Token);
 		cpfpUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<FilterProcessed>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()));
+		EventBus.Subscribe<FilterProcessed>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()))
+			.DisposeUsing(_disposables);
 		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
@@ -600,9 +615,11 @@ public class Global
 		{
 			var wasabiJsonRpcService = new WasabiJsonRpcService(global: this);
 			RpcServer = new JsonRpcServer(wasabiJsonRpcService, jsonRpcServerConfig, terminateService);
+			RpcServer.DisposeUsing(_disposables);
 			try
 			{
 				await RpcServer.StartAsync(cancel).ConfigureAwait(false);
+				RpcServer.DisposeUsing(_disposables);
 			}
 			catch (HttpListenerException e)
 			{
@@ -618,6 +635,7 @@ public class Global
 		{
 			TorProcessManager processManager = new(TorSettings, EventBus);
 			_torManager = new TorManager(TorSettings, processManager);
+			_torManager.DisposeUsing(_asyncDisposables);
 			await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"{nameof(TorManager)} is initialized.");
 
@@ -645,7 +663,8 @@ public class Global
 					TorStatusChecker.CreateChecker(torStatusHttpClient, EventBus)),
 				_stoppingCts.Token);
 			torStatusChecker.DisposeUsing(_disposables);
-			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()));
+			EventBus.Subscribe<Tick>(_ => torStatusChecker.Post(new TorStatusChecker.CheckMessage()))
+				.DisposeUsing(_disposables);
 		}
 	}
 
@@ -653,6 +672,7 @@ public class Global
 	{
 		var prisonForCoordinator = Path.Combine(DataDir, coordinatorUri.Host);
 		_coinPrison = CoinPrison.CreateOrLoadFromFile(prisonForCoordinator);
+		_coinPrison.DisposeUsing(_disposables);
 
 		EventBus
 			.Subscribe<WalletLoaded>(e => _coinPrison.UpdateWallet(e.Wallet))
@@ -676,7 +696,8 @@ public class Global
 					RoundStateUpdater.Create(wabiSabiStatusProvider))),
 			_stoppingCts.Token);
 		roundUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)));
+		EventBus.Subscribe<Tick>(_ => roundUpdater.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)))
+			.DisposeUsing(_disposables);
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
@@ -734,16 +755,7 @@ public class Global
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
 					File.SafelyWriteAllBytes(blockHeadersFilePath, _blockHeaders.ToBytes());
-					Logger.LogInfo($"{nameof(_blockHeaders)} saved.");
-				}
-
-				Status.Dispose();
-
-				_disposables.Dispose();
-
-				if (_coinPrison is { } coinPrison)
-				{
-					coinPrison.Dispose();
+					Logger.LogInfo("Block headers saved.");
 				}
 
 				if (RpcServer is { } rpcServer)
@@ -757,11 +769,10 @@ public class Global
 				{
 					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(21));
 					await backgroundServices.StopAllAsync(cts.Token).ConfigureAwait(false);
-					backgroundServices.Dispose();
 					Logger.LogInfo("Stopped background services.");
 				}
 
-				if (_torManager is { } torManager)
+				if (_torManager is not null)
 				{
 					using CancellationTokenSource cts = new(TimeSpan.FromSeconds(5));
 
@@ -788,22 +799,11 @@ public class Global
 						}
 					}
 
-					await torManager.DisposeAsync().ConfigureAwait(false);
 					Logger.LogInfo("TorManager is stopped.");
 				}
 
-				try
-				{
-					await FilterStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(FilterStore)} is disposed.");
-
-					await TransactionStore.DisposeAsync().ConfigureAwait(false);
-					Logger.LogInfo($"{nameof(AllTransactionStore)} is disposed.");
-				}
-				catch (Exception ex)
-				{
-					Logger.LogError($"Error during the disposal of {nameof(FilterStore)} and {nameof(AllTransactionStore)}: {ex}");
-				}
+				_disposables.Dispose();
+				await _asyncDisposables.DisposeAsync().ConfigureAwait(false);
 			}
 			catch (Exception ex)
 			{
@@ -811,7 +811,6 @@ public class Global
 			}
 			finally
 			{
-				_stoppingCts.Dispose();
 				Logger.LogTrace("Dispose finished.");
 			}
 		}

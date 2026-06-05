@@ -12,7 +12,7 @@ using WalletWasabi.Stores;
 
 namespace WalletWasabi.Blockchain.Transactions;
 
-public class AllTransactionStore : ITransactionStore, IAsyncDisposable
+public class AllTransactionStore : ITransactionStore, IDisposable
 {
 	/// <param name="dataSource">Work folder, or <see cref="SqliteStorageHelper.InMemoryDatabase"/> to use an empty in-memory database in tests.</param>
 	public AllTransactionStore(string dataSource, Network network)
@@ -218,9 +218,9 @@ public class AllTransactionStore : ITransactionStore, IAsyncDisposable
 	/// <returns>Labels ordered by blockchain.</returns>
 	public IEnumerable<LabelsArray> GetLabels() => GetTransactions().Select(x => x.Labels);
 
-	public async ValueTask DisposeAsync()
+	public void Dispose()
 	{
-		await MempoolStore.DisposeAsync().ConfigureAwait(false);
-		await ConfirmedStore.DisposeAsync().ConfigureAwait(false);
+		MempoolStore.Dispose();
+		ConfirmedStore.Dispose();
 	}
 }

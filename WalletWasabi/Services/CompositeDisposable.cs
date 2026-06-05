@@ -1,14 +1,18 @@
+using System.Threading.Tasks;
 using System.Collections.Generic;
 
-public class ComposedDisposable : IDisposable
+namespace WalletWasabi.Services;
+
+public sealed class ComposedDisposable : IDisposable
 {
-	private readonly List<IDisposable> _disposables = new();
+	private readonly List<IDisposable> _disposables = [];
 	private bool _isDisposed = false;
 
-	public void Add(IDisposable disposable)
+	public ComposedDisposable Add(IDisposable disposable)
 	{
 		ObjectDisposedException.ThrowIf(_isDisposed, this);
 		_disposables.Add(disposable);
+		return this;
 	}
 
 	public void Dispose()
@@ -17,7 +21,7 @@ public class ComposedDisposable : IDisposable
 		GC.SuppressFinalize(this);
 	}
 
-	protected virtual void Dispose(bool disposing)
+	private void Dispose(bool disposing)
 	{
 		if (!_isDisposed)
 		{
@@ -42,9 +46,42 @@ public class ComposedDisposable : IDisposable
 	}
 }
 
+public class ComposedAsyncDisposable : IAsyncDisposable
+{
+	private readonly List<IAsyncDisposable> _disposables = [];
+	private bool _isDisposed = false;
+
+	public void Add(IAsyncDisposable disposable)
+	{
+		ObjectDisposedException.ThrowIf(_isDisposed, this);
+		_disposables.Add(disposable);
+	}
+
+	public async ValueTask DisposeAsync()
+	{
+		if (!_isDisposed)
+		{
+			_isDisposed = true;
+
+			_disposables.Reverse();
+			foreach (var disposable in _disposables)
+			{
+				await disposable.DisposeAsync().ConfigureAwait(false);
+			}
+		}
+	}
+}
+
 public static class DisposableExtensions
 {
 	public static ComposedDisposable DisposeUsing(this IDisposable disposable, ComposedDisposable container)
+	{
+		container.Add(disposable);
+		return container;
+	}
+
+	public static ComposedAsyncDisposable DisposeUsing(this IAsyncDisposable disposable,
+		ComposedAsyncDisposable container)
 	{
 		container.Add(disposable);
 		return container;

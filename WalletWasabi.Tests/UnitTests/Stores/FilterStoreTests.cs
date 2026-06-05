@@ -27,7 +27,7 @@ public class FilterStoreTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		await using var filterStore = new FilterStore(directory, Network.Main, new FilterHeaderChain(), new EventBus());
+		using var filterStore = new FilterStore(directory, Network.Main, new FilterHeaderChain(), new EventBus());
 		await filterStore.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.

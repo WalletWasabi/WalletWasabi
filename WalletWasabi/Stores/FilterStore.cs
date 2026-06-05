@@ -18,7 +18,7 @@ namespace WalletWasabi.Stores;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStore : IFilterStore, IAsyncDisposable
+public class FilterStore : IFilterStore, IDisposable
 {
 	public FilterStore(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
@@ -297,10 +297,8 @@ public class FilterStore : IFilterStore, IAsyncDisposable
 		}
 	}
 
-	/// <inheritdoc/>
-	public ValueTask DisposeAsync()
+	public void Dispose()
 	{
 		IndexStorage.Dispose();
-		return ValueTask.CompletedTask;
 	}
 }
