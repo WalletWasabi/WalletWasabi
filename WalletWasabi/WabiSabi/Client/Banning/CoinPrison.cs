@@ -1,9 +1,8 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.Json;
 using System.Threading;
-using NBitcoin;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -12,7 +11,7 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;
 
-public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecord> bannedCoins) : IDisposable
+public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord> bannedCoins) : IDisposable
 {
 	enum BanningStatus
 	{
@@ -34,7 +33,8 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 
 			bannedCoins.Add(coin.Outpoint, new PrisonedCoinRecord(coin.Outpoint, until));
 			coin.BannedUntilUtc = until;
-			ToFile();
+
+			ToFileNoLock();
 		}
 	}
 
@@ -42,7 +42,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 	{
 		lock (_lock)
 		{
-			return GetBanningStatus(outpoint) is (BanningStatus.Banned, _);
+			return GetBanningStatusNoLock(outpoint) is (BanningStatus.Banned, _);
 		}
 	}
 
@@ -62,11 +62,11 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 			var prisonedCoinRecords = JsonDecoder.FromString(data, Decode.Array(Decode.PrisonedCoinRecord))
 				?? throw new InvalidDataException("Prisoned coins file is corrupted.");
 
-			return new(prisonFilePath, prisonedCoinRecords.ToHashSet().ToDictionary(x=> x.Outpoint, x=>x));
+			return new(prisonFilePath, prisonedCoinRecords.ToHashSet().ToDictionary(x => x.Outpoint, x => x));
 		}
-		catch (Exception exc)
+		catch (Exception ex)
 		{
-			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Deleting corrupt file.", exc);
+			Logger.LogError($"There was an error during loading {nameof(CoinPrison)}. Deleting corrupt file.", ex);
 			File.Delete(prisonFilePath);
 			return new(prisonFilePath, []);
 		}
@@ -79,7 +79,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 			var needToSave = false;
 			foreach (var coin in wallet.Coins)
 			{
-				var (banningStatus, bannedUntil) = GetBanningStatus(coin.Outpoint);
+				var (banningStatus, bannedUntil) = GetBanningStatusNoLock(coin.Outpoint);
 				if (banningStatus is BanningStatus.BanningExpired)
 				{
 					if (bannedCoins.Remove(coin.Outpoint))
@@ -88,7 +88,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 						needToSave = true;
 					}
 				}
-				else if(banningStatus is BanningStatus.Banned)
+				else if (banningStatus is BanningStatus.Banned)
 				{
 					coin.BannedUntilUtc = bannedUntil;
 				}
@@ -96,7 +96,7 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 
 			if (needToSave)
 			{
-				ToFile();
+				ToFileNoLock();
 			}
 		}
 	}
@@ -105,11 +105,11 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 	{
 		lock (_lock)
 		{
-			ToFile();
+			ToFileNoLock();
 		}
 	}
 
-	private (BanningStatus, DateTimeOffset?) GetBanningStatus(OutPoint outpoint)
+	private (BanningStatus, DateTimeOffset?) GetBanningStatusNoLock(OutPoint outpoint)
 	{
 		var status = !bannedCoins.TryGetValue(outpoint, out var bannedCoin)
 			? BanningStatus.NonBanned
@@ -119,15 +119,10 @@ public class CoinPrison(string? filePath, Dictionary<OutPoint, PrisonedCoinRecor
 		return (status, bannedCoin?.BannedUntil);
 	}
 
-	private void ToFile()
+	private void ToFileNoLock()
 	{
-		if (string.IsNullOrWhiteSpace(filePath))
-		{
-			return;
-		}
-
 		IoHelpers.EnsureFileExists(filePath);
-		string json = JsonEncoder.ToReadableString(bannedCoins.Values, Encode.ClientPrison);
+		var json = JsonEncoder.ToReadableString(bannedCoins.Values, Encode.ClientPrison);
 		File.WriteAllText(filePath, json);
 	}
 }
