@@ -101,14 +101,6 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 		}
 	}
 
-	public void Dispose()
-	{
-		lock (_lock)
-		{
-			ToFileNoLock();
-		}
-	}
-
 	private (BanningStatus, DateTimeOffset?) GetBanningStatusNoLock(OutPoint outpoint)
 	{
 		var status = !bannedCoins.TryGetValue(outpoint, out var bannedCoin)
@@ -124,5 +116,13 @@ public class CoinPrison(string filePath, Dictionary<OutPoint, PrisonedCoinRecord
 		IoHelpers.EnsureFileExists(filePath);
 		var json = JsonEncoder.ToReadableString(bannedCoins.Values, Encode.ClientPrison);
 		File.WriteAllText(filePath, json);
+	}
+
+	public void Dispose()
+	{
+		lock (_lock)
+		{
+			ToFileNoLock();
+		}
 	}
 }
