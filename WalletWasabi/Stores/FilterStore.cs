@@ -12,6 +12,7 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using static WalletWasabi.Blockchain.Blocks.FilterHeaderChain;
 
 namespace WalletWasabi.Stores;
 
@@ -163,18 +164,22 @@ public class FilterStore : IFilterStore, IDisposable
 	{
 		try
 		{
-			_filterHeaderChain.AppendTip(filter.Header);
-			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
-
-			if (enqueue)
+			if (_filterHeaderChain.TryAppendTip(filter.Header, out AppendResult result))
 			{
-				if (!IndexStorage.TryAppend(filter))
+				_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
+
+				if (enqueue)
 				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
+					if (!IndexStorage.TryAppend(filter))
+					{
+						throw new InvalidOperationException("Failed to append filter to the database.");
+					}
 				}
+
+				return true;
 			}
 
-			return true;
+			return false;
 		}
 		catch (Exception ex)
 		{

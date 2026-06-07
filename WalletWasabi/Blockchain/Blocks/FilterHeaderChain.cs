@@ -14,7 +14,9 @@ public class FilterHeaderChain
 
 	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
 
+#pragma warning disable IDE0032 // Use auto property -- we want to control the setter and getter with locks, so we can't use auto properties here.
 	private int _hashesLeft;
+#pragma warning restore IDE0032 // Use auto property
 
 	private int _hashesCount;
 
@@ -97,7 +99,7 @@ public class FilterHeaderChain
 	/// <summary>
 	/// Adds a new tip to the chain.
 	/// </summary>
-	public void AppendTip(SmartHeader tip)
+	public bool TryAppendTip(SmartHeader tip, out AppendResult result)
 	{
 		lock (_lock)
 		{
@@ -105,9 +107,17 @@ public class FilterHeaderChain
 			{
 				SmartHeader lastHeader = _chain[^1];
 
+				// The header is old
+				if (tip.Height <= lastHeader.Height)
+				{
+					result = AppendResult.OldTip;
+					return false;
+				}
+
 				if (lastHeader.Height + 1 != tip.Height)
 				{
-					throw new InvalidOperationException($"Header height isn't one more than the previous header height. Actual: {lastHeader.Height}. Added: {tip.Height}.");
+					result = AppendResult.Nonconsecutive;
+					return false;
 				}
 			}
 			else
@@ -120,6 +130,9 @@ public class FilterHeaderChain
 			_hashesCount++;
 			SetTipNoLock(tip);
 		}
+
+		result = AppendResult.Success;
+		return true;
 	}
 
 	public bool RemoveTip()
@@ -177,5 +190,12 @@ public class FilterHeaderChain
 				return _chain[index];
 			}
 		}
+	}
+
+	public enum AppendResult
+	{
+		Success,
+		OldTip,
+		Nonconsecutive,
 	}
 }

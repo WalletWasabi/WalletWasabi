@@ -1,6 +1,7 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
+using static WalletWasabi.Blockchain.Blocks.FilterHeaderChain;
 using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
@@ -15,18 +16,26 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void InvalidAddTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		SmartHeader header = CreateGenesisHeader();
-		chain.AppendTip(header);
+		var header = CreateGenesisHeader();
 
-		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
-		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
+		// Add first header.
+		{
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+		}
+
+		// This tip is considered to be old.
+		{
+			Assert.False(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.OldTip, result);
+		}
 	}
 
 	/// <summary>
@@ -35,22 +44,34 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void ReplaceTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 
-		SmartHeader header = CreateGenesisHeader();
-		chain.AppendTip(header);
+		// Add first header.
+		{
+			var header = CreateGenesisHeader();
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+		}
 
 		uint height = 1;
 
 		// Add new header.
-		header = CreateSmartHeader(new uint256(465465465), chain.TipHash!, height);
-		chain.AppendTip(header);
+		{
+			var header = CreateSmartHeader(new uint256(465465465), chain.TipHash!, height);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(2, chain.HashCount);
+		}
 
 		// Attempt to replace the newly added header.
-		header = CreateSmartHeader(new uint256(778797897), chain.TipHash!, height);
+		{
+			var header = CreateSmartHeader(new uint256(778797897), chain.TipHash!, height);
 
-		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
-		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
+			// Header height isn't one more than the previous header height.
+			Assert.False(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.OldTip, result);
+			Assert.Equal(2, chain.HashCount);
+		}
 	}
 
 	/// <summary>
@@ -59,21 +80,30 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void AddAndRemoveTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		SmartHeader header = CreateGenesisHeader();
-		chain.AppendTip(header);
+		// Add first header.
+		{
+			var header = CreateGenesisHeader();
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+		}
 
 		for (uint i = 0; i < 5000; i++)
 		{
 			uint height = chain.TipHeight + 1;
-			header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-			chain.AppendTip(header);
+
+			// Add a new header.
+			{
+				var header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
+				Assert.True(chain.TryAppendTip(header, out AppendResult result));
+				Assert.Equal(AppendResult.Success, result);
+			}
 		}
 
 		for (uint i = 0; i < 3000; i++)
@@ -84,8 +114,13 @@ public class FilterHeaderChainTests
 		for (uint i = 0; i < 500; i++)
 		{
 			uint height = chain.TipHeight + 1;
-			header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-			chain.AppendTip(header);
+
+			// Add a new header.
+			{
+				var header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
+				Assert.True(chain.TryAppendTip(header, out AppendResult result));
+				Assert.Equal(AppendResult.Success, result);
+			}
 		}
 
 		Assert.Equal(2500u, chain.Tip!.Height.Height);
@@ -94,58 +129,83 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void ServerTipHeightTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		chain.SetServerTipHeight(2);
 		Assert.Equal(2, chain.HashesLeft);
 
 		// Add first header.
-		SmartHeader header = CreateGenesisHeader();
-		chain.AppendTip(header);
+		{
+			var header = CreateGenesisHeader();
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+		}
+
 		Assert.Equal(2, chain.HashesLeft);
 
 		// Add second header.
-		header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
-		chain.AppendTip(header);
-		Assert.Equal(1, chain.HashesLeft);
+		{
+			var header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(1, chain.HashesLeft);
+		}
 
 		// Add third header.
-		header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
-		chain.AppendTip(header);
-		Assert.Equal(0, chain.HashesLeft);
+		{
+			var header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(0, chain.HashesLeft);
+		}
 
-		// Add fourth header. Hashes left should not report negative numbers
-		header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
-		chain.AppendTip(header);
-		Assert.Equal(0, chain.HashesLeft);
+		// Add fourth header. Hashes left should not report negative numbers.
+		{
+			var header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(0, chain.HashesLeft);
+		}
 	}
 
 	[Fact]
 	public void HashCountTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		// Add 1st header.
-		SmartHeader header = CreateGenesisHeader();
-		chain.AppendTip(header);
-		Assert.Equal(1, chain.HashCount);
+		{
+			var header = CreateGenesisHeader();
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(1, chain.HashCount);
+		}
 
 		// Add 2nd header.
-		header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
-		chain.AppendTip(header);
-		Assert.Equal(2, chain.HashCount);
+		{
+			var header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(2, chain.HashCount);
+		}
 
 		// Add 3rd header.
-		header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
-		chain.AppendTip(header);
-		Assert.Equal(3, chain.HashCount);
+		{
+			var header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(3, chain.HashCount);
+		}
 
 		// Add 4th header.
-		header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
-		chain.AppendTip(header);
-		Assert.Equal(4, chain.HashCount);
+		{
+			var header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
+			Assert.True(chain.TryAppendTip(header, out AppendResult result));
+			Assert.Equal(AppendResult.Success, result);
+			Assert.Equal(4, chain.HashCount);
+		}
 	}
 
 	/// <remarks>Dummy genesis header.</remarks>
