@@ -59,7 +59,7 @@ public static class BlockProviders
 					}
 
 					Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-					await p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: false).ConfigureAwait(false);
+					p2PNodesManager.UpdateTimeout(increaseDecrease: false);
 
 					return block;
 				}
@@ -67,7 +67,7 @@ public static class BlockProviders
 				{
 					if (ex is OperationCanceledException or TimeoutException)
 					{
-						await p2PNodesManager.UpdateTimeoutAsync(increaseDecrease: true).ConfigureAwait(false);
+						p2PNodesManager.UpdateTimeout(increaseDecrease: true);
 						p2PNodesManager.DisconnectNodeIfEnoughPeers(node,
 							$"Disconnected node: {node.RemoteSocketAddress}, because block download took too long."); // it could be a slow connection and not a misbehaving node
 						eventBus.Publish(new NodeTimeoutDownloadingBlock(node.RemoteSocketEndpoint, node));

@@ -327,7 +327,6 @@ public class NodeConnectionManager(
 		_isDisposed = true;
 		DisconnectAll();
 	}
-
 }
 
 public static class Extensions
