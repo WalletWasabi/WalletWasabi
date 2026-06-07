@@ -19,7 +19,7 @@
 
     <Style Selector="PathIcon.rotate">
       <Style.Animations>
-        <Animation Duration="0:0:2" IterationCount="Infinite">
+        <Animation Duration="0:0:2" IterationCount="5">
           <KeyFrame Cue="0%">
             <Setter Property="(RotateTransform.Angle)" Value="0" />
           </KeyFrame>
@@ -32,7 +32,7 @@
 
     <Style Selector="PathIcon.blink">
         <Style.Animations>
-            <Animation Duration="0:0:3" IterationCount="Infinite">
+            <Animation Duration="0:0:3" IterationCount="5">
                 <KeyFrame Cue="0%">
                     <Setter Property="Opacity" Value="1" />
                 </KeyFrame>

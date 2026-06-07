@@ -7,41 +7,32 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Cache;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
-public class TransactionProcessor
+public class TransactionProcessor(
+	AllTransactionStore transactionStore,
+	MempoolService? mempoolService,
+	KeyManager keyManager,
+	Money dustThreshold,
+	EventBus eventBus)
 {
-	public TransactionProcessor(
-		AllTransactionStore transactionStore,
-		MempoolService? mempoolService,
-		KeyManager keyManager,
-		Money dustThreshold,
-		EventBus eventBus)
-	{
-		TransactionStore = transactionStore;
-		_mempoolService = mempoolService;
-		_eventBus = eventBus;
-		KeyManager = keyManager;
-		DustThreshold = dustThreshold;
-		Coins = new();
-	}
-
 	/// <remarks>Intentionally, <c>static</c> to avoid modifying smart transactions from multiple threads.</remarks>
 	private static object Lock { get; } = new();
 
-	public AllTransactionStore TransactionStore { get; }
-	private readonly HashSet<uint256> _aware = new();
+	private static readonly TimeSpan AwareExpiration = TimeSpan.FromMinutes(30);
 
-	public KeyManager KeyManager { get; }
+	public AllTransactionStore TransactionStore { get; } = transactionStore;
+	private readonly MemoryCache<uint256, bool> _aware = new(AwareExpiration);
 
-	public CoinsRegistry Coins { get; }
-	public Money DustThreshold { get; }
-	private readonly MempoolService? _mempoolService;
-	private readonly EventBus _eventBus;
+	public KeyManager KeyManager { get; } = keyManager;
+
+	public CoinsRegistry Coins { get; } = new();
+	public Money DustThreshold { get; } = dustThreshold;
 
 	public IEnumerable<ProcessedResult> Process(IEnumerable<SmartTransaction> txs)
 	{
@@ -57,7 +48,7 @@ public class TransactionProcessor
 
 		foreach (var result in results.Where(x => x.IsNews))
 		{
-			_eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
+			eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
 		}
 
 		return results;
@@ -73,7 +64,7 @@ public class TransactionProcessor
 	{
 		lock (Lock)
 		{
-			return _aware.Contains(tx);
+			return _aware.TryGet(tx, out _);
 		}
 	}
 
@@ -82,13 +73,13 @@ public class TransactionProcessor
 		ProcessedResult result;
 		lock (Lock)
 		{
-			_aware.Add(tx.GetHash());
+			_aware.TryAdd(tx.GetHash(), true, AwareExpiration);
 			result = ProcessNoLock(tx);
 		}
 
 		if (result.IsNews)
 		{
-			_eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
+			eventBus.Publish(new WalletRelevantTransactionProcessed(KeyManager.WalletName, result));
 		}
 
 		return result;
@@ -107,7 +98,7 @@ public class TransactionProcessor
 		uint256 txId = tx.GetHash();
 
 		// If we already have the transaction, then let's work on that.
-		if (_mempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
+		if (mempoolService?.TryGetFromBroadcastStore(txId, out var foundEntry) is true)
 		{
 			// If we already have the transaction in the broadcast store, then let's work on that.
 			foundEntry.Transaction.TryUpdate(tx);
@@ -251,7 +242,7 @@ public class TransactionProcessor
 			var alreadyKnown = coin.SpenderTransaction == tx;
 			result.SpentCoins.Add(coin);
 			Coins.Spend(coin, tx);
-			_mempoolService?.TrySpend(coin, tx);
+			mempoolService?.TrySpend(coin, tx);
 			result.RestoredCoins.Remove(coin);
 
 			if (!alreadyKnown)
