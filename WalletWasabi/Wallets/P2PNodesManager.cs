@@ -74,7 +74,7 @@ public class P2PNodesManager
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 	/// </summary>
-	public async Task UpdateTimeoutAsync(bool increaseDecrease)
+	public void UpdateTimeout(bool increaseDecrease)
 	{
 		if (increaseDecrease)
 		{
