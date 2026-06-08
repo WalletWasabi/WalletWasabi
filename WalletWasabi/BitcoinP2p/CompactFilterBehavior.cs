@@ -445,7 +445,7 @@ public class CompactFilterBehavior(
 				var chainTip = _blockHeaderChain.Tip;
 
 				// Find the next range to assign (respecting max lookahead limit)
-				if (!_headerTracker.TryGetNextRangeStartHeight(HeadersPerRequest, MaxLookaheadRanges, out var nextRangeStart))
+				if (!_headerTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
 				{
 					Logger.LogTrace(
 						$"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
@@ -458,7 +458,7 @@ public class CompactFilterBehavior(
 					return false;
 				}
 
-				// Calculate stop height (limited by chain tip and the ma number of headers to request)
+				// Calculate stop height (limited by chain tip and the max number of headers to request)
 				var stopHeight = (uint) Math.Min(nextRangeStart + HeadersPerRequest - 1, chainTip.Height);
 
 				// Get the stop block hash
@@ -471,7 +471,7 @@ public class CompactFilterBehavior(
 				}
 
 				// Track this assignment so other nodes don't get the same range
-				_headerTracker.AddActiveAssignment(nextRangeStart);
+				_headerTracker.AddActiveAssignment(nextRangeStart, stopHeight);
 
 				assignment = new RangeRequest(nextRangeStart, stopHeight, stopBlock.HashBlock);
 				return true;
@@ -627,7 +627,7 @@ public class CompactFilterBehavior(
 				var filterHeadersTip = _filterHeaderChain.Tip!;
 
 				// Find the next range to assign (respecting max lookahead limit)
-				if (!_filterTracker.TryGetNextRangeStartHeight(FiltersPerRequest, MaxLookaheadRanges, out var nextRangeStart))
+				if (!_filterTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
 				{
 					Logger.LogTrace(
 						$"Max lookahead limit reached (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
@@ -643,13 +643,13 @@ public class CompactFilterBehavior(
 				}
 
 				// Calculate stop height (limited by filter headers tip and page size)
-				var stopHeight = Math.Min(nextRangeStart+ FiltersPerRequest - 1, filterHeadersTip.Height);
+				var stopHeight = Math.Min(nextRangeStart + FiltersPerRequest - 1, filterHeadersTip.Height);
 
 				// Get the stop block hash
 				var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
 
 				// Track this assignment so other nodes don't get the same page
-				_filterTracker.AddActiveAssignment(nextRangeStart);
+				_filterTracker.AddActiveAssignment(nextRangeStart, stopHeight);
 
 				Logger.LogDebug(
 					$"Assigned filter page {nextRangeStart}-{stopHeight} (active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount})");
@@ -793,9 +793,11 @@ public class CompactFilterBehavior(
 
 	class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint initialHeight = 0) where TProcessedResponse : Response
 	{
+		private readonly record struct ActiveAssignment(uint EndHeight, DateTime AssignedAt);
+
 		private readonly TimeProvider _timeProvider = timeProvider;
 		private readonly SortedDictionary<uint, TProcessedResponse> _pendingResponses = [];
-		private readonly SortedDictionary<uint, DateTime> _activeAssignments = [];
+		private readonly SortedDictionary<uint, ActiveAssignment> _activeAssignments = [];
 
 		/// <summary>
 		/// The last height that was processed/emitted.
@@ -813,11 +815,11 @@ public class CompactFilterBehavior(
 		public int PendingCount => _pendingResponses.Count;
 
 		/// <summary>
-		/// Marks a page as actively being fetched.
+		/// Marks a range as actively being fetched.
 		/// </summary>
-		public void AddActiveAssignment(uint startHeight)
+		public void AddActiveAssignment(uint startHeight, uint endHeight)
 		{
-			_activeAssignments.Add(startHeight, _timeProvider.GetUtcNow().UtcDateTime);
+			_activeAssignments.Add(startHeight, new ActiveAssignment(endHeight, _timeProvider.GetUtcNow().UtcDateTime));
 		}
 
 		/// <summary>
@@ -830,7 +832,6 @@ public class CompactFilterBehavior(
 
 		public void MoveActiveToPendingAssignment(uint startHeight, TProcessedResponse range)
 		{
-			// Remove from active assignments
 			RemoveActiveAssignment(startHeight);
 			_pendingResponses[startHeight] = range;
 		}
@@ -871,22 +872,34 @@ public class CompactFilterBehavior(
 			LastHeight = height;
 		}
 
-		public bool TryGetNextRangeStartHeight(uint rangeSize, int maxLookaheadRanges, [NotNullWhen(true)] out uint startHeight)
+		public bool TryGetNextRangeStartHeight(int maxLookaheadRanges, out uint startHeight)
 		{
 			var nextStart = LastHeight + 1;
+			var rangeCount = 0;
 
-			// Skip over any pages that are already assigned or pending
-			while (_activeAssignments.ContainsKey(nextStart) || _pendingResponses.ContainsKey(nextStart))
+			// Skip over any ranges that are already assigned or pending
+			while (true)
 			{
-				nextStart += rangeSize;
-			}
+				if (_activeAssignments.TryGetValue(nextStart, out var active))
+				{
+					nextStart = active.EndHeight + 1;
+					rangeCount++;
+				}
+				else if (_pendingResponses.TryGetValue(nextStart, out var pending))
+				{
+					nextStart = pending.EndHeight + 1;
+					rangeCount++;
+				}
+				else
+				{
+					break;
+				}
 
-			// Check if we would exceed the maximum lookahead limit
-			var lookaheadRanges = (nextStart - LastHeight - 1) / rangeSize;
-			if (lookaheadRanges >= maxLookaheadRanges)
-			{
-				startHeight = 0u;
-				return false;
+				if (rangeCount >= maxLookaheadRanges)
+				{
+					startHeight = 0u;
+					return false;
+				}
 			}
 
 			startHeight = nextStart;
@@ -902,8 +915,8 @@ public class CompactFilterBehavior(
 			var cutoffTime = _timeProvider.GetUtcNow().UtcDateTime - timeout;
 
 			return _activeAssignments
-				.Where(kvp => kvp.Value < cutoffTime)
-				.OrderBy(kvp => kvp.Value)
+				.Where(kvp => kvp.Value.AssignedAt < cutoffTime)
+				.OrderBy(kvp => kvp.Value.AssignedAt)
 				.Select(kvp => (uint?) kvp.Key)
 				.FirstOrDefault();
 		}
@@ -923,9 +936,18 @@ public class CompactFilterBehavior(
 		public override string ToString() => $"{StartHeight}-{StopHeight}";
 	}
 
-	private abstract record Response(uint StartHeight);
+	private abstract record Response(uint StartHeight)
+	{
+		public abstract uint EndHeight { get; }
+	}
 
-	private record HeaderResponse(uint StartHeight, SmartHeader[] Headers) : Response(StartHeight);
+	private record HeaderResponse(uint StartHeight, SmartHeader[] Headers) : Response(StartHeight)
+	{
+		public override uint EndHeight => Headers[^1].Height;
+	}
 
-	private record FilterResponse(uint StartHeight, FilterModel[] Filters) : Response(StartHeight);
+	private record FilterResponse(uint StartHeight, FilterModel[] Filters) : Response(StartHeight)
+	{
+		public override uint EndHeight => Filters[^1].Header.Height;
+	}
 }
