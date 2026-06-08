@@ -394,7 +394,7 @@ public class CompactFilterBehavior(
 	public class FilterSynchronizationState
 	{
 		private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
-		private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(50);
+		private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
 		private const int HeadersPerRequest = 1_100;
 		private const int FiltersPerRequest = 400;
 		private const int MaxLookaheadRanges = 25;
@@ -482,9 +482,13 @@ public class CompactFilterBehavior(
 		{
 			lock (_lock)
 			{
-				// Remove from active assignments
-				_headerTracker.MoveActiveToPendingAssignment(rangeStartHeight,
-					new HeaderResponse(rangeStartHeight, headers));
+				var response = new HeaderResponse(rangeStartHeight, headers);
+				if (!_headerTracker.TryMoveActiveToPending(rangeStartHeight, response))
+				{
+					Logger.LogDebug(
+						$"Ignoring stale filter header range {rangeStartHeight}-{response.EndHeight} (already processed up to {_headerTracker.LastHeight})");
+					return;
+				}
 
 				// Process any ranges that are now ready
 				ProcessPendingHeaderRanges();
@@ -663,8 +667,13 @@ public class CompactFilterBehavior(
 		{
 			lock (_lock)
 			{
-				_filterTracker.MoveActiveToPendingAssignment(rangeStartHeight,
-					new FilterResponse(rangeStartHeight, filters));
+				var response = new FilterResponse(rangeStartHeight, filters);
+				if (!_filterTracker.TryMoveActiveToPending(rangeStartHeight, response))
+				{
+					Logger.LogDebug(
+						$"Ignoring stale filter range {rangeStartHeight}-{response.EndHeight} (already processed up to {_filterTracker.LastHeight})");
+					return;
+				}
 
 				Logger.LogTrace(
 					$"State after filter range completion - active: {_filterTracker.ActiveCount}, pending: {_filterTracker.PendingCount}, next expected: {_filterTracker.LastHeight + 1}");
@@ -782,7 +791,7 @@ public class CompactFilterBehavior(
 				// Write to channel (always succeeds with unbounded channel)
 				_readyFiltersChannel.Writer.TryWrite(pendingRange);
 
-				lastQueuedHeight = pendingRange.Filters[^1].Header.Height;
+				lastQueuedHeight = pendingRange.EndHeight;
 				_filterTracker.SetLastHeight(lastQueuedHeight);
 
 				Logger.LogDebug(
@@ -830,10 +839,22 @@ public class CompactFilterBehavior(
 			_activeAssignments.Remove(startHeight);
 		}
 
-		public void MoveActiveToPendingAssignment(uint startHeight, TProcessedResponse range)
+		/// <summary>
+		/// Moves a completed range from active to pending.
+		/// Returns false if the range is stale (already processed), true if added to pending.
+		/// </summary>
+		public bool TryMoveActiveToPending(uint startHeight, TProcessedResponse range)
 		{
 			RemoveActiveAssignment(startHeight);
+
+			// Check if this range has already been processed (stale duplicate from slow node)
+			if (range.EndHeight <= LastHeight)
+			{
+				return false;
+			}
+
 			_pendingResponses[startHeight] = range;
+			return true;
 		}
 
 		/// <summary>
