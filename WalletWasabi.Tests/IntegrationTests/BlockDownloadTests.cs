@@ -1,6 +1,7 @@
 using System.Linq;
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
@@ -69,6 +70,6 @@ public class BlockDownloadTests
 
 	private class TestNodesRegistry(Node[] nodes) : INodesRegistry
 	{
-		public Node[] Nodes => nodes;
+		public ImmutableArray<Node> Nodes => [..nodes];
 	}
 }

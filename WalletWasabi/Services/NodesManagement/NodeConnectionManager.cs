@@ -17,7 +17,7 @@ namespace WalletWasabi.Services.NodesManagement;
 
 public interface INodesRegistry
 {
-	Node[] Nodes { get; }
+	ImmutableArray<Node> Nodes { get; }
 }
 
 public class NodeConnectionManager : INodesRegistry, IDisposable
@@ -70,7 +70,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 		_torSocks5 = torSocks5;
 	}
 
-	public Node[] Nodes => _connectedNodes.Values.Select(x => x.Node).ToArray();
+	public ImmutableArray<Node> Nodes => [.._connectedNodes.Values.Select(x => x.Node)];
 
 	public void AddBehavior(NodeBehavior behavior)
 	{
@@ -403,7 +403,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 	}
 
 	private void ReportMisbehavior(EndPoint endpoint, MisbehaviorType misbehavior) =>
-		_discoveryCoordinator?.Post(new NodeMisBehaveMessage(endpoint, misbehavior));
+		_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, misbehavior));
 
 	#region Discovery
 
@@ -418,7 +418,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 	private abstract record CoordinatorMessage;
 	private record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	private record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
-	private record NodeMisBehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
+	private record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	private record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
 	private abstract record CrawlerMessage;
@@ -473,7 +473,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 				}
 				break;
 
-			case NodeMisBehaveMessage(Endpoint: var offendingEndpoint, Behavior: var behavior):
+			case NodeMisbehaveMessage(Endpoint: var offendingEndpoint, Behavior: var behavior):
 				if (state.Peers.TryGetValue(offendingEndpoint, out var offendingNode))
 				{
 					state = behavior switch
@@ -576,7 +576,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 
 			if (node.State != NodeState.HandShaked)
 			{
-				_discoveryCoordinator?.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
+				_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 				node.DisconnectAsync();
 				return null;
 			}
@@ -597,7 +597,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 		}
 		catch
 		{
-			_discoveryCoordinator?.Post(new NodeMisBehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
+			_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.FailedToConnect));
 			node?.DisconnectAsync();
 			return null;
 		}

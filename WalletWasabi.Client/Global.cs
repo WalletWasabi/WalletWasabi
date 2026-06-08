@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -734,7 +735,7 @@ public class Global
 		return result;
 	}
 
-	public Node[] GetNodes() => _nodeConnectionManager.Nodes;
+	public ImmutableArray<Node> GetNodes() => _nodeConnectionManager.Nodes;
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.

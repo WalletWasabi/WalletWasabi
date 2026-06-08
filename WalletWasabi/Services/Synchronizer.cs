@@ -59,9 +59,10 @@ public static class FilterProviders
 			return [];
 		}
 
-		var heights = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch).ToArray();
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
+		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
+			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
+			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
@@ -127,7 +128,7 @@ public static class FilterProviders
 			var filterHeadersTip = filterHeadersChain.Tip;
 			if (filterHeadersTip is null)
 			{
-				Logger.LogTrace("Filter headers tip is null, retrying in 1 second");
+				Logger.LogTrace("Filter headers tip is null. Retrying in 1 second");
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 			}
 
