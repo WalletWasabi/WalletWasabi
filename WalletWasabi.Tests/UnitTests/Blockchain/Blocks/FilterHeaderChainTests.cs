@@ -1,7 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Blocks;
 using Xunit;
-using static WalletWasabi.Blockchain.Blocks.FilterHeaderChain;
 using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Blockchain.Blocks;
@@ -26,10 +25,10 @@ public class FilterHeaderChainTests
 		var header = CreateGenesisHeader();
 
 		// Add first header.
-		Assert.True(chain.AppendTip(header).IsOk);
+		Assert.True(chain.TryAppendTip(header));
 
 		// This tip is considered to be old.
-		Assert.Equal(TipError.OldTip, chain.AppendTip(header).Error);
+		Assert.False(chain.TryAppendTip(header));
 	}
 
 	/// <summary>
@@ -43,7 +42,7 @@ public class FilterHeaderChainTests
 		// Add first header.
 		{
 			var header = CreateGenesisHeader();
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 		}
 
 		uint height = 1;
@@ -51,7 +50,7 @@ public class FilterHeaderChainTests
 		// Add new header.
 		{
 			var header = CreateSmartHeader(new uint256(465465465), chain.TipHash!, height);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(2, chain.HashCount);
 		}
 
@@ -60,7 +59,7 @@ public class FilterHeaderChainTests
 			var header = CreateSmartHeader(new uint256(778797897), chain.TipHash!, height);
 
 			// Header height isn't one more than the previous header height.
-			Assert.Equal(TipError.OldTip, chain.AppendTip(header).Error);
+			Assert.False(chain.TryAppendTip(header));
 			Assert.Equal(2, chain.HashCount);
 		}
 	}
@@ -81,7 +80,7 @@ public class FilterHeaderChainTests
 		// Add first header.
 		{
 			var header = CreateGenesisHeader();
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 		}
 
 		for (uint i = 0; i < 5000; i++)
@@ -91,7 +90,7 @@ public class FilterHeaderChainTests
 			// Add a new header.
 			{
 				var header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-				Assert.True(chain.AppendTip(header).IsOk);
+				Assert.True(chain.TryAppendTip(header));
 			}
 		}
 
@@ -107,7 +106,7 @@ public class FilterHeaderChainTests
 			// Add a new header.
 			{
 				var header = CreateSmartHeader(new uint256(height), chain.TipHash!, height);
-				Assert.True(chain.AppendTip(header).IsOk);
+				Assert.True(chain.TryAppendTip(header));
 			}
 		}
 
@@ -126,7 +125,7 @@ public class FilterHeaderChainTests
 		// Add first header.
 		{
 			var header = CreateGenesisHeader();
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 		}
 
 		Assert.Equal(2, chain.HashesLeft);
@@ -134,21 +133,21 @@ public class FilterHeaderChainTests
 		// Add second header.
 		{
 			var header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(1, chain.HashesLeft);
 		}
 
 		// Add third header.
 		{
 			var header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(0, chain.HashesLeft);
 		}
 
 		// Add fourth header. Hashes left should not report negative numbers.
 		{
 			var header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(0, chain.HashesLeft);
 		}
 	}
@@ -162,28 +161,28 @@ public class FilterHeaderChainTests
 		// Add 1st header.
 		{
 			var header = CreateGenesisHeader();
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(1, chain.HashCount);
 		}
 
 		// Add 2nd header.
 		{
 			var header = CreateSmartHeader(new uint256(1), chain.TipHash!, height: 1);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(2, chain.HashCount);
 		}
 
 		// Add 3rd header.
 		{
 			var header = CreateSmartHeader(new uint256(2), chain.TipHash!, height: 2);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(3, chain.HashCount);
 		}
 
 		// Add 4th header.
 		{
 			var header = CreateSmartHeader(new uint256(3), chain.TipHash!, height: 3);
-			Assert.True(chain.AppendTip(header).IsOk);
+			Assert.True(chain.TryAppendTip(header));
 			Assert.Equal(4, chain.HashCount);
 		}
 	}

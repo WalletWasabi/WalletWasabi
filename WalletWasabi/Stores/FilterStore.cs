@@ -163,8 +163,8 @@ public class FilterStore : IFilterStore, IDisposable
 	{
 		try
 		{
-			var appendResult = _filterHeaderChain.AppendTip(filter.Header);
-			if (appendResult.IsOk)
+			var appendResult = _filterHeaderChain.TryAppendTip(filter.Header);
+			if (appendResult)
 			{
 				_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
 

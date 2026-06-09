@@ -100,7 +100,7 @@ public class FilterHeaderChain
 	/// <summary>
 	/// Adds a new tip to the chain.
 	/// </summary>
-	public Result<TipError> AppendTip(SmartHeader tip)
+	public bool TryAppendTip(SmartHeader tip)
 	{
 		lock (_lock)
 		{
@@ -108,15 +108,15 @@ public class FilterHeaderChain
 			{
 				SmartHeader lastHeader = _chain[^1];
 
-				// The header is old
+				// The header is old.
 				if (tip.Height <= lastHeader.Height)
 				{
-					return Result<TipError>.Fail(TipError.OldTip);
+					return false;
 				}
 
 				if (lastHeader.Height + 1 != tip.Height)
 				{
-					return Result<TipError>.Fail(TipError.Nonconsecutive);
+					return false;
 				}
 			}
 			else
@@ -130,7 +130,7 @@ public class FilterHeaderChain
 			SetTipNoLock(tip);
 		}
 
-		return Result<TipError>.Ok();
+		return true;
 	}
 
 	public bool RemoveTip()
@@ -188,11 +188,5 @@ public class FilterHeaderChain
 				return _chain[index];
 			}
 		}
-	}
-
-	public enum TipError
-	{
-		OldTip,
-		Nonconsecutive,
 	}
 }
