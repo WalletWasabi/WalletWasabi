@@ -80,7 +80,6 @@ public static class Constants
 	public const string AppName = "Wasabi Wallet";
 
 	public static readonly string DefaultMainNetBitcoinRpcUri = "https://rpc.wasabiwallet.io";
-	public static readonly string DefaultMainNetBitcoinRpcOnionUri = "http://wasabiukrxmkdgve5kynjztuovbg43uxcbcxn6y2okcrsg7gb6jdmbad.onion/rpc";
 	public static readonly string DefaultTestNetBitcoinRpcUri = $"http://localhost:{DefaultTestNetBitcoinRpcPort}";
 	public static readonly string DefaultSignetBitcoinRpcUri = $"http://localhost:{DefaultSignetBitcoinRpcPort}";
 	public static readonly string DefaultRegTestBitcoinRpcUri = $"http://localhost:{DefaultRegTestBitcoinCorePort}";
