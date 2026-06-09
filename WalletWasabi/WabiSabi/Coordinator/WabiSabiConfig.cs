@@ -24,7 +24,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public Network Network { get; init; } = Network.Main;
 
-	public string MainNetBitcoinRpcUri { get; init; } = Constants.DefaultMainNetBitcoinRpcUri;
+	public string MainNetBitcoinRpcUri { get; init; } = $"http://localhost:{Constants.DefaultTestNetBitcoinRpcPort}";
 
 	public string TestNetBitcoinRpcUri { get; init; } = Constants.DefaultTestNetBitcoinRpcUri;
 
