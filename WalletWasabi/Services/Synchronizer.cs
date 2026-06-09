@@ -164,7 +164,7 @@ public static class FilterProviders
 
 				if (filters.Length == 0)
 				{
-					Logger.LogWarning("Received 0 filters from P2P, retrying in 1 second");
+					Logger.LogWarning("Received 0 filters from P2P. Retrying in 1 second");
 					return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 				}
 

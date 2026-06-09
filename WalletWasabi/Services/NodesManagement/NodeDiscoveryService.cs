@@ -32,7 +32,6 @@ public static class NodeDiscoveryCoordinator
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
 	public record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType BehaviorType) : CoordinatorMessage;
-	public record NodeMisBehaveMessage(EndPoint Endpoint, MisbehaviorType Behavior) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
 	public abstract record CrawlerMessage;
