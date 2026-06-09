@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading;
 
 namespace WalletWasabi.Blockchain.Blocks;
@@ -104,6 +105,12 @@ public class FilterHeaderChain
 			if (_chain.Count > 0)
 			{
 				SmartHeader lastHeader = _chain[^1];
+
+				// The header is old
+				if (tip.Height <= lastHeader.Height)
+				{
+					return;
+				}
 
 				if (lastHeader.Height + 1 != tip.Height)
 				{

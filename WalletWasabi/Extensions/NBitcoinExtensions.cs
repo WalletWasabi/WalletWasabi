@@ -452,4 +452,10 @@ public static class NBitcoinExtensions
 		var ceilFee = (long)Math.Ceiling(feeRate.SatoshiPerByte * virtualSize);
 		return Money.Satoshis(ceilFee);
 	}
+
+	extension(Node node)
+	{
+		public bool SupportsCompactFilters =>
+			node.PeerVersion?.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) == true;
+	}
 }

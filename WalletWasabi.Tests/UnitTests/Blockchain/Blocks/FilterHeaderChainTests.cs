@@ -23,10 +23,11 @@ public class FilterHeaderChainTests
 		AssertEverythingDefault(chain);
 
 		SmartHeader header = CreateGenesisHeader();
+		// The header is known and it's silently ignored.
 		chain.AppendTip(header);
 
-		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
-		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
+		chain.AppendTip(header);
+		Assert.Equal(1, chain.HashCount);
 	}
 
 	/// <summary>
@@ -49,8 +50,8 @@ public class FilterHeaderChainTests
 		// Attempt to replace the newly added header.
 		header = CreateSmartHeader(new uint256(778797897), chain.TipHash!, height);
 
-		InvalidOperationException ex = Assert.Throws<InvalidOperationException>(() => chain.AppendTip(header));
-		Assert.StartsWith("Header height isn't one more than the previous header height.", ex.Message, StringComparison.Ordinal);
+		chain.AppendTip(header);
+		Assert.Equal(2, chain.HashCount);
 	}
 
 	/// <summary>

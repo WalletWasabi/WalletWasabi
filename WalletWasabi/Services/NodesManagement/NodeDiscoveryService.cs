@@ -14,10 +14,11 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
+public delegate Task<PeerInfo[]> PeersInfoProvider(CancellationToken cancellationToken);
+
 public static class NodeDiscoveryCoordinator
 {
 	public static readonly string ServiceName = "BitcoinP2pNodeDiscoveryServiceCoordinator";
-	public delegate Task<PeerInfo[]> PeersInfoProvider(CancellationToken cancellationToken);
 
 	public enum MisbehaviorType
 	{
@@ -30,7 +31,7 @@ public static class NodeDiscoveryCoordinator
 	public abstract record CoordinatorMessage;
 	record HarvestedEndpointsMessage(EndPoint[] Endpoints) : CoordinatorMessage;
 	record PeerDiscoveredMessage(PeerInfo PeerInfo) : CoordinatorMessage;
-	record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType BehaviorType) : CoordinatorMessage;
+	public record NodeMisbehaveMessage(EndPoint Endpoint, MisbehaviorType BehaviorType) : CoordinatorMessage;
 	record GetPeersMessage(IReplyChannel<PeerInfo[]> ReplyChannel) : CoordinatorMessage;
 
 	public abstract record CrawlerMessage;
@@ -307,15 +308,6 @@ public static class NodeDiscoveryCoordinator
 			await coordinator.PostAndReplyAsync<PeerInfo[]>(
 			reply => new GetPeersMessage(reply),
 			cancellationToken).ConfigureAwait(false);
-
-	public static void ReportQuickDisconnect(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.DisconnectedQuickly));
-
-	public static void ReportMisbehavior(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.ProvidedInvalidData));
-
-	public static void PunishSlowNode(MailboxProcessor<CoordinatorMessage> coordinator, EndPoint endpoint) =>
-		coordinator.Post(new NodeMisbehaveMessage(endpoint, MisbehaviorType.TimedOutDownloadingBlock));
 
 	private static void NotifyCoordinator(CoordinatorMessage msg) =>
 		Tell(ServiceName, msg);
