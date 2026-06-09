@@ -573,7 +573,7 @@ public class CompactFilterBehavior(
 				{
 					try
 					{
-						_filterHeaderChain.AppendTip(header);
+						_ = _filterHeaderChain.AppendTip(header);
 						_headerTracker.SetLastHeight(header.Height);
 					}
 					catch (InvalidOperationException ex)
