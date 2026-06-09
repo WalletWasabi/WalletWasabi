@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Threading;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
@@ -99,7 +100,7 @@ public class FilterHeaderChain
 	/// <summary>
 	/// Adds a new tip to the chain.
 	/// </summary>
-	public bool TryAppendTip(SmartHeader tip, out AppendResult result)
+	public Result<TipError> AppendTip(SmartHeader tip)
 	{
 		lock (_lock)
 		{
@@ -110,14 +111,12 @@ public class FilterHeaderChain
 				// The header is old
 				if (tip.Height <= lastHeader.Height)
 				{
-					result = AppendResult.OldTip;
-					return false;
+					return Result<TipError>.Fail(TipError.OldTip);
 				}
 
 				if (lastHeader.Height + 1 != tip.Height)
 				{
-					result = AppendResult.Nonconsecutive;
-					return false;
+					return Result<TipError>.Fail(TipError.Nonconsecutive);
 				}
 			}
 			else
@@ -131,8 +130,7 @@ public class FilterHeaderChain
 			SetTipNoLock(tip);
 		}
 
-		result = AppendResult.Success;
-		return true;
+		return Result<TipError>.Ok();
 	}
 
 	public bool RemoveTip()
@@ -192,9 +190,8 @@ public class FilterHeaderChain
 		}
 	}
 
-	public enum AppendResult
+	public enum TipError
 	{
-		Success,
 		OldTip,
 		Nonconsecutive,
 	}

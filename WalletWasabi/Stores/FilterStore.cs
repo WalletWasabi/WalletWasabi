@@ -12,7 +12,6 @@ using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using static WalletWasabi.Blockchain.Blocks.FilterHeaderChain;
 
 namespace WalletWasabi.Stores;
 
@@ -164,7 +163,8 @@ public class FilterStore : IFilterStore, IDisposable
 	{
 		try
 		{
-			if (_filterHeaderChain.TryAppendTip(filter.Header, out AppendResult result))
+			var appendResult = _filterHeaderChain.AppendTip(filter.Header);
+			if (appendResult.IsOk)
 			{
 				_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
 
