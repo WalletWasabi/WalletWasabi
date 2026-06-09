@@ -442,7 +442,7 @@ public class Global
 			await resume().ConfigureAwait(false);
 		}
 
-		Spawn("Synchronizer", Service("Wasabi Index-Based Synchronizer", serviceLoop), cancellationToken)
+		Spawn("Synchronizer", Service("P2P network synchronizer", serviceLoop), cancellationToken)
 			.DisposeUsing(_disposables);
 
 		EventBus.Subscribe<RpcStatusChanged>(e =>
