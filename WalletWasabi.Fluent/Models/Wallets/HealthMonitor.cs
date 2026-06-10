@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -6,9 +5,8 @@ using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
-using WalletWasabi.Fluent.Models.UI;
 using WalletWasabi.Helpers;
-using WalletWasabi.Models;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
 
@@ -20,6 +18,7 @@ public partial class HealthMonitor : ReactiveObject
 
 	[AutoNotify] private decimal _priorityFee;
 	[AutoNotify] private uint _blockchainTip;
+	[AutoNotify] private uint _clientTip;
 	[AutoNotify] private TorStatus _torStatus;
 	[AutoNotify] private Result<ConnectedRpcStatus, string> _bitcoinRpcStatus;
 	[AutoNotify] private int _peers;
@@ -35,7 +34,7 @@ public partial class HealthMonitor : ReactiveObject
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = services.GetUseTor();
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
-		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("");
+		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("No detected/configured");
 
 		// Priority Fee
 		services.EventBus.AsObservable<MiningFeeRatesChanged>()
@@ -50,6 +49,13 @@ public partial class HealthMonitor : ReactiveObject
 			.WhereNotNull()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(blockchainTip => BlockchainTip = blockchainTip);
+
+		// Local Tip
+		services.EventBus.AsObservable<ClientTipHeightChanged>()
+			.Select(value => value.Height)
+			.WhereNotNull()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(clientTip => ClientTip = clientTip);
 
 		// Tor Status
 		services.EventBus.AsObservable<TorConnectionStateChanged>()
@@ -125,6 +131,8 @@ public partial class HealthMonitor : ReactiveObject
 		this.WhenAnyValue(
 				x => x.TorStatus,
 				x => x.Peers,
+				x => x.BlockchainTip,
+				x => x.ClientTip,
 				x => x.BitcoinRpcStatus,
 				x => x.UpdateAvailable,
 				x => x.CheckForUpdates)
@@ -155,13 +163,23 @@ public partial class HealthMonitor : ReactiveObject
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
 
+		if (torConnected && BlockchainTip == ClientTip)
+		{
+			return HealthMonitorState.Ready;
+		}
+		if (torConnected && BlockchainTip > ClientTip && Peers > 0)
+		{
+			return HealthMonitorState.Loading;
+		}
+
 		return _bitcoinRpcStatus.Match(
 			r => torConnected
 				? r.Synchronized
 					? HealthMonitorState.Ready
 					: HealthMonitorState.BitcoinRpcSynchronizing
 				: HealthMonitorState.Loading,
-			_ =>
-				HealthMonitorState.BitcoinRpcIssueDetected);
+			e => e == "No detected/configured"
+				? HealthMonitorState.Ready
+				: HealthMonitorState.BitcoinRpcIssueDetected);
 	}
 }
