@@ -315,7 +315,7 @@ public class Global
 		{
 			internalRpcClient = new RPCClient(credentials, bitcoinRpcUri, Network);
 		}
-		catch (Exception)
+		catch (ArgumentException)
 		{
 			return null;
 		}
@@ -433,10 +433,14 @@ public class Global
 								+ "\nwait for it to create the filters, what can take some time."
 								+ "\n-----------------------------------------------------------------------------------------");
 			}
-			else
+			else if(!string.IsNullOrWhiteSpace(Config.BitcoinRpcUri))
 			{
 				Logger.LogWarning($"Was not able to connect to the Bitcoin RPC server '{Config.BitcoinRpcUri}' with the credentials provided. " +
 				                  "Please configure valid RPC credentials in settings and restart.");
+			}
+			else
+			{
+				Logger.LogInfo("No Bitcoin Node RPC was configured. Trying P2P synchronization.");
 			}
 
 			await resume().ConfigureAwait(false);

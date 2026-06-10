@@ -264,7 +264,7 @@ public class WasabiApplication
 		return new PersistentConfig(
 			Network: oldConfig.Network,
 			AbsoluteMinInputCount: oldConfig.AbsoluteMinInputCount,
-			BitcoinRpcCredentialString: mustMigrateMain ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcCredentialString: mustMigrateMain ? string.Empty : oldConfig.BitcoinRpcCredentialString,
 			BitcoinRpcUri: mustMigrateMain ? Constants.DefaultMainNetBitcoinRpcUri : oldConfig.BitcoinRpcUri,
 			ConfigVersion: 4,
 			CoordinatorUri: oldConfig.CoordinatorUri,
@@ -302,7 +302,7 @@ public class WasabiApplication
 		var mainConfig = new PersistentConfig(
 			Network: Network.Main,
 			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
-			BitcoinRpcCredentialString : mustMigrateMain ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcCredentialString : mustMigrateMain ? string.Empty : oldConfig.BitcoinRpcCredentialString,
 			BitcoinRpcUri : mustMigrateMain ? Constants.DefaultMainNetBitcoinRpcUri : oldConfig.BitcoinRpcUri,
 			ConfigVersion : 4,
 			CoordinatorUri : oldConfig.CoordinatorUri,
@@ -328,8 +328,8 @@ public class WasabiApplication
 		oldConfig = configs260.TestNet;
 		var testConfig = new PersistentConfig(
 			Network: Network.TestNet,
-			BitcoinRpcCredentialString : MustMigrate(configs260.TestNet) ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
-			BitcoinRpcUri : MustMigrate(configs260.TestNet) ? "https://rpc.wasabiwallet.co" : oldConfig.BitcoinRpcUri,
+			BitcoinRpcCredentialString : MustMigrate(configs260.TestNet) ? string.Empty : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri : MustMigrate(configs260.TestNet) ? string.Empty : oldConfig.BitcoinRpcUri,
 			ExperimentalFeatures : new ValueList<string>(["scripting"]),
 			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
 			ConfigVersion : 4,
@@ -355,8 +355,8 @@ public class WasabiApplication
 		oldConfig = configs260.TestNet;
 		var regtestConfig = new PersistentConfig(
 			Network: Network.RegTest,
-			BitcoinRpcCredentialString: MustMigrate(configs260.RegTest) ? "wasabi:wasabi" : oldConfig.BitcoinRpcCredentialString,
-			BitcoinRpcUri: MustMigrate(configs260.RegTest) ? Constants.DefaultRegTestBitcoinRpcUri : oldConfig.BitcoinRpcUri,
+			BitcoinRpcCredentialString: MustMigrate(configs260.RegTest) ? string.Empty : oldConfig.BitcoinRpcCredentialString,
+			BitcoinRpcUri: MustMigrate(configs260.RegTest) ? string.Empty : oldConfig.BitcoinRpcUri,
 			ExperimentalFeatures: new ValueList<string>(["scripting"]),
 			AbsoluteMinInputCount : oldConfig.AbsoluteMinInputCount,
 			ConfigVersion : 4,
