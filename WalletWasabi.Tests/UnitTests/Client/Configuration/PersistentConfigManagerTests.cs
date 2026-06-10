@@ -53,8 +53,8 @@ public class PersistentConfigManagerTests
 			  "TerminateTorOnExit": false,
 			  "TorBridges": [],
 			  "DownloadNewVersion": true,
-			  "BitcoinRpcCredentialString": "wasabi:wasabi",
-			  "BitcoinRpcEndPoint": "https://rpc.wasabiwallet.io",
+			  "BitcoinRpcCredentialString": "",
+			  "BitcoinRpcEndPoint": "",
 			  "JsonRpcServerEnabled": false,
 			  "JsonRpcUser": "",
 			  "JsonRpcPassword": "",
@@ -168,7 +168,7 @@ public class PersistentConfigManagerTests
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
 
 		// When UseBitcoinRpc=false and URI is invalid, should migrate to Wasabi RPC
-		Assert.Equal("wasabi:wasabi", migratedConfig.BitcoinRpcCredentialString);
+		Assert.Equal("", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal(Constants.DefaultMainNetBitcoinRpcUri, migratedConfig.BitcoinRpcUri);
 		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
@@ -189,7 +189,7 @@ public class PersistentConfigManagerTests
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
 
 		// When URI is valid, it should be preserved even if UseBitcoinRpc=false
-		Assert.Equal("wasabi:wasabi", migratedConfig.BitcoinRpcCredentialString);
+		Assert.Equal("", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal(Constants.DefaultMainNetBitcoinRpcUri, migratedConfig.BitcoinRpcUri);
 		Assert.Equal(4, migratedConfig.ConfigVersion);
 	}
@@ -294,7 +294,7 @@ public class PersistentConfigManagerTests
 		var migratedConfig = WasabiApplication.UpdateFrom260To280(v2_6_0Config);
 
 		// Should migrate to Wasabi RPC service because UseBitcoinRpc=false and URI is not well-formed
-		Assert.Equal("wasabi:wasabi", migratedConfig.BitcoinRpcCredentialString);
+		Assert.Equal("", migratedConfig.BitcoinRpcCredentialString);
 		Assert.Equal(Constants.DefaultMainNetBitcoinRpcUri, migratedConfig.BitcoinRpcUri);
 	}
 

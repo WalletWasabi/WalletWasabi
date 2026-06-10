@@ -17,7 +17,7 @@ public static class PersistentConfigManager
 		TerminateTorOnExit : false,
 		TorBridges : [],
 		DownloadNewVersion : true,
-		BitcoinRpcCredentialString : "wasabi:wasabi",
+		BitcoinRpcCredentialString : string.Empty,
 		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri,
 		JsonRpcServerEnabled : false,
 		JsonRpcUser : string.Empty,

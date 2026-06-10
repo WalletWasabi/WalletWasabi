@@ -19,7 +19,7 @@
 
     <Style Selector="PathIcon.rotate">
       <Style.Animations>
-        <Animation Duration="0:0:2" IterationCount="5">
+        <Animation Duration="0:0:2" IterationCount="Infinite">
           <KeyFrame Cue="0%">
             <Setter Property="(RotateTransform.Angle)" Value="0" />
           </KeyFrame>
@@ -79,14 +79,19 @@
           <!-- Status -->
           <StackPanel Spacing="16">
 
-
             <StatusItem Title="Priority Fee" StatusText="{Binding HealthMonitor.PriorityFee, Converter={x:Static converters:StatusConverters.FeeRateToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource rocket_regular}" />
               </StatusItem.Icon>
             </StatusItem>
 
-            <StatusItem Title="Chain Tip" StatusText="{Binding HealthMonitor.BlockchainTip, Converter={x:Static converters:StatusConverters.BlockchainTipToString}}">
+            <StatusItem Title="Network Tip" StatusText="{Binding HealthMonitor.BlockchainTip, Converter={x:Static converters:StatusConverters.HeightToString}}">
+              <StatusItem.Icon>
+                <PathIcon Data="{StaticResource block_height}" />
+              </StatusItem.Icon>
+            </StatusItem>
+
+            <StatusItem Title="Client Tip" StatusText="{Binding HealthMonitor.ClientTip, Converter={x:Static converters:StatusConverters.HeightToString}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource block_height}" />
               </StatusItem.Icon>
@@ -113,6 +118,7 @@
                 <PathIcon Data="{StaticResource entities_regular}" />
               </StatusItem.Icon>
             </StatusItem>
+
             <StatusItem
               Title="Bitcoin RPC"
               StatusText="{Binding HealthMonitor.BitcoinRpcStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}">

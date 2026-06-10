@@ -266,7 +266,9 @@ public class Config
 
 	private static StringValue GetUriStringValue(string key, string value, string[] cliArgs)
 	{
-		value = value.StartsWith("http") ? value : $"http://{value}";
+		value = string.IsNullOrWhiteSpace(value)
+			? value
+			: value.StartsWith("http") ? value : $"http://{value}";
 		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
 		{
 			overrideValue = overrideValue.StartsWith("http") ? overrideValue : $"http://{overrideValue}";
