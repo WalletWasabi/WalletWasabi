@@ -42,7 +42,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				{
 					if (autoCoinJoin)
 					{
-						await StartAsync(isAutoCoinJoinEnabled: false, false);
+						await StartAsync(isAutoCoinJoinEnabled: true, false);
 					}
 					else
 					{

@@ -477,7 +477,7 @@ public class CoinJoinManager : BackgroundService
 		var coinJoinClientStates = ImmutableDictionary.CreateBuilder<WalletId, CoinJoinClientStateHolder>();
 		foreach (var wallet in wallets)
 		{
-			CoinJoinClientStateHolder clientState = new(CoinJoinClientState.Idle, IsAutoCoinJoinEnabled: true, OverridePlebStop: false, OutputWallet: wallet);
+			CoinJoinClientStateHolder clientState = new(CoinJoinClientState.Idle, IsAutoCoinJoinEnabled: false, OverridePlebStop: false, OutputWallet: wallet);
 
 			if (_state.TrackedCoinJoins.TryGetValue(wallet.WalletId, out var coinJoinTracker) && !coinJoinTracker.IsCompleted)
 			{
