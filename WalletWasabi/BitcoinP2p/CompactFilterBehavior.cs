@@ -571,21 +571,19 @@ public class CompactFilterBehavior(
 				// Append all headers from this range
 				foreach (var header in pendingRange.Headers)
 				{
-					try
+					if (_filterHeaderChain.TryAppendTip(header))
 					{
-						_ = _filterHeaderChain.TryAppendTip(header);
 						_headerTracker.SetLastHeight(header.Height);
 					}
-					catch (InvalidOperationException ex)
+					else
 					{
-						Logger.LogError($"Failed to append filter header at height {header.Height}: {ex.Message}");
+						Logger.LogError($"Failed to append filter header at height {header.Height} to chain {_filterHeaderChain.TipHeight}");
 						// Stop processing - this shouldn't happen since headers were pre-validated
 						return;
 					}
 				}
 
-				Logger.LogInfo(
-					$"Successfully processed filter header range {pendingRange.StartHeight}, new tip at height {_headerTracker.LastHeight}");
+				Logger.LogInfo($"Successfully processed filter header range {pendingRange.StartHeight}, new tip at height {_headerTracker.LastHeight}");
 			}
 		}
 
