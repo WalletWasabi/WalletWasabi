@@ -163,18 +163,23 @@ public class FilterStore : IFilterStore, IDisposable
 	{
 		try
 		{
-			_filterHeaderChain.AppendTip(filter.Header);
-			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
-
-			if (enqueue)
+			var appendResult = _filterHeaderChain.TryAppendTip(filter.Header);
+			if (appendResult)
 			{
-				if (!IndexStorage.TryAppend(filter))
+				_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
+
+				if (enqueue)
 				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
+					if (!IndexStorage.TryAppend(filter))
+					{
+						throw new InvalidOperationException("Failed to append filter to the database.");
+					}
 				}
+
+				return true;
 			}
 
-			return true;
+			return false;
 		}
 		catch (Exception ex)
 		{
