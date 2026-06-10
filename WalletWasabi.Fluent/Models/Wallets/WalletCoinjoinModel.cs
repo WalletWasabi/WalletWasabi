@@ -42,7 +42,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				{
 					if (autoCoinJoin)
 					{
-						await StartAsync(stopWhenAllMixed: false, false);
+						await StartAsync(isAutoCoinJoinDisabled: false, false);
 					}
 					else
 					{
@@ -86,11 +86,11 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public IObservable<bool> IsStarted { get; }
 
-	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
+	public async Task StartAsync(bool isAutoCoinJoinDisabled, bool overridePlebStop)
 	{
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
-		await _coinJoinManager.RequestCoinJoinStartAsync(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
+		await _coinJoinManager.RequestCoinJoinStartAsync(_wallet, outputWallet, isAutoCoinJoinDisabled, overridePlebStop);
 	}
 
 	public async Task StopAsync()

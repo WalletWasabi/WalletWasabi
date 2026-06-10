@@ -18,7 +18,7 @@ public class CoinJoinTracker : IDisposable
 		Wallet wallet,
 		CoinJoinClient coinJoinClient,
 		Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc,
-		bool stopWhenAllMixed,
+		bool isAutoCoinJoinDisabled,
 		bool overridePlebStop,
 		Wallet outputWallet,
 		CancellationToken cancellationToken)
@@ -27,7 +27,7 @@ public class CoinJoinTracker : IDisposable
 		_coinJoinClient = coinJoinClient;
 		_coinJoinClient.CoinJoinClientProgress += CoinJoinClient_CoinJoinClientProgress;
 
-		StopWhenAllMixed = stopWhenAllMixed;
+		IsAutoCoinJoinDisabled = isAutoCoinJoinDisabled;
 		OverridePlebStop = overridePlebStop;
 		OutputWallet = outputWallet;
 		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -42,7 +42,7 @@ public class CoinJoinTracker : IDisposable
 
 	public Wallet Wallet { get; }
 	public Task<CoinJoinResult> CoinJoinTask { get; }
-	public bool StopWhenAllMixed { get; set; }
+	public bool IsAutoCoinJoinDisabled { get; set; }
 	public bool OverridePlebStop { get; }
 	public Wallet OutputWallet { get; }
 

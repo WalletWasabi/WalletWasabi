@@ -112,7 +112,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
-			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
+			await walletCoinjoinModel.StartAsync(isAutoCoinJoinDisabled: !IsAutoCoinJoinEnabled, overridePlebStop);
 		});
 
 		var stopPauseCommandCanExecute =
@@ -142,7 +142,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		_autoCoinJoinStartTimer = new DispatcherTimer { Interval = TimeSpan.FromSeconds(Random.Shared.Next(60, 180)) };
 		_autoCoinJoinStartTimer.Tick += async (_, _) =>
 		{
-			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: false, false);
+			await walletCoinjoinModel.StartAsync(isAutoCoinJoinDisabled: false, false);
 
 			_autoCoinJoinStartTimer.Stop();
 		};
