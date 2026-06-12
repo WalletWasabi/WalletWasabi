@@ -52,6 +52,9 @@ public static class TestNodeBuilder
 		nodeParameters.NatPmp = 0;
 		nodeParameters.PersistMempool = 0;
 		nodeParameters.Port = PortFinder.GetRandomPorts(1)[0];
+		nodeParameters.BlockFilterIndex = 1; // Enable compact block filters for integration tests
+		nodeParameters.PeerBlockFilters = 1; // Enable serving compact filters via P2P (BIP 157)
+		nodeParameters.WhiteBindPermissions = "noban,download"; // Allow P2P connections without banning
 		return nodeParameters;
 	}
 }

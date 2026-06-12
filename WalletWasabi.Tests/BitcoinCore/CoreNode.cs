@@ -119,7 +119,8 @@ public class CoreNode
 		IoHelpers.EnsureDirectoryExists(coreNode.DataDir);
 
 		var configPrefix = NetworkTranslator.GetConfigPrefix(coreNode.Network);
-		var whiteBindPermissionsPart = !string.IsNullOrWhiteSpace(whiteBind?.Permissions) ? $"{whiteBind?.Permissions}@" : "";
+		var whiteBindPermissions = coreNodeParams.WhiteBindPermissions ?? whiteBind?.Permissions ?? "";
+		var whiteBindPermissionsPart = !string.IsNullOrWhiteSpace(whiteBindPermissions) ? $"{whiteBindPermissions}@" : "";
 
 		if (!coreNode.RpcEndPoint.TryGetHost(out string? rpcBindParameter) || !coreNode.RpcEndPoint.TryGetPort(out int? rpcPortParameter))
 		{
@@ -148,6 +149,16 @@ public class CoreNode
 		if (coreNodeParams.TxIndex is { })
 		{
 			desiredConfigLines.Add($"{configPrefix}.txindex = {coreNodeParams.TxIndex}");
+		}
+
+		if (coreNodeParams.BlockFilterIndex is { })
+		{
+			desiredConfigLines.Add($"{configPrefix}.blockfilterindex = {coreNodeParams.BlockFilterIndex}");
+		}
+
+		if (coreNodeParams.PeerBlockFilters is { })
+		{
+			desiredConfigLines.Add($"{configPrefix}.peerblockfilters = {coreNodeParams.PeerBlockFilters}");
 		}
 
 		if (coreNodeParams.Prune is { })

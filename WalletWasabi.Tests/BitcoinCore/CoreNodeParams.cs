@@ -62,6 +62,9 @@ public class CoreNodeParams
 	public int? RpcWorkQueue { get; set; }
 	public int? RpcThreads { get; set; }
 	public int? Port { get; set; }
+	public int? BlockFilterIndex { get; set; }
+	public int? PeerBlockFilters { get; set; }
+	public string? WhiteBindPermissions { get; set; }
 
 	public EndPointStrategy P2pEndPointStrategy { get; }
 	public EndPointStrategy RpcEndPointStrategy { get; }
