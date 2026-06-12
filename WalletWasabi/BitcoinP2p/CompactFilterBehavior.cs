@@ -9,6 +9,7 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Backend.Models;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -161,7 +162,8 @@ public class CompactFilterBehavior(
 		var validatedHeaders = synchronizationState.ValidateFilterHeaders(
 			assignment,
 			filterHashes.ToArray(),
-			cfHeaders.PreviousFilterHeader);
+			cfHeaders.PreviousFilterHeader,
+			node.Network);
 
 		if (validatedHeaders is null)
 		{
@@ -339,7 +341,7 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		if (!synchronizationState.TryAssignHeaderRange(out var headerAssignment))
+		if (!synchronizationState.TryAssignHeaderRange(node.Network, out var headerAssignment))
 		{
 			return;
 		}
@@ -429,7 +431,7 @@ public class CompactFilterBehavior(
 			_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
 		}
 
-		internal bool TryAssignHeaderRange([NotNullWhen(true)] out RangeRequest? assignment)
+		internal bool TryAssignHeaderRange(Network network, [NotNullWhen(true)] out RangeRequest? assignment)
 		{
 			assignment = null;
 			lock (_lock)
@@ -465,7 +467,7 @@ public class CompactFilterBehavior(
 				var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
 
 				// Don't assign this range if we don't have the previous filter header yet
-				if (!TryGetPreviousFilterHeader(nextRangeStart, out _))
+				if (!TryGetPreviousFilterHeader(nextRangeStart, network, out _))
 				{
 					return false;
 				}
@@ -509,10 +511,11 @@ public class CompactFilterBehavior(
 		internal SmartHeader[]? ValidateFilterHeaders(
 			RangeRequest assignment,
 			uint256[] filterHashes,
-			uint256 declaredPreviousFilterHeader)
+			uint256 declaredPreviousFilterHeader,
+			Network network)
 		{
 			// Recalculate the expected previous filter header from the chain
-			if (!TryGetPreviousFilterHeader(assignment.StartHeight, out var expectedPreviousFilterHeader))
+			if (!TryGetPreviousFilterHeader(assignment.StartHeight, network, out var expectedPreviousFilterHeader))
 			{
 				Logger.LogWarning(
 					$"Cannot validate: previous filter header not available for range {assignment.StartHeight}");
@@ -599,10 +602,10 @@ public class CompactFilterBehavior(
 			return new uint256(hash);
 		}
 
-		private bool TryGetPreviousFilterHeader(uint startHeight, [NotNullWhen(true)] out uint256? header)
+		private bool TryGetPreviousFilterHeader(uint startHeight, Network network, [NotNullWhen(true)] out uint256? header)
 		{
 			header = startHeight == 1
-				? uint256.Zero
+				? network == Network.Main ? uint256.Zero : FilterCheckpoints.GetWasabiGenesisFilter(network).Header.BlockFilterHeader
 				: _filterHeaderChain[startHeight - 1]?.BlockFilterHeader;
 
 			return header is not null;
