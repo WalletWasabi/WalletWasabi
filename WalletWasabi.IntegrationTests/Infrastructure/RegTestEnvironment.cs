@@ -171,7 +171,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			var result = await filterProvider(fromHeight, fromHash, cancellationToken).ConfigureAwait(false);
 
-			if (result.IsOk && result.Value is FiltersResponse.NewFiltersAvailable newFilters)
+			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
 				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
@@ -182,7 +182,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 					fromHash = lastFilter.Header.BlockHash;
 				}
 			}
-			else if (result.IsOk && result.Value is FiltersResponse.AlreadyOnBestBlock)
+			else if (result is {IsOk: true, Value: FiltersResponse.AlreadyOnBestBlock})
 			{
 				break;
 			}
@@ -210,28 +210,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			FilterHeaderChain,
 			tipHeight);
 
-		// Wait for Bitcoin Core to finish building the filter index and advertise NODE_COMPACT_FILTERS
-		// Bitcoin Core only advertises this flag after the block filter index is fully built
-		var maxRetries = 30; // Wait up to 30 seconds
-		for (var i = 0; i < maxRetries; i++)
-		{
-			using var checkNode = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
-			checkNode.VersionHandshake(cancellationToken);
-
-			if (checkNode.SupportsCompactFilters)
-			{
-				break;
-			}
-
-			if (i == maxRetries - 1)
-			{
-				throw new InvalidOperationException("Bitcoin Core does not advertise NODE_COMPACT_FILTERS. " +
-					"Ensure blockfilterindex=1 and peerblockfilters=1 are set in the config.");
-			}
-
-			await Task.Delay(1000, cancellationToken).ConfigureAwait(false);
-		}
-
 		// Create a P2P connection to Bitcoin Core - behaviors must be added before handshake
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
 
@@ -249,12 +227,10 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		// Connect and handshake
 		node.VersionHandshake(cancellationToken);
 
+		await Task.Delay(3000, cancellationToken);
+
 		// Get the target height from Bitcoin Core
 		var targetHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-
-		// Manually sync block headers from RPC - ChainBehavior auto-sync may not work
-		// reliably in test environments with a single direct node connection
-		await SyncBlockHeadersFromRpcAsync(blockHeaderChain, targetHeight, cancellationToken).ConfigureAwait(false);
 
 		// Create the P2P filter provider
 		var filterProvider = FilterProviders.CreateBitcoinP2pFilterProvider(
@@ -271,7 +247,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			var result = await filterProvider(fromHeight, fromHash, cancellationToken).ConfigureAwait(false);
 
-			if (result.IsOk && result.Value is FiltersResponse.NewFiltersAvailable newFilters)
+			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
 				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
@@ -288,7 +264,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 					}
 				}
 			}
-			else if (result.IsOk && result.Value is FiltersResponse.AlreadyOnBestBlock)
+			else if (result is {IsOk: true, Value: FiltersResponse.AlreadyOnBestBlock})
 			{
 				break;
 			}
@@ -372,51 +348,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		}
 	}
 
-	/// <summary>
-	/// Syncs block headers from RPC into the ConcurrentChain.
-	/// This is more reliable than relying on ChainBehavior auto-sync in test environments.
-	/// </summary>
-	private async Task SyncBlockHeadersFromRpcAsync(ConcurrentChain chain, int targetHeight, CancellationToken cancellationToken)
-	{
-		var currentHeight = chain.Height;
-		if (currentHeight >= targetHeight)
-		{
-			return;
-		}
-
-		// Fetch headers in batches from current tip to target
-		const int batchSize = 2000;
-		while (chain.Height < targetHeight)
-		{
-			cancellationToken.ThrowIfCancellationRequested();
-
-			var startHeight = chain.Height + 1;
-			var endHeight = Math.Min(startHeight + batchSize - 1, targetHeight);
-			var count = endHeight - startHeight + 1;
-
-			// Get block hashes
-			var hashTasks = new Task<uint256>[count];
-			var batch = RpcClient.PrepareBatch();
-			for (var i = 0; i < count; i++)
-			{
-				hashTasks[i] = batch.GetBlockHashAsync(startHeight + i, cancellationToken);
-			}
-			await batch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-			var hashes = await Task.WhenAll(hashTasks).ConfigureAwait(false);
-
-			// Get block headers
-			var headerBatch = RpcClient.PrepareBatch();
-			var headerTasks = hashes.Select(h => headerBatch.GetBlockHeaderAsync(h, cancellationToken)).ToArray();
-			await headerBatch.SendBatchAsync(cancellationToken).ConfigureAwait(false);
-			var headers = await Task.WhenAll(headerTasks).ConfigureAwait(false);
-
-			// Add headers to chain
-			foreach (var header in headers)
-			{
-				chain.SetTip(header);
-			}
-		}
-	}
 
 	private static string GetWorkDir(string callerFilePath, string callerMemberName)
 	{
