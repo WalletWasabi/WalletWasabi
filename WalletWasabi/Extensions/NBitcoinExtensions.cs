@@ -299,7 +299,7 @@ public static class NBitcoinExtensions
 		// Make sure to be prepared for mempool spikes.
 		var spikeSanity = mempoolMinFee * 1.5m;
 
-		var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(2m));
+		var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(0.5m));
 		return sanityFee;
 	}
 
