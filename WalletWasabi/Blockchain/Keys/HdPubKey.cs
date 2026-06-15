@@ -20,8 +20,8 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
 	{
-		PubKey = Guard.NotNull(nameof(pubKey), pubKey);
-		FullKeyPath = Guard.NotNull(nameof(fullKeyPath), fullKeyPath);
+		PubKey = pubKey;
+		FullKeyPath = fullKeyPath;
 		_cluster = new Cluster([this]);
 		Labels = labels;
 		KeyState = keyState;

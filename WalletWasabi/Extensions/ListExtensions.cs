@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Extensions;
 
@@ -12,8 +11,6 @@ public static class ListExtensions
 
 	public static int BinarySearchIndexOf<T, TKey>(this IList<T> list, TKey value) where T : IComparable<TKey>
 	{
-		Guard.NotNull(nameof(list), list);
-
 		int lower = 0;
 		int upper = list.Count - 1;
 

@@ -9,7 +9,6 @@ public static class NetworkTranslator
 {
 	public static string GetConfigPrefix(Network network)
 	{
-		Guard.NotNull(nameof(network), network);
 		if (network == Network.Main)
 		{
 			return "main";
@@ -30,8 +29,6 @@ public static class NetworkTranslator
 
 	public static IEnumerable<string> GetConfigPrefixesWithDots(Network network)
 	{
-		Guard.NotNull(nameof(network), network);
-
 		yield return $"{GetConfigPrefix(network)}.";
 		if (network == Network.Main)
 		{
@@ -41,7 +38,6 @@ public static class NetworkTranslator
 
 	public static string GetDataDirPrefix(Network network)
 	{
-		Guard.NotNull(nameof(network), network);
 		if (network == Network.Main)
 		{
 			return "";
@@ -62,7 +58,6 @@ public static class NetworkTranslator
 
 	public static string GetCommandLineArguments(Network network)
 	{
-		Guard.NotNull(nameof(network), network);
 		if (network == Network.Main)
 		{
 			return "-regtest=0 -testnet=0";

@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.TransactionProcessing;
 
@@ -10,7 +9,7 @@ public class ProcessedResult
 {
 	public ProcessedResult(SmartTransaction transaction)
 	{
-		Transaction = Guard.NotNull(nameof(transaction), transaction);
+		Transaction = transaction;
 	}
 
 	public SmartTransaction Transaction { get; }

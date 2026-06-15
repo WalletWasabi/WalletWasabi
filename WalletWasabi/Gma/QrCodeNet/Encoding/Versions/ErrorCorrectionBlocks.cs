@@ -40,8 +40,6 @@ internal struct ErrorCorrectionBlocks
 	/// </summary>
 	private void Initialize()
 	{
-		Guard.NotNull(nameof(ECBlock), ECBlock);
-
 		NumBlocks = 0;
 		int blockLength = ECBlock.Length;
 		for (int i = 0; i < blockLength; i++)

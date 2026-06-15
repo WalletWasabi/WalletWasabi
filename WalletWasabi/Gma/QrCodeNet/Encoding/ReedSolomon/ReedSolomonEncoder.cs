@@ -14,7 +14,6 @@ internal sealed class ReedSolomonEncoder
 	internal static byte[] Encode(byte[] dataBytes, int numECBytes, GeneratorPolynomial generatorPoly)
 	{
 		int dataLength = dataBytes.Length;
-		Guard.NotNull(nameof(generatorPoly), generatorPoly);
 
 		if (dataLength == 0)
 		{

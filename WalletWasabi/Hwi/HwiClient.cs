@@ -19,7 +19,7 @@ public class HwiClient
 
 	public HwiClient(Network network, IHwiProcessInvoker? bridge = null)
 	{
-		Network = Guard.NotNull(nameof(network), network);
+		Network = network;
 		Bridge = bridge ?? new HwiProcessBridge();
 	}
 

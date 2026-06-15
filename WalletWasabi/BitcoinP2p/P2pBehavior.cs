@@ -21,7 +21,7 @@ public class P2pBehavior : NodeBehavior
 
 	public P2pBehavior(MempoolService mempoolService)
 	{
-		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+		MempoolService = mempoolService;
 	}
 
 	public MempoolService MempoolService { get; }

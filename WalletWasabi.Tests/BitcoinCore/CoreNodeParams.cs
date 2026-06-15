@@ -24,20 +24,20 @@ public class CoreNodeParams
 		Money? fallbackFee,
 		IMemoryCache cache)
 	{
-		Network = Guard.NotNull(nameof(network), network);
-		MempoolService = Guard.NotNull(nameof(mempoolService), mempoolService);
+		Network = network;
+		MempoolService = mempoolService;
 		DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
 		TryRestart = tryRestart;
 		TryDeleteDataDir = tryDeleteDataDir;
-		P2pEndPointStrategy = Guard.NotNull(nameof(p2pEndPointStrategy), p2pEndPointStrategy);
-		RpcEndPointStrategy = Guard.NotNull(nameof(rpcEndPointStrategy), rpcEndPointStrategy);
+		P2pEndPointStrategy = p2pEndPointStrategy;
+		RpcEndPointStrategy = rpcEndPointStrategy;
 		TxIndex = txIndex;
 		Prune = prune;
 		DisableWallet = disableWallet;
 		MempoolReplacement = mempoolReplacement;
 		UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
 		FallbackFee = fallbackFee;
-		Cache = Guard.NotNull(nameof(cache), cache);
+		Cache = cache;
 	}
 
 	public string DataDir { get; }

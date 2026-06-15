@@ -71,8 +71,6 @@ public static class NBitcoinExtensions
 	/// </summary>
 	public static bool HasWitScript(this TxIn me)
 	{
-		Guard.NotNull(nameof(me), me);
-
 		bool notNull = me.WitScript is not null;
 		bool notEmpty = me.WitScript != WitScript.Empty;
 		return notNull && notEmpty;
