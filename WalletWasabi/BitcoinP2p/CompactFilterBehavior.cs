@@ -33,17 +33,6 @@ public class CompactFilterBehavior(
 
 	private volatile bool _invalidReceived;
 
-	public CompactFilterBehavior(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders, ChainHeight tipHeight,
-		EventBus eventBus)
-		: this(new FilterSynchronizationState(blockHeaders, filterHeaders, tipHeight), blockHeaders, eventBus)
-	{
-	}
-
-	public CompactFilterBehavior(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders, EventBus eventBus)
-		: this(new FilterSynchronizationState(blockHeaders, filterHeaders), blockHeaders, eventBus)
-	{
-	}
-
 	protected override void AttachCore()
 	{
 		AttachedNode.StateChanged += OnStateChanged;
