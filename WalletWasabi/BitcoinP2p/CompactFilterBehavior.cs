@@ -225,11 +225,7 @@ public class CompactFilterBehavior(
 
 		// For the first filter, we need the previous filter header
 		// This comes from either the shared state (last emitted) or the filter header chain
-		var prevFilterHeader = startHeight == 1
-			? network == Network.Main ? uint256.Zero : FilterCheckpoints.GetWasabiGenesisFilter(network).Header.BlockFilterHeader
-			: synchronizationState.GetExpectedFilterHeader(startHeight - 1);
-
-		if (prevFilterHeader is null)
+		if (!synchronizationState.TryGetPreviousFilterHeader(startHeight, network, out var prevFilterHeader))
 		{
 			Logger.LogWarning(
 				$"Cannot validate filters: previous filter header not available for height {startHeight}");
@@ -617,7 +613,7 @@ public class CompactFilterBehavior(
 			return new uint256(hash);
 		}
 
-		private bool TryGetPreviousFilterHeader(uint startHeight, Network network, [NotNullWhen(true)] out uint256? header)
+		public bool TryGetPreviousFilterHeader(uint startHeight, Network network, [NotNullWhen(true)] out uint256? header)
 		{
 			header = startHeight == 1
 				? network == Network.Main ? uint256.Zero : FilterCheckpoints.GetWasabiGenesisFilter(network).Header.BlockFilterHeader
