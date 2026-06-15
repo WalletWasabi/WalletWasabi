@@ -33,7 +33,7 @@ using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
@@ -85,8 +85,8 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterStore.DisposeUsing(_disposables);
+		FilterStorage = new FilterStorage(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
+		FilterStorage.DisposeUsing(_disposables);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
@@ -100,7 +100,7 @@ public class Global
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
-			FilterStore,
+			FilterStorage,
 			TransactionStore,
 			FilterHeaders,
 			_mempoolService,
@@ -141,7 +141,7 @@ public class Global
 	public TorSettings TorSettings { get; }
 
 	public FilterHeaderChain FilterHeaders { get; }
-	public FilterStore FilterStore { get; }
+	public FilterStorage FilterStorage { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
@@ -394,7 +394,7 @@ public class Global
 				rpcProvider => rpcProvider,
 				_ =>
 				{
-					var tip = FilterStore.GetTip()!.Header;
+					var tip = FilterStorage.GetTip()!.Header;
 					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
 					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
@@ -403,7 +403,7 @@ public class Global
 
 
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStorage, FilterHeaders, EventBus));
 
 		if (supportsBlockFiltersResult.IsOk)
 		{
@@ -533,7 +533,7 @@ public class Global
 		try
 		{
 			await TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-			await FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
+			await FilterStorage.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{

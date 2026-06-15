@@ -13,14 +13,14 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStore : IFilterStore, IDisposable
+public class FilterStorage : IFilterStorage, IDisposable
 {
-	public FilterStore(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterStorage(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
