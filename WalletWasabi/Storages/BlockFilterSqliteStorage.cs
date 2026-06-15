@@ -10,75 +10,20 @@ namespace WalletWasabi.Storages;
 /// SQLite-based storage for block filters.
 /// </summary>
 /// <remarks>The implementation is thread-safe because <see cref="SqliteConnection"/> are created per operation. The connection pool is used for efficiency.</remarks>
-/// <seealso href="https://learn.microsoft.com/en-gb/dotnet/standard/data/sqlite/async">
-/// Async is not supported at the moment, so no async methods were used in this implementation.
-/// </seealso>
-public class BlockFilterSqliteStorage : IDisposable
+public class BlockFilterSqliteStorage
 {
-	private readonly string _connectionString;
-	private bool _disposedValue;
+	private readonly SqliteConnectionFactory _connectionFactory;
 
-	private BlockFilterSqliteStorage(string connectionString)
+	public BlockFilterSqliteStorage(SqliteConnectionFactory connectionFactory)
 	{
-		_connectionString = connectionString;
-	}
-
-	/// <summary>
-	/// Opens a new SQLite connection to the given database file.
-	/// </summary>
-	/// <param name="filePath">Path to the SQLite database file.</param>
-	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
-	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
-	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static BlockFilterSqliteStorage FromFile(string filePath)
-	{
-		SqliteConnectionStringBuilder builder = new();
-		builder.DataSource = filePath;
-		builder.Pooling = true;
-
-		string connectionString = builder.ConnectionString;
-
-		using var connection = new SqliteConnection(connectionString);
-		connection.Open();
-
-		using (var createCommand = connection.CreateCommand())
-		{
-			createCommand.CommandText = """
-				CREATE TABLE IF NOT EXISTS filter (
-				    block_height INTEGER NOT NULL PRIMARY KEY,
-				    block_hash BLOB NOT NULL,
-				    filter_data BLOB NOT NULL,
-				    previous_block_hash BLOB NOT NULL,
-				    epoch_block_time INTEGER NOT NULL
-				);
-				CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
-				CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
-				""";
-			createCommand.ExecuteNonQuery();
-		}
-
-		// Enable write-ahead logging.
-		using (var walCommand = connection.CreateCommand())
-		{
-			walCommand.CommandText = """
-				PRAGMA journal_mode = 'wal';
-				PRAGMA synchronous  = 'NORMAL';
-				""";
-			walCommand.ExecuteNonQuery();
-		}
-
-		return new(connectionString);
+		_connectionFactory = connectionFactory;
 	}
 
 	/// <summary>
 	/// Creates and opens a new pooled connection.
 	/// </summary>
 	public SqliteConnection CreateConnection()
-	{
-		var connection = new SqliteConnection(_connectionString);
-		connection.Open();
-		return connection;
-	}
+		=> _connectionFactory();
 
 	/// <summary>
 	/// Begin a transaction.
@@ -95,7 +40,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
 	public IEnumerable<FilterModel> Fetch(uint fromHeight, int limit = -1)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 
 		command.CommandText = "SELECT * FROM filter WHERE block_height >= $block_height ORDER BY block_height LIMIT $limit";
@@ -116,7 +61,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// </summary>
 	public IEnumerable<FilterModel> FetchLast(int n)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "SELECT * FROM filter WHERE block_height > (SELECT MAX(block_height) - $n FROM filter) ORDER BY block_height";
 		command.Parameters.AddWithValue("$n", n);
@@ -135,7 +80,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// </summary>
 	public bool TryRemoveLast([NotNullWhen(true)] out FilterModel? filter)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "DELETE FROM filter WHERE block_height = (SELECT MAX(block_height) FROM filter) returning *";
 
@@ -158,7 +103,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="height">Minimum block height of the last block to remove (exclusive).</param>
 	public bool TryRemoveLastIfNewerThan(uint height, [NotNullWhen(true)] out FilterModel? filter)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "DELETE FROM filter WHERE block_height > $block_height AND block_height = (SELECT MAX(block_height) FROM filter) returning *";
 		command.Parameters.AddWithValue("$block_height", height);
@@ -182,7 +127,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <param name="height">Minimum block height of the last block to remove (exclusive).</param>
 	public IEnumerable<FilterModel> RemoveNewerThan(uint height)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "DELETE FROM filter WHERE block_height > $block_height RETURNING *";
 		command.Parameters.AddWithValue("$block_height", height);
@@ -218,7 +163,7 @@ public class BlockFilterSqliteStorage : IDisposable
 	{
 		try
 		{
-			using var connection = CreateConnection();
+			using var connection = _connectionFactory();
 			using var insertCommand = connection.CreateCommand();
 			insertCommand.CommandText = """
 				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)
@@ -242,7 +187,7 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	public void SetPragmaUserVersion(int newUserVersion)
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = $"PRAGMA user_version = {newUserVersion};";
 		command.ExecuteNonQuery();
@@ -250,7 +195,7 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	public int GetPragmaUserVersion()
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "PRAGMA user_version";
 		var tmp = Convert.ToInt32(command.ExecuteScalar());
@@ -259,7 +204,7 @@ public class BlockFilterSqliteStorage : IDisposable
 
 	public uint? GetMinimumBlockHeight()
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var command = connection.CreateCommand();
 		command.CommandText = "SELECT MIN(block_height) FROM filter";
 
@@ -273,32 +218,11 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// <returns><c>true</c> if at least one row was deleted, <c>false</c> otherwise.</returns>
 	public bool Clear()
 	{
-		using var connection = CreateConnection();
+		using var connection = _connectionFactory();
 		using var createCommand = connection.CreateCommand();
 		createCommand.CommandText = "DELETE FROM filter";
 		int affectedLines = createCommand.ExecuteNonQuery();
 
 		return affectedLines > 0;
-	}
-
-	protected virtual void Dispose(bool disposing)
-	{
-		if (!_disposedValue)
-		{
-			if (disposing)
-			{
-				// Empty the connection pool to release all connections and make sure the database is no longer in use.
-				SqliteConnection.ClearAllPools();
-			}
-
-			_disposedValue = true;
-		}
-	}
-
-	/// <inheritdoc/>
-	public void Dispose()
-	{
-		Dispose(disposing: true);
-		GC.SuppressFinalize(this);
 	}
 }

@@ -1,15 +1,12 @@
-using Microsoft.Data.Sqlite;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.IO;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
@@ -18,55 +15,15 @@ namespace WalletWasabi.Storages;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStorage : IFilterStorage, IDisposable
+public class FilterStorage : IFilterStorage
 {
-	public FilterStorage(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterStorage(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteStorage blockFilterSqliteStorage, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-
-		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
-
-		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-		IndexStorage = CreateBlockFilterSqliteStorage();
+		IndexStorage = blockFilterSqliteStorage;
 	}
-
-	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
-	{
-		if (_network == Network.RegTest)
-		{
-			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-		}
-
-		try
-		{
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			if (storage.GetPragmaUserVersion() < 2)
-			{
-				storage.Dispose();
-				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-				SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-				storage = BlockFilterSqliteStorage.FromFile(filePath: _storageFilePath);
-				storage.SetPragmaUserVersion(2);
-			}
-
-			return storage;
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
-
-			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			storage.SetPragmaUserVersion(2);
-			return storage;
-		}
-	}
-
-	/// <summary>SQLite file path for migration purposes.</summary>
-	private readonly string _storageFilePath;
 
 	private readonly Network _network;
 	private readonly FilterHeaderChain _filterHeaderChain;
@@ -272,10 +229,5 @@ public class FilterStorage : IFilterStorage, IDisposable
 				break;
 			}
 		}
-	}
-
-	public void Dispose()
-	{
-		IndexStorage.Dispose();
 	}
 }
