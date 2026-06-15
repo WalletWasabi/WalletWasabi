@@ -40,6 +40,9 @@ public class SharedSqliteStorage : IDisposable
 		// Table for compact block filters (BIP 157).
 		CreateCompactBlockFilterTableIfMissing(connection);
 
+		// Table for block headers.
+		CreateBlockHeaderTableIfMissing(connection);
+
 		// Table for P2P seed nodes.
 		CreateP2pSeedNodeTableIfMissing(connection);
 
@@ -54,6 +57,21 @@ public class SharedSqliteStorage : IDisposable
 		}
 
 		return new(connectionString);
+	}
+
+	private static void CreateBlockHeaderTableIfMissing(SqliteConnection connection)
+	{
+		using var createCommand = connection.CreateCommand();
+
+		createCommand.CommandText = """
+				CREATE TABLE IF NOT EXISTS block_header (
+				    height INTEGER NOT NULL PRIMARY KEY, /* Block header height */
+				    block_hash BLOB NOT NULL,
+				    header_bytes BLOB NOT NULL /* Complete block header in HEX for easy parsing by NBitcoin */
+				);
+				CREATE INDEX IF NOT EXISTS idx_block_header_height ON block_header(height);
+				""";
+		createCommand.ExecuteNonQuery();
 	}
 
 	private static void CreateP2pSeedNodeTableIfMissing(SqliteConnection connection)

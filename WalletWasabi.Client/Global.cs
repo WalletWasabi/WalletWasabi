@@ -96,13 +96,14 @@ public class Global
 		sharedSqliteStorage.DisposeUsing(_disposables);
 		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 		var p2PSeedNodesSqliteRepository = new P2pSeedNodesSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+		var blockHeadersSqliteRepository = new BlockHeadersSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
 		FilterStorage = new FilterStorage(Network, FilterHeaders, blockFilterSqliteRepository, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
-		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
+		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir, blockHeadersSqliteRepository);
 
 		_nodeConnectionManager = ConfigureNodeConnectionManager(p2PSeedNodesSqliteRepository);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
@@ -186,18 +187,45 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
+	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir, BlockHeadersSqliteRepository blockHeadersSqliteRepository)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
-		var blockHeaders = Result<byte[], Exception>
-			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
-			.Match(
-				bytes => bytes switch
-				{
-					[] => new ConcurrentChain(Network),
-					_ => new ConcurrentChain(bytes, Network)
-				},
-				_ => new ConcurrentChain(Network));
+		ConcurrentChain blockHeaders;
+
+		if (File.Exists(blockHeadersFilePath))
+		{
+			blockHeaders = Result<byte[], Exception>
+				.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
+				.Match(
+					bytes => bytes switch
+					{
+						[] => new ConcurrentChain(Network),
+						_ => new ConcurrentChain(bytes, Network)
+					},
+					_ => new ConcurrentChain(Network));
+
+			foreach (var blockHeader in blockHeaders.EnumerateAfter(Network.GenesisHash))
+			{
+				blockHeadersSqliteRepository.TryAppend(blockHeader.Height, blockHeader.Header);
+			}
+
+			Logger.LogInfo($"Changing file name '{blockHeadersFilePath}' to 'BlockHeaders{Network}.dat.backup'");
+			File.Move(blockHeadersFilePath, blockHeadersFilePath.Replace($"BlockHeaders{Network}.dat", $"BlockHeaders{Network}.dat.backup"));
+		}
+		else
+		{
+			Logger.LogInfo("Read block headers from database.");
+			blockHeaders = new(Network);
+
+			foreach (var headerBytes in blockHeadersSqliteRepository.FetchAll())
+			{
+				var blockHeader = new BlockHeader(headerBytes, Network.Consensus);
+
+				blockHeaders.SetTip(blockHeader);
+			}
+
+			Logger.LogInfo("Finished reading of block headers from database.");
+		}
 
 		return blockHeaders;
 	}
@@ -738,12 +766,16 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
+				// TODO: Store data into SQLite.
 				if (_blockHeaders.Tip is not null)
 				{
+					/*
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
 					File.SafelyWriteAllBytes(blockHeadersFilePath, _blockHeaders.ToBytes());
 					Logger.LogInfo("Block headers saved.");
+					*/
+					Logger.LogInfo("Block headers NOT saved.");
 				}
 
 				if (RpcServer is { } rpcServer)
