@@ -94,9 +94,9 @@ public class Global
 
 		var sharedSqliteStorage = SharedSqliteStorage.FromFile(blockchainDbFilePath);
 		sharedSqliteStorage.DisposeUsing(_disposables);
-		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
 
-		FilterStorage = new FilterStorage(Network, FilterHeaders, blockFilterSqliteStorage, EventBus);
+		FilterStorage = new FilterStorage(Network, FilterHeaders, blockFilterSqliteRepository, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 

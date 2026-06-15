@@ -17,12 +17,12 @@ namespace WalletWasabi.Storages;
 /// </summary>
 public class FilterStorage : IFilterStorage
 {
-	public FilterStorage(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteStorage blockFilterSqliteStorage, EventBus eventBus)
+	public FilterStorage(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteRepository blockFilterSqliteRepository, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		IndexStorage = blockFilterSqliteStorage;
+		IndexStorage = blockFilterSqliteRepository;
 	}
 
 	private readonly Network _network;
@@ -31,7 +31,7 @@ public class FilterStorage : IFilterStorage
 
 	/// <summary>Filter disk storage.</summary>
 	/// <remarks>Guarded by <see cref="_indexLock"/>.</remarks>
-	private BlockFilterSqliteStorage IndexStorage { get; set; }
+	private BlockFilterSqliteRepository IndexStorage { get; set; }
 
 	/// <summary>Guards <see cref="IndexStorage"/>.</summary>
 	private readonly AsyncLock _indexLock = new();

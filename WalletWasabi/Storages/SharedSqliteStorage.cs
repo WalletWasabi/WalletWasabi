@@ -37,6 +37,7 @@ public class SharedSqliteStorage : IDisposable
 		using var connection = new SqliteConnection(connectionString);
 		connection.Open();
 
+		// Table for compact block filters (BIP 157).
 		using (var createCommand = connection.CreateCommand())
 		{
 			createCommand.CommandText = """
@@ -49,6 +50,17 @@ public class SharedSqliteStorage : IDisposable
 				);
 				CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
 				CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
+				""";
+			createCommand.ExecuteNonQuery();
+		}
+
+		// Table for P2P seed nodes.
+		using (var createCommand = connection.CreateCommand())
+		{
+			createCommand.CommandText = """
+				CREATE TABLE IF NOT EXISTS p2p_seed_node (
+				    node TEXT NOT NULL PRIMARY KEY
+				);
 				""";
 			createCommand.ExecuteNonQuery();
 		}
