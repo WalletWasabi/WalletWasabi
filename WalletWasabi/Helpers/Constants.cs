@@ -105,6 +105,11 @@ public static class Constants
 
 	public static readonly string[] UserAgents = new[]
 	{
+		"/Satoshi:30.2.0/",
+		"/Satoshi:30.0.0/",
+		"/Satoshi:29.3.0/",
+		"/Satoshi:29.2.0/",
+		"/Satoshi:29.0.0/",
 		"/Satoshi:28.1.0/",
 		"/Satoshi:28.0.0/",
 		"/Satoshi:27.2.0/",
@@ -113,16 +118,6 @@ public static class Constants
 		"/Satoshi:26.2.0/",
 		"/Satoshi:26.1.0/",
 		"/Satoshi:26.0.0/",
-		"/Satoshi:25.1.0/",
-		"/Satoshi:25.0.0/",
-		"/Satoshi:24.1.0/",
-		"/Satoshi:24.0.1/",
-		"/Satoshi:23.0.0/",
-		"/Satoshi:22.0.0/",
-		"/Satoshi:0.21.1/",
-		"/Satoshi:0.21.0/",
-		"/Satoshi:0.20.1/",
-		"/Satoshi:0.20.0/",
 	};
 
 	public static readonly int[] ConfirmationTargets = new[]
