@@ -30,17 +30,16 @@ public class FilterStore : IFilterStore, IDisposable
 		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-
-		if (network == Network.RegTest)
-		{
-			DeleteIndex(_storageFilePath);
-		}
-
 		IndexStorage = CreateBlockFilterSqliteStorage();
 	}
 
 	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
 	{
+		if (_network == Network.RegTest)
+		{
+			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
+		}
+
 		try
 		{
 			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
@@ -48,7 +47,7 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				storage.Dispose();
 				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-				DeleteIndex(_storageFilePath);
+				SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
 				storage = BlockFilterSqliteStorage.FromFile(filePath: _storageFilePath);
 				storage.SetPragmaUserVersion(2);
 			}
@@ -59,7 +58,7 @@ public class FilterStore : IFilterStore, IDisposable
 		{
 			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
 
-			DeleteIndex(_storageFilePath);
+			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
 			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
 			storage.SetPragmaUserVersion(2);
 			return storage;
@@ -271,27 +270,6 @@ public class FilterStore : IFilterStore, IDisposable
 			if (filterModel is null)
 			{
 				break;
-			}
-		}
-	}
-
-	private void DeleteIndex(string indexPath)
-	{
-		lock (_indexLock)
-		{
-			if (File.Exists(indexPath))
-			{
-				File.Delete(indexPath);
-			}
-
-			if (File.Exists($"{indexPath}-shm"))
-			{
-				File.Delete($"{indexPath}-shm");
-			}
-
-			if (File.Exists($"{indexPath}-wal"))
-			{
-				File.Delete($"{indexPath}-wal");
 			}
 		}
 	}
