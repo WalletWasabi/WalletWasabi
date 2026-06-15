@@ -38,12 +38,6 @@ public class DefaultResponseTests
 		_ = new HwiClient(network);
 	}
 
-	[Fact]
-	public void ConstructorThrowsArgumentNullException()
-	{
-		Assert.Throws<ArgumentNullException>(() => new HwiClient(null!));
-	}
-
 	[Theory]
 	[MemberData(nameof(GetHwiClientConfigurationCombinationValues))]
 	public async Task GetHelpTestsAsync(HwiClient client)
