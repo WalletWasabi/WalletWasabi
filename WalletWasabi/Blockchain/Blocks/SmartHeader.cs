@@ -1,5 +1,4 @@
 using NBitcoin;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Blocks;
 
@@ -12,8 +11,8 @@ public record SmartHeader
 
 	public SmartHeader(uint256 blockHash, uint256 header, uint height, long epochBlockTime)
 	{
-		BlockHash = Guard.NotNull(nameof(blockHash), blockHash);
-		BlockFilterHeader = Guard.NotNull(nameof(header), header);
+		BlockHash = blockHash;
+		BlockFilterHeader = header;
 		Height = new ChainHeight(height);
 		EpochBlockTime = epochBlockTime;
 	}

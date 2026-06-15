@@ -8,8 +8,6 @@ internal static class CollectionHelpers
 {
 	public static IReadOnlyCollection<T> ReifyCollection<T>(IEnumerable<T> source)
 	{
-		Guard.NotNull(nameof(source), source);
-
 		if (source is IReadOnlyCollection<T> result)
 		{
 			return result;

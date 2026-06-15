@@ -16,8 +16,6 @@ public static class TaskExtensions
 	/// <returns>The result of the task.</returns>
 	public static TResult WaitAndUnwrapException<TResult>(this Task<TResult> task)
 	{
-		Guard.NotNull(nameof(task), task);
-
 		return task.GetAwaiter().GetResult();
 	}
 }

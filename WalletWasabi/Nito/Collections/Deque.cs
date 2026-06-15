@@ -249,8 +249,6 @@ public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 	/// </exception>
 	void ICollection<T>.CopyTo(T[] array, int arrayIndex)
 	{
-		Guard.NotNull(nameof(array), array);
-
 		int count = Count;
 		CheckRangeArguments(array.Length, arrayIndex, count);
 		CopyToArray(array, arrayIndex);
@@ -263,8 +261,6 @@ public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 	/// <param name="arrayIndex">The optional index in the destination array at which to begin writing.</param>
 	private void CopyToArray(Array array, int arrayIndex = 0)
 	{
-		Guard.NotNull(nameof(array), array);
-
 		if (IsSplit)
 		{
 			// The existing buffer is split, so we have to copy it in parts
@@ -384,8 +380,6 @@ public sealed class Deque<T> : IList<T>, IReadOnlyList<T>, IList
 
 	void ICollection.CopyTo(Array array, int index)
 	{
-		Guard.NotNull(nameof(array), array);
-
 		CheckRangeArguments(array.Length, index, Count);
 
 		try

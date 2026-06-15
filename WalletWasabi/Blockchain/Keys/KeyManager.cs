@@ -54,7 +54,7 @@ public class KeyManager
 		EncryptedSecret = encryptedSecret;
 		ChainCode = chainCode;
 		MasterFingerprint = masterFingerprint;
-		SegwitExtPubKey = Guard.NotNull(nameof(extPubKey), extPubKey);
+		SegwitExtPubKey = extPubKey;
 		TaprootExtPubKey = taprootExtPubKey;
 		SilentPaymentScanExtPubKey = silentPaymentScanExtPubKey;
 		SilentPaymentSpendExtPubKey = silentPaymentSpendExtPubKey;
@@ -97,8 +97,8 @@ public class KeyManager
 
 		MinGapLimit = AbsoluteMinGapLimit;
 
-		EncryptedSecret = Guard.NotNull(nameof(encryptedSecret), encryptedSecret);
-		ChainCode = Guard.NotNull(nameof(chainCode), chainCode);
+		EncryptedSecret = encryptedSecret;
+		ChainCode = chainCode;
 		var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
 
 		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
@@ -285,7 +285,6 @@ public class KeyManager
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
 	{
-		Guard.NotNull(nameof(mnemonic), mnemonic);
 		password ??= "";
 		var seed = mnemonic.DeriveSeed(password);
 		return Recover(seed, password, network, swAccountKeyPath, trAccountKeyPath, filePath, minGapLimit, birthHeight);

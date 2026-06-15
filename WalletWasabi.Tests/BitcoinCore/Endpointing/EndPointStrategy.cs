@@ -1,6 +1,5 @@
 using System.Net;
 using NBitcoin;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Tests.BitcoinCore.Endpointing;
 
@@ -9,7 +8,7 @@ public class EndPointStrategy
 	private EndPointStrategy(EndPointStrategyType endPointStrategyType, EndPoint endPoint)
 	{
 		EndPointStrategyType = endPointStrategyType;
-		EndPoint = Guard.NotNull(nameof(endPoint), endPoint);
+		EndPoint = endPoint;
 	}
 
 	public EndPointStrategyType EndPointStrategyType { get; }

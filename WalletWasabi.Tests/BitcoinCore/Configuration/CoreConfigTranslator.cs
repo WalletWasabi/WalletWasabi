@@ -1,6 +1,5 @@
 using System.Linq;
 using NBitcoin;
-using WalletWasabi.Helpers;
 using WalletWasabi.Tests.BitcoinCore.Configuration.Whitening;
 
 namespace WalletWasabi.Tests.BitcoinCore.Configuration;
@@ -9,8 +8,8 @@ public class CoreConfigTranslator
 {
 	public CoreConfigTranslator(CoreConfig config, Network network)
 	{
-		Config = Guard.NotNull(nameof(config), config);
-		Network = Guard.NotNull(nameof(network), network);
+		Config = config;
+		Network = network;
 	}
 
 	public CoreConfig Config { get; }
