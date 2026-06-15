@@ -26,6 +26,7 @@ public class CompactFilterBehavior(
 {
 	private static readonly TimeSpan TickSyncInterval = TimeSpan.FromSeconds(2);
 
+	private readonly Lock _lock = new();
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
 
 	private RangeRequest? _assignedHeaderRange;
@@ -93,21 +94,24 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		if (_assignedHeaderRange is { } assignedHeaderRange &&
-		    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
+		lock (_lock)
 		{
-			HandleFilterHeaderMessage(node, cfHeaders, assignedHeaderRange);
-			return;
-		}
+			if (_assignedHeaderRange is { } assignedHeaderRange &&
+			    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
+			{
+				HandleFilterHeaderMessageNoLock(node, cfHeaders, assignedHeaderRange);
+				return;
+			}
 
-		if (_assignedFilterRange is { } assignedFilterRange &&
-		    message.Message.Payload is CompactFilterPayload {FilterType: FilterType.Basic} filterPayload)
-		{
-			HandleFilterMessage(node, filterPayload, assignedFilterRange);
+			if (_assignedFilterRange is { } assignedFilterRange &&
+			    message.Message.Payload is CompactFilterPayload {FilterType: FilterType.Basic} filterPayload)
+			{
+				HandleFilterMessageNoLock(node, filterPayload, assignedFilterRange);
+			}
 		}
 	}
 
-	private void HandleFilterHeaderMessage(Node node, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
+	private void HandleFilterHeaderMessageNoLock(Node node, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
 	{
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
@@ -118,7 +122,7 @@ public class CompactFilterBehavior(
 		if (batchCount == 0)
 		{
 			Logger.LogDebug("Received empty cfheaders batch");
-			HandleInvalid(node, "Invalid compact filter headers received");
+			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
 
@@ -134,7 +138,7 @@ public class CompactFilterBehavior(
 		{
 			Logger.LogWarning(
 				$"Invalid batch - start height {startHeight} is negative (stopHeight={stopBlock.Height}, batchCount={batchCount})");
-			HandleInvalid(node, "Invalid compact filter headers received");
+			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
 
@@ -143,7 +147,7 @@ public class CompactFilterBehavior(
 		{
 			Logger.LogWarning(
 				$"Received headers for wrong range - expected {assignment.StartHeight}, got {startHeight}");
-			HandleInvalid(node, "Invalid compact filter headers received");
+			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
 
@@ -158,7 +162,7 @@ public class CompactFilterBehavior(
 		{
 			Logger.LogWarning(
 				$"Validation failed for filter header range {assignment}");
-			HandleInvalid(node, "Invalid compact filter headers received");
+			HandleInvalidNoLock(node, "Invalid compact filter headers received");
 			return;
 		}
 
@@ -169,10 +173,10 @@ public class CompactFilterBehavior(
 		_assignedHeaderRange = null;
 
 		// Immediately try to fetch the next range
-		TrySync(node);
+		TrySyncNoLock(node);
 	}
 
-	private void HandleFilterMessage(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
+	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
 		_collectedFilters.Add(filterPayload);
 
@@ -189,13 +193,13 @@ public class CompactFilterBehavior(
 		_collectedFilters.Clear();
 
 		// Validate all filters
-		var validatedFilters = ValidateFilters(assignment.StartHeight, filters);
+		var validatedFilters = ValidateFilters(assignment.StartHeight, filters, node.Network);
 
 		if (validatedFilters is null)
 		{
 			// Validation failed - disconnect and release assignment
 			Logger.LogWarning($"Validation failed for range {assignment}");
-			HandleInvalid(node, "Invalid compact filters received");
+			HandleInvalidNoLock(node, "Invalid compact filters received");
 			return;
 		}
 
@@ -206,10 +210,10 @@ public class CompactFilterBehavior(
 		_assignedFilterRange = null;
 
 		// Immediately try to fetch the next range
-		TrySync(node);
+		TrySyncNoLock(node);
 	}
 
-	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters)
+	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
 	{
 		if (filters.Length == 0)
 		{
@@ -222,7 +226,7 @@ public class CompactFilterBehavior(
 		// For the first filter, we need the previous filter header
 		// This comes from either the shared state (last emitted) or the filter header chain
 		var prevFilterHeader = startHeight == 1
-			? uint256.Zero
+			? network == Network.Main ? uint256.Zero : FilterCheckpoints.GetWasabiGenesisFilter(network).Header.BlockFilterHeader
 			: synchronizationState.GetExpectedFilterHeader(startHeight - 1);
 
 		if (prevFilterHeader is null)
@@ -296,11 +300,25 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		TrySyncHeaders(node);
-		TrySyncFilters(node);
+		lock (_lock)
+		{
+			TrySyncHeadersNoLock(node);
+			TrySyncFiltersNoLock(node);
+		}
 	}
 
-	private void TrySyncFilters(Node node)
+	private void TrySyncNoLock(Node node)
+	{
+		if (!IsNodeInValidState(node))
+		{
+			return;
+		}
+
+		TrySyncHeadersNoLock(node);
+		TrySyncFiltersNoLock(node);
+	}
+
+	private void TrySyncFiltersNoLock(Node node)
 	{
 		if (_assignedFilterRange is not null)
 		{
@@ -323,7 +341,7 @@ public class CompactFilterBehavior(
 		node.SendMessage(payload);
 	}
 
-	private void TrySyncHeaders(Node node)
+	private void TrySyncHeadersNoLock(Node node)
 	{
 		if (_assignedHeaderRange is not null)
 		{
@@ -343,11 +361,11 @@ public class CompactFilterBehavior(
 		node.SendMessage(payload);
 	}
 
-	private void HandleInvalid(Node node, string reason)
+	private void HandleInvalidNoLock(Node node, string reason)
 	{
 		_invalidReceived = true;
 
-		ReleaseAssignments();
+		ReleaseAssignmentsNoLock();
 
 		Logger.LogWarning($"Disconnecting node {node.Peer.Endpoint}: {reason}");
 
@@ -356,6 +374,14 @@ public class CompactFilterBehavior(
 	}
 
 	private void ReleaseAssignments()
+	{
+		lock (_lock)
+		{
+			ReleaseAssignmentsNoLock();
+		}
+	}
+
+	private void ReleaseAssignmentsNoLock()
 	{
 		if (_assignedHeaderRange is not null)
 		{
