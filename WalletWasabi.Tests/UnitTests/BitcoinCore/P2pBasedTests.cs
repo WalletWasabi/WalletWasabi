@@ -94,14 +94,14 @@ public static class EventBusExtensions
 {
 	public static Task<TResult[]> WaitForAsync<TEvent,TResult>(this EventBus eventBus, int count, Func<TEvent,TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
 	{
-		var evnts = new List<TEvent>();
+		var events = new List<TEvent>();
 		var completion = new TaskCompletionSource<TResult[]>();
 		var subscription = eventBus.Subscribe<TEvent>(e =>
 		{
-			evnts.Add(e);
-			if (evnts.Count == count)
+			events.Add(e);
+			if (events.Count == count)
 			{
-				completion.SetResult(evnts.Select(conv).ToArray());
+				completion.SetResult(events.Select(conv).ToArray());
 			}
 		});
 		return completion.Task
