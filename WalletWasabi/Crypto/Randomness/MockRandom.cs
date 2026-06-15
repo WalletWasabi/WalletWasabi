@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Crypto.Randomness;
 
@@ -12,7 +11,7 @@ public class MockRandom : WasabiRandom
 	public override void GetBytes(Span<byte> output)
 	{
 		var first = GetBytesResults.First();
-		GetBytesResults.RemoveFirst();
+		GetBytesResults.RemoveAt(0);
 		first.AsSpan().CopyTo(output);
 	}
 
