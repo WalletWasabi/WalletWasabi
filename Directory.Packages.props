@@ -29,7 +29,7 @@
     <PackageVersion Include="System.Linq.Async" Version="7.0.0" />
     <!-- Core libraries. -->
     <PackageVersion Include="WabiSabi" Version="1.0.1.2" />
-    <PackageVersion Include="NBitcoin" Version="10.0.4" />
+    <PackageVersion Include="NBitcoin" Version="10.0.7" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Controls.TreeDataGrid" Version="11.1.1" />
