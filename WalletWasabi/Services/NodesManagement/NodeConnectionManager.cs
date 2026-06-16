@@ -252,7 +252,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 
 			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
 			if (node.State != NodeState.HandShaked)
 			{
@@ -570,7 +570,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 		try
 		{
 			node = await Node.ConnectAsync(_network, endpoint, connParams).ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
 			sw.Stop();
 

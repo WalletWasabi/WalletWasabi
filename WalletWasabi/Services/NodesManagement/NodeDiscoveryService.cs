@@ -185,7 +185,7 @@ public static class NodeDiscoveryCoordinator
 		try
 		{
 			node = await Node.ConnectAsync(network, endpoint, connParams).ConfigureAwait(false);
-			node.VersionHandshake(timeoutCts.Token);
+			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
 
 			sw.Stop();
 

@@ -13,7 +13,6 @@ using WalletWasabi.Services;
 using WalletWasabi.Stores;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
@@ -50,7 +49,7 @@ public class P2pBasedTests
 			await rpc.GenerateAsync(blockCount: 101);
 
 			node.Behaviors.Add(new P2pBehavior(mempoolService));
-			node.VersionHandshake();
+			await node.VersionHandshakeAsync();
 
 			using Key k = new();
 			var address = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
