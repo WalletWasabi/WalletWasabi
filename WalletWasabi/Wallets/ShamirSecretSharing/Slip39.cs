@@ -95,8 +95,8 @@ public record Shamir
 		}
 
 		// Generate a random identifier
-		var id = (uint16) (BitConverter.ToUInt32(RandomNumberGenerator.GetBytes(4)) %
-		                   ((1 << (Share.ID_LENGTH_BITS + 1)) - 1));
+		var id = (uint16) (BitConverter.ToUInt16(RandomNumberGenerator.GetBytes(2)) &
+		                   ((1 << Share.ID_LENGTH_BITS) - 1));
 		var shares = new List<Share>();
 
 		// Encrypt the secret using the passphrase and identifier
