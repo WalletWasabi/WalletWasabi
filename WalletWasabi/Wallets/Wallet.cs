@@ -347,7 +347,7 @@ public class Wallet : BackgroundService
 			lastHashesLeft = FilterHeaderChain.HashesLeft;
 		}
 
-		await WalletFilterProcessor.InitialSynchronizationFinished.ConfigureAwait(false);
+		await WalletFilterProcessor.InitialSynchronizationFinished.WaitAsync(cancel).ConfigureAwait(false);
 	}
 
 	private void LoadDummyMempool()
