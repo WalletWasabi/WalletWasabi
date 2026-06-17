@@ -32,7 +32,7 @@ using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
@@ -84,22 +84,34 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterStore = new FilterStore(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterStore.DisposeUsing(_disposables);
+		var blockchainDbFilePath = Path.Combine(networkWorkFolderPath, "IndexStore", "IndexStore.sqlite");
+
+		if (Network == Network.RegTest)
+		{
+			SqliteStorageHelper.DeleteDatabaseFiles(blockchainDbFilePath);
+		}
+
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(blockchainDbFilePath);
+		sharedSqliteStorage.DisposeUsing(_disposables);
+		var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+		var p2PSeedNodesSqliteRepository = new P2pSeedNodesSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+		var blockHeadersSqliteRepository = new BlockHeadersSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+
+		FilterStorage = new FilterStorage(Network, FilterHeaders, blockFilterSqliteRepository, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
-		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
+		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir, blockHeadersSqliteRepository);
 
-		_nodeConnectionManager = ConfigureNodeConnectionManager();
+		_nodeConnectionManager = ConfigureNodeConnectionManager(p2PSeedNodesSqliteRepository);
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(_nodeConnectionManager, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
-			FilterStore,
+			FilterStorage,
 			TransactionStore,
 			FilterHeaders,
 			_mempoolService,
@@ -140,7 +152,7 @@ public class Global
 	public TorSettings TorSettings { get; }
 
 	public FilterHeaderChain FilterHeaders { get; }
-	public FilterStore FilterStore { get; }
+	public FilterStorage FilterStorage { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public IHttpClientFactory ExternalSourcesHttpClientFactory { get; }
 	public Config Config { get; }
@@ -174,23 +186,50 @@ public class Global
 			fileSystemBlockRepository);
 	}
 
-	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
+	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir, BlockHeadersSqliteRepository blockHeadersSqliteRepository)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
-		var blockHeaders = Result<byte[], Exception>
-			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
-			.Match(
-				bytes => bytes switch
-				{
-					[] => new ConcurrentChain(Network),
-					_ => new ConcurrentChain(bytes, Network)
-				},
-				_ => new ConcurrentChain(Network));
+		ConcurrentChain blockHeaders;
+
+		if (File.Exists(blockHeadersFilePath))
+		{
+			blockHeaders = Result<byte[], Exception>
+				.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
+				.Match(
+					bytes => bytes switch
+					{
+						[] => new ConcurrentChain(Network),
+						_ => new ConcurrentChain(bytes, Network)
+					},
+					_ => new ConcurrentChain(Network));
+
+			foreach (var blockHeader in blockHeaders.EnumerateAfter(Network.GenesisHash))
+			{
+				blockHeadersSqliteRepository.TryAppend(blockHeader.Height, blockHeader.Header);
+			}
+
+			Logger.LogInfo($"Changing file name '{blockHeadersFilePath}' to 'BlockHeaders{Network}.dat.backup'");
+			File.Move(blockHeadersFilePath, blockHeadersFilePath.Replace($"BlockHeaders{Network}.dat", $"BlockHeaders{Network}.dat.backup"));
+		}
+		else
+		{
+			Logger.LogInfo("Read block headers from database.");
+			blockHeaders = new(Network);
+
+			foreach (var headerBytes in blockHeadersSqliteRepository.FetchAll())
+			{
+				var blockHeader = new BlockHeader(headerBytes, Network.Consensus);
+
+				blockHeaders.SetTip(blockHeader);
+			}
+
+			Logger.LogInfo("Finished reading of block headers from database.");
+		}
 
 		return blockHeaders;
 	}
 
-	private NodeConnectionManager ConfigureNodeConnectionManager()
+	private NodeConnectionManager ConfigureNodeConnectionManager(P2pSeedNodesSqliteRepository p2PSeedNodesSqliteRepository)
 	{
 		if (Network == Network.Main)
 		{
@@ -201,6 +240,12 @@ public class Global
 				dnsSeeds.Add(new DNSSeedData("emzy.de", "dnsseed.emzy.de"));
 				dnsSeeds.Add(new DNSSeedData("wiz.biz", "seed.bitcoin.wiz.biz"));
 				dnsSeeds.Add(new DNSSeedData("achownodes.xyz", "seed.mainnet.achownodes.xyz"));
+			}
+
+			if (Network.SeedNodes is List<NetworkAddress> addresses)
+			{
+				var extras = p2PSeedNodesSqliteRepository.FetchAll();
+				addresses.AddRange(extras.Select(IPEndPoint.Parse).Select(x => new NetworkAddress(x)));
 			}
 		}
 		if (Network == Bitcoin.Instance.Signet)
@@ -216,51 +261,6 @@ public class Global
 			if (Network.SeedNodes is List<NetworkAddress> addresses)
 			{
 				addresses.Add(new NetworkAddress(IPAddress.Loopback, Network.DefaultPort));
-			}
-		}
-
-		if (Network == Network.Main)
-		{
-			var extras = new[]
-			{
-				"[::ffff:89.58.60.208]:8333", "141.8.29.139:8333", "176.126.73.74:8333", "51.37.212.201:8333",
-				"[::ffff:109.224.84.149]:8333", "[::ffff:123.202.192.214]:8333", "[::ffff:130.180.58.210]:8333",
-				"[::ffff:144.2.65.179]:8333", "[::ffff:158.174.102.68]:8333", "[::ffff:158.248.16.134]:8333",
-				"[::ffff:176.198.90.204]:8333", "[::ffff:176.9.150.253]:8333", "[::ffff:178.192.9.193]:8333",
-				"[::ffff:178.26.46.97]:8333", "[::ffff:184.181.44.154]:8333", "[::ffff:217.92.137.136]:8333",
-				"[::ffff:218.146.42.163]:8333", "[::ffff:24.134.6.165]:8333", "[::ffff:45.130.58.202]:8333",
-				"[::ffff:45.41.51.43]:8333", "[::ffff:46.226.18.135]:8333", "[::ffff:46.229.238.187]:8333",
-				"[::ffff:46.59.13.35]:8333", "[::ffff:47.181.150.194]:8333", "[::ffff:5.161.244.95]:8333",
-				"[::ffff:62.177.111.78]:8333", "[::ffff:64.130.52.77]:8333", "[::ffff:71.185.186.173]:8333",
-				"[::ffff:80.253.94.252]:8333", "[::ffff:82.67.127.46]:8333", "[::ffff:84.196.182.49]:8333",
-				"[::ffff:86.242.20.49]:8333", "[::ffff:86.254.150.8]:8333", "[::ffff:87.236.195.198]:8333",
-				"[::ffff:95.90.138.145]:8333", "179.51.86.34:8333", "188.63.47.92:8333",
-				"54.248.26.73:8333", "82.67.161.60:8333", "92.252.69.140:8333", "92.98.3.189:8333",
-				"[::ffff:109.202.209.123]:8333", "[::ffff:121.99.109.132]:8333", "[::ffff:13.48.242.195]:8333",
-				"[::ffff:137.175.247.16]:8333", "[::ffff:141.195.182.138]:8333", "[::ffff:141.224.209.201]:8333",
-				"[::ffff:15.134.155.244]:8333", "[::ffff:15.222.135.69]:8333", "[::ffff:159.196.59.9]:8333",
-				"[::ffff:167.235.98.250]:8333", "[::ffff:174.165.47.165]:8333", "[::ffff:176.34.50.242]:8333",
-				"[::ffff:178.26.219.209]:8333", "[::ffff:18.102.201.234]:8333", "[::ffff:181.115.88.2]:8333",
-				"[::ffff:188.34.193.226]:8333", "[::ffff:194.160.169.63]:8333", "[::ffff:194.42.111.175]:8333",
-				"[::ffff:203.12.2.113]:8333", "[::ffff:213.144.146.33]:8333", "[::ffff:3.23.202.194]:8333",
-				"[::ffff:3.24.243.206]:8333", "[::ffff:38.172.231.13]:8333", "[::ffff:43.200.189.153]:8333",
-				"[::ffff:43.202.209.174]:8333", "[::ffff:45.142.17.140]:8333", "[::ffff:47.130.216.204]:8333",
-				"[::ffff:5.56.248.2]:8333", "[::ffff:50.106.24.94]:8333", "[::ffff:51.158.54.195]:8333",
-				"[::ffff:51.44.200.138]:8333", "[::ffff:52.74.41.162]:8333", "[::ffff:54.246.85.218]:8333",
-				"[::ffff:56.125.205.1]:8333", "[::ffff:56.125.249.13]:8333", "[::ffff:56.126.1.10]:8333",
-				"[::ffff:56.126.33.251]:8333", "[::ffff:65.109.125.160]:8333", "[::ffff:68.103.11.30]:8333",
-				"[::ffff:68.231.1.158]:8333", "[::ffff:71.179.175.122]:8333", "[::ffff:72.210.34.27]:8333",
-				"[::ffff:72.253.193.231]:8333", "[::ffff:76.31.239.16]:8333", "[::ffff:77.162.78.194]:8333",
-				"[::ffff:79.160.240.207]:8333", "[::ffff:82.66.107.156]:8333", "[::ffff:85.0.91.69]:8333",
-				"[::ffff:85.3.52.172]:8333", "[::ffff:88.153.65.113]:8333", "[::ffff:89.217.193.252]:8333",
-				"[::ffff:89.56.142.128]:8333", "[::ffff:89.56.206.21]:8333", "[::ffff:90.11.72.52]:8333",
-				"[::ffff:90.189.215.153]:8333", "[::ffff:92.148.116.20]:8333", "[::ffff:93.56.5.69]:8333",
-				"[::ffff:93.89.130.246]:8333"
-			};
-
-			if (Network.SeedNodes is List<NetworkAddress> addresses)
-			{
-				addresses.AddRange(extras.Select(IPEndPoint.Parse).Select(x => new NetworkAddress(x)));
 			}
 		}
 
@@ -391,7 +391,7 @@ public class Global
 				rpcProvider => rpcProvider,
 				_ =>
 				{
-					var tip = FilterStore.GetTip()!.Header;
+					var tip = FilterStorage.GetTip()!.Header;
 					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
 					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
@@ -400,7 +400,7 @@ public class Global
 
 
 		var (pause, resume, serviceLoop) =
-			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStore, FilterHeaders, EventBus));
+			Continuously(Synchronizer.CreateFilterGenerator(filtersProvider, FilterStorage, FilterHeaders, EventBus));
 
 		if (supportsBlockFiltersResult.IsOk)
 		{
@@ -530,7 +530,7 @@ public class Global
 		try
 		{
 			await TransactionStore.InitializeAsync(cancellationToken).ConfigureAwait(false);
-			await FilterStore.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
+			await FilterStorage.InitializeAsync(CalculateSafestHeight(), cancellationToken).ConfigureAwait(false);
 		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
@@ -763,12 +763,16 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
+				// TODO: Store data into SQLite.
 				if (_blockHeaders.Tip is not null)
 				{
+					/*
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
 					File.SafelyWriteAllBytes(blockHeadersFilePath, _blockHeaders.ToBytes());
 					Logger.LogInfo("Block headers saved.");
+					*/
+					Logger.LogInfo("Block headers NOT saved.");
 				}
 
 				if (RpcServer is { } rpcServer)

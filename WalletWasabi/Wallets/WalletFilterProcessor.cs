@@ -13,7 +13,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Wallets.FilterProcessor;
 
 namespace WalletWasabi.Wallets;
@@ -23,7 +23,7 @@ public class WalletFilterProcessor : BackgroundService
 	public WalletFilterProcessor(
 		KeyManager keyManager,
 		AllTransactionStore transactionStore,
-		FilterStore filterStore,
+		FilterStorage filterStorage,
 		FilterHeaderChain filterHeaderChain,
 		TransactionProcessor transactionProcessor,
 		BlockProvider blockProvider,
@@ -35,7 +35,7 @@ public class WalletFilterProcessor : BackgroundService
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
-		_blockFilterIterator = new(filterStore);
+		_blockFilterIterator = new(filterStorage);
 		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
 

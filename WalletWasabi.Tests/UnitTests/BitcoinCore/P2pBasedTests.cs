@@ -10,7 +10,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
@@ -42,8 +42,11 @@ public class P2pBasedTests
 			using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
-			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
+
+			using var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(dir, "indexStore"));
+			var blockFilterSqliteRepository = new BlockFilterSqliteRepository(sharedSqliteStorage.GetConnectionFactory());
+			var filterStorage = new FilterStorage(network, filterHeaderChain, blockFilterSqliteRepository, TestNodeBuilder.EventBus);
+			await filterStorage.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
 			MempoolService mempoolService = coreNode.MempoolService;
 
@@ -94,14 +97,14 @@ public static class EventBusExtensions
 {
 	public static Task<TResult[]> WaitForAsync<TEvent,TResult>(this EventBus eventBus, int count, Func<TEvent,TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
 	{
-		var evnts = new List<TEvent>();
+		var events = new List<TEvent>();
 		var completion = new TaskCompletionSource<TResult[]>();
 		var subscription = eventBus.Subscribe<TEvent>(e =>
 		{
-			evnts.Add(e);
-			if (evnts.Count == count)
+			events.Add(e);
+			if (events.Count == count)
 			{
-				completion.SetResult(evnts.Select(conv).ToArray());
+				completion.SetResult(events.Select(conv).ToArray());
 			}
 		});
 		return completion.Task

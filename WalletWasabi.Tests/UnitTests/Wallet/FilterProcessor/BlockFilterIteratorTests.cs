@@ -31,7 +31,7 @@ public class BlockFilterIteratorTests
 		FilterModel filter4 = CreateFilterModel(blockHeight: 610_004, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006506);
 
 		var fetchCallCount = 0;
-		var filterStore = new TestableFilterStore
+		var filterStorage = new TestableFilterStorage
 		{
 			OnFetchBatchAsync = (fromHeight, count, _) =>
 			{
@@ -45,7 +45,7 @@ public class BlockFilterIteratorTests
 			}
 		};
 
-		BlockFilterIterator filterIterator = new(filterStore, maxNumberFiltersInMemory: 3);
+		BlockFilterIterator filterIterator = new(filterStorage, maxNumberFiltersInMemory: 3);
 
 		// Iterator needs to do a database lookup.
 		{
