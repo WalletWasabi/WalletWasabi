@@ -1,4 +1,5 @@
 using NBitcoin;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
@@ -6,12 +7,10 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Tests.BitcoinCore;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
@@ -21,62 +20,64 @@ namespace WalletWasabi.Tests.UnitTests.BitcoinCore;
 [Collection("Serial unit tests collection")]
 public class P2pBasedTests
 {
-	// [Fact]  FIXME: this test never fails locally while almost always fail in the CI server
+	[Fact]
 	public async Task MempoolNotifiesAsync()
 	{
-		CoreNode coreNode = await TestNodeBuilder.CreateAsync();
+		string dir = await Common.GetEmptyWorkDirAsync();
 
+		var coreNode = await TestNodeBuilder.CreateAsync();
 		using var node = await coreNode.CreateNewP2pNodeAsync();
 
 		try
 		{
-			string dir = Common.GetWorkDir();
 			var network = coreNode.Network;
 			var rpc = coreNode.RpcClient;
 
 			var walletName = "wallet";
 			await rpc.CreateWalletAsync(walletName);
 
-			FilterHeaderChain filterHeaderChain = new();
-			using AllTransactionStore transactionStore = new(Path.Combine(dir, "transactionStore"), network);
+			var filterHeaderChain = new FilterHeaderChain();
+			using var transactionStore = new AllTransactionStore(Path.Combine(dir, "transactionStore"), network);
 			await transactionStore.InitializeAsync(CancellationToken.None);
 
-			using FilterStore filterStore = new(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
+			using var filterStore = new FilterStore(Path.Combine(dir, "indexStore"), network, filterHeaderChain, TestNodeBuilder.EventBus);
 			await filterStore.InitializeAsync(new Height.ChainHeight(0u), CancellationToken.None);
 
-			MempoolService mempoolService = coreNode.MempoolService;
+			var mempoolService = coreNode.MempoolService;
 
 			await rpc.GenerateAsync(blockCount: 101);
 
 			node.Behaviors.Add(new P2pBehavior(mempoolService));
 			await node.VersionHandshakeAsync();
 
-			using Key k = new();
+			// It's unclear why it helps the test to pass.
+			await Task.Delay(3000);
+
+			using var k = new Key();
 			var address = k.PubKey.GetAddress(ScriptPubKeyType.Segwit, network);
 
 			// Number of transactions to send.
 			const int TransactionsCount = 3;
 
-			var eventBus = TestNodeBuilder.EventBus;
 			using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(4));
-			var awaiter = eventBus.WaitForAsync<NewTransactionInMempool,SmartTransaction>(TransactionsCount, e => e.Transaction, cts.Token);
+			var awaiter = TestNodeBuilder.EventBus.WaitForAsync<NewTransactionInMempool, SmartTransaction>(TransactionsCount, e => e.Transaction, cts.Token);
 
-			Task<uint256>[] txHashesTasks = new Task<uint256>[TransactionsCount];
+			var txHashesTasks = new Task<uint256>[TransactionsCount];
 
-			// Add to the batch 10 RPC commands: Send 1 coin to the same address.
+			// Add to the batch 3 RPC commands: Send 1 coin to the same address.
 			for (int i = 0; i < TransactionsCount; i++)
 			{
 				Task<uint256> txidTask = rpc.SendToAddressAsync(address, Money.Coins(1));
 				txHashesTasks[i] = txidTask;
 			}
 
-			uint256[] txHashes = await Task.WhenAll(txHashesTasks);
+			var txHashes = await Task.WhenAll(txHashesTasks);
 
 			// Wait until the mempool service receives all the sent transactions.
-			IEnumerable<SmartTransaction> mempoolSmartTxs = await awaiter;
+			var mempoolSmartTxs = await awaiter;
 
 			// Check that all the received transaction hashes are in the set of sent transaction hashes.
-			foreach (SmartTransaction tx in mempoolSmartTxs)
+			foreach (var tx in mempoolSmartTxs)
 			{
 				Assert.Contains(tx.GetHash(), txHashes);
 			}
@@ -91,18 +92,20 @@ public class P2pBasedTests
 
 public static class EventBusExtensions
 {
-	public static Task<TResult[]> WaitForAsync<TEvent,TResult>(this EventBus eventBus, int count, Func<TEvent,TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
+	public static Task<TResult[]> WaitForAsync<TEvent, TResult>(this EventBus eventBus, int count, Func<TEvent, TResult> conv, CancellationToken cancellationToken) where TEvent : notnull
 	{
-		var evnts = new List<TEvent>();
+		var events = new ConcurrentQueue<TEvent>();
 		var completion = new TaskCompletionSource<TResult[]>();
 		var subscription = eventBus.Subscribe<TEvent>(e =>
 		{
-			evnts.Add(e);
-			if (evnts.Count == count)
+			events.Enqueue(e);
+
+			if (events.Count == count)
 			{
-				completion.SetResult(evnts.Select(conv).ToArray());
+				completion.SetResult(events.Select(conv).ToArray());
 			}
 		});
+
 		return completion.Task
 			.WithCancellation(cancellationToken)
 			.ContinueWith(r =>
@@ -113,4 +116,3 @@ public static class EventBusExtensions
 				cancellationToken);
 	}
 }
-
