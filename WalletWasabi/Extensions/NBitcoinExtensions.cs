@@ -22,7 +22,7 @@ public static class NBitcoinExtensions
 	{
 		if (node.State == NodeState.Connected)
 		{
-			node.VersionHandshake(cancellationToken);
+			await node.VersionHandshakeAsync(cancellationToken).ConfigureAwait(false);
 		}
 
 		using var listener = node.CreateListener();
