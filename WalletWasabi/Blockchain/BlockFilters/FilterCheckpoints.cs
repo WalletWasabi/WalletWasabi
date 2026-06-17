@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Linq;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
@@ -230,4 +229,11 @@ public static class FilterCheckpoints
 
 	public static FilterModel GetMostRecentCheckpoint(Network network) =>
 		GetCheckpointsByNetwork(network).Last();
+
+	public static BlockHeader GetWasabiGenesisHeader(Network network)
+	{
+		var hex = "02000020801b81629334be8e7af5ebfb9df09c18e1f833b5f0efcb00000000000000000040d1ca077fefe7fb797711baa0c063eca9b8ed9469ae0128982b44ad0c25386491329e59e93c011822ff5422";
+		var blockHeader = new BlockHeader(hex, network);
+		return blockHeader;
+	}
 }

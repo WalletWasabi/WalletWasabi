@@ -186,7 +186,12 @@ public class Global
 					[] => new ConcurrentChain(Network),
 					_ => new ConcurrentChain(bytes, Network)
 				},
-				_ => new ConcurrentChain(Network));
+				_ =>
+				{
+					var chain = new ConcurrentChain();
+					bool result = chain.SetTip(FilterCheckpoints.GetWasabiGenesisHeader(Network));
+					return chain;
+				});
 
 		return blockHeaders;
 	}
