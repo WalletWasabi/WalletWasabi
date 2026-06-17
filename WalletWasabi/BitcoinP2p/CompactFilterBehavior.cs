@@ -445,7 +445,8 @@ public class CompactFilterBehavior(
 
 		private readonly Channel<FilterResponse> _readyFiltersChannel;
 
-		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, TimeProvider? timeProvider = null)
+		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
+			TimeProvider? timeProvider = null)
 		{
 			_blockHeaderChain = blockHeaderChain;
 			_filterHeaderChain = filterHeaderChain;
@@ -453,15 +454,7 @@ public class CompactFilterBehavior(
 
 			var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
 			_headerTracker = new RequestTracker<HeaderResponse>(_timeProvider, initialHeaderHeight);
-			_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, 0);
-
 			_readyFiltersChannel = Channel.CreateUnbounded<FilterResponse>();
-		}
-
-		public FilterSynchronizationState(ConcurrentChain blockHeaders, FilterHeaderChain filterHeaders,
-			ChainHeight tipHeight, TimeProvider? timeProvider = null)
-			: this(blockHeaders, filterHeaders, timeProvider)
-		{
 			_filterTracker = new RequestTracker<FilterResponse>(_timeProvider, tipHeight);
 		}
 
