@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -59,9 +58,9 @@ public partial class WalletLoadWorkflow
 			.DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => UpdateProgress())
-				.DisposeWith(_disposables);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => UpdateProgress())
+			.DisposeWith(_disposables);
 	}
 
 	public void Stop()
@@ -93,12 +92,14 @@ public partial class WalletLoadWorkflow
 	private async Task WaitForHeightsAsync()
 	{
 		// Wait until "server tip height" is initialized.
-		await _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
+		var waitForNetworkHeight = _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
 			() => _services.GetServerTipHeight() > 0);
 
 		// Wait until "client tip height" is initialized.
-		await _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
+		var waitForClientHeight = _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
 			() => _services.GetTip() is not null);
+
+		await Task.WhenAll(waitForNetworkHeight, waitForClientHeight).ConfigureAwait(false);
 	}
 
 	private void UpdateProgress()
