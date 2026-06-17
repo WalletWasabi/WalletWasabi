@@ -10,7 +10,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
 using WalletWasabi.BitcoinP2p;
@@ -270,14 +269,12 @@ public class Global
 			? new DnsSocksResolver(torEndpoint)
 			: DnsResolver.Instance;
 
-#pragma warning disable CA2000 // Dispose objects before losing scope -- disposed using disposables
 		var manager = new NodeConnectionManager(
 			Network,
 			EventBus,
 			dnsResolver,
 			TimeSpan.FromSeconds(15),
 			torSocks5: torEndpoint);
-#pragma warning restore CA2000 // Dispose objects before losing scope
 
 		if (!Config.BlockOnlyMode)
 		{
