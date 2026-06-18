@@ -45,10 +45,15 @@ public static class CpfpInfoUpdater
 	{
 		return (msg, _, _) =>
 		{
-			// CPFP is not properly supported in RegTest yet.
-			if (msg is CpfpInfoMessage.GetCachedCpfpInfo m)
+			// CPFP is not properly supported in regtest yet.
+			switch (msg)
 			{
-				m.ReplyChannel.Reply([]);
+				case CpfpInfoMessage.GetCachedCpfpInfo m:					
+					m.ReplyChannel.Reply([]);
+					break;
+				case CpfpInfoMessage.GetInfoForTransaction m:
+					m.ReplyChannel.Reply(Result<CpfpInfo, string>.Fail("Not implemented for regtest."));
+					break;
 			}
 
 			return Task.FromResult(Unit.Instance);
