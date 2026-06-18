@@ -725,9 +725,12 @@ public class Global
 			new NetworkBroadcaster(mempoolService, nodes),
 		};
 
-		var external = ExternalTransactionBroadcaster.GetSortedBroadcasters(Config.ExternalTransactionBroadcaster, Network)
-			.Select(info => new ExternalTransactionBroadcaster(info, ExternalSourcesHttpClientFactory));
-		result.AddRange(external);
+		if (Network != Network.RegTest)
+		{
+			var external = ExternalTransactionBroadcaster.GetSortedBroadcasters(Config.ExternalTransactionBroadcaster, Network)
+				.Select(info => new ExternalTransactionBroadcaster(info, ExternalSourcesHttpClientFactory));
+			result.AddRange(external);
+		}
 
 		return result;
 	}
