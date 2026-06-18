@@ -23,7 +23,7 @@ public class TransactionSqliteStorage : IDisposable
 		_network = network;
 	}
 
-	/// <remarks>_connection cannot be accessed from multiple threads at the same time.</remarks>
+	/// <remarks>Connection cannot be accessed from multiple threads at the same time.</remarks>
 	private readonly SqliteConnection _connection;
 	private readonly Network _network;
 
