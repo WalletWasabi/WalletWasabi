@@ -50,7 +50,7 @@ public class P2pBasedTests
 			node.Behaviors.Add(new P2pBehavior(mempoolService));
 			await node.VersionHandshakeAsync();
 
-			// It's unclear why it helps the test to pass.
+			// TODO: It's unclear why it helps the test to pass.
 			await Task.Delay(3000);
 
 			using var k = new Key();
