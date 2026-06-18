@@ -219,6 +219,18 @@ public class BlockFilterSqliteStorage : IDisposable
 		try
 		{
 			using var connection = CreateConnection();
+			return TryAppend(connection, filter);
+		}
+		catch (SqliteException)
+		{
+			return false;
+		}
+	}
+
+	public bool TryAppend(SqliteConnection connection, FilterModel filter)
+	{
+		try
+		{
 			using var insertCommand = connection.CreateCommand();
 			insertCommand.CommandText = """
 				INSERT INTO filter (block_height, block_hash, filter_data, previous_block_hash, epoch_block_time)

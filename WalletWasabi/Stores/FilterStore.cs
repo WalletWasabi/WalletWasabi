@@ -49,7 +49,7 @@ public class FilterStore : IFilterStore, IDisposable
 				storage.Dispose();
 				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
 				DeleteIndex(_storageFilePath);
-				storage = BlockFilterSqliteStorage.FromFile(filePath: _storageFilePath);
+				storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
 				storage.SetPragmaUserVersion(2);
 			}
 
@@ -134,7 +134,7 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				i++;
 
-				if (!TryProcessFilterNoLock(filter, enqueue: false))
+				if (!TryProcessFilterNoLock(filter))
 				{
 					throw new InvalidOperationException("Index file inconsistency detected.");
 				}
@@ -147,7 +147,7 @@ public class FilterStore : IFilterStore, IDisposable
 		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
-			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
+			Logger.LogError("Filter index got corrupted. Clearing the filter index…");
 			Logger.LogDebug(ex);
 			IndexStorage.SetPragmaUserVersion(0); // forces to recreate
 			throw;
@@ -157,20 +157,12 @@ public class FilterStore : IFilterStore, IDisposable
 	}
 
 	/// <remarks>Requires <see cref="_indexLock"/> lock acquired.</remarks>
-	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
+	private bool TryProcessFilterNoLock(FilterModel filter)
 	{
 		try
 		{
 			_filterHeaderChain.AppendTip(filter.Header);
 			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
-
-			if (enqueue)
-			{
-				if (!IndexStorage.TryAppend(filter))
-				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
-				}
-			}
 
 			return true;
 		}
@@ -194,9 +186,15 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				foreach (FilterModel filter in filters)
 				{
-					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					if (!TryProcessFilterNoLock(filter))
 					{
 						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
+
+					if (!IndexStorage.TryAppend(connection, filter))
+					{
+						Logger.LogError($"Failed to append filter with height {filter.Header.Height} (hash: {filter.Header.BlockHash}).");
+						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
 
 					processed++;
