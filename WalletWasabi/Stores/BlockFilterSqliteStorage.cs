@@ -15,42 +15,35 @@ namespace WalletWasabi.Stores;
 /// </seealso>
 public class BlockFilterSqliteStorage : IDisposable
 {
-	private readonly SqliteConnection? _inMemoryConnection;
 	private readonly string _connectionString;
 	private bool _disposedValue;
 
-	private BlockFilterSqliteStorage(string connectionString, SqliteConnection? inMemoryConnection = null)
+	private BlockFilterSqliteStorage(string connectionString)
 	{
-		_inMemoryConnection = inMemoryConnection;
 		_connectionString = connectionString;
 	}
 
 	/// <summary>
 	/// Opens a new SQLite connection to the given database file.
 	/// </summary>
-	/// <param name="dataSource">Path to the SQLite database file, or special <c>:memory:</c> string.</param>
+	/// <param name="filePath">Path to the SQLite database file.</param>
 	/// <param name="startingFilter">Starting filter to put into the filter table if the table needs to be created.</param>
 	/// <exception cref="InvalidOperationException">If there is an unrecoverable error.</exception>
 	/// <seealso href="https://dev.to/lefebvre/speed-up-sqlite-with-write-ahead-logging-wal-do">Write-ahead logging explained.</seealso>
-	public static BlockFilterSqliteStorage FromFile(string dataSource)
+	public static BlockFilterSqliteStorage FromFile(string filePath)
 	{
 		SqliteConnectionStringBuilder builder = new();
-		builder.DataSource = dataSource;
+		builder.DataSource = filePath;
 		builder.Pooling = true;
 
-		var connectionString = builder.ConnectionString;
+		string connectionString = builder.ConnectionString;
 
-		SqliteConnection? connectionToDispose = null;
+		using var connection = new SqliteConnection(connectionString);
+		connection.Open();
 
-		try
+		using (var createCommand = connection.CreateCommand())
 		{
-			var connection = new SqliteConnection(connectionString);
-			connectionToDispose = connection;
-			connection.Open();
-
-			using (var createCommand = connection.CreateCommand())
-			{
-				createCommand.CommandText = """
+			createCommand.CommandText = """
 				CREATE TABLE IF NOT EXISTS filter (
 				    block_height INTEGER NOT NULL PRIMARY KEY,
 				    block_hash BLOB NOT NULL,
@@ -61,33 +54,20 @@ public class BlockFilterSqliteStorage : IDisposable
 				CREATE INDEX IF NOT EXISTS idx_blocks_height ON filter(block_height);
 				CREATE INDEX IF NOT EXISTS idx_blocks_hash ON filter(block_hash);
 				""";
-				createCommand.ExecuteNonQuery();
-			}
-
-			// Enable write-ahead logging.
-			using (var walCommand = connection.CreateCommand())
-			{
-				walCommand.CommandText = """
-					PRAGMA journal_mode = 'wal';
-					PRAGMA synchronous  = 'NORMAL';
-					""";
-				walCommand.ExecuteNonQuery();
-			}
-
-			SqliteConnection? inMemoryConnection = null;
-
-			if (dataSource == SqliteStorageHelper.InMemoryDatabase)
-			{
-				inMemoryConnection = connection;
-				connectionToDispose = null;
-			}
-
-			return new(connectionString, inMemoryConnection);
+			createCommand.ExecuteNonQuery();
 		}
-		finally
+
+		// Enable write-ahead logging.
+		using (var walCommand = connection.CreateCommand())
 		{
-			connectionToDispose?.Dispose();
+			walCommand.CommandText = """
+				PRAGMA journal_mode = 'wal';
+				PRAGMA synchronous  = 'NORMAL';
+				""";
+			walCommand.ExecuteNonQuery();
 		}
+
+		return new(connectionString);
 	}
 
 	/// <summary>
@@ -95,11 +75,6 @@ public class BlockFilterSqliteStorage : IDisposable
 	/// </summary>
 	public SqliteConnection CreateConnection()
 	{
-		if (_inMemoryConnection is not null)
-		{
-			return _inMemoryConnection;
-		}
-
 		var connection = new SqliteConnection(_connectionString);
 		connection.Open();
 		return connection;
@@ -311,8 +286,6 @@ public class BlockFilterSqliteStorage : IDisposable
 		{
 			if (disposing)
 			{
-				_inMemoryConnection?.Dispose();
-
 				// Empty the connection pool to release all connections and make sure the database is no longer in use.
 				SqliteConnection.ClearAllPools();
 			}

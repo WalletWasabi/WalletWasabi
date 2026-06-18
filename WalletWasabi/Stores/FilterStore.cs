@@ -49,7 +49,7 @@ public class FilterStore : IFilterStore, IDisposable
 				storage.Dispose();
 				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
 				DeleteIndex(_storageFilePath);
-				storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
+				storage = BlockFilterSqliteStorage.FromFile(filePath: _storageFilePath);
 				storage.SetPragmaUserVersion(2);
 			}
 
