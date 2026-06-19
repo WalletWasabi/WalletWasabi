@@ -56,7 +56,7 @@ public static class Logger
 
 	public static void SetFilePath(string filePath)
 	{
-		FilePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath, trim: true);
+		FilePath = filePath;
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
 		if (File.Exists(FilePath))

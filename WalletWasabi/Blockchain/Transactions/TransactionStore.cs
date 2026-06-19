@@ -17,8 +17,7 @@ public class TransactionStore : IDisposable
 {
 	public TransactionStore(string workFolderPath, Network network)
 	{
-		_dataSource = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-
+		_dataSource = workFolderPath;
 		bool useInMemoryDatabase = _dataSource == SqliteStorageHelper.InMemoryDatabase;
 
 		if (!useInMemoryDatabase)

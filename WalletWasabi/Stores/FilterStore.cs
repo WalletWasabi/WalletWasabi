@@ -25,11 +25,9 @@ public class FilterStore : IFilterStore, IDisposable
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-
-		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
-
 		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+
+		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		if (network == Network.RegTest)
 		{
@@ -136,20 +134,20 @@ public class FilterStore : IFilterStore, IDisposable
 
 				if (!TryProcessFilterNoLock(filter))
 				{
-					throw new InvalidOperationException("Index file inconsistency detected.");
+					throw new InvalidOperationException("Inconsistency detected in compact filter database.");
 				}
 
 				cancellationToken.ThrowIfCancellationRequested();
 			}
 
-			Logger.LogDebug($"Loaded {i} lines from the mature index file.");
+			Logger.LogDebug($"Loaded {i} lines from database.");
 		}
 		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
-			Logger.LogError("Filter index got corrupted. Clearing the filter index…");
+			Logger.LogError("Filter database table got corrupted. Clearing the filter database…");
 			Logger.LogDebug(ex);
-			IndexStorage.SetPragmaUserVersion(0); // forces to recreate
+			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
 		}
 
@@ -193,7 +191,6 @@ public class FilterStore : IFilterStore, IDisposable
 
 					if (!IndexStorage.TryAppend(connection, filter))
 					{
-						Logger.LogError($"Failed to append filter with height {filter.Header.Height} (hash: {filter.Header.BlockHash}).");
 						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
 
@@ -275,22 +272,19 @@ public class FilterStore : IFilterStore, IDisposable
 
 	private void DeleteIndex(string indexPath)
 	{
-		lock (_indexLock)
+		if (File.Exists(indexPath))
 		{
-			if (File.Exists(indexPath))
-			{
-				File.Delete(indexPath);
-			}
+			File.Delete(indexPath);
+		}
 
-			if (File.Exists($"{indexPath}-shm"))
-			{
-				File.Delete($"{indexPath}-shm");
-			}
+		if (File.Exists($"{indexPath}-shm"))
+		{
+			File.Delete($"{indexPath}-shm");
+		}
 
-			if (File.Exists($"{indexPath}-wal"))
-			{
-				File.Delete($"{indexPath}-wal");
-			}
+		if (File.Exists($"{indexPath}-wal"))
+		{
+			File.Delete($"{indexPath}-wal");
 		}
 	}
 

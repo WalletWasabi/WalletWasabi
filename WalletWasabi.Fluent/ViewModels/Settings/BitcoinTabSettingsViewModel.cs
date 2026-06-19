@@ -88,6 +88,10 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 				Settings.BitcoinRpcUri = BitcoinRpcUri;
 			}
 		}
+		else
+		{
+			Settings.BitcoinRpcUri = "";
+		}
 	}
 
 	private void ValidateBitcoinRpcCredentialString(IValidationErrors errors)

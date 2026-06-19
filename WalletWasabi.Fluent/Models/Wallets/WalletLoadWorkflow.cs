@@ -1,4 +1,3 @@
-using ReactiveUI;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
@@ -20,7 +19,6 @@ public partial class WalletLoadWorkflow
 	private uint _latestProcessBlockHeight;
 	private Subject<(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percent)> _progress;
 	[AutoNotify] private bool _isLoading;
-	public TaskCompletionSource<bool> InitialRequestTcs { get; } = new();
 
 	public WalletLoadWorkflow(IServices services, Wallet wallet)
 	{
@@ -28,13 +26,6 @@ public partial class WalletLoadWorkflow
 		_wallet = wallet;
 		_progress = new();
 		_progress.OnNext((0, 0, 0, 0));
-
-		services.EventBus.AsObservable<NetworkTipHeightChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(e => true)
-			.Take(1)
-			.Subscribe(b => InitialRequestTcs.TrySetResult(b))
-			.DisposeWith(_disposables);
 
 		services.EventBus.AsObservable<FilterProcessed>()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -60,16 +51,16 @@ public partial class WalletLoadWorkflow
 
 	public void Start()
 	{
-		Observable.FromAsync(() => InitialRequestTcs.Task)
+		Observable.FromAsync(() => Task.CompletedTask)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Take(1)
-			.SubscribeAsync(LoadWalletAsync)
+			.SubscribeAsync(_ => LoadWalletAsync())
 			.DisposeWith(_disposables);
 
 		Observable.Interval(TimeSpan.FromSeconds(1))
-				.ObserveOn(RxApp.MainThreadScheduler)
-				.Subscribe(_ => UpdateProgress())
-				.DisposeWith(_disposables);
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => UpdateProgress())
+			.DisposeWith(_disposables);
 	}
 
 	public void Stop()
@@ -77,11 +68,12 @@ public partial class WalletLoadWorkflow
 		_disposables.Dispose();
 	}
 
-	private async Task LoadWalletAsync(bool isBackendAvailable)
+	private async Task LoadWalletAsync()
 	{
 		IsLoading = true;
+		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 
-		await SetInitValuesAsync(isBackendAvailable).ConfigureAwait(false);
+		await WaitForHeightsAsync().ConfigureAwait(false);
 
 		try
 		{
@@ -97,20 +89,17 @@ public partial class WalletLoadWorkflow
 		}
 	}
 
-	private async Task SetInitValuesAsync(bool isBackendAvailable)
+	private async Task WaitForHeightsAsync()
 	{
-		if (isBackendAvailable)
-		{
-			// Wait until "server tip height" is initialized. It can be initialized only if Backend is available.
-			await _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
-				() => _services.GetServerTipHeight() > 0);
-		}
+		// Wait until "server tip height" is initialized.
+		var waitForNetworkHeight = _services.EventBus.WaitForEventAsync<NetworkTipHeightChanged>(
+			() => _services.GetServerTipHeight() > 0);
 
 		// Wait until "client tip height" is initialized.
-		await _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
+		var waitForClientHeight = _services.EventBus.WaitForEventAsync<ClientTipHeightChanged>(
 			() => _services.GetTip() is not null);
 
-		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
+		await Task.WhenAll(waitForNetworkHeight, waitForClientHeight).ConfigureAwait(false);
 	}
 
 	private void UpdateProgress()

@@ -62,8 +62,9 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	{
 		var coordinatorUri = CoordinatorUri;
 
-		if (string.IsNullOrEmpty(coordinatorUri))
+		if (string.IsNullOrWhiteSpace(coordinatorUri))
 		{
+			Settings.CoordinatorUri = "";
 			return;
 		}
 
