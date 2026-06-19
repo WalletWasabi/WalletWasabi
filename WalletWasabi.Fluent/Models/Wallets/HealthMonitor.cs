@@ -28,13 +28,14 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
+	private const string NoBitcoinRpcDetectedConfigured = "No detected/configured";
 
 	public HealthMonitor(IServices services, TorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = services.GetUseTor();
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
-		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail("No detected/configured");
+		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail(NoBitcoinRpcDetectedConfigured);
 
 		// Priority Fee
 		services.EventBus.AsObservable<MiningFeeRatesChanged>()
@@ -163,7 +164,7 @@ public partial class HealthMonitor : ReactiveObject
 
 		var torConnected = UseTor == TorMode.Disabled || TorStatus == TorStatus.Running;
 
-		if (torConnected && BlockchainTip == ClientTip)
+		if (torConnected && BlockchainTip > 0 && BlockchainTip == ClientTip)
 		{
 			return HealthMonitorState.Ready;
 		}
@@ -178,7 +179,7 @@ public partial class HealthMonitor : ReactiveObject
 					? HealthMonitorState.Ready
 					: HealthMonitorState.BitcoinRpcSynchronizing
 				: HealthMonitorState.Loading,
-			e => e == "No detected/configured"
+			e => e == NoBitcoinRpcDetectedConfigured
 				? HealthMonitorState.Ready
 				: HealthMonitorState.BitcoinRpcIssueDetected);
 	}
