@@ -275,22 +275,19 @@ public class FilterStore : IFilterStore, IDisposable
 
 	private void DeleteIndex(string indexPath)
 	{
-		lock (_indexLock)
+		if (File.Exists(indexPath))
 		{
-			if (File.Exists(indexPath))
-			{
-				File.Delete(indexPath);
-			}
+			File.Delete(indexPath);
+		}
 
-			if (File.Exists($"{indexPath}-shm"))
-			{
-				File.Delete($"{indexPath}-shm");
-			}
+		if (File.Exists($"{indexPath}-shm"))
+		{
+			File.Delete($"{indexPath}-shm");
+		}
 
-			if (File.Exists($"{indexPath}-wal"))
-			{
-				File.Delete($"{indexPath}-wal");
-			}
+		if (File.Exists($"{indexPath}-wal"))
+		{
+			File.Delete($"{indexPath}-wal");
 		}
 	}
 
