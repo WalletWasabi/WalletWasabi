@@ -15,7 +15,9 @@ public class FilterHeaderChain
 
 	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
 
+#pragma warning disable IDE0032 // Use auto property – we want to control the setter and getter with locks, so we can't use auto properties here.
 	private int _hashesLeft;
+#pragma warning restore IDE0032 // Use auto property
 
 	private int _hashesCount;
 

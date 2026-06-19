@@ -134,22 +134,22 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				i++;
 
-				if (!TryProcessFilterNoLock(filter, enqueue: false))
+				if (!TryProcessFilterNoLock(filter))
 				{
-					throw new InvalidOperationException("Index file inconsistency detected.");
+					throw new InvalidOperationException("Inconsistency detected in compact filter database.");
 				}
 
 				cancellationToken.ThrowIfCancellationRequested();
 			}
 
-			Logger.LogDebug($"Loaded {i} lines from the mature index file.");
+			Logger.LogDebug($"Loaded {i} lines from database.");
 		}
 		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
-			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
+			Logger.LogError("Filter database table got corrupted. Clearing the filter database…");
 			Logger.LogDebug(ex);
-			IndexStorage.SetPragmaUserVersion(0); // forces to recreate
+			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
 		}
 
@@ -157,20 +157,12 @@ public class FilterStore : IFilterStore, IDisposable
 	}
 
 	/// <remarks>Requires <see cref="_indexLock"/> lock acquired.</remarks>
-	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
+	private bool TryProcessFilterNoLock(FilterModel filter)
 	{
 		try
 		{
 			_filterHeaderChain.AppendTip(filter.Header);
 			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
-
-			if (enqueue)
-			{
-				if (!IndexStorage.TryAppend(filter))
-				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
-				}
-			}
 
 			return true;
 		}
@@ -193,9 +185,14 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				foreach (FilterModel filter in filters)
 				{
-					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					if (!TryProcessFilterNoLock(filter))
 					{
 						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
+
+					if (!IndexStorage.TryAppend(filter))
+					{
+						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
 
 					processed++;
@@ -276,22 +273,19 @@ public class FilterStore : IFilterStore, IDisposable
 
 	private void DeleteIndex(string indexPath)
 	{
-		lock (_indexLock)
+		if (File.Exists(indexPath))
 		{
-			if (File.Exists(indexPath))
-			{
-				File.Delete(indexPath);
-			}
+			File.Delete(indexPath);
+		}
 
-			if (File.Exists($"{indexPath}-shm"))
-			{
-				File.Delete($"{indexPath}-shm");
-			}
+		if (File.Exists($"{indexPath}-shm"))
+		{
+			File.Delete($"{indexPath}-shm");
+		}
 
-			if (File.Exists($"{indexPath}-wal"))
-			{
-				File.Delete($"{indexPath}-wal");
-			}
+		if (File.Exists($"{indexPath}-wal"))
+		{
+			File.Delete($"{indexPath}-wal");
 		}
 	}
 
