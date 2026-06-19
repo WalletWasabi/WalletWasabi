@@ -28,7 +28,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
-	private const string NoBitcoinRpcDetectedConfigured = "No detected/configured";
+	private const string NoBitcoinRpcDetectedConfigured = "Not detected/configured";
 
 	public HealthMonitor(IServices services, TorStatusCheckerModel torStatusChecker)
 	{

@@ -300,9 +300,13 @@ public partial class ApplicationSettings : ReactiveObject
 		result = result with { EnableGpu = EnableGpu };
 
 		// Bitcoin
-		if (Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out var uri))
+		if (string.IsNullOrWhiteSpace(BitcoinRpcUri))
 		{
-			result = result with { BitcoinRpcUri = uri.ToString(), BitcoinRpcCredentialString = BitcoinRpcCredentialString};
+			result = result with { BitcoinRpcUri = "", BitcoinRpcCredentialString = BitcoinRpcCredentialString };
+		}
+		else if (Uri.TryCreate(BitcoinRpcUri, UriKind.Absolute, out var uri))
+		{
+			result = result with { BitcoinRpcUri = uri.ToString(), BitcoinRpcCredentialString = BitcoinRpcCredentialString };
 		}
 
 		result = result with { CoordinatorUri = CoordinatorUri };
