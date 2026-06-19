@@ -149,7 +149,7 @@ public class FilterStore : IFilterStore, IDisposable
 		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
-			Logger.LogError("Filter database table got corrupted. Clearing the filter index…");
+			Logger.LogError("Filter database table got corrupted. Clearing the filter database…");
 			Logger.LogDebug(ex);
 			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
