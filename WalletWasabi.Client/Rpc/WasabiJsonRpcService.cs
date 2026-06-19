@@ -25,9 +25,6 @@ using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Col
 
 namespace WalletWasabi.Client.Rpc;
 
-[SuppressMessage("ReSharper", "CoVariantArrayConversion")]
-[SuppressMessage("ReSharper", "MemberCanBePrivate.Global")]
-[SuppressMessage("ReSharper", "UnusedMember.Global")]
 public class WasabiJsonRpcService : IJsonRpcService
 {
 	public WasabiJsonRpcService(Global global)

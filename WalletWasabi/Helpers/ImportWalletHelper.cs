@@ -80,7 +80,7 @@ public static class ImportWalletHelper
 			}
 		}
 
-		var bytes = Convert.FromHexString(Guard.NotNullOrEmptyOrWhitespace(nameof(mfpString), mfpString, trim: true));
+		var bytes = Convert.FromHexString(mfpString);
 		HDFingerprint mfp = reverseByteOrder ? new HDFingerprint(bytes.Reverse().ToArray()) : new HDFingerprint(bytes);
 
 		if (manager.WalletExists(mfp))
