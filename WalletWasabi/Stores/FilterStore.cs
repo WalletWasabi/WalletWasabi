@@ -136,7 +136,7 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				i++;
 
-				if (!TryProcessFilterNoLock(filter, enqueue: false))
+				if (!TryProcessFilterNoLock(filter))
 				{
 					throw new InvalidOperationException("Index file inconsistency detected.");
 				}
@@ -159,20 +159,12 @@ public class FilterStore : IFilterStore, IDisposable
 	}
 
 	/// <remarks>Requires <see cref="_indexLock"/> lock acquired.</remarks>
-	private bool TryProcessFilterNoLock(FilterModel filter, bool enqueue)
+	private bool TryProcessFilterNoLock(FilterModel filter)
 	{
 		try
 		{
 			_filterHeaderChain.AppendTip(filter.Header);
 			_eventBus.Publish(new ClientTipHeightChanged(filter.Header.Height));
-
-			if (enqueue)
-			{
-				if (!IndexStorage.TryAppend(filter))
-				{
-					throw new InvalidOperationException("Failed to append filter to the database.");
-				}
-			}
 
 			return true;
 		}
@@ -195,9 +187,14 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				foreach (FilterModel filter in filters)
 				{
-					if (!TryProcessFilterNoLock(filter, enqueue: true))
+					if (!TryProcessFilterNoLock(filter))
 					{
 						throw new InvalidOperationException($"Failed to process filter with height {filter.Header.Height}.");
+					}
+
+					if (!IndexStorage.TryAppend(filter))
+					{
+						throw new InvalidOperationException($"Failed to append filter with height {filter.Header.Height} to the database.");
 					}
 
 					processed++;
