@@ -138,20 +138,20 @@ public class FilterStore : IFilterStore, IDisposable
 
 				if (!TryProcessFilterNoLock(filter))
 				{
-					throw new InvalidOperationException("Index file inconsistency detected.");
+					throw new InvalidOperationException("Inconsistency detected in compact filter database.");
 				}
 
 				cancellationToken.ThrowIfCancellationRequested();
 			}
 
-			Logger.LogDebug($"Loaded {i} lines from the mature index file.");
+			Logger.LogDebug($"Loaded {i} lines from database.");
 		}
 		catch (InvalidOperationException ex)
 		{
 			// We found a corrupted entry. Clear the corrupted database and stop here.
-			Logger.LogError("Filter index got corrupted. Clearing the filter index...");
+			Logger.LogError("Filter database table got corrupted. Clearing the filter index…");
 			Logger.LogDebug(ex);
-			IndexStorage.SetPragmaUserVersion(0); // forces to recreate
+			IndexStorage.SetPragmaUserVersion(0); // Forces to recreate.
 			throw;
 		}
 
