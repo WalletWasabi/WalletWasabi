@@ -26,7 +26,7 @@ public class CoreNodeParams
 	{
 		Network = network;
 		MempoolService = mempoolService;
-		DataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
+		DataDir = dataDir;
 		TryRestart = tryRestart;
 		TryDeleteDataDir = tryDeleteDataDir;
 		P2pEndPointStrategy = p2pEndPointStrategy;
@@ -35,7 +35,7 @@ public class CoreNodeParams
 		Prune = prune;
 		DisableWallet = disableWallet;
 		MempoolReplacement = mempoolReplacement;
-		UserAgent = Guard.NotNullOrEmptyOrWhitespace(nameof(userAgent), userAgent, trim: true);
+		UserAgent = userAgent;
 		FallbackFee = fallbackFee;
 		Cache = cache;
 	}

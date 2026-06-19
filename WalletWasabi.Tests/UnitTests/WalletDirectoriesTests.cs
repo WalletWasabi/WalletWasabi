@@ -12,7 +12,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
 
-public class WalletDirTests
+public class WalletDirectoriesTests
 {
 	private async Task<string> CleanupWalletDirectoriesAsync(string baseDir)
 	{
@@ -53,16 +53,6 @@ public class WalletDirTests
 		var regWd = new WalletDirectories(Network.RegTest, baseDir);
 		Assert.Equal(Network.RegTest, regWd.Network);
 		Assert.Equal(Path.Combine(baseDir, "Wallets", "RegTest"), regWd.WalletsDir);
-	}
-
-	[Fact]
-	public async Task CorrectWalletDirectoryNameAsync()
-	{
-		var baseDir = Common.GetWorkDir();
-		string walletsPath = await CleanupWalletDirectoriesAsync(baseDir);
-
-		var walletDirectories = new WalletDirectories(Network.Main, $" {baseDir} ");
-		Assert.Equal(walletsPath, walletDirectories.WalletsDir);
 	}
 
 	[Fact]

@@ -2,7 +2,6 @@ using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Wallets;
 
@@ -14,10 +13,9 @@ public class WalletDirectories
 	public WalletDirectories(Network network, string workDir)
 	{
 		Network = network;
-		var correctedWorkDir = Guard.NotNullOrEmptyOrWhitespace(nameof(workDir), workDir, true);
 		WalletsDir = network == Network.Main
-			? Path.Combine(correctedWorkDir, WalletsDirName)
-			: Path.Combine(correctedWorkDir, WalletsDirName, network.ToString());
+			? Path.Combine(workDir, WalletsDirName)
+			: Path.Combine(workDir, WalletsDirName, network.ToString());
 
 		Directory.CreateDirectory(WalletsDir);
 	}

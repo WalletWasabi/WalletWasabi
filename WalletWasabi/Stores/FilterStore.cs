@@ -25,11 +25,9 @@ public class FilterStore : IFilterStore, IDisposable
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-
-		workFolderPath = Guard.NotNullOrEmptyOrWhitespace(nameof(workFolderPath), workFolderPath, trim: true);
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
-
 		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
+
+		IoHelpers.EnsureDirectoryExists(workFolderPath);
 
 		if (network == Network.RegTest)
 		{

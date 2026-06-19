@@ -320,8 +320,6 @@ public class KeyManager
 
 	public static KeyManager FromFile(string filePath)
 	{
-		filePath = Guard.NotNullOrEmptyOrWhitespace(nameof(filePath), filePath);
-
 		if (!File.Exists(filePath))
 		{
 			throw new FileNotFoundException($"Wallet file not found at: `{filePath}`.");

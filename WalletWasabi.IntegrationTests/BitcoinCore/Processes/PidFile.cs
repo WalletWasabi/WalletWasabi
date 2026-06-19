@@ -19,10 +19,8 @@ public class PidFile
 	/// <param name="pidFileName">File name.</param>
 	public PidFile(string dataDir, string pidFileName)
 	{
-		string checkedDataDir = Guard.NotNullOrEmptyOrWhitespace(nameof(dataDir), dataDir);
-		IoHelpers.EnsureDirectoryExists(checkedDataDir);
-
-		FilePath = Path.Combine(checkedDataDir, pidFileName);
+		IoHelpers.EnsureDirectoryExists(dataDir);
+		FilePath = Path.Combine(dataDir, pidFileName);
 	}
 
 	/// <summary>
