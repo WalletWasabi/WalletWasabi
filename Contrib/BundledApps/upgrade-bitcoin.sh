@@ -169,13 +169,13 @@ require_command sha256sum
 # ──────────────────────────────────────────────────────────────────────────────
 
 basedir=$(dirname "$0")
-BINARIES_DIR=$(realpath "${basedir}/../../WalletWasabi.Tests/BundledApps/Binaries")
+BINARIES_DIR=$(realpath "${basedir}/../../WalletWasabi.IntegrationTests/BundledApps/Binaries")
 cd $BINARIES_DIR || { echo "Error: Failed to change directory to '$BINARIES_DIR'" >&2; exit 1; }
 
 info "Change directory to '$BINARIES_DIR'"
 
 if [[ ! -d "linux-x64" || ! -d "osx64" || ! -d "win-x64" ]]; then
-    error "Expected linux-x64, osx64, win-x64, etc. to be present in the folder 'WalletWasabi.Tests/BundledApps/Binaries'"
+    error "Expected linux-x64, osx64, win-x64, etc. to be present in the folder 'WalletWasabi.IntegrationTests/BundledApps/Binaries'"
 fi
 
 TEMP_DIR="temp/bitcoin-${VERSION}"
@@ -216,7 +216,7 @@ verify_checksums
 if [[ "$SKIP_EXTRACT" != true ]]; then
     section "Extracting Bitcoin binaries"
 
-    # Remove WalletWasabi.Tests/BundledApps/Binaries/temp/$VERSION/BitcoinCore
+    # Remove WalletWasabi.IntegrationTests/BundledApps/Binaries/temp/$VERSION/BitcoinCore
     rm -rf BitcoinCore
 
     # Linux arm64
@@ -245,7 +245,7 @@ else
     section "Skipping Bitcoin Core archive extraction"
 fi
 
-popd >/dev/null # Working directory is 'WalletWasabi.Tests/BundledApps/Binaries' again.
+popd >/dev/null # Working directory is 'WalletWasabi.IntegrationTests/BundledApps/Binaries' again.
 
 # ─── Replace binaries in repository ─────────────────────────────────────────
 if [[ "$SKIP_REPLACE" != true ]]; then

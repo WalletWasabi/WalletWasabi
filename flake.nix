@@ -19,8 +19,8 @@
           src = ./.;
         };
 
-        # Build all components and run tests (CI)
-        buildEverything = buildWasabiModule.overrideAttrs (oldAttrs: rec {
+        # Common build settings for all configurations
+        commonBuildAttrs = rec {
           pname = "WalletWasabi";
           projectFile = [
              "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
@@ -33,10 +33,6 @@
              # for client
              tor hwi bitcoind
              xorg.libX11 xorg.libXrandr xorg.libX11.dev xorg.libICE xorg.libSM fontconfig.lib ];
-          # Testing
-          doCheck = true;
-          testProjectFile = "WalletWasabi.Tests/WalletWasabi.Tests.csproj";
-          dotnetTestFlags = ["--filter \"FullyQualifiedName~UnitTests\"" "--logger \"console\""];
 
           # Disable parallel builds to avoid Avalonia resource file locking issues
           enableParallelBuilding = false;
@@ -51,11 +47,56 @@
 
           binaries = "BundledApps/Binaries/linux-x64";
           bundledApps = "./WalletWasabi/${binaries}";
-          bundledAppsTest = "./WalletWasabi.Tests/${binaries}";
+          bundledAppsIntegrationTest = "./WalletWasabi.IntegrationTests/${binaries}";
           preBuild = ''
             cp -r ${pkgs.tor}/bin/tor ${bundledApps}/Tor/tor
             cp ${pkgs.hwi}/bin/hwi ${bundledApps}/hwi
-            cp ${pkgs.bitcoind}/bin/bitcoind ${bundledAppsTest}/bitcoind
+            cp ${pkgs.bitcoind}/bin/bitcoind ${bundledAppsIntegrationTest}/bitcoind
+          '';
+        };
+
+        # Build everything and run unit tests (default CI target)
+        buildWithUnitTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+          doCheck = true;
+          checkPhase = ''
+            runHook preCheck
+            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
+              --filter "FullyQualifiedName~UnitTests" \
+              --no-build \
+              --configuration Release \
+              --logger "console;verbosity=detailed"
+            runHook postCheck
+          '';
+        });
+
+        # Build everything and run integration tests
+        buildWithIntegrationTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+          doCheck = true;
+          checkPhase = ''
+            runHook preCheck
+            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --no-build \
+              --configuration Release \
+              --logger "console;verbosity=detailed"
+            runHook postCheck
+          '';
+        });
+
+        # Build everything and run all tests (unit + integration)
+        buildWithAllTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+          doCheck = true;
+          checkPhase = ''
+            runHook preCheck
+            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
+              --filter "FullyQualifiedName~UnitTests" \
+              --no-build \
+              --configuration Release \
+              --logger "console;verbosity=detailed"
+            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --no-build \
+              --configuration Release \
+              --logger "console;verbosity=detailed"
+            runHook postCheck
           '';
         });
 
@@ -138,20 +179,25 @@
             #DOTNET_ROLL_FORWARD = "latestPatch";
             LD_LIBRARY_PATH = "${skiaSharp};${pkgs.lib.makeLibraryPath libs}";
             BUNDLED_APPS_BINARIES_PATH = "WalletWasabi/BundledApps/Binaries/linux-x64";
-            BUNDLED_APPS_TEST_BINARIES_PATH = "WalletWasabi.Tests/BundledApps/Binaries/linux-x64";
+            BUNDLED_APPS_INTEGRATION_TEST_BINARIES_PATH = "WalletWasabi.IntegrationTests/BundledApps/Binaries/linux-x64";
 
             shellHook = ''
               export PATH="$PATH:$DOTNET_GLOBAL_TOOLS_PATH"
               cp $(which tor) "$BUNDLED_APPS_BINARIES_PATH/Tor/"
               cp $(which hwi) "$BUNDLED_APPS_BINARIES_PATH/hwi"
-              cp $(which bitcoind) "$BUNDLED_APPS_TEST_BINARIES_PATH/"
+              cp $(which bitcoind) "$BUNDLED_APPS_INTEGRATION_TEST_BINARIES_PATH/"
 
               export PS1='\n\[\033[1;34m\][Wasabi:\w]\$\[\033[0m\] '
             '';
         };
     in
     {
-      packages.x86_64-linux.all = buildEverything;
+      packages.x86_64-linux = {
+        default = buildWithUnitTests;
+        unit-tests = buildWithUnitTests;
+        integration-tests = buildWithIntegrationTests;
+        all = buildWithAllTests;
+      };
       devShells.x86_64-linux.default = wasabi-shell;
     };
 }

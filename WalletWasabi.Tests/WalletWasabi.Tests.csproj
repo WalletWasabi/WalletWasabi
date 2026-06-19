@@ -59,18 +59,6 @@
 		<None Update="UnitTests\Data\Slip39TestVectors.json">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
-		<None Update="BundledApps\Binaries\linux-arm64\bitcoind">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="BundledApps\Binaries\linux-x64\bitcoind">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="BundledApps\Binaries\osx64\bitcoind">
-			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="BundledApps\Binaries\win-x64\bitcoind.exe">
-		  <CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
 	</ItemGroup>
 
 	<ItemGroup>
