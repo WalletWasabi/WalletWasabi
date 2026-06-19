@@ -28,6 +28,7 @@ coinjoin
 coinjoins
 coinjoining
 mempool
+Mempool
 Async
 Wabi
 Sabi
@@ -201,12 +202,12 @@ rpcbind
 rpcport
 whitebind
 testnet
+Testnet
 Endpointing
 ptcv
 datadir
 printtoconsole
 feerate
-mempool
 maxmempool
 mempoolminfee
 minrelaytxfee
