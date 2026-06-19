@@ -15,14 +15,14 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void InvalidAddTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		SmartHeader header = CreateGenesisHeader();
+		var header = CreateGenesisHeader();
 		// The header is known and it's silently ignored.
 		chain.AppendTip(header);
 
@@ -36,9 +36,9 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void ReplaceTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 
-		SmartHeader header = CreateGenesisHeader();
+		var header = CreateGenesisHeader();
 		chain.AppendTip(header);
 
 		uint height = 1;
@@ -60,14 +60,14 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void AddAndRemoveTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		AssertEverythingDefault(chain);
 
 		// Attempt to remove an element when there is none.
 		Assert.False(chain.RemoveTip());
 		AssertEverythingDefault(chain);
 
-		SmartHeader header = CreateGenesisHeader();
+		var header = CreateGenesisHeader();
 		chain.AppendTip(header);
 
 		for (uint i = 0; i < 5000; i++)
@@ -95,14 +95,14 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void ServerTipHeightTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		chain.SetServerTipHeight(2);
 		Assert.Equal(2, chain.HashesLeft);
 
 		// Add first header.
-		SmartHeader header = CreateGenesisHeader();
+		var header = CreateGenesisHeader();
 		chain.AppendTip(header);
 		Assert.Equal(2, chain.HashesLeft);
 
@@ -125,11 +125,11 @@ public class FilterHeaderChainTests
 	[Fact]
 	public void HashCountTests()
 	{
-		FilterHeaderChain chain = new();
+		var chain = new FilterHeaderChain();
 		Assert.Equal(ChainHeight.Genesis, chain.ServerTipHeight);
 
 		// Add 1st header.
-		SmartHeader header = CreateGenesisHeader();
+		var header = CreateGenesisHeader();
 		chain.AppendTip(header);
 		Assert.Equal(1, chain.HashCount);
 
