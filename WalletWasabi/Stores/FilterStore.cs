@@ -176,7 +176,7 @@ public class FilterStore : IFilterStore, IDisposable
 		using (await _indexLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 		{
 			using var connection = IndexStorage.CreateConnection();
-			using var transaction = IndexStorage.BeginTransaction(connection);
+			using var transaction = connection.BeginTransaction();
 
 			int processed = 0;
 

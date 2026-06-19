@@ -81,15 +81,6 @@ public class BlockFilterSqliteStorage : IDisposable
 	}
 
 	/// <summary>
-	/// Begin a transaction.
-	/// </summary>
-	/// <seealso href="https://learn.microsoft.com/en-us/dotnet/standard/data/sqlite/transactions"/>
-	public SqliteTransaction BeginTransaction(SqliteConnection connection)
-	{
-		return connection.BeginTransaction();
-	}
-
-	/// <summary>
 	/// Returns all filters with height ≥ than the given one.
 	/// </summary>
 	/// <param name="limit">If a maximum number is specified, the number of returned records is limited to this value.</param>
