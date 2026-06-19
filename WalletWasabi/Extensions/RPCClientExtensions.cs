@@ -123,7 +123,7 @@ public static class RPCClientExtensions
 		    .Select(x => (target: x.Result.Blocks, feeRate: x.Result.FeeRate))
 		    .DistinctBy(x => x.target)
 		    .ToDictionary(x => x.target, x => x.feeRate);
-		
+
 		// If all confirmation targets collapsed to the same block number, the node lacks sufficient
 		// fee history to produce useful estimates. Do not return such an estimate to let a next provider do the job.
 		if (result.Count < 2)
@@ -205,22 +205,22 @@ public static class RPCClientExtensions
 	}
 
 
-	public static async Task<Result<Unit,bool>> SupportsBlockFiltersAsync(this IRPCClient rpc, CancellationToken cancellationToken)
+	public static async Task<Result<bool>> SupportsBlockFiltersAsync(this IRPCClient rpc, CancellationToken cancellationToken)
 	{
 		try
 		{
 			var blockHash = await rpc.GetBestBlockHashAsync(cancellationToken).ConfigureAwait(false);
 			await rpc.GetBlockFilterAsync(blockHash, cancellationToken).ConfigureAwait(false);
-			return Result<Unit,bool>.Ok(Unit.Instance);
+			return Result<bool>.Ok();
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_MISC_ERROR && e.Message.Contains("Index is not enabled"))
 		{
-			return Result<Unit,bool>.Fail(true);
+			return Result<bool>.Fail(true);
 		}
 		catch (Exception e)
 		{
 			Logger.LogWarning(e);
-			return Result<Unit,bool>.Fail(false);
+			return Result<bool>.Fail(false);
 		}
 	}
 }
