@@ -3,8 +3,7 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
-using WalletWasabi.Tests.BitcoinCore;
-using WalletWasabi.Tests.Helpers;
+using WalletWasabi.IntegrationTests.BitcoinCore;
 
 namespace WalletWasabi.IntegrationTests.Infrastructure;
 

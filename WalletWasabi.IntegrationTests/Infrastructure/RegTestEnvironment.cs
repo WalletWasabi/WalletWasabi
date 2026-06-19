@@ -20,7 +20,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
-using WalletWasabi.Tests.BitcoinCore;
+using WalletWasabi.IntegrationTests.BitcoinCore;
 using WalletWasabi.Wallets;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
 
