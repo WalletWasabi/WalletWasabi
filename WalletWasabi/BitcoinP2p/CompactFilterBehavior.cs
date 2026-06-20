@@ -438,6 +438,7 @@ public class CompactFilterBehavior(
 		private readonly Lock _lock = new();
 		private readonly ConcurrentChain _blockHeaderChain;
 		private readonly FilterHeaderChain _filterHeaderChain;
+		private readonly EventBus? _eventBus;
 		private readonly TimeProvider _timeProvider;
 
 		private readonly RequestTracker<HeaderResponse> _headerTracker;
@@ -446,10 +447,11 @@ public class CompactFilterBehavior(
 		private readonly Channel<FilterResponse> _readyFiltersChannel;
 
 		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
-			TimeProvider? timeProvider = null)
+			EventBus? eventBus = null, TimeProvider? timeProvider = null)
 		{
 			_blockHeaderChain = blockHeaderChain;
 			_filterHeaderChain = filterHeaderChain;
+			_eventBus = eventBus;
 			_timeProvider = timeProvider ?? TimeProvider.System;
 
 			var initialHeaderHeight = _filterHeaderChain.Tip?.Height ?? 0;
@@ -613,6 +615,8 @@ public class CompactFilterBehavior(
 						return;
 					}
 				}
+
+				_eventBus?.Publish(new FilterHeadersTipChanged(_headerTracker.LastHeight));
 
 				Logger.LogInfo(
 					$"Successfully processed filter header range {pendingRange.StartHeight}, new tip at height {_headerTracker.LastHeight}");

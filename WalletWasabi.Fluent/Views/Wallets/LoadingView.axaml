@@ -7,12 +7,37 @@
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingView">
+  <UserControl.Styles>
+    <Style Selector="Border.InfoCard">
+      <Setter Property="Background" Value="{DynamicResource SystemChromeMediumLowColor}" />
+      <Setter Property="BorderBrush" Value="{DynamicResource SystemControlForegroundBaseMediumLowBrush}" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="CornerRadius" Value="5" />
+      <Setter Property="Padding" Value="16 12" />
+      <Setter Property="MinWidth" Value="120" />
+    </Style>
+    <Style Selector="Border.InfoCard PathIcon">
+      <Setter Property="Width" Value="24" />
+      <Setter Property="Height" Value="24" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="Border.InfoCard TextBlock.Label">
+      <Setter Property="Opacity" Value="0.7" />
+      <Setter Property="FontSize" Value="12" />
+    </Style>
+    <Style Selector="Border.InfoCard TextBlock.Value">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding WalletName, FallbackValue=My Wallet with a very long name}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Panel>
       <Interaction.Behaviors>
         <AdaptiveBehavior>
           <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
+          <AdaptiveClassSetter TargetControl="InfoCards" MinHeight="0" MaxHeight="300" ClassName="small" />
         </AdaptiveBehavior>
       </Interaction.Behaviors>
 
@@ -21,20 +46,70 @@
           <Style Selector="Panel#WorldMap.small">
             <Setter Property="IsVisible" Value="False" />
           </Style>
+          <Style Selector="StackPanel#InfoCards.small">
+            <Setter Property="IsVisible" Value="False" />
+          </Style>
         </DockPanel.Styles>
 
-        <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-          <TextBlock Text="Downloading and processing Bitcoin data" TextAlignment="Center" FontSize="22"
-                     DockPanel.Dock="Bottom" />
-          <TextBlock
-            Text="This is done without any third party knowing your balance or transactions."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+        <StackPanel MaxWidth="900" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
+          <!-- Info Cards -->
+          <StackPanel x:Name="InfoCards" Orientation="Horizontal" HorizontalAlignment="Center" Spacing="12" Margin="0 0 0 20">
+            <!-- Peers connected -->
+            <Border Classes="InfoCard">
+              <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource entities_regular}" />
+                <TextBlock Text="Peers connected" Classes="Label" TextAlignment="Center" />
+                <TextBlock Text="{Binding Peers, StringFormat={}{0:N0}}" Classes="Value" TextAlignment="Center" />
+              </StackPanel>
+            </Border>
 
-          <TextBlock
-            Text="It is slower on first launch, with larger wallets, or after long gaps between synchronizations."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
+            <!-- Block headers -->
+            <Border Classes="InfoCard">
+              <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource organization_regular}" />
+                <TextBlock Text="Block headers" Classes="Label" TextAlignment="Center" />
+                <TextBlock Text="{Binding BlockHeaders, StringFormat={}{0:N0}}" Classes="Value" TextAlignment="Center" />
+              </StackPanel>
+            </Border>
 
-          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
+            <!-- Filter headers -->
+            <Border Classes="InfoCard">
+              <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource sorting}" />
+                <TextBlock Text="Filter headers" Classes="Label" TextAlignment="Center" />
+                <TextBlock Text="{Binding FilterHeaders, StringFormat={}{0:N0}}" Classes="Value" TextAlignment="Center" />
+              </StackPanel>
+            </Border>
+
+            <!-- Compact filters -->
+            <Border Classes="InfoCard">
+              <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource fingerprint_regular}" />
+                <TextBlock Text="Compact filters" Classes="Label" TextAlignment="Center" />
+                <TextBlock Text="{Binding CompactFilters, StringFormat={}{0:N0}}" Classes="Value" TextAlignment="Center" />
+              </StackPanel>
+            </Border>
+
+            <!-- Blocks -->
+            <Border Classes="InfoCard">
+              <StackPanel Spacing="8" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource wallet_coins}" />
+                <TextBlock Text="Blocks" Classes="Label" TextAlignment="Center" />
+                <TextBlock Text="{Binding Blocks, StringFormat={}{0:N0}}" Classes="Value" TextAlignment="Center" />
+              </StackPanel>
+            </Border>
+          </StackPanel>
+
+          <!-- Status line -->
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0 0 0 10">
+            <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" VerticalAlignment="Center" />
+            <TextBlock Opacity="0.7" VerticalAlignment="Center">
+              <Run Text="Syncing with the Bitcoin network — Latest block:" />
+              <Run Text="{Binding LatestBlock, StringFormat={}{0:N0}}" />
+            </TextBlock>
+          </StackPanel>
+
+          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 10 0 0" />
           <TextBlock Margin="0 10 0 0" Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.8" />
           <TextBlock Text="{Binding TimeToCatchUp}" TextAlignment="Center" Opacity="0.6" />
         </StackPanel>
