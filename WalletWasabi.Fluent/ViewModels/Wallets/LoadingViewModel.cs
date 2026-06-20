@@ -15,6 +15,12 @@ public partial class LoadingViewModel : RoutableViewModel
 	[AutoNotify] private string _statusText = " "; // Should not be empty as we have to preserve the space in the view.
 	[AutoNotify] private string _timeToCatchUp;
 	[AutoNotify] private bool _isLoading;
+	[AutoNotify] private int _peers;
+	[AutoNotify] private uint _blockHeaders;
+	[AutoNotify] private uint _filterHeaders;
+	[AutoNotify] private uint _compactFilters;
+	[AutoNotify] private uint _blocks;
+	[AutoNotify] private uint _latestBlock;
 
 	public LoadingViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
@@ -27,29 +33,36 @@ public partial class LoadingViewModel : RoutableViewModel
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		_wallet.Loader.Progress
-			.Do(p => UpdateStatus(p.RemainingFiltersToDownload, p.CurrentHeight, p.ChainTip, p.Percent))
+			.Do(p => UpdateStatus(p))
 			.Subscribe()
 			.DisposeWith(disposables);
 	}
 
-	private void UpdateStatus(uint remainingFiltersToDownload, uint currentHeight, uint chainTip, double percentProgress)
+	private void UpdateStatus(WalletLoadProgress progress)
 	{
-		if (remainingFiltersToDownload > 0)
+		Peers = progress.Peers;
+		BlockHeaders = progress.BlockHeaders;
+		FilterHeaders = progress.FilterHeaders;
+		CompactFilters = progress.CompactFilters;
+		Blocks = progress.Blocks;
+		LatestBlock = progress.ChainTip;
+
+		if (progress.RemainingFiltersToDownload > 0)
 		{
-			StatusText = $"Downloading {remainingFiltersToDownload:N0} filters";
+			StatusText = $"Downloading {progress.RemainingFiltersToDownload:N0} filters";
 			return;
 		}
 
-		Percent = percentProgress;
+		Percent = progress.Percent;
 
-		if (chainTip < currentHeight)
+		if (progress.ChainTip < progress.CurrentHeight)
 		{
 			StatusText = "Initializing blockchain data…";
 			TimeToCatchUp = "";
 			return;
 		}
 
-		var remainingBlocks = chainTip - currentHeight;
+		var remainingBlocks = progress.ChainTip - progress.CurrentHeight;
 		var hoursRemaining = remainingBlocks / 6.0m;
 
 		// Convert hours to more readable format

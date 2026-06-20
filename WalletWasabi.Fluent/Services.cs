@@ -25,6 +25,7 @@ public class Services : IServices
 	// Temporary solution. It should be removed
 	public static Services Instance { get; private set; } = null!;
 
+	private readonly Global _global;
 	private readonly TorSettings _torSettings;
 	private readonly FilterStore _filterStore;
 	private readonly FilterHeaderChain _filterHeaders;
@@ -50,6 +51,7 @@ public class Services : IServices
 		Guard.NotNull(nameof(uiConfig), uiConfig);
 		Guard.NotNull(nameof(terminateService), terminateService);
 
+		_global = global;
 		_torSettings = global.TorSettings;
 		_filterStore = global.FilterStore;
 		_filterHeaders = global.FilterHeaders;
@@ -82,6 +84,8 @@ public class Services : IServices
 	public uint GetServerTipHeight() => _filterHeaders.ServerTipHeight;
 	public int GetHashesLeft() => _filterHeaders.HashesLeft;
 	public SmartHeader? GetTip() => _filterHeaders.Tip;
+	public uint GetBlockHeadersTipHeight() => _global.GetBlockHeadersTipHeight();
+	public int GetPeerCount() => _global.GetPeerCount();
 
 	// Filters info
 	public uint? GetMinimumBlockHeight() => _filterStore.GetMinimumBlockHeight();
