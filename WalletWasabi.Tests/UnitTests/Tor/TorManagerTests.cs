@@ -1,6 +1,7 @@
 using System.Diagnostics;
 using System.IO;
 using System.IO.Pipelines;
+using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Services;
@@ -28,7 +29,7 @@ public class TorManagerTests
 		string distributionFolder = "tempDistributionDir";
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
-		var processManager = new TestProcessManager(settings, new EventBus())
+		var processManager = new TestProcessManager(new EventBus())
 		{
 			// Simulate that Tor process crashes after two seconds.
 			WaitForTorProcessDelay = TimeSpan.FromSeconds(2),
@@ -71,10 +72,10 @@ public class TorManagerTests
 		string distributionFolder = "tempDistributionDir";
 		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
-		var processManager = new TestProcessManager(settings, new EventBus())
+		var processManager = new TestProcessManager(new EventBus())
 		{
 			IsTorRunningAsyncResult = true,
-			GetTorProcessesResult = runningTorOsProcesses == 0 ? [] : new[] { new Process() /* Dummy process */ },
+			GetTorProcessesResult = runningTorOsProcesses == 0 ? [] : [new Process() /* Dummy process */],
 
 			// Cookie file is stored in the profile of that different user, not ours.
 			InitTorControlAsyncException = new TorControlException("Cookie file does not exist.")
@@ -84,7 +85,7 @@ public class TorManagerTests
 
 		NotSupportedException ex = await Assert.ThrowsAsync<NotSupportedException>(
 			async () => await torManager.StartAsync(timeoutCts.Token).ConfigureAwait(false));
-		Assert.Equal(TorManager.TorProcessStartedByDifferentUser, ex.Message);
+		Assert.Contains("by another user", ex.Message);
 	}
 
 	class TestProcessManager : TorProcessManager
@@ -97,15 +98,15 @@ public class TorManagerTests
 		public TorControlClient? InitTorControlAsyncResult { get; set; }
 		public Exception? InitTorControlAsyncException { get; set; }
 
-		public TestProcessManager(TorSettings settings, EventBus eventBus)
-			: base(settings, eventBus)
+		public TestProcessManager(EventBus eventBus)
+			: base(eventBus)
 		{
 		}
 
-		public override Process StartProcess(string arguments)
+		public override Process StartProcess(string arguments, TorSettings settings)
 		{
 			StartProcessCallCount++;
-			return base.StartProcess(arguments);
+			return base.StartProcess(arguments, settings);
 		}
 
 		public override async Task WaitForProcessExitAsync(Process process, CancellationToken cancellationToken)
@@ -119,24 +120,24 @@ public class TorManagerTests
 			await base.WaitForProcessExitAsync(process, cancellationToken);
 		}
 
-		public override async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
+		public override async Task<bool> IsTorRunningAsync(EndPoint socksEndpoint, CancellationToken cancellationToken)
 		{
 			if (IsTorRunningAsyncResult is not null)
 			{
 				return IsTorRunningAsyncResult.Value;
 			}
 
-			return await base.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+			return await base.IsTorRunningAsync(socksEndpoint, cancellationToken).ConfigureAwait(false);
 		}
 
-		public override async Task<bool> EnsureRunningAsync(Process process, CancellationToken cancellationToken)
+		public override async Task<bool> EnsureRunningAsync(Process process, EndPoint socksEndpoint, CancellationToken cancellationToken)
 		{
 			if (EnsureRunningAsyncResult is not null)
 			{
 				return EnsureRunningAsyncResult.Value;
 			}
 
-			return await base.EnsureRunningAsync(process, cancellationToken).ConfigureAwait(false);
+			return await base.EnsureRunningAsync(process, socksEndpoint, cancellationToken).ConfigureAwait(false);
 		}
 
 		public override Process[] GetTorProcesses()
@@ -149,7 +150,7 @@ public class TorManagerTests
 			return base.GetTorProcesses();
 		}
 
-		public override async Task<TorControlClient> InitTorControlAsync(CancellationToken cancellationToken)
+		public override async Task<TorControlClient> InitTorControlAsync(TorSettings settings, CancellationToken cancellationToken)
 		{
 			if (InitTorControlAsyncException is not null)
 			{
@@ -161,7 +162,7 @@ public class TorManagerTests
 				return InitTorControlAsyncResult;
 			}
 
-			return await base.InitTorControlAsync(cancellationToken).ConfigureAwait(false);
+			return await base.InitTorControlAsync(settings, cancellationToken).ConfigureAwait(false);
 		}
 	}
 }

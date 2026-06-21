@@ -2,6 +2,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
@@ -14,8 +15,6 @@ namespace WalletWasabi.Tor;
 /// <seealso href="https://2019.www.torproject.org/docs/tor-manual.html.en"/>
 public class TorManager : IAsyncDisposable
 {
-	internal const string TorProcessStartedByDifferentUser = "Tor was started by another user and we can't use it nor kill it.";
-
 	/// <summary>Task completion source returning a cancellation token which is canceled when Tor process is terminated.</summary>
 	private volatile TaskCompletionSource<(CancellationToken, TorControlClient?)> _tcs = new();
 
@@ -131,7 +130,7 @@ public class TorManager : IAsyncDisposable
 
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				bool isTorRunning = await _processManager.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+				bool isTorRunning = await _processManager.IsTorRunningAsync(_settings.SocksEndpoint, cancellationToken).ConfigureAwait(false);
 
 				if (detectedTorState && isTorRunning) // Case: Still running.
 				{
@@ -181,6 +180,11 @@ public class TorManager : IAsyncDisposable
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(globalCancellationToken, _loopCts.Token);
 		CancellationToken cancellationToken = linkedCts.Token;
 
+		const int AlternatePortOffset = 10;
+		const int MaxPortRetries = 5;
+
+		var portRetryAttempt = 0;
+
 		while (!cancellationToken.IsCancellationRequested)
 		{
 			Process? process = null;
@@ -197,28 +201,42 @@ public class TorManager : IAsyncDisposable
 			try
 			{
 				// Is Tor already running? Either our Tor process from previous Wasabi Wallet run or possibly user's own Tor.
-				bool isAlreadyRunning = await _processManager.IsTorRunningAsync(cancellationToken).ConfigureAwait(false);
+				bool isAlreadyRunning = await _processManager.IsTorRunningAsync(_settings.SocksEndpoint, cancellationToken).ConfigureAwait(false);
 
 				if (isAlreadyRunning)
 				{
 					Logger.LogInfo($"Tor is already running on {_settings.SocksEndpoint}");
-					controlClient = await _processManager.InitTorControlAsync(cancellationToken).ConfigureAwait(false);
+					controlClient = await _processManager.InitTorControlAsync(_settings, cancellationToken).ConfigureAwait(false);
 
 					// Tor process can crash even between these two commands too.
 					int processId = await controlClient.GetTorProcessIdAsync(cancellationToken).ConfigureAwait(false);
 
 					process = Process.GetProcessById(processId);
 
-					try
+					// Note: This is a workaround how to check whether we have sufficient permissions for the process.
+					// Especially, we want to make sure that Tor is running under our user and not a different one.
+					// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
+					var canAccessProcessResult = Result<Exception>.Catch(() => process.Handle);
+					if (!canAccessProcessResult.IsOk)
 					{
-						// Note: This is a workaround how to check whether we have sufficient permissions for the process.
-						// Especially, we want to make sure that Tor is running under our user and not a different one.
-						// Example situation: Tor is run under admin account but then the app is run under a non-privileged account.
-						nint _ = process.Handle;
-					}
-					catch (Exception ex)
-					{
-						throw new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+						Logger.LogInfo($"Cannot access Tor process on port {_settings.SocksPort}.", canAccessProcessResult.Error);
+
+						// Tor is running but owned by another user. Try alternate ports.
+						if (portRetryAttempt < MaxPortRetries)
+						{
+							// Lets try new ports
+							SetNewPorts();
+
+							// Clean up current control client before switching ports
+							await controlClient.DisposeAsync().ConfigureAwait(false);
+							controlClient = null;
+							process.Dispose();
+							process = null;
+
+							continue;
+						}
+
+						throw new NotSupportedException("Tor was started by another user and we can't use it nor kill it. All attempts to launch a new instance in different ports have failed.");
 					}
 
 					TorControlReply clientTransportPluginReply = await controlClient.GetConfAsync(keyword: "ClientTransportPlugin", cancellationToken).ConfigureAwait(false);
@@ -250,9 +268,9 @@ public class TorManager : IAsyncDisposable
 					string arguments = _settings.GetCmdArguments();
 					Logger.LogTrace($"Starting Tor with arguments: {arguments}");
 
-					process = _processManager.StartProcess(arguments);
+					process = _processManager.StartProcess(arguments, _settings);
 
-					bool isRunning = await _processManager.EnsureRunningAsync(process, cancellationToken).ConfigureAwait(false);
+					bool isRunning = await _processManager.EnsureRunningAsync(process, _settings.SocksEndpoint, cancellationToken).ConfigureAwait(false);
 
 					if (!isRunning)
 					{
@@ -260,7 +278,7 @@ public class TorManager : IAsyncDisposable
 						continue;
 					}
 
-					controlClient = await _processManager.InitTorControlAsync(cancellationToken).ConfigureAwait(false);
+					controlClient = await _processManager.InitTorControlAsync(_settings, cancellationToken).ConfigureAwait(false);
 				}
 
 				Logger.LogInfo("Tor is running.");
@@ -318,12 +336,19 @@ public class TorManager : IAsyncDisposable
 						}
 					}
 
-					// Tor was started by another user and we can't kill it.
+					// Tor was started by another user and we can't kill it - try alternate ports.
 					if (torProcesses.Length == 0 || !killAttempt)
 					{
-						Logger.LogDebug("Failed to find the Tor process in the list of processes.");
+						if (portRetryAttempt < MaxPortRetries)
+						{
+							SetNewPorts();
+
+							continue;
+						}
+
+						Logger.LogDebug("Failed to find the Tor process in the list of processes after all port retry attempts.");
 						setNewTcs = false;
-						exception = new NotSupportedException(TorProcessStartedByDifferentUser, ex);
+						exception = new NotSupportedException("Tor was started by another user and we can't use it nor kill it.", ex);
 						throw exception;
 					}
 				}
@@ -352,6 +377,18 @@ public class TorManager : IAsyncDisposable
 					TorControlClient = null;
 				}
 			}
+		}
+
+		void SetNewPorts()
+		{
+			portRetryAttempt++;
+			var newSocksPort = _settings.SocksPort + AlternatePortOffset * portRetryAttempt;
+			var newControlPort = _settings.ControlPort + AlternatePortOffset * portRetryAttempt;
+
+			Logger.LogInfo($"Cannot control Tor on port {_settings.SocksPort}. Trying alternate ports: SOCKS={newSocksPort}, Control={newControlPort}");
+
+			_settings.SocksPort = newSocksPort;
+			_settings.ControlPort = newControlPort;
 		}
 	}
 
