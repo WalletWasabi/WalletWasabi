@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
+using WalletWasabi.Helpers;
 using WalletWasabi.Rpc.JsonConverters;
 using WalletWasabi.Scheme;
 using WalletWasabi.Wallets;
@@ -18,8 +19,8 @@ using Environment = System.Collections.Immutable.ImmutableDictionary<string, Exp
 public class Scheme
 {
 	private Environment _env;
-	private bool _initialized = false;
-	private JsonSerializerSettings _defaultJsonSerializerSettings;
+	private bool _initialized;
+	private readonly JsonSerializerSettings _defaultJsonSerializerSettings;
 
 	public Scheme(Global global)
 	{
@@ -36,11 +37,13 @@ public class Scheme
 			{
 				 global.WalletManager.StartWalletAsync(w).GetAwaiter().GetResult();
 				 return w;
-			});
+			})
+			.NativeFunction<string, SpecialExpressionsProcessor>("on", (eventName, func) => SubscribeEvent(global, eventName, func));
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
 
 	private readonly Dictionary<(Type, string), MemberInfo> _accessors = new();
+
 	private object GetterFn(string method, object instance)
 	{
 		var typ = instance.GetType();
@@ -68,6 +71,17 @@ public class Scheme
 			_ => throw new ArgumentOutOfRangeException()
 		};
 		return result!;
+	}
+
+	private object SubscribeEvent(Global global, string eventName, SpecialExpressionsProcessor func)
+	{
+		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false);
+		if (eventType is null)
+		{
+			throw new ArgumentException($"event {eventName} does not exist");
+		}
+		global.EventBus.Subscribe(eventType, arg => func(_env, new NativeObject(arg)));
+		return "Subscribed";
 	}
 
 	public async Task<Expression> ExecuteAsync(string prg)
@@ -117,15 +131,33 @@ public class Scheme
 			return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
 		}
 
-		if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
+		var arr = e.ToArray();
+		var dict = new Dictionary<string, object>(arr.Length);
+
+		foreach (var item in arr)
 		{
-			return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
-				x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
+			if (item is IEnumerable<object> pair && pair.ToArray() is [string key, var value])
+			{
+				dict[key] = ToObject(value);
+			}
+			else
+			{
+				return arr.Select(ToObject).ToArray();
+			}
 		}
 
-		return e.Select(ToObject);
+		return dict;
 	}
 
 	public string ToJson(Expression e) =>
 		JsonConvert.SerializeObject(ToObject(ToNativeObject(e)), _defaultJsonSerializerSettings);
+
+	public void RegisterWriter(Action<string> write)
+	{
+		_env = _env.NativeFunction<object>("display", s =>
+		{
+			write(s.ToString() ?? "");
+			return Unit.Instance;
+		});
+	}
 }
