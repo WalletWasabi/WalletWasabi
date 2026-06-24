@@ -6,6 +6,7 @@
 #### 📎 Support for arm64 Linux, Tails, and Whonix
 #### 📜 Scheme scripting language
 #### 🔑 Signet test network
+#### 💀 Forward compatability for Tor
 
 ## Release Summary
 Wasabi Wallet v2.8.0 is a massive release with P2P synchronization, faster onboarding, improved privacy, lower fees, and expanded device support.
@@ -40,3 +41,6 @@ The scripting language is an experimental feature that makes Wasabi programmable
 Testnet3 and Testnet4 use proof of work for generating blocks, just like mainnet. Because testnet coins have no value, low mining difficulty allows an attacker with a small amount of hashpower to flood blocks or create long reorgs.
 
 Signet is another test network that allows a set of signers to create blocks. This reduces the unpredictable behavior so developers can work with a stable environment.
+
+### 💀 Forward compatability for Tor
+The Tor Project is terminating network support for versions <0.4.9 on September 1, 2026. This release of Wasabi upgrades the bundled Tor dependency to ensure forward compatibility.
