@@ -118,6 +118,8 @@ public class WalletFilterProcessor : BackgroundService
 				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancellationToken).ConfigureAwait(false);
 				if (currentBlock is { })
 				{
+					_eventBus.Publish(new BlockDownloaded(filter.Header.Height));
+
 					var height = new ChainHeight(filter.Header.Height);
 					var blockHash = currentBlock.GetHash();
 					var blockTime = currentBlock.Header.BlockTime;
