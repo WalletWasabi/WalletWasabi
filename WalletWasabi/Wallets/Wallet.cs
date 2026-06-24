@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -79,10 +80,13 @@ public class Wallet : BackgroundService
 			.DisposeUsing(_disposables);
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
+		_eventBus.Subscribe<FilterProcessed>(e => _lastFilterProcess = e.Filter.Header.Height)
+			.DisposeUsing(_disposables);
 	}
 
 	private readonly EventBus _eventBus;
 	private readonly FilterStore _filterStore;
+	private ChainHeight _lastFilterProcess = 0;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 
@@ -335,16 +339,10 @@ public class Wallet : BackgroundService
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
 		// Each time a new batch of filters is downloaded, request a synchronization.
-		var lastHashesLeft = FilterHeaderChain.HashesLeft;
-		while (FilterHeaderChain.HashesLeft > 0)
+		while (_lastFilterProcess < FilterHeaderChain.ServerTipHeight)
 		{
 			cancel.ThrowIfCancellationRequested();
-			if (lastHashesLeft == FilterHeaderChain.HashesLeft)
-			{
-				await Task.Delay(100, cancel).ConfigureAwait(false);
-				continue;
-			}
-			lastHashesLeft = FilterHeaderChain.HashesLeft;
+			await Task.Delay(100, cancel).ConfigureAwait(false);
 		}
 
 		await WalletFilterProcessor.InitialSynchronizationFinished.WaitAsync(cancel).ConfigureAwait(false);

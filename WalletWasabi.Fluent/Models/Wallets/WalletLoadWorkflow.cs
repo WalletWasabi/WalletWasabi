@@ -11,29 +11,42 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public record SyncProgressCardModel(uint Initial, uint Current, uint Target)
+{
+	public double Percent => Target <= Initial
+		? (Current >= Target ? 100 : 0)
+		: Math.Clamp(100.0 * (Current - Initial) / (Target - Initial), 0, 100);
+
+	public bool IsComplete => Percent >= 100;
+}
+
 public record WalletLoadProgress(
-	uint RemainingFiltersToDownload,
-	uint CurrentHeight,
 	uint ChainTip,
-	double Percent,
-	int Peers,
-	uint BlockHeaders,
-	uint FilterHeaders,
-	uint CompactFilters,
-	uint Blocks);
+	SyncProgressCardModel Peers,
+	SyncProgressCardModel BlockHeaders,
+	SyncProgressCardModel FilterHeaders,
+	SyncProgressCardModel CompactFilters,
+	SyncProgressCardModel Blocks);
 
 public partial class WalletLoadWorkflow
 {
+	private const uint TargetPeers = 12;
+
 	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
-	private uint _latestProcessBlockHeight;
-	private int _peers;
+	private uint _peers;
 	private uint _blockHeadersTip;
 	private uint _filterHeadersTip;
 	private uint _compactFiltersTip;
+	private uint _downloadedBlocks;
 	private readonly Subject<WalletLoadProgress> _progress;
 	[AutoNotify] private bool _isLoading;
+
+	// Initial values for progress calculation
+	private uint _initialBlockHeaders;
+	private uint _initialFilterHeaders;
+	private uint _initialCompactFilters;
 
 	public WalletLoadWorkflow(IServices services, Wallet wallet)
 	{
@@ -43,31 +56,27 @@ public partial class WalletLoadWorkflow
 
 		var tipHeight = services.GetTipHeight();
 		var blockHeadersTip = services.GetBlockHeadersTipHeight();
+		var serverTipHeight = services.GetServerTipHeight();
 		var peerCount = services.GetPeerCount();
+
+		// Store initial values for progress calculation
+		_initialBlockHeaders = blockHeadersTip;
+		_initialFilterHeaders = tipHeight;
+		_initialCompactFilters = tipHeight;
 
 		_blockHeadersTip = blockHeadersTip;
 		_filterHeadersTip = tipHeight;
 		_compactFiltersTip = tipHeight;
-		_peers = peerCount;
+		_peers = (uint)peerCount;
+		_downloadedBlocks = 0;
 
 		_progress.OnNext(new WalletLoadProgress(
-			RemainingFiltersToDownload: 0,
-			CurrentHeight: tipHeight,
-			ChainTip: services.GetServerTipHeight(),
-			Percent: 0,
-			Peers: peerCount,
-			BlockHeaders: blockHeadersTip,
-			FilterHeaders: tipHeight,
-			CompactFilters: tipHeight,
-			Blocks: services.GetServerTipHeight()));
-
-		services.EventBus.AsObservable<NetworkTipHeightChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(x => x.Height)
-			.Sample(TimeSpan.FromSeconds(1))
-			.StartWith(_wallet.KeyManager.GetBestHeight())
-			.Subscribe(x => _latestProcessBlockHeight = x)
-			.DisposeWith(_disposables);
+			ChainTip: serverTipHeight,
+			Peers: new SyncProgressCardModel(0, _peers, TargetPeers),
+			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _initialBlockHeaders, serverTipHeight),
+			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _initialFilterHeaders, serverTipHeight),
+			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _initialCompactFilters, serverTipHeight),
+			Blocks: new SyncProgressCardModel(0, 0, 0)));
 
 		services.EventBus.AsObservable<P2pNodeAdded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -91,7 +100,17 @@ public partial class WalletLoadWorkflow
 
 		services.EventBus.AsObservable<ClientTipHeightChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => _compactFiltersTip = x.Height)
+			.Subscribe(x =>
+			{
+				_compactFiltersTip = x.Height;
+				// Initially the filters' height is initialized but the filter headers' is not
+				_filterHeadersTip = uint.Max(_filterHeadersTip, _compactFiltersTip);
+			})
+			.DisposeWith(_disposables);
+
+		services.EventBus.AsObservable<BlockDownloaded>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(x => _downloadedBlocks = _downloadedBlocks + 1)
 			.DisposeWith(_disposables);
 
 		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
@@ -104,9 +123,6 @@ public partial class WalletLoadWorkflow
 	public IObservable<WalletLoadProgress> Progress => _progress;
 
 	public IObservable<Unit> LoadCompleted { get; }
-
-	private uint InitialHeight { get; set; }
-	private uint RemainingFiltersToDownload => (uint)_services.GetHashesLeft();
 
 	public void Start()
 	{
@@ -130,7 +146,6 @@ public partial class WalletLoadWorkflow
 	private async Task LoadWalletAsync()
 	{
 		IsLoading = true;
-		InitialHeight = _wallet.KeyManager.GetBestHeight().Height;
 
 		await WaitForHeightsAsync().ConfigureAwait(false);
 
@@ -167,23 +182,13 @@ public partial class WalletLoadWorkflow
 		var clientTipHeight = _services.GetTipHeight();
 
 		var tipHeight = Math.Max(serverTipHeight, clientTipHeight);
-		if (_latestProcessBlockHeight == 0 || tipHeight == 0)
-		{
-			return;
-		}
-
-		var currentHeight = _latestProcessBlockHeight;
-		var percentProgress = 100 * ((currentHeight - InitialHeight) / (double)(tipHeight - InitialHeight));
 
 		_progress.OnNext(new WalletLoadProgress(
-			RemainingFiltersToDownload: RemainingFiltersToDownload,
-			CurrentHeight: currentHeight,
 			ChainTip: tipHeight,
-			Percent: percentProgress,
-			Peers: _peers,
-			BlockHeaders: _blockHeadersTip,
-			FilterHeaders: _filterHeadersTip,
-			CompactFilters: _compactFiltersTip,
-			Blocks: tipHeight));
+			Peers: new SyncProgressCardModel(0, _peers, TargetPeers),
+			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _blockHeadersTip, tipHeight),
+			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _filterHeadersTip, tipHeight),
+			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _compactFiltersTip, tipHeight),
+			Blocks: new SyncProgressCardModel(0, _downloadedBlocks, _downloadedBlocks + 10)));
 	}
 }
