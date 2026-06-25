@@ -121,6 +121,7 @@ public class WalletFilterProcessor : BackgroundService
 				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancel).ConfigureAwait(false);
 				if (currentBlock is { })
 				{
+					_eventBus.Publish(new BlockDownloaded(filter.Header.Height));
 					var txsToProcess = new List<SmartTransaction>();
 					for (int i = 0; i < currentBlock.Transactions.Count; i++)
 					{

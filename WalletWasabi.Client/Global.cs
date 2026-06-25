@@ -393,7 +393,7 @@ public class Global
 				_ =>
 				{
 					var tip = FilterStore.GetTip()!.Header;
-					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
+					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
 					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
@@ -745,6 +745,8 @@ public class Global
 	}
 
 	public ImmutableArray<Node> GetNodes() => _nodeConnectionManager.Nodes;
+	public uint GetBlockHeadersTipHeight() => (uint)(_blockHeaders.Tip?.Height ?? 0);
+	public int GetPeerCount() => _nodeConnectionManager.Nodes.Length;
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.
