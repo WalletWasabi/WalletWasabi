@@ -103,6 +103,18 @@
               </SubActionButton.SubCommands>
             </SubActionButton>
 
+
+            <Panel>
+              <Button Classes="function"
+                      IsVisible="{Binding IsDonateButtonVisible}"
+                      Command="{Binding DonateCommand}">
+                <StackPanel Orientation="Horizontal">
+                  <PathIcon Data="{StaticResource gift}" />
+                  <TextBlock Text="Donate" />
+                </StackPanel>
+              </Button>
+            </Panel>
+
             <!-- Three-dot button -->
             <Button Classes="transparentFunction">
               <Button.Flyout>
