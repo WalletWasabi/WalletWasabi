@@ -509,7 +509,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		AssertWalletIsLoaded();
 
-		coinJoinManager.RequestCoinJoinStopAsync(activeWallet).ConfigureAwait(false);
+		coinJoinManager.RequestCoinJoinStop(activeWallet);
 	}
 
 	[JsonRpcMethod("getfeerates", initializable: false)]

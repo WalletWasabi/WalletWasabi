@@ -88,7 +88,7 @@ public class CoinJoinManager : BackgroundService
 		_mailboxProcessor.Post(command);
 	}
 
-	public async Task RequestCoinJoinStopAsync(Wallet wallet)
+	public void RequestCoinJoinStop(Wallet wallet)
 	{
 		_mailboxProcessor.Post(new StopCoinJoinCommand(wallet));
 	}
@@ -738,7 +738,7 @@ public class CoinJoinManager : BackgroundService
 			_state.WalletsBlockedByUi[wallet.WalletId] = new UiBlockedStateHolder(NeedRestart: true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet);
 		}
 
-		await RequestCoinJoinStopAsync(wallet).ConfigureAwait(false);
+		RequestCoinJoinStop(wallet);
 	}
 
 	public async Task SignalToStopCoinjoinsAsync()
@@ -751,7 +751,7 @@ public class CoinJoinManager : BackgroundService
 				{
 					_state.WalletsBlockedByUi[wallet.WalletId] = new UiBlockedStateHolder(true, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop, stateHolder.OutputWallet);
 				}
-				await RequestCoinJoinStopAsync(wallet).ConfigureAwait(false);
+				RequestCoinJoinStop(wallet);
 			}
 		}
 	}

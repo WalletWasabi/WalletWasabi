@@ -95,6 +95,6 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StopAsync()
 	{
-		await _coinJoinManager.RequestCoinJoinStopAsync(_wallet);
+		_coinJoinManager.RequestCoinJoinStop(_wallet);
 	}
 }
