@@ -134,7 +134,7 @@ jobs:
           name: packages-zip-dmg
           path: ./packages
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.SIGNING_PGP_KEY }}
           passphrase: ${{ secrets.SIGNING_PGP_PASSPHRASE }}
@@ -148,7 +148,7 @@ jobs:
       - name: Create release note
         run: bash -x ./Contrib/release.sh releasenote > ReleaseNote.md
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Wasabi Wallet ${{ github.ref_name }}
           files: ./packages/*
