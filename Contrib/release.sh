@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+#!nix-shell -i bash -p zip dpkg
 
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
@@ -372,19 +373,17 @@ mkdir -p "$BUILD_INSTALLER_DIR"
 # Remove unwanted file
 rm $PACKAGES_DIR/*.wixpdb
 
-  # Define paths (using your existing variables)
-  SIGNTOOL="C:/Program Files (x86)/Windows Kits/10/bin/10.0.26100.0/x64/signtool.exe"
+# Define paths (using your existing variables)
+SIGNTOOL="azuresigntool"
 
-  METADATA=metadata.json
-  echo '
-  {
-    "Endpoint": "https://eus.codesigning.azure.net",
-    "CodeSigningAccountName": "WasabiWallet",
-    "CertificateProfileName": "WasabiWallet"
-  }' > $METADATA
-
-  DLIB="$APPDATA/../Local/Microsoft/MicrosoftTrustedSigningClientTools/Azure.CodeSigning.Dlib.dll"
-  "$SIGNTOOL" Sign -v -debug -tr 'http://timestamp.digicert.com' -d "Wasabi Wallet" -fd SHA256 -td SHA256 -dlib "$DLIB" -dmdf "$METADATA"  "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+"$SIGNTOOL" sign \
+    -kvu "https://wasabiwallet.vault.azure.net/" \
+    -kvc "WasabiCodeSignCert" \
+    -kvi "$AZURE_CLIENT_ID" \
+    -kvs "$AZURE_CLIENT_SECRET" \
+    --azure-key-vault-tenant-id "$AZURE_TENANT_ID" \
+    -tr "http://timestamp.digicert.com" \
+    "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 fi
 
 #------------------------------------------------------------------------------------#
