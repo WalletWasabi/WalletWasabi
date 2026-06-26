@@ -72,7 +72,7 @@ public class CoinJoinManager : BackgroundService
 
 	#region Public API (Start | Stop | TryGetWalletStatus)
 
-	public async Task RequestCoinJoinStartAsync(Wallet wallet, Wallet outputWallet, bool stopWhenAllMixed, bool overridePlebStop)
+	public void RequestCoinJoinStart(Wallet wallet, Wallet outputWallet, bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		var coinSelectionResult = GetCoinSelection(wallet);
 		var coinCandidates = coinSelectionResult.CandidateCoins;
@@ -410,7 +410,7 @@ public class CoinJoinManager : BackgroundService
 
 				if (trackedAutoStarts.TryRemove(walletToStart.WalletId, out _))
 				{
-					await RequestCoinJoinStartAsync(walletToStart, outputWallet, stopWhenAllMixed, overridePlebStop).ConfigureAwait(false);
+					RequestCoinJoinStart(walletToStart, outputWallet, stopWhenAllMixed, overridePlebStop);
 				}
 				else
 				{
@@ -714,7 +714,7 @@ public class CoinJoinManager : BackgroundService
 
 		if (stateHolder.NeedRestart)
 		{
-			Task.Run(async () => await RequestCoinJoinStartAsync(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop).ConfigureAwait(false));
+			Task.Run(async () => RequestCoinJoinStart(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop));
 		}
 	}
 
@@ -762,7 +762,7 @@ public class CoinJoinManager : BackgroundService
 		{
 			if (_state.WalletsBlockedByUi.TryRemove(wallet.WalletId, out var stateHolder) && stateHolder.NeedRestart)
 			{
-				await RequestCoinJoinStartAsync(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop).ConfigureAwait(false);
+				RequestCoinJoinStart(wallet, stateHolder.OutputWallet, stateHolder.StopWhenAllMixed, stateHolder.OverridePlebStop);
 			}
 		}
 	}
