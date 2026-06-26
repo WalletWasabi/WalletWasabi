@@ -281,7 +281,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task<CoinSelectionResult> GetCoinSelectionAsync(Wallet wallet)
 	{
-		var coinCandidates = new CoinsView(await wallet.GetCoinjoinCoinCandidatesAsync().ConfigureAwait(false))
+		var coinCandidates = new CoinsView(wallet.GetCoinjoinCoinCandidates())
 			.Available()
 			.Where(x => !_coinRefrigerator.IsFrozen(x))
 			.ToArray();
