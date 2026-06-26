@@ -74,7 +74,8 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task RequestCoinJoinStartAsync(Wallet wallet, Wallet outputWallet, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		var coinCandidates = (GetCoinSelection(wallet)).CandidateCoins;
+		var coinSelectionResult = GetCoinSelection(wallet);
+		var coinCandidates = coinSelectionResult.CandidateCoins;
 
 		if (overridePlebStop && !IsUnderPlebStop(coinCandidates, wallet.PlebStopThreshold))
 		{
