@@ -74,7 +74,7 @@ public class CoinJoinManager : BackgroundService
 
 	public async Task RequestCoinJoinStartAsync(Wallet wallet, Wallet outputWallet, bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		var coinCandidates = (await GetCoinSelectionAsync(wallet).ConfigureAwait(false)).CandidateCoins;
+		var coinCandidates = (GetCoinSelection(wallet)).CandidateCoins;
 
 		if (overridePlebStop && !IsUnderPlebStop(coinCandidates, wallet.PlebStopThreshold))
 		{
@@ -279,7 +279,7 @@ public class CoinJoinManager : BackgroundService
 		public CoinSelectionResult() : this([], [], [], [], []) { }
 	}
 
-	private async Task<CoinSelectionResult> GetCoinSelectionAsync(Wallet wallet)
+	private CoinSelectionResult GetCoinSelection(Wallet wallet)
 	{
 		var coinCandidates = new CoinsView(wallet.GetCoinjoinCoinCandidates())
 			.Available()
@@ -315,7 +315,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(Wallet wallet)
 	{
-		var result = await GetCoinSelectionAsync(wallet).ConfigureAwait(false);
+		var result = GetCoinSelection(wallet);
 
 		if (result.CandidateCoins.Length > 0)
 		{
