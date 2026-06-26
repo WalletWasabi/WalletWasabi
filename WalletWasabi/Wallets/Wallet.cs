@@ -122,8 +122,6 @@ public class Wallet : BackgroundService
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
-	public Task<IEnumerable<SmartTransaction>> GetTransactionsAsync() => Task.FromResult(GetTransactions());
-
 	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
 
 	/// <summary>

@@ -36,7 +36,7 @@ public class LiquidityClueProvider
 
 	public async Task InitLiquidityClueAsync(Wallet wallet)
 	{
-		var transactions = await wallet.GetTransactionsAsync().ConfigureAwait(false);
+		var transactions = wallet.GetTransactions();
 		if (transactions.LastOrDefault(x => x.IsOwnCoinjoin()) is { } lastCoinJoin)
 		{
 			InitLiquidityClue(lastCoinJoin.Transaction, lastCoinJoin.WalletOutputs.Select(x => x.TxOut));
