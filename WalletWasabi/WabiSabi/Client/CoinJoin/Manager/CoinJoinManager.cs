@@ -137,7 +137,7 @@ public class CoinJoinManager : BackgroundService
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory);
+						HandleStartCoinJoinCommand(startCommand, coinJoinTrackerFactory);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
@@ -164,7 +164,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private async void HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
+	private void HandleStartCoinJoinCommand(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
 	{
 		var walletToStart = startCommand.Wallet;
 
