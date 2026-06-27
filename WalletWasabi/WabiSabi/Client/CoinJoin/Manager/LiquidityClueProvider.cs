@@ -1,7 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Helpers;
@@ -34,7 +33,7 @@ public class LiquidityClueProvider
 	public void InitLiquidityClue(Transaction lastCoinJoin, IEnumerable<TxOut> walletTxOuts) =>
 		InitLiquidityClue(GetForeignOutputsValues(lastCoinJoin, walletTxOuts));
 
-	public async Task InitLiquidityClueAsync(Wallet wallet)
+	public void InitLiquidityClue(Wallet wallet)
 	{
 		var transactions = wallet.GetTransactions();
 		if (transactions.LastOrDefault(x => x.IsOwnCoinjoin()) is { } lastCoinJoin)

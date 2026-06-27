@@ -137,7 +137,7 @@ public class CoinJoinManager : BackgroundService
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory);
+						HandleStartCoinJoinCommand(startCommand, coinJoinTrackerFactory);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
@@ -164,7 +164,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private async void HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
+	private void HandleStartCoinJoinCommand(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
 	{
 		var walletToStart = startCommand.Wallet;
 
@@ -186,14 +186,14 @@ public class CoinJoinManager : BackgroundService
 			return;
 		}
 
-		async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
+		IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
 		{
 			if (_state.WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
 			{
 				throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 			}
 
-			var coinSelectionResult = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
+			var coinSelectionResult = SelectCandidateCoins(walletToStart);
 			var coinCandidates = coinSelectionResult.CandidateCoins;
 
 			if (IsUnderPlebStop(coinCandidates, walletToStart.PlebStopThreshold) && !startCommand.OverridePlebStop)
@@ -232,7 +232,7 @@ public class CoinJoinManager : BackgroundService
 			return coinCandidates;
 		}
 
-		var coinJoinTracker = await coinJoinTrackerFactory.CreateAndStartAsync(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop).ConfigureAwait(false);
+		var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
 
 		if (!_state.TrackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
 		{
@@ -314,7 +314,7 @@ public class CoinJoinManager : BackgroundService
 			excludedCoins);
 	}
 
-	private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(Wallet wallet)
+	private CoinSelectionResult SelectCandidateCoins(Wallet wallet)
 	{
 		var result = GetCoinSelection(wallet);
 

@@ -58,7 +58,7 @@ public class CoinJoinClient
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
 
-	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = ImmutableList<SmartCoin>.Empty;
+	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = [];
 
 	private readonly SecureRandom _secureRandom;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
@@ -128,7 +128,7 @@ public class CoinJoinClient
 		return roundState;
 	}
 
-	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<Task<IEnumerable<SmartCoin>>> coinCandidatesFunc, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartCoinJoinAsync(Func<IEnumerable<SmartCoin>> coinCandidatesFunc, CancellationToken cancellationToken)
 	{
 		RoundState? currentRoundState;
 		uint256 excludeRound = uint256.Zero;
@@ -138,7 +138,7 @@ public class CoinJoinClient
 		do
 		{
 			// Sanity check if we would get coins at all otherwise this will throw.
-			await coinCandidatesFunc().ConfigureAwait(false);
+			coinCandidatesFunc();
 
 			currentRoundState = await WaitForRoundAsync(excludeRound, cancellationToken).ConfigureAwait(false);
 			RoundParameters roundParameters = currentRoundState.CoinjoinState.Parameters;
@@ -159,7 +159,7 @@ public class CoinJoinClient
 				}
 			}
 
-			coinCandidates = await coinCandidatesFunc().ConfigureAwait(false);
+			coinCandidates = coinCandidatesFunc();
 
 			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes.ToArray());

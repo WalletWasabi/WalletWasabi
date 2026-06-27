@@ -95,7 +95,7 @@ internal class Participant
 			.ToList();
 
 		// Run the coinjoin client task.
-		var result = await coinJoinClient.StartCoinJoinAsync(async () => await Task.FromResult(smartCoins), cancellationToken).ConfigureAwait(false);
+		var result = await coinJoinClient.StartCoinJoinAsync(() => smartCoins, cancellationToken).ConfigureAwait(false);
 
 		return result;
 	}
