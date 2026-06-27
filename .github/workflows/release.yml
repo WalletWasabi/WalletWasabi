@@ -4,6 +4,7 @@ on:
   push:
     tags:
       - 'v*'  # Triggers on tags that start with 'v'
+  workflow_dispatch:  # Allows manual triggering from GitHub UI
 
 jobs:
   debian-package-and-zips:
@@ -49,11 +50,8 @@ jobs:
         choco install wixtoolset --version=3.14.1 --force
         choco install 7zip.commandline
 
-    - name: Install Windows SDK
-      run: choco install windows-sdk-10.1
-
-    - name: Install Trusted Signing Tools
-      run: choco install trusted-signing-client-tools -y --force --version=1.0.0
+    - name: Install AzureSignTool
+      run: dotnet tool install --global AzureSignTool
 
     - name: Build Windows Installer
       shell: bash
@@ -61,9 +59,9 @@ jobs:
         set -x
         ./Contrib/release.sh wininstaller
       env:
-        AZURE_TENANT_ID: ${{ secrets.AZURE_TS_TENANT_ID }}
-        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_TS_SECRET }}
-        AZURE_CLIENT_ID: ${{ secrets.AZURE_TS_APP_ID }}
+        AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+        AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+        AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
 
     - name: Upload windows installer
       uses: actions/upload-artifact@v4
@@ -136,7 +134,7 @@ jobs:
           name: packages-zip-dmg
           path: ./packages
       - name: Import GPG key
-        uses: crazy-max/ghaction-import-gpg@v6
+        uses: crazy-max/ghaction-import-gpg@v7
         with:
           gpg_private_key: ${{ secrets.SIGNING_PGP_KEY }}
           passphrase: ${{ secrets.SIGNING_PGP_PASSPHRASE }}
@@ -150,7 +148,7 @@ jobs:
       - name: Create release note
         run: bash -x ./Contrib/release.sh releasenote > ReleaseNote.md
       - name: Release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           name: Wasabi Wallet ${{ github.ref_name }}
           files: ./packages/*
