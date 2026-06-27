@@ -186,7 +186,7 @@ public class CoinJoinManager : BackgroundService
 			return;
 		}
 
-		async Task<IEnumerable<SmartCoin>> SanityChecksAndGetCoinCandidatesFunc()
+		IEnumerable<SmartCoin> SanityChecksAndGetCoinCandidatesFunc()
 		{
 			if (_state.WalletsBlockedByUi.ContainsKey(walletToStart.WalletId))
 			{
