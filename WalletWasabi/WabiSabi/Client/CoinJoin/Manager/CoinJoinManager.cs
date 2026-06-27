@@ -193,7 +193,7 @@ public class CoinJoinManager : BackgroundService
 				throw new CoinJoinClientException(CoinjoinError.UserInSendWorkflow);
 			}
 
-			var coinSelectionResult = await SelectCandidateCoinsAsync(walletToStart).ConfigureAwait(false);
+			var coinSelectionResult = SelectCandidateCoins(walletToStart);
 			var coinCandidates = coinSelectionResult.CandidateCoins;
 
 			if (IsUnderPlebStop(coinCandidates, walletToStart.PlebStopThreshold) && !startCommand.OverridePlebStop)
@@ -314,7 +314,7 @@ public class CoinJoinManager : BackgroundService
 			excludedCoins);
 	}
 
-	private async Task<CoinSelectionResult> SelectCandidateCoinsAsync(Wallet wallet)
+	private CoinSelectionResult SelectCandidateCoins(Wallet wallet)
 	{
 		var result = GetCoinSelection(wallet);
 
