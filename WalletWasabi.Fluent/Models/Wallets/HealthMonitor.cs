@@ -6,7 +6,6 @@ using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
 
@@ -28,14 +27,18 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
-	private const string NoBitcoinRpcDetectedConfigured = "Not detected/configured";
+
+	private const string NoBitcoinRpcConfigured = "Not configured";
+	private const string NoBitcoinRpcDetected = "Not detected";
 
 	public HealthMonitor(IServices services, TorStatusCheckerModel torStatusChecker)
 	{
 		// Do not make it dynamic, because if you change this config settings only next time will it activate.
 		UseTor = services.GetUseTor();
 		TorStatus = UseTor == TorMode.Disabled ? TorStatus.TurnedOff : TorStatus.NotRunning;
-		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail(NoBitcoinRpcDetectedConfigured);
+
+		var statusMessage = string.IsNullOrWhiteSpace(services.Config.BitcoinRpcUri) ? NoBitcoinRpcConfigured : NoBitcoinRpcDetected;
+		_bitcoinRpcStatus = Result<ConnectedRpcStatus, string>.Fail(statusMessage);
 
 		// Priority Fee
 		services.EventBus.AsObservable<MiningFeeRatesChanged>()
@@ -179,7 +182,7 @@ public partial class HealthMonitor : ReactiveObject
 					? HealthMonitorState.Ready
 					: HealthMonitorState.BitcoinRpcSynchronizing
 				: HealthMonitorState.Loading,
-			e => e == NoBitcoinRpcDetectedConfigured
+			e => e == NoBitcoinRpcConfigured || e == NoBitcoinRpcDetected
 				? HealthMonitorState.Ready
 				: HealthMonitorState.BitcoinRpcIssueDetected);
 	}
