@@ -318,7 +318,7 @@ public class Global
 			return null;
 		}
 
-		// Use Tor only if the address ends with .onion
+		// Use Tor only if the address ends with .onion. Especially, do not use Tor for loopback (i.e. `localhost`).
 		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 		{
 			internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
