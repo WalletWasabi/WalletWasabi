@@ -111,7 +111,7 @@ public class Global
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
-		var broadcasters = CreateBroadcasters(_p2pConnectionManager, _mempoolService);
+		var broadcasters = CreateBroadcasters(p2PNodeListProvider: () => _p2pConnectionManager.Nodes, _mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
@@ -155,10 +155,10 @@ public class Global
 
 	private string GetBitcoinP2PNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
-	private BlockProvider ConfigureBlockProvider(IP2pConnectionManager p2pConnectionManager, FileSystemBlockRepository fileSystemBlockRepository)
+	private BlockProvider ConfigureBlockProvider(P2pConnectionManager p2pConnectionManager, FileSystemBlockRepository fileSystemBlockRepository)
 	{
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager, EventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager.GetSingleUseNodeAsync, EventBus);
 
 		BlockProvider[] blockProviders = _bitcoinRpcClient is null
 			? [fileSystemBlockProvider, p2PBlockProvider]
@@ -721,11 +721,11 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(IP2pConnectionManager nodes, MempoolService mempoolService)
+	private List<IBroadcaster> CreateBroadcasters(P2pNodeListProvider p2PNodeListProvider, MempoolService mempoolService)
 	{
 		List<IBroadcaster> result =
 		[
-			new NetworkBroadcaster(mempoolService, nodes)
+			new NetworkBroadcaster(mempoolService, p2PNodeListProvider)
 		];
 
 		if (_bitcoinRpcClient is not null)

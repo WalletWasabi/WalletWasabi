@@ -162,21 +162,21 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, IP2pConnectionManager p2pConnectionManager) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvider p2pNodeListProvider) : IBroadcaster
 {
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		var connectedNodes = p2pConnectionManager.Nodes.Where(x => x.IsConnected).ToArray();
+		var connectedNodes = p2pNodeListProvider();
 		if (connectedNodes.Length < MinBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
 
-		Node[] nodesWillingToRelayTx = connectedNodes;
+		var nodesWillingToRelayTx = connectedNodes;
 		if (tx.TryGetFeeRate(out var txFeeRate))
 		{
-			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToArray();
+			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToImmutableArray();
 			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
 			{
 				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)

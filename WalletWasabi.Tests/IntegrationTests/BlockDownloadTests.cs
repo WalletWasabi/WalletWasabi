@@ -44,7 +44,7 @@ public class BlockDownloadTests
 			}
 		});
 
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager, eventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager.GetSingleUseNodeAsync, eventBus);
 
 		var tasks = new List<Task<Block?>>();
 

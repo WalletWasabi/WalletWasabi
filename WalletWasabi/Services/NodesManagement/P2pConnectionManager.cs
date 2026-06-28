@@ -17,22 +17,15 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public interface IP2pConnectionManager
-{
-	ImmutableArray<Node> Nodes { get; }
+public delegate void DisconnectP2pNodeMethod(bool disconnectOnlyIfEnoughPeers, string disconnectReason);
+public record SingleUseP2pNode(Node Node, double Timeout, Action<bool> IncreaseTimeout, DisconnectP2pNodeMethod Disconnect);
 
-	Task<Node> GetNodeForSingleUseAsync(CancellationToken cancellationToken);
+public delegate Task<SingleUseP2pNode> SingleUseP2pNodeProvider(CancellationToken cancellationToken);
 
-	void DisconnectNode(Node node, string reason);
+/// <summary>Snapshot of currently connected P2P nodes.</summary>
+public delegate ImmutableArray<Node> P2pNodeListProvider();
 
-	void DisconnectNodeIfEnoughPeers(Node node, string reason);
-
-	double GetCurrentTimeout();
-
-	void UpdateTimeout(bool increaseDecrease);
-}
-
-public class P2pConnectionManager : IP2pConnectionManager, IDisposable
+public class P2pConnectionManager : IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
@@ -86,7 +79,7 @@ public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 		_torSocks5 = torSocks5;
 	}
 
-	public ImmutableArray<Node> Nodes => [.._connectedNodes.Values.Select(x => x.Node)];
+	public ImmutableArray<Node> Nodes => _connectedNodes.Values.Select(x => x.Node).Where(x => x.IsConnected).ToImmutableArray();
 
 	public void AddBehavior(NodeBehavior behavior)
 	{
@@ -173,7 +166,7 @@ public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 		}
 	}
 
-	public async Task<Node> GetNodeForSingleUseAsync(CancellationToken cancellationToken)
+	public async Task<SingleUseP2pNode> GetSingleUseNodeAsync(CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
@@ -188,10 +181,10 @@ public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 
 			if (node is not null && node.IsConnected)
 			{
-				return node;
+				return new SingleUseP2pNode(node, GetCurrentTimeout(), UpdateTimeout, (disconnectOnlyIfEnoughPeers, reason) => DisconnectNode(node, reason, disconnectOnlyIfEnoughPeers));
 			}
-			Logger.LogTrace($"Selected node is null or disconnected.");
 
+			Logger.LogTrace("Selected node is null or disconnected.");
 			await Task.Delay(10, cancellationToken).ConfigureAwait(false);
 		}
 
@@ -199,29 +192,27 @@ public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 		throw new InvalidOperationException("Failed to retrieve a connected node.");
 	}
 
-	public void DisconnectNodeIfEnoughPeers(Node node, string reason)
+	public void DisconnectNode(Node node, string reason, bool disconnectOnlyIfEnoughPeers = false)
 	{
-		// Always keep at least 5 nodes connected
-		if (Nodes.Length <= 5)
+		if (disconnectOnlyIfEnoughPeers)
 		{
-			return;
+			// Always keep at least 5 nodes connected
+			if (Nodes.Length <= 5)
+			{
+				return;
+			}
+
+			if (node.SupportsCompactFilters)
+			{
+				return;
+			}
 		}
 
-		if (node.SupportsCompactFilters)
-		{
-			return;
-		}
-
-		DisconnectNode(node, reason);
-	}
-
-	public void DisconnectNode(Node node, string reason)
-	{
 		Logger.LogInfo(reason);
 		node.DisconnectAsync(reason);
 	}
 
-	public double GetCurrentTimeout()
+	private double GetCurrentTimeout()
 	{
 		// More permissive timeout if few nodes are connected to avoid exhaustion.
 		return Nodes.Length < 3
@@ -232,7 +223,7 @@ public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 	/// </summary>
-	public void UpdateTimeout(bool increaseDecrease)
+	private void UpdateTimeout(bool increaseDecrease)
 	{
 		if (increaseDecrease)
 		{
