@@ -1,11 +1,8 @@
-using System.Linq;
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Wallets;
@@ -15,7 +12,7 @@ namespace WalletWasabi.Tests.IntegrationTests;
 
 public class BlockDownloadTests
 {
-	private static readonly uint256[] HeightToBlockHash = [
+	private static readonly uint256[] BlockHashes = [
 		 new uint256("0000000000000000000a6f607f74db48dae0a94022c10354536394c17672b7f7"),
 		 new uint256("0000000000000000000b9cfe321443cb2ced7a4182b8594f077ee4e23d6c2ae2"),
 		 new uint256("0000000000000000000aef4754dfc99fed93f40d8b90d06037075bc59af3ab4d"),
@@ -31,29 +28,27 @@ public class BlockDownloadTests
 	[Fact]
 	public async Task BlockDownloadingTestAsync()
 	{
-		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(10));
-		var addressManager = new AddressManager();
-		AddressManagerBehavior addressManagerBehavior = new(addressManager)
-		{
-			Mode = AddressManagerBehaviorMode.Discover
-		};
-
-		using NodesGroup nodes = new(Network.Main);
-		nodes.NodeConnectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-		nodes.Connect();
-
-		while (nodes.ConnectedNodes.Count == 0)
-		{
-			await Task.Delay(1000, testCts.Token);
-		}
+		using var testCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
 		var eventBus = new EventBus();
-		var nodesRegistry = new TestNodesRegistry(nodes.ConnectedNodes.ToArray());
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry), eventBus);
+		using var nodesRegistry = new NodeConnectionManager(Network.Main, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
+		nodesRegistry.Start(testCts.Token);
+
+		// Ticks are used by the nodes connection manager to re-evaluate connections.
+		var tickTask = Task.Run(async () =>
+		{
+			while (!testCts.IsCancellationRequested)
+			{
+				eventBus.Publish(new Tick(DateTime.UtcNow));
+				await Task.Delay(1000).ConfigureAwait(false);
+			}
+		});
+
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, eventBus);
 
 		var tasks = new List<Task<Block?>>();
 
-		foreach (uint256 blockHash in HeightToBlockHash)
+		foreach (uint256 blockHash in BlockHashes)
 		{
 			var taskCompletionSource = p2PBlockProvider(blockHash, testCts.Token);
 			tasks.Add(taskCompletionSource);
@@ -66,10 +61,10 @@ public class BlockDownloadTests
 			var block = await task;
 			Assert.NotNull(block);
 		}
-	}
 
-	private class TestNodesRegistry(Node[] nodes) : INodesRegistry
-	{
-		public ImmutableArray<Node> Nodes => [..nodes];
+		// Stop the tick task.
+		await testCts.CancelAsync();
+
+		await tickTask;
 	}
 }

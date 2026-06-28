@@ -157,9 +157,8 @@ public class Global
 
 	private BlockProvider ConfigureBlockProvider(INodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
 	{
-		var p2PNodesManager = new P2PNodesManager(Network, nodesRegistry);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager, EventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, EventBus);
 
 		BlockProvider[] blockProviders = _bitcoinRpcClient is null
 			? [fileSystemBlockProvider, p2PBlockProvider]
