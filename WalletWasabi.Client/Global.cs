@@ -92,10 +92,10 @@ public class Global
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
-		_nodeConnectionManager = ConfigureNodeConnectionManager();
+		_p2pConnectionManager = ConfigureNodeConnectionManager();
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(_nodeConnectionManager, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(_p2pConnectionManager, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -111,7 +111,7 @@ public class Global
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
-		var broadcasters = CreateBroadcasters(_nodeConnectionManager, _mempoolService);
+		var broadcasters = CreateBroadcasters(_p2pConnectionManager, _mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
@@ -125,7 +125,7 @@ public class Global
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
-	private readonly NodeConnectionManager _nodeConnectionManager;
+	private readonly P2pConnectionManager _p2pConnectionManager;
 	private TorManager? _torManager;
 	private readonly IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
@@ -155,10 +155,10 @@ public class Global
 
 	private string GetBitcoinP2PNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
-	private BlockProvider ConfigureBlockProvider(INodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
+	private BlockProvider ConfigureBlockProvider(IP2pConnectionManager p2pConnectionManager, FileSystemBlockRepository fileSystemBlockRepository)
 	{
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, EventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager, EventBus);
 
 		BlockProvider[] blockProviders = _bitcoinRpcClient is null
 			? [fileSystemBlockProvider, p2PBlockProvider]
@@ -185,7 +185,7 @@ public class Global
 		return blockHeaders;
 	}
 
-	private NodeConnectionManager ConfigureNodeConnectionManager()
+	private P2pConnectionManager ConfigureNodeConnectionManager()
 	{
 		if (Network == Network.Main)
 		{
@@ -264,7 +264,7 @@ public class Global
 			? new DnsSocksResolver(torEndpoint)
 			: DnsResolver.Instance;
 
-		var manager = new NodeConnectionManager(
+		var manager = new P2pConnectionManager(
 			Network,
 			EventBus,
 			dnsResolver,
@@ -283,7 +283,7 @@ public class Global
 
 	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
 	{
-		_nodeConnectionManager.Start(cancellationToken);
+		_p2pConnectionManager.Start(cancellationToken);
 	}
 
 	private RpcClientBase? ConfigureBitcoinRpcClient()
@@ -393,7 +393,7 @@ public class Global
 				{
 					var tip = FilterStore.GetTip()!.Header;
 					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
-					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
+					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
 				});
@@ -721,7 +721,7 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(INodesRegistry nodes, MempoolService mempoolService)
+	private List<IBroadcaster> CreateBroadcasters(IP2pConnectionManager nodes, MempoolService mempoolService)
 	{
 		List<IBroadcaster> result =
 		[
@@ -743,7 +743,7 @@ public class Global
 		return result;
 	}
 
-	public ImmutableArray<Node> GetNodes() => _nodeConnectionManager.Nodes;
+	public ImmutableArray<Node> GetNodes() => _p2pConnectionManager.Nodes;
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.

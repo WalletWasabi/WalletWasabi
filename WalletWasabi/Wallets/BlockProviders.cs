@@ -30,14 +30,14 @@ public static class BlockProviders
 			}
 		};
 
-	public static BlockProvider P2pBlockProvider(INodesRegistry nodesRegistry, EventBus eventBus) =>
+	public static BlockProvider P2pBlockProvider(IP2pConnectionManager p2pConnectionManager, EventBus eventBus) =>
 		async (blockHash, cancellationToken) =>
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				var node = await nodesRegistry.GetNodeForSingleUseAsync(cancellationToken).ConfigureAwait(false);
+				var node = await p2pConnectionManager.GetNodeForSingleUseAsync(cancellationToken).ConfigureAwait(false);
 
-				double timeout = nodesRegistry.GetCurrentTimeout();
+				double timeout = p2pConnectionManager.GetCurrentTimeout();
 
 				// Download block from the selected node.
 				try
@@ -53,13 +53,13 @@ public static class BlockProviders
 					// Validate block
 					if (!block.Check())
 					{
-						nodesRegistry.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
+						p2pConnectionManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because invalid block received.");
 						eventBus.Publish(new MisbehavingNodeDetected(node.RemoteSocketEndpoint, node));
 						continue;
 					}
 
 					Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-					nodesRegistry.UpdateTimeout(increaseDecrease: false);
+					p2pConnectionManager.UpdateTimeout(increaseDecrease: false);
 
 					return block;
 				}
@@ -67,16 +67,16 @@ public static class BlockProviders
 				{
 					if (ex is OperationCanceledException or TimeoutException)
 					{
-						nodesRegistry.UpdateTimeout(increaseDecrease: true);
+						p2pConnectionManager.UpdateTimeout(increaseDecrease: true);
 
 						// It could be a slow connection and not a misbehaving node.
-						nodesRegistry.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
+						p2pConnectionManager.DisconnectNodeIfEnoughPeers(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download took too long.");
 						eventBus.Publish(new NodeTimeoutDownloadingBlock(node.RemoteSocketEndpoint, node));
 					}
 					else
 					{
 						Logger.LogDebug(ex);
-						nodesRegistry.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
+						p2pConnectionManager.DisconnectNode(node, $"Disconnected node: {node.RemoteSocketAddress}, because block download failed: {ex.Message}.");
 					}
 				}
 			}

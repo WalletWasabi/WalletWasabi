@@ -17,7 +17,7 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public interface INodesRegistry
+public interface IP2pConnectionManager
 {
 	ImmutableArray<Node> Nodes { get; }
 
@@ -32,7 +32,7 @@ public interface INodesRegistry
 	void UpdateTimeout(bool increaseDecrease);
 }
 
-public class NodeConnectionManager : INodesRegistry, IDisposable
+public class P2pConnectionManager : IP2pConnectionManager, IDisposable
 {
 	private const int TargetConnections = 12;
 	private const int MinCompactFilterNodes = 5;
@@ -70,7 +70,7 @@ public class NodeConnectionManager : INodesRegistry, IDisposable
 
 	private bool _isDisposed;
 
-	public NodeConnectionManager(
+	public P2pConnectionManager(
 		Network network,
 		EventBus eventBus,
 		IDnsResolver dnsResolver,

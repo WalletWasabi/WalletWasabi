@@ -162,12 +162,12 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, INodesRegistry nodes) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, IP2pConnectionManager p2pConnectionManager) : IBroadcaster
 {
 	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
-		var connectedNodes = nodes.Nodes.Where(x => x.IsConnected).ToArray();
+		var connectedNodes = p2pConnectionManager.Nodes.Where(x => x.IsConnected).ToArray();
 		if (connectedNodes.Length < MinBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());

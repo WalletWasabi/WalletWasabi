@@ -31,8 +31,8 @@ public class BlockDownloadTests
 		using var testCts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 
 		var eventBus = new EventBus();
-		using var nodesRegistry = new NodeConnectionManager(Network.Main, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
-		nodesRegistry.Start(testCts.Token);
+		using var p2pConnectionManager = new P2pConnectionManager(Network.Main, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
+		p2pConnectionManager.Start(testCts.Token);
 
 		// Ticks are used by the nodes connection manager to re-evaluate connections.
 		var tickTask = Task.Run(async () =>
@@ -44,7 +44,7 @@ public class BlockDownloadTests
 			}
 		});
 
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, eventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager, eventBus);
 
 		var tasks = new List<Task<Block?>>();
 
