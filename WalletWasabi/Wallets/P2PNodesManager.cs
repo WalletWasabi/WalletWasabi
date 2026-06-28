@@ -107,7 +107,7 @@ public class P2PNodesManager
 		}
 
 		// Sanity check
-		var minTimeout = _network == Network.Main ? 3 : 2;
+		var minTimeout = _network == Network.Main ? 10 : 8;
 
 		if (timeout < minTimeout)
 		{
