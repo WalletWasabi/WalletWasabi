@@ -76,8 +76,8 @@ public class WalletFilterProcessor : BackgroundService
 					if (filter is null)
 					{
 						// The wallet being processed had been synchronized until a blockchain height which is higher
-						// than the top filters that Wasabi has received. That means that the filters were
-						// resetted or, the wallet was copied and pasted from a more updated setup.
+						// than the top filters that Wasabi has received. That means that the filters were reset, or
+						// the wallet was copied and pasted from a more updated setup.
 						// Wait for the index store to catch up.
 						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
 						continue;
