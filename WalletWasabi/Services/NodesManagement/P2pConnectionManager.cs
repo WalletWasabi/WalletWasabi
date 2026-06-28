@@ -170,13 +170,14 @@ public class P2pConnectionManager : IDisposable
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			if (Nodes.Length == 0)
+			var nodes = Nodes;
+
+			if (nodes.Length == 0)
 			{
 				await Task.Delay(TimeSpan.FromMilliseconds(100), cancellationToken).ConfigureAwait(false);
 				continue;
 			}
 
-			var nodes = Nodes;
 			var node = nodes.RandomElement(SecureRandom.Instance);
 
 			if (node is not null && node.IsConnected)
