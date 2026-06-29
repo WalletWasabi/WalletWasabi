@@ -3,17 +3,11 @@ using System.IO;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Tests.Helpers;
 
 public static class Common
 {
-	static Common()
-	{
-		Logger.Configure(Path.Combine(DataDir, "Logs.txt"), LogLevel.Info, [LogMode.Debug, LogMode.File]);
-	}
-
 	public static string DataDir => EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Tests"));
 
 	public static string GetWorkDir([CallerFilePath] string callerFilePath = "", [CallerMemberName] string callerMemberName = "")
