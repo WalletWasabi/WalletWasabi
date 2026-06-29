@@ -8,6 +8,7 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.Logging.LoggerTools;
+using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
@@ -39,8 +40,8 @@ public class Round
 
 		CoinjoinState = new ConstructionState(Parameters);
 
-		AmountCredentialIssuer = new(new(random), random, Parameters.MaxAmountCredentialValue);
-		VsizeCredentialIssuer = new(new(random), random, Parameters.MaxVsizeCredentialValue);
+		AmountCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(random), random, Parameters.MaxAmountCredentialValue);
+		VsizeCredentialIssuer = new CredentialIssuer(new CredentialIssuerSecretKey(random), random, Parameters.MaxVsizeCredentialValue);
 		AmountCredentialIssuerParameters = AmountCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 		VsizeCredentialIssuerParameters = VsizeCredentialIssuer.CredentialIssuerSecretKey.ComputeCredentialIssuerParameters();
 
