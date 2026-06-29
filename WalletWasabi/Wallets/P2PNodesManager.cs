@@ -11,12 +11,14 @@ namespace WalletWasabi.Wallets;
 
 public class P2PNodesManager
 {
-	public P2PNodesManager(Network network, INodesRegistry nodeRegistry)
+	public P2PNodesManager(bool isTorEnabled, Network network, INodesRegistry nodeRegistry)
 	{
+		_isTorEnabled = isTorEnabled;
 		_network = network;
 		_nodesRegistry = nodeRegistry;
 	}
 
+	private readonly bool _isTorEnabled;
 	private readonly Network _network;
 	private readonly INodesRegistry _nodesRegistry;
 	private int _timeoutsCounter;
@@ -107,7 +109,10 @@ public class P2PNodesManager
 		}
 
 		// Sanity check
-		var minTimeout = _network == Network.Main ? 10 : 8;
+		var minTimeout = _network == Network.Main ? 3 : 2;
+
+		// Extra cushion for P2P over Tor.
+		minTimeout += _isTorEnabled ? 3 : 0;
 
 		if (timeout < minTimeout)
 		{

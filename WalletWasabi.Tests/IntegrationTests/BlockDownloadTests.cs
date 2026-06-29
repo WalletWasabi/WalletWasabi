@@ -49,7 +49,7 @@ public class BlockDownloadTests
 
 		var eventBus = new EventBus();
 		var nodesRegistry = new TestNodesRegistry(nodes.ConnectedNodes.ToArray());
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry), eventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(isTorEnabled: false, Network.Main, nodesRegistry), eventBus);
 
 		var tasks = new List<Task<Block?>>();
 
