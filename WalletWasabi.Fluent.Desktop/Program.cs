@@ -54,22 +54,22 @@ public class Program
 	public static int Main(string[] args)
 	{
 		// Crash reporting must be before the "single instance checking".
-		Logger.Configure(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
-
-		try
+		if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
 		{
-			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
+			Logger.Configure(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
+
+			try
 			{
 				// Show the exception.
 				BuildCrashReporterApp(exceptionToShow).StartWithClassicDesktopLifetime(args);
 				return 1;
 			}
-		}
-		catch (Exception ex)
-		{
-			// If anything happens here just log it and exit.
-			Logger.LogCritical(ex);
-			return 1;
+			catch (Exception ex)
+			{
+				// If anything happens here just log it and exit.
+				Logger.LogCritical(ex);
+				return 1;
+			}
 		}
 
 		try
