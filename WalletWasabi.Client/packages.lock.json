@@ -179,7 +179,10 @@
       "SQLitePCLRaw.core": {
         "type": "Transitive",
         "resolved": "2.1.11",
-        "contentHash": "PK0GLFkfhZzLQeR3PJf71FmhtHox+U3vcY6ZtswoMjrefkB9k6ErNJEnwXqc5KgXDSjige2XXrezqS39gkpQKA=="
+        "contentHash": "PK0GLFkfhZzLQeR3PJf71FmhtHox+U3vcY6ZtswoMjrefkB9k6ErNJEnwXqc5KgXDSjige2XXrezqS39gkpQKA==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        }
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
@@ -199,6 +202,29 @@
         "resolved": "7.0.0",
         "contentHash": "Ckj+tg2BVOZ0oLp7FAbjfvRyA/BMkUhVxROLd+x22zncRR6KD7CdFzAYp+9Mo2cedxAMo2X9ZNyhZu68jdDITw=="
       },
+      "System.Memory": {
+        "type": "Transitive",
+        "resolved": "4.5.3",
+        "contentHash": "3oDzvc/zzetpTKWMShs1AADwZjQ/36HnsufHRPcOjyRAAMLDlu2iD33MBI2opxnezcVUtXyqDXXjoFMOU9c7SA=="
+      },
+      "System.Text.Encodings.Web": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "yev/k9GHAEGx2Rg3/tU6MQh4HGBXJs70y7j1LaM1i/ER9po+6nnQ6RRqTJn1E7Xu0fbIFK80Nh5EoODxrbxwBQ=="
+      },
+      "System.Text.Json": {
+        "type": "Transitive",
+        "resolved": "8.0.4",
+        "contentHash": "bAkhgDJ88XTsqczoxEMliSrpijKZHhbJQldhAmObj/RbrN3sU5dcokuXmWJWsdQAhiMJ9bTayWsL1C9fbbCRhw==",
+        "dependencies": {
+          "System.Text.Encodings.Web": "8.0.0"
+        }
+      },
+      "System.Threading.Channels": {
+        "type": "Transitive",
+        "resolved": "8.0.0",
+        "contentHash": "CMaFr7v+57RW7uZfZkPExsPB6ljwzhjACWW1gfU35Y56rk72B/Wu+sTqxVmGSk4SFUlPc3cjeKND0zktziyjBA=="
+      },
       "walletwasabi": {
         "type": "Project",
         "dependencies": {
@@ -211,7 +237,7 @@
           "NBitcoin": "[10.0.7, )",
           "NNostr.Client": "[0.0.54, )",
           "System.Linq.Async": "[7.0.0, )",
-          "WabiSabi": "[1.0.1.2, )"
+          "WabiSabi": "[1.1.4, )"
         }
       },
       "Microsoft.AspNetCore.WebUtilities": {
@@ -295,7 +321,9 @@
           "LibChaCha20": "1.0.1",
           "LinqKit.Core": "1.2.5",
           "NBitcoin.Secp256k1": "3.1.6",
-          "System.Interactive.Async": "6.0.1"
+          "System.Interactive.Async": "6.0.1",
+          "System.Text.Json": "8.0.4",
+          "System.Threading.Channels": "8.0.0"
         }
       },
       "System.Linq.Async": {
@@ -309,9 +337,9 @@
       },
       "WabiSabi": {
         "type": "CentralTransitive",
-        "requested": "[1.0.1.2, )",
-        "resolved": "1.0.1.2",
-        "contentHash": "e+pMZGVEfWQvkpZHAydGv6grY71urfO47lodjXC9eWtfSFvNtPWjrgqck9O24yIbXhP4K3QrJKzJQFGpAp8rqg==",
+        "requested": "[1.1.4, )",
+        "resolved": "1.1.4",
+        "contentHash": "mH5u5skRMw3R5YAg1TVvgtGf23ur/o5LGTKPMUYxiXbWuefD/eRGER4KN3/3MfElVKE+CfLepkqWZ+CP24rRgA==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }

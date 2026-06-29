@@ -27,6 +27,7 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
+using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.Tests.Helpers;
 
