@@ -220,7 +220,6 @@ public static class Logger
 		[CallerLineNumber] int callerLineNumber = -1) =>
 		Log(LogLevel.Critical, message, ctx, callerFilePath, callerLineNumber);
 
-	// ReSharper disable ExplicitCallerInfoArgument
 	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogTrace(exception.ToString(), null, callerFilePath, callerLineNumber);
@@ -244,7 +243,6 @@ public static class Logger
 	public static void LogCritical(Exception exception, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
 		LogCritical(exception.ToString(), null, callerFilePath, callerLineNumber);
-	// ReSharper restore ExplicitCallerInfoArgument
 }
 
 public static class LoggerTools
