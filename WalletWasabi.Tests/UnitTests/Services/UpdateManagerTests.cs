@@ -128,15 +128,35 @@ public class UpdateManagerTests
 
 		await updateTask;
 	}
+
+	[Fact]
+	public async Task EmptyRelayResponseCompletesUpdateCheckAsync()
+	{
+		// Arrange
+		var eventBus = new EventBus();
+		var nostrClientFactory = () => new TesteabletNostrClient([], sendEventsReceived: false);
+		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+
+		// Act
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
+
+		// Assert
+		await updateTask.WaitAsync(TimeSpan.FromSeconds(1));
+	}
 }
 
 public class TesteabletNostrClient : INostrClient
 {
 	private readonly ReleaseInfo[] _releases;
+	private readonly bool _sendEventsReceived;
 
-	public TesteabletNostrClient(ReleaseInfo[] releases)
+	public TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true)
 	{
 		_releases = releases;
+		_sendEventsReceived = sendEventsReceived;
 	}
 
 	public void Dispose()
@@ -164,7 +184,10 @@ public class TesteabletNostrClient : INostrClient
 				Tags = [ new NostrEventTag{ TagIdentifier = "version", Data = [r.Version.ToString()] }]
 			}).ToArray();
 
-		EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
+		if (_sendEventsReceived)
+		{
+			EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
+		}
 		EoseReceived?.Invoke(this, subscriptionId);
 		return Task.CompletedTask;
 	}
