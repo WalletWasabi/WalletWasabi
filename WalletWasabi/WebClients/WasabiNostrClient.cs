@@ -16,27 +16,34 @@ public class WasabiNostrClient : IDisposable
 {
 	private readonly Channel<ReleaseInfo> _updateChannel = Channel.CreateUnbounded<ReleaseInfo>();
 	private readonly Dictionary<string, NostrEvent> _events = new();
+	private readonly HashSet<object> _eoseReceivedFrom = new();
 	private readonly INostrClient _nostrClient;
-	private readonly string _nostrSubscriptionID = Guid.NewGuid().ToString();
+	private readonly string _nostrSubscriptionId = Guid.NewGuid().ToString();
+	private int _connectedClientsCount;
 
 	public WasabiNostrClient(INostrClient nostrClient)
 	{
 		_nostrClient = nostrClient;
 		_nostrClient.EventsReceived += OnNostrEventsReceived;
+		_nostrClient.EoseReceived += OnEoseReceived;
 	}
 
 	public ChannelReader<ReleaseInfo> EventsReader => _updateChannel.Reader;
 
-	public async Task ConnectAnsSubscribeAsync(CancellationToken cancel)
+	public async Task ConnectAndSubscribeAsync(CancellationToken cancel)
 	{
 		await _nostrClient.ConnectAndWaitUntilConnected(cancel).ConfigureAwait(false);
+
+		_connectedClientsCount = _nostrClient is CompositeNostrClient composite
+			? composite.States.Count(s => s.Value is WebSocketState.Open)
+			: 1;
 
 		var nostrSubscriptionFilter = new NostrSubscriptionFilter {
 			Kinds = [1],
 			Authors = [NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex()],
 			Limit = 1};
 
-		await _nostrClient.CreateSubscription(_nostrSubscriptionID, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
+		await _nostrClient.CreateSubscription(_nostrSubscriptionId, [nostrSubscriptionFilter], cancel).ConfigureAwait(false);
 	}
 
 	public async Task DisconnectAsync(CancellationToken cancellationToken)
@@ -46,7 +53,7 @@ public class WasabiNostrClient : IDisposable
 
 	private void OnNostrEventsReceived(object? sender, (string subscriptionId, NostrEvent[] events) args)
 	{
-		if (args.subscriptionId != _nostrSubscriptionID)
+		if (args.subscriptionId != _nostrSubscriptionId)
 		{
 			return;
 		}
@@ -72,30 +79,30 @@ public class WasabiNostrClient : IDisposable
 				Logger.LogError($"Invalid Nostr Event received. ID: {nostrEvent.Id}");
 			}
 		}
-
-		CheckAllClientsFinished((INostrClient)sender!);
 	}
 
-	private void CheckAllClientsFinished(INostrClient individualClient)
+	private void OnEoseReceived(object? sender, string subscriptionId)
 	{
-		individualClient.Disconnect();
-
-		if (_nostrClient is CompositeNostrClient multiClient)
+		if (subscriptionId != _nostrSubscriptionId || sender is null)
 		{
-			if (multiClient.States.All(s => s.Value is WebSocketState.Closed or WebSocketState.Aborted))
+			return;
+		}
+
+		lock (_eoseReceivedFrom)
+		{
+			_eoseReceivedFrom.Add(sender);
+
+			if (_eoseReceivedFrom.Count >= _connectedClientsCount)
 			{
 				_updateChannel.Writer.TryComplete();
 			}
-		}
-		else
-		{
-			_updateChannel.Writer.TryComplete();
 		}
 	}
 
 	public void Dispose()
 	{
 		_nostrClient.EventsReceived -= OnNostrEventsReceived;
+		_nostrClient.EoseReceived -= OnEoseReceived;
 	}
 }
 
