@@ -97,7 +97,7 @@
       </PreviewItem>
 
       <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
-      
+
       <!-- Hex -->
       <PreviewItem Icon="{StaticResource binary_file}"
                    Label="Hex"
