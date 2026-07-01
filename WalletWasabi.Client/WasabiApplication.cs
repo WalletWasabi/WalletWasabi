@@ -27,8 +27,8 @@ public class WasabiApplication
 
 		CheckVersionAndHelp();
 		Directory.CreateDirectory(Config.DataDir);
-		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 		SetupLogger();
+		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
 
 		Global = new Global(Config.DataDir, Config);
@@ -458,7 +458,7 @@ public class WasabiApplication
 			? parsedLevel
 			: LogLevel.Info;
 
-		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel, Config.LogModes);
+		Logger.Configure(Path.Combine(Config.DataDir, "Logs.txt"), logLevel, Config.LogModes);
 	}
 
 	private void ShowHelp()
