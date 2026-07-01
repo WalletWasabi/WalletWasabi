@@ -120,7 +120,7 @@
             </StatusItem>
 
             <StatusItem
-              Title="Bitcoin RPC"
+              Title="Bitcoin Node"
               StatusText="{Binding HealthMonitor.BitcoinRpcStatus, Converter={x:Static converters:StatusConverters.RpcStatusStringConverter}}">
               <StatusItem.Icon>
                 <PathIcon Data="{StaticResource btc_logo}" />
