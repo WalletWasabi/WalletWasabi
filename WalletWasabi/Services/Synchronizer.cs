@@ -30,6 +30,8 @@ public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint2
 
 public static class FilterProviders
 {
+	private const int MaxFiltersPerBitcoinRpcRequest = 100;
+
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
 	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters) => new(bestHeight, filters);
@@ -40,23 +42,25 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
-	private static async Task<uint256[]> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
 	ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		if (blockHeaderChain.Tip?.Height > fromHeight)
 		{
-			return blockHeaderChain
+			var chainBlockHashes = blockHeaderChain
 				.EnumerateAfter(fromHash)
 				.Select(x => x.HashBlock)
-				.Take(1_000)
+				.Take(MaxFiltersPerBitcoinRpcRequest)
 				.ToArray();
+
+			return ((uint)blockHeaderChain.Tip.Height, chainBlockHashes);
 		}
 
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(1_000, currentHeight - fromHeight);
+		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - fromHeight);
 		if (nbOfFiltersToFetch == 0)
 		{
-			return [];
+			return ((uint)currentHeight, []);
 		}
 
 		var batchClient = bitcoinRpcClient.PrepareBatch();
@@ -66,14 +70,14 @@ public static class FilterProviders
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
 		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		return blockHashes;
+		return ((uint)currentHeight, blockHashes);
 	}
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var blockHashes = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -99,7 +103,7 @@ public static class FilterProviders
 				height++;
 			}
 
-			return NewFiltersAvailable(height, filters);
+			return NewFiltersAvailable(bestHeight, filters);
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
