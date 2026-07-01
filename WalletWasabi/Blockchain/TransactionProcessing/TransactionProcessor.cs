@@ -262,8 +262,32 @@ public class TransactionProcessor(
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
+		SyncAnonScoresFromSharedTransaction(result.Transaction);
 
 		return result;
+	}
+
+	/// <summary>
+	/// Every loaded wallet shares a single transaction store, hence the same <see cref="SmartTransaction"/>
+	/// instances. <see cref="SmartTransaction.WalletOutputs"/> is a set keyed by outpoint
+	/// (<see cref="SmartCoin"/> equality is outpoint-only), so when the same wallet is loaded more than once
+	/// only the first instance's coin is kept there and gets its anonymity set calculated by the
+	/// <see cref="BlockchainAnalyzer"/>. The other instances' <see cref="HdPubKey"/> objects for the very same
+	/// output are never analyzed and keep the <see cref="HdPubKey.DefaultHighAnonymitySet"/> sentinel
+	/// (<see cref="int.MaxValue"/>), which makes the coin look fully private and silently excludes it from
+	/// coinjoins. Copy the calculated value onto this wallet's own key.
+	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/7453</remarks>
+	/// </summary>
+	private void SyncAnonScoresFromSharedTransaction(SmartTransaction tx)
+	{
+		foreach (var representative in tx.WalletOutputs)
+		{
+			if (KeyManager.TryGetKeyForScriptPubKey(representative.ScriptPubKey, out HdPubKey? ownKey)
+				&& !ReferenceEquals(ownKey, representative.HdPubKey))
+			{
+				ownKey.SetAnonymitySet(representative.HdPubKey.AnonymitySet);
+			}
+		}
 	}
 
 	private bool CanBeConsideredDustAttack(TxOut output, HdPubKey hdPubKey, bool weAreAmongTheSender) =>
