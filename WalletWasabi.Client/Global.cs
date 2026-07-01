@@ -1,3 +1,7 @@
+using NBitcoin;
+using NBitcoin.Protocol;
+using NBitcoin.RPC;
+using Nito.AsyncEx;
 using System;
 using System.Collections.Generic;
 using System.Collections.Immutable;
@@ -8,10 +12,6 @@ using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.RPC;
-using Nito.AsyncEx;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.BlockFilters;
@@ -28,6 +28,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Observability;
 using WalletWasabi.Rpc;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
@@ -89,6 +90,11 @@ public class Global
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
+		_metricManager = new MetricManager();
+		_metricManager.DisposeUsing(_disposables);
+		_metricDisplayService = new MetricDisplayService(_metricManager);
+		_metricDisplayService.DisposeUsing(_disposables);
+
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
@@ -124,7 +130,8 @@ public class Global
 
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
-
+	private readonly MetricManager _metricManager;
+	private readonly MetricDisplayService _metricDisplayService;
 	private readonly NodeConnectionManager _nodeConnectionManager;
 	private TorManager? _torManager;
 	private readonly IRPCClient? _bitcoinRpcClient;
@@ -157,9 +164,8 @@ public class Global
 
 	private BlockProvider ConfigureBlockProvider(INodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
 	{
-		var p2PNodesManager = new P2PNodesManager(Network, nodesRegistry);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager, EventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, EventBus);
 
 		BlockProvider[] blockProviders = _bitcoinRpcClient is null
 			? [fileSystemBlockProvider, p2PBlockProvider]
@@ -557,6 +563,7 @@ public class Global
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken linkedCtsToken = linkedCts.Token;
 
+		await _metricDisplayService.StartAsync(linkedCtsToken).ConfigureAwait(false);
 		ConfigureBitcoinNetwork(linkedCtsToken);
 		ConfigureWasabiUpdater(linkedCtsToken);
 		ConfigureExchangeRateUpdater(linkedCtsToken);
@@ -743,6 +750,7 @@ public class Global
 	}
 
 	public ImmutableArray<Node> GetNodes() => _nodeConnectionManager.Nodes;
+
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.
@@ -827,6 +835,9 @@ public class Global
 
 				_disposables.Dispose();
 				await _asyncDisposables.DisposeAsync().ConfigureAwait(false);
+
+				Logger.LogInfo("Dispose meter listener.");
+				_metricManager.Dispose();
 			}
 			catch (Exception ex)
 			{

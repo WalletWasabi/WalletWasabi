@@ -1,11 +1,8 @@
-using System.Linq;
 using NBitcoin;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
 using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 using WalletWasabi.Wallets;
@@ -32,24 +29,21 @@ public class BlockDownloadTests
 	public async Task BlockDownloadingTestAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(10));
-		var addressManager = new AddressManager();
-		AddressManagerBehavior addressManagerBehavior = new(addressManager)
-		{
-			Mode = AddressManagerBehaviorMode.Discover
-		};
-
-		using NodesGroup nodes = new(Network.Main);
-		nodes.NodeConnectionParameters.TemplateBehaviors.Add(addressManagerBehavior);
-		nodes.Connect();
-
-		while (nodes.ConnectedNodes.Count == 0)
-		{
-			await Task.Delay(1000, testCts.Token);
-		}
 
 		var eventBus = new EventBus();
-		var nodesRegistry = new TestNodesRegistry(nodes.ConnectedNodes.ToArray());
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(new P2PNodesManager(Network.Main, nodesRegistry), eventBus);
+		using var nodesRegistry = new NodeConnectionManager(Network.Main, eventBus, DnsResolver.Instance, connectionTimeout: TimeSpan.FromSeconds(15));
+		nodesRegistry.Start(testCts.Token);
+
+		_ = Task.Run(async () =>
+		{
+			while (true)
+			{
+				eventBus.Publish(new Tick(DateTime.UtcNow));
+				await Task.Delay(1000).ConfigureAwait(false);
+			}
+		});
+
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(nodesRegistry, eventBus);
 
 		var tasks = new List<Task<Block?>>();
 
@@ -66,10 +60,5 @@ public class BlockDownloadTests
 			var block = await task;
 			Assert.NotNull(block);
 		}
-	}
-
-	private class TestNodesRegistry(Node[] nodes) : INodesRegistry
-	{
-		public ImmutableArray<Node> Nodes => [..nodes];
 	}
 }
