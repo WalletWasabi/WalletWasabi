@@ -23,6 +23,7 @@ public class WasabiNostrClient : IDisposable
 	{
 		_nostrClient = nostrClient;
 		_nostrClient.EventsReceived += OnNostrEventsReceived;
+		_nostrClient.EoseReceived += OnEoseReceived;
 	}
 
 	public ChannelReader<ReleaseInfo> EventsReader => _updateChannel.Reader;
@@ -76,6 +77,14 @@ public class WasabiNostrClient : IDisposable
 		CheckAllClientsFinished((INostrClient)sender!);
 	}
 
+	private void OnEoseReceived(object? sender, string subscriptionId)
+	{
+		if (subscriptionId == _nostrSubscriptionID)
+		{
+			CheckAllClientsFinished((INostrClient)sender!);
+		}
+	}
+
 	private void CheckAllClientsFinished(INostrClient individualClient)
 	{
 		individualClient.Disconnect();
@@ -96,6 +105,7 @@ public class WasabiNostrClient : IDisposable
 	public void Dispose()
 	{
 		_nostrClient.EventsReceived -= OnNostrEventsReceived;
+		_nostrClient.EoseReceived -= OnEoseReceived;
 	}
 }
 
