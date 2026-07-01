@@ -16,7 +16,7 @@ namespace WalletWasabi.Helpers;
 public static class EnvironmentHelpers
 {
 	// appName, dataDir
-	private static ConcurrentDictionary<string, string> DataDirDict { get; } = new ConcurrentDictionary<string, string>();
+	private static ConcurrentDictionary<string, string> DataDirDict { get; } = new();
 
 	// Do not change the output of this function. Backwards compatibility depends on it.
 	public static string GetDataDir(string appName)
