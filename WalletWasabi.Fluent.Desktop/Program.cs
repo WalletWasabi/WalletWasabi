@@ -54,7 +54,7 @@ public class Program
 	public static int Main(string[] args)
 	{
 		// Crash reporting must be before the "single instance checking".
-		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
+		Logger.Configure(Path.Combine(Config.DataDir, "Logs.txt"), LogLevel.Info);
 		try
 		{
 			if (CrashReporter.TryGetExceptionFromCliArgs(args, out var exceptionToShow))
