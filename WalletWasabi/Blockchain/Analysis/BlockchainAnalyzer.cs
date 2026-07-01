@@ -68,6 +68,33 @@ public static class BlockchainAnalyzer
 		}
 
 		AnalyzeClusters(tx);
+		ResetUncalculatedAnonScores(tx);
+	}
+
+	/// <summary>
+	/// <see cref="HdPubKey.DefaultHighAnonymitySet"/> (<see cref="int.MaxValue"/>) is a sentinel
+	/// meaning "anonymity set not calculated yet". It must never survive as a coin's actual
+	/// anonymity score, otherwise the coin is wrongly considered fully private and silently
+	/// excluded from coinjoins.
+	/// <para>
+	/// It can leak into a wallet output when the transaction is shared between multiple loaded
+	/// wallets (a single <c>AllTransactionStore</c> is shared app-wide), so its inputs may
+	/// temporarily contain another wallet's not-yet-analyzed keys, whose sentinel value then
+	/// propagates through the input-based anonset calculations above.
+	/// As a fail-safe we treat such an output as freshly received (anonymity set <c>1</c>): the
+	/// least private value, so the coin stays eligible for coinjoin rather than being skipped.
+	/// </para>
+	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/7453</remarks>
+	/// </summary>
+	private static void ResetUncalculatedAnonScores(SmartTransaction tx)
+	{
+		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		{
+			if (key.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
+			{
+				key.SetAnonymitySet(1, tx.GetHash());
+			}
+		}
 	}
 
 	private static void AnalyzeCancellation(SmartTransaction tx)
