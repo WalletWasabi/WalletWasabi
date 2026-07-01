@@ -190,7 +190,7 @@ public partial class MainViewModel : ViewModelBase
 				onClick: () =>
 				{
 					SettingsPage.SelectedTab = 1; // Bitcoin Tab
-					UiContext.Navigate().To(SettingsPage);
+					_ = SettingsPage.Activate();
 				}));
 
 		Notifications.StartListening();

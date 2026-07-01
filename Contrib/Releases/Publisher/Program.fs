@@ -13,11 +13,11 @@ let publishNote note (relay: Uri) =
     let ctx = Communication.buildContext ws Console.Out
     let pushToRelay = Monad.injectedWith ctx (Communication.sender ())
     async {
-        use cts = new CancellationTokenSource(TimeSpan.FromSeconds 10)
+        use cts = new CancellationTokenSource(TimeSpan.FromSeconds 10.0)
         try
             do! ws.ConnectAsync(relay, cts.Token) |> Async.AwaitTask
             pushToRelay (Request.CMEvent note)
-            do! Async.Sleep (TimeSpan.FromSeconds 8)
+            do! Async.Sleep (TimeSpan.FromSeconds 8.0)
             return Ok relay
         with ex ->
             return Error (relay, ex.Message)

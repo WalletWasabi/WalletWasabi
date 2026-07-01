@@ -155,7 +155,7 @@ public partial class BitcoinTabSettingsViewModel : RoutableViewModel
 
 			// Create RPC client
 			var rpcClient = new RPCClient(credentials, BitcoinRpcUri, Settings.Network);
-			if (new Uri(BitcoinRpcUri).DnsSafeHost.EndsWith(".onion"))
+			if (new Uri(BitcoinRpcUri).DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 			{
 				if (Settings.UseTor != TorMode.Disabled)
 				{

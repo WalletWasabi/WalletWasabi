@@ -318,12 +318,10 @@ public class Global
 			return null;
 		}
 
-		// If the RPC URI is not a loopback (i.e., not localhost), then route through Tor
-		var isBitcoinRpcLocal = new Uri(bitcoinRpcUri).IsLoopback;
-		if (!isBitcoinRpcLocal)
+		// Use Tor only if the address ends with .onion. Especially, do not use Tor for loopback (i.e. `localhost`).
+		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 		{
 			internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
-			internalRpcClient.HttpClient.Timeout = TimeSpan.FromMinutes(0.5);
 		}
 
 		return new RpcClientBase(internalRpcClient);
