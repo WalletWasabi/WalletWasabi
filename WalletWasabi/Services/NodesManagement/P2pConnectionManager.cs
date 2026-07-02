@@ -17,10 +17,50 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public delegate void DisconnectP2pNodeMethod(bool disconnectOnlyIfEnoughPeers, string disconnectReason);
-public record SingleUseP2pNode(Node Node, double Timeout, Action<bool> IncreaseTimeout, DisconnectP2pNodeMethod Disconnect);
+public record P2pNodeClient(
+	Node Node,
+	double Timeout,
+	Action<int> IncreaseTimeout,
+	Action<P2pConnectionManager.MisbehaviorType> Error)
+{
+	public async Task<Block?> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
+	{
+		try
+		{
+			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
+			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 
-public delegate Task<SingleUseP2pNode> SingleUseP2pNodeProvider(CancellationToken cancellationToken);
+			// Validate block
+			if (!block.Check())
+			{
+				Error(P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
+				return null;
+			}
+
+			Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+			IncreaseTimeout(-1);
+			return block;
+		}
+		catch (Exception ex)
+		{
+			if (ex is OperationCanceledException or TimeoutException)
+			{
+				IncreaseTimeout(+1);
+				// It could be a slow connection and not a misbehaving node.
+				Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
+			}
+			else
+			{
+				Logger.LogDebug(ex);
+				Error(P2pConnectionManager.MisbehaviorType.Unknown);
+			}
+			return null;
+		}
+	}
+}
+
+public delegate Task<P2pNodeClient> P2pNodeProvider(CancellationToken cancellationToken);
 
 /// <summary>Snapshot of currently connected P2P nodes.</summary>
 public delegate ImmutableArray<Node> P2pNodeListProvider();
@@ -166,7 +206,7 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
-	public async Task<SingleUseP2pNode> GetSingleUseNodeAsync(CancellationToken cancellationToken)
+	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
@@ -182,7 +222,15 @@ public class P2pConnectionManager : IDisposable
 
 			if (node is not null && node.IsConnected)
 			{
-				return new SingleUseP2pNode(node, GetCurrentTimeout(), UpdateTimeout, (disconnectOnlyIfEnoughPeers, reason) => DisconnectNode(node, reason, disconnectOnlyIfEnoughPeers));
+				return new P2pNodeClient(
+					node,
+					GetCurrentTimeout(),
+					UpdateTimeout,
+					misbehavior =>
+					{
+						DisconnectNode(node, misbehavior);
+						ReportMisbehavior(node.RemoteSocketEndpoint, misbehavior);
+					});
 			}
 
 			Logger.LogTrace("Selected node is null or disconnected.");
@@ -193,24 +241,30 @@ public class P2pConnectionManager : IDisposable
 		throw new InvalidOperationException("Failed to retrieve a connected node.");
 	}
 
-	public void DisconnectNode(Node node, string reason, bool disconnectOnlyIfEnoughPeers = false)
+	public void DisconnectNode(Node node, MisbehaviorType misbehaviorType)
 	{
-		if (disconnectOnlyIfEnoughPeers)
+		var shouldDisconnect = (misbehaviorType, Nodes.Length) switch
 		{
-			// Always keep at least 5 nodes connected
-			if (Nodes.Length <= 5)
-			{
-				return;
-			}
+			(MisbehaviorType.ProvidedInvalidData, _) => true,
+			(MisbehaviorType.Unknown, _) => true,
+			(MisbehaviorType.TimedOutDownloadingBlock, > 5) => true,
+			(_, < 5) => false,
+			(_, _) => node.SupportsCompactFilters,
+		};
 
-			if (node.SupportsCompactFilters)
-			{
-				return;
-			}
+		if (!shouldDisconnect)
+		{
+			return;
 		}
 
-		Logger.LogInfo(reason);
-		node.DisconnectAsync(reason);
+		var disconnectionReason = misbehaviorType switch
+		{
+			MisbehaviorType.ProvidedInvalidData => "Reason: it provided invalid data",
+			MisbehaviorType.TimedOutDownloadingBlock => "Reason: it took too long to download a block",
+			_ => ""
+		};
+		Logger.LogInfo($"Node {node.RemoteSocketEndpoint} disconnected. {disconnectionReason}");
+		node.DisconnectAsync();
 	}
 
 	private double GetCurrentTimeout()
@@ -224,16 +278,9 @@ public class P2pConnectionManager : IDisposable
 	/// <summary>
 	/// Current timeout used when downloading a block from the remote node. It is defined in seconds.
 	/// </summary>
-	private void UpdateTimeout(bool increaseDecrease)
+	private void UpdateTimeout(int addition)
 	{
-		if (increaseDecrease)
-		{
-			_timeoutsCounter++;
-		}
-		else
-		{
-			_timeoutsCounter--;
-		}
+		_timeoutsCounter += addition;
 
 		var timeout = _currentTimeoutSeconds;
 
@@ -520,7 +567,8 @@ public class P2pConnectionManager : IDisposable
 		FailedToConnect,
 		DisconnectedQuickly,
 		ProvidedInvalidData,
-		TimedOutDownloadingBlock
+		TimedOutDownloadingBlock,
+		Unknown
 	}
 
 	private abstract record CoordinatorMessage;
