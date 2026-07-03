@@ -15,6 +15,24 @@
                  EnableCancel="{Binding EnableCancel}">
     <StackPanel Spacing="15">
 
+      <!-- Transaction IDs -->
+      <PreviewItem Icon="{StaticResource transaction_id}"
+                   Label="Transaction IDs">
+        <ItemsControl ItemsSource="{Binding TransactionIds}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <PreviewItem CopyableContent="{Binding }">
+                <PrivacyContentControl>
+                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
+                </PrivacyContentControl>
+              </PreviewItem>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </PreviewItem>
+
+      <Separator />
+
       <!-- Date -->
       <PreviewItem Icon="{StaticResource timer_regular}"
                      Label="Date"
@@ -55,6 +73,7 @@
           </StackPanel>
         </Grid>
       </DockPanel>
+      
       <Separator />
 
       <!-- CJ fee  -->
@@ -66,7 +85,7 @@
         </PrivacyContentControl>
       </PreviewItem>
 
-      <Separator />
+      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
 
       <!-- Confirmation Time -->
       <PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
@@ -76,24 +95,6 @@
         <PrivacyContentControl>
           <TextBlock Text="{Binding ConfirmationTime, Converter={x:Static conv:TimeSpanConverter.ToEstimatedConfirmationTime}}" Classes="monoSpaced" />
         </PrivacyContentControl>
-      </PreviewItem>
-
-      <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
-
-      <!-- Transaction IDs -->
-      <PreviewItem Icon="{StaticResource transaction_id}"
-                     Label="Transaction IDs">
-        <ItemsControl ItemsSource="{Binding TransactionIds}">
-          <ItemsControl.ItemTemplate>
-            <DataTemplate>
-              <PreviewItem CopyableContent="{Binding }">
-                <PrivacyContentControl>
-                  <TextBlock Text="{Binding }" Classes="monoSpaced" />
-                </PrivacyContentControl>
-              </PreviewItem>
-            </DataTemplate>
-          </ItemsControl.ItemTemplate>
-        </ItemsControl>
       </PreviewItem>
     </StackPanel>
   </ContentArea>
