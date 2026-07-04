@@ -312,10 +312,15 @@ ${INSTALL_DIR}/${EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
 
 # Remove execution to everything except for executables and their wrapper scripts
 chmod 0755 ${DEBIAN_BIN}/wasabiwallet
-find ${DEBIAN_BIN}/wasabiwallet -type f -exec chmod 655 {} \;
+find ${DEBIAN_BIN}/wasabiwallet -type f -exec chmod 644 {} \;
 find ${DEBIAN_BIN}/wasabiwallet -type d -not -path ${DEBIAN_BIN}/wasabiwallet -exec chmod 755 {} \;
 chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${EXECUTABLE_NAME}{,d}
 chmod 0755 ${DEBIAN_BIN}/${EXECUTABLE_NAME}{,d}
+
+# Make bundled binaries executable (hwi and tor)
+DEBIAN_BUNDLED_BINARIES="${DEBIAN_BIN}/wasabiwallet/BundledApps/Binaries/${DEBIAN_FULL_PLATFORM_NAME}"
+chmod 0755 "${DEBIAN_BUNDLED_BINARIES}/hwi"
+chmod 0755 "${DEBIAN_BUNDLED_BINARIES}/Tor/tor"
 
 if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   # Create wrapper scripts
