@@ -1,12 +1,12 @@
 #!/usr/bin/env bash
-#!nix-shell -i bash -p zip dpkg
+#!nix-shell -i bash -p zip dpkg file curl
 
 #------------------------------------------------------------------------------------#
 #  release.sh                                                                        #
 #                                                                                    #
 #  This script builds the `WalletWasabi.Fluent.Desktop` for all the supported        #
-#  platforms, creates the zips and tar.gz files for all of them and creates the .deb #
-#  package for Debian linux.                                                         #
+#  platforms, creates the zips and tar.gz files for all of them, creates the .deb    #
+#  package and AppImage for Linux.                                                   #
 #                                                                                    #
 #  The automatic release process have to take these generated assets and upload them #
 #  to the CI assets repository so they can be used by other jobs that can generate   #
@@ -70,10 +70,21 @@ elif [ "$1" = "debian" ]; then
   PLATFORMS=("linux-x64" "linux-arm64")
   CREATE_WINDOWS_INSTALLER="no"
   CREATE_DEBIAN_PACKAGE="yes"
+  CREATE_APPIMAGE="no"
   RELEASE_NOTE="no"
   SIGN_PGP="no"
   CREATE_OSX_DMG="no"
   PACKAGE_COORDINATOR="yes"
+elif [ "$1" = "appimage" ]; then
+  # Supported platforms
+  PLATFORMS=("linux-x64" "linux-arm64")
+  CREATE_WINDOWS_INSTALLER="no"
+  CREATE_DEBIAN_PACKAGE="no"
+  CREATE_APPIMAGE="yes"
+  RELEASE_NOTE="no"
+  SIGN_PGP="no"
+  CREATE_OSX_DMG="no"
+  PACKAGE_COORDINATOR="no"
 elif [ "$1" = "dmg" ]; then
   PLATFORMS=("osx-x64" "osx-arm64")
   CREATE_WINDOWS_INSTALLER="no"
@@ -330,6 +341,126 @@ fi
 
 # Build the .deb package
 dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}${DEBIAN_ARCH_NAME}.deb"
+
+done
+fi
+
+#------------------------------------------------------------------------------------#
+# CREATE APPIMAGE                                                                    #
+#------------------------------------------------------------------------------------#
+if [ "$CREATE_APPIMAGE" = "yes" ]; then
+
+# Download appimagetool if not present
+APPIMAGETOOL_DIR="$BUILD_DIR/appimagetool"
+mkdir -p "$APPIMAGETOOL_DIR"
+
+# Download appimagetool for x86_64 (used to build both x64 and arm64 AppImages)
+if [ ! -x "$APPIMAGETOOL_DIR/appimagetool" ]; then
+  echo "Downloading appimagetool..."
+  curl -L -o "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage" \
+    "https://github.com/AppImage/appimagetool/releases/download/continuous/appimagetool-x86_64.AppImage"
+  chmod +x "$APPIMAGETOOL_DIR/appimagetool-x86_64.AppImage"
+
+  # Extract appimagetool (needed for environments without FUSE like Docker/CI)
+  pushd "$APPIMAGETOOL_DIR" || exit
+  ./appimagetool-x86_64.AppImage --appimage-extract > /dev/null 2>&1
+  mv squashfs-root/AppRun appimagetool
+  mv squashfs-root/usr .
+  rm -rf squashfs-root appimagetool-x86_64.AppImage
+  popd || exit
+fi
+
+APPIMAGETOOL="$APPIMAGETOOL_DIR/appimagetool"
+
+for LINUX_ZIP_PACKAGE in $PACKAGES_DIR/Wasabi*linux*.zip; do
+
+# Determine architecture from package name
+CURRENT_ARCH=$(echo "$LINUX_ZIP_PACKAGE" | grep -o 'arm64\|x64')
+ZIP_PACKAGE=$(basename "$LINUX_ZIP_PACKAGE")
+
+APPIMAGE_ARCH_NAME=""
+APPIMAGE_FULL_PLATFORM_NAME="linux-x64"
+# appimagetool uses x86_64 for x64 architecture
+APPIMAGE_ARCH="x86_64"
+
+if [ "$CURRENT_ARCH" = "arm64" ]; then
+  APPIMAGE_ARCH_NAME="-arm64"
+  APPIMAGE_FULL_PLATFORM_NAME="linux-arm64"
+  APPIMAGE_ARCH="aarch64"
+fi
+
+APPIMAGE_BUILD_DIR="$BUILD_DIR/$ZIP_PACKAGE/appimage"
+APPDIR="$APPIMAGE_BUILD_DIR/AppDir"
+APPDIR_USR="$APPDIR/usr"
+APPDIR_BIN="$APPDIR_USR/bin"
+
+# Create AppDir structure
+mkdir -p "$APPDIR_BIN"
+mkdir -p "$APPDIR_USR/share/applications"
+mkdir -p "$APPDIR_USR/share/icons/hicolor"
+
+# Copy application files
+cp -a "${BUILD_DIR}/${APPIMAGE_FULL_PLATFORM_NAME}/." "$APPDIR_BIN/"
+
+# Copy icon files to AppDir
+for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
+  SIZE=$(echo "$ICON_FILE" | grep -oP '\d+')
+  ICON_DIR="$APPDIR_USR/share/icons/hicolor/${SIZE}x${SIZE}/apps"
+  mkdir -p "$ICON_DIR"
+  cp "$ICON_FILE" "$ICON_DIR/$EXECUTABLE_NAME.png"
+done
+
+# Copy the 256x256 icon to the root of AppDir (required by AppImage spec)
+cp "./Contrib/Assets/WasabiLogo256.png" "$APPDIR/$EXECUTABLE_NAME.png"
+
+# Create the desktop file
+APPIMAGE_DESKTOP_CONTENT="[Desktop Entry]
+Type=Application
+Name=Wasabi Wallet
+StartupWMClass=Wasabi Wallet
+GenericName=Bitcoin Wallet
+Comment=Privacy focused Bitcoin wallet.
+Icon=${EXECUTABLE_NAME}
+Terminal=false
+Exec=${EXECUTABLE_NAME}
+Categories=Office;Finance;
+Keywords=bitcoin;wallet;crypto;blockchain;wasabi;privacy;anon;awesome;"
+
+echo "${APPIMAGE_DESKTOP_CONTENT}" > "$APPDIR/$EXECUTABLE_NAME.desktop"
+chmod 0644 "$APPDIR/$EXECUTABLE_NAME.desktop"
+
+# Also create in standard location
+cp "$APPDIR/$EXECUTABLE_NAME.desktop" "$APPDIR_USR/share/applications/"
+
+# Create the AppRun script
+echo '#!/bin/sh
+HERE="$(dirname "$(readlink -f "${0}")")"
+export PATH="${HERE}/usr/bin:${PATH}"
+exec "${HERE}/usr/bin/'"${EXECUTABLE_NAME}"'" "$@"' > "$APPDIR/AppRun"
+chmod 0755 "$APPDIR/AppRun"
+
+# Make executables executable
+chmod 0755 "$APPDIR_BIN/${EXECUTABLE_NAME}"
+chmod 0755 "$APPDIR_BIN/${EXECUTABLE_NAME}d"
+
+# Set proper permissions for the rest
+find "$APPDIR_BIN" -type f -name "*.so" -exec chmod 0755 {} \;
+find "$APPDIR_BIN" -type f -name "*.so.*" -exec chmod 0755 {} \;
+
+# Make bundled binaries executable
+if [ -d "$APPDIR_BIN/BundledApps/Binaries/${APPIMAGE_FULL_PLATFORM_NAME}" ]; then
+  find "$APPDIR_BIN/BundledApps/Binaries/${APPIMAGE_FULL_PLATFORM_NAME}" -type f -executable -exec chmod 0755 {} \;
+  # hwi and tor binaries
+  for BINARY in hwi tor; do
+    if [ -f "$APPDIR_BIN/BundledApps/Binaries/${APPIMAGE_FULL_PLATFORM_NAME}/$BINARY" ]; then
+      chmod 0755 "$APPDIR_BIN/BundledApps/Binaries/${APPIMAGE_FULL_PLATFORM_NAME}/$BINARY"
+    fi
+  done
+fi
+
+# Build the AppImage
+APPIMAGE_FILE_NAME="${PACKAGE_FILE_NAME_PREFIX}${APPIMAGE_ARCH_NAME}.AppImage"
+ARCH="$APPIMAGE_ARCH" "$APPIMAGETOOL" "$APPDIR" "$PACKAGES_DIR/$APPIMAGE_FILE_NAME"
 
 done
 fi
