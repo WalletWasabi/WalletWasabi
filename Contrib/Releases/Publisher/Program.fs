@@ -1,4 +1,4 @@
-﻿open System
+open System
 open System.Net.WebSockets
 open System.Threading
 open Microsoft.FSharp.Collections
@@ -33,6 +33,7 @@ let buildMessageTags version baseUri =
         "SHA256SUMS"; "SHA256SUMS.asc"; "SHA256SUMS.wasabisig";
         $"Wasabi-{version}-arm64.dmg"; $"Wasabi-{version}-arm64.dmg.asc";
         $"Wasabi-{version}-linux-x64.tar.gz"; $"Wasabi-{version}-linux-x64.tar.gz.asc";
+        $"Wasabi-{version}-linux-arm64.tar.gz"; $"Wasabi-{version}-linux-arm64.tar.gz.asc";
         $"Wasabi-{version}-linux-x64.zip"; $"Wasabi-{version}-linux-x64.zip.asc";
         $"Wasabi-{version}-macOS-arm64.zip"; $"Wasabi-{version}-macOS-arm64.zip.asc";
         $"Wasabi-{version}-macOS-x64.zip"; $"Wasabi-{version}-macOS-x64.zip.asc";
@@ -61,7 +62,6 @@ let main args =
             Uri "wss://relay.nostrified.org"
             Uri "wss://relay.nostromo.social"
             Uri "wss://nostr.l00p.org"
-            Uri "wss://relay.damus.io"
             Uri "wss://relay.primal.net"
             Uri "wss://nostr.mom"
             Uri "wss://nos.lol"
