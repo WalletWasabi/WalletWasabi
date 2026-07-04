@@ -458,7 +458,7 @@ public class WasabiApplication
 			? parsedLevel
 			: LogLevel.Info;
 
-		Logger.InitializeDefaults(Path.Combine(Config.DataDir, "Logs.txt"), logLevel, Config.LogModes);
+		Logger.Configure(Path.Combine(Config.DataDir, "Logs.txt"), logLevel, Config.LogModes);
 	}
 
 	private void ShowHelp()

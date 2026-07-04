@@ -22,7 +22,7 @@ public static class Logger
 	private static long LogFileSizeBytes { get; set; }
 
 
-	public static void InitializeDefaults(string filePath, LogLevel? logLevel = null, LogMode[]? logModes = null)
+	public static void Configure(string filePath, LogLevel? logLevel = null, LogMode[]? logModes = null)
 	{
 		SetFilePath(filePath);
 
