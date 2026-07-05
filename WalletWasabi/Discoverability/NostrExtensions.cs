@@ -1,4 +1,3 @@
-using System.Linq;
 using System.Net;
 using System.Net.WebSockets;
 using System.Threading;
@@ -26,7 +25,7 @@ public static class NostrClientFactory
 		return relays.Length switch
 		{
 			0 => throw new ArgumentException("At least one relay is required.", nameof(relays)),
-			1 => new NostrClient(relays.First(), ConfigureSocket),
+			1 => new NostrClient(relays[0], ConfigureSocket),
 			_ => new WalletWasabi.WebClients.CompositeNostrClient(relays, ConfigureSocket)
 		};
 

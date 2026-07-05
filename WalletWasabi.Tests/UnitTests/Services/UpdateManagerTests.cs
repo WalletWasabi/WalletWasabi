@@ -128,17 +128,29 @@ public class UpdateManagerTests
 
 		await updateTask;
 	}
+
+	[Fact]
+	public async Task EmptyRelayResponseCompletesUpdateCheckAsync()
+	{
+		// Arrange
+		var eventBus = new EventBus();
+		// this nostr client doesn't return any event
+		var nostrClientFactory = () => new TesteabletNostrClient([], sendEventsReceived: false);
+		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+
+		// Act
+		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
+
+		// Assert - should complete quickly without timing out
+		await updateTask.WaitAsync(TimeSpan.FromSeconds(1));
+	}
 }
 
-public class TesteabletNostrClient : INostrClient
+public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true) : INostrClient
 {
-	private readonly ReleaseInfo[] _releases;
-
-	public TesteabletNostrClient(ReleaseInfo[] releases)
-	{
-		_releases = releases;
-	}
-
 	public void Dispose()
 	{
 	}
@@ -157,14 +169,17 @@ public class TesteabletNostrClient : INostrClient
 
 	public Task CreateSubscription(string subscriptionId, NostrSubscriptionFilter[] filters, CancellationToken token)
 	{
-		var nostrEvents = _releases
+		var nostrEvents = releases
 			.Select((r, i) => new NostrEvent
 			{
 				Id = i.ToString(),
 				Tags = [ new NostrEventTag{ TagIdentifier = "version", Data = [r.Version.ToString()] }]
 			}).ToArray();
 
-		EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
+		if (sendEventsReceived)
+		{
+			EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
+		}
 		EoseReceived?.Invoke(this, subscriptionId);
 		return Task.CompletedTask;
 	}
