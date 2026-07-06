@@ -1,3 +1,9 @@
+using NBitcoin;
+using System.Linq;
+using System.Collections.Generic;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Hwi.Trezor;
+
 namespace WalletWasabi.WabiSabi.Client;
 
 public class InternalDestinationProvider : IDestinationProvider
@@ -5,9 +11,13 @@ public class InternalDestinationProvider : IDestinationProvider
 	public InternalDestinationProvider(KeyManager keyManager)
 	{
 		_keyManager = keyManager;
-	    SupportedScriptTypes = _keyManager.TaprootExtPubKey is not null
-			? [ScriptType.P2WPKH, ScriptType.Taproot]
-			: [ScriptType.P2WPKH];
+
+		// A Trezor coinjoin authorization is bound to the SLIP-25 taproot account, so all outputs must stay in it.
+		SupportedScriptTypes = _keyManager.IsTrezorCoinJoinWallet()
+			? [ScriptType.Taproot]
+			: _keyManager.TaprootExtPubKey is not null
+				? [ScriptType.P2WPKH, ScriptType.Taproot]
+				: [ScriptType.P2WPKH];
 	}
 
 	private readonly KeyManager _keyManager;

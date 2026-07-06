@@ -96,13 +96,15 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 		var outputs = transaction.Outputs
 			.Select(output =>
 			{
+				// Only SLIP-25 outputs are ours from the device's point of view, everything else is foreign.
 				var keyPath = _keyManager.TryGetKeyPath(output.ScriptPubKey);
+				bool isOurs = keyPath?.IsSlip25KeyPath() is true;
 				return new TrezorTxOutput
 				{
-					AddressN = keyPath?.Indexes ?? [],
-					Address = keyPath is null ? output.ScriptPubKey.GetDestinationAddress(network)!.ToString() : "",
+					AddressN = isOurs ? keyPath!.Indexes : [],
+					Address = isOurs ? "" : output.ScriptPubKey.GetDestinationAddress(network)!.ToString(),
 					Amount = (ulong)output.Value.Satoshi,
-					ScriptType = keyPath is null ? TrezorOutputScriptType.PayToAddress : TrezorOutputScriptType.PayToTaproot,
+					ScriptType = isOurs ? TrezorOutputScriptType.PayToTaproot : TrezorOutputScriptType.PayToAddress,
 				};
 			})
 			.ToList();

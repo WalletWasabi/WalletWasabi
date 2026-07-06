@@ -27,9 +27,9 @@ public class TrezorDevice : IDisposable
 	/// <summary>First firmware version that accepts coinjoin requests from any coordinator (signature verification against the zkSNACKs key was removed).</summary>
 	private static readonly Version MinimumSupportedFirmwareVersion = new(2, 7, 2);
 
-	private TrezorDevice()
+	private TrezorDevice(string bridgeUri)
 	{
-		_transport = new TrezorBridgeTransport();
+		_transport = new TrezorBridgeTransport(bridgeUri);
 	}
 
 	private readonly TrezorBridgeTransport _transport;
@@ -42,10 +42,28 @@ public class TrezorDevice : IDisposable
 	/// <summary>Finds and acquires the connected Trezor with the given master fingerprint.</summary>
 	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
 	{
-		IReadOnlyList<TrezorBridgeTransport.BridgeDevice> bridgeDevices;
-		using (var enumerationTransport = new TrezorBridgeTransport())
+		string? bridgeUri = null;
+		IReadOnlyList<TrezorBridgeTransport.BridgeDevice> bridgeDevices = [];
+		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
 		{
-			bridgeDevices = await enumerationTransport.EnumerateAsync(cancellationToken).ConfigureAwait(false);
+#pragma warning disable CA2000 // Dispose objects before losing scope - false positive, disposed by the using declaration.
+			using var enumerationTransport = new TrezorBridgeTransport(candidateUri);
+#pragma warning restore CA2000
+			try
+			{
+				bridgeDevices = await enumerationTransport.EnumerateAsync(cancellationToken).ConfigureAwait(false);
+				bridgeUri = candidateUri;
+				break;
+			}
+			catch (TrezorException e)
+			{
+				Logger.LogDebug(e.Message);
+			}
+		}
+
+		if (bridgeUri is null)
+		{
+			throw new TrezorException("Trezor Bridge is not reachable. Make sure Trezor Suite or trezord is running.");
 		}
 
 		if (bridgeDevices.Count == 0)
@@ -59,7 +77,7 @@ public class TrezorDevice : IDisposable
 			try
 			{
 #pragma warning disable CA2000 // Dispose objects before losing scope - disposed in the finally block or owned by the caller.
-				device = new TrezorDevice();
+				device = new TrezorDevice(bridgeUri);
 #pragma warning restore CA2000
 				await device.OpenAsync(bridgeDevice, cancellationToken).ConfigureAwait(false);
 				if (masterFingerprint is null || await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false) == masterFingerprint)

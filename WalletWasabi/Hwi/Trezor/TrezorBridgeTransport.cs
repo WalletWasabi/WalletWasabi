@@ -17,9 +17,10 @@ namespace WalletWasabi.Hwi.Trezor;
 /// </summary>
 public class TrezorBridgeTransport : IDisposable
 {
-	public const string DefaultBridgeUri = "http://127.0.0.1:21325";
+	/// <summary>Standalone trezord listens on 21325, the bridge bundled in Trezor Suite on 21328.</summary>
+	public static readonly string[] DefaultBridgeUris = ["http://127.0.0.1:21325", "http://127.0.0.1:21328"];
 
-	public TrezorBridgeTransport(string bridgeUri = DefaultBridgeUri)
+	public TrezorBridgeTransport(string bridgeUri)
 	{
 		_bridgeUri = bridgeUri;
 
@@ -38,7 +39,6 @@ public class TrezorBridgeTransport : IDisposable
 		{
 			handler?.Dispose();
 		}
-		_httpClient.DefaultRequestHeaders.Add("Origin", "https://wallet.trezor.io");
 	}
 
 	private readonly string _bridgeUri;
