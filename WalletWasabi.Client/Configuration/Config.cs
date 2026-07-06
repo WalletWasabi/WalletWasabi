@@ -17,18 +17,16 @@ public class Config
 {
 	public static readonly IDictionary EnvironmentVariables = Environment.GetEnvironmentVariables();
 
+#if RELEASE
+	private static readonly LogMode[] DefaultLogModes = [LogMode.Console, LogMode.File];
+#else
+	private static readonly LogMode[] DefaultLogModes = [LogMode.Debug, LogMode.Console, LogMode.File];
+#endif
+
 	public Config(PersistentConfig persistentConfig, string[] cliArgs)
 	{
 		PersistentConfig = persistentConfig;
 		CliArgs = cliArgs;
-
-		LogMode[] defaultLogModes;
-
-#if RELEASE
-		defaultLogModes = [LogMode.Console, LogMode.File];
-#else
-		defaultLogModes = [LogMode.Debug, LogMode.Console, LogMode.File];
-#endif
 
 		Data = new() {
 			[nameof(Network)] = GetNetworkValue("Network", PersistentConfig.Network.ToString(), []),
@@ -50,7 +48,7 @@ public class Config
 			[nameof(DustThreshold)] = GetMoneyValue("DustThreshold", PersistentConfig.DustThreshold, cliArgs),
 			[nameof(BlockOnlyMode)] = GetBoolValue("BlockOnly", value: false, cliArgs),
 			[nameof(LogLevel)] = GetStringValue("LogLevel", value: "", cliArgs),
-			[nameof(LogModes)] = GetLogModeArrayValue("LogModes", arrayValues: defaultLogModes, cliArgs),
+			[nameof(LogModes)] = GetLogModeArrayValue("LogModes", arrayValues: DefaultLogModes, cliArgs),
 			[nameof(EnableGpu)] = GetBoolValue("EnableGpu", PersistentConfig.EnableGpu, cliArgs),
 			[nameof(CoordinatorIdentifier)] = GetStringValue("CoordinatorIdentifier", PersistentConfig.CoordinatorIdentifier, cliArgs),
 			[nameof(MaxCoinjoinMiningFeeRate)] = GetDecimalValue("MaxCoinjoinMiningFeeRate", PersistentConfig.MaxCoinJoinMiningFeeRate, cliArgs),
@@ -65,8 +63,8 @@ public class Config
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
 		foreach (string optionName in Data.Keys)
 		{
-			// It is allowed to override the log level.
-			if (!string.Equals(optionName, nameof(LogLevel)) && !string.Equals(optionName, nameof(Network)) )
+			// It is allowed to override the network.
+			if (!string.Equals(optionName, nameof(Network)))
 			{
 				IValue optionValue = Data[optionName];
 
@@ -136,8 +134,6 @@ public class Config
 	public bool RpcOnionEnabled => GetEffectiveValue<bool>(nameof(RpcOnionEnabled));
 	public Money DustThreshold => GetEffectiveValue<Money>(nameof(DustThreshold));
 	public bool BlockOnlyMode => GetEffectiveValue<bool>(nameof(BlockOnlyMode));
-	public string LogLevel => GetEffectiveValue<string>(nameof(LogLevel));
-	public LogMode[] LogModes => GetEffectiveValue<LogMode[]>(nameof(LogModes));
 	public string ExchangeRateProvider => GetEffectiveValue<string>(nameof(ExchangeRateProvider));
 	public string FeeRateEstimationProvider => GetEffectiveValue<string>(nameof(FeeRateEstimationProvider));
 	public string ExternalTransactionBroadcaster => GetEffectiveValue<string>(nameof(ExternalTransactionBroadcaster));
@@ -158,6 +154,9 @@ public class Config
 		"datadir",
 		EnvironmentHelpers.GetDataDir(Path.Combine("WalletWasabi", "Client")),
 		Environment.GetCommandLineArgs()).EffectiveValue;
+
+	public static string LogLevel { get; } = GetStringValue("loglevel", "", Environment.GetCommandLineArgs()).EffectiveValue;
+	public static LogMode[] LogModes { get; } = GetLogModeArrayValue("LogModes", arrayValues: DefaultLogModes, Environment.GetCommandLineArgs()).EffectiveValue;
 
 	/// <summary>Whether a config option was overridden by a command line argument or an environment variable.</summary>
 	/// <remarks>
