@@ -131,13 +131,14 @@ public class TestWallet : IKeyChain, IDestinationProvider
 				ScriptPubKeyType.Segwit);
 	}
 
-	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputeTransactionData)
+	public Transaction Sign(WalletWasabi.WabiSabi.Models.MultipartyTransaction.TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
 	{
 		if (!ScriptPubKeys.TryGetValue(coin.ScriptPubKey, out var extKey))
 		{
 			throw new ArgumentException("Destination doesn't belong to this wallet.");
 		}
 
+		var transaction = unsignedCoinJoin.Transaction;
 		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
 		return transaction;
 	}

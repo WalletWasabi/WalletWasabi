@@ -39,6 +39,9 @@ public class TrezorBridgeTransport : IDisposable
 		{
 			handler?.Dispose();
 		}
+
+		// Standalone trezord rejects requests without a whitelisted origin with 403.
+		_httpClient.DefaultRequestHeaders.Add("Origin", "https://wallet.trezor.io");
 	}
 
 	private readonly string _bridgeUri;

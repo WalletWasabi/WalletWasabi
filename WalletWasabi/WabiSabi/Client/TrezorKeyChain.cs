@@ -5,6 +5,7 @@ using System.Threading;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
 using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -34,13 +35,18 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	private readonly object _signingLock = new();
 	private (uint256 TxId, Dictionary<OutPoint, WitScript> Witnesses)? _signedTransactionCache;
 
+	// The commitment data of the round being mixed. A wallet takes part in one round at a time,
+	// so the commitment seen at input registration is the one to use at signing.
+	private volatile byte[] _roundCommitmentData = [];
+
 	public TrezorDevice Device => _device;
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
 		var keyPath = GetKeyPath(destination.ScriptPubKey);
+		_roundCommitmentData = commitmentData.ToBytes();
 		byte[] proof = _device
-			.GetOwnershipProofAsync(keyPath, commitmentData.ToBytes(), _keyManager.GetNetwork(), CancellationToken.None)
+			.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), CancellationToken.None)
 			.GetAwaiter()
 			.GetResult();
 
@@ -52,14 +58,14 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	/// spends one authorized round. The witnesses are cached, so the per-coin calls of the signing phase
 	/// hit the device only once per round.
 	/// </summary>
-	public Transaction Sign(Transaction transaction, Coin coin, PrecomputedTransactionData precomputedTransactionData)
+	public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin)
 	{
 		lock (_signingLock)
 		{
+			var transaction = unsignedCoinJoin.Transaction;
 			if (_signedTransactionCache is not { } cache || cache.TxId != transaction.GetHash())
 			{
-				var spentOutputs = ((TaprootReadyPrecomputedTransactionData)precomputedTransactionData).SpentOutputs;
-				cache = (transaction.GetHash(), SignOnDevice(transaction, spentOutputs));
+				cache = (transaction.GetHash(), SignOnDevice(unsignedCoinJoin));
 				_signedTransactionCache = cache;
 			}
 
@@ -71,9 +77,11 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 		}
 	}
 
-	private Dictionary<OutPoint, WitScript> SignOnDevice(Transaction transaction, TxOut[] spentOutputs)
+	private Dictionary<OutPoint, WitScript> SignOnDevice(TransactionWithPrecomputedData unsignedCoinJoin)
 	{
 		var network = _keyManager.GetNetwork();
+		var transaction = unsignedCoinJoin.Transaction;
+		var spentOutputs = ((TaprootReadyPrecomputedTransactionData)unsignedCoinJoin.PrecomputedTransactionData).SpentOutputs;
 
 		var inputs = transaction.Inputs.AsIndexedInputs()
 			.Select(input =>
@@ -89,6 +97,8 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 					ScriptType = keyPath is null ? TrezorInputScriptType.External : TrezorInputScriptType.SpendTaproot,
 					Amount = (ulong)spentOutput.Value.Satoshi,
 					ScriptPubKey = spentOutput.ScriptPubKey.ToBytes(),
+					OwnershipProof = keyPath is null ? GetForeignOwnershipProof(unsignedCoinJoin, input.PrevOut) : [],
+					CommitmentData = keyPath is null ? _roundCommitmentData : [],
 				};
 			})
 			.ToList();
@@ -118,6 +128,11 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			signature => transaction.Inputs[signature.Key].PrevOut,
 			signature => new WitScript(Op.GetPushOp(signature.Value)));
 	}
+
+	private static byte[] GetForeignOwnershipProof(TransactionWithPrecomputedData unsignedCoinJoin, OutPoint outpoint) =>
+		unsignedCoinJoin.OwnershipProofs.TryGetValue(outpoint, out var proof)
+			? proof.ToBytes()
+			: throw new InvalidOperationException($"The ownership proof of the foreign input '{outpoint}' was not found.");
 
 	private KeyPath GetKeyPath(Script scriptPubKey) =>
 		_keyManager.TryGetKeyPath(scriptPubKey)

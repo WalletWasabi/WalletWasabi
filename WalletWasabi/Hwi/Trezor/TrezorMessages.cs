@@ -121,6 +121,8 @@ public record TrezorTxInput
 	public required TrezorInputScriptType ScriptType { get; init; }
 	public required ulong Amount { get; init; }
 	public byte[] ScriptPubKey { get; init; } = [];
+	public byte[] OwnershipProof { get; init; } = [];
+	public byte[] CommitmentData { get; init; } = [];
 
 	public TrezorMessage ToTxAckInput()
 	{
@@ -134,6 +136,9 @@ public record TrezorTxInput
 
 		if (ScriptType == TrezorInputScriptType.External)
 		{
+			// The device verifies the externality of foreign inputs with their SLIP-19 ownership proofs.
+			input.WriteBytesField(14, OwnershipProof);
+			input.WriteBytesField(15, CommitmentData);
 			input.WriteBytesField(19, ScriptPubKey);
 		}
 
