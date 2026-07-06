@@ -49,7 +49,8 @@ public class TorProcessManager
 			Logger.LogDebug($"Environment variable 'LD_LIBRARY_PATH' set to: '{env["LD_LIBRARY_PATH"]}'.");
 		}
 
-		Logger.LogInfo(_settings.IsCustomTorFolder ? $"Starting Tor process in folder '{_settings.TorBinaryDir}'…" : "Starting Tor process…");
+		Logger.LogInfo($"Starting Tor from folder '{_settings.TorBinaryDir}' with arguments '{arguments}'…");
+
 		var process = new Process()
 		{
 			StartInfo = startInfo,
