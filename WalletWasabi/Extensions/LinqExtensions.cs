@@ -170,11 +170,6 @@ public static class LinqExtensions
 	public static IEnumerable<T> DropNulls<T>(this IEnumerable<T?> source) where T: struct =>
 		source.Where(x => x.HasValue).Select(x => x!.Value);
 
-	public static IEnumerable<T> Singleton<T>(this T item)
-	{
-		yield return item;
-	}
-
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
 	{
 		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).DefaultIfEmpty(1).Sum();

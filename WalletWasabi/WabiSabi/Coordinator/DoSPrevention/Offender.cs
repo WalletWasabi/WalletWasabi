@@ -19,7 +19,7 @@ public abstract record Offense();
 public record RoundDisruption(IEnumerable<uint256> DisruptedRoundIds, Money Value, RoundDisruptionMethod Method) : Offense
 {
 	public	RoundDisruption(uint256 disruptedRoundId, Money value, RoundDisruptionMethod method)
-		: this(disruptedRoundId.Singleton(), value, method) {}
+		: this([disruptedRoundId], value, method) {}
 }
 public record CoordinatorStabilitySafety(uint256 RoundId) : Offense;
 public record FailedToVerify(uint256 VerifiedInRoundId) : Offense;
