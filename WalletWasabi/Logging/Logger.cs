@@ -26,29 +26,26 @@ public static class Logger
 		FilePath = filePath;
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-		if (File.Exists(FilePath))
+		lock (Lock)
 		{
-			lock (Lock)
+			if (File.Exists(FilePath))
 			{
 				LogFileSizeBytes = new FileInfo(FilePath).Length;
 			}
-		}
 
 #if RELEASE
-		logLevel ??= LogLevel.Info;
-		logModes ??= [LogMode.Console, LogMode.File];
+			logLevel ??= LogLevel.Info;
+			logModes ??= [LogMode.Console, LogMode.File];
 #else
-		logLevel ??= LogLevel.Debug;
-		logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
+			logLevel ??= LogLevel.Debug;
+			logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
 #endif
 
-		MinimumLevel = logLevel.Value;
+			MinimumLevel = logLevel.Value;
 
-		Modes.Clear();
-		Modes.UnionWith(logModes);
+			Modes.Clear();
+			Modes.UnionWith(logModes);
 
-		lock (Lock)
-		{
 			if (MinimumLevel == LogLevel.Trace)
 			{
 				MaximumLogFileSizeBytes = 0;
