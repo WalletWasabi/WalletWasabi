@@ -71,6 +71,7 @@ public class TrezorDevice : IDisposable
 			throw new TrezorException("No Trezor device found. Connect and unlock the device.");
 		}
 
+		string? lastError = null;
 		foreach (var bridgeDevice in bridgeDevices)
 		{
 			TrezorDevice? device = null;
@@ -89,6 +90,7 @@ public class TrezorDevice : IDisposable
 			}
 			catch (TrezorException e)
 			{
+				lastError = e.Message;
 				Logger.LogDebug($"Skipping Trezor device '{bridgeDevice.Path}': {e.Message}");
 			}
 			finally
@@ -97,7 +99,9 @@ public class TrezorDevice : IDisposable
 			}
 		}
 
-		throw new TrezorException($"No Trezor device with master fingerprint '{masterFingerprint}' found.");
+		throw new TrezorException(lastError is null
+			? $"No Trezor device with master fingerprint '{masterFingerprint}' found."
+			: $"No usable Trezor device found. Last error: {lastError}");
 	}
 
 	private async Task OpenAsync(TrezorBridgeTransport.BridgeDevice bridgeDevice, CancellationToken cancellationToken)
