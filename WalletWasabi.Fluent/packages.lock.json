@@ -94,6 +94,12 @@
         "resolved": "4.14.0",
         "contentHash": "gSWJlDWwmDhtbrEJGiHqvEjz9KthIiFD0qYB8zZ6a7z+xpMSPEtM9yTYELSa58iFWYlzSRqP9FXO6KoT3+ZMtg=="
       },
+      "NScheme": {
+        "type": "Direct",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "YLmR1eisHcB5NO6zyofWQcNxNHT36qyv4aNMs6IqMkoX1oSR43/dvjlL6fJw+7df54joBs5ImJ/YsUxSDwgJng=="
+      },
       "QRackers": {
         "type": "Direct",
         "requested": "[1.1.0, )",
@@ -640,6 +646,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Caching.Memory": "[10.0.2, )",
+          "NScheme": "[1.0.0, )",
           "WalletWasabi": "[1.0.0, )"
         }
       },

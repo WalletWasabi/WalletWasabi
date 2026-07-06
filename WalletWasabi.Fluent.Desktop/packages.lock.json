@@ -572,6 +572,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Caching.Memory": "[10.0.2, )",
+          "NScheme": "[1.0.0, )",
           "WalletWasabi": "[1.0.0, )"
         }
       },
@@ -586,6 +587,7 @@
           "Avalonia.Themes.Fluent": "[11.3.14, )",
           "DynamicData": "[9.4.1, )",
           "Markdown.Avalonia": "[11.0.3-a1, )",
+          "NScheme": "[1.0.0, )",
           "QRackers": "[1.1.0, )",
           "ReactiveUI.Avalonia": "[11.3.8, )",
           "SkiaSharp": "[3.119.2, )",
@@ -776,6 +778,12 @@
           "NBitcoin.Secp256k1": "3.1.6",
           "System.Interactive.Async": "6.0.1"
         }
+      },
+      "NScheme": {
+        "type": "CentralTransitive",
+        "requested": "[1.0.0, )",
+        "resolved": "1.0.0",
+        "contentHash": "YLmR1eisHcB5NO6zyofWQcNxNHT36qyv4aNMs6IqMkoX1oSR43/dvjlL6fJw+7df54joBs5ImJ/YsUxSDwgJng=="
       },
       "QRackers": {
         "type": "CentralTransitive",

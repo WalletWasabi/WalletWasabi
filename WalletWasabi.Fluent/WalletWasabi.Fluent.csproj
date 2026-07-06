@@ -1,4 +1,4 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
+<Project Sdk="Microsoft.NET.Sdk">
 	<PropertyGroup>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<Nullable>enable</Nullable>
@@ -33,6 +33,7 @@
 		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Markdown.Avalonia" />
 		<PackageReference Include="QRackers" />
+		<PackageReference Include="NScheme" />
 	</ItemGroup>
 
 	<ItemGroup>
