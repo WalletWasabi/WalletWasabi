@@ -5,6 +5,7 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi;
 using WalletWasabi.Hwi.Models;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers;
@@ -30,7 +31,27 @@ public static class HardwareWalletOperationHelpers
 			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit),
 			genCts.Token).ConfigureAwait(false);
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, null, null, null, network, walletFilePath);
+		ExtPubKey? coinJoinExtPubKey = null;
+		KeyPath? coinJoinAccountKeyPath = null;
+		if (device.Model.SupportsCoinJoin())
+		{
+			// A coinjoin capable Trezor gets a SLIP-25 coinjoin account as its taproot account,
+			// so the device can act as a remote signer for coinjoins. The account is only accessible
+			// through the Trezor Bridge, so this is skipped when the bridge is not running.
+			try
+			{
+				using var trezor = await TrezorDevice.FindAsync(fingerPrint, genCts.Token).ConfigureAwait(false);
+				coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
+				coinJoinExtPubKey = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, genCts.Token).ConfigureAwait(false);
+			}
+			catch (TrezorException e)
+			{
+				coinJoinAccountKeyPath = null;
+				Logger.LogWarning($"Could not add a coinjoin account to the wallet: {e.Message}");
+			}
+		}
+
+		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, coinJoinExtPubKey, null, null, network, walletFilePath, coinJoinAccountKeyPath);
 	}
 
 	public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)

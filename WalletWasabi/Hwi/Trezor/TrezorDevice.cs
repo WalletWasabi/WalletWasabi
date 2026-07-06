@@ -19,6 +19,9 @@ public class TrezorDevice : IDisposable
 	/// <summary>SLIP-25 purpose (10025') dedicated to coinjoin accounts, enforced by the firmware.</summary>
 	public const uint Slip25Purpose = 10025 | HardenedIndex;
 
+	/// <summary>Number of coinjoin rounds one device authorization is good for.</summary>
+	public const int DefaultMaxRounds = 10;
+
 	private const uint HardenedIndex = 0x80000000;
 
 	/// <summary>First firmware version that accepts coinjoin requests from any coordinator (signature verification against the zkSNACKs key was removed).</summary>
@@ -323,6 +326,10 @@ public class TrezorDevice : IDisposable
 
 	private static string GetCoinName(Network network) =>
 		network == Network.Main ? "Bitcoin" : network == Network.TestNet ? "Testnet" : "Regtest";
+
+	/// <summary>SLIP-25 coinjoin account: m/10025'/coin_type'/account'/1' where 1' stands for taproot.</summary>
+	public static KeyPath GetCoinJoinAccountKeyPath(Network network) =>
+		new(Slip25Purpose, (network == Network.Main ? 0u : 1u) | HardenedIndex, HardenedIndex, 1u | HardenedIndex);
 
 	public void Dispose()
 	{

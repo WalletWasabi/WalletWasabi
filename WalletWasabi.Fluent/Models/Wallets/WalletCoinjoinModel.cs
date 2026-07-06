@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -5,6 +6,9 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -88,6 +92,25 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
+		if (_wallet.KeyManager.IsTrezorCoinJoinWallet())
+		{
+			// The device shows the number of rounds and the maximum mining fee rate and the user
+			// confirms with hold-to-confirm. Without the authorization no coinjoin can start.
+			try
+			{
+				await _wallet.AuthorizeTrezorCoinJoinAsync(
+					_services.Config.CoordinatorIdentifier,
+					TrezorDevice.DefaultMaxRounds,
+					new FeeRate(_services.Config.MaxCoinjoinMiningFeeRate),
+					CancellationToken.None);
+			}
+			catch (TrezorException e)
+			{
+				Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
+				return;
+			}
+		}
+
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
 		_coinJoinManager.RequestCoinJoinStart(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);

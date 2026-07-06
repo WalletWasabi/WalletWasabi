@@ -13,7 +13,7 @@ namespace WalletWasabi.WabiSabi.Client;
 /// Requires a coinjoin authorization on the device (see <see cref="TrezorDevice.AuthorizeCoinJoinAsync"/>),
 /// after which ownership proofs and signatures are produced without user interaction.
 /// </summary>
-public class TrezorKeyChain : IKeyChain
+public class TrezorKeyChain : IKeyChain, IDisposable
 {
 	/// <summary>Firmware clamps the minimum registrable output amount to at most this value anyway (MIN_REGISTRABLE_OUTPUT_AMOUNT).</summary>
 	private static readonly Money MinRegistrableAmount = Money.Satoshis(5000);
@@ -33,6 +33,8 @@ public class TrezorKeyChain : IKeyChain
 	private readonly KeyManager _keyManager;
 	private readonly object _signingLock = new();
 	private (uint256 TxId, Dictionary<OutPoint, WitScript> Witnesses)? _signedTransactionCache;
+
+	public TrezorDevice Device => _device;
 
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
@@ -77,7 +79,7 @@ public class TrezorKeyChain : IKeyChain
 			.Select(input =>
 			{
 				var spentOutput = spentOutputs[input.Index];
-				var keyPath = TryGetKeyPath(spentOutput.ScriptPubKey);
+				var keyPath = _keyManager.TryGetKeyPath(spentOutput.ScriptPubKey);
 				return new TrezorTxInput
 				{
 					AddressN = keyPath?.Indexes ?? [],
@@ -94,7 +96,7 @@ public class TrezorKeyChain : IKeyChain
 		var outputs = transaction.Outputs
 			.Select(output =>
 			{
-				var keyPath = TryGetKeyPath(output.ScriptPubKey);
+				var keyPath = _keyManager.TryGetKeyPath(output.ScriptPubKey);
 				return new TrezorTxOutput
 				{
 					AddressN = keyPath?.Indexes ?? [],
@@ -116,9 +118,11 @@ public class TrezorKeyChain : IKeyChain
 	}
 
 	private KeyPath GetKeyPath(Script scriptPubKey) =>
-		TryGetKeyPath(scriptPubKey)
+		_keyManager.TryGetKeyPath(scriptPubKey)
 			?? throw new InvalidOperationException($"The key path for '{scriptPubKey}' was not found.");
 
-	private KeyPath? TryGetKeyPath(Script scriptPubKey) =>
-		_keyManager.GetKeys(key => key.ContainsScript(scriptPubKey)).FirstOrDefault()?.FullKeyPath;
+	public void Dispose()
+	{
+		_device.Dispose();
+	}
 }

@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -87,7 +88,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
+		if (walletInstance.KeyManager.IsTrezorCoinJoinWallet())
+		{
+			// Starting coinjoin requires a confirmation on the Trezor, so it never starts automatically.
+			initialState = State.StoppedOrPaused;
+		}
+		else if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
 		{
 			initialState = State.Disabled;
 		}

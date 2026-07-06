@@ -16,6 +16,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
@@ -127,7 +128,32 @@ public class Wallet : BackgroundService
 
 	public bool IsWalletPrivate() => GetPrivacyPercentage() >= 100;
 
-	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => Coins;
+	// Trezor coinjoin authorizations are bound to the SLIP-25 taproot account, so only its coins can take part in rounds.
+	public IEnumerable<SmartCoin> GetCoinjoinCoinCandidates() => KeyManager.IsTrezorCoinJoinWallet()
+		? Coins.Where(coin => coin.ScriptType is ScriptType.Taproot)
+		: Coins;
+
+	/// <summary>
+	/// Asks the connected Trezor to authorize coinjoin rounds. The device shows the number of rounds and
+	/// the maximum mining fee rate and the user confirms with hold-to-confirm. Afterwards the wallet has a
+	/// key chain that produces ownership proofs and signatures without further interaction.
+	/// </summary>
+	public async Task AuthorizeTrezorCoinJoinAsync(string coordinatorIdentifier, int maxRounds, FeeRate maxMiningFeeRate, CancellationToken cancellationToken)
+	{
+		if (!KeyManager.IsTrezorCoinJoinWallet())
+		{
+			throw new NotSupportedException("This wallet has no SLIP-25 coinjoin account.");
+		}
+
+		var device = (KeyChain as TrezorKeyChain)?.Device;
+		if (device is null)
+		{
+			device = await TrezorDevice.FindAsync(KeyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
+			KeyChain = new TrezorKeyChain(device, KeyManager);
+		}
+
+		await device.AuthorizeCoinJoinAsync(coordinatorIdentifier, maxRounds, maxMiningFeeRate, KeyManager.TaprootAccountKeyPath, Network, cancellationToken).ConfigureAwait(false);
+	}
 
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.
@@ -298,6 +324,7 @@ public class Wallet : BackgroundService
 		await WalletFilterProcessor.StopAsync(cancel).ConfigureAwait(false);
 		WalletFilterProcessor.Dispose();
 
+		(KeyChain as TrezorKeyChain)?.Dispose();
 		_disposables.Dispose();
 	}
 
