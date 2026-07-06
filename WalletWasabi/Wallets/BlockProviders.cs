@@ -29,7 +29,7 @@ public static class BlockProviders
 			}
 		};
 
-	public static BlockProvider P2pBlockProvider(P2pNodeProvider getNode, EventBus eventBus) =>
+	public static BlockProvider P2pBlockProvider(P2pNodeProvider getNode) =>
 		async (blockHash, cancellationToken) =>
 		{
 			while (!cancellationToken.IsCancellationRequested)
