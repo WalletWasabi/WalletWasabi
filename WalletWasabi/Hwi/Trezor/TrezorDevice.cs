@@ -28,8 +28,13 @@ public class TrezorDevice : IDisposable
 	private static readonly Version MinimumSupportedFirmwareVersion = new(2, 7, 2);
 
 	private TrezorDevice(string bridgeUri)
+		: this(new TrezorBridgeTransport(bridgeUri))
 	{
-		_transport = new TrezorBridgeTransport(bridgeUri);
+	}
+
+	internal TrezorDevice(TrezorBridgeTransport transport)
+	{
+		_transport = transport;
 	}
 
 	private readonly TrezorBridgeTransport _transport;

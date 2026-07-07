@@ -49,7 +49,7 @@ public class TrezorBridgeTransport : IDisposable
 
 	public record BridgeDevice(string Path, string? Session);
 
-	public async Task<IReadOnlyList<BridgeDevice>> EnumerateAsync(CancellationToken cancellationToken)
+	public virtual async Task<IReadOnlyList<BridgeDevice>> EnumerateAsync(CancellationToken cancellationToken)
 	{
 		string response = await PostAsync("enumerate", "", cancellationToken).ConfigureAwait(false);
 		using var json = JsonDocument.Parse(response);
@@ -60,20 +60,20 @@ public class TrezorBridgeTransport : IDisposable
 			.ToList();
 	}
 
-	public async Task<string> AcquireAsync(BridgeDevice device, CancellationToken cancellationToken)
+	public virtual async Task<string> AcquireAsync(BridgeDevice device, CancellationToken cancellationToken)
 	{
 		string response = await PostAsync($"acquire/{device.Path}/{device.Session ?? "null"}", "", cancellationToken).ConfigureAwait(false);
 		using var json = JsonDocument.Parse(response);
 		return json.RootElement.GetProperty("session").GetString()!;
 	}
 
-	public async Task ReleaseAsync(string session, CancellationToken cancellationToken)
+	public virtual async Task ReleaseAsync(string session, CancellationToken cancellationToken)
 	{
 		await PostAsync($"release/{session}", "", cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>Sends one message to the device and waits for its response, which can take as long as user interaction takes.</summary>
-	public async Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
+	public virtual async Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
 	{
 		byte[] frame = new byte[6 + message.Payload.Length];
 		BinaryPrimitives.WriteUInt16BigEndian(frame, (ushort)message.MessageType);
