@@ -56,6 +56,6 @@
     <PackageVersion Include="xunit" Version="2.9.3" />
     <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Scheme. -->
-    <PackageVersion Include="NScheme" Version="1.0.0" />
+    <PackageVersion Include="NScheme" Version="0.0.1" />
   </ItemGroup>
 </Project>

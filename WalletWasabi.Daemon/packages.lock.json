@@ -231,7 +231,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.Extensions.Caching.Memory": "[10.0.2, )",
-          "NScheme": "[1.0.0, )",
+          "NScheme": "[0.0.1, )",
           "WalletWasabi": "[1.0.0, )"
         }
       },
@@ -336,9 +336,9 @@
       },
       "NScheme": {
         "type": "CentralTransitive",
-        "requested": "[1.0.0, )",
-        "resolved": "1.0.0",
-        "contentHash": "YLmR1eisHcB5NO6zyofWQcNxNHT36qyv4aNMs6IqMkoX1oSR43/dvjlL6fJw+7df54joBs5ImJ/YsUxSDwgJng=="
+        "requested": "[0.0.1, )",
+        "resolved": "0.0.1",
+        "contentHash": "sFGydpttLN0bx8US2vRio7mFhqpqdQOAAQL9lABPi50epQ1bVcEdUgpFd3olvEMf6zyn1G3TErUsKyZGA19TeQ=="
       },
       "System.Linq.Async": {
         "type": "CentralTransitive",
