@@ -15,6 +15,7 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
@@ -413,7 +414,9 @@ public class KeyManager
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
 			x.IsInternal &&
-			MatchesChangeScriptPubKeyType(x))
+			MatchesChangeScriptPubKeyType(x) &&
+			// SLIP-25 keys only sign in a coinjoin or unlocked-path session, so they cannot take change of regular transactions.
+			!(this.IsTrezorCoinJoinWallet() && x.FullKeyPath.IsSlip25KeyPath()))
 			.First();
 
 	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
@@ -809,10 +812,11 @@ public class KeyManager
 public static class KeyPathExtensions
 {
 	public static ScriptPubKeyType GetScriptTypeFromKeyPath(this KeyPath keyPath) =>
-		keyPath.ToBytes().First() switch
+		(keyPath.Indexes[0] & ~0x80000000u) switch // Purpose index without the hardened bit.
 		{
 			84 => ScriptPubKeyType.Segwit,
 			86 => ScriptPubKeyType.TaprootBIP86,
+			10025 => ScriptPubKeyType.TaprootBIP86, // SLIP-25 coinjoin accounts are taproot only.
 			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
 										 // throw new NotSupportedException("Unknown script type.")
 		};
