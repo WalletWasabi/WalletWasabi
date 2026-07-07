@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -119,7 +120,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || (isPointerOver || isMusicBoxFlyoutDisplayed))) && !WalletModel.IsWatchOnlyWallet;
+				 var canCoinJoin = !WalletModel.IsWatchOnlyWallet || Wallet.KeyManager.IsTrezorCoinJoinWallet();
+				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || (isPointerOver || isMusicBoxFlyoutDisplayed))) && canCoinJoin;
 			 });
 
 

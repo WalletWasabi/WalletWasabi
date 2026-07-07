@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
@@ -64,6 +65,8 @@ public partial interface IWalletModel : INotifyPropertyChanged
 	AmountProvider AmountProvider { get; }
 
 	bool IsHardwareWallet { get; }
+
+	bool IsTrezorCoinJoinWallet { get; }
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -187,6 +190,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public AmountProvider AmountProvider { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	public bool IsTrezorCoinJoinWallet => Wallet.KeyManager.IsTrezorCoinJoinWallet();
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 

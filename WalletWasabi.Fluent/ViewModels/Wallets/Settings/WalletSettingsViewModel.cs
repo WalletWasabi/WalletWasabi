@@ -160,12 +160,16 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
     public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
-    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes { get; } =
-    [
-        PreferredScriptPubKeyType.Unspecified.Instance,
-        PreferredScriptPubKeyType.Specified.SegWit,
-        PreferredScriptPubKeyType.Specified.Taproot
-    ];
+
+    // Taproot change of a Trezor coinjoin wallet would land in the SLIP-25 account, which cannot sign regular transactions.
+    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes => _wallet.IsTrezorCoinJoinWallet
+        ? [PreferredScriptPubKeyType.Specified.SegWit]
+        :
+        [
+            PreferredScriptPubKeyType.Unspecified.Instance,
+            PreferredScriptPubKeyType.Specified.SegWit,
+            PreferredScriptPubKeyType.Specified.Taproot
+        ];
 
     public IEnumerable<SendWorkflow> SendWorkflows { get; } = Enum.GetValues<SendWorkflow>();
 

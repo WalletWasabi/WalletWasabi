@@ -164,7 +164,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				settings.SelectedTab = 1;
 				UiContext.Navigate(NavigationTarget.DialogScreen).To(settings);
 			},
-			Observable.Return(!_wallet.IsWatchOnlyWallet));
+			Observable.Return(!_wallet.IsWatchOnlyWallet || walletInstance.KeyManager.IsTrezorCoinJoinWallet()));
 
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
