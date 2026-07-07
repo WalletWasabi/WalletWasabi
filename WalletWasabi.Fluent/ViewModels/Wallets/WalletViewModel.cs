@@ -325,7 +325,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
-		if (!IsWatchOnly)
+		// A Trezor coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
+		if (!IsWatchOnly || WalletModel.IsTrezorCoinJoinWallet)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
