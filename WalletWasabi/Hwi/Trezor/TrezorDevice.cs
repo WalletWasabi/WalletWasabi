@@ -127,6 +127,24 @@ public class TrezorDevice : IDisposable
 		}
 	}
 
+	/// <summary>Quick check whether a Trezor Bridge (Trezor Suite or standalone trezord) is reachable, used to warn the user before offering coinjoin.</summary>
+	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken)
+	{
+		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
+		{
+			using var transport = new TrezorBridgeTransport(candidateUri);
+			try
+			{
+				await transport.EnumerateAsync(cancellationToken).ConfigureAwait(false);
+				return true;
+			}
+			catch (TrezorException)
+			{
+			}
+		}
+		return false;
+	}
+
 	public async Task<HDFingerprint> GetMasterFingerprintAsync(CancellationToken cancellationToken)
 	{
 		// Any GetPublicKey response carries the master fingerprint, use a fixed path that needs no unlocking.

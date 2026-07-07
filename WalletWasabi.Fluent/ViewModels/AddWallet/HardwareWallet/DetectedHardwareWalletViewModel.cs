@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _enableCoinjoin;
+	[AutoNotify] private bool _isBridgeUnavailable;
 
 	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
@@ -89,5 +90,23 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			CancelCts?.Dispose();
 			CancelCts = null;
 		}));
+
+		// Warn up front when coinjoin is offered but the bridge that it needs is not running, so the user
+		// can start Trezor Suite before checking the box instead of hitting an error after confirming.
+		if (SupportsCoinjoin)
+		{
+			Task.Run(async () =>
+			{
+				try
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+					IsBridgeUnavailable = !await WalletWasabi.Hwi.Trezor.TrezorDevice.IsBridgeAvailableAsync(cts.Token);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+			});
+		}
 	}
 }
