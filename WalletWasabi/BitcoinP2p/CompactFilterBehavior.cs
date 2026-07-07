@@ -67,8 +67,6 @@ public class CompactFilterBehavior(
 			return;
 		}
 
-		Logger.LogDebug($"Node {node.Peer.Endpoint} supports NODE_COMPACT_FILTERS, starting sync");
-
 		// Subscribe to tick events for periodic sync attempts
 		var lastTickSync = DateTime.MinValue;
 		var tickSubscription = eventBus.Subscribe<Tick>(tick =>
