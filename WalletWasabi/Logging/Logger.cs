@@ -8,6 +8,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.Logging;
 
@@ -259,6 +260,7 @@ public static class LoggerTools
 	}
 
 	public static string FormatLog(string msg, string ctx) => $"{ctx} {msg}";
+	public static string FormatLog(string msg, Round round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, RoundState round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, AliceClient aliceClient) =>
 		FormatLog(msg, $"Round {ShortString(aliceClient.RoundId)} Alice {ShortString(aliceClient.AliceId)} EffValue {aliceClient.EffectiveValue}");
