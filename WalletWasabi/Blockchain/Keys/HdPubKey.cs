@@ -29,9 +29,11 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		_p2wpkhScript = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), isThreadSafe: true);
 		_p2Taproot = new Lazy<Script>(() => PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86), isThreadSafe: true);
 
-		Index = (int)FullKeyPath.Indexes[4];
+		// Read the address and change indexes from the end of the path so accounts of different depths
+		// work too - notably SLIP-25 coinjoin accounts (m / 10025' / coin' / account' / script' / change / index).
+		Index = (int)FullKeyPath.Indexes[^1];
 
-		int change = (int)FullKeyPath.Indexes[3];
+		int change = (int)FullKeyPath.Indexes[^2];
 		if (change == 0)
 		{
 			IsInternal = false;

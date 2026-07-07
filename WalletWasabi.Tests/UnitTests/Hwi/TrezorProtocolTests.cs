@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Linq;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi.Trezor;
 using Xunit;
@@ -114,6 +115,21 @@ public class TrezorProtocolTests
 		Assert.Equal(7, request.RequestIndex);
 		Assert.Equal(2, request.SignatureIndex);
 		Assert.Equal(new byte[] { 0xCA, 0xFE }, request.Signature);
+	}
+
+	[Theory]
+	[InlineData("10025'/0'/0'/1'/0/5", false, 5)] // SLIP-25 external.
+	[InlineData("10025'/0'/0'/1'/1/7", true, 7)]  // SLIP-25 internal (coinjoin/change).
+	[InlineData("84'/0'/0'/1/3", true, 3)]        // Standard segwit internal still works.
+	[InlineData("86'/0'/0'/0/2", false, 2)]       // Standard taproot external still works.
+	public void ChangeAndIndexReadFromPathEnd(string keyPath, bool expectedInternal, int expectedIndex)
+	{
+		using var key = new Key();
+		var hdPubKey = new HdPubKey(key.PubKey, KeyPath.Parse(keyPath), LabelsArray.Empty, KeyState.Clean);
+
+		// SLIP-25 paths are 6 levels deep, so a fixed index would read the wrong element and mislabel the key.
+		Assert.Equal(expectedInternal, hdPubKey.IsInternal);
+		Assert.Equal(expectedIndex, hdPubKey.Index);
 	}
 
 	[Fact]
