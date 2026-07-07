@@ -23,29 +23,28 @@ public static class HardwareWalletOperationHelpers
 			throw new Exception("Fingerprint cannot be null.");
 		}
 
-		var client = new HwiClient(network);
 		var fingerPrint = (HDFingerprint)device.Fingerprint;
+		var segwitAccountKeyPath = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 		using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);
 
-		var segwitExtPubKey = await client.GetXpubAsync(
-			device.Model,
-			device.Path,
-			KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit),
-			genCts.Token).ConfigureAwait(false);
-
-		ExtPubKey? coinJoinExtPubKey = null;
-		KeyPath? coinJoinAccountKeyPath = null;
-
-		// The coinjoin account is opt-in: it is only added when the user asks for it, because fetching it
-		// prompts the device and only coinjoin capable models support it.
 		if (enableCoinjoin && device.SupportsCoinJoin())
 		{
-			(coinJoinAccountKeyPath, coinJoinExtPubKey) = await GetCoinJoinAccountAsync(fingerPrint, network, genCts.Token).ConfigureAwait(false);
+			// Coinjoin needs the SLIP-25 account, which only the bridge can read. Read the segwit account from the
+			// bridge in the same session too, so HWI and the bridge don't contend for the USB device. If the bridge
+			// is unavailable the whole import fails with a clear error instead of silently dropping coinjoin.
+			using var trezor = await TrezorDevice.FindAsync(fingerPrint, genCts.Token).ConfigureAwait(false);
+			var segwitFromBridge = await trezor.GetSegwitAccountXpubAsync(segwitAccountKeyPath, network, genCts.Token).ConfigureAwait(false);
+			var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
+			var coinJoinFromBridge = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, genCts.Token).ConfigureAwait(false);
+
+			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitFromBridge, coinJoinFromBridge, null, null, network, walletFilePath, coinJoinAccountKeyPath);
 		}
 
-		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, coinJoinExtPubKey, null, null, network, walletFilePath, coinJoinAccountKeyPath);
+		var client = new HwiClient(network);
+		var segwitExtPubKey = await client.GetXpubAsync(device.Model, device.Path, segwitAccountKeyPath, genCts.Token).ConfigureAwait(false);
+		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, null, null, null, network, walletFilePath);
 	}
 
 	/// <summary>
@@ -64,31 +63,13 @@ public static class HardwareWalletOperationHelpers
 			return;
 		}
 
-		var (coinJoinAccountKeyPath, coinJoinExtPubKey) = await GetCoinJoinAccountAsync(keyManager.MasterFingerprint, network, cancelToken).ConfigureAwait(false);
-		if (coinJoinExtPubKey is null || coinJoinAccountKeyPath is null)
-		{
-			throw new TrezorException("Could not read the coinjoin account from the device.");
-		}
+		// The SLIP-25 account is only reachable through the Trezor Bridge. Any failure (bridge down, device
+		// declined) throws TrezorException so the caller can tell the user, rather than silently doing nothing.
+		using var trezor = await TrezorDevice.FindAsync(keyManager.MasterFingerprint, cancelToken).ConfigureAwait(false);
+		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
+		var coinJoinExtPubKey = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, cancelToken).ConfigureAwait(false);
 
 		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
-	}
-
-	private static async Task<(KeyPath?, ExtPubKey?)> GetCoinJoinAccountAsync(HDFingerprint? fingerPrint, Network network, CancellationToken cancelToken)
-	{
-		// The SLIP-25 account is only reachable through the Trezor Bridge (HWI cannot unlock it), so this is
-		// skipped with a warning when the bridge is not running instead of failing the whole wallet creation.
-		try
-		{
-			using var trezor = await TrezorDevice.FindAsync(fingerPrint, cancelToken).ConfigureAwait(false);
-			var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
-			var coinJoinExtPubKey = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, cancelToken).ConfigureAwait(false);
-			return (coinJoinAccountKeyPath, coinJoinExtPubKey);
-		}
-		catch (TrezorException e)
-		{
-			Logger.LogWarning($"Could not add a coinjoin account to the wallet: {e.Message}");
-			return (null, null);
-		}
 	}
 
 	public static async Task InitHardwareWalletAsync(HwiEnumerateEntry device, Network network, CancellationToken cancelToken)

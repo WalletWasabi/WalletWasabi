@@ -143,6 +143,20 @@ public class TrezorDevice : IDisposable
 		return new HDFingerprint(fingerprintBytes);
 	}
 
+	/// <summary>
+	/// Gets the xpub of a regular (segwit) account through the bridge. Used so that a coinjoin enabled import can
+	/// read every account from the bridge in one device session, avoiding contention with HWI for the USB device.
+	/// </summary>
+	public async Task<ExtPubKey> GetSegwitAccountXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken)
+	{
+		var response = await LockedCallAsync(
+			TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), TrezorInputScriptType.SpendWitness),
+			TrezorMessageType.PublicKey,
+			cancellationToken).ConfigureAwait(false);
+
+		return ExtPubKey.Parse(response.GetString(2), network);
+	}
+
 	/// <summary>Gets the xpub of the SLIP-25 coinjoin account. The device shows a confirmation for unlocking the coinjoin path.</summary>
 	public async Task<ExtPubKey> GetCoinJoinXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken)
 	{
