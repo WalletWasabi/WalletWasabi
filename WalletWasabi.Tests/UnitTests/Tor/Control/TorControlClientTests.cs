@@ -3,9 +3,11 @@ using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Tor;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Messages;
 using Xunit;
+using static WalletWasabi.Tor.Control.PipeReaderLineReaderExtension;
 
 namespace WalletWasabi.Tests.UnitTests.Tor.Control;
 
@@ -25,10 +27,10 @@ public class TorControlClientTests
 		Pipe toClient = new();
 
 		// Set up Tor control client.
-		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+		await using TorControlClient client = new(TorBackend.CTor, pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 		// Subscribe to Tor events.
-		IAsyncEnumerable<TorControlReply> events = client.ReadEventsAsync(timeoutCts.Token);
+		IAsyncEnumerable<ITorControlReply> events = client.ReadEventsAsync(timeoutCts.Token);
 
 		// Send a Tor event to all subscribed clients (only one here).
 		// This must happen after a client is subscribed.
@@ -56,11 +58,13 @@ public class TorControlClientTests
 		int counter = 0;
 
 		// Client should get all the events.
-		await foreach (TorControlReply receivedEvent in events)
+		await foreach (ITorControlReply @event in events)
 		{
 			counter++;
 
-			Logger.LogTrace($"Client: Received event (#{counter}): '{receivedEvent}'.");
+			Logger.LogTrace($"Client: Received event (#{counter}): '{@event}'.");
+			TorControlReply receivedEvent = Assert.IsType<TorControlReply>(@event);
+
 			Assert.Equal(StatusCode.AsynchronousEventNotify, receivedEvent.StatusCode);
 			string line = Assert.Single(receivedEvent.ResponseLines);
 			Assert.Equal(AsyncEventContent, line);
@@ -91,11 +95,11 @@ public class TorControlClientTests
 		Pipe toClient = new();
 
 		// Set up Tor control client.
-		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+		await using TorControlClient client = new(TorBackend.CTor, pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 		// Subscribe to Tor events.
-		IAsyncEnumerable<TorControlReply> events = client.ReadEventsAsync(timeoutCts.Token);
-		IAsyncEnumerator<TorControlReply> eventsEnumerator = events.GetAsyncEnumerator();
+		IAsyncEnumerable<ITorControlReply> events = client.ReadEventsAsync(timeoutCts.Token);
+		IAsyncEnumerator<ITorControlReply> eventsEnumerator = events.GetAsyncEnumerator();
 		ValueTask<bool> firstReplyTask = eventsEnumerator.MoveNextAsync();
 
 		Task serverTask = Task.Run(async () =>
@@ -107,7 +111,7 @@ public class TorControlClientTests
 			await toClient.Writer.WriteAsciiAndFlushAsync($"650 {AsyncEventContent}\r\n", timeoutCts.Token).ConfigureAwait(false);
 
 			Logger.LogTrace("Server: Wait for TAKEOWNERSHIP command.");
-			string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token).ConfigureAwait(false);
+			string command = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token).ConfigureAwait(false);
 			Assert.Equal("TAKEOWNERSHIP", command);
 
 			Logger.LogTrace("Server: Send msg #3 (sync) to client in response to TAKEOWNERSHIP command.");
@@ -120,7 +124,7 @@ public class TorControlClientTests
 		Logger.LogTrace("Client: Receive msg #1 (async).");
 		{
 			await firstReplyTask.AsTask().WaitAsync(timeoutCts.Token);
-			TorControlReply receivedEvent1 = eventsEnumerator.Current;
+			TorControlReply receivedEvent1 = Assert.IsType<TorControlReply>(eventsEnumerator.Current);
 			Assert.Equal(StatusCode.AsynchronousEventNotify, receivedEvent1.StatusCode);
 			string line = Assert.Single(receivedEvent1.ResponseLines);
 			Assert.Equal(AsyncEventContent, line);
@@ -133,7 +137,7 @@ public class TorControlClientTests
 		Logger.LogTrace("Client: Receive msg #2 (async).");
 		{
 			Assert.True(await eventsEnumerator.MoveNextAsync());
-			TorControlReply receivedEvent2 = eventsEnumerator.Current;
+			TorControlReply receivedEvent2 = Assert.IsType<TorControlReply>(eventsEnumerator.Current);
 			Assert.Equal(StatusCode.AsynchronousEventNotify, receivedEvent2.StatusCode);
 			string line = Assert.Single(receivedEvent2.ResponseLines);
 			Assert.Equal(AsyncEventContent, line);
@@ -142,7 +146,7 @@ public class TorControlClientTests
 		Logger.LogTrace("Client: Receive msg #4 (async) - i.e. third async event.");
 		{
 			Assert.True(await eventsEnumerator.MoveNextAsync());
-			TorControlReply receivedEvent3 = eventsEnumerator.Current;
+			TorControlReply receivedEvent3 = Assert.IsType<TorControlReply>(eventsEnumerator.Current);
 			Assert.Equal(StatusCode.AsynchronousEventNotify, receivedEvent3.StatusCode);
 			string line = Assert.Single(receivedEvent3.ResponseLines);
 			Assert.Equal(AsyncEventContent, line);
@@ -165,14 +169,14 @@ public class TorControlClientTests
 		Pipe toClient = new();
 
 		// Set up Tor control client.
-		await using TorControlClient client = new(pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
+		await using TorControlClient client = new(TorBackend.CTor, pipeReader: toClient.Reader, pipeWriter: toServer.Writer);
 
 		Logger.LogTrace("Client: Subscribe 'CIRC' events.");
 		{
 			Task task = client.SubscribeEventsAsync(new string[] { "CIRC" }, timeoutCts.Token);
 
 			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
-			string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+			string command = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 			Assert.Equal("SETEVENTS CIRC", command);
 
 			Logger.LogTrace("Server: Reply with OK code.");
@@ -187,7 +191,7 @@ public class TorControlClientTests
 
 			// CIRC is already subscribed.
 			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC STATUS_CLIENT' command.");
-			string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+			string command = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 
 			// This means that BOTH 'CIRC' and 'STATUS_CLIENT' must be subscribed now.
 			// Note: Given we count logical event subscriptions, 'CIRC' is now (logically) subscribed twice!
@@ -205,7 +209,7 @@ public class TorControlClientTests
 
 			// CIRC is already subscribed.
 			Logger.LogTrace("Server: Wait for 'SETEVENTS CIRC' command.");
-			string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+			string command = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 
 			// This means that CIRC is still subscribed (!). The reason for that is that we count logical subscriptions,
 			// so when two distinct components can work the subscription API and they don't affect each other.
@@ -223,7 +227,7 @@ public class TorControlClientTests
 
 			// CIRC is already subscribed.
 			Logger.LogTrace("Server: Wait for 'SETEVENTS' command.");
-			string command = await toServer.Reader.ReadLineAsync(timeoutCts.Token);
+			string command = await toServer.Reader.ReadLineAsync(LineEnding.CRLF, timeoutCts.Token);
 
 			// This means that no events are subscribed.
 			Assert.Equal("SETEVENTS", command);
