@@ -15,7 +15,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.Scheme;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -544,8 +543,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 		try
 		{
-			var expressionResult = await Global.Scheme.ExecuteAsync(script);
-			var result = Scheme.ToObject(Interpreter.ToNativeObject(expressionResult));
+			var expressionResult = await Global.Scheme.ExecuteAsync(script).ConfigureAwait(false);
+			var result = Scheme.ToObject(Scheme.ToNativeObject(expressionResult));
 			return result;
 		}
 		catch (Exception e)
