@@ -5,6 +5,7 @@ using System.Windows.Input;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -13,9 +14,11 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
+	[AutoNotify] private bool _enableCoinjoin;
+
 	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
-		var (walletName, device) = options;
+		var (walletName, device, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);
@@ -26,11 +29,14 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		TypeName = device.Model.FriendlyName();
 
+		// Coinjoin is opt-in: only offer it for models that can sign coinjoins on the device.
+		SupportsCoinjoin = device.SupportsCoinJoin();
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with { EnableCoinjoin = EnableCoinjoin }));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
 
@@ -44,6 +50,8 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 	public WalletType Type { get; }
 
 	public string TypeName { get; }
+
+	public bool SupportsCoinjoin { get; }
 
 	public ICommand NoCommand { get; }
 

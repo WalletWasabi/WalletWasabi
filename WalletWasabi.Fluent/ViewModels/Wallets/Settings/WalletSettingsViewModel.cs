@@ -3,8 +3,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -110,6 +112,27 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
+        // A Trezor watch-only wallet imported without coinjoin can opt in later. The device shows the new
+        // coinjoin account for confirmation, then the wallet restarts so the coinjoin services pick it up.
+        CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+        EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            try
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(3));
+                await walletModel.EnableCoinjoinAsync(cts.Token);
+
+                // The output provider reads the wallet's supported script types at construction, so restart to pick up the coinjoin account.
+                UiContext.Navigate(MetaData.NavigationTarget).Clear();
+                AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                await ShowErrorAsync("Enable coinjoin", ex.ToUserFriendlyString(), "Could not enable coinjoin.");
+            }
+        });
+
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             var heightToResync = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight).GetResultAsync();
@@ -176,6 +199,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
     public ICommand ResyncWalletCommand { get; }
+    public bool CanEnableCoinjoin { get; }
+    public ICommand EnableCoinjoinCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {

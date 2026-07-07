@@ -61,6 +61,11 @@
         </ComboBox.ItemTemplate>
       </ComboBox>
     </DockPanel>
+
+    <DockPanel IsVisible="{Binding CanEnableCoinjoin}" ToolTip.Tip="Adds a coinjoin account to this hardware wallet so it can take part in coinjoins. Confirm on the device; the wallet restarts afterwards.">
+      <TextBlock Text="Coinjoin" />
+      <Button Content="Enable coinjoin" Command="{Binding EnableCoinjoinCommand}" HorizontalAlignment="Right" />
+    </DockPanel>
   </StackPanel>
 
 </UserControl>

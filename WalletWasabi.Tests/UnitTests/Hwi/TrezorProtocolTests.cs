@@ -132,6 +132,65 @@ public class TrezorProtocolTests
 		Assert.Equal(expectedIndex, hdPubKey.Index);
 	}
 
+	[Theory]
+	[InlineData("84'/0'/0'/0/0", ScriptPubKeyType.Segwit)]        // Standard segwit unchanged.
+	[InlineData("86'/0'/0'/0/0", ScriptPubKeyType.TaprootBIP86)]  // Standard taproot unchanged.
+	[InlineData("10025'/0'/0'/1'/0/0", ScriptPubKeyType.TaprootBIP86)] // SLIP-25 is taproot.
+	[InlineData("352'/0'/0'/1'/0", ScriptPubKeyType.Segwit)]      // Silent payment path keeps its previous (default) classification.
+	[InlineData("999'/0'/0'/0/0", ScriptPubKeyType.Segwit)]       // Unknown purpose keeps the segwit default.
+	public void ScriptTypeFromPurpose(string keyPath, ScriptPubKeyType expected)
+	{
+		// The purpose must be read from the real index, not the low byte of its serialization (10025 & 0xFF == 41).
+		Assert.Equal(expected, KeyPath.Parse(keyPath).GetScriptTypeFromKeyPath());
+	}
+
+	[Fact]
+	public void EnableCoinJoinAddsSlip25TaprootAccount()
+	{
+		var mnemonic = new Mnemonic("all all all all all all all all all all all all");
+		var masterExtKey = mnemonic.DeriveExtKey();
+
+		// A plain segwit-only Trezor watch-only wallet (no taproot account), like one imported without coinjoin.
+		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(
+			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
+			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
+			taprootExtPubKey: null,
+			null,
+			null,
+			Network.Main);
+		Assert.False(keyManager.IsTrezorCoinJoinWallet());
+		Assert.Null(keyManager.TaprootExtPubKey);
+
+		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
+		var coinJoinExtPubKey = masterExtKey.Derive(coinJoinAccountKeyPath).Neuter();
+		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
+
+		Assert.True(keyManager.IsTrezorCoinJoinWallet());
+		Assert.Equal(coinJoinExtPubKey, keyManager.TaprootExtPubKey);
+		Assert.Equal(coinJoinAccountKeyPath, keyManager.TaprootAccountKeyPath);
+
+		// The coinjoin account provides internal (change/output) keys flagged internal, which coinjoin needs.
+		Assert.NotEmpty(keyManager.GetKeys(k => k.IsInternal && k.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.TaprootBIP86));
+
+		// A wallet that already has a taproot account must not be silently converted (would orphan its coins).
+		Assert.Throws<InvalidOperationException>(() => keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey));
+	}
+
+	[Fact]
+	public void NormalWalletIsUnaffectedByCoinJoinChanges()
+	{
+		// A hot wallet must not be treated as a Trezor coinjoin wallet and its change keys must still be segwit/taproot.
+		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
+		Assert.False(keyManager.IsTrezorCoinJoinWallet());
+
+		var changeKey = keyManager.GetNextChangeKey();
+		Assert.True(changeKey.IsInternal);
+		Assert.False(changeKey.FullKeyPath.IsSlip25KeyPath());
+
+		var provider = new WalletWasabi.WabiSabi.Client.InternalDestinationProvider(keyManager);
+		Assert.Contains(NBitcoin.ScriptType.P2WPKH, provider.SupportedScriptTypes);
+	}
+
 	[Fact]
 	public void Slip25AccountDetection()
 	{

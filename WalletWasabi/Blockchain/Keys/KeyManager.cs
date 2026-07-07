@@ -232,7 +232,7 @@ public class KeyManager
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
 	private readonly HdPubKeyGenerator _segwitInternalKeyGenerator;
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
-	private readonly HdPubKeyGenerator? _taprootInternalKeyGenerator;
+	private HdPubKeyGenerator? _taprootInternalKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentScanKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentSpendKeyGenerator;
 	private List<(SilentPaymentAddress Address, ECPrivKey ScanSecret)> _silentPaymentScanData = new();
@@ -535,6 +535,30 @@ public class KeyManager
 			TaprootAccountKeyPath = GetAccountKeyPath(GetNetwork(), ScriptPubKeyType.TaprootBIP86);
 			TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		}
+	}
+
+	/// <summary>
+	/// Turns this hardware wallet into a Trezor coinjoin wallet by adopting a SLIP-25 coinjoin account as its
+	/// taproot account. The taproot slot must be empty (a wallet with a regular m/86' taproot account is not
+	/// converted, to avoid orphaning its coins). Persists the change.
+	/// </summary>
+	public void SetCoinJoinAccount(KeyPath coinJoinAccountKeyPath, ExtPubKey coinJoinExtPubKey)
+	{
+		lock (_criticalStateLock)
+		{
+			if (TaprootExtPubKey is not null)
+			{
+				throw new InvalidOperationException("This wallet already has a taproot account.");
+			}
+
+			TaprootAccountKeyPath = coinJoinAccountKeyPath;
+			TaprootExtPubKey = coinJoinExtPubKey;
+			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
+			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
+		}
+
+		AssertCleanKeysIndexed();
+		ToFile();
 	}
 
 	public void SetKeyState(KeyState newKeyState, HdPubKey hdPubKey)

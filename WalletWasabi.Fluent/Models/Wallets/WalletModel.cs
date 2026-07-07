@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -67,6 +69,10 @@ public partial interface IWalletModel : INotifyPropertyChanged
 	bool IsHardwareWallet { get; }
 
 	bool IsTrezorCoinJoinWallet { get; }
+
+	bool CanEnableCoinjoin { get; }
+
+	Task EnableCoinjoinAsync(CancellationToken cancellationToken);
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -192,6 +198,12 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
 	public bool IsTrezorCoinJoinWallet => Wallet.KeyManager.IsTrezorCoinJoinWallet();
+
+	// A hardware wallet with a free taproot slot can opt into coinjoin later by adding a SLIP-25 account.
+	public bool CanEnableCoinjoin => Wallet.KeyManager.IsHardwareWallet && !IsTrezorCoinJoinWallet && Wallet.KeyManager.TaprootExtPubKey is null;
+
+	public async Task EnableCoinjoinAsync(CancellationToken cancellationToken) =>
+		await WalletWasabi.Helpers.HardwareWalletOperationHelpers.EnableCoinJoinAsync(Wallet.KeyManager, Wallet.Network, cancellationToken);
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 
