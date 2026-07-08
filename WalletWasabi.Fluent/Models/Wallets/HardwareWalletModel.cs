@@ -118,24 +118,27 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 			})
 			.ToList();
 
-		// Own outputs (change and SLIP-25) are sent as key paths so the device can verify them; everything
-		// else is shown on the device as a regular address output.
+		// Own outputs are sent as key paths so the device can verify them, but only when their account
+		// matches the unlock state: without the SLIP-25 unlock the firmware rejects SLIP-25 output paths
+		// ("Forbidden key path"), and with it, it rejects segwit output paths. Cross-account transfers
+		// (funding the coinjoin account or sweeping it back) are therefore shown as plain address outputs
+		// that the user verifies on the device screen.
 		var outputs = psbt.Outputs
 			.Select(output =>
 			{
 				var keyPath = Wallet.KeyManager.TryGetKeyPath(output.ScriptPubKey);
 				bool isSlip25 = keyPath?.IsSlip25KeyPath() is true;
-				bool isOwnSegwit = keyPath is not null && !isSlip25;
+				bool verifiableByPath = keyPath is not null && isSlip25 == spendsCoinJoinAccount;
 				return new TrezorTxOutput
 				{
-					AddressN = keyPath?.Indexes ?? [],
-					Address = keyPath is null ? output.ScriptPubKey.GetDestinationAddress(Wallet.Network)!.ToString() : "",
+					AddressN = verifiableByPath ? keyPath!.Indexes : [],
+					Address = verifiableByPath ? "" : output.ScriptPubKey.GetDestinationAddress(Wallet.Network)!.ToString(),
 					Amount = (ulong)output.Value.Satoshi,
-					ScriptType = isSlip25
-						? TrezorOutputScriptType.PayToTaproot
-						: isOwnSegwit
-							? TrezorOutputScriptType.PayToWitness
-							: TrezorOutputScriptType.PayToAddress,
+					ScriptType = !verifiableByPath
+						? TrezorOutputScriptType.PayToAddress
+						: isSlip25
+							? TrezorOutputScriptType.PayToTaproot
+							: TrezorOutputScriptType.PayToWitness,
 				};
 			})
 			.ToList();
