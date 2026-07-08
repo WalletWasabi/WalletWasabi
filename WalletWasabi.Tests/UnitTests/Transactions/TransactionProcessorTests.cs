@@ -1123,6 +1123,40 @@ public class TransactionProcessorTests
 	}
 
 	[Fact]
+	public async Task LabelsDoNotBleedAcrossWalletsAsync()
+	{
+		// Repro for #10980: two wallets loaded in the same Wasabi instance share a single
+		// AllTransactionStore, hence the same SmartTransaction instances. When wallet A sends
+		// to wallet B, the shared tx.WalletInputs keeps A's spent coin, and B's AnalyzeClusters
+		// merges B's received coin cluster with A's input cluster -> labels leak across wallets.
+		using var txStore = await CreateTransactionStoreAsync();
+		var walletA = CreateTransactionProcessor(txStore);
+		var walletB = CreateTransactionProcessor(txStore);
+
+		// Wallet A is funded with 50 000 sats on an address labeled "Alice".
+		var aliceKey = walletA.NewKey("Alice");
+		var tx0 = CreateCreditingTransaction(aliceKey.P2wpkhScript, Money.Satoshis(50_000));
+		walletA.Process(tx0);
+		var aliceCoin = walletA.Coins.First();
+		Assert.Equal("Alice", aliceCoin.HdPubKey.ClusterLabels.ToString());
+
+		// Wallet A pays wallet B (address labeled "Bob"), with change back to wallet A.
+		var bobKey = walletB.NewKey("Bob");
+		var changeKey = walletA.NewKey("");
+		var tx1 = CreateSpendingTransaction(new[] { aliceCoin.Coin }, bobKey.P2wpkhScript, changeKey.P2wpkhScript);
+
+		walletA.Process(tx1);
+		walletB.Process(tx1);
+
+		var bobCoin = walletB.Coins.Single(c => c.HdPubKey == bobKey);
+		var changeCoin = walletA.Coins.Single(c => c.HdPubKey == changeKey);
+
+		// Neither wallet may ever see the other's private label.
+		Assert.Equal("Bob", bobCoin.HdPubKey.ClusterLabels.ToString());     // B must not gain "Alice".
+		Assert.Equal("Alice", changeCoin.HdPubKey.ClusterLabels.ToString()); // A must not gain "Bob".
+	}
+
+	[Fact]
 	public async Task MultipleDirectClusteringAsync()
 	{
 		// --tx0---> (A) --+
