@@ -73,12 +73,12 @@ public class TrezorDevice : IDisposable
 
 		if (bridgeUri is null)
 		{
-			throw new TrezorException("Trezor Bridge is not reachable. Make sure Trezor Suite or trezord is running.");
+			throw new TrezorDeviceNotFoundException("Trezor Bridge is not reachable. Make sure Trezor Suite or trezord is running.");
 		}
 
 		if (bridgeDevices.Count == 0)
 		{
-			throw new TrezorException("No Trezor device found. Connect and unlock the device.");
+			throw new TrezorDeviceNotFoundException("No Trezor device found. Connect and unlock the device.");
 		}
 
 		string? lastError = null;
@@ -127,7 +127,7 @@ public class TrezorDevice : IDisposable
 		string passphraseHint = sawPassphraseProtectedDevice
 			? " If this wallet uses a passphrase, enter the exact same passphrase on the device."
 			: "";
-		throw new TrezorException(lastError is null
+		throw new TrezorDeviceNotFoundException(lastError is null
 			? $"No Trezor device with master fingerprint '{masterFingerprint}' found.{passphraseHint}"
 			: $"No usable Trezor device found. Last error: {lastError}");
 	}
@@ -280,7 +280,8 @@ public class TrezorDevice : IDisposable
 				lockTime,
 				coinJoinRequest: (0, 0, (ulong)minRegistrableAmount.Satoshi));
 
-			return await RunSigningFlowAsync(signTx, inputs, outputs, cancellationToken).ConfigureAwait(false);
+			// Coinjoins are taproot-only, so the device never asks for previous transactions here.
+			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions: null, cancellationToken).ConfigureAwait(false);
 		}
 		finally
 		{
@@ -289,8 +290,9 @@ public class TrezorDevice : IDisposable
 	}
 
 	/// <summary>
-	/// Signs a regular transaction spending SLIP-25 coinjoin account coins, for example to move mixed funds
-	/// out of the coinjoin account. The user confirms every output on the device.
+	/// Signs a regular transaction on the device. Spending from the SLIP-25 coinjoin account first unlocks
+	/// that path; the user confirms every output on the device. For non-taproot inputs the device asks for
+	/// the referenced previous transactions (<paramref name="previousTransactions"/>) to verify the amounts.
 	/// </summary>
 	public async Task<Dictionary<int, byte[]>> SignTransactionAsync(
 		IReadOnlyList<TrezorTxInput> inputs,
@@ -298,14 +300,19 @@ public class TrezorDevice : IDisposable
 		uint version,
 		uint lockTime,
 		Network network,
+		bool unlockCoinJoinAccount,
+		IReadOnlyDictionary<uint256, Transaction>? previousTransactions,
 		CancellationToken cancellationToken)
 	{
 		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
-			await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+			if (unlockCoinJoinAccount)
+			{
+				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+			}
 			var signTx = TrezorMessages.SignTx(inputs.Count, outputs.Count, GetCoinName(network), version, lockTime, coinJoinRequest: null);
-			return await RunSigningFlowAsync(signTx, inputs, outputs, cancellationToken).ConfigureAwait(false);
+			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions, cancellationToken).ConfigureAwait(false);
 		}
 		finally
 		{
@@ -317,6 +324,7 @@ public class TrezorDevice : IDisposable
 		TrezorMessage signTx,
 		IReadOnlyList<TrezorTxInput> inputs,
 		IReadOnlyList<TrezorTxOutput> outputs,
+		IReadOnlyDictionary<uint256, Transaction>? previousTransactions,
 		CancellationToken cancellationToken)
 	{
 		Dictionary<int, byte[]> signatures = new();
@@ -335,8 +343,41 @@ public class TrezorDevice : IDisposable
 				signatures[signatureIndex] = txRequest.Signature;
 			}
 
+			// A request carrying tx_hash refers to the PREVIOUS transaction with that id, not to the one
+			// being signed. The device streams through it to verify the amounts of non-taproot inputs.
+			Transaction? previousTransaction = null;
+			if (txRequest.TxHash is { } txHash)
+			{
+				// The device sends the hash in display order (big-endian), like the prev_hash we stream to it.
+				var hash = new uint256(txHash, lendian: false);
+				if (previousTransactions is null || !previousTransactions.TryGetValue(hash, out previousTransaction))
+				{
+					throw new TrezorException($"The device asked for unknown previous transaction '{hash}'.");
+				}
+			}
+
 			switch (txRequest.RequestType)
 			{
+				case TrezorTxRequestType.TxMeta when previousTransaction is not null:
+					response = await CallRawAsync(
+						TrezorMessages.TxAckPrevMeta(previousTransaction.Version, previousTransaction.LockTime.Value, previousTransaction.Inputs.Count, previousTransaction.Outputs.Count),
+						cancellationToken).ConfigureAwait(false);
+					break;
+
+				case TrezorTxRequestType.TxInput when previousTransaction is not null:
+					var prevIn = previousTransaction.Inputs[txRequest.RequestIndex];
+					response = await CallRawAsync(
+						TrezorMessages.TxAckPrevInput(prevIn.PrevOut.Hash.ToBytes(lendian: false), prevIn.PrevOut.N, prevIn.ScriptSig.ToBytes(), prevIn.Sequence.Value),
+						cancellationToken).ConfigureAwait(false);
+					break;
+
+				case TrezorTxRequestType.TxOutput when previousTransaction is not null:
+					var prevOut = previousTransaction.Outputs[txRequest.RequestIndex];
+					response = await CallRawAsync(
+						TrezorMessages.TxAckPrevOutput((ulong)prevOut.Value.Satoshi, prevOut.ScriptPubKey.ToBytes()),
+						cancellationToken).ConfigureAwait(false);
+					break;
+
 				case TrezorTxRequestType.TxInput:
 					response = await CallRawAsync(inputs[txRequest.RequestIndex].ToTxAckInput(), cancellationToken).ConfigureAwait(false);
 					break;
@@ -349,7 +390,7 @@ public class TrezorDevice : IDisposable
 					return signatures;
 
 				default:
-					throw new TrezorException($"Unexpected transaction data request '{txRequest.RequestType}'. Only taproot inputs are expected in a coinjoin.");
+					throw new TrezorException($"Unexpected transaction data request '{txRequest.RequestType}'.");
 			}
 		}
 	}

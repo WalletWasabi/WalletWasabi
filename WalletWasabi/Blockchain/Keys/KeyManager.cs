@@ -427,6 +427,18 @@ public class KeyManager
 			!(this.IsTrezorCoinJoinWallet() && x.FullKeyPath.IsSlip25KeyPath()))
 			.First();
 
+	/// <summary>
+	/// Change key inside the SLIP-25 coinjoin account. Spending that account happens under an UnlockPath
+	/// session, in which the device forbids every own key path outside the unlocked subtree — so the
+	/// change of such a transaction must return to the coinjoin account, like in Trezor Suite.
+	/// </summary>
+	public HdPubKey GetNextCoinJoinAccountChangeKey() =>
+		GetKeys(x =>
+			x.KeyState == KeyState.Clean &&
+			x.IsInternal &&
+			x.FullKeyPath.IsSlip25KeyPath())
+			.First();
+
 	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
 		GetKeys(x =>
 				x.KeyState == KeyState.Locked &&

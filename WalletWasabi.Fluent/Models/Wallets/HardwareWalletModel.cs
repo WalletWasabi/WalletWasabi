@@ -34,12 +34,11 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 			TimeSpan totalTimeout = baseTimeout + TimeSpan.FromMinutes((inputCount / 10) * additionalTimeoutPer10Inputs.TotalMinutes);
 			using var cts = new CancellationTokenSource(totalTimeout);
 
-			PSBT signedPsbt = SpendsSlip25Coins(transactionAuthorizationInfo.Psbt)
-				? await SignWithTrezorAsync(transactionAuthorizationInfo.Psbt, cts.Token)
-				: await new HwiClient(Wallet.Network).SignTxAsync(
-					Wallet.KeyManager.MasterFingerprint!.Value,
-					transactionAuthorizationInfo.Psbt,
-					cts.Token);
+			// A Trezor coinjoin wallet signs everything through the bridge: one device connection for
+			// sends and coinjoin alike, no USB handover with HWI and no lost coinjoin authorization.
+			PSBT signedPsbt = Wallet.KeyManager.IsTrezorCoinJoinWallet()
+				? await SignWithTrezorAsync(transactionAuthorizationInfo, cts.Token)
+				: await SignWithHwiAsync(transactionAuthorizationInfo.Psbt, cts.Token);
 
 			transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(transactionAuthorizationInfo.Transaction);
 
@@ -52,26 +51,60 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 		}
 	}
 
-	private bool SpendsSlip25Coins(PSBT psbt) =>
-		Wallet.KeyManager.IsTrezorCoinJoinWallet()
-		&& psbt.Inputs.Any(input => input.WitnessUtxo is { } utxo && Wallet.KeyManager.TryGetKeyPath(utxo.ScriptPubKey)?.IsSlip25KeyPath() is true);
+	/// <summary>
+	/// Signs through HWI, which needs the USB device for itself: the Trezor Bridge we may have started
+	/// for coinjoin is stopped first and started again right after, so a running (or auto-restarting)
+	/// coinjoin finds the bridge back without the user doing anything. The device forgets its coinjoin
+	/// authorization when its session ends, so the next coinjoin start asks for a new hold-to-confirm.
+	/// </summary>
+	private async Task<PSBT> SignWithHwiAsync(PSBT psbt, CancellationToken cancellationToken)
+	{
+		// Only a Trezor is served by the bridge; signing with other vendors must not disturb it.
+		bool isTrezor = Helpers.WalletHelpers.GetType(Wallet.KeyManager) == WalletType.Trezor;
+		bool restartBridge = Wallet.KeyManager.IsTrezorCoinJoinWallet();
+		if (isTrezor)
+		{
+			TrezorBridgeManager.StopIfOurs();
+		}
+		try
+		{
+			return await new HwiClient(Wallet.Network).SignTxAsync(
+				Wallet.KeyManager.MasterFingerprint!.Value,
+				psbt,
+				cancellationToken);
+		}
+		finally
+		{
+			if (restartBridge)
+			{
+				await TrezorBridgeManager.EnsureRunningAsync(CancellationToken.None);
+			}
+		}
+	}
 
 	/// <summary>
-	/// Spends from the SLIP-25 coinjoin account, which HWI cannot unlock, so the device is driven
-	/// directly through the Trezor Bridge. The user confirms the outputs on the device as usual.
+	/// Signs through the Trezor Bridge: segwit account coins as regular witness spends (the device asks
+	/// for the previous transactions to verify the amounts) and SLIP-25 coinjoin account coins as taproot
+	/// spends behind an UnlockPath. The user confirms the outputs on the device as usual. Coin selection
+	/// guarantees one transaction never mixes the two accounts.
 	/// </summary>
-	private async Task<PSBT> SignWithTrezorAsync(PSBT psbt, CancellationToken cancellationToken)
+	private async Task<PSBT> SignWithTrezorAsync(TransactionAuthorizationInfo transactionAuthorizationInfo, CancellationToken cancellationToken)
 	{
+		var psbt = transactionAuthorizationInfo.Psbt;
 		var transaction = psbt.GetGlobalTransaction();
+		bool spendsCoinJoinAccount = false;
+
 		var inputs = psbt.Inputs
 			.Select((input, index) =>
 			{
 				var keyPath = input.WitnessUtxo is { } utxo ? Wallet.KeyManager.TryGetKeyPath(utxo.ScriptPubKey) : null;
-				if (keyPath?.IsSlip25KeyPath() is not true)
+				if (keyPath is null)
 				{
-					// The authorization unlocks only the coinjoin account, other inputs cannot be signed in the same transaction.
-					throw new InvalidOperationException("Coinjoin account coins cannot be spent together with other coins. Select only coinjoin account coins.");
+					throw new InvalidOperationException("Cannot sign an input that does not belong to this wallet.");
 				}
+
+				bool isSlip25 = keyPath.IsSlip25KeyPath();
+				spendsCoinJoinAccount |= isSlip25;
 
 				return new TrezorTxInput
 				{
@@ -79,37 +112,73 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 					PrevHash = input.PrevOut.Hash.ToBytes(lendian: false),
 					PrevIndex = input.PrevOut.N,
 					Sequence = transaction.Inputs[index].Sequence.Value,
-					ScriptType = TrezorInputScriptType.SpendTaproot,
+					ScriptType = isSlip25 ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness,
 					Amount = (ulong)input.WitnessUtxo!.Value.Satoshi,
 				};
 			})
 			.ToList();
 
-		// Outputs outside the SLIP-25 account (payments and segwit change) are shown on the device as regular outputs.
+		// Own outputs (change and SLIP-25) are sent as key paths so the device can verify them; everything
+		// else is shown on the device as a regular address output.
 		var outputs = psbt.Outputs
 			.Select(output =>
 			{
 				var keyPath = Wallet.KeyManager.TryGetKeyPath(output.ScriptPubKey);
 				bool isSlip25 = keyPath?.IsSlip25KeyPath() is true;
+				bool isOwnSegwit = keyPath is not null && !isSlip25;
 				return new TrezorTxOutput
 				{
-					AddressN = isSlip25 ? keyPath!.Indexes : [],
-					Address = isSlip25 ? "" : output.ScriptPubKey.GetDestinationAddress(Wallet.Network)!.ToString(),
+					AddressN = keyPath?.Indexes ?? [],
+					Address = keyPath is null ? output.ScriptPubKey.GetDestinationAddress(Wallet.Network)!.ToString() : "",
 					Amount = (ulong)output.Value.Satoshi,
-					ScriptType = isSlip25 ? TrezorOutputScriptType.PayToTaproot : TrezorOutputScriptType.PayToAddress,
+					ScriptType = isSlip25
+						? TrezorOutputScriptType.PayToTaproot
+						: isOwnSegwit
+							? TrezorOutputScriptType.PayToWitness
+							: TrezorOutputScriptType.PayToAddress,
 				};
 			})
 			.ToList();
 
+		// The device verifies the spent amount of every non-taproot input against its previous transaction.
+		var previousTransactions = transactionAuthorizationInfo.Transaction.WalletInputs
+			.Select(coin => coin.Transaction.Transaction)
+			.DistinctBy(tx => tx.GetHash())
+			.ToDictionary(tx => tx.GetHash(), tx => tx);
+
 		using var device = await TrezorDevice.FindAsync(Wallet.KeyManager.MasterFingerprint, cancellationToken);
-		var signatures = await device.SignTransactionAsync(inputs, outputs, (uint)transaction.Version, transaction.LockTime.Value, Wallet.Network, cancellationToken);
+		var signatures = await device.SignTransactionAsync(
+			inputs,
+			outputs,
+			(uint)transaction.Version,
+			transaction.LockTime.Value,
+			Wallet.Network,
+			unlockCoinJoinAccount: spendsCoinJoinAccount,
+			previousTransactions,
+			cancellationToken);
 
 		var signedPsbt = psbt.Clone();
 		foreach (var signature in signatures)
 		{
-			signedPsbt.Inputs[signature.Key].FinalScriptWitness = new WitScript(Op.GetPushOp(signature.Value));
+			var index = signature.Key;
+			signedPsbt.Inputs[index].FinalScriptWitness = inputs[index].ScriptType == TrezorInputScriptType.SpendTaproot
+				? new WitScript(Op.GetPushOp(signature.Value))
+				: BuildSegwitWitness(psbt.Inputs[index], signature.Value);
 		}
 
 		return signedPsbt;
+	}
+
+	/// <summary>A P2WPKH witness is the DER signature (with sighash byte) followed by the public key.</summary>
+	private WitScript BuildSegwitWitness(PSBTInput input, byte[] signature)
+	{
+		if (!Wallet.KeyManager.TryGetKeyForScriptPubKey(input.WitnessUtxo!.ScriptPubKey, out var hdPubKey))
+		{
+			throw new InvalidOperationException("Cannot find the public key of a signed input.");
+		}
+
+		// The device returns the DER signature without the sighash type byte.
+		byte[] signatureWithSighash = [.. signature, (byte)SigHash.All];
+		return new WitScript(Op.GetPushOp(signatureWithSighash), Op.GetPushOp(hdPubKey.PubKey.ToBytes()));
 	}
 }

@@ -1,8 +1,13 @@
 using NBitcoin;
+using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
@@ -253,5 +258,63 @@ public class TrezorProtocolTests
 			null,
 			Network.Main);
 		Assert.False(plainHardwareWallet.IsTrezorCoinJoinWallet());
+	}
+
+	[Fact]
+	public void TransactionNeverMixesCoinJoinAccountWithOtherCoins()
+	{
+		var mnemonic = new Mnemonic("all all all all all all all all all all all all");
+		var masterExtKey = mnemonic.DeriveExtKey();
+		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
+
+		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(
+			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
+			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
+			masterExtKey.Derive(coinJoinAccountKeyPath).Neuter(),
+			null,
+			null,
+			Network.Main,
+			taprootAccountKeyPath: coinJoinAccountKeyPath);
+		Assert.True(keyManager.IsTrezorCoinJoinWallet());
+
+		var segwitKey = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
+		var slip25Key = keyManager.GetKeys(k => k.FullKeyPath.IsSlip25KeyPath()).First();
+
+		var segwitCoin = BitcoinFactory.CreateSmartCoin(segwitKey, 1.0m);
+		var slip25Coin = BitcoinFactory.CreateSmartCoin(slip25Key, 2.0m);
+		using var transactionStore = new AllTransactionStore(".", Network.Main);
+		var factory = new TransactionFactory(
+			Network.Main,
+			keyManager,
+			new CoinsView([segwitCoin, slip25Coin]),
+			transactionStore);
+
+		using var destinationKey = new Key();
+		TransactionParameters Parameters(decimal amountBtc, IEnumerable<OutPoint>? allowedInputs = null) => new(
+			PaymentIntent: new PaymentIntent(destinationKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(amountBtc)),
+			FeeRate: new FeeRate(2m),
+			AllowUnconfirmed: true,
+			AllowDoubleSpend: false,
+			AllowedInputs: allowedInputs,
+			TryToSign: false,
+			OverrideFeeOverpaymentProtection: false);
+
+		// Fits in the segwit account: the private coinjoin coins must stay untouched.
+		var segwitResult = factory.BuildTransaction(Parameters(0.5m));
+		Assert.All(segwitResult.SpentCoins, coin => Assert.False(coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()));
+
+		// Only the coinjoin account can cover this: spend only from it. The device signs such a spend under
+		// an UnlockPath session that forbids paths outside SLIP-25, so the change must return to it too.
+		var slip25Result = factory.BuildTransaction(Parameters(1.5m));
+		Assert.All(slip25Result.SpentCoins, coin => Assert.True(coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()));
+		var slip25Change = slip25Result.Transaction.Transaction.Outputs.Single(o => o.ScriptPubKey != destinationKey.GetScriptPubKey(ScriptPubKeyType.Segwit));
+		Assert.True(keyManager.TryGetKeyPath(slip25Change.ScriptPubKey)?.IsSlip25KeyPath());
+
+		// Neither account alone can cover it: fail clearly instead of building an unsignable transaction.
+		Assert.Throws<InvalidOperationException>(() => factory.BuildTransaction(Parameters(2.5m)));
+
+		// A mixed selection (the GUI's automatic coin selection produces those) is narrowed to one account.
+		var narrowedResult = factory.BuildTransaction(Parameters(0.5m, [segwitCoin.Outpoint, slip25Coin.Outpoint]));
+		Assert.Single(narrowedResult.SpentCoins.Select(coin => coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()).Distinct());
 	}
 }

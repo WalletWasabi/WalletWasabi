@@ -45,6 +45,7 @@ public enum TrezorInputScriptType : uint
 public enum TrezorOutputScriptType : uint
 {
 	PayToAddress = 0,
+	PayToWitness = 3,
 	PayToTaproot = 6,
 }
 
@@ -80,7 +81,7 @@ public record TrezorFeatures(uint MajorVersion, uint MinorVersion, uint PatchVer
 	}
 }
 
-public record TrezorTxRequest(TrezorTxRequestType RequestType, int RequestIndex, int? SignatureIndex, byte[] Signature)
+public record TrezorTxRequest(TrezorTxRequestType RequestType, int RequestIndex, int? SignatureIndex, byte[] Signature, byte[]? TxHash = null)
 {
 	public static TrezorTxRequest FromMessage(TrezorMessage message)
 	{
@@ -88,10 +89,18 @@ public record TrezorTxRequest(TrezorTxRequestType RequestType, int RequestIndex,
 		var requestType = (TrezorTxRequestType)(fields.TryGetValue(1, out var type) ? type[0].VarInt : 0);
 
 		int requestIndex = 0;
+		byte[]? txHash = null;
 		if (fields.TryGetValue(2, out var details))
 		{
 			var detailFields = ProtoReader.ReadAllFields(details[0].Bytes);
 			requestIndex = detailFields.TryGetValue(1, out var index) ? (int)index[0].VarInt : 0;
+
+			// TxRequestDetailsType.tx_hash (field 2): when set, the request is about this PREVIOUS
+			// transaction (needed for non-taproot inputs so the device can verify the spent amounts).
+			if (detailFields.TryGetValue(2, out var hash))
+			{
+				txHash = hash[0].Bytes;
+			}
 		}
 
 		int? signatureIndex = null;
@@ -109,7 +118,7 @@ public record TrezorTxRequest(TrezorTxRequestType RequestType, int RequestIndex,
 			}
 		}
 
-		return new TrezorTxRequest(requestType, requestIndex, signatureIndex, signature);
+		return new TrezorTxRequest(requestType, requestIndex, signatureIndex, signature, txHash);
 	}
 }
 
@@ -182,6 +191,41 @@ public static class TrezorMessages
 {
 	public static TrezorMessage Initialize() =>
 		TrezorMessage.Empty(TrezorMessageType.Initialize);
+
+	// The device requests the referenced previous transaction piece by piece to verify the spent amounts
+	// of non-taproot inputs. TransactionType field numbers: version=1, inputs=2, bin_outputs=3, lock_time=4,
+	// inputs_cnt=6, outputs_cnt=7. All acks are wire-aliases of TxAck { tx = 1 }.
+	public static TrezorMessage TxAckPrevMeta(uint version, uint lockTime, int inputsCount, int outputsCount)
+	{
+		var tx = new ProtoWriter()
+			.WriteVarIntField(1, version)
+			.WriteVarIntField(4, lockTime)
+			.WriteVarIntField(6, (ulong)inputsCount)
+			.WriteVarIntField(7, (ulong)outputsCount);
+		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
+	}
+
+	public static TrezorMessage TxAckPrevInput(byte[] prevHash, uint prevIndex, byte[] scriptSig, uint sequence)
+	{
+		// PrevInput: prev_hash=2, prev_index=3, script_sig=4, sequence=5 (empty script_sig for segwit spends).
+		var input = new ProtoWriter()
+			.WriteBytesField(2, prevHash)
+			.WriteVarIntField(3, prevIndex)
+			.WriteBytesField(4, scriptSig)
+			.WriteVarIntField(5, sequence);
+		var tx = new ProtoWriter().WriteMessageField(2, input);
+		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
+	}
+
+	public static TrezorMessage TxAckPrevOutput(ulong amount, byte[] scriptPubKey)
+	{
+		// PrevOutput (bin_outputs): amount=1, script_pubkey=2.
+		var output = new ProtoWriter()
+			.WriteVarIntField(1, amount)
+			.WriteBytesField(2, scriptPubKey);
+		var tx = new ProtoWriter().WriteMessageField(3, output);
+		return new TrezorMessage(TrezorMessageType.TxAck, new ProtoWriter().WriteMessageField(1, tx).ToBytes());
+	}
 
 	public static TrezorMessage ButtonAck() =>
 		TrezorMessage.Empty(TrezorMessageType.ButtonAck);
