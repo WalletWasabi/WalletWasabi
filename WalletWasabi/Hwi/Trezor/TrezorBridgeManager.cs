@@ -18,10 +18,39 @@ namespace WalletWasabi.Hwi.Trezor;
 /// enumerate devices with HWI. It never touches a bridge it did not start (e.g. one provided by Trezor Suite):
 /// if a bridge is already reachable it is reused as is.
 /// </summary>
+public enum TrezorBridgeStatus
+{
+	/// <summary>No bridge involved: the device is reached over direct USB (HWI).</summary>
+	NotRunning,
+
+	/// <summary>A trezord started and owned by Wasabi is serving the device.</summary>
+	StartedByWasabi,
+
+	/// <summary>A bridge Wasabi did not start (e.g. Trezor Suite) is serving the device.</summary>
+	External,
+}
+
 public static class TrezorBridgeManager
 {
 	private static readonly SemaphoreSlim Lock = new(1, 1);
 	private static Process? _ourProcess;
+	private static TrezorBridgeStatus _status;
+
+	/// <summary>Raised when the way the Trezor is reached changes, so the UI can show it.</summary>
+	public static event EventHandler<TrezorBridgeStatus>? StatusChanged;
+
+	public static TrezorBridgeStatus Status
+	{
+		get => _status;
+		private set
+		{
+			if (_status != value)
+			{
+				_status = value;
+				StatusChanged?.Invoke(null, value);
+			}
+		}
+	}
 
 	/// <summary>Ensures a bridge is reachable, starting our own trezord only if none is already running.</summary>
 	public static async Task EnsureRunningAsync(CancellationToken cancellationToken)
@@ -31,23 +60,27 @@ public static class TrezorBridgeManager
 		{
 			if (IsOurProcessAlive())
 			{
+				Status = TrezorBridgeStatus.StartedByWasabi;
 				return;
 			}
 
 			if (await TrezorDevice.IsBridgeAvailableAsync(cancellationToken).ConfigureAwait(false))
 			{
 				// A bridge is already running (Trezor Suite or a user-started trezord); leave it alone.
+				Status = TrezorBridgeStatus.External;
 				return;
 			}
 
 			if (FindTrezordExecutable() is not { } executable)
 			{
 				Logger.LogInfo("Trezor Bridge (trezord) was not found. Coinjoin will need Trezor Suite or Trezor Bridge running.");
+				Status = TrezorBridgeStatus.NotRunning;
 				return;
 			}
 
 			_ourProcess = Process.Start(new ProcessStartInfo(executable) { UseShellExecute = false, CreateNoWindow = true });
 			Logger.LogInfo("Started Trezor Bridge for coinjoin.");
+			Status = TrezorBridgeStatus.StartedByWasabi;
 
 			// Give trezord a moment to bind its port before the first request.
 			await WaitForBridgeAsync(cancellationToken).ConfigureAwait(false);
@@ -71,6 +104,10 @@ public static class TrezorBridgeManager
 			if (!IsOurProcessAlive())
 			{
 				_ourProcess = null;
+				if (Status == TrezorBridgeStatus.StartedByWasabi)
+				{
+					Status = TrezorBridgeStatus.NotRunning;
+				}
 				return;
 			}
 
@@ -88,6 +125,7 @@ public static class TrezorBridgeManager
 			{
 				_ourProcess?.Dispose();
 				_ourProcess = null;
+				Status = TrezorBridgeStatus.NotRunning;
 			}
 		}
 		finally

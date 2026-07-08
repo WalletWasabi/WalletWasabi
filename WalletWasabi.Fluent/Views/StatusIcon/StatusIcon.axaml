@@ -126,6 +126,15 @@
                 <PathIcon Data="{StaticResource btc_logo}" />
               </StatusItem.Icon>
             </StatusItem>
+
+            <StatusItem
+              Title="Trezor Access"
+              StatusText="{Binding HealthMonitor.TrezorDeviceAccessText}"
+              IsVisible="{Binding HealthMonitor.TrezorDeviceAccessText, Converter={x:Static ObjectConverters.IsNotNull}}">
+              <StatusItem.Icon>
+                <PathIcon Data="{StaticResource key_regular}" />
+              </StatusItem.Icon>
+            </StatusItem>
           </StackPanel>
 
           <!-- Update -->

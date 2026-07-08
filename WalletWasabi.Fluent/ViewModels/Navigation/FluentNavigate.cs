@@ -169,6 +169,15 @@ public partial class FluentNavigate
 		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
+	public FluentDialog<bool> TrezorCoinJoinAuthDialog(WalletCoinjoinModel walletCoinjoinModel, WalletType walletType, int maxRounds, decimal maxMiningFeeRate, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		var dialog = new TrezorCoinJoinAuthDialogViewModel(UiContext, walletCoinjoinModel, walletType, maxRounds, maxMiningFeeRate);
+		var target = UiContext.Navigate(navigationTarget);
+		target.To(dialog, navigationMode);
+
+		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
+	}
+
 	public FluentDialog<IEnumerable<SmartCoin>> PrivacyControl(Wallet wallet, SendFlowModel sendFlow, TransactionInfo transactionInfo, IEnumerable<SmartCoin>? usedCoins, bool isSilent, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialog = new PrivacyControlViewModel(UiContext, wallet, sendFlow, transactionInfo, usedCoins, isSilent);

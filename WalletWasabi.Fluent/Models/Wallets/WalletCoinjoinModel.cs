@@ -20,6 +20,8 @@ public enum TrezorAuthorizationStatus
 {
 	Idle,
 	AwaitingConfirmation,
+	Confirmed,
+	DeviceNotFound,
 	Failed,
 }
 
@@ -98,27 +100,46 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public IObservable<bool> IsStarted { get; }
 
-	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
+	/// <summary>
+	/// Asks the Trezor for the coinjoin authorization: the device shows the number of rounds and the
+	/// maximum mining fee rate and the user confirms with hold-to-confirm. TrezorAuthorization drives
+	/// both the authorization dialog and the music box text so the user knows to look at the device.
+	/// </summary>
+	public async Task<bool> AuthorizeTrezorAsync()
 	{
-		if (_wallet.KeyManager.IsTrezorCoinJoinWallet())
+		TrezorAuthorization = TrezorAuthorizationStatus.AwaitingConfirmation;
+		try
 		{
-			// The device shows the number of rounds and the maximum mining fee rate and the user
-			// confirms with hold-to-confirm. Without the authorization no coinjoin can start.
-			// TrezorAuthorization drives the music box text so the user knows to look at the device.
-			TrezorAuthorization = TrezorAuthorizationStatus.AwaitingConfirmation;
-			try
+			await _wallet.AuthorizeTrezorCoinJoinAsync(
+				_services.Config.CoordinatorIdentifier,
+				_wallet.KeyManager.TrezorCoinjoinMaxRounds,
+				new FeeRate(_wallet.KeyManager.TrezorCoinjoinMaxMiningFeeRate),
+				CancellationToken.None);
+			TrezorAuthorization = TrezorAuthorizationStatus.Confirmed;
+			return true;
+		}
+		catch (TrezorDeviceNotFoundException e)
+		{
+			Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
+			TrezorAuthorization = TrezorAuthorizationStatus.DeviceNotFound;
+			return false;
+		}
+		catch (TrezorException e)
+		{
+			Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
+			TrezorAuthorization = TrezorAuthorizationStatus.Failed;
+			return false;
+		}
+	}
+
+	/// <param name="skipTrezorAuthorization">True when the caller already authorized through the dialog.</param>
+	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop, bool skipTrezorAuthorization = false)
+	{
+		if (_wallet.KeyManager.IsTrezorCoinJoinWallet() && !skipTrezorAuthorization)
+		{
+			// Without the authorization no coinjoin can start.
+			if (!await AuthorizeTrezorAsync().ConfigureAwait(false))
 			{
-				await _wallet.AuthorizeTrezorCoinJoinAsync(
-					_services.Config.CoordinatorIdentifier,
-					_wallet.KeyManager.TrezorCoinjoinMaxRounds,
-					new FeeRate(_wallet.KeyManager.TrezorCoinjoinMaxMiningFeeRate),
-					CancellationToken.None);
-				TrezorAuthorization = TrezorAuthorizationStatus.Idle;
-			}
-			catch (TrezorException e)
-			{
-				Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
-				TrezorAuthorization = TrezorAuthorizationStatus.Failed;
 				return;
 			}
 		}

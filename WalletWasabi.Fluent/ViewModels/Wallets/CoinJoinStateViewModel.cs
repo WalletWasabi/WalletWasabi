@@ -45,6 +45,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
 	private const string ConfirmOnTrezorMessage = "Confirm coinjoin on your Trezor";
+	private const string TrezorConfirmedMessage = "Trezor confirmed, coinjoin is starting";
+	private const string TrezorNotFoundMessage = "Connect and unlock your Trezor, then press Play";
 	private const string TrezorAuthorizationFailedMessage = "Trezor did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
@@ -86,17 +88,17 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					   .ObserveOn(RxApp.MainThreadScheduler)
 					   .Do(status =>
 					   {
-						   // Point the user at the device while it waits for the hold-to-confirm,
-						   // and tell them when the device declined. Idle needs no message: on success
-						   // the wallet fires WalletStartedCoinJoin which updates the status anyway.
-						   if (status == TrezorAuthorizationStatus.AwaitingConfirmation)
+						   // Point the user at the device while it waits for the hold-to-confirm, acknowledge
+						   // the confirmation, and tell them when the device declined. Confirmed is transient:
+						   // the wallet fires WalletStartedCoinJoin right after, which updates the status again.
+						   CurrentStatus = status switch
 						   {
-							   CurrentStatus = ConfirmOnTrezorMessage;
-						   }
-						   else if (status == TrezorAuthorizationStatus.Failed)
-						   {
-							   CurrentStatus = TrezorAuthorizationFailedMessage;
-						   }
+							   TrezorAuthorizationStatus.AwaitingConfirmation => ConfirmOnTrezorMessage,
+							   TrezorAuthorizationStatus.Confirmed => TrezorConfirmedMessage,
+							   TrezorAuthorizationStatus.DeviceNotFound => TrezorNotFoundMessage,
+							   TrezorAuthorizationStatus.Failed => TrezorAuthorizationFailedMessage,
+							   _ => CurrentStatus,
+						   };
 					   })
 					   .Subscribe();
 
@@ -138,6 +140,26 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
+
+			if (walletInstance.KeyManager.IsTrezorCoinJoinWallet())
+			{
+				// The same dialog flow users know from sending with a hardware wallet: Continue,
+				// then hold-to-confirm on the device. The coinjoin only starts when the device agreed.
+				var authorized = await UiContext.Navigate().To().TrezorCoinJoinAuthDialog(
+					walletCoinjoinModel,
+					wallet.Settings.WalletType,
+					walletInstance.KeyManager.TrezorCoinjoinMaxRounds,
+					walletInstance.KeyManager.TrezorCoinjoinMaxMiningFeeRate).GetResultAsync();
+
+				if (!authorized)
+				{
+					return;
+				}
+
+				await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop, skipTrezorAuthorization: true);
+				return;
+			}
+
 			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
 		});
 
