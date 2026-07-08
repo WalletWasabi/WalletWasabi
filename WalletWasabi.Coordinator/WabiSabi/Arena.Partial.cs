@@ -4,7 +4,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
-using WalletWasabi.Crypto.Randomness;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Coordinator.Models;

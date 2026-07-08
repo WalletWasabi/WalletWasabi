@@ -1,6 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
-using WalletWasabi.Crypto.Randomness;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;

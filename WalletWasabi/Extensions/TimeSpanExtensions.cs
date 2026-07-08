@@ -1,6 +1,6 @@
 using System.Collections.Immutable;
 using System.Linq;
-using WalletWasabi.Crypto.Randomness;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;
 

@@ -1,5 +1,5 @@
 using WabiSabi.Crypto;
-using WalletWasabi.Crypto.Randomness;
+using WabiSabi.Crypto.Randomness;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi;

@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using Nito.AsyncEx;
+using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Bases;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Crypto.Randomness;

@@ -5,8 +5,8 @@ using WabiSabi;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
+using WabiSabi.Crypto.Randomness;
 using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
@@ -34,7 +34,7 @@ public class SerializationTests
 	[Fact]
 	public void CredentialResponseSerialization()
 	{
-		var rnd = new InsecureRandom(1234);
+		var rnd = new WalletWasabi.Crypto.Randomness.InsecureRandom(1234);
 		var points = Enumerable.Range(0, int.MaxValue).Select(i => Generators.FromText($"T{i}"));
 		var scalars = Enumerable.Range(1, int.MaxValue).Select(i => new Scalar((uint)i));
 		var issuerKey = new CredentialIssuerSecretKey(rnd);
