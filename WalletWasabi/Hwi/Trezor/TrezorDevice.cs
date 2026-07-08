@@ -73,7 +73,7 @@ public class TrezorDevice : IDisposable
 
 		if (bridgeUri is null)
 		{
-			throw new TrezorBridgeNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, or install Trezor Bridge from {TrezorBridgeManager.BridgeDownloadUrl} and try again.");
+			throw new TrezorBridgeNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, which includes the bridge, or download it from {TrezorBridgeManager.SuiteDownloadUrl} and try again.");
 		}
 
 		if (bridgeDevices.Count == 0)

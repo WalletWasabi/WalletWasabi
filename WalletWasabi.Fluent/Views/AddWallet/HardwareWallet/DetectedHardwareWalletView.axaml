@@ -36,8 +36,8 @@
                      Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" FontSize="12" />
           <Button Classes="activeHyperLink"
                   HorizontalAlignment="Center"
-                  Content="Download Trezor Bridge"
-                  ToolTip.Tip="Open the official Trezor Bridge releases page in the default browser"
+                  Content="Download Trezor Suite"
+                  ToolTip.Tip="Open the official Trezor Suite releases page in the default browser"
                   Command="{Binding OpenBridgeDownloadCommand}" />
         </StackPanel>
       </StackPanel>

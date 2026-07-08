@@ -32,8 +32,12 @@ public enum TrezorBridgeStatus
 
 public static class TrezorBridgeManager
 {
-	/// <summary>Official standalone Trezor Bridge (trezord-go) releases, offered when no bridge is installed.</summary>
-	public const string BridgeDownloadUrl = "https://github.com/trezor/trezord-go/releases/latest";
+	/// <summary>
+	/// Official Trezor Suite releases, offered when no bridge is running. Standalone trezord-go is
+	/// deprecated and publishes no releases anymore; the bridge now ships inside Trezor Suite. An already
+	/// installed standalone trezord keeps working and is still auto-started when found.
+	/// </summary>
+	public const string SuiteDownloadUrl = "https://github.com/trezor/trezor-suite/releases/latest";
 
 	private static readonly SemaphoreSlim Lock = new(1, 1);
 	private static Process? _ourProcess;
@@ -76,7 +80,7 @@ public static class TrezorBridgeManager
 
 			if (FindTrezordExecutable() is not { } executable)
 			{
-				Logger.LogInfo($"Trezor Bridge (trezord) was not found. Coinjoin needs Trezor Suite running or Trezor Bridge installed from {BridgeDownloadUrl}.");
+				Logger.LogInfo($"Trezor Bridge (trezord) was not found. Coinjoin needs Trezor Suite running, which includes the bridge; download from {SuiteDownloadUrl}.");
 				Status = TrezorBridgeStatus.NotRunning;
 				return;
 			}

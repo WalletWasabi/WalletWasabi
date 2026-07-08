@@ -41,7 +41,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		NoCommand = ReactiveCommand.Create(OnNo);
 
-		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(WalletWasabi.Hwi.Trezor.TrezorBridgeManager.BridgeDownloadUrl));
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(WalletWasabi.Hwi.Trezor.TrezorBridgeManager.SuiteDownloadUrl));
 
 		EnableAutoBusyOn(NextCommand);
 	}

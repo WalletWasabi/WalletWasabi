@@ -27,7 +27,7 @@ public partial class TrezorCoinJoinAuthDialogViewModel : AuthorizationDialogBase
 
 		AuthorizationFailedMessage = $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
 
-		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(TrezorBridgeManager.BridgeDownloadUrl));
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(TrezorBridgeManager.SuiteDownloadUrl));
 	}
 
 	public WalletType WalletType { get; }
@@ -44,7 +44,7 @@ public partial class TrezorCoinJoinAuthDialogViewModel : AuthorizationDialogBase
 		{
 			AuthorizationFailedMessage = _walletCoinjoinModel.TrezorAuthorization switch
 			{
-				TrezorAuthorizationStatus.BridgeNotFound => $"Trezor Bridge is not running.{Environment.NewLine}Start Trezor Suite, or install Trezor Bridge and try again:",
+				TrezorAuthorizationStatus.BridgeNotFound => $"Trezor Bridge is not running.{Environment.NewLine}Start Trezor Suite, which includes the bridge, or download it:",
 				TrezorAuthorizationStatus.DeviceNotFound => $"Trezor not found.{Environment.NewLine}Connect and unlock your Trezor, then try again.",
 				_ => $"Authorization failed.{Environment.NewLine}Please, check your device and try again.",
 			};
