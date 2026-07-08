@@ -220,6 +220,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		});
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
 
+		// The Trezor firmware caps how much value may leave the wallet in a preauthorized coinjoin (the fee
+		// budget), so a payment output to a foreign address can never be signed: don't offer the feature.
+		AreCoinJoinPaymentsSupported = !walletInstance.KeyManager.IsTrezorCoinJoinWallet();
+
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
 
@@ -266,6 +270,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand StopPauseCommand { get; }
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 	public ICommand CoinJoinPaymentsCommand { get; }
+	public bool AreCoinJoinPaymentsSupported { get; }
 
 	private void ConfigureStateMachine()
 	{
