@@ -438,6 +438,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					CoinjoinError.CoordinatorLiedAboutInputs => CoordinatorLiedMessage,
+					CoinjoinError.TrezorAuthorizationFailed => TrezorAuthorizationFailedMessage,
 					_ => GeneralErrorMessage
 				};
 
