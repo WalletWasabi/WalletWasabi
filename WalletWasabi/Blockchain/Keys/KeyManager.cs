@@ -575,9 +575,14 @@ public class KeyManager
 			TaprootExtPubKey = coinJoinExtPubKey;
 			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
 			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
+
+			// Only coins of the SLIP-25 account can join rounds, so hand out its addresses by default;
+			// segwit receive stays available in the dropdown for deposits that should not be coinjoined.
+			DefaultReceiveScriptType = ScriptPubKeyType.TaprootBIP86;
+
+			AssertCleanKeysIndexedNoLock();
 		}
 
-		AssertCleanKeysIndexed();
 		ToFile();
 	}
 
