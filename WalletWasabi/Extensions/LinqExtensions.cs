@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
+using System.Security.Cryptography;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Transactions;
 
@@ -41,23 +41,30 @@ public static class LinqExtensions
 		return source.Any() ? source.First() : default;
 	}
 
-	public static IList<T> Shuffle<T>(this IList<T> list, WasabiRandom random)
+	public static T[] Shuffle<T>(this T[] input, WasabiRandom random)
 	{
-		int n = list.Count;
-		while (n > 1)
+		if (random is Crypto.Randomness.SecureRandom)
 		{
-			n--;
-			int k = random.GetInt(0, n + 1);
-			T value = list[k];
-			list[k] = list[n];
-			list[n] = value;
+			RandomNumberGenerator.Shuffle(input);
 		}
-		return list;
+		else if (random is Crypto.Randomness.InsecureRandom insecureRandom)
+		{
+			insecureRandom.Shuffle(input);
+		}
+		else
+		{
+			throw new NotSupportedException($"Random type not supported: {random?.GetType().FullName}");
+		}
+		
+		return input;
 	}
 
-	public static IList<T> ToShuffled<T>(this IEnumerable<T> list, WasabiRandom random)
+	public static IList<T> ToShuffled<T>(this IList<T> input, WasabiRandom random)
 	{
-		return list.ToList().Shuffle(random);
+		var output = input.ToArray();
+		output.Shuffle(random);
+
+		return output;
 	}
 
 	/// <summary>
