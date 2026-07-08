@@ -93,6 +93,10 @@ public static class HardwareWalletOperationHelpers
 
 	public static async Task<HwiEnumerateEntry[]> DetectAsync(Network network, CancellationToken cancelToken)
 	{
+		// HWI needs exclusive USB access, which a coinjoin bridge we started would hold. Release it so
+		// detection works; a loaded coinjoin wallet restarts the bridge the next time it needs to sign.
+		TrezorBridgeManager.StopIfOurs();
+
 		var client = new HwiClient(network);
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancelToken);

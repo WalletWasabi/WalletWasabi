@@ -47,6 +47,10 @@ public class TrezorDevice : IDisposable
 	/// <summary>Finds and acquires the connected Trezor with the given master fingerprint.</summary>
 	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
 	{
+		// Start the bridge if it is not already running, so coinjoin authorization/signing and the coinjoin
+		// account import work without the user launching anything (and after Add-Wallet stopped it for HWI).
+		await TrezorBridgeManager.EnsureRunningAsync(cancellationToken).ConfigureAwait(false);
+
 		string? bridgeUri = null;
 		IReadOnlyList<TrezorBridgeTransport.BridgeDevice> bridgeDevices = [];
 		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)

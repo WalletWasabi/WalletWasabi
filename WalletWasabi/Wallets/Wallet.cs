@@ -269,6 +269,12 @@ public class Wallet : BackgroundService
 	/// <inheritdoc/>
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
+		// A coinjoin capable Trezor needs the bridge running so play/auto-start can reach the device.
+		if (KeyManager.IsTrezorCoinJoinWallet())
+		{
+			await TrezorBridgeManager.EnsureRunningAsync(cancellationToken).ConfigureAwait(false);
+		}
+
 		await WalletFilterProcessor.StartAsync(cancellationToken).ConfigureAwait(false);
 		Logger.LogTrace(FormatLog("Wallet filter processor is started.", this));
 
@@ -325,6 +331,13 @@ public class Wallet : BackgroundService
 		WalletFilterProcessor.Dispose();
 
 		(KeyChain as TrezorKeyChain)?.Dispose();
+
+		// Release the bridge we may have started for this wallet so HWI can use the device again.
+		if (KeyManager.IsTrezorCoinJoinWallet())
+		{
+			TrezorBridgeManager.StopIfOurs();
+		}
+
 		_disposables.Dispose();
 	}
 
