@@ -90,6 +90,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         }, canSave);
 
         _defaultReceiveScriptType = walletModel.Settings.DefaultReceiveScriptType;
+        if (walletModel.IsTrezorCoinJoinWallet && _defaultReceiveScriptType != ScriptType.SegWit)
+        {
+            // Taproot receive addresses of this wallet would come from the SLIP-25 coinjoin account.
+            _defaultReceiveScriptType = ScriptType.SegWit;
+            walletModel.Settings.DefaultReceiveScriptType = _defaultReceiveScriptType;
+            walletModel.Settings.Save();
+        }
         this.WhenAnyValue(x => x.DefaultReceiveScriptType)
             .Subscribe(value => IsSegWitDefaultReceiveScriptType = value == ScriptType.SegWit);
 
@@ -103,6 +110,16 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             },
             _ => walletModel.Settings.ChangeScriptPubKeyType
         };
+
+        if (walletModel.IsTrezorCoinJoinWallet
+            && _changeScriptPubKeyType is not PreferredScriptPubKeyType.Specified { ScriptType: ScriptPubKeyType.Segwit })
+        {
+            // SegWit is the only valid choice here (taproot keys of this wallet belong to the SLIP-25
+            // coinjoin account); coerce so the selector does not show an empty value.
+            _changeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
+            walletModel.Settings.ChangeScriptPubKeyType = _changeScriptPubKeyType;
+            walletModel.Settings.Save();
+        }
 
         DefaultSendWorkflow = walletModel.Settings.DefaultSendWorkflow;
         this.WhenAnyValue(x => x.DefaultSendWorkflow)
@@ -182,7 +199,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
-    public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
+    // Taproot addresses of a Trezor coinjoin wallet belong to the SLIP-25 coinjoin account, which only
+    // receives coinjoin outputs; regular deposits go to the segwit account.
+    public IEnumerable<ScriptType> ReceiveScriptTypes => _wallet.IsTrezorCoinJoinWallet
+        ? [ScriptType.SegWit]
+        : [ScriptType.SegWit, ScriptType.Taproot];
 
     // Taproot change of a Trezor coinjoin wallet would land in the SLIP-25 account, which cannot sign regular transactions.
     public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes => _wallet.IsTrezorCoinJoinWallet
