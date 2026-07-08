@@ -367,8 +367,14 @@ public class TrezorDevice : IDisposable
 					break;
 
 				case TrezorMessageType.PassphraseRequest:
-					// The standard (empty passphrase) wallet is used, same as Wasabi's HWI based signing.
-					response = await _transport.CallAsync(_bridgeSession, TrezorMessages.PassphraseAck(""), cancellationToken).ConfigureAwait(false);
+					// For a passphrase protected device (hidden wallet), let the user type the passphrase on the
+					// Trezor screen so it never reaches the host. The wallet is pinned by its master fingerprint,
+					// so a wrong passphrase produces a different device and is rejected before anything is signed.
+					// A device without passphrase protection uses the standard (empty) wallet, like HWI signing.
+					var passphraseAck = (Features?.PassphraseProtection ?? false)
+						? TrezorMessages.PassphraseAckOnDevice()
+						: TrezorMessages.PassphraseAck("");
+					response = await _transport.CallAsync(_bridgeSession, passphraseAck, cancellationToken).ConfigureAwait(false);
 					break;
 
 				case TrezorMessageType.Failure:

@@ -99,6 +99,36 @@ public class TrezorProtocolTests
 		Assert.False(fields.ContainsKey(1)); // No address_n.
 	}
 
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public void FeaturesParsePassphraseProtection(bool passphraseProtection)
+	{
+		// Features: major=2 (2), minor=12 (3), patch=1 (4), passphrase_protection (8), model (21).
+		var writer = new ProtoWriter()
+			.WriteVarIntField(2, 2)
+			.WriteVarIntField(3, 12)
+			.WriteVarIntField(4, 1)
+			.WriteStringField(21, "T");
+		if (passphraseProtection)
+		{
+			writer.WriteBoolField(8, true);
+		}
+
+		var features = TrezorFeatures.FromMessage(new TrezorMessage(TrezorMessageType.Features, writer.ToBytes()));
+		Assert.Equal(new Version(2, 12, 1), features.Version);
+		Assert.Equal("T", features.Model);
+		Assert.Equal(passphraseProtection, features.PassphraseProtection);
+	}
+
+	[Fact]
+	public void PassphraseAckOnDeviceSetsFlag()
+	{
+		var fields = TrezorMessages.PassphraseAckOnDevice().ReadFields();
+		Assert.True(fields[3][0].VarInt != 0); // on_device = true, no passphrase sent to the host.
+		Assert.False(fields.ContainsKey(1));   // no passphrase field.
+	}
+
 	[Fact]
 	public void TxRequestParsing()
 	{

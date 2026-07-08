@@ -63,7 +63,7 @@ public record TrezorMessage(TrezorMessageType MessageType, byte[] Payload)
 	public Dictionary<int, List<(ulong VarInt, byte[] Bytes)>> ReadFields() => ProtoReader.ReadAllFields(Payload);
 }
 
-public record TrezorFeatures(uint MajorVersion, uint MinorVersion, uint PatchVersion, string Model)
+public record TrezorFeatures(uint MajorVersion, uint MinorVersion, uint PatchVersion, string Model, bool PassphraseProtection)
 {
 	public Version Version => new((int)MajorVersion, (int)MinorVersion, (int)PatchVersion);
 
@@ -74,7 +74,9 @@ public record TrezorFeatures(uint MajorVersion, uint MinorVersion, uint PatchVer
 			MajorVersion: (uint)fields[2][0].VarInt,
 			MinorVersion: (uint)fields[3][0].VarInt,
 			PatchVersion: (uint)fields[4][0].VarInt,
-			Model: fields.TryGetValue(21, out var model) ? Encoding.UTF8.GetString(model[0].Bytes) : "");
+			Model: fields.TryGetValue(21, out var model) ? Encoding.UTF8.GetString(model[0].Bytes) : "",
+			// Features.passphrase_protection (field 8): the seed is protected by a BIP-39 passphrase (hidden wallet).
+			PassphraseProtection: fields.TryGetValue(8, out var pp) && pp[0].VarInt != 0);
 	}
 }
 
@@ -186,6 +188,10 @@ public static class TrezorMessages
 
 	public static TrezorMessage PassphraseAck(string passphrase) =>
 		new(TrezorMessageType.PassphraseAck, new ProtoWriter().WriteStringField(1, passphrase).ToBytes());
+
+	/// <summary>Asks the device to prompt for the BIP-39 passphrase on its own screen, so it never reaches the host.</summary>
+	public static TrezorMessage PassphraseAckOnDevice() =>
+		new(TrezorMessageType.PassphraseAck, new ProtoWriter().WriteBoolField(3, true).ToBytes());
 
 	public static TrezorMessage DoPreauthorized() =>
 		TrezorMessage.Empty(TrezorMessageType.DoPreauthorized);
