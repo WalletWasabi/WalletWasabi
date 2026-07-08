@@ -27,6 +27,12 @@
                  Text="{Binding AuthorizationFailedMessage}"
                  TextWrapping="Wrap"
                  IsVisible="{Binding HasAuthorizationFailed}" />
+      <Button Classes="activeHyperLink"
+              HorizontalAlignment="Center"
+              Content="Download Trezor Bridge"
+              ToolTip.Tip="Open the official Trezor Bridge releases page in the default browser"
+              Command="{Binding OpenBridgeDownloadCommand}"
+              IsVisible="{Binding IsBridgeMissing}" />
     </StackPanel>
   </ContentArea>
 </UserControl>

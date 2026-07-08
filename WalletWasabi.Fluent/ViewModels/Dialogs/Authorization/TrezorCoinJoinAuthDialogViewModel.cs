@@ -1,5 +1,8 @@
 using System.Threading.Tasks;
+using System.Windows.Input;
+using ReactiveUI;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
@@ -8,6 +11,9 @@ namespace WalletWasabi.Fluent.ViewModels.Dialogs.Authorization;
 public partial class TrezorCoinJoinAuthDialogViewModel : AuthorizationDialogBase
 {
 	private readonly WalletCoinjoinModel _walletCoinjoinModel;
+
+	// Shown when no bridge is reachable at all: the fix is installing the bridge, not checking the device.
+	[AutoNotify] private bool _isBridgeMissing;
 
 	public TrezorCoinJoinAuthDialogViewModel(UiContext uiContext, WalletCoinjoinModel walletCoinjoinModel, WalletType walletType, int maxRounds, decimal maxMiningFeeRate) : base(uiContext)
 	{
@@ -20,20 +26,28 @@ public partial class TrezorCoinJoinAuthDialogViewModel : AuthorizationDialogBase
 		EnableBack = false;
 
 		AuthorizationFailedMessage = $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
+
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(TrezorBridgeManager.BridgeDownloadUrl));
 	}
 
 	public WalletType WalletType { get; }
 
 	public string LimitsText { get; }
 
+	public ICommand OpenBridgeDownloadCommand { get; }
+
 	protected override async Task<bool> AuthorizeAsync()
 	{
 		var authorized = await _walletCoinjoinModel.AuthorizeTrezorAsync().ConfigureAwait(true);
+		IsBridgeMissing = !authorized && _walletCoinjoinModel.TrezorAuthorization == TrezorAuthorizationStatus.BridgeNotFound;
 		if (!authorized)
 		{
-			AuthorizationFailedMessage = _walletCoinjoinModel.TrezorAuthorization == TrezorAuthorizationStatus.DeviceNotFound
-				? $"Trezor not found.{Environment.NewLine}Connect and unlock your Trezor, then try again."
-				: $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
+			AuthorizationFailedMessage = _walletCoinjoinModel.TrezorAuthorization switch
+			{
+				TrezorAuthorizationStatus.BridgeNotFound => $"Trezor Bridge is not running.{Environment.NewLine}Start Trezor Suite, or install Trezor Bridge and try again:",
+				TrezorAuthorizationStatus.DeviceNotFound => $"Trezor not found.{Environment.NewLine}Connect and unlock your Trezor, then try again.",
+				_ => $"Authorization failed.{Environment.NewLine}Please, check your device and try again.",
+			};
 		}
 
 		return authorized;

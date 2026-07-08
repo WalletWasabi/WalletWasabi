@@ -17,3 +17,15 @@ public class TrezorDeviceNotFoundException : TrezorException
 	{
 	}
 }
+
+/// <summary>
+/// No Trezor Bridge is reachable at all (neither Trezor Suite nor trezord is running and none could be
+/// started), as opposed to a running bridge seeing no device. Lets the UI point the user at installing
+/// the bridge instead of telling them to connect the device.
+/// </summary>
+public class TrezorBridgeNotFoundException : TrezorDeviceNotFoundException
+{
+	public TrezorBridgeNotFoundException(string message) : base(message)
+	{
+	}
+}

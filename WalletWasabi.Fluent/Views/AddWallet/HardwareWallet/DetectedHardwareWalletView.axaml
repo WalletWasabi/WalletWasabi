@@ -30,10 +30,16 @@
                   HorizontalAlignment="Center"
                   Content="Enable coinjoin (adds a coinjoin account, confirm on device)"
                   ToolTip.Tip="Adds a SLIP-25 coinjoin account so this device can take part in coinjoins. You can also enable it later in the wallet settings." />
-        <TextBlock Text="Trezor Suite or Trezor Bridge must be running to enable coinjoin."
-                   IsVisible="{Binding IsBridgeUnavailable}"
-                   HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
-                   Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" FontSize="12" />
+        <StackPanel Spacing="5" IsVisible="{Binding IsBridgeUnavailable}">
+          <TextBlock Text="Trezor Suite or Trezor Bridge must be running to enable coinjoin."
+                     HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                     Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" FontSize="12" />
+          <Button Classes="activeHyperLink"
+                  HorizontalAlignment="Center"
+                  Content="Download Trezor Bridge"
+                  ToolTip.Tip="Open the official Trezor Bridge releases page in the default browser"
+                  Command="{Binding OpenBridgeDownloadCommand}" />
+        </StackPanel>
       </StackPanel>
     </QuestionControl>
   </ContentArea>

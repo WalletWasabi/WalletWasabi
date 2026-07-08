@@ -47,6 +47,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string ConfirmOnTrezorMessage = "Confirm coinjoin on your Trezor";
 	private const string TrezorConfirmedMessage = "Trezor confirmed, coinjoin is starting";
 	private const string TrezorNotFoundMessage = "Connect and unlock your Trezor, then press Play";
+	private const string TrezorBridgeNotFoundMessage = "Trezor Bridge is not running, start Trezor Suite or install Trezor Bridge";
 	private const string TrezorAuthorizationFailedMessage = "Trezor did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
@@ -95,6 +96,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 						   {
 							   TrezorAuthorizationStatus.AwaitingConfirmation => ConfirmOnTrezorMessage,
 							   TrezorAuthorizationStatus.Confirmed => TrezorConfirmedMessage,
+							   TrezorAuthorizationStatus.BridgeNotFound => TrezorBridgeNotFoundMessage,
 							   TrezorAuthorizationStatus.DeviceNotFound => TrezorNotFoundMessage,
 							   TrezorAuthorizationStatus.Failed => TrezorAuthorizationFailedMessage,
 							   _ => CurrentStatus,

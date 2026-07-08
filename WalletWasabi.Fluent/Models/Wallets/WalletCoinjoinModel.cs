@@ -21,6 +21,7 @@ public enum TrezorAuthorizationStatus
 	Idle,
 	AwaitingConfirmation,
 	Confirmed,
+	BridgeNotFound,
 	DeviceNotFound,
 	Failed,
 }
@@ -117,6 +118,12 @@ public partial class WalletCoinjoinModel : ReactiveObject
 				CancellationToken.None);
 			TrezorAuthorization = TrezorAuthorizationStatus.Confirmed;
 			return true;
+		}
+		catch (TrezorBridgeNotFoundException e)
+		{
+			Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
+			TrezorAuthorization = TrezorAuthorizationStatus.BridgeNotFound;
+			return false;
 		}
 		catch (TrezorDeviceNotFoundException e)
 		{
