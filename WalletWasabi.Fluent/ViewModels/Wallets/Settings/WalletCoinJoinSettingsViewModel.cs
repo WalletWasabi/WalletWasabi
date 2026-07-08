@@ -35,6 +35,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	[AutoNotify] private bool _autoCoinJoin;
 	[AutoNotify] private string _plebStopThreshold;
+	[AutoNotify] private string _trezorMaxRounds;
+	[AutoNotify] private string _trezorMaxMiningFeeRate;
 	[AutoNotify] private bool _isOutputWalletSelectionEnabled = true;
 	[AutoNotify] private IWalletModel _selectedOutputWallet;
 	[AutoNotify] private ReadOnlyObservableCollection<IWalletModel> _wallets = ReadOnlyObservableCollection<IWalletModel>.Empty;
@@ -48,6 +50,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
+		IsTrezorCoinJoinWallet = _wallet.Settings.IsTrezorCoinJoinWallet;
+		_trezorMaxRounds = _wallet.Settings.TrezorCoinjoinMaxRounds.ToString();
+		_trezorMaxMiningFeeRate = _wallet.Settings.TrezorCoinjoinMaxMiningFeeRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -94,6 +99,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
+		this.ValidateProperty(x => x.TrezorMaxRounds, ValidateTrezorMaxRounds);
+		this.ValidateProperty(x => x.TrezorMaxMiningFeeRate, ValidateTrezorMaxMiningFeeRate);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
@@ -120,6 +127,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		ManuallyUpdateOutputWalletList();
 	}
+
+	public bool IsTrezorCoinJoinWallet { get; }
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
@@ -161,6 +170,33 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		else
 		{
 			errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
+		}
+	}
+
+	private void ValidateTrezorMaxRounds(IValidationErrors errors)
+	{
+		// Firmware caps max_rounds at 500 under strict safety checks; keep a sane user-facing range.
+		if (int.TryParse(TrezorMaxRounds, out var rounds) && rounds is >= 1 and <= 500)
+		{
+			_wallet.Settings.TrezorCoinjoinMaxRounds = rounds;
+			_wallet.Settings.Save();
+		}
+		else
+		{
+			errors.Add(ErrorSeverity.Error, "Must be a whole number between 1 and 500.");
+		}
+	}
+
+	private void ValidateTrezorMaxMiningFeeRate(IValidationErrors errors)
+	{
+		if (decimal.TryParse(TrezorMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate) && feeRate is > 0 and <= 10000)
+		{
+			_wallet.Settings.TrezorCoinjoinMaxMiningFeeRate = feeRate;
+			_wallet.Settings.Save();
+		}
+		else
+		{
+			errors.Add(ErrorSeverity.Error, "Must be a positive fee rate in sat/vByte.");
 		}
 	}
 

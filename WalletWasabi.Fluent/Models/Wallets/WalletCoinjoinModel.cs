@@ -100,8 +100,8 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			{
 				await _wallet.AuthorizeTrezorCoinJoinAsync(
 					_services.Config.CoordinatorIdentifier,
-					TrezorDevice.DefaultMaxRounds,
-					new FeeRate(_services.Config.MaxCoinjoinMiningFeeRate),
+					_wallet.KeyManager.TrezorCoinjoinMaxRounds,
+					new FeeRate(_wallet.KeyManager.TrezorCoinjoinMaxMiningFeeRate),
 					CancellationToken.None);
 			}
 			catch (TrezorException e)

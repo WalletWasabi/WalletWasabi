@@ -91,5 +91,19 @@
       <TextBlock Text="Stop coinjoin threshold" />
       <CurrencyEntryBox Classes="standalone" Text="{Binding PlebStopThreshold}" CurrencyCode="BTC" />
     </DockPanel>
+
+    <Separator IsVisible="{Binding IsTrezorCoinJoinWallet}" />
+
+    <DockPanel IsVisible="{Binding IsTrezorCoinJoinWallet}"
+               ToolTip.Tip="The maximum number of coinjoin rounds a single hardware wallet authorization covers. Shown on the Trezor and confirmed there.">
+      <TextBlock Text="Device: max coinjoin rounds" />
+      <TextBox Classes="standalone" Text="{Binding TrezorMaxRounds}" DockPanel.Dock="Right" Watermark="1 to 500" MaxLength="3" />
+    </DockPanel>
+
+    <DockPanel IsVisible="{Binding IsTrezorCoinJoinWallet}"
+               ToolTip.Tip="The maximum mining fee rate the Trezor is authorized to sign coinjoins at. Shown on the Trezor and confirmed there.">
+      <TextBlock Text="Device: max mining fee rate (sat/vByte)" />
+      <TextBox Classes="standalone" Text="{Binding TrezorMaxMiningFeeRate}" DockPanel.Dock="Right" Watermark="e.g. 200" MaxLength="6" />
+    </DockPanel>
   </StackPanel>
 </UserControl>
