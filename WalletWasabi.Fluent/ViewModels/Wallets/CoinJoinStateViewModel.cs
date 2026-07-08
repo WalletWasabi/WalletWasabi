@@ -44,6 +44,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
+	private const string ConfirmOnTrezorMessage = "Confirm coinjoin on your Trezor";
+	private const string TrezorAuthorizationFailedMessage = "Trezor did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
 	private readonly Wallet _walletInstance;
@@ -78,6 +80,24 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletCoinjoinModel.StatusUpdated
 					   .Do(ProcessStatusChange)
+					   .Subscribe();
+
+		walletCoinjoinModel.WhenAnyValue(x => x.TrezorAuthorization)
+					   .ObserveOn(RxApp.MainThreadScheduler)
+					   .Do(status =>
+					   {
+						   // Point the user at the device while it waits for the hold-to-confirm,
+						   // and tell them when the device declined. Idle needs no message: on success
+						   // the wallet fires WalletStartedCoinJoin which updates the status anyway.
+						   if (status == TrezorAuthorizationStatus.AwaitingConfirmation)
+						   {
+							   CurrentStatus = ConfirmOnTrezorMessage;
+						   }
+						   else if (status == TrezorAuthorizationStatus.Failed)
+						   {
+							   CurrentStatus = TrezorAuthorizationFailedMessage;
+						   }
+					   })
 					   .Subscribe();
 
 		wallet.Privacy.IsWalletPrivate

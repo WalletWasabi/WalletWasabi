@@ -41,6 +41,7 @@ public class TrezorDevice : IDisposable
 	private readonly SemaphoreSlim _lock = new(1, 1);
 	private string _bridgeSession = "";
 	private byte[] _deviceSessionId = [];
+	private bool _useOnDevicePassphrase;
 
 	public TrezorFeatures? Features { get; private set; }
 
@@ -81,35 +82,53 @@ public class TrezorDevice : IDisposable
 		}
 
 		string? lastError = null;
+		bool sawPassphraseProtectedDevice = false;
 		foreach (var bridgeDevice in bridgeDevices)
 		{
-			TrezorDevice? device = null;
-			try
+			// The standard wallet (empty passphrase) is tried first, so it opens without any device
+			// interaction. Only when its fingerprint does not match and the device protects wallets with a
+			// passphrase is the device asked again with on-device passphrase entry: that is what unlocks a
+			// hidden wallet, and the fingerprint check rejects a mistyped passphrase before anything is signed.
+			foreach (bool useOnDevicePassphrase in (bool[])[false, true])
 			{
-#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in the finally block or owned by the caller.
-				device = new TrezorDevice(bridgeUri);
-#pragma warning restore CA2000
-				await device.OpenAsync(bridgeDevice, cancellationToken).ConfigureAwait(false);
-				if (masterFingerprint is null || await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false) == masterFingerprint)
+				TrezorDevice? device = null;
+				try
 				{
-					var foundDevice = device;
-					device = null;
-					return foundDevice;
+#pragma warning disable CA2000 // Dispose objects before losing scope - disposed in the finally block or owned by the caller.
+					device = new TrezorDevice(bridgeUri) { _useOnDevicePassphrase = useOnDevicePassphrase };
+#pragma warning restore CA2000
+					await device.OpenAsync(bridgeDevice, cancellationToken).ConfigureAwait(false);
+					if (masterFingerprint is null || await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false) == masterFingerprint)
+					{
+						var foundDevice = device;
+						device = null;
+						return foundDevice;
+					}
+
+					sawPassphraseProtectedDevice |= device.Features?.PassphraseProtection ?? false;
+					if (useOnDevicePassphrase || !(device.Features?.PassphraseProtection ?? false))
+					{
+						break; // Wrong device, or the passphrase entered on the device gives a different wallet.
+					}
 				}
-			}
-			catch (TrezorException e)
-			{
-				lastError = e.Message;
-				Logger.LogDebug($"Skipping Trezor device '{bridgeDevice.Path}': {e.Message}");
-			}
-			finally
-			{
-				device?.Dispose();
+				catch (TrezorException e)
+				{
+					lastError = e.Message;
+					Logger.LogDebug($"Skipping Trezor device '{bridgeDevice.Path}': {e.Message}");
+					break;
+				}
+				finally
+				{
+					device?.Dispose();
+				}
 			}
 		}
 
+		string passphraseHint = sawPassphraseProtectedDevice
+			? " If this wallet uses a passphrase, enter the exact same passphrase on the device."
+			: "";
 		throw new TrezorException(lastError is null
-			? $"No Trezor device with master fingerprint '{masterFingerprint}' found."
+			? $"No Trezor device with master fingerprint '{masterFingerprint}' found.{passphraseHint}"
 			: $"No usable Trezor device found. Last error: {lastError}");
 	}
 
@@ -371,11 +390,12 @@ public class TrezorDevice : IDisposable
 					break;
 
 				case TrezorMessageType.PassphraseRequest:
-					// For a passphrase protected device (hidden wallet), let the user type the passphrase on the
-					// Trezor screen so it never reaches the host. The wallet is pinned by its master fingerprint,
-					// so a wrong passphrase produces a different device and is rejected before anything is signed.
-					// A device without passphrase protection uses the standard (empty) wallet, like HWI signing.
-					var passphraseAck = (Features?.PassphraseProtection ?? false)
+					// The standard wallet answers with an empty passphrase, like HWI signing: no device
+					// interaction needed. For a hidden wallet the user types the passphrase on the Trezor
+					// screen so it never reaches the host; FindAsync opts in to that only after the standard
+					// wallet's fingerprint did not match. The wallet is pinned by its master fingerprint, so
+					// a wrong passphrase produces a different device and is rejected before anything is signed.
+					var passphraseAck = _useOnDevicePassphrase
 						? TrezorMessages.PassphraseAckOnDevice()
 						: TrezorMessages.PassphraseAck("");
 					response = await _transport.CallAsync(_bridgeSession, passphraseAck, cancellationToken).ConfigureAwait(false);

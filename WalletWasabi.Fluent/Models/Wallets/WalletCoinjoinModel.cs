@@ -16,6 +16,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+public enum TrezorAuthorizationStatus
+{
+	Idle,
+	AwaitingConfirmation,
+	Failed,
+}
+
 [AppLifetime]
 public partial class WalletCoinjoinModel : ReactiveObject
 {
@@ -24,6 +31,7 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	private readonly WalletSettingsModel _settings;
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
+	[AutoNotify] private TrezorAuthorizationStatus _trezorAuthorization = TrezorAuthorizationStatus.Idle;
 
 	public WalletCoinjoinModel(IServices services, Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
 	{
@@ -96,6 +104,8 @@ public partial class WalletCoinjoinModel : ReactiveObject
 		{
 			// The device shows the number of rounds and the maximum mining fee rate and the user
 			// confirms with hold-to-confirm. Without the authorization no coinjoin can start.
+			// TrezorAuthorization drives the music box text so the user knows to look at the device.
+			TrezorAuthorization = TrezorAuthorizationStatus.AwaitingConfirmation;
 			try
 			{
 				await _wallet.AuthorizeTrezorCoinJoinAsync(
@@ -103,10 +113,12 @@ public partial class WalletCoinjoinModel : ReactiveObject
 					_wallet.KeyManager.TrezorCoinjoinMaxRounds,
 					new FeeRate(_wallet.KeyManager.TrezorCoinjoinMaxMiningFeeRate),
 					CancellationToken.None);
+				TrezorAuthorization = TrezorAuthorizationStatus.Idle;
 			}
 			catch (TrezorException e)
 			{
 				Logger.LogWarning($"Trezor coinjoin authorization failed: {e.Message}");
+				TrezorAuthorization = TrezorAuthorizationStatus.Failed;
 				return;
 			}
 		}
