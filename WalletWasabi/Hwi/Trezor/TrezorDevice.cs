@@ -219,6 +219,39 @@ public class TrezorDevice : IDisposable
 	}
 
 	/// <summary>
+	/// Shows a receive address on the device screen so the user can check it against the host. SLIP-25
+	/// (coinjoin account) paths need the UnlockPath preamble, which HWI cannot send; that is why address
+	/// verification of a Trezor coinjoin wallet goes through the bridge. Returns the address the device shows.
+	/// </summary>
+	public async Task<string> ShowAddressAsync(KeyPath fullKeyPath, Network network, CancellationToken cancellationToken)
+	{
+		bool isCoinJoinAccount = fullKeyPath.Indexes.Length > 0 && fullKeyPath.Indexes[0] == Slip25Purpose;
+		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			if (isCoinJoinAccount)
+			{
+				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+			}
+
+			var response = await CallAsync(
+				TrezorMessages.GetAddress(
+					fullKeyPath.Indexes,
+					GetCoinName(network),
+					isCoinJoinAccount ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness,
+					showDisplay: true),
+				TrezorMessageType.Address,
+				cancellationToken).ConfigureAwait(false);
+
+			return response.GetString(1);
+		}
+		finally
+		{
+			_lock.Release();
+		}
+	}
+
+	/// <summary>
 	/// Asks the user to authorize coinjoin rounds on the device. The device displays the maximum number of rounds
 	/// and the maximum mining fee rate, both confirmed with hold-to-confirm. The authorization is kept in the
 	/// device session and one round is spent by each signed coinjoin transaction.

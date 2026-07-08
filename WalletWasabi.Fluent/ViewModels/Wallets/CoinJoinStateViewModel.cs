@@ -48,6 +48,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string TrezorConfirmedMessage = "Trezor confirmed, coinjoin is starting";
 	private const string TrezorNotFoundMessage = "Connect and unlock your Trezor, then press Play";
 	private const string TrezorBridgeNotFoundMessage = "Trezor Bridge is not running, start Trezor Suite or install Trezor Bridge";
+	private const string TrezorNoCoinsEligibleMessage = "No eligible funds, deposit to a coinjoin account address first";
 	private const string TrezorAuthorizationFailedMessage = "Trezor did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
@@ -429,6 +430,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
+					CoinjoinError.NoCoinsEligibleToMix when _walletInstance.KeyManager.IsTrezorCoinJoinWallet() => TrezorNoCoinsEligibleMessage,
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,

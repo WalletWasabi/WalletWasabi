@@ -217,6 +217,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	public bool SeveralReceivingScriptTypes => WalletModel.SeveralReceivingScriptTypes;
 
+	// The taproot slot of a Trezor coinjoin wallet is the SLIP-25 coinjoin account, name it accordingly.
+	public string TaprootReceiveName => WalletModel.IsTrezorCoinJoinWallet ? "Coinjoin Account Address" : "Taproot Address";
+
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
 	public IObservable<bool> IsMusicBoxVisible { get; }

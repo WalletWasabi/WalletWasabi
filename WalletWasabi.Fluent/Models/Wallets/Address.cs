@@ -6,6 +6,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Extensions;
 using WalletWasabi.Hwi;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -57,6 +58,19 @@ public class Address : ReactiveObject, IAddress
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		try
 		{
+			if (KeyManager.IsTrezorCoinJoinWallet())
+			{
+				// SLIP-25 paths need UnlockPath, which HWI cannot send, and the bridge kept running for
+				// coinjoin holds the USB device anyway - verify through the bridge for both accounts.
+				using var device = await TrezorDevice.FindAsync(HdFingerprint.Value, cts.Token).ConfigureAwait(false);
+				var shownAddress = await device.ShowAddressAsync(FullKeyPath, Network, cts.Token).ConfigureAwait(false);
+				if (shownAddress != Text)
+				{
+					throw new InvalidOperationException("The device shows a different address than the wallet. Do not use either of them.");
+				}
+				return;
+			}
+
 			var client = new HwiClient(Network);
 			await client.DisplayAddressAsync(HdFingerprint.Value, FullKeyPath, cts.Token).ConfigureAwait(false);
 		}
