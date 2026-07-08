@@ -1,6 +1,5 @@
 using NBitcoin;
 using NBitcoin.Protocol;
-using WabiSabi.Crypto.Randomness;
 using NBitcoin.Protocol.Behaviors;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -10,6 +9,7 @@ using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
