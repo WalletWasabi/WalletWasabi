@@ -34,8 +34,8 @@ public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
 	public const bool DefaultRedCoinIsolation = false;
-	public const int DefaultTrezorCoinjoinMaxRounds = 10;
-	public const decimal DefaultTrezorCoinjoinMaxMiningFeeRate = 200m; // sat/vByte, generous so ordinary rounds are within the device's cap.
+	public const int DefaultTrezorCoinjoinMaxRounds = 50; // Failed/blame rounds also consume an authorized round, so leave headroom before the device asks again.
+	public const decimal DefaultTrezorCoinjoinMaxMiningFeeRate = 5m; // sat/vByte, the device refuses rounds above this cap; keep it tight so coinjoin never overpays on mainnet.
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
