@@ -8,6 +8,9 @@ public record FeeRateEstimations
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate> { { 0, FeeRate.Zero } });
 
+	public static readonly FeeRate MaxFeeRate = new(Constants.MaximumNumberOfBitcoinsMoney);
+	public static readonly FeeRate MinimumSanityFeeRate = new(0.5m);
+
 	/// <summary>All allowed target confirmation ranges, i.e. 0-2, 2-3, 3-6, 6-18, ..., 432-1008.</summary>
 	private static readonly IEnumerable<(int Start, int End)> TargetRanges = AllConfirmationTargets
 		.Skip(1)
@@ -24,7 +27,7 @@ public record FeeRateEstimations
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
 		var builder = ImmutableSortedDictionary.CreateBuilder<int, FeeRate>();
-		var lastFeeRate = new FeeRate(Constants.MaximumNumberOfBitcoinsMoney);
+		var lastFeeRate = MaxFeeRate;
 		foreach (var estimation in filteredEstimations)
 		{
 			// Otherwise it's inconsistent data.

@@ -1,6 +1,7 @@
 using System.IO;
 using System.Text;
 using WalletWasabi.Discoverability;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
@@ -50,6 +51,8 @@ public record WabiSabiConfig
 	public Money MinRegistrableAmount { get; init; } = Money.Coins(0.00005m);
 
 	public Money MaxRegistrableAmount { get; init; } = Money.Coins(43_000m);
+
+	public FeeRate MinimumAcceptableFeeRate { get; init; } = FeeRateEstimations.MinimumSanityFeeRate;
 
 	public bool AllowNotedInputRegistration { get; init; } = true;
 

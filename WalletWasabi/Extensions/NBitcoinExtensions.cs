@@ -3,6 +3,10 @@ using NBitcoin.Protocol;
 using System.Diagnostics.CodeAnalysis;
 using System.Text;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto;
+using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Extensions;
 
@@ -283,12 +287,10 @@ public static class NBitcoinExtensions
 
 	public static FeeRate GetSanityFeeRate(this MemPoolInfo me)
 	{
-		var mempoolMinFee = (decimal)me.MemPoolMinFee;
-
 		// Make sure to be prepared for mempool spikes.
-		var spikeSanity = mempoolMinFee * 1.5m;
+		var spikeSanity = (decimal)me.MemPoolMinFee * 1.5m;
+		var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), FeeRateEstimations.MinimumSanityFeeRate);
 
-		var sanityFee = FeeRate.Max(new FeeRate(Money.Coins(spikeSanity)), new FeeRate(0.5m));
 		return sanityFee;
 	}
 
