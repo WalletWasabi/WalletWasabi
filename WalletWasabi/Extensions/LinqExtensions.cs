@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Security.Cryptography;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;
 
 public static class LinqExtensions
 {
-	public static T? RandomElement<T>(this IEnumerable<T> source, WasabiRandom random)
+	public static T? RandomElement<T>(this IEnumerable<T> source, RandomnessProvider random)
 	{
 		T? current = default;
 		int count = 0;
@@ -16,7 +15,7 @@ public static class LinqExtensions
 		{
 			count++;
 
-			if (random.GetInt(0, count) == 0)
+			if (random.GetInt(count) == 0)
 			{
 				current = element;
 			}
@@ -28,11 +27,11 @@ public static class LinqExtensions
 	/// Selects a random element based on order bias.
 	/// </summary>
 	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
-	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, WasabiRandom random)
+	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, RandomnessProvider random)
 	{
 		foreach (T element in source)
 		{
-			if (random.GetInt(1, 101) <= biasPercent)
+			if (random.GetInt(100) < biasPercent)
 			{
 				return element;
 			}
@@ -41,25 +40,26 @@ public static class LinqExtensions
 		return source.Any() ? source.First() : default;
 	}
 
-	public static T[] Shuffle<T>(this T[] input, WasabiRandom random)
+	public static T[] Shuffle<T>(this T[] array, RandomnessProvider random)
 	{
-		if (random is Crypto.Randomness.SecureRandom)
+		for (var i = array.Length - 1; i > 0; i--)
 		{
-			RandomNumberGenerator.Shuffle(input);
+			var j = random.GetInt(i + 1);
+			(array[i], array[j]) = (array[j], array[i]);
 		}
-		else if (random is Crypto.Randomness.InsecureRandom insecureRandom)
-		{
-			insecureRandom.Shuffle(input);
-		}
-		else
-		{
-			throw new NotSupportedException($"Random type not supported: {random?.GetType().FullName}");
-		}
-		
-		return input;
+		return array;
 	}
 
-	public static IList<T> ToShuffled<T>(this IList<T> input, WasabiRandom random)
+	public static void Shuffle<T>(this Span<T> span, RandomnessProvider random)
+	{
+		for (var i = span.Length - 1; i > 0; i--)
+		{
+			var j = random.GetInt(i + 1);
+			(span[i], span[j]) = (span[j], span[i]);
+		}
+	}
+
+	public static IList<T> ToShuffled<T>(this IList<T> input, RandomnessProvider random)
 	{
 		var output = input.ToArray();
 		output.Shuffle(random);

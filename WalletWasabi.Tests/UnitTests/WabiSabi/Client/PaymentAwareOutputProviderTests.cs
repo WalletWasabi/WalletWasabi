@@ -2,6 +2,7 @@ using NBitcoin;
 using System.Linq;
 using WabiSabi.Crypto;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -32,7 +33,7 @@ public class PaymentAwareOutputProviderTests
 		var theirCoinEffectiveValues = new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m), Money.Coins(0.0025m), Money.Coins(0.0001m) };
 		var availableVsize = roundParameters.MaxVsizeAllocationPerAlice - Constants.P2wpkhInputVirtualSize;
 
-		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch);
+		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch, RandomnessProviders.Insecure);
 		var outputs = outputProvider.GetOutputs(
 			roundId: uint256.Zero,
 			roundParameters,
@@ -40,7 +41,7 @@ public class PaymentAwareOutputProviderTests
 			theirCoinEffectiveValues,
 			availableVsize).ToArray();
 
-		var nonAwaredOutputProvider = new OutputProvider(wallet);
+		var nonAwaredOutputProvider = new OutputProvider(wallet, RandomnessProviders.Insecure);
 		var decomposedOutputs = nonAwaredOutputProvider.GetOutputs(
 			uint256.Zero,
 			roundParameters,
@@ -68,7 +69,7 @@ public class PaymentAwareOutputProviderTests
 		var rpc = new MockRpcClient();
 		var wallet = new TestWallet("random-wallet", rpc);
 		var paymentBatch = new PaymentBatch();
-		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch);
+		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch, RandomnessProviders.Insecure);
 
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 

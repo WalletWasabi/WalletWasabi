@@ -218,7 +218,7 @@ public class P2pConnectionManager : IDisposable
 				continue;
 			}
 
-			var node = nodes.RandomElement(SecureRandom.Instance);
+			var node = nodes.RandomElement(RandomnessProviders.Secure);
 
 			if (node is not null && node.IsConnected)
 			{

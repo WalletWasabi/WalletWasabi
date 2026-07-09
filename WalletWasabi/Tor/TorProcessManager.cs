@@ -5,6 +5,7 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
@@ -163,7 +164,7 @@ public class TorProcessManager
 		string cookieString = Convert.ToHexString(File.ReadAllBytes(_settings.CookieAuthFilePath));
 
 		// Authenticate.
-		TorControlClientFactory factory = new();
+		TorControlClientFactory factory = new(RandomnessProviders.Secure);
 		TorControlClient client = await factory.ConnectAndAuthenticateAsync(_settings.ControlEndpoint, cookieString, token).ConfigureAwait(false);
 
 		if (_settings.TerminateOnExit)

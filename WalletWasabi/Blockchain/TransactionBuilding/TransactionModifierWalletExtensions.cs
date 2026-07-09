@@ -263,7 +263,7 @@ public static class TransactionModifierWalletExtensions
 			{
 				Logger.LogDebug(ex);
 
-				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, SecureRandom.Instance)!);
+				allowedInputs.Add(remainingCoins.BiasedRandomElement(80, RandomnessProviders.Secure)!);
 
 				return await wallet.CpfpTransactionAsync(transactionToCpfp, allowedInputs, preferredFeeRate, cancellationToken).ConfigureAwait(false);
 			}

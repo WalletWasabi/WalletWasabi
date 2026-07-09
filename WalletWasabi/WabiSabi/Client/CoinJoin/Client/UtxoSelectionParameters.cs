@@ -25,7 +25,7 @@ public record UtxoSelectionParameters(
 				roundParameters.AllowedOutputAmounts.Max,
 				roundParameters.MiningFeeRate,
 				[maxVsizeInputOutputPairScriptType],
-				SecureRandom.Instance) // Random generator is not used and then the algorithm is deterministic
+				RandomnessProviders.Secure) // Random generator is not used and then the algorithm is deterministic
 			.Min(x => x.EffectiveCost);
 		var smallestReasonableEffectiveDenomination =
 			smallestEffectiveDenom

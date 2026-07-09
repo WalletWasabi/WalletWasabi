@@ -3,20 +3,20 @@ using System.Linq;
 using System.Collections.Generic;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class OutputProvider
 {
-	public OutputProvider(IDestinationProvider destinationProvider, WasabiRandom? random = null)
+	public OutputProvider(IDestinationProvider destinationProvider, RandomnessProvider random)
 	{
 		DestinationProvider = destinationProvider;
-		Random = random ?? WalletWasabi.Crypto.Randomness.SecureRandom.Instance;
+		Random = random;
 	}
 
 	internal IDestinationProvider DestinationProvider { get; }
-	protected WasabiRandom Random { get; }
+	protected RandomnessProvider Random { get; }
 
 	public virtual IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,

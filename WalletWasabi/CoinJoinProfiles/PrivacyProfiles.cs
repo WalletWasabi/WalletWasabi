@@ -44,6 +44,7 @@ public static class PrivacyProfiles
 		/// </summary>
 		public static int GetAnonScoreTarget()
 		{
+			var random = RandomnessProviders.Secure;
 			var ast = MinExclusive + 1;
 
 			while (ast < MaxExclusive)
@@ -51,7 +52,7 @@ public static class PrivacyProfiles
 				var progress = (double)(ast - MinExclusive) / (MaxExclusive - MinExclusive);
 				var probability = 100 * (1 - progress);
 
-				if (SecureRandom.Instance.GetInt(0, 101) > probability)
+				if (random.GetInt(100) >= probability)
 				{
 					break;
 				}
