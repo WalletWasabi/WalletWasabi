@@ -48,7 +48,7 @@ public static class CpfpInfoUpdater
 			// CPFP is not properly supported in regtest yet.
 			switch (msg)
 			{
-				case CpfpInfoMessage.GetCachedCpfpInfo m:					
+				case CpfpInfoMessage.GetCachedCpfpInfo m:
 					m.ReplyChannel.Reply([]);
 					break;
 				case CpfpInfoMessage.GetInfoForTransaction m:
@@ -144,9 +144,9 @@ public static class CpfpInfoUpdater
 		}
 
 		const int MaximumDelayInMilliseconds = 10_000;
-		var random = SecureRandom.Instance;
-		var delayInSeconds = random.GetInt(0, MaximumDelayInMilliseconds);
-		var delay = TimeSpan.FromMilliseconds(delayInSeconds);
+		var random = RandomnessProviders.Secure;
+		var delayInMilliseconds = random.GetInt(MaximumDelayInMilliseconds);
+		var delay = TimeSpan.FromMilliseconds(delayInMilliseconds);
 
 		try
 		{

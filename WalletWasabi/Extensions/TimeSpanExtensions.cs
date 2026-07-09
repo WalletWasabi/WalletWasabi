@@ -13,8 +13,10 @@ public static class TimeSpanExtensions
 
 	public static ImmutableList<TimeSpan> SamplePoissonDelays(this TimeSpan timeFrame, int numberOfEvents)
 	{
-		static TimeSpan Sample(int milliseconds) =>
-			milliseconds <= 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(SecureRandom.Instance.GetInt(0, milliseconds));
+		var random = RandomnessProviders.Secure;
+
+		TimeSpan Sample(int milliseconds) =>
+			milliseconds <= 0 ? TimeSpan.Zero : TimeSpan.FromMilliseconds(random.GetInt(milliseconds));
 
 		return Enumerable
 			.Range(0, numberOfEvents)

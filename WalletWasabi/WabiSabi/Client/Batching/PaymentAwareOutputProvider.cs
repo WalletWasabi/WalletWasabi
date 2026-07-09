@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -11,16 +11,12 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // Represents an `OutputProvider` that has a reference to the `_batchedPayments` instance created by a `Wallet`.
 // This class is then aware of the existence of payments for a `Wallet`, what allows it to provide outputs for
 // coinjoin round which include those outputs that are payments.
-public class PaymentAwareOutputProvider : OutputProvider
+public class PaymentAwareOutputProvider(
+	IDestinationProvider destinationProvider,
+	PaymentBatch batchedPayments,
+	RandomnessProvider random)
+	: OutputProvider(destinationProvider, random)
 {
-	public PaymentAwareOutputProvider(IDestinationProvider destinationProvider, PaymentBatch batchedPayments, WasabiRandom? random = null)
-		: base(destinationProvider, random)
-	{
-		_batchedPayments = batchedPayments;
-	}
-
-	private readonly PaymentBatch _batchedPayments;
-
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
 		RoundParameters roundParameters,
@@ -32,7 +28,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = _batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
+		var bestPaymentSet = batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
 
 		// Return the payments.
 		foreach (var payment in bestPaymentSet.Payments)
@@ -40,7 +36,7 @@ public class PaymentAwareOutputProvider : OutputProvider
 			yield return payment.ToTxOut();
 		}
 
-		_batchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
+		batchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
 		availableVsize -= bestPaymentSet.TotalVSize;
 		availableAmount -= bestPaymentSet.TotalAmount;
 

@@ -3,7 +3,7 @@ using System.Security;
 using WalletWasabi.Helpers;
 using Xunit;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Userfacing;
 using NBitcoin;
 

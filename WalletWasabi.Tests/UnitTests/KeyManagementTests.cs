@@ -4,12 +4,9 @@ using System.Linq;
 using System.Security;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Tests.UnitTests;
 

@@ -292,7 +292,7 @@ public class CoinJoinCoinSelectionTests
 
 		var generator = new CoinJoinCoinSelectorRandomnessGenerator(
 			CoinJoinCoinSelector.MaxInputsRegistrableByWallet,
-			InsecureRandom.Instance,
+			RandomnessProviders.Insecure,
 			fixedInputTarget,
 			fixedSameTxAllowance);
 
