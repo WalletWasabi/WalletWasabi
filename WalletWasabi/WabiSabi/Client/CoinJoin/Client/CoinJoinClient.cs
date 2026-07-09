@@ -4,9 +4,9 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
@@ -52,7 +52,7 @@ public class CoinJoinClient
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
-		_secureRandom = new SecureRandom();
+		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 	}
 

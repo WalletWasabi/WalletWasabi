@@ -1,9 +1,9 @@
 using NBitcoin;
 using System.Linq;
 using System.Collections.Generic;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -12,11 +12,11 @@ public class OutputProvider
 	public OutputProvider(IDestinationProvider destinationProvider, WasabiRandom? random = null)
 	{
 		DestinationProvider = destinationProvider;
-		Random = random ?? SecureRandom.Instance;
+		Random = random ?? WalletWasabi.Crypto.Randomness.SecureRandom.Instance;
 	}
 
 	internal IDestinationProvider DestinationProvider { get; }
-	protected readonly WasabiRandom Random;
+	protected WasabiRandom Random { get; }
 
 	public virtual IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,

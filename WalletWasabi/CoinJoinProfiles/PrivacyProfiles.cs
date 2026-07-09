@@ -1,5 +1,5 @@
 using System.Linq;
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.CoinJoinProfiles;
 public static class PrivacyProfiles
