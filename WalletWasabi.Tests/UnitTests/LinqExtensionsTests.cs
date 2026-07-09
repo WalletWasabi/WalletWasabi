@@ -4,6 +4,12 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
 
+/// <summary>
+/// This LINQ test collection is executed in serial fashion because it contains <see cref="CombinationsWithoutRepetitionZeroLength"/>
+/// which can fail on CI because of its timeout.
+/// </summary>
+/// <seealso cref="XunitConfiguration.SerialCollectionDefinition"/>
+[Collection("Serial unit tests collection")]
 public class LinqExtensionsTests
 {
 	[Fact]
@@ -72,7 +78,7 @@ public class LinqExtensionsTests
 	[Fact]
 	public void CombinationsWithoutRepetitionZeroLength()
 	{
-		AssertAsync.CompletesIn(5, () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0).ToArray());
+		AssertAsync.CompletesIn(5, static () => Enumerable.Range(0, 32).CombinationsWithoutRepetition(ofLength: 0));
 	}
 
 	[Fact]
