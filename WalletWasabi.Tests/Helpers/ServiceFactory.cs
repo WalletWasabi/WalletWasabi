@@ -30,7 +30,7 @@ public static class ServiceFactory
 	{
 		var coinArray = coins.ToArray();
 
-		var generated = keyManager.GetKeys().Count();
+		var generated = keyManager.GetKeys().Length;
 		var toGenerate = coinArray.Length - generated;
 		for (int i = 0; i < toGenerate; i++)
 		{

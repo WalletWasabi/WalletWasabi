@@ -1,10 +1,8 @@
-using ReactiveUI;
 using System.Linq;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -81,9 +79,9 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 		// Total amount of unconfirmed money in the wallet.
 		UnconfirmedBalance = walletModel.AmountProvider.Create(wallet.Coins.Unconfirmed().TotalAmount());
 
-		GeneratedKeyCount = wallet.KeyManager.GetKeys().Count();
-		GeneratedCleanKeyCount = wallet.KeyManager.GetKeys(KeyState.Clean).Count();
-		GeneratedUsedKeyCount = wallet.KeyManager.GetKeys(KeyState.Used).Count();
+		GeneratedKeyCount = wallet.KeyManager.GetKeys().Length;
+		GeneratedCleanKeyCount = wallet.KeyManager.GetKeys(KeyState.Clean).Length;
+		GeneratedUsedKeyCount = wallet.KeyManager.GetKeys(KeyState.Used).Length;
 
 		var singleCoinjoins =
 			walletModel.Transactions.Cache.Items
