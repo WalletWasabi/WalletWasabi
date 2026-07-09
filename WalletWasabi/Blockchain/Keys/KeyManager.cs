@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Secp256k1;
 using NBitcoin.WalletPolicies;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
@@ -428,7 +429,7 @@ public class KeyManager
 			MatchesChangeScriptPubKeyType(x))
 			.First();
 
-	public IEnumerable<HdPubKey> GetNextCoinJoinKeys() =>
+	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
 		GetKeys(x =>
 				x.KeyState == KeyState.Locked &&
 				x.IsInternal == true);
@@ -441,7 +442,7 @@ public class KeyManager
 			_ => throw new ArgumentOutOfRangeException()
 		};
 
-	public IEnumerable<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
+	public ImmutableArray<HdPubKey> GetKeys(Func<HdPubKey, bool>? wherePredicate)
 	{
 		// BIP44-ish derivation scheme
 		// m / purpose' / coin_type' / account' / change / address_index
@@ -449,11 +450,11 @@ public class KeyManager
 		{
 			AssertCleanKeysIndexed();
 			var predicate = wherePredicate ?? (_ => true);
-			return _hdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index);
+			return _hdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index).ToImmutableArray();
 		}
 	}
 
-	public IEnumerable<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
+	public ImmutableArray<HdPubKey> GetKeys(KeyState? keyState = null, bool? isInternal = null) =>
 		(keyState, isInternal) switch
 		{
 			(null, null) => GetKeys(x => true),

@@ -81,7 +81,7 @@ public class TransactionProcessorTests
 	{
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// A payment to a key under our control but using P2PKH script (legacy)
 		var tx = CreateCreditingTransaction(keys.First().PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
@@ -278,7 +278,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// An unconfirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
@@ -310,7 +310,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync(nameof(ProcessSameTransactionTwiceAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// An unconfirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
@@ -336,7 +336,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		int doubleSpendReceived = 0;
 		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
@@ -597,7 +597,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 		int confirmed = 0;
 		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(x =>
 		{
