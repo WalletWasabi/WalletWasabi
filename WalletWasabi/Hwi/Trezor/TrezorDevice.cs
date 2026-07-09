@@ -78,7 +78,7 @@ public class TrezorDevice : IDisposable
 
 		if (bridgeDevices.Count == 0)
 		{
-			throw new TrezorDeviceNotFoundException("No Trezor device found. Connect and unlock the device.");
+			throw new TrezorDeviceNotFoundException("No Trezor device found. Connect the Trezor and unlock it with its PIN.");
 		}
 
 		string? lastError = null;
@@ -136,7 +136,26 @@ public class TrezorDevice : IDisposable
 	{
 		_bridgeSession = await _transport.AcquireAsync(bridgeDevice, cancellationToken).ConfigureAwait(false);
 
-		var features = await CallAsync(TrezorMessages.Initialize(), TrezorMessageType.Features, cancellationToken).ConfigureAwait(false);
+		// A previously canceled call (timeout, user walked away) leaves its reply queued on the bridge,
+		// which would offset every following request by one. Drain until the reply to this Initialize.
+		var features = await CallRawAsync(TrezorMessages.Initialize(), cancellationToken).ConfigureAwait(false);
+		for (int i = 0; features.MessageType != TrezorMessageType.Features && i < 4; i++)
+		{
+			using var readCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+			readCts.CancelAfter(TimeSpan.FromSeconds(5));
+			try
+			{
+				features = await _transport.ReadAsync(_bridgeSession, readCts.Token).ConfigureAwait(false);
+			}
+			catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+			{
+				break; // Nothing more queued; fall through to the type check below.
+			}
+		}
+		if (features.MessageType != TrezorMessageType.Features)
+		{
+			throw UnexpectedMessage(features, TrezorMessageType.Features);
+		}
 		Features = TrezorFeatures.FromMessage(features);
 		_deviceSessionId = features.GetBytes(35);
 

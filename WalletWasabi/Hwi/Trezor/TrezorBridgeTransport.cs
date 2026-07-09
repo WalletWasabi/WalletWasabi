@@ -87,6 +87,19 @@ public class TrezorBridgeTransport : IDisposable
 		return new TrezorMessage(messageType, responseFrame[6..]);
 	}
 
+	/// <summary>
+	/// Reads one queued message from the device without sending anything. A call that was canceled
+	/// client-side leaves its reply queued on the bridge; the next request would read that stale reply
+	/// and be off by one forever. Draining with bare reads on session open restores the pairing.
+	/// </summary>
+	public virtual async Task<TrezorMessage> ReadAsync(string session, CancellationToken cancellationToken)
+	{
+		string response = await PostAsync($"read/{session}", "", cancellationToken).ConfigureAwait(false);
+		byte[] responseFrame = Convert.FromHexString(response);
+		var messageType = (TrezorMessageType)BinaryPrimitives.ReadUInt16BigEndian(responseFrame);
+		return new TrezorMessage(messageType, responseFrame[6..]);
+	}
+
 	private async Task<string> PostAsync(string path, string content, CancellationToken cancellationToken)
 	{
 		using var request = new HttpRequestMessage(HttpMethod.Post, $"{_bridgeUri}/{path}")
@@ -109,6 +122,13 @@ public class TrezorBridgeTransport : IDisposable
 			string body = await response.Content.ReadAsStringAsync(cancellationToken).ConfigureAwait(false);
 			if (!response.IsSuccessStatusCode)
 			{
+				if (body.Contains("Invalid BridgeProtocolMessage"))
+				{
+					// The bridge bundled in newer Trezor Suite versions speaks a different protocol. It also
+					// holds the USB device, so the only way forward is closing Suite; Wasabi then starts a
+					// compatible standalone trezord by itself.
+					throw new TrezorException("The Trezor Bridge of this Trezor Suite version is not supported. Close Trezor Suite and try again; Wasabi starts its own bridge.");
+				}
 				throw new TrezorException($"Trezor Bridge request '{path}' failed with status {(int)response.StatusCode}: {body}");
 			}
 			return body;

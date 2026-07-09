@@ -111,6 +111,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("importtrezorwallet", initializable: false)]
 	public async Task<object> ImportTrezorWalletAsync(string walletName, bool enableCoinjoin = true)
 	{
+		AssertNoTrezorCoinJoinInProgress();
 		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
 
 		// Reading the SLIP-25 account asks for a confirmation on the device, give the user time for it.
@@ -130,6 +131,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public async Task<object> EnableCoinJoinAsync()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertNoTrezorCoinJoinInProgress();
 
 		// Reading the SLIP-25 account asks for a confirmation on the device, give the user time for it.
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -142,6 +144,25 @@ public class WasabiJsonRpcService : IJsonRpcService
 			// already loaded has to be started again (restart the daemon) before it can join rounds.
 			["restartRequired"] = activeWallet.Loaded
 		};
+	}
+
+	/// <summary>
+	/// Opening the device for an import steals the bridge session that a coinjoining Trezor wallet holds,
+	/// killing its authorization mid-round. Refuse instead of sabotaging the running coinjoin.
+	/// </summary>
+	private void AssertNoTrezorCoinJoinInProgress()
+	{
+		if (Global.HostedServices.GetOrDefault<CoinJoinManager>() is not { } coinJoinManager)
+		{
+			return;
+		}
+
+		var busy = Global.WalletManager.GetWallets()
+			.FirstOrDefault(w => w.KeyManager.IsTrezorCoinJoinWallet() && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
+		if (busy is not null)
+		{
+			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with the Trezor. Stop it with stopcoinjoin first.");
+		}
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]
