@@ -39,12 +39,50 @@ public static class HardwareWalletOperationHelpers
 			var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
 			var coinJoinFromBridge = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, genCts.Token).ConfigureAwait(false);
 
-			return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitFromBridge, coinJoinFromBridge, null, null, network, walletFilePath, coinJoinAccountKeyPath);
+			return CreateCoinJoinWatchOnly(fingerPrint, segwitFromBridge, coinJoinFromBridge, coinJoinAccountKeyPath, network, walletFilePath);
 		}
 
 		var client = new HwiClient(network);
 		var segwitExtPubKey = await client.GetXpubAsync(device.Model, device.Path, segwitAccountKeyPath, genCts.Token).ConfigureAwait(false);
 		return KeyManager.CreateNewHardwareWalletWatchOnly(fingerPrint, segwitExtPubKey, null, null, null, network, walletFilePath);
+	}
+
+	/// <summary>
+	/// Imports the connected Trezor as a watch-only wallet using only the Trezor Bridge, so it works on a
+	/// headless daemon without HWI. With <paramref name="enableCoinjoin"/> the SLIP-25 coinjoin account is
+	/// read too, which the device asks to confirm with the coinjoin path unlock.
+	/// </summary>
+	public static async Task<KeyManager> ImportTrezorWalletAsync(string walletFilePath, Network network, bool enableCoinjoin, CancellationToken cancelToken)
+	{
+		using var trezor = await TrezorDevice.FindAsync(null, cancelToken).ConfigureAwait(false);
+		var fingerprint = await trezor.GetMasterFingerprintAsync(cancelToken).ConfigureAwait(false);
+		var segwitAccountKeyPath = KeyManager.GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
+		var segwitExtPubKey = await trezor.GetSegwitAccountXpubAsync(segwitAccountKeyPath, network, cancelToken).ConfigureAwait(false);
+
+		KeyManager keyManager;
+		if (enableCoinjoin)
+		{
+			var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(network);
+			var coinJoinExtPubKey = await trezor.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, network, cancelToken).ConfigureAwait(false);
+			keyManager = CreateCoinJoinWatchOnly(fingerprint, segwitExtPubKey, coinJoinExtPubKey, coinJoinAccountKeyPath, network, walletFilePath);
+		}
+		else
+		{
+			keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, network, walletFilePath);
+		}
+
+		keyManager.SetIcon(Wallets.WalletType.Trezor);
+		return keyManager;
+	}
+
+	private static KeyManager CreateCoinJoinWatchOnly(HDFingerprint fingerprint, ExtPubKey segwitExtPubKey, ExtPubKey coinJoinExtPubKey, KeyPath coinJoinAccountKeyPath, Network network, string walletFilePath)
+	{
+		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, coinJoinExtPubKey, null, null, network, walletFilePath, coinJoinAccountKeyPath);
+
+		// Only coins of the SLIP-25 account can join rounds, so hand out its addresses by default;
+		// segwit receive stays available for deposits that should not be coinjoined.
+		keyManager.DefaultReceiveScriptType = ScriptPubKeyType.TaprootBIP86;
+		return keyManager;
 	}
 
 	/// <summary>
