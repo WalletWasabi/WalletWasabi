@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -17,50 +18,115 @@ using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
 
-public record P2pNodeClient(
-	Node Node,
+public record P2pNodeGroupClient(
+	Node[] Nodes,
 	double Timeout,
 	Action<int> IncreaseTimeout,
-	Action<P2pConnectionManager.MisbehaviorType> Error)
+	Action<Node, P2pConnectionManager.MisbehaviorType> Error)
 {
+	private static readonly Meter Meter = new("P2pNodeGroupClient", "1.0.0");
+
+	private static readonly Histogram<double> BlockDownloadDuration = Meter.CreateHistogram<double>("p2p.block.download.duration","ms", "Time taken to download and validate a block");
+	private static readonly Counter<long> BlockDownloadAttempts = Meter.CreateCounter<long>("p2p.block.download.attempts", description: "Total number of block download attempts across all nodes");
+	private static readonly Counter<long> BlockDownloadSuccesses = Meter.CreateCounter<long>("p2p.block.download.successes", description: "Number of successful block downloads");
+	private static readonly Counter<long> BlockDownloadFailures = Meter.CreateCounter<long>("p2p.block.download.failures", description: "Number of failed block download attempts");
+
+	/// <summary>
+	/// Attempts to download the block from <see cref="Nodes"/> in parallel and return the first valid block it receives.
+	/// </summary>
 	public async Task<Block?> GetBlockAsync(uint256 blockHash, CancellationToken cancellationToken)
 	{
+		var blockHashStr = blockHash.ToString();
+		BlockDownloadAttempts.Add(1, new KeyValuePair<string, object?>("block_hash", blockHashStr));
+
+		Block? result = null;
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
+		using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+
+		// Map download tasks to their corresponding P2P nodes.
+		var tasksToNodes = Nodes.ToDictionary(x => x.DownloadBlockAsync(blockHash, lts.Token), x => x);
+		var tasks = tasksToNodes.Keys;
+		var taskCount = tasks.Count;
+
+		Stopwatch stopwatch = Stopwatch.StartNew();
+
+		for (int i = 0; i < taskCount; i++)
+		{
+			// Wait for a single download task to complete.
+			var task = await Task.WhenAny(tasks).ConfigureAwait(false);
+			var node = tasksToNodes[task];
+
+			try
+			{
+				var block = await task.ConfigureAwait(false);
+
+				// Validate block
+				if (block.Check())
+				{
+					TrackSuccess(blockHashStr, stopwatch, node);
+					IncreaseTimeout(-1);
+
+					Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
+					result = block;
+					break;
+				}
+
+				ReportError(blockHashStr, node, P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
+			}
+			catch (Exception ex)
+			{
+				if (ex is OperationCanceledException or TimeoutException)
+				{
+					IncreaseTimeout(+1);
+					// It could be a slow connection and not a misbehaving node.
+					ReportError(blockHashStr, node, P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock, ex);
+
+					// If the download was canceled due to timeout, we can break the loop and return null.
+					break;
+				}
+				else
+				{
+					Logger.LogDebug(ex);
+					ReportError(blockHashStr, node, P2pConnectionManager.MisbehaviorType.Unknown, ex);
+				}
+			}
+
+			// Remove task to node mapping to avoid waiting for it again.
+			tasksToNodes.Remove(task);
+			tasks = tasksToNodes.Keys;
+		}
+
+		// Cancel all downloads if any.
+		await lts.CancelAsync().ConfigureAwait(false);
+
+		// Wait for all tasks to complete, ignoring exceptions.
 		try
 		{
-			using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(Timeout));
-			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
-			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
-
-			// Validate block
-			if (!block.Check())
-			{
-				Error(P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
-				return null;
-			}
-
-			Logger.LogInfo($"Block ({block.GetCoinbaseHeight()}) downloaded: {block.GetHash()}.");
-			IncreaseTimeout(-1);
-			return block;
+			await Task.WhenAll(tasks).ConfigureAwait(false);
 		}
-		catch (Exception ex)
+		catch
 		{
-			if (ex is OperationCanceledException or TimeoutException)
-			{
-				IncreaseTimeout(+1);
-				// It could be a slow connection and not a misbehaving node.
-				Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
-			}
-			else
-			{
-				Logger.LogDebug(ex);
-				Error(P2pConnectionManager.MisbehaviorType.Unknown);
-			}
-			return null;
+		}
+
+		return result;
+
+		static void TrackSuccess(string blockHashStr, Stopwatch stopwatch, Node node)
+		{
+			BlockDownloadDuration.Record(stopwatch.ElapsedMilliseconds,
+				new("block_hash", blockHashStr), new("status", "success"), new("node", node.RemoteSocketEndpoint?.ToString() ?? "unknown"));
+			BlockDownloadSuccesses.Add(1, new KeyValuePair<string, object?>("block_hash", blockHashStr));
+		}
+
+		void ReportError(string blockHashStr, Node node, P2pConnectionManager.MisbehaviorType misbehaviorType, Exception? ex = null)
+		{
+			Error(node, misbehaviorType);
+			BlockDownloadFailures.Add(1, new("block_hash", blockHashStr), new("misbehavior", misbehaviorType), new("exception", ex?.GetType().FullName));
 		}
 	}
 }
 
-public delegate Task<P2pNodeClient> P2pNodeProvider(CancellationToken cancellationToken);
+public delegate Task<P2pNodeGroupClient> P2pNodeProvider(CancellationToken cancellationToken);
 
 /// <summary>Snapshot of currently connected P2P nodes.</summary>
 public delegate ImmutableArray<Node> P2pNodeListProvider();
@@ -206,7 +272,8 @@ public class P2pConnectionManager : IDisposable
 		}
 	}
 
-	public async Task<P2pNodeClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
+	/// <seealso cref="P2pNodeProvider"/>
+	public async Task<P2pNodeGroupClient> GetSingleUseNodeAsync(CancellationToken cancellationToken)
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
@@ -218,23 +285,18 @@ public class P2pConnectionManager : IDisposable
 				continue;
 			}
 
-			var node = nodes.RandomElement(SecureRandom.Instance);
+			// Get random nodes from the connected nodes. The random sample contains 1 to 3 nodes.
+			var randomNodes = nodes.ToShuffled(SecureRandom.Instance).Take(3).ToArray();
 
-			if (node is not null && node.IsConnected)
-			{
-				return new P2pNodeClient(
-					node,
-					GetCurrentTimeout(),
-					UpdateTimeout,
-					misbehavior =>
-					{
-						DisconnectNode(node, misbehavior);
-						ReportMisbehavior(node.RemoteSocketEndpoint, misbehavior);
-					});
-			}
-
-			Logger.LogTrace("Selected node is null or disconnected.");
-			await Task.Delay(10, cancellationToken).ConfigureAwait(false);
+			return new P2pNodeGroupClient(
+				randomNodes,
+				GetCurrentTimeout(),
+				UpdateTimeout,
+				(node, misbehavior) =>
+				{
+					DisconnectNode(node, misbehavior);
+					ReportMisbehavior(node.RemoteSocketEndpoint, misbehavior);
+				});
 		}
 
 		cancellationToken.ThrowIfCancellationRequested();

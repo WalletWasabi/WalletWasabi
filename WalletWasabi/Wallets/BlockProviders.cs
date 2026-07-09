@@ -3,7 +3,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Logging;
-using WalletWasabi.Services;
 using WalletWasabi.Services.NodesManagement;
 
 namespace WalletWasabi.Wallets;
@@ -34,8 +33,8 @@ public static class BlockProviders
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
-				var singleUseNode = await getNode(cancellationToken).ConfigureAwait(false);
-				var block = await singleUseNode.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
+				var singleUseNodeGroup = await getNode(cancellationToken).ConfigureAwait(false);
+				var block = await singleUseNodeGroup.GetBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 				if (block is not null)
 				{
 					return block;
