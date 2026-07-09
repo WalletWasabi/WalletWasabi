@@ -4,15 +4,14 @@ using System.Linq;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;

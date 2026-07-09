@@ -5,11 +5,12 @@ using System.Diagnostics;
 using System.Linq;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
+using SecureRandom = WalletWasabi.Crypto.Randomness.SecureRandom;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 

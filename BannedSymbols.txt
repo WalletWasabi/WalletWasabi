@@ -2,3 +2,5 @@
 # 
 # Syntax: https://github.com/dotnet/roslyn-analyzers/blob/main/src/Microsoft.CodeAnalysis.BannedApiAnalyzers/BannedApiAnalyzers.Help.md
 M:System.Net.Http.HttpClient.#ctor();Each use of an HTTP client operating over clearnet must be approved.
+T:WabiSabi.Crypto.Randomness.SecureRandom;Don't use the SecureRandom class from NWabiSabi, use WalletWasabi.Crypto.Randomness.SecureRandom instead.
+T:WabiSabi.Crypto.Randomness.InsecureRandom;Don't use the InsecureRandom class from NWabiSabi, use WalletWasabi.Crypto.Randomness.InsecureRandom instead.
