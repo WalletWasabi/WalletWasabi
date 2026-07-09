@@ -103,10 +103,8 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancellationToken)
 	{
-		var height = new ChainHeight(filter.Header.Height);
-
 		var toTestKeys = _keyManager.UnsafeGetSynchronizationInfos();
 
 		var matchFound = false;
@@ -118,9 +116,10 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				// Wait until downloaded.
 				Logger.LogInfo($"Obtaining block {filter.Header.BlockHash}...");
-				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancel).ConfigureAwait(false);
+				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancellationToken).ConfigureAwait(false);
 				if (currentBlock is { })
 				{
+					var height = new ChainHeight(filter.Header.Height);
 					var txsToProcess = new List<SmartTransaction>();
 					for (int i = 0; i < currentBlock.Transactions.Count; i++)
 					{
