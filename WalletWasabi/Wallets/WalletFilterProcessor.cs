@@ -2,7 +2,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -120,12 +119,15 @@ public class WalletFilterProcessor : BackgroundService
 				if (currentBlock is { })
 				{
 					var height = new ChainHeight(filter.Header.Height);
-					var txsToProcess = new List<SmartTransaction>();
-					for (int i = 0; i < currentBlock.Transactions.Count; i++)
+					var blockHash = currentBlock.GetHash();
+					var blockTime = currentBlock.Header.BlockTime;
+					var blockTransactions = currentBlock.Transactions;
+					var txsToProcess = new List<SmartTransaction>(capacity: blockTransactions.Count);
+
+					for (int i = 0; i < blockTransactions.Count; i++)
 					{
-						Transaction tx = currentBlock.Transactions[i];
-						txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i,
-							firstSeen: currentBlock.Header.BlockTime));
+						var tx = new SmartTransaction(blockTransactions[i], height, blockHash, blockIndex: i, firstSeen: blockTime);
+						txsToProcess.Add(tx);
 					}
 
 					_transactionProcessor.Process(txsToProcess);
