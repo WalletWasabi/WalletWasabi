@@ -35,18 +35,18 @@ public partial class WalletLoadWorkflow
 	private readonly IServices _services;
 	private readonly CompositeDisposable _disposables = new();
 	private readonly Wallet _wallet;
-	private uint _peers;
 	private uint _blockHeadersTip;
 	private uint _filterHeadersTip;
 	private uint _compactFiltersTip;
-	private uint _downloadedBlocks;
+	private uint _walletSyncHeight;
 	private readonly Subject<WalletLoadProgress> _progress;
 	[AutoNotify] private bool _isLoading;
 
 	// Initial values for progress calculation
-	private uint _initialBlockHeaders;
-	private uint _initialFilterHeaders;
-	private uint _initialCompactFilters;
+	private readonly uint _initialBlockHeaders;
+	private readonly uint _initialWalletSyncHeight;
+	private readonly uint _initialFilterHeaders;
+	private readonly uint _initialCompactFilters;
 
 	public WalletLoadWorkflow(IServices services, Wallet wallet)
 	{
@@ -57,36 +57,26 @@ public partial class WalletLoadWorkflow
 		var tipHeight = services.GetTipHeight();
 		var blockHeadersTip = services.GetBlockHeadersTipHeight();
 		var serverTipHeight = services.GetServerTipHeight();
-		var peerCount = services.GetPeerCount();
+		var walletBestHeight = (uint)wallet.KeyManager.GetBestHeight();
 
 		// Store initial values for progress calculation
 		_initialBlockHeaders = blockHeadersTip;
+		_initialWalletSyncHeight = walletBestHeight;
 		_initialFilterHeaders = tipHeight;
 		_initialCompactFilters = tipHeight;
 
 		_blockHeadersTip = blockHeadersTip;
 		_filterHeadersTip = tipHeight;
 		_compactFiltersTip = tipHeight;
-		_peers = (uint)peerCount;
-		_downloadedBlocks = 0;
+		_walletSyncHeight = walletBestHeight;
 
 		_progress.OnNext(new WalletLoadProgress(
 			ChainTip: serverTipHeight,
-			Peers: new SyncProgressCardModel(0, _peers, TargetPeers),
+			Peers: new SyncProgressCardModel(0, (uint)services.GetPeerCount(), TargetPeers),
 			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _initialBlockHeaders, serverTipHeight),
 			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _initialFilterHeaders, serverTipHeight),
 			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _initialCompactFilters, serverTipHeight),
-			Blocks: new SyncProgressCardModel(0, 0, 0)));
-
-		services.EventBus.AsObservable<P2pNodeAdded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => _peers++)
-			.DisposeWith(_disposables);
-
-		services.EventBus.AsObservable<P2pNodeRemoved>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(_ => _peers--)
-			.DisposeWith(_disposables);
+			Blocks: new SyncProgressCardModel(_initialWalletSyncHeight, _walletSyncHeight, serverTipHeight)));
 
 		services.EventBus.AsObservable<BlockHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -110,7 +100,7 @@ public partial class WalletLoadWorkflow
 
 		services.EventBus.AsObservable<BlockDownloaded>()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(x => _downloadedBlocks = _downloadedBlocks + 1)
+			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
 		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
@@ -185,10 +175,10 @@ public partial class WalletLoadWorkflow
 
 		_progress.OnNext(new WalletLoadProgress(
 			ChainTip: tipHeight,
-			Peers: new SyncProgressCardModel(0, _peers, TargetPeers),
+			Peers: new SyncProgressCardModel(0, (uint)_services.GetPeerCount(), TargetPeers),
 			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _blockHeadersTip, tipHeight),
 			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _filterHeadersTip, tipHeight),
 			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _compactFiltersTip, tipHeight),
-			Blocks: new SyncProgressCardModel(0, _downloadedBlocks, _downloadedBlocks + 10)));
+			Blocks: new SyncProgressCardModel(_initialWalletSyncHeight, _walletSyncHeight, tipHeight)));
 	}
 }

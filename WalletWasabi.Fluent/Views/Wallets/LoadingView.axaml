@@ -17,7 +17,7 @@
   <UserControl.Styles>
     <!-- Sync Progress Card Styles -->
     <Style Selector="Border.SyncCard">
-      <Setter Property="Background" Value="#20000000" />
+      <Setter Property="Background" Value="#E01E1E1E" />
       <Setter Property="CornerRadius" Value="8" />
       <Setter Property="Padding" Value="10 10 10 10" />
       <Setter Property="Margin" Value="5" />
@@ -47,7 +47,7 @@
       </Setter>
     </Style>
     <Style Selector="Border.SyncCard.blink">
-      <Setter Property="Background" Value="#40222222" />
+      <Setter Property="Background" Value="#2D2D2D" />
     </Style>
   </UserControl.Styles>
 
@@ -56,17 +56,13 @@
     <Panel>
       <Interaction.Behaviors>
         <AdaptiveBehavior>
-          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
-          <AdaptiveClassSetter TargetControl="InfoCards" MinHeight="0" MaxHeight="300" ClassName="small" />
+          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="300" ClassName="small" />
         </AdaptiveBehavior>
       </Interaction.Behaviors>
 
       <Panel>
         <Panel.Styles>
           <Style Selector="Panel#WorldMap.small">
-            <Setter Property="IsVisible" Value="False" />
-          </Style>
-          <Style Selector="WrapPanel#InfoCards.small">
             <Setter Property="IsVisible" Value="False" />
           </Style>
         </Panel.Styles>
