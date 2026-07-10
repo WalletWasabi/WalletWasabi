@@ -290,4 +290,79 @@ public class FeeRateEstimationsTests
 			Blocks = target,
 			FeeRate = new FeeRate(feeRate)
 		};
+
+	/// <summary>
+	/// Tests that mempool data is used to adjust fee estimates even when mempool-derived
+	/// targets (1, 2, 3, 4...) don't exactly match Bitcoin Core targets (2, 3, 6, 18, 36...).
+	///
+	/// Scenario: Mempool has 4MB of transactions at high fee rates (100+ sat/vB).
+	/// Bitcoin Core underestimates target 6 at only 10 sat/vB.
+	/// The algorithm should use the closest mempool estimate (target 4) to push
+	/// the target 6 estimate higher.
+	/// </summary>
+	[Fact]
+	public async Task MempoolDataUsedForNonExactTargetMatches()
+	{
+		var mockRpc = new MockRpcClient();
+		mockRpc.Network = Network.Main;
+		mockRpc.OnGetBlockchainInfoAsync = () =>
+			Task.FromResult(new BlockchainInfo
+			{
+				Blocks = 100_000UL,
+				Headers = 100_000L
+			});
+		mockRpc.OnGetPeersInfoAsync = () => Task.FromResult(new[] { new PeerInfo() });
+		mockRpc.OnUptimeAsync = () => Task.FromResult(TimeSpan.FromDays(10)); // >2 hours, so mempool path is used
+
+		// Mempool with 4MB of high-fee transactions:
+		// - 1MB at 200 sat/vB (group 200)
+		// - 1MB at 150 sat/vB (group 150)
+		// - 1MB at 120 sat/vB (group 120)
+		// - 1MB at 100 sat/vB (group 100)
+		// This means: target 1 needs 200 sat/vB, target 2 needs 150, target 3 needs 120, target 4 needs 100
+		// For target 6, the mempool says we'd need ~100 sat/vB to get in within 6 blocks
+		mockRpc.OnGetMempoolInfoAsync = () =>
+			Task.FromResult(new MemPoolInfo
+			{
+				Size = 4000, // 4000 transactions
+				MemPoolMinFee = 0.00001000, // 1 sat/vB default
+				Histogram =
+				[
+					new FeeRateGroup { Group = 200, Sizes = 1_000_000, Count = 1000, From = new FeeRate(200m), To = new FeeRate(300m) },
+					new FeeRateGroup { Group = 150, Sizes = 1_000_000, Count = 1000, From = new FeeRate(150m), To = new FeeRate(200m) },
+					new FeeRateGroup { Group = 120, Sizes = 1_000_000, Count = 1000, From = new FeeRate(120m), To = new FeeRate(150m) },
+					new FeeRateGroup { Group = 100, Sizes = 1_000_000, Count = 1000, From = new FeeRate(100m), To = new FeeRate(120m) },
+				]
+			});
+
+		// Bitcoin Core severely underestimates fees (maybe node just started or low traffic period)
+		mockRpc.OnEstimateSmartFeeAsync = (target, _) =>
+			target switch
+			{
+				2 => Task.FromResult(FeeRateResponse(2, 20m)),   // Core says 20 sat/vB for 2 blocks
+				3 => Task.FromResult(FeeRateResponse(3, 15m)),   // Core says 15 sat/vB for 3 blocks
+				6 => Task.FromResult(FeeRateResponse(6, 10m)),   // Core says 10 sat/vB for 6 blocks - WAY too low!
+				18 => Task.FromResult(FeeRateResponse(18, 5m)),
+				36 => Task.FromResult(FeeRateResponse(36, 3m)),
+				72 => Task.FromResult(FeeRateResponse(72, 2m)),
+				144 => Task.FromResult(FeeRateResponse(144, 1m)),
+				432 => Task.FromResult(FeeRateResponse(432, 1m)),
+				1008 => Task.FromResult(FeeRateResponse(1008, 1m)),
+				_ => Task.FromException<EstimateSmartFeeResponse>(new NoEstimationException(0))
+			};
+
+		var result = await mockRpc.EstimateAllFeeAsync();
+
+		// The mempool clearly shows that to get confirmed in 6 blocks, you need ~100 sat/vB
+		// (since 4MB of 100+ sat/vB transactions are ahead of you).
+		// The algorithm should use the closest mempool estimate (target 4 at 100 sat/vB)
+		// to adjust the target 6 estimate.
+		var target6Estimate = result.Estimations[6];
+
+		// The mempool data should push the estimate to ~100 sat/vB (from target 4's estimate)
+		Assert.True(
+			target6Estimate.SatoshiPerByte >= 100m,
+			$"Expected target 6 fee rate >= 100 sat/vB based on mempool congestion, " +
+			$"but got {target6Estimate.SatoshiPerByte} sat/vB.");
+	}
 }

@@ -71,23 +71,29 @@ public static class RPCClientExtensions
 		var maxEstimationFor3Mb = estimationForTarget2 > FeeRate.Zero ? estimationForTarget2 : new FeeRate(5_000m);
 		var maxSanityFeeRate = maxEstimationFor3Mb;
 
-		var fixedEstimations = smartEstimations
-			.GroupJoin(
-				minEstimations,
-				outer => outer.Key,
-				inner => inner.Key,
-				(outer, inner) => new { Estimation = outer, MinimumFromMemPool = inner })
-			.SelectMany(
-				x => x.MinimumFromMemPool.Any() ? x.MinimumFromMemPool : [KeyValuePair.Create(0, FeeRate.Zero)],
-				(a, b) =>
+		var sortedMempoolEstimations = minEstimations.OrderByDescending(x => x.Key).ToList();
+
+		FeeRate GetMempoolFeeRateForTarget(int target)
+		{
+			foreach (var entry in sortedMempoolEstimations)
+			{
+				if (entry.Key <= target)
 				{
-					var maxLowerBound = FeeRate.Max(a.Estimation.Value, b.Value);
-					var maxMinFeeRate = FeeRate.Max(minSanityFeeRate, maxLowerBound);
-					var minMaxFeeRate = FeeRate.Min(maxSanityFeeRate, maxMinFeeRate);
-					return (
-						Target: a.Estimation.Key,
-						FeeRate: minMaxFeeRate);
-				})
+					return entry.Value;
+				}
+			}
+			return FeeRate.Zero;
+		}
+
+		var fixedEstimations = smartEstimations
+			.Select(estimation =>
+			{
+				var mempoolFeeRate = GetMempoolFeeRateForTarget(estimation.Key);
+				var maxLowerBound = FeeRate.Max(estimation.Value, mempoolFeeRate);
+				var maxMinFeeRate = FeeRate.Max(minSanityFeeRate, maxLowerBound);
+				var minMaxFeeRate = FeeRate.Min(maxSanityFeeRate, maxMinFeeRate);
+				return (Target: estimation.Key, FeeRate: minMaxFeeRate);
+			})
 			.ToDictionary(x => x.Target, x => x.FeeRate);
 
 		return fixedEstimations;
