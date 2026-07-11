@@ -161,28 +161,34 @@ public class CompactFilterBehavior(
 		}
 
 		// Validate headers using shared state
-		var validatedHeaders = synchronizationState.ValidateFilterHeaders(
+		var filterHashArray = filterHashes.ToArray();
+		var validationResult = synchronizationState.ValidateFilterHeaders(
 			assignment,
-			filterHashes.ToArray(),
+			filterHashArray,
 			cfHeaders.PreviousFilterHeader,
 			node.Network);
 
-		if (validatedHeaders is null)
+		switch (validationResult)
 		{
-			Logger.LogWarning(
-				$"Validation failed for filter header range {assignment}");
-			HandleInvalidNoLock(node, "Invalid compact filter headers received");
-			return;
+			case HeaderValidationResult.Success success:
+				Logger.LogInfo($"Successfully validated filter header range {assignment}");
+				synchronizationState.OnHeaderCompleted(assignment.StartHeight, success.Headers);
+				_assignedHeaderRange = null;
+				TrySyncNoLock(node);
+				break;
+
+			case HeaderValidationResult.NotReadyYet:
+				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
+				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, node.Network);
+				_assignedHeaderRange = null;
+				TrySyncNoLock(node);
+				break;
+
+			case HeaderValidationResult.Invalid invalid:
+				Logger.LogWarning($"Validation failed for filter header range {assignment}: {invalid.Reason}");
+				HandleInvalidNoLock(node, "Invalid compact filter headers received");
+				break;
 		}
-
-		Logger.LogInfo($"Successfully validated filter header range {assignment}");
-
-		// Report success to shared state
-		synchronizationState.OnHeaderCompleted(assignment.StartHeight, validatedHeaders);
-		_assignedHeaderRange = null;
-
-		// Immediately try to fetch the next range
-		TrySyncNoLock(node);
 	}
 
 	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
@@ -446,6 +452,8 @@ public class CompactFilterBehavior(
 
 		private readonly Channel<FilterResponse> _readyFiltersChannel;
 
+		private readonly SortedDictionary<uint, UnvalidatedHeaderResponse> _bufferedHeaderResponses = [];
+
 		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
 			EventBus? eventBus = null, TimeProvider? timeProvider = null)
 		{
@@ -476,7 +484,8 @@ public class CompactFilterBehavior(
 				var chainTip = _blockHeaderChain.Tip;
 
 				// Find the next range to assign (respecting max lookahead limit)
-				if (!_headerTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
+				// Also skip ranges that are already buffered awaiting validation
+				if (!_headerTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, _bufferedHeaderResponses, out var nextRangeStart))
 				{
 					Logger.LogTrace(
 						$"Max lookahead limit reached for headers (active: {_headerTracker.ActiveCount}, pending: {_headerTracker.PendingCount})");
@@ -494,12 +503,6 @@ public class CompactFilterBehavior(
 
 				// Get the stop block hash
 				var stopBlock = _blockHeaderChain.GetBlock((int) stopHeight);
-
-				// Don't assign this range if we don't have the previous filter header yet
-				if (!TryGetPreviousFilterHeader(nextRangeStart, network, out _))
-				{
-					return false;
-				}
 
 				// Track this assignment so other nodes don't get the same range
 				_headerTracker.AddActiveAssignment(nextRangeStart, stopHeight);
@@ -523,6 +526,9 @@ public class CompactFilterBehavior(
 
 				// Process any ranges that are now ready
 				ProcessPendingHeaderRanges();
+
+				// Try to validate and process any buffered responses that may now be ready
+				TryProcessBufferedHeaders();
 			}
 		}
 
@@ -537,7 +543,7 @@ public class CompactFilterBehavior(
 				$"Node disconnected, released filter header range {assignment.StartHeight} for reassignment");
 		}
 
-		internal SmartHeader[]? ValidateFilterHeaders(
+		internal HeaderValidationResult ValidateFilterHeaders(
 			RangeRequest assignment,
 			uint256[] filterHashes,
 			uint256 declaredPreviousFilterHeader,
@@ -546,17 +552,17 @@ public class CompactFilterBehavior(
 			// Recalculate the expected previous filter header from the chain
 			if (!TryGetPreviousFilterHeader(assignment.StartHeight, network, out var expectedPreviousFilterHeader))
 			{
-				Logger.LogWarning(
-					$"Cannot validate: previous filter header not available for range {assignment.StartHeight}");
-				return null;
+				Logger.LogDebug(
+					$"Previous filter header not yet available for range {assignment.StartHeight}, will retry later");
+				return new HeaderValidationResult.NotReadyYet();
 			}
 
 			// Validate against the expected previous filter header
 			if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
 			{
-				Logger.LogWarning(
-					$"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}");
-				return null;
+				var reason = $"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}";
+				Logger.LogWarning(reason);
+				return new HeaderValidationResult.Invalid(reason);
 			}
 
 			var result = new SmartHeader[filterHashes.Length];
@@ -568,8 +574,10 @@ public class CompactFilterBehavior(
 				var block = _blockHeaderChain.GetBlock((int) height);
 				if (block == null)
 				{
-					Logger.LogWarning($"Block header not found at height {height}, aborting batch validation");
-					return null;
+					var reason = $"Block header not found at height {height}, aborting batch validation";
+					Logger.LogWarning(reason);
+
+					return new HeaderValidationResult.Invalid(reason);
 				}
 
 				var filterHash = filterHashes[i];
@@ -584,7 +592,86 @@ public class CompactFilterBehavior(
 				prevFilterHeader = filterHeader;
 			}
 
-			return result;
+			return new HeaderValidationResult.Success(result);
+		}
+
+		/// <summary>
+		/// Buffers a header response that arrived before we could validate it.
+		/// Removes the assignment from active tracking since we have the data.
+		/// </summary>
+		internal void BufferUnvalidatedHeaders(RangeRequest assignment, uint256[] filterHashes, uint256 declaredPreviousFilterHeader, Network network)
+		{
+			lock (_lock)
+			{
+				// Remove from active assignments - we have the data, just can't validate yet
+				_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
+
+				_bufferedHeaderResponses[assignment.StartHeight] = new UnvalidatedHeaderResponse(
+					assignment, filterHashes, declaredPreviousFilterHeader, network);
+
+				Logger.LogDebug(
+					$"Buffered filter header range {assignment.StartHeight}-{assignment.StopHeight} for later validation. " +
+					$"Total buffered: {_bufferedHeaderResponses.Count}");
+			}
+		}
+
+		/// <summary>
+		/// Attempts to validate and process any buffered header responses that are now ready.
+		/// Called after a range completes, since the previous filter header may now be available.
+		/// </summary>
+		private void TryProcessBufferedHeaders()
+		{
+			// Process buffered responses in order
+			while (true)
+			{
+				var nextExpected = _headerTracker.LastHeight + 1;
+
+				if (!_bufferedHeaderResponses.TryGetValue(nextExpected, out var buffered))
+				{
+					break;
+				}
+
+				// Try to validate now
+				var result = ValidateFilterHeaders(
+					buffered.Assignment,
+					buffered.FilterHashes,
+					buffered.DeclaredPreviousFilterHeader,
+					buffered.Network);
+
+				if (result is not HeaderValidationResult.Success success)
+				{
+					// Still not ready or invalid - leave it buffered (NotReadyYet shouldn't happen here)
+					// or remove it if invalid
+					if (result is HeaderValidationResult.Invalid)
+					{
+						_bufferedHeaderResponses.Remove(nextExpected);
+						Logger.LogWarning($"Buffered header range {nextExpected} failed validation, discarding");
+					}
+					break;
+				}
+
+				// Validation succeeded - remove from buffer
+				_bufferedHeaderResponses.Remove(nextExpected);
+				Logger.LogInfo($"Successfully validated buffered filter header range {buffered.Assignment}");
+
+				// Process the headers directly (buffered responses are not in active assignments)
+				foreach (var header in success.Headers)
+				{
+					try
+					{
+						_filterHeaderChain.AppendTip(header);
+						_headerTracker.SetLastHeight(header.Height);
+					}
+					catch (InvalidOperationException ex)
+					{
+						Logger.LogError($"Failed to append buffered filter header at height {header.Height}: {ex.Message}");
+						return;
+					}
+				}
+
+				_eventBus?.Publish(new FilterHeadersTipChanged(_headerTracker.LastHeight));
+				Logger.LogInfo($"Successfully processed buffered filter header range {buffered.Assignment.StartHeight}, new tip at height {_headerTracker.LastHeight}");
+			}
 		}
 
 		private void ProcessPendingHeaderRanges()
@@ -793,6 +880,9 @@ public class CompactFilterBehavior(
 			// Clear all pending filter ranges
 			_filterTracker.ClearAllPending();
 
+			// Clear all buffered header responses awaiting validation
+			_bufferedHeaderResponses.Clear();
+
 			Logger.LogDebug("Cleared all pending filter header and filter assignments due to reorg");
 		}
 
@@ -928,11 +1018,14 @@ public class CompactFilterBehavior(
 		}
 
 		public bool TryGetNextRangeStartHeight(int maxLookaheadRanges, out uint startHeight)
+			=> TryGetNextRangeStartHeight(maxLookaheadRanges, null, out startHeight);
+
+		public bool TryGetNextRangeStartHeight(int maxLookaheadRanges, IReadOnlyDictionary<uint, UnvalidatedHeaderResponse>? additionalSkip, out uint startHeight)
 		{
 			var nextStart = LastHeight + 1;
 			var rangeCount = 0;
 
-			// Skip over any ranges that are already assigned or pending
+			// Skip over any ranges that are already assigned, pending, or in the additional skip set
 			while (true)
 			{
 				if (_activeAssignments.TryGetValue(nextStart, out var active))
@@ -943,6 +1036,11 @@ public class CompactFilterBehavior(
 				else if (_pendingResponses.TryGetValue(nextStart, out var pending))
 				{
 					nextStart = pending.EndHeight + 1;
+					rangeCount++;
+				}
+				else if (additionalSkip is not null && additionalSkip.TryGetValue(nextStart, out var buffered))
+				{
+					nextStart = buffered.Assignment.StopHeight + 1;
 					rangeCount++;
 				}
 				else
@@ -1004,5 +1102,30 @@ public class CompactFilterBehavior(
 	private record FilterResponse(uint StartHeight, FilterModel[] Filters) : Response(StartHeight)
 	{
 		public override uint EndHeight => Filters[^1].Header.Height;
+	}
+
+	/// <summary>
+	/// Stores raw filter header data received from a peer, awaiting validation
+	/// when the previous filter header becomes available.
+	/// </summary>
+	internal record UnvalidatedHeaderResponse(
+		RangeRequest Assignment,
+		uint256[] FilterHashes,
+		uint256 DeclaredPreviousFilterHeader,
+		Network Network);
+
+	/// <summary>
+	/// Result of filter header validation attempt.
+	/// </summary>
+	internal abstract record HeaderValidationResult
+	{
+		/// <summary>Validation succeeded.</summary>
+		public record Success(SmartHeader[] Headers) : HeaderValidationResult;
+
+		/// <summary>Previous filter header not available yet - buffer and retry later.</summary>
+		public record NotReadyYet : HeaderValidationResult;
+
+		/// <summary>Validation failed - peer sent invalid data.</summary>
+		public record Invalid(string Reason) : HeaderValidationResult;
 	}
 }
