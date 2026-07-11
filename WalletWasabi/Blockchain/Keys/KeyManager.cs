@@ -409,19 +409,6 @@ public class KeyManager
 		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
-	public HdPubKey GetNextSilentPaymentDummyKey(int scanKeyIndex, PubKey pubkey, LabelsArray labels, ECPubKey tweak)
-	{
-		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Account).Derive((uint)scanKeyIndex);
-		lock (_criticalStateLock)
-		{
-			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1) + 1;
-			var hdPubKey = new HdPubKey(pubkey, dummyKeyFullPath.Derive((uint)nextIndex), labels, KeyState.Clean);
-			hdPubKey.TweakData = tweak;
-			_hdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.TaprootBIP86);
-			return hdPubKey;
-		}
-	}
-
 	public HdPubKey GetNextChangeKey() =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
