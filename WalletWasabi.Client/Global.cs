@@ -173,10 +173,6 @@ public class Global
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
 
-		// On RegTest the chain can be reset or recreated at will (fresh datadir, -reindex, re-mining),
-		// producing different block hashes for the same heights. A persisted header chain then references
-		// blocks that no longer exist, which breaks filter synchronization with "Block not found".
-		// Always start from a fresh chain on RegTest, mirroring how the filter store is wiped there.
 		if (Network == Network.RegTest)
 		{
 			DeleteBlockHeadersFile(blockHeadersFilePath);
@@ -198,7 +194,6 @@ public class Global
 
 	private static void DeleteBlockHeadersFile(string blockHeadersFilePath)
 	{
-		// SafelyWriteAllBytes may leave ".old"/".new" siblings behind, so remove those too.
 		foreach (var path in new[] { blockHeadersFilePath, $"{blockHeadersFilePath}.old", $"{blockHeadersFilePath}.new" })
 		{
 			if (File.Exists(path))
@@ -795,8 +790,6 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				// Don't persist the RegTest header chain: it is intentionally rebuilt from scratch on
-				// startup (see ConfigureBlockHeaderChain) so it can never go stale across chain resets.
 				if (Network != Network.RegTest && _blockHeaders.Tip is not null)
 				{
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
