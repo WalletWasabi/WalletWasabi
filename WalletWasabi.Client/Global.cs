@@ -172,6 +172,13 @@ public class Global
 	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+
+		if (Network == Network.RegTest)
+		{
+			DeleteBlockHeadersFile(blockHeadersFilePath);
+			return new ConcurrentChain(Network);
+		}
+
 		var blockHeaders = Result<byte[], Exception>
 			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
 			.Match(
@@ -183,6 +190,17 @@ public class Global
 				_ => new ConcurrentChain(Network));
 
 		return blockHeaders;
+	}
+
+	private static void DeleteBlockHeadersFile(string blockHeadersFilePath)
+	{
+		foreach (var path in new[] { blockHeadersFilePath, $"{blockHeadersFilePath}.old", $"{blockHeadersFilePath}.new" })
+		{
+			if (File.Exists(path))
+			{
+				File.Delete(path);
+			}
+		}
 	}
 
 	private P2pConnectionManager ConfigureNodeConnectionManager()
@@ -775,7 +793,7 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				if (_blockHeaders.Tip is not null)
+				if (Network != Network.RegTest && _blockHeaders.Tip is not null)
 				{
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
