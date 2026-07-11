@@ -489,14 +489,9 @@ public class KeyManager
 	{
 		ExtKey extKey = GetMasterExtKey(password);
 
-		lock (_criticalStateLock)
+		foreach (HdPubKey key in GetKeys(x => scripts.Contains(x.P2wpkhScript) || scripts.Contains(x.P2Taproot)))
 		{
-			foreach (HdPubKey key in GetKeys(x =>
-				scripts.Contains(x.P2wpkhScript)
-				|| scripts.Contains(x.P2Taproot)))
-			{
-				yield return extKey.Derive(key.FullKeyPath).PrivateKey;
-			}
+			yield return extKey.Derive(key.FullKeyPath).PrivateKey;
 		}
 	}
 
