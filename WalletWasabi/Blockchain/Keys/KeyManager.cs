@@ -315,7 +315,7 @@ public class KeyManager
 		birthHeight ??= FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
 		var blockchainState = new BlockchainState(network, height: birthHeight, birthHeight: birthHeight);
 		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
-		km.AssertCleanKeysIndexed();
+		km.AssertCleanKeysIndexedNoLock();
 		return km;
 	}
 
@@ -448,7 +448,7 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		lock (_criticalStateLock)
 		{
-			AssertCleanKeysIndexed();
+			AssertCleanKeysIndexedNoLock();
 			var predicate = wherePredicate ?? (_ => true);
 			return _hdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index).ToImmutableArray();
 		}
@@ -600,7 +600,7 @@ public class KeyManager
 		}
 	}
 
-	private IEnumerable<HdPubKey> AssertCleanKeysIndexed()
+	private IEnumerable<HdPubKey> AssertCleanKeysIndexedNoLock()
 	{
 		var keys = new[]
 			{
