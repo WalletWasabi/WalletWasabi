@@ -3,43 +3,72 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets"
+             xmlns:models="using:WalletWasabi.Fluent.Models.Wallets"
+             xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingView">
+
+  <UserControl.Resources>
+    <SolidColorBrush x:Key="SyncProgressOrangeBrush" Color="{StaticResource OrangeCoinColor}" />
+  </UserControl.Resources>
+
+  <UserControl.Styles>
+    <!-- Sync Progress Card Styles -->
+    <Style Selector="Border.SyncCard">
+      <Setter Property="Background" Value="#E01E1E1E" />
+      <Setter Property="CornerRadius" Value="8" />
+      <Setter Property="Padding" Value="10 10 10 10" />
+      <Setter Property="Margin" Value="5" />
+      <Setter Property="MinWidth" Value="100" />
+    </Style>
+    <Style Selector="Border.SyncCard PathIcon.CardIcon">
+      <Setter Property="Width" Value="20" />
+      <Setter Property="Height" Value="20" />
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="Border.SyncCard TextBlock.CardLabel">
+      <Setter Property="Opacity" Value="0.6" />
+      <Setter Property="FontSize" Value="12" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Border.SyncCard TextBlock.CardValue">
+      <Setter Property="FontSize" Value="20" />
+      <Setter Property="FontWeight" Value="SemiBold" />
+      <Setter Property="TextAlignment" Value="Center" />
+    </Style>
+    <!-- Blink animation for value changes -->
+    <Style Selector="Border.SyncCard">
+      <Setter Property="Transitions">
+        <Transitions>
+          <BrushTransition Property="Background" Duration="0:0:0.15" />
+        </Transitions>
+      </Setter>
+    </Style>
+    <Style Selector="Border.SyncCard.blink">
+      <Setter Property="Background" Value="#2D2D2D" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding WalletName, FallbackValue=My Wallet with a very long name}"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <Panel>
       <Interaction.Behaviors>
         <AdaptiveBehavior>
-          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="220" ClassName="small" />
+          <AdaptiveClassSetter TargetControl="WorldMap" MinHeight="0" MaxHeight="300" ClassName="small" />
         </AdaptiveBehavior>
       </Interaction.Behaviors>
 
-      <DockPanel VerticalAlignment="Center">
-        <DockPanel.Styles>
+      <Panel>
+        <Panel.Styles>
           <Style Selector="Panel#WorldMap.small">
             <Setter Property="IsVisible" Value="False" />
           </Style>
-        </DockPanel.Styles>
+        </Panel.Styles>
 
-        <StackPanel MaxWidth="800" Spacing="10" DockPanel.Dock="Bottom" HorizontalAlignment="Center">
-          <TextBlock Text="Downloading and processing Bitcoin data" TextAlignment="Center" FontSize="22"
-                     DockPanel.Dock="Bottom" />
-          <TextBlock
-            Text="This is done without any third party knowing your balance or transactions."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
-
-          <TextBlock
-            Text="It is slower on first launch, with larger wallets, or after long gaps between synchronizations."
-            TextAlignment="Center" TextWrapping="Wrap" Opacity="0.6" />
-
-          <ProgressBar Value="{Binding Percent}" IsIndeterminate="{Binding !Percent}" Margin="0 20 0 0" />
-          <TextBlock Margin="0 10 0 0" Text="{Binding StatusText}" TextAlignment="Center" Opacity="0.8" />
-          <TextBlock Text="{Binding TimeToCatchUp}" TextAlignment="Center" Opacity="0.6" />
-        </StackPanel>
-
-        <Panel x:Name="WorldMap" Margin="20">
+        <!-- World map (below) -->
+        <Panel x:Name="WorldMap" VerticalAlignment="Top">
           <Viewbox>
             <Viewbox.Styles>
               <Style Selector=":is(Control).City">
@@ -63,7 +92,167 @@
             </Canvas>
           </Viewbox>
         </Panel>
-      </DockPanel>
+
+        <!-- Cards overlay (above) -->
+        <StackPanel Spacing="10" VerticalAlignment="Bottom">
+          <!-- Sync Progress Cards -->
+          <WrapPanel x:Name="InfoCards" HorizontalAlignment="Center" Margin="0 0 0 20">
+            <!-- Peers connected -->
+            <Border Classes="SyncCard" x:DataType="models:SyncProgressCardModel" DataContext="{Binding Peers}">
+              <Interaction.Behaviors>
+                <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
+              </Interaction.Behaviors>
+              <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource entities_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <TextBlock Text="Peers connected" Classes="CardLabel" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
+                <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
+                  <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                    <Interaction.Behaviors>
+                      <behaviors:BrushSwitchBehavior
+                        Value="{Binding IsComplete}"
+                        FalseBrush="{StaticResource SyncProgressOrangeBrush}"
+                        TrueBrush="{DynamicResource SystemAccentColor}" />
+                    </Interaction.Behaviors>
+                  </ProgressBar>
+                </Panel>
+                <Panel Height="14" HorizontalAlignment="Center">
+                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
+                </Panel>
+              </StackPanel>
+            </Border>
+
+            <!-- Block headers -->
+            <Border Classes="SyncCard" x:DataType="models:SyncProgressCardModel" DataContext="{Binding BlockHeaders}">
+              <Interaction.Behaviors>
+                <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
+              </Interaction.Behaviors>
+              <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource organization_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <TextBlock Text="Block headers" Classes="CardLabel" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
+                <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
+                  <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                    <Interaction.Behaviors>
+                      <behaviors:BrushSwitchBehavior
+                        Value="{Binding IsComplete}"
+                        FalseBrush="{StaticResource SyncProgressOrangeBrush}"
+                        TrueBrush="{DynamicResource SystemAccentColor}" />
+                    </Interaction.Behaviors>
+                  </ProgressBar>
+                </Panel>
+                <Panel Height="14" HorizontalAlignment="Center">
+                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
+                </Panel>
+              </StackPanel>
+            </Border>
+
+            <!-- Filter headers -->
+            <Border Classes="SyncCard" x:DataType="models:SyncProgressCardModel" DataContext="{Binding FilterHeaders}">
+              <Interaction.Behaviors>
+                <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
+              </Interaction.Behaviors>
+              <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource sorting}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <TextBlock Text="Filter headers" Classes="CardLabel" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
+                <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
+                  <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                    <Interaction.Behaviors>
+                      <behaviors:BrushSwitchBehavior
+                        Value="{Binding IsComplete}"
+                        FalseBrush="{StaticResource SyncProgressOrangeBrush}"
+                        TrueBrush="{DynamicResource SystemAccentColor}" />
+                    </Interaction.Behaviors>
+                  </ProgressBar>
+                </Panel>
+                <Panel Height="14" HorizontalAlignment="Center">
+                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
+                </Panel>
+              </StackPanel>
+            </Border>
+
+            <!-- Compact filters -->
+            <Border Classes="SyncCard" x:DataType="models:SyncProgressCardModel" DataContext="{Binding CompactFilters}">
+              <Interaction.Behaviors>
+                <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
+              </Interaction.Behaviors>
+              <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource fingerprint_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <TextBlock Text="Compact filters" Classes="CardLabel" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
+                <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
+                  <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                    <Interaction.Behaviors>
+                      <behaviors:BrushSwitchBehavior
+                        Value="{Binding IsComplete}"
+                        FalseBrush="{StaticResource SyncProgressOrangeBrush}"
+                        TrueBrush="{DynamicResource SystemAccentColor}" />
+                    </Interaction.Behaviors>
+                  </ProgressBar>
+                </Panel>
+                <Panel Height="14" HorizontalAlignment="Center">
+                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
+                </Panel>
+              </StackPanel>
+            </Border>
+
+            <!-- Blocks -->
+            <Border Classes="SyncCard" x:DataType="models:SyncProgressCardModel" DataContext="{Binding Blocks}">
+              <Interaction.Behaviors>
+                <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
+              </Interaction.Behaviors>
+              <StackPanel Spacing="6" HorizontalAlignment="Center">
+                <PathIcon Data="{StaticResource wallet_coins}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <TextBlock Text="Blocks" Classes="CardLabel" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
+                <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
+                  <Border Background="{DynamicResource SystemBaseLowColor}" CornerRadius="2" Height="5" />
+                  <ProgressBar Value="{Binding Percent}" Minimum="0" Maximum="100" Height="5">
+                    <Interaction.Behaviors>
+                      <behaviors:BrushSwitchBehavior
+                        Value="{Binding IsComplete}"
+                        FalseBrush="{StaticResource SyncProgressOrangeBrush}"
+                        TrueBrush="{DynamicResource SystemAccentColor}" />
+                    </Interaction.Behaviors>
+                  </ProgressBar>
+                </Panel>
+                <Panel Height="14" HorizontalAlignment="Center">
+                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
+                </Panel>
+              </StackPanel>
+            </Border>
+          </WrapPanel>
+
+          <!-- Status line -->
+          <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Spacing="8" Margin="0 0 0 10">
+            <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" VerticalAlignment="Center" />
+            <TextBlock Opacity="0.7" VerticalAlignment="Center">
+              <Run Text="Syncing with the Bitcoin network — Latest block:" />
+              <Run Text="{Binding LatestBlock, StringFormat={}{0:N0}}" />
+            </TextBlock>
+          </StackPanel>
+        </StackPanel>
+      </Panel>
     </Panel>
   </ContentArea>
 </UserControl>

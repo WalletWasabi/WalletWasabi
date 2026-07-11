@@ -29,6 +29,8 @@ public interface IServices
 	uint GetServerTipHeight();
 	int GetHashesLeft();
 	SmartHeader? GetTip();
+	uint GetBlockHeadersTipHeight();
+	int GetPeerCount();
 
 	uint? GetMinimumBlockHeight();
 
