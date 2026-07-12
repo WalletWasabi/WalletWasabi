@@ -207,6 +207,9 @@ public class KeyManager
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
+	// Keeps the labels the user typed when sending
+	private Dictionary<uint256, LabelsArray> TransactionLabels { get; set; } = new();
+
 	public string? FilePath { get; private set; }
 
 	[MemberNotNullWhen(returnValue: false, nameof(EncryptedSecret))]
@@ -677,6 +680,7 @@ public class KeyManager
 		lock (_criticalStateLock)
 		{
 			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManager);
+			HasUnsavedTransactionLabels = false;
 		}
 
 		IoHelpers.EnsureContainingDirectoryExists(filePath);
@@ -754,6 +758,31 @@ public class KeyManager
 		ToFile();
 	}
 
+	public LabelsArray GetTransactionLabels(uint256 txid)
+	{
+		lock (_criticalStateLock)
+		{
+			return TransactionLabels.GetValueOrDefault(txid, LabelsArray.Empty);
+		}
+	}
+
+	// Remembers the labels of a transaction this wallet sent.
+	public void SetTransactionLabels(uint256 txid, LabelsArray labels)
+	{
+		lock (_criticalStateLock)
+		{
+			if (labels.IsEmpty || TransactionLabels.GetValueOrDefault(txid, LabelsArray.Empty) == labels)
+			{
+				return;
+			}
+
+			TransactionLabels[txid] = labels;
+			HasUnsavedTransactionLabels = true;
+		}
+	}
+
+	public bool HasUnsavedTransactionLabels { get; private set; }
+
 	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
@@ -777,6 +806,7 @@ public class KeyManager
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
+			("TransactionLabels", Encode.Dictionary(keyManager.TransactionLabels.ToDictionary(x => x.Key.ToString(), x => Encode.String(x.Value.ToString())))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -814,7 +844,9 @@ public class KeyManager
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
-				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
+				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
+				TransactionLabels = get.Optional("TransactionLabels", Decode.Dictionary(Decode.String))
+					?.ToDictionary(x => uint256.Parse(x.Key), x => new LabelsArray(x.Value)) ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;

@@ -113,6 +113,12 @@ public class TransactionProcessor(
 			result = new ProcessedResult(tx);
 		}
 
+		var rememberedLabels = KeyManager.GetTransactionLabels(txId);
+		if (!rememberedLabels.IsEmpty)
+		{
+			tx.Labels = LabelsArray.Merge(tx.Labels, rememberedLabels);
+		}
+
 		if (!tx.Transaction.IsCoinBase && !Coins.IsKnown(txId)) // Transactions we already have and processed would be "double spends" but they shouldn't.
 		{
 			var doubleSpentSpenders = new List<SmartCoin>();
@@ -254,6 +260,11 @@ public class TransactionProcessor(
 			{
 				result.NewlyConfirmedSpentCoins.Add(coin);
 			}
+		}
+
+		if (myInputs.Count != 0)
+		{
+			KeyManager.SetTransactionLabels(txId, tx.Labels);
 		}
 
 		if (tx.WalletInputs.Count != 0 || tx.WalletOutputs.Count != 0)

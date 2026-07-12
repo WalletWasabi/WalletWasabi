@@ -335,6 +335,12 @@ public class Wallet : BackgroundService
 
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
+		// for older versions of Wasabi, copy every sent transaction label out of the SQLite store into the wallet file 
+		if (KeyManager.HasUnsavedTransactionLabels)
+		{
+			KeyManager.ToFile();
+		}
+
 		// Each time a new batch of filters is downloaded, request a synchronization.
 		while (_lastFilterProcess < FilterHeaderChain.ServerTipHeight)
 		{
