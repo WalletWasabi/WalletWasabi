@@ -664,22 +664,17 @@ public class KeyManager
 
 	public void ToFile()
 	{
-		if (FilePath is { } filePath)
+		if (FilePath is not { } filePath)
 		{
-			ToFile(filePath);
+			return;
 		}
-	}
 
-	public void ToFile(string filePath)
-	{
-		string jsonString = string.Empty;
+		string jsonString;
 
 		lock (_criticalStateLock)
 		{
 			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManager);
 		}
-
-		IoHelpers.EnsureContainingDirectoryExists(filePath);
 
 		File.SafelyWriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
