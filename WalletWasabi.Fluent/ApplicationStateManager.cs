@@ -177,6 +177,11 @@ public class ApplicationStateManager : IMainWindowService
 
 	private void CreateAndShowMainWindow()
 	{
+		if (_isShuttingDown)
+		{
+			return;
+		}
+
 		if (_lifetime.MainWindow is { })
 		{
 			return;
@@ -207,6 +212,8 @@ public class ApplicationStateManager : IMainWindowService
 					_isShuttingDown = true;
 					tup.EventArgs.Cancel = false;
 					_stateMachine.Fire(Trigger.ShutdownRequested);
+
+					return;
 				}
 
 				// _hideRequest flag is used to distinguish what is the user's intent.
