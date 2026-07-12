@@ -227,6 +227,6 @@ public class UiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	public override string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, UiConfigEncode.UiConfig);
 }

@@ -197,7 +197,7 @@ public record WabiSabiConfig
 		}
 	}
 
-	protected string EncodeAsJson() =>
+	public string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
 
 	public void ToFile()
