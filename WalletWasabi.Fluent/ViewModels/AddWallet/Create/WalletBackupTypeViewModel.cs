@@ -37,14 +37,14 @@ public partial class WalletBackupTypeViewModel : RoutableViewModel
 			{
 				_walletBackupTypes =
 				[
-					new WalletBackupType.MultiShare(
-						new WalletBackupTypeOptions(
-							Description: "Parts of Shamir's Secret Sharing (SLIP-0039)",
-							HelpText: "Use a backup that was split into multiple parts. You’ll need some of them to restore your wallet.")),
 					new WalletBackupType.RecoveryWords(
 						new WalletBackupTypeOptions(
 							Description: "Single mnemonic phrase (BIP39)",
 							HelpText: "Use a backup generated from a set of 12, 18, or 24 words.")),
+					new WalletBackupType.MultiShare(
+						new WalletBackupTypeOptions(
+							Description: "Parts of Shamir's Secret Sharing (SLIP-0039)",
+							HelpText: "Use a backup that was split into multiple parts. You’ll need some of them to restore your wallet.")),
 				];
 
 				break;
