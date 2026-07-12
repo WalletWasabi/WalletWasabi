@@ -621,13 +621,16 @@ public class KeyManager
 	/// </summary>
 	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
 	{
-		if (AssertLockedInternalKeysIndexed(howMany, preferTaproot))
+		lock (_criticalStateLock)
 		{
-			ToFile();
+			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
+			{
+				ToFile();
+			}
 		}
 	}
 
-	public bool AssertLockedInternalKeysIndexed(int howMany, bool preferTaproot)
+	private bool AssertLockedInternalKeysIndexedNoLock(int howMany, bool preferTaproot)
 	{
 		var hdPubKeyGenerator = (_taprootInternalKeyGenerator, preferTaproot) switch
 		{
