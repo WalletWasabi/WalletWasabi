@@ -600,7 +600,7 @@ public class KeyManager
 		}
 	}
 
-	private IEnumerable<HdPubKey> AssertCleanKeysIndexedNoLock()
+	private void AssertCleanKeysIndexedNoLock()
 	{
 		var keys = new[]
 			{
@@ -613,7 +613,7 @@ public class KeyManager
 			.SelectMany(gen => gen!.AssertCleanKeysIndexed(_hdPubKeyCache.GetView(gen.KeyPath)))
 			.Select(CreateHdPubKey);
 
-		return _hdPubKeyCache.AddRangeKeys(keys);
+		_hdPubKeyCache.AddRangeKeys(keys);
 	}
 
 	/// <summary>
