@@ -194,6 +194,6 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	public override string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
 }
