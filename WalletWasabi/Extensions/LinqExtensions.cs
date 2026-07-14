@@ -42,11 +42,7 @@ public static class LinqExtensions
 
 	public static T[] Shuffle<T>(this T[] array, RandomnessProvider random)
 	{
-		for (var i = array.Length - 1; i > 0; i--)
-		{
-			var j = random.GetInt(i + 1);
-			(array[i], array[j]) = (array[j], array[i]);
-		}
+		array.AsSpan().Shuffle(random);
 		return array;
 	}
 
