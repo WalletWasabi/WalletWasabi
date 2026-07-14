@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;

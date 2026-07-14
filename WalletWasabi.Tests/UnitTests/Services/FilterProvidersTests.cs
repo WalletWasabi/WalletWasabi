@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.Services;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Services;

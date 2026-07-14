@@ -15,7 +15,6 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
-using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Tests.UnitTests.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -27,6 +26,7 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.Helpers;
 

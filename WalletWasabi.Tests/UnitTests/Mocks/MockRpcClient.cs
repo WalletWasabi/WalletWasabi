@@ -6,7 +6,7 @@ using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Mocks;
 
 public class MockRpcClient : IRPCClient
 {
