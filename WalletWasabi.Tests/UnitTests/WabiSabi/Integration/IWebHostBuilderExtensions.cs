@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 public static class IWebHostBuilderExtensions
 {
-	public static IWebHostBuilder AddMockRpcClient(this IWebHostBuilder builder, SmartCoin[] coins, Action<MockRpcClient> options)
+	public static IWebHostBuilder AddMockRpcClient(this IWebHostBuilder builder, SmartCoin[] whitelistedCoins, Action<MockRpcClient> options)
 	{
 		var rpc = BitcoinFactory.GetMockMinimalRpc();
 		rpc.Network = Network.Main;
@@ -23,12 +23,12 @@ public static class IWebHostBuilderExtensions
 			Confirmations = 101,
 			IsCoinBase = false,
 			ScriptPubKeyType = "witness_v0_keyhash",
-			TxOut = coins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
+			TxOut = whitelistedCoins.Single(x => x.TransactionId == txId && x.Index == idx).TxOut
 		};
 
 		rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
 		{
-			var tx = coins.First(coin => coin.TransactionId == txid)?.Transaction?.Transaction;
+			var tx = whitelistedCoins.First(coin => coin.TransactionId == txid)?.Transaction?.Transaction;
 
 			if (tx is null)
 			{
