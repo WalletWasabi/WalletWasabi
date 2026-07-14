@@ -386,6 +386,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		double faultInjectorMonkeyAggressiveness,
 		double delayInjectorMonkeyAggressiveness)
 	{
+		// Total test timeout.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+
 		const int NumberOfParticipants = 10;
 		const int NumberOfCoinsPerParticipant = 2;
 		const int ExpectedInputNumber = (NumberOfParticipants * NumberOfCoinsPerParticipant) / 2;
@@ -437,12 +440,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			},
 			async () => // This monkey injects `Delays` randomly to simulate slow response times.
 			{
-				await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness)).ConfigureAwait(false);
+				await Task.Delay(TimeSpan.FromSeconds(5 * delayInjectorMonkeyAggressiveness), cts.Token).ConfigureAwait(false);
 			});
 		httpClientWrapper.BaseAddress = httpClient.BaseAddress;
 
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		var apiClient = new WabiSabiHttpApiClient("", new MockHttpClientFactory {OnCreateClient = _ => httpClientWrapper});
 
 		var participants = Enumerable
@@ -467,11 +468,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinjoinTransactionCompletionTask = coinJoinBroadcasted.Task.WaitAsync(cts.Token);
 		var participantsFinishedTask = Task.WhenAll(tasks);
 		var finishedTask = await Task.WhenAny(participantsFinishedTask, coinjoinTransactionCompletionTask);
+
 		if (finishedTask == coinjoinTransactionCompletionTask)
 		{
 			var broadcastedCoinjoinTransaction = await coinjoinTransactionCompletionTask;
 			var mempool = await rpc.GetRawMempoolAsync();
-			var coinjoinFromMempool = await rpc.GetRawTransactionAsync(mempool.Single());
+			var coinjoinFromMempool = await rpc.GetRawTransactionAsync(mempool.Single(), cancellationToken: cts.Token);
 
 			Assert.Equal(broadcastedCoinjoinTransaction.GetHash(), coinjoinFromMempool.GetHash());
 		}
@@ -486,8 +488,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			// the coinjoin in the mempool. This seems really hard to believe but just in case.
 			if (participantsFinishedSuccessfully.All(x => x is SuccessfulCoinJoinResult))
 			{
-				await Task.Delay(TimeSpan.FromSeconds(1));
-				var mempool = await rpc.GetRawMempoolAsync();
+				await Task.Delay(TimeSpan.FromSeconds(1), cts.Token);
+				var mempool = await rpc.GetRawMempoolAsync(cts.Token);
 				Assert.Single(mempool);
 			}
 			else if (participantsFinishedSuccessfully.All(x => x is FailedCoinJoinResult))
