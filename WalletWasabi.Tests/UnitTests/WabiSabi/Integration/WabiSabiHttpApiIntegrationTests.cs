@@ -268,11 +268,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		int inputCount = amounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
-		var transactionCompleted = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		// Total test timeout.
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
-		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
+		cts.Token.Register(() => broadcastedTxTcs.TrySetCanceled(), useSynchronizationContext: false);
 
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
@@ -297,7 +297,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					// and finish the waiting tasks to finish the test successfully.
 					rpc.OnSendRawTransactionAsync = (tx) =>
 					{
-						transactionCompleted.SetResult(tx);
+						broadcastedTxTcs.SetResult(tx);
 						return tx.GetHash();
 					};
 				})
@@ -371,7 +371,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		Assert.IsType<DisruptedCoinJoinResult>(resultBad);
 		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
 
-		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
+		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
 		Assert.Equal(
