@@ -387,12 +387,24 @@ public static class WabiSabiFactory
 	}
 }
 
-public class TestableCoinJoinClient : CoinJoinClient
+public class TestableCoinJoinClient(
+	Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
+	IKeyChain keyChain,
+	OutputProvider outputProvider,
+	RoundStateProvider roundStatusProvider,
+	CoinJoinCoinSelector coinJoinCoinSelector,
+	CoinJoinConfiguration coinJoinConfiguration,
+	LiquidityClueProvider liquidityClueProvider,
+	TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+	: CoinJoinClient(arenaRequestHandlerFactory,
+		keyChain,
+		outputProvider,
+		roundStatusProvider,
+		coinJoinCoinSelector,
+		coinJoinConfiguration,
+		liquidityClueProvider,
+		doNotRegisterInLastMinuteTimeLimit)
 {
-	public TestableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
-	{
-	}
-
 	internal override ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime,
 		TimeSpan maximumRequestDelay)
 	{
