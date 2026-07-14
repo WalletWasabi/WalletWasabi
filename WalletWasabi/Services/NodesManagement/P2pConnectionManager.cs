@@ -76,8 +76,8 @@ public class P2pConnectionManager : IDisposable
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
-	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(60);
-	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(15);
+	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(10);
+	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(3);
 
 	private readonly Network _network;
 	private readonly List<NodeBehavior> _templateBehaviors = [];
