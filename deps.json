@@ -1266,8 +1266,8 @@
   },
   {
     "pname": "WabiSabi",
-    "version": "1.0.1.2",
-    "hash": "sha256-Gx+tuXraMABak8s0SeofbXpNLVfTnxz4At4+HejnQeU="
+    "version": "1.1.4",
+    "hash": "sha256-IACtDPYZssjrixbh8pcUJ1WX7oyeRAtKtYu6UMETB6s="
   },
   {
     "pname": "Xaml.Behaviors.Avalonia",
