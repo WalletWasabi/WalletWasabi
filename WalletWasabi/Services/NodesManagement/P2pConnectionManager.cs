@@ -31,6 +31,11 @@ public record P2pNodeClient(
 			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 
+			if (block is null)
+			{
+				return null;
+			}
+
 			// Validate block
 			if (!block.Check())
 			{
@@ -42,21 +47,23 @@ public record P2pNodeClient(
 			IncreaseTimeout(-1);
 			return block;
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 		{
-			if (ex is OperationCanceledException or TimeoutException)
-			{
-				IncreaseTimeout(+1);
-				// It could be a slow connection and not a misbehaving node.
-				Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
-			}
-			else
-			{
-				Logger.LogDebug(ex);
-				Error(P2pConnectionManager.MisbehaviorType.Unknown);
-			}
-			return null;
+			IncreaseTimeout(+1);
+			// It could be a slow connection and not a misbehaving node.
+			Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
 		}
+		catch (InvalidOperationException ex)
+		{
+			Logger.LogWarning(ex);
+			Error(P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
+		}
+		catch (Exception)
+		{
+			// ignored
+		}
+
+		return null;
 	}
 }
 
@@ -210,7 +217,7 @@ public class P2pConnectionManager : IDisposable
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes;
+			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
 
 			if (nodes.Length == 0)
 			{
