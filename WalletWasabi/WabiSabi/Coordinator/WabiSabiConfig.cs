@@ -1,10 +1,10 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.IO;
-using System.Net;
 using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
+using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -53,6 +53,8 @@ public class WabiSabiConfig : ConfigBase
 	public Money MinRegistrableAmount { get; init; } = Money.Coins(0.00005m);
 
 	public Money MaxRegistrableAmount { get; init; } = Money.Coins(43_000m);
+
+	public FeeRate MinimumAcceptableFeeRate { get; init; } = FeeRateEstimations.MinimumSanityFeeRate;
 
 	public bool AllowNotedInputRegistration { get; set; } = true;
 
@@ -192,6 +194,6 @@ public class WabiSabiConfig : ConfigBase
 		}
 	}
 
-	protected override string EncodeAsJson() =>
+	public override string EncodeAsJson() =>
 		JsonEncoder.ToReadableString(this, Encode.WabiSabiConfig);
 }
