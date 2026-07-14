@@ -280,7 +280,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
 		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
 
-		var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
 				Enumerable.Concat(coins, badCoins).ToArray(),
 				rpc =>
@@ -321,7 +321,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Task.Delay(100);
 
 		// Create the coinjoin client
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(app.CreateClient());
+		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
 		using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
@@ -329,9 +329,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var roundState = await roundStateProvider.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
 
-		// Creates a IBackendHttpClientFactory that creates an HttpClient that says everything is okay
-		// when a signature is sent but it doesn't really send it.
-		var httpClient = app.CreateClient();
+		var httpClient = coordinatorApp.CreateClient();
+
+		// Creates a mocked HttpClient that says everything is okay when a signature is sent but it doesn't really send it.
 		using var nonSigningHttpClientMock = new MockHttpClient();
 		nonSigningHttpClientMock.BaseAddress = httpClient.BaseAddress;
 		nonSigningHttpClientMock.OnSendAsync = req =>
@@ -403,7 +403,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			return tx.GetHash();
 		};
-		var app = _apiApplicationFactory.WithWebHostBuilder(builder =>
+		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.ConfigureServices(services =>
 			{
 				// Instruct the coordinator DI container to use these two scoped
@@ -422,7 +422,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				});
 			}));
 
-		var httpClient = app.CreateClient();
+		var httpClient = coordinatorApp.CreateClient();
 
 		await Task.Delay(100);
 		using var httpClientWrapper = new MonkeyHttpClient(
