@@ -11,8 +11,6 @@ namespace WalletWasabi.BitcoinRpc;
 
 public class CachedRpcClient : RpcClientBase
 {
-	private CancellationTokenSource _tipChangeCancellationTokenSource = new();
-
 	public CachedRpcClient(RPCClient rpc, IMemoryCache cache)
 		: base(rpc)
 	{
@@ -35,15 +33,15 @@ public class CachedRpcClient : RpcClientBase
 		{
 			lock (_cancellationTokenSourceLock)
 			{
-				if (_tipChangeCancellationTokenSource.IsCancellationRequested)
+				if (field.IsCancellationRequested)
 				{
-					_tipChangeCancellationTokenSource.Dispose();
-					_tipChangeCancellationTokenSource = new CancellationTokenSource();
+					field.Dispose();
+					field = new CancellationTokenSource();
 				}
 			}
-			return _tipChangeCancellationTokenSource;
+			return field;
 		}
-	}
+	} = new();
 
 	public override async Task<uint256> GetBestBlockHashAsync(CancellationToken cancellationToken = default)
 	{
