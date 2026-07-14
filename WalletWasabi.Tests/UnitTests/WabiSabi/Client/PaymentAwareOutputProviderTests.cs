@@ -48,7 +48,7 @@ public class PaymentAwareOutputProviderTests
 			theirCoinEffectiveValues,
 			availableVsize).ToArray();
 
-		decimal ToDecimal(TxOut o) => o.Value.ToDecimal(MoneyUnit.BTC);
+		static decimal ToDecimal(TxOut o) => o.Value.ToDecimal(MoneyUnit.BTC);
 		Assert.Equal(outputs.Sum(ToDecimal), decomposedOutputs.Sum(ToDecimal));
 
 		// Make sure this doesn't throw
