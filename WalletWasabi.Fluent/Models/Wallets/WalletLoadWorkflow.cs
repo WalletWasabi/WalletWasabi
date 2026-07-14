@@ -11,11 +11,13 @@ using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
+
 public record SyncProgressCardModel(uint Initial, uint Current, uint Target)
 {
-	public double Percent => Target <= Initial
-		? (Current >= Target ? 100 : 0)
-		: Math.Clamp(100.0 * (Current - Initial) / (Target - Initial), 0, 100);
+	public double Percent =>
+		Target == 0 ? 0
+		: Target <= Initial ? (Current >= Target ? 100 : 0)
+		: Math.Clamp(100.0 * ((double)Current - Initial) / (Target - Initial), 0, 100);
 
 	public bool IsComplete => Percent >= 100;
 }
@@ -42,11 +44,8 @@ public partial class WalletLoadWorkflow
 	private readonly Subject<WalletLoadProgress> _progress;
 	[AutoNotify] private bool _isLoading;
 
-	// Initial values for progress calculation
-	private readonly uint _initialBlockHeaders;
-	private readonly uint _initialWalletSyncHeight;
-	private readonly uint _initialFilterHeaders;
-	private readonly uint _initialCompactFilters;
+	// The progress of every stage syncing the wallet is measured from.
+	private readonly uint _walletStartHeight;
 
 	public WalletLoadWorkflow(IServices services, Wallet wallet)
 	{
@@ -55,28 +54,17 @@ public partial class WalletLoadWorkflow
 		_progress = new();
 
 		var tipHeight = services.GetTipHeight();
-		var blockHeadersTip = services.GetBlockHeadersTipHeight();
-		var serverTipHeight = services.GetServerTipHeight();
 		var walletBestHeight = (uint)wallet.KeyManager.GetBestHeight();
 
-		// Store initial values for progress calculation
-		_initialBlockHeaders = blockHeadersTip;
-		_initialWalletSyncHeight = walletBestHeight;
-		_initialFilterHeaders = tipHeight;
-		_initialCompactFilters = tipHeight;
-
-		_blockHeadersTip = blockHeadersTip;
+		_blockHeadersTip = services.GetBlockHeadersTipHeight();
 		_filterHeadersTip = tipHeight;
 		_compactFiltersTip = tipHeight;
 		_walletSyncHeight = walletBestHeight;
 
-		_progress.OnNext(new WalletLoadProgress(
-			ChainTip: serverTipHeight,
-			Peers: new SyncProgressCardModel(0, (uint)services.GetPeerCount(), TargetPeers),
-			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _initialBlockHeaders, serverTipHeight),
-			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _initialFilterHeaders, serverTipHeight),
-			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _initialCompactFilters, serverTipHeight),
-			Blocks: new SyncProgressCardModel(_initialWalletSyncHeight, _walletSyncHeight, serverTipHeight)));
+		// Wallets created before the birth height was introduced don't have one.
+		_walletStartHeight = wallet.KeyManager.GetBirthHeight() is { } birthHeight ? (uint)birthHeight : walletBestHeight;
+
+		UpdateProgress();
 
 		services.EventBus.AsObservable<BlockHeadersTipChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
@@ -176,9 +164,12 @@ public partial class WalletLoadWorkflow
 		_progress.OnNext(new WalletLoadProgress(
 			ChainTip: tipHeight,
 			Peers: new SyncProgressCardModel(0, (uint)_services.GetPeerCount(), TargetPeers),
-			BlockHeaders: new SyncProgressCardModel(_initialBlockHeaders, _blockHeadersTip, tipHeight),
-			FilterHeaders: new SyncProgressCardModel(_initialFilterHeaders, _filterHeadersTip, tipHeight),
-			CompactFilters: new SyncProgressCardModel(_initialCompactFilters, _compactFiltersTip, tipHeight),
-			Blocks: new SyncProgressCardModel(_initialWalletSyncHeight, _walletSyncHeight, tipHeight)));
+
+			// Block headers are synced for the whole chain, not only for the range the wallet is scanned in.
+			BlockHeaders: new SyncProgressCardModel(0, _blockHeadersTip, tipHeight),
+
+			FilterHeaders: new SyncProgressCardModel(_walletStartHeight, _filterHeadersTip, tipHeight),
+			CompactFilters: new SyncProgressCardModel(_walletStartHeight, _compactFiltersTip, tipHeight),
+			Blocks: new SyncProgressCardModel(_walletStartHeight, _walletSyncHeight, tipHeight)));
 	}
 }
