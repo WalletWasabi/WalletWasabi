@@ -38,6 +38,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allowPaymentsRegardlessOfAnonScore;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasMusicBoxBeenDisplayed;
 	[AutoNotify] private bool _isMusicBoxFlyoutDisplayed;
 
@@ -93,6 +94,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 WalletModel.Privacy.IsWalletPrivate
 			 .BindTo(this, x => x.AreAllCoinsPrivate);
 
+		 WalletModel.Settings.WhenAnyValue(x => x.AllowPaymentsRegardlessOfAnonScore)
+			 .BindTo(this, x => x.AllowPaymentsRegardlessOfAnonScore);
+
 		 IsMusicBoxVisible = this.WhenAnyValue(
 			 x => x.HasMusicBoxBeenDisplayed,
 			 x => x.IsSelected,
@@ -100,7 +104,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			 x => x.AreAllCoinsPrivate,
 			 x => x.IsPointerOver,
 			 x => x.IsMusicBoxFlyoutDisplayed,
-			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed) =>
+			 x => x.AllowPaymentsRegardlessOfAnonScore,
+			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed, allowPaymentsRegardlessOfAnonScore) =>
 			 {
 				 if (!hasBeenDisplayed)
 				 {
@@ -119,7 +124,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || (isPointerOver || isMusicBoxFlyoutDisplayed))) && !WalletModel.IsWatchOnlyWallet;
+				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || allowPaymentsRegardlessOfAnonScore || isPointerOver || isMusicBoxFlyoutDisplayed)) && !WalletModel.IsWatchOnlyWallet;
 			 });
 
 
