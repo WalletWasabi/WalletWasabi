@@ -25,12 +25,16 @@ public class CompactFilterBehavior(
 	: NodeBehavior
 {
 	private static readonly TimeSpan TickSyncInterval = TimeSpan.FromSeconds(2);
+	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
+	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
 
 	private readonly Lock _lock = new();
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
 
 	private RangeRequest? _assignedHeaderRange;
+	private DateTime _assignedHeaderRangeAt;
 	private RangeRequest? _assignedFilterRange;
+	private DateTime _assignedFilterRangeAt;
 
 	private volatile bool _invalidReceived;
 
@@ -80,6 +84,13 @@ public class CompactFilterBehavior(
 			}
 
 			lastTickSync = tick.DateTime;
+
+			// Check for stale assignments - disconnect if timed out
+			if (CheckAndHandleStaleAssignment(node, nowUtc))
+			{
+				return;
+			}
+
 			TrySync(node);
 		});
 		RegisterDisposable(tickSubscription);
@@ -345,6 +356,7 @@ public class CompactFilterBehavior(
 		}
 
 		_assignedFilterRange = filterAssignment;
+		_assignedFilterRangeAt = DateTime.UtcNow;
 		Logger.LogDebug(
 			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
 
@@ -368,6 +380,7 @@ public class CompactFilterBehavior(
 		}
 
 		_assignedHeaderRange = headerAssignment;
+		_assignedHeaderRangeAt = DateTime.UtcNow;
 		Logger.LogDebug($"Assigned filter header range {headerAssignment} to node {node.Peer.Endpoint}");
 
 		var payload = new GetCompactFilterHeadersPayload(FilterType.Basic, headerAssignment.StartHeight,
@@ -417,6 +430,45 @@ public class CompactFilterBehavior(
 		_collectedFilters.Clear();
 	}
 
+	private bool CheckAndHandleStaleAssignment(Node node, DateTime nowUtc)
+	{
+		if (!_lock.TryEnter())
+		{
+			return false;
+		}
+
+		try
+		{
+			// Check filter assignment timeout
+			if (_assignedFilterRange is not null)
+			{
+				var elapsed = nowUtc - _assignedFilterRangeAt;
+				if (elapsed > FilterAssignmentTimeout)
+				{
+					HandleInvalidNoLock(node, $"Filter assignment at {_assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+					return true;
+				}
+			}
+
+			// Check header assignment timeout
+			if (_assignedHeaderRange is not null)
+			{
+				var elapsed = nowUtc - _assignedHeaderRangeAt;
+				if (elapsed > HeaderAssignmentTimeout)
+				{
+					HandleInvalidNoLock(node, $"Header assignment at {_assignedHeaderRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
+					return true;
+				}
+			}
+
+			return false;
+		}
+		finally
+		{
+			_lock.Exit();
+		}
+	}
+
 	private bool IsNodeInValidState(Node node)
 	{
 		if (_invalidReceived)
@@ -431,8 +483,8 @@ public class CompactFilterBehavior(
 	{
 		private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
 		private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
-		private const int HeadersPerRequest = 1_100;
-		private const int FiltersPerRequest = 400;
+		private const int HeadersPerRequest = 2_000;
+		private const int FiltersPerRequest = 500;
 		private const int MaxLookaheadRanges = 25;
 
 		private readonly Lock _lock = new();

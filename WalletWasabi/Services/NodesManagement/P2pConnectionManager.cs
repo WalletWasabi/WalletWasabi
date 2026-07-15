@@ -5,6 +5,7 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
+using System.Diagnostics.Metrics;
 using System.Linq;
 using System.Net;
 using System.Threading;
@@ -13,6 +14,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
+using WalletWasabi.Observability;
 using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.Services.NodesManagement;
@@ -31,6 +33,11 @@ public record P2pNodeClient(
 			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 
+			if (block is null)
+			{
+				return null;
+			}
+
 			// Validate block
 			if (!block.Check())
 			{
@@ -42,21 +49,23 @@ public record P2pNodeClient(
 			IncreaseTimeout(-1);
 			return block;
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 		{
-			if (ex is OperationCanceledException or TimeoutException)
-			{
-				IncreaseTimeout(+1);
-				// It could be a slow connection and not a misbehaving node.
-				Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
-			}
-			else
-			{
-				Logger.LogDebug(ex);
-				Error(P2pConnectionManager.MisbehaviorType.Unknown);
-			}
-			return null;
+			IncreaseTimeout(+1);
+			// It could be a slow connection and not a misbehaving node.
+			Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
 		}
+		catch (InvalidOperationException ex)
+		{
+			Logger.LogWarning(ex);
+			Error(P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
+		}
+		catch (Exception)
+		{
+			// ignored
+		}
+
+		return null;
 	}
 }
 
@@ -76,8 +85,18 @@ public class P2pConnectionManager : IDisposable
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
-	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(60);
-	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(15);
+	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(10);
+	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(3);
+
+	private readonly Meter _meter;
+	private readonly Counter<int> _connectionAttemptsCounter;
+	private readonly Counter<int> _connectionSuccessCounter;
+	private readonly Gauge<int> _connectedNodesGauge;
+	private readonly Histogram<double> _connectionHandshakeDuration;
+	private readonly Histogram<double> _connectionTotalDuration;
+	private readonly Counter<int> _misbehaviorsTotal;
+	private readonly Counter<int> _misbehaviorsInvalidData;
+	private readonly Counter<int> _misbehaviorsTimeoutBlockDownload;
 
 	private readonly Network _network;
 	private readonly List<NodeBehavior> _templateBehaviors = [];
@@ -117,6 +136,43 @@ public class P2pConnectionManager : IDisposable
 		_connectionTimeout = connectionTimeout;
 		_crawlerCount = crawlerCount;
 		_torSocks5 = torSocks5;
+
+		_meter = new(MetricManager.P2pMeterName, "1.0.0");
+		_disposables.Add(_meter);
+
+		_connectedNodesGauge = _meter.CreateGauge<int>(
+			Metrics.P2pConnectedCounter,
+			description: Metrics.GetDescription(Metrics.P2pConnectedCounter));
+
+		_connectionAttemptsCounter = _meter.CreateCounter<int>(
+			Metrics.P2pConnectionAttemptsCounter,
+			description: Metrics.GetDescription(Metrics.P2pConnectionAttemptsCounter));
+
+		_connectionSuccessCounter = _meter.CreateCounter<int>(
+			Metrics.P2pConnectionSuccessCounter,
+			description: Metrics.GetDescription(Metrics.P2pConnectionSuccessCounter));
+
+		_connectionHandshakeDuration = _meter.CreateHistogram<double>(
+			Metrics.P2pConnectionHandshakeDurationHistogram,
+			unit: Metrics.GetUnit(Metrics.P2pConnectionHandshakeDurationHistogram),
+			description: Metrics.GetDescription(Metrics.P2pConnectionHandshakeDurationHistogram));
+
+		_connectionTotalDuration = _meter.CreateHistogram<double>(
+			Metrics.P2pConnectionTotalDurationHistogram,
+			unit: Metrics.GetUnit(Metrics.P2pConnectionTotalDurationHistogram),
+			description: Metrics.GetDescription(Metrics.P2pConnectionTotalDurationHistogram));
+
+		_misbehaviorsTotal = _meter.CreateCounter<int>(
+			Metrics.P2pMisbehaviorCounter,
+			description: Metrics.GetDescription(Metrics.P2pMisbehaviorCounter));
+
+		_misbehaviorsInvalidData = _meter.CreateCounter<int>(
+			Metrics.P2pMisbehaviorInvalidDataCounter,
+			description: Metrics.GetDescription(Metrics.P2pMisbehaviorInvalidDataCounter));
+
+		_misbehaviorsTimeoutBlockDownload = _meter.CreateCounter<int>(
+			Metrics.P2pMisbehaviorTimeoutBlockDownloadCounter,
+			description: Metrics.GetDescription(Metrics.P2pMisbehaviorTimeoutBlockDownloadCounter));
 	}
 
 	public ImmutableArray<Node> Nodes => _connectedNodes.Values.Select(x => x.Node).Where(x => x.IsConnected).ToImmutableArray();
@@ -210,7 +266,7 @@ public class P2pConnectionManager : IDisposable
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes;
+			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
 
 			if (nodes.Length == 0)
 			{
@@ -382,6 +438,8 @@ public class P2pConnectionManager : IDisposable
 			return;
 		}
 
+		var start = DateTime.UtcNow;
+
 		try
 		{
 			using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
@@ -405,6 +463,7 @@ public class P2pConnectionManager : IDisposable
 					networkCredential: null, streamIsolation: true));
 			}
 
+			_connectionAttemptsCounter.Add(1, new KeyValuePair<string, object?>("peer.endpoint", peerInfo.Endpoint.ToString()));
 			var node = await Node.ConnectAsync(_network, peerInfo.Endpoint, connParams)
 				.ConfigureAwait(false);
 			await node.VersionHandshakeAsync(timeoutCts.Token).ConfigureAwait(false);
@@ -415,10 +474,13 @@ public class P2pConnectionManager : IDisposable
 				return;
 			}
 
+			_connectionHandshakeDuration.Record(DateTime.UtcNow.Subtract(start).TotalMilliseconds);
 			node.Disconnected += OnNodeDisconnected;
 
-			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, DateTimeOffset.UtcNow)))
+			if (_connectedNodes.TryAdd(peerInfo.Endpoint, (node, peerInfo, start)))
 			{
+				_connectionSuccessCounter.Add(1, new KeyValuePair<string, object?>("peer.endpoint", peerInfo.Endpoint.ToString()));
+				_connectedNodesGauge.Record(_connectedNodes.Count);
 				Logger.LogDebug($"Connected to peer {peerInfo.Endpoint} (score: {peerInfo.Score:F1}, services: {peerInfo.Services.AsCsv()}). Total connected peers: {_connectedNodes.Count}.");
 				_eventBus.Publish(new P2pNodeAdded(peerInfo.Endpoint, node));
 			}
@@ -459,6 +521,9 @@ public class P2pConnectionManager : IDisposable
 	{
 		if (_connectedNodes.TryRemove(node.Peer.Endpoint, out var removed))
 		{
+			_connectionTotalDuration.Record(DateTime.UtcNow.Subtract(removed.ConnectedAt.DateTime).TotalMilliseconds,
+				new KeyValuePair<string, object?>("peer.endpoint", node.Peer.Endpoint.ToString()));
+
 			node.Disconnected -= OnNodeDisconnected;
 			var connectionDuration = DateTimeOffset.UtcNow - removed.ConnectedAt;
 			Logger.LogDebug($"Peer {node.Peer.Endpoint} (score: {removed.PeerInfo.Score:F1}) disconnected after {connectionDuration.TotalSeconds:F1}s. Total connected peers: {_connectedNodes.Count}.");
@@ -557,8 +622,22 @@ public class P2pConnectionManager : IDisposable
 		_disposables.Dispose();
 	}
 
-	private void ReportMisbehavior(EndPoint endpoint, MisbehaviorType misbehavior) =>
+	private void ReportMisbehavior(EndPoint endpoint, MisbehaviorType misbehavior)
+	{
+		var tag = new KeyValuePair<string, object?>("peer.endpoint", endpoint.ToString());
+		_misbehaviorsTotal.Add(1, tag);
+
+		if (misbehavior == MisbehaviorType.ProvidedInvalidData)
+		{
+			_misbehaviorsInvalidData.Add(1, tag);
+		}
+		else if (misbehavior == MisbehaviorType.TimedOutDownloadingBlock)
+		{
+			_misbehaviorsTimeoutBlockDownload.Add(1, tag);
+		}
+
 		_discoveryCoordinator?.Post(new NodeMisbehaveMessage(endpoint, misbehavior));
+	}
 
 	#region Discovery
 
