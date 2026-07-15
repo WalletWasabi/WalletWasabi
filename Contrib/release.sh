@@ -152,6 +152,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
+            --property:PathMap="$(pwd -P)=/src" \
             /clp:ErrorsOnly
   done
 
@@ -264,7 +265,7 @@ for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
 done
 
 # Calculate package size (in kilobytes)
-DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
+DEBIAN_PACKAGE_SIZE=$(du -ks --apparent-size "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
 
 # Create the control file content
 DEBIAN_CONTROL_FILE_CONTENT="Package: ${EXECUTABLE_NAME}
