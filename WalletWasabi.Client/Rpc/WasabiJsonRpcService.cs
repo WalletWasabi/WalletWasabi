@@ -108,9 +108,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]
-	public void LoadWallet(string walletName)
+	public async Task LoadWalletAsync(string walletName)
 	{
-		SelectWallet(walletName, ensureLoaded: true);
+		var wallet = SelectWallet(walletName);
+
+		if (!wallet.Loaded)
+		{
+			await Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
+		}
 	}
 
 	[JsonRpcMethod("getwalletinfo")]
@@ -582,18 +587,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 		};
 	}
 
-	private void SelectWallet(string walletName, bool ensureLoaded = false)
+	private Wallet SelectWallet(string walletName)
 	{
 		walletName = Guard.NotNullOrEmptyOrWhitespace(nameof(walletName), walletName);
 		try
 		{
 			var wallet = Global.WalletManager.GetWalletByName(walletName);
-
 			ActiveWallet = wallet;
-			if (ensureLoaded &&!wallet.Loaded)
-			{
-				Global.WalletManager.StartWalletAsync(wallet).ConfigureAwait(false);
-			}
+			return wallet;
 		}
 		catch (InvalidOperationException) // wallet not found
 		{
@@ -624,7 +625,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var walletName = parts.Length == 1 ? parts[0] : string.Empty;
 		if (needsWallet && !string.IsNullOrEmpty(walletName))
 		{
-			SelectWallet(walletName);
+			_ = SelectWallet(walletName);
 		}
 		else
 		{
