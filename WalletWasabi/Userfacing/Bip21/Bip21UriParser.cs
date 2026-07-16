@@ -4,14 +4,15 @@ using System.Collections.Generic;
 using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Userfacing.Bip21;
 
 /// <summary>
 /// BIP21 URI parser.
 /// </summary>
+/// <remarks>Support for silent payments (<c>sp</c>) from BIP321 was added.</remarks>
 /// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki"/>
+/// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0321.mediawiki"/>
 /// <seealso cref="BitcoinUrlBuilder">Inspired by NBitcoin's implementation.</seealso>
 public class Bip21UriParser
 {
@@ -50,10 +51,22 @@ public class Bip21UriParser
 			return false;
 		}
 
+		NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUri.Query);
+
 		if (parsedUri.AbsolutePath is not { Length: > 0 } addressString)
 		{
-			error = ErrorMissingAddress;
-			return false;
+			// BIP321 allows the address to be specified as a query parameter named "sp" (case-insensitive) instead of in the path.
+			var spValue = queryParameters["sp"];
+
+			if (spValue is not null)
+			{
+				addressString = spValue;
+			}
+			else
+			{
+				error = ErrorMissingAddress;
+				return false;
+			}
 		}
 
 		Money? amount = null;
@@ -68,7 +81,6 @@ public class Bip21UriParser
 		}
 
 		Dictionary<string, string> unknownParameters = new();
-		NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUri.Query);
 
 		foreach (string? parameterName in queryParameters.AllKeys)
 		{
