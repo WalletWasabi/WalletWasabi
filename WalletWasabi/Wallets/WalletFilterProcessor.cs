@@ -48,8 +48,11 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly TaskCompletionSource _initialSynchronizationFinished;
 
 	public Task InitialSynchronizationFinished => _initialSynchronizationFinished.Task;
+
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private readonly AsyncLock _reorgLock = new();
+
+	private IDisposable? _chainReorgSubscription;
 
 	/// <inheritdoc />
 	/// <summary>Used for filter synchronization.</summary>
@@ -164,8 +167,6 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-
-	private IDisposable? _chainReorgSubscription;
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.Filter));
