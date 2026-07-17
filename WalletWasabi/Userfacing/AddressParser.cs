@@ -55,14 +55,14 @@ public static class AddressParser
 			return AddressParsingResult.Fail("Input is too long.");
 		}
 
-		// Parse a Bitcoin address (not BIP21 URI string)
-		if (!text.StartsWith($"{Bip21UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
+		// Parse a Bitcoin address (not BIP321 URI string)
+		if (!text.StartsWith($"{Bip321UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
 		{
 			return ParseBitcoinAddress(text, expectedNetwork);
 		}
 
-		// Parse BIP21 URI string.
-		if (!Bip21UriParser.TryParse(input: text, expectedNetwork, out var result, out var error))
+		// Parse BIP321 URI string.
+		if (!Bip321UriParser.TryParse(input: text, expectedNetwork, out var result, out var error))
 		{
 			return AddressParsingResult.Fail(error.Message);
 		}
@@ -89,7 +89,7 @@ public static class AddressParser
 		}
 		catch(Exception)
 		{
-			return AddressParsingResult.Fail(Bip21UriParser.ErrorInvalidAddress.Message);
+			return AddressParsingResult.Fail(Bip321UriParser.ErrorInvalidAddress.Message);
 		}
 	}
 }

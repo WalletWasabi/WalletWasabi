@@ -14,7 +14,7 @@ namespace WalletWasabi.Userfacing.Bip21;
 /// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki"/>
 /// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0321.mediawiki"/>
 /// <seealso cref="BitcoinUrlBuilder">Inspired by NBitcoin's implementation.</seealso>
-public class Bip21UriParser
+public class Bip321UriParser
 {
 	/// <summary>URI scheme of all BIP21 URIs.</summary>
 	/// <remarks>
@@ -152,15 +152,15 @@ public class Bip21UriParser
 	}
 
 	/// <summary>
-	/// Successful result of parsing a BIP21 URI string.
+	/// Successful result of parsing a BIP321 URI string.
 	/// </summary>
-	public record Result( Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters);
+	public record Result(Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters);
 
 	/// <summary>
-	/// Error result of parsing a BIP21 URI string.
+	/// Error result of parsing a BIP321 URI string.
 	/// </summary>
 	/// <param name="Code">Unique code of the error.</param>
 	/// <param name="Message">Generic message of the error (with no user-provided data).</param>
-	/// <param name="Details">Optionally, context information. For example, if the address part of a BIP21 URI string is malformed, the string is to stored here.</param>
+	/// <param name="Details">Optionally, context information. For example, if the address part of a BIP321 URI string is malformed, the string is to stored here.</param>
 	public record Error(int Code, string Message, string? Details = null);
 }
