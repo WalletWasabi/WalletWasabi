@@ -112,12 +112,12 @@ public class Bip321UriParserTests
 		Assert.Equal("Luke-Jr", result.Label);
 		Assert.Equal(Money.Coins(20.3m), result.Amount);
 
-		// As per BIP21, keys are case sensitive, "Amount" and "Label" is not valid, only "amount" and "label" is.
+		// As per BIP321, query keys are case insensitive, "amount", "Amount", "label", and "Label" are all valid.
 		Assert.True(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?Amount=20.3&Label=Luke-Jr", Network.Main, out result, out error));
 		Assert.Null(error);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
-		Assert.Equal(null!, result.Label);
-		Assert.Equal(null!, result.Amount);
+		Assert.Equal("Luke-Jr", result.Label);
+		Assert.Equal(Money.Coins(20.3m), result.Amount);
 
 		Assert.True(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main, out result, out error));
 		Assert.Null(error);

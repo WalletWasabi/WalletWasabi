@@ -96,7 +96,7 @@ public class Bip321UriParser
 				continue;
 			}
 
-			if (parameterName == "amount")
+			if (string.Equals(parameterName, "amount", StringComparison.OrdinalIgnoreCase))
 			{
 				if (amount is not null)
 				{
@@ -116,7 +116,7 @@ public class Bip321UriParser
 					return false;
 				}
 			}
-			else if (parameterName == "label")
+			else if (string.Equals(parameterName, "label", StringComparison.OrdinalIgnoreCase))
 			{
 				if (label is not null)
 				{
@@ -126,7 +126,7 @@ public class Bip321UriParser
 
 				label = value;
 			}
-			else if (parameterName == "message")
+			else if (string.Equals(parameterName, "message", StringComparison.OrdinalIgnoreCase))
 			{
 				if (message is not null)
 				{
@@ -136,7 +136,7 @@ public class Bip321UriParser
 
 				message = value;
 			}
-			else if (parameterName.StartsWith("req-", StringComparison.Ordinal))
+			else if (parameterName.StartsWith("req-", StringComparison.OrdinalIgnoreCase))
 			{
 				error = ErrorUnsupportedReqParameter with { Details = parameterName };
 				return false;
