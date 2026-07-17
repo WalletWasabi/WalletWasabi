@@ -2,7 +2,7 @@ using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Helpers;
-using WalletWasabi.Userfacing.Bip21;
+using WalletWasabi.Userfacing.Bip321;
 using WalletWasabi.Wallets.SilentPayment;
 using NBitcoinExtensions = WalletWasabi.Extensions.NBitcoinExtensions;
 

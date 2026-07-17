@@ -5,7 +5,7 @@ using System.Collections.Specialized;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
 
-namespace WalletWasabi.Userfacing.Bip21;
+namespace WalletWasabi.Userfacing.Bip321;
 
 /// <summary>
 /// BIP21 URI parser.

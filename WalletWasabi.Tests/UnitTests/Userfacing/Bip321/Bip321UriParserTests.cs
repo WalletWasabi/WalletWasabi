@@ -1,8 +1,8 @@
 using NBitcoin;
-using WalletWasabi.Userfacing.Bip21;
+using WalletWasabi.Userfacing.Bip321;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Userfacing.Bip21;
+namespace WalletWasabi.Tests.UnitTests.Userfacing.Bip321;
 
 /// <summary>
 /// Tests for <see cref="Bip321UriParser"/>
