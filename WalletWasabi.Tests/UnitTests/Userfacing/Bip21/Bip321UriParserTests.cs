@@ -97,6 +97,7 @@ public class Bip321UriParserTests
 		Assert.Null(error);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
 
+		// Silent payment with no fallback.
 		Assert.True(Bip321UriParser.TryParse("bitcoin:?sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", Network.Main, out result, out error));
 		Assert.Null(error);
 		Assert.Equal("sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", result.Address.ToWif(Network.Main));
@@ -118,6 +119,13 @@ public class Bip321UriParserTests
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
 		Assert.Equal("Luke-Jr", result.Label);
 		Assert.Equal(Money.Coins(20.3m), result.Amount);
+
+		// From BIP321: "Many QR codes utilize all-uppercase URIs, which should be handled fine"
+		Assert.True(Bip321UriParser.TryParse("BITCOIN:BC1QUFGY354J3KMVUCH987XE4S40836X3H0LG8F5N2", Network.Main, out result, out error));
+		Assert.Null(error);
+		Assert.Equal("bc1qufgy354j3kmvuch987xe4s40836x3h0lg8f5n2", result.Address.ToWif(Network.Main));
+		Assert.Null(result.Label);
+		Assert.Null(result.Amount);
 
 		Assert.True(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main, out result, out error));
 		Assert.Null(error);
@@ -160,17 +168,44 @@ public class Bip321UriParserTests
 		Assert.Equal(Money.Coins(0.02m), result.Amount);
 
 		// Handling of unknown parameters.
-		Assert.True(Bip321UriParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=0.02&label=unknown_params&unknown1=1&unknown2=true&unknown3=someValue", Network.TestNet, out result, out error));
-		Assert.Null(error);
-		Assert.Equal("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP", result.Address.ToWif(Network.Main));
-		Assert.Equal("unknown_params", result.Label);
-		Assert.Equal(Money.Coins(0.02m), result.Amount);
-		Assert.True(result.UnknownParameters.TryGetValue("unknown1", out string? unknown1));
-		Assert.Equal("1", unknown1);
-		Assert.True(result.UnknownParameters.TryGetValue("unknown2", out string? unknown2));
-		Assert.Equal("true", unknown2);
-		Assert.True(result.UnknownParameters.TryGetValue("unknown3", out string? unknown3));
-		Assert.Equal("someValue", unknown3);
+		{
+			Assert.True(Bip321UriParser.TryParse("bitcoin:mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP?amount=0.02&label=unknown_params&unknown1=1&unknown2=true&unknown3=someValue", Network.TestNet, out result, out error));
+			Assert.Null(error);
+			Assert.Equal("mk2QpYatsKicvFVuTAQLBryyccRXMUaGHP", result.Address.ToWif(Network.Main));
+			Assert.Equal("unknown_params", result.Label);
+			Assert.Equal(Money.Coins(0.02m), result.Amount);
+			Assert.True(result.UnknownParameters.TryGetValue("unknown1", out var unknown1));
+			Assert.Equal("1", unknown1);
+			Assert.True(result.UnknownParameters.TryGetValue("unknown2", out var unknown2));
+			Assert.Equal("true", unknown2);
+			Assert.True(result.UnknownParameters.TryGetValue("unknown3", out var unknown3));
+			Assert.Equal("someValue", unknown3);
+		}
+
+		// Fallback addresses.
+		{
+			{
+				// Request funds to be paid over lightning to a BOLT 11 invoice with a fallback to on-chain payments (i.e. bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8).
+				// Lightning is not supported by Wasabi, so we will just parse the fallback address and ignore the lightning parameter.
+				Assert.True(Bip321UriParser.TryParse("bitcoin:bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8?lightning=lnbc420bogusinvoice", Network.Main, out result, out error));
+				Assert.Null(error);
+				Assert.Equal("bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8", result.Address.ToWif(Network.Main));
+				Assert.Null(result.Label);
+				Assert.Null(result.Amount);
+				Assert.True(result.UnknownParameters.TryGetValue("lightning", out var unknown1));
+				Assert.Equal("lnbc420bogusinvoice", unknown1);
+			}
+
+			{
+				// Silent payment with a fallback. Fallback address must be ignored in this case.
+				Assert.True(Bip321UriParser.TryParse("bitcoin:bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8?sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", Network.Main, out result, out error));
+				Assert.Null(error);
+				Assert.Equal("sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", result.Address.ToWif(Network.Main));
+				Assert.Null(result.Label);
+				Assert.Null(result.Amount);
+				Assert.Empty(result.UnknownParameters);
+			}
+		}
 	}
 
 	/// <summary>

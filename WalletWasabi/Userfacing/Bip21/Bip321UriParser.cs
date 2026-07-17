@@ -53,14 +53,17 @@ public class Bip321UriParser
 
 		NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUri.Query);
 
+		string? silentPaymentAddress = null;
+
 		if (parsedUri.AbsolutePath is not { Length: > 0 } addressString)
 		{
 			// BIP321 allows the address to be specified as a query parameter named "sp" (case-insensitive) instead of in the path.
-			var spValue = queryParameters["sp"];
+			silentPaymentAddress = queryParameters["sp"];
 
-			if (spValue is not null)
+			if (silentPaymentAddress is not null)
 			{
-				addressString = spValue;
+				queryParameters.Remove("sp");
+				addressString = silentPaymentAddress;
 			}
 			else
 			{
@@ -96,7 +99,24 @@ public class Bip321UriParser
 				continue;
 			}
 
-			if (string.Equals(parameterName, "amount", StringComparison.OrdinalIgnoreCase))
+			if (string.Equals(parameterName, "sp", StringComparison.OrdinalIgnoreCase))
+			{
+				if (silentPaymentAddress is not null)
+				{
+					error = ErrorDuplicateParameter with { Details = parameterName };
+					return false;
+				}
+
+				silentPaymentAddress = value;
+
+				addressParsingResult = AddressParser.ParseBitcoinAddress(silentPaymentAddress, network);
+				if (!addressParsingResult.IsOk)
+				{
+					error = ErrorInvalidAddress with { Details = silentPaymentAddress };
+					return false;
+				}
+			}
+			else if (string.Equals(parameterName, "amount", StringComparison.OrdinalIgnoreCase))
 			{
 				if (amount is not null)
 				{
