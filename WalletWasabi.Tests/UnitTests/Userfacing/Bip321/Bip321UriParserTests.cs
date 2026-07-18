@@ -96,6 +96,11 @@ public class Bip321UriParserTests
 		Assert.Null(result);
 		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
 
+		// Negative amounts are forbidden.
+		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=-0.01", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorInvalidAmountValue, error);
+
 		// Success cases.
 		Assert.True(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main, out result, out error));
 		Assert.Null(error);

@@ -149,6 +149,12 @@ public class Bip321UriParser
 					error = ErrorInvalidAmountValue with { Details = value };
 					return false;
 				}
+
+				if (amount < Money.Zero)
+				{
+					error = ErrorInvalidAmountValue with { Details = value };
+					return false;
+				}
 			}
 			else if (string.Equals(parameterName, "label", StringComparison.OrdinalIgnoreCase))
 			{
