@@ -59,18 +59,30 @@ public class Bip321UriParser
 		if (parsedUri.AbsolutePath is not { Length: > 0 } addressString)
 		{
 			// BIP321 allows the address to be specified as a query parameter named "sp" (case-insensitive) instead of in the path.
-			silentPaymentAddress = queryParameters["sp"];
-
-			if (silentPaymentAddress is not null)
-			{
-				queryParameters.Remove("sp");
-				addressString = silentPaymentAddress;
-			}
-			else
+			var values = queryParameters.GetValues("sp");
+			if (values is null || values.Length == 0)
 			{
 				error = ErrorMissingAddress;
 				return false;
 			}
+
+			if (values.Length > 1)
+			{
+				error = ErrorDuplicateParameter with { Details = "sp" };
+				return false;
+			}
+
+			silentPaymentAddress = values[0];
+
+			var parseSilentAddressResult = AddressParser.ParseSilentPaymentAddress(silentPaymentAddress, network);
+			if (!parseSilentAddressResult.IsOk)
+			{
+				error = ErrorInvalidAddress with { Details = silentPaymentAddress };
+				return false;
+			}
+
+			queryParameters.Remove("sp");
+			addressString = silentPaymentAddress;
 		}
 
 		Money? amount = null;
@@ -123,7 +135,7 @@ public class Bip321UriParser
 
 				silentPaymentAddress = value;
 
-				addressParsingResult = AddressParser.ParseBitcoinAddress(silentPaymentAddress, network);
+				addressParsingResult = AddressParser.ParseSilentPaymentAddress(silentPaymentAddress, network);
 				if (!addressParsingResult.IsOk)
 				{
 					error = ErrorInvalidAddress with { Details = silentPaymentAddress };

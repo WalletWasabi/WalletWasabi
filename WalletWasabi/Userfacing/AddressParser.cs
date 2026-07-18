@@ -1,12 +1,13 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.Helpers;
 using WalletWasabi.Userfacing.Bip321;
 using WalletWasabi.Wallets.SilentPayment;
 using NBitcoinExtensions = WalletWasabi.Extensions.NBitcoinExtensions;
 
 namespace WalletWasabi.Userfacing;
+
 using AddressParsingResult = Result<Address, string>;
 
 public abstract record Address
@@ -82,12 +83,17 @@ public static class AddressParser
 			return AddressParsingResult.Ok(new Address.Bitcoin(address));
 		}
 
+		return ParseSilentPaymentAddress(text, expectedNetwork);
+	}
+
+	public static AddressParsingResult ParseSilentPaymentAddress(string text, Network expectedNetwork)
+	{
 		try
 		{
 			var silentPaymentAddress = SilentPaymentAddress.Parse(text, expectedNetwork);
 			return AddressParsingResult.Ok(new Address.SilentPayment(silentPaymentAddress));
 		}
-		catch(Exception)
+		catch
 		{
 			return AddressParsingResult.Fail(Bip321UriParser.ErrorInvalidAddress.Message);
 		}

@@ -96,6 +96,21 @@ public class Bip321UriParserTests
 		Assert.Null(result);
 		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
 
+		// "sp" parameter with no value.
+		Assert.False(Bip321UriParser.TryParse("bitcoin:?sp=", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorInvalidAddress, error);
+
+		// "sp" parameter is not allowed to be duplicated (with fallback).
+		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3&sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
+
+		// "sp" parameter is not allowed to be duplicated (without fallback).
+		Assert.False(Bip321UriParser.TryParse("bitcoin:?sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3&sp=sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
+
 		// Negative amounts are forbidden.
 		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=-0.01", Network.Main, out result, out error));
 		Assert.Null(result);
@@ -221,6 +236,13 @@ public class Bip321UriParserTests
 				Assert.Null(result.Label);
 				Assert.Null(result.Amount);
 				Assert.Empty(result.UnknownParameters);
+			}
+
+			{
+				// Silent payment with a fallback. However, this time the silent payment address is invalid, so the parser reports an error.
+				Assert.False(Bip321UriParser.TryParse("bitcoin:bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8?sp=bc1qp6ejw8ptj9l9pkscmlf8fhhkrrjeawgpyjvtq8", Network.Main, out result, out error));
+				Assert.Null(result);
+				AssertEqualErrors(Bip321UriParser.ErrorInvalidAddress, error);
 			}
 		}
 	}
