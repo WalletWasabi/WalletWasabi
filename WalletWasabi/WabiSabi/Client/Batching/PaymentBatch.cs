@@ -21,8 +21,6 @@ public class PaymentBatch
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
 	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
 
-	public event EventHandler? PaymentsChanged;
-
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
 		var payment = new Payment(destination, amount);
@@ -31,7 +29,6 @@ public class PaymentBatch
 			_payments.Add(payment);
 		}
 		Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
-		PaymentsChanged?.Invoke(this, EventArgs.Empty);
 		return payment.Id;
 	}
 
@@ -58,8 +55,6 @@ public class PaymentBatch
 				throw new InvalidOperationException("Payment was not found.");
 			}
 		}
-
-		PaymentsChanged?.Invoke(this, EventArgs.Empty);
 	}
 
 	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters)
@@ -116,8 +111,6 @@ public class PaymentBatch
 				_payments.Add(move(payment));
 			}
 		}
-
-		PaymentsChanged?.Invoke(this, EventArgs.Empty);
 	}
 
 	public ReadOnlyCollection<Payment> GetPayments()

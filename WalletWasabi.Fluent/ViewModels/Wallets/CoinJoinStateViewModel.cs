@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -112,10 +113,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Subscribe();
 
 		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
-		Observable
-			.FromEventPattern(
-				h => _walletInstance.BatchedPayments.PaymentsChanged += h,
-				h => _walletInstance.BatchedPayments.PaymentsChanged -= h)
+		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();

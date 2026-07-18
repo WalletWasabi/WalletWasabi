@@ -12,18 +12,15 @@ public class CoinJoinCoinSelector
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
-	/// <param name="allowPaymentsRegardlessOfAnonScore">If true, a pending payment can be funded with private coins even when the wallet has no non-private coins to mix.</param>
 	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
-		CoinJoinCoinSelectorRandomnessGenerator? generator = null,
-		bool allowPaymentsRegardlessOfAnonScore = false)
+		CoinJoinCoinSelectorRandomnessGenerator? generator = null)
 	{
 		ConsolidationMode = consolidationMode;
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
-		AllowPaymentsRegardlessOfAnonScore = allowPaymentsRegardlessOfAnonScore;
 
 		_generator = generator ?? new(MaxInputsRegistrableByWallet, RandomnessProviders.Secure);
 	}
@@ -31,18 +28,20 @@ public class CoinJoinCoinSelector
 	public bool ConsolidationMode { get; }
 	public int AnonScoreTarget { get; }
 	public int SemiPrivateThreshold { get; }
-
-	public bool AllowPaymentsRegardlessOfAnonScore { get; }
-
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
-	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
-		new(
+	public static CoinJoinCoinSelector FromWallet(Wallet wallet)
+	{
+		var payWithPrivateCoins = wallet.AllowPaymentsRegardlessOfAnonScore
+			&& wallet.IsWalletPrivate()
+			&& wallet.BatchedPayments.AreTherePendingPayments;
+
+		return new(
 			wallet.ConsolidationMode,
-			wallet.AnonScoreTarget,
-			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0,
-			allowPaymentsRegardlessOfAnonScore: wallet.AllowPaymentsRegardlessOfAnonScore);
+			payWithPrivateCoins ? int.MaxValue : wallet.AnonScoreTarget,
+			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
+	}
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
@@ -76,22 +75,10 @@ public class CoinJoinCoinSelector
 			.Where(x => x.IsRedCoin(SemiPrivateThreshold))
 			.ToArray();
 
-		var coinsToSpend = semiPrivateCoins;
-		var accompanyingPrivateCoins = privateCoins;
-
 		if (semiPrivateCoins.Length + redCoins.Length == 0)
 		{
-
-			if (!AllowPaymentsRegardlessOfAnonScore)
-			{
-				Logger.LogDebug("No suitable coins for this round.");
-				return ImmutableList<SmartCoin>.Empty;
-			}
-
-			Logger.LogDebug("No non-private coins available; funding a pending payment with private coins.");
-
-			coinsToSpend = privateCoins;
-			accompanyingPrivateCoins = [];
+			Logger.LogDebug("No suitable coins for this round.");
+			return ImmutableList<SmartCoin>.Empty;
 		}
 
 		Logger.LogDebug($"Coin selection started:");
@@ -101,7 +88,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"{nameof(redCoins)}: {redCoins.Length} coins, valued at {Money.Satoshis(redCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		// We want to isolate red coins from each other. We only let a single red coin get into our selection candidates.
-		var allowedNonPrivateCoins = coinsToSpend.ToList();
+		var allowedNonPrivateCoins = semiPrivateCoins.ToList();
 		var red = redCoins.RandomElement(Rnd);
 		if (red is not null)
 		{
@@ -112,7 +99,7 @@ public class CoinJoinCoinSelector
 		Logger.LogDebug($"{nameof(allowedNonPrivateCoins)}: {allowedNonPrivateCoins.Count} coins, valued at {Money.Satoshis(allowedNonPrivateCoins.Sum(x => x.Amount)).ToString(false, true)} BTC.");
 
 		int inputCount = Math.Min(
-			accompanyingPrivateCoins.Length + allowedNonPrivateCoins.Count,
+			privateCoins.Length + allowedNonPrivateCoins.Count,
 			ConsolidationMode ? MaxInputsRegistrableByWallet : _generator.GetInputTarget());
 		if (ConsolidationMode)
 		{
@@ -120,7 +107,7 @@ public class CoinJoinCoinSelector
 		}
 		Logger.LogDebug($"Targeted {nameof(inputCount)}: {inputCount}.");
 
-		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(accompanyingPrivateCoins).ToArray();
+		var biasShuffledPrivateCoins = AnonScoreTxSourceBiasedShuffle(privateCoins).ToArray();
 
 		// Deprioritize private coins those are too large.
 		var smallerPrivateCoins = biasShuffledPrivateCoins.Where(x => x.Amount <= liquidityClue);
