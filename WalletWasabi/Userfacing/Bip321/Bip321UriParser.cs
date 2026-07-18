@@ -2,6 +2,7 @@ using NBitcoin;
 using NBitcoin.Payment;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
 
@@ -85,14 +86,27 @@ public class Bip321UriParser
 
 		Dictionary<string, string> unknownParameters = new();
 
-		foreach (string? parameterName in queryParameters.AllKeys)
+		foreach (var parameterName in queryParameters.AllKeys)
 		{
 			if (parameterName is null)
 			{
 				continue;
 			}
 
-			string? value = queryParameters[parameterName];
+			var values = queryParameters.GetValues(parameterName);
+
+			if (values is null || values.Length == 0)
+			{
+				throw new UnreachableException(parameterName);
+			}
+
+			if (values.Length > 1)
+			{
+				error = ErrorDuplicateParameter with { Details = parameterName };
+				return false;
+			}
+
+			var value = values[0];
 
 			if (value is null)
 			{

@@ -84,6 +84,18 @@ public class Bip321UriParserTests
 		Assert.Null(result);
 		AssertEqualErrors(Bip321UriParser.ErrorInvalidAddress, error);
 
+		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=1&amount=2", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
+
+		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?label=a&Label=b", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
+
+		Assert.False(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?message=a&Message=b", Network.Main, out result, out error));
+		Assert.Null(result);
+		AssertEqualErrors(Bip321UriParser.ErrorDuplicateParameter, error);
+
 		// Success cases.
 		Assert.True(Bip321UriParser.TryParse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", Network.Main, out result, out error));
 		Assert.Null(error);
