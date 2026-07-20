@@ -19,7 +19,7 @@ jobs:
           dotnet-version: '10.0.x'
 
       - name: Install Workloads
-        run: dotnet workload install ios
+        run: dotnet workload install ios --version 10.0.203.1
 
       - name: Build iOS App (Simulator)
         run: |
