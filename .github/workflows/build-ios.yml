@@ -7,9 +7,10 @@ on:
 
 jobs:
   build:
-    runs-on: macos-14
+    runs-on: macos-15
+
     steps:
-      - name: Checkout
+      - name: Checkout Code
         uses: actions/checkout@v4
 
       - name: Setup .NET
@@ -17,11 +18,8 @@ jobs:
         with:
           dotnet-version: '10.0.x'
 
-      - name: Select Xcode Version
+      - name: Configure Xcode Version for SDK 26.5
         run: |
-          sudo rm -rf /Applications/Xcode.app
-          sudo ln -s /Applications/Xcode_16.2.app /Applications/Xcode.app
-          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode.app/Contents/Info.plist
           sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode.app/Contents/version.plist
           sudo plutil -replace Version -string "26.5" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
