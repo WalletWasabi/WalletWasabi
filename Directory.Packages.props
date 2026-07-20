@@ -19,7 +19,7 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.WebAssembly" Version="3.119.2" />
     <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.2" />
     <!-- SQLite. -->
-    <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(NetPackagesVersion)" />
+    <PackageVersion Include="Microsoft.Data.Sqlite" Version="10.0.9" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="$(NetPackagesVersion)" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
