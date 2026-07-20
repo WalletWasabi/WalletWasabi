@@ -25,7 +25,8 @@ jobs:
           dotnet build WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj \
             -c Release \
             -r iossimulator-arm64 \
-            -o publish-app
+            -o publish-app \
+            -p:CodesignKey="-"
 
       - name: Zip iOS App Bundle
         run: |
