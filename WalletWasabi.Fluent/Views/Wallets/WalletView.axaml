@@ -40,6 +40,7 @@
 
             <!-- Send button -->
             <SubActionButton Content="Send"
+                             AutomationProperties.AutomationId="SendButton"
                              Command="{Binding DefaultSendCommand}"
                              IsVisible="{Binding IsSendButtonVisible}"
                              Icon="{StaticResource wallet_action_send}">
@@ -67,6 +68,7 @@
 
             <!-- Receive button -->
             <Button
+              AutomationProperties.AutomationId="SegwitReceiveButton"
               Classes="function"
               Command="{Binding SegwitReceiveCommand}"
               IsVisible="{Binding SeveralReceivingScriptTypes, Converter={x:Static BoolConverters.Not}}">
@@ -76,6 +78,7 @@
               </StackPanel>
             </Button>
             <SubActionButton Content="Receive"
+                             AutomationProperties.AutomationId="ReceiveButton"
                              Command="{Binding DefaultReceiveCommand}"
                              VerticalAlignment="Bottom"
                              HorizontalAlignment="Right"
