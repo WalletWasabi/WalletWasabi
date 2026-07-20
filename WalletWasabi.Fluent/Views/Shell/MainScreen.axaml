@@ -8,8 +8,24 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
              xmlns:statusIcon="clr-namespace:WalletWasabi.Fluent.Views.StatusIcon"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              d:DesignWidth="1000" d:DesignHeight="1000"
              x:CompileBindings="True">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="MainScreen.mobile navbar|NavBar">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="MainScreen.mobile Border#ContentPart">
+      <Setter Property="CornerRadius" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
   <DockPanel IsEnabled="True">
     <shell:TitleBar DockPanel.Dock="Top" />
     <DockPanel>
