@@ -12,6 +12,7 @@
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<MtouchLink>SdkOnly</MtouchLink>
 		<MtouchDebug>True</MtouchDebug>
