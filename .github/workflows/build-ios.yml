@@ -25,8 +25,13 @@ jobs:
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
           sudo plutil -replace CFBundleShortVersionString -string "26.4.1" /Applications/Xcode.app/Contents/Info.plist
           sudo plutil -replace CFBundleShortVersionString -string "26.4.1" /Applications/Xcode.app/Contents/version.plist
+          sudo plutil -replace Version -string "26.4" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
+          sudo plutil -replace Version -string "26.4" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
+          sudo ln -s iPhoneSimulator.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.4.sdk
+          sudo ln -s iPhoneOS.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk
           sudo xcodebuild -license accept
           xcodebuild -version
+          xcodebuild -version -sdk iphonesimulator
 
       - name: Install Workloads
         run: dotnet workload install ios --version 10.0.203.1
