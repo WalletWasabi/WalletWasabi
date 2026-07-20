@@ -1,9 +1,6 @@
 using System.Net.Http;
 using System.Net.Mime;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Extensions;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;

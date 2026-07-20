@@ -1,5 +1,3 @@
-using NBitcoin;
-
 namespace WalletWasabi.WabiSabi.Models;
 
 public record ReadyToSignRequestRequest(

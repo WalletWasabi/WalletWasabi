@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Net;
-using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
