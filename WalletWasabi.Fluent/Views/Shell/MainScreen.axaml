@@ -18,18 +18,98 @@
   </Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Style Selector="MainScreen.mobile navbar|NavBar">
+    <Style Selector="UserControl.mobile navbar|NavBar#SidebarNavBar">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="MainScreen.mobile Border#ContentPart">
+    <Style Selector="UserControl.mobile shell|TitleBar">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="UserControl.mobile Border#ContentPart">
       <Setter Property="CornerRadius" Value="0" />
+    </Style>
+    <Style Selector="UserControl.mobile wallets|MusicControlsView">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- Mobile Shell Nav Base -->
+    <Style Selector="UserControl:not(.mobile) Border#MobileShellNav">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="UserControl.mobile Border#MobileShellNav">
+      <Setter Property="IsVisible" Value="{Binding IsMobileShellNavVisible}" />
+    </Style>
+    
+    <!-- iOS Specific Styling -->
+    <Style Selector="Border#MobileShellNav.ios">
+      <Setter Property="Background" Value="#E01C1C1E" />
+      <Setter Property="BorderBrush" Value="#38383A" />
+      <Setter Property="BorderThickness" Value="0,0.5,0,0" />
+    </Style>
+    
+    <!-- Android Specific Styling -->
+    <Style Selector="Border#MobileShellNav.android">
+      <Setter Property="Background" Value="#202124" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    
+    <!-- Tab button base -->
+    <Style Selector="Button.mobile-tab">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+      <Setter Property="HorizontalAlignment" Value="Stretch" />
+      <Setter Property="VerticalAlignment" Value="Stretch" />
+      <Setter Property="Padding" Value="0" />
+    </Style>
+    <Style Selector="Button.mobile-tab /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="BorderThickness" Value="0" />
+    </Style>
+    <Style Selector="Button.mobile-tab:pointerover /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Opacity" Value="0.8" />
+    </Style>
+    <Style Selector="Button.mobile-tab:pressed /template/ ContentPresenter">
+      <Setter Property="Background" Value="Transparent" />
+      <Setter Property="Opacity" Value="0.6" />
+    </Style>
+    
+    <!-- Tab Item Inner Content -->
+    <Style Selector="Button.mobile-tab StackPanel">
+      <Setter Property="HorizontalAlignment" Value="Center" />
+      <Setter Property="VerticalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="Button.mobile-tab PathIcon">
+      <Setter Property="Width" Value="22" />
+      <Setter Property="Height" Value="22" />
+      <Setter Property="Foreground" Value="#8E8E93" />
+    </Style>
+    <Style Selector="Button.mobile-tab TextBlock">
+      <Setter Property="FontSize" Value="10" />
+      <Setter Property="Foreground" Value="#8E8E93" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    
+    <!-- iOS Active Tab Styling -->
+    <Style Selector="Border#MobileShellNav.ios Button.mobile-tab.active PathIcon">
+      <Setter Property="Foreground" Value="#0A84FF" />
+    </Style>
+    <Style Selector="Border#MobileShellNav.ios Button.mobile-tab.active TextBlock">
+      <Setter Property="Foreground" Value="#0A84FF" />
+    </Style>
+    
+    <!-- Android Active Tab Styling -->
+    <Style Selector="Border#MobileShellNav.android Button.mobile-tab.active PathIcon">
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
+    </Style>
+    <Style Selector="Border#MobileShellNav.android Button.mobile-tab.active TextBlock">
+      <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
     </Style>
   </UserControl.Styles>
 
   <DockPanel IsEnabled="True">
-    <shell:TitleBar DockPanel.Dock="Top" />
+    <shell:TitleBar x:Name="MainTitleBar" DockPanel.Dock="Top" />
     <DockPanel>
-      <navbar:NavBar DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
+      <navbar:NavBar x:Name="SidebarNavBar" DockPanel.Dock="Left" DataContext="{Binding NavBar}" />
       <Border x:Name="ContentPart" CornerRadius="10 0 0 0" ClipToBounds="True" Background="{DynamicResource RegionColor}">
         <Border.Effect>
           <DynamicResource ResourceKey="MainAreaDropShadowEffect" />
@@ -70,6 +150,35 @@
                 <Setter Property="Margin" Value="31 26 31 0" />
               </Style>
             </DockPanel.Styles>
+            <!-- Mobile Shell Navigation Bar -->
+            <Border Name="MobileShellNav" DockPanel.Dock="Bottom" Height="64">
+              <Grid ColumnDefinitions="*,*,*">
+                <!-- Wallets Tab -->
+                <Button Name="WalletsTabButton" AutomationProperties.AutomationId="WalletsTabButton" Grid.Column="0" Command="{Binding NavigateToMobileWalletsCommand}" Classes="mobile-tab">
+                  <StackPanel Spacing="4">
+                    <PathIcon Data="{StaticResource nav_wallet_24_regular}" Name="WalletsTabIcon" />
+                    <TextBlock Text="Wallets" Name="WalletsTabText" />
+                  </StackPanel>
+                </Button>
+
+                <!-- Add Wallet Tab -->
+                <Button Name="AddWalletTabButton" AutomationProperties.AutomationId="AddWalletTabButton" Grid.Column="1" Command="{Binding NavigateToMobileAddWalletCommand}" Classes="mobile-tab">
+                  <StackPanel Spacing="4">
+                    <PathIcon Data="{StaticResource add_regular}" Name="AddWalletTabIcon" />
+                    <TextBlock Text="Add Wallet" Name="AddWalletTabText" />
+                  </StackPanel>
+                </Button>
+
+                <!-- Settings Tab -->
+                <Button Name="SettingsTabButton" AutomationProperties.AutomationId="SettingsTabButton" Grid.Column="2" Command="{Binding NavigateToMobileSettingsCommand}" Classes="mobile-tab">
+                  <StackPanel Spacing="4">
+                    <PathIcon Data="{StaticResource settings_general_regular}" Name="SettingsTabIcon" />
+                    <TextBlock Text="Settings" Name="SettingsTabText" />
+                  </StackPanel>
+                </Button>
+              </Grid>
+            </Border>
+
             <wallets:MusicControlsView DockPanel.Dock="Bottom" DataContext="{Binding CurrentWallet^}"
                                        HorizontalAlignment="Center" Height="66" />
 

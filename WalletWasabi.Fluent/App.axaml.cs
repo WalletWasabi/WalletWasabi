@@ -53,11 +53,27 @@ public class App : Application
 	{
 		if (!Design.IsDesignMode && ApplicationLifetime is not null)
 		{
+			if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
+			{
+				try
+				{
+					Avalonia.Diagnostics.Cdp.CdpServer.EnsureInitialized();
+					Avalonia.Diagnostics.Cdp.CdpServer.Start(9222);
+					Logger.LogInfo("CDP Server started on port 9222");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError("Failed to start CDP Server", ex);
+				}
+			}
+
 			var uiContext = CreateUiContext();
 			var mainViewModel = new MainViewModel(uiContext);
 			_applicationStateManager = new ApplicationStateManager(ApplicationLifetime, uiContext, mainViewModel, _startInBg);
 			var applicationViewModel = _applicationStateManager.ApplicationViewModel;
 			DataContext = applicationViewModel;
+
+			WalletWasabi.Fluent.Helpers.MobileAutomation.Start(mainViewModel);
 
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
@@ -80,6 +96,39 @@ public class App : Application
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
 			{
+				if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
+				{
+					void TryRegister()
+					{
+						try
+						{
+							var topLevel = TopLevel.GetTopLevel(single.MainView);
+							if (topLevel != null)
+							{
+								Avalonia.Diagnostics.Cdp.CdpServer.Register(topLevel, "Wasabi Wallet Mobile");
+								Logger.LogInfo("Registered single view TopLevel with CDP Server");
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError("Failed to register single view TopLevel with CDP Server", ex);
+						}
+					}
+
+					if (single.MainView != null)
+					{
+						var initialTopLevel = TopLevel.GetTopLevel(single.MainView);
+						if (initialTopLevel != null)
+						{
+							TryRegister();
+						}
+						else
+						{
+							single.MainView.AttachedToVisualTree += (s, e) => TryRegister();
+						}
+					}
+				}
+
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{

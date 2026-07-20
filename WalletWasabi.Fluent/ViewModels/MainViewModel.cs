@@ -20,6 +20,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Notifications;
 using WalletWasabi.Helpers;
 using System.Diagnostics.CodeAnalysis;
+using WalletWasabi.Fluent.ViewModels.AddWallet;
 
 namespace WalletWasabi.Fluent.ViewModels;
 
@@ -30,6 +31,12 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
 	[AutoNotify] private bool _isCoinJoinActive;
+	[AutoNotify] private string _activeMobileTab = "Wallets";
+	[AutoNotify] private bool _isMobileShellNavVisible;
+
+	public System.Windows.Input.ICommand NavigateToMobileWalletsCommand { get; }
+	public System.Windows.Input.ICommand NavigateToMobileAddWalletCommand { get; }
+	public System.Windows.Input.ICommand NavigateToMobileSettingsCommand { get; }
 
 	public MainViewModel(UiContext uiContext) : base(uiContext)
 	{
@@ -111,6 +118,69 @@ public partial class MainViewModel : ViewModelBase
 			UiContext.ApplicationSettings.Network == Network.Main
 			? ""
 			: UiContext.ApplicationSettings.Network.Name;
+
+		NavigateToMobileWalletsCommand = ReactiveUI.ReactiveCommand.Create(() =>
+		{
+			ActiveMobileTab = "Wallets";
+			if (NavBar.SelectedWallet != null && NavBar.SelectedWallet.CurrentPage != null)
+			{
+				UiContext.Navigate().To(NavBar.SelectedWallet.CurrentPage, NavigationTarget.HomeScreen, NavigationMode.Clear);
+			}
+			else
+			{
+				UiContext.Navigate().To(new MobileWalletsListViewModel(UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear);
+			}
+		});
+
+		NavigateToMobileAddWalletCommand = ReactiveUI.ReactiveCommand.Create(() =>
+		{
+			ActiveMobileTab = "AddWallet";
+			UiContext.Navigate().To(new AddWalletPageViewModel(UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear);
+		});
+
+		NavigateToMobileSettingsCommand = ReactiveUI.ReactiveCommand.Create(() =>
+		{
+			ActiveMobileTab = "Settings";
+			UiContext.Navigate().To(new SettingsPageViewModel(UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear);
+		});
+
+		this.WhenAnyValue(x => x.MainScreen.CurrentPage)
+			.Subscribe(page =>
+			{
+				if (page == null) return;
+				var name = page.GetType().Name;
+				if (name.Contains("Settings"))
+				{
+					ActiveMobileTab = "Settings";
+				}
+				else if (name.Contains("AddWallet") || name.Contains("Welcome"))
+				{
+					ActiveMobileTab = "AddWallet";
+				}
+				else
+				{
+					ActiveMobileTab = "Wallets";
+				}
+			});
+
+		this.WhenAnyValue(x => x.MainScreen.CurrentPage, x => x.IsOobeBackgroundVisible)
+			.Subscribe(t =>
+			{
+				var page = t.Item1;
+				var isOobe = t.Item2;
+				if (page == null || isOobe)
+				{
+					IsMobileShellNavVisible = false;
+					return;
+				}
+				var name = page.GetType().Name;
+				// Show only on main pages: Wallets list, Settings, Add Wallet landing page, or loaded Wallet Page/Dashboard
+				IsMobileShellNavVisible = name.Contains("MobileWalletsList") ||
+				                          name.Contains("SettingsPage") ||
+				                          name.Contains("AddWalletPage") ||
+				                          name.Contains("WalletPage") ||
+				                          name.Contains("WalletViewModel");
+			});
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
