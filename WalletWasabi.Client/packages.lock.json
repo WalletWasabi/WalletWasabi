@@ -353,6 +353,19 @@
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
         "resolved": "2.1.11",
+        "contentHash": "wjhvK8D84sYt5xEvuOq3Wc2bKqfE8Ww/5JlywT9+c50g0C54x26s3f6J6cM8a5C2939V29t0o0a5y04qZ3v64w=="
+      }
+    },
+    "net10.0/iossimulator-arm64": {
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "wjhvK8D84sYt5xEvuOq3Wc2bKqfE8Ww/5JlywT9+c50g0C54x26s3f6J6cM8a5C2939V29t0o0a5y04qZ3v64w=="
+      }
+    }
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
         "contentHash": "Ev2ytaXiOlWZ4b3R67GZBsemTINslLD1DCJr2xiacpn4tbapu0Q4dHEzSvZSMnVWeE5nlObU3VZN2p81q3XOYQ=="
       },
       "Microsoft.Win32.SystemEvents": {
