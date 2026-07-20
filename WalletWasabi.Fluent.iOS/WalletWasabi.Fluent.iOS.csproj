@@ -15,7 +15,8 @@
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<MtouchLink>SdkOnly</MtouchLink>
+		<MtouchLink Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">None</MtouchLink>
+		<MtouchLink Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">SdkOnly</MtouchLink>
 		<MtouchDebug>True</MtouchDebug>
 		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
 		<SelfContained>true</SelfContained>
@@ -114,13 +115,13 @@
 		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; --entitlements &quot;$(MSBuildProjectDirectory)/Entitlements.plist&quot; &quot;$(AppBundleDir)&quot;" />
 		<Message Importance="high" Text="--- Signed Frameworks and app bundle with key: $(_ActualSigningKey) ---" />
 	</Target>
-	<Target Name="FixExtraTrimmerArgs" AfterTargets="_ComputeLinkerInputs">
+	<Target Name="FixExtraTrimmerArgs" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_ComputeLinkerInputs">
 		<PropertyGroup>
 			<_ExtraTrimmerArgs>$(_ExtraTrimmerArgs.Replace('--link-attributes &quot;$(_TrimAttributesLinkDescriptionPath)&quot;', ''))</_ExtraTrimmerArgs>
 		</PropertyGroup>
 		<Message Importance="high" Text="--- Modified _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
 	</Target>
-	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs">
+	<Target Name="UsePatchedLinkerAssembly" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_ComputeLinkerInputs">
 		<ItemGroup>
 			<_FilteredTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
 			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
@@ -132,7 +133,7 @@
 		</ItemGroup>
 		<Message Importance="high" Text="--- Redirected custom steps to dotnet-linker-patched.dll and removed OptimizeGeneratedCodeStep ---" />
 	</Target>
-	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
+	<Target Name="RestoreOriginalCoreLib" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_RunILLink">
 		<PropertyGroup>
 			<_RuntimeId Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">iossimulator-arm64</_RuntimeId>
 			<_RuntimeId Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">ios-arm64</_RuntimeId>
