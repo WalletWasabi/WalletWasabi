@@ -53,6 +53,7 @@ public class App : Application
 	{
 		if (!Design.IsDesignMode && ApplicationLifetime is not null)
 		{
+#if USE_CDP
 			if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
 			{
 				try
@@ -66,6 +67,7 @@ public class App : Application
 					Logger.LogError("Failed to start CDP Server", ex);
 				}
 			}
+#endif
 
 			var uiContext = CreateUiContext();
 			var mainViewModel = new MainViewModel(uiContext);
@@ -96,6 +98,7 @@ public class App : Application
 			}
 			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
 			{
+#if USE_CDP
 				if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
 				{
 					void TryRegister()
@@ -128,6 +131,7 @@ public class App : Application
 						}
 					}
 				}
+#endif
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
