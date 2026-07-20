@@ -20,6 +20,11 @@
     "hash": "sha256-bjSH8REHeK19bh8IacmyllDPaWND+TJdkhKGc8LVvjE="
   },
   {
+    "pname": "Avalonia.Android",
+    "version": "11.3.14",
+    "hash": "sha256-BhLsFZdY3X25GC3w7S6ZfletKGEf2+IkTOhqbAPTpwg="
+  },
+  {
     "pname": "Avalonia.Angle.Windows.Natives",
     "version": "2.1.25547.20250602",
     "hash": "sha256-LE/lENAHptmz6t3T/AoJwnhpda+xs7PqriNGzdcfg8M="
@@ -75,9 +80,19 @@
     "hash": "sha256-7LQFwPfT9ikNoytB5TciM+dUt7U4cGYz1WGN8nrBXgM="
   },
   {
+    "pname": "Avalonia.iOS",
+    "version": "11.3.14",
+    "hash": "sha256-fQdZE0neQfklxa6o4R8IPQYqA2Lz0kftf6z2s41W1QY="
+  },
+  {
     "pname": "Avalonia.Native",
     "version": "11.3.14",
     "hash": "sha256-DVB/68Vnkvhj2TvFV6oPcZ7+vrvX55CxrnFBxuvELog="
+  },
+  {
+    "pname": "Avalonia.ReactiveUI",
+    "version": "11.3.9",
+    "hash": "sha256-VgDaSSbBc76MS7mkXnuN5Y2D6hJsGuSBw8BeZ8gTRHQ="
   },
   {
     "pname": "Avalonia.Remote.Protocol",
@@ -136,6 +151,11 @@
   },
   {
     "pname": "DynamicData",
+    "version": "8.4.1",
+    "hash": "sha256-r+haH5VlmZFJTEJ3UedsYybw+oddn/CSvfm6x7PrrQ4="
+  },
+  {
+    "pname": "DynamicData",
     "version": "9.4.1",
     "hash": "sha256-CX4NQj2LTk/8f4xDE5rUVBsqcY74H/1qUHFTrVX+9/0="
   },
@@ -153,6 +173,16 @@
     "pname": "HarfBuzzSharp",
     "version": "8.3.1.1",
     "hash": "sha256-614yv6bK9ynhdUnvW4wIkgpBe2sqTh28U9cDZzdhPc0="
+  },
+  {
+    "pname": "HarfBuzzSharp.NativeAssets.Android",
+    "version": "8.3.1.1",
+    "hash": "sha256-aPtBOxZZN+pj95kFUd/Bws3N3FdBtCexvxCkKg39w/Q="
+  },
+  {
+    "pname": "HarfBuzzSharp.NativeAssets.iOS",
+    "version": "8.3.1.1",
+    "hash": "sha256-r416Wfipvxy69BvcByYS8O15ZDS3wCvEyFEhKrfvelI="
   },
   {
     "pname": "HarfBuzzSharp.NativeAssets.Linux",
@@ -223,6 +253,31 @@
     "pname": "MicroCom.Runtime",
     "version": "0.11.0",
     "hash": "sha256-VdwpP5fsclvNqJuppaOvwEwv2ofnAI5ZSz2V+UEdLF0="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.App.Runtime.linux-arm64",
+    "version": "10.0.5",
+    "hash": "sha256-QsAPLx4i3zidEO8f0EC/Bl6wVHlsyDhd+cTXnmCM9uc="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.App.Runtime.linux-x64",
+    "version": "10.0.5",
+    "hash": "sha256-w1qIpmpRDSTaa/npMgkVQwPV/LD9u4I2+ZSGC/zJ1b4="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.App.Runtime.osx-arm64",
+    "version": "10.0.5",
+    "hash": "sha256-r0qh08XKKT1Axy+HzGIgwSMtjO19cvf/miO88VMpOTw="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.App.Runtime.osx-x64",
+    "version": "10.0.5",
+    "hash": "sha256-wLAKLpfzo2Fe5/iGj4SMXYq1/uXVFakFjdepQWttmks="
+  },
+  {
+    "pname": "Microsoft.AspNetCore.App.Runtime.win-x64",
+    "version": "10.0.5",
+    "hash": "sha256-iAwrxanErf0nX08bStBmzIBZlDvvJhCZo1xmrxi8c7g="
   },
   {
     "pname": "Microsoft.AspNetCore.Mvc.Testing",
@@ -470,6 +525,11 @@
     "hash": "sha256-5ENCtIvu2P6Nj8nKHevOwHJTGGfSBZLdIHtDjR1F1NU="
   },
   {
+    "pname": "Microsoft.NET.ILLink.Tasks",
+    "version": "10.0.5",
+    "hash": "sha256-22QT9cygE7ZxdLs/sEElVhh8cAPJaP3hZSJzfVW/w4k="
+  },
+  {
     "pname": "Microsoft.NET.Test.Sdk",
     "version": "18.0.1",
     "hash": "sha256-0c3/rp9di0w7E5UmfRh6Prrm3Aeyi8NOj5bm2i6jAh0="
@@ -478,6 +538,56 @@
     "pname": "Microsoft.NETCore.App",
     "version": "1.0.0",
     "hash": "sha256-V+YsHLTJKL4QE7kvSCQw5bCtmUAjkW6DTbbDo45mCUQ="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Host.linux-arm64",
+    "version": "10.0.5",
+    "hash": "sha256-mDjk0QYkoTtKoY19cAr33yMf+MI199GOlDPHnIsTdak="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Host.linux-x64",
+    "version": "10.0.5",
+    "hash": "sha256-VKuo2Do6uQr9slemRO4n7dnnRLTys3EvraP93WM/P9s="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Host.osx-x64",
+    "version": "10.0.5",
+    "hash": "sha256-BjeaDi5OYZlNl5Oaq9BEsvRd50xCV9kxfmwU8fymSzw="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Host.win-x64",
+    "version": "10.0.5",
+    "hash": "sha256-Rstfo3XefLjeoW5qfVcHsCviFxWvZS+F8McWRUW7WdQ="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Ref",
+    "version": "10.0.7",
+    "hash": "sha256-fflqvFjMXTUW9zWY6t3SOKBicTjpbySYaY+0wKHdUWU="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Runtime.linux-arm64",
+    "version": "10.0.5",
+    "hash": "sha256-eeocSfEoceo64k/4i3P/GnMaCtM9heCFynGQ/6EHLlc="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Runtime.linux-x64",
+    "version": "10.0.5",
+    "hash": "sha256-a52Fzwfh9sW+rB71Oqz4HwDqOiHCBpHaOvvNDi12zIQ="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Runtime.osx-arm64",
+    "version": "10.0.5",
+    "hash": "sha256-hEPdc/UP3Ep19t3HP30Jgt7AovtgMcg80hfTc+5SGOQ="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Runtime.osx-x64",
+    "version": "10.0.5",
+    "hash": "sha256-TaLme2Xd+hTpdmvekQ2YAZML+OLEnvBiBZKibFibwtQ="
+  },
+  {
+    "pname": "Microsoft.NETCore.App.Runtime.win-x64",
+    "version": "10.0.5",
+    "hash": "sha256-XtyAw8OB4ffgSoJftFKPNj/kYR/9+1f2x5y6oTaG1is="
   },
   {
     "pname": "Microsoft.NETCore.DotNetHost",
@@ -606,6 +716,11 @@
   },
   {
     "pname": "ReactiveUI",
+    "version": "20.1.1",
+    "hash": "sha256-p9l2GMzBRchKb4gW9pQ3DIKhs2O9fX3t/V7jDDztBqE="
+  },
+  {
+    "pname": "ReactiveUI",
     "version": "22.2.1",
     "hash": "sha256-MZNBNP2ajvfRU4OaG8JjbbaQ3xbE+FjE9RZK+TZdOCE="
   },
@@ -660,6 +775,16 @@
     "hash": "sha256-A9F397K5FfLeOsNZacKmUh4IU/WMK60B4Z6TEtS/oqo="
   },
   {
+    "pname": "SkiaSharp.NativeAssets.Android",
+    "version": "3.119.2",
+    "hash": "sha256-bCkTp1X4wwQNw2cEpR66uWM4YmBFsmjcE9NAHIn+dAM="
+  },
+  {
+    "pname": "SkiaSharp.NativeAssets.iOS",
+    "version": "3.119.2",
+    "hash": "sha256-6eIopNvQwpEQMyVHuLCnmvdYraE5xg9lOGLPDPV46lI="
+  },
+  {
     "pname": "SkiaSharp.NativeAssets.Linux",
     "version": "2.88.9",
     "hash": "sha256-mQ/oBaqRR71WfS66mJCvcc3uKW7CNEHoPN2JilDbw/A="
@@ -683,6 +808,11 @@
     "pname": "SkiaSharp.NativeAssets.Win32",
     "version": "3.119.2",
     "hash": "sha256-CI6dg+MlxX8t+vbnkxtd5QE3xalMKkA8LUSudxg7TNU="
+  },
+  {
+    "pname": "Splat",
+    "version": "15.1.1",
+    "hash": "sha256-WipAVaUx2HrYNQ9LcYm496LndmSpVbuzJxzP9FA6Ohg="
   },
   {
     "pname": "Splat",
@@ -720,9 +850,24 @@
     "hash": "sha256-ZmffbHNgnLUdsPbikilEAihxXl1MedIBQ1Xzt9226Bw="
   },
   {
+    "pname": "SQLitePCLRaw.lib.e_sqlite3.android",
+    "version": "2.1.11",
+    "hash": "sha256-wrAXWeWxuSdzhb0iBcZh2Bi8AHf/OpE71TNsBeISv6A="
+  },
+  {
+    "pname": "SQLitePCLRaw.lib.e_sqlite3.ios",
+    "version": "2.1.11",
+    "hash": "sha256-wzD8h+xmz98qtdb84ys8Lm5ZhA6pu9vCf1BylxMZY3w="
+  },
+  {
     "pname": "SQLitePCLRaw.provider.e_sqlite3",
     "version": "2.1.11",
     "hash": "sha256-LdfV325AmYgBOwmwP7MNZxMJZkNO6bwrHvB6C5SyItA="
+  },
+  {
+    "pname": "SQLitePCLRaw.provider.internal",
+    "version": "2.1.11",
+    "hash": "sha256-1xCDOWR5O0F1w2GliibX0QVrovKDbKdOXMBBfQqR+dE="
   },
   {
     "pname": "Svg.Custom",
@@ -1095,6 +1240,11 @@
     "hash": "sha256-QceAYlJvkPRJc/+5jR+wQpNNI3aqGySWWSO30e/FfQY="
   },
   {
+    "pname": "System.Runtime.InteropServices.NFloat.Internal",
+    "version": "6.0.1",
+    "hash": "sha256-js6lmRBDsO0mUWQ7g8IwoWi3aww0LAXAB9iI7hwLKgc="
+  },
+  {
     "pname": "System.Runtime.InteropServices.RuntimeInformation",
     "version": "4.0.0",
     "hash": "sha256-5j53amb76A3SPiE3B0llT2XPx058+CgE7OXL4bLalT4="
@@ -1268,6 +1418,226 @@
     "pname": "WabiSabi",
     "version": "1.0.1.2",
     "hash": "sha256-Gx+tuXraMABak8s0SeofbXpNLVfTnxz4At4+HejnQeU="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Activity",
+    "version": "1.8.0.1",
+    "hash": "sha256-vJ9LS7zlCudJmUXIskhJRsUZ2oHAWnQ7S5PJlZRGx3E="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Annotation",
+    "version": "1.7.0.2",
+    "hash": "sha256-BHeq3iPLI6RAPwOFYcvXfxqM+Z2WaoJvnq1dZi5X+2o="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Annotation.Experimental",
+    "version": "1.3.1.3",
+    "hash": "sha256-1kgAFzkCsbZ/dYSFb4mPTVhE1qa486J8clWxxqPBQqA="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Annotation.Jvm",
+    "version": "1.7.0.2",
+    "hash": "sha256-gWcFaKuAgzuqcoYpvsqMrHbK+8JoX5HUG9fLnWXZHeU="
+  },
+  {
+    "pname": "Xamarin.AndroidX.AppCompat",
+    "version": "1.6.1.5",
+    "hash": "sha256-wc3syse31BAiTKhXCBbzX1OUc6SaOLoFUmxM8RFPmpA="
+  },
+  {
+    "pname": "Xamarin.AndroidX.AppCompat.AppCompatResources",
+    "version": "1.6.1.6",
+    "hash": "sha256-paBdtId/AUnKySKIIUoOT+Wwykgqn/4IvkiZV4kghrs="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Arch.Core.Common",
+    "version": "2.2.0.5",
+    "hash": "sha256-Vzr/lsW3l4klv9WmCgFQgnwNh5uvB21/rscJhGZk1dI="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Arch.Core.Runtime",
+    "version": "2.2.0.5",
+    "hash": "sha256-3NpPgrJiioMvQQlquf9QJG9bF0nL4gJJvpen2VwIK2M="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Collection",
+    "version": "1.3.0.1",
+    "hash": "sha256-S1MCc3KqOGqGbE05/R6Cfold2RJxHz7vI4A4xz4edtM="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Collection.Jvm",
+    "version": "1.3.0.1",
+    "hash": "sha256-RFxvk4ABMAEhzY17kzG6SgIqWSlPwrsRIXanp0KTDZQ="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Concurrent.Futures",
+    "version": "1.1.0.16",
+    "hash": "sha256-+lz6XgoSoW0fH0mUuc4tHs9xCy+/i8qw6i57G4vMlF0="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Core",
+    "version": "1.12.0.2",
+    "hash": "sha256-bxipbd4KE+3nEd9wtWGIi1hk5x4IHLW/icIXoehi4cs="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Core.Core.Ktx",
+    "version": "1.12.0.2",
+    "hash": "sha256-hwrnUNG6o37wva79Vj7lzaIRVvhQ499JSWoVV6S7xEc="
+  },
+  {
+    "pname": "Xamarin.AndroidX.CursorAdapter",
+    "version": "1.0.0.21",
+    "hash": "sha256-OcL+dWCtsk346+cODp0poYgaiUln7usdVj6ve8NxPG8="
+  },
+  {
+    "pname": "Xamarin.AndroidX.CustomView",
+    "version": "1.1.0.20",
+    "hash": "sha256-+G2ObyJcvf8wOPRWCrZB4HaCsXZEnuUPaClJoi5Jp0I="
+  },
+  {
+    "pname": "Xamarin.AndroidX.DrawerLayout",
+    "version": "1.2.0.5",
+    "hash": "sha256-vVkPxrH3u92+Jpi/HNG4KJRC0Og9e6O9L29Cq7R3Hds="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Emoji2",
+    "version": "1.4.0.2",
+    "hash": "sha256-dCfX6y0fyp4KBaASQE7AQiDUu85U5nnA8PPnhslVRQw="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Emoji2.ViewsHelper",
+    "version": "1.4.0.2",
+    "hash": "sha256-4EzJsrdGeF+2RkDb5/xjcwZLaV5Dj3YM9TN3XNAeF3U="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Fragment",
+    "version": "1.6.1.2",
+    "hash": "sha256-Oowesn6HAcSYR6XND3DmEVqfVJCUdaKlFiTom09HzTU="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Interpolator",
+    "version": "1.0.0.21",
+    "hash": "sha256-SaaVWPKdX6xI/bmv8kKEBqhP8Gd35VdFtMfiEbYdeU4="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.Common",
+    "version": "2.6.2.2",
+    "hash": "sha256-PE8x+jWjcxNY8WupqCt6UrqgsHIjricA+/cJKUVS1xE="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.LiveData.Core",
+    "version": "2.6.2.2",
+    "hash": "sha256-vi2lBCdVoD6fwVe/sDVJ7dWAWgh2wOkfU77uEbQkHG4="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.Process",
+    "version": "2.6.2.2",
+    "hash": "sha256-HS4kGLKX8Jg7Xui4nhVpcpBx1/GNYyotOJF6LIrTxjA="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.Runtime",
+    "version": "2.6.2.2",
+    "hash": "sha256-URHISEtNZ4R/sYSpGTV2N35Bj3oUaTA4xwytIDaj4BE="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.ViewModel",
+    "version": "2.6.2.2",
+    "hash": "sha256-rRhGO5Wi6avAReWvLAbz8MHANL/ohRKB79zmiZJ3qXU="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Lifecycle.ViewModelSavedState",
+    "version": "2.6.2.2",
+    "hash": "sha256-jy+IsgRH5ner/jii6+lDDRxR3Q8cdzRwowVsb1VWuMM="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Loader",
+    "version": "1.1.0.21",
+    "hash": "sha256-9aN/7xlhMBj5imYtMjSPYx/3zY+B44DeNIaXanW06bw="
+  },
+  {
+    "pname": "Xamarin.AndroidX.ProfileInstaller.ProfileInstaller",
+    "version": "1.3.1.4",
+    "hash": "sha256-ZQh1OexLSKKOEImxv0PKec9P5AvdJiKNafVx6nOTGgQ="
+  },
+  {
+    "pname": "Xamarin.AndroidX.ResourceInspection.Annotation",
+    "version": "1.0.1.9",
+    "hash": "sha256-yivtI7vgxT3n/a5twNNf+ZTUK+3mrRCYpobSndq7imo="
+  },
+  {
+    "pname": "Xamarin.AndroidX.SavedState",
+    "version": "1.2.1.5",
+    "hash": "sha256-CuWq1hwt/lg7bXok9ncD6k6QcvJ7vPlzFJ58YDJUmmE="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Startup.StartupRuntime",
+    "version": "1.1.1.9",
+    "hash": "sha256-uSJqxHK4kNhQiPOdY8ZzkNM4A6NPMgS0KBQjg+O41lM="
+  },
+  {
+    "pname": "Xamarin.AndroidX.Tracing.Tracing",
+    "version": "1.1.0.8",
+    "hash": "sha256-z48spoxWZgpbuggaJwz7Kzy+8CMeCYKrw91YOXBUfbY="
+  },
+  {
+    "pname": "Xamarin.AndroidX.VectorDrawable",
+    "version": "1.1.0.21",
+    "hash": "sha256-zl73jSMtr+LkzaQpW5zLblRb1pCA04vJfGWHfr8Sb2o="
+  },
+  {
+    "pname": "Xamarin.AndroidX.VectorDrawable.Animated",
+    "version": "1.1.0.21",
+    "hash": "sha256-NCnxrnnmi0CugihCk0iq4W7oUJEe9H6e6m/XLQ4dxjs="
+  },
+  {
+    "pname": "Xamarin.AndroidX.VersionedParcelable",
+    "version": "1.1.1.21",
+    "hash": "sha256-G//IjyK1hDPQJ0dYFTD4rs4/4BYkkSOIETUHZIyCEzo="
+  },
+  {
+    "pname": "Xamarin.AndroidX.ViewPager",
+    "version": "1.0.0.21",
+    "hash": "sha256-UAWiGBjRkjrYBWA8thxdqEWZfBilofctlccZDl2fh3k="
+  },
+  {
+    "pname": "Xamarin.Google.Guava.ListenableFuture",
+    "version": "1.0.0.16",
+    "hash": "sha256-uU4z2+9RfsvFmWxuQO4urMiBhzr45WzIBQwGTA2bH5o="
+  },
+  {
+    "pname": "Xamarin.Jetbrains.Annotations",
+    "version": "24.0.1.5",
+    "hash": "sha256-7QmYCVanvLAXdAXgunOJRzp44aYg+XLCl2udZV3h0qc="
+  },
+  {
+    "pname": "Xamarin.Kotlin.StdLib",
+    "version": "1.9.10.2",
+    "hash": "sha256-rj9dghR+UaTvIEbwYi+dXgIO/ey02KVo2+OLKtH78Gc="
+  },
+  {
+    "pname": "Xamarin.Kotlin.StdLib.Common",
+    "version": "1.9.10.2",
+    "hash": "sha256-K+6uxRTdCSUHYKyoauPftYkZvaqBE+lalCiAzHBlJKQ="
+  },
+  {
+    "pname": "Xamarin.Kotlin.StdLib.Jdk7",
+    "version": "1.9.10.2",
+    "hash": "sha256-tRNYLBcCnfBbC027BQsX/hl6UmrghuPipcLFK/jN3Iw="
+  },
+  {
+    "pname": "Xamarin.Kotlin.StdLib.Jdk8",
+    "version": "1.9.10.2",
+    "hash": "sha256-ZGoo8B4Ny9CR/cmJAotiU6ykkQyVR/5F2Z6RxfgmOSA="
+  },
+  {
+    "pname": "Xamarin.KotlinX.Coroutines.Android",
+    "version": "1.7.3.2",
+    "hash": "sha256-rAab27EF3N7AMLongOs1Cr2o/NSHylxCJRTdSKIKkUo="
+  },
+  {
+    "pname": "Xamarin.KotlinX.Coroutines.Core.Jvm",
+    "version": "1.7.3.2",
+    "hash": "sha256-YTe5TndJq0buMslSmXZkD8bwvDEmZcxLm93yD1LzhuE="
   },
   {
     "pname": "Xaml.Behaviors.Avalonia",
