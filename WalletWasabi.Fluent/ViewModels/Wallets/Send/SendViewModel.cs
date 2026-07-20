@@ -23,7 +23,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
-using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 using WalletWasabi.WebClients.PayJoin;
 using Address = WalletWasabi.Userfacing.Address;
