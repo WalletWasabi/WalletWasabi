@@ -122,16 +122,15 @@
 	</Target>
 	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs">
 		<ItemGroup>
-			<_OriginalTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" />
+			<_FilteredTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
 			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
-			<_TrimmerCustomSteps Include="@(_OriginalTrimmerCustomSteps)" Condition="'%(Type)' == 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
-			<_TrimmerCustomSteps Include="@(_OriginalTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'">
-				<Type>%(_OriginalTrimmerCustomSteps.Type)</Type>
-				<BeforeStep>%(_OriginalTrimmerCustomSteps.BeforeStep)</BeforeStep>
-				<AfterStep>%(_OriginalTrimmerCustomSteps.AfterStep)</AfterStep>
+			<_TrimmerCustomSteps Include="@(_FilteredTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
+				<Type>%(_FilteredTrimmerCustomSteps.Type)</Type>
+				<BeforeStep>%(_FilteredTrimmerCustomSteps.BeforeStep)</BeforeStep>
+				<AfterStep>%(_FilteredTrimmerCustomSteps.AfterStep)</AfterStep>
 			</_TrimmerCustomSteps>
 		</ItemGroup>
-		<Message Importance="high" Text="--- Replaced _TrimmerCustomSteps DLL path with patched DLL (excluding OptimizeGeneratedCodeStep) ---" />
+		<Message Importance="high" Text="--- Redirected custom steps to dotnet-linker-patched.dll and removed OptimizeGeneratedCodeStep ---" />
 	</Target>
 	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
 		<PropertyGroup>
