@@ -315,7 +315,7 @@ public class KeyManager
 		birthHeight ??= FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
 		var blockchainState = new BlockchainState(network, height: birthHeight, birthHeight: birthHeight);
 		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
-		km.AssertCleanKeysIndexed();
+		km.AssertCleanKeysIndexedNoLock();
 		return km;
 	}
 
@@ -448,7 +448,7 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		lock (_criticalStateLock)
 		{
-			AssertCleanKeysIndexed();
+			AssertCleanKeysIndexedNoLock();
 			var predicate = wherePredicate ?? (_ => true);
 			return _hdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index).ToImmutableArray();
 		}
@@ -489,14 +489,9 @@ public class KeyManager
 	{
 		ExtKey extKey = GetMasterExtKey(password);
 
-		lock (_criticalStateLock)
+		foreach (HdPubKey key in GetKeys(x => scripts.Contains(x.P2wpkhScript) || scripts.Contains(x.P2Taproot)))
 		{
-			foreach (HdPubKey key in GetKeys(x =>
-				scripts.Contains(x.P2wpkhScript)
-				|| scripts.Contains(x.P2Taproot)))
-			{
-				yield return extKey.Derive(key.FullKeyPath).PrivateKey;
-			}
+			yield return extKey.Derive(key.FullKeyPath).PrivateKey;
 		}
 	}
 
@@ -605,7 +600,7 @@ public class KeyManager
 		}
 	}
 
-	private IEnumerable<HdPubKey> AssertCleanKeysIndexed()
+	private void AssertCleanKeysIndexedNoLock()
 	{
 		var keys = new[]
 			{
@@ -618,7 +613,7 @@ public class KeyManager
 			.SelectMany(gen => gen!.AssertCleanKeysIndexed(_hdPubKeyCache.GetView(gen.KeyPath)))
 			.Select(CreateHdPubKey);
 
-		return _hdPubKeyCache.AddRangeKeys(keys);
+		_hdPubKeyCache.AddRangeKeys(keys);
 	}
 
 	/// <summary>
@@ -626,13 +621,16 @@ public class KeyManager
 	/// </summary>
 	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
 	{
-		if (AssertLockedInternalKeysIndexed(howMany, preferTaproot))
+		lock (_criticalStateLock)
 		{
-			ToFile();
+			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
+			{
+				ToFile();
+			}
 		}
 	}
 
-	public bool AssertLockedInternalKeysIndexed(int howMany, bool preferTaproot)
+	private bool AssertLockedInternalKeysIndexedNoLock(int howMany, bool preferTaproot)
 	{
 		var hdPubKeyGenerator = (_taprootInternalKeyGenerator, preferTaproot) switch
 		{
