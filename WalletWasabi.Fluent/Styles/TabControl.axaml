@@ -15,4 +15,9 @@
     <Setter Property="Margin" Value="0 0 24 24" />
   </Style>
 
+  <!-- Mobile TabControl overrides -->
+  <Style Selector="UserControl.mobile TabControl.Settings TabItem /template/ Border#PART_LayoutRoot">
+    <Setter Property="Margin" Value="0 0 12 12" />
+  </Style>
+
 </Styles>
