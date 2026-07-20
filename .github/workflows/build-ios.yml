@@ -27,7 +27,6 @@ jobs:
           sudo plutil -replace Version -string "26.4" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
           sudo ln -s iPhoneSimulator.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.4.sdk
           sudo ln -s iPhoneOS.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk
-          sudo mv /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real
           sudo tee /tmp/xcodebuild_mock.c <<'EOF'
           #include <stdio.h>
           #include <string.h>
@@ -47,7 +46,9 @@ jobs:
               return 1;
           }
           EOF
-          sudo gcc -O2 /tmp/xcodebuild_mock.c -o /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+          gcc -O2 /tmp/xcodebuild_mock.c -o /tmp/xcodebuild
+          sudo mv /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real
+          sudo cp /tmp/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
           sudo chmod +x /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
           sudo xcodebuild -license accept
           xcodebuild -version
