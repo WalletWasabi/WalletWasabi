@@ -20,6 +20,8 @@ jobs:
       - name: Select Xcode Version
         run: |
           sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
+          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode_16.2.app/Contents/Info.plist
+          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode_16.2.app/Contents/version.plist
           sudo mv /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild.real
           sudo tee /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild <<'EOF'
           #!/bin/bash
