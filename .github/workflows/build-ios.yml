@@ -20,9 +20,9 @@ jobs:
       - name: Install Workloads
         run: dotnet workload install ios
 
-      - name: Publish iOS App (Simulator)
+      - name: Build iOS App (Simulator)
         run: |
-          dotnet publish WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj \
+          dotnet build WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj \
             -c Release \
             -r iossimulator-arm64 \
             -o publish-app
