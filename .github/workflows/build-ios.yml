@@ -24,6 +24,8 @@ jobs:
           sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode_16.2.app/Contents/version.plist
           sudo plutil -replace Version -string "26.5" /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
           sudo plutil -replace Version -string "26.5" /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
+          sudo ln -s iPhoneSimulator.sdk /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk
+          sudo ln -s iPhoneOS.sdk /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk
           sudo mv /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild.real
           sudo tee /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild <<'EOF'
           #!/bin/bash
