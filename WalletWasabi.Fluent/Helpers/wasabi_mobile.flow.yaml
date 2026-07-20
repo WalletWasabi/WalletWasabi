@@ -1,0 +1,67 @@
+appId: "WasabiWallet"
+description: "Wasabi Wallet Mobile Automation Flow using CDP"
+---
+# 1. Welcome Page
+- delay: "5000"
+- evalScript: "globalThis.getActivePage = function() { var mainVM = Window.Content.DataContext; var nav = mainVM.UiContext.Navigate(); return nav.CompactDialogScreen.CurrentPage ?? nav.DialogScreen.CurrentPage ?? nav.FullScreen.CurrentPage ?? nav.HomeScreen.CurrentPage; };"
+- tapOn: '[AutomationId="NextButton"]'
+
+# 2. Add Wallet Page
+- delay: "15000"
+- tapOn: '[AutomationId="CreateButton"]'
+
+# 3. Wallet Backup Type Page
+- delay: "15000"
+- evalScript: "var page = getActivePage(); page.WalletBackupType = page.WalletBackupTypes[1];"
+- delay: "5000"
+- tapOn: '[AutomationId="NextButton"]'
+
+# 4. Recovery Words Page
+- delay: "15000"
+- tapOn: '[AutomationId="NextButton"]'
+
+# 5. Confirm Recovery Words Page
+- delay: "15000"
+- tapOn: '[AutomationId="SkipButton"]'
+
+# 6. Passphrase Page
+- delay: "15000"
+- evalScript: "var page = getActivePage(); page.Password = ''; page.ConfirmPassword = ''; page.NextCommand.Execute(null);"
+
+# 7. Success Page (transitions automatically)
+- delay: "20000"
+
+# 8. Main Wallet Page - Init
+- delay: "15000"
+- tapOn: '[AutomationId="ReceiveButton"]'
+
+# 9. Receive Page
+- delay: "15000"
+- evalScript: "var page = getActivePage(); page.SuggestionLabels.Labels.Add('AutoLabel'); page.NextCommand.Execute(null);"
+
+# 10. Receive Address Page
+- delay: "15000"
+- evalScript: "var page = getActivePage(); globalThis.generatedAddress = page.Address; page.NextCommand.Execute(null);"
+
+# 11. Main Wallet Page - Return
+- delay: "15000"
+- tapOn: '[AutomationId="SendButton"]'
+
+# 12. Send Page - Input
+- delay: "15000"
+- evalScript: "var page = getActivePage(); page.To = globalThis.generatedAddress; page.AmountBtc = 0.005; page.SuggestionLabels.Labels.Add('AutoLabel');"
+
+# 12b. Send Page - Execute Next
+- delay: "5000"
+- evalScript: "var page = getActivePage(); page.NextCommand.Execute(null);"
+
+# 13. Transaction Preview Page
+- delay: "15000"
+- evalScript: "getActivePage().NextCommand.Execute(null)"
+
+# 14. Send Success Page (transitions automatically)
+- delay: "20000"
+
+# 15. Navigate to Settings Tab
+- tapOn: '[AutomationId="SettingsTabButton"]'
+- delay: "10000"
