@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Blockchain.Transactions.Summary;
@@ -160,6 +161,74 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	private async Task<IEnumerable<TransactionModel>> BuildSummaryAsync(CancellationToken cancellationToken)
 	{
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			var list = new List<TransactionModel>
+			{
+				new TransactionModel
+				{
+					OrderIndex = 0,
+					Id = uint256.One,
+					Labels = new WalletWasabi.Blockchain.Analysis.Clustering.LabelsArray(new[] { "Received from Alice", "Payment" }),
+					Date = DateTimeOffset.Now.AddMinutes(-30),
+					DateString = "Today 19:10",
+					DateToolTipString = "Today 19:10",
+					Confirmations = 6,
+					ConfirmedTooltip = "Confirmed (6 confirmations)",
+					Type = TransactionType.IncomingTransaction,
+					Status = TransactionStatus.Confirmed,
+					HexFunction = () => "01000000",
+					ForeignInputsFunction = () => new List<OutPoint>(),
+					ForeignOutputsFunction = () => new List<IndexedTxOut>(),
+					WalletInputs = new List<SmartCoin>(),
+					WalletOutputs = new List<SmartCoin>(),
+					Amount = new Money(0.025m, MoneyUnit.BTC),
+					Fee = new Money(0.0001m, MoneyUnit.BTC)
+				},
+				new TransactionModel
+				{
+					OrderIndex = 1,
+					Id = new uint256(2),
+					Labels = new WalletWasabi.Blockchain.Analysis.Clustering.LabelsArray(new[] { "Sent to Bob", "Lunch" }),
+					Date = DateTimeOffset.Now.AddHours(-2),
+					DateString = "Today 17:42",
+					DateToolTipString = "Today 17:42",
+					Confirmations = 0,
+					ConfirmedTooltip = "Pending (0 confirmations)",
+					Type = TransactionType.OutgoingTransaction,
+					Status = TransactionStatus.Pending,
+					HexFunction = () => "02000000",
+					ForeignInputsFunction = () => new List<OutPoint>(),
+					ForeignOutputsFunction = () => new List<IndexedTxOut>(),
+					WalletInputs = new List<SmartCoin>(),
+					WalletOutputs = new List<SmartCoin>(),
+					Amount = new Money(-0.005m, MoneyUnit.BTC),
+					Fee = new Money(0.00015m, MoneyUnit.BTC)
+				},
+				new TransactionModel
+				{
+					OrderIndex = 2,
+					Id = new uint256(3),
+					Labels = new WalletWasabi.Blockchain.Analysis.Clustering.LabelsArray(new[] { "Coinjoin" }),
+					Date = DateTimeOffset.Now.AddDays(-1),
+					DateString = "Yesterday 12:00",
+					DateToolTipString = "Yesterday 12:00",
+					Confirmations = 100,
+					ConfirmedTooltip = "Confirmed (100 confirmations)",
+					Type = TransactionType.Coinjoin,
+					Status = TransactionStatus.Confirmed,
+					HexFunction = () => "03000000",
+					ForeignInputsFunction = () => new List<OutPoint>(),
+					ForeignOutputsFunction = () => new List<IndexedTxOut>(),
+					WalletInputs = new List<SmartCoin>(),
+					WalletOutputs = new List<SmartCoin>(),
+					Amount = new Money(-0.00012m, MoneyUnit.BTC),
+					Fee = new Money(0.00005m, MoneyUnit.BTC)
+				}
+			};
+			return list;
+		}
+
 		var orderedRawHistoryList = await _wallet.BuildHistorySummaryAsync(sortForUi: true, cancellationToken: cancellationToken);
 		var transactionModels = await _treeBuilder.BuildAsync(orderedRawHistoryList, cancellationToken);
 		return transactionModels;
