@@ -1,12 +1,13 @@
+using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using NBitcoin;
 using WalletWasabi.Helpers;
-using WalletWasabi.Userfacing.Bip21;
+using WalletWasabi.Userfacing.Bip321;
 using WalletWasabi.Wallets.SilentPayment;
 using NBitcoinExtensions = WalletWasabi.Extensions.NBitcoinExtensions;
 
 namespace WalletWasabi.Userfacing;
+
 using AddressParsingResult = Result<Address, string>;
 
 public abstract record Address
@@ -55,14 +56,14 @@ public static class AddressParser
 			return AddressParsingResult.Fail("Input is too long.");
 		}
 
-		// Parse a Bitcoin address (not BIP21 URI string)
-		if (!text.StartsWith($"{Bip21UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
+		// Parse a Bitcoin address (not BIP321 URI string)
+		if (!text.StartsWith($"{Bip321UriParser.UriScheme}:", StringComparison.OrdinalIgnoreCase))
 		{
 			return ParseBitcoinAddress(text, expectedNetwork);
 		}
 
-		// Parse BIP21 URI string.
-		if (!Bip21UriParser.TryParse(input: text, expectedNetwork, out var result, out var error))
+		// Parse BIP321 URI string.
+		if (!Bip321UriParser.TryParse(input: text, expectedNetwork, out var result, out var error))
 		{
 			return AddressParsingResult.Fail(error.Message);
 		}
@@ -82,14 +83,19 @@ public static class AddressParser
 			return AddressParsingResult.Ok(new Address.Bitcoin(address));
 		}
 
+		return ParseSilentPaymentAddress(text, expectedNetwork);
+	}
+
+	public static AddressParsingResult ParseSilentPaymentAddress(string text, Network expectedNetwork)
+	{
 		try
 		{
 			var silentPaymentAddress = SilentPaymentAddress.Parse(text, expectedNetwork);
 			return AddressParsingResult.Ok(new Address.SilentPayment(silentPaymentAddress));
 		}
-		catch(Exception)
+		catch
 		{
-			return AddressParsingResult.Fail(Bip21UriParser.ErrorInvalidAddress.Message);
+			return AddressParsingResult.Fail(Bip321UriParser.ErrorInvalidAddress.Message);
 		}
 	}
 }

@@ -25,7 +25,7 @@ public class AddressParserTests
 
 		foreach ((string address, Network network) in tests)
 		{
-			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Remove(0, 1), network).Error);
+			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address[1..], network).Error);
 			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Remove(5, 1), network).Error);
 			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Insert(4, "b"), network).Error);
 			Assert.Equal(
@@ -75,11 +75,11 @@ public class AddressParserTests
 		Assert.Equal("Luke-Jr", result.Label);
 		Assert.Equal(20.3m, result.Amount);
 
-		// As per BIP21, keys are case sensitive, "Amount" and "Label" is not valid, only "amount" and "label" is.
+		// As per BIP321, keys are case insensitive, "Amount" and "Label" are thus valid.
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?Amount=20.3&Label=Luke-Jr", Network.Main).Value);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
-		Assert.Equal(null!, result.Label);
-		Assert.Equal(null!, result.Amount);
+		Assert.Equal("Luke-Jr", result.Label);
+		Assert.Equal(20.3m, result.Amount);
 
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main).Value);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
@@ -114,7 +114,7 @@ public class AddressParserTests
 		Assert.Equal("bolt11_example", result.Label);
 		Assert.Equal(0.02m, result.Amount);
 
-		// Bip21 Uri with silent payment address}
+		// BIP321 Uri with silent payment address
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv?amount=0.02&label=bolt11_example", Network.Main).Value);
 		var sp = Assert.IsType<Address.SilentPayment>(result.Address);
 		Assert.Equal("sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv", sp.ToWif(Network.Main));
