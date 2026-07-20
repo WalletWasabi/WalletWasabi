@@ -25,6 +25,7 @@
 		<PackageReference Include="ReactiveUI.Avalonia" />
 		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Xaml.Behaviors.Avalonia" />
+		<PackageReference Include="Xaml.Behaviors.Interactions.Responsive" />
 		<PackageReference Include="Avalonia.Skia" />
 		<PackageReference Include="SkiaSharp" />
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux" />

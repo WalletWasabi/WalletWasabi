@@ -509,15 +509,6 @@
           "Xaml.Behaviors.Interactivity": "11.3.9.4"
         }
       },
-      "Xaml.Behaviors.Interactions.Responsive": {
-        "type": "Transitive",
-        "resolved": "11.3.9.4",
-        "contentHash": "T0NHWqerjHaYrgPk0EMCR43icKdedMghV13Fu0ZxKvrZ5ktOQCeqgOez8dHjnnGMlBcU7uHd/n3g9SlwZofjxA==",
-        "dependencies": {
-          "Avalonia": "11.3.9",
-          "Xaml.Behaviors.Interactivity": "11.3.9.4"
-        }
-      },
       "Xaml.Behaviors.Interactivity": {
         "type": "Transitive",
         "resolved": "11.3.9.4",
@@ -566,7 +557,8 @@
           "SkiaSharp": "[3.119.2, )",
           "SkiaSharp.NativeAssets.Linux": "[3.119.2, )",
           "WalletWasabi.Client": "[1.0.0, )",
-          "Xaml.Behaviors.Avalonia": "[11.3.9.4, )"
+          "Xaml.Behaviors.Avalonia": "[11.3.9.4, )",
+          "Xaml.Behaviors.Interactions.Responsive": "[11.3.9.4, )"
         }
       },
       "Avalonia": {
@@ -807,6 +799,16 @@
           "Xaml.Behaviors.Interactions.Draggable": "11.3.9.4",
           "Xaml.Behaviors.Interactions.Events": "11.3.9.4",
           "Xaml.Behaviors.Interactions.Responsive": "11.3.9.4",
+          "Xaml.Behaviors.Interactivity": "11.3.9.4"
+        }
+      },
+      "Xaml.Behaviors.Interactions.Responsive": {
+        "type": "CentralTransitive",
+        "requested": "[11.3.9.4, )",
+        "resolved": "11.3.9.4",
+        "contentHash": "T0NHWqerjHaYrgPk0EMCR43icKdedMghV13Fu0ZxKvrZ5ktOQCeqgOez8dHjnnGMlBcU7uHd/n3g9SlwZofjxA==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
           "Xaml.Behaviors.Interactivity": "11.3.9.4"
         }
       }

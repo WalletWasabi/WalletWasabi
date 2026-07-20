@@ -153,6 +153,16 @@
           "Xaml.Behaviors.Interactivity": "11.3.9.4"
         }
       },
+      "Xaml.Behaviors.Interactions.Responsive": {
+        "type": "Direct",
+        "requested": "[11.3.9.4, )",
+        "resolved": "11.3.9.4",
+        "contentHash": "T0NHWqerjHaYrgPk0EMCR43icKdedMghV13Fu0ZxKvrZ5ktOQCeqgOez8dHjnnGMlBcU7uHd/n3g9SlwZofjxA==",
+        "dependencies": {
+          "Avalonia": "11.3.9",
+          "Xaml.Behaviors.Interactivity": "11.3.9.4"
+        }
+      },
       "Avalonia.AvaloniaEdit": {
         "type": "Transitive",
         "resolved": "11.0.0",
@@ -589,15 +599,6 @@
         "type": "Transitive",
         "resolved": "11.3.9.4",
         "contentHash": "uzZ62kX9jERgDR1qOLZS1CxWHZHqPP8CHsN6M6xunkXszn1DYcKjNjG92vPVYFuo3j2LsdaHH6+gOpv/k6OyeA==",
-        "dependencies": {
-          "Avalonia": "11.3.9",
-          "Xaml.Behaviors.Interactivity": "11.3.9.4"
-        }
-      },
-      "Xaml.Behaviors.Interactions.Responsive": {
-        "type": "Transitive",
-        "resolved": "11.3.9.4",
-        "contentHash": "T0NHWqerjHaYrgPk0EMCR43icKdedMghV13Fu0ZxKvrZ5ktOQCeqgOez8dHjnnGMlBcU7uHd/n3g9SlwZofjxA==",
         "dependencies": {
           "Avalonia": "11.3.9",
           "Xaml.Behaviors.Interactivity": "11.3.9.4"
