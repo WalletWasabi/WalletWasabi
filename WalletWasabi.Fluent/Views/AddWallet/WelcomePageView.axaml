@@ -19,13 +19,13 @@
     <Style Selector="ContentArea /template/ StackPanel#PART_Header">
       <Setter Property="Height" Value="32" />
     </Style>
-    <Style Selector="WelcomePageView.mobile TextBlock.welcome-title">
+    <Style Selector="UserControl.mobile TextBlock.welcome-title">
       <Setter Property="FontSize" Value="22" />
     </Style>
-    <Style Selector="WelcomePageView.mobile TextBlock.welcome-caption">
+    <Style Selector="UserControl.mobile TextBlock.welcome-caption">
       <Setter Property="FontSize" Value="13" />
     </Style>
-    <Style Selector="WelcomePageView.mobile Panel.logo-panel">
+    <Style Selector="UserControl.mobile Panel.logo-panel">
       <Setter Property="Height" Value="100" />
       <Setter Property="Margin" Value="0 0 0 10" />
     </Style>
@@ -129,9 +129,9 @@
         <!-- Get started -->
         <DockPanel HorizontalAlignment="Center" VerticalAlignment="Center">
           <StackPanel DockPanel.Dock="Bottom" Spacing="10">
-            <TextBlock Classes="welcome-title" Text="Welcome to Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" />
+            <TextBlock Classes="welcome-title" Text="Welcome to Wasabi Wallet" FontSize="30" HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
 
-            <TextBlock Classes="welcome-caption" TextAlignment="Center" Text="An easy to use, privacy focused, open source Bitcoin wallet" FontWeight="Light" />
+            <TextBlock Classes="welcome-caption" TextAlignment="Center" Text="An easy to use, privacy focused, open source Bitcoin wallet" FontWeight="Light" TextWrapping="Wrap" />
           </StackPanel>
           <Panel Classes="logo-panel" Height="120" HorizontalAlignment="Center" DockPanel.Dock="Bottom" Margin="0 0 0 20">
             <ExperimentalAcrylicBorder Margin="2">

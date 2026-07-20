@@ -3,17 +3,32 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:CompileBindings="True"
              x:DataType="create:RecoveryWordsViewModel"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.RecoveryWordsView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="UserControl.mobile WrapPanel.words-panel">
+      <Setter Property="MaxHeight" Value="300" />
+    </Style>
+    <Style Selector="UserControl.mobile StackPanel.word-container">
+      <Setter Property="Margin" Value="15 0" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                  Caption="Write down the recovery words in the correct order and store them in a safe place. They are needed to recover your wallet."
                  CancelContent="Cancel"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
-                 EnableNext="True" NextContent="Continue" FocusNext="True"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto">
+                 EnableNext="True" NextContent="Continue" FocusNext="True">
     <DockPanel>
 
       <InfoMessage Opacity="0.5"
@@ -32,12 +47,12 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel Classes="words-panel" MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Orientation="Horizontal" Margin="40 0 40 0" Width="80">
+              <StackPanel Classes="word-container" Orientation="Horizontal" Margin="40 0 40 0" Width="80">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
