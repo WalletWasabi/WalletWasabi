@@ -77,6 +77,7 @@
               --filter "FullyQualifiedName~UnitTests" \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';
@@ -96,6 +97,7 @@
             dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';
@@ -117,10 +119,12 @@
               --filter "FullyQualifiedName~UnitTests" \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';
