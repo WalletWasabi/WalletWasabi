@@ -24,6 +24,11 @@
     <Setter Property="Template">
       <ControlTemplate>
         <Panel Name="PART_RootPanel">
+          <Panel.Styles>
+            <Style Selector="Panel.mobile StackPanel">
+              <Setter Property="Spacing" Value="10" />
+            </Style>
+          </Panel.Styles>
           <Interaction.Behaviors>
             <r:AdaptiveBehavior>
               <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
@@ -35,6 +40,7 @@
 
             <DockPanel DockPanel.Dock="Bottom" x:Name="PART_ButtonArea">
               <Button Name="PART_CancelButton"
+                      AutomationProperties.AutomationId="CancelButton"
                       Classes="invisible"
                       IsVisible="{TemplateBinding EnableCancel}"
                       Content="{TemplateBinding CancelContent}"
@@ -47,12 +53,14 @@
               
                 <StackPanel Orientation="Horizontal" Spacing="30" DockPanel.Dock="Right">
                   <Button Name="PART_SkipButton"
+                          AutomationProperties.AutomationId="SkipButton"
                           IsVisible="{TemplateBinding EnableSkip}"
                           Content="{TemplateBinding SkipContent}"
                           Command="{Binding SkipCommand}"
                           Classes="activeHyperLink skip"
                           VerticalAlignment="Center" />
                   <Button Name="PART_NextButton" Classes="action"
+                          AutomationProperties.AutomationId="NextButton"
                           IsVisible="{TemplateBinding EnableNext}"
                           Content="{TemplateBinding NextContent}"
                           Command="{Binding NextCommand}"
@@ -72,6 +80,7 @@
               <StackPanel Name="PART_Header" Spacing="10">
                 <DockPanel>
                   <Button Name="PART_BackButton"
+                          AutomationProperties.AutomationId="BackButton"
                           Classes="plain"
                           Command="{Binding BackCommand}"
                           IsVisible="{TemplateBinding EnableBack}">
