@@ -5,6 +5,7 @@
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
+		<NoWarn>$(NoWarn);NU1605</NoWarn>
 		<UseInterpreter>True</UseInterpreter>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
@@ -123,13 +124,14 @@
 		<ItemGroup>
 			<_OriginalTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" />
 			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
-			<_TrimmerCustomSteps Include="@(_OriginalTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
+			<_TrimmerCustomSteps Include="@(_OriginalTrimmerCustomSteps)" Condition="'%(Type)' == 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
+			<_TrimmerCustomSteps Include="@(_OriginalTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'">
 				<Type>%(_OriginalTrimmerCustomSteps.Type)</Type>
 				<BeforeStep>%(_OriginalTrimmerCustomSteps.BeforeStep)</BeforeStep>
 				<AfterStep>%(_OriginalTrimmerCustomSteps.AfterStep)</AfterStep>
 			</_TrimmerCustomSteps>
 		</ItemGroup>
-		<Message Importance="high" Text="--- Replaced _TrimmerCustomSteps DLL path with patched DLL ---" />
+		<Message Importance="high" Text="--- Replaced _TrimmerCustomSteps DLL path with patched DLL (excluding OptimizeGeneratedCodeStep) ---" />
 	</Target>
 	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
 		<PropertyGroup>
