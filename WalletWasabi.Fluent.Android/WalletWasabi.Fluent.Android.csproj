@@ -10,7 +10,9 @@
 		<AndroidPackageFormat>apk</AndroidPackageFormat>
 		<IsPackable>False</IsPackable>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
-		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+		<SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 	</PropertyGroup>

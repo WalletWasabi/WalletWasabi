@@ -131,12 +131,19 @@
 		<Message Importance="high" Text="--- Replaced _TrimmerCustomSteps DLL path with patched DLL ---" />
 	</Target>
 	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
+		<PropertyGroup>
+			<_RuntimeId Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">iossimulator-arm64</_RuntimeId>
+			<_RuntimeId Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">ios-arm64</_RuntimeId>
+		</PropertyGroup>
+		<ItemGroup>
+			<_MonoCoreLib Include="$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.$(_RuntimeId)/*/runtimes/$(_RuntimeId)/native/System.Private.CoreLib.dll" />
+		</ItemGroup>
 		<Copy
-			SourceFiles="/Users/wieslawsoltes/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.7/runtimes/iossimulator-arm64/native/System.Private.CoreLib.dll"
+			SourceFiles="@(_MonoCoreLib)"
 			DestinationFolder="$(IntermediateLinkDir)"
 			OverwriteReadOnlyFiles="true"
 		/>
-		<Message Importance="high" Text="--- Restored original System.Private.CoreLib.dll to $(IntermediateLinkDir) ---" />
+		<Message Importance="high" Text="--- Restored original System.Private.CoreLib.dll from @(_MonoCoreLib) to $(IntermediateLinkDir) ---" />
 	</Target>
 	<Target Name="InspectManagedAssemblies" AfterTargets="_ComputeManagedAssemblyToLink">
 		<Message Importance="high" Text="--- ManagedAssemblyToLink: @(ManagedAssemblyToLink, '; ') ---" />
