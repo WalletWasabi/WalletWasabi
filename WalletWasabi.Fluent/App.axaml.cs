@@ -1,17 +1,27 @@
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Announcements;
+using WalletWasabi.Client;
+using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent;
 
@@ -32,6 +42,8 @@ public class App : Application
 		_backendInitializeAsync = backendInitializeAsync;
 	}
 
+	public Func<Task>? BackendInitializeAsync { get; set; }
+
 	public override void Initialize()
 	{
 		AvaloniaXamlLoader.Load(this);
@@ -39,16 +51,16 @@ public class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		if (!Design.IsDesignMode)
+		if (!Design.IsDesignMode && ApplicationLifetime is not null)
 		{
+			var uiContext = CreateUiContext();
+			var mainViewModel = new MainViewModel(uiContext);
+			_applicationStateManager = new ApplicationStateManager(ApplicationLifetime, uiContext, mainViewModel, _startInBg);
+			var applicationViewModel = _applicationStateManager.ApplicationViewModel;
+			DataContext = applicationViewModel;
+
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
-				var uiContext = CreateUiContext();
-				var mainViewModel = new MainViewModel(uiContext);
-				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, mainViewModel, _startInBg);
-				var applicationViewModel = _applicationStateManager.ApplicationViewModel;
-				DataContext = applicationViewModel;
-
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 				desktop.Exit += (sender, args) =>
 				{
@@ -66,12 +78,76 @@ public class App : Application
 
 				InitializeTrayIcons();
 			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+				RxApp.MainThreadScheduler.Schedule(
+					async () =>
+					{
+						if (BackendInitializeAsync is not null)
+						{
+							await BackendInitializeAsync();
+						}
+						else if (_backendInitializeAsync is not null)
+						{
+							await _backendInitializeAsync();
+						}
+
+						mainViewModel.Initialize();
+					});
+			}
 		}
 
 		base.OnFrameworkInitializationCompleted();
 #if DEBUG
-		this.AttachDevTools();
+		if (CanRunDevTools())
+		{
+			this.AttachDevTools();
+		}
 #endif
+	}
+
+	public static AppBuilder InitializeMobile(WasabiApplication app, AppBuilder appBuilder)
+	{
+		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+		{
+			if (Debugger.IsAttached)
+			{
+				Debugger.Break();
+			}
+			Logger.LogError(ex);
+		});
+
+		Logger.LogInfo("Wasabi Mobile GUI started.");
+		UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
+		var services = Services.Create(app.Global, uiConfig, app.TerminateService);
+		
+		appBuilder = appBuilder
+			.AfterSetup(b =>
+			{
+				ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+				if (Application.Current is App a)
+				{
+					a.BackendInitializeAsync = async () =>
+					{
+						using CancellationTokenSource stopLoadingCts = new();
+						await app.Global.InitializeAsync(initializeSleepInhibitor: false, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+					};
+				}
+			});
+
+		return appBuilder;
+	}
+
+	private static UiConfig LoadOrCreateUiConfig(string dataDir)
+	{
+		Directory.CreateDirectory(dataDir);
+		return UiConfig.LoadFile(Path.Combine(dataDir, "UiConfig.json"));
+	}
+
+	private bool CanRunDevTools()
+	{
+		return !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();
 	}
 
 	private void InitializeTrayIcons()

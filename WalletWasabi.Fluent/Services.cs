@@ -26,7 +26,7 @@ public class Services : IServices
 	public static Services Instance { get; private set; } = null!;
 
 	private readonly Global _global;
-	private readonly TorSettings _torSettings;
+	private readonly TorSettings? _torSettings;
 	private readonly FilterStore _filterStore;
 	private readonly FilterHeaderChain _filterHeaders;
 	private readonly AllTransactionStore _transactionStore;
@@ -39,7 +39,10 @@ public class Services : IServices
 	private Services(Global global, UiConfig uiConfig, TerminateService terminateService)
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
-		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
+		if (Global.IsTorEnabled)
+		{
+			Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
+		}
 		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
 		Guard.NotNull(nameof(global.FilterHeaders), global.FilterHeaders);
 		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
@@ -108,7 +111,7 @@ public class Services : IServices
 	public void AddWallet(KeyManager keyManager) => WalletManager.AddWallet(keyManager);
 
 	// Tor info
-	public string GetTorLogFilePath() => _torSettings.LogFilePath;
+	public string GetTorLogFilePath() => _torSettings?.LogFilePath ?? "";
 	public TorMode GetUseTor() => Config.UseTor;
 
 	// ExchangeRate info

@@ -22,14 +22,14 @@ namespace WalletWasabi.Fluent;
 public class ApplicationStateManager : IMainWindowService
 {
 	private readonly StateMachine<State, Trigger> _stateMachine;
-	private readonly IClassicDesktopStyleApplicationLifetime _lifetime;
+	private readonly IApplicationLifetime _lifetime;
 	private CompositeDisposable? _compositeDisposable;
 	private bool _hideRequest;
 	private bool _isShuttingDown;
 	private bool _restartRequest;
 	private IActivatableLifetime? _activatable;
 
-	internal ApplicationStateManager(IClassicDesktopStyleApplicationLifetime lifetime, UiContext uiContext, MainViewModel mainViewModel, bool startInBg)
+	internal ApplicationStateManager(IApplicationLifetime lifetime, UiContext uiContext, MainViewModel mainViewModel, bool startInBg)
 	{
 		_lifetime = lifetime;
 		_stateMachine = new StateMachine<State, Trigger>(State.InitialState);
@@ -74,13 +74,19 @@ public class ApplicationStateManager : IMainWindowService
 						AppLifetimeHelper.StartAppWithArgs();
 					}
 
-					_lifetime.Shutdown();
+					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.Shutdown();
+					}
 				})
 			.OnTrigger(
 				Trigger.ShutdownPrevented,
 				() =>
 				{
-					_lifetime.MainWindow.BringToFront();
+					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+					{
+						desktop.MainWindow.BringToFront();
+					}
 					ApplicationViewModel.OnShutdownPrevented(_restartRequest);
 					_restartRequest = false; // reset the value.
 				});
@@ -89,8 +95,11 @@ public class ApplicationStateManager : IMainWindowService
 			.SubstateOf(State.InitialState)
 			.OnEntry(() =>
 			{
-				_lifetime.MainWindow?.Close();
-				_lifetime.MainWindow = null;
+				if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop)
+				{
+					desktop.MainWindow?.Close();
+					desktop.MainWindow = null;
+				}
 				ApplicationViewModel.IsMainWindowShown = false;
 				if (_activatable is { })
 				{
@@ -102,12 +111,15 @@ public class ApplicationStateManager : IMainWindowService
 
 		_stateMachine.Configure(State.Open)
 			.SubstateOf(State.InitialState)
-			.OnEntry(CreateAndShowMainWindow)
+			.OnEntry(CreateAndShowView)
 			.Permit(Trigger.Hide, State.Closed)
 			.Permit(Trigger.MainWindowClosed, State.Closed)
 			.OnTrigger(Trigger.Show, mainViewModel.ApplyUiConfigWindowState);
 
-		_lifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime desktopLifetime)
+		{
+			desktopLifetime.ShutdownRequested += LifetimeOnShutdownRequested;
+		}
 
 		_stateMachine.Start();
 	}
@@ -166,7 +178,7 @@ public class ApplicationStateManager : IMainWindowService
 			case ActivationKind.Background:
 				if (this is IMainWindowService service)
 				{
-					if (_lifetime.MainWindow is not null)
+					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is not null)
 					{
 						service.Hide();
 					}
@@ -175,14 +187,53 @@ public class ApplicationStateManager : IMainWindowService
 		}
 	}
 
+	private void CreateAndShowView()
+	{
+		if (_lifetime is IClassicDesktopStyleApplicationLifetime)
+		{
+			CreateAndShowMainWindow();
+		}
+		else if (_lifetime is ISingleViewApplicationLifetime)
+		{
+			CreateAndShowMainView();
+		}
+	}
+
+	private void CreateAndShowMainView()
+	{
+		if (_lifetime is not ISingleViewApplicationLifetime single)
+		{
+			return;
+		}
+
+		if (single.MainView is { })
+		{
+			return;
+		}
+
+		var result = new Views.Shell.Shell
+		{
+			DataContext = MainViewModel,
+		};
+
+		single.MainView = result;
+
+		ApplicationViewModel.IsMainWindowShown = true;
+	}
+
 	private void CreateAndShowMainWindow()
 	{
+		if (_lifetime is not IClassicDesktopStyleApplicationLifetime desktop)
+		{
+			return;
+		}
+
 		if (_isShuttingDown)
 		{
 			return;
 		}
 
-		if (_lifetime.MainWindow is { })
+		if (desktop.MainWindow is { })
 		{
 			return;
 		}
@@ -241,7 +292,7 @@ public class ApplicationStateManager : IMainWindowService
 			})
 			.DisposeWith(_compositeDisposable);
 
-		_lifetime.MainWindow = result;
+		desktop.MainWindow = result;
 
 		if (result.WindowState != WindowState.Maximized)
 		{
