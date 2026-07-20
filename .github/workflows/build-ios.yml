@@ -41,6 +41,7 @@ jobs:
                   }
               }
               char *real_path = "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real";
+              argv[0] = real_path;
               execv(real_path, argv);
               perror("execv failed");
               return 1;
