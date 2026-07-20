@@ -23,39 +23,8 @@ jobs:
           sudo rm -rf /Applications/Xcode.app
           sudo ln -s /Applications/Xcode_16.2.app /Applications/Xcode.app
           sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
-          sudo plutil -replace Version -string "26.4" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
-          sudo plutil -replace Version -string "26.4" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
-          sudo ln -s iPhoneSimulator.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.4.sdk
-          sudo ln -s iPhoneOS.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.4.sdk
-          sudo tee /tmp/xcodebuild_mock.c <<'EOF'
-          #include <stdio.h>
-          #include <string.h>
-          #include <unistd.h>
-          #include <stdlib.h>
-          int main(int argc, char *argv[]) {
-              for (int i = 1; i < argc; i++) {
-                  if (strcmp(argv[i], "-version") == 0) {
-                      printf("Xcode 26.4\n");
-                      printf("Build version 26D24\n");
-                      return 0;
-                  }
-              }
-              char *real_path = "/Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real";
-              char **new_argv = malloc((argc + 1) * sizeof(char *));
-              new_argv[0] = "xcodebuild";
-              for (int i = 1; i < argc; i++) {
-                  new_argv[i] = argv[i];
-              }
-              new_argv[argc] = NULL;
-              execv(real_path, new_argv);
-              perror("execv failed");
-              return 1;
-          }
-          EOF
-          gcc -O2 /tmp/xcodebuild_mock.c -o /tmp/xcodebuild
-          sudo mv /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real
-          sudo cp /tmp/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
-          sudo chmod +x /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
+          sudo plutil -replace CFBundleShortVersionString -string "26.4.1" /Applications/Xcode.app/Contents/Info.plist
+          sudo plutil -replace CFBundleShortVersionString -string "26.4.1" /Applications/Xcode.app/Contents/version.plist
           sudo xcodebuild -license accept
           xcodebuild -version
 
