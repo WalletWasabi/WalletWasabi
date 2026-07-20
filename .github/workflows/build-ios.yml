@@ -19,24 +19,26 @@ jobs:
 
       - name: Select Xcode Version
         run: |
-          sudo xcode-select -s /Applications/Xcode_16.2.app/Contents/Developer
-          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode_16.2.app/Contents/Info.plist
-          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode_16.2.app/Contents/version.plist
-          sudo plutil -replace Version -string "26.5" /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
-          sudo plutil -replace Version -string "26.5" /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
-          sudo ln -s iPhoneSimulator.sdk /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk
-          sudo ln -s iPhoneOS.sdk /Applications/Xcode_16.2.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk
-          sudo mv /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild.real
-          sudo tee /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild <<'EOF'
+          sudo rm -rf /Applications/Xcode.app
+          sudo ln -s /Applications/Xcode_16.2.app /Applications/Xcode.app
+          sudo xcode-select -s /Applications/Xcode.app/Contents/Developer
+          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode.app/Contents/Info.plist
+          sudo plutil -replace CFBundleShortVersionString -string "26.6" /Applications/Xcode.app/Contents/version.plist
+          sudo plutil -replace Version -string "26.5" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator.sdk/SDKSettings.plist
+          sudo plutil -replace Version -string "26.5" /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS.sdk/SDKSettings.plist
+          sudo ln -s iPhoneSimulator.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneSimulator.platform/Developer/SDKs/iPhoneSimulator26.5.sdk
+          sudo ln -s iPhoneOS.sdk /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS26.5.sdk
+          sudo mv /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real
+          sudo tee /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild <<'EOF'
           #!/bin/bash
           if [[ "$*" == *"-version"* ]]; then
             echo "Xcode 26.6"
             echo "Build version 26D26"
             exit 0
           fi
-          exec /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild.real "$@"
+          exec /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild.real "$@"
           EOF
-          sudo chmod +x /Applications/Xcode_16.2.app/Contents/Developer/usr/bin/xcodebuild
+          sudo chmod +x /Applications/Xcode.app/Contents/Developer/usr/bin/xcodebuild
           xcodebuild -version
 
       - name: Install Workloads
