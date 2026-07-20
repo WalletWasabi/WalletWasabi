@@ -115,25 +115,26 @@
 		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; --entitlements &quot;$(MSBuildProjectDirectory)/Entitlements.plist&quot; &quot;$(AppBundleDir)&quot;" />
 		<Message Importance="high" Text="--- Signed Frameworks and app bundle with key: $(_ActualSigningKey) ---" />
 	</Target>
-	<Target Name="FixExtraTrimmerArgs" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_ComputeLinkerInputs">
+	<!-- Custom targets for trimmer compatibility -->
+	<Target Name="FixExtraTrimmerArgs" AfterTargets="_ComputeLinkerInputs">
 		<PropertyGroup>
 			<_ExtraTrimmerArgs>$(_ExtraTrimmerArgs.Replace('--link-attributes &quot;$(_TrimAttributesLinkDescriptionPath)&quot;', ''))</_ExtraTrimmerArgs>
 		</PropertyGroup>
 		<Message Importance="high" Text="--- Modified _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
 	</Target>
-	<Target Name="UsePatchedLinkerAssembly" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_ComputeLinkerInputs">
+	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs">
 		<ItemGroup>
-			<_FilteredTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
-			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
-			<_TrimmerCustomSteps Include="@(_FilteredTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
-				<Type>%(_FilteredTrimmerCustomSteps.Type)</Type>
-				<BeforeStep>%(_FilteredTrimmerCustomSteps.BeforeStep)</BeforeStep>
-				<AfterStep>%(_FilteredTrimmerCustomSteps.AfterStep)</AfterStep>
+			<_PreserveBlockCodeStepItem Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' == 'Xamarin.Linker.Steps.PreserveBlockCodeStep'" />
+			<_TrimmerCustomSteps Remove="@(_PreserveBlockCodeStepItem)" />
+			<_TrimmerCustomSteps Include="@(_PreserveBlockCodeStepItem->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
+				<Type>%(_PreserveBlockCodeStepItem.Type)</Type>
+				<BeforeStep>%(_PreserveBlockCodeStepItem.BeforeStep)</BeforeStep>
+				<AfterStep>%(_PreserveBlockCodeStepItem.AfterStep)</AfterStep>
 			</_TrimmerCustomSteps>
 		</ItemGroup>
-		<Message Importance="high" Text="--- Redirected custom steps to dotnet-linker-patched.dll and removed OptimizeGeneratedCodeStep ---" />
+		<Message Importance="high" Text="--- Redirected only PreserveBlockCodeStep to dotnet-linker-patched.dll ---" />
 	</Target>
-	<Target Name="RestoreOriginalCoreLib" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" AfterTargets="_RunILLink">
+	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
 		<PropertyGroup>
 			<_RuntimeId Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">iossimulator-arm64</_RuntimeId>
 			<_RuntimeId Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">ios-arm64</_RuntimeId>
