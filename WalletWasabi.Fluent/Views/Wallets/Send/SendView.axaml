@@ -73,6 +73,14 @@
       <Setter Property="Margin" Value="0,0,0,4" />
     </Style>
 
+    <Style Selector=".mobile TextBlock.indent-mobile">
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector=".mobile Button.indent-mobile">
+      <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
     <Style Selector=".mobile Button">
       <Setter Property="Margin" Value="0" />
     </Style>
@@ -228,7 +236,7 @@
         </DockPanel>
       </DockPanel>
       <!-- Fee subtraction indicator for primary recipient -->
-      <TextBlock DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+      <TextBlock Classes="indent-mobile" DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
                  Text="The transaction fee will be subtracted from this payment"
                  ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
                  IsVisible="{Binding IsPrimarySubtractFee}" />
@@ -293,7 +301,7 @@
                     </TextBox.InnerRightContent>
                   </TextBox>
                 </DockPanel>
-                <TextBlock Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                <TextBlock Classes="indent-mobile" Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
                 <!-- Amount -->
                 <DockPanel Margin="0,0,0,15">
@@ -309,10 +317,10 @@
                                           ValidatePasteBalance="False" />
                   </DockPanel>
                 </DockPanel>
-                <TextBlock Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                <TextBlock Classes="indent-mobile" Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
                 <!-- Fee subtraction indicator -->
-                <TextBlock Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                <TextBlock Classes="indent-mobile" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
                            Text="The transaction fee will be subtracted from this payment"
                            ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
                            IsVisible="{Binding Value.IsSubtractFee}" />
@@ -338,7 +346,7 @@
       </ItemsControl>
 
       <!-- Add Recipient Button -->
-      <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
+      <Button Classes="indent-mobile" DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
               Content="+ Add another payment" Margin="80,0,0,10" HorizontalAlignment="Left"
               IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand"
               ToolTip.ShowOnDisabled="True">
