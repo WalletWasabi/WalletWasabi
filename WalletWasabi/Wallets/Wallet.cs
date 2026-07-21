@@ -291,6 +291,11 @@ public class Wallet : BackgroundService
 		return paymentId.ToString();
 	}
 
+	public void CancelCoinJoinPayment(Guid paymentId)
+	{
+		BatchedPayments.AbortPayment(paymentId);
+	}
+
 	/// <inheritdoc/>
 	public override async Task StopAsync(CancellationToken cancel)
 	{
