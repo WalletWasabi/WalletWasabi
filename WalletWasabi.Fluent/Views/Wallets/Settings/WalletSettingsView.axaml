@@ -5,9 +5,21 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
              xmlns:v="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Settings"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              x:DataType="vm:WalletSettingsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletSettingsView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="ContentArea.mobile /template/ DockPanel#PART_ButtonArea">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
   <ContentArea Title="{Binding Title}"
                EnableNext="True" NextContent="Done"
                EnableCancel="{Binding EnableCancel}"
