@@ -17,11 +17,12 @@
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<MtouchLink>SdkOnly</MtouchLink>
+		<MtouchLink Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">None</MtouchLink>
+		<MtouchLink Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">SdkOnly</MtouchLink>
 		<MtouchDebug Condition="'$(Configuration)' == 'Debug'">True</MtouchDebug>
-		<CodesignEntitlements Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">Entitlements.plist</CodesignEntitlements>
-		<SelfContained Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">true</SelfContained>
-		<PublishSelfContained Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">true</PublishSelfContained>
+		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+		<SelfContained>true</SelfContained>
+		<PublishSelfContained>true</PublishSelfContained>
 		<!-- 
 			WORKAROUND: Disable assembly IL stripping.
 			This prevents build errors when the ILStrip tool attempts to process native Windows PE files 
