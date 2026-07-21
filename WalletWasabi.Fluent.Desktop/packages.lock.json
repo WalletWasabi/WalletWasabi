@@ -806,50 +806,17 @@
         "resolved": "16.3.0",
         "contentHash": "SgMOdxbz8X65z8hraIs6hOEdnkH6hESTAIUa7viEngHOYaH+6q5XJmwr1+yb9vJpNQ19hCQY69xbFsLtXpobQA=="
       },
-      "cdp.integration.core": {
-        "type": "Project"
-      },
-      "cdp.integration.qase": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.testmo": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.testrail": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.xray": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.zephyr": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
       "Chrome.DevTools.Avalonia.v11": {
         "type": "Project",
         "dependencies": {
           "Avalonia": "[11.0.13, 12.0.0)",
           "Avalonia.Markup.Xaml.Loader": "[11.0.13, 12.0.0)",
-          "CDP.Integration.Core": "[0.1.0-preview.27, )",
-          "CDP.Integration.Qase": "[0.1.0-preview.27, )",
-          "CDP.Integration.TestMo": "[0.1.0-preview.27, )",
-          "CDP.Integration.TestRail": "[0.1.0-preview.27, )",
-          "CDP.Integration.Xray": "[0.1.0-preview.27, )",
-          "CDP.Integration.Zephyr": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Qase": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.TestMo": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.TestRail": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Xray": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Zephyr": "[0.1.0-preview.27, )",
           "Chrome.DevTools.Protocol": "[0.1.0-preview.27, )",
           "Chrome.DevTools.Xaml.Compiler": "[0.1.0-preview.27, )",
           "Jint": "[4.10.1, )",
@@ -861,6 +828,39 @@
           "Microsoft.Data.Sqlite": "[10.0.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.0, )",
           "SkiaSharp": "[2.88.9, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Core": {
+        "type": "Project"
+      },
+      "Chrome.DevTools.Integration.Qase": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.TestMo": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.TestRail": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Xray": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Zephyr": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
         }
       },
       "chrome.devtools.protocol": {
@@ -884,7 +884,7 @@
         "type": "Project",
         "dependencies": {
           "Microsoft.AspNetCore.WebUtilities": "[10.0.2, )",
-          "Microsoft.Data.Sqlite": "[10.0.9, )",
+          "Microsoft.Data.Sqlite": "[10.0.2, )",
           "Microsoft.Extensions.Caching.Abstractions": "[10.0.2, )",
           "Microsoft.Extensions.Hosting.Abstractions": "[10.0.2, )",
           "Microsoft.Extensions.Http": "[10.0.2, )",
@@ -1034,7 +1034,7 @@
       },
       "Microsoft.Data.Sqlite": {
         "type": "CentralTransitive",
-        "requested": "[10.0.9, )",
+        "requested": "[10.0.2, )",
         "resolved": "10.0.9",
         "contentHash": "/eBwiZPcNisn0qZX+Zk4YCftlK/vnoWqv7hHnmSk8MjPxFdYYkmPObpogT0MfCCWN6oAIZnMCo0SoOtZlbbmgQ==",
         "dependencies": {
