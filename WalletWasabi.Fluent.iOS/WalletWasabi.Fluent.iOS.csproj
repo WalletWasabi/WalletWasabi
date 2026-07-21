@@ -148,17 +148,17 @@
 		removes the 'OptimizeGeneratedCodeStep' step.
 		This prevents trimmer crashes (like infinite recursion or metadata inconsistencies) on large assemblies.
 	-->
-	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs">
+	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs" Condition="Exists('$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
 		<ItemGroup>
-			<_FilteredTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
-			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
-			<_TrimmerCustomSteps Include="@(_FilteredTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
-				<Type>%(_FilteredTrimmerCustomSteps.Type)</Type>
-				<BeforeStep>%(_FilteredTrimmerCustomSteps.BeforeStep)</BeforeStep>
-				<AfterStep>%(_FilteredTrimmerCustomSteps.AfterStep)</AfterStep>
+			<_PreserveBlockCodeStepItem Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' == 'Xamarin.Linker.Steps.PreserveBlockCodeStep'" />
+			<_TrimmerCustomSteps Remove="@(_PreserveBlockCodeStepItem)" />
+			<_TrimmerCustomSteps Include="@(_PreserveBlockCodeStepItem->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
+				<Type>%(_PreserveBlockCodeStepItem.Type)</Type>
+				<BeforeStep>%(_PreserveBlockCodeStepItem.BeforeStep)</BeforeStep>
+				<AfterStep>%(_PreserveBlockCodeStepItem.AfterStep)</AfterStep>
 			</_TrimmerCustomSteps>
 		</ItemGroup>
-		<Message Importance="high" Text="--- Redirected custom steps to dotnet-linker-patched.dll and removed OptimizeGeneratedCodeStep ---" />
+		<Message Importance="high" Text="--- Redirected only PreserveBlockCodeStep to dotnet-linker-patched.dll ---" />
 	</Target>
 
 	<!--
