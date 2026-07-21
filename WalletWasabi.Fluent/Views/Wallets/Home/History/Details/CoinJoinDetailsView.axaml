@@ -5,14 +5,49 @@
              xmlns:details="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coinjoins"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="details:CoinJoinDetailsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.History.Details.CoinJoinDetailsView"
              Name="CoinJoinDetails">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="UserControl.mobile StackPanel.input-container">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+      <Setter Property="Grid.Row" Value="0" />
+      <Setter Property="Margin" Value="0 0 0 10" />
+    </Style>
+    <Style Selector="UserControl.mobile PathIcon.arrow-icon">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+      <Setter Property="Grid.Row" Value="1" />
+      <Setter Property="RenderTransform">
+        <RotateTransform Angle="90" />
+      </Setter>
+      <Setter Property="Margin" Value="0 5" />
+      <Setter Property="HorizontalAlignment" Value="Center" />
+    </Style>
+    <Style Selector="UserControl.mobile StackPanel.output-container">
+      <Setter Property="Grid.Column" Value="0" />
+      <Setter Property="Grid.ColumnSpan" Value="3" />
+      <Setter Property="Grid.Row" Value="2" />
+      <Setter Property="Margin" Value="0 10 0 0" />
+    </Style>
+    <Style Selector="UserControl.mobile DockPanel.io-container">
+      <Setter Property="Margin" Value="0 -10 0 0" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
-                 NextContent="Done" EnableNext="True"
-                 EnableCancel="{Binding EnableCancel}">
+                  NextContent="Done" EnableNext="True"
+                  EnableCancel="{Binding EnableCancel}">
     <StackPanel Spacing="15">
 
       <!-- Transaction IDs -->
@@ -20,7 +55,7 @@
                      Label="Transaction ID"
                      CopyableContent="{Binding TransactionId}">
         <PrivacyContentControl>
-          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" />
+          <TextBlock Text="{Binding TransactionId}" Classes="monoSpaced" TextWrapping="Wrap" />
         </PrivacyContentControl>
       </PreviewItem>
 
@@ -50,14 +85,14 @@
       <!-- Inputs/Outputs -->
       <Separator />
       <PreviewItem Icon="{StaticResource input_count}" />
-      <DockPanel Margin="0 -35 0 0" LastChildFill="True">
-        <Grid ColumnDefinitions="*,30,*">
-          <StackPanel Grid.Column="0">
+      <DockPanel Classes="io-container" Margin="0 -35 0 0" LastChildFill="True">
+        <Grid RowDefinitions="Auto,Auto,Auto" ColumnDefinitions="*,30,*">
+          <StackPanel Classes="input-container" Grid.Row="0" Grid.Column="0">
             <TextBlock Margin="35 0 25 0" Text="Inputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
             <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding InputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
           </StackPanel>
-          <PathIcon Grid.Column="1" Opacity="0.6" Margin="0 48 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
-          <StackPanel Grid.Column="2">
+          <PathIcon Classes="arrow-icon" Grid.Row="0" Grid.Column="1" Opacity="0.6" Margin="0 48 0 0" VerticalAlignment="Top" Data="{StaticResource arrow_right_regular}"/>
+          <StackPanel Classes="output-container" Grid.Row="0" Grid.Column="2">
             <TextBlock Margin="35 0 25 0" Text="Outputs" FontSize="14" FontWeight="Bold" HorizontalAlignment="Center"/>
             <coinjoins:CoinjoinCoinListView Margin="10 15 10 0" DataContext="{Binding OutputList}" HorizontalAlignment="Stretch" VerticalAlignment="Stretch" />
           </StackPanel>
