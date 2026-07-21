@@ -199,7 +199,7 @@ public class KeyManager
 
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
-	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;
+	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.TaprootBIP86;
 
 	public PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; } = PreferredScriptPubKeyType.Unspecified.Instance;
 
@@ -809,7 +809,7 @@ public class KeyManager
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
-				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
+				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.TaprootBIP86),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
 				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
