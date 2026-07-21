@@ -7,6 +7,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
@@ -92,7 +93,7 @@ public class Round
 			throw new ArgumentException($"Invalid phase {phase}. This is a bug.", nameof(phase));
 		}
 
-		Logger.LogInfo($"Phase changed: {Phase} -> {phase}", this);
+		Logger.LogInfo(FormatLog($"Phase changed: {Phase} -> {phase}", this));
 		Phase = phase;
 
 		if (phase == Phase.ConnectionConfirmation)

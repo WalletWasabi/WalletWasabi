@@ -12,15 +12,20 @@ public class BlockHeadersChainBehavior(
 	EventBus eventBus)
 	: ChainBehavior(blockHeaderChain)
 {
+	private int _lastPublishedHeight;
+
 	protected override void AttachCore()
 	{
 		base.AttachCore();
 		AttachedNode.StateChanged += AttachedNodeOnStateChanged;
+		AttachedNode.MessageReceived += AttachedNodeOnMessageReceived;
+		_lastPublishedHeight = Chain.Tip?.Height ?? 0;
 	}
 
 	protected override void DetachCore()
 	{
 		AttachedNode.StateChanged -= AttachedNodeOnStateChanged;
+		AttachedNode.MessageReceived -= AttachedNodeOnMessageReceived;
 		base.DetachCore();
 	}
 
@@ -34,6 +39,19 @@ public class BlockHeadersChainBehavior(
 			{
 				filterHeaderChain.SetServerTipHeight((uint)theirBestFilterHeight);
 				eventBus.Publish(new NetworkTipHeightChanged((uint)theirBestFilterHeight));
+			}
+		}
+	}
+
+	private void AttachedNodeOnMessageReceived(Node node, IncomingMessage message)
+	{
+		if (message.Message.Payload is HeadersPayload)
+		{
+			var currentHeight = Chain.Tip?.Height ?? 0;
+			if (currentHeight > _lastPublishedHeight)
+			{
+				_lastPublishedHeight = currentHeight;
+				eventBus.Publish(new BlockHeadersTipChanged((uint)currentHeight));
 			}
 		}
 	}

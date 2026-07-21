@@ -1,8 +1,8 @@
 using System.Linq;
 using NBitcoin;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
@@ -292,7 +292,7 @@ public class CoinJoinCoinSelectionTests
 
 		var generator = new CoinJoinCoinSelectorRandomnessGenerator(
 			CoinJoinCoinSelector.MaxInputsRegistrableByWallet,
-			InsecureRandom.Instance,
+			RandomnessProviders.Insecure,
 			fixedInputTarget,
 			fixedSameTxAllowance);
 

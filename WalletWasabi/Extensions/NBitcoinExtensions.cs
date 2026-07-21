@@ -18,7 +18,7 @@ namespace WalletWasabi.Extensions;
 
 public static class NBitcoinExtensions
 {
-	public static async Task<Block> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
+	public static async Task<Block?> DownloadBlockAsync(this Node node, uint256 hash, CancellationToken cancellationToken)
 	{
 		if (node.State == NodeState.Connected)
 		{
@@ -34,19 +34,27 @@ public static class NBitcoinExtensions
 		// A good way to get any feedback about whether the node knows the block or not is to send a ping request.
 		// If block is not known by the remote node, the pong will be sent immediately, else it will be sent after the block download.
 		ulong pingNonce = RandomUtils.GetUInt64();
-		await node.SendMessageAsync(new PingPayload() { Nonce = pingNonce }).ConfigureAwait(false);
+		await node.SendMessageAsync(new PingPayload { Nonce = pingNonce }).ConfigureAwait(false);
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 			var message = listener.ReceiveMessage(cancellationToken);
-			if (message.Message.Payload is NotFoundPayload ||
-				(message.Message.Payload is PongPayload p && p.Nonce == pingNonce))
-			{
-				throw new InvalidOperationException($"Disconnected node, because it does not have the block data.");
-			}
-			else if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
+
+			if (message.Message.Payload is BlockPayload b && b.Object?.GetHash() == hash)
 			{
 				return b.Object;
+			}
+
+			if (message.Message.Payload is NotFoundPayload)
+			{
+				return node.SupportsNetwork
+					? throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} didn't found block {hash} which we assume exists.")
+					: null;
+			}
+
+			if (message.Message.Payload is PongPayload p && p.Nonce == pingNonce)
+			{
+				throw new InvalidOperationException($"Node {node.RemoteSocketEndpoint} send us wrong pong nonce.");
 			}
 		}
 	}
@@ -455,5 +463,14 @@ public static class NBitcoinExtensions
 	{
 		public bool SupportsCompactFilters =>
 			node.PeerVersion?.Services.HasFlag(NodeServices.NODE_COMPACT_FILTERS) == true;
+
+		public bool SupportsNetwork =>
+			node.PeerVersion?.Services.HasFlag(NodeServices.Network) == true;
+
+		public bool SupportsNetworkLimited =>
+			node.PeerVersion?.Services.HasFlag(NodeServices.NODE_NETWORK_LIMITED) == true;
+
+		public bool CanServeBlocks =>
+			node.SupportsNetwork || node.SupportsNetworkLimited;
 	}
 }

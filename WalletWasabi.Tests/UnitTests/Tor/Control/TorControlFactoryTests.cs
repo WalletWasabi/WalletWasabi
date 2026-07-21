@@ -1,8 +1,6 @@
-using NBitcoin;
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
 using Xunit;
@@ -27,12 +25,7 @@ public class TorControlFactoryTests
 		string serverHash = "E3C00FB4A14AF48B43CE8A13E4BB01F8C72796352072B1994EE21D35148931C1";
 		string serverNonce = "1650507A46A2979974DA72A833523B72789A65F6E24EAA59C5DF1D3DC294228D";
 
-		var mockRandom = new TesteableRandom
-		{
-			OnGetBytes = (buffer) => Array.Copy(sourceArray: Convert.FromHexString(clientNonce), buffer, 32)
-		};
-
-		TorControlClientFactory clientFactory = new(mockRandom);
+		TorControlClientFactory clientFactory = new(span => Convert.FromHexString(clientNonce).CopyTo(span));
 
 		Pipe toServer = new();
 		Pipe toClient = new();
@@ -64,20 +57,5 @@ public class TorControlFactoryTests
 		Logger.LogTrace("Client: Verify the authentication task finishes correctly.");
 		TorControlClient authenticatedClient = await authenticationTask;
 		Assert.NotNull(authenticatedClient);
-	}
-}
-
-class TesteableRandom : IRandom
-{
-	public Action<byte[]>? OnGetBytes { get; set; }
-
-	public void GetBytes(byte[] output)
-	{
-		OnGetBytes?.Invoke(output);
-	}
-
-	public void GetBytes(Span<byte> output)
-	{
-		throw new NotImplementedException();
 	}
 }

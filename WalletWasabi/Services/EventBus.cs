@@ -136,3 +136,6 @@ public record WalletRelevantTransactionProcessed(string WalletName, ProcessedRes
 public record NodeDisconnectedQuickly(EndPoint EndPoint, Node Node);
 public record MisbehavingNodeDetected(EndPoint EndPoint, Node Node);
 public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
+public record FilterHeadersTipChanged(uint Height);
+public record BlockHeadersTipChanged(uint Height);
+public record BlockDownloaded(uint Height);

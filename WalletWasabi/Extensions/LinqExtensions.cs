@@ -1,14 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Numerics;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.Extensions;
 
 public static class LinqExtensions
 {
-	public static T? RandomElement<T>(this IEnumerable<T> source, WasabiRandom random)
+	public static T? RandomElement<T>(this IEnumerable<T> source, RandomnessProvider random)
 	{
 		T? current = default;
 		int count = 0;
@@ -16,7 +15,7 @@ public static class LinqExtensions
 		{
 			count++;
 
-			if (random.GetInt(0, count) == 0)
+			if (random.GetInt(count) == 0)
 			{
 				current = element;
 			}
@@ -28,11 +27,11 @@ public static class LinqExtensions
 	/// Selects a random element based on order bias.
 	/// </summary>
 	/// <param name="biasPercent">1-100, eg. if 80, then 80% probability for the first element.</param>
-	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, WasabiRandom random)
+	public static T? BiasedRandomElement<T>(this IEnumerable<T> source, int biasPercent, RandomnessProvider random)
 	{
 		foreach (T element in source)
 		{
-			if (random.GetInt(1, 101) <= biasPercent)
+			if (random.GetInt(100) < biasPercent)
 			{
 				return element;
 			}
@@ -41,23 +40,27 @@ public static class LinqExtensions
 		return source.Any() ? source.First() : default;
 	}
 
-	public static IList<T> Shuffle<T>(this IList<T> list, WasabiRandom random)
+	public static T[] Shuffle<T>(this T[] array, RandomnessProvider random)
 	{
-		int n = list.Count;
-		while (n > 1)
-		{
-			n--;
-			int k = random.GetInt(0, n + 1);
-			T value = list[k];
-			list[k] = list[n];
-			list[n] = value;
-		}
-		return list;
+		array.AsSpan().Shuffle(random);
+		return array;
 	}
 
-	public static IList<T> ToShuffled<T>(this IEnumerable<T> list, WasabiRandom random)
+	public static void Shuffle<T>(this Span<T> span, RandomnessProvider random)
 	{
-		return list.ToList().Shuffle(random);
+		for (var i = span.Length - 1; i > 0; i--)
+		{
+			var j = random.GetInt(i + 1);
+			(span[i], span[j]) = (span[j], span[i]);
+		}
+	}
+
+	public static IList<T> ToShuffled<T>(this IList<T> input, RandomnessProvider random)
+	{
+		var output = input.ToArray();
+		output.Shuffle(random);
+
+		return output;
 	}
 
 	/// <summary>
@@ -172,7 +175,7 @@ public static class LinqExtensions
 
 	public static double WeightedAverage<T>(this IEnumerable<T> source, Func<T, double> value, Func<T, double> weight)
 	{
-		return source.Select(x => value(x) * weight(x)).Sum() / source.Select(weight).DefaultIfEmpty(1).Sum();
+		return source.Sum(x => value(x) * weight(x)) / source.Select(weight).DefaultIfEmpty(1).Sum();
 	}
 
 	public static int MaxOrDefault(this IEnumerable<int> me, int defaultValue) =>

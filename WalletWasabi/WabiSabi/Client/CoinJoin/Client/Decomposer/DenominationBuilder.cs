@@ -1,7 +1,7 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
@@ -13,7 +13,7 @@ public static class DenominationBuilder
 		Money maxAllowedOutputAmount,
 		FeeRate feeRate,
 		IEnumerable<ScriptType> allowedOutputTypes,
-		WasabiRandom random)
+		RandomnessProvider random)
 	{
 		Output CreateDenom(decimal sats) =>
 			Output.FromDenomination(Money.Satoshis((ulong)sats), allowedOutputTypes.RandomElement(random), feeRate);

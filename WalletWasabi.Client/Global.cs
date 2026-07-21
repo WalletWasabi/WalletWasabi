@@ -38,6 +38,7 @@ using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
@@ -92,10 +93,10 @@ public class Global
 		var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 		_blockHeaders = ConfigureBlockHeaderChain(p2PDataDir);
 
-		_nodeConnectionManager = ConfigureNodeConnectionManager();
+		_p2pConnectionManager = ConfigureNodeConnectionManager();
 		_bitcoinRpcClient = ConfigureBitcoinRpcClient();
 		var cpfpProvider = ConfigureCpfpInfoProvider();
-		var blockProvider = ConfigureBlockProvider(_nodeConnectionManager, fileSystemBlockRepository);
+		var blockProvider = ConfigureBlockProvider(_p2pConnectionManager, fileSystemBlockRepository);
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -111,7 +112,7 @@ public class Global
 		var walletDirectories = new WalletDirectories(Config.Network, DataDir);
 		WalletManager = new WalletManager(Config.Network, walletDirectories, walletFactory);
 
-		var broadcasters = CreateBroadcasters(_nodeConnectionManager, _mempoolService);
+		var broadcasters = CreateBroadcasters(p2PNodeListProvider: () => _p2pConnectionManager.Nodes, _mempoolService);
 		TransactionBroadcaster = new TransactionBroadcaster(broadcasters.ToArray(), _mempoolService);
 
 		Scheme = new Scheme(this);
@@ -125,7 +126,7 @@ public class Global
 	private readonly AsyncLock _initializationAsyncLock = new();
 	private readonly CancellationTokenSource _stoppingCts = new();
 
-	private readonly NodeConnectionManager _nodeConnectionManager;
+	private readonly P2pConnectionManager _p2pConnectionManager;
 	private TorManager? _torManager;
 	private readonly IRPCClient? _bitcoinRpcClient;
 	private CoinPrison? _coinPrison;
@@ -155,11 +156,10 @@ public class Global
 
 	private string GetBitcoinP2PNetworkDirectory() => Path.Combine(DataDir, "BitcoinP2pNetwork");
 
-	private BlockProvider ConfigureBlockProvider(INodesRegistry nodesRegistry, FileSystemBlockRepository fileSystemBlockRepository)
+	private BlockProvider ConfigureBlockProvider(P2pConnectionManager p2pConnectionManager, FileSystemBlockRepository fileSystemBlockRepository)
 	{
-		var p2PNodesManager = new P2PNodesManager(Network, nodesRegistry);
 		var fileSystemBlockProvider = BlockProviders.FileSystemBlockProvider(fileSystemBlockRepository);
-		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2PNodesManager, EventBus);
+		var p2PBlockProvider = BlockProviders.P2pBlockProvider(p2pConnectionManager.GetSingleUseNodeAsync);
 
 		BlockProvider[] blockProviders = _bitcoinRpcClient is null
 			? [fileSystemBlockProvider, p2PBlockProvider]
@@ -173,6 +173,13 @@ public class Global
 	private ConcurrentChain ConfigureBlockHeaderChain(string p2PDataDir)
 	{
 		var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");
+
+		if (Network == Network.RegTest)
+		{
+			DeleteBlockHeadersFile(blockHeadersFilePath);
+			return new ConcurrentChain(Network);
+		}
+
 		var blockHeaders = Result<byte[], Exception>
 			.Catch(() => File.SafelyReadAllBytes(blockHeadersFilePath))
 			.Match(
@@ -186,7 +193,18 @@ public class Global
 		return blockHeaders;
 	}
 
-	private NodeConnectionManager ConfigureNodeConnectionManager()
+	private static void DeleteBlockHeadersFile(string blockHeadersFilePath)
+	{
+		foreach (var path in new[] { blockHeadersFilePath, $"{blockHeadersFilePath}.old", $"{blockHeadersFilePath}.new" })
+		{
+			if (File.Exists(path))
+			{
+				File.Delete(path);
+			}
+		}
+	}
+
+	private P2pConnectionManager ConfigureNodeConnectionManager()
 	{
 		if (Network == Network.Main)
 		{
@@ -265,7 +283,7 @@ public class Global
 			? new DnsSocksResolver(torEndpoint)
 			: DnsResolver.Instance;
 
-		var manager = new NodeConnectionManager(
+		var manager = new P2pConnectionManager(
 			Network,
 			EventBus,
 			dnsResolver,
@@ -284,7 +302,7 @@ public class Global
 
 	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
 	{
-		_nodeConnectionManager.Start(cancellationToken);
+		_p2pConnectionManager.Start(cancellationToken);
 	}
 
 	private RpcClientBase? ConfigureBitcoinRpcClient()
@@ -391,8 +409,8 @@ public class Global
 				_ =>
 				{
 					var tip = FilterStore.GetTip()!.Header;
-					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height);
-					_nodeConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
+					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
+					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
 				});
@@ -720,11 +738,11 @@ public class Global
 		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
 	}
 
-	private List<IBroadcaster> CreateBroadcasters(INodesRegistry nodes, MempoolService mempoolService)
+	private List<IBroadcaster> CreateBroadcasters(P2pNodeListProvider p2PNodeListProvider, MempoolService mempoolService)
 	{
 		List<IBroadcaster> result =
 		[
-			new NetworkBroadcaster(mempoolService, nodes)
+			new NetworkBroadcaster(mempoolService, p2PNodeListProvider)
 		];
 
 		if (_bitcoinRpcClient is not null)
@@ -742,7 +760,10 @@ public class Global
 		return result;
 	}
 
-	public ImmutableArray<Node> GetNodes() => _nodeConnectionManager.Nodes;
+	public ImmutableArray<Node> GetNodes() => _p2pConnectionManager.Nodes;
+	public uint GetBlockHeadersTipHeight() => (uint)(_blockHeaders.Tip?.Height ?? 0);
+	public int GetPeerCount() => _p2pConnectionManager.Nodes.Length;
+
 	public async Task DisposeAsync()
 	{
 		// Dispose method may be called just once.
@@ -773,7 +794,7 @@ public class Global
 					Logger.LogError($"Error during {nameof(WalletManager.RemoveAndStopAllAsync)}: {ex}");
 				}
 
-				if (_blockHeaders.Tip is not null)
+				if (Network != Network.RegTest && _blockHeaders.Tip is not null)
 				{
 					var p2PDataDir = GetBitcoinP2PNetworkDirectory();
 					var blockHeadersFilePath = Path.Combine(p2PDataDir, $"BlockHeaders{Network}.dat");

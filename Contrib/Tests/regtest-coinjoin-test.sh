@@ -182,6 +182,9 @@ create_and_fund_wallet() {
   local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
   echo "← $response"
 
+  echo -e "${YELLOW}Generating a block to make sure wallet loading will succeed...${NC}"
+  bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest generatetoaddress 1 $(bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" getnewaddress) > /dev/null
+
   echo -e "${YELLOW}Loading wallet $wallet_name...${NC}"
   local request="{\"jsonrpc\":\"2.0\",\"id\":\"2\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\"]}"
   echo "→ $request"
@@ -253,7 +256,8 @@ echo -e "${YELLOW}Wasabi datadir: $WASABI_DATADIR${NC}"
 
 
 # Keep script running
-echo -e "${GREEN}✓ Setup complete. Wait for coinjoin, or press Ctrl+C to stop all services.${NC}"
+echo -e "${GREEN}✓ Setup complete.${NC}"
+echo -e "${YELLOW}Wait for coinjoin, or press Ctrl+C to stop all services.${NC}"
 TEST_TIMEOUT=600
 
 timeout $TEST_TIMEOUT tail -f "$WASABI_COORDINATOR_LOGFILE" | grep -q "Successfully broadcast the coinjoin"

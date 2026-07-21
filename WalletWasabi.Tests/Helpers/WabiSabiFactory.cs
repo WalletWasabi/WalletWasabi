@@ -27,6 +27,7 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -319,7 +320,7 @@ public static class WabiSabiFactory
 		return CreateTestCoinJoinClient(
 			apiClientFactory,
 			new KeyChain(keyManager, ""),
-			new OutputProvider(new InternalDestinationProvider(keyManager)),
+			new OutputProvider(new InternalDestinationProvider(keyManager), RandomnessProviders.Insecure),
 			roundStateProvider,
 			keyManager.NonPrivateCoinIsolation);
 	}

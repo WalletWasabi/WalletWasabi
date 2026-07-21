@@ -5,7 +5,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
@@ -14,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class AmountDecomposerTests
 {
-	private static readonly InsecureRandom Random = new(seed: 0);
+	private static readonly RandomnessProvider Random = RandomExtensions.CreateSeeded(seed: 0);
 
 	[Theory]
 	[InlineData(0, 0, 8)]
@@ -52,7 +51,7 @@ public class AmountDecomposerTests
 		var allowedOutputAmountRange = new MoneyRange(Money.Satoshis(minOutputAmount), Money.Satoshis(ProtocolConstants.MaxAmountPerAlice));
 		var allowedOutputTypes = isTaprootEnabled ? new List<ScriptType>() { ScriptType.Taproot, ScriptType.P2WPKH } : new List<ScriptType>() { ScriptType.P2WPKH };
 
-		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange.Min, allowedOutputAmountRange.Max, availableVsize, allowedOutputTypes, InsecureRandom.Instance);
+		var amountDecomposer = new AmountDecomposer(feeRate, allowedOutputAmountRange.Min, allowedOutputAmountRange.Max, availableVsize, allowedOutputTypes, RandomnessProviders.Insecure);
 		var allCoinEffectiveValues = theirCoinEffectiveValues.Concat(registeredCoinEffectiveValues);
 		var outputValues = amountDecomposer.Decompose(registeredCoinEffectiveValues.Sum(), allCoinEffectiveValues);
 
@@ -65,7 +64,7 @@ public class AmountDecomposerTests
 		}
 		else
 		{
-			// The number of outputs cannot be ensure bacause of random scriptype generation. Instead we verify the total.
+			// The number of outputs cannot be ensure because of random scriptype generation. Instead we verify the total.
 			Assert.InRange(outputValues.Sum(x => x.ScriptType.EstimateOutputVsize()), 1, availableVsize);
 		}
 

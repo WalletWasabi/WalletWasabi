@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
-using WabiSabi.Crypto.Randomness;
+using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -19,7 +19,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	/// <param name="fixedSameTxAllowance">Only for testing purposes.</param>
 	public CoinJoinCoinSelectorRandomnessGenerator(
 		int maxInputsCount,
-		WasabiRandom rnd,
+		RandomnessProvider rnd,
 		GetInputTargetSelector? fixedInputTarget = null,
 		GetSameTxAllowanceSelector? fixedSameTxAllowance = null)
 	{
@@ -35,7 +35,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 		}
 	}
 
-	public WasabiRandom Rnd { get; }
+	public RandomnessProvider Rnd { get; }
 	private readonly int _maxInputsCount;
 	private Dictionary<int, int> Distance { get; } = new();
 
@@ -52,7 +52,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	{
 		foreach (var best in Distance.OrderBy(x => x.Value))
 		{
-			if (Rnd.GetInt(0, 10) < 5)
+			if (Rnd.GetInt(10) < 5)
 			{
 				return best.Key;
 			}
@@ -65,7 +65,7 @@ public class CoinJoinCoinSelectorRandomnessGenerator
 	{
 		for (int num = 0; num <= 100; num++)
 		{
-			if (Rnd.GetInt(1, 101) <= percent)
+			if (Rnd.GetInt(100) < percent)
 			{
 				return num;
 			}

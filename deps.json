@@ -595,6 +595,11 @@
     "hash": "sha256-g7TkwqtrLNmyoIx3xRbLyDYHP7TvGgXL6+QtGjVxyq0="
   },
   {
+    "pname": "NScheme",
+    "version": "0.0.1",
+    "hash": "sha256-kD2/DqDORKEM7cQGBbnPQ8kH7R3Kk0qFT5tpKVmdtK8="
+  },
+  {
     "pname": "QRackers",
     "version": "1.1.0",
     "hash": "sha256-ssYywDrJTMl2ZIBNyYO/TWBAxOtWJ7hI4UG7SXgsF/E="

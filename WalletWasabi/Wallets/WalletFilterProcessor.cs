@@ -2,7 +2,6 @@ using Microsoft.Extensions.Hosting;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
@@ -49,8 +48,11 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly TaskCompletionSource _initialSynchronizationFinished;
 
 	public Task InitialSynchronizationFinished => _initialSynchronizationFinished.Task;
+
 	/// <summary>Make sure we don't process any request while a reorg is happening.</summary>
 	private readonly AsyncLock _reorgLock = new();
+
+	private IDisposable? _chainReorgSubscription;
 
 	/// <inheritdoc />
 	/// <summary>Used for filter synchronization.</summary>
@@ -76,8 +78,8 @@ public class WalletFilterProcessor : BackgroundService
 					if (filter is null)
 					{
 						// The wallet being processed had been synchronized until a blockchain height which is higher
-						// than the top filters that Wasabi has received. That means that the filters were
-						// resetted or, the wallet was copied and pasted from a more updated setup.
+						// than the top filters that Wasabi has received. That means that the filters were reset, or
+						// the wallet was copied and pasted from a more updated setup.
 						// Wait for the index store to catch up.
 						await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
 						continue;
@@ -103,10 +105,8 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancel)
+	private async Task<bool> ProcessFilterModelAsync(FilterModel filter, CancellationToken cancellationToken)
 	{
-		var height = new ChainHeight(filter.Header.Height);
-
 		var toTestKeys = _keyManager.UnsafeGetSynchronizationInfos();
 
 		var matchFound = false;
@@ -118,15 +118,21 @@ public class WalletFilterProcessor : BackgroundService
 			{
 				// Wait until downloaded.
 				Logger.LogInfo($"Obtaining block {filter.Header.BlockHash}...");
-				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancel).ConfigureAwait(false);
+				var currentBlock = await _blockProvider(filter.Header.BlockHash, cancellationToken).ConfigureAwait(false);
 				if (currentBlock is { })
 				{
-					var txsToProcess = new List<SmartTransaction>();
-					for (int i = 0; i < currentBlock.Transactions.Count; i++)
+					_eventBus.Publish(new BlockDownloaded(filter.Header.Height));
+
+					var height = new ChainHeight(filter.Header.Height);
+					var blockHash = currentBlock.GetHash();
+					var blockTime = currentBlock.Header.BlockTime;
+					var blockTransactions = currentBlock.Transactions;
+					var txsToProcess = new List<SmartTransaction>(capacity: blockTransactions.Count);
+
+					for (int i = 0; i < blockTransactions.Count; i++)
 					{
-						Transaction tx = currentBlock.Transactions[i];
-						txsToProcess.Add(new SmartTransaction(tx, height, currentBlock.GetHash(), i,
-							firstSeen: currentBlock.Header.BlockTime));
+						var tx = new SmartTransaction(blockTransactions[i], height, blockHash, blockIndex: i, firstSeen: blockTime);
+						txsToProcess.Add(tx);
 					}
 
 					_transactionProcessor.Process(txsToProcess);
@@ -161,8 +167,6 @@ public class WalletFilterProcessor : BackgroundService
 		}
 	}
 
-
-	private IDisposable? _chainReorgSubscription;
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.Filter));

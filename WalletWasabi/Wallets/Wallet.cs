@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -11,6 +12,7 @@ using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Helpers;
@@ -63,7 +65,7 @@ public class Wallet : BackgroundService
 		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch();
-		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments);
+		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
 		WalletId = new WalletId(Guid.NewGuid());
 
@@ -79,10 +81,13 @@ public class Wallet : BackgroundService
 			.DisposeUsing(_disposables);
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
+		_eventBus.Subscribe<FilterProcessed>(e => _lastFilterProcess = e.Filter.Header.Height)
+			.DisposeUsing(_disposables);
 	}
 
 	private readonly EventBus _eventBus;
 	private readonly FilterStore _filterStore;
+	private ChainHeight _lastFilterProcess = 0;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 
@@ -236,15 +241,18 @@ public class Wallet : BackgroundService
 	}
 
 	/// <inheritdoc/>
-	public override async Task StartAsync(CancellationToken cancel)
+	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		await WalletFilterProcessor.StartAsync(cancel).ConfigureAwait(false);
+		await WalletFilterProcessor.StartAsync(cancellationToken).ConfigureAwait(false);
+		Logger.LogTrace(FormatLog("Wallet filter processor is started.", this));
 
-		await LoadWalletStateAsync(cancel).ConfigureAwait(false);
+		await LoadWalletStateAsync(cancellationToken).ConfigureAwait(false);
+		Logger.LogTrace(FormatLog("State is loaded.", this));
+
 		LoadDummyMempool();
 		LoadExcludedCoins();
 
-		await base.StartAsync(cancel).ConfigureAwait(false);
+		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 
 		Loaded = true;
 		_eventBus.Publish(new WalletLoaded(this));
@@ -323,27 +331,29 @@ public class Wallet : BackgroundService
 		}
 	}
 
-	private async Task LoadWalletStateAsync(CancellationToken cancel)
+	private async Task LoadWalletStateAsync(CancellationToken cancellationToken)
 	{
 		// Make sure that the keys are asserted in case of an empty HdPubKeys array.
 		KeyManager.GetKeys();
 
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
-		// Each time a new batch of filters is downloaded, request a synchronization.
-		var lastHashesLeft = FilterHeaderChain.HashesLeft;
-		while (FilterHeaderChain.HashesLeft > 0)
+		int i = 0;
+		while (_lastFilterProcess < FilterHeaderChain.ServerTipHeight)
 		{
-			cancel.ThrowIfCancellationRequested();
-			if (lastHashesLeft == FilterHeaderChain.HashesLeft)
+			i++;
+
+			// Every ten seconds, log a message to indicate that the wallet is waiting for filters to be processed.
+			if (i % 100 == 0)
 			{
-				await Task.Delay(100, cancel).ConfigureAwait(false);
-				continue;
+				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({_lastFilterProcess} < {FilterHeaderChain.ServerTipHeight})", this));
 			}
-			lastHashesLeft = FilterHeaderChain.HashesLeft;
+
+			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
 		}
 
-		await WalletFilterProcessor.InitialSynchronizationFinished.WaitAsync(cancel).ConfigureAwait(false);
+		Logger.LogTrace(FormatLog("Waiting for initial synchronization to finish.", this));
+		await WalletFilterProcessor.InitialSynchronizationFinished.WaitAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	private void LoadDummyMempool()

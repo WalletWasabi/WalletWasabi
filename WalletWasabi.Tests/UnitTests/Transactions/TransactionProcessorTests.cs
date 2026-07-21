@@ -43,11 +43,45 @@ public class TransactionProcessorTests
 	}
 
 	[Fact]
+	public async Task SameWalletLoadedTwiceDoesNotLeakDefaultAnonScoreAsync()
+	{
+		// Reproduces #7453 / #9843 / #12648. The same wallet loaded twice shares one transaction
+		// store, so it shares each SmartTransaction. WalletOutputs is a set keyed by outpoint
+		// (SmartCoin equality is outpoint-only), so only the first instance's coin is kept there and
+		// gets analyzed. The second instance's HdPubKey for the very same output is never analyzed and
+		// would keep the DefaultHighAnonymitySet sentinel (int.MaxValue), wrongly marking the coin
+		// fully private and excluding it from coinjoins.
+		using var txStore = await CreateTransactionStoreAsync();
+
+		var km1 = KeyManager.CreateNew(out var mnemonic, "pw", Network.Main);
+		var km2 = KeyManager.Recover(mnemonic, "pw", Network.Main, km1.SegwitAccountKeyPath, km1.TaprootAccountKeyPath);
+
+		var eventBus = new EventBus();
+		var tp1 = new TransactionProcessor(txStore, null, km1, Money.Coins(0.0001m), eventBus);
+		var tp2 = new TransactionProcessor(txStore, null, km2, Money.Coins(0.0001m), eventBus);
+
+		// A receive to a key both instances of the wallet control (identical derivation).
+		var receiveKey = km1.GetNextReceiveKey(LabelsArray.Empty);
+		var tx = CreateCreditingTransaction(receiveKey.P2wpkhScript, Money.Coins(1.0m), height: 100);
+
+		// The first instance processes it: its coin becomes the analyzed representative (anonset 1).
+		tp1.Process(tx);
+		// The second instance processes the very same shared transaction.
+		tp2.Process(tx);
+
+		var coin1 = Assert.Single(tp1.Coins);
+		var coin2 = Assert.Single(tp2.Coins);
+		Assert.Equal(1, coin1.HdPubKey.AnonymitySet);
+		Assert.NotEqual(HdPubKey.DefaultHighAnonymitySet, coin2.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin2.HdPubKey.AnonymitySet);
+	}
+
+	[Fact]
 	public async Task SpendToLegacyScriptsAsync()
 	{
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// A payment to a key under our control but using P2PKH script (legacy)
 		var tx = CreateCreditingTransaction(keys.First().PubKey.GetScriptPubKey(ScriptPubKeyType.Legacy), Money.Coins(1.0m));
@@ -244,7 +278,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// An unconfirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
@@ -276,7 +310,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync(nameof(ProcessSameTransactionTwiceAsync));
 		var transactionProcessor = CreateTransactionProcessor(txStore);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		// An unconfirmed segwit transaction for us
 		var tx0 = CreateCreditingTransaction(keys[0].GetAssumedScriptPubKey(), Money.Coins(1.0m));
@@ -302,7 +336,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 
 		int doubleSpendReceived = 0;
 		using var _ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
@@ -563,7 +597,7 @@ public class TransactionProcessorTests
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore, out var eventBus);
 
-		var keys = transactionProcessor.KeyManager.GetKeys().ToArray();
+		var keys = transactionProcessor.KeyManager.GetKeys();
 		int confirmed = 0;
 		using var __ = eventBus.Subscribe<WalletRelevantTransactionProcessed>(x =>
 		{

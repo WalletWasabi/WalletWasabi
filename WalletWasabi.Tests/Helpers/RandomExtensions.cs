@@ -1,13 +1,35 @@
+using WalletWasabi.Crypto.Randomness;
+
 namespace WalletWasabi.Tests.Helpers;
 
 public static class RandomExtensions
 {
-	public static double Gaussian(this Random random, double mean, double stddev)
+	public static RandomnessProvider CreateSeeded(int seed)
 	{
-		var x1 = 1 - random.NextDouble();
-		var x2 = 1 - random.NextDouble();
+		var random = new Random(seed);
+		return random.NextBytes;
+	}
 
-		var y1 = Math.Sqrt(-2.0 * Math.Log(x1)) * Math.Cos(2.0 * Math.PI * x2);
-		return (y1 * stddev) + mean;
+	public static long GetInt64(this RandomnessProvider generator, long fromInclusive, long toExclusive)
+	{
+		if (fromInclusive >= toExclusive)
+		{
+			throw new ArgumentOutOfRangeException(nameof(toExclusive), "toExclusive must be greater than fromInclusive");
+		}
+
+		var range = (ulong)(toExclusive - fromInclusive);
+
+		Span<byte> bytes = stackalloc byte[8];
+		generator(bytes);
+		var value = BitConverter.ToUInt64(bytes);
+
+		var max = ulong.MaxValue - (ulong.MaxValue % range);
+		while (value >= max)
+		{
+			generator(bytes);
+			value = BitConverter.ToUInt64(bytes);
+		}
+
+		return (long)(value % range) + fromInclusive;
 	}
 }

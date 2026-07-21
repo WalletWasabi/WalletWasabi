@@ -8,6 +8,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.Logging;
 
@@ -21,49 +22,34 @@ public static class Logger
 	private static long MaximumLogFileSizeBytes { get; set; } = 10_000_000;
 	private static long LogFileSizeBytes { get; set; }
 
-
 	public static void Configure(string filePath, LogLevel? logLevel = null, LogMode[]? logModes = null)
-	{
-		SetFilePath(filePath);
-
-#if RELEASE
-		logLevel ??= LogLevel.Info;
-		logModes ??= [LogMode.Console, LogMode.File];
-#else
-		logLevel ??= LogLevel.Debug;
-		logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
-#endif
-
-		SetMinimumLevel(logLevel.Value);
-		SetModes(logModes);
-
-		lock (Lock)
-		{
-			if (MinimumLevel == LogLevel.Trace)
-			{
-				MaximumLogFileSizeBytes = 0;
-			}
-		}
-	}
-
-	public static void SetMinimumLevel(LogLevel level) => MinimumLevel = level;
-
-	public static void SetModes(params LogMode[] modes)
-	{
-		Modes.Clear();
-		Modes.UnionWith(modes);
-	}
-
-	public static void SetFilePath(string filePath)
 	{
 		FilePath = filePath;
 		IoHelpers.EnsureContainingDirectoryExists(FilePath);
 
-		if (File.Exists(FilePath))
+		lock (Lock)
 		{
-			lock (Lock)
+			if (File.Exists(FilePath))
 			{
 				LogFileSizeBytes = new FileInfo(FilePath).Length;
+			}
+
+#if RELEASE
+			logLevel ??= LogLevel.Info;
+			logModes ??= [LogMode.Console, LogMode.File];
+#else
+			logLevel ??= LogLevel.Debug;
+			logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
+#endif
+
+			MinimumLevel = logLevel.Value;
+
+			Modes.Clear();
+			Modes.UnionWith(logModes);
+
+			if (MinimumLevel == LogLevel.Trace)
+			{
+				MaximumLogFileSizeBytes = 0;
 			}
 		}
 	}
@@ -259,6 +245,7 @@ public static class LoggerTools
 	}
 
 	public static string FormatLog(string msg, string ctx) => $"{ctx} {msg}";
+	public static string FormatLog(string msg, Round round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, RoundState round) => FormatLog(msg, $"Round {ShortString(round.Id)}");
 	public static string FormatLog(string msg, AliceClient aliceClient) =>
 		FormatLog(msg, $"Round {ShortString(aliceClient.RoundId)} Alice {ShortString(aliceClient.AliceId)} EffValue {aliceClient.EffectiveValue}");

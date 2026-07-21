@@ -3,13 +3,12 @@ using System.Collections.Generic;
 using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
-using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
-using SecureRandom = WabiSabi.Crypto.Randomness.SecureRandom;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
@@ -31,13 +30,13 @@ public class CoinJoinCoinSelector
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
 
-		_generator = generator ?? new(MaxInputsRegistrableByWallet, SecureRandom.Instance);
+		_generator = generator ?? new(MaxInputsRegistrableByWallet, RandomnessProviders.Secure);
 	}
 
 	public bool ConsolidationMode { get; }
 	public int AnonScoreTarget { get; }
 	public int SemiPrivateThreshold { get; }
-	private WasabiRandom Rnd => _generator.Rnd;
+	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
 	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
@@ -186,7 +185,7 @@ public class CoinJoinCoinSelector
 		var selectedNonPrivateCoin = remainingLargestNonPrivateCoins.RandomElement(Rnd); // Select randomly at first just to have a starting value.
 		foreach (var coin in remainingLargestNonPrivateCoins.OrderByDescending(x => x.Amount))
 		{
-			if (Rnd.GetInt(1, 101) <= 50)
+			if (Rnd.GetInt(100) < 50)
 			{
 				selectedNonPrivateCoin = coin;
 				break;

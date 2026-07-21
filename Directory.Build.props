@@ -21,7 +21,7 @@
 		<!-- https://github.com/dotnet/efcore/issues/38257 claims that the issue should be fixed on Aug 11th 2026. -->
 		<NuGetAuditSuppress Include="https://github.com/advisories/GHSA-2m69-gcr7-jv3q" />
 	</ItemGroup>
-	
+
 	<ItemGroup>
 		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt"/>

@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Net;
 using System.Net.Sockets;
 using System.Security.Cryptography;
@@ -6,7 +5,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Helpers;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control.Exceptions;
 using WalletWasabi.Tor.Control.Messages;
@@ -16,20 +15,15 @@ namespace WalletWasabi.Tor.Control;
 /// <summary>
 /// Class to authenticate to Tor Control.
 /// </summary>
-public partial class TorControlClientFactory
+public partial class TorControlClientFactory(RandomnessProvider random)
 {
 	/// <summary>Client HMAC-SHA256 key for AUTHCHALLENGE.</summary>
 	/// <remarks>Server's HMAC key is <c>Tor safe cookie authentication server-to-controller hash</c></remarks>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">Section 3.24. AUTHCHALLENGE</seealso>
-	private static byte[] ClientHmacKey = Encoding.ASCII.GetBytes("Tor safe cookie authentication controller-to-server hash");
-
-	public TorControlClientFactory(IRandom? random = null)
-	{
-		_random = random ?? new UnsecureRandom();
-	}
+	private static byte[] ClientHmacKey = "Tor safe cookie authentication controller-to-server hash"u8.ToArray();
 
 	/// <summary>Helps generate nonces for AUTH challenges.</summary>
-	private readonly IRandom _random;
+	private readonly RandomnessProvider _random = random;
 
 	/// <summary>Connects to Tor Control endpoint and authenticates using safe-cookie mechanism.</summary>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">See section 3.5</seealso>
@@ -76,8 +70,8 @@ public partial class TorControlClientFactory
 	/// <exception cref="TorControlException">If authentication fails for some reason.</exception>
 	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken)
 	{
-		byte[] nonceBytes = new byte[32];
-		_random.GetBytes(nonceBytes);
+		Span<byte> nonceBytes = stackalloc byte[32];
+		_random(nonceBytes);
 		string clientNonce = Convert.ToHexString(nonceBytes);
 
 		TorControlReply authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);
