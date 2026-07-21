@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace WalletWasabi.WabiSabi.Client;
 
 public class ReverseComparer : IComparer<long>

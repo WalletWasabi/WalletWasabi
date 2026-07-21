@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 

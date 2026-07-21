@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
 public enum CredentialType

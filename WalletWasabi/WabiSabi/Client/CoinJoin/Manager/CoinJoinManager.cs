@@ -1,26 +1,13 @@
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
 using System.Collections.Concurrent;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
-using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
-using WalletWasabi.Wallets;
 using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
