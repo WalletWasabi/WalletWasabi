@@ -15,11 +15,34 @@
   </Interaction.Behaviors>
 
   <UserControl.Styles>
-    <Style Selector="UserControl.mobile WrapPanel.words-panel">
-      <Setter Property="MaxHeight" Value="300" />
+    <!-- Desktop Layout Visibility -->
+    <Style Selector="ItemsControl.desktop-layout">
+      <Setter Property="IsVisible" Value="True" />
     </Style>
-    <Style Selector="UserControl.mobile StackPanel.word-container">
-      <Setter Property="Margin" Value="15 0" />
+    <Style Selector="Grid.desktop-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Mobile Layout Visibility -->
+    <Style Selector="ItemsControl.mobile-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Grid.mobile-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- Mobile Overrides -->
+    <Style Selector=".mobile ItemsControl.desktop-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile Grid.desktop-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile ItemsControl.mobile-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector=".mobile Grid.mobile-layout">
+      <Setter Property="IsVisible" Value="True" />
     </Style>
   </UserControl.Styles>
 
@@ -38,7 +61,8 @@
       </InfoMessage>
 
       <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl ItemsSource="{Binding MnemonicWords}">
+        <!-- Desktop Layout: 3 columns, max height 200, large margin -->
+        <ItemsControl Classes="desktop-layout" ItemsSource="{Binding MnemonicWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock">
               <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
@@ -47,12 +71,12 @@
           </ItemsControl.Styles>
           <ItemsControl.ItemsPanel>
             <ItemsPanelTemplate>
-              <WrapPanel Classes="words-panel" MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+              <WrapPanel MaxHeight="200" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
             </ItemsPanelTemplate>
           </ItemsControl.ItemsPanel>
           <ItemsControl.ItemTemplate>
             <DataTemplate>
-              <StackPanel Classes="word-container" Orientation="Horizontal" Margin="40 0 40 0" Width="80">
+              <StackPanel Orientation="Horizontal" Margin="40 0 40 0" Width="80">
                 <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
                 <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
               </StackPanel>
@@ -60,9 +84,35 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid ColumnDefinitions="*,1,*,1,*">
+        <!-- Mobile Layout: 2 columns, max height 260, compact margin -->
+        <ItemsControl Classes="mobile-layout" ItemsSource="{Binding MnemonicWords}">
+          <ItemsControl.Styles>
+            <Style Selector="TextBlock">
+              <Setter Property="FontSize" Value="{DynamicResource FontSizeH6}" />
+              <Setter Property="Height" Value="42" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel MaxHeight="260" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="15 0" Width="80">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" />
+                <TextBlock Text="{Binding Word}" FontWeight="SemiBold" Margin="5 0 0 0" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Grid Classes="desktop-layout" ColumnDefinitions="*,1,*,1,*">
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
+        </Grid>
+        <Grid Classes="mobile-layout" ColumnDefinitions="*,1,*">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
         </Grid>
       </Panel>
 
