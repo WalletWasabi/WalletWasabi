@@ -56,6 +56,21 @@ public class ContentArea : ContentControl
 
 	public ContentArea()
 	{
+		this.GetObservable(EnableBackProperty).Subscribe(enableBack =>
+		{
+			if (enableBack)
+			{
+				if (!Classes.Contains("hasBack"))
+				{
+					Classes.Add("hasBack");
+				}
+			}
+			else
+			{
+				Classes.Remove("hasBack");
+			}
+		});
+
 		this.GetObservable(BoundsProperty).Subscribe(bounds =>
 		{
 			bool isMobile = bounds.Width > 0 && bounds.Width <= 600;

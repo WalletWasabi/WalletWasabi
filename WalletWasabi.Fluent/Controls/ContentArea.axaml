@@ -23,7 +23,7 @@
     <Setter Property="IsHitTestVisible" Value="{Binding IsActive}" />
     <Setter Property="Template">
       <ControlTemplate>
-        <Panel Name="PART_RootPanel">
+        <Panel Name="PART_RootPanel" Classes.hasBack="{TemplateBinding EnableBack}">
           <Panel.Styles>
             <Style Selector="Panel.mobile StackPanel">
               <Setter Property="Spacing" Value="10" />
@@ -86,6 +86,15 @@
                           IsVisible="{TemplateBinding EnableBack}">
                     <Interaction.Behaviors>
                       <ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Back" />
+                      <ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
+                    </Interaction.Behaviors>
+                    <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
+                  </Button>
+                  <Button Name="PART_CancelBackButton"
+                          AutomationProperties.AutomationId="CancelBackButton"
+                          Classes="plain"
+                          Command="{Binding CancelCommand}">
+                    <Interaction.Behaviors>
                       <ButtonExecuteCommandOnKeyDownBehavior IsEnabled="{Binding IsActive}" Key="Escape" />
                     </Interaction.Behaviors>
                     <PathIcon Data="{StaticResource arrow_left_regular}" Width="16" />
@@ -166,24 +175,42 @@
     </Style>
 
     <!-- Mobile responsive styles -->
-    <Style Selector="^/template/ Panel#PART_RootPanel.mobile StackPanel#PART_Header">
+    <Style Selector="^.mobile /template/ StackPanel#PART_Header">
       <Setter Property="Margin" Value="15 10 15 0" />
     </Style>
 
-    <Style Selector="^/template/ Panel#PART_RootPanel.mobile ScrollViewer#PART_ScrollViewer">
+    <Style Selector="^.mobile /template/ ScrollViewer#PART_ScrollViewer">
       <Setter Property="Margin" Value="15 5 15 10" />
     </Style>
 
-    <Style Selector="^/template/ Panel#PART_RootPanel.mobile DockPanel#PART_ButtonArea">
+    <Style Selector="^.mobile /template/ DockPanel#PART_ButtonArea">
       <Setter Property="Margin" Value="15 0 15 10" />
     </Style>
 
-    <Style Selector="^/template/ Panel#PART_RootPanel.mobile Button#PART_BackButton">
+    <Style Selector="^.mobile /template/ Button#PART_BackButton">
       <Setter Property="Margin" Value="-15,0,0,0"/>
     </Style>
     
-    <Style Selector="^/template/ Panel#PART_RootPanel.mobile ContentPresenter#PART_TitlePresenter">
+    <Style Selector="^.mobile /template/ ContentPresenter#PART_TitlePresenter">
       <Setter Property="TextElement.FontSize" Value="{DynamicResource FontSizeH5}" />
+    </Style>
+
+    <Style Selector="^/template/ Button#PART_CancelBackButton">
+      <Setter Property="IsVisible" Value="False" />
+      <Setter Property="Margin" Value="-31,0,0,0"/>
+    </Style>
+
+    <Style Selector="^.mobile /template/ Button#PART_CancelBackButton">
+      <Setter Property="Margin" Value="-15,0,0,0"/>
+      <Setter Property="IsVisible" Value="{TemplateBinding EnableCancel}" />
+    </Style>
+
+    <Style Selector="^.hasBack /template/ Button#PART_CancelBackButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <Style Selector="^.mobile /template/ Button#PART_CancelButton">
+      <Setter Property="IsVisible" Value="False" />
     </Style>
   </ControlTheme>
 </ResourceDictionary>
