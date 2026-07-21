@@ -1,3 +1,5 @@
+using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -8,6 +10,22 @@ public class Dialogs : UserControl
 	public Dialogs()
 	{
 		InitializeComponent();
+		this.GetObservable(BoundsProperty)
+			.Subscribe(bounds =>
+			{
+				bool isMobile = bounds.Width > 0 && bounds.Width <= 600;
+				if (isMobile)
+				{
+					if (!Classes.Contains("mobile"))
+					{
+						Classes.Add("mobile");
+					}
+				}
+				else
+				{
+					Classes.Remove("mobile");
+				}
+			});
 	}
 
 	private void InitializeComponent()

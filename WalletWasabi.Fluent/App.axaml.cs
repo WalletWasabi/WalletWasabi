@@ -86,6 +86,8 @@ public class App : Application
 					uiContext.HealthMonitor.Dispose();
 				};
 
+
+
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
 					{

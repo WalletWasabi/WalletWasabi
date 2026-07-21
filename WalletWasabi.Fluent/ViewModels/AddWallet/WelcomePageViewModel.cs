@@ -45,7 +45,15 @@ public partial class WelcomePageViewModel : DialogViewModelBase<Unit>
 		}
 		else if (!UiContext.WalletRepository.HasWallet)
 		{
-			Navigate().To().AddWalletPage();
+			var isMobile = Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime;
+			if (isMobile)
+			{
+				Navigate(NavigationTarget.HomeScreen).To(new AddWalletPageViewModel(UiContext));
+			}
+			else
+			{
+				Navigate().To().AddWalletPage();
+			}
 		}
 		else
 		{

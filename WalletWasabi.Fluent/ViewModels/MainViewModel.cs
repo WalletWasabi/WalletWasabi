@@ -30,6 +30,7 @@ public partial class MainViewModel : ViewModelBase
 	[AutoNotify] private string _title = "Wasabi Wallet";
 	[AutoNotify] private WindowState _windowState;
 	[AutoNotify] private bool _isOobeBackgroundVisible;
+	[AutoNotify] private bool _isMobileLayout;
 	[AutoNotify] private bool _isCoinJoinActive;
 	[AutoNotify] private string _activeMobileTab = "Wallets";
 	[AutoNotify] private bool _isMobileShellNavVisible;
@@ -83,6 +84,7 @@ public partial class MainViewModel : ViewModelBase
 				.WhereNotNull()
 				.OfType<WalletViewModel>();
 
+		IsMobileLayout = UiContext.ApplicationSettings.WindowWidth is { } w && w <= 600;
 		IsOobeBackgroundVisible = UiContext.ApplicationSettings.Oobe;
 		var isFirstLaunch = !UiContext.WalletRepository.HasWallet || UiContext.ApplicationSettings.Oobe;
 
@@ -92,7 +94,18 @@ public partial class MainViewModel : ViewModelBase
 			{
 				IsOobeBackgroundVisible = true;
 
-				await UiContext.Navigate().To().WelcomePage().GetResultAsync();
+				var isMobile = IsMobileLayout ||
+				               OperatingSystem.IsIOS() ||
+				               OperatingSystem.IsAndroid() ||
+				               Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime;
+				if (isMobile)
+				{
+					UiContext.Navigate().To().WelcomePage(NavigationTarget.HomeScreen);
+				}
+				else
+				{
+					await UiContext.Navigate().To().WelcomePage().GetResultAsync();
+				}
 
 				if (UiContext.WalletRepository.HasWallet)
 				{
@@ -168,18 +181,23 @@ public partial class MainViewModel : ViewModelBase
 			{
 				var page = t.Item1;
 				var isOobe = t.Item2;
-				if (page == null || isOobe)
+				var isMobile = IsMobileLayout ||
+				               OperatingSystem.IsIOS() ||
+				               OperatingSystem.IsAndroid() ||
+				               Avalonia.Application.Current?.ApplicationLifetime is Avalonia.Controls.ApplicationLifetimes.ISingleViewApplicationLifetime;
+				if (page == null || (isOobe && !isMobile))
 				{
 					IsMobileShellNavVisible = false;
 					return;
 				}
 				var name = page.GetType().Name;
-				// Show only on main pages: Wallets list, Settings, Add Wallet landing page, or loaded Wallet Page/Dashboard
-				IsMobileShellNavVisible = name.Contains("MobileWalletsList") ||
-				                          name.Contains("SettingsPage") ||
-				                          name.Contains("AddWalletPage") ||
-				                          name.Contains("WalletPage") ||
-				                          name.Contains("WalletViewModel");
+				var ns = page.GetType().Namespace ?? "";
+				// Show only on main and dashboard pages: Settings pages, Wallets pages (list, dashboard, subviews, login, loading), Login page, Welcome page, or AddWallet landing page
+				IsMobileShellNavVisible = ns.Contains("Settings") ||
+				                          ns.Contains("Wallets") ||
+				                          ns.Contains("Login") ||
+				                          name.Contains("WelcomePage") ||
+				                          name.Contains("AddWalletPage");
 			});
 	}
 

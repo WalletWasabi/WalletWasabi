@@ -15,6 +15,14 @@ public class MainScreen : UserControl
 		{
 			WalletWasabi.Logging.Logger.LogInfo($"[MobileUI] MainScreen Bounds: {bounds.Width}x{bounds.Height}");
 			bool isMobile = bounds.Width > 0 && bounds.Width <= 600;
+			if (DataContext is MainViewModel mainVm)
+			{
+				mainVm.IsMobileLayout = isMobile;
+			}
+			else if (DataContext is WalletWasabi.Fluent.ViewModels.ApplicationViewModel appVm)
+			{
+				appVm.MainViewModel.IsMobileLayout = isMobile;
+			}
 			if (isMobile)
 			{
 				if (!Classes.Contains("mobile"))
@@ -43,6 +51,29 @@ public class MainScreen : UserControl
 			if (contentPart != null)
 			{
 				contentPart.CornerRadius = isMobile ? new CornerRadius(0) : new CornerRadius(10, 0, 0, 0);
+			}
+
+			var floatingStatus = this.FindControl<Control>("FloatingStatusIcon");
+			WalletWasabi.Logging.Logger.LogInfo($"[MobileUI] FloatingStatusIcon found: {floatingStatus != null}, isMobile: {isMobile}");
+			if (floatingStatus != null)
+			{
+				floatingStatus.IsVisible = !isMobile;
+			}
+
+			if (!Classes.Contains("ios") && !Classes.Contains("android"))
+			{
+				if (OperatingSystem.IsIOS())
+				{
+					Classes.Add("ios");
+				}
+				else if (OperatingSystem.IsAndroid())
+				{
+					Classes.Add("android");
+				}
+				else
+				{
+					Classes.Add("ios"); // Fallback for macOS simulator verification
+				}
 			}
 
 			if (mobileNav != null)

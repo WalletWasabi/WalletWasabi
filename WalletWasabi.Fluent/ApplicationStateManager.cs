@@ -176,6 +176,11 @@ public class ApplicationStateManager : IMainWindowService
 		switch (e.Kind)
 		{
 			case ActivationKind.Background:
+				if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
+				{
+					WalletWasabi.Logging.Logger.LogInfo("[CDP] Bypassing automatic window hide on deactivation.");
+					break;
+				}
 				if (this is IMainWindowService service)
 				{
 					if (_lifetime is IClassicDesktopStyleApplicationLifetime desktop && desktop.MainWindow is not null)
@@ -256,6 +261,7 @@ public class ApplicationStateManager : IMainWindowService
 			.Subscribe(tup =>
 			{
 				var (e, preventShutdown, isShutdownEnforced) = tup;
+				WalletWasabi.Logging.Logger.LogInfo($"[CDP DIAGNOSTIC] MainWindow closing! preventShutdown: {preventShutdown}, isShutdownEnforced: {isShutdownEnforced}");
 
 				// Check if Ctrl-C was used to forcefully terminate the app.
 				if (isShutdownEnforced)
@@ -286,6 +292,7 @@ public class ApplicationStateManager : IMainWindowService
 			.Take(1)
 			.Subscribe(_ =>
 			{
+				WalletWasabi.Logging.Logger.LogInfo("[CDP DIAGNOSTIC] MainWindow closed!");
 				_compositeDisposable?.Dispose();
 				_compositeDisposable = null;
 				_stateMachine.Fire(Trigger.MainWindowClosed);

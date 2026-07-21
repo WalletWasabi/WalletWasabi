@@ -26,6 +26,8 @@ echo "Launching app with automation and CDP env variables..."
 export SIMCTL_CHILD_WASABI_AUTOMATE_MOBILE=1
 export SIMCTL_CHILD_WASABI_USE_CDP=1
 export SIMCTL_CHILD_WASABI_AUTOMATE_LOG_PATH="$LOG_PATH"
+export SIMCTL_CHILD_MONO_LOG_LEVEL=debug
+export SIMCTL_CHILD_MONO_LOG_MASK=aot
 xcrun simctl launch --stdout="$ART_DIR/wasabi_stdout.log" --stderr="$ART_DIR/wasabi_stderr.log" $SIM_ID $BUNDLE_ID
 
 echo "Waiting for CDP server to start on port 9222..."
