@@ -10,6 +10,12 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
 
+  <UserControl.Styles>
+    <Style Selector="ContentArea.mobile /template/ DockPanel#PART_ButtonArea">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"
                  EnableNext="True"

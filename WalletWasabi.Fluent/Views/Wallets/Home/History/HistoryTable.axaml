@@ -139,16 +139,13 @@
     <Style Selector="TreeDataGrid">
       <Setter Property="IsVisible" Value="True" />
     </Style>
-    <Style Selector=".mobile TreeDataGrid">
+    <Style Selector=".mobile TreeDataGridCellsPresenter > Control:nth-child(4)" x:SetterTargetType="Control">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector="ListBox#TransactionsListBox">
+    <Style Selector=".mobile TreeDataGridCellsPresenter > Control:nth-child(5)" x:SetterTargetType="Control">
       <Setter Property="IsVisible" Value="False" />
     </Style>
-    <Style Selector=".mobile ListBox#TransactionsListBox">
-      <Setter Property="IsVisible" Value="True" />
-    </Style>
-    <Style Selector=".mobile DummyRowsControl">
+    <Style Selector=".mobile TreeDataGridRow Button.historyDetails" x:SetterTargetType="Button">
       <Setter Property="IsVisible" Value="False" />
     </Style>
   </UserControl.Styles>
@@ -244,98 +241,6 @@
           </Style>
         </TreeDataGrid.Styles>
       </TreeDataGrid>
-
-      <!-- Mobile List View -->
-      <ListBox Name="TransactionsListBox" ItemsSource="{Binding Transactions}"
-               Background="Transparent"
-               SelectingItemsControlBehavior.EnableSelectionAnimation="True">
-        <ListBox.Styles>
-          <Style Selector="ListBoxItem">
-            <Setter Property="Padding" Value="0" />
-            <Setter Property="Background" Value="Transparent" />
-          </Style>
-          <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
-            <Setter Property="Background" Value="Transparent" />
-          </Style>
-        </ListBox.Styles>
-        <ListBox.ItemTemplate>
-          <DataTemplate DataType="historyItems:HistoryItemViewModelBase">
-            <Button Command="{Binding ShowDetailsCommand}"
-                    Background="Transparent"
-                    BorderThickness="0"
-                    Padding="0"
-                    HorizontalAlignment="Stretch"
-                    HorizontalContentAlignment="Stretch">
-              <Border Margin="0 4" Padding="12 10" CornerRadius="12" Background="{DynamicResource TileButtonBackground}" BorderBrush="{DynamicResource TileButtonBorderBrush}" BorderThickness="1">
-                <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
-                  <!-- Left Icon Column -->
-                  <Panel Grid.Column="0" Margin="0 0 12 0" Width="36" Height="36">
-                    <!-- Circular Background -->
-                    <Border CornerRadius="18" Width="36" Height="36" Background="{DynamicResource Layer2BackgroundBrush}" Opacity="0.8" />
-                    
-                    <!-- Main Icon -->
-                    <PathIcon HorizontalAlignment="Center" VerticalAlignment="Center" Width="16" Height="16"
-                              Classes.Incoming="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.IncomingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-                              Classes.Outgoing="{Binding Transaction.Type, ConverterParameter={x:Static model:TransactionType.OutgoingTransaction}, Converter={x:Static converters:EnumToBoolConverter.Instance}}"
-                              Classes.Coinjoin="{Binding Transaction.IsCoinjoin}">
-                      <PathIcon.Styles>
-                        <Style Selector="PathIcon.Incoming">
-                          <Setter Property="Data" Value="{StaticResource wallet_action_receive}" />
-                          <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
-                        </Style>
-                        <Style Selector="PathIcon.Outgoing">
-                          <Setter Property="Data" Value="{StaticResource wallet_action_send}" />
-                        </Style>
-                        <Style Selector="PathIcon.Coinjoin">
-                          <Setter Property="Data" Value="{StaticResource shield_regular}" />
-                          <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
-                        </Style>
-                      </PathIcon.Styles>
-                    </PathIcon>
-                  </Panel>
-                  
-                  <!-- Middle Details Column -->
-                  <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
-                    <!-- Labels or Type -->
-                    <DockPanel>
-                      <LabelsItemsPresenter ItemsSource="{Binding Transaction.Labels}" InfiniteWidthMeasure="True" IsVisible="{Binding !Transaction.IsCoinjoin}" />
-                      <TextBlock Text="Coinjoin" FontWeight="SemiBold" FontSize="14" IsVisible="{Binding Transaction.IsCoinjoin}" />
-                    </DockPanel>
-                    <!-- Date/Time -->
-                    <TextBlock Text="{Binding Transaction.DateString}" FontSize="12" Opacity="0.5" />
-                  </StackPanel>
-                  
-                  <!-- Right Amount & Status Column -->
-                  <StackPanel Grid.Column="2" VerticalAlignment="Center" HorizontalAlignment="Right" Spacing="4">
-                    <!-- Amount -->
-                    <PrivacyContentControl PrivacyReplacementMode="Text" UseOpacity="True" MaxPrivacyChars="14">
-                      <AmountControl Classes="WithSign" Amount="{Binding Transaction.AmountAmount}" FontSize="14" FontWeight="Bold" />
-                    </PrivacyContentControl>
-                    <!-- Confirmation/Pending Status -->
-                    <StackPanel Orientation="Horizontal" Spacing="4" HorizontalAlignment="Right" Opacity="0.6">
-                      <PathIcon Width="10" Height="10"
-                                Classes.Confirmed="{Binding Transaction.IsConfirmed}"
-                                Classes.Pending="{Binding !Transaction.IsConfirmed}">
-                        <PathIcon.Styles>
-                          <Style Selector="PathIcon.Confirmed">
-                            <Setter Property="Data" Value="{StaticResource checkmark_filled}" />
-                            <Setter Property="Foreground" Value="{DynamicResource PositiveAmountColor}" />
-                          </Style>
-                          <Style Selector="PathIcon.Pending">
-                            <Setter Property="Data" Value="{StaticResource clock_regular}" />
-                          </Style>
-                        </PathIcon.Styles>
-                      </PathIcon>
-                      <TextBlock Text="Pending" FontSize="10" IsVisible="{Binding !Transaction.IsConfirmed}" />
-                      <TextBlock Text="Confirmed" FontSize="10" IsVisible="{Binding Transaction.IsConfirmed}" />
-                    </StackPanel>
-                  </StackPanel>
-                </Grid>
-              </Border>
-            </Button>
-          </DataTemplate>
-        </ListBox.ItemTemplate>
-      </ListBox>
 
       <DummyRowsControl Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                         RowHeight="{StaticResource TreeDataGridRowHeight}"

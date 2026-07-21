@@ -7,6 +7,18 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True" x:DataType="vm:BtcPriceTileViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.Tiles.BtcPriceTileView">
+  <UserControl.Styles>
+    <Style Selector=".mobile TileControl /template/ Border">
+      <Setter Property="Background">
+        <LinearGradientBrush StartPoint="0%,0%" EndPoint="100%,100%">
+          <GradientStop Offset="0" Color="#281e14" />
+          <GradientStop Offset="1" Color="#141517" />
+        </LinearGradientBrush>
+      </Setter>
+      <Setter Property="BorderBrush" Value="#45321f" />
+      <Setter Property="BorderThickness" Value="1" />
+    </Style>
+  </UserControl.Styles>
 
   <TileControl Title="EXCHANGE RATE" IsBottomContentVisible="False">
     <TextBlock Margin="0 3"
