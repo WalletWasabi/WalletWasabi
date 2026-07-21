@@ -23,7 +23,7 @@
 	</ItemGroup>
 	<PropertyGroup Condition="'$(Configuration)'=='Release'">
 		<!-- TODO: This should be enabled, for now disabled for debuging purposes -->
-		<RunAOTCompilation>True</RunAOTCompilation>
+		<RunAOTCompilation>False</RunAOTCompilation>
 		<!--<EnableLLVM>True</EnableLLVM>-->
 		<!--<AndroidEnableProfiledAot>True</AndroidEnableProfiledAot>-->
 	</PropertyGroup>
