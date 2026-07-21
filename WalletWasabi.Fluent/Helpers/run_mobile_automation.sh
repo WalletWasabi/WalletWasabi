@@ -40,8 +40,11 @@ for i in {1..60}; do
 done
 
 echo "Running CDP CLI runner in background to drive YAML test flow..."
-dotnet /Users/wieslawsoltes/GitHub/CDP/src/CDP.Inspector.CLI/bin/Debug/net10.0/CDP.Inspector.CLI.dll run WalletWasabi.Fluent/Helpers/wasabi_mobile.flow.yaml --timeout 360000 --output-dir "$ART_DIR/CDP_Reports" &
-CDP_PID=$!
+CDP_CLI_PATH="${CDP_CLI_PATH:-$(pwd)/../CDP/src/CDP.Inspector.CLI/bin/Debug/net10.0/CDP.Inspector.CLI.dll}"
+if [ -f "$CDP_CLI_PATH" ]; then
+    dotnet "$CDP_CLI_PATH" run WalletWasabi.Fluent/Helpers/wasabi_mobile.flow.yaml --timeout 360000 --output-dir "$ART_DIR/CDP_Reports" &
+    CDP_PID=$!
+fi
 
 wait_and_screenshot() {
     local pattern="$1"

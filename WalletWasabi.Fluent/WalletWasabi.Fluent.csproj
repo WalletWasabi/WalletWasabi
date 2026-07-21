@@ -13,7 +13,9 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
-		<UseCdp Condition="'$(UseCdp)' == ''">true</UseCdp>
+		<UseCdp Condition="'$(UseCdp)' == ''">false</UseCdp>
+		<UseCdp Condition="Exists('..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')">true</UseCdp>
+		<UseCdp Condition="Exists('..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')">true</UseCdp>
 	</PropertyGroup>
 
 	<PropertyGroup Condition="'$(UseCdp)' == 'true'">
@@ -46,7 +48,8 @@
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(UseCdp)' == 'true'">
-		<ProjectReference Include="/Users/wieslawsoltes/GitHub/CDP/src/Avalonia.Diagnostics.Cdp.v11/Avalonia.Diagnostics.Cdp.v11.csproj" />
+		<ProjectReference Condition="Exists('..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')" Include="..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj" />
+		<ProjectReference Condition="Exists('..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')" Include="..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj" />
 	</ItemGroup>
 
 	<ItemGroup>
