@@ -12,6 +12,7 @@ using System.Threading;
 using NBitcoin.Protocol;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -139,3 +140,4 @@ public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
 public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
+public record PaymentBatchChanged(PaymentBatch PaymentBatch);
