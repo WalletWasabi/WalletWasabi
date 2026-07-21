@@ -45,6 +45,7 @@
     <PackageVersion Include="QRackers" Version="1.1.0" />
     <PackageVersion Include="DynamicData" Version="9.4.1" />
     <!-- UI Mobile. -->
+    <PackageVersion Include="Chrome.DevTools.Avalonia.v11" Version="0.1.0-preview.27" />
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.5" />
     <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.6.2.2" />

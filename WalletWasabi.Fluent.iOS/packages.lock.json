@@ -76,6 +76,15 @@
         "resolved": "11.3.2",
         "contentHash": "qHDToxto1e3hci5YqbG9n0Ty8mlp3zBUN5wT66wKqaDVzXyQ0do3EnRILd4Ke9jpvsktaPpgE0YjEk7hornryQ=="
       },
+      "Avalonia.Controls.ColorPicker": {
+        "type": "Transitive",
+        "resolved": "11.3.14",
+        "contentHash": "weDk+0kMo5kOcukRH/eIiHvkeG+/LrfHwSl2XvGjSN6S610Syg3o8SF3gjAWHV0OpeD1BdlnrCX6idU6qigm5g==",
+        "dependencies": {
+          "Avalonia": "11.3.14",
+          "Avalonia.Remote.Protocol": "11.3.14"
+        }
+      },
       "Avalonia.Markup.Xaml.Loader": {
         "type": "Transitive",
         "resolved": "11.0.13",
@@ -96,6 +105,14 @@
         "dependencies": {
           "Avalonia": "11.0.0",
           "Svg.Model": "1.0.0"
+        }
+      },
+      "Avalonia.Themes.Simple": {
+        "type": "Transitive",
+        "resolved": "11.3.14",
+        "contentHash": "Mqs6SmyXBJOrIj+Hf4YnhqsqEGPdvS0XZ+SNNwaYD+17P9UY/JVxztG49UJQnBT58cWovuy9omL0CVCQKhQuTw==",
+        "dependencies": {
+          "Avalonia": "11.3.14"
         }
       },
       "ColorDocument.Avalonia": {
@@ -758,50 +775,17 @@
         "resolved": "16.3.0",
         "contentHash": "SgMOdxbz8X65z8hraIs6hOEdnkH6hESTAIUa7viEngHOYaH+6q5XJmwr1+yb9vJpNQ19hCQY69xbFsLtXpobQA=="
       },
-      "cdp.integration.core": {
-        "type": "Project"
-      },
-      "cdp.integration.qase": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.testmo": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.testrail": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.xray": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
-      "cdp.integration.zephyr": {
-        "type": "Project",
-        "dependencies": {
-          "CDP.Integration.Core": "[0.1.0-preview.27, )"
-        }
-      },
       "Chrome.DevTools.Avalonia.v11": {
         "type": "Project",
         "dependencies": {
           "Avalonia": "[11.0.13, 12.0.0)",
           "Avalonia.Markup.Xaml.Loader": "[11.0.13, 12.0.0)",
-          "CDP.Integration.Core": "[0.1.0-preview.27, )",
-          "CDP.Integration.Qase": "[0.1.0-preview.27, )",
-          "CDP.Integration.TestMo": "[0.1.0-preview.27, )",
-          "CDP.Integration.TestRail": "[0.1.0-preview.27, )",
-          "CDP.Integration.Xray": "[0.1.0-preview.27, )",
-          "CDP.Integration.Zephyr": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Qase": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.TestMo": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.TestRail": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Xray": "[0.1.0-preview.27, )",
+          "Chrome.DevTools.Integration.Zephyr": "[0.1.0-preview.27, )",
           "Chrome.DevTools.Protocol": "[0.1.0-preview.27, )",
           "Chrome.DevTools.Xaml.Compiler": "[0.1.0-preview.27, )",
           "Jint": "[4.10.1, )",
@@ -813,6 +797,39 @@
           "Microsoft.Data.Sqlite": "[10.0.9, )",
           "Microsoft.Extensions.Logging.Abstractions": "[10.0.0, )",
           "SkiaSharp": "[2.88.9, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Core": {
+        "type": "Project"
+      },
+      "Chrome.DevTools.Integration.Qase": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.TestMo": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.TestRail": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Xray": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
+        }
+      },
+      "Chrome.DevTools.Integration.Zephyr": {
+        "type": "Project",
+        "dependencies": {
+          "Chrome.DevTools.Integration.Core": "[0.1.0-preview.27, )"
         }
       },
       "chrome.devtools.protocol": {
@@ -860,6 +877,7 @@
         "dependencies": {
           "Avalonia": "[11.3.14, )",
           "Avalonia.Controls.TreeDataGrid": "[11.1.1, )",
+          "Avalonia.Diagnostics": "[11.3.14, )",
           "Avalonia.Fonts.Inter": "[11.3.14, )",
           "Avalonia.Skia": "[11.3.14, )",
           "Avalonia.Themes.Fluent": "[11.3.14, )",
@@ -895,6 +913,17 @@
         "dependencies": {
           "Avalonia": "11.0.0",
           "System.Reactive": "5.0.0"
+        }
+      },
+      "Avalonia.Diagnostics": {
+        "type": "CentralTransitive",
+        "requested": "[11.3.14, )",
+        "resolved": "11.3.14",
+        "contentHash": "AGItOFZ5FU+nv30UjffC0/TQvuFqzvjOsgRVBD70pmcA14VV/lKo2mVDJNYupf4lJIPdopo1Vq7jaX+8z8UE2w==",
+        "dependencies": {
+          "Avalonia": "11.3.14",
+          "Avalonia.Controls.ColorPicker": "11.3.14",
+          "Avalonia.Themes.Simple": "11.3.14"
         }
       },
       "Avalonia.Skia": {

@@ -7,20 +7,33 @@
 		<Nullable>enable</Nullable>
 		<NoWarn>$(NoWarn);NU1605</NoWarn>
 		<UseInterpreter>True</UseInterpreter>
+		<RunAOTCompilation>False</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
+		<StartupObject>WalletWasabi.Fluent.IOS.Application</StartupObject>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<MtouchLink Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">None</MtouchLink>
-		<MtouchLink Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">SdkOnly</MtouchLink>
-		<MtouchDebug>True</MtouchDebug>
-		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
-		<SelfContained>true</SelfContained>
-		<PublishSelfContained>true</PublishSelfContained>
+		<MtouchLink>SdkOnly</MtouchLink>
+		<MtouchDebug Condition="'$(Configuration)' == 'Debug'">True</MtouchDebug>
+		<CodesignEntitlements Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">Entitlements.plist</CodesignEntitlements>
+		<SelfContained Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">true</SelfContained>
+		<PublishSelfContained Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">true</PublishSelfContained>
+		<!-- 
+			WORKAROUND: Disable assembly IL stripping.
+			This prevents build errors when the ILStrip tool attempts to process native Windows PE files 
+			(such as KernelTraceControl.dll) bundled transitively via Microsoft.Diagnostics.Tracing.TraceEvent.
+		-->
+		<EnableAssemblyILStripping>false</EnableAssemblyILStripping>
+		<!-- 
+			WORKAROUND: Disable LLVM for AOT compilation.
+			This avoids build failures where the Mono AOT compiler searches for the LLVM 'opt' tool at a relative 
+			output directory, and speeds up AOT compilation times for local simulator development.
+		-->
+		<MtouchUseLlvm>false</MtouchUseLlvm>
 	</PropertyGroup>
 	<PropertyGroup>
 		<!-- Error NETSDK1150 : The referenced project '../WalletWasabi.Daemon/WalletWasabi.Daemon.csproj' is a non self-contained executable.  A non self-contained executable cannot be referenced by a self-contained executable.  For more information, see https://aka.ms/netsdk1150 -->
@@ -112,44 +125,102 @@
 			<_ActualSigningKey Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">$(CodesignKey)</_ActualSigningKey>
 		</PropertyGroup>
 		<Exec Command="find &quot;$(AppBundleDir)/Frameworks&quot; -name &quot;*&quot; | while read file; do if [ -f &quot;$$file&quot; ]; then codesign --force --sign &quot;$(_ActualSigningKey)&quot; &quot;$$file&quot; 2>/dev/null || true; fi; done" />
-		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; --entitlements &quot;$(MSBuildProjectDirectory)/Entitlements.plist&quot; &quot;$(AppBundleDir)&quot;" />
+		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; --entitlements &quot;$(MSBuildProjectDirectory)/Entitlements.plist&quot; &quot;$(AppBundleDir)&quot;" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" />
+		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; &quot;$(AppBundleDir)&quot;" Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" />
 		<Message Importance="high" Text="--- Signed Frameworks and app bundle with key: $(_ActualSigningKey) ---" />
 	</Target>
 	<!-- Custom targets for trimmer compatibility -->
+	<!--
+		WORKAROUND: Fix Extra Trimmer Arguments.
+		Bypasses a trimmer error where duplicate or invalid link-attribute paths are supplied in '_ExtraTrimmerArgs'.
+		We replace/remove the link-attributes argument pointing to '_TrimAttributesLinkDescriptionPath' to prevent conflicts.
+	-->
 	<Target Name="FixExtraTrimmerArgs" AfterTargets="_ComputeLinkerInputs">
 		<PropertyGroup>
 			<_ExtraTrimmerArgs>$(_ExtraTrimmerArgs.Replace('--link-attributes &quot;$(_TrimAttributesLinkDescriptionPath)&quot;', ''))</_ExtraTrimmerArgs>
 		</PropertyGroup>
 		<Message Importance="high" Text="--- Modified _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
 	</Target>
+
+	<!--
+		WORKAROUND: Use Patched Linker Assembly.
+		Redirects the Xamarin/iOS SDK custom trimmer steps to our locally compiled 'dotnet-linker-patched.dll' and
+		removes the 'OptimizeGeneratedCodeStep' step.
+		This prevents trimmer crashes (like infinite recursion or metadata inconsistencies) on large assemblies.
+	-->
 	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs">
 		<ItemGroup>
-			<_PreserveBlockCodeStepItem Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' == 'Xamarin.Linker.Steps.PreserveBlockCodeStep'" />
-			<_TrimmerCustomSteps Remove="@(_PreserveBlockCodeStepItem)" />
-			<_TrimmerCustomSteps Include="@(_PreserveBlockCodeStepItem->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
-				<Type>%(_PreserveBlockCodeStepItem.Type)</Type>
-				<BeforeStep>%(_PreserveBlockCodeStepItem.BeforeStep)</BeforeStep>
-				<AfterStep>%(_PreserveBlockCodeStepItem.AfterStep)</AfterStep>
+			<_FilteredTrimmerCustomSteps Include="@(_TrimmerCustomSteps)" Condition="'%(Type)' != 'Xamarin.Linker.Steps.OptimizeGeneratedCodeStep'" />
+			<_TrimmerCustomSteps Remove="@(_TrimmerCustomSteps)" />
+			<_TrimmerCustomSteps Include="@(_FilteredTrimmerCustomSteps->'$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
+				<Type>%(_FilteredTrimmerCustomSteps.Type)</Type>
+				<BeforeStep>%(_FilteredTrimmerCustomSteps.BeforeStep)</BeforeStep>
+				<AfterStep>%(_FilteredTrimmerCustomSteps.AfterStep)</AfterStep>
 			</_TrimmerCustomSteps>
 		</ItemGroup>
-		<Message Importance="high" Text="--- Redirected only PreserveBlockCodeStep to dotnet-linker-patched.dll ---" />
+		<Message Importance="high" Text="--- Redirected custom steps to dotnet-linker-patched.dll and removed OptimizeGeneratedCodeStep ---" />
 	</Target>
+
+	<!--
+		WORKAROUND: Restore Original System.Private.CoreLib.dll.
+		After the trimmer runs, it outputs a stripped-down Mono CoreLib. This stripped assembly breaks
+		important reflection APIs and runtime functionality (such as CDP protocol domains).
+		We copy the complete Mono runtime 'System.Private.CoreLib.dll' and simulator library references back
+		into the intermediate linking directory before Native/AOT compilation occurs.
+	-->
 	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
 		<PropertyGroup>
 			<_RuntimeId Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">iossimulator-arm64</_RuntimeId>
 			<_RuntimeId Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">ios-arm64</_RuntimeId>
 		</PropertyGroup>
 		<ItemGroup>
-			<_MonoCoreLib Include="$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.$(_RuntimeId)/*/runtimes/$(_RuntimeId)/native/System.Private.CoreLib.dll" />
+			<_MonoCoreLib Include="$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.$(_RuntimeId)/10.0.*/runtimes/$(_RuntimeId)/native/System.Private.CoreLib.dll" />
+			<_SimulatorRefs Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.*/runtimes/iossimulator-arm64/lib/net10.0/*.dll" />
 		</ItemGroup>
 		<Copy
 			SourceFiles="@(_MonoCoreLib)"
 			DestinationFolder="$(IntermediateLinkDir)"
 			OverwriteReadOnlyFiles="true"
 		/>
-		<Message Importance="high" Text="--- Restored original System.Private.CoreLib.dll from @(_MonoCoreLib) to $(IntermediateLinkDir) ---" />
+		<Copy
+			Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))"
+			SourceFiles="@(_SimulatorRefs)"
+			DestinationFolder="$(IntermediateLinkDir)"
+			OverwriteReadOnlyFiles="true"
+		/>
+		<Message Importance="high" Text="--- Restored original System.Private.CoreLib.dll and copied simulator references to $(IntermediateLinkDir) ---" />
 	</Target>
+
 	<Target Name="InspectManagedAssemblies" AfterTargets="_ComputeManagedAssemblyToLink">
 		<Message Importance="high" Text="--- ManagedAssemblyToLink: @(ManagedAssemblyToLink, '; ') ---" />
 	</Target>
+
+	<!--
+		WORKAROUND: Override AOT Compiler with Stack-Limit Wrapper.
+		The Mono AOT cross-compiler ('mono-aot-cross') crashes with a segmentation fault (exit code 139)
+		when compiling complex assemblies due to stack overflow.
+		This target intercepts the compiler path and redirects it to a bash wrapper script that runs
+		'ulimit -s 65520' to raise the stack limit to 64MB before invoking the actual compiler.
+	-->
+	<Target Name="OverrideAotCompiler" AfterTargets="_FindAotCompiler" Condition="'$(_XamarinAOTCompiler)' != ''">
+		<PropertyGroup>
+			<WrapperScriptPath>$(IntermediateOutputPath)mono-aot-cross-wrapper.sh</WrapperScriptPath>
+			<OriginalXamarinAOTCompiler>$(_XamarinAOTCompiler)</OriginalXamarinAOTCompiler>
+			<_XamarinAOTCompiler>$(WrapperScriptPath)</_XamarinAOTCompiler>
+		</PropertyGroup>
+		<ItemGroup>
+			<WrapperContent Remove="@(WrapperContent)" />
+			<WrapperContent Include="#!/bin/bash" />
+			<WrapperContent Include="ulimit -s 65520" />
+			<WrapperContent Include="exec &quot;$(OriginalXamarinAOTCompiler)&quot; &quot;%24%40&quot;" />
+		</ItemGroup>
+		<WriteLinesToFile
+			File="$(WrapperScriptPath)"
+			Lines="@(WrapperContent)"
+			Overwrite="true"
+		/>
+		<Exec Command="chmod +x &quot;$(WrapperScriptPath)&quot;" />
+		<Message Importance="high" Text="--- Registered mono-aot-cross wrapper with ulimit at: $(_XamarinAOTCompiler) ---" />
+	</Target>
 </Project>
+

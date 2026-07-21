@@ -6,7 +6,7 @@ namespace WalletWasabi.Fluent.IOS;
 public class Application
 {
 	// This is the main entry point of the application.
-	private static void Main(string[] args)
+	public static void Main(string[] args)
 	{
 		try
 		{
