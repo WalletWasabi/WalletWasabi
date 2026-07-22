@@ -28,6 +28,11 @@ LATEST_TAG=$(git describe --tags --abbrev=0)
 VERSION=${LATEST_TAG:1}
 SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 
+# Update ClientVersion in Constants.cs with the version from git tag
+CONSTANTS_FILE="./WalletWasabi/Helpers/Constants.cs"
+VERSION_ARGS=$(echo "$VERSION" | sed 's/\./, /g')
+sed -i "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
 COORDINATOR="WalletWasabi.Coordinator"
