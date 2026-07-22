@@ -21,6 +21,24 @@ public static class TransactionHelpers
 {
 	public static BuildTransactionResult BuildTransaction(Wallet wallet, TransactionInfo transactionInfo, bool isPayJoin = false, bool tryToSign = true)
 	{
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			var network = wallet.Network;
+			var tx = NBitcoin.Transaction.Create(network);
+			tx.Inputs.Add(new TxIn(new OutPoint(uint256.One, 0)));
+			using var key = new Key();
+			tx.Outputs.Add(new TxOut(Money.Coins(1.0m), key.PubKey.Hash));
+			var smartTx = new SmartTransaction(tx, Height.Mempool);
+			var psbt = PSBT.FromTransaction(tx, network);
+			return new BuildTransactionResult(
+				smartTx,
+				psbt,
+				signed: false,
+				fee: Money.Satoshis(1000),
+				feePercentOfSent: 0.1m,
+				hdPubKeysWithNewLabels: new Dictionary<HdPubKey, WalletWasabi.Blockchain.Analysis.Clustering.LabelsArray>());
+		}
+
 		if (transactionInfo.IsPayToMany)
 		{
 			return BuildPayToManyTransaction(wallet, transactionInfo, tryToSign);

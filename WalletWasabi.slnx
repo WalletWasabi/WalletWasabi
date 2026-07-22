@@ -22,8 +22,10 @@
   <Project Path="WalletWasabi.Client/WalletWasabi.Client.csproj" />
   <Project Path="WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj" />
   <Project Path="WalletWasabi.Daemon/WalletWasabi.Daemon.csproj" />
+  <Project Path="WalletWasabi.Fluent.Android/WalletWasabi.Fluent.Android.csproj" />
   <Project Path="WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj" />
   <Project Path="WalletWasabi.Fluent.Generators/WalletWasabi.Fluent.Generators.csproj" />
+  <Project Path="WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj" />
   <Project Path="WalletWasabi.Fluent/WalletWasabi.Fluent.csproj" />
   <Project Path="WalletWasabi.Tests/WalletWasabi.Tests.csproj">
     <BuildType Solution="Release|x64" Project="Debug" />

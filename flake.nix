@@ -15,6 +15,12 @@
           dotnetFlags = [ "-p:CommitHash=${gitRev}"];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
           dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_10_0;
+          projectFile = [
+            "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+            "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+            "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+            "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
 
           src = ./.;
         };
@@ -25,6 +31,7 @@
           projectFile = [
              "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
              "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
+          dotnetProjectFiles = projectFile;
           executables = [
             "WalletWasabi.Coordinator"
             "WalletWasabi.Fluent.Desktop" ];
@@ -56,7 +63,13 @@
         };
 
         # Build everything and run unit tests (default CI target)
-        buildWithUnitTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithUnitTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
@@ -64,26 +77,41 @@
               --filter "FullyQualifiedName~UnitTests" \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';
         });
 
         # Build everything and run integration tests
-        buildWithIntegrationTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithIntegrationTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
             dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';
         });
 
         # Build everything and run all tests (unit + integration)
-        buildWithAllTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithAllTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+             "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
@@ -91,10 +119,12 @@
               --filter "FullyQualifiedName~UnitTests" \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              -r linux-x64 \
               --logger "console;verbosity=detailed"
             runHook postCheck
           '';

@@ -13,8 +13,7 @@
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
-               EnableNext="True" NextContent="Continue" FocusNext="True"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+               EnableNext="True" NextContent="Continue" FocusNext="True">
     <ListBox
       ItemsSource="{Binding WalletBackupTypes}"
       SelectedItem="{Binding WalletBackupType}"

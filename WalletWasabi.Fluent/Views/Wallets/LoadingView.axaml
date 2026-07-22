@@ -5,16 +5,25 @@
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets"
              xmlns:models="using:WalletWasabi.Fluent.Models.Wallets"
              xmlns:behaviors="using:WalletWasabi.Fluent.Behaviors"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="vm:LoadingViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.LoadingView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
 
   <UserControl.Resources>
     <SolidColorBrush x:Key="SyncProgressOrangeBrush" Color="{StaticResource OrangeCoinColor}" />
   </UserControl.Resources>
 
   <UserControl.Styles>
+    <Style Selector="UserControl.mobile ContentArea">
+      <Setter Property="ScrollViewer.VerticalScrollBarVisibility" Value="Auto" />
+    </Style>
     <!-- Sync Progress Card Styles -->
     <Style Selector="Border.SyncCard">
       <Setter Property="Background" Value="#E01E1E1E" />

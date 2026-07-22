@@ -1,0 +1,40 @@
+name: Build Android
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v3
+        with:
+          distribution: 'zulu'
+          java-version: '17'
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Workloads
+        run: dotnet workload install android --version 10.0.203.1
+
+      - name: Publish Android APK
+        run: |
+          dotnet publish WalletWasabi.Fluent.Android/WalletWasabi.Fluent.Android.csproj \
+            -c Release \
+            -f net10.0-android \
+            -o publish-apk
+
+      - name: Upload APK Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-apk
+          path: publish-apk/*.apk

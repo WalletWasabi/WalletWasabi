@@ -4,12 +4,32 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              xmlns:c="using:WalletWasabi.Fluent.Converters"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:CompileBindings="True"
              x:DataType="vm:SendFeeViewModel"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendFeeView"
              x:Name="SendFeeView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
   <UserControl.Styles>
+    <Style Selector="UserControl.mobile LineChart">
+      <Setter Property="MinHeight" Value="100" />
+      <Setter Property="Margin" Value="5" />
+    </Style>
+    <Style Selector="UserControl.mobile StackPanel">
+      <Setter Property="Margin" Value="0 0 10 10" />
+    </Style>
+    <Style Selector="UserControl.mobile TextBlock">
+      <Setter Property="FontSize" Value="11" />
+    </Style>
+    <Style Selector="UserControl.mobile Slider">
+      <Setter Property="Margin" Value="10,0,10,0" />
+    </Style>
     <!-- Slider Fee -->
     <Style Selector="Slider.cursor">
       <Setter Property="RenderTransform">

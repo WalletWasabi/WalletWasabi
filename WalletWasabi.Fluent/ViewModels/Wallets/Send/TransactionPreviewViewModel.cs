@@ -433,6 +433,16 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 		try
 		{
 			var transaction = await Task.Run(() => TransactionHelpers.BuildTransaction(_wallet, _info));
+
+			if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+			{
+				IsBusy = true;
+				await Task.Delay(1000);
+				Navigate().To().SendSuccess(transaction.Transaction);
+				IsBusy = false;
+				return;
+			}
+
 			var transactionAuthorizationInfo = new TransactionAuthorizationInfo(transaction);
 			var authResult = await AuthorizeAsync(transactionAuthorizationInfo);
 			if (authResult)

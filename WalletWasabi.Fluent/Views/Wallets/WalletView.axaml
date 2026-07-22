@@ -6,24 +6,112 @@
              xmlns:home="using:WalletWasabi.Fluent.Views.Wallets.Home"
              xmlns:history="using:WalletWasabi.Fluent.Views.Wallets.Home.History"
              xmlns:shell="clr-namespace:WalletWasabi.Fluent.Views.Shell"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="850"
              x:DataType="wallets:WalletViewModel"
              x:CompileBindings="True"
              ClipToBounds="False"
              x:Class="WalletWasabi.Fluent.Views.Wallets.WalletView">
   <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
     <ShowWalletCoinsOnKeyCombinationBehavior Wallet="{Binding}" Key1="LeftCtrl" Key2="D" Key3="C" />
   </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="TextBlock#DesktopTitle">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector=".mobile TextBlock#DesktopTitle">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Button#MobileTitleSelector">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile Button#MobileTitleSelector">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Border#MobileWalletActions">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile Border#MobileWalletActions">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="StackPanel#DesktopButtons">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector=".mobile StackPanel#DesktopButtons">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Button#MobileMenuButton">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile Button#MobileMenuButton">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea ScrollViewer.VerticalScrollBarVisibility="Disabled" ClipToBounds="False" Classes="StretchTopContent">
     <ContentArea.Title>
-      <TextBlock TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding $self.Text}" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
+      <Panel>
+        <!-- Desktop Title -->
+        <TextBlock Name="DesktopTitle" TextWrapping="NoWrap" TextTrimming="CharacterEllipsis" ToolTip.Tip="{Binding $self.Text}" Text="{Binding Title, FallbackValue=My Wallet with a very long name}" />
+        
+        <!-- Mobile Title / Selector -->
+        <Button Name="MobileTitleSelector" Theme="{StaticResource FileSystemDialogButtonTheme}" Padding="0" Margin="0" Background="Transparent" BorderThickness="0" HorizontalAlignment="Left" VerticalAlignment="Center" x:CompileBindings="False" AutomationProperties.Name="MobileTitleSelector">
+          <Button.Styles>
+            <Style Selector="MenuItem">
+              <Setter Property="Header" Value="{Binding Title}" />
+              <Setter Property="Command" Value="{Binding $parent[shell:MainScreen].DataContext.NavBar.SelectWalletCommand}" />
+              <Setter Property="CommandParameter" Value="{Binding}" />
+            </Style>
+          </Button.Styles>
+          <Button.Flyout>
+            <MenuFlyout Placement="BottomEdgeAlignedLeft" ItemsSource="{Binding $parent[shell:MainScreen].DataContext.NavBar.Wallets}" />
+          </Button.Flyout>
+          <StackPanel Orientation="Horizontal" Spacing="6">
+            <TextBlock Text="{Binding Title}" FontWeight="Bold" FontSize="18" VerticalAlignment="Center" />
+            <PathIcon Data="{StaticResource down_arrow}" Width="10" Height="10" VerticalAlignment="Center" Opacity="0.6" />
+          </StackPanel>
+        </Button>
+      </Panel>
     </ContentArea.Title>
     <ContentArea.TopContent>
       <StackPanel>
         <DockPanel>
 
+          <!-- Mobile Menu Button -->
+          <Button Name="MobileMenuButton" Classes="transparentFunction" DockPanel.Dock="Right" VerticalAlignment="Center">
+            <Button.Flyout>
+              <MenuFlyout Placement="Bottom">
+                <MenuItem Header="Wallet Settings" Command="{Binding WalletSettingsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource settings_wallet_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Wallet Coins" Command="{Binding WalletCoinsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource wallet_coins}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Wallet Stats" Command="{Binding WalletStatsCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource stats_wallet_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+                <MenuItem Header="Wallet Info" Command="{Binding WalletInfoCommand}">
+                  <MenuItem.Icon>
+                    <PathIcon Data="{StaticResource info_regular}" />
+                  </MenuItem.Icon>
+                </MenuItem>
+              </MenuFlyout>
+            </Button.Flyout>
+            <PathIcon Data="{StaticResource more_regular}" Opacity="0.6" />
+          </Button>
+
           <!-- Buttons -->
-          <StackPanel HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
+          <StackPanel Name="DesktopButtons" HorizontalAlignment="Right" Margin="0 -5 0 0" DockPanel.Dock="Right" Orientation="Horizontal" Spacing="10" TextElement.FontSize="{DynamicResource ControlContentThemeFontSize}">
             <Button Classes="function"
                     Command="{Binding BroadcastPsbtCommand}">
               <Button.IsVisible>
@@ -40,6 +128,7 @@
 
             <!-- Send button -->
             <SubActionButton Content="Send"
+                             AutomationProperties.AutomationId="SendButton"
                              Command="{Binding DefaultSendCommand}"
                              IsVisible="{Binding IsSendButtonVisible}"
                              Icon="{StaticResource wallet_action_send}">
@@ -67,6 +156,7 @@
 
             <!-- Receive button -->
             <Button
+              AutomationProperties.AutomationId="SegwitReceiveButton"
               Classes="function"
               Command="{Binding SegwitReceiveCommand}"
               IsVisible="{Binding SeveralReceivingScriptTypes, Converter={x:Static BoolConverters.Not}}">
@@ -76,6 +166,7 @@
               </StackPanel>
             </Button>
             <SubActionButton Content="Receive"
+                             AutomationProperties.AutomationId="ReceiveButton"
                              Command="{Binding DefaultReceiveCommand}"
                              VerticalAlignment="Bottom"
                              HorizontalAlignment="Right"
@@ -151,6 +242,26 @@
 
       <!-- Balance, privacy progress, exchange rate -->
       <home:WalletTiles DataContext="{Binding Tiles}" DockPanel.Dock="Top" Margin="-6 -6 0 0" />
+
+      <!-- Mobile Wallet Action Buttons -->
+      <Border Name="MobileWalletActions" DockPanel.Dock="Top" Margin="0 12 0 12">
+        <Grid ColumnDefinitions="*,*">
+          <!-- Send Button -->
+          <Button Grid.Column="0" Margin="0 0 6 0" Classes="action" Height="48" CornerRadius="24" Command="{Binding SendCommand}" HorizontalAlignment="Stretch" AutomationProperties.Name="Send">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+              <PathIcon Data="{StaticResource wallet_action_send}" Width="18" Height="18" />
+              <TextBlock Text="Send" FontWeight="SemiBold" FontSize="15" />
+            </StackPanel>
+          </Button>
+          <!-- Receive Button -->
+          <Button Grid.Column="1" Margin="6 0 0 0" Classes="action" Height="48" CornerRadius="24" Command="{Binding SegwitReceiveCommand}" HorizontalAlignment="Stretch" AutomationProperties.Name="Receive">
+            <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
+              <PathIcon Data="{StaticResource wallet_action_receive}" Width="18" Height="18" />
+              <TextBlock Text="Receive" FontWeight="SemiBold" FontSize="15" />
+            </StackPanel>
+          </Button>
+        </Grid>
+      </Border>
 
       <!-- Transaction history -->
       <history:HistoryTable Name="HistoryTable"

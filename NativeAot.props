@@ -1,0 +1,69 @@
+<Project>
+	<PropertyGroup Condition="'$(TargetFramework)' == 'netstandard2.0' or '$(TargetFramework)' == 'netstandard2.1' or '$(IsRoslynComponent)' == 'true' or $(MSBuildProjectName.EndsWith('.Generators'))">
+		<PublishAot>false</PublishAot>
+		<PublishTrimmed>false</PublishTrimmed>
+		<TrimMode>copy</TrimMode>
+	</PropertyGroup>
+
+	<!-- Enable AOT & Trimming suppressions across all projects when AOT mode is active -->
+	<PropertyGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
+		<PublishAot>true</PublishAot>
+
+		<!-- Enable Full Trimming Across All User & Dependency Assemblies -->
+		<IsTrimmable>true</IsTrimmable>
+		<TrimMode Condition="!$(TargetFramework.Contains('-ios')) and !$(TargetFramework.Contains('-android'))">full</TrimMode>
+		<TrimMode Condition="$(TargetFramework.Contains('-ios')) or $(TargetFramework.Contains('-android'))">partial</TrimMode>
+		<PublishTrimmed>true</PublishTrimmed>
+
+		<!-- Optimization & Performance Tuning for ILC -->
+		<OptimizationPreference Condition="'$(OptimizationPreference)' == ''">Speed</OptimizationPreference>
+		<IlcParallelism Condition="'$(IlcParallelism)' == ''">$([System.Environment]::ProcessorCount)</IlcParallelism>
+		<IlcFoldIdenticalMethodBodies Condition="'$(IlcFoldIdenticalMethodBodies)' == ''">false</IlcFoldIdenticalMethodBodies>
+		<IlcGenerateMetadataLog Condition="'$(IlcGenerateMetadataLog)' == ''">false</IlcGenerateMetadataLog>
+		<IlcVerbose>true</IlcVerbose>
+		<DebugSymbols Condition="'$(DebugSymbols)' == ''">false</DebugSymbols>
+		<DebugType Condition="'$(DebugType)' == ''">none</DebugType>
+		<StripSymbols Condition="'$(StripSymbols)' == ''">true</StripSymbols>
+
+		<!-- Allow Reflection in System.Text.Json for third-party DTOs -->
+		<JsonSerializerIsReflectionDisabledByDefault>false</JsonSerializerIsReflectionDisabledByDefault>
+
+		<!-- Trim Unused Framework Features to Reduce Compiler Workload -->
+		<EventSourceSupport Condition="'$(EventSourceSupport)' == ''">false</EventSourceSupport>
+		<HttpActivitySupport Condition="'$(HttpActivitySupport)' == ''">false</HttpActivitySupport>
+		<MetadataUpdaterSupport Condition="'$(MetadataUpdaterSupport)' == ''">false</MetadataUpdaterSupport>
+		<UseSystemResourceKeys Condition="'$(UseSystemResourceKeys)' == ''">true</UseSystemResourceKeys>
+
+		<!-- Warning Suppressions -->
+		<SuppressTrimAnalysisWarnings>true</SuppressTrimAnalysisWarnings>
+		<NoWarn>$(NoWarn);IL2026;IL2075;IL3050;IL2091;IL2070;IL2095;IL2092;IL2087;IL2067;IL2072;IL3053;IL2121</NoWarn>
+		<WarningsNotAsErrors>$(WarningsNotAsErrors);IL2026;IL2075;IL3050;IL2091;IL2070;IL2095;IL2092;IL2087;IL2067;IL2072;IL3053;IL2121</WarningsNotAsErrors>
+	</PropertyGroup>
+
+	<!-- Fast AOT Mode for Rapid Local Development & Iteration -->
+	<PropertyGroup Condition="'$(FastAot)' == 'true' or '$(Configuration)' == 'Debug'">
+		<IlcDisableOptimizations>true</IlcDisableOptimizations>
+		<IlcDehydrate>false</IlcDehydrate>
+		<NativeDebugSymbols>false</NativeDebugSymbols>
+	</PropertyGroup>
+
+	<!-- Shared Fine-Grained Reflection Rooting Descriptor for Desktop, Mobile & Wasabi Core -->
+	<!-- Add specific types, methods, or namespaces here as discovered during AOT runtime testing -->
+	<ItemGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
+		<TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)Roots.xml" />
+		<RuntimeHostConfigurationOption Include="System.Text.Json.JsonSerializer.IsReflectionDisabledByDefault" Value="false" Trim="false" />
+	</ItemGroup>
+
+	<!-- macOS Linker Fix: Use classic Apple linker (ld_classic) to avoid Xcode ld_prime Fixup assertion bug -->
+	<ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) and ('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true')">
+		<LinkerArg Include="-Wl,-ld_classic" />
+	</ItemGroup>
+
+	<!-- Force Full Link Trimming Mode on All Managed Assemblies for Native AOT -->
+	<Target Name="EnableFullTrimmingForIlc" BeforeTargets="WriteIlcRspFileForCompilation;PrepareForILLink;_ComputeManagedAssemblyForILLink" Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true' and !$(TargetFramework.Contains('-ios')) and !$(TargetFramework.Contains('-android'))">
+		<ItemGroup>
+			<TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" Condition="'%(TrimmerRootAssembly.RootMode)' != 'EntryPoint'" />
+			<ManagedAssemblyToLink Update="@(ManagedAssemblyToLink)" TrimMode="link" />
+		</ItemGroup>
+	</Target>
+</Project>

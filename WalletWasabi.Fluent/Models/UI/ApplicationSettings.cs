@@ -74,6 +74,7 @@ public partial class ApplicationSettings : ReactiveObject
 
 	// Experimental
 	[AutoNotify] private string[] _experimentalFeatures;
+	public double? WindowWidth => _uiConfig.WindowWidth;
 
 	public ApplicationSettings(IServices services, PersistentConfig persistentConfig, Config config, UiConfig uiConfig)
 	{

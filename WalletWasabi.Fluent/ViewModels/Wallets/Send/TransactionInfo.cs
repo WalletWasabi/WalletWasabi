@@ -21,6 +21,11 @@ public partial class TransactionInfo
 		Destination = destination;
 		PrivateCoinThreshold = anonScoreTarget;
 
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			_feeRate = new FeeRate(10m);
+		}
+
 		this.WhenAnyValue(x => x.FeeRate)
 			.Subscribe(_ => OnFeeChanged());
 

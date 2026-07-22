@@ -150,9 +150,21 @@ public static class Logger
 			{
 				lock (Console.Out)
 				{
-					Console.ForegroundColor = GetConsoleColor(level);
+					try
+					{
+						Console.ForegroundColor = GetConsoleColor(level);
+					}
+					catch (PlatformNotSupportedException)
+					{
+					}
 					Console.Write(finalMessage);
-					Console.ResetColor();
+					try
+					{
+						Console.ResetColor();
+					}
+					catch (PlatformNotSupportedException)
+					{
+					}
 				}
 			}
 
