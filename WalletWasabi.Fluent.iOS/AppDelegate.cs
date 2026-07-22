@@ -53,8 +53,8 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 			_app.RunAsyncMobile(afterStarting: () =>
 			{
 				LogToFile("Initializing Mobile App and AppBuilder...");
-				App.InitializeMobile(_app, builder);
-				AppBuilderIOSExtension.SetupAppBuilder(builder);
+				builder = App.InitializeMobile(_app, builder);
+				builder = AppBuilderIOSExtension.SetupAppBuilder(builder);
 				LogToFile("AppBuilder setup finished");
 			});
 		}
@@ -64,7 +64,7 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 			LogToFile($"EXCEPTION in CustomizeAppBuilder: {ex}");
 		}
 
-		return base.CustomizeAppBuilder(builder);
+		return builder;
 	}
 
 	/// <summary>
