@@ -1,7 +1,7 @@
 <Project>
   <PropertyGroup>
     <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-    <NetPackagesVersion>10.0.2</NetPackagesVersion>
+    <NetPackagesVersion>10.0.9</NetPackagesVersion>
     <AvaloniaVersion>11.3.14</AvaloniaVersion>
   </PropertyGroup>
   <ItemGroup>

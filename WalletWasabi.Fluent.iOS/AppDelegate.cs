@@ -24,11 +24,11 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 	{
 		try
 		{
-			var docPath = NSFileManager.DefaultManager.GetUrls(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User)[0].Path;
-			System.IO.Directory.CreateDirectory(docPath);
-			var logFile = System.IO.Path.Combine(docPath, "wasabi_ios.log");
-			System.IO.File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] [AppDelegate] {msg}\n");
+			var logLine = $"[{DateTime.Now:HH:mm:ss.fff}] [AppDelegate] {msg}\n";
 			Console.WriteLine($"[WASABI_IOS] [AppDelegate] {msg}");
+			var simSharedDir = Environment.GetEnvironmentVariable("SIMULATOR_SHARED_RESOURCES_DIRECTORY") ?? "/tmp";
+			var sharedLogFile = System.IO.Path.Combine(simSharedDir, "wasabi_ios.log");
+			System.IO.File.AppendAllText(sharedLogFile, logLine);
 		}
 		catch { }
 	}
@@ -51,12 +51,11 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 
 			LogToFile("WasabiAppBuilder built successfully");
 
+			builder = App.InitializeMobile(_app, builder);
+
 			_app.RunAsyncMobile(afterStarting: () =>
 			{
-				LogToFile("Initializing Mobile App and AppBuilder...");
-				builder = App.InitializeMobile(_app, builder);
-				builder = AppBuilderIOSExtension.SetupAppBuilder(builder);
-				LogToFile("AppBuilder setup finished");
+				LogToFile("App starting completed");
 			});
 		}
 		catch (Exception ex)

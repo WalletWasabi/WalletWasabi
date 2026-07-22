@@ -1,4 +1,5 @@
 using Avalonia;
+using Avalonia.iOS;
 using Avalonia.Media;
 
 namespace WalletWasabi.Fluent.IOS;

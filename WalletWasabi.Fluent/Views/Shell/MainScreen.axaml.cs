@@ -11,10 +11,15 @@ public class MainScreen : UserControl
 	public MainScreen()
 	{
 		InitializeComponent();
+		if (OperatingSystem.IsIOS() || OperatingSystem.IsAndroid())
+		{
+			Classes.Add("mobile");
+			Classes.Add(OperatingSystem.IsIOS() ? "ios" : "android");
+		}
 		this.GetObservable(BoundsProperty).Subscribe(bounds =>
 		{
 			WalletWasabi.Logging.Logger.LogInfo($"[MobileUI] MainScreen Bounds: {bounds.Width}x{bounds.Height}");
-			bool isMobile = bounds.Width > 0 && bounds.Width <= 600;
+			bool isMobile = OperatingSystem.IsIOS() || OperatingSystem.IsAndroid() || (bounds.Width > 0 && bounds.Width <= 600);
 			if (DataContext is MainViewModel mainVm)
 			{
 				mainVm.IsMobileLayout = isMobile;

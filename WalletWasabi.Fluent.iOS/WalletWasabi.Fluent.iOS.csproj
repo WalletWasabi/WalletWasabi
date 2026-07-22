@@ -6,10 +6,9 @@
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
 		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">true</UseInterpreter>
-		<MtouchInterpreter Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">all</MtouchInterpreter>
+		<RunAOTCompilation Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">false</RunAOTCompilation>
 		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">false</UseInterpreter>
-		<MtouchInterpreter Condition="'$(RuntimeIdentifier)' == 'ios-arm64'"></MtouchInterpreter>
-		<RunAOTCompilation>true</RunAOTCompilation>
+		<RunAOTCompilation Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">true</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
 		<ApplicationId>com.walletwasabi.fluent.ios</ApplicationId>
@@ -21,8 +20,6 @@
 		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
 		<MtouchLink>SdkOnly</MtouchLink>
-		<_LibXamarinLinkMode>static</_LibXamarinLinkMode>
-		<_LibMonoLinkMode>static</_LibMonoLinkMode>
 		<MtouchDebug Condition="'$(Configuration)' == 'Debug'">True</MtouchDebug>
 		<!-- <CodesignEntitlements>Entitlements.plist</CodesignEntitlements> -->
 		<SelfContained>true</SelfContained>
@@ -40,10 +37,10 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" />
 		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
 	</ItemGroup>
-
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<BundleResource Include="..\WalletWasabi\Announcements\ReleaseHighlights.md">
 			<Link>Announcements\ReleaseHighlights.md</Link>
@@ -93,12 +90,6 @@
 	<!--
 		Ensure iOS main entry point assembly is preserved by ILLink.
 	-->
-	<Target Name="CopyAndSignMonoComponentDylibs" BeforeTargets="_CodesignAppBundle" Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">
-		<ItemGroup>
-			<_MonoComponentDylibs Include="$(HOME)/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.7/runtimes/iossimulator-arm64/native/*.dylib" />
-		</ItemGroup>
-		<Copy SourceFiles="@(_MonoComponentDylibs)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" SkipUnchangedFiles="true" />
-	</Target>
 
 	<Target Name="EnsureiOSRootAssembly" AfterTargets="PrepareForILLink">
 		<ItemGroup>

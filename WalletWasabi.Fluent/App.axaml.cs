@@ -138,6 +138,7 @@ public class App : Application
 				Avalonia.Threading.Dispatcher.UIThread.Post(
 					async () =>
 					{
+						mainViewModel.Initialize();
 						try
 						{
 							if (BackendInitializeAsync is not null)
@@ -153,8 +154,6 @@ public class App : Application
 						{
 							Logger.LogError("BackendInitializeAsync failed", ex);
 						}
-
-						mainViewModel.Initialize();
 					});
 			}
 		}

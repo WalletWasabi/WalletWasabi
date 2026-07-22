@@ -26,8 +26,9 @@ public static class Program
 		{
 			try
 			{
-				File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
-				File.AppendAllText("/tmp/wasabi_ios.log", $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+				var simSharedDir = Environment.GetEnvironmentVariable("SIMULATOR_SHARED_RESOURCES_DIRECTORY") ?? "/tmp";
+				var sharedLogFile = Path.Combine(simSharedDir, "wasabi_ios.log");
+				File.AppendAllText(sharedLogFile, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
 				Console.WriteLine($"[WASABI_IOS] {msg}");
 			}
 			catch { }
@@ -46,7 +47,7 @@ public static class Program
 		LogMessage("Program.Main starting...");
 		try
 		{
-			UIApplication.Main(args, null, typeof(AppDelegate));
+			UIApplication.Main(args, null, "AppDelegate");
 		}
 		catch (Exception ex)
 		{
