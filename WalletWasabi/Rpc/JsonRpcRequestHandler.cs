@@ -179,10 +179,13 @@ public class JsonRpcRequestHandler<TService>
 					await ((Task)result!).ConfigureAwait(false);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id);
 				}
+				else
+				{
 					var task = (Task)result!;
 					await task.ConfigureAwait(false);
 					var ret = result!.GetType().GetProperty("Result")?.GetValue(result);
 					response = JsonRpcResponse.CreateResultResponse(jsonRpcRequest.Id, ret);
+				}
 			}
 			else
 			{
