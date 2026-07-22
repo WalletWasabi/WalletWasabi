@@ -10,13 +10,14 @@ public static class Program
 	[Preserve(AllMembers = true)]
 	public static void Main(string[] args)
 	{
-		var docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+		var docPath = NSFileManager.DefaultManager.GetUrls(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User)[0].Path;
 		var logFile = Path.Combine(docPath, "wasabi_ios.log");
 
 		void LogMessage(string msg)
 		{
 			try
 			{
+				Directory.CreateDirectory(docPath);
 				File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
 				Console.WriteLine($"[WASABI_IOS] {msg}");
 			}
@@ -31,7 +32,7 @@ public static class Program
 		LogMessage("Program.Main starting...");
 		try
 		{
-			UIApplication.Main(args, null, "AppDelegate");
+			UIApplication.Main(args, null, typeof(AppDelegate));
 		}
 		catch (Exception ex)
 		{

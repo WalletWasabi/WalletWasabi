@@ -7,8 +7,6 @@ public static class AppBuilderIOSExtension
 {
 	public static AppBuilder SetupAppBuilder(AppBuilder appBuilder)
 	{
-		appBuilder.UseiOS();
-
 		return appBuilder
 			.WithInterFont()
 			.With(new SkiaOptions { MaxGpuResourceSizeBytes = 2560 * 1600 * 4 * 12 });

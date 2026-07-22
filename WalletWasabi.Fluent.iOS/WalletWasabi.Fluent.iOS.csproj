@@ -6,7 +6,9 @@
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
 		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">true</UseInterpreter>
+		<MtouchInterpreter Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">all</MtouchInterpreter>
 		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">false</UseInterpreter>
+		<MtouchInterpreter Condition="'$(RuntimeIdentifier)' == 'ios-arm64'"></MtouchInterpreter>
 		<RunAOTCompilation>true</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
@@ -89,17 +91,6 @@
 	</Target>
 
 	<!--
-		Ensure Mono component dylibs (like libmono-component-debugger.dylib) and entry assembly are copied into the app bundle.
-	-->
-	<Target Name="CopyMonoComponentDylibs" AfterTargets="Build">
-		<ItemGroup>
-			<_MonoComponentDylibs Include="$(HOME)/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.7/runtimes/iossimulator-arm64/native/*.dylib" />
-		</ItemGroup>
-		<Copy SourceFiles="@(_MonoComponentDylibs)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" />
-		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" Condition="Exists('$(TargetPath)')" />
-	</Target>
-
-	<!--
 		Ensure iOS main entry point assembly is preserved by ILLink.
 	-->
 	<Target Name="EnsureiOSRootAssembly" AfterTargets="PrepareForILLink">
@@ -122,15 +113,8 @@
 	</Target>
 
 	<!--
-		WORKAROUND: Remove TrimAttributes.LinkDescription.xml from _ExtraTrimmerArgs.
-		TrimAttributes.LinkDescription.xml causes ILLink to fail resolving System.Private.CoreLib and strip Foundation attributes.
+		Exclude desktop native binaries (macOS/Windows Tor dylibs) before published native assets or InstallNameTool are computed.
 	-->
-	<Target Name="FixExtraTrimmerArgs" AfterTargets="_ComputeLinkerInputs">
-		<PropertyGroup>
-			<_ExtraTrimmerArgs>$([System.Text.RegularExpressions.Regex]::Replace('$(_ExtraTrimmerArgs)', '--link-attributes\s+("[^"]*"|\S+)', ''))</_ExtraTrimmerArgs>
-		</PropertyGroup>
-		<Message Importance="high" Text="--- Cleaned _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
-	</Target>
 
 
 

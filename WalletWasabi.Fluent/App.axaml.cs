@@ -135,16 +135,23 @@ public class App : Application
 				}
 #endif
 
-				RxApp.MainThreadScheduler.Schedule(
+				Avalonia.Threading.Dispatcher.UIThread.Post(
 					async () =>
 					{
-						if (BackendInitializeAsync is not null)
+						try
 						{
-							await BackendInitializeAsync();
+							if (BackendInitializeAsync is not null)
+							{
+								await BackendInitializeAsync();
+							}
+							else if (_backendInitializeAsync is not null)
+							{
+								await _backendInitializeAsync();
+							}
 						}
-						else if (_backendInitializeAsync is not null)
+						catch (Exception ex)
 						{
-							await _backendInitializeAsync();
+							Logger.LogError("BackendInitializeAsync failed", ex);
 						}
 
 						mainViewModel.Initialize();

@@ -24,7 +24,8 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 	{
 		try
 		{
-			var docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var docPath = NSFileManager.DefaultManager.GetUrls(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User)[0].Path;
+			System.IO.Directory.CreateDirectory(docPath);
 			var logFile = System.IO.Path.Combine(docPath, "wasabi_ios.log");
 			System.IO.File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] [AppDelegate] {msg}\n");
 			Console.WriteLine($"[WASABI_IOS] [AppDelegate] {msg}");
