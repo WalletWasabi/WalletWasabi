@@ -814,7 +814,7 @@
         }
       }
     },
-    "net10.0-ios26.4/iossimulator-arm64": {
+    "net10.0-ios26.4/ios-arm64": {
       "HarfBuzzSharp.NativeAssets.iOS": {
         "type": "Transitive",
         "resolved": "8.3.1.1",

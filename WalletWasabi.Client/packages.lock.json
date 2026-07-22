@@ -324,7 +324,7 @@
         }
       }
     },
-    "net10.0/iossimulator-arm64": {
+    "net10.0/ios-arm64": {
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
         "resolved": "2.1.11",

@@ -10,6 +10,7 @@
 		<RunAOTCompilation>true</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
+		<ApplicationId>com.walletwasabi.fluent.ios</ApplicationId>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
@@ -21,7 +22,7 @@
 		<_LibXamarinLinkMode>static</_LibXamarinLinkMode>
 		<_LibMonoLinkMode>static</_LibMonoLinkMode>
 		<MtouchDebug Condition="'$(Configuration)' == 'Debug'">True</MtouchDebug>
-		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
+		<!-- <CodesignEntitlements>Entitlements.plist</CodesignEntitlements> -->
 		<SelfContained>true</SelfContained>
 		<PublishSelfContained>true</PublishSelfContained>
 	</PropertyGroup>

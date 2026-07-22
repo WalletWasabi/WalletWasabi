@@ -20,17 +20,26 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 {
 	private WasabiApplication? _app;
 
+	private static void LogToFile(string msg)
+	{
+		try
+		{
+			var docPath = Environment.GetFolderPath(Environment.SpecialFolder.MyDocuments);
+			var logFile = System.IO.Path.Combine(docPath, "wasabi_ios.log");
+			System.IO.File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] [AppDelegate] {msg}\n");
+			Console.WriteLine($"[WASABI_IOS] [AppDelegate] {msg}");
+		}
+		catch { }
+	}
+
 	protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
 	{
-		// TODO: Crash reporting
-
-		Log.Error("WASABI", "CustomizeAppBuilder");
+		LogToFile("CustomizeAppBuilder starting...");
 
 		try
 		{
 			Global.IsTorEnabled = false;
 
-			// TODO: Do we need on iOS EnsureSingleInstance with true?
 			_app = WasabiAppBuilder
 				.Create("Wasabi GUI", System.Array.Empty<string>())
 				.EnsureSingleInstance(false)
@@ -39,21 +48,20 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 				.OnTermination(TerminateApplication)
 				.Build();
 
-			// TODO: WasabiAppExtensions.RunAsDesktopGuiAsync
+			LogToFile("WasabiAppBuilder built successfully");
+
 			_app.RunAsyncMobile(afterStarting: () =>
 			{
+				LogToFile("Initializing Mobile App and AppBuilder...");
 				App.InitializeMobile(_app, builder);
 				AppBuilderIOSExtension.SetupAppBuilder(builder);
+				LogToFile("AppBuilder setup finished");
 			});
 		}
 		catch (Exception ex)
 		{
-			// TODO:
-			// CrashReporter.Invoke(ex);
-
 			Logger.LogCritical(ex);
-
-			Log.Error("WASABI", $"{ex}");
+			LogToFile($"EXCEPTION in CustomizeAppBuilder: {ex}");
 		}
 
 		return base.CustomizeAppBuilder(builder);

@@ -124,6 +124,6 @@
         }
       }
     },
-    ".NETStandard,Version=v2.0/iossimulator-arm64": {}
+    ".NETStandard,Version=v2.0/ios-arm64": {}
   }
 }
