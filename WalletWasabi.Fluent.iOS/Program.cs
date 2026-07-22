@@ -10,15 +10,24 @@ public static class Program
 	[Preserve(AllMembers = true)]
 	public static void Main(string[] args)
 	{
-		var docPath = NSFileManager.DefaultManager.GetUrls(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User)[0].Path;
-		var logFile = Path.Combine(docPath, "wasabi_ios.log");
+		string logFile;
+		try
+		{
+			var docPath = NSFileManager.DefaultManager.GetUrls(NSSearchPathDirectory.DocumentDirectory, NSSearchPathDomain.User)[0].Path;
+			Directory.CreateDirectory(docPath);
+			logFile = Path.Combine(docPath, "wasabi_ios.log");
+		}
+		catch
+		{
+			logFile = "/tmp/wasabi_ios.log";
+		}
 
 		void LogMessage(string msg)
 		{
 			try
 			{
-				Directory.CreateDirectory(docPath);
 				File.AppendAllText(logFile, $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
+				File.AppendAllText("/tmp/wasabi_ios.log", $"[{DateTime.Now:HH:mm:ss.fff}] {msg}\n");
 				Console.WriteLine($"[WASABI_IOS] {msg}");
 			}
 			catch { }
@@ -26,7 +35,12 @@ public static class Program
 
 		AppDomain.CurrentDomain.UnhandledException += (s, e) =>
 		{
-			LogMessage($"CRITICAL UNHANDLED EXCEPTION: {e.ExceptionObject}");
+			LogMessage($"UNHANDLED EXCEPTION: {e.ExceptionObject}");
+		};
+
+		System.Threading.Tasks.TaskScheduler.UnobservedTaskException += (s, e) =>
+		{
+			LogMessage($"UNOBSERVED TASK EXCEPTION: {e.Exception}");
 		};
 
 		LogMessage("Program.Main starting...");

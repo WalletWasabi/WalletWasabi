@@ -93,6 +93,13 @@
 	<!--
 		Ensure iOS main entry point assembly is preserved by ILLink.
 	-->
+	<Target Name="CopyAndSignMonoComponentDylibs" BeforeTargets="_CodesignAppBundle" Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">
+		<ItemGroup>
+			<_MonoComponentDylibs Include="$(HOME)/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.7/runtimes/iossimulator-arm64/native/*.dylib" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_MonoComponentDylibs)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" SkipUnchangedFiles="true" />
+	</Target>
+
 	<Target Name="EnsureiOSRootAssembly" AfterTargets="PrepareForILLink">
 		<ItemGroup>
 			<TrimmerRootAssembly Include="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" RootMode="EntryPoint" />
