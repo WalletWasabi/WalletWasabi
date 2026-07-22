@@ -5,7 +5,8 @@
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
-		<UseInterpreter>true</UseInterpreter>
+		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'iossimulator-arm64' or '$(RuntimeIdentifier)' == 'iossimulator-x64'">true</UseInterpreter>
+		<UseInterpreter Condition="'$(RuntimeIdentifier)' == 'ios-arm64'">false</UseInterpreter>
 		<RunAOTCompilation>true</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
