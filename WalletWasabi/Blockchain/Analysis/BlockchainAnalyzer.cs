@@ -67,7 +67,6 @@ public static class BlockchainAnalyzer
 			AdjustWalletInputs(tx, startingOutputAnonset);
 		}
 
-		AnalyzeClusters(tx);
 		ResetUncalculatedAnonScores(tx);
 	}
 
@@ -363,9 +362,20 @@ public static class BlockchainAnalyzer
 		}
 	}
 
-	private static void AnalyzeClusters(SmartTransaction tx)
+	/// <summary>
+	/// Merges the clusters (hence the labels) of the coins the wallet spent and created in this transaction.
+	/// <para>
+	/// Only <paramref name="keyManager"/>'s own coins are considered. The transaction store is shared by every
+	/// loaded wallet, so the same <see cref="SmartTransaction"/> instance's <see cref="SmartTransaction.WalletInputs"/>
+	/// and <see cref="SmartTransaction.WalletOutputs"/> may also hold other wallets' coins. Merging clusters across
+	/// that boundary would leak one wallet's private labels into another.
+	/// </para>
+	/// <remarks>Context: https://github.com/WalletWasabi/WalletWasabi/issues/10980</remarks>
+	/// </summary>
+	public static void AnalyzeClusters(SmartTransaction tx, KeyManager keyManager)
 	{
-		foreach (var newCoin in tx.WalletOutputs)
+		var walletInputs = tx.GetWalletInputs(keyManager).ToList();
+		foreach (var newCoin in tx.GetWalletOutputs(keyManager))
 		{
 			// Forget clusters when no unique outputs created in coinjoins,
 			// otherwise in half mixed wallets all the labels quickly gravitate into a single cluster
@@ -373,7 +383,7 @@ public static class BlockchainAnalyzer
 			if (newCoin.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold)
 			{
 				// Set clusters.
-				foreach (var spentCoin in tx.WalletInputs)
+				foreach (var spentCoin in walletInputs)
 				{
 					newCoin.HdPubKey.Cluster.Merge(spentCoin.HdPubKey.Cluster);
 				}

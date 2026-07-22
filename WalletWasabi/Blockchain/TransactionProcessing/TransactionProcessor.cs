@@ -262,6 +262,7 @@ public class TransactionProcessor(
 		}
 
 		BlockchainAnalyzer.Analyze(result.Transaction);
+		BlockchainAnalyzer.AnalyzeClusters(result.Transaction, KeyManager);
 		SyncAnonScoresFromSharedTransaction(result.Transaction);
 
 		return result;
