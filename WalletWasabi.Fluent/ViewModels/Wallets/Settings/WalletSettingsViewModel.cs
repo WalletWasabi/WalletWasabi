@@ -190,6 +190,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool IsHardwareWallet { get; }
     public bool IsWatchOnly { get; }
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
+
+    public bool IsTrezorCoinJoinWallet => _wallet.IsTrezorCoinJoinWallet;
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
     // Taproot receive addresses of a Trezor coinjoin wallet come from the SLIP-25 coinjoin account:

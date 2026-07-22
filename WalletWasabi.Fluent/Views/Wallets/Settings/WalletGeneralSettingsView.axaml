@@ -52,8 +52,14 @@
 
     <DockPanel IsVisible="{Binding SeveralReceivingScriptTypes}" ToolTip.Tip="Script Type of the keys used to create change outputs.">
       <TextBlock Text="Change Address Type" />
+      <!-- The change of a Trezor coinjoin wallet is not selectable: coinjoin account spends must return
+           change to the SLIP-25 account (firmware rule), the segwit account can only produce segwit change. -->
+      <TextBlock Text="SLIP-25 (Taproot)" HorizontalAlignment="Right" VerticalAlignment="Center"
+                 IsVisible="{Binding IsTrezorCoinJoinWallet}"
+                 ToolTip.Tip="Change from the coinjoin account always returns to the SLIP-25 (Taproot) account. Only spends of the separate SegWit account produce SegWit change - the device does not allow SLIP-25 outputs outside coinjoin account transactions." />
       <ComboBox ItemsSource="{Binding ChangeScriptPubKeyTypes}"
-                SelectedItem="{Binding ChangeScriptPubKeyType}">
+                SelectedItem="{Binding ChangeScriptPubKeyType}"
+                IsVisible="{Binding !IsTrezorCoinJoinWallet}">
         <ComboBox.ItemTemplate>
           <DataTemplate x:DataType="models:PreferredScriptPubKeyType">
             <TextBlock Text="{Binding Converter={x:Static conv:PreferredScriptPubKeyTypeConverter.ToName}}" />
