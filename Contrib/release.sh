@@ -15,13 +15,6 @@
 #------------------------------------------------------------------------------------#
 set -xe
 
-STASH_MESSAGE="Stashed changes for script execution"
-# Check if there are any uncommitted changes
-if [[ -n $(git status --porcelain) ]]; then
-  # Stash the changes
-  git stash push -m "$STASH_MESSAGE" --quiet
-fi
-
 # Get the latest Git tag
 LATEST_TAG=$(git describe --tags --abbrev=0)
 # Extract the version number (strip the first character)
@@ -794,10 +787,4 @@ if [ "$RELEASE_NOTE" = "yes" ]; then
       -e "/{highlights}/r ./WalletWasabi/Announcements/ReleaseHighlights.md" \
       -e "/{highlights}/d" \
       ./Contrib/ReleaseTemplate.md
-fi
-
-# Unstash changes if there were any
-if git stash list | head -1 | grep -q "$STASH_MESSAGE"; then
-  git stash pop
-  echo "Changes unstashed."
 fi
