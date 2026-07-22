@@ -6,14 +6,9 @@
     <type fullname="NBitcoin.ChainName" preserve="all" />
   </assembly>
 
-  <!-- WalletWasabi Services & Manager Events used by Observable.FromEventPattern -->
-  <assembly fullname="WalletWasabi">
-    <type fullname="WalletWasabi.Wallets.WalletManager" preserve="all" />
-    <type fullname="WalletWasabi.Wallets.Wallet" preserve="all" />
-    <type fullname="WalletWasabi.WabiSabi.Client.CoinJoinManager" preserve="all" />
-  </assembly>
-
-  <!-- WalletWasabi.Fluent UI ViewModels, Views, and Models for Avalonia XAML & ReactiveUI reflection bindings -->
+  <!-- Wasabi Solution Assemblies -->
+  <assembly fullname="WalletWasabi" />
+  <assembly fullname="WalletWasabi.Client" />
   <assembly fullname="WalletWasabi.Fluent" />
   <assembly fullname="WalletWasabi.Fluent.Desktop" />
 
