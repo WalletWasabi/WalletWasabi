@@ -1,0 +1,35 @@
+<linker>
+  <!-- NBitcoin Reflection Fields required by ModuleInitializer -->
+  <assembly fullname="NBitcoin">
+    <type fullname="NBitcoin.Bitcoin" preserve="all" />
+    <type fullname="NBitcoin.Network" preserve="all" />
+    <type fullname="NBitcoin.ChainName" preserve="all" />
+  </assembly>
+
+  <!-- WalletWasabi Services & Manager Events used by Observable.FromEventPattern -->
+  <assembly fullname="WalletWasabi">
+    <type fullname="WalletWasabi.Wallets.WalletManager" preserve="all" />
+    <type fullname="WalletWasabi.Wallets.Wallet" preserve="all" />
+    <type fullname="WalletWasabi.WabiSabi.Client.CoinJoinManager" preserve="all" />
+  </assembly>
+
+  <!-- WalletWasabi.Fluent UI ViewModels, Views, and Models for Avalonia XAML & ReactiveUI reflection bindings -->
+  <assembly fullname="WalletWasabi.Fluent" />
+  <assembly fullname="WalletWasabi.Fluent.Desktop" />
+
+  <!-- ReactiveUI reflection helpers -->
+  <assembly fullname="ReactiveUI" />
+  <assembly fullname="ReactiveUI.Avalonia" />
+
+  <!-- Avalonia XAML Behaviors & Interactivity assemblies required by XamlTypeResolver -->
+  <assembly fullname="Xaml.Behaviors.Interactions.Custom" />
+  <assembly fullname="Xaml.Behaviors.Interactions.DragAndDrop" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Draggable" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Events" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Responsive" />
+  <assembly fullname="Xaml.Behaviors.Interactions" />
+  <assembly fullname="Xaml.Behaviors.Interactivity" />
+
+  <!-- Avalonia UI Control Assemblies -->
+  <assembly fullname="Avalonia.Controls.TreeDataGrid" />
+</linker>
