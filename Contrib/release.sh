@@ -31,7 +31,11 @@ SHORT_VERSION=${VERSION:0:${#VERSION}-2}
 # Update ClientVersion in Constants.cs with the version from git tag
 CONSTANTS_FILE="./WalletWasabi/Helpers/Constants.cs"
 VERSION_ARGS=$(echo "$VERSION" | sed 's/\./, /g')
-sed -i "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+if [[ "$1" == "dmg" ]]; then
+  sed -i '' "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+else
+  sed -i "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+fi
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
