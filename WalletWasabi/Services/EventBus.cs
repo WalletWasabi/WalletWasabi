@@ -140,4 +140,4 @@ public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
 public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
-public record PaymentBatchChanged(PaymentBatch PaymentBatch);
+public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);

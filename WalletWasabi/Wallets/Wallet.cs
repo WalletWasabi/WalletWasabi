@@ -288,14 +288,14 @@ public class Wallet : BackgroundService
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
 	{
 		var paymentId = BatchedPayments.AddPayment(destination, amount);
-		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments));
+		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 		return paymentId.ToString();
 	}
 
 	public void CancelCoinJoinPayment(Guid paymentId)
 	{
 		BatchedPayments.AbortPayment(paymentId);
-		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments));
+		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 	}
 
 	/// <inheritdoc/>
