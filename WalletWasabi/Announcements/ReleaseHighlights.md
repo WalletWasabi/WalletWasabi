@@ -1,4 +1,5 @@
 ## Release Highlights
+
 #### 🌎 New loading screen
 #### 🥕 Receive Taproot by default
 #### 📎 Support for two new packages for Linux (AppImage)
@@ -14,7 +15,7 @@ More detailed progress is now displayed while your wallet is loading. Peers, blo
 Taproot addresses use Bitcoin's most scalable and private script type. The soft fork was activated in August 2021 at block height 709,632, but sending to the new bech32m encoding type was not initially supported by wallet software. 5 years have now past, and Wasabi will shift the pressure to upgrade to unupgraded providers.
 
 #### 📎 Support for two new packages for Linux (AppImage)
-TODO
+Wasabi package that runs anywhere. You can download Wasabi Wallet and run it on your Linux desktop system just like you would do with a Windows or Mac application.
 
 ### ⚙️ Bug fixes
 Some issues preventing users from synchronizing with their node were fixed. A bug blocking version upgrade announcements was fixed, and the Nostr relay list was updated.
