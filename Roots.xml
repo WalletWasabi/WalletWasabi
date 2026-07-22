@@ -11,6 +11,11 @@
   <assembly fullname="WalletWasabi.Client" />
   <assembly fullname="WalletWasabi.Fluent" />
   <assembly fullname="WalletWasabi.Fluent.Desktop" />
+  <assembly fullname="WalletWasabi.Fluent.iOS">
+    <type fullname="WalletWasabi.Fluent.IOS.Application" preserve="all" />
+    <type fullname="WalletWasabi.Fluent.IOS.AppDelegate" preserve="all" />
+  </assembly>
+  <assembly fullname="WalletWasabi.Fluent.Android" />
 
   <!-- ReactiveUI reflection helpers -->
   <assembly fullname="ReactiveUI" />

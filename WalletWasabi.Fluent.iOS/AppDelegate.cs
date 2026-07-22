@@ -15,6 +15,7 @@ namespace WalletWasabi.Fluent.IOS;
 // User Interface of the application, as well as listening (and optionally responding) to
 // application events from iOS.
 [Register("AppDelegate")]
+[Preserve(AllMembers = true)]
 public class AppDelegate : AvaloniaAppDelegate<App>
 {
 	private WasabiApplication? _app;

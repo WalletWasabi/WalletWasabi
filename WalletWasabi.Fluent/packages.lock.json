@@ -83,18 +83,6 @@
         "resolved": "4.14.0",
         "contentHash": "gSWJlDWwmDhtbrEJGiHqvEjz9KthIiFD0qYB8zZ6a7z+xpMSPEtM9yTYELSa58iFWYlzSRqP9FXO6KoT3+ZMtg=="
       },
-      "Microsoft.DotNet.ILCompiler": {
-        "type": "Direct",
-        "requested": "[10.0.5, )",
-        "resolved": "10.0.5",
-        "contentHash": "yadTZIkStCVsG8nGwvfroSfBApPsgjQbodQyaIfp53dgayE0qhZpywixiCB6lx57JYQ+KVg1m1AFLrj54pxpZg=="
-      },
-      "Microsoft.NET.ILLink.Tasks": {
-        "type": "Direct",
-        "requested": "[10.0.5, )",
-        "resolved": "10.0.5",
-        "contentHash": "A+5ZuQ0f449tM+MQrhf6R9ZX7lYpjk/ODEwLYKrnF6111rtARx8fVsm4YznUnQiKnnXfaXNBqgxmil6RW3L3SA=="
-      },
       "NScheme": {
         "type": "Direct",
         "requested": "[0.0.1, )",
@@ -504,15 +492,6 @@
           "System.Reactive": "6.0.2"
         }
       },
-      "SQLitePCLRaw.bundle_e_sqlite3": {
-        "type": "Transitive",
-        "resolved": "2.1.11",
-        "contentHash": "DC4nA7yWnf4UZdgJDF+9Mus4/cb0Y3Sfgi3gDnAoKNAIBwzkskNAbNbyu+u4atT0ruVlZNJfwZmwiEwE5oz9LQ==",
-        "dependencies": {
-          "SQLitePCLRaw.lib.e_sqlite3": "2.1.11",
-          "SQLitePCLRaw.provider.e_sqlite3": "2.1.11"
-        }
-      },
       "SQLitePCLRaw.core": {
         "type": "Transitive",
         "resolved": "2.1.11",
@@ -738,6 +717,16 @@
         "resolved": "2.88.9",
         "contentHash": "kt06RccBHSnAs2wDYdBSfsjIDbY3EpsOVqnlDgKdgvyuRA8ZFDaHRdWNx1VHjGgYzmnFCGiTJBnXFl5BqGwGnA=="
       },
+      "SQLitePCLRaw.bundle_e_sqlite3": {
+        "type": "CentralTransitive",
+        "requested": "[2.1.11, )",
+        "resolved": "2.1.11",
+        "contentHash": "DC4nA7yWnf4UZdgJDF+9Mus4/cb0Y3Sfgi3gDnAoKNAIBwzkskNAbNbyu+u4atT0ruVlZNJfwZmwiEwE5oz9LQ==",
+        "dependencies": {
+          "SQLitePCLRaw.lib.e_sqlite3": "2.1.11",
+          "SQLitePCLRaw.provider.e_sqlite3": "2.1.11"
+        }
+      },
       "System.Linq.Async": {
         "type": "CentralTransitive",
         "requested": "[7.0.0, )",
@@ -757,16 +746,7 @@
         }
       }
     },
-    "net10.0/osx-arm64": {
-      "Microsoft.DotNet.ILCompiler": {
-        "type": "Direct",
-        "requested": "[10.0.5, )",
-        "resolved": "10.0.5",
-        "contentHash": "yadTZIkStCVsG8nGwvfroSfBApPsgjQbodQyaIfp53dgayE0qhZpywixiCB6lx57JYQ+KVg1m1AFLrj54pxpZg==",
-        "dependencies": {
-          "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": "10.0.5"
-        }
-      },
+    "net10.0/ios-arm64": {
       "SkiaSharp.NativeAssets.Linux": {
         "type": "Direct",
         "requested": "[3.119.2, )",
@@ -787,11 +767,6 @@
         "type": "Transitive",
         "resolved": "8.3.1.1",
         "contentHash": "UsJtQsfAJoFDZrXc4hCUfRPMqccfKZ0iumJ/upcUjz/cmsTgVFGNEL5yaJWmkqsuFYdMWbj/En5/kS4PFl9hBA=="
-      },
-      "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": {
-        "type": "Transitive",
-        "resolved": "10.0.5",
-        "contentHash": "Kyh5mVD60xdgfUKn6hE989GZBv1Pw1IaWP6Eikf3A9RuSiMyq6XhD5JJsCFiKJ8iDuM782yx5pIus60Dzjk7gQ=="
       },
       "SkiaSharp.NativeAssets.macOS": {
         "type": "Transitive",

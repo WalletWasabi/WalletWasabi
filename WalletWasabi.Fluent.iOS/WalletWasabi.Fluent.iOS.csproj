@@ -5,44 +5,28 @@
 		<SupportedOSPlatformVersion>15.0</SupportedOSPlatformVersion>
 		<ProvisioningType>manual</ProvisioningType>
 		<Nullable>enable</Nullable>
-		<NoWarn>$(NoWarn);NU1605</NoWarn>
-		<UseInterpreter>True</UseInterpreter>
-		<RunAOTCompilation>False</RunAOTCompilation>
+		<UseInterpreter>true</UseInterpreter>
+		<RunAOTCompilation>true</RunAOTCompilation>
 		<IsPackable>False</IsPackable>
 		<RootNamespace>WalletWasabi.Fluent.IOS</RootNamespace>
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<TreatWarningsAsErrors>false</TreatWarningsAsErrors>
 		<ILLinkTreatWarningsAsErrors>false</ILLinkTreatWarningsAsErrors>
-		<StartupObject>WalletWasabi.Fluent.IOS.Application</StartupObject>
+		<StartupObject>WalletWasabi.Fluent.IOS.Program</StartupObject>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
 		<ValidateXcodeVersion>false</ValidateXcodeVersion>
 		<DisableImplicitNuGetFallbackFolder>true</DisableImplicitNuGetFallbackFolder>
-		<MtouchLink Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">None</MtouchLink>
-		<MtouchLink Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">SdkOnly</MtouchLink>
+		<MtouchLink>SdkOnly</MtouchLink>
+		<_LibXamarinLinkMode>static</_LibXamarinLinkMode>
+		<_LibMonoLinkMode>static</_LibMonoLinkMode>
 		<MtouchDebug Condition="'$(Configuration)' == 'Debug'">True</MtouchDebug>
 		<CodesignEntitlements>Entitlements.plist</CodesignEntitlements>
 		<SelfContained>true</SelfContained>
 		<PublishSelfContained>true</PublishSelfContained>
-		<!-- 
-			WORKAROUND: Disable assembly IL stripping.
-			This prevents build errors when the ILStrip tool attempts to process native Windows PE files 
-			(such as KernelTraceControl.dll) bundled transitively via Microsoft.Diagnostics.Tracing.TraceEvent.
-		-->
-		<EnableAssemblyILStripping>false</EnableAssemblyILStripping>
-		<!-- 
-			WORKAROUND: Disable LLVM for AOT compilation.
-			This avoids build failures where the Mono AOT compiler searches for the LLVM 'opt' tool at a relative 
-			output directory, and speeds up AOT compilation times for local simulator development.
-		-->
-		<MtouchUseLlvm>false</MtouchUseLlvm>
 	</PropertyGroup>
 	<PropertyGroup>
 		<!-- Error NETSDK1150 : The referenced project '../WalletWasabi.Daemon/WalletWasabi.Daemon.csproj' is a non self-contained executable.  A non self-contained executable cannot be referenced by a self-contained executable.  For more information, see https://aka.ms/netsdk1150 -->
 		<ValidateExecutableReferencesMatchSelfContained>false</ValidateExecutableReferencesMatchSelfContained>
-	</PropertyGroup>
-	<PropertyGroup Condition="'$(Configuration)' == 'Release'">
-		<RunAOTCompilation>False</RunAOTCompilation>
-		<MtouchUseLlvm>False</MtouchUseLlvm>
 	</PropertyGroup>
 	<ItemGroup>
 		<PackageReference Include="Avalonia.iOS" />
@@ -50,7 +34,9 @@
 		<PackageReference Include="Avalonia.Themes.Fluent" />
 		<PackageReference Include="Avalonia.Fonts.Inter" />
 		<PackageReference Include="Microsoft.Data.Sqlite" />
+		<PackageReference Include="SQLitePCLRaw.bundle_e_sqlite3" />
 	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Fluent\WalletWasabi.Fluent.csproj" />
 	</ItemGroup>
@@ -66,18 +52,6 @@
 		</BundleResource>
 	</ItemGroup>
 	<ItemGroup>
-		<NativeReference Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/simulator/e_sqlite3.a">
-			<Kind>Static</Kind>
-			<SmartLink>True</SmartLink>
-			<ForceLoad>True</ForceLoad>
-		</NativeReference>
-		<NativeReference Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/device/e_sqlite3.a">
-			<Kind>Static</Kind>
-			<SmartLink>True</SmartLink>
-			<ForceLoad>True</ForceLoad>
-		</NativeReference>
-	</ItemGroup>
-	<ItemGroup>
 		<InterfaceBuilderResource Remove="Resources\**" />
 	</ItemGroup>
 	<ItemGroup>
@@ -90,68 +64,78 @@
 		<_NativeReference Remove="**\BundledApps\**" />
 		<_NativeReference Remove="**\Tor\**" />
 	</ItemGroup>
-	<Target Name="RemoveNativeBinariesTransitive" AfterTargets="_ComputePublishLocation" BeforeTargets="_ComputeDynamicLibrariesToReidentify;_InstallNameTool;_ReidentifyDynamicLibraries">
-		<ItemGroup>
-			<_BundleResourceWithTargetPath Remove="@(_BundleResourceWithTargetPath)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<ContentWithTargetPath Remove="@(ContentWithTargetPath)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<NoneWithTargetPath Remove="@(NoneWithTargetPath)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<None Remove="@(None)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<Content Remove="@(Content)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<NativeReference Remove="@(NativeReference)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_NativeReference Remove="@(_NativeReference)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_FileNativeReference Remove="@(_FileNativeReference)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_ResolvedFileToPublish_DynamicLibrary Remove="@(_ResolvedFileToPublish_DynamicLibrary)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_ResolvedFileToPublish_StaticLibrary Remove="@(_ResolvedFileToPublish_StaticLibrary)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_ResolvedFileToPublish_PluginLibrary Remove="@(_ResolvedFileToPublish_PluginLibrary)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<_DynamicLibraryToReidentify Remove="@(_DynamicLibraryToReidentify)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
-			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
 
-			<_FileNativeReference Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/simulator/e_sqlite3.a" Kind="Static" />
-			<_FileNativeReference Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/device/e_sqlite3.a" Kind="Static" />
-
-			<_ResolvedFileToPublish_StaticLibrary Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/simulator/e_sqlite3.a" Kind="Static" />
-			<_ResolvedFileToPublish_StaticLibrary Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" Include="$(NuGetPackageRoot)sqlitepclraw.lib.e_sqlite3.ios/2.1.11/static/device/e_sqlite3.a" Kind="Static" />
-		</ItemGroup>
-	</Target>
-
-	<Target Name="CopyXamarinRuntimeLibraries" AfterTargets="Codesign;_CodesignAppBundle">
-		<ItemGroup>
-			<_RuntimeDylibs Include="$(TargetDir)*.dylib" Exclude="$(TargetDir)BundledApps/**;$(TargetDir)Tor/**" />
-			<_RuntimeDlls Include="$(TargetDir)*.dll" />
-		</ItemGroup>
-		<MakeDir Directories="$(AppBundleDir)/Frameworks" />
-		<Copy SourceFiles="@(_RuntimeDylibs)" DestinationFolder="$(AppBundleDir)/Frameworks" SkipUnchangedFiles="true" />
-		<Delete Files="@(_RuntimeDylibs->'$(AppBundleDir)/%(Filename)%(Extension)')" />
-		<Copy SourceFiles="@(_RuntimeDlls)" DestinationFolder="$(AppBundleDir)" SkipUnchangedFiles="true" />
-		<Message Importance="high" Text="--- Copied Xamarin Runtime Dylibs and DLLs to app bundle ---" />
-		<!-- Use ad-hoc signing for simulator, developer identity for device -->
-		<PropertyGroup>
-			<_ActualSigningKey Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">-</_ActualSigningKey>
-			<_ActualSigningKey Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">$(CodesignKey)</_ActualSigningKey>
-		</PropertyGroup>
-		<Exec Command="find &quot;$(AppBundleDir)/Frameworks&quot; -name &quot;*&quot; | while read file; do if [ -f &quot;$$file&quot; ]; then codesign --force --sign &quot;$(_ActualSigningKey)&quot; &quot;$$file&quot; 2>/dev/null || true; fi; done" />
-		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; --entitlements &quot;$(MSBuildProjectDirectory)/Entitlements.plist&quot; &quot;$(AppBundleDir)&quot;" Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))" />
-		<Exec Command="codesign --force --deep --sign &quot;$(_ActualSigningKey)&quot; &quot;$(AppBundleDir)&quot;" Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))" />
-		<Message Importance="high" Text="--- Signed Frameworks and app bundle with key: $(_ActualSigningKey) ---" />
-	</Target>
-	<!-- Custom targets for trimmer compatibility -->
 	<!--
-		WORKAROUND: Fix Extra Trimmer Arguments.
-		Bypasses a trimmer error where duplicate or invalid link-attribute paths are supplied in '_ExtraTrimmerArgs'.
-		We replace/remove the link-attributes argument pointing to '_TrimAttributesLinkDescriptionPath' to prevent conflicts.
+		Ensure Apple system frameworks (CoreFoundation, Foundation, UIKit, Security) are linked.
+	-->
+	<Target Name="AddAppleSystemFrameworks" BeforeTargets="_LinkNativeExecutable">
+		<ItemGroup>
+			<_NativeExecutableFrameworks Include="CoreFoundation" />
+			<_NativeExecutableFrameworks Include="Foundation" />
+			<_NativeExecutableFrameworks Include="UIKit" />
+			<_NativeExecutableFrameworks Include="Security" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		Ensure main.m is provided as _MainFile to supply _main symbol to native linker.
+	-->
+	<Target Name="EnsureMainFile" BeforeTargets="_ComputeNativeExecutableInputs">
+		<ItemGroup>
+			<_MainFile Include="$(MSBuildProjectDirectory)/main.m" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		Ensure Mono component dylibs (like libmono-component-debugger.dylib) and entry assembly are copied into the app bundle.
+	-->
+	<Target Name="CopyMonoComponentDylibs" AfterTargets="Build">
+		<ItemGroup>
+			<_MonoComponentDylibs Include="$(HOME)/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.iossimulator-arm64/10.0.7/runtimes/iossimulator-arm64/native/*.dylib" />
+		</ItemGroup>
+		<Copy SourceFiles="@(_MonoComponentDylibs)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" />
+		<Copy SourceFiles="$(TargetPath)" DestinationFolder="$(OutputPath)WalletWasabi.Fluent.iOS.app" Condition="Exists('$(TargetPath)')" />
+	</Target>
+
+	<!--
+		Ensure iOS main entry point assembly is preserved by ILLink.
+	-->
+	<Target Name="EnsureiOSRootAssembly" AfterTargets="PrepareForILLink">
+		<ItemGroup>
+			<TrimmerRootAssembly Include="$(IntermediateOutputPath)$(TargetName)$(TargetExt)" RootMode="EntryPoint" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		Exclude desktop native binaries (macOS/Windows Tor dylibs) before published native assets or InstallNameTool are computed.
+	-->
+	<Target Name="ExcludeDesktopNativeBinaries" BeforeTargets="_ComputePublishLocation;_ComputeNativeReferences;_CopyNativeReferencesToBundle;_InstallNameTool;_DetectDynamicLibrariesToReidentify;_ReidentifyDynamicLibraries">
+		<ItemGroup>
+			<Content Remove="@(Content)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
+			<None Remove="@(None)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
+			<BundleResource Remove="@(BundleResource)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
+			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
+			<_DynamicLibraryToReidentify Remove="@(_DynamicLibraryToReidentify)" Condition="$([System.String]::Copy('%(Identity)').ToLower().Contains('bundledapps')) or $([System.String]::Copy('%(Identity)').ToLower().Contains('tor'))" />
+		</ItemGroup>
+	</Target>
+
+	<!--
+		WORKAROUND: Remove TrimAttributes.LinkDescription.xml from _ExtraTrimmerArgs.
+		TrimAttributes.LinkDescription.xml causes ILLink to fail resolving System.Private.CoreLib and strip Foundation attributes.
 	-->
 	<Target Name="FixExtraTrimmerArgs" AfterTargets="_ComputeLinkerInputs">
 		<PropertyGroup>
-			<_ExtraTrimmerArgs>$(_ExtraTrimmerArgs.Replace('--link-attributes &quot;$(_TrimAttributesLinkDescriptionPath)&quot;', ''))</_ExtraTrimmerArgs>
+			<_ExtraTrimmerArgs>$([System.Text.RegularExpressions.Regex]::Replace('$(_ExtraTrimmerArgs)', '--link-attributes\s+("[^"]*"|\S+)', ''))</_ExtraTrimmerArgs>
 		</PropertyGroup>
-		<Message Importance="high" Text="--- Modified _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
+		<Message Importance="high" Text="--- Cleaned _ExtraTrimmerArgs: $(_ExtraTrimmerArgs) ---" />
 	</Target>
+
+
 
 	<!--
 		WORKAROUND: Use Patched Linker Assembly.
-		Redirects the Xamarin/iOS SDK custom trimmer steps to our locally compiled 'dotnet-linker-patched.dll' and
-		removes the 'OptimizeGeneratedCodeStep' step.
-		This prevents trimmer crashes (like infinite recursion or metadata inconsistencies) on large assemblies.
+		Redirects the Xamarin/iOS SDK custom trimmer steps to our locally compiled 'dotnet-linker-patched.dll'.
+		This prevents trimmer crashes (like 'No corlib assembly!') on .NET 10 ILLink.
 	-->
 	<Target Name="UsePatchedLinkerAssembly" AfterTargets="_ComputeLinkerInputs" Condition="Exists('$(MSBuildProjectDirectory)/dotnet-linker-patched.dll')">
 		<ItemGroup>
@@ -166,32 +150,7 @@
 		<Message Importance="high" Text="--- Redirected only PreserveBlockCodeStep to dotnet-linker-patched.dll ---" />
 	</Target>
 
-	<!--
-		WORKAROUND: Restore Original System.Private.CoreLib.dll.
-		After the trimmer runs, it outputs a stripped-down Mono CoreLib. This stripped assembly breaks
-		important reflection APIs and runtime functionality (such as CDP protocol domains).
-		We copy the complete Mono runtime 'System.Private.CoreLib.dll' and simulator library references back
-		into the intermediate linking directory before Native/AOT compilation occurs.
-	-->
-	<Target Name="RestoreOriginalCoreLib" AfterTargets="_RunILLink">
-		<PropertyGroup>
-			<_RuntimeId Condition="$(RuntimeIdentifier.StartsWith('iossimulator'))">iossimulator-arm64</_RuntimeId>
-			<_RuntimeId Condition="!$(RuntimeIdentifier.StartsWith('iossimulator'))">ios-arm64</_RuntimeId>
-		</PropertyGroup>
-		<ItemGroup>
-			<_MonoCoreLib Include="$([System.Environment]::GetFolderPath(SpecialFolder.UserProfile))/.dotnet/packs/Microsoft.NETCore.App.Runtime.Mono.$(_RuntimeId)/*/runtimes/$(_RuntimeId)/native/System.Private.CoreLib.dll" />
-		</ItemGroup>
-		<Copy
-			SourceFiles="@(_MonoCoreLib)"
-			DestinationFolder="$(IntermediateLinkDir)"
-			OverwriteReadOnlyFiles="true"
-		/>
-		<Message Importance="high" Text="--- Restored original System.Private.CoreLib.dll from @(_MonoCoreLib) to $(IntermediateLinkDir) ---" />
-	</Target>
 
-	<Target Name="InspectManagedAssemblies" AfterTargets="_ComputeManagedAssemblyToLink">
-		<Message Importance="high" Text="--- ManagedAssemblyToLink: @(ManagedAssemblyToLink, '; ') ---" />
-	</Target>
 
 	<!--
 		WORKAROUND: Override AOT Compiler with Stack-Limit Wrapper.
@@ -202,21 +161,11 @@
 	-->
 	<Target Name="OverrideAotCompiler" AfterTargets="_FindAotCompiler" Condition="'$(_XamarinAOTCompiler)' != ''">
 		<PropertyGroup>
-			<WrapperScriptPath>$(IntermediateOutputPath)mono-aot-cross-wrapper.sh</WrapperScriptPath>
+			<WrapperScriptPath>$(MSBuildProjectDirectory)/$(IntermediateOutputPath)mono-aot-cross-wrapper.sh</WrapperScriptPath>
 			<OriginalXamarinAOTCompiler>$(_XamarinAOTCompiler)</OriginalXamarinAOTCompiler>
 			<_XamarinAOTCompiler>$(WrapperScriptPath)</_XamarinAOTCompiler>
 		</PropertyGroup>
-		<ItemGroup>
-			<WrapperContent Remove="@(WrapperContent)" />
-			<WrapperContent Include="#!/bin/bash" />
-			<WrapperContent Include="ulimit -s 65520" />
-			<WrapperContent Include="exec &quot;$(OriginalXamarinAOTCompiler)&quot; &quot;%24%40&quot;" />
-		</ItemGroup>
-		<WriteLinesToFile
-			File="$(WrapperScriptPath)"
-			Lines="@(WrapperContent)"
-			Overwrite="true"
-		/>
+		<WriteLinesToFile File="$(WrapperScriptPath)" Overwrite="true" Lines="#!/bin/bash&#10;ulimit -s 65520&#10;&quot;$(OriginalXamarinAOTCompiler)&quot; &quot;$@&quot;" />
 		<Exec Command="chmod +x &quot;$(WrapperScriptPath)&quot;" />
 		<Message Importance="high" Text="--- Registered mono-aot-cross wrapper with ulimit at: $(_XamarinAOTCompiler) ---" />
 	</Target>

@@ -6,12 +6,13 @@
 	</PropertyGroup>
 
 	<!-- Enable AOT & Trimming suppressions across all projects when AOT mode is active -->
-	<PropertyGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
+	<PropertyGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
 		<PublishAot>true</PublishAot>
 
 		<!-- Enable Full Trimming Across All User & Dependency Assemblies -->
 		<IsTrimmable>true</IsTrimmable>
-		<TrimMode>full</TrimMode>
+		<TrimMode Condition="!$(TargetFramework.Contains('-ios')) and !$(TargetFramework.Contains('-android'))">full</TrimMode>
+		<TrimMode Condition="$(TargetFramework.Contains('-ios')) or $(TargetFramework.Contains('-android'))">partial</TrimMode>
 		<PublishTrimmed>true</PublishTrimmed>
 
 		<!-- Optimization & Performance Tuning for ILC -->
@@ -48,18 +49,18 @@
 
 	<!-- Shared Fine-Grained Reflection Rooting Descriptor for Desktop, Mobile & Wasabi Core -->
 	<!-- Add specific types, methods, or namespaces here as discovered during AOT runtime testing -->
-	<ItemGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
+	<ItemGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
 		<TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)Roots.xml" />
 		<RuntimeHostConfigurationOption Include="System.Text.Json.JsonSerializer.IsReflectionDisabledByDefault" Value="false" Trim="false" />
 	</ItemGroup>
 
 	<!-- macOS Linker Fix: Use classic Apple linker (ld_classic) to avoid Xcode ld_prime Fixup assertion bug -->
-	<ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) and ('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true')">
+	<ItemGroup Condition="$([MSBuild]::IsOSPlatform('OSX')) and ('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true')">
 		<LinkerArg Include="-Wl,-ld_classic" />
 	</ItemGroup>
 
 	<!-- Force Full Link Trimming Mode on All Managed Assemblies for Native AOT -->
-	<Target Name="EnableFullTrimmingForIlc" BeforeTargets="WriteIlcRspFileForCompilation;PrepareForILLink;_ComputeManagedAssemblyForILLink" Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
+	<Target Name="EnableFullTrimmingForIlc" BeforeTargets="WriteIlcRspFileForCompilation;PrepareForILLink;_ComputeManagedAssemblyForILLink" Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true' and !$(TargetFramework.Contains('-ios')) and !$(TargetFramework.Contains('-android'))">
 		<ItemGroup>
 			<TrimmerRootAssembly Remove="@(TrimmerRootAssembly)" Condition="'%(TrimmerRootAssembly.RootMode)' != 'EntryPoint'" />
 			<ManagedAssemblyToLink Update="@(ManagedAssemblyToLink)" TrimMode="link" />
