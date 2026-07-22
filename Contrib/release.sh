@@ -113,6 +113,16 @@ elif [ "$1" = "gpgsign" ]; then
   RELEASE_NOTE="no"
   SIGN_PGP="yes"
   CREATE_OSX_DMG="no"
+  CREATE_RELEASE="no"
+  PACKAGE_COORDINATOR="no"
+elif [ "$1" = "sign-and-release" ]; then
+  PLATFORMS=()
+  CREATE_WINDOWS_INSTALLER="no"
+  CREATE_DEBIAN_PACKAGE="no"
+  RELEASE_NOTE="no"
+  SIGN_PGP="yes"
+  CREATE_OSX_DMG="no"
+  CREATE_RELEASE="yes"
   PACKAGE_COORDINATOR="no"
 fi
 
@@ -479,6 +489,17 @@ fi
 # CREATE WINDOWS INSTALLER                                                           #
 #------------------------------------------------------------------------------------#
 if [ "$CREATE_WINDOWS_INSTALLER" = "yes" ]; then
+
+# Install required tools on Windows CI
+if [[ "$RUNNER_OS" == "Windows" ]]; then
+  echo "Installing WiX Toolset and 7-Zip..."
+  choco install wixtoolset --version=3.14.1 --force
+  choco install 7zip.commandline
+
+  echo "Installing AzureSignTool..."
+  dotnet tool install --global AzureSignTool
+fi
+
 WIX_BIN_DIR="$WIX/bin"
 WINDOWS_INSTALLER_DIR="WalletWasabi.WindowsInstaller"
 CANDLE_EXE="$WIX_BIN_DIR/"candle
@@ -531,6 +552,13 @@ fi
 # CREATE OSX .DMG                                                                    #
 #------------------------------------------------------------------------------------#
 if [ "$CREATE_OSX_DMG" = "yes" ]; then
+
+# Decode certificates from environment variables (set by CI)
+if [[ -n "$MAC_CER" && -n "$MAC_P12" ]]; then
+  echo "Decoding macOS certificates..."
+  echo "$MAC_CER" | base64 -d > MacCertificate.cer
+  echo "$MAC_P12" | base64 -d > MacP12.p12
+fi
 
 for OSX_ZIP_PACKAGE in $PACKAGES_DIR/Wasabi*macOS*.zip; do
 # Combine paths
@@ -783,6 +811,33 @@ dotnet fsi signer.fsx SHA256SUMS.asc $SIGNING_WASABI_KEY > SHA256SUMS.wasabisig
 rm signer.fsx
 
 popd || exit
+fi
+
+#------------------------------------------------------------------------------------#
+# CREATE GITHUB RELEASE                                                              #
+#------------------------------------------------------------------------------------#
+if [ "$CREATE_RELEASE" = "yes" ]; then
+  echo "Creating GitHub release..."
+
+  # Generate release notes
+  RELEASE_NOTES=$(sed -e "s/{version}/$VERSION/g" \
+      -e "/{highlights}/r ./WalletWasabi/Announcements/ReleaseHighlights.md" \
+      -e "/{highlights}/d" \
+      ./Contrib/ReleaseTemplate.md)
+
+  # List packages for release
+  echo "Packages to be released:"
+  ls -la "$PACKAGES_DIR"
+
+  # Create draft release using gh CLI
+  gh release create "$LATEST_TAG" \
+    --title "Wasabi Wallet $LATEST_TAG" \
+    --notes "$RELEASE_NOTES" \
+    --generate-notes \
+    --draft \
+    "$PACKAGES_DIR"/*
+
+  echo "Draft release created for $LATEST_TAG"
 fi
 
 if [ "$RELEASE_NOTE" = "yes" ]; then
