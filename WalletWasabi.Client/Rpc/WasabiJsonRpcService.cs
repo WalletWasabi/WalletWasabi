@@ -166,7 +166,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getnewaddress")]
-	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = false)
+	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = true)
 	{
 		AssertWalletIsLoaded();
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
