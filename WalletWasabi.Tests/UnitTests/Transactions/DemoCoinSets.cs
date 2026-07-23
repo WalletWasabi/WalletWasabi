@@ -2772,8 +2772,9 @@ internal class DemoCoinSets
 			}
 		}
 
-		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Labels}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
-		var result = string.Join($",\r\n", coinTexts);
-		return result;
+// 		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Labels}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");  // TODO: Update for new anonymity system
+// 		var result = string.Join($",\r\n", coinTexts);  // TODO: Update for new anonymity system
+// 		return result;  // TODO: Update for new anonymity system
+		return "";  // TODO: Update for new anonymity system
 	}
 }

@@ -17,7 +17,7 @@ public class InvalidTxExceptionTests
 			9,
 			Enumerable.Repeat(Money.Coins(1m), 9),
 			new[] { (Money.Coins(1.1m), 1) },
-			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
+			new[] { (Money.Coins(1m), 1) });
 
 		TransactionPolicyError[] crazyInvalidTxErrors =
 			{
