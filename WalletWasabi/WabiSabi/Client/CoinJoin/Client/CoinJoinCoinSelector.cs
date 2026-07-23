@@ -31,11 +31,17 @@ public class CoinJoinCoinSelector
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
-	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
-		new(
+	public static CoinJoinCoinSelector FromWallet(Wallet wallet)
+	{
+		var payWithPrivateCoins = wallet.AllowPaymentsRegardlessOfAnonScore
+			&& wallet.IsWalletPrivate()
+			&& wallet.BatchedPayments.AreTherePendingPayments;
+
+		return new(
 			wallet.ConsolidationMode,
-			wallet.AnonScoreTarget,
+			payWithPrivateCoins ? int.MaxValue : wallet.AnonScoreTarget,
 			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
+	}
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)

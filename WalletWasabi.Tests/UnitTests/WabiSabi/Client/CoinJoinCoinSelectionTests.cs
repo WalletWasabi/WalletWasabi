@@ -66,6 +66,41 @@ public class CoinJoinCoinSelectionTests
 		Assert.Empty(coins);
 	}
 
+	/// <summary>
+	/// This test is to make sure private coins are selected to fund a payment when the user opted in to
+	/// pay in coinjoin regardless of the anonymity score. In that case <see cref="CoinJoinCoinSelector.FromWallet"/>
+	/// lifts the anonymity score target so every private coin becomes selectable.
+	/// </summary>
+	[Fact]
+	public void SelectPrivateCoinsToPayRegardlessOfAnonScore()
+	{
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var coinsToSelectFrom = Enumerable
+			.Range(0, 10)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.ToList();
+
+		// Make sure the distance from external keys is sufficient.
+		foreach (var sc in coinsToSelectFrom)
+		{
+			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
+			sci.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+			sc.Transaction.TryAddWalletInput(sci);
+		}
+
+		CoinJoinCoinSelectorRandomnessGenerator generator = CreateSelectorGenerator(inputTarget: 5);
+		var coinJoinCoinSelector = new CoinJoinCoinSelector(consolidationMode: false, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0, generator);
+
+		var coins = coinJoinCoinSelector.SelectCoinsForRound(
+			coins: coinsToSelectFrom,
+			CreateUtxoSelectionParameters(),
+			liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+		Assert.NotEmpty(coins);
+		Assert.All(coins, coin => Assert.Contains(coin, coinsToSelectFrom));
+	}
+
 	[Fact]
 	public void SelectNothingFromTooSmallCoin()
 	{
