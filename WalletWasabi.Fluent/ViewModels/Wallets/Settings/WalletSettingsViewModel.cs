@@ -3,8 +3,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -102,6 +104,16 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             _ => walletModel.Settings.ChangeScriptPubKeyType
         };
 
+        if (walletModel.IsTrezorCoinJoinWallet
+            && _changeScriptPubKeyType is not PreferredScriptPubKeyType.Specified { ScriptType: ScriptPubKeyType.Segwit })
+        {
+            // SegWit is the only valid choice here (taproot keys of this wallet belong to the SLIP-25
+            // coinjoin account); coerce so the selector does not show an empty value.
+            _changeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
+            walletModel.Settings.ChangeScriptPubKeyType = _changeScriptPubKeyType;
+            walletModel.Settings.Save();
+        }
+
         DefaultSendWorkflow = walletModel.Settings.DefaultSendWorkflow;
         this.WhenAnyValue(x => x.DefaultSendWorkflow)
             .Subscribe(value => IsAutomaticDefaultSendWorkflow = value == SendWorkflow.Automatic);
@@ -109,6 +121,27 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
+
+        // A Trezor watch-only wallet imported without coinjoin can opt in later. The device shows the new
+        // coinjoin account for confirmation, then the wallet restarts so the coinjoin services pick it up.
+        CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+        EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            try
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(3));
+                await walletModel.EnableCoinjoinAsync(cts.Token);
+
+                // The output provider reads the wallet's supported script types at construction, so restart to pick up the coinjoin account.
+                UiContext.Navigate(MetaData.NavigationTarget).Clear();
+                AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                await ShowErrorAsync("Enable coinjoin", ex.ToUserFriendlyString(), "Could not enable coinjoin.");
+            }
+        });
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -157,21 +190,31 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool IsHardwareWallet { get; }
     public bool IsWatchOnly { get; }
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
+
+    public bool IsTrezorCoinJoinWallet => _wallet.IsTrezorCoinJoinWallet;
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
+    // Taproot receive addresses of a Trezor coinjoin wallet come from the SLIP-25 coinjoin account:
+    // deposits to them are eligible for coinjoin right away, without a hop through the segwit account.
     public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
-    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes { get; } =
-    [
-        PreferredScriptPubKeyType.Unspecified.Instance,
-        PreferredScriptPubKeyType.Specified.SegWit,
-        PreferredScriptPubKeyType.Specified.Taproot
-    ];
+
+    // Taproot change of a Trezor coinjoin wallet would land in the SLIP-25 account, which cannot sign regular transactions.
+    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes => _wallet.IsTrezorCoinJoinWallet
+        ? [PreferredScriptPubKeyType.Specified.SegWit]
+        :
+        [
+            PreferredScriptPubKeyType.Unspecified.Instance,
+            PreferredScriptPubKeyType.Specified.SegWit,
+            PreferredScriptPubKeyType.Specified.Taproot
+        ];
 
     public IEnumerable<SendWorkflow> SendWorkflows { get; } = Enum.GetValues<SendWorkflow>();
 
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
     public ICommand ResyncWalletCommand { get; }
+    public bool CanEnableCoinjoin { get; }
+    public ICommand EnableCoinjoinCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {

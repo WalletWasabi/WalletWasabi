@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client.Batching;
@@ -105,6 +106,63 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		var (keyManager, _) = walletGenerator.GenerateWallet(walletName, password, mnemonic);
 		Global.WalletManager.AddWallet(keyManager);
+	}
+
+	[JsonRpcMethod("importtrezorwallet", initializable: false)]
+	public async Task<object> ImportTrezorWalletAsync(string walletName, bool enableCoinjoin = true)
+	{
+		AssertNoTrezorCoinJoinInProgress();
+		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
+
+		// Reading the SLIP-25 account asks for a confirmation on the device, give the user time for it.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+		var keyManager = await HardwareWalletOperationHelpers.ImportTrezorWalletAsync(walletFilePath, Global.Network, enableCoinjoin, cts.Token).ConfigureAwait(false);
+		Global.WalletManager.AddWallet(keyManager);
+
+		return new JsonRpcResult
+		{
+			["walletName"] = walletName,
+			["masterKeyFingerprint"] = keyManager.MasterFingerprint?.ToString() ?? "",
+			["coinjoinEnabled"] = keyManager.IsTrezorCoinJoinWallet()
+		};
+	}
+
+	[JsonRpcMethod("enablecoinjoin")]
+	public async Task<object> EnableCoinJoinAsync()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertNoTrezorCoinJoinInProgress();
+
+		// Reading the SLIP-25 account asks for a confirmation on the device, give the user time for it.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+		await HardwareWalletOperationHelpers.EnableCoinJoinAsync(activeWallet.KeyManager, Global.Network, cts.Token).ConfigureAwait(false);
+
+		return new JsonRpcResult
+		{
+			["coinjoinAccountKeyPath"] = $"m/{activeWallet.KeyManager.TaprootAccountKeyPath}",
+			// The coinjoin services read the wallet's accounts when the wallet starts, so a wallet that was
+			// already loaded has to be started again (restart the daemon) before it can join rounds.
+			["restartRequired"] = activeWallet.Loaded
+		};
+	}
+
+	/// <summary>
+	/// Opening the device for an import steals the bridge session that a coinjoining Trezor wallet holds,
+	/// killing its authorization mid-round. Refuse instead of sabotaging the running coinjoin.
+	/// </summary>
+	private void AssertNoTrezorCoinJoinInProgress()
+	{
+		if (Global.HostedServices.GetOrDefault<CoinJoinManager>() is not { } coinJoinManager)
+		{
+			return;
+		}
+
+		var busy = Global.WalletManager.GetWallets()
+			.FirstOrDefault(w => w.KeyManager.IsTrezorCoinJoinWallet() && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
+		if (busy is not null)
+		{
+			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with the Trezor. Stop it with stopcoinjoin first.");
+		}
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]

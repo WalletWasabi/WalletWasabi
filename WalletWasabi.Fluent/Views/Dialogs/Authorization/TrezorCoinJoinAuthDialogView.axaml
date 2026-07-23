@@ -1,0 +1,38 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:authorization="clr-namespace:WalletWasabi.Fluent.ViewModels.Dialogs.Authorization"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="authorization:TrezorCoinJoinAuthDialogViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.Authorization.TrezorCoinJoinAuthDialogView">
+  <ContentArea Title="{Binding Title}"
+                 Caption="Connect your Trezor, press Continue and then hold to confirm the coinjoin authorization on the device."
+                 MaxWidth="500"
+                 CancelContent="Cancel"
+                 EnableCancel="{Binding EnableCancel}"
+                 EnableBack="{Binding EnableBack}"
+                 EnableNext="True" NextContent="Continue"
+                 IsBusy="{Binding IsBusy}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <StackPanel Spacing="10">
+      <Viewbox MaxHeight="100">
+        <WalletIconControl WalletType="{Binding WalletType}" />
+      </Viewbox>
+      <TextBlock TextAlignment="Center" Opacity="0.6"
+                 Text="{Binding LimitsText}"
+                 TextWrapping="Wrap" />
+      <TextBlock TextAlignment="Center" Foreground="{DynamicResource SystemErrorTextColor}"
+                 Text="{Binding AuthorizationFailedMessage}"
+                 TextWrapping="Wrap"
+                 IsVisible="{Binding HasAuthorizationFailed}" />
+      <Button Classes="activeHyperLink"
+              HorizontalAlignment="Center"
+              Content="Download Trezor Suite"
+              ToolTip.Tip="Open the official Trezor Suite releases page in the default browser"
+              Command="{Binding OpenBridgeDownloadCommand}"
+              IsVisible="{Binding IsBridgeMissing}" />
+    </StackPanel>
+  </ContentArea>
+</UserControl>

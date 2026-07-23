@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
 
@@ -27,6 +28,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
+	[AutoNotify] private string? _trezorDeviceAccessText;
 
 	private const string NoBitcoinRpcConfigured = "Not configured";
 	private const string NoBitcoinRpcDetected = "Not detected";
@@ -116,6 +118,22 @@ public partial class HealthMonitor : ReactiveObject
 		this.WhenAnyValue(x => x.Peers)
 			.Select(peerCount => peerCount > 0)
 			.BindTo(this, x => x.IsP2pConnected)
+			.DisposeWith(Disposables);
+
+		// Trezor device access (hidden until a Trezor is used at all).
+		// The bridge (trezord) serves coinjoin-capable Trezor wallets; HWI takes the USB device directly
+		// otherwise. TrezorBridgeManager flips between them, this just tells the user which one is active.
+		Observable.FromEventPattern<TrezorBridgeStatus>(
+				h => TrezorBridgeManager.StatusChanged += h,
+				h => TrezorBridgeManager.StatusChanged -= h)
+			.Select(e => e.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(status => TrezorDeviceAccessText = status switch
+			{
+				TrezorBridgeStatus.StartedByWasabi => "Bridge (managed by Wasabi)",
+				TrezorBridgeStatus.External => "Bridge (external)",
+				_ => "Direct USB (HWI)",
+			})
 			.DisposeWith(Disposables);
 
 		// Update Available

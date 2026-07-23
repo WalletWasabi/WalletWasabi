@@ -5,6 +5,7 @@ using System.Windows.Input;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
+using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
@@ -13,9 +14,12 @@ namespace WalletWasabi.Fluent.ViewModels.AddWallet.HardwareWallet;
 [NavigationMetaData(Title = "Hardware Wallet")]
 public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
+	[AutoNotify] private bool _enableCoinjoin;
+	[AutoNotify] private bool _isBridgeUnavailable;
+
 	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
-		var (walletName, device) = options;
+		var (walletName, device, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);
@@ -26,13 +30,18 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		TypeName = device.Model.FriendlyName();
 
+		// Coinjoin is opt-in: only offer it for models that can sign coinjoins on the device.
+		SupportsCoinjoin = device.SupportsCoinJoin();
+
 		SetupCancel(enableCancel: false, enableCancelOnEscape: false, enableCancelOnPressed: false);
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options));
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with { EnableCoinjoin = EnableCoinjoin }));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
+
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(WalletWasabi.Hwi.Trezor.TrezorBridgeManager.SuiteDownloadUrl));
 
 		EnableAutoBusyOn(NextCommand);
 	}
@@ -45,7 +54,11 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 	public string TypeName { get; }
 
+	public bool SupportsCoinjoin { get; }
+
 	public ICommand NoCommand { get; }
+
+	public ICommand OpenBridgeDownloadCommand { get; }
 
 	private async Task OnNextAsync(WalletCreationOptions.ConnectToHardwareWallet options)
 	{
@@ -81,5 +94,23 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			CancelCts?.Dispose();
 			CancelCts = null;
 		}));
+
+		// Warn up front when coinjoin is offered but the bridge that it needs is not running, so the user
+		// can start Trezor Suite before checking the box instead of hitting an error after confirming.
+		if (SupportsCoinjoin)
+		{
+			Task.Run(async () =>
+			{
+				try
+				{
+					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
+					IsBridgeUnavailable = !await WalletWasabi.Hwi.Trezor.TrezorDevice.IsBridgeAvailableAsync(cts.Token);
+				}
+				catch (Exception ex)
+				{
+					Logger.LogDebug(ex);
+				}
+			});
+		}
 	}
 }

@@ -126,7 +126,8 @@
                         <PathIcon Data="{StaticResource exclude_coins}" />
                       </MenuItem.Icon>
                     </MenuItem>
-                    <MenuItem Header="Coinjoin Payments" Command="{Binding CoinJoinStateViewModel.CoinJoinPaymentsCommand}">
+                    <MenuItem Header="Coinjoin Payments" Command="{Binding CoinJoinStateViewModel.CoinJoinPaymentsCommand}"
+                              IsVisible="{Binding CoinJoinStateViewModel.AreCoinJoinPaymentsSupported}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource embedded_payment}" />
                       </MenuItem.Icon>

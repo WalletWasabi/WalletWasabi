@@ -137,14 +137,15 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<WalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
 	{
-		var (walletName, device) = options;
+		var walletName = options.WalletName;
+		var device = options.Device;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);
 		ArgumentNullException.ThrowIfNull(cancelToken);
 
 		var walletFilePath = _services.GetWalletFilePath(walletName);
-		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, _services.GetNetwork(), cancelToken.Value);
+		var keyManager = await HardwareWalletOperationHelpers.GenerateWalletAsync(device, walletFilePath, _services.GetNetwork(), cancelToken.Value, options.EnableCoinjoin);
 		keyManager.SetIcon(device.WalletType);
 
 		var result = new WalletSettingsModel(_services, keyManager, true);

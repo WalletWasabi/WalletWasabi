@@ -111,10 +111,13 @@ public record SigningState : MultipartyTransactionState
 	{
 		var tx = CreateUnsignedTransaction();
 		var precomputeTransactionData = tx.PrecomputeTransactionData(Inputs.ToArray());
-		return new TransactionWithPrecomputedData(tx, precomputeTransactionData);
+		var ownershipProofs = Events.OfType<InputAdded>().ToImmutableDictionary(x => x.Coin.Outpoint, x => x.OwnershipProof);
+		return new TransactionWithPrecomputedData(tx, precomputeTransactionData, ownershipProofs);
 	}
 }
 
+/// <param name="OwnershipProofs">Ownership proofs of all registered inputs by outpoint. Hardware signers need them to verify the externality of foreign inputs.</param>
 public record TransactionWithPrecomputedData(
 	Transaction Transaction,
-	PrecomputedTransactionData PrecomputedTransactionData);
+	PrecomputedTransactionData PrecomputedTransactionData,
+	ImmutableDictionary<OutPoint, WalletWasabi.Crypto.OwnershipProof> OwnershipProofs);
