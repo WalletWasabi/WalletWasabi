@@ -1,6 +1,3 @@
-using System.Collections.Immutable;
-using WalletWasabi.Extensions;
-using NBitcoin;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;

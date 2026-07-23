@@ -15,9 +15,9 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
 using JsonRpcResult = System.Collections.Generic.Dictionary<string, object?>;
 using JsonRpcResultList = System.Collections.Immutable.ImmutableArray<System.Collections.Generic.Dictionary<string, object?>>;
@@ -166,7 +166,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getnewaddress")]
-	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = false)
+	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = true)
 	{
 		AssertWalletIsLoaded();
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
@@ -344,7 +344,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public void CancelPayment(Guid paymentId)
 	{
 		AssertWalletIsLoaded();
-		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
+		ActiveWallet!.CancelCoinJoinPayment(paymentId);
 	}
 
 	[JsonRpcMethod("send")]

@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;
 
 public static class DependencyGraphExtensions

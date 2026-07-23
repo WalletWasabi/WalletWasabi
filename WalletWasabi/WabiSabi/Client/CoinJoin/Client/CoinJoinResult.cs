@@ -1,7 +1,3 @@
-using NBitcoin;
-using System.Collections.Immutable;
-using WalletWasabi.Blockchain.TransactionOutputs;
-
 namespace WalletWasabi.WabiSabi.Client;
 
 public abstract record CoinJoinResult;

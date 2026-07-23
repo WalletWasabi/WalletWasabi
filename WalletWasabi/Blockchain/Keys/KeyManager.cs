@@ -199,7 +199,7 @@ public class KeyManager
 
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
-	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.Segwit;
+	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.TaprootBIP86;
 
 	public PreferredScriptPubKeyType ChangeScriptPubKeyType { get; set; } = PreferredScriptPubKeyType.Unspecified.Instance;
 
@@ -315,7 +315,7 @@ public class KeyManager
 		birthHeight ??= FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
 		var blockchainState = new BlockchainState(network, height: birthHeight, birthHeight: birthHeight);
 		var km = new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, minGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
-		km.AssertCleanKeysIndexed();
+		km.AssertCleanKeysIndexedNoLock();
 		return km;
 	}
 
@@ -409,19 +409,6 @@ public class KeyManager
 		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
-	public HdPubKey GetNextSilentPaymentDummyKey(int scanKeyIndex, PubKey pubkey, LabelsArray labels, ECPubKey tweak)
-	{
-		var dummyKeyFullPath = GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Account).Derive((uint)scanKeyIndex);
-		lock (_criticalStateLock)
-		{
-			var nextIndex = _hdPubKeyCache.GetView(dummyKeyFullPath).Select(x => x.Index).MaxOrDefault(-1) + 1;
-			var hdPubKey = new HdPubKey(pubkey, dummyKeyFullPath.Derive((uint)nextIndex), labels, KeyState.Clean);
-			hdPubKey.TweakData = tweak;
-			_hdPubKeyCache.AddKey(hdPubKey, ScriptPubKeyType.TaprootBIP86);
-			return hdPubKey;
-		}
-	}
-
 	public HdPubKey GetNextChangeKey() =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
@@ -448,7 +435,7 @@ public class KeyManager
 		// m / purpose' / coin_type' / account' / change / address_index
 		lock (_criticalStateLock)
 		{
-			AssertCleanKeysIndexed();
+			AssertCleanKeysIndexedNoLock();
 			var predicate = wherePredicate ?? (_ => true);
 			return _hdPubKeyCache.HdPubKeys.Where(predicate).OrderBy(x => x.Index).ToImmutableArray();
 		}
@@ -489,14 +476,9 @@ public class KeyManager
 	{
 		ExtKey extKey = GetMasterExtKey(password);
 
-		lock (_criticalStateLock)
+		foreach (HdPubKey key in GetKeys(x => scripts.Contains(x.P2wpkhScript) || scripts.Contains(x.P2Taproot)))
 		{
-			foreach (HdPubKey key in GetKeys(x =>
-				scripts.Contains(x.P2wpkhScript)
-				|| scripts.Contains(x.P2Taproot)))
-			{
-				yield return extKey.Derive(key.FullKeyPath).PrivateKey;
-			}
+			yield return extKey.Derive(key.FullKeyPath).PrivateKey;
 		}
 	}
 
@@ -605,7 +587,7 @@ public class KeyManager
 		}
 	}
 
-	private IEnumerable<HdPubKey> AssertCleanKeysIndexed()
+	private void AssertCleanKeysIndexedNoLock()
 	{
 		var keys = new[]
 			{
@@ -618,7 +600,7 @@ public class KeyManager
 			.SelectMany(gen => gen!.AssertCleanKeysIndexed(_hdPubKeyCache.GetView(gen.KeyPath)))
 			.Select(CreateHdPubKey);
 
-		return _hdPubKeyCache.AddRangeKeys(keys);
+		_hdPubKeyCache.AddRangeKeys(keys);
 	}
 
 	/// <summary>
@@ -626,13 +608,16 @@ public class KeyManager
 	/// </summary>
 	public void AssertLockedInternalKeysIndexedAndPersist(int howMany, bool preferTaproot)
 	{
-		if (AssertLockedInternalKeysIndexed(howMany, preferTaproot))
+		lock (_criticalStateLock)
 		{
-			ToFile();
+			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
+			{
+				ToFile();
+			}
 		}
 	}
 
-	public bool AssertLockedInternalKeysIndexed(int howMany, bool preferTaproot)
+	private bool AssertLockedInternalKeysIndexedNoLock(int howMany, bool preferTaproot)
 	{
 		var hdPubKeyGenerator = (_taprootInternalKeyGenerator, preferTaproot) switch
 		{
@@ -811,7 +796,7 @@ public class KeyManager
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
-				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.Segwit),
+				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.TaprootBIP86),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
 				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []

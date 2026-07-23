@@ -15,18 +15,20 @@
 #------------------------------------------------------------------------------------#
 set -xe
 
-STASH_MESSAGE="Stashed changes for script execution"
-# Check if there are any uncommitted changes
-if [[ -n $(git status --porcelain) ]]; then
-  # Stash the changes
-  git stash push -m "$STASH_MESSAGE" --quiet
-fi
-
 # Get the latest Git tag
 LATEST_TAG=$(git describe --tags --abbrev=0)
 # Extract the version number (strip the first character)
 VERSION=${LATEST_TAG:1}
 SHORT_VERSION=${VERSION:0:${#VERSION}-2}
+
+# Update ClientVersion in Constants.cs with the version from git tag
+CONSTANTS_FILE="./WalletWasabi/Helpers/Constants.cs"
+VERSION_ARGS=$(echo "$VERSION" | sed 's/\./, /g')
+if [[ "$1" == "dmg" ]]; then
+  sed -i '' "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+else
+  sed -i "s/ClientVersion = new([0-9, ]*);/ClientVersion = new($VERSION_ARGS);/" "$CONSTANTS_FILE"
+fi
 
 # Define project names
 DESKTOP="WalletWasabi.Fluent.Desktop"
@@ -785,10 +787,4 @@ if [ "$RELEASE_NOTE" = "yes" ]; then
       -e "/{highlights}/r ./WalletWasabi/Announcements/ReleaseHighlights.md" \
       -e "/{highlights}/d" \
       ./Contrib/ReleaseTemplate.md
-fi
-
-# Unstash changes if there were any
-if git stash list | head -1 | grep -q "$STASH_MESSAGE"; then
-  git stash pop
-  echo "Changes unstashed."
 fi

@@ -2,18 +2,20 @@ using NBitcoin;
 using NBitcoin.Payment;
 using System.Collections.Generic;
 using System.Collections.Specialized;
+using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Web;
-using WalletWasabi.Extensions;
 
-namespace WalletWasabi.Userfacing.Bip21;
+namespace WalletWasabi.Userfacing.Bip321;
 
 /// <summary>
 /// BIP21 URI parser.
 /// </summary>
+/// <remarks>Support for silent payments (<c>sp</c>) from BIP321 was added.</remarks>
 /// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0021.mediawiki"/>
+/// <seealso href="https://github.com/bitcoin/bips/blob/master/bip-0321.mediawiki"/>
 /// <seealso cref="BitcoinUrlBuilder">Inspired by NBitcoin's implementation.</seealso>
-public class Bip21UriParser
+public class Bip321UriParser
 {
 	/// <summary>URI scheme of all BIP21 URIs.</summary>
 	/// <remarks>
@@ -50,10 +52,37 @@ public class Bip21UriParser
 			return false;
 		}
 
+		NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUri.Query);
+
+		string? silentPaymentAddress = null;
+
 		if (parsedUri.AbsolutePath is not { Length: > 0 } addressString)
 		{
-			error = ErrorMissingAddress;
-			return false;
+			// BIP321 allows the address to be specified as a query parameter named "sp" (case-insensitive) instead of in the path.
+			var values = queryParameters.GetValues("sp");
+			if (values is null || values.Length == 0)
+			{
+				error = ErrorMissingAddress;
+				return false;
+			}
+
+			if (values.Length > 1)
+			{
+				error = ErrorDuplicateParameter with { Details = "sp" };
+				return false;
+			}
+
+			silentPaymentAddress = values[0];
+
+			var parseSilentAddressResult = AddressParser.ParseSilentPaymentAddress(silentPaymentAddress, network);
+			if (!parseSilentAddressResult.IsOk)
+			{
+				error = ErrorInvalidAddress with { Details = silentPaymentAddress };
+				return false;
+			}
+
+			queryParameters.Remove("sp");
+			addressString = silentPaymentAddress;
 		}
 
 		Money? amount = null;
@@ -68,23 +97,52 @@ public class Bip21UriParser
 		}
 
 		Dictionary<string, string> unknownParameters = new();
-		NameValueCollection queryParameters = HttpUtility.ParseQueryString(parsedUri.Query);
 
-		foreach (string? parameterName in queryParameters.AllKeys)
+		foreach (var parameterName in queryParameters.AllKeys)
 		{
 			if (parameterName is null)
 			{
 				continue;
 			}
 
-			string? value = queryParameters[parameterName];
+			var values = queryParameters.GetValues(parameterName);
+
+			if (values is null || values.Length == 0)
+			{
+				throw new UnreachableException(parameterName);
+			}
+
+			if (values.Length > 1)
+			{
+				error = ErrorDuplicateParameter with { Details = parameterName };
+				return false;
+			}
+
+			var value = values[0];
 
 			if (value is null)
 			{
 				continue;
 			}
 
-			if (parameterName == "amount")
+			if (string.Equals(parameterName, "sp", StringComparison.OrdinalIgnoreCase))
+			{
+				if (silentPaymentAddress is not null)
+				{
+					error = ErrorDuplicateParameter with { Details = parameterName };
+					return false;
+				}
+
+				silentPaymentAddress = value;
+
+				addressParsingResult = AddressParser.ParseSilentPaymentAddress(silentPaymentAddress, network);
+				if (!addressParsingResult.IsOk)
+				{
+					error = ErrorInvalidAddress with { Details = silentPaymentAddress };
+					return false;
+				}
+			}
+			else if (string.Equals(parameterName, "amount", StringComparison.OrdinalIgnoreCase))
 			{
 				if (amount is not null)
 				{
@@ -103,8 +161,14 @@ public class Bip21UriParser
 					error = ErrorInvalidAmountValue with { Details = value };
 					return false;
 				}
+
+				if (amount < Money.Zero)
+				{
+					error = ErrorInvalidAmountValue with { Details = value };
+					return false;
+				}
 			}
-			else if (parameterName == "label")
+			else if (string.Equals(parameterName, "label", StringComparison.OrdinalIgnoreCase))
 			{
 				if (label is not null)
 				{
@@ -114,7 +178,7 @@ public class Bip21UriParser
 
 				label = value;
 			}
-			else if (parameterName == "message")
+			else if (string.Equals(parameterName, "message", StringComparison.OrdinalIgnoreCase))
 			{
 				if (message is not null)
 				{
@@ -124,7 +188,7 @@ public class Bip21UriParser
 
 				message = value;
 			}
-			else if (parameterName.StartsWith("req-", StringComparison.Ordinal))
+			else if (parameterName.StartsWith("req-", StringComparison.OrdinalIgnoreCase))
 			{
 				error = ErrorUnsupportedReqParameter with { Details = parameterName };
 				return false;
@@ -140,15 +204,15 @@ public class Bip21UriParser
 	}
 
 	/// <summary>
-	/// Successful result of parsing a BIP21 URI string.
+	/// Successful result of parsing a BIP321 URI string.
 	/// </summary>
-	public record Result( Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters);
+	public record Result(Uri Uri, Network Network, Address Address, Money? Amount, string? Label, string? Message, Dictionary<string, string> UnknownParameters);
 
 	/// <summary>
-	/// Error result of parsing a BIP21 URI string.
+	/// Error result of parsing a BIP321 URI string.
 	/// </summary>
 	/// <param name="Code">Unique code of the error.</param>
 	/// <param name="Message">Generic message of the error (with no user-provided data).</param>
-	/// <param name="Details">Optionally, context information. For example, if the address part of a BIP21 URI string is malformed, the string is to stored here.</param>
+	/// <param name="Details">Optionally, context information. For example, if the address part of a BIP321 URI string is malformed, the string is to stored here.</param>
 	public record Error(int Code, string Message, string? Details = null);
 }

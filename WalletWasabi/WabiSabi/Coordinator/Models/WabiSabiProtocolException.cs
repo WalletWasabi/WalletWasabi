@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace WalletWasabi.WabiSabi.Coordinator.Models;
 
 public class WabiSabiProtocolException : Exception

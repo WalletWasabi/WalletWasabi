@@ -68,7 +68,7 @@ public partial class CoinJoinPaymentsViewModel : DialogViewModelBase<Unit>
 	{
 		try
 		{
-			_wallet.BatchedPayments.AbortPayment(payment.Id);
+			_wallet.CancelCoinJoinPayment(payment.Id);
 			RefreshPayments();
 		}
 		catch (InvalidOperationException)
