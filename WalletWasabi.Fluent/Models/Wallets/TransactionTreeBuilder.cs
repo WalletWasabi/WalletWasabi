@@ -255,6 +255,14 @@ public class TransactionTreeBuilder
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 		coinjoinGroup.Fee = fee;
 
+		// The costs of the group are only known when they are known for every coinjoin in it.
+		if (coinjoinGroup.Children.All(x => x.CoinjoinMiningFee is not null))
+		{
+			coinjoinGroup.CoinjoinMiningFee = coinjoinGroup.Children.Sum(x => x.CoinjoinMiningFee ?? Money.Zero);
+			coinjoinGroup.CoinjoinWastedDust = coinjoinGroup.Children.Sum(x => x.CoinjoinWastedDust ?? Money.Zero);
+			coinjoinGroup.CoinjoinPaymentsTotal = coinjoinGroup.Children.Sum(x => x.CoinjoinPaymentsTotal ?? Money.Zero);
+		}
+
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
@@ -282,6 +290,7 @@ public class TransactionTreeBuilder
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
+		var coinjoinCosts = _wallet.KeyManager.CoinjoinCosts.FirstOrDefault(x => x.TransactionId == transactionSummary.GetHash());
 
 		return new TransactionModel
 		{
@@ -304,7 +313,10 @@ public class TransactionTreeBuilder
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate()
+			FeeRate = transactionSummary.FeeRate(),
+			CoinjoinMiningFee = coinjoinCosts?.MiningFee,
+			CoinjoinWastedDust = coinjoinCosts?.WastedDust,
+			CoinjoinPaymentsTotal = coinjoinCosts?.PaymentsTotal
 		};
 	}
 

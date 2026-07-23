@@ -19,6 +19,7 @@ using WalletWasabi.Io;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
@@ -206,6 +207,8 @@ public class KeyManager
 	public SendWorkflow DefaultSendWorkflow { get; set; } = SendWorkflow.Automatic;
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
+
+	public List<CoinjoinCosts> CoinjoinCosts { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -739,6 +742,12 @@ public class KeyManager
 		ToFile();
 	}
 
+	public void AddCoinjoinCosts(CoinjoinCosts coinjoinCosts)
+	{
+		CoinjoinCosts.Add(coinjoinCosts);
+		ToFile();
+	}
+
 	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
@@ -762,6 +771,7 @@ public class KeyManager
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
 			("DefaultSendWorkflow", Encode.SendWorkflow(keyManager.DefaultSendWorkflow)),
 			("ExcludedCoinsFromCoinJoin", Encode.Array(keyManager.ExcludedCoinsFromCoinJoin.Select(Encode.Outpoint))),
+			("CoinjoinCosts", Encode.Array(keyManager.CoinjoinCosts.Select(Encode.CoinjoinCosts))),
 			("HdPubKeys", Encode.Array(keyManager._hdPubKeyCache.HdPubKeys.Select(Encode.HdPubKey)))
 		]);
 
@@ -799,7 +809,8 @@ public class KeyManager
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.TaprootBIP86),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
-				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? []
+				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
+				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToList() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;
