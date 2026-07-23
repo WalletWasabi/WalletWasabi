@@ -15,7 +15,6 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
-using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Tests.UnitTests.WabiSabi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -27,7 +26,9 @@ using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -388,12 +389,24 @@ public static class WabiSabiFactory
 	}
 }
 
-public class TestableCoinJoinClient : CoinJoinClient
+public class TestableCoinJoinClient(
+	Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
+	IKeyChain keyChain,
+	OutputProvider outputProvider,
+	RoundStateProvider roundStatusProvider,
+	CoinJoinCoinSelector coinJoinCoinSelector,
+	CoinJoinConfiguration coinJoinConfiguration,
+	LiquidityClueProvider liquidityClueProvider,
+	TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+	: CoinJoinClient(arenaRequestHandlerFactory,
+		keyChain,
+		outputProvider,
+		roundStatusProvider,
+		coinJoinCoinSelector,
+		coinJoinConfiguration,
+		liquidityClueProvider,
+		doNotRegisterInLastMinuteTimeLimit)
 {
-	public TestableCoinJoinClient(Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory, IKeyChain keyChain, OutputProvider outputProvider, RoundStateProvider roundStatusProvider, CoinJoinCoinSelector coinJoinCoinSelector, CoinJoinConfiguration coinJoinConfiguration, LiquidityClueProvider liquidityClueProvider,  TimeSpan doNotRegisterInLastMinuteTimeLimit = default) : base(arenaRequestHandlerFactory, keyChain, outputProvider, roundStatusProvider, coinJoinCoinSelector, coinJoinConfiguration, liquidityClueProvider, doNotRegisterInLastMinuteTimeLimit)
-	{
-	}
-
 	internal override ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime,
 		TimeSpan maximumRequestDelay)
 	{

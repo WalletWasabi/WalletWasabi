@@ -8,6 +8,7 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.UnitTests.Wallet;
 
