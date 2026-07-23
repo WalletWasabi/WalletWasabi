@@ -31,6 +31,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 	public SchemeConsoleViewModel(UiContext uiContext, Client.Scheme schemeInterpreter) : base(uiContext)
 	{
 		_schemeInterpreter = schemeInterpreter;
+		_schemeInterpreter.OnDisplay = Write;
 		_commandInput = string.Empty;
 		CommandHistory = new();
 		Output = new();
@@ -66,6 +67,8 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 			IsExecuting = false;
 		}
 	}
+
+	public void Write(string text) => Output.Add(new SchemeInternalOutputResult(text));
 
 	private async Task<string> RunCommandAsync(string command)
 	{
