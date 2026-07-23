@@ -10,6 +10,7 @@ using System.Linq;
 using System.Security;
 using System.Text;
 using System.Text.Json.Nodes;
+using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
@@ -224,7 +225,7 @@ public class KeyManager
 
 	// `_criticalStateLock` is aimed to synchronize read/write access to the "critical" properties:
 	// keys (stored in the `_hdPubKeyCache`), minGapLimit, secrets, height, network.
-	private readonly object _criticalStateLock = new();
+	private readonly Lock _criticalStateLock = new();
 
 	#endregion Properties
 
@@ -649,22 +650,17 @@ public class KeyManager
 
 	public void ToFile()
 	{
-		if (FilePath is { } filePath)
+		if (FilePath is not { } filePath)
 		{
-			ToFile(filePath);
+			return;
 		}
-	}
 
-	public void ToFile(string filePath)
-	{
-		string jsonString = string.Empty;
+		string jsonString;
 
 		lock (_criticalStateLock)
 		{
 			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManager);
 		}
-
-		IoHelpers.EnsureContainingDirectoryExists(filePath);
 
 		File.SafelyWriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
