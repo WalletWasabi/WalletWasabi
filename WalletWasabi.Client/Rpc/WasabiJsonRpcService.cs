@@ -344,7 +344,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public void CancelPayment(Guid paymentId)
 	{
 		AssertWalletIsLoaded();
-		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
+		ActiveWallet!.CancelCoinJoinPayment(paymentId);
 	}
 
 	[JsonRpcMethod("send")]
