@@ -109,8 +109,8 @@ public class Config
 			[nameof(MaxCoinjoinMiningFeeRate)] = "Max mining fee rate in sat/vb the client is willing to pay to participate into a round",
 			[nameof(AbsoluteMinInputCount)] = "Minimum number of inputs the client is willing to accept to participate into a round",
 			[nameof(ExchangeRateProvider)] = "The BTC/USD exchange rate provider. Available providers are MempoolSpace (default), Gemini, BlockstreamInfo, CoinGecko or None",
-			[nameof(FeeRateEstimationProvider)] = "The mining fee rate estimation provider. Available providers are (default) MempoolSpace, BlockstreamInfo, BlockXyz or None",
-			[nameof(ExternalTransactionBroadcaster)] = "Third party transaction broadcaster. Available broadcasters are (default) MempoolSpace and BlockstreamInfo",
+			[nameof(FeeRateEstimationProvider)] = "The mining fee rate estimation provider. Available providers are MempoolSpace (default), BlockstreamInfo, BlockXyz or None",
+			[nameof(ExternalTransactionBroadcaster)] = "Third party transaction broadcaster. Available broadcasters are MempoolSpace (default) and BlockstreamInfo",
 			[nameof(DropUnconfirmedTransactionsAfterDays)] = "The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
 			[nameof(ExperimentalFeatures)] = "Colon-separated list of experimental features to enable. (features available: scripting)",
 		};
