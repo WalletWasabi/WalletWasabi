@@ -28,6 +28,12 @@
           "SQLitePCLRaw.core": "2.1.11"
         }
       },
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.5, )",
+        "resolved": "10.0.5",
+        "contentHash": "yadTZIkStCVsG8nGwvfroSfBApPsgjQbodQyaIfp53dgayE0qhZpywixiCB6lx57JYQ+KVg1m1AFLrj54pxpZg=="
+      },
       "Microsoft.Extensions.Caching.Abstractions": {
         "type": "Direct",
         "requested": "[10.0.2, )",
@@ -63,6 +69,12 @@
           "Microsoft.Extensions.Logging.Abstractions": "10.0.2",
           "Microsoft.Extensions.Options": "10.0.2"
         }
+      },
+      "Microsoft.NET.ILLink.Tasks": {
+        "type": "Direct",
+        "requested": "[10.0.5, )",
+        "resolved": "10.0.5",
+        "contentHash": "A+5ZuQ0f449tM+MQrhf6R9ZX7lYpjk/ODEwLYKrnF6111rtARx8fVsm4YznUnQiKnnXfaXNBqgxmil6RW3L3SA=="
       },
       "Microsoft.Win32.SystemEvents": {
         "type": "Direct",
@@ -287,6 +299,33 @@
         "type": "Transitive",
         "resolved": "7.0.0",
         "contentHash": "Ckj+tg2BVOZ0oLp7FAbjfvRyA/BMkUhVxROLd+x22zncRR6KD7CdFzAYp+9Mo2cedxAMo2X9ZNyhZu68jdDITw=="
+      }
+    },
+    "net10.0/osx-arm64": {
+      "Microsoft.DotNet.ILCompiler": {
+        "type": "Direct",
+        "requested": "[10.0.5, )",
+        "resolved": "10.0.5",
+        "contentHash": "yadTZIkStCVsG8nGwvfroSfBApPsgjQbodQyaIfp53dgayE0qhZpywixiCB6lx57JYQ+KVg1m1AFLrj54pxpZg==",
+        "dependencies": {
+          "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": "10.0.5"
+        }
+      },
+      "Microsoft.Win32.SystemEvents": {
+        "type": "Direct",
+        "requested": "[10.0.2, )",
+        "resolved": "10.0.2",
+        "contentHash": "1G4BdeFwc8E95MpwtR7pO4rEh2YCG/o5gqcOszdQRGrWX1ayHTZtho3xPuYZTbBxKb/3kQHjL3b4nQeNGvbM9g=="
+      },
+      "runtime.osx-arm64.Microsoft.DotNet.ILCompiler": {
+        "type": "Transitive",
+        "resolved": "10.0.5",
+        "contentHash": "Kyh5mVD60xdgfUKn6hE989GZBv1Pw1IaWP6Eikf3A9RuSiMyq6XhD5JJsCFiKJ8iDuM782yx5pIus60Dzjk7gQ=="
+      },
+      "SQLitePCLRaw.lib.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "2.1.11",
+        "contentHash": "Ev2ytaXiOlWZ4b3R67GZBsemTINslLD1DCJr2xiacpn4tbapu0Q4dHEzSvZSMnVWeE5nlObU3VZN2p81q3XOYQ=="
       }
     }
   }
