@@ -32,7 +32,7 @@ public class UpdateManagerTests
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0));
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
@@ -63,7 +63,7 @@ public class UpdateManagerTests
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0));
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();

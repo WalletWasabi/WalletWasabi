@@ -28,10 +28,10 @@ public static class UpdateManager
 	public record UpdateMessage;
 
 	public static MessageHandler<UpdateMessage, Unit> CreateUpdater(Func<INostrClient> nostrClientFactory,
-		AsyncReleaseDownloader releaseDownloader, EventBus eventBus) =>
-		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
+		AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version? currentVersion = null) =>
+		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, currentVersion ?? Constants.ClientVersion, cancellationToken);
 
-	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version currentVersion, CancellationToken cancellationToken)
 	{
 		using var nostrClient = nostrClientFactory();
 		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
@@ -39,7 +39,7 @@ public static class UpdateManager
 		{
 			// Connect to Nostr relays and check for release version updates
 			await wasabiNostrClient.ConnectAndSubscribeAsync(cancellationToken).ConfigureAwait(false);
-			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, cancellationToken)
+			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, currentVersion, cancellationToken)
 				.ConfigureAwait(false);
 		}
 		catch (AggregateException e)
@@ -55,7 +55,7 @@ public static class UpdateManager
 		return Unit.Instance;
 	}
 
-	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version currentVersion, CancellationToken cancellationToken)
 	{
 		using var sixtySeconds = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, sixtySeconds.Token);
@@ -70,7 +70,7 @@ public static class UpdateManager
 
 			// Find release with version greater than current version
 			var latestRelease = releases
-				.Where(x => x.Version > Constants.ClientVersion)
+				.Where(x => x.Version > currentVersion)
 				.MaxBy(x => x.Version);
 
 			if(latestRelease is not null)
