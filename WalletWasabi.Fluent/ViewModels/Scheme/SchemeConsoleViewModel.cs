@@ -68,7 +68,7 @@ public partial class SchemeConsoleViewModel : RoutableViewModel
 		}
 	}
 
-	public void Write(string text) => Output.Add(new SchemeInternalOutputResult(text));
+	public void Write(string text) => Avalonia.Threading.Dispatcher.UIThread.Post(() => Output.Add(new SchemeInternalOutputResult(text)));
 
 	private async Task<string> RunCommandAsync(string command)
 	{
