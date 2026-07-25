@@ -1,0 +1,32 @@
+name: Publish Native AOT (macOS)
+
+on:
+  push:
+    branches: [ "master", "fix-aot-desktop-reflection" ]
+  pull_request:
+    branches: [ "master" ]
+  workflow_dispatch:
+
+jobs:
+  publish-macos-aot:
+    name: Publish Native AOT (osx-arm64)
+    runs-on: macos-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Native AOT (osx-arm64)
+        run: dotnet publish WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj -c Release -r osx-arm64 /p:EnableNativeAot=true
+
+      - name: Upload Native AOT Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: WasabiWallet-Desktop-AOT-osx-arm64
+          path: WalletWasabi.Fluent.Desktop/bin/Release/net10.0/osx-arm64/publish/
+          if-no-files-found: error

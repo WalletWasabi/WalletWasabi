@@ -31,6 +31,7 @@ public class Program
 
 	internal static bool IsShuttingDown => Volatile.Read(ref IsShuttingDownFlag) == 1;
 
+	[System.Diagnostics.CodeAnalysis.UnconditionalSuppressMessage("Trimming", "IL2026:RequiresUnreferencedCode", Justification = "Safe exception handling")]
 	internal static bool IsDbusMenuShutdownException(Exception exception)
 	{
 		if (exception is not NullReferenceException)

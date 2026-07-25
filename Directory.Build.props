@@ -26,4 +26,6 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt"/>
 	</ItemGroup>
+
+	<Import Project="$(MSBuildThisFileDirectory)NativeAot.props" Condition="Exists('$(MSBuildThisFileDirectory)NativeAot.props')" />
 </Project>
