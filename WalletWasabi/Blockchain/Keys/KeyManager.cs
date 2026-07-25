@@ -33,7 +33,6 @@ namespace WalletWasabi.Blockchain.Keys;
 public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
-	public const bool DefaultRedCoinIsolation = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
