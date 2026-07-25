@@ -263,9 +263,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 	[Theory]
 	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
-	public async Task CoinJoinWithBlameRoundTestAsync(long[] amounts)
+	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts)
 	{
-		int inputCount = amounts.Length;
+		int inputCount = satAmounts.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -277,8 +277,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager1, amounts, inputCount);
-		var badCoins = GenerateSmartCoins(keyManager2, amounts, inputCount);
+		var coins = GenerateSmartCoins(keyManager1, satAmounts, inputCount);
+		var badCoins = GenerateSmartCoins(keyManager2, satAmounts, inputCount);
 
 		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
