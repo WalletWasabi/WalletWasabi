@@ -7,19 +7,19 @@ using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Stores;
+namespace WalletWasabi.Tests.UnitTests.Storages;
 
 /// <summary>
-/// Tests for <see cref="FilterStore"/>.
+/// Tests for <see cref="FilterStorage"/>.
 /// </summary>
-public class FilterStoreTests
+public class FilterStorageTests
 {
 	[Fact]
-	public async Task FilterStoreTestsAsync()
+	public async Task FilterStorageTestsAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
@@ -27,15 +27,15 @@ public class FilterStoreTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		using var filterStore = new FilterStore(directory, Network.Main, new FilterHeaderChain(), new EventBus());
-		await filterStore.InitializeAsync(0, testCts.Token);
+		using var filterStorage = new FilterStorage(directory, Network.Main, new FilterHeaderChain(), new EventBus());
+		await filterStorage.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.
-		FilterModel? filterModel = await filterStore.TryRemoveLastFilterAsync();
+		FilterModel? filterModel = await filterStorage.TryRemoveLastFilterAsync();
 		Assert.NotNull(filterModel);
 
 		// No filter to remove.
-		filterModel = await filterStore.TryRemoveLastFilterAsync();
+		filterModel = await filterStorage.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
 

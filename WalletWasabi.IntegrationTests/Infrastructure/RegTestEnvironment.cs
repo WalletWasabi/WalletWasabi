@@ -6,11 +6,7 @@ using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using NBitcoin.Protocol;
-using NBitcoin.Protocol.Behaviors;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
-using WalletWasabi.Extensions;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Blockchain.Keys;
@@ -19,10 +15,10 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
-using WalletWasabi.Stores;
 using WalletWasabi.IntegrationTests.BitcoinCore;
 using WalletWasabi.Wallets;
 using ChainHeight = WalletWasabi.Models.Height.ChainHeight;
+using WalletWasabi.Storages;
 
 namespace WalletWasabi.IntegrationTests.Infrastructure;
 
@@ -36,7 +32,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		IntegrationTestFixture fixture,
 		string workDir,
 		EventBus eventBus,
-		FilterStore filterStore,
+		FilterStorage filterStorage,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
 		CpfpInfoProvider cpfpInfoProvider)
@@ -44,7 +40,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		Fixture = fixture;
 		WorkDir = workDir;
 		EventBus = eventBus;
-		FilterStore = filterStore;
+		FilterStorage = filterStorage;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
 		CpfpInfoProvider = cpfpInfoProvider;
@@ -54,7 +50,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public IntegrationTestFixture Fixture { get; }
 	public string WorkDir { get; }
 	public EventBus EventBus { get; }
-	public FilterStore FilterStore { get; }
+	public FilterStorage FilterStorage { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 	public CpfpInfoProvider CpfpInfoProvider { get; }
@@ -90,12 +86,12 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 
-		var filterStore = new FilterStore(
+		var filterStorage = new FilterStorage(
 			Path.Combine(workDir, "filters"),
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
 			eventBus);
-		await filterStore.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
+		await filterStorage.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
 		var transactionStore = new AllTransactionStore(
 			Path.Combine(workDir, "transactions"),
@@ -111,7 +107,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			fixture,
 			workDir,
 			eventBus,
-			filterStore,
+			filterStorage,
 			transactionStore,
 			filterHeaderChain,
 			cpfpInfoProvider);
@@ -132,7 +128,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	{
 		var factory = Wallet.CreateFactory(
 			Network,
-			FilterStore,
+			FilterStorage,
 			TransactionStore,
 			FilterHeaderChain,
 			MempoolService,
@@ -161,7 +157,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var blockHeaderChain = new ConcurrentChain(Network);
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
-		var tip = FilterStore.GetTip();
+		var tip = FilterStorage.GetTip();
 		uint fromHeight = (uint)(tip?.Header.Height ?? ChainHeight.Genesis);
 		uint256 fromHash = tip?.Header.BlockHash ?? await RpcClient.GetBlockHashAsync(0, cancellationToken).ConfigureAwait(false);
 
@@ -173,7 +169,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
-				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
+				await FilterStorage.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
 				var lastFilter = newFilters.Filters.LastOrDefault();
 				if (lastFilter is not null)
@@ -203,7 +199,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var blockHeaderChain = new ConcurrentChain(Network);
 
 		// Create the filter synchronization state
-		var tip = FilterStore.GetTip();
+		var tip = FilterStorage.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
 		var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(
 			blockHeaderChain,
@@ -262,7 +258,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
-				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
+				await FilterStorage.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
 				var lastFilter = newFilters.Filters.LastOrDefault();
 				if (lastFilter is not null)
@@ -370,7 +366,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		FilterStore.Dispose();
+		FilterStorage.Dispose();
 		TransactionStore.Dispose();
 		return ValueTask.CompletedTask;
 	}

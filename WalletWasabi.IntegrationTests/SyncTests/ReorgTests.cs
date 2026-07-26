@@ -32,7 +32,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(5);
 		await env.SyncFiltersAsync();
 
-		var preTip = env.FilterStore.GetTip();
+		var preTip = env.FilterStorage.GetTip();
 		Assert.NotNull(preTip);
 		var preHeight = (uint)preTip.Header.Height;
 		var preBlockHash = preTip.Header.BlockHash;
@@ -47,7 +47,7 @@ public class ReorgTests
 		await env.SyncFiltersAsync();
 
 		// Assert
-		var postTip = env.FilterStore.GetTip();
+		var postTip = env.FilterStorage.GetTip();
 		Assert.NotNull(postTip);
 
 		// The new tip should be at the same or higher height
@@ -121,7 +121,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(10);
 		await env.SyncFiltersAsync();
 
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterStorage.GetTip();
 		Assert.NotNull(initialTip);
 
 		// Get a block 5 blocks back to invalidate
@@ -139,7 +139,7 @@ public class ReorgTests
 		await env.SyncFiltersAsync();
 
 		// Assert
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterStorage.GetTip();
 		Assert.NotNull(newTip);
 
 		// The new chain should be longer

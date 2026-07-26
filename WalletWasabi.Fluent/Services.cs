@@ -14,7 +14,7 @@ using WalletWasabi.Client.Configuration;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tor;
 using WalletWasabi.Wallets;
 
@@ -27,7 +27,7 @@ public class Services : IServices
 
 	private readonly Global _global;
 	private readonly TorSettings _torSettings;
-	private readonly FilterStore _filterStore;
+	private readonly FilterStorage _filterStorage;
 	private readonly FilterHeaderChain _filterHeaders;
 	private readonly AllTransactionStore _transactionStore;
 	private readonly IHttpClientFactory _httpClientFactory;
@@ -40,7 +40,7 @@ public class Services : IServices
 	{
 		Guard.NotNull(nameof(global.DataDir), global.DataDir);
 		Guard.NotNull(nameof(global.TorSettings), global.TorSettings);
-		Guard.NotNull(nameof(global.FilterStore), global.FilterStore);
+		Guard.NotNull(nameof(global.FilterStorage), global.FilterStorage);
 		Guard.NotNull(nameof(global.FilterHeaders), global.FilterHeaders);
 		Guard.NotNull(nameof(global.TransactionStore), global.TransactionStore);
 		Guard.NotNull(nameof(global.ExternalSourcesHttpClientFactory), global.ExternalSourcesHttpClientFactory);
@@ -53,7 +53,7 @@ public class Services : IServices
 
 		_global = global;
 		_torSettings = global.TorSettings;
-		_filterStore = global.FilterStore;
+		_filterStorage = global.FilterStorage;
 		_filterHeaders = global.FilterHeaders;
 		_transactionStore = global.TransactionStore;
 		_httpClientFactory = global.ExternalSourcesHttpClientFactory;
@@ -88,7 +88,7 @@ public class Services : IServices
 	public int GetPeerCount() => _global.GetPeerCount();
 
 	// Filters info
-	public uint? GetMinimumBlockHeight() => _filterStore.GetMinimumBlockHeight();
+	public uint? GetMinimumBlockHeight() => _filterStorage.GetMinimumBlockHeight();
 
 	// Transactions info
 	public IEnumerable<LabelsArray> GetTransactionLabels() => _transactionStore.GetLabels();

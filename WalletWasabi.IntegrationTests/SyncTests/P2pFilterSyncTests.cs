@@ -31,7 +31,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2pAsync();
 
 		// Assert - Filter store should have filters up to tip
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterStorage.GetTip();
 		Assert.NotNull(filterTip);
 		Assert.Equal((uint)tipHeight, (uint)filterTip.Header.Height);
 	}
@@ -44,7 +44,7 @@ public class P2pFilterSyncTests
 
 		// Initial sync via P2P
 		await env.SyncFiltersP2pAsync();
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterStorage.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -56,7 +56,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2pAsync();
 
 		// Assert - Filter tip should advance by 1
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterStorage.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + 1, (uint)newTip.Header.Height);
 	}
@@ -68,7 +68,7 @@ public class P2pFilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		await env.SyncFiltersP2pAsync();
-		var initialTip = env.FilterStore.GetTip();
+		var initialTip = env.FilterStorage.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -80,7 +80,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2pAsync();
 
 		// Assert
-		var newTip = env.FilterStore.GetTip();
+		var newTip = env.FilterStorage.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + blocksToMine, (uint)newTip.Header.Height);
 	}
@@ -95,7 +95,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2pAsync();
 
 		// Assert - FilterHeaderChain should be in sync
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterStorage.GetTip();
 		Assert.NotNull(filterTip);
 
 		var chainTipHeight = env.FilterHeaderChain.TipHeight;
@@ -109,7 +109,7 @@ public class P2pFilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// The filter store is initialized with checkpoint at height 0 for regtest
-		var tip = env.FilterStore.GetTip();
+		var tip = env.FilterStorage.GetTip();
 
 		// For regtest, we expect to have at least the genesis filter
 		Assert.NotNull(tip);
@@ -118,7 +118,7 @@ public class P2pFilterSyncTests
 		// Now sync via P2P and verify we catch up
 		await env.SyncFiltersP2pAsync();
 
-		var syncedTip = env.FilterStore.GetTip();
+		var syncedTip = env.FilterStorage.GetTip();
 		Assert.NotNull(syncedTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();
@@ -139,7 +139,7 @@ public class P2pFilterSyncTests
 		await env.SyncFiltersP2pAsync();
 
 		// Assert
-		var filterTip = env.FilterStore.GetTip();
+		var filterTip = env.FilterStorage.GetTip();
 		Assert.NotNull(filterTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();
