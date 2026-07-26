@@ -1,71 +1,23 @@
-using Microsoft.Data.Sqlite;
-using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStore : IFilterStore, IDisposable
+public class FilterStorage : IFilterStorage
 {
-	public FilterStore(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterStorage(Network network, FilterHeaderChain filterHeaderChain, BlockFilterSqliteStorage blockFilterSqliteStorage, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;
 		_eventBus = eventBus;
-		_storageFilePath = Path.Combine(workFolderPath, "IndexStore.sqlite");
-
-		IoHelpers.EnsureDirectoryExists(workFolderPath);
-
-		if (network == Network.RegTest)
-		{
-			DeleteIndex(_storageFilePath);
-		}
-
-		IndexStorage = CreateBlockFilterSqliteStorage();
+		IndexStorage = blockFilterSqliteStorage;
 	}
-
-	private BlockFilterSqliteStorage CreateBlockFilterSqliteStorage()
-	{
-		try
-		{
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			if (storage.GetPragmaUserVersion() < 2)
-			{
-				storage.Dispose();
-				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-				DeleteIndex(_storageFilePath);
-				storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-				storage.SetPragmaUserVersion(2);
-			}
-
-			return storage;
-		}
-		catch (SqliteException ex) when (ex.SqliteExtendedErrorCode == 11) // 11 ~ SQLITE_CORRUPT error code
-		{
-			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
-
-			DeleteIndex(_storageFilePath);
-			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
-			storage.SetPragmaUserVersion(2);
-			return storage;
-		}
-	}
-
-	/// <summary>SQLite file path for migration purposes.</summary>
-	private readonly string _storageFilePath;
 
 	private readonly Network _network;
 	private readonly FilterHeaderChain _filterHeaderChain;
@@ -268,28 +220,5 @@ public class FilterStore : IFilterStore, IDisposable
 				break;
 			}
 		}
-	}
-
-	private void DeleteIndex(string indexPath)
-	{
-		if (File.Exists(indexPath))
-		{
-			File.Delete(indexPath);
-		}
-
-		if (File.Exists($"{indexPath}-shm"))
-		{
-			File.Delete($"{indexPath}-shm");
-		}
-
-		if (File.Exists($"{indexPath}-wal"))
-		{
-			File.Delete($"{indexPath}-wal");
-		}
-	}
-
-	public void Dispose()
-	{
-		IndexStorage.Dispose();
 	}
 }

@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Models;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 

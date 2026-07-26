@@ -1,6 +1,6 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
