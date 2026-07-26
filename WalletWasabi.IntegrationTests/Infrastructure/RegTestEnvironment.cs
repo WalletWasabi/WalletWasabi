@@ -32,6 +32,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		IntegrationTestFixture fixture,
 		string workDir,
 		EventBus eventBus,
+		SharedSqliteStorage sharedSqliteStorage,
 		FilterStorage filterStorage,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
@@ -40,6 +41,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		Fixture = fixture;
 		WorkDir = workDir;
 		EventBus = eventBus;
+		SharedSqliteStorage = sharedSqliteStorage;
 		FilterStorage = filterStorage;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
@@ -50,6 +52,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public IntegrationTestFixture Fixture { get; }
 	public string WorkDir { get; }
 	public EventBus EventBus { get; }
+	public SharedSqliteStorage SharedSqliteStorage { get; }
 	public FilterStorage FilterStorage { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
@@ -86,10 +89,13 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(workDir, "Shared.sqlite"));
+		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+
 		var filterStorage = new FilterStorage(
-			Path.Combine(workDir, "filters"),
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
+			blockFilterSqliteStorage,
 			eventBus);
 		await filterStorage.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
@@ -107,6 +113,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			fixture,
 			workDir,
 			eventBus,
+			sharedSqliteStorage,
 			filterStorage,
 			transactionStore,
 			filterHeaderChain,
@@ -366,7 +373,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		FilterStorage.Dispose();
+		SharedSqliteStorage.Dispose();
 		TransactionStore.Dispose();
 		return ValueTask.CompletedTask;
 	}

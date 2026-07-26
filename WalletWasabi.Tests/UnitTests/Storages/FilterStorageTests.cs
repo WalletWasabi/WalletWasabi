@@ -27,7 +27,10 @@ public class FilterStorageTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		using var filterStorage = new FilterStorage(directory, Network.Main, new FilterHeaderChain(), new EventBus());
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(Path.Combine(directory, "Shared.sqlite"));
+		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+
+		var filterStorage = new FilterStorage(Network.Main, new FilterHeaderChain(), blockFilterSqliteStorage, new EventBus());
 		await filterStorage.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.

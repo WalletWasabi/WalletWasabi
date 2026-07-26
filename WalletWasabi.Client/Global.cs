@@ -85,8 +85,18 @@ public class Global
 		TransactionStore = new AllTransactionStore(networkWorkFolderPath, Network);
 		TransactionStore.DisposeUsing(_disposables);
 
-		FilterStorage = new FilterStorage(Path.Combine(networkWorkFolderPath, "IndexStore"), Network, FilterHeaders, EventBus);
-		FilterStorage.DisposeUsing(_disposables);
+		var blockchainDbFilePath = Path.Combine(networkWorkFolderPath, "IndexStore", "IndexStore.sqlite");
+
+		if (Network == Network.RegTest)
+		{
+			SqliteStorageHelper.DeleteDatabaseFiles(blockchainDbFilePath);
+		}
+
+		var sharedSqliteStorage = SharedSqliteStorage.FromFile(blockchainDbFilePath);
+		sharedSqliteStorage.DisposeUsing(_disposables);
+		var blockFilterSqliteStorage = new BlockFilterSqliteStorage(sharedSqliteStorage.GetConnectionFactory());
+
+		FilterStorage = new FilterStorage(Network, FilterHeaders, blockFilterSqliteStorage, EventBus);
 
 		ExternalSourcesHttpClientFactory = BuildHttpClientFactory();
 
