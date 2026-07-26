@@ -18,6 +18,11 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private Amount? _coinJoinFeeAmount;
+	[AutoNotify] private Amount? _miningFeeAmount;
+	[AutoNotify] private Amount? _wastedDustAmount;
+	[AutoNotify] private Amount? _paymentsAmount;
+	[AutoNotify] private bool _isFeeBreakdownVisible;
+	[AutoNotify] private bool _isPaymentsVisible;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private uint _confirmations;
@@ -59,7 +64,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
 			Date = transaction.DateToolTipString;
-			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
+			UpdateCosts(transaction);
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;
@@ -68,5 +73,25 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 			FeeRate = transaction.FeeRate;
 			FeeRateVisible = FeeRate is not null && FeeRate != FeeRate.Zero;
 		}
+	}
+
+	private void UpdateCosts(TransactionModel transaction)
+	{
+		if (transaction.CoinjoinMiningFee is { } miningFee && transaction.CoinjoinWastedDust is { } wastedDust)
+		{
+			// The costs were recorded when the coinjoin was made, so the payments are not reported as fees.
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(miningFee + wastedDust);
+			MiningFeeAmount = _wallet.AmountProvider.Create(miningFee);
+			WastedDustAmount = _wallet.AmountProvider.Create(wastedDust);
+			IsFeeBreakdownVisible = true;
+		}
+		else
+		{
+			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
+			IsFeeBreakdownVisible = false;
+		}
+
+		IsPaymentsVisible = transaction.CoinjoinPaymentsTotal is { } payments && payments != Money.Zero;
+		PaymentsAmount = IsPaymentsVisible ? _wallet.AmountProvider.Create(transaction.CoinjoinPaymentsTotal!) : null;
 	}
 }

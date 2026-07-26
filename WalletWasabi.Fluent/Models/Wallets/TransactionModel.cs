@@ -52,6 +52,12 @@ public partial class TransactionModel : ReactiveObject
 
 	public Money? Fee { get; set; }
 
+	public Money? CoinjoinMiningFee { get; set; }
+
+	public Money? CoinjoinWastedDust { get; set; }
+
+	public Money? CoinjoinPaymentsTotal { get; set; }
+
 	public bool CanCancelTransaction { get; init; }
 
 	public bool CanSpeedUpTransaction { get; init; }

@@ -3,6 +3,7 @@ using System.Collections.Concurrent;
 using WalletWasabi.Exceptions;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -497,9 +498,12 @@ public class CoinJoinManager : BackgroundService
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
 			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
+				var coinjoinTxId = successfulCoinjoin.UnsignedCoinJoin.GetHash();
+				var paymentsTotal = Money.Satoshis(batchedPayments.GetPayments().Where(p => p.State is InProgressPayment).Sum(p => p.Amount));
 				_coinRefrigerator.Freeze(successfulCoinjoin.Coins);
-				batchedPayments.MovePaymentsToFinished(successfulCoinjoin.UnsignedCoinJoin.GetHash());
+				batchedPayments.MovePaymentsToFinished(coinjoinTxId);
 				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
+				wallet.KeyManager.AddCoinjoinCosts(new CoinjoinCosts(coinjoinTxId, successfulCoinjoin.MiningFee, successfulCoinjoin.WastedDust, paymentsTotal));
 				Logger.LogInfo(FormatLog($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.", wallet));
 			}
 			else

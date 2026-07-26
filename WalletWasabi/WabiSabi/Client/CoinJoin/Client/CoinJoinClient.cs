@@ -217,6 +217,7 @@ public class CoinJoinClient
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
+		var miningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
 
 		// the task is watching if the round ends during operations. If it does it will trigger cancellation.
 		using CancellationTokenSource waitRoundEndedTaskCts = new();
@@ -296,12 +297,19 @@ public class CoinJoinClient
 					"No inputs participated in this round.");
 			}
 
+			var effectiveInputSum = Money.Satoshis(aliceClientsThatSigned.Sum(a => a.EffectiveValue));
+			var inputMiningFee = Money.Satoshis(aliceClientsThatSigned.Sum(a => a.SmartCoin.Amount)) - effectiveInputSum;
+			var outputMiningFee = Money.Satoshis(outputTxOuts.Sum(o => miningFeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize())));
+			var wastedDust = effectiveInputSum - Money.Satoshis(outputTxOuts.Sum(o => o.Value)) - outputMiningFee;
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: signedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-					UnsignedCoinJoin: unsignedCoinJoin!),
+					UnsignedCoinJoin: unsignedCoinJoin!,
+					MiningFee: inputMiningFee + outputMiningFee,
+					WastedDust: wastedDust),
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(signedCoins),
 				_ => new FailedCoinJoinResult()
 			};
