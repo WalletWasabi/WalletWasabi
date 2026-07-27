@@ -233,13 +233,13 @@ public class CoinJoinClient
 
 		try
 		{
-			ImmutableArray<AliceClient> myAliceClientsThatSigned = [];
+			ImmutableArray<AliceClient> aliceClientsThatSigned = [];
 			IEnumerable<TxOut> outputTxOuts = [];
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
 				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
-				(myAliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, cancelOrRoundEndedCts.Token)
+				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, cancelOrRoundEndedCts.Token)
 						.ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -255,7 +255,7 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			var mySignedCoins = myAliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+			var mySignedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
 			try
 			{
