@@ -43,7 +43,7 @@ public partial class LoginViewModel : RoutableViewModel
 
 		if (!success)
 		{
-			ErrorMessage = "The passphrase is incorrect! Please try again.";
+			ErrorMessage = "The passphrase is incorrect!";
 			return;
 		}
 
