@@ -80,7 +80,7 @@
                     VerticalAlignment="Bottom"
                     Classes="fadeAnimation">
           <TextBlock Text="{Binding ErrorMessage}" HorizontalAlignment="Center" />
-          <Button Content="OK" Focusable="False" Classes="function" HorizontalAlignment="Center" Command="{Binding OkCommand}">
+          <Button Content="Retry" Focusable="False" Classes="function" HorizontalAlignment="Center" Command="{Binding OkCommand}">
             <Button.IsDefault>
               <MultiBinding Converter="{x:Static BoolConverters.And}">
                 <Binding Path="ErrorMessage" Converter="{x:Static StringConverters.IsNotNullOrEmpty}" />
