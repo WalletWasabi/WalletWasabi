@@ -12,7 +12,7 @@ using AddressParsingResult = Result<Address, string>;
 
 public abstract record Address
 {
-	public record Bip21Uri(Address Address, decimal? Amount, string? Label, string? PayjoinEndpoint) : Address;
+	public record Bip21Uri(Address Address, decimal? Amount, string? Label, string? PayjoinEndpoint, string? PayjoinOutputSubstitution = null) : Address;
 	public record Bitcoin(BitcoinAddress Address) : Address;
 	public record SilentPayment(SilentPaymentAddress Address) : Address;
 
@@ -40,7 +40,8 @@ public abstract record Address
 		{
 			bip21.Amount is not null ? $"amount={bip21.Amount}" : "",
 			bip21.Label is not null ? $"label={bip21.Label}" : "",
-			bip21.PayjoinEndpoint is not null ? $"pj={bip21.PayjoinEndpoint}" : ""
+			bip21.PayjoinEndpoint is not null ? $"pj={bip21.PayjoinEndpoint}" : "",
+			bip21.PayjoinEndpoint is not null && bip21.PayjoinOutputSubstitution is not null ? $"pjos={bip21.PayjoinOutputSubstitution}" : ""
 		}.Where(x => x != "");
 		var parameterString = string.Join("&", parametersArray);
 
@@ -82,7 +83,8 @@ public static class AddressParser
 				result.Address,
 				result.Amount is null ? null : decimal.Parse(result.Amount.ToString()),
 				result.Label,
-				result.UnknownParameters.GetValueOrDefault("pj")));
+				result.UnknownParameters.GetValueOrDefault("pj"),
+				result.UnknownParameters.GetValueOrDefault("pjos")));
 	}
 
 	public static AddressParsingResult ParseBitcoinAddress(string text, Network expectedNetwork)
