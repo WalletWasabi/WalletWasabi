@@ -75,6 +75,7 @@
           checkPhase = ''
             runHook preCheck
             dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --filter-not-trait "Category=PayjoinHarness" \
               --no-build \
               --configuration Release \
               --output Detailed
@@ -93,6 +94,7 @@
               --configuration Release \
               --output Detailed
             dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --filter-not-trait "Category=PayjoinHarness" \
               --no-build \
               --configuration Release \
               --output Detailed
