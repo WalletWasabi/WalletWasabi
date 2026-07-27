@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -21,6 +22,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
+using WalletWasabi.Payjoin;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
@@ -444,7 +446,7 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private IPayjoinClient? GetPayjoinClient(string? endPoint)
+	internal IPayjoinClient? GetPayjoinClient(string? endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
@@ -465,12 +467,49 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
+			if (Bip77UriParams.IsBip77(endPoint))
+			{
+				return GetBip77PayjoinClient(endPoint);
+			}
+
 			HttpClient httpClient = UiContext.Services.CreateHttpClient(endPoint);
 			httpClient.BaseAddress = new Uri(endPoint);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
 		return null;
+	}
+
+	private IPayjoinClient? GetBip77PayjoinClient(string endPoint)
+	{
+		if (UiContext.Services.GetHostedService<PayjoinSenderManager>() is not { } payjoinSenderManager)
+		{
+			Logger.LogWarning("Payjoin sender manager is not available. Ignoring...");
+			return null;
+		}
+
+		if (_parsedAddress is not Address.Bip21Uri bip21 || AmountBtc is not { } amountBtc)
+		{
+			Logger.LogWarning("Cannot reconstruct the BIP 21 URI for payjoin. Ignoring...");
+			return null;
+		}
+
+		// Rebuild a faithful BIP 21 for payjoin-ffi — its parser is the source of truth
+		// for the pj endpoint and pjos semantics.
+		string address = bip21.Address.ToWif(_walletModel.Network);
+		string bip21String = $"bitcoin:{address}?amount={amountBtc.ToString(CultureInfo.InvariantCulture)}&pj={Uri.EscapeDataString(endPoint)}";
+		if (bip21.PayjoinOutputSubstitution is { } pjos)
+		{
+			bip21String += $"&pjos={pjos}";
+		}
+
+		return new Bip77PayjoinClient(
+			bip21String,
+			endPoint,
+			payjoinSenderManager.SessionStore,
+			name => UiContext.Services.CreateHttpClient(name),
+			_wallet.WalletName,
+			_walletModel.Network);
 	}
 
 	private async Task ShowQrCameraDialogAsync()
