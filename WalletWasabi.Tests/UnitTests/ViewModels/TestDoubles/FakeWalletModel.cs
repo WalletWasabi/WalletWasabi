@@ -48,6 +48,7 @@ public class FakeWalletModel : ReactiveObject, IWalletModel
 	public WalletSettingsModel Settings => throw new NotSupportedException();
 	public WalletPrivacyModel Privacy => throw new NotSupportedException();
 	public WalletCoinjoinModel? Coinjoin => null;
+	public WalletPayjoinModel? Payjoin => null;
 	public IObservable<bool> Loaded => Observable.Return(true);
 	public AmountProvider AmountProvider { get; }
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;

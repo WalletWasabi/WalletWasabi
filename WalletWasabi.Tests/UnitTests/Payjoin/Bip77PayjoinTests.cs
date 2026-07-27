@@ -129,6 +129,61 @@ public class Bip77PayjoinTests
 	}
 
 	/// <summary>
+	/// A receiver session persisted through <see cref="SqliteReceiverSessionPersister"/> must
+	/// survive a "kill": a fresh store over the same database file replays the event log to
+	/// the exact state (Initialized) and the payjoin URI round-trips.
+	/// </summary>
+	[Fact]
+	public async Task ReceiverSession_PersistAndReplay_ResumesState()
+	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+		string dbPath = Path.Combine(workDir, "Sessions.sqlite");
+		const string ReceiveAddress = "tb1q6d3a2w975yny0asuvd9a67ner4nks58ff0q8g4";
+
+		string sessionId;
+		string pjUri;
+		using (var store = PayjoinSessionStore.FromFile(dbPath))
+		{
+			sessionId = store.CreateSession("test-wallet", ReceiveAddress);
+			var persister = new SqliteReceiverSessionPersister(store, sessionId);
+
+			using var ohttpKeys = OhttpKeys.Decode(TestOhttpKeys);
+			using var builder = new ReceiverBuilder(ReceiveAddress, "https://example.com", ohttpKeys);
+			using var transition = builder.Build();
+			using var initialized = transition.Save(persister);
+			using var uri = initialized.PjUri();
+			pjUri = uri.AsString();
+		}
+
+		// "Restart": a fresh store instance over the same database file.
+		using (var store = PayjoinSessionStore.FromFile(dbPath))
+		{
+			var persister = new SqliteReceiverSessionPersister(store, sessionId);
+			using var replay = PayjoinMethods.ReplayReceiverEventLog(persister);
+
+			using var state = replay.State();
+			Assert.IsType<ReceiveSession.Initialized>(state);
+
+			using var history = replay.SessionHistory();
+			using var replayedUri = history.PjUri();
+			Assert.Equal(pjUri, replayedUri.AsString());
+		}
+	}
+
+	/// <summary>OHTTP keys blob for tests, copied from payjoin-ffi's own xunit suite.</summary>
+	internal static readonly byte[] TestOhttpKeys =
+	[
+		0x01, 0x00, 0x16, 0x04, 0xba, 0x48, 0xc4, 0x9c, 0x3d, 0x4a,
+		0x92, 0xa3, 0xad, 0x00, 0xec, 0xc6, 0x3a, 0x02, 0x4d, 0xa1,
+		0x0c, 0xed, 0x02, 0x18, 0x0c, 0x73, 0xec, 0x12, 0xd8, 0xa7,
+		0xad, 0x2c, 0xc9, 0x1b, 0xb4, 0x83, 0x82, 0x4f, 0xe2, 0xbe,
+		0xe8, 0xd2, 0x8b, 0xfe, 0x2e, 0xb2, 0xfc, 0x64, 0x53, 0xbc,
+		0x4d, 0x31, 0xcd, 0x85, 0x1e, 0x8a, 0x65, 0x40, 0xe8, 0x6c,
+		0x53, 0x82, 0xaf, 0x58, 0x8d, 0x37, 0x09, 0x57, 0x00, 0x04,
+		0x00, 0x01, 0x00, 0x03,
+	];
+
+	/// <summary>
 	/// Downgrade reasons must read as plain language. ffi error objects are pointer-backed
 	/// and cannot be fabricated from C#, so the mappable ones are produced through the ffi
 	/// itself; the well-known BIP 78 receiver error codes

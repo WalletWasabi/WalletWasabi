@@ -125,7 +125,27 @@ public class SendViewModelPayjoinTests
 		// The exact call the send flow makes at dispatch time (OnNextAsync) must yield a
 		// live BIP 77 client, not null.
 		IPayjoinClient? client = harness.Vm.GetPayjoinClient(harness.Vm.PayJoinEndPoint);
-		Assert.IsType<Bip77PayjoinClient>(client);
+		var bip77Client = Assert.IsType<Bip77PayjoinClient>(client);
+
+		// With no relay config override, the client runs on the default relay set.
+		Assert.Equal(
+			PayjoinConstants.DefaultOhttpRelays.ToHashSet(),
+			bip77Client.OhttpRelays.ToHashSet());
+	}
+
+	[Fact]
+	public async Task ConfiguredOhttpRelaysReachTheSenderClientAsync()
+	{
+		string[] relays = ["https://relay-a.example", "https://relay-b.example"];
+		using Harness harness = await CreateHarnessAsync(
+			cliArgs: [$"--PayjoinOhttpRelays={string.Join(';', relays)}"]);
+
+		harness.Vm.To = harness.Bip21;
+
+		var client = Assert.IsType<Bip77PayjoinClient>(harness.Vm.GetPayjoinClient(harness.Vm.PayJoinEndPoint));
+
+		// Order is shuffled per session, so compare as sets.
+		Assert.Equal(relays.ToHashSet(), client.OhttpRelays.ToHashSet());
 	}
 
 	[Fact]
