@@ -570,6 +570,43 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
+		else if (ResolvePayjoinEndpoint(parseResult.Value) is { } pjEndpoint &&
+			Bip77UriParams.TryGetReceiverKey(pjEndpoint, out var receiverKey) &&
+			UiContext.Services.GetHostedService<PayjoinSenderManager>()?.SessionStore is { } sessionStore &&
+			sessionStore.TryFindSession(pjEndpoint, receiverKey, out var existingSession))
+		{
+			if (existingSession.IsCompleted)
+			{
+				// Address/HPKE-key reuse prevention: the send will proceed, but plainly.
+				errors.Add(ErrorSeverity.Warning, "This payjoin link was already used. The payment will be sent as a normal transaction.");
+			}
+			else
+			{
+				// An open session's fallback tx may still be broadcast; paying again on top
+				// of it risks paying twice.
+				errors.Add(ErrorSeverity.Error, "A payjoin to this address is already in progress.");
+			}
+		}
+	}
+
+	/// <summary>
+	/// The payjoin endpoint the To field currently stands for: taken from the URI when To
+	/// still holds one, otherwise recovered from the last parsed BIP 21 URI once
+	/// <see cref="HandleAddressChange"/> has rewritten To to that URI's bare address. It reads
+	/// the endpoint from <see cref="_parsedAddress"/> rather than <see cref="PayJoinEndPoint"/>
+	/// because HandleAddressChange arms the property only after rewriting To, so the property is
+	/// momentarily null while the rewrite re-runs this validation. The address comparison keeps
+	/// a stale endpoint from leaking onto an unrelated address the user typed over it.
+	/// </summary>
+	private string? ResolvePayjoinEndpoint(Address parsedTo)
+	{
+		return (parsedTo, _parsedAddress) switch
+		{
+			(Address.Bip21Uri { PayjoinEndpoint: { } fromUri }, _) => fromUri,
+			(_, Address.Bip21Uri { PayjoinEndpoint: { } fromParsed } parsedBip21)
+				when To?.Trim() == parsedBip21.Address.ToWif(_walletModel.Network) => fromParsed,
+			_ => null,
+		};
 	}
 
 	private void HandleAddressChange(string? text)
