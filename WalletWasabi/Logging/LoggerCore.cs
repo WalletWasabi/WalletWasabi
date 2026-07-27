@@ -110,8 +110,7 @@ public class LoggerCore
 		var category = FormatCategory(callerFilePath, callerLineNumber);
 
 		var messageBuilder = new StringBuilder();
-		messageBuilder.Append(
-			$"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
+		messageBuilder.Append($"{DateTime.UtcNow:yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
 
 		AppendMessageContent(messageBuilder, message, category);
 		messageBuilder.Append(EntrySeparator);
