@@ -56,6 +56,9 @@ public class Bip77PayjoinClient : IPayjoinClient
 		_relays = (ohttpRelays ?? PayjoinConstants.DefaultOhttpRelays).OrderBy(_ => Random.Shared.Next()).ToList();
 	}
 
+	/// <summary>Test seam: the relay set this client will try (session-shuffled order).</summary>
+	internal IReadOnlyList<string> OhttpRelays => _relays;
+
 	/// <summary>The BIP 77 directory endpoint (fragment params included).</summary>
 	public Uri PaymentUrl { get; }
 

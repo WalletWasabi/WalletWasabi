@@ -21,4 +21,11 @@ public static class PayjoinConstants
 	/// <summary>How long the send confirm flow polls for a proposal before degrading to a
 	/// plain send.</summary>
 	public static readonly TimeSpan DefaultPollWindow = TimeSpan.FromSeconds(60);
+
+	/// <summary>Default upper bound (sat/vB) on the effective fee rate the receiver will
+	/// accept for a proposed payjoin — a safety cap, well above any realistic fee
+	/// environment, not a working limit. Overridable via the PayjoinMaxFeeRateSatPerVb
+	/// config knob. Deliberately more conservative than the BTCPay plugin's 1000 sat/vB
+	/// parity value; a dynamic estimator-based cap is a tracked follow-up.</summary>
+	public const ulong DefaultMaxFeeRateSatPerVb = 250;
 }

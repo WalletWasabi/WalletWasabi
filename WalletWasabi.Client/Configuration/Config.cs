@@ -9,6 +9,7 @@ using WalletWasabi.Exceptions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
+using WalletWasabi.Payjoin;
 using WalletWasabi.Tor;
 
 namespace WalletWasabi.Client.Configuration;
@@ -59,7 +60,10 @@ public class Config
 			[nameof(FeeRateEstimationProvider)] = GetStringValue("FeeRateEstimationProvider", PersistentConfig.FeeRateEstimationProvider, cliArgs),
 			[nameof(ExternalTransactionBroadcaster)] = GetStringValue("ExternalTransactionBroadcaster", PersistentConfig.ExternalTransactionBroadcaster, cliArgs),
 			[nameof(DropUnconfirmedTransactionsAfterDays)] = GetLongValue("MaxDaysInMempool", PersistentConfig.MaxDaysInMempool, cliArgs),
-			[nameof(ExperimentalFeatures)] = GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs)
+			[nameof(ExperimentalFeatures)] = GetStringArrayValue("ExperimentalFeatures", PersistentConfig.ExperimentalFeatures.ToArray(), cliArgs),
+			[nameof(PayjoinDirectoryUri)] = GetStringValue("PayjoinDirectoryUri", value: "https://payjo.in", cliArgs),
+			[nameof(PayjoinOhttpRelays)] = GetStringArrayValue("PayjoinOhttpRelays", PayjoinConstants.DefaultOhttpRelays.ToArray(), cliArgs),
+			[nameof(PayjoinMaxFeeRateSatPerVb)] = GetULongValue("PayjoinMaxFeeRateSatPerVb", PayjoinConstants.DefaultMaxFeeRateSatPerVb, cliArgs)
 		};
 
 		// Check if any config value is overridden (either by an environment value, or by a CLI argument).
@@ -113,6 +117,9 @@ public class Config
 			[nameof(ExternalTransactionBroadcaster)] = "Third party transaction broadcaster. Available broadcasters are MempoolSpace (default) and BlockstreamInfo",
 			[nameof(DropUnconfirmedTransactionsAfterDays)] = "The number of days that unconfirmed wallet transactions will be remembered by Wasabi before dropping them",
 			[nameof(ExperimentalFeatures)] = "Colon-separated list of experimental features to enable. (features available: scripting)",
+			[nameof(PayjoinDirectoryUri)] = "The BIP 77 payjoin directory URL used for receiving payjoins",
+			[nameof(PayjoinOhttpRelays)] = "OHTTP relay URLs used to reach the payjoin directory (at least two recommended for privacy)",
+			[nameof(PayjoinMaxFeeRateSatPerVb)] = "Max effective fee rate (sat/vB) the payjoin receiver will accept for a proposed transaction; a safety cap, well above normal fees",
 		};
 	private Dictionary<string, IValue> Data { get; }
 	public PersistentConfig PersistentConfig { get; }
@@ -151,6 +158,10 @@ public class Config
 		Constants.AbsoluteMinInputCount);
 
 	public string[] ExperimentalFeatures => GetEffectiveValue<string[]>(nameof(ExperimentalFeatures));
+
+	public string PayjoinDirectoryUri => GetEffectiveValue<string>(nameof(PayjoinDirectoryUri));
+	public string[] PayjoinOhttpRelays => GetEffectiveValue<string[]>(nameof(PayjoinOhttpRelays));
+	public ulong PayjoinMaxFeeRateSatPerVb => GetEffectiveValue<ulong>(nameof(PayjoinMaxFeeRateSatPerVb));
 
 	public ServiceConfiguration ServiceConfiguration { get; }
 
@@ -252,6 +263,21 @@ public class Config
 		}
 
 		return new IntValue(value, value, ValueSource.Disk);
+	}
+
+	private ULongValue GetULongValue(string key, ulong value, string[] cliArgs)
+	{
+		if (GetOverrideValue(key, cliArgs, out string? overrideValue, out ValueSource? valueSource))
+		{
+			if (!ulong.TryParse(overrideValue, out ulong argsULongValue))
+			{
+				throw new ArgumentException("must be a non-negative number.", key);
+			}
+
+			return new ULongValue(value, argsULongValue, valueSource.Value);
+		}
+
+		return new ULongValue(value, value, ValueSource.Disk);
 	}
 
 	private static StringValue GetStringValue(string key, string value, string[] cliArgs)
@@ -453,6 +479,7 @@ public class Config
 
 	private record BoolValue(bool Value, bool EffectiveValue, ValueSource ValueSource) : ITypedValue<bool>;
 	private record IntValue(int Value, int EffectiveValue, ValueSource ValueSource) : ITypedValue<int>;
+	private record ULongValue(ulong Value, ulong EffectiveValue, ValueSource ValueSource) : ITypedValue<ulong>;
 	private record DecimalValue(decimal Value, decimal EffectiveValue, ValueSource ValueSource) : ITypedValue<decimal>;
 	private record StringValue(string Value, string EffectiveValue, ValueSource ValueSource) : ITypedValue<string>;
 	private record NullableStringValue(string? Value, string? EffectiveValue, ValueSource ValueSource) : ITypedValue<string?>;

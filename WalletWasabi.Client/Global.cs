@@ -716,6 +716,19 @@ public class Global
 				tx => TransactionBroadcaster.SendTransactionAsync(tx),
 				txid => TransactionStore.TryGetTransaction(txid, out _)),
 			"Payjoin Sender Manager");
+
+		var payjoinConfiguration = new PayjoinConfiguration(
+			Config.PayjoinDirectoryUri,
+			Config.PayjoinOhttpRelays,
+			// Configurable safety cap on the receiver-paid fee rate for input/output
+			// contributions (default 250 sat/vB, override via PayjoinMaxFeeRateSatPerVb).
+			// A dynamic estimator-based cap is a tracked follow-up.
+			MaxFeeRateSatPerVb: Config.PayjoinMaxFeeRateSatPerVb,
+			TorEnabled: Config.UseTor != TorMode.Disabled);
+
+		HostedServices.Register<PayjoinManager>(
+			() => new PayjoinManager(DataDir, Network, payjoinConfiguration, WalletManager.GetWalletsAsync, ExternalSourcesHttpClientFactory, TransactionBroadcaster),
+			"Payjoin Manager");
 	}
 
 	private void RegisterCoinJoinComponents(Uri coordinatorUri)

@@ -509,7 +509,8 @@ public partial class SendViewModel : RoutableViewModel
 			payjoinSenderManager.SessionStore,
 			name => UiContext.Services.CreateHttpClient(name),
 			_wallet.WalletName,
-			_walletModel.Network);
+			_walletModel.Network,
+			UiContext.Services.Config.PayjoinOhttpRelays);
 	}
 
 	private async Task ShowQrCameraDialogAsync()
