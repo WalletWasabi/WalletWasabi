@@ -30,6 +30,7 @@
 		<PackageReference Include="Microsoft.Data.Sqlite" />
 		<PackageReference Include="Microsoft.Win32.SystemEvents" />
 		<PackageReference Include="NBitcoin" />
+		<PackageReference Include="Payjoin" />
 		<PackageReference Include="System.Linq.Async" />
 		<PackageReference Include="WabiSabi" />
 	</ItemGroup>
