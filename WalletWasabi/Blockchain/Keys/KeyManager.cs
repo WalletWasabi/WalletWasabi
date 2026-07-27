@@ -1,26 +1,17 @@
-using NBitcoin;
 using NBitcoin.Secp256k1;
 using NBitcoin.WalletPolicies;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Security;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Io;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
 using Decode = WalletWasabi.Serialization.Decode;
@@ -33,7 +24,6 @@ namespace WalletWasabi.Blockchain.Keys;
 public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
-	public const bool DefaultRedCoinIsolation = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -89,37 +79,6 @@ public class KeyManager
 		SetFilePath(filePath);
 
 		ToFile();
-	}
-
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
-	{
-		_blockchainState = new BlockchainState(network);
-
-		password ??= "";
-
-		MinGapLimit = AbsoluteMinGapLimit;
-
-		EncryptedSecret = encryptedSecret;
-		ChainCode = chainCode;
-		var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
-
-		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-
-		SegwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
-		SegwitExtPubKey = extKey.Derive(SegwitAccountKeyPath).Neuter();
-
-		TaprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
-		TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
-
-		SilentPaymentScanExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Scan)).Neuter();
-		SilentPaymentSpendExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Spend)).Neuter();
-
-		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
-		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
-		TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
-		_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
-		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(network, KeyPurpose.Scan), MinGapLimit);
-		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(network, KeyPurpose.Spend), MinGapLimit);
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
