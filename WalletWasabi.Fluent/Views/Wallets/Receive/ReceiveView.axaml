@@ -43,6 +43,11 @@
             <FocusOnAttachedBehavior />
           </Interaction.Behaviors>
         </TagsBox>
+        <CheckBox IsChecked="{Binding IsPayjoinEnabled}"
+                  IsVisible="{Binding IsPayjoinAvailable}"
+                  ToolTip.Tip="Generate a payjoin (BIP 77) address: a compatible sender pays into a shared transaction that improves privacy. Other senders can pay it like a normal address.">
+          <TextBlock Text="Payjoin" />
+        </CheckBox>
       </StackPanel>
     </DockPanel>
   </ContentArea>

@@ -26,6 +26,9 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 	private readonly ScriptType _scriptType;
 	private readonly CompositeDisposable _disposables = new();
 
+	/// <summary>Opt-in per generated address: when on, the shown QR/copy content is a BIP 77 payjoin URI.</summary>
+	[AutoNotify] private bool _isPayjoinEnabled;
+
 	public ReceiveViewModel(UiContext uiContext, IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType) : base(uiContext)
 	{
 		_wallet = wallet;
@@ -60,6 +63,8 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 
 	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Filter(address => address.ScriptType == _scriptType).Count().Select(i => i > 0);
 
+	public bool IsPayjoinAvailable => _wallet.Payjoin is { IsAvailable: true };
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
@@ -72,7 +77,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 		var address = _wallet.Addresses.NextReceiveAddress(SuggestionLabels.Labels, ScriptType.ToScriptPubKeyType(_scriptType));
 		SuggestionLabels.Labels.Clear();
 
-		Navigate().To().ReceiveAddress(_wallet, address, UiContext.Services.GetAutocopy());
+		Navigate().To().ReceiveAddress(_wallet, address, UiContext.Services.GetAutocopy(), IsPayjoinEnabled);
 	}
 
 	private void OnShowExistingAddresses()

@@ -9,6 +9,7 @@ using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
+using WalletWasabi.Payjoin;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.Wallets;
@@ -59,6 +60,8 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	WalletCoinjoinModel? Coinjoin { get; }
 
+	WalletPayjoinModel? Payjoin { get; }
+
 	IObservable<bool> Loaded { get; }
 
 	AmountProvider AmountProvider { get; }
@@ -83,6 +86,7 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 {
 	private readonly IServices _services;
 	private readonly Lazy<WalletCoinjoinModel?> _coinjoin;
+	private readonly Lazy<WalletPayjoinModel?> _payjoin;
 	private readonly Lazy<WalletCoinsModel> _coins;
 
 	[AutoNotify] private bool _isLoggedIn;
@@ -104,6 +108,14 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 			var coinJoinManager = services.GetHostedService<CoinJoinManager>();
 			return coinJoinManager is not null
 				? new WalletCoinjoinModel(services, Wallet, coinJoinManager, Settings)
+				: null;
+		});
+
+		_payjoin = new(() =>
+		{
+			var payjoinManager = services.GetHostedService<PayjoinManager>();
+			return payjoinManager is not null
+				? new WalletPayjoinModel(Wallet, payjoinManager)
 				: null;
 		});
 
@@ -149,6 +161,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public IObservable<bool> IsCoinjoinStarted => _coinjoin.Value?.IsStarted ?? Observable.Return(false);
 
 	public bool IsCoinJoinEnabled => _coinjoin.Value is not null;
+
+	public WalletPayjoinModel? Payjoin => _payjoin.Value;
 
 	public AddressesModel Addresses { get; }
 
