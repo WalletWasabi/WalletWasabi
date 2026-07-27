@@ -330,5 +330,8 @@ dotnet_diagnostic.CA2200.severity = warning
 # xUnit1030: Do not call ConfigureAwait in test method
 dotnet_diagnostic.xUnit1030.severity = warning
 
+# xUnit1051: Calls to methods which accept CancellationToken should use TestContext.Current.CancellationToken to allow test cancellation to be more responsive.
+dotnet_diagnostic.xUnit1051.severity = none
+
 # RS0030: Do not use banned APIs
 dotnet_diagnostic.RS0030.severity = error

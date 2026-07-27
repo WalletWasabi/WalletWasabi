@@ -60,11 +60,11 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
-              --filter "FullyQualifiedName~UnitTests" \
+            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
               --no-build \
               --configuration Release \
-              --logger "console;verbosity=detailed"
+              --filter-namespace "*UnitTests*" \
+              --output Detailed
             runHook postCheck
           '';
         });
@@ -74,10 +74,10 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
-              --logger "console;verbosity=detailed"
+              --output Detailed
             runHook postCheck
           '';
         });
@@ -87,15 +87,15 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
-              --filter "FullyQualifiedName~UnitTests" \
+            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
+              --filter-namespace "*UnitTests*" \
               --no-build \
               --configuration Release \
-              --logger "console;verbosity=detailed"
-            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --output Detailed
+            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
-              --logger "console;verbosity=detailed"
+              --output Detailed
             runHook postCheck
           '';
         });

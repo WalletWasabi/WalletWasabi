@@ -1,26 +1,17 @@
-using NBitcoin;
 using NBitcoin.Secp256k1;
 using NBitcoin.WalletPolicies;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
-using System.Linq;
 using System.Security;
 using System.Text;
 using System.Text.Json.Nodes;
-using System.Threading;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Io;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
-using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.Wallets.Slip39;
 using Decode = WalletWasabi.Serialization.Decode;
@@ -33,7 +24,6 @@ namespace WalletWasabi.Blockchain.Keys;
 public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
-	public const bool DefaultRedCoinIsolation = false;
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -89,37 +79,6 @@ public class KeyManager
 		SetFilePath(filePath);
 
 		ToFile();
-	}
-
-	public KeyManager(BitcoinEncryptedSecretNoEC encryptedSecret, byte[] chainCode, string password, Network network)
-	{
-		_blockchainState = new BlockchainState(network);
-
-		password ??= "";
-
-		MinGapLimit = AbsoluteMinGapLimit;
-
-		EncryptedSecret = encryptedSecret;
-		ChainCode = chainCode;
-		var extKey = new ExtKey(encryptedSecret.GetKey(password), chainCode);
-
-		MasterFingerprint = extKey.Neuter().PubKey.GetHDFingerPrint();
-
-		SegwitAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.Segwit);
-		SegwitExtPubKey = extKey.Derive(SegwitAccountKeyPath).Neuter();
-
-		TaprootAccountKeyPath = GetAccountKeyPath(network, ScriptPubKeyType.TaprootBIP86);
-		TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
-
-		SilentPaymentScanExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Scan)).Neuter();
-		SilentPaymentSpendExtPubKey = extKey.Derive(GetAccountKeyPath(network, KeyPurpose.Spend)).Neuter();
-
-		SegwitExternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(0), SegwitAccountKeyPath.Derive(0), MinGapLimit);
-		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
-		TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
-		_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
-		_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(network, KeyPurpose.Scan), MinGapLimit);
-		_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(network, KeyPurpose.Spend), MinGapLimit);
 	}
 
 	public static KeyPath GetAccountKeyPath(Network network, ScriptPubKeyType scriptPubKeyType) =>
@@ -351,7 +310,7 @@ public class KeyManager
 	internal HdPubKey GenerateNewKey(LabelsArray labels, KeyState keyState, bool isInternal, ScriptPubKeyType scriptPubKeyType = ScriptPubKeyType.Segwit)
 	{
 		var hdPubKeyRegistry = GetHdPubKeyGenerator(isInternal, scriptPubKeyType)
-							   ?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
+			?? throw new NotSupportedException($"Script type '{scriptPubKeyType}' is not supported.");
 
 		lock (_criticalStateLock)
 		{
@@ -397,7 +356,13 @@ public class KeyManager
 	private (HdPubKey, HdPubKey[], HdPubKeyGenerator) GetNextReceiveKey(HdPubKeyGenerator hdPubKeyGenerator)
 	{
 		// Find the next clean external key with an empty label.
-		var externalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+		HdPubKeyPathView externalView;
+
+		lock (_criticalStateLock)
+		{
+			externalView = _hdPubKeyCache.GetView(hdPubKeyGenerator.KeyPath);
+		}
+
 		if (externalView.CleanKeys.FirstOrDefault(x => x.Labels.IsEmpty) is { } cachedKey)
 		{
 			return (cachedKey, [], hdPubKeyGenerator);
@@ -550,10 +515,14 @@ public class KeyManager
 			// This can happen after downgrading to pre-taproot wasabi version the switching back to a supporting
 			// version so taproot keys are detected. However, the user has not login yet so taprootextpubkey is
 			// not derived yet (because pre-taproot wasabi do not serialize fields that it doesn't know)
-			if (keySource is { })
+			if (keySource is not null)
 			{
-				var view = _hdPubKeyCache.GetView(keySource.KeyPath);
-				_hdPubKeyCache.AddRangeKeys(keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey));
+				lock (_criticalStateLock)
+				{
+					var view = _hdPubKeyCache.GetView(keySource.KeyPath);
+					var keys = keySource.AssertCleanKeysIndexed(view).Select(CreateHdPubKey);
+					_hdPubKeyCache.AddRangeKeys(keys);
+				}
 			}
 		}
 	}
@@ -659,7 +628,7 @@ public class KeyManager
 
 		lock (_criticalStateLock)
 		{
-			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManager);
+			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManagerNoLock);
 		}
 
 		File.SafelyWriteAllText(filePath, jsonString, Encoding.UTF8);
@@ -735,7 +704,7 @@ public class KeyManager
 		ToFile();
 	}
 
-	private static JsonNode EncodeKeyManager(KeyManager keyManager) =>
+	private static JsonNode EncodeKeyManagerNoLock(KeyManager keyManager) =>
 		Encode.Object([
 			("EncryptedSecret", Encode.Optional(keyManager.EncryptedSecret, Encode.BitcoinEncryptedSecretNoEC)),
 			("ChainCode", Encode.Optional(keyManager.ChainCode, Encode.ChainCode)),
