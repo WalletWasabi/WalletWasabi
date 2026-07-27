@@ -1,16 +1,9 @@
 using Microsoft.Data.Sqlite;
-using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Stores;
@@ -31,7 +24,7 @@ public class FilterStore : IFilterStore, IDisposable
 
 		if (network == Network.RegTest)
 		{
-			DeleteIndex(_storageFilePath);
+			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
 		}
 
 		IndexStorage = CreateBlockFilterSqliteStorage();
@@ -46,7 +39,7 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				storage.Dispose();
 				Logger.LogInfo("Migrating from old Indexer filters to Bitcoin Core RPC filters.");
-				DeleteIndex(_storageFilePath);
+				SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
 				storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
 				storage.SetPragmaUserVersion(2);
 			}
@@ -57,7 +50,7 @@ public class FilterStore : IFilterStore, IDisposable
 		{
 			Logger.LogError($"Failed to open SQLite storage file because it's corrupted. Deleting the storage file '{_storageFilePath}'.");
 
-			DeleteIndex(_storageFilePath);
+			SqliteStorageHelper.DeleteDatabaseFiles(_storageFilePath);
 			var storage = BlockFilterSqliteStorage.FromFile(_storageFilePath);
 			storage.SetPragmaUserVersion(2);
 			return storage;
@@ -267,24 +260,6 @@ public class FilterStore : IFilterStore, IDisposable
 			{
 				break;
 			}
-		}
-	}
-
-	private void DeleteIndex(string indexPath)
-	{
-		if (File.Exists(indexPath))
-		{
-			File.Delete(indexPath);
-		}
-
-		if (File.Exists($"{indexPath}-shm"))
-		{
-			File.Delete($"{indexPath}-shm");
-		}
-
-		if (File.Exists($"{indexPath}-wal"))
-		{
-			File.Delete($"{indexPath}-wal");
 		}
 	}
 
