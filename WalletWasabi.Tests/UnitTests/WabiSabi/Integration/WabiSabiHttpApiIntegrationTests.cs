@@ -261,10 +261,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	}
 
 	[Theory]
-	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
-	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts)
+	[InlineData(new long[] { 10_000_000, 20_000_000 }, new long[] { 30_000_000, 40_000_000 }, new long[] { 50_000_000, 60_000_000 })]
+	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts1, long[] satAmounts2, long[] satAmounts3)
 	{
-		int inputCount = satAmounts.Length;
+		int inputCount = satAmounts1.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -275,13 +275,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager3 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager1, satAmounts, inputCount);
-		var badCoins = GenerateSmartCoins(keyManager2, satAmounts, inputCount);
+		// There are three participants. The second participant will fail to register outputs and will enforce a blame round.
+		var participant1Coins = GenerateSmartCoins(keyManager1, satAmounts1, inputCount);
+		var participant2CoinsBad = GenerateSmartCoins(keyManager2, satAmounts2, inputCount);
+		var participant3Coins = GenerateSmartCoins(keyManager3, satAmounts3, inputCount);
 
 		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
-				Enumerable.Concat(coins, badCoins).ToArray(),
+				Enumerable.Concat(participant1Coins, participant2CoinsBad).Concat(participant3Coins).ToArray(),
 				rpc =>
 				{
 					rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
@@ -308,7 +311,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
-					MaxInputCountByRound = 2 * inputCount,
+					MaxInputCountByRound = 3 * inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
@@ -320,9 +323,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Task.Delay(100);
 
 		// Create the coinjoin client
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+		var apiClient1 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
-		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient1, cts.Token);
 		using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
@@ -344,18 +347,22 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			return httpClient.SendAsync(req, CancellationToken.None);
 		};
-		var nonSigningApiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager1, roundStateProvider);
-		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => nonSigningApiClient, keyManager2, roundStateProvider);
+		var apiClient2Bad = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
+		var apiClient3 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
-		var coinJoinTask = coinJoinClient.StartCoinJoinAsync(() => coins, cts.Token);
-		var badCoinsTask = badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token);
+		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
+		var coinJoinClient2Bad = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2Bad, keyManager2, roundStateProvider);
+		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
+
+		var participant1CoinjoinTask = coinJoinClient1.StartCoinJoinAsync(() => participant1Coins, cts.Token);
+		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, allowedRoundCoins: null, roundState, cts.Token);
+		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
 
 		// BadCoinsTask will throw.
 		try
 		{
-			await Task.WhenAll(new Task[] {badCoinsTask, coinJoinTask});
+			await Task.WhenAll(new Task[] { participant2CoinjoinTaskBad, participant1CoinjoinTask, participant3CoinjoinTask });
 		}
 		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found."))
 		{
@@ -364,18 +371,24 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return;
 		}
 
-		var resultBad = await badCoinsTask;
-		var resultOk = await coinJoinTask;
+		var participant1Result = await participant1CoinjoinTask;
+		var participant2ResultBad = await participant2CoinjoinTaskBad;
+		var participant3Result = await participant3CoinjoinTask;
 
-		Assert.IsType<DisruptedCoinJoinResult>(resultBad);
-		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
+		Assert.IsType<SuccessfulCoinJoinResult>(participant1Result);
+		Assert.IsType<DisruptedCoinJoinResult>(participant2ResultBad);
+		Assert.IsType<SuccessfulCoinJoinResult>(participant3Result);
 
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
-		Assert.Equal(
-			coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
-			broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
+		var expectedInputs = participant1Coins.Concat(participant3Coins)
+			.Select(x => x.Coin.Outpoint.ToString())
+			.OrderBy(x => x)
+			.ToList();
+
+		var actualInputs = broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x);
+		Assert.Equal(expectedInputs, actualInputs);
 	}
 
 	[Theory]
