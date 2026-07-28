@@ -1,6 +1,6 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,20 +9,22 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using Xunit;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using Xunit;
+using static WalletWasabi.WabiSabi.Client.CoinJoin.Client.CoinJoinClient;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -356,7 +358,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
 
 		var participant1CoinjoinTask = coinJoinClient1.StartCoinJoinAsync(() => participant1Coins, cts.Token);
-		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, allowedRoundCoins: null, roundState, cts.Token);
+		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, UnrestrictedRound.Instance, roundState, cts.Token);
 		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
 
 		// BadCoinsTask will throw.
