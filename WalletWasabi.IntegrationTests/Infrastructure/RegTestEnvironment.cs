@@ -32,7 +32,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		IntegrationTestFixture fixture,
 		string workDir,
 		EventBus eventBus,
-		FilterStorage filterStorage,
+		FilterManager filterManager,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
 		CpfpInfoProvider cpfpInfoProvider)
@@ -40,7 +40,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		Fixture = fixture;
 		WorkDir = workDir;
 		EventBus = eventBus;
-		FilterStorage = filterStorage;
+		FilterManager = filterManager;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
 		CpfpInfoProvider = cpfpInfoProvider;
@@ -50,7 +50,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	public IntegrationTestFixture Fixture { get; }
 	public string WorkDir { get; }
 	public EventBus EventBus { get; }
-	public FilterStorage FilterStorage { get; }
+	public FilterManager FilterManager { get; }
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 	public CpfpInfoProvider CpfpInfoProvider { get; }
@@ -86,12 +86,12 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var eventBus = new EventBus();
 		var filterHeaderChain = new FilterHeaderChain();
 
-		var filterStorage = new FilterStorage(
+		var filterManager = new FilterManager(
 			Path.Combine(workDir, "filters"),
 			fixture.BitcoinCoreNode.Network,
 			filterHeaderChain,
 			eventBus);
-		await filterStorage.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
+		await filterManager.InitializeAsync(new ChainHeight(0u), CancellationToken.None).ConfigureAwait(false);
 
 		var transactionStore = new AllTransactionStore(
 			Path.Combine(workDir, "transactions"),
@@ -107,7 +107,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			fixture,
 			workDir,
 			eventBus,
-			filterStorage,
+			filterManager,
 			transactionStore,
 			filterHeaderChain,
 			cpfpInfoProvider);
@@ -128,7 +128,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	{
 		var factory = Wallet.CreateFactory(
 			Network,
-			FilterStorage,
+			FilterManager,
 			TransactionStore,
 			FilterHeaderChain,
 			MempoolService,
@@ -157,7 +157,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var blockHeaderChain = new ConcurrentChain(Network);
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
-		var tip = FilterStorage.GetTip();
+		var tip = FilterManager.GetTip();
 		uint fromHeight = (uint)(tip?.Header.Height ?? ChainHeight.Genesis);
 		uint256 fromHash = tip?.Header.BlockHash ?? await RpcClient.GetBlockHashAsync(0, cancellationToken).ConfigureAwait(false);
 
@@ -169,7 +169,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
-				await FilterStorage.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
+				await FilterManager.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
 				var lastFilter = newFilters.Filters.LastOrDefault();
 				if (lastFilter is not null)
@@ -199,7 +199,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		var blockHeaderChain = new ConcurrentChain(Network);
 
 		// Create the filter synchronization state
-		var tip = FilterStorage.GetTip();
+		var tip = FilterManager.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
 		var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(
 			blockHeaderChain,
@@ -258,7 +258,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
 			{
-				await FilterStorage.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
+				await FilterManager.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
 
 				var lastFilter = newFilters.Filters.LastOrDefault();
 				if (lastFilter is not null)
@@ -366,7 +366,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 
 	public ValueTask DisposeAsync()
 	{
-		FilterStorage.Dispose();
+		FilterManager.Dispose();
 		TransactionStore.Dispose();
 		return ValueTask.CompletedTask;
 	}

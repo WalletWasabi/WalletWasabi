@@ -11,9 +11,9 @@ namespace WalletWasabi.Storages;
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStorage : IFilterStorage, IDisposable
+public class FilterManager : IFilterManager, IDisposable
 {
-	public FilterStorage(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterManager(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;

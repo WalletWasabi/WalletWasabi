@@ -33,7 +33,7 @@ public class FilterSyncTests
 		await env.SyncFiltersAsync();
 
 		// Assert - Filter store should have filters up to tip
-		var filterTip = env.FilterStorage.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 		Assert.Equal((uint)tipHeight, (uint)filterTip.Header.Height);
 	}
@@ -46,7 +46,7 @@ public class FilterSyncTests
 
 		// Initial sync
 		await env.SyncFiltersAsync();
-		var initialTip = env.FilterStorage.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -58,7 +58,7 @@ public class FilterSyncTests
 		await env.SyncFiltersAsync();
 
 		// Assert - Filter tip should advance by 1
-		var newTip = env.FilterStorage.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + 1, (uint)newTip.Header.Height);
 	}
@@ -70,7 +70,7 @@ public class FilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		await env.SyncFiltersAsync();
-		var initialTip = env.FilterStorage.GetTip();
+		var initialTip = env.FilterManager.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
@@ -82,7 +82,7 @@ public class FilterSyncTests
 		await env.SyncFiltersAsync();
 
 		// Assert
-		var newTip = env.FilterStorage.GetTip();
+		var newTip = env.FilterManager.GetTip();
 		Assert.NotNull(newTip);
 		Assert.Equal(initialHeight + blocksToMine, (uint)newTip.Header.Height);
 	}
@@ -97,7 +97,7 @@ public class FilterSyncTests
 		await env.SyncFiltersAsync();
 
 		// Assert - FilterHeaderChain should be in sync
-		var filterTip = env.FilterStorage.GetTip();
+		var filterTip = env.FilterManager.GetTip();
 		Assert.NotNull(filterTip);
 
 		var chainTipHeight = env.FilterHeaderChain.TipHeight;
@@ -111,7 +111,7 @@ public class FilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// The filter store is initialized with checkpoint at height 0 for regtest
-		var tip = env.FilterStorage.GetTip();
+		var tip = env.FilterManager.GetTip();
 
 		// For regtest, we expect to have at least the genesis filter
 		Assert.NotNull(tip);
@@ -120,7 +120,7 @@ public class FilterSyncTests
 		// Now sync and verify we catch up
 		await env.SyncFiltersAsync();
 
-		var syncedTip = env.FilterStorage.GetTip();
+		var syncedTip = env.FilterManager.GetTip();
 		Assert.NotNull(syncedTip);
 
 		var blockchainTip = await env.RpcClient.GetBlockCountAsync();

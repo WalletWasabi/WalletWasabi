@@ -196,10 +196,10 @@ public static class FilterProviders
 
 public static class Synchronizer
 {
-	public static MessageHandler<Unit> CreateFilterGenerator(FilterProvider filtersProvider, FilterStorage filterStorage, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
-		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterStorage, filterHeaderChain, eventBus, cancellationToken);
+	public static MessageHandler<Unit> CreateFilterGenerator(FilterProvider filtersProvider, FilterManager filterManager, FilterHeaderChain filterHeaderChain, EventBus eventBus) =>
+		(_, cancellationToken) => GenerateCompactFiltersAsync(filtersProvider, filterManager, filterHeaderChain, eventBus, cancellationToken);
 
-	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterStorage filterStorage, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterManager filterManager, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
 		// Don't attempt synchronization without a valid tip hash
 		if (filterHeaderChain.TipHash is null)
@@ -208,7 +208,7 @@ public static class Synchronizer
 			return Unit.Instance;
 		}
 
-		if (filterStorage.GetTip() is not { } storedTip)
+		if (filterManager.GetTip() is not { } storedTip)
 		{
 			return Unit.Instance;
 		}
@@ -218,7 +218,7 @@ public static class Synchronizer
 
 		if (response.IsOk)
 		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStorage, filterHeaderChain, eventBus).ConfigureAwait(false);
+			var isSynchronized = await ProcessFiltersAsync(response.Value, filterManager, filterHeaderChain, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
 				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
@@ -232,7 +232,7 @@ public static class Synchronizer
 		return Unit.Instance;
 	}
 
-	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStorage filterStorage, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterManager filterManager, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		switch (response)
 		{
@@ -244,13 +244,13 @@ public static class Synchronizer
 				return true;
 			case FiltersResponse.BestBlockUnknown:
 				// Reorg happened. Rollback the latest index.
-				FilterModel reorgedFilter = await filterStorage.TryRemoveLastFilterAsync().ConfigureAwait(false)
+				FilterModel reorgedFilter = await filterManager.TryRemoveLastFilterAsync().ConfigureAwait(false)
 					?? throw new InvalidOperationException("Fatal error: Failed to remove the reorged filter.");
 
 				Logger.LogInfo($"REORG Invalid Block: {reorgedFilter.Header.BlockHash}  Height {reorgedFilter.Header.Height}.");
 				break;
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
-				var localTipHeight = filterStorage.GetTip()?.Header.Height ?? 0;
+				var localTipHeight = filterManager.GetTip()?.Header.Height ?? 0;
 
 				filterHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
 				eventBus.Publish(new NetworkTipHeightChanged(newFiltersAvailable.BestHeight));
@@ -272,11 +272,11 @@ public static class Synchronizer
 					string details = FormatInconsistencyDetails(filterHeaderChain, firstNewFilter);
 					Logger.LogError($"Inconsistent index state detected.{Environment.NewLine}{details}");
 
-					await filterStorage.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
+					await filterManager.RemoveAllNewerThanAsync(localTipHeight).ConfigureAwait(false);
 				}
 				else
 				{
-					await filterStorage.AddNewFiltersAsync(newFilters).ConfigureAwait(false);
+					await filterManager.AddNewFiltersAsync(newFilters).ConfigureAwait(false);
 
 					Logger.LogInfo(newFilters.Length == 1
 						? $"Downloaded filter for block {firstNewFilter.Header.Height}."

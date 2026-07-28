@@ -22,7 +22,7 @@ public class WalletFilterProcessor : BackgroundService
 	public WalletFilterProcessor(
 		KeyManager keyManager,
 		AllTransactionStore transactionStore,
-		FilterStorage filterStorage,
+		FilterManager filterManager,
 		FilterHeaderChain filterHeaderChain,
 		TransactionProcessor transactionProcessor,
 		BlockProvider blockProvider,
@@ -34,7 +34,7 @@ public class WalletFilterProcessor : BackgroundService
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
-		_blockFilterIterator = new(filterStorage);
+		_blockFilterIterator = new(filterManager);
 		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
 

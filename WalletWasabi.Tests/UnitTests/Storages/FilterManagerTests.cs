@@ -14,12 +14,12 @@ using Xunit;
 namespace WalletWasabi.Tests.UnitTests.Storages;
 
 /// <summary>
-/// Tests for <see cref="FilterStorage"/>.
+/// Tests for <see cref="FilterManager"/>.
 /// </summary>
-public class FilterStorageTests
+public class FilterManagerTests
 {
 	[Fact]
-	public async Task FilterStorageTestsAsync()
+	public async Task FilterManagerTestsAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
@@ -27,15 +27,15 @@ public class FilterStorageTests
 		await IoHelpers.TryDeleteDirectoryAsync(directory);
 		IoHelpers.EnsureContainingDirectoryExists(directory);
 
-		using var filterStorage = new FilterStorage(directory, Network.Main, new FilterHeaderChain(), new EventBus());
-		await filterStorage.InitializeAsync(0, testCts.Token);
+		using var filterManager = new FilterManager(directory, Network.Main, new FilterHeaderChain(), new EventBus());
+		await filterManager.InitializeAsync(0, testCts.Token);
 
 		// Remove starting filter.
-		FilterModel? filterModel = await filterStorage.TryRemoveLastFilterAsync();
+		FilterModel? filterModel = await filterManager.TryRemoveLastFilterAsync();
 		Assert.NotNull(filterModel);
 
 		// No filter to remove.
-		filterModel = await filterStorage.TryRemoveLastFilterAsync();
+		filterModel = await filterManager.TryRemoveLastFilterAsync();
 		Assert.Null(filterModel);
 	}
 

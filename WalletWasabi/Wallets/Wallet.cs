@@ -34,15 +34,15 @@ public class Wallet : BackgroundService
 	private readonly ComposedDisposable _disposables = new();
 
 	public static WalletFactory CreateFactory(
-		Network network, FilterStorage filterStorage, AllTransactionStore transactionStore, FilterHeaderChain filterHeaderChain,
+		Network network, FilterManager filterManager, AllTransactionStore transactionStore, FilterHeaderChain filterHeaderChain,
 		MempoolService mempoolService, ServiceConfiguration serviceConfiguration, BlockProvider blockProvider,
 		EventBus eventBus, CpfpInfoProvider cpfpInfoProvider) =>
-		keyManager => new Wallet(network, keyManager, filterStorage, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
+		keyManager => new Wallet(network, keyManager, filterManager, transactionStore, filterHeaderChain, blockProvider, mempoolService, serviceConfiguration, cpfpInfoProvider, eventBus);
 
 	private Wallet(
 		Network network,
 		KeyManager keyManager,
-		FilterStorage filterStorage,
+		FilterManager filterManager,
 		AllTransactionStore transactionStore,
 		FilterHeaderChain filterHeaderChain,
 		BlockProvider blockProvider,
@@ -57,12 +57,12 @@ public class Wallet : BackgroundService
 		ServiceConfiguration = serviceConfiguration;
 		CpfpInfoProvider = cpfpInfoProvider;
 		DestinationProvider = new InternalDestinationProvider(KeyManager);
-		_filterStorage = filterStorage;
+		_filterManager = filterManager;
 		TransactionStore = transactionStore;
 		FilterHeaderChain = filterHeaderChain;
 
 		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
-		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStorage, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
+		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterManager, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
 		BatchedPayments = new PaymentBatch();
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
@@ -86,7 +86,7 @@ public class Wallet : BackgroundService
 	}
 
 	private readonly EventBus _eventBus;
-	private readonly FilterStorage _filterStorage;
+	private readonly FilterManager _filterManager;
 	private ChainHeight _lastFilterProcess = 0;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
