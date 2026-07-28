@@ -332,7 +332,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
+	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, TxOut[] OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
 		RoundState roundState,
 		IEnumerable<SmartCoin> smartCoins,
 		IRoundRestrictions roundRestrictions,
@@ -692,7 +692,7 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog(string.Join(Environment.NewLine, summary), roundState));
 	}
 
-	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<TxOut[]> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await _roundStatusProvider.CreateRoundAwaiterAsync(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
