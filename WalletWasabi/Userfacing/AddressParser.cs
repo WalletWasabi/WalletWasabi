@@ -25,6 +25,15 @@ public abstract record Address
 			_ => throw new ArgumentException("Unknown address type.")
 		};
 
+	public string ToCanonicalAddress(Network network) =>
+		this switch
+		{
+			Bip21Uri bip21 => bip21.Address.ToWif(network),
+			Bitcoin bitcoin => bitcoin.Address.ToString(),
+			SilentPayment sp => sp.Address.ToWip(network),
+			_ => throw new ArgumentException("Unknown address type.")
+		};
+
 	private string UriToString(Bip21Uri bip21)
 	{
 		var parametersArray = new[]
