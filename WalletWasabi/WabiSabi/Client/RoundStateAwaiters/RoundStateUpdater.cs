@@ -14,7 +14,7 @@ public abstract record RoundUpdateMessage
 
 public class RoundStateProvider(MailboxProcessor<RoundUpdateMessage> roundStateUpdater)
 {
-	public static TimeSpan QueryFrequency = TimeSpan.FromSeconds(15);
+	public static readonly TimeSpan QueryFrequency = TimeSpan.FromSeconds(15);
 
 	public async Task<RoundState> CreateRoundAwaiterAsync(uint256 roundId, Phase phase,
 		CancellationToken cancellationToken)
