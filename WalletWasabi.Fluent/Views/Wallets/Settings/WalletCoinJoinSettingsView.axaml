@@ -53,6 +53,11 @@
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
+    <DockPanel ToolTip.Tip="When enabled, payments in coinjoin can be funded with private coins, so you can pay without mixing non-private coins first. Disable it to save fees.">
+      <TextBlock Text="Pay in coinjoin regardless of anonymity score" />
+      <ToggleSwitch IsChecked="{Binding AllowPaymentsRegardlessOfAnonScore}" Command="{Binding SetAllowPaymentsRegardlessOfAnonScoreCommand}" />
+    </DockPanel>
+
     <DockPanel>
       <TextBlock Text="Anonymity score target" ToolTip.Tip="Minimum anonymity score to consider a coin private." />
       <TextBox Classes="standalone" Name="AnonScoreTargetTextBox" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right" Watermark="Choose between 2 and 300." MaxLength="3" />
