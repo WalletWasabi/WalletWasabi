@@ -106,6 +106,8 @@ public class WabiSabiConfig : ConfigBase
 
 	public bool DelayTransactionSigning { get; init; } = false;
 
+	public bool ShaveAnchorOutputIntoDenomination { get; init; } = false;
+
 	public AnnouncerConfig AnnouncerConfig { get; set; } = new();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
