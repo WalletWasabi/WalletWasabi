@@ -45,6 +45,12 @@
         <PrivacyContentControl PrivacyReplacementMode="Text" HorizontalAlignment="Center">
           <LabelsItemsPresenter ItemsSource="{Binding Labels}" />
         </PrivacyContentControl>
+
+        <TextBlock Text="{Binding PayjoinStatus}"
+                   IsVisible="{Binding PayjoinStatus, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                   HorizontalAlignment="Center"
+                   Opacity="0.6"
+                   TextWrapping="Wrap" />
       </StackPanel>
 
       <AdorningContentControl HorizontalAlignment="Center" VerticalAlignment="Center" ClipToBounds="False">

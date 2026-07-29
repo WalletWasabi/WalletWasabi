@@ -92,6 +92,12 @@
           "System.Interactive.Async": "6.0.1"
         }
       },
+      "Payjoin": {
+        "type": "Direct",
+        "requested": "[0.24.0-preview.1, )",
+        "resolved": "0.24.0-preview.1",
+        "contentHash": "OXFLF31sUCgupmZPFGmz8O2V2wbjAEtTleDy6zLYo6Nl6eve5HVMHyzf+AxkmqvT9OLNwhp+SG8u3B+ato7vaQ=="
+      },
       "System.Linq.Async": {
         "type": "Direct",
         "requested": "[7.0.0, )",

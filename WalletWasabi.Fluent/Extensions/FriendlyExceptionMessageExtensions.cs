@@ -3,6 +3,7 @@ using System.Net.Http;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Exceptions;
+using WalletWasabi.WebClients.PayJoin;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -25,6 +26,9 @@ public static class FriendlyExceptionMessageExtensions
 		return ex switch
 		{
 			HwiException hwiEx => GetFriendlyHwiExceptionMessage(hwiEx),
+
+			// Payjoin exception messages are written user-facing (see Bip77PayjoinClient).
+			PayjoinException payjoinEx => payjoinEx.Message,
 			HttpRequestException => "Something went wrong. Please try again.",
 			UnauthorizedAccessException => "Wasabi was unable to perform this action due to a lack of permission.",
 			_ => ex.Message

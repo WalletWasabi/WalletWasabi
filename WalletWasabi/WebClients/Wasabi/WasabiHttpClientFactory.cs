@@ -94,6 +94,26 @@ public class OnionHttpClientFactory(Uri proxyUri, HttpClientHandlerConfiguration
 	}
 }
 
+/// <summary>
+/// Routes every client through a fixed OHTTP relay acting as an HTTP CONNECT proxy, so the
+/// payjoin directory never learns the caller's IP when Tor is disabled (RFC 9540 bootstrap).
+/// Mirrors <see cref="OnionHttpClientFactory"/>'s proxy-per-handler shape, but without Tor's
+/// per-identity SOCKS credentials — a clearnet relay proxy needs none. Keeping the OHTTP-keys
+/// bootstrap on Wasabi's own handler stack (retries, decompression, lifetime) means the
+/// payjoin-ffi never owns transport; it is reduced to the pure <c>OhttpKeys.Decode</c> parser.
+/// </summary>
+public class RelayHttpClientFactory(Uri relayUri, HttpClientHandlerConfiguration? configurator = null)
+	: HttpClientFactory(configurator)
+{
+	protected override HttpClientHandler CreateHttpClientHandler(string name)
+	{
+		var handler = base.CreateHttpClientHandler(name);
+		handler.Proxy = new WebProxy(relayUri);
+		handler.UseProxy = true;
+		return handler;
+	}
+}
+
 public class CoordinatorHttpClientFactory : IHttpClientFactory
 {
 	private readonly Uri _baseAddress;

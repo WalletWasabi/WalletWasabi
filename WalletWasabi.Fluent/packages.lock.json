@@ -638,6 +638,7 @@
           "Microsoft.Win32.SystemEvents": "[10.0.2, )",
           "NBitcoin": "[10.0.7, )",
           "NNostr.Client": "[0.0.54, )",
+          "Payjoin": "[0.24.0-preview.1, )",
           "System.Linq.Async": "[7.0.0, )",
           "WabiSabi": "[1.0.1.2, )"
         }
@@ -746,6 +747,12 @@
           "NBitcoin.Secp256k1": "3.1.6",
           "System.Interactive.Async": "6.0.1"
         }
+      },
+      "Payjoin": {
+        "type": "CentralTransitive",
+        "requested": "[0.24.0-preview.1, )",
+        "resolved": "0.24.0-preview.1",
+        "contentHash": "OXFLF31sUCgupmZPFGmz8O2V2wbjAEtTleDy6zLYo6Nl6eve5HVMHyzf+AxkmqvT9OLNwhp+SG8u3B+ato7vaQ=="
       },
       "SkiaSharp.NativeAssets.WebAssembly": {
         "type": "CentralTransitive",

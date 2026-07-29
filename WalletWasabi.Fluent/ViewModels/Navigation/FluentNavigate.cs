@@ -372,9 +372,9 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new OpenConfigFileViewModel(UiContext), navigationMode);
 	}
 
-	public void ReceiveAddress(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void ReceiveAddress(IWalletModel wallet, IAddress model, bool isAutoCopyEnabled, bool enablePayjoin = false, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new ReceiveAddressViewModel(UiContext, wallet, model, isAutoCopyEnabled), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new ReceiveAddressViewModel(UiContext, wallet, model, isAutoCopyEnabled, enablePayjoin), navigationMode);
 	}
 
 	public void ShuttingDown(ApplicationViewModel applicationViewModel, bool restart, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

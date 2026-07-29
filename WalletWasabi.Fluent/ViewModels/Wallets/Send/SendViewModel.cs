@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using System.Globalization;
 using System.Linq;
 using System.Net.Http;
 using System.Reactive;
@@ -21,6 +22,7 @@ using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets.Labels;
 using WalletWasabi.Logging;
+using WalletWasabi.Payjoin;
 using WalletWasabi.Services;
 using WalletWasabi.Userfacing;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
@@ -444,7 +446,7 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private IPayjoinClient? GetPayjoinClient(string? endPoint)
+	internal IPayjoinClient? GetPayjoinClient(string? endPoint)
 	{
 		if (!string.IsNullOrWhiteSpace(endPoint) &&
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
@@ -465,12 +467,50 @@ public partial class SendViewModel : RoutableViewModel
 				}
 			}
 
+			if (Bip77UriParams.IsBip77(endPoint))
+			{
+				return GetBip77PayjoinClient(endPoint);
+			}
+
 			HttpClient httpClient = UiContext.Services.CreateHttpClient(endPoint);
 			httpClient.BaseAddress = new Uri(endPoint);
 			return new PayjoinClient(payjoinEndPointUri, httpClient);
 		}
 
 		return null;
+	}
+
+	private IPayjoinClient? GetBip77PayjoinClient(string endPoint)
+	{
+		if (UiContext.Services.GetHostedService<PayjoinSenderManager>() is not { } payjoinSenderManager)
+		{
+			Logger.LogWarning("Payjoin sender manager is not available. Ignoring...");
+			return null;
+		}
+
+		if (_parsedAddress is not Address.Bip21Uri bip21 || AmountBtc is not { } amountBtc)
+		{
+			Logger.LogWarning("Cannot reconstruct the BIP 21 URI for payjoin. Ignoring...");
+			return null;
+		}
+
+		// Rebuild a faithful BIP 21 for payjoin-ffi — its parser is the source of truth
+		// for the pj endpoint and pjos semantics.
+		string address = bip21.Address.ToWif(_walletModel.Network);
+		string bip21String = $"bitcoin:{address}?amount={amountBtc.ToString(CultureInfo.InvariantCulture)}&pj={Uri.EscapeDataString(endPoint)}";
+		if (bip21.PayjoinOutputSubstitution is { } pjos)
+		{
+			bip21String += $"&pjos={pjos}";
+		}
+
+		return new Bip77PayjoinClient(
+			bip21String,
+			endPoint,
+			payjoinSenderManager.SessionStore,
+			name => UiContext.Services.CreateHttpClient(name),
+			_wallet.WalletName,
+			_walletModel.Network,
+			UiContext.Services.Config.PayjoinOhttpRelays);
 	}
 
 	private async Task ShowQrCameraDialogAsync()
@@ -531,6 +571,43 @@ public partial class SendViewModel : RoutableViewModel
 		{
 			errors.Add(ErrorSeverity.Error, "Payjoin is not possible with hardware wallets.");
 		}
+		else if (ResolvePayjoinEndpoint(parseResult.Value) is { } pjEndpoint &&
+			Bip77UriParams.TryGetReceiverKey(pjEndpoint, out var receiverKey) &&
+			UiContext.Services.GetHostedService<PayjoinSenderManager>()?.SessionStore is { } sessionStore &&
+			sessionStore.TryFindSession(pjEndpoint, receiverKey, out var existingSession))
+		{
+			if (existingSession.IsCompleted)
+			{
+				// Address/HPKE-key reuse prevention: the send will proceed, but plainly.
+				errors.Add(ErrorSeverity.Warning, "This payjoin link was already used. The payment will be sent as a normal transaction.");
+			}
+			else
+			{
+				// An open session's fallback tx may still be broadcast; paying again on top
+				// of it risks paying twice.
+				errors.Add(ErrorSeverity.Error, "A payjoin to this address is already in progress.");
+			}
+		}
+	}
+
+	/// <summary>
+	/// The payjoin endpoint the To field currently stands for: taken from the URI when To
+	/// still holds one, otherwise recovered from the last parsed BIP 21 URI once
+	/// <see cref="HandleAddressChange"/> has rewritten To to that URI's bare address. It reads
+	/// the endpoint from <see cref="_parsedAddress"/> rather than <see cref="PayJoinEndPoint"/>
+	/// because HandleAddressChange arms the property only after rewriting To, so the property is
+	/// momentarily null while the rewrite re-runs this validation. The address comparison keeps
+	/// a stale endpoint from leaking onto an unrelated address the user typed over it.
+	/// </summary>
+	private string? ResolvePayjoinEndpoint(Address parsedTo)
+	{
+		return (parsedTo, _parsedAddress) switch
+		{
+			(Address.Bip21Uri { PayjoinEndpoint: { } fromUri }, _) => fromUri,
+			(_, Address.Bip21Uri { PayjoinEndpoint: { } fromParsed } parsedBip21)
+				when To?.Trim() == parsedBip21.Address.ToWif(_walletModel.Network) => fromParsed,
+			_ => null,
+		};
 	}
 
 	private void HandleAddressChange(string? text)
