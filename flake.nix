@@ -64,6 +64,8 @@
               --no-build \
               --configuration Release \
               --filter-namespace "*UnitTests*" \
+              --no-progress \
+              --no-ansi \
               --output Detailed
             runHook postCheck
           '';
@@ -77,6 +79,8 @@
             dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              --no-progress \
+              --no-ansi \
               --output Detailed
             runHook postCheck
           '';
@@ -91,10 +95,14 @@
               --filter-namespace "*UnitTests*" \
               --no-build \
               --configuration Release \
+              --no-progress \
+              --no-ansi \
               --output Detailed
             dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
+              --no-progress \
+              --no-ansi \
               --output Detailed
             runHook postCheck
           '';
