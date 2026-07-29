@@ -7,7 +7,6 @@ using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using static WalletWasabi.Logging.LoggerTools;
-using static WalletWasabi.WabiSabi.Client.CoinJoin.Client.CoinJoinClient;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
