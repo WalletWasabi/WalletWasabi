@@ -24,7 +24,7 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 {
 	private readonly IWalletModel _walletModel;
 	private readonly Wallet _wallet;
-	private readonly CoinJoinStateViewModel _coinJoinState;
+	private readonly CoinJoinStateViewModel? _coinJoinState;
 	private readonly DispatcherTimer _refreshTimer;
 
 	[AutoNotify] private ObservableCollection<CoinJoinPaymentViewModel> _payments = new();
@@ -41,7 +41,7 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 		UiContext uiContext,
 		IWalletModel walletModel,
 		Wallet wallet,
-		CoinJoinStateViewModel coinJoinState,
+		CoinJoinStateViewModel? coinJoinState,
 		WalletCoinJoinSettingsViewModel settings) : base(uiContext)
 	{
 		_walletModel = walletModel;
@@ -53,29 +53,43 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
-		var isStartAction = coinJoinState.WhenAnyValue(
-			x => x.PlayVisible,
-			x => x.IsCoinjoinActive,
-			(playVisible, isActive) => playVisible || !isActive);
 
-		isStartAction.BindTo(this, x => x.IsStartAction);
+		if (coinJoinState is not null)
+		{
+			var isStartAction = coinJoinState.WhenAnyValue(
+				x => x.PlayVisible,
+				x => x.IsCoinjoinActive,
+				(playVisible, isActive) => playVisible || !isActive);
 
-		coinJoinState.WhenAnyValue(x => x.IsPlebStopActive)
-			.CombineLatest(isStartAction, (isPlebStopActive, isStart) =>
-				isPlebStopActive ? ContinueContent :
-				isStart ? StartContent : StopContent)
-			.BindTo(this, x => x.StartStopContent);
+			isStartAction.BindTo(this, x => x.IsStartAction);
 
-		var canStart = coinJoinState.WhenAnyValue(x => x.PlayVisible, x => x.PlayEnabled, (visible, enabled) => visible && enabled);
+			coinJoinState.WhenAnyValue(x => x.IsPlebStopActive)
+				.CombineLatest(isStartAction, (isPlebStopActive, isStart) =>
+					isPlebStopActive ? ContinueContent :
+					isStart ? StartContent : StopContent)
+				.BindTo(this, x => x.StartStopContent);
 
-		var canStop = coinJoinState.WhenAnyValue(
-			x => x.IsInCriticalPhase,
-			x => x.PauseSpreading,
-			(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
+			var canStart = coinJoinState.WhenAnyValue(x => x.PlayVisible, x => x.PlayEnabled, (visible, enabled) => visible && enabled);
 
-		var canStartOrStop = isStartAction.CombineLatest(canStart, canStop, (isStart, start, stop) => isStart ? start : stop);
+			var canStop = coinJoinState.WhenAnyValue(
+				x => x.IsInCriticalPhase,
+				x => x.PauseSpreading,
+				(isInCriticalPhase, pauseSpreading) => !isInCriticalPhase && !pauseSpreading);
 
-		NextCommand = ReactiveCommand.Create(StartOrStop, canStartOrStop);
+			var canStartOrStop = isStartAction.CombineLatest(canStart, canStop, (isStart, start, stop) => isStart ? start : stop);
+
+			NextCommand = ReactiveCommand.Create(StartOrStop, canStartOrStop);
+		}
+
+		NavigateToCoordinatorSettingsCommand = ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (UiContext.MainViewModel is { } mainViewModel)
+			{
+				await mainViewModel.SettingsPage.ActivateCoordinatorTabAsync();
+			}
+		});
+
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
 
 		AddPaymentCommand = ReactiveCommand.Create(
 			() => Navigate(NavigationTarget.DialogScreen).To().AddCoinJoinPayment(_walletModel, _wallet));
@@ -93,7 +107,11 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 
 	public WalletCoinJoinSettingsViewModel Settings { get; }
 
-	public CoinJoinStateViewModel CoinJoinState => _coinJoinState;
+	public CoinJoinStateViewModel? CoinJoinState => _coinJoinState;
+
+	public bool IsCoinjoinAvailable => _coinJoinState is not null;
+
+	public string FindCoordinatorLink => WalletViewModel.FindCoordinatorLink;
 
 	public ICommand AddPaymentCommand { get; }
 
@@ -101,11 +119,20 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 
 	public ICommand SelectCoinsCommand { get; }
 
+	public ICommand NavigateToCoordinatorSettingsCommand { get; }
+
+	public ICommand CoordinatorHelpCommand { get; }
+
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		Privacy.Activate(disposables);
+
+		if (!IsCoinjoinAvailable)
+		{
+			return;
+		}
 
 		Refresh();
 		_refreshTimer.Start();
@@ -133,6 +160,11 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 
 	private void StartOrStop()
 	{
+		if (_coinJoinState is null)
+		{
+			return;
+		}
+
 		if (IsStartAction)
 		{
 			_coinJoinState.PlayCommand.ExecuteIfCan();

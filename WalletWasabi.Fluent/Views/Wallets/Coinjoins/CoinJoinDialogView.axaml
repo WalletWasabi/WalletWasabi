@@ -11,7 +11,7 @@
              x:CompileBindings="True">
   <ContentArea Title="{Binding Title}"
                EnableBack="{Binding EnableBack}"
-               EnableNext="True"
+               EnableNext="{Binding IsCoinjoinAvailable}"
                NextContent="{Binding StartStopContent}"
                EnableCancel="True"
                CancelContent="Close"
@@ -132,8 +132,30 @@
 
       <Separator />
 
+      <!-- No coordinator: coinjoin cannot run at all, point the user at the settings -->
+      <StackPanel Spacing="14" IsVisible="{Binding !IsCoinjoinAvailable}">
+        <InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center">
+          <TextBlock Text="No coordinator is configured, so coinjoin is not available."
+                     TextWrapping="Wrap" />
+        </InfoMessage>
+        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+          <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource coordinator}" Height="14" />
+              <TextBlock Text="Coordinator settings" />
+            </StackPanel>
+          </Button>
+          <Button Classes="activeHyperLink"
+                  Content="How do I find one?"
+                  Command="{Binding CoordinatorHelpCommand}"
+                  ToolTip.Tip="{Binding FindCoordinatorLink}"
+                  VerticalAlignment="Center" />
+        </StackPanel>
+      </StackPanel>
+
       <!-- Coins taking part in coinjoin -->
-      <DockPanel ToolTip.Tip="Choose which coins are used as coinjoin inputs. Unselected coins are excluded.">
+      <DockPanel IsVisible="{Binding IsCoinjoinAvailable}"
+                 ToolTip.Tip="Choose which coins are used as coinjoin inputs. Unselected coins are excluded.">
         <TextBlock Text="Coins used for coinjoin" Classes="h8" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left" />
         <Button Command="{Binding SelectCoinsCommand}" HorizontalAlignment="Right" Cursor="Hand">
           <StackPanel Orientation="Horizontal" Spacing="8">
@@ -144,7 +166,7 @@
       </DockPanel>
 
       <!-- Payments in coinjoin -->
-      <StackPanel Spacing="10">
+      <StackPanel Spacing="10" IsVisible="{Binding IsCoinjoinAvailable}">
         <DockPanel>
           <TextBlock Text="Payments in coinjoin" Classes="h8" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left" />
           <Button Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" Cursor="Hand">
@@ -186,7 +208,8 @@
       </StackPanel>
 
       <!-- Current coinjoin state -->
-      <TextBlock Text="{Binding CoinJoinState.CurrentStatus}" Opacity="0.6" HorizontalAlignment="Center" />
+      <TextBlock Text="{Binding CoinJoinState.CurrentStatus}" Opacity="0.6" HorizontalAlignment="Center"
+                 IsVisible="{Binding IsCoinjoinAvailable}" />
     </StackPanel>
   </ContentArea>
 </UserControl>

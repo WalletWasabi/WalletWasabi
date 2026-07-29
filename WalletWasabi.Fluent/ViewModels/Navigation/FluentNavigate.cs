@@ -383,7 +383,7 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new ShuttingDownViewModel(UiContext, applicationViewModel, restart), navigationMode);
 	}
 
-	public FluentDialog<System.Reactive.Unit> CoinJoinDialog(IWalletModel walletModel, Wallet wallet, CoinJoinStateViewModel coinJoinState, WalletCoinJoinSettingsViewModel settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<System.Reactive.Unit> CoinJoinDialog(IWalletModel walletModel, Wallet wallet, CoinJoinStateViewModel? coinJoinState, WalletCoinJoinSettingsViewModel settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		var dialog = new CoinJoinDialogViewModel(UiContext, walletModel, wallet, coinJoinState, settings);
 		var target = UiContext.Navigate(navigationTarget);

@@ -169,10 +169,10 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			.BindTo(this, x => x.IsCoinjoinActive);
 
 		// Coinjoin is not available for watch-only and hardware wallets, see CoinJoinStateViewModel.
-		IsCoinJoinButtonVisible = CoinJoinStateViewModel is not null && !WalletModel.IsWatchOnlyWallet && !WalletModel.IsHardwareWallet;
+		IsCoinJoinButtonVisible = !WalletModel.IsWatchOnlyWallet && !WalletModel.IsHardwareWallet;
 
 		CoinJoinCommand = ReactiveCommand.Create(
-			() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinDialog(WalletModel, Wallet, CoinJoinStateViewModel!, Settings.WalletCoinJoinSettings),
+			() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinDialog(WalletModel, Wallet, CoinJoinStateViewModel, Settings.WalletCoinJoinSettings),
 			Observable.Return(IsCoinJoinButtonVisible));
 
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(WalletModel, Wallet));
