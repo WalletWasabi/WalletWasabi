@@ -1,5 +1,8 @@
+using System.Collections.Generic;
 using System.Globalization;
+using System.Linq;
 using ReactiveUI;
+using WalletWasabi.Discoverability;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.UI;
@@ -26,6 +29,7 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 	[AutoNotify] private string _coordinatorUri;
 	[AutoNotify] private string _maxCoinJoinMiningFeeRate;
 	[AutoNotify] private string _absoluteMinInputCount;
+	[AutoNotify] private IReadOnlyList<KnownCoordinator> _knownCoordinators = [];
 
 	public CoordinatorTabSettingsViewModel(UiContext uiContext, ApplicationSettings settings) : base(uiContext)
 	{
@@ -52,11 +56,20 @@ public partial class CoordinatorTabSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.Settings.AbsoluteMinInputCount)
 			.ToSignal()
 			.Subscribe(x => AbsoluteMinInputCount = Settings.AbsoluteMinInputCount);
+
+		this.WhenAnyValue(x => x.Settings.Network)
+			.Subscribe(network =>
+				KnownCoordinators = Fluent.Services.Status.KnownCoordinators
+					.Where(c => c.Network == network)
+					.ToList());
 	}
 
 	public bool IsReadOnly => Settings.IsOverridden;
 
 	public ApplicationSettings Settings { get; }
+
+	public void ApplyKnownCoordinator(KnownCoordinator item) =>
+		Settings.CoordinatorUri = item.CoordinatorUri.ToString();
 
 	private void ValidateCoordinatorUri(IValidationErrors errors)
 	{

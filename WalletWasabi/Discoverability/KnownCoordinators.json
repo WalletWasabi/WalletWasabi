@@ -1,0 +1,50 @@
+[
+	{
+		"Name": "Kruw.io",
+		"CoordinatorUri": "https://coinjoin.kruw.io/",
+		"Description": "Fast confirmation speed. No coordinator fees charged.",
+		"ReadMoreUri": "https://kruw.io/",
+		"Network": "Main",
+		"FirstSeen": "2024-09-15"
+	},
+	{
+		"Name": "Coinjoiner",
+		"CoordinatorUri": "https://api.coinjoiner.com/",
+		"Description": "A WabiSabi coordinator which aims to improve Bitcoin privacy",
+		"ReadMoreUri": "https://coinjoiner.com/",
+		"Network": "Main",
+		"FirstSeen": "2026-01-01"
+	},
+	{
+		"Name": "OpenCoordinator",
+		"CoordinatorUri": "https://api.opencoordinator.org/",
+		"Description": "OpenCoordinator is bitcoin coinjoin coordinator for Wasabi Wallet 2.x. It is open to everyone, no country blocklists, no UTXO blocklists. OpenCoordinator is run by experienced team of anonymous freedom activists.",
+		"ReadMoreUri": "https://opencoordinator.org/",
+		"Network": "Main",
+		"FirstSeen": "2025-03-10"
+	},
+	{
+		"Name": "Coinjoiner.com (testnet4)",
+		"CoordinatorUri": "https://testnet.coinjoiner.com/",
+		"Description": " WabiSabi coordinator which aims to improve Bitcoin privacy",
+		"ReadMoreUri": "https://coinjoiner.com/",
+		"Network": "TestNet4",
+		"FirstSeen": "2026-01-01"
+	},
+	{
+		"Name": "Viivi Coordinator",
+		"CoordinatorUri": "http://3dtfckhmf3ttwcmh6xqhx2hsj6yw35sgxzwmltpiu43wx3eihyq337qd.onion/",
+		"Description": "Private-first Wasabi WabiSabi coordinator (onion).",
+		"ReadMoreUri": "http://3dtfckhmf3ttwcmh6xqhx2hsj6yw35sgxzwmltpiu43wx3eihyq337qd.onion/",
+		"Network": "Main",
+		"FirstSeen": "2026-03-01"
+	},
+	{
+		"Name": "Testing ArraySkipInvalid",
+		"CoordinatorUri": "blahblahblah spam spam",
+		"Description": "",
+		"ReadMoreUri": "empty",
+		"Network": "Main",
+		"FirstSeen": "2026-03-01"
+	}
+]
