@@ -353,9 +353,9 @@ public class CoinJoinClient
 
 			CoinsInCriticalPhase = registeredAliceClients.Select(alice => alice.SmartCoin).ToImmutableList();
 
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, roundRestrictions, cancellationToken).ConfigureAwait(false);
 
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, roundRestrictions, cancellationToken)
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken)
 				.ConfigureAwait(false);
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
@@ -692,7 +692,11 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog(string.Join(Environment.NewLine, summary), roundState));
 	}
 
-	private async Task<TxOut[]> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<TxOut[]> ProceedWithOutputRegistrationPhaseAsync(
+		uint256 roundId,
+		ImmutableArray<AliceClient> registeredAliceClients,
+		IRoundRestrictions roundRestrictions,
+		CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await _roundStatusProvider.CreateRoundAwaiterAsync(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -700,6 +704,35 @@ public class CoinJoinClient
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStateProvider.QueryFrequency;
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
+
+		// Check if the round restrictions for blame rounds are satisfied. If not, it means that the coordinator is trying to cheat.
+		if (roundRestrictions is BlameRoundRestrictions restrictions)
+		{
+			var currentMaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount;
+			var currentMiningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
+
+			if (restrictions.SuggestedAmount != currentMaxSuggestedAmount)
+			{
+				Logger.LogWarning(FormatLog($"Suggested amount is {currentMaxSuggestedAmount}. Value {restrictions.SuggestedAmount} was expected. Is coordinator cheating?", roundState));
+				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
+			}
+
+			if (restrictions.MiningFeeRate != currentMiningFeeRate)
+			{
+				Logger.LogWarning(FormatLog($"Mining fee rate is {currentMiningFeeRate}. Value {restrictions.MiningFeeRate} was expected. Is coordinator cheating?", roundState));
+				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid mining fee rate.");
+			}
+
+			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
+			{
+				if (!restrictions.PreviousRoundSignedCoins.Any(c => c.Outpoint == inputCoin.Outpoint))
+				{
+					// Blame rounds must contain only coins that were in the previous round. If a coin is not whitelisted, it means that the coordinator is trying to cheat.
+					Logger.LogWarning(FormatLog($"Coin '{inputCoin.Outpoint}' is not whitelisted for this round. Is coordinator cheating?", roundState));
+					throw new InvalidOperationException($"Round ({roundState.Id}) contains coin '{inputCoin.Outpoint}' that is not allowed.");
+				}
+			}
+		}
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
@@ -790,7 +823,6 @@ public class CoinJoinClient
 		uint256 roundId,
 		ImmutableArray<AliceClient> registeredAliceClients,
 		IEnumerable<TxOut> outputTxOuts,
-		IRoundRestrictions roundRestrictions,
 		CancellationToken cancellationToken)
 	{
 		// Signing.
@@ -824,34 +856,6 @@ public class CoinJoinClient
 		if (!allMyOutputsArePresent)
 		{
 			Logger.LogInfo(FormatLog("There are missing outputs.", roundState));
-		}
-
-		if (roundRestrictions is BlameRoundRestrictions restrictions)
-		{
-			var currentMaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount;
-			var currentMiningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
-
-			if (restrictions.SuggestedAmount != currentMaxSuggestedAmount)
-			{
-				Logger.LogWarning(FormatLog($"Suggested amount is {currentMaxSuggestedAmount}. Value {restrictions.SuggestedAmount} was expected. Is coordinator cheating?", roundState));
-				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
-			}
-
-			if (restrictions.MiningFeeRate != currentMiningFeeRate)
-			{
-				Logger.LogWarning(FormatLog($"Mining fee rate is {currentMiningFeeRate}. Value {restrictions.MiningFeeRate} was expected. Is coordinator cheating?", roundState));
-				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid mining fee rate.");
-			}
-
-			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
-			{
-				if (!restrictions.PreviousRoundSignedCoins.Any(c => c.Outpoint == inputCoin.Outpoint))
-				{
-					// Blame rounds must contain only coins that were in the previous round. If a coin is not whitelisted, it means that the coordinator is trying to cheat.
-					Logger.LogWarning(FormatLog($"Coin '{inputCoin.Outpoint}' is not whitelisted for this round. Is coordinator cheating?", roundState));
-					throw new InvalidOperationException($"Round ({roundState.Id}) contains coin '{inputCoin.Outpoint}' that is not allowed.");
-				}
-			}
 		}
 
 		// Assert that the effective fee rate is at least what was agreed on.
