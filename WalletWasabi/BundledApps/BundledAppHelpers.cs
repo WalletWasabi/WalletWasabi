@@ -59,7 +59,9 @@ public static class BundledAppHelpers
 	public static string GetBinaryPath(string binaryNameWithoutExtension, OSPlatform? platform = null)
 	{
 		platform ??= GetCurrentPlatform();
-		string binaryFolder = GetBinaryFolder(platform);
+		string binaryFolder = platform == OSPlatform.OSX && RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+			? Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BundledApps", "Binaries", "osx-arm64")
+			: GetBinaryFolder(platform);
 		string fileName = GetFilenameWithExtension(binaryNameWithoutExtension, platform);
 
 		return Path.Combine(binaryFolder, fileName);
