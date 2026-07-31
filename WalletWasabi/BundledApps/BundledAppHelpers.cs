@@ -65,9 +65,9 @@ public static class BundledAppHelpers
 		return path;
 	}
 
-	public static string GetBinaryPath(BundledApp app, OSPlatform? platform = null)
+	public static string GetBinaryPath(BundledApp app)
 	{
-		platform ??= GetCurrentPlatform();
+		var platform = GetCurrentPlatform();
 		var binaryFolder = GetBinaryFolder(app, platform);
 
 		var binaryNameWithoutExtension = app switch
@@ -85,7 +85,7 @@ public static class BundledAppHelpers
 
 	public static string GetFilenameWithExtension(string binaryNameWithoutExtension, OSPlatform? platform = null)
 	{
-        platform ??= GetCurrentPlatform();
-        return platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
-    }
+		platform ??= GetCurrentPlatform();
+		return platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
+	}
 }
