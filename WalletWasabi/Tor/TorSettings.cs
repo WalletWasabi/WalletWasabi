@@ -56,7 +56,7 @@ public class TorSettings
 			}
 		}
 
-		TorBinaryDir = torFolder ?? Path.Combine(BundledAppHelpers.GetBinaryFolder(), "Tor");
+		TorBinaryDir = torFolder ?? Path.Combine(BundledAppHelpers.GetBinaryFolder(BundledApp.Tor), "Tor");
 		TorBinaryFilePath = GetTorBinaryFilePath(TorBinaryDir);
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 

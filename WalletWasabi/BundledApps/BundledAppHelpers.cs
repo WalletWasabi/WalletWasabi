@@ -1,6 +1,5 @@
 using System.IO;
 using System.Runtime.InteropServices;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BundledApps;
 
@@ -26,7 +25,7 @@ public static class BundledAppHelpers
 		}
 	}
 
-	public static string GetBinaryFolder(OSPlatform? platform = null)
+	public static string GetBinaryFolder(BundledApp app, OSPlatform? platform = null)
 	{
 		platform ??= GetCurrentPlatform();
 
@@ -46,7 +45,17 @@ public static class BundledAppHelpers
 		}
 		else if (platform == OSPlatform.OSX)
 		{
-			path = Path.Combine(commonPartialPath, "osx64");
+			if (app == BundledApp.Tor)
+			{
+				// Tor uses universal binaries on macOS, so we can use the same binary for both Intel and Apple Silicon.
+				path = Path.Combine(commonPartialPath, "osx64");
+			}
+			else
+			{
+				path = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+					? Path.Combine(commonPartialPath, "osx-arm64")
+					: Path.Combine(commonPartialPath, "osx64");
+			}
 		}
 		else
 		{
@@ -56,12 +65,19 @@ public static class BundledAppHelpers
 		return path;
 	}
 
-	public static string GetBinaryPath(string binaryNameWithoutExtension, OSPlatform? platform = null)
+	public static string GetBinaryPath(BundledApp app, OSPlatform? platform = null)
 	{
 		platform ??= GetCurrentPlatform();
-		string binaryFolder = platform == OSPlatform.OSX && RuntimeInformation.ProcessArchitecture == Architecture.Arm64
-			? Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "BundledApps", "Binaries", "osx-arm64")
-			: GetBinaryFolder(platform);
+		var binaryFolder = GetBinaryFolder(app, platform);
+
+		var binaryNameWithoutExtension = app switch
+		{
+			BundledApp.Tor => "tor",
+			BundledApp.Hwi => "hwi",
+			BundledApp.Bitcoind => "bitcoind",
+			_ => throw new NotSupportedException($"Bundled app '{app}' is not supported.")
+		};
+
 		string fileName = GetFilenameWithExtension(binaryNameWithoutExtension, platform);
 
 		return Path.Combine(binaryFolder, fileName);
