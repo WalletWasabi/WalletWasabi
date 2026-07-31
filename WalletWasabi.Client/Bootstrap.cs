@@ -8,6 +8,10 @@ using NBitcoin;
 using NBitcoin.JsonConverters;
 using Newtonsoft.Json;
 using NScheme;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Rpc.JsonConverters;
@@ -66,7 +70,10 @@ public class Scheme
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");
 		RegisterNativeFunction<SmartTransaction>("broadcast-tx", tx =>
-			global.TransactionBroadcaster.SendTransactionAsync(tx));
+		{
+			global.TransactionBroadcaster.SendTransactionAsync(tx).GetAwaiter().GetResult();
+			return tx;
+		});
 		RegisterNativeFunction("connected-nodes", () => global.GetNodes());
 		RegisterNativeFunction<Wallet>("__start_wallet", w =>
 		{
@@ -77,6 +84,65 @@ public class Scheme
 		RegisterNativeFunction<string, Closure>("on",
 			(eventName, func) => SubscribeEvent(global, eventName, func));
 		RegisterNativeAction<object>("display", o => OnDisplay?.Invoke(o?.ToString() ?? ""));
+
+		// Address generation functions
+		RegisterNativeFunction<Wallet, string, bool, object>("generate-address",
+			(wallet, label, taproot) =>
+			{
+				var scriptType = taproot ? ScriptPubKeyType.TaprootBIP86 : ScriptPubKeyType.Segwit;
+				var hdKey = wallet.KeyManager.GetNextReceiveKey(new LabelsArray(label), scriptType);
+				return hdKey;
+			});
+
+		// Transaction building: wallet, address, amount (BTC), fee-rate (sat/vB), coins (list or empty), subtractFee, password
+		RegisterNativeFunction<Wallet, string, decimal, decimal, IEnumerable<object>, bool, string, object>("build-tx",
+			(wallet, addressStr, amountBtc, feeRateSatPerVb, coins, subtractFee, password) =>
+			{
+				var address = BitcoinAddress.Create(addressStr, global.Network);
+				var feeRate = new FeeRate(feeRateSatPerVb);
+
+				var coinsList = coins.ToList();
+				IEnumerable<OutPoint>? allowedInputs = null;
+				if (coinsList.Count > 0)
+				{
+					allowedInputs = coinsList.Select(c =>
+					{
+						if (c is SmartCoin smartCoin)
+						{
+							return smartCoin.Outpoint;
+						}
+						throw new ArgumentException($"Expected SmartCoin but got {c.GetType().Name}");
+					});
+				}
+
+				PaymentIntent payment;
+				if (amountBtc <= 0)
+				{
+					// Send all remaining (no change)
+					payment = new PaymentIntent(address.ScriptPubKey, MoneyRequest.CreateAllRemaining(subtractFee: true));
+				}
+				else
+				{
+					payment = new PaymentIntent(address.ScriptPubKey, Money.Coins(amountBtc), subtractFee);
+				}
+
+				var result = wallet.BuildTransaction(
+					password,
+					payment,
+					FeeStrategy.CreateFromFeeRate(feeRate),
+					allowUnconfirmed: true,
+					allowedInputs: allowedInputs);
+
+				return result.Transaction;
+			});
+
+		// Parse an address
+		RegisterNativeFunction<string>("parse-address",
+			addressStr => BitcoinAddress.Create(addressStr, global.Network));
+
+		// Get address from HdPubKey
+		RegisterNativeFunction<HdPubKey>("hdpubkey->address",
+			key => key.GetAddress(global.Network));
 
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
@@ -113,6 +179,59 @@ public class Scheme
 			var param1 = ConvertSchemeToNative(args[1]);
 			return ConvertNativeToScheme(fn((T0)param0, (T1)param1), 0);
 		}, 2));
+	}
+
+	private void RegisterNativeFunction<T0, T1, T2, TResult>(string name, Func<T0, T1, T2, TResult> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param0 = ConvertSchemeToNative(args[0]);
+			var param1 = ConvertSchemeToNative(args[1]);
+			var param2 = ConvertSchemeToNative(args[2]);
+			return ConvertNativeToScheme(fn((T0)param0, (T1)param1, (T2)param2)!, 0);
+		}, 3));
+	}
+
+	private void RegisterNativeFunction<T0, T1, T2, T3, T4, TResult>(string name, Func<T0, T1, T2, T3, T4, TResult> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param0 = ConvertSchemeToNative(args[0]);
+			var param1 = ConvertSchemeToNative(args[1]);
+			var param2 = ConvertSchemeToNative(args[2]);
+			var param3 = ConvertSchemeToNative(args[3]);
+			var param4 = ConvertSchemeToNative(args[4]);
+			return ConvertNativeToScheme(fn((T0)param0, (T1)param1, (T2)param2, (T3)param3, (T4)param4)!, 0);
+		}, 5));
+	}
+
+	private void RegisterNativeFunction<T0, T1, T2, T3, T4, T5, TResult>(string name, Func<T0, T1, T2, T3, T4, T5, TResult> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param0 = ConvertSchemeToNative(args[0]);
+			var param1 = ConvertSchemeToNative(args[1]);
+			var param2 = ConvertSchemeToNative(args[2]);
+			var param3 = ConvertSchemeToNative(args[3]);
+			var param4 = ConvertSchemeToNative(args[4]);
+			var param5 = ConvertSchemeToNative(args[5]);
+			return ConvertNativeToScheme(fn((T0)param0, (T1)param1, (T2)param2, (T3)param3, (T4)param4, (T5)param5)!, 0);
+		}, 6));
+	}
+
+	private void RegisterNativeFunction<T0, T1, T2, T3, T4, T5, T6, TResult>(string name, Func<T0, T1, T2, T3, T4, T5, T6, TResult> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param0 = ConvertSchemeToNative(args[0]);
+			var param1 = ConvertSchemeToNative(args[1]);
+			var param2 = ConvertSchemeToNative(args[2]);
+			var param3 = ConvertSchemeToNative(args[3]);
+			var param4 = ConvertSchemeToNative(args[4]);
+			var param5 = ConvertSchemeToNative(args[5]);
+			var param6 = ConvertSchemeToNative(args[6]);
+			return ConvertNativeToScheme(fn((T0)param0, (T1)param1, (T2)param2, (T3)param3, (T4)param4, (T5)param5, (T6)param6)!, 0);
+		}, 7));
 	}
 
 	private Value ConvertNativeToScheme(object obj, int depth)
