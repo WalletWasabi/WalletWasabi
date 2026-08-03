@@ -1,5 +1,3 @@
-using NBitcoin;
-
 namespace WalletWasabi.Blockchain.Blocks;
 
 public record SmartHeader
