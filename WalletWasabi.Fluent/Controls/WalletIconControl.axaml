@@ -35,14 +35,6 @@
               </ChangeAvaloniaPropertyAction>
             </DataTriggerBehavior>
 
-            <DataTriggerBehavior Binding="{Binding #Image.DataContext}" Value="Coldcard">
-              <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
-                <ChangeAvaloniaPropertyAction.Value>
-                  <StaticResource ResourceKey="ColdcardWalletIcon" />
-                </ChangeAvaloniaPropertyAction.Value>
-              </ChangeAvaloniaPropertyAction>
-            </DataTriggerBehavior>
-
             <DataTriggerBehavior Binding="{Binding #Image.DataContext}" Value="Generic">
               <ChangeAvaloniaPropertyAction TargetObject="Image" TargetProperty="{x:Static Image.SourceProperty}">
                 <ChangeAvaloniaPropertyAction.Value>

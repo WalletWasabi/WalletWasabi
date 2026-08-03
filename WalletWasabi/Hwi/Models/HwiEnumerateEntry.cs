@@ -24,12 +24,6 @@ public class HwiEnumerateEntry
 		NeedsPassphraseSent = needsPassphraseSent;
 		Error = error;
 		Code = code;
-
-		// If a Coldcard is not initialized then the fingerprint is full of zeros.
-		if (model == HardwareWalletModels.Coldcard && fingerprint.HasValue && fingerprint.Value.ToString() == "00000000")
-		{
-			Code = HwiErrorCode.DeviceNotInitialized;
-		}
 	}
 
 	public HardwareWalletModels Model { get; }
@@ -44,7 +38,6 @@ public class HwiEnumerateEntry
 	public WalletType WalletType =>
 		Model switch
 		{
-			HardwareWalletModels.Coldcard or HardwareWalletModels.Coldcard_Simulator => WalletType.Coldcard,
 			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => WalletType.Ledger,
 			HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_T_Simulator or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => WalletType.Trezor,
 			HardwareWalletModels.Jade => WalletType.Jade,
@@ -59,12 +52,11 @@ public class HwiEnumerateEntry
 	{
 		return Model switch
 		{
-			HardwareWalletModels.Coldcard => true,
 			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X or HardwareWalletModels.Ledger_Nano_S_Plus => false,
 			HardwareWalletModels.Trezor_1 => false,
 			HardwareWalletModels.Trezor_T => false,
 			HardwareWalletModels.Trezor_Safe_3 => false,
-			HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T_Simulator or HardwareWalletModels.Coldcard_Simulator => false,
+			HardwareWalletModels.Trezor_1_Simulator or HardwareWalletModels.Trezor_T_Simulator => false,
 			HardwareWalletModels.Jade => false,
 			HardwareWalletModels.BitBox02_BTCOnly => false,
 			_ => false

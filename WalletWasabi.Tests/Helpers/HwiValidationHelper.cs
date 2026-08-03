@@ -17,7 +17,6 @@ public static class HwiValidationHelper
 		{
 			HardwareWalletModels.Trezor_T => "^webusb:",
 			HardwareWalletModels.Trezor_1 => @"^hid:\\\\.*?vid_534c&pid_0001&mi_00",
-			HardwareWalletModels.Coldcard => @"^hid:\\\\.*?vid_d13e&pid_cc10&mi_00",
 			HardwareWalletModels.Ledger_Nano_S or HardwareWalletModels.Ledger_Nano_X => @"^hid:\\\\.*?vid_2c97&pid_0001&mi_00",
 			HardwareWalletModels.Jade => @"^COM\d+",
 			HardwareWalletModels.BitBox02_BTCOnly => @"^\\\\\?\\hid#vid_03eb&pid_2403",

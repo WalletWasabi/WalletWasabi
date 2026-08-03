@@ -114,7 +114,6 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 		var baseResourceName = walletType switch
 		{
-			WalletType.Coldcard => "coldcard_24",
 			WalletType.Trezor => "trezor_24",
 			WalletType.Ledger => "ledger_24",
 			WalletType.BitBox => "bitbox_24",

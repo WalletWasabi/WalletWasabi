@@ -10,12 +10,6 @@ public enum HardwareWalletModels
 	[FriendlyName("Hardware Wallet")]
 	Unknown,
 
-	[FriendlyName("Coldcard")]
-	Coldcard,
-
-	[FriendlyName("Coldcard Simulator")]
-	Coldcard_Simulator,
-
 	[FriendlyName("BitBox")]
 	DigitalBitBox_01,
 

@@ -22,7 +22,6 @@
         </Interaction.Behaviors>
         <StackPanel Orientation="Horizontal" Spacing="30">
           <WalletIconControl Height="100" WalletType="Ledger" />
-          <WalletIconControl Height="100" WalletType="Coldcard" />
           <WalletIconControl Height="100" WalletType="Trezor" />
           <WalletIconControl Height="100" WalletType="Hardware" />
         </StackPanel>

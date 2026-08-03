@@ -34,7 +34,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Trezor_1 => "trezor_1",
 			HardwareWalletModels.Trezor_Safe_3 => "trezor_safe_3",
 			HardwareWalletModels.Trezor_Safe_5 => "trezor_safe_5",
-			HardwareWalletModels.Coldcard => "coldcard",
 			HardwareWalletModels.Ledger_Nano_S => "ledger_nano_s",
 			HardwareWalletModels.Ledger_Nano_X => "ledger_nano_x",
 			HardwareWalletModels.Jade => "jade",
@@ -48,7 +47,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			HardwareWalletModels.Trezor_T => "webusb: 001:4",
 			HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => "webusb: 001:9",
 			HardwareWalletModels.Trezor_1 => "hid:\\\\\\\\?\\\\hid#vid_534c&pid_0001&mi_00#7&6f0b727&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
-			HardwareWalletModels.Coldcard => @"\\\\?\\hid#vid_d13e&pid_cc10&mi_00#7&1b239988&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Ledger_Nano_S => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Ledger_Nano_X => "\\\\\\\\?\\\\hid#vid_2c97&pid_0001&mi_00#7&e45ae20&0&0000#{4d1e55b2-f16f-11cf-88cb-001111000030}",
 			HardwareWalletModels.Jade => "COM3",
@@ -71,7 +69,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				HardwareWalletModels.Trezor_T => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"error\": \"Not initialized\"}}]",
 				HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => $"[{{\"model\": \"{model}\", \"label\": \"Test trezor\", \"type\":\"trezor\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"e5dbc9cb\"}}]",
 				HardwareWalletModels.Trezor_1 => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": true, \"needs_passphrase_sent\": false, \"error\": \"Could not open client or get fingerprint information: Trezor is locked. Unlock by using 'promptpin' and then 'sendpin'.\", \"code\": -12}}]\r\n",
-				HardwareWalletModels.Coldcard => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_passphrase\": false, \"fingerprint\": \"a3d0d797\"}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_S => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
 				HardwareWalletModels.Ledger_Nano_X => $"[{{\"model\": \"{model}\", \"path\": \"{rawPath}\", \"fingerprint\": \"4054d6f6\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false}}]\r\n",
 				HardwareWalletModels.Jade => $"[{{\"type\": \"{model}\", \"model\": \"{model}\", \"path\": \"{rawPath}\", \"needs_pin_sent\": false, \"needs_passphrase_sent\": false, \"fingerprint\": \"9bdca818\"}}]",
@@ -84,7 +81,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => SuccessTrueResponse,
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support wiping via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support wiping via software\", \"code\": -9}",
@@ -97,7 +93,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => "{\"error\": \"setup requires interactive mode\", \"code\": -9}",
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"setup requires interactive mode\", \"code\": -9}",
@@ -110,7 +105,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => SuccessTrueResponse,
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support software setup\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support software setup\", \"code\": -9}",
@@ -123,7 +117,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => SuccessTrueResponse,
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not support restoring via software\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not support restoring via software\", \"code\": -9}",
@@ -136,7 +129,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}",
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
@@ -149,7 +141,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 			response = Model switch
 			{
 				HardwareWalletModels.Trezor_T or HardwareWalletModels.Trezor_1 or HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5 => "{\"error\": \"The PIN has already been sent to this device\", \"code\": -11}",
-				HardwareWalletModels.Coldcard => "{\"error\": \"The Coldcard does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_S => "{\"error\": \"The Ledger Nano S does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Ledger_Nano_X => "{\"error\": \"The Ledger Nano X does not need a PIN sent from the host\", \"code\": -9}\r\n",
 				HardwareWalletModels.Jade => "{\"error\": \"Blockstream Jade does not need a PIN sent from the host\", \"code\": -9}",
@@ -164,7 +155,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Trezor_T:
 				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
 				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
@@ -180,7 +170,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Trezor_T:
 				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
 				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
@@ -198,7 +187,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Trezor_T:
 				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
 				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
@@ -216,7 +204,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Trezor_T:
 				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
 				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:
@@ -232,7 +219,6 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				case HardwareWalletModels.Trezor_T:
 				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
 				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
 				case HardwareWalletModels.Ledger_Nano_S:
 				case HardwareWalletModels.Ledger_Nano_X:
 				case HardwareWalletModels.Jade:

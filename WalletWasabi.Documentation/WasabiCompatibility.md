@@ -14,7 +14,6 @@ This document lists all the officially supported software and devices by Wasabi 
 # Officially Supported Hardware Wallets
 
 - **Trezor**: Model T, Safe 3, Safe 5
-- **ColdCard**: MK1, MK2, MK3, MK4, Q
 - **Ledger**: Nano S, Nano S Plus, Nano X
 - **Blockstream**: Jade
 - **BitBox**: BitBox02-BtcOnly<sup>1*</sup>

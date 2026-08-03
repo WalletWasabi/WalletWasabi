@@ -174,8 +174,6 @@ public class WalletDirectoriesTests
 	public void GetFriendlyNameTest()
 	{
 		Assert.Equal("Hardware Wallet", HardwareWalletModels.Unknown.FriendlyName());
-		Assert.Equal("Coldcard", HardwareWalletModels.Coldcard.FriendlyName());
-		Assert.Equal("Coldcard Simulator", HardwareWalletModels.Coldcard_Simulator.FriendlyName());
 		Assert.Equal("BitBox", HardwareWalletModels.DigitalBitBox_01.FriendlyName());
 		Assert.Equal("BitBox Simulator", HardwareWalletModels.DigitalBitBox_01_Simulator.FriendlyName());
 		Assert.Equal("KeepKey", HardwareWalletModels.KeepKey.FriendlyName());

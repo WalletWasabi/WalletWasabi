@@ -56,8 +56,6 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 	public WalletType Ledger => WalletType.Ledger;
 
-	public WalletType Coldcard => WalletType.Coldcard;
-
 	public WalletType Trezor => WalletType.Trezor;
 
 	public WalletType Generic => WalletType.Hardware;
@@ -142,15 +140,8 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 
 		if (!device.IsInitialized())
 		{
-			if (device.Model == HardwareWalletModels.Coldcard)
-			{
-				Message = "Initialize your device first.";
-			}
-			else
-			{
-				Message = "Check your device and finish the initialization.";
-				AbandonedTasks.AddAndClearCompleted(UiContext.HardwareWalletInterface.InitHardwareWalletAsync(device, cancel));
-			}
+			Message = "Check your device and finish the initialization.";
+			AbandonedTasks.AddAndClearCompleted(UiContext.HardwareWalletInterface.InitHardwareWalletAsync(device, cancel));
 
 			return;
 		}
