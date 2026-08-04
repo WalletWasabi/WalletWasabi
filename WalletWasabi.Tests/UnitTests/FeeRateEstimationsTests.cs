@@ -302,7 +302,7 @@ public class FeeRateEstimationsTests
 	/// the target 6 estimate higher.
 	/// </summary>
 	[Fact]
-	public async Task MempoolDataUsedForNonExactTargetMatches()
+	public async Task MempoolDataUsedForNonExactTargetMatchesAsync()
 	{
 		var mockRpc = new MockRpcClient();
 		mockRpc.Network = Network.Main;
