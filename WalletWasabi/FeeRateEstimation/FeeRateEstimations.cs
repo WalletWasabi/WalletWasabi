@@ -36,14 +36,10 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 		}
 	}
 
-	/// <summary>
-	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-	/// </summary>
+	/// <summary>Gets the fee estimations: int: fee target, int: satoshi/vByte</summary>
 	public Dictionary<int, FeeRate> Estimations { get; }
 
-	/// <summary>
-	/// Estimations where we try to fill out gaps for all valid time spans.
-	/// </summary>
+	/// <summary>Estimations where we try to fill out gaps for all valid time spans.</summary>
 	public IReadOnlyList<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
 	{
 		get
@@ -152,23 +148,31 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 
 		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
 
-		confirmationTime = EstimateConfirmationTime(new FeeRate(totalFee, totalVsize));
-		return true;
+		return TryEstimateConfirmationTime(new FeeRate(totalFee, totalVsize), out confirmationTime);
 	}
 
-	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)
+	public bool TryEstimateConfirmationTime(FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? confirmationTime)
 	{
 		var wildEstimations = WildEstimations.ToArray();
+		if (wildEstimations.Length == 0)
+		{
+			confirmationTime = null;
+			return false;
+		}
+
 		if (feeRate.SatoshiPerByte >= wildEstimations.First().feeRate.SatoshiPerByte * 1.5m)
 		{
-			return TimeSpan.FromMinutes(10);
+			confirmationTime = TimeSpan.FromMinutes(10);
+			return true;
 		}
 		else if (feeRate <= wildEstimations.Last().feeRate)
 		{
-			return wildEstimations.Last().timeSpan;
+			confirmationTime = wildEstimations.Last().timeSpan;
+			return true;
 		}
 
-		return WildEstimations.FirstOrDefault(x => x.feeRate <= feeRate).timeSpan;
+		confirmationTime = WildEstimations.FirstOrDefault(x => x.feeRate <= feeRate).timeSpan;
+		return true;
 	}
 
 	#region Equality
