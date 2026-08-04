@@ -48,18 +48,19 @@ public static class TransactionFeeHelper
 		}
 
 		var feeRate = new FeeRate(entry.CpfpInfo.EffectiveFeePerVSize);
-		return feeEstimates.EstimateConfirmationTime(feeRate);;
+		_ = feeEstimates.TryEstimateConfirmationTime(feeRate, out estimate);
+		return estimate;
 	}
 
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
-		estimate = null;
 		if (TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
-			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+			return feeEstimates.TryEstimateConfirmationTime(feeRate, out estimate);
 		}
 
-		return estimate is not null;
+		estimate = null;
+		return false;
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out FeeRateEstimations? estimates)
