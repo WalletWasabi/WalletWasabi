@@ -14,6 +14,44 @@ namespace WalletWasabi.Tests.UnitTests;
 /// </summary>
 public class FeeRateEstimationsTests
 {
+	/// <summary>
+	/// Make sure that equality works even for different instances.
+	/// </summary>
+	[Fact]
+	public void Equality()
+	{
+		// Empty instances.
+		{
+			var empty = new FeeRateEstimations(new Dictionary<int, FeeRate> { { 0, FeeRate.Zero } });
+			Assert.Equal(FeeRateEstimations.Empty, empty);
+			Assert.True(FeeRateEstimations.Empty == empty);
+			Assert.NotSame(FeeRateEstimations.Empty, empty);
+		}
+
+		// Non-empty instances.
+		{
+			var estimations1 = new FeeRateEstimations(new Dictionary<int, FeeRate>
+			{
+				{ 3, new FeeRate( 20M) },
+				{ 2, new FeeRate( 102M) },
+				{ 19, new FeeRate(  1M) },
+				{ 20, new FeeRate(  1M) }
+			});
+
+			var estimations2 = new FeeRateEstimations(new Dictionary<int, FeeRate>
+			{
+				{ 3, new FeeRate( 20M) },
+				{ 2, new FeeRate( 102M) },
+				{ 19, new FeeRate(  1M) },
+				{ 20, new FeeRate(  1M) }
+			});
+
+			Assert.Equal(estimations1, estimations2);
+			Assert.True(estimations1 == estimations2);
+			Assert.NotSame(estimations1, estimations2);
+		}
+	}
+
 	[Fact]
 	public void OrdersByTarget()
 	{

@@ -3,7 +3,7 @@ using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public class FeeRateEstimations : IEquatable<FeeRateEstimations>
+public record FeeRateEstimations : IEquatable<FeeRateEstimations>
 {
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate>{ {0, FeeRate.Zero} });
@@ -23,7 +23,7 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: FeeRate.Max(x.BestEstimation.FeeRate, Constants.MinRelayFeeRate)));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
-		var builder = ImmutableDictionary.CreateBuilder<int, FeeRate>();
+		var builder = ImmutableSortedDictionary.CreateBuilder<int, FeeRate>();
 		var lastFeeRate = new FeeRate(Constants.MaximumNumberOfBitcoinsMoney);
 		foreach (var estimation in filteredEstimations)
 		{
@@ -43,7 +43,7 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 	}
 
 	/// <summary>Gets the fee estimations: int: fee target, int: satoshi/vByte</summary>
-	public ImmutableDictionary<int, FeeRate> Estimations { get; }
+	public ImmutableSortedDictionary<int, FeeRate> Estimations { get; }
 
 	/// <summary>
 
@@ -183,40 +183,9 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 		return true;
 	}
 
-	#region Equality
+	public virtual bool Equals(FeeRateEstimations? other) =>
+		other is not null && Estimations.SequenceEqual(other.Estimations);
 
-	public override bool Equals(object? obj) => Equals(obj as FeeRateEstimations);
-
-	public bool Equals(FeeRateEstimations? other) => this == other;
-
-	public override int GetHashCode()
-	{
-		int hash = 13;
-		foreach (KeyValuePair<int, FeeRate> est in Estimations)
-		{
-			hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
-		}
-
-		return hash;
-	}
-
-	public static bool operator ==(FeeRateEstimations? x, FeeRateEstimations? y)
-	{
-		if (ReferenceEquals(x, y))
-		{
-			return true;
-		}
-
-		if (x is null || y is null)
-		{
-			return false;
-		}
-
-		return x.Estimations.Count == y.Estimations.Count
-			&& x.Estimations.All(pair => y.Estimations.TryGetValue(pair.Key, out var value) && value == pair.Value);
-	}
-
-	public static bool operator !=(FeeRateEstimations? x, FeeRateEstimations? y) => !(x == y);
-
-	#endregion Equality
+	public override int GetHashCode() =>
+		Estimations.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value));
 }
