@@ -1,9 +1,5 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.FeeRateEstimation;
 
@@ -40,14 +36,10 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 		}
 	}
 
-	/// <summary>
-	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-	/// </summary>
+	/// <summary>Gets the fee estimations: int: fee target, int: satoshi/vByte</summary>
 	public Dictionary<int, FeeRate> Estimations { get; }
 
-	/// <summary>
-	/// Estimations where we try to fill out gaps for all valid time spans.
-	/// </summary>
+	/// <summary>Estimations where we try to fill out gaps for all valid time spans.</summary>
 	public IReadOnlyList<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
 	{
 		get
