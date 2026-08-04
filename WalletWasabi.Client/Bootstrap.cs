@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -60,7 +61,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-coins", w => w.Coins.AsAllCoinsView());
 
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
-		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? new Dictionary<int,FeeRate>());
+		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? []);
 		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);

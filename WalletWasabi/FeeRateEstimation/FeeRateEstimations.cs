@@ -1,9 +1,5 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.FeeRateEstimation;
 
@@ -27,7 +23,7 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: FeeRate.Max(x.BestEstimation.FeeRate, Constants.MinRelayFeeRate)));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
-		Estimations = [];
+		var builder = ImmutableDictionary.CreateBuilder<int, FeeRate>();
 		var lastFeeRate = new FeeRate(Constants.MaximumNumberOfBitcoinsMoney);
 		foreach (var estimation in filteredEstimations)
 		{
@@ -35,15 +31,19 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			if (lastFeeRate > estimation.FeeRate)
 			{
 				lastFeeRate = estimation.FeeRate;
-				Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
+
+				if (!builder.TryGetKey(estimation.ConfirmationTarget, out _))
+				{
+					builder.Add(estimation.ConfirmationTarget, estimation.FeeRate);
+				}
 			}
 		}
+
+		Estimations = builder.ToImmutable();
 	}
 
-	/// <summary>
-	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-	/// </summary>
-	public Dictionary<int, FeeRate> Estimations { get; }
+	/// <summary>Gets the fee estimations: int: fee target, int: satoshi/vByte</summary>
+	public ImmutableDictionary<int, FeeRate> Estimations { get; }
 
 	/// <summary>
 	/// Estimations where we try to fill out gaps for all valid time spans.
@@ -204,31 +204,8 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			return false;
 		}
 
-		bool equal = false;
-		if (x.Estimations.Count == y.Estimations.Count) // Require equal count.
-		{
-			equal = true;
-			foreach (var pair in x.Estimations)
-			{
-				if (y.Estimations.TryGetValue(pair.Key, out FeeRate? value))
-				{
-					// Require value be equal.
-					if (value != pair.Value)
-					{
-						equal = false;
-						break;
-					}
-				}
-				else
-				{
-					// Require key be present.
-					equal = false;
-					break;
-				}
-			}
-		}
-
-		return equal;
+		return x.Estimations.Count == y.Estimations.Count
+			&& x.Estimations.All(pair => y.Estimations.TryGetValue(pair.Key, out var value) && value == pair.Value);
 	}
 
 	public static bool operator !=(FeeRateEstimations? x, FeeRateEstimations? y) => !(x == y);
