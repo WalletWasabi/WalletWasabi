@@ -14,8 +14,7 @@
                EnableNext="False"
                ScrollViewer.VerticalScrollBarVisibility="Disabled">
 
-    <QuestionControl Content="{Binding TypeName, StringFormat={}{0} was detected. Is this correct?}"
-                     YesCommand="{Binding NextCommand}"
+    <QuestionControl YesCommand="{Binding NextCommand}"
                      NoCommand="{Binding NoCommand}"
                      HighlightButton="YesButton">
       <QuestionControl.IconContent>
@@ -23,6 +22,25 @@
           <WalletIconControl WalletType="{Binding Type}" />
         </Viewbox>
       </QuestionControl.IconContent>
+      <StackPanel Spacing="15" HorizontalAlignment="Center">
+        <TextBlock Text="{Binding TypeName, StringFormat={}{0} was detected. Is this correct?}"
+                   HorizontalAlignment="Center" TextWrapping="Wrap" TextAlignment="Center" />
+        <CheckBox IsChecked="{Binding EnableCoinjoin}"
+                  IsVisible="{Binding SupportsCoinjoin}"
+                  HorizontalAlignment="Center"
+                  Content="Enable coinjoin (adds a coinjoin account, confirm on device)"
+                  ToolTip.Tip="Adds a SLIP-25 coinjoin account so this device can take part in coinjoins. You can also enable it later in the wallet settings." />
+        <StackPanel Spacing="5" IsVisible="{Binding IsBridgeUnavailable}">
+          <TextBlock Text="Trezor Suite or Trezor Bridge must be running to enable coinjoin."
+                     HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"
+                     Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" FontSize="12" />
+          <Button Classes="activeHyperLink"
+                  HorizontalAlignment="Center"
+                  Content="Download Trezor Suite"
+                  ToolTip.Tip="Open the official Trezor Suite releases page in the default browser"
+                  Command="{Binding OpenBridgeDownloadCommand}" />
+        </StackPanel>
+      </StackPanel>
     </QuestionControl>
   </ContentArea>
 </UserControl>
