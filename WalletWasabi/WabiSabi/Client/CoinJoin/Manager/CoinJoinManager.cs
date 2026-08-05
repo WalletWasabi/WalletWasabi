@@ -494,7 +494,9 @@ public class CoinJoinManager : BackgroundService
 	private async Task HandleCoinJoinFinalizationAsync(CoinJoinTracker finishedCoinJoin, CancellationToken cancellationToken)
 	{
 		var wallet = finishedCoinJoin.Wallet;
-		var destinationProvider = finishedCoinJoin.OutputWallet.OutputProvider.DestinationProvider;
+		// Marks the scripts this round actually paid to, which is the source wallet itself while it is
+		// still mixing towards its anonymity score target.
+		var destinationProvider = finishedCoinJoin.EffectiveOutputWallet.OutputProvider.DestinationProvider;
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;

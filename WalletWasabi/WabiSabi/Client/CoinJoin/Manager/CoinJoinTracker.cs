@@ -16,6 +16,7 @@ public class CoinJoinTracker : IDisposable
 		bool stopWhenAllMixed,
 		bool overridePlebStop,
 		Wallet outputWallet,
+		Wallet effectiveOutputWallet,
 		CancellationToken cancellationToken)
 	{
 		Wallet = wallet;
@@ -25,6 +26,7 @@ public class CoinJoinTracker : IDisposable
 		StopWhenAllMixed = stopWhenAllMixed;
 		OverridePlebStop = overridePlebStop;
 		OutputWallet = outputWallet;
+		EffectiveOutputWallet = effectiveOutputWallet;
 		_cancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		CoinJoinTask = coinJoinClient.StartCoinJoinAsync(coinCandidatesFunc, _cancellationTokenSource.Token);
 	}
@@ -39,7 +41,19 @@ public class CoinJoinTracker : IDisposable
 	public Task<CoinJoinResult> CoinJoinTask { get; }
 	public bool StopWhenAllMixed { get; set; }
 	public bool OverridePlebStop { get; }
+	/// <summary>Wallet the user selected as the coinjoin destination.</summary>
+	/// <remarks>
+	/// This is the configured destination, not necessarily where this round's outputs went. Use it to
+	/// decide whether a handover is still outstanding.
+	/// </remarks>
 	public Wallet OutputWallet { get; }
+
+	/// <summary>Wallet that actually received this round's outputs.</summary>
+	/// <remarks>
+	/// Equal to <see cref="Wallet"/> while it is still mixing towards its anonymity score target, and
+	/// to <see cref="OutputWallet"/> once it starts handing over.
+	/// </remarks>
+	public Wallet EffectiveOutputWallet { get; }
 
 	public bool IsCompleted => CoinJoinTask.IsCompleted;
 	public bool InCriticalCoinJoinState { get; private set; }
