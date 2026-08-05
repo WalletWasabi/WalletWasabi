@@ -12,6 +12,7 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -124,7 +125,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || allowPaymentsRegardlessOfAnonScore || isPointerOver || isMusicBoxFlyoutDisplayed)) && !WalletModel.IsWatchOnlyWallet;
+				 var canCoinJoin = WalletModel.CanCoinJoin;
+				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || allowPaymentsRegardlessOfAnonScore || isPointerOver || isMusicBoxFlyoutDisplayed)) && canCoinJoin;
 			 });
 
 
@@ -219,6 +221,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	public bool PreferPsbtWorkflow => WalletModel.Settings.PreferPsbtWorkflow;
 
 	public bool SeveralReceivingScriptTypes => WalletModel.SeveralReceivingScriptTypes;
+
+	// When coinjoin funds live in their own account, its addresses are what the taproot slot hands out.
+	public string TaprootReceiveName => WalletModel.HasSeparateCoinJoinAccount ? "Coinjoin Account Address" : "Taproot Address";
 
 	public bool IsWatchOnly => WalletModel.IsWatchOnlyWallet;
 
@@ -328,7 +333,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
-		if (!IsWatchOnly)
+		// A Trezor coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
+		if (!IsWatchOnly || WalletModel.CanCoinJoin)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
