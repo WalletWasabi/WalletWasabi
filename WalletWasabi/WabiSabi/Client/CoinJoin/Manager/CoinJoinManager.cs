@@ -197,8 +197,11 @@ public class CoinJoinManager : BackgroundService
 				throw new CoinJoinClientException(CoinjoinError.NotEnoughUnprivateBalance);
 			}
 
-			// If there are pending payments, ignore already achieved privacy.
-			if (!walletToStart.BatchedPayments.AreTherePendingPayments)
+			// If there are pending payments, ignore already achieved privacy. A wallet mixing into
+			// another wallet must likewise keep going once private, otherwise the coins it just
+			// finished mixing would never be handed over.
+			if (!walletToStart.BatchedPayments.AreTherePendingPayments
+				&& !HandoverPolicy.IsMixingToOtherWallet(walletToStart.WalletId, startCommand.OutputWallet.WalletId))
 			{
 				// If all coins are already private, then don't mix.
 				if (walletToStart.IsWalletPrivate())
@@ -587,7 +590,9 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (wallet.IsWalletPrivate() && !(wallet.AllowPaymentsRegardlessOfAnonScore && wallet.BatchedPayments.AreTherePendingPayments))
+		else if (wallet.IsWalletPrivate()
+			&& !(wallet.AllowPaymentsRegardlessOfAnonScore && wallet.BatchedPayments.AreTherePendingPayments)
+			&& !HandoverPolicy.IsMixingToOtherWallet(wallet.WalletId, finishedCoinJoin.OutputWallet.WalletId))
 		{
 			// A fully private wallet is done mixing, unless it is allowed to fund a pending payment with private coins.
 			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);

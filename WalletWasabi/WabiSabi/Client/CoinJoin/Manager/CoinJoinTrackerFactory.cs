@@ -39,14 +39,23 @@ public class CoinJoinTrackerFactory
 			throw new NotSupportedException("Wallet has no key chain.");
 		}
 
-		// The only use-case when we set consolidation mode to true, when we are mixing to another wallet.
-		wallet.ConsolidationMode = outputWallet.WalletId != wallet.WalletId;
+		// Outputs stay in the source wallet until it reaches its anonymity score target, and are only
+		// then handed over. Consolidating before that would link the wallet's own coins together,
+		// working against the anonymity the mixing phase exists to build.
+		var isReadyForHandover = HandoverPolicy.IsReadyForHandover(
+			wallet.WalletId,
+			outputWallet.WalletId,
+			wallet.IsWalletPrivate());
 
-		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet);
+		var effectiveOutputWallet = isReadyForHandover ? outputWallet : wallet;
+
+		wallet.ConsolidationMode = isReadyForHandover;
+
+		var coinSelector = CoinJoinCoinSelector.FromWallet(wallet, isReadyForHandover);
 		var coinJoinClient = new CoinJoinClient(
 			ArenaRequestHandlerFactory,
 			wallet.KeyChain,
-			outputWallet.OutputProvider,
+			effectiveOutputWallet.OutputProvider,
 			_roundStatusProvider,
 			coinSelector,
 			_coinJoinConfiguration,
