@@ -70,6 +70,7 @@ public static partial class Encode
 			("AllowP2shOutputs", Bool(cfg.AllowP2shOutputs)),
 			("AllowP2wshOutputs", Bool(cfg.AllowP2wshOutputs)),
 			("DelayTransactionSigning", Bool(cfg.DelayTransactionSigning)),
+			("ShaveAnchorOutputIntoDenomination", Bool(cfg.ShaveAnchorOutputIntoDenomination)),
 			("AnnouncerConfig", AnnouncerConfig(cfg.AnnouncerConfig)),
 			("PublishAsOnionService", Bool(cfg.PublishAsOnionService)),
 			("OnionServicePrivateKey", Optional(cfg.OnionServicePrivateKey, String))
@@ -149,6 +150,7 @@ public static partial class Decode
 			AllowP2shOutputs = get.Required("AllowP2shOutputs", Bool),
 			AllowP2wshOutputs = get.Required("AllowP2wshOutputs", Bool),
 			DelayTransactionSigning = get.Required("DelayTransactionSigning", Bool),
+			ShaveAnchorOutputIntoDenomination = get.Optional("ShaveAnchorOutputIntoDenomination", Bool, false),
 			AnnouncerConfig = get.Required("AnnouncerConfig", AnnouncerConfig),
 			PublishAsOnionService = get.Optional("PublishAsOnionService", Bool, true),
 			OnionServicePrivateKey = get.Optional("OnionServicePrivateKey", String)
