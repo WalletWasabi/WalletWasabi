@@ -3,7 +3,7 @@ using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public record FeeRateEstimations : IEquatable<FeeRateEstimations>
+public record FeeRateEstimations
 {
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate>{ {0, FeeRate.Zero} });
