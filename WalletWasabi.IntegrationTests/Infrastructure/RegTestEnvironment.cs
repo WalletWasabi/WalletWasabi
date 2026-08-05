@@ -125,6 +125,9 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		return KeyManager.CreateNew(out _, password ?? DefaultPassword, Network);
 	}
 
+	/// <summary>Hardware wallets are not exercised in these tests, but a wallet needs the service.</summary>
+	public HardwareWalletService HardwareWallets { get; } = new(Network.RegTest);
+
 	/// <summary>
 	/// Creates a Wallet instance (not started).
 	/// </summary>
@@ -139,7 +142,8 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			ServiceConfiguration,
 			CreateBlockProvider(),
 			EventBus,
-			CpfpInfoProvider);
+			CpfpInfoProvider,
+			HardwareWallets);
 
 		return factory(keyManager);
 	}
