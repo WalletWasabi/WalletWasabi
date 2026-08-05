@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -45,6 +46,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string OnlyImmatureCoinsAvailableMessage = "Only immature funds are available";
 	private const string OnlyExcludedCoinsAvailableMessage = "Only excluded funds are available";
 	private const string CoordinatorLiedMessage = "Coordinator lied and might be malicious!";
+	private const string ConfirmOnTrezorMessage = "Confirm coinjoin on your Trezor";
+	private const string TrezorConfirmedMessage = "Trezor confirmed, coinjoin is starting";
+	private const string TrezorNotFoundMessage = "Connect and unlock Trezor, then press Play";
+	private const string TrezorBridgeNotFoundMessage = "Trezor Bridge missing, start Trezor Suite";
+	private const string CoinJoinAccountEmptyMessage = "Deposit to a coinjoin account address";
+	private const string TrezorAuthorizationFailedMessage = "Trezor did not authorize, press Play to retry";
 
 	private readonly IWalletModel _wallet;
 	private readonly Wallet _walletInstance;
@@ -82,6 +89,25 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					   .Do(ProcessStatusChange)
 					   .Subscribe();
 
+		walletCoinjoinModel.WhenAnyValue(x => x.DeviceAuthorization)
+					   .ObserveOn(RxApp.MainThreadScheduler)
+					   .Do(status =>
+					   {
+						   // Point the user at the device while it waits for the hold-to-confirm, acknowledge
+						   // the confirmation, and tell them when the device declined. Confirmed is transient:
+						   // the wallet fires WalletStartedCoinJoin right after, which updates the status again.
+						   CurrentStatus = status switch
+						   {
+							   DeviceAuthorizationStatus.AwaitingConfirmation => ConfirmOnTrezorMessage,
+							   DeviceAuthorizationStatus.Confirmed => TrezorConfirmedMessage,
+							   DeviceAuthorizationStatus.TransportNotFound => TrezorBridgeNotFoundMessage,
+							   DeviceAuthorizationStatus.DeviceNotFound => TrezorNotFoundMessage,
+							   DeviceAuthorizationStatus.Failed => TrezorAuthorizationFailedMessage,
+							   _ => CurrentStatus,
+						   };
+					   })
+					   .Subscribe();
+
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
 
@@ -90,7 +116,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
+		if (wallet.CoinJoinNeedsDeviceAuthorization)
+		{
+			// Starting coinjoin requires a confirmation on the device, so it never starts automatically.
+			initialState = State.StoppedOrPaused;
+		}
+		else if (wallet.IsHardwareWallet || wallet.IsWatchOnlyWallet)
 		{
 			initialState = State.Disabled;
 		}
@@ -121,6 +152,26 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
+
+			if (wallet.CoinJoinNeedsDeviceAuthorization)
+			{
+				// The same dialog flow users know from sending with a hardware wallet: Continue,
+				// then hold-to-confirm on the device. The coinjoin only starts when the device agreed.
+				var authorized = await UiContext.Navigate().To().CoinJoinAuthDialog(
+					walletCoinjoinModel,
+					wallet.Settings.WalletType,
+					walletInstance.KeyManager.CoinJoinDeviceMaxRounds,
+					walletInstance.KeyManager.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync();
+
+				if (!authorized)
+				{
+					return;
+				}
+
+				await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop, skipDeviceAuthorization: true);
+				return;
+			}
+
 			await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
 		});
 
@@ -167,7 +218,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				settings.SelectedTab = 1;
 				UiContext.Navigate(NavigationTarget.DialogScreen).To(settings);
 			},
-			Observable.Return(!_wallet.IsWatchOnlyWallet));
+			Observable.Return(_wallet.CanCoinJoin));
 
 		NavigateToSettingsCommand = coinJoinSettingsCommand;
 		CanNavigateToCoinjoinSettings = coinJoinSettingsCommand.CanExecute;
@@ -180,6 +231,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			}
 		});
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
+
+		// The Trezor firmware caps how much value may leave the wallet in a preauthorized coinjoin (the fee
+		// budget), so a payment output to a foreign address can never be signed: don't offer the feature.
+		AreCoinJoinPaymentsSupported = wallet.SupportsCoinJoinPayments;
 
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
@@ -228,6 +283,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand StopPauseCommand { get; }
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 	public ICommand CoinJoinPaymentsCommand { get; }
+	public bool AreCoinJoinPaymentsSupported { get; }
 
 	private void ConfigureStateMachine()
 	{
@@ -392,6 +448,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				_stateMachine.Fire(Trigger.StartError);
 				CurrentStatus = start.Error switch
 				{
+					CoinjoinError.NoCoinsEligibleToMix when _wallet.HasSeparateCoinJoinAccount => CoinJoinAccountEmptyMessage,
 					CoinjoinError.NoCoinsEligibleToMix => NoCoinsEligibleToMixMessage,
 					CoinjoinError.NoConfirmedCoinsEligibleToMix => WaitingForConfirmedFunds,
 					CoinjoinError.UserInSendWorkflow => UserInSendWorkflowMessage,
@@ -403,6 +460,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 					CoinjoinError.MiningFeeRateTooHigh => CoinjoinMiningFeeRateTooHighMessage,
 					CoinjoinError.MinInputCountTooLow => MinInputCountTooLowMessage,
 					CoinjoinError.CoordinatorLiedAboutInputs => CoordinatorLiedMessage,
+					CoinjoinError.TrezorAuthorizationFailed => TrezorAuthorizationFailedMessage,
 					_ => GeneralErrorMessage
 				};
 
