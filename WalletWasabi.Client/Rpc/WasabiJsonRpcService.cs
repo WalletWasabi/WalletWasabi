@@ -13,6 +13,7 @@ using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Models;
 using WalletWasabi.Rpc;
 using WalletWasabi.WabiSabi.Client.Batching;
@@ -107,6 +108,178 @@ public class WasabiJsonRpcService : IJsonRpcService
 		Global.WalletManager.AddWallet(keyManager);
 	}
 
+	/// <summary>Lists the connected hardware wallets, so a caller knows what it can import.</summary>
+	[JsonRpcMethod("enumeratedevices", initializable: false)]
+	public async Task<JsonRpcResultList> EnumerateDevicesAsync()
+	{
+		// Detection takes the device away from any transport we own, which would break a running coinjoin.
+		AssertNoDeviceCoinJoinInProgress();
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+		var devices = await Global.HardwareWallets.DetectAsync(cts.Token).ConfigureAwait(false);
+
+		return
+		[
+			.. devices.Select(device => new JsonRpcResult
+			{
+				["model"] = device.Model.ToString(),
+				["masterKeyFingerprint"] = device.Fingerprint?.ToString() ?? "",
+				["initialized"] = device.IsInitialized(),
+				["canSignCoinJoins"] = HardwareWalletService.CanSignCoinJoins(device),
+				["needsPin"] = device.NeedsPinSent ?? false,
+				["needsPassphrase"] = device.NeedsPassphraseSent ?? false,
+				["error"] = device.Error ?? ""
+			})
+		];
+	}
+
+	/// <summary>Imports the connected hardware wallet, which a headless host cannot detect over HWI first.</summary>
+	[JsonRpcMethod("importhardwarewallet", initializable: false)]
+	public async Task<object> ImportHardwareWalletAsync(string walletName, bool enableCoinjoin = true)
+	{
+		AssertNoDeviceCoinJoinInProgress();
+		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
+
+		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, cts.Token).ConfigureAwait(false);
+		Global.WalletManager.AddWallet(keyManager);
+
+		return new JsonRpcResult
+		{
+			["walletName"] = walletName,
+			["masterKeyFingerprint"] = keyManager.MasterFingerprint?.ToString() ?? "",
+			["accounts"] = GetAccounts(keyManager)
+		};
+	}
+
+	/// <summary>Adds a coinjoin account to an already imported hardware wallet.</summary>
+	[JsonRpcMethod("enablecoinjoin")]
+	public async Task<object> EnableCoinJoinAsync()
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertNoDeviceCoinJoinInProgress();
+
+		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
+		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, cts.Token).ConfigureAwait(false);
+
+		return new JsonRpcResult
+		{
+			["accounts"] = GetAccounts(activeWallet.KeyManager),
+			// The coinjoin services read the wallet's accounts when the wallet starts, so a wallet that was
+			// already loaded has to be started again (restart the daemon) before it can join rounds.
+			["restartRequired"] = activeWallet.Loaded
+		};
+	}
+
+	/// <summary>
+	/// Sets the limits the device is asked to approve when it authorizes coinjoin rounds. Without this a
+	/// headless wallet is stuck with the defaults, and a fee cap below the going rate refuses every round.
+	/// Both are optional; whatever is left out keeps its current value.
+	/// </summary>
+	[JsonRpcMethod("setcoinjoinlimits")]
+	public JsonRpcResult SetCoinJoinLimits(int? maxRounds = null, decimal? maxMiningFeeRate = null)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+
+		if (!HardwareWalletService.IsRemoteSigner(activeWallet.KeyManager))
+		{
+			throw new InvalidOperationException($"No device signs the coinjoins of wallet '{activeWallet.WalletName}', so it has no authorization limits.");
+		}
+
+		HardwareWalletService.AssertAuthorizationLimits(maxRounds, maxMiningFeeRate);
+
+		if (maxRounds is { } rounds)
+		{
+			activeWallet.KeyManager.CoinJoinDeviceMaxRounds = rounds;
+		}
+
+		if (maxMiningFeeRate is { } feeRate)
+		{
+			activeWallet.KeyManager.CoinJoinDeviceMaxMiningFeeRate = feeRate;
+		}
+
+		activeWallet.KeyManager.ToFile();
+
+		return new JsonRpcResult
+		{
+			["maxRounds"] = activeWallet.KeyManager.CoinJoinDeviceMaxRounds,
+			["maxMiningFeeRate"] = activeWallet.KeyManager.CoinJoinDeviceMaxMiningFeeRate,
+			// A running authorization was granted for the previous limits; the device has to approve again.
+			["appliesFromNextAuthorization"] = true
+		};
+	}
+
+	/// <summary>Shows a receive address on the device screen and checks it against the one the wallet derived.</summary>
+	[JsonRpcMethod("displayaddress")]
+	public async Task<object> DisplayAddressAsync(string address)
+	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
+		AssertWalletIsLoaded();
+
+		var scriptPubKey = BitcoinAddress.Create(address, Global.Network).ScriptPubKey;
+		var hdPubKey = activeWallet.KeyManager.GetKeys(key => key.ContainsScript(scriptPubKey)).FirstOrDefault()
+			?? throw new InvalidOperationException($"Address '{address}' does not belong to wallet '{activeWallet.WalletName}'.");
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+		await Global.HardwareWallets
+			.DisplayAddressAsync(activeWallet.KeyManager, hdPubKey.FullKeyPath, hdPubKey.GetAddress(Global.Network), cts.Token)
+			.ConfigureAwait(false);
+
+		return new JsonRpcResult
+		{
+			["address"] = address,
+			["keyPath"] = hdPubKey.FullKeyPath.ToString(),
+			["verified"] = true
+		};
+	}
+
+	/// <summary>The accounts a wallet holds, as key paths a caller can derive from.</summary>
+	private JsonRpcResultList GetAccounts(KeyManager keyManager)
+	{
+		var accounts = new List<JsonRpcResult>
+		{
+			new()
+			{
+				["name"] = "segwit",
+				["publicKey"] = keyManager.SegwitExtPubKey.ToString(Global.Network),
+				["keyPath"] = $"m/{keyManager.SegwitAccountKeyPath}"
+			}
+		};
+
+		if (keyManager.TaprootExtPubKey is { } taprootExtPubKey)
+		{
+			accounts.Add(new JsonRpcResult
+			{
+				["name"] = "taproot",
+				["publicKey"] = taprootExtPubKey.ToString(Global.Network),
+				["keyPath"] = $"m/{keyManager.TaprootAccountKeyPath}"
+			});
+		}
+
+		return [.. accounts];
+	}
+
+	/// <summary>
+	/// Opening the device for an import steals the session that a coinjoining wallet holds, killing its
+	/// authorization mid-round. Refuse instead of sabotaging the running coinjoin.
+	/// </summary>
+	private void AssertNoDeviceCoinJoinInProgress()
+	{
+		if (Global.HostedServices.GetOrDefault<CoinJoinManager>() is not { } coinJoinManager)
+		{
+			return;
+		}
+
+		var busy = Global.WalletManager.GetWallets()
+			.FirstOrDefault(w => HardwareWalletService.IsRemoteSigner(w.KeyManager) && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
+		if (busy is not null)
+		{
+			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with its device. Stop it with stopcoinjoin first.");
+		}
+	}
+
 	[JsonRpcMethod("loadwallet", initializable: false)]
 	public void LoadWallet(string walletName)
 	{
@@ -119,12 +292,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
 		var km = activeWallet.KeyManager;
-		var segwit = new JsonRpcResult
-		{
-			["name"] = "segwit",
-			["publicKey"] = km.SegwitExtPubKey.ToString(Global.Network),
-			["keyPath"] = $"m/{km.SegwitAccountKeyPath}"
-		};
 		var info = new JsonRpcResult
 		{
 			["walletName"] = activeWallet.WalletName,
@@ -137,22 +304,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
 			["allowPaymentsRegardlessOfAnonScore"] = activeWallet.KeyManager.AllowPaymentsRegardlessOfAnonScore,
-			["accounts"] = new[] { segwit }
+			["coinjoinSignedByDevice"] = HardwareWalletService.IsRemoteSigner(km),
+			["coinjoinDeviceMaxRounds"] = km.CoinJoinDeviceMaxRounds,
+			["coinjoinDeviceMaxMiningFeeRate"] = km.CoinJoinDeviceMaxMiningFeeRate,
+			["accounts"] = GetAccounts(km)
 		};
-
-		if (km.TaprootExtPubKey is { } taprootExtPubKey)
-		{
-			info["accounts"] = new[]
-			{
-				segwit,
-				new JsonRpcResult
-				{
-					["name"] = "taproot",
-					["publicKey"] = taprootExtPubKey.ToString(Global.Network),
-					["keyPath"] = $"m/{km.TaprootAccountKeyPath}"
-				}
-			};
-		}
 
 		if (activeWallet.Loaded)
 		{
@@ -219,7 +375,10 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("build")]
-	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null)
+	public string BuildTransaction(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, decimal? feeRate = null, string? password = null) =>
+		BuildTransactionResult(payments, coins, feeTarget, feeRate, password).Transaction.Transaction.ToHex();
+
+	private Blockchain.TransactionBuilding.BuildTransactionResult BuildTransactionResult(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget, decimal? feeRate, string? password)
 	{
 		Guard.NotNull(nameof(payments), payments);
 		Guard.NotNull(nameof(coins), coins);
@@ -232,15 +391,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 			payments.Select(
 				p =>
 				new DestinationRequest(p.Sendto, MoneyRequest.Create(p.Amount, p.SubtractFee), new LabelsArray(p.Label))));
-		var result = ActiveWallet!.BuildTransaction(
+
+		return ActiveWallet!.BuildTransaction(
 			password,
 			payment,
 			feeStrategy,
 			allowUnconfirmed: true,
 			allowedInputs: coins);
-		var smartTx = result.Transaction;
-
-		return smartTx.Transaction.ToHex();
 	}
 
 	/// <summary>
@@ -277,6 +434,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
+
+		if (HardwareWalletService.IsRemoteSigner(activeWallet.KeyManager))
+		{
+			// The device approves how much value may leave the wallet in a round, never where it goes, so it
+			// cannot show this payment's destination and refuses to sign a round containing it.
+			throw new InvalidOperationException("Payments in coinjoin are not possible when a device signs the rounds.");
+		}
+
 		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
@@ -351,20 +516,44 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("send")]
 	public async Task<JsonRpcResult> SendTransactionAsync(PaymentInfo[] payments, OutPoint[] coins, int? feeTarget = null, int? feeRate = null, string? password = null)
 	{
+		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		password = Guard.Correct(password);
-		var txHex = BuildTransaction(payments, coins, feeTarget, feeRate, password);
-		var smartTx = new SmartTransaction(Transaction.Parse(txHex, Global.Network), Height.Mempool);
+
+		var result = BuildTransactionResult(payments, coins, feeTarget, feeRate, password);
+		var smartTx = result.Transaction;
+
+		if (!result.Signed)
+		{
+			// The keys are on a device: it shows the outputs and the user confirms them there.
+			smartTx = await SignOnDeviceAsync(activeWallet, result).ConfigureAwait(false);
+		}
 
 		await Global.TransactionBroadcaster.SendTransactionAsync(smartTx).ConfigureAwait(false);
 		return new JsonRpcResult
 		{
 			["txid"] = smartTx.Transaction.GetHash(),
-			["tx"] = txHex
+			["tx"] = smartTx.Transaction.ToHex()
 		};
 	}
 
+	private async Task<SmartTransaction> SignOnDeviceAsync(Wallet activeWallet, Blockchain.TransactionBuilding.BuildTransactionResult result)
+	{
+		if (!activeWallet.KeyManager.IsHardwareWallet)
+		{
+			throw new InvalidOperationException($"Wallet '{activeWallet.WalletName}' cannot sign transactions.");
+		}
+
+		// Long enough for a person to read and confirm every output on the device.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+		var signedPsbt = await Global.HardwareWallets
+			.SignTransactionAsync(activeWallet.KeyManager, result.Psbt, result.Transaction, cts.Token)
+			.ConfigureAwait(false);
+
+		return signedPsbt.ExtractSmartTransaction(result.Transaction);
+	}
+
 	[JsonRpcMethod("canceltransaction")]
-	public string BuildCancelTransaction(uint256 txId, string password = "")
+	public async Task<string> BuildCancelTransactionAsync(uint256 txId, string password = "")
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
@@ -376,7 +565,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		var cancellationResult = activeWallet.CancelTransaction(smartTransactionToCancel);
-		var cancellationSmartTransaction = cancellationResult.Transaction;
+		var cancellationSmartTransaction = cancellationResult.Signed
+			? cancellationResult.Transaction
+			: await SignOnDeviceAsync(activeWallet, cancellationResult).ConfigureAwait(false);
 		return cancellationSmartTransaction.Transaction.ToHex();
 	}
 
@@ -393,7 +584,9 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		var speedUpResult = await activeWallet.SpeedUpTransactionAsync(smartTransactionToSpeedUp, null, CancellationToken.None).ConfigureAwait(false);
-		var speedUpSmartTransaction = speedUpResult.Transaction;
+		var speedUpSmartTransaction = speedUpResult.Signed
+			? speedUpResult.Transaction
+			: await SignOnDeviceAsync(activeWallet, speedUpResult).ConfigureAwait(false);
 		return speedUpSmartTransaction.Transaction.ToHex();
 	}
 
