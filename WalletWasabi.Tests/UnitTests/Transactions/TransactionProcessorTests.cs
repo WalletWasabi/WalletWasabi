@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
@@ -9,6 +10,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Crypto;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Helpers;
@@ -1701,7 +1703,7 @@ public class TransactionProcessorTests
 		tx1.Outputs.Add(Money.Coins(0.4999m), changeScript);
 
 		// Sign tx1 with the correct key using KeyChain
-		tx1 = keyChain.Sign(new TransactionWithPrecomputedData(tx1, tx1.PrecomputeTransactionData([spentCoin])), spentCoin);
+		tx1 = keyChain.Sign(new TransactionWithPrecomputedData(tx1, tx1.PrecomputeTransactionData([spentCoin]), ImmutableDictionary<OutPoint, OwnershipProof>.Empty), spentCoin);
 
 		var smartTx1 = new SmartTransaction(tx1, Height.Mempool);
 		var result1 = transactionProcessor.Process(smartTx1);

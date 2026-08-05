@@ -186,7 +186,7 @@ public class ArenaClient
 	public async Task SignTransactionAsync(
 		uint256 roundId,
 		Coin coin,
-		IKeyChain keyChain, // unused now
+		IKeyChain keyChain,
 		TransactionWithPrecomputedData unsignedCoinJoin,
 		CancellationToken cancellationToken)
 	{
