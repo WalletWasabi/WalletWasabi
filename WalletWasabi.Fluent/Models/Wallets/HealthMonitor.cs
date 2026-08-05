@@ -6,6 +6,7 @@ using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.StatusChecker;
 
@@ -27,6 +28,7 @@ public partial class HealthMonitor : ReactiveObject
 	[AutoNotify] private bool _isReadyToInstall;
 	[AutoNotify] private bool _checkForUpdates = true;
 	[AutoNotify] private Version? _clientVersion;
+	[AutoNotify] private string? _deviceAccessText;
 
 	private const string NoBitcoinRpcConfigured = "Not configured";
 	private const string NoBitcoinRpcDetected = "Not detected";
@@ -116,6 +118,21 @@ public partial class HealthMonitor : ReactiveObject
 		this.WhenAnyValue(x => x.Peers)
 			.Select(peerCount => peerCount > 0)
 			.BindTo(this, x => x.IsP2pConnected)
+			.DisposeWith(Disposables);
+
+		// Which transport currently reaches the device (hidden until a device is used at all). The service
+		// picks between the bridge and direct USB; this only tells the user which one is in use.
+		Observable.FromEventPattern<HardwareWalletTransport>(
+				h => services.HardwareWallets.TransportStatusChanged += h,
+				h => services.HardwareWallets.TransportStatusChanged -= h)
+			.Select(e => e.EventArgs)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(status => DeviceAccessText = status switch
+			{
+				HardwareWalletTransport.BridgeStartedByWasabi => "Bridge (managed by Wasabi)",
+				HardwareWalletTransport.ExternalBridge => "Bridge (external)",
+				_ => "Direct USB (HWI)",
+			})
 			.DisposeWith(Disposables);
 
 		// Update Available
