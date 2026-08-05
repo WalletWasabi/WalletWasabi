@@ -51,7 +51,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
 		_allowPaymentsRegardlessOfAnonScore = _wallet.Settings.AllowPaymentsRegardlessOfAnonScore;
 
-		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
+		_selectedOutputWallet =
+			UiContext.WalletRepository.Wallets.Items.FirstOrDefault(x => x.Id == _wallet.Settings.OutputWalletId)
+			?? UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Id);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
 
@@ -123,7 +125,12 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.SelectedOutputWallet)
 			.Skip(1)
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
+			.Subscribe(x =>
+			{
+				_wallet.Settings.OutputWalletId = x.Id;
+				_wallet.Settings.OutputWalletName = x.Name;
+				_wallet.Settings.Save();
+			});
 
 		walletModel.IsCoinjoinStarted
 			.Select(isRunning => !isRunning)
