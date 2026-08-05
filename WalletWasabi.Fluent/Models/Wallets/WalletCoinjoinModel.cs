@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -5,12 +6,24 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
+
+public enum DeviceAuthorizationStatus
+{
+	Idle,
+	AwaitingConfirmation,
+	Confirmed,
+	TransportNotFound,
+	DeviceNotFound,
+	Failed,
+}
 
 [AppLifetime]
 public partial class WalletCoinjoinModel : ReactiveObject
@@ -20,6 +33,10 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	private readonly WalletSettingsModel _settings;
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
+	[AutoNotify] private DeviceAuthorizationStatus _deviceAuthorization = DeviceAuthorizationStatus.Idle;
+
+	/// <summary>What went wrong the last time the device was asked, as the backend described it.</summary>
+	[AutoNotify] private string _deviceAuthorizationError = "";
 
 	public WalletCoinjoinModel(IServices services, Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
 	{
@@ -86,8 +103,55 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public IObservable<bool> IsStarted { get; }
 
-	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
+	/// <summary>
+	/// Asks the device for the coinjoin authorization. <see cref="DeviceAuthorization"/> drives both the
+	/// authorization dialog and the music box text, so the user knows when to look at the device.
+	/// </summary>
+	public async Task<bool> AuthorizeOnDeviceAsync()
 	{
+		DeviceAuthorization = DeviceAuthorizationStatus.AwaitingConfirmation;
+		DeviceAuthorizationError = "";
+		try
+		{
+			await _wallet.AuthorizeCoinJoinOnDeviceAsync(_services.Config.CoordinatorIdentifier, CancellationToken.None);
+			DeviceAuthorization = DeviceAuthorizationStatus.Confirmed;
+			return true;
+		}
+		catch (HardwareWalletTransportNotFoundException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.TransportNotFound;
+			return false;
+		}
+		catch (HardwareWalletNotFoundException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.DeviceNotFound;
+			return false;
+		}
+		catch (HardwareWalletException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
+		}
+	}
+
+	/// <param name="skipDeviceAuthorization">True when the caller already authorized through the dialog.</param>
+	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop, bool skipDeviceAuthorization = false)
+	{
+		if (HardwareWalletService.IsRemoteSigner(_wallet.KeyManager) && !skipDeviceAuthorization)
+		{
+			// Without the authorization no coinjoin can start.
+			if (!await AuthorizeOnDeviceAsync().ConfigureAwait(false))
+			{
+				return;
+			}
+		}
+
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
 		_coinJoinManager.RequestCoinJoinStart(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);

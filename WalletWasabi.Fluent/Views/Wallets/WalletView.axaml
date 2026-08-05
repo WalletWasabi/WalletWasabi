@@ -91,7 +91,7 @@
                                 Classes="Icon"/>
                     </UICommand.Icon>
                   </UICommand>
-                  <UICommand Name="Taproot Address"
+                  <UICommand Name="{Binding TaprootReceiveName}"
                              Command="{Binding TaprootReceiveCommand}"
                              IsDefault="{Binding Settings.IsSegWitDefaultReceiveScriptType, Converter={x:Static BoolConverters.Not}}">
                     <UICommand.Icon>
