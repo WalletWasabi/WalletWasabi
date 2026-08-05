@@ -1,6 +1,10 @@
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using WalletWasabi.Exceptions;
+using WalletWasabi.Extensions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -126,7 +130,7 @@ public class CoinJoinManager : BackgroundService
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						HandleStartCoinJoinCommand(startCommand, coinJoinTrackerFactory);
+						await HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory, cancellationToken).ConfigureAwait(false);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
@@ -153,7 +157,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private void HandleStartCoinJoinCommand(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
+	private async Task HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory, CancellationToken cancellationToken)
 	{
 		var walletToStart = startCommand.Wallet;
 
@@ -219,6 +223,55 @@ public class CoinJoinManager : BackgroundService
 			NotifyWalletStartedCoinJoin(walletToStart);
 
 			return coinCandidates;
+		}
+
+		// A Trezor coinjoin wallet is watch-only until the device authorizes a batch of rounds; that call
+		// also builds the wallet's key chain. The GUI does this from its Play dialog, but with no GUI
+		// (daemon / JSON-RPC) it must happen here, so a headless client can coinjoin too. The user still
+		// approves the rounds and fee cap physically on the device (hold-to-confirm) once per batch.
+		// The wait for the hold-to-confirm must not stall the command loop (other wallets keep their
+		// start/stop commands responsive), so authorize in a task and re-post the command when done.
+		if (walletToStart.KeyManager.IsTrezorCoinJoinWallet() && walletToStart.KeyChain is null)
+		{
+			// Before asking anyone to approve anything: if every round this coordinator currently runs pays
+			// more than the wallet's authorized fee cap, the signing device would refuse each of them right
+			// after the user walked over and confirmed the authorization. Check the rounds already polled -
+			// opportunistically, the snapshot is legitimately empty on a cold start - and fail early with
+			// the reason instead. The per-round check in CoinJoinClient stays authoritative.
+			var authorizedFeeCap = new FeeRate(walletToStart.KeyManager.CoinJoinDeviceMaxMiningFeeRate);
+			var knownRounds = await _roundStatusProvider.GetCurrentRoundsAsync(cancellationToken).ConfigureAwait(false);
+			if (knownRounds.Count > 0 && knownRounds.All(r => r.CoinjoinState.Parameters.MiningFeeRate > authorizedFeeCap))
+			{
+				Logger.LogWarning(FormatLog(
+					$"Every round of this coordinator currently pays more than the authorized {authorizedFeeCap.SatoshiPerByte} sat/vByte, "
+					+ "so the signing device would refuse all of them. Raise the fee limit in the coinjoin settings or wait for lower fees.",
+					walletToStart));
+				NotifyCoinJoinStartError(walletToStart, CoinjoinError.MiningFeeRateTooHigh);
+				return;
+			}
+
+			_ = Task.Run(
+				async () =>
+				{
+					try
+					{
+						using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+						authCts.CancelAfter(TimeSpan.FromMinutes(3));
+						await walletToStart
+							.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, authCts.Token)
+							.ConfigureAwait(false);
+
+						// The key chain exists now, so the re-posted command passes this branch and starts mixing.
+						_mailboxProcessor.Post(startCommand);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(FormatLog($"Trezor coinjoin authorization failed: {ex.Message}", walletToStart));
+						NotifyCoinJoinStartError(walletToStart, CoinjoinError.TrezorAuthorizationFailed);
+					}
+				},
+				cancellationToken);
+			return;
 		}
 
 		var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);

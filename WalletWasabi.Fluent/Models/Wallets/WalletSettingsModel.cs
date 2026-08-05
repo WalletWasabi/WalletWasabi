@@ -22,6 +22,8 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private int _coinJoinDeviceMaxRounds;
+	[AutoNotify] private decimal _coinJoinDeviceMaxMiningFeeRate;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
@@ -41,6 +43,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
+		_coinJoinDeviceMaxRounds = _keyManager.CoinJoinDeviceMaxRounds;
+		_coinJoinDeviceMaxMiningFeeRate = _keyManager.CoinJoinDeviceMaxMiningFeeRate;
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
 
 		if (!isNewWallet)
@@ -65,6 +69,13 @@ public partial class WalletSettingsModel : ReactiveObject
 			.Subscribe();
 
 		this.WhenAnyValue(
+				x => x.CoinJoinDeviceMaxRounds,
+				x => x.CoinJoinDeviceMaxMiningFeeRate)
+			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		this.WhenAnyValue(
 				x => x.DefaultSendWorkflow,
 				x => x.DefaultReceiveScriptType,
 				x => x.ChangeScriptPubKeyType)
@@ -73,6 +84,9 @@ public partial class WalletSettingsModel : ReactiveObject
 	}
 
 	public WalletType WalletType { get; }
+
+	/// <summary>See <see cref="IWalletModel.HasSeparateCoinJoinAccount"/>.</summary>
+	public bool HasSeparateCoinJoinAccount => HardwareWalletService.IsRemoteSigner(_keyManager);
 
 	public bool IsCoinJoinPaused { get; set; }
 
@@ -105,6 +119,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
+		_keyManager.CoinJoinDeviceMaxRounds = CoinJoinDeviceMaxRounds;
+		_keyManager.CoinJoinDeviceMaxMiningFeeRate = CoinJoinDeviceMaxMiningFeeRate;
 		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
