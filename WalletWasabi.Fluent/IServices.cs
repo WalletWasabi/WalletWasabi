@@ -20,6 +20,7 @@ public interface IServices
 	string PersistentConfigFilePath { get; }
 	PersistentConfig PersistentConfig { get; }
 	WalletManager WalletManager { get; }
+	HardwareWalletService HardwareWallets { get; }
 	UiConfig UiConfig { get; }
 	Config Config { get; }
 	EventBus EventBus { get; }
