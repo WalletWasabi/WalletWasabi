@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -64,6 +66,25 @@ public partial interface IWalletModel : INotifyPropertyChanged
 	AmountProvider AmountProvider { get; }
 
 	bool IsHardwareWallet { get; }
+
+	/// <summary>Whether this wallet can coinjoin at all: a watch-only wallet can, if a device signs for it.</summary>
+	bool CanCoinJoin { get; }
+
+	/// <summary>Whether a device has to authorize a batch of rounds before coinjoining can start.</summary>
+	bool CoinJoinNeedsDeviceAuthorization { get; }
+
+	/// <summary>Whether payments can be made inside a coinjoin round.</summary>
+	bool SupportsCoinJoinPayments { get; }
+
+	/// <summary>
+	/// Whether coinjoin funds live in an account of their own, which only coinjoins can spend. Deposits meant
+	/// for coinjoin have to land in it, and its change cannot go anywhere else.
+	/// </summary>
+	bool HasSeparateCoinJoinAccount { get; }
+
+	bool CanEnableCoinjoin { get; }
+
+	Task EnableCoinjoinAsync(CancellationToken cancellationToken);
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -187,6 +208,24 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public AmountProvider AmountProvider { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	private bool CoinJoinIsSignedByDevice => HardwareWalletService.IsRemoteSigner(Wallet.KeyManager);
+
+	public bool CanCoinJoin => !IsWatchOnlyWallet || CoinJoinIsSignedByDevice;
+
+	public bool CoinJoinNeedsDeviceAuthorization => CoinJoinIsSignedByDevice;
+
+	// The device approves a budget for a round, never a destination, so a payment inside a coinjoin would
+	// leave its screen unable to show where the money goes.
+	public bool SupportsCoinJoinPayments => !CoinJoinIsSignedByDevice;
+
+	public bool HasSeparateCoinJoinAccount => CoinJoinIsSignedByDevice;
+
+	// A hardware wallet with a free taproot slot can opt into coinjoin later by adding a coinjoin account.
+	public bool CanEnableCoinjoin => Wallet.KeyManager.IsHardwareWallet && !CoinJoinIsSignedByDevice && Wallet.KeyManager.TaprootExtPubKey is null;
+
+	public Task EnableCoinjoinAsync(CancellationToken cancellationToken) =>
+		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, cancellationToken);
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 
