@@ -36,7 +36,8 @@ public abstract record WalletCreationOptions(string? WalletName = null)
 
 	public record ConnectToHardwareWallet(
 		string? WalletName = null,
-		HwiEnumerateEntry? Device = null) : WalletCreationOptions(WalletName);
+		HwiEnumerateEntry? Device = null,
+		bool EnableCoinjoin = false) : WalletCreationOptions(WalletName);
 
 	public record ImportWallet(
 		string? WalletName = null,
