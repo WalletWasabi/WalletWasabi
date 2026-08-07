@@ -3,6 +3,7 @@ using System.Security.Cryptography;
 namespace WalletWasabi.Crypto.Randomness;
 
 public delegate void RandomnessProvider(Span<byte> span);
+public delegate string RandomStringGenerator(int length);
 
 public static class RandomnessProviders
 {
@@ -14,6 +15,17 @@ public static class RandomnessProviders
 
 public static class RandomnessProviderExtensions
 {
+	public static RandomStringGenerator CreateRandomStringGenerator(this RandomnessProvider generator) =>
+		length =>
+		{
+			var result = new char[length];
+			for (int i = 0; i < length; i++)
+			{
+				result[i] = Constants.AlphaNumericCharacters[generator.GetInt(Constants.AlphaNumericCharacters.Length)];
+			}
+			return new string(result);
+		};
+
 	public static int GetInt(this RandomnessProvider generator, int maxExclusive)
 	{
 		if (maxExclusive <= 0)
