@@ -43,19 +43,20 @@ public class HwiClient
 			options = optList;
 		}
 
-		string arguments = HwiParser.ToArgumentString(Network, options, command, commandArguments);
+		var arguments = HwiParser.ToArguments(Network, options, command, commandArguments);
+		var argumentsDisplayString = HwiParser.ToArgumentsDisplayString(arguments);
 
 		try
 		{
 			(string responseString, int exitCode) = await Bridge.SendCommandAsync(arguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
-			ThrowIfError(responseString, options, arguments, exitCode);
+			ThrowIfError(responseString, options, argumentsDisplayString, exitCode);
 
 			return responseString;
 		}
 		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 		{
-			throw new OperationCanceledException($"'hwi {arguments}' operation is canceled.", ex);
+			throw new OperationCanceledException($"'hwi {argumentsDisplayString}' operation is canceled.", ex);
 		}
 		//// HWI is inconsistent with error codes here.
 		catch (HwiException ex) when (ex.ErrorCode is HwiErrorCode.DeviceConnError or HwiErrorCode.DeviceNotReady)
@@ -83,10 +84,11 @@ public class HwiClient
 		catch (HwiException ex) when (Network != Network.Main && ex.ErrorCode == HwiErrorCode.UnknownError && ex.Message?.Contains("DataError: Forbidden key path") is true)
 		{
 			// Trezor only accepts KeyPath 84'/1' on TestNet from v2.3.1. We fake that we are on MainNet to ensure compatibility.
-			string fixedArguments = HwiParser.ToArgumentString(Network.Main, options, command, commandArguments);
+			var fixedArguments = HwiParser.ToArguments(Network.Main, options, command, commandArguments);
+			var fixedArgumentsDisplayString = HwiParser.ToArgumentsDisplayString(fixedArguments);
 			(string responseString, int exitCode) = await Bridge.SendCommandAsync(fixedArguments, openConsole, cancel, standardInputWriter).ConfigureAwait(false);
 
-			ThrowIfError(responseString, options, fixedArguments, exitCode);
+			ThrowIfError(responseString, options, fixedArgumentsDisplayString, exitCode);
 
 			return responseString;
 		}
