@@ -1,11 +1,13 @@
 using NBitcoin;
 using ReactiveUI;
+using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -25,6 +27,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private bool _allowPaymentsRegardlessOfAnonScore;
 	[AutoNotify] private WalletId? _outputWalletId;
+	[AutoNotify] private string? _outputWalletName;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
 	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
 	[AutoNotify] private SendWorkflow _defaultSendWorkflow;
@@ -45,9 +48,11 @@ public partial class WalletSettingsModel : ReactiveObject
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
 		_allowPaymentsRegardlessOfAnonScore = _keyManager.AllowPaymentsRegardlessOfAnonScore;
 
+		_outputWalletName = _keyManager.OutputWalletName;
+
 		if (!isNewWallet)
 		{
-			_outputWalletId = services.GetWalletByName(_keyManager.WalletName).WalletId;
+			_outputWalletId = ResolveOutputWalletId(services, _keyManager);
 		}
 
 		_defaultReceiveScriptType = ScriptType.FromEnum(_keyManager.DefaultReceiveScriptType);
@@ -70,7 +75,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		this.WhenAnyValue(
 				x => x.DefaultSendWorkflow,
 				x => x.DefaultReceiveScriptType,
-				x => x.ChangeScriptPubKeyType)
+				x => x.ChangeScriptPubKeyType,
+				x => x.OutputWalletName)
 			.Do(_ => SetValues())
 			.Subscribe();
 	}
@@ -113,7 +119,27 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
 		_keyManager.ChangeScriptPubKeyType = ChangeScriptPubKeyType;
+		_keyManager.OutputWalletName = OutputWalletName;
 		_isDirty = true;
+	}
+
+	/// <summary>
+	/// Resolves the persisted destination name to a loaded wallet, falling back to this wallet.
+	/// </summary>
+	/// <remarks>
+	/// Deliberately does not clear <see cref="OutputWalletName"/>, so a destination that is merely not
+	/// loaded yet is not forgotten on the next save.
+	/// </remarks>
+	private static WalletId? ResolveOutputWalletId(IServices services, KeyManager keyManager)
+	{
+		var wallets = services.GetWallets().ToList();
+
+		var destinationName = HandoverPolicy.ResolveDestinationWalletName(
+			keyManager.WalletName,
+			keyManager.OutputWalletName,
+			wallets.Select(x => x.KeyManager.WalletName).ToList());
+
+		return wallets.FirstOrDefault(x => x.KeyManager.WalletName == destinationName)?.WalletId;
 	}
 
 	public void RescanWallet(uint startingHeight = 0)

@@ -18,6 +18,25 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CoinJoinCoinSelectionTests
 {
 	/// <summary>
+	/// The effective target is raised so that a fully private wallet still has selectable coins,
+	/// which is what lets a handover round register anything at all.
+	/// </summary>
+	[Fact]
+	public void EffectiveAnonScoreTargetIsRaisedWhenSpendingPrivateCoins()
+	{
+		Assert.Equal(int.MaxValue, CoinJoinCoinSelector.GetEffectiveAnonScoreTarget(10, spendPrivateCoins: true));
+	}
+
+	/// <summary>
+	/// Normal rounds keep the wallet's configured target so private coins stay filtered out.
+	/// </summary>
+	[Fact]
+	public void EffectiveAnonScoreTargetIsUnchangedOtherwise()
+	{
+		Assert.Equal(10, CoinJoinCoinSelector.GetEffectiveAnonScoreTarget(10, spendPrivateCoins: false));
+	}
+
+	/// <summary>
 	/// This test is to make sure no coins are selected when there are no coins.
 	/// </summary>
 	[Fact]

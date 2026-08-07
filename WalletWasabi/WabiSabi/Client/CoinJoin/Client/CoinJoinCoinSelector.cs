@@ -31,7 +31,15 @@ public class CoinJoinCoinSelector
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 
-	public static CoinJoinCoinSelector FromWallet(Wallet wallet)
+	/// <summary>
+	/// A fully private wallet selects nothing, because <see cref="SelectCoinsForRound"/> bails out when
+	/// there are neither semi-private nor red coins. Raising the effective target to
+	/// <see cref="int.MaxValue"/> makes every coin count as non-private so the round can register them.
+	/// </summary>
+	internal static int GetEffectiveAnonScoreTarget(int walletAnonScoreTarget, bool spendPrivateCoins) =>
+		spendPrivateCoins ? int.MaxValue : walletAnonScoreTarget;
+
+	public static CoinJoinCoinSelector FromWallet(Wallet wallet, bool isReadyForHandover = false)
 	{
 		var payWithPrivateCoins = wallet.AllowPaymentsRegardlessOfAnonScore
 			&& wallet.IsWalletPrivate()
@@ -39,7 +47,7 @@ public class CoinJoinCoinSelector
 
 		return new(
 			wallet.ConsolidationMode,
-			payWithPrivateCoins ? int.MaxValue : wallet.AnonScoreTarget,
+			GetEffectiveAnonScoreTarget(wallet.AnonScoreTarget, payWithPrivateCoins || isReadyForHandover),
 			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
 	}
 
