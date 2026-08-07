@@ -711,3 +711,31 @@
     (if (not (wallet-loaded? wallet))
         (__start_wallet wallet)
         wallet)))
+
+(define (new-address wallet label taproot)
+  (generate-address wallet label taproot))
+
+(define (new-address-string wallet label taproot)
+  (native->string (hdpubkey->address (generate-address wallet label taproot))))
+
+(define (create-transaction wallet address amount fee-rate coins subtract-fee password)
+  (build-tx wallet address amount fee-rate coins subtract-fee password))
+
+(define (send wallet address amount fee-rate coins subtract-fee password)
+  (broadcast-tx (build-tx wallet address amount fee-rate coins subtract-fee password)))
+
+(define donation-address "sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3")
+
+(define (donate-dust wallet fee-rate password)
+
+  (let* ((private-dust (filter (lambda (c)
+                                 (and (< (coin-amount c) 0.0002)
+                                      (> (coin-anonymityset c) 1)))
+                               (wallet-unspent-coins wallet)))
+         (sorted (sort private-dust (lambda (a b) (< (coin-amount a) (coin-amount b)))))
+         (smallest-3 (take 3 sorted)))
+    (send wallet donation-address 0 fee-rate smallest-3 #t password)))
+
+(define (send-to-self wallet coin fee-rate label taproot password)
+  (let ((addr (new-address-string wallet label taproot)))
+    (send wallet addr 0 fee-rate (list coin) #t password)))
