@@ -4,11 +4,11 @@ using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
 
-namespace WalletWasabi.Tests.UnitTests.Stores;
+namespace WalletWasabi.Tests.UnitTests.Storages;
 
 /// <summary>
 /// Tests for <see cref="BlockFilterSqliteStorage"/>.

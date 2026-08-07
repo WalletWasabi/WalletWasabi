@@ -9,7 +9,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 public class TransactionSqliteStorage : IDisposable
 {
