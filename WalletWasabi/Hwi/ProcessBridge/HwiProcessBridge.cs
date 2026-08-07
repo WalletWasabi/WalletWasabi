@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
 
 namespace WalletWasabi.Hwi.ProcessBridge;
@@ -15,7 +13,7 @@ public class HwiProcessBridge : IHwiProcessInvoker
 
 	private readonly string _processPath;
 
-	public async Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
+	public async Task<(string response, int exitCode)> SendCommandAsync(IReadOnlyList<string> arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
 	{
 		ProcessStartInfo startInfo = ProcessStartInfoFactory.Make(_processPath, arguments, openConsole);
 
