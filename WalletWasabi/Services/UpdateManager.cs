@@ -276,7 +276,7 @@ public static class Installer
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
+				startInfo = ProcessStartInfoFactory.Make(installerPath, [], true);
 			}
 			else
 			{
