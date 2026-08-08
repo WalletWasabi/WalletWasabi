@@ -4,6 +4,7 @@ using System.Data;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Security;
+using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json.Nodes;
 using WalletWasabi.Blockchain.Analysis.Clustering;
@@ -450,7 +451,7 @@ public class KeyManager
 		}
 	}
 
-	private (int PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }
+	private (byte[] PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }
 
 	public ExtKey GetMasterExtKey(string password)
 	{
@@ -461,11 +462,11 @@ public class KeyManager
 
 		password ??= "";
 
-		var passwordHash = password.GetHashCode();
+		var passwordHash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(password));
 
 		if (MasterKeyAndPasswordHash is { MasterKey: var masterKey, PasswordHash: var storedPasswordHash })
 		{
-			if (passwordHash != storedPasswordHash)
+			if (!CryptographicOperations.FixedTimeEquals(passwordHash, storedPasswordHash))
 			{
 				throw new SecurityException("Invalid passphrase.");
 			}
