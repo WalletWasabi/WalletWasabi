@@ -56,19 +56,19 @@ public static class NetworkTranslator
 		}
 	}
 
-	public static string GetCommandLineArguments(Network network)
+	public static string[] GetCommandLineArguments(Network network)
 	{
 		if (network == Network.Main)
 		{
-			return "-regtest=0 -testnet=0";
+			return ["-regtest=0", "-testnet=0"];
 		}
 		else if (network == Network.TestNet)
 		{
-			return "-regtest=0 -testnet4=1";
+			return ["-regtest=0", "-testnet4=1"];
 		}
 		else if (network == Network.RegTest)
 		{
-			return "-regtest=1 -testnet=0";
+			return ["-regtest=1", "-testnet=0"];
 		}
 		else
 		{

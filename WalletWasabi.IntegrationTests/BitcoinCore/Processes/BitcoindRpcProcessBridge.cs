@@ -48,14 +48,14 @@ public class BitcoindRpcProcessBridge
 	{
 		int ptcv = PrintToConsole ? 1 : 0;
 		string processPath = BundledAppHelpers.GetBinaryPath("bitcoind");
-		string networkArgument = NetworkTranslator.GetCommandLineArguments(Network);
+		string[] networkArgument = NetworkTranslator.GetCommandLineArguments(Network);
 
 		// On Windows, if DataDir ends with '\', the Process can't be started.
 		string dataDir = RuntimeInformation.IsOSPlatform(OSPlatform.Windows) && DataDir.EndsWith('\\')
 			? DataDir[..^1]
 			: DataDir;
 
-		string args = $"{networkArgument} -datadir=\"{dataDir}\" -printtoconsole={ptcv}";
+		string[] args = [..networkArgument, $"-datadir={dataDir}", $"-printtoconsole={ptcv}"];
 
 		// Start bitcoind process.
 		Process = new ProcessAsync(ProcessStartInfoFactory.Make(processPath, args));
