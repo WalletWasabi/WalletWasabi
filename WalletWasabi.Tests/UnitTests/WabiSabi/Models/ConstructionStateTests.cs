@@ -20,7 +20,7 @@ public class ConstructionStateTests
 			miningFeeRate,
 			Money.Coins(10));
 
-		var round = WabiSabiFactory.CreateRound(roundParameters);
+		var round = WabiSabiFactory.CreateRound(cfg, roundParameters);
 		var state = round.Assert<ConstructionState>();
 
 		var (coin, ownershipProof) = WabiSabiFactory.CreateCoinWithOwnershipProof(

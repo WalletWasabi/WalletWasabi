@@ -80,7 +80,7 @@ public class MultipartyTransactionStateTests
 
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
 		RoundParameters parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-		Round roundLargest = new(parameters, SecureRandom.Instance);
+		Round roundLargest = new(config, parameters, SecureRandom.Instance);
 
 		// First Round is the largest.
 		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), roundLargest.Parameters.MaxSuggestedAmount);
@@ -91,7 +91,7 @@ public class MultipartyTransactionStateTests
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 			parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-			Round round = new(parameters, SecureRandom.Instance);
+			Round round = new(config, parameters, SecureRandom.Instance);
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
 

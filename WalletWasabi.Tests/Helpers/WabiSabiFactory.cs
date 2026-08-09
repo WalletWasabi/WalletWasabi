@@ -78,11 +78,11 @@ public static class WabiSabiFactory
 			new FeeRate(100m),
 			Money.Coins(Constants.MaximumNumberOfBitcoins));
 
-	public static Round CreateRound(RoundParameters parameters) =>
-		new(parameters, InsecureRandom.Instance);
+	public static Round CreateRound(WabiSabiConfig config, RoundParameters parameters) =>
+		new(config, parameters, InsecureRandom.Instance);
 
 	public static Round CreateRound(WabiSabiConfig cfg) =>
-		CreateRound(CreateRoundParameters(cfg) with
+		CreateRound(cfg, CreateRoundParameters(cfg) with
 		{
 			MaxVsizeAllocationPerAlice =
 				Constants.P2wpkhInputVirtualSize + Constants.P2wpkhOutputVirtualSize // enough vsize for one input and one output

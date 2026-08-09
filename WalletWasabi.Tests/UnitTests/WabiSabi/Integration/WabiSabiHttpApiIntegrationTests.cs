@@ -1,6 +1,6 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,20 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using Xunit;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Coordinator;
+using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -90,7 +91,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton(_ => prison);
 			})).CreateClient();
 
-		await Task.Delay(100);
+		await Task.Delay(200);
 		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, timeoutCts.Token)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
@@ -142,7 +143,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				var config = new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount - 1,  // Make sure that at least one IR fails for WrongPhase
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -150,7 +151,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
+				};
+
+				services.AddSingleton(s => new WabiSabiConfigProvider(config));
 			})).CreateClient();
 
 		// Create the coinjoin client
@@ -206,7 +209,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(_ => new WabiSabiConfig
+				var config = new WabiSabiConfig
 				{
 					MaxInputCountByRound = inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
@@ -214,7 +217,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
+				};
+				services.AddSingleton(_ => new WabiSabiConfigProvider(config));
 
 				// Emulate that all our outputs had been already used in the past.
 				// the server will prevent the registration and fail with a WabiSabiProtocolError.
@@ -300,11 +304,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 						return tx.GetHash();
 					};
 				})
-			.ConfigureServices(services =>
+			.ConfigureServices(services => {
 
 				// Instruct the coordinator DI container to use this scoped
 				// services to build everything (WabiSabi controller, arena, etc)
-				services.AddSingleton(s => new WabiSabiConfig
+				var config = new WabiSabiConfig
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
@@ -315,7 +319,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				})));
+				};
+
+				services.AddSingleton(s => new WabiSabiConfigProvider(config));
+			}));
 
 		await Task.Delay(100);
 
@@ -411,7 +418,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// Instruct the coordinator DI container to use these two scoped
 				// services to build everything (WabiSabi controller, arena, etc)
 				services.AddSingleton<IRPCClient>(s => rpc);
-				services.AddSingleton(s => new WabiSabiConfig(Path.GetTempFileName())
+
+				var config = new WabiSabiConfig(Path.GetTempFileName())
 				{
 					MaxRegistrableAmount = Money.Coins(500m),
 					MaxInputCountByRound = (int)(ExpectedInputNumber / (1 + (10 * (faultInjectorMonkeyAggressiveness + delayInjectorMonkeyAggressiveness)))),
@@ -421,7 +429,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					OutputRegistrationTimeout = TimeSpan.FromSeconds(5 * ExpectedInputNumber),
 					TransactionSigningTimeout = TimeSpan.FromSeconds(3 * ExpectedInputNumber),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
-				});
+				};
+
+				services.AddSingleton(s => new WabiSabiConfigProvider(config));
 			}));
 
 		var httpClient = coordinatorApp.CreateClient();
