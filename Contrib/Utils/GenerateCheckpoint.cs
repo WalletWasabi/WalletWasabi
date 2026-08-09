@@ -22,7 +22,7 @@ static void PrintUsage()
           --hash   <hex>               Block hash (64 hex chars)
 
         Optional:
-          -e, --endpoint <host:port>   Bitcoin peer endpoint
+          -e, --endpoint <host:port>   Bitcoin peer endpoint _providing_ compact filters
                                        (default: [::ffff:89.58.60.208]:8333)
           --help                       Show this help
 
