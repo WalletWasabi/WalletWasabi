@@ -11,6 +11,29 @@ using NBitcoin;
 using NBitcoin.Protocol;
 using NBitcoin.Protocol.Behaviors;
 
+static void PrintUsage()
+{
+    Console.WriteLine("""
+        Usage:
+          GenerateCheckpoint.cs --height <uint> --hash <hex> [options]
+
+        Required:
+          --height <uint>              Block height
+          --hash   <hex>               Block hash (64 hex chars)
+
+        Optional:
+          -e, --endpoint <host:port>   Bitcoin peer endpoint
+                                       (default: [::ffff:89.58.60.208]:8333)
+          --help                       Show this help
+
+        Examples:
+          # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using a predefined P2P node.
+          dotnet run --file GenerateCheckpoint.cs -- --height 960000 --block-hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
+          # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using '[::ffff:89.58.60.208]:8333' peer.
+          dotnet run --file GenerateCheckpoint.cs -- --endpoint="[::ffff:89.58.60.208]:8333" --height 960000 --block-hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
+        """);
+}
+
 // Default parameters.
 string nodeEndpoint = "[::ffff:89.58.60.208]:8333";
 Network network = Network.Main;
@@ -82,29 +105,6 @@ catch (Exception ex)
     if (ex.InnerException is not null)
         Console.Error.WriteLine($"  Inner: {ex.InnerException.Message}");
     return 1;
-}
-
-static void PrintUsage()
-{
-    Console.WriteLine("""
-        Usage:
-          GenerateCheckpoint.cs --height <uint> --hash <hex> [options]
-
-        Required:
-          --height <uint>              Block height
-          --hash   <hex>               Block hash (64 hex chars)
-
-        Optional:
-          -e, --endpoint <host:port>   Bitcoin peer endpoint
-                                       (default: [::ffff:89.58.60.208]:8333)
-          --help                       Show this help
-
-        Examples:
-          # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using a predefined P2P node.
-          dotnet run --file GenerateCheckpoint.cs -- --height 960000 --block-hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
-          # Get checkpoint data for the block '000000000000000000001268...' with height 960000 using '[::ffff:89.58.60.208]:8333' peer.
-          dotnet run --file GenerateCheckpoint.cs -- --endpoint="[::ffff:89.58.60.208]:8333" --height 960000 --block-hash 000000000000000000001268aab06132c2dd203f77b6020462cd177942d6959d
-        """);
 }
 
 static bool TryParseArgs(string[] args, ref string endpoint, ref uint256? hash, ref uint? height, out bool showHelp, out string? error)
