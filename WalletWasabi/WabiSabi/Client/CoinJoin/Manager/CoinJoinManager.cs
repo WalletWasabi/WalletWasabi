@@ -436,6 +436,13 @@ public class CoinJoinManager : BackgroundService
 			// Updates coinjoin client states.
 			var wallets = await _getWalletsAsync().ConfigureAwait(false);
 
+			// Timeout any uncertain payments that have been waiting too long.
+			// This moves payments back to pending if no matching transaction was found.
+			foreach (var wallet in wallets)
+			{
+				wallet.BatchedPayments.TimeoutUncertainPayments();
+			}
+
 			_state.CoinJoinClientStates = GetCoinJoinClientStates(wallets);
 			_state.CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
 
@@ -495,6 +502,7 @@ public class CoinJoinManager : BackgroundService
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;
+		var unknownEnding = false;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -512,10 +520,14 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (UnknownRoundEndingException ex)
 		{
-			// Assuming that the round might be broadcast but our client was not able to get the ending status.
+			// The round ending is unknown - the transaction might have been broadcast.
+			// Move payments to uncertain state instead of pending to prevent double payments.
+			// The reconciliation process will later check if the coins were spent.
+			unknownEnding = true;
 			_coinRefrigerator.Freeze(ex.Coins);
 			MarkDestinationsUsed(destinationProvider, ex.OutputScripts);
-			Logger.LogDebug(FormatLog(ex.ToString(), wallet));
+			batchedPayments.MovePaymentsToUncertain();
+			Logger.LogWarning(FormatLog($"Round ending unknown - payments moved to uncertain state: {ex.Message}", wallet));
 		}
 		catch (CoinJoinClientException clientException)
 		{
@@ -564,7 +576,11 @@ public class CoinJoinManager : BackgroundService
 		}
 		finally
 		{
-			batchedPayments.MovePaymentsToPending();
+			// Only move payments to pending if we know the round failed.
+			if (!unknownEnding)
+			{
+				batchedPayments.MovePaymentsToPending();
+			}
 		}
 
 		// If any coins were marked for banning, store them to file

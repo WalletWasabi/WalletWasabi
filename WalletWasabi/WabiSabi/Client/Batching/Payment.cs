@@ -15,6 +15,7 @@ public abstract record PaymentState
 public record PendingPayment(PaymentState? PreviousState) : PaymentState(PreviousState);
 public record InProgressPayment(PaymentState PreviousState, uint256 RoundId) : PaymentState(PreviousState);
 public record FinishedPayment(PaymentState PreviousState, uint256 TransactionId) : PaymentState(PreviousState);
+public record UncertainPayment(PaymentState PreviousState, DateTimeOffset Timestamp) : PaymentState(PreviousState);
 
 public record Payment(IDestination Destination, Money Amount)
 {
@@ -29,4 +30,7 @@ public record Payment(IDestination Destination, Money Amount)
 	public bool FitParameters(ImmutableSortedSet<ScriptType> allowedOutputTypes, MoneyRange allowedOutputAmounts) =>
 		allowedOutputTypes.Contains(Destination.ScriptPubKey.GetScriptType()) &&
 		allowedOutputAmounts.Contains(Amount);
+
+	public bool MatchesOutput(TxOut output) =>
+		output.ScriptPubKey == Destination.ScriptPubKey && output.Value == Amount;
 }
