@@ -350,7 +350,7 @@ public static class WabiSabiFactory
 	}
 
 	public static RoundParametersFactory CreateRoundParametersFactory(WabiSabiConfig cfg, int maxVsizeAllocationPerAlice) =>
-		(rate, maxSuggestedAmount, minInputCountByRound) => CreateRoundParameters(cfg) with
+		(config, rate, maxSuggestedAmount, minInputCountByRound) => CreateRoundParameters(cfg) with
 		{
 			MinInputCountByRound = minInputCountByRound ?? cfg.MinInputCountByRound,
 			MaxSuggestedAmount = maxSuggestedAmount,
