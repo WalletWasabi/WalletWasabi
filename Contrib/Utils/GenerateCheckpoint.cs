@@ -241,6 +241,7 @@ static async Task<CheckPointData> GetCheckPointDataAsync(
     finally
     {
         node.MessageReceived -= Listener;
+		node.Disconnect();
     }
 
     return new CheckPointData(node, compactFilterHeadersPayload, compactFilterPayload, block);
