@@ -10,6 +10,6 @@ public class ModuleInitializer
 	[ModuleInitializer]
 	internal static void Initialize()
 	{
-		Logger.Configure(Path.Combine(Common.DataDir, "Logs.txt"), LogLevel.Info, [LogMode.Debug, LogMode.File]);
+		Logger.Configure(Path.Combine(Common.DataDir, "Logs.txt"), LogLevel.Trace, [LogMode.Debug, LogMode.File]);
 	}
 }
