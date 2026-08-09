@@ -1,10 +1,5 @@
 using Microsoft.Extensions.Hosting;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Bases;
 
@@ -51,9 +46,7 @@ public abstract class PeriodicRunner : BackgroundService
 	/// </summary>
 	public async Task TriggerAndWaitRoundAsync(CancellationToken token)
 	{
-		EventAwaiter<TimeSpan> eventAwaiter = new(
-							h => Tick += h,
-							h => Tick -= h);
+		EventAwaiter<TimeSpan> eventAwaiter = new(h => Tick += h, h => Tick -= h);
 		TriggerRound();
 		await eventAwaiter.WaitAsync(token).ConfigureAwait(false);
 	}

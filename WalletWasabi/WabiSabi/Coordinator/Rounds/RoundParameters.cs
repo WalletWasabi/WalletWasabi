@@ -1,6 +1,4 @@
 using NBitcoin.Policy;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
