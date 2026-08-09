@@ -68,12 +68,7 @@ public class CoinJoinTracker : IDisposable
 				break;
 
 			case RoundEnded roundEnded:
-				var endState = roundEnded.LastRoundState.EndRoundState;
-				// Only reset payments if we KNOW the round failed.
-				// When EndRoundState is None (unknown), the transaction might have been
-				// broadcast, so we must NOT move payments back to pending to avoid double payments.
-				if (endState != EndRoundState.TransactionBroadcasted &&
-					endState != EndRoundState.None)
+				if (roundEnded.LastRoundState.EndRoundState != EndRoundState.TransactionBroadcasted)
 				{
 					Wallet.BatchedPayments.MovePaymentsToPending();
 				}

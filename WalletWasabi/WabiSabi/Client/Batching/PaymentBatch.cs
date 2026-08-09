@@ -1,5 +1,7 @@
 using System.Collections.ObjectModel;
-using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
@@ -14,15 +16,10 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // payments are moved to finished or back to pending state.
 public class PaymentBatch
 {
-	/// Time to wait before considering an uncertain payment as failed.
-	/// This should be longer than CoinRefrigerator's freeze time
-	private static readonly TimeSpan UncertainPaymentTimeout = TimeSpan.FromMinutes(3);
-
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
 	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
-	private IEnumerable<Payment> UncertainPayments => GetPayments().Where(p => p.State is UncertainPayment);
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
@@ -99,69 +96,7 @@ public class PaymentBatch
 	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
-	public void MovePaymentsToUncertain() =>
-		MovePaymentsTo(InProgressPayments, payment => payment with
-		{
-			State = new UncertainPayment(payment.State, DateTimeOffset.UtcNow)
-		});
-
-	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
-	{
-		var uncertainPayments = UncertainPayments.ToArray();
-		if (uncertainPayments.Length == 0)
-		{
-			return false;
-		}
-
-		var resolved = false;
-		var txId = transaction.GetHash();
-		var outputs = transaction.Transaction.Outputs;
-
-		foreach (var payment in uncertainPayments.Where(p => outputs.Any(p.MatchesOutput)))
-		{
-			Logger.LogInfo($"Payment {payment.Id} resolved as successful - found matching output in tx {txId}.");
-			lock (_syncObj)
-			{
-				_payments.Remove(payment);
-				_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
-			}
-			resolved = true;
-		}
-
-		return resolved;
-	}
-
-	/// <summary>
-	/// Moves uncertain payments back to pending state if they have timed out.
-	/// This should be called periodically to handle cases where the coinjoin failed
-	/// but no matching transaction was ever found.
-	/// </summary>
-	public void TimeoutUncertainPayments()
-	{
-		var uncertainPayments = UncertainPayments.ToArray();
-		foreach (var payment in uncertainPayments)
-		{
-			if (payment.State is not UncertainPayment uncertainState)
-			{
-				continue;
-			}
-
-			var elapsed = DateTimeOffset.UtcNow - uncertainState.Timestamp;
-			if (elapsed >= UncertainPaymentTimeout)
-			{
-				Logger.LogInfo($"Payment {payment.Id} timed out after {elapsed.TotalSeconds:F0}s - no matching transaction found, moving back to pending.");
-				lock (_syncObj)
-				{
-					_payments.Remove(payment);
-					_payments.Add(payment with { State = new PendingPayment(uncertainState) });
-				}
-			}
-		}
-	}
-
 	public bool AreTherePendingPayments => PendingPayments.Any();
-
-	public bool AreThereUncertainPayments => UncertainPayments.Any();
 
 	private void MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,
