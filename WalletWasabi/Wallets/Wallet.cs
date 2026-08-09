@@ -319,13 +319,6 @@ public class Wallet : BackgroundService
 			{
 				CpfpInfoProvider.ScheduleRequest(e.Transaction);
 			}
-
-			// Check if this transaction resolves any uncertain payments in coinjoins
-			// If the transaction has outputs matching our pending payments, mark them as finished.
-			if (BatchedPayments.AreThereUncertainPayments && BatchedPayments.TryResolvePaymentsWithTransaction(e.Transaction))
-			{
-				_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
-			}
 		}
 		catch (Exception ex)
 		{
