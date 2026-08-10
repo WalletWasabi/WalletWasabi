@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers.PowerSaving;
 
@@ -23,7 +22,7 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 		string innerCommand = $$"""
 			caffeinate -i &
 			caffeinatePid=$!;
-			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
+			trap 'kill -9 $caffeinatePid' EXIT SIGINT SIGTERM;
 			while (ps -p {{Environment.ProcessId}} );
 			do
 				sleep 1;
