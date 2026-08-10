@@ -349,6 +349,10 @@ public class CoinJoinClient
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+
+			// Notify that we've signed the transaction - payments should now be tracked with the txId
+			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.GetHash()));
+
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
 			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
