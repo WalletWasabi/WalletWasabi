@@ -267,11 +267,11 @@ public static partial class Decode
 			return getters.Errors is [] ? result : Result<T, string>.Fail(string.Join("; ", getters.Errors));
 		};
 
-	public static Decoder<T> AndThen<T, R>(Func<R, Decoder<T>> cb, Decoder<R> decoder) =>
-		value => decoder(value).Match(r => cb(r)(value), s => s);
+	public static Decoder<T> AndThen<T, R>(Func<R, Decoder<T>> callback, Decoder<R> decoder) =>
+		value => decoder(value).Match(r => callback(r)(value), s => s);
 
-	public static Decoder<T> AndThen<T, R>(this Decoder<R> decoder, Func<R, Decoder<T>> cb) =>
-		AndThen(cb, decoder);
+	public static Decoder<T> AndThen<T, R>(this Decoder<R> decoder, Func<R, Decoder<T>> callback) =>
+		AndThen(callback, decoder);
 
 	private static Result<T, string> Integral<T>(
 		string name,
