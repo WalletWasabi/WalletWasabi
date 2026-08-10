@@ -464,7 +464,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("startcoinjoin")]
-	public void StartCoinJoining(string? password = null, bool stopWhenAllMixed = true, bool overridePlebStop = true)
+	public void StartCoinJoining(bool stopWhenAllMixed = true, bool overridePlebStop = true, string? password = null)
 	{
 		var coinJoinManager = GetCoinJoinManager();
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
@@ -475,7 +475,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("startcoinjoinsweep")]
-	public void StartCoinjoinSweeping(string? password = null, string? outputWalletName = null)
+	public void StartCoinjoinSweeping(string? outputWalletName = null, string? password = null)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		var coinJoinManager = GetCoinJoinManager();
