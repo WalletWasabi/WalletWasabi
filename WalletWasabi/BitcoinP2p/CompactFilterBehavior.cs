@@ -506,6 +506,8 @@ public class CompactFilterBehavior(
 
 		private readonly SortedDictionary<uint, UnvalidatedHeaderResponse> _bufferedHeaderResponses = [];
 
+		private bool _filterHeaderMismatchDetected;
+
 		public FilterSynchronizationState(ConcurrentChain blockHeaderChain, FilterHeaderChain filterHeaderChain, ChainHeight tipHeight,
 			EventBus? eventBus = null, TimeProvider? timeProvider = null)
 		{
@@ -612,9 +614,9 @@ public class CompactFilterBehavior(
 			// Validate against the expected previous filter header
 			if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
 			{
-				var reason = $"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}";
-				Logger.LogWarning(reason);
-				return new HeaderValidationResult.Invalid(reason);
+				Logger.LogWarning($"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}. Marking as reorg.");
+				_filterHeaderMismatchDetected = true;
+				return new HeaderValidationResult.Invalid($"Filter header mismatch at {assignment.StartHeight}");
 			}
 
 			var result = new SmartHeader[filterHashes.Length];
@@ -875,6 +877,13 @@ public class CompactFilterBehavior(
 		{
 			lock (_lock)
 			{
+				// Check if a filter header mismatch was detected (local chain corrupted)
+				if (_filterHeaderMismatchDetected)
+				{
+					_filterHeaderMismatchDetected = false;
+					return MarkReorg("Filter header mismatch detected. Local filter chain may be corrupted.");
+				}
+
 				var filterTip = _filterHeaderChain.Tip;
 				if (filterTip is null)
 				{
