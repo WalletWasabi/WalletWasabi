@@ -30,7 +30,6 @@
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
     </Style>
     <Style Selector="Border.SyncCard TextBlock.CardLabel">
-      <Setter Property="Opacity" Value="0.6" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="TextAlignment" Value="Center" />
     </Style>

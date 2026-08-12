@@ -2,6 +2,7 @@ using System;
 using System.IO;
 using System.Text;
 using NBitcoin;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
@@ -10,6 +11,8 @@ namespace WalletWasabi.Client.Configuration;
 
 public static class PersistentConfigManager
 {
+	private static readonly RandomStringGenerator GenerateRandomString = RandomnessProviders.Secure.CreateRandomStringGenerator();
+
 	public static readonly PersistentConfig DefaultMainNetConfig = new (
 		Network : Network.Main,
 		CoordinatorUri : Constants.CoordinatorUri,
@@ -20,8 +23,8 @@ public static class PersistentConfigManager
 		BitcoinRpcCredentialString : string.Empty,
 		BitcoinRpcUri : Constants.DefaultMainNetBitcoinRpcUri,
 		JsonRpcServerEnabled : false,
-		JsonRpcUser : string.Empty,
-		JsonRpcPassword : string.Empty,
+		JsonRpcUser : GenerateRandomString(12),
+		JsonRpcPassword : GenerateRandomString(12),
 		JsonRpcServerPrefixes : new (["http://127.0.0.1:37128/", "http://localhost:37128/"]),
 		DustThreshold : Money.Coins(Constants.DefaultDustThreshold),
 		EnableGpu : true,
