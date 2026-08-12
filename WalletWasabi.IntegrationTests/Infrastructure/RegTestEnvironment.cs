@@ -227,10 +227,23 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		// Connect and handshake
 		node.VersionHandshake(cancellationToken);
 
-		await Task.Delay(3000, cancellationToken);
-
 		// Get the target height from Bitcoin Core
 		var targetHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+
+		// Wait for block headers to sync to target height (with timeout)
+		// This fixes a race condition where filter sync would start before block headers were ready
+		var headerSyncTimeout = TimeSpan.FromSeconds(30);
+		var headerSyncDeadline = DateTime.UtcNow + headerSyncTimeout;
+		while (blockHeaderChain.Tip?.Height < targetHeight)
+		{
+			if (DateTime.UtcNow > headerSyncDeadline)
+			{
+				throw new TimeoutException(
+					$"Block headers did not sync to target height {targetHeight} within {headerSyncTimeout.TotalSeconds}s. " +
+					$"Current height: {blockHeaderChain.Tip?.Height ?? 0}");
+			}
+			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
+		}
 
 		// Create the P2P filter provider
 		var filterProvider = FilterProviders.CreateBitcoinP2pFilterProvider(

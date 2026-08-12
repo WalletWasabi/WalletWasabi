@@ -22,8 +22,6 @@ public class PersistentConfigManagerTests
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
 		string configPath = Path.Combine(workDirectory, $"{nameof(ToFileAndLoadFileTestAsync)}.json");
 
-		string expectedLocalBitcoinCoreDataDir = nameof(PersistentConfigManagerTests);
-
 		// Create config and store it.
 		PersistentConfig actualConfig = PersistentConfigManager.DefaultMainNetConfig;
 
@@ -38,14 +36,15 @@ public class PersistentConfigManagerTests
 
 		// Check that JSON strings are equal as well.
 		{
-			string expected = GetConfigString(expectedLocalBitcoinCoreDataDir);
+			// JsonRpcUser and JsonRpcPassword are randomly generated, so we use the actual values
+			string expected = GetConfigString(actualConfig.JsonRpcUser, actualConfig.JsonRpcPassword);
 			string actual = JsonEncoder.ToReadableString(readConfig, PersistentConfigEncode.PersistentConfig);
 
 			AssertJsonStringsEqual(expected, actual);
 			AssertJsonStringsEqual(expected, storedJson);
 		}
 
-		static string GetConfigString(string localBitcoinCoreDataDir)
+		static string GetConfigString(string jsonRpcUser, string jsonRpcPassword)
 			=> $$"""
 			{
 			  "CoordinatorUri": "",
@@ -56,8 +55,8 @@ public class PersistentConfigManagerTests
 			  "BitcoinRpcCredentialString": "",
 			  "BitcoinRpcEndPoint": "",
 			  "JsonRpcServerEnabled": false,
-			  "JsonRpcUser": "",
-			  "JsonRpcPassword": "",
+			  "JsonRpcUser": "{{jsonRpcUser}}",
+			  "JsonRpcPassword": "{{jsonRpcPassword}}",
 			  "JsonRpcServerPrefixes": [
 			    "http://127.0.0.1:37128/",
 			    "http://localhost:37128/"

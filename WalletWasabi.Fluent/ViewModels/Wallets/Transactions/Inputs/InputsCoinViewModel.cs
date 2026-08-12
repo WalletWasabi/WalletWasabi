@@ -13,14 +13,7 @@ public class InputsCoinViewModel : InputsCoinListItem
 		Amount = new Amount(coin.Amount);
 		BtcAddress = coin.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 		TitleText = "";
-		if(coin.HdPubKey.HistoricalAnonSet.TryGetValue(coin.Outpoint.Hash, out var anonSetWhenTxProcessed))
-		{
-			AnonymityScore = (int)anonSetWhenTxProcessed;
-		}
-		else
-		{
-			AnonymityScore = (int)coin.AnonymitySet;
-		}
+		AnonymityScore = (int)coin.AnonymitySet;
 	}
 
 	public InputsCoinViewModel(UiContext uiContext, InputsCoinViewModel[] coins, int inputCount, bool isExpanded, int? nbDiff) : base(uiContext)

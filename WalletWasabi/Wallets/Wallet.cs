@@ -102,6 +102,8 @@ public class Wallet : BackgroundService
 
 	public bool NonPrivateCoinIsolation => KeyManager.NonPrivateCoinIsolation;
 
+	public bool AllowPaymentsRegardlessOfAnonScore => KeyManager.AllowPaymentsRegardlessOfAnonScore;
+
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }
 
@@ -209,7 +211,7 @@ public class Wallet : BackgroundService
 
 	public int GetPrivacyPercentage()
 	{
-		var currentPrivacyScore = Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.HdPubKey.AnonymitySet - 1, x.IsPrivate(AnonScoreTarget) ? AnonScoreTarget - 1 : AnonScoreTarget - 2));
+		var currentPrivacyScore = Coins.Sum(x => x.Amount.Satoshi * Math.Min(x.AnonymitySet - 1, x.IsPrivate(AnonScoreTarget) ? AnonScoreTarget - 1 : AnonScoreTarget - 2));
 		var maxPrivacyScore = Coins.TotalAmount().Satoshi * (AnonScoreTarget - 1);
 		int pcPrivate = maxPrivacyScore == 0M ? 0 : (int)(currentPrivacyScore * 100 / maxPrivacyScore);
 
@@ -280,15 +282,23 @@ public class Wallet : BackgroundService
 	}
 
 	/// <inheritdoc />
-	protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+	protected override Task ExecuteAsync(CancellationToken stoppingToken)
 	{
 		Logger.LogInfo(FormatLog("is fully synchronized.", this));
+		return Task.CompletedTask;
 	}
 
 	public string AddCoinJoinPayment(IDestination destination, Money amount)
 	{
 		var paymentId = BatchedPayments.AddPayment(destination, amount);
+		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 		return paymentId.ToString();
+	}
+
+	public void CancelCoinJoinPayment(Guid paymentId)
+	{
+		BatchedPayments.AbortPayment(paymentId);
+		_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 	}
 
 	/// <inheritdoc/>
@@ -308,6 +318,13 @@ public class Wallet : BackgroundService
 			if (e.Transaction.CanBeSpeedUpUsingCpfp())
 			{
 				CpfpInfoProvider.ScheduleRequest(e.Transaction);
+			}
+
+			// Check if this transaction resolves any uncertain payments in coinjoins
+			// If the transaction has outputs matching our pending payments, mark them as finished.
+			if (BatchedPayments.AreThereUncertainPayments && BatchedPayments.TryResolvePaymentsWithTransaction(e.Transaction))
+			{
+				_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));
 			}
 		}
 		catch (Exception ex)

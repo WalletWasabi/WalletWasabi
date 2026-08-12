@@ -10,8 +10,8 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Tests.UnitTests;
 using WalletWasabi.Blockchain.Analysis;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.Helpers;
 
@@ -137,8 +137,9 @@ public static class BitcoinFactory
 		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
-		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
-		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		var coin = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
+		Anonymity.SetScore(coin, 1.0m / anonymitySet);
+		return coin;
 	}
 
 	public static OutPoint CreateOutPoint()

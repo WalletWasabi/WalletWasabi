@@ -1,8 +1,11 @@
 using NBitcoin;
+using System.IO;
+using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Stores;
+using WalletWasabi.Tests.Helpers;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Stores;
@@ -15,12 +18,14 @@ public class BlockFilterSqliteStorageTests
 	private static byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
 
 	[Fact]
-	public void TryAppend()
+	public async Task TryAppendAsync()
 	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(Path.Combine(workDir, "Filters.sqlite"));
 
 		bool added = indexStorage.TryAppend(filter0);
 		Assert.True(added);
@@ -34,11 +39,13 @@ public class BlockFilterSqliteStorageTests
 	}
 
 	[Fact]
-	public void TryRemoveLast()
+	public async Task TryRemoveLastAsync()
 	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		FilterModel startingFilter = FilterCheckpoints.GetWasabiGenesisFilter(Network.Main);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(Path.Combine(workDir, "Filters.sqlite"));
 		indexStorage.TryAppend(startingFilter);
 
 		bool result = indexStorage.TryRemoveLast(out FilterModel? filter1);
@@ -52,12 +59,14 @@ public class BlockFilterSqliteStorageTests
 	}
 
 	[Fact]
-	public void AppendAndRemove()
+	public async Task AppendAndRemoveAsync()
 	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(Path.Combine(workDir, "Filters.sqlite"));
 		indexStorage.TryAppend(filter0);
 
 		bool added = indexStorage.TryAppend(filter1);
@@ -84,14 +93,16 @@ public class BlockFilterSqliteStorageTests
 	}
 
 	[Fact]
-	public void TryRemoveLastIfNewerThan()
+	public async Task TryRemoveLastIfNewerThanAsync()
 	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 		FilterModel filter2 = CreateFilterModel(blockHeight: 2, blockHash: new uint256(3), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(2), blockTime: 1231006507);
 		FilterModel filter3 = CreateFilterModel(blockHeight: 3, blockHash: new uint256(4), filterData: DummyFilterData, headerOrPrevBlockHash: new uint256(3), blockTime: 1231006508);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(Path.Combine(workDir, "Filters.sqlite"));
 
 		Assert.True(indexStorage.TryAppend(filter0));
 		Assert.True(indexStorage.TryAppend(filter1));
@@ -119,12 +130,14 @@ public class BlockFilterSqliteStorageTests
 	}
 
 	[Fact]
-	public void Clear()
+	public async Task ClearAsync()
 	{
+		string workDir = await Common.GetEmptyWorkDirAsync();
+
 		FilterModel filter0 = CreateFilterModel(blockHeight: 0, blockHash: uint256.One, filterData: DummyFilterData, headerOrPrevBlockHash: uint256.Zero, blockTime: 1231006505);
 		FilterModel filter1 = CreateFilterModel(blockHeight: 1, blockHash: new uint256(2), filterData: DummyFilterData, headerOrPrevBlockHash: uint256.One, blockTime: 1231006506);
 
-		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(dataSource: SqliteStorageHelper.InMemoryDatabase);
+		using BlockFilterSqliteStorage indexStorage = BlockFilterSqliteStorage.FromFile(Path.Combine(workDir, "Filters.sqlite"));
 		bool result = indexStorage.TryAppend(filter0);
 
 		// Now the storage contains 2 rows.

@@ -4,6 +4,7 @@ using System.IO;
 using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -71,9 +72,8 @@ public class TransactionProcessorTests
 
 		var coin1 = Assert.Single(tp1.Coins);
 		var coin2 = Assert.Single(tp2.Coins);
-		Assert.Equal(1, coin1.HdPubKey.AnonymitySet);
-		Assert.NotEqual(HdPubKey.DefaultHighAnonymitySet, coin2.HdPubKey.AnonymitySet);
-		Assert.Equal(1, coin2.HdPubKey.AnonymitySet);
+		Assert.Equal(1, Anonymity.GetScore(coin1));
+		Assert.Equal(1, Anonymity.GetScore(coin2));
 	}
 
 	[Fact]
@@ -1048,7 +1048,7 @@ public class TransactionProcessorTests
 		// It is relevant even when all the coins can be dust.
 		Assert.True(relevant.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+ 		Assert.Equal(1, Anonymity.GetScore(coin));
 		Assert.Equal(amount, coin.Amount);
 	}
 
@@ -1069,6 +1069,7 @@ public class TransactionProcessorTests
 		tx.Version = 1;
 		tx.LockTime = LockTime.Zero;
 		tx.Outputs.Add(amount, keys.Skip(1).First().P2wpkhScript);
+		// 5 equal-value outputs but only 4 inputs (max anonscore is 4)
 		tx.Outputs.AddRange(CreateRandomIndistinguishableOutputs(amount, 5));
 		tx.Inputs.Add(createdCoin.Outpoint, Script.Empty, WitScript.Empty);
 		tx.Inputs.AddRange(CreateRandomInputs(4));
@@ -1077,9 +1078,9 @@ public class TransactionProcessorTests
 
 		// It is relevant even when all the coins can be dust.
 		Assert.True(relevant.IsNews);
-		var coin = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.AnonymitySet > 1);
-		Assert.Equal(5, coin.HdPubKey.AnonymitySet);
-		Assert.Equal(amount, coin.Amount);
+ 		var coin = Assert.Single(transactionProcessor.Coins, c => Anonymity.GetScore(c) < 1);
+ 		Assert.Equal(1/4m, Anonymity.GetScore(coin));
+ 		Assert.Equal(amount, coin.Amount);
 	}
 
 	[Fact]
@@ -1454,17 +1455,21 @@ public class TransactionProcessorTests
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 		transactionProcessor.Process(CreateCreditingTransaction(transactionProcessor.NewKey("").P2wpkhScript, Money.Coins(1.0m)));
 
-		var notYetPrivateCoin = transactionProcessor.NewKey("");
-		transactionProcessor.Process(CreateCreditingTransaction(notYetPrivateCoin.P2wpkhScript, Money.Coins(1.0m)));
-		notYetPrivateCoin.SetAnonymitySet(targetAnonSet - 1, 0);
+		var notYetPrivateKey = transactionProcessor.NewKey("");
+		var tx = CreateCreditingTransaction(notYetPrivateKey.P2wpkhScript, Money.Coins(1.0m));
+		var processorResult = transactionProcessor.Process(tx);
+		var notYetPrivateCoin = tx.WalletOutputs.First();
+		Anonymity.SetScore(notYetPrivateCoin, 1.0m / (targetAnonSet - 1));
 
-		var privateCoin1 = transactionProcessor.NewKey("");
-		var processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateCoin1.P2wpkhScript, Money.Coins(1.0m)));
-		privateCoin1.SetAnonymitySet(targetAnonSet, 0);
+		var privateKey = transactionProcessor.NewKey("");
+		processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateKey.P2wpkhScript, Money.Coins(1.0m)));
+		var privateCoin1 = processorResult.ReceivedCoins[0];
+		Anonymity.SetScore(privateCoin1, 1.0m / targetAnonSet);
 
-		var privateCoin2 = transactionProcessor.NewKey("");
-		processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateCoin2.P2wpkhScript, Money.Coins(1.0m)));
-		privateCoin2.SetAnonymitySet(targetAnonSet, 0);
+		var privateKey2 = transactionProcessor.NewKey("");
+		processorResult = transactionProcessor.Process(CreateCreditingTransaction(privateKey2.P2wpkhScript, Money.Coins(1.0m)));
+		var privateCoin2 = processorResult.ReceivedCoins[0];
+		Anonymity.SetScore(privateCoin2, 1.0m / targetAnonSet);
 
 		var pockets = CoinPocketHelper.GetPockets(transactionProcessor.Coins, targetAnonSet);
 		var aPocket = pockets.Single(x => x.Labels == "A");

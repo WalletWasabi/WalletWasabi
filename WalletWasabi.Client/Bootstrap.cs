@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,8 @@ public class Scheme
 	private Env _env;
 	private bool _initialized = false;
 	private JsonSerializerSettings _defaultJsonSerializerSettings;
+
+	public Action<string>? OnDisplay { get; set; }
 
 	public Scheme(Global global)
 	{
@@ -58,7 +61,7 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-coins", w => w.Coins.AsAllCoinsView());
 
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
-		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? new Dictionary<int,FeeRate>());
+		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
 		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
@@ -71,6 +74,10 @@ public class Scheme
 			global.WalletManager.StartWalletAsync(w).GetAwaiter().GetResult();
 			return w;
 		});
+
+		RegisterNativeFunction<string, Closure>("on",
+			(eventName, func) => SubscribeEvent(global, eventName, func));
+		RegisterNativeAction<object>("display", o => OnDisplay?.Invoke(o?.ToString() ?? ""));
 
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
@@ -86,6 +93,16 @@ public class Scheme
 		{
 			var param = ConvertSchemeToNative(args[0]);
 			return ConvertNativeToScheme(fn((T)param), 0);
+		}, 1));
+	}
+
+	private void RegisterNativeAction<T>(string name, Action<T> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param = ConvertSchemeToNative(args[0]);
+			fn((T)param);
+			return Unspecified.Instance;
 		}, 1));
 	}
 
@@ -123,6 +140,7 @@ public class Scheme
 	private object ConvertSchemeToNative(Value e) => ToNativeObject(e);
 
 	private readonly Dictionary<(Type, string), MemberInfo> _accessors = new();
+
 	private object GetterFn(string method, object instance)
 	{
 		var typ = instance.GetType();
@@ -150,6 +168,17 @@ public class Scheme
 			_ => throw new ArgumentOutOfRangeException()
 		};
 		return result!;
+	}
+
+	private object SubscribeEvent(Global global, string eventName, Closure func)
+	{
+		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false);
+		if (eventType is null)
+		{
+			throw new ArgumentException($"event {eventName} does not exist");
+		}
+		global.EventBus.Subscribe(eventType, arg => Interpreter.Apply(func, [ConvertNativeToScheme(arg, 0)]));
+		return Unspecified.Instance;
 	}
 
 	public async Task<Value> ExecuteAsync(string prg)
@@ -217,13 +246,22 @@ public class Scheme
 			return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
 		}
 
-		if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
+		var arr = e.ToArray();
+		var dict = new Dictionary<string, object>(arr.Length);
+
+		foreach (var item in arr)
 		{
-			return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
-				x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
+			if (item is IEnumerable<object> pair && pair.ToArray() is [string key, var value])
+			{
+				dict[key] = ToObject(value);
+			}
+			else
+			{
+				return arr.Select(ToObject).ToArray();
+			}
 		}
 
-		return e.Select(ToObject);
+		return dict;
 	}
 
 	public string ToJson(Value e) =>
@@ -243,6 +281,7 @@ public class Scheme
 			Pair p => SExpr.Iterate(p).Select(ToNativeObject),
 			Nil _ => false,
 			Unspecified _ => "Done",
+			Closure c => c,
 			_ => throw new Exception($"Cannot convert {e.GetType().Name} to native object")
 		};
 }

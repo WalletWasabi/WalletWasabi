@@ -12,6 +12,7 @@ using System.Threading;
 using NBitcoin.Protocol;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
+using WalletWasabi.WabiSabi.Client.Batching;
 
 namespace WalletWasabi.Services;
 using SubscriptionRegistry = Dictionary<Type, List<EventBus.Subscription>>;
@@ -21,20 +22,23 @@ public class EventBus
 	private readonly SubscriptionRegistry _subscriptions = new();
 	private readonly Lock _syncObj = new();
 
-	public IDisposable Subscribe<TEvent>(Action<TEvent> action) where TEvent : notnull
+	public IDisposable Subscribe(Type eventType, Action<object> action)
 	{
 		lock (_syncObj)
 		{
-			if (!_subscriptions.ContainsKey(typeof(TEvent)))
+			if (!_subscriptions.ContainsKey(eventType))
 			{
-				_subscriptions.Add(typeof(TEvent), []);
+				_subscriptions.Add(eventType, []);
 			}
 
-			var subscription = Subscription.Create(action, this);
-			_subscriptions[typeof(TEvent)].Add(subscription);
+			var subscription = Subscription.Create(eventType, action, this);
+			_subscriptions[eventType].Add(subscription);
 			return subscription;
 		}
 	}
+
+	public IDisposable Subscribe<TEvent>(Action<TEvent> action) where TEvent : notnull
+		=> Subscribe(typeof(TEvent), arg => action((TEvent)arg));
 
 	private void Unsubscribe(Subscription subscription)
 	{
@@ -83,6 +87,9 @@ public class EventBus
 		public Type Type { get; }
 		private readonly Action<object> _action;
 		private readonly EventBus _eventBus;
+
+		public static Subscription Create(Type eventType, Action<object> action, EventBus eventBus) =>
+			new(action, eventType, eventBus);
 
 		public static Subscription Create<TEvent>(Action<TEvent> action, EventBus eventBus) =>
 			new(o => action((TEvent)o), typeof(TEvent), eventBus);
@@ -139,3 +146,4 @@ public record NodeTimeoutDownloadingBlock(EndPoint EndPoint, Node Node);
 public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
+public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);

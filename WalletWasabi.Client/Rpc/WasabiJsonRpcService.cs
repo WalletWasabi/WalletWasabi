@@ -47,7 +47,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["txid"] = x.TransactionId.ToString(),
 				["index"] = x.Index,
 				["amount"] = x.Amount.Satoshi,
-				["anonymityScore"] = x.HdPubKey.AnonymitySet,
+				["anonymityScore"] = x.AnonymitySet,
 				["confirmed"] = x.Confirmed,
 				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["label"] = x.HdPubKey.Labels.ToString(),
@@ -74,7 +74,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 				["txid"] = x.TransactionId.ToString(),
 				["index"] = x.Index,
 				["amount"] = x.Amount.Satoshi,
-				["anonymityScore"] = x.HdPubKey.AnonymitySet,
+				["anonymityScore"] = x.AnonymitySet,
 				["confirmed"] = x.Confirmed,
 				["confirmations"] = x.Transaction.GetConfirmations(serverTipHeight),
 				["keyPath"] = x.HdPubKey.FullKeyPath.ToString(),
@@ -136,6 +136,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
+			["allowPaymentsRegardlessOfAnonScore"] = activeWallet.KeyManager.AllowPaymentsRegardlessOfAnonScore,
 			["accounts"] = new[] { segwit }
 		};
 
@@ -166,7 +167,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("getnewaddress")]
-	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = false)
+	public JsonRpcResult GenerateReceiveAddress(string label, bool taproot = true)
 	{
 		AssertWalletIsLoaded();
 		label = Guard.NotNullOrEmptyOrWhitespace(nameof(label), label, true);
@@ -272,10 +273,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("payincoinjoin")]
-	public string PayInCoinJoin(BitcoinAddress address, Money amount)
+	public string PayInCoinJoin(BitcoinAddress address, Money amount, string? password = null)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
@@ -344,7 +346,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public void CancelPayment(Guid paymentId)
 	{
 		AssertWalletIsLoaded();
-		ActiveWallet!.BatchedPayments.AbortPayment(paymentId);
+		ActiveWallet!.CancelCoinJoinPayment(paymentId);
 	}
 
 	[JsonRpcMethod("send")]
@@ -367,7 +369,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.TryLogin(password, out _);
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password);
 		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
 		{
@@ -384,7 +387,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.TryLogin(password, out _);
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password);
 		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
 		{

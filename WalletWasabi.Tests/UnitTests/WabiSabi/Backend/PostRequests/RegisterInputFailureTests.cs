@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;

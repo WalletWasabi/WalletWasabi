@@ -201,7 +201,7 @@ public partial class AddCoinJoinPaymentViewModel : RoutableViewModel
 
 		try
 		{
-			_wallet.BatchedPayments.AddPayment(destination, amount);
+			_wallet.AddCoinJoinPayment(destination, amount);
 			Navigate().Back();
 		}
 		catch (Exception ex)

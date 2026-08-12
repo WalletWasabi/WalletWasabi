@@ -10,6 +10,7 @@ using System.Net;
 using System.Text;
 using WalletWasabi.Tests.Helpers;
 using System.Net.Mime;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
