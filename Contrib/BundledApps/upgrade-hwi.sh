@@ -82,11 +82,15 @@ declare -A FILES
 FILES[linux-arm64]="hwi-${VERSION}-linux-aarch64.tar.gz"
 FILES[linux-x64]="hwi-${VERSION}-linux-x86_64.tar.gz"
 FILES[osx64]="hwi-${VERSION}-mac-x86_64.tar.gz"
+FILES[osx64-arm64]="hwi-${VERSION}-mac-arm64.tar.gz"
 FILES[win-x64]="hwi-${VERSION}-windows-x86_64.zip"
 
 CHECKSUM_FILE="SHA256SUMS.txt.asc"
 
 SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
+# The osx64 folder ships in both the x86_64 and the arm64 dmg (see Contrib/release.sh),
+# so its hwi is a universal binary fused from these two downloads.
+DOWNLOAD_PLATFORMS=("${SUPPORTED_PLATFORMS[@]}" "osx64-arm64")
 
 SEVEN_ZIP="7zz"
 
@@ -188,7 +192,7 @@ section "Downloading HWI packages"
 downloadChecksumsFile=true
 
 # Download platform binaries only if missing or forced
-for platform in "${SUPPORTED_PLATFORMS[@]}"; do
+for platform in "${DOWNLOAD_PLATFORMS[@]}"; do
     fname="${FILES[$platform]}"
     url="${DIST_URI}/${fname}"
 
@@ -241,6 +245,12 @@ if [[ "$SKIP_EXTRACT" != true ]]; then
     "$SEVEN_ZIP" x -y "hwi-${VERSION}-mac-x86_64.tar.gz" >/dev/null
     "$SEVEN_ZIP" x -y -oHWI/osx64 "hwi-${VERSION}-mac-x86_64.tar" >/dev/null
 
+    # macOS arm64 (fused into a universal osx64/hwi at replace time)
+    info "Extracting macOS arm64 (hwi-${VERSION}-mac-arm64.tar.gz)"
+    mkdir -p HWI/osx64-arm64
+    "$SEVEN_ZIP" x -y "hwi-${VERSION}-mac-arm64.tar.gz" >/dev/null
+    "$SEVEN_ZIP" x -y -oHWI/osx64-arm64 "hwi-${VERSION}-mac-arm64.tar" >/dev/null
+
     # Windows
     info "Extracting Windows (hwi-${VERSION}-windows-x86_64.zip)"
     mkdir -p HWI/win-x64
@@ -265,6 +275,14 @@ if [[ "$SKIP_REPLACE" != true ]]; then
         cp -a "${TEMP_DIR}/HWI/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
         info "Updated ${target_dir}"
     done
+
+    # Fuse the two macOS builds into one universal binary: the osx64 folder ships in
+    # both the x86_64 and the arm64 dmg, and Apple Silicon without Rosetta 2 cannot
+    # run an x86_64-only hwi at all ("bad CPU type in executable").
+    LIPO=$(command -v lipo || command -v llvm-lipo || true)
+    [[ -n "$LIPO" ]] || error "lipo (macOS) or llvm-lipo is required to build the universal macOS hwi"
+    "$LIPO" -create "${TEMP_DIR}/HWI/osx64/hwi" "${TEMP_DIR}/HWI/osx64-arm64/hwi" -output "osx64/hwi"
+    info "Created universal macOS hwi (x86_64 + arm64)"
 else
     section "Skipping HWI binary replacement"
 fi
