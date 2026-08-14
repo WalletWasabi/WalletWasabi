@@ -519,7 +519,14 @@ public class CoinJoinClient
 		// Decrease the available time, so the clients hurry up.
 		var safetyBuffer = TimeSpan.FromMinutes(1);
 		var remainingTime = roundState.InputRegistrationEnd - safetyBuffer;
-		var scheduledDates = remainingTime.GetScheduledDates(smartCoins.Count());
+
+		var registrationStart = GetRegistrationStart(roundState, _doNotRegisterInLastMinuteTimeLimit, DateTimeOffset.UtcNow);
+		if (registrationStart > DateTimeOffset.UtcNow)
+		{
+			Logger.LogDebug(FormatLog($"Holding the registrations back for {registrationStart - DateTimeOffset.UtcNow:hh\\:mm\\:ss} to not register during the previous round's buffer period.", roundState));
+		}
+
+		var scheduledDates = remainingTime.GetScheduledDates(smartCoins.Count(), registrationStart, TimeSpan.MaxValue);
 
 		// Creates scheduled tasks (tasks that wait until the specified date/time and then perform the real registration)
 		var aliceClients = smartCoins.Zip(
@@ -656,6 +663,17 @@ public class CoinJoinClient
 	internal virtual ImmutableList<DateTimeOffset> GetScheduledDates(int howMany, DateTimeOffset startTime, DateTimeOffset endTime, TimeSpan maximumRequestDelay)
 	{
 		return endTime.GetScheduledDates(howMany, startTime, maximumRequestDelay);
+	}
+
+	internal static DateTimeOffset GetRegistrationStart(RoundState roundState, TimeSpan doNotRegisterInLastMinuteTimeLimit, DateTimeOffset now)
+	{
+		if (roundState.IsBlame)
+		{
+			return now;
+		}
+
+		var bufferEnd = roundState.InputRegistrationStart + doNotRegisterInLastMinuteTimeLimit;
+		return bufferEnd > now ? bufferEnd : now;
 	}
 
 	private void LogCoinJoinSummary(ImmutableArray<AliceClient> registeredAliceClients, IEnumerable<TxOut> myOutputs, RoundState roundState)
