@@ -15,22 +15,12 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
-		// The script is written with newlines but we need to pass the script to
-		// bash -c as a one-liner, so that's why we use the "ReplaceLineEndings" command.
-		//
-		// Note that this script requires dollar signs ($) and quotes (") to be escaped.
-		string innerCommand = $$"""
-			caffeinate -i &
-			caffeinatePid=$!;
-			trap 'kill -9 $caffeinatePid' EXIT SIGINT SIGTERM;
-			while (ps -p {{Environment.ProcessId}} );
-			do
-				sleep 1;
-			done;
-			""".ReplaceLineEndings(replacementText: " ");
+		// -w switch makes sure that the caffeinate will stop enforcing "no idle mode" once Wasabi process exits.
+		// If Wasabi is killed, orphaned caffeinate 
+		var innerCommand = $"""caffeinate -i -w {Environment.ProcessId}""";
 
-		string command = $"/bin/bash";
-		string arguments = $"-c \"{innerCommand}\"";
+		var command = $"/bin/bash";
+		var arguments = $"-c \"{innerCommand}\"";
 
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
