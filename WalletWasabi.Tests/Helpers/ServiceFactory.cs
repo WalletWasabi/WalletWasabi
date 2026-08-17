@@ -38,16 +38,15 @@ public static class ServiceFactory
 		}
 
 		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
-		var sCoins = new SmartCoin[coinArray.Length];
 		for (int i = 0; i < coinArray.Length; i++)
 		{
 			var c = coinArray[i];
 			var k = keys[c.KeyIndex];
 			k.SetLabel(c.Label);
-			var coin = BitcoinFactory.CreateSmartCoin(keys[c.KeyIndex], c.Amount, c.Confirmed, c.AnonymitySet);
-			sCoins[i] = coin;
+			k.SetAnonymitySet(c.AnonymitySet);
 		}
 
+		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 		foreach (var coin in sCoins)
 		{
 			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))
