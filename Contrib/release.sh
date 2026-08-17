@@ -246,10 +246,12 @@ DEBIAN_BIN=$DEBIAN_USR/local/bin
 
 DEBIAN_ARCH_NAME=""
 DEBIAN_FULL_PLATFORM_NAME="linux-x64"
+DEBIAN_CONTROL_FILE_ARCHITECTURE="amd64"
 
 if [ "$CURRENT_ARCH" = "arm64" ]; then
   DEBIAN_ARCH_NAME="-arm64"
   DEBIAN_FULL_PLATFORM_NAME="linux-arm64"
+  DEBIAN_CONTROL_FILE_ARCHITECTURE="arm64"
 fi
 
 
@@ -278,7 +280,7 @@ Version: ${VERSION}
 Homepage: https://wasabiwallet.io
 Vcs-Git: git://github.com/WalletWasabi/WalletWasabi.git
 Vcs-Browser: https://github.com/WalletWasabi/WalletWasabi
-Architecture: amd64
+Architecture: ${DEBIAN_CONTROL_FILE_ARCHITECTURE}
 License: Open Source (MIT)
 Installed-Size: ${DEBIAN_PACKAGE_SIZE}
 Recommends: policykit-1
