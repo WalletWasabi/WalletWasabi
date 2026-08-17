@@ -94,12 +94,7 @@ public partial class CompactFilterBehavior(
 			return;
 		}
 
-		if (!_lock.TryEnter())
-		{
-			return;
-		}
-
-		try
+		lock (_lock)
 		{
 			if (_assignedHeaderRange is { } assignedHeaderRange &&
 			    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
@@ -113,10 +108,6 @@ public partial class CompactFilterBehavior(
 			{
 				HandleFilterMessageNoLock(node, filterPayload, assignedFilterRange);
 			}
-		}
-		finally
-		{
-			_lock.Exit();
 		}
 	}
 
@@ -311,19 +302,10 @@ public partial class CompactFilterBehavior(
 			return;
 		}
 
-		if (!_lock.TryEnter())
-		{
-			return;
-		}
-
-		try
+		lock (_lock)
 		{
 			TrySyncHeadersNoLock(node);
 			TrySyncFiltersNoLock(node);
-		}
-		finally
-		{
-			_lock.Exit();
 		}
 	}
 
@@ -427,12 +409,7 @@ public partial class CompactFilterBehavior(
 
 	private bool CheckAndHandleStaleAssignment(Node node, DateTime nowUtc)
 	{
-		if (!_lock.TryEnter())
-		{
-			return false;
-		}
-
-		try
+		lock (_lock)
 		{
 			// Check filter assignment timeout
 			if (_assignedFilterRange is not null)
@@ -457,10 +434,6 @@ public partial class CompactFilterBehavior(
 			}
 
 			return false;
-		}
-		finally
-		{
-			_lock.Exit();
 		}
 	}
 
