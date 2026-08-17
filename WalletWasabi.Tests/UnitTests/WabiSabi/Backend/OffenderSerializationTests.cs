@@ -16,44 +16,72 @@ public class OffenderSerializationTests
 		var roundId = BitcoinFactory.CreateUint256();
 
 		// Cheating
-		var offender0 = new Offender(outpoint, now, new Cheating(roundId));
-		var offender0str = offender0.ToStringLine();
-		Assert.Equal(offender0str, Offender.FromStringLine(offender0str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new Cheating(roundId));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Fail to confirm
-		var offender1 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotConfirm));
-		var offender1str = offender1.ToStringLine();
-		Assert.Equal(offender1str, Offender.FromStringLine(offender1str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotConfirm));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Fail to sign
-		var offender2 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSign));
-		var offender2str = offender2.ToStringLine();
-		Assert.Equal(offender2str, Offender.FromStringLine(offender2str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSign));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Double spent
-		var offender3 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DoubleSpent));
-		var offender3str = offender3.ToStringLine();
-		Assert.Equal(offender3str, Offender.FromStringLine(offender3str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DoubleSpent));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Double spent multiple rounds
-		var offender3x = new Offender(outpoint, now, new RoundDisruption(new[] { roundId, uint256.One }, Money.Satoshis(12345678), RoundDisruptionMethod.DoubleSpent));
-		var offender3xstr = offender3x.ToStringLine();
-		Assert.Equal(offender3xstr, Offender.FromStringLine(offender3xstr).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new RoundDisruption(new[] { roundId, uint256.One }, Money.Satoshis(12345678), RoundDisruptionMethod.DoubleSpent));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Fail to verify
-		var offender4 = new Offender(outpoint, now, new FailedToVerify(roundId));
-		var offender4str = offender4.ToStringLine();
-		Assert.Equal(offender4str, Offender.FromStringLine(offender4str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new FailedToVerify(roundId));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
-		// Fail to verify
-		var ancestors = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateOutPoint()).ToArray();
-		var offender5 = new Offender(outpoint, now, new Inherited(ancestors));
-		var offender5str = offender5.ToStringLine();
-		Assert.Equal(offender5str, Offender.FromStringLine(offender5str).ToStringLine());
+		// Inherited
+		{
+			var ancestors = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateOutPoint()).ToArray();
+			var offender = new Offender(outpoint, now, new Inherited(ancestors));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 
 		// Fail to signal ready to sign
-		var offender6 = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSignalReadyToSign));
-		var offender6str = offender6.ToStringLine();
-		Assert.Equal(offender6str, Offender.FromStringLine(offender6str).ToStringLine());
+		{
+			var offender = new Offender(outpoint, now, new RoundDisruption(roundId, Money.Satoshis(12345678), RoundDisruptionMethod.DidNotSignalReadyToSign));
+			var expected = Serialize(offender);
+			var actual = Deserialize(expected);
+			Assert.Equal(expected, actual);
+		}
 	}
+
+	private static string Deserialize(string expected) => Offender.FromStringLine(expected).ToStringLine();
+
+	private static string Serialize(Offender offender) => offender.ToStringLine();
 }

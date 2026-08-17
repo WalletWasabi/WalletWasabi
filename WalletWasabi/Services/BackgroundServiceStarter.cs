@@ -1,11 +1,9 @@
-using System.Threading;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Hosting;
 
 namespace WalletWasabi.Services;
 
 // BackgroundServiceStarter is a IHostedService whose only responsibility is to start/stop other service.
-// It provides the most ellegant way to be able to register a singleton hosted service. ASPNET provides
+// It provides the most elegant way to be able to register a singleton hosted service. ASPNET provides
 // service.AddHostedService() method but it registers it as transient instead of singleton and for that
 // reason the instance is different for every http request.
 //
