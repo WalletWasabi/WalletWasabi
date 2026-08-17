@@ -205,7 +205,7 @@ public class P2pConnectionManager : IDisposable
 		}
 		catch (Exception e)
 		{
-			Logger.LogWarning(e.Message);
+			Logger.LogWarning(e);
 		}
 		finally
 		{
