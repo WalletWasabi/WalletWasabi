@@ -12,9 +12,9 @@ public class StartupTask
 {
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(IRPCClient rpc)
+	public StartupTask(IRPCClient rpcClient)
 	{
-		RpcClient = rpc;
+		RpcClient = rpcClient;
 	}
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -38,7 +38,7 @@ public class StartupTask
 		}
 		catch (Exception)
 		{
-			Logger.LogError("Bitcoin Node is not running. Check RPC credentials.");
+			Logger.LogError("Could not connect to Bitcoin Node RPC.");
 			throw;
 		}
 
