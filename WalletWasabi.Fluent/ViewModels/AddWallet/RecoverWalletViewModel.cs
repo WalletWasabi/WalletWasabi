@@ -83,6 +83,10 @@ public partial class RecoverWalletViewModel : RoutableViewModel
 			{
 				// Save the wallet so its birth height is picked up by CalculateSafestHeight on restart.
 				UiContext.WalletRepository.SaveWallet(walletSettings);
+
+				UiContext.Services.SetLastSelectedWallet(walletName);
+				UiContext.Services.UiConfig.ToFile();
+
 				await ShowErrorAsync(
 					"Restart required",
 					"Wasabi needs to download older block filters for this wallet. The application will restart to begin this process.",
