@@ -350,7 +350,7 @@ if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
 fi
 
 # Build the .deb package
-dpkg-deb -Zxz --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}${DEBIAN_ARCH_NAME}.deb"
+dpkg-deb -Zxz --root-owner-group --build "${DEBIAN_PACKAGE_DIR}" "$PACKAGES_DIR/${PACKAGE_FILE_NAME_PREFIX}${DEBIAN_ARCH_NAME}.deb"
 
 done
 fi
