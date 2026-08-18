@@ -179,11 +179,6 @@ public class MockRpcClient : IRPCClient
 		return OnUptimeAsync?.Invoke() ?? NotImplementedTask<TimeSpan>(nameof(UptimeAsync));
 	}
 
-	public Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken = default*/)
-	{
-		throw new NotImplementedException();
-	}
-
 	public Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default)
 	{
 		throw new NotImplementedException();

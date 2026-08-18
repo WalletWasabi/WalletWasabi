@@ -186,11 +186,6 @@ public class RpcClientBase : IRPCClient
 		await RpcClient.InvalidateBlockAsync(blockHash, cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual async Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken = default*/)
-	{
-		await RpcClient.AbandonTransactionAsync(txid /*, cancellationToken*/).ConfigureAwait(false);
-	}
-
 	public virtual async Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default)
 	{
 		return await RpcClient.BumpFeeAsync(txid, cancellationToken).ConfigureAwait(false);
