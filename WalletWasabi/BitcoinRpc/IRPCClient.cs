@@ -48,8 +48,6 @@ public interface IRPCClient
 
 	Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default);
 
-	Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken*/);
-
 	Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default);
 
 	Task<Transaction> GetRawTransactionAsync(uint256 txid, bool throwIfNotFound = true, CancellationToken cancellationToken = default);
