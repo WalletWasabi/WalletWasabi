@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Security.Cryptography;
@@ -15,6 +16,7 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using static WalletWasabi.Services.Workers;
 
 namespace WalletWasabi.BitcoinP2p;
 
@@ -28,15 +30,33 @@ public class CompactFilterBehavior(
 	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
 	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
 
-	private readonly Lock _lock = new();
-	private readonly List<CompactFilterPayload> _collectedFilters = [];
+	// Command types for the mailbox
+	private abstract record Command;
+	private record BitcoinMessageCommand(IncomingMessage Message) : Command;
+	private record TickCommand(DateTime UtcNow) : Command;
+	private record ReleaseAssignmentCommand : Command;
 
-	private RangeRequest? _assignedHeaderRange;
-	private DateTime _assignedHeaderRangeAt;
-	private RangeRequest? _assignedFilterRange;
-	private DateTime _assignedFilterRangeAt;
+	private abstract record Assignment;
+	private record Assigned(RangeRequest Range, DateTime AssignedAt) : Assignment;
+	private record Unassigned : Assignment;
 
-	private volatile bool _invalidReceived;
+	private abstract record State;
+	private record TrackingState(
+		Node Node,
+		Assignment HeaderRange,
+		Assignment FilterRange,
+		ImmutableArray<CompactFilterPayload> CollectedFilters) : State
+	{
+		public static State Initial(Node node) => new TrackingState(
+			node,
+			HeaderRange: new Unassigned(),
+			FilterRange: new Unassigned(),
+			CollectedFilters: []);
+	}
+
+	private record InvalidState : State;
+
+	private MailboxProcessor<Command>? _processor;
 
 	protected override void AttachCore()
 	{
@@ -49,7 +69,8 @@ public class CompactFilterBehavior(
 		AttachedNode.StateChanged -= OnStateChanged;
 		AttachedNode.MessageReceived -= OnMessageReceived;
 
-		ReleaseAssignments();
+		// Post release command to clean up assignments
+		_processor?.Post(new ReleaseAssignmentCommand());
 	}
 
 	public override object Clone() =>
@@ -73,7 +94,11 @@ public class CompactFilterBehavior(
 
 		Logger.LogDebug($"Node {node.Peer.Endpoint} supports NODE_COMPACT_FILTERS, starting sync");
 
-		// Subscribe to tick events for periodic sync attempts
+		_processor = Spawn(
+			$"CompactFilterBehavior-{node.Peer.Endpoint}",
+			EventDriven<Command, State>(TrackingState.Initial(node), HandleCommandAsync));
+
+		// Subscribe to tick events - just post to mailbox
 		var lastTickSync = DateTime.MinValue;
 		var tickSubscription = eventBus.Subscribe<Tick>(tick =>
 		{
@@ -84,73 +109,92 @@ public class CompactFilterBehavior(
 			}
 
 			lastTickSync = tick.DateTime;
-
-			// Check for stale assignments - disconnect if timed out
-			if (CheckAndHandleStaleAssignment(node, nowUtc))
-			{
-				return;
-			}
-
-			TrySync(node);
+			_processor.Post(new TickCommand(nowUtc));
 		});
 		RegisterDisposable(tickSubscription);
+		RegisterDisposable(_processor);
 
-		TrySync(node);
+		// Post initial sync
+		_processor.Post(new TickCommand(DateTime.UtcNow));
 	}
 
 	private void OnMessageReceived(Node node, IncomingMessage message)
 	{
-		if (!IsNodeInValidState(node))
-		{
-			return;
-		}
-
-		if (!_lock.TryEnter())
-		{
-			return;
-		}
-
-		try
-		{
-			if (_assignedHeaderRange is { } assignedHeaderRange &&
-			    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
-			{
-				HandleFilterHeaderMessageNoLock(node, cfHeaders, assignedHeaderRange);
-				return;
-			}
-
-			if (_assignedFilterRange is { } assignedFilterRange &&
-			    message.Message.Payload is CompactFilterPayload {FilterType: FilterType.Basic} filterPayload)
-			{
-				HandleFilterMessageNoLock(node, filterPayload, assignedFilterRange);
-			}
-		}
-		finally
-		{
-			_lock.Exit();
-		}
+		// Just post to mailbox - processing happens in the worker
+		_processor?.Post(new BitcoinMessageCommand(message));
 	}
 
-	private void HandleFilterHeaderMessageNoLock(Node node, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
+	private Task<State> HandleCommandAsync(Command command, State state, CancellationToken cancellationToken)
+	{
+		if (state is not TrackingState trackingState)
+		{
+			return Task.FromResult(state);
+		}
+
+		if (!IsNodeInValidState(trackingState.Node))
+		{
+			return Task.FromResult(state);
+		}
+
+		// Handle release command - clean up and return cleared state
+		if (command is ReleaseAssignmentCommand)
+		{
+			ReleaseAssignments(trackingState);
+			return Task.FromResult<State>(new InvalidState());
+		}
+
+		var newState = command switch
+		{
+			BitcoinMessageCommand { Message: var message } => ProcessMessage(trackingState, message),
+			TickCommand { UtcNow: var utcNow } => ProcessTick(trackingState, utcNow),
+			_ => state
+		};
+
+		return Task.FromResult(newState);
+	}
+
+	private State ProcessTick(TrackingState state, DateTime utcNow)
+	{
+		var (newState, isStale) = CheckAndHandleStaleAssignment(state, utcNow);
+		return isStale ? newState : TrySync(newState);
+	}
+
+	private State ProcessMessage(TrackingState state, IncomingMessage message)
+	{
+		if (state.HeaderRange is Assigned assignedHeader &&
+		    message.Message.Payload is CompactFilterHeadersPayload {FilterType: FilterType.Basic} cfHeaders)
+		{
+			return HandleFilterHeaderMessage(state, cfHeaders, assignedHeader.Range);
+		}
+
+		if (state.FilterRange is Assigned assignedFilter &&
+		    message.Message.Payload is CompactFilterPayload {FilterType: FilterType.Basic} filterPayload)
+		{
+			return HandleFilterMessage(state, filterPayload, assignedFilter.Range);
+		}
+
+		return state;
+	}
+
+	private State HandleFilterHeaderMessage(TrackingState state, CompactFilterHeadersPayload cfHeaders, RangeRequest assignment)
 	{
 		var filterHashes = cfHeaders.FilterHeaders;
 		var batchCount = filterHashes.Count;
 
 		Logger.LogDebug(
-			$"Received {batchCount} filter headers from {node.Peer.Endpoint} for range {assignment}");
+			$"Received {batchCount} filter headers from {state.Node.Peer.Endpoint} for range {assignment}");
 
 		if (batchCount == 0)
 		{
 			Logger.LogDebug("Received empty cfheaders batch");
-			HandleInvalidNoLock(node, "Invalid compact filter headers received");
-			return;
+			return HandleInvalid(state, "Invalid compact filter headers received");
 		}
 
 		// Resolve the stop block to validate the response
 		var stopBlock = blockHeaderChain.GetBlock(cfHeaders.StopHash);
 		if (stopBlock == null)
 		{
-			return;
+			return state;
 		}
 
 		var startHeight = stopBlock.Height - batchCount + 1;
@@ -158,8 +202,7 @@ public class CompactFilterBehavior(
 		{
 			Logger.LogWarning(
 				$"Invalid batch - start height {startHeight} is negative (stopHeight={stopBlock.Height}, batchCount={batchCount})");
-			HandleInvalidNoLock(node, "Invalid compact filter headers received");
-			return;
+			return HandleInvalid(state, "Invalid compact filter headers received");
 		}
 
 		// Verify this matches our assignment
@@ -167,8 +210,7 @@ public class CompactFilterBehavior(
 		{
 			Logger.LogWarning(
 				$"Received headers for wrong range - expected {assignment.StartHeight}, got {startHeight}");
-			HandleInvalidNoLock(node, "Invalid compact filter headers received");
-			return;
+			return HandleInvalid(state, "Invalid compact filter headers received");
 		}
 
 		// Validate headers using shared state
@@ -177,66 +219,64 @@ public class CompactFilterBehavior(
 			assignment,
 			filterHashArray,
 			cfHeaders.PreviousFilterHeader,
-			node.Network);
+			state.Node.Network);
 
 		switch (validationResult)
 		{
 			case HeaderValidationResult.Success success:
 				Logger.LogInfo($"Successfully validated filter header range {assignment}");
 				synchronizationState.OnHeaderCompleted(assignment.StartHeight, success.Headers);
-				_assignedHeaderRange = null;
-				TrySyncNoLock(node);
-				break;
+				var newState = state with { HeaderRange = new Unassigned() };
+				return TrySync(newState);
 
 			case HeaderValidationResult.NotReadyYet:
 				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
-				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, node.Network);
-				_assignedHeaderRange = null;
-				TrySyncNoLock(node);
-				break;
+				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, state.Node.Network);
+				var bufferedState = state with { HeaderRange = new Unassigned() };
+				return TrySync(bufferedState);
 
 			case HeaderValidationResult.Invalid invalid:
 				Logger.LogWarning($"Validation failed for filter header range {assignment}: {invalid.Reason}");
-				HandleInvalidNoLock(node, "Invalid compact filter headers received");
-				break;
+				return HandleInvalid(state, "Invalid compact filter headers received");
+
+			default:
+				return state;
 		}
 	}
 
-	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
+	private State HandleFilterMessage(TrackingState state, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
-		_collectedFilters.Add(filterPayload);
+		var collectedFilters = state.CollectedFilters.Add(filterPayload);
 
 		// Check if we've received all filters for this range
-		if (filterPayload.BlockHash != assignment.StopHash && _collectedFilters.Count < assignment.Count)
+		if (filterPayload.BlockHash != assignment.StopHash && collectedFilters.Length < assignment.Count)
 		{
-			return;
+			return state with { CollectedFilters = collectedFilters };
 		}
 
 		Logger.LogDebug(
-			$"Range {assignment} complete ({_collectedFilters.Count}/{assignment.Count} filters)");
+			$"Range {assignment} complete ({collectedFilters.Length}/{assignment.Count} filters)");
 
-		var filters = _collectedFilters.ToArray();
-		_collectedFilters.Clear();
+		var filters = collectedFilters.ToArray();
 
 		// Validate all filters
-		var validatedFilters = ValidateFilters(assignment.StartHeight, filters, node.Network);
+		var validatedFilters = ValidateFilters(assignment.StartHeight, filters, state.Node.Network);
 
 		if (validatedFilters is null)
 		{
 			// Validation failed - disconnect and release assignment
 			Logger.LogWarning($"Validation failed for range {assignment}");
-			HandleInvalidNoLock(node, "Invalid compact filters received");
-			return;
+			return HandleInvalid(state, "Invalid compact filters received");
 		}
 
 		Logger.LogInfo($"Successfully validated range {assignment}");
 
 		// Report success
 		synchronizationState.OnFilterRangeCompleted(assignment.StartHeight, validatedFilters);
-		_assignedFilterRange = null;
+		var newState = state with { FilterRange = new Unassigned(), CollectedFilters = [] };
 
 		// Immediately try to fetch the next range
-		TrySyncNoLock(node);
+		return TrySync(newState);
 	}
 
 	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
@@ -315,175 +355,126 @@ public class CompactFilterBehavior(
 		return result;
 	}
 
-	private void TrySync(Node node)
+	private State TrySync(State state)
 	{
-		if (!IsNodeInValidState(node))
+		if (state is not TrackingState trackingState)
 		{
-			return;
+			return state;
+		}
+		if (!IsNodeInValidState(trackingState.Node))
+		{
+			return state;
 		}
 
-		if (!_lock.TryEnter())
-		{
-			return;
-		}
-
-		try
-		{
-			TrySyncHeadersNoLock(node);
-			TrySyncFiltersNoLock(node);
-		}
-		finally
-		{
-			_lock.Exit();
-		}
+		trackingState = TrySyncHeaders(trackingState);
+		trackingState = TrySyncFilters(trackingState);
+		return trackingState;
 	}
 
-	private void TrySyncNoLock(Node node)
+	private TrackingState TrySyncFilters(TrackingState state)
 	{
-		if (!IsNodeInValidState(node))
+		if (state.FilterRange is Assigned)
 		{
-			return;
-		}
-
-		TrySyncHeadersNoLock(node);
-		TrySyncFiltersNoLock(node);
-	}
-
-	private void TrySyncFiltersNoLock(Node node)
-	{
-		if (_assignedFilterRange is not null)
-		{
-			return;
+			return state;
 		}
 
 		if (!synchronizationState.TryAssignFilterRange(out var filterAssignment))
 		{
-			return;
+			return state;
 		}
 
-		_assignedFilterRange = filterAssignment;
-		_assignedFilterRangeAt = DateTime.UtcNow;
 		Logger.LogDebug(
-			$"Assigned range {filterAssignment} to node {node.Peer.Endpoint}");
-
-		_collectedFilters.Clear();
+			$"Assigned range {filterAssignment} to node {state.Node.Peer.Endpoint}");
 
 		var payload = new GetCompactFiltersPayload(FilterType.Basic, filterAssignment.StartHeight,
 			filterAssignment.StopHash);
-		node.SendMessage(payload);
+		state.Node.SendMessage(payload);
+
+		return state with
+		{
+			FilterRange = new Assigned(filterAssignment, DateTime.UtcNow),
+			CollectedFilters = []
+		};
 	}
 
-	private void TrySyncHeadersNoLock(Node node)
+	private TrackingState TrySyncHeaders(TrackingState state)
 	{
-		if (_assignedHeaderRange is not null)
+		if (state.HeaderRange is Assigned)
 		{
-			return;
+			return state;
 		}
 
-		if (!synchronizationState.TryAssignHeaderRange(node.Network, out var headerAssignment))
+		if (!synchronizationState.TryAssignHeaderRange(state.Node.Network, out var headerAssignment))
 		{
-			return;
+			return state;
 		}
 
-		_assignedHeaderRange = headerAssignment;
-		_assignedHeaderRangeAt = DateTime.UtcNow;
-		Logger.LogDebug($"Assigned filter header range {headerAssignment} to node {node.Peer.Endpoint}");
+		Logger.LogDebug($"Assigned filter header range {headerAssignment} to node {state.Node.Peer.Endpoint}");
 
 		var payload = new GetCompactFilterHeadersPayload(FilterType.Basic, headerAssignment.StartHeight,
 			headerAssignment.StopHash);
-		node.SendMessage(payload);
+		state.Node.SendMessage(payload);
+
+		return state with
+		{
+			HeaderRange = new Assigned(headerAssignment, DateTime.UtcNow)
+		};
 	}
 
-	private void HandleInvalidNoLock(Node node, string reason)
+	private State HandleInvalid(TrackingState state, string reason)
 	{
-		_invalidReceived = true;
+		ReleaseAssignments(state);
 
-		ReleaseAssignmentsNoLock();
-
-		Logger.LogWarning($"Disconnecting node {node.Peer.Endpoint}: {reason}");
+		Logger.LogWarning($"Disconnecting node {state.Node.Peer.Endpoint}: {reason}");
 
 		// Disconnect the node
-		node.DisconnectAsync(reason);
+		state.Node.DisconnectAsync(reason);
+
+		return new InvalidState();
 	}
 
-	private void ReleaseAssignments()
+	private void ReleaseAssignments(TrackingState state)
 	{
-		_lock.Enter();
-		try
+		if (state.HeaderRange is Assigned { Range: var assignedHeaderRange })
 		{
-			ReleaseAssignmentsNoLock();
+			synchronizationState.OnHeaderNodeDisconnected(assignedHeaderRange);
 		}
-		finally
+
+		if (state.FilterRange is Assigned { Range: var assignedFilterRange })
 		{
-			_lock.Exit();
+			synchronizationState.OnFilterNodeDisconnected(assignedFilterRange);
 		}
 	}
 
-	private void ReleaseAssignmentsNoLock()
+	private (State State, bool IsStale) CheckAndHandleStaleAssignment(TrackingState state, DateTime nowUtc)
 	{
-		if (_assignedHeaderRange is not null)
+		// Check filter assignment timeout
+		if (state.FilterRange is Assigned { Range: var assignedFilterRange, AssignedAt: var filterRangeAssignedAt })
 		{
-			synchronizationState.OnHeaderNodeDisconnected(_assignedHeaderRange);
-			_assignedHeaderRange = null;
-		}
-
-		if (_assignedFilterRange is not null)
-		{
-			synchronizationState.OnFilterNodeDisconnected(_assignedFilterRange);
-			_assignedFilterRange = null;
-		}
-
-		_collectedFilters.Clear();
-	}
-
-	private bool CheckAndHandleStaleAssignment(Node node, DateTime nowUtc)
-	{
-		if (!_lock.TryEnter())
-		{
-			return false;
-		}
-
-		try
-		{
-			// Check filter assignment timeout
-			if (_assignedFilterRange is not null)
+			var elapsed = nowUtc - filterRangeAssignedAt;
+			if (elapsed > FilterAssignmentTimeout)
 			{
-				var elapsed = nowUtc - _assignedFilterRangeAt;
-				if (elapsed > FilterAssignmentTimeout)
-				{
-					HandleInvalidNoLock(node, $"Filter assignment at {_assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
-					return true;
-				}
+				var newState = HandleInvalid(state, $"Filter assignment at {assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {state.Node.Peer.Endpoint}");
+				return (newState, true);
 			}
+		}
 
-			// Check header assignment timeout
-			if (_assignedHeaderRange is not null)
+		// Check header assignment timeout
+		if (state.HeaderRange is Assigned { Range: var assignedHeaderRange, AssignedAt: var headerRangeAssignedAt })
+		{
+			var elapsed = nowUtc - headerRangeAssignedAt;
+			if (elapsed > HeaderAssignmentTimeout)
 			{
-				var elapsed = nowUtc - _assignedHeaderRangeAt;
-				if (elapsed > HeaderAssignmentTimeout)
-				{
-					HandleInvalidNoLock(node, $"Header assignment at {_assignedHeaderRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
-					return true;
-				}
+				var newState = HandleInvalid(state, $"Header assignment at {assignedHeaderRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {state.Node.Peer.Endpoint}");
+				return (newState, true);
 			}
+		}
 
-			return false;
-		}
-		finally
-		{
-			_lock.Exit();
-		}
+		return (state, false);
 	}
 
-	private bool IsNodeInValidState(Node node)
-	{
-		if (_invalidReceived)
-		{
-			return false;
-		}
-
-		return node is {State: NodeState.HandShaked};
-	}
+	private static bool IsNodeInValidState(Node node) =>
+		node is {State: NodeState.HandShaked};
 
 	public class FilterSynchronizationState
 	{
