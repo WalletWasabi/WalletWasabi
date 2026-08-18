@@ -15,12 +15,9 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
-		// -w switch makes sure that the caffeinate will stop enforcing "no idle mode" once Wasabi process exits.
-		// If Wasabi is killed, orphaned caffeinate 
-		var innerCommand = $"""caffeinate -i -w {Environment.ProcessId}""";
-
-		var command = $"/bin/bash";
-		var arguments = $"-c \"{innerCommand}\"";
+		// -w switch makes sure that the caffeinate will stop doing its job once Wasabi process exits.
+		var command = "caffeinate";
+		var arguments = $"-i -w {Environment.ProcessId}";
 
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);
