@@ -6,14 +6,14 @@ using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 /// <summary>
 /// Manages to store the filters safely.
 /// </summary>
-public class FilterStore : IFilterStore, IDisposable
+public class FilterManager : IFilterManager, IDisposable
 {
-	public FilterStore(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
+	public FilterManager(string workFolderPath, Network network, FilterHeaderChain filterHeaderChain, EventBus eventBus)
 	{
 		_network = network;
 		_filterHeaderChain = filterHeaderChain;

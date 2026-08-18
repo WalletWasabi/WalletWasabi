@@ -1,14 +1,11 @@
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
-using WalletWasabi.Stores;
+using WalletWasabi.Storages;
 
 namespace WalletWasabi.Wallets.FilterProcessor;
 
-public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersInMemory = 1000)
+public class BlockFilterIterator(IFilterManager filterManager, int maxNumberFiltersInMemory = 1000)
 {
 	private readonly Dictionary<uint, FilterModel> _cache = new();
 	private readonly int _maxNumberFiltersInMemory = maxNumberFiltersInMemory > 0
@@ -29,7 +26,7 @@ public class BlockFilterIterator(IFilterStore filterStore, int maxNumberFiltersI
 		// We don't have the next filter to process, so fetch another batch of filters from the database.
 		_cache.Clear();
 
-		var filtersBatch = await filterStore.FetchBatchAsync(height, _maxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
+		var filtersBatch = await filterManager.FetchBatchAsync(height, _maxNumberFiltersInMemory, cancellationToken).ConfigureAwait(false);
 
 		if (filtersBatch.Length == 0)
 		{

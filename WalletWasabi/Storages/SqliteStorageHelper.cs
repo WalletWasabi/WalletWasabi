@@ -1,6 +1,6 @@
 using System.IO;
 
-namespace WalletWasabi.Stores;
+namespace WalletWasabi.Storages;
 
 public static class SqliteStorageHelper
 {
