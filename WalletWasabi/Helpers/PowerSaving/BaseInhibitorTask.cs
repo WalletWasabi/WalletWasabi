@@ -1,8 +1,5 @@
 using System.Diagnostics;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers.PowerSaving;
 
@@ -67,10 +64,10 @@ public class BaseInhibitorTask : IPowerSavingInhibitorTask
 		{
 			if (!_process.HasExited)
 			{
-				// _process cannot stop on its own so we know it is actually running.
+				// Process cannot stop on its own so we know it is actually running.
 				try
 				{
-					_process.Kill(entireProcessTree: true);
+					_process.Kill();
 					Logger.LogTrace("Inhibit task was killed.");
 				}
 				catch (Exception ex)
