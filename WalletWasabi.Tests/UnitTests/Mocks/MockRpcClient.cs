@@ -213,4 +213,9 @@ public class MockRpcClient : IRPCClient
 	{
 		throw new NotImplementedException();
 	}
+
+	public Task<ScanTxoutSetResponse> StartScanTxoutSetAsync(ScanTxoutSetParameters parameters, CancellationToken cancellationToken = default)
+	{
+		throw new NotImplementedException();
+	}
 }

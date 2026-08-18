@@ -580,7 +580,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	public class TestableRpcClient : RpcClientBase
 	{
 		public TestableRpcClient(RpcClientBase rpc)
-			: base(rpc.Rpc)
+			: base(rpc.RpcClient)
 		{
 		}
 
