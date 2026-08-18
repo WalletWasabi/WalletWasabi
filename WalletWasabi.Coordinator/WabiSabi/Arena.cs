@@ -241,7 +241,7 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.", round);
 
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
-					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript, _config.ShaveAnchorOutputIntoDenomination);
+					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript, _config.TrimCoordinatorOutput);
 
 					round.CoinjoinState = FinalizeTransaction(coinjoin);
 
@@ -512,7 +512,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey, bool shaveAnchorOutputIntoDenomination = false)
+	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey, bool trimCoordinatorOutput = false)
 	{
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
@@ -527,11 +527,11 @@ public partial class Arena : PeriodicRunner
 
 		if (availableCoordinationFee > minEconomicalOutput)
 		{
-			var anchorValue = shaveAnchorOutputIntoDenomination
-				? ShaveIntoDenomination(round, availableCoordinationFee, minEconomicalOutput)
+			var coordinatorOutputValue = trimCoordinatorOutput
+				? TrimToDenomination(round, availableCoordinationFee, minEconomicalOutput)
 				: availableCoordinationFee;
 
-			var txOut = new TxOut(anchorValue, coordinatorScriptPubKey);
+			var txOut = new TxOut(coordinatorOutputValue, coordinatorScriptPubKey);
 			if (!txOut.IsDust())
 			{
 				return coinjoin.AddOutputNoMinAmountCheck(txOut)
@@ -543,26 +543,19 @@ public partial class Arena : PeriodicRunner
 		return coinjoin;
 	}
 
-	private static Money ShaveIntoDenomination(Round round, Money anchorValue, Money minEconomicalOutput)
+	private static Money TrimToDenomination(Round round, Money coordinatorOutputValue, Money minEconomicalOutput)
 	{
-		var minAllowedOutputAmount = round.Parameters.AllowedOutputAmounts.Min;
-
-		if (anchorValue < minAllowedOutputAmount)
-		{
-			return anchorValue;
-		}
-
 		var denomination = DenominationBuilder
-			.CreateDenominationAmounts(minAllowedOutputAmount, anchorValue)
+			.CreateDenominationAmounts(round.Parameters.AllowedOutputAmounts.Min, coordinatorOutputValue)
 			.OrderByDescending(x => x.Satoshi)
 			.FirstOrDefault();
 
 		if (denomination is null || denomination <= minEconomicalOutput)
 		{
-			return anchorValue;
+			return coordinatorOutputValue;
 		}
 
-		Logger.LogInfo($"Anchor output shaved from {anchorValue} to {denomination}, {(anchorValue - denomination).Satoshi} satoshis were given up to the miners.", round);
+		Logger.LogInfo($"Coordinator output trimmed from {coordinatorOutputValue} to {denomination}, {(coordinatorOutputValue - denomination).Satoshi} satoshis were given up to the miners.", round);
 		return denomination;
 	}
 

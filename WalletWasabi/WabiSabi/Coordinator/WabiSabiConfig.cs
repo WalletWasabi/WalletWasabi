@@ -106,7 +106,7 @@ public class WabiSabiConfig : ConfigBase
 
 	public bool DelayTransactionSigning { get; init; } = false;
 
-	public bool ShaveAnchorOutputIntoDenomination { get; init; } = false;
+	public bool TrimCoordinatorOutput { get; init; } = false;
 
 	public AnnouncerConfig AnnouncerConfig { get; set; } = new();
 
