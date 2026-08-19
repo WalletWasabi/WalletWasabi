@@ -1,10 +1,6 @@
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Bases;
-using WalletWasabi.Helpers;
 using WalletWasabi.Helpers.PowerSaving;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using static WalletWasabi.Helpers.PowerSaving.LinuxInhibitorTask;
@@ -67,7 +63,7 @@ public class SleepInhibitor : PeriodicRunner
 		return new SleepInhibitor(coinJoinManager, taskFactory);
 	}
 
-	protected override async Task ActionAsync(CancellationToken cancel)
+	protected override async Task ActionAsync(CancellationToken cancellationToken)
 	{
 		var highestCoinJoinClientState = _coinJoinManager.HighestCoinJoinClientState;
 		switch (highestCoinJoinClientState)
