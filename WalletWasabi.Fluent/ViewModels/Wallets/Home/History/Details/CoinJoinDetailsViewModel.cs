@@ -49,9 +49,9 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.Cache
-							.Connect()
-							.SubscribeAsync(async _ => await UpdateAsync(CancellationToken.None))
-							.DisposeWith(disposables);
+			.Connect()
+			.SubscribeAsync(async _ => await UpdateAsync(CancellationToken.None))
+			.DisposeWith(disposables);
 	}
 
 	private async Task UpdateAsync(CancellationToken cancellationToken)

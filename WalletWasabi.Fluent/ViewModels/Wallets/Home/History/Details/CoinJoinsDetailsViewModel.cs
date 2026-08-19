@@ -71,10 +71,10 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		base.OnNavigatedTo(isInHistory, disposables);
 
 		_wallet.Transactions.Cache
-			                .Connect()
-							.Do(_ => Update())
-							.Subscribe()
-							.DisposeWith(disposables);
+			.Connect()
+			.Do(_ => Update())
+			.Subscribe()
+			.DisposeWith(disposables);
 	}
 
 	private void Update()
