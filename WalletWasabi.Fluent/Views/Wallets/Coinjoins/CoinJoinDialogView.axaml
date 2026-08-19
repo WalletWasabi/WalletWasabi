@@ -138,19 +138,12 @@
           <TextBlock Text="No coordinator is configured, so coinjoin is not available."
                      TextWrapping="Wrap" />
         </InfoMessage>
-        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
-          <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand">
-            <StackPanel Orientation="Horizontal" Spacing="8">
-              <PathIcon Data="{StaticResource coordinator}" Height="14" />
-              <TextBlock Text="Coordinator settings" />
-            </StackPanel>
-          </Button>
-          <Button Classes="activeHyperLink"
-                  Content="How do I find one?"
-                  Command="{Binding CoordinatorHelpCommand}"
-                  ToolTip.Tip="{Binding FindCoordinatorLink}"
-                  VerticalAlignment="Center" />
-        </StackPanel>
+        <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand" HorizontalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource coordinator}" Height="14" />
+            <TextBlock Text="Coordinator settings" />
+          </StackPanel>
+        </Button>
       </StackPanel>
 
       <!-- Coins taking part in coinjoin -->
