@@ -15,6 +15,7 @@ using WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 using WalletWasabi.Services;
+using WalletWasabi.WabiSabi.Client.Batching;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
@@ -190,6 +191,7 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 		var network = _walletModel.Network;
 
 		var payments = _wallet.BatchedPayments.GetPayments()
+			.Where(x => x.State is not FinishedPayment)
 			.Select(x => new CoinJoinPaymentViewModel(UiContext, x, network))
 			.ToList();
 

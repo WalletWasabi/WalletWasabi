@@ -31,7 +31,7 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 
 	public bool IsPending => _payment.State is PendingPayment;
 
-	public bool IsInProgress => _payment.State is InProgressPayment;
+	public bool IsInProgress => _payment.State is InProgressPayment or SignedUnknownPayment;
 
 	public bool IsFinished => _payment.State is FinishedPayment;
 
@@ -48,7 +48,7 @@ public partial class CoinJoinPaymentViewModel : ViewModelBase
 		return _payment.State switch
 		{
 			PendingPayment => "Pending",
-			InProgressPayment => "In Progress",
+			InProgressPayment or SignedUnknownPayment => "In Progress",
 			FinishedPayment => "Completed",
 			_ => "Unknown"
 		};
