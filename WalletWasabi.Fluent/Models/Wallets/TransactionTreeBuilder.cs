@@ -1,4 +1,3 @@
-using DynamicData;
 using NBitcoin;
 using System.Collections.Generic;
 using System.Collections.Immutable;

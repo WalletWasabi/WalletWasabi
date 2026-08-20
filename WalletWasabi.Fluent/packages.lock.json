@@ -67,15 +67,6 @@
           "Avalonia": "11.3.14"
         }
       },
-      "DynamicData": {
-        "type": "Direct",
-        "requested": "[9.4.1, )",
-        "resolved": "9.4.1",
-        "contentHash": "+SoDTbuzY9j0K+sZfRbbVpGjjylkVMhUQnw6qiPhxzYLBJlwxFpmunXSaNBtTxwC2C9d/XIp0kO7VhMAVuUt7w==",
-        "dependencies": {
-          "System.Reactive": "6.0.1"
-        }
-      },
       "Markdown.Avalonia": {
         "type": "Direct",
         "requested": "[11.0.3-a1, )",
@@ -211,6 +202,14 @@
         "contentHash": "eEVGVPe+r0llDaeJHJw4zbK48LQMgqwV2vBL0njUUEJSuqiqqbn32A2xkEQLd/TXePPcxjMzsauwQVec3a/75w==",
         "dependencies": {
           "Avalonia": "11.0.0"
+        }
+      },
+      "DynamicData": {
+        "type": "Transitive",
+        "resolved": "9.4.1",
+        "contentHash": "+SoDTbuzY9j0K+sZfRbbVpGjjylkVMhUQnw6qiPhxzYLBJlwxFpmunXSaNBtTxwC2C9d/XIp0kO7VhMAVuUt7w==",
+        "dependencies": {
+          "System.Reactive": "6.0.1"
         }
       },
       "ExCSS": {

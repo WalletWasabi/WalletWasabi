@@ -134,6 +134,14 @@
           "Avalonia": "11.0.0"
         }
       },
+      "DynamicData": {
+        "type": "Transitive",
+        "resolved": "9.4.1",
+        "contentHash": "+SoDTbuzY9j0K+sZfRbbVpGjjylkVMhUQnw6qiPhxzYLBJlwxFpmunXSaNBtTxwC2C9d/XIp0kO7VhMAVuUt7w==",
+        "dependencies": {
+          "System.Reactive": "6.0.1"
+        }
+      },
       "ExCSS": {
         "type": "Transitive",
         "resolved": "4.1.4",
@@ -585,7 +593,6 @@
           "Avalonia.Fonts.Inter": "[11.3.14, )",
           "Avalonia.Skia": "[11.3.14, )",
           "Avalonia.Themes.Fluent": "[11.3.14, )",
-          "DynamicData": "[9.4.1, )",
           "Markdown.Avalonia": "[11.0.3-a1, )",
           "NScheme": "[0.0.1, )",
           "QRackers": "[1.1.0, )",
@@ -659,15 +666,6 @@
         "contentHash": "meVY25MJjBkAmZd4GJGOrpiqSgbEyTeFXjR9SF8aaZsq9BXDaiZz61+Ivvu7bEta12hmnx8AaVnOSdKo/qkT9g==",
         "dependencies": {
           "Avalonia": "11.3.14"
-        }
-      },
-      "DynamicData": {
-        "type": "CentralTransitive",
-        "requested": "[9.4.1, )",
-        "resolved": "9.4.1",
-        "contentHash": "+SoDTbuzY9j0K+sZfRbbVpGjjylkVMhUQnw6qiPhxzYLBJlwxFpmunXSaNBtTxwC2C9d/XIp0kO7VhMAVuUt7w==",
-        "dependencies": {
-          "System.Reactive": "6.0.1"
         }
       },
       "Markdown.Avalonia": {

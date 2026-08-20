@@ -41,7 +41,6 @@
     <PackageVersion Include="Avalonia.Themes.Fluent" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="QRackers" Version="1.1.0" />
-    <PackageVersion Include="DynamicData" Version="9.4.1" />
     <!-- UI Mobile. -->
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="Xamarin.AndroidX.AppCompat" Version="1.3.1.3" />

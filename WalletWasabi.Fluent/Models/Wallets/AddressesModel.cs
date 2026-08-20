@@ -3,7 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Reactive.Subjects;
-using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
