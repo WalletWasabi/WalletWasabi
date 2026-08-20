@@ -1,10 +1,6 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Keys;
 

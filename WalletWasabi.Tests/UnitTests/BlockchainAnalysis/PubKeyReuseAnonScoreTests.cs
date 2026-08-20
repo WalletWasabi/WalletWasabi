@@ -27,10 +27,10 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
+		Assert.All(tx.WalletInputs, x => Assert.True(x.AnonymitySet < 30));
 
 		// It should be smaller than 30, because reuse also gets punishment.
-		Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
+		Assert.True(tx.WalletOutputs.First().AnonymitySet < 30);
 	}
 
 	[Fact]
@@ -48,12 +48,12 @@ public class PubKeyReuseAnonScoreTests
 		reuse.SetAnonymitySet(30, uint256.One);
 
 		BlockchainAnalyzer.Analyze(tx);
-		var inputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
-		var outputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+		var inputAnonsets = tx.WalletInputs.Select(x => x.AnonymitySet).ToArray();
+		var outputAnonsets = tx.WalletOutputs.Select(x => x.AnonymitySet).ToArray();
 
 		BlockchainAnalyzer.Analyze(tx);
-		var newInputAnonsets = tx.WalletInputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
-		var newOutputAnonsets = tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet).ToArray();
+		var newInputAnonsets = tx.WalletInputs.Select(x => x.AnonymitySet).ToArray();
+		var newOutputAnonsets = tx.WalletOutputs.Select(x => x.AnonymitySet).ToArray();
 
 		// Anonsets should not change.
 		Assert.Equal(inputAnonsets, newInputAnonsets);
@@ -75,10 +75,10 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
+		Assert.All(tx.WalletInputs, x => Assert.True(x.AnonymitySet < 30));
 
 		// It should be smaller than 30, because reuse also gets punishment.
-		Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
+		Assert.True(tx.WalletOutputs.First().AnonymitySet < 30);
 	}
 
 	[Fact]
@@ -96,8 +96,8 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
-		Assert.Equal(1, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
+		Assert.Equal(1, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -114,8 +114,8 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
-		Assert.Equal(100, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.AnonymitySet));
+		Assert.Equal(100, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -131,8 +131,8 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
-		Assert.Equal(109, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.AnonymitySet));
+		Assert.Equal(109, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -148,8 +148,8 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
-		Assert.Equal(100, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.AnonymitySet));
+		Assert.Equal(100, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -167,8 +167,8 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.True(tx.WalletOutputs.First().HdPubKey.AnonymitySet < 30);
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < 30));
+		Assert.True(tx.WalletOutputs.First().AnonymitySet < 30);
+		Assert.All(tx.WalletInputs, x => Assert.True(x.AnonymitySet < 30));
 	}
 
 	[Fact]
@@ -184,10 +184,10 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.AnonymitySet));
 
 		// Normally all levels should have 109 and 106 anonsets, but they're consolidated and punished.
-		Assert.All(tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet), x => Assert.True(x < 106));
+		Assert.All(tx.WalletOutputs.Select(x => x.AnonymitySet), x => Assert.True(x < 106));
 	}
 
 	[Fact]
@@ -204,10 +204,10 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(100, x.AnonymitySet));
 
 		// 100 is the input anonset, so outputs shouldn't go lower than that.
-		Assert.All(tx.WalletOutputs.Select(x => x.HdPubKey.AnonymitySet), x => Assert.True(x >= 100));
+		Assert.All(tx.WalletOutputs.Select(x => x.AnonymitySet), x => Assert.True(x >= 100));
 	}
 
 	[Fact]
@@ -229,10 +229,10 @@ public class PubKeyReuseAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 
 		// Normally it'd be 10, but because of reuse it should be only 8.
-		Assert.Equal(8, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(8, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
