@@ -1,15 +1,7 @@
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -125,9 +117,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(i => i.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
 	}
@@ -138,9 +130,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(o => o.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
 	}

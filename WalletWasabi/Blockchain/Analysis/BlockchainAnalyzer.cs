@@ -1,13 +1,6 @@
 using System.Collections.Concurrent;
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
 
