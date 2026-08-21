@@ -240,10 +240,11 @@ public static class BlockchainAnalyzer
 			// anonymity set size estimate.
 			double anonset = new[] { startingOutputAnonset.sanctioned + anonymityGain, anonymityGain + 1, startingOutputAnonset.standard }.Max();
 
-			foreach (var hdPubKey in virtualOutput.Coins.Select(x => x.HdPubKey).ToHashSet())
+			foreach (var coin in virtualOutput.Coins)
 			{
+				var hdPubKey = coin.HdPubKey;
 				uint256 txid = tx.GetHash();
-				if (Math.Abs(hdPubKey.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.00001)
+				if (Math.Abs(coin.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.00001)
 				{
 					// If the new coin's HD pubkey haven't been used yet
 					// then its anonset haven't been set yet.
@@ -271,7 +272,7 @@ public static class BlockchainAnalyzer
 				else
 				{
 					// It's address reuse.
-					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
+					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, coin.AnonymitySet }), txid);
 				}
 			}
 		}
