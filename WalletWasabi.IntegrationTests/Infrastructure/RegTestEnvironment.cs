@@ -205,10 +205,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 		// Create the filter synchronization state
 		var tip = FilterStore.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
-		var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(
-			blockHeaderChain,
-			FilterHeaderChain,
-			tipHeight);
+		var synchronizationState = new FilterSynchronizationState(blockHeaderChain, FilterHeaderChain, tipHeight);
 
 		// Create a P2P connection to Bitcoin Core - behaviors must be added before handshake
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
