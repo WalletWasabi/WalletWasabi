@@ -45,17 +45,10 @@ public static class BundledAppHelpers
 		}
 		else if (platform == OSPlatform.OSX)
 		{
-			if (app == BundledApp.Tor)
-			{
-				// Tor uses universal binaries on macOS, so we can use the same binary for both Intel and Apple Silicon.
-				path = Path.Combine(commonPartialPath, "osx64");
-			}
-			else
-			{
-				path = RuntimeInformation.ProcessArchitecture == Architecture.Arm64
-					? Path.Combine(commonPartialPath, "osx-arm64")
-					: Path.Combine(commonPartialPath, "osx64");
-			}
+			// Only HWI has a native arm64 build. Tor is universal; bitcoind is x86_64-only (Rosetta).
+			path = app == BundledApp.Hwi && RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+				? Path.Combine(commonPartialPath, "osx-arm64")
+				: Path.Combine(commonPartialPath, "osx64");
 		}
 		else
 		{
