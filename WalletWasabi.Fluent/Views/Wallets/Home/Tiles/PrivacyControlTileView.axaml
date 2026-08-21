@@ -20,11 +20,20 @@
             </Style>
           </Panel.Styles>
 
-          <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
-          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                       Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds" Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
-          <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
-                       Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+          <!-- Neutral bar sitting under the real one; it shows up once discreet mode fades that one out. -->
+          <ProgressBar Background="{DynamicResource TextForegroundColor}" Opacity="0.2" />
+
+          <!-- VerticalContentAlignment=Stretch keeps the (empty) privacy replacement as tall as the bar,
+               so that hovering over the hidden bar still reveals it. -->
+          <PrivacyContentControl PrivacyReplacementMode="None" VerticalContentAlignment="Stretch">
+            <Panel>
+              <ProgressBar Background="{DynamicResource PrivacyLevelNoneBrush}" ToolTip.Tip="Non-private funds" />
+              <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                           Value="{Binding SemiPrivateAndPrivateAmount^}" ToolTip.Tip="Semi-private funds" Foreground="{DynamicResource PrivacyLevelMediumBrush}" />
+              <ProgressBar Maximum="{Binding TotalAmount^}" Background="{x:Null}"
+                           Value="{Binding PrivateAmount^}" ToolTip.Tip="Private funds" Foreground="{DynamicResource PrivacyLevelStrongBrush}" />
+            </Panel>
+          </PrivacyContentControl>
         </Panel>
       </Button>
 
@@ -34,9 +43,11 @@
                 Height="36" Width="36">
           <ThemeImage Source="{StaticResource privacy_indicator_good}" Opacity="0.6" />
         </Button>
-        <TextBlock HorizontalAlignment="Center"
-                   TextAlignment="Center"
-                   Text="{Binding PercentText}" Classes="h2 bold" />
+        <PrivacyContentControl Classes="h2 bold" VerticalAlignment="Center">
+          <TextBlock HorizontalAlignment="Center"
+                     TextAlignment="Center"
+                     Text="{Binding PercentText}" Classes="h2 bold" />
+        </PrivacyContentControl>
       </StackPanel>
     </DockPanel>
 
