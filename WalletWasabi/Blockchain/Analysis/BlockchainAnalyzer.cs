@@ -95,9 +95,9 @@ public static class BlockchainAnalyzer
 		// If the tx is a cancellation and we have at least one input or output that is not ours, then we set the anonset to 1.
 		if (tx.IsCancellation && (tx.ForeignOutputs.Count != 0 || tx.ForeignInputs.Count != 0))
 		{
-			foreach (var k in tx.WalletInputs.Select(x => x.HdPubKey).Distinct())
+			foreach (var coin in tx.WalletInputs)
 			{
-				k.SetAnonymitySet(1);
+				coin.SetAnonymitySet(1);
 			}
 		}
 	}
