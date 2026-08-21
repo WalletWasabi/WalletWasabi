@@ -88,11 +88,11 @@ public static class BlockchainAnalyzer
 	/// </summary>
 	private static void ResetUncalculatedAnonScores(SmartTransaction tx)
 	{
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			if (key.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
+			if (coin.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
 			{
-				key.SetAnonymitySet(1, tx.GetHash());
+				coin.HdPubKey.SetAnonymitySet(1, tx.GetHash());
 			}
 		}
 	}
