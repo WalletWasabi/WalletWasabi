@@ -316,15 +316,15 @@ public static class BlockchainAnalyzer
 
 	private static void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, double startingOutputAnonset)
 	{
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			if (Math.Abs(key.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
+			if (Math.Abs(coin.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
 			{
-				key.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
+				coin.HdPubKey.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
 			}
 			else
 			{
-				key.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, key.AnonymitySet }), tx.GetHash());
+				coin.HdPubKey.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, coin.AnonymitySet }), tx.GetHash());
 			}
 		}
 	}
