@@ -40,6 +40,11 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public Money Amount => TxOut.Value;
 	public double AnonymitySet => HdPubKey.AnonymitySet;
 
+	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId = null)
+	{
+		HdPubKey.SetAnonymitySet(anonset, outputAnonSetReasonTxId);
+	}
+
 	public Height Height
 	{
 		get => _height;
