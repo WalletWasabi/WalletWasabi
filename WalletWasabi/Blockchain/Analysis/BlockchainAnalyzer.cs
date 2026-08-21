@@ -332,9 +332,9 @@ public static class BlockchainAnalyzer
 	private static void AnalyzeReceive(SmartTransaction tx)
 	{
 		// No matter how much anonymity a user would had gained in a tx, if the money comes from outside, then make anonset 1.
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			key.SetAnonymitySet(1, tx.GetHash());
+			coin.SetAnonymitySet(1, tx.GetHash());
 		}
 	}
 
@@ -347,13 +347,13 @@ public static class BlockchainAnalyzer
 		// or at the very least assume that all the changes in the tx is ours.
 		// For example even if the assumed change output is a payment to someone, a blockchain analyzer
 		// probably would just assume it's ours and go on with its life.
-		foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletInputs)
 		{
-			key.SetAnonymitySet(1);
+			coin.SetAnonymitySet(1);
 		}
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			key.SetAnonymitySet(1, tx.GetHash());
+			coin.SetAnonymitySet(1, tx.GetHash());
 		}
 	}
 
