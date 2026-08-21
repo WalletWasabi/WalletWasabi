@@ -85,7 +85,7 @@ public static class BlockchainAnalyzer
 		{
 			if (coin.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
 			{
-				coin.HdPubKey.SetAnonymitySet(1, tx.GetHash());
+				coin.SetAnonymitySet(1, tx.GetHash());
 			}
 		}
 	}
