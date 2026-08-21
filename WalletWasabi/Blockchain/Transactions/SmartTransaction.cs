@@ -9,8 +9,6 @@ namespace WalletWasabi.Blockchain.Transactions;
 [DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
-	#region Constructors
-
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
@@ -52,8 +50,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
 			isThreadSafe: true);
 	}
-
-	#endregion Constructors
 
 	#region Members
 
@@ -528,8 +524,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	#endregion LineSerialization
 
-	#region EqualityAndComparison
-
 	public override bool Equals(object? obj) => Equals(obj as SmartTransaction);
 
 	public bool Equals(SmartTransaction? other) => this == other;
@@ -539,6 +533,4 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public static bool operator ==(SmartTransaction? x, SmartTransaction? y) => y?.GetHash() == x?.GetHash();
 
 	public static bool operator !=(SmartTransaction? x, SmartTransaction? y) => !(x == y);
-
-	#endregion EqualityAndComparison
 }
