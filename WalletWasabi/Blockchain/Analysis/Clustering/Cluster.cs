@@ -12,11 +12,13 @@ public class Cluster(IEnumerable<HdPubKey> keys) : IEquatable<Cluster>
 	private readonly Lock _lock = new();
 	private HashSet<HdPubKey> KeysSet { get; } = keys.ToHashSet();
 
-	public void Merge(Cluster cluster)
+	public void Merge(Cluster cluster) => Merge(cluster.KeysSet);
+
+	private void Merge(IEnumerable<HdPubKey> keys)
 	{
 		lock (_lock)
 		{
-			foreach (var key in cluster.KeysSet.ToList())
+			foreach (var key in keys.ToList())
 			{
 				KeysSet.Add(key);
 				key.Cluster = this;

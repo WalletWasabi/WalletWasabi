@@ -1,13 +1,9 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.FeeRateEstimation;
 
-public class FeeRateEstimations : IEquatable<FeeRateEstimations>
+public record FeeRateEstimations
 {
 	private static readonly int[] AllConfirmationTargets = Constants.ConfirmationTargets.Prepend(1).ToArray();
 	public static readonly FeeRateEstimations Empty = new(new Dictionary<int, FeeRate>{ {0, FeeRate.Zero} });
@@ -27,7 +23,7 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			.Select(x => (ConfirmationTarget: x.Range.End, FeeRate: FeeRate.Max(x.BestEstimation.FeeRate, Constants.MinRelayFeeRate)));
 
 		// Make sure values are unique and in the correct order and fee rates are consistently decreasing.
-		Estimations = [];
+		var builder = ImmutableSortedDictionary.CreateBuilder<int, FeeRate>();
 		var lastFeeRate = new FeeRate(Constants.MaximumNumberOfBitcoinsMoney);
 		foreach (var estimation in filteredEstimations)
 		{
@@ -35,19 +31,23 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 			if (lastFeeRate > estimation.FeeRate)
 			{
 				lastFeeRate = estimation.FeeRate;
-				Estimations.TryAdd(estimation.ConfirmationTarget, estimation.FeeRate);
+
+				if (!builder.TryGetKey(estimation.ConfirmationTarget, out _))
+				{
+					builder.Add(estimation.ConfirmationTarget, estimation.FeeRate);
+				}
 			}
 		}
+
+		Estimations = builder.ToImmutable();
 	}
 
-	/// <summary>
-	/// Gets the fee estimations: int: fee target, int: satoshi/vByte
-	/// </summary>
-	public Dictionary<int, FeeRate> Estimations { get; }
+	/// <summary>Gets the fee estimations: int: fee target, int: satoshi/vByte</summary>
+	public ImmutableSortedDictionary<int, FeeRate> Estimations { get; }
 
 	/// <summary>
-	/// Estimations where we try to fill out gaps for all valid time spans.
-	/// </summary>
+
+	/// <summary>Estimations where we try to fill out gaps for all valid time spans.</summary>
 	public IReadOnlyList<(TimeSpan timeSpan, FeeRate feeRate)> WildEstimations
 	{
 		get
@@ -156,82 +156,36 @@ public class FeeRateEstimations : IEquatable<FeeRateEstimations>
 
 		var totalVsize = unconfirmedChain.Sum(x => x.Transaction.GetVirtualSize());
 
-		confirmationTime = EstimateConfirmationTime(new FeeRate(totalFee, totalVsize));
-		return true;
+		return TryEstimateConfirmationTime(new FeeRate(totalFee, totalVsize), out confirmationTime);
 	}
 
-	public TimeSpan EstimateConfirmationTime(FeeRate feeRate)
+	public bool TryEstimateConfirmationTime(FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? confirmationTime)
 	{
 		var wildEstimations = WildEstimations.ToArray();
-		if (feeRate.SatoshiPerByte >= wildEstimations.First().feeRate.SatoshiPerByte * 1.5m)
+		if (wildEstimations.Length == 0)
 		{
-			return TimeSpan.FromMinutes(10);
-		}
-		else if (feeRate <= wildEstimations.Last().feeRate)
-		{
-			return wildEstimations.Last().timeSpan;
-		}
-
-		return WildEstimations.FirstOrDefault(x => x.feeRate <= feeRate).timeSpan;
-	}
-
-	#region Equality
-
-	public override bool Equals(object? obj) => Equals(obj as FeeRateEstimations);
-
-	public bool Equals(FeeRateEstimations? other) => this == other;
-
-	public override int GetHashCode()
-	{
-		int hash = 13;
-		foreach (KeyValuePair<int, FeeRate> est in Estimations)
-		{
-			hash ^= est.Key.GetHashCode() ^ est.Value.GetHashCode();
-		}
-
-		return hash;
-	}
-
-	public static bool operator ==(FeeRateEstimations? x, FeeRateEstimations? y)
-	{
-		if (ReferenceEquals(x, y))
-		{
-			return true;
-		}
-
-		if (x is null || y is null)
-		{
+			confirmationTime = null;
 			return false;
 		}
 
-		bool equal = false;
-		if (x.Estimations.Count == y.Estimations.Count) // Require equal count.
+		if (feeRate.SatoshiPerByte >= wildEstimations.First().feeRate.SatoshiPerByte * 1.5m)
 		{
-			equal = true;
-			foreach (var pair in x.Estimations)
-			{
-				if (y.Estimations.TryGetValue(pair.Key, out FeeRate? value))
-				{
-					// Require value be equal.
-					if (value != pair.Value)
-					{
-						equal = false;
-						break;
-					}
-				}
-				else
-				{
-					// Require key be present.
-					equal = false;
-					break;
-				}
-			}
+			confirmationTime = TimeSpan.FromMinutes(10);
+			return true;
+		}
+		else if (feeRate <= wildEstimations.Last().feeRate)
+		{
+			confirmationTime = wildEstimations.Last().timeSpan;
+			return true;
 		}
 
-		return equal;
+		confirmationTime = WildEstimations.FirstOrDefault(x => x.feeRate <= feeRate).timeSpan;
+		return true;
 	}
 
-	public static bool operator !=(FeeRateEstimations? x, FeeRateEstimations? y) => !(x == y);
+	public virtual bool Equals(FeeRateEstimations? other) =>
+		other is not null && Estimations.SequenceEqual(other.Estimations);
 
-	#endregion Equality
+	public override int GetHashCode() =>
+		Estimations.Aggregate(0, (h, kv) => HashCode.Combine(h, kv.Key, kv.Value));
 }

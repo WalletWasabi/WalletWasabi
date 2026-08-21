@@ -2,6 +2,7 @@ using NBitcoin;
 using System.IO;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
@@ -154,6 +155,36 @@ public class KeyManagementTests
 		Assert.Equal(new Height.ChainHeight(499_899), sameManager.GetBestHeight());
 
 		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void CanSerializeHeightBelowResyncMargin()
+	{
+		// The resync margin is subtracted when persisting the height. Networks whose first filter
+		// is the genesis block can legitimately sit below that margin, so the subtraction must not
+		// wrap around instead of being floored at zero.
+		var filePath = "wallet-serialization-below-resync-margin.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.RegTest, filePath);
+		manager.SetBestHeight(0);
+		manager.ToFile();
+
+		var sameManager = KeyManager.FromFile(filePath);
+		Assert.Equal(new Height.ChainHeight(0), sameManager.GetBestHeight());
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void BestHeightNeverPrecedesFirstFilter()
+	{
+		// Filters are only available from the first checkpoint onwards, and the wallet asks for the
+		// filter right after its best height, so a lower height makes that filter unfetchable.
+		var firstFilterHeight = FilterCheckpoints.GetWasabiGenesisFilter(Network.Main).Header.Height;
+		var manager = KeyManager.CreateNew(out _, "", Network.Main);
+
+		manager.SetBestHeight(0);
+
+		Assert.Equal(firstFilterHeight, manager.GetBestHeight());
 	}
 
 	[Fact]

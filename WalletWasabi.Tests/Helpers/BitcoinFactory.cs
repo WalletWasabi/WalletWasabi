@@ -137,9 +137,8 @@ public static class BitcoinFactory
 		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
-		var coin = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
-		Anonymity.SetScore(coin, 1.0m / anonymitySet);
-		return coin;
+		pubKey.SetAnonymitySet(anonymitySet, stx.GetHash());
+		return new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
 	}
 
 	public static OutPoint CreateOutPoint()

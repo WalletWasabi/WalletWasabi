@@ -29,16 +29,6 @@ public static class TransactionFeeHelper
 			[1008] = new( 1m)
 		});
 
-	public static async Task<FeeRateEstimations> GetFeeEstimatesWhenReadyAsync(Wallet wallet, CancellationToken cancellationToken)
-	{
-		if (TryGetFeeEstimates(wallet, out var feeEstimates))
-		{
-			return feeEstimates;
-		}
-
-		throw new InvalidOperationException("Couldn't get the fee estimations.");
-	}
-
 	public static async Task<TimeSpan?> EstimateConfirmationTimeAsync(FeeRateEstimations? feeRateEstimations, Network network, SmartTransaction tx, CpfpInfoProvider cpfpInfoProvider, CancellationToken cancellationToken)
 	{
 		if (TryGetFeeEstimates(feeRateEstimations, network, out var feeEstimates) && feeEstimates.TryEstimateConfirmationTime(tx, out var estimate))
@@ -58,18 +48,19 @@ public static class TransactionFeeHelper
 		}
 
 		var feeRate = new FeeRate(entry.CpfpInfo.EffectiveFeePerVSize);
-		return feeEstimates.EstimateConfirmationTime(feeRate);;
+		_ = feeEstimates.TryEstimateConfirmationTime(feeRate, out estimate);
+		return estimate;
 	}
 
 	public static bool TryEstimateConfirmationTime(Wallet wallet, FeeRate feeRate, [NotNullWhen(true)] out TimeSpan? estimate)
 	{
-		estimate = null;
 		if (TryGetFeeEstimates(wallet, out var feeEstimates))
 		{
-			estimate = feeEstimates.EstimateConfirmationTime(feeRate);
+			return feeEstimates.TryEstimateConfirmationTime(feeRate, out estimate);
 		}
 
-		return estimate is not null;
+		estimate = null;
+		return false;
 	}
 
 	public static bool TryGetFeeEstimates(Wallet wallet, [NotNullWhen(true)] out FeeRateEstimations? estimates)

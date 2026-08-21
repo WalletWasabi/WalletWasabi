@@ -154,6 +154,7 @@ for PLATFORM in "${PLATFORMS[@]}"; do
             --property:ErrorReport=none \
             --property:DocumentationFile='' \
             --property:Deterministic=true \
+            --property:PathMap="$(pwd -P)=/src" \
             /clp:ErrorsOnly
   done
 
@@ -250,10 +251,12 @@ DEBIAN_BIN=$DEBIAN_USR/local/bin
 
 DEBIAN_ARCH_NAME=""
 DEBIAN_FULL_PLATFORM_NAME="linux-x64"
+DEBIAN_CONTROL_FILE_ARCHITECTURE="amd64"
 
 if [ "$CURRENT_ARCH" = "arm64" ]; then
   DEBIAN_ARCH_NAME="-arm64"
   DEBIAN_FULL_PLATFORM_NAME="linux-arm64"
+  DEBIAN_CONTROL_FILE_ARCHITECTURE="arm64"
 fi
 
 
@@ -271,7 +274,7 @@ for ICON_FILE in ./Contrib/Assets/WasabiLogo*.png; do
 done
 
 # Calculate package size (in kilobytes)
-DEBIAN_PACKAGE_SIZE=$(du -s "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
+DEBIAN_PACKAGE_SIZE=$(du -ks --apparent-size "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" | cut -f1)
 
 # Create the control file content
 DEBIAN_CONTROL_FILE_CONTENT="Package: ${EXECUTABLE_NAME}
@@ -282,7 +285,7 @@ Version: ${VERSION}
 Homepage: https://wasabiwallet.io
 Vcs-Git: git://github.com/WalletWasabi/WalletWasabi.git
 Vcs-Browser: https://github.com/WalletWasabi/WalletWasabi
-Architecture: amd64
+Architecture: ${DEBIAN_CONTROL_FILE_ARCHITECTURE}
 License: Open Source (MIT)
 Installed-Size: ${DEBIAN_PACKAGE_SIZE}
 Recommends: policykit-1
