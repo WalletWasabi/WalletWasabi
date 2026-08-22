@@ -102,7 +102,18 @@ public static class ReleaseDownloader
 	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker(false);
 
 	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
-		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(httpClientFactory, eventBus, releaseInfo, cancellationToken);
+		ForOfficiallySupportedOSes(httpClientFactory, eventBus, GetInstallerName);
+
+	internal static AsyncReleaseDownloader ForOfficiallySupportedOSes(
+		IHttpClientFactory httpClientFactory,
+		EventBus eventBus,
+		Func<Version, string> getInstallerName) =>
+		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(
+			httpClientFactory,
+			eventBus,
+			releaseInfo,
+			getInstallerName(releaseInfo.Version),
+			cancellationToken);
 
 	public static AsyncReleaseDownloader ForUnsupportedLinuxDistributions() =>
 		(_, _) =>
@@ -119,7 +130,12 @@ public static class ReleaseDownloader
 		};
 
 	// Downloads and verifies a new Wasabi release version
-	private static async Task DownloadNewWasabiReleaseVersionAsync(IHttpClientFactory httpClientFactory, EventBus eventBus, ReleaseInfo releaseInfo, CancellationToken cancellationToken)
+	private static async Task DownloadNewWasabiReleaseVersionAsync(
+		IHttpClientFactory httpClientFactory,
+		EventBus eventBus,
+		ReleaseInfo releaseInfo,
+		string installerFileName,
+		CancellationToken cancellationToken)
 	{
 		var installDirectory = GetInstallDirectory(releaseInfo);
 
@@ -135,7 +151,6 @@ public static class ReleaseDownloader
 		Logger.LogInfo("Trying to download new version.");
 
 		// Find appropriate installer for current platform
-		var installerFileName = GetInstallerName(releaseInfo.Version);
 		var installerUriResult = GetInstallerUri(installerFileName);
 		if (!installerUriResult.IsOk)
 		{
@@ -251,13 +266,20 @@ public static class ReleaseDownloader
 	}
 
 	private static string GetInstallerName(Version version) =>
-		(PlatformInformation.GetOsPlatform(), RuntimeInformation.ProcessArchitecture) switch
+		GetInstallerName(
+			version,
+			PlatformInformation.GetOsPlatform(),
+			RuntimeInformation.ProcessArchitecture,
+			PlatformInformation.IsDebianBasedOS());
+
+	internal static string GetInstallerName(Version version, OS platform, Architecture architecture, bool isDebianBased) =>
+		(platform, architecture, isDebianBased) switch
 		{
-			(OS.Windows, _) => $"Wasabi-{version}.msi",
-			(OS.OSX, Architecture.Arm64) => $"Wasabi-{version}-arm64.dmg",
-			(OS.OSX, _) => $"Wasabi-{version}.dmg",
-			(OS.Linux, _) when PlatformInformation.IsDebianBasedOS() => $"Wasabi-{version}.deb",
-			(OS.Linux, Architecture.X64) => $"Wasabi-{version}-linux-x64.tar.gz",
+			(OS.Windows, _, _) => $"Wasabi-{version}.msi",
+			(OS.OSX, Architecture.Arm64, _) => $"Wasabi-{version}-arm64.dmg",
+			(OS.OSX, _, _) => $"Wasabi-{version}.dmg",
+			(OS.Linux, _, true) => $"Wasabi-{version}.deb",
+			(OS.Linux, Architecture.X64, false) => $"Wasabi-{version}-linux-x64.tar.gz",
 			_ => throw new NotSupportedException($"Unsupported platform: '{RuntimeInformation.OSDescription}'.")
 		};
 
