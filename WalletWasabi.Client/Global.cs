@@ -327,7 +327,7 @@ public class Global
 
 		if (!Uri.TryCreate(Config.BitcoinRpcUri, UriKind.Absolute, out var bitcoinRpcUri))
 		{
-			throw new ArgumentException($"Config property '{nameof(Config.BitcoinRpcUri)}' was set to an invalid URI value: {Config.BitcoinRpcUri}");
+			throw new UriFormatException($"Config property '{nameof(Config.BitcoinRpcUri)}' was set to an invalid URI value: {Config.BitcoinRpcUri}");
 		}
 
 		RPCClient internalRpcClient;
