@@ -17,10 +17,10 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
 
 		// 10 participants, 1 is you, your anonset is 10.
-		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(10, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -29,10 +29,10 @@ public class CoinJoinAnonScoreTests
 		var tx = BitcoinFactory.CreateSmartTransaction(9, Enumerable.Repeat(Money.Coins(1m), 9), new[] { (Money.Coins(1.1m), 1) }, new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet) });
 		BlockchainAnalyzer.Analyze(tx);
 		BlockchainAnalyzer.Analyze(tx);
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
 
 		// 10 participants, 1 is you, your anonset is 10.
-		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(10, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -44,11 +44,11 @@ public class CoinJoinAnonScoreTests
 		BlockchainAnalyzer.Analyze(tx);
 		Assert.True(tx.TryAddWalletOutput(sc));
 		BlockchainAnalyzer.Analyze(tx);
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
 
 		// 10 participants, 2 is you, your anonset is 10/2 = 5.
-		Assert.Equal(5, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(5, tx.WalletOutputs.Skip(1).First().HdPubKey.AnonymitySet);
+		Assert.Equal(5, tx.WalletOutputs.First().AnonymitySet);
+		Assert.Equal(5, tx.WalletOutputs.Skip(1).First().AnonymitySet);
 	}
 
 	[Fact]
@@ -58,11 +58,11 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(100, tx.WalletInputs.First().AnonymitySet);
 
 		// 10 participants, 1 is you, your anonset is 10 and you inherit 99 anonset,
 		// because you don't want to count yourself twice.
-		Assert.Equal(109, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(109, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -75,9 +75,9 @@ public class CoinJoinAnonScoreTests
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(10, active.HdPubKey.AnonymitySet);
-		Assert.Equal(1, change.HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(10, active.AnonymitySet);
+		Assert.Equal(1, change.AnonymitySet);
 	}
 
 	[Fact]
@@ -90,9 +90,9 @@ public class CoinJoinAnonScoreTests
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(59.5, active.HdPubKey.AnonymitySet);
-		Assert.Equal(1, change.HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(59.5, active.AnonymitySet);
+		Assert.Equal(1, change.AnonymitySet);
 	}
 
 	[Fact]
@@ -105,9 +105,9 @@ public class CoinJoinAnonScoreTests
 		var active = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var change = tx.WalletOutputs.First(x => x.Amount == Money.Coins(5m));
 
-		Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(109, active.HdPubKey.AnonymitySet);
-		Assert.Equal(100, change.HdPubKey.AnonymitySet);
+		Assert.Equal(100, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(109, active.AnonymitySet);
+		Assert.Equal(100, change.AnonymitySet);
 	}
 
 	[Fact]
@@ -126,9 +126,9 @@ public class CoinJoinAnonScoreTests
 		var level1 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var level2 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(2m));
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(4, level1.HdPubKey.AnonymitySet);
-		Assert.Equal(3, level2.HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(4, level1.AnonymitySet);
+		Assert.Equal(3, level2.AnonymitySet);
 	}
 
 	[Fact]
@@ -147,9 +147,9 @@ public class CoinJoinAnonScoreTests
 		var level1 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(1m));
 		var level2 = tx.WalletOutputs.First(x => x.Amount == Money.Coins(2m));
 
-		Assert.Equal(100, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(103, level1.HdPubKey.AnonymitySet);
-		Assert.Equal(102, level2.HdPubKey.AnonymitySet);
+		Assert.Equal(100, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(103, level1.AnonymitySet);
+		Assert.Equal(102, level2.AnonymitySet);
 	}
 
 	[Fact]
@@ -166,8 +166,8 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2d, x.HdPubKey.AnonymitySet));
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(5 / 2d, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -181,14 +181,14 @@ public class CoinJoinAnonScoreTests
 				new[] { (Money.Coins(4.2m), 4) },
 				ownOutputs.Select(x => (Money.Coins(x), HdPubKey.DefaultHighAnonymitySet)));
 
-		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(4, tx.WalletInputs.First().AnonymitySet);
 		BlockchainAnalyzer.Analyze(tx);
-		Assert.Equal(4, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(4, tx.WalletInputs.First().AnonymitySet);
 
 		// The increase in the anonymity set would naively be 1 as there is 1 equal non-wallet output.
 		// Since 4 outputs are ours, we divide the increase in anonymity between them
 		// and add that to the inherited anonymity of 4.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + (1 / 4d), x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(4 + (1 / 4d), x.AnonymitySet));
 	}
 
 	[Fact]
@@ -199,8 +199,8 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
-		Assert.Equal(3, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
+		Assert.Equal(3, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]
@@ -217,12 +217,12 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.Equal(1, tx.WalletInputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(1, tx.WalletInputs.First().AnonymitySet);
 
 		// The increase in the anonymity set would naively be 3 as there are 3 equal non-wallet outputs.
 		// But there is only 1 non-wallet input, so that limits the increase to 1.
 		// We are getting an anonymity set of 1 + min(3/2, 1) = 1 + 1 = 2.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(2, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -237,10 +237,10 @@ public class CoinJoinAnonScoreTests
 
 		BlockchainAnalyzer.Analyze(tx);
 
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 
 		// 10 participants, 1 is you, your anonset would be 10 normally and now too:
-		Assert.Equal(10, tx.WalletOutputs.First().HdPubKey.AnonymitySet);
+		Assert.Equal(10, tx.WalletOutputs.First().AnonymitySet);
 	}
 
 	[Fact]

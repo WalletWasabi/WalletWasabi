@@ -310,7 +310,7 @@ public static class BlockchainAnalyzer
 			return;
 		}
 
-		var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.HdPubKey.AnonymitySet);
+		var smallestOutputAnonset = tx.WalletOutputs.Min(x => x.AnonymitySet);
 		if (smallestOutputAnonset < startingOutputAnonset)
 		{
 			foreach (var key in tx.WalletVirtualInputs.Select(x => x.HdPubKey))
@@ -370,7 +370,7 @@ public static class BlockchainAnalyzer
 			// Forget clusters when no unique outputs created in coinjoins,
 			// otherwise in half mixed wallets all the labels quickly gravitate into a single cluster
 			// making pocket selection unusable.
-			if (newCoin.HdPubKey.AnonymitySet < Constants.SemiPrivateThreshold)
+			if (newCoin.AnonymitySet < Constants.SemiPrivateThreshold)
 			{
 				// Set clusters.
 				foreach (var spentCoin in tx.WalletInputs)

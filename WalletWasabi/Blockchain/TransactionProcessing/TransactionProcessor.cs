@@ -285,7 +285,7 @@ public class TransactionProcessor(
 			if (KeyManager.TryGetKeyForScriptPubKey(representative.ScriptPubKey, out HdPubKey? ownKey)
 				&& !ReferenceEquals(ownKey, representative.HdPubKey))
 			{
-				ownKey.SetAnonymitySet(representative.HdPubKey.AnonymitySet);
+				ownKey.SetAnonymitySet(representative.AnonymitySet);
 			}
 		}
 	}
