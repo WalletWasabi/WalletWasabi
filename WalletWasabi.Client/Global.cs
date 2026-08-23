@@ -542,7 +542,7 @@ public class Global
 		return new CpfpInfoProvider(cpfpUpdater);
 	}
 
-	private async Task InitializeBlockchainDataFromSqliteAsync(CancellationToken cancellationToken)
+	private async Task InitializeBitcoinStoreAsync(CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -583,7 +583,7 @@ public class Global
 
 			await Task.WhenAll(
 				StartTorProcessManagerAsync(linkedCtsToken),
-				InitializeBlockchainDataFromSqliteAsync(linkedCtsToken))
+				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
 
 			// Bitcoin P2P network can be started after filters are initialized.
