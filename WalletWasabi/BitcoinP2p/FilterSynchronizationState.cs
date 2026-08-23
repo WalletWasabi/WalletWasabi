@@ -102,10 +102,10 @@ public class FilterSynchronizationState
 			}
 
 			// Process any ranges that are now ready
-			ProcessPendingHeaderRanges();
+			ProcessPendingHeaderRangesNoLock();
 
 			// Try to validate and process any buffered responses that may now be ready
-			TryProcessBufferedHeaders();
+			TryProcessBufferedHeadersNoLock();
 		}
 	}
 
@@ -196,7 +196,7 @@ public class FilterSynchronizationState
 	/// Attempts to validate and process any buffered header responses that are now ready.
 	/// Called after a range completes, since the previous filter header may now be available.
 	/// </summary>
-	private void TryProcessBufferedHeaders()
+	private void TryProcessBufferedHeadersNoLock()
 	{
 		// Process buffered responses in order
 		while (true)
@@ -251,7 +251,7 @@ public class FilterSynchronizationState
 		}
 	}
 
-	private void ProcessPendingHeaderRanges()
+	private void ProcessPendingHeaderRangesNoLock()
 	{
 		// Process ranges in order
 		while (true)
