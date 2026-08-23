@@ -89,24 +89,20 @@ public class FilterSynchronizationState
 		}
 	}
 
-	public void OnHeaderCompleted(uint rangeStartHeight, SmartHeader[] headers)
+	private void OnHeaderCompletedNoLock(uint rangeStartHeight, SmartHeader[] headers)
 	{
-		lock (_lock)
+		var response = new HeaderResponse(rangeStartHeight, headers);
+		if (!_headerTracker.TryMoveActiveToPending(rangeStartHeight, response))
 		{
-			var response = new HeaderResponse(rangeStartHeight, headers);
-			if (!_headerTracker.TryMoveActiveToPending(rangeStartHeight, response))
-			{
-				Logger.LogDebug(
-					$"Ignoring stale filter header range {rangeStartHeight}-{response.EndHeight} (already processed up to {_headerTracker.LastHeight})");
-				return;
-			}
-
-			// Process any ranges that are now ready
-			ProcessPendingHeaderRangesNoLock();
-
-			// Try to validate and process any buffered responses that may now be ready
-			TryProcessBufferedHeadersNoLock();
+			Logger.LogDebug($"Ignoring stale filter header range {rangeStartHeight}-{response.EndHeight} (already processed up to {_headerTracker.LastHeight})");
+			return;
 		}
+
+		// Process any ranges that are now ready
+		ProcessPendingHeaderRangesNoLock();
+
+		// Try to validate and process any buffered responses that may now be ready
+		TryProcessBufferedHeadersNoLock();
 	}
 
 	internal void OnHeaderNodeDisconnected(RangeRequest assignment)
@@ -126,70 +122,72 @@ public class FilterSynchronizationState
 		uint256 declaredPreviousFilterHeader,
 		Network network)
 	{
-		// Recalculate the expected previous filter header from the chain
-		if (!TryGetPreviousFilterHeader(assignment.StartHeight, network, out var expectedPreviousFilterHeader))
+		lock (_lock)
 		{
-			Logger.LogDebug(
-				$"Previous filter header not yet available for range {assignment.StartHeight}, will retry later");
-			return new HeaderValidationResult.NotReadyYet();
-		}
-
-		// Validate against the expected previous filter header
-		if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
-		{
-			var reason = $"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}";
-			Logger.LogWarning(reason);
-			return new HeaderValidationResult.Invalid(reason);
-		}
-
-		var result = new SmartHeader[filterHashes.Length];
-		var prevFilterHeader = declaredPreviousFilterHeader;
-
-		for (var i = 0; i < filterHashes.Length; i++)
-		{
-			var height = assignment.StartHeight + (uint) i;
-			var block = _blockHeaderChain.GetBlock((int) height);
-			if (block == null)
+			// Recalculate the expected previous filter header from the chain
+			if (!TryGetPreviousFilterHeader(assignment.StartHeight, network, out var expectedPreviousFilterHeader))
 			{
-				var reason = $"Block header not found at height {height}, aborting batch validation";
-				Logger.LogWarning(reason);
+				Logger.LogDebug($"Previous filter header not yet available for range {assignment.StartHeight}, will retry later");
+				BufferUnvalidatedHeadersNoLock(assignment, filterHashes, declaredPreviousFilterHeader, network);
+				return new HeaderValidationResult.NotReadyYet();
+			}
 
+			// Validate against the expected previous filter header
+			if (declaredPreviousFilterHeader != expectedPreviousFilterHeader)
+			{
+				var reason = $"Previous filter header mismatch for range {assignment.StartHeight} - expected {expectedPreviousFilterHeader}, received {declaredPreviousFilterHeader}";
+				Logger.LogWarning(reason);
 				return new HeaderValidationResult.Invalid(reason);
 			}
 
-			var filterHash = filterHashes[i];
-			var filterHeader = ComputeFilterHeader(filterHash, prevFilterHeader);
+			var result = new SmartHeader[filterHashes.Length];
+			var prevFilterHeader = declaredPreviousFilterHeader;
 
-			result[i] = new SmartHeader(
-				block.HashBlock,
-				filterHeader,
-				height,
-				block.Header.BlockTime);
+			for (var i = 0; i < filterHashes.Length; i++)
+			{
+				var height = assignment.StartHeight + (uint)i;
+				var block = _blockHeaderChain.GetBlock((int)height);
+				if (block == null)
+				{
+					var reason = $"Block header not found at height {height}, aborting batch validation";
+					Logger.LogWarning(reason);
 
-			prevFilterHeader = filterHeader;
+					return new HeaderValidationResult.Invalid(reason);
+				}
+
+				var filterHash = filterHashes[i];
+				var filterHeader = ComputeFilterHeader(filterHash, prevFilterHeader);
+
+				result[i] = new SmartHeader(
+					block.HashBlock,
+					filterHeader,
+					height,
+					block.Header.BlockTime);
+
+				prevFilterHeader = filterHeader;
+			}
+
+			OnHeaderCompletedNoLock(assignment.StartHeight, result);
+
+			return new HeaderValidationResult.Success(result);
 		}
-
-		return new HeaderValidationResult.Success(result);
 	}
 
 	/// <summary>
 	/// Buffers a header response that arrived before we could validate it.
 	/// Removes the assignment from active tracking since we have the data.
 	/// </summary>
-	internal void BufferUnvalidatedHeaders(RangeRequest assignment, uint256[] filterHashes, uint256 declaredPreviousFilterHeader, Network network)
+	private void BufferUnvalidatedHeadersNoLock(RangeRequest assignment, uint256[] filterHashes, uint256 declaredPreviousFilterHeader, Network network)
 	{
-		lock (_lock)
-		{
-			// Remove from active assignments - we have the data, just can't validate yet
-			_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
+		// Remove from active assignments - we have the data, just can't validate yet
+		_headerTracker.RemoveActiveAssignment(assignment.StartHeight);
 
-			_bufferedHeaderResponses[assignment.StartHeight] = new UnvalidatedHeaderResponse(
-				assignment, filterHashes, declaredPreviousFilterHeader, network);
+		_bufferedHeaderResponses[assignment.StartHeight] = new UnvalidatedHeaderResponse(
+			assignment, filterHashes, declaredPreviousFilterHeader, network);
 
-			Logger.LogDebug(
-				$"Buffered filter header range {assignment.StartHeight}-{assignment.StopHeight} for later validation. " +
-				$"Total buffered: {_bufferedHeaderResponses.Count}");
-		}
+		Logger.LogDebug(
+			$"Buffered filter header range {assignment.StartHeight}-{assignment.StopHeight} for later validation. " +
+			$"Total buffered: {_bufferedHeaderResponses.Count}");
 	}
 
 	/// <summary>
