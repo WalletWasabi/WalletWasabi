@@ -9,8 +9,6 @@ namespace WalletWasabi.Blockchain.Transactions;
 [DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
-	#region Constructors
-
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
@@ -52,8 +50,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
 			isThreadSafe: true);
 	}
-
-	#endregion Constructors
 
 	#region Members
 
@@ -117,9 +113,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(i => i.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
 	}
@@ -130,9 +126,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(o => o.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
 	}

@@ -1,13 +1,6 @@
 using System.Collections.Concurrent;
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Analysis;
 
@@ -88,11 +81,11 @@ public static class BlockchainAnalyzer
 	/// </summary>
 	private static void ResetUncalculatedAnonScores(SmartTransaction tx)
 	{
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			if (key.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
+			if (coin.AnonymitySet >= HdPubKey.DefaultHighAnonymitySet)
 			{
-				key.SetAnonymitySet(1, tx.GetHash());
+				coin.SetAnonymitySet(1, tx.GetHash());
 			}
 		}
 	}
@@ -102,9 +95,9 @@ public static class BlockchainAnalyzer
 		// If the tx is a cancellation and we have at least one input or output that is not ours, then we set the anonset to 1.
 		if (tx.IsCancellation && (tx.ForeignOutputs.Count != 0 || tx.ForeignInputs.Count != 0))
 		{
-			foreach (var k in tx.WalletInputs.Select(x => x.HdPubKey).Distinct())
+			foreach (var coin in tx.WalletInputs)
 			{
-				k.SetAnonymitySet(1);
+				coin.SetAnonymitySet(1);
 			}
 		}
 	}
@@ -247,10 +240,11 @@ public static class BlockchainAnalyzer
 			// anonymity set size estimate.
 			double anonset = new[] { startingOutputAnonset.sanctioned + anonymityGain, anonymityGain + 1, startingOutputAnonset.standard }.Max();
 
-			foreach (var hdPubKey in virtualOutput.Coins.Select(x => x.HdPubKey).ToHashSet())
+			foreach (var coin in virtualOutput.Coins)
 			{
+				var hdPubKey = coin.HdPubKey;
 				uint256 txid = tx.GetHash();
-				if (Math.Abs(hdPubKey.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.00001)
+				if (Math.Abs(coin.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.00001)
 				{
 					// If the new coin's HD pubkey haven't been used yet
 					// then its anonset haven't been set yet.
@@ -278,7 +272,7 @@ public static class BlockchainAnalyzer
 				else
 				{
 					// It's address reuse.
-					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, hdPubKey.AnonymitySet }), txid);
+					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, coin.AnonymitySet }), txid);
 				}
 			}
 		}
@@ -322,15 +316,15 @@ public static class BlockchainAnalyzer
 
 	private static void AnalyzeSelfSpendWalletOutputs(SmartTransaction tx, double startingOutputAnonset)
 	{
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			if (Math.Abs(key.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
+			if (Math.Abs(coin.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
 			{
-				key.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
+				coin.HdPubKey.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
 			}
 			else
 			{
-				key.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, key.AnonymitySet }), tx.GetHash());
+				coin.HdPubKey.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, coin.AnonymitySet }), tx.GetHash());
 			}
 		}
 	}
@@ -338,9 +332,9 @@ public static class BlockchainAnalyzer
 	private static void AnalyzeReceive(SmartTransaction tx)
 	{
 		// No matter how much anonymity a user would had gained in a tx, if the money comes from outside, then make anonset 1.
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			key.SetAnonymitySet(1, tx.GetHash());
+			coin.SetAnonymitySet(1, tx.GetHash());
 		}
 	}
 
@@ -353,13 +347,13 @@ public static class BlockchainAnalyzer
 		// or at the very least assume that all the changes in the tx is ours.
 		// For example even if the assumed change output is a payment to someone, a blockchain analyzer
 		// probably would just assume it's ours and go on with its life.
-		foreach (var key in tx.WalletInputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletInputs)
 		{
-			key.SetAnonymitySet(1);
+			coin.SetAnonymitySet(1);
 		}
-		foreach (var key in tx.WalletOutputs.Select(x => x.HdPubKey))
+		foreach (var coin in tx.WalletOutputs)
 		{
-			key.SetAnonymitySet(1, tx.GetHash());
+			coin.SetAnonymitySet(1, tx.GetHash());
 		}
 	}
 
