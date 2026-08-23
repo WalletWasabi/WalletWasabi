@@ -1,10 +1,6 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Keys;
 
@@ -14,8 +10,6 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	private readonly Lazy<Script> _p2wpkhScript;
 	private readonly Lazy<Script> _p2Taproot;
-
-	private double _anonymitySet = DefaultHighAnonymitySet;
 	private Cluster _cluster;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
@@ -56,9 +50,9 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public double AnonymitySet
 	{
-		get => _anonymitySet;
-		private set => RaiseAndSetIfChanged(ref _anonymitySet, value);
-	}
+		get;
+		private set => RaiseAndSetIfChanged(ref field, value);
+	} = DefaultHighAnonymitySet;
 
 	public PubKey PubKey { get; }
 

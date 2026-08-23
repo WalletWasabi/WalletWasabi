@@ -39,7 +39,7 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinRpcFilterProvider(IRPCClient bitcoinClient, ConcurrentChain blockHeaderChain) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, blockHeaderChain, fromHash, fromHeight, cancellationToken);
 
-	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
+	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
 	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
@@ -122,7 +122,7 @@ public static class FilterProviders
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinP2pAsync(
 		FilterHeaderChain filterHeadersChain,
 		ConcurrentChain blockHeadersChain,
-		CompactFilterBehavior.FilterSynchronizationState synchronizationState,
+		FilterSynchronizationState synchronizationState,
 		uint fromHeight,
 		uint256 fromHash,
 		CancellationToken cancellationToken)

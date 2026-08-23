@@ -176,8 +176,13 @@ for PLATFORM in "${PLATFORMS[@]}"; do
   BUNDLED_APPS_DIR="$OUTPUT_DIR/BundledApps/Binaries"
 
   if [[ "${PLATFORM_PREFIX}" == "osx" ]]; then
-    # For macOS, the bundled binaries are stored in "osx64" and it supports both x64 and arm64.
-    find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" -exec rm -rf {} +
+    if [[ "$PLATFORM" == "osx-arm64" ]]; then
+      # Tor is universal and remains in osx64. HWI has a separate arm64 binary.
+      find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" ! -name "osx-arm64" -exec rm -rf {} +
+      rm "$BUNDLED_APPS_DIR/osx64/hwi"
+    else
+      find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "osx64" -exec rm -rf {} +
+    fi
   else
     # For other platforms, the bundled binaries are stored in a folder with the same name as the platform (e.g. linux-x64, linux-arm64 and win-x64).
     find $BUNDLED_APPS_DIR -mindepth 1 -maxdepth 1 -type d ! -name "$PLATFORM" -exec rm -rf {} +

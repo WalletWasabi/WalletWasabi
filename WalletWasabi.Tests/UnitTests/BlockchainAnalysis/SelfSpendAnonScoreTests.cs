@@ -24,8 +24,8 @@ public class SelfSpendAnonScoreTests
 		// Anonset of the input shall be retained.
 		// Although the tx has more than one interpretation
 		// blockchain anal usually just assumes it's a self spend.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(3, x.HdPubKey.AnonymitySet));
-		Assert.All(tx.WalletInputs, x => Assert.Equal(3, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(3, x.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(3, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -42,8 +42,8 @@ public class SelfSpendAnonScoreTests
 		// Although the tx has many interpretations we shall not guess which one
 		// a blockchain analyzer would go with, therefore outputs shall not gain anonsets
 		// as we're conservatively estimating.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(3, x.HdPubKey.AnonymitySet));
-		Assert.All(tx.WalletInputs, x => Assert.Equal(3, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(3, x.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(3, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -61,8 +61,8 @@ public class SelfSpendAnonScoreTests
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Anonset of the input shall be worsened because of input merging.
-		Assert.All(tx.WalletOutputs, x => Assert.True(x.HdPubKey.AnonymitySet < smallestAnonset));
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < smallestAnonset));
+		Assert.All(tx.WalletOutputs, x => Assert.True(x.AnonymitySet < smallestAnonset));
+		Assert.All(tx.WalletInputs, x => Assert.True(x.AnonymitySet < smallestAnonset));
 	}
 
 	[Fact]
@@ -83,7 +83,7 @@ public class SelfSpendAnonScoreTests
 		// Although the tx has many interpretations we shall not guess which one
 		// a blockchain analyzer would go with, therefore outputs shall not gain anonsets
 		// as we're conservatively estimating.
-		Assert.All(tx.WalletOutputs, x => Assert.True(x.HdPubKey.AnonymitySet < smallestAnonset));
-		Assert.All(tx.WalletInputs, x => Assert.True(x.HdPubKey.AnonymitySet < smallestAnonset));
+		Assert.All(tx.WalletOutputs, x => Assert.True(x.AnonymitySet < smallestAnonset));
+		Assert.All(tx.WalletInputs, x => Assert.True(x.AnonymitySet < smallestAnonset));
 	}
 }

@@ -81,12 +81,13 @@ DIST_URI="https://github.com/bitcoin-core/HWI/releases/download/${VERSION}"
 declare -A FILES
 FILES[linux-arm64]="hwi-${VERSION}-linux-aarch64.tar.gz"
 FILES[linux-x64]="hwi-${VERSION}-linux-x86_64.tar.gz"
+FILES[osx-arm64]="hwi-${VERSION}-mac-arm64.tar.gz"
 FILES[osx64]="hwi-${VERSION}-mac-x86_64.tar.gz"
 FILES[win-x64]="hwi-${VERSION}-windows-x86_64.zip"
 
 CHECKSUM_FILE="SHA256SUMS.txt.asc"
 
-SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx64" "win-x64")
+SUPPORTED_PLATFORMS=("linux-arm64" "linux-x64" "osx-arm64" "osx64" "win-x64")
 
 SEVEN_ZIP="7zz"
 
@@ -235,8 +236,14 @@ if [[ "$SKIP_EXTRACT" != true ]]; then
     "$SEVEN_ZIP" x -y "hwi-${VERSION}-linux-x86_64.tar.gz" >/dev/null
     "$SEVEN_ZIP" x -y -oHWI/linux-x64 "hwi-${VERSION}-linux-x86_64.tar" >/dev/null
 
-    # macOS
-    info "Extracting macOS (hwi-${VERSION}-mac-x86_64.tar.gz)"
+    # macOS arm64
+    info "Extracting macOS arm64 (hwi-${VERSION}-mac-arm64.tar.gz)"
+    mkdir -p HWI/osx-arm64
+    "$SEVEN_ZIP" x -y "hwi-${VERSION}-mac-arm64.tar.gz" >/dev/null
+    "$SEVEN_ZIP" x -y -oHWI/osx-arm64 "hwi-${VERSION}-mac-arm64.tar" >/dev/null
+
+    # macOS x64
+    info "Extracting macOS x64 (hwi-${VERSION}-mac-x86_64.tar.gz)"
     mkdir -p HWI/osx64
     "$SEVEN_ZIP" x -y "hwi-${VERSION}-mac-x86_64.tar.gz" >/dev/null
     "$SEVEN_ZIP" x -y -oHWI/osx64 "hwi-${VERSION}-mac-x86_64.tar" >/dev/null
@@ -261,6 +268,7 @@ if [[ "$SKIP_REPLACE" != true ]]; then
 
     for platform in "${SUPPORTED_PLATFORMS[@]}"; do
         target_dir="${platform}"
+        mkdir -p "${target_dir}"
         rm -rf "${target_dir:?}"/hwi
         cp -a "${TEMP_DIR}/HWI/${platform}/"* "${BINARIES_DIR}/${target_dir}/"
         info "Updated ${target_dir}"
@@ -272,9 +280,9 @@ fi
 # ─── Make executables +x (git friendly) ──────────────────────────────────────
 section "Marking HWI binaries executable in the git repository"
 
-chmod +x ./{linux-arm64,linux-x64,osx64,win-x64}/hwi{,.exe} 2>/dev/null || true
+chmod +x ./{linux-arm64,linux-x64,osx-arm64,osx64,win-x64}/hwi{,.exe} 2>/dev/null || true
 
-git update-index --chmod=+x ./{linux-arm64,linux-x64,osx64}/hwi 2>/dev/null || true
+git update-index --chmod=+x ./{linux-arm64,linux-x64,osx-arm64,osx64}/hwi 2>/dev/null || true
 git update-index --chmod=+x ./win-x64/hwi.exe 2>/dev/null || true
 
 echo ""
