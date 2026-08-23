@@ -1,7 +1,5 @@
 using System.Diagnostics;
 using System.IO;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
 
 namespace WalletWasabi.Hwi.ProcessBridge;
@@ -10,7 +8,7 @@ public class HwiProcessBridge : IHwiProcessInvoker
 {
 	public HwiProcessBridge()
 	{
-		_processPath = BundledAppHelpers.GetBinaryPath("hwi");
+		_processPath = BundledAppHelpers.GetBinaryPath(BundledApp.Hwi);
 	}
 
 	private readonly string _processPath;
@@ -30,7 +28,7 @@ public class HwiProcessBridge : IHwiProcessInvoker
 		else
 		{
 			response = exitCode == 0
-				? "{\"success\":\"true\"}"
+				? """{"success":"true"}"""
 				: $"{{\"success\":\"false\",\"error\":\"Process terminated with exit code: {exitCode}.\"}}";
 		}
 
