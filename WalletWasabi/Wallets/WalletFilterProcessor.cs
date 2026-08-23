@@ -53,6 +53,8 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly AsyncLock _reorgLock = new();
 
 	private IDisposable? _chainReorgSubscription;
+	private IDisposable? _filterDownloadStatusSubscription;
+	private volatile bool _isDownloadingFilters;
 
 	/// <inheritdoc />
 	/// <summary>Used for filter synchronization.</summary>
@@ -62,6 +64,12 @@ public class WalletFilterProcessor : BackgroundService
 		{
 			while (!cancellationToken.IsCancellationRequested)
 			{
+				if (_isDownloadingFilters)
+				{
+					await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
+					continue;
+				}
+
 				using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
 				{
 					var lastHeight = _keyManager.GetBestHeight();
@@ -169,12 +177,14 @@ public class WalletFilterProcessor : BackgroundService
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
 		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.invalidBlockHash, e.invalidBlockHeight));
+		_filterDownloadStatusSubscription = _eventBus.Subscribe<FilterDownloadStatusChanged>(e => _isDownloadingFilters = e.IsDownloading);
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
 	public override async Task StopAsync(CancellationToken cancellationToken)
 	{
 		_chainReorgSubscription?.Dispose();
+		_filterDownloadStatusSubscription?.Dispose();
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
 	}
 }

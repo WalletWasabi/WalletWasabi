@@ -216,35 +216,44 @@ public static class Synchronizer
 
 	private static async Task<Unit> GenerateCompactFiltersAsync(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
 	{
+		var isSynchronized = await DownloadFiltersAsync(filtersProvider, filterStore, filterHeaderChain, eventBus, cancellationToken).ConfigureAwait(false);
+
+		var downloadedFiltersTip = filterStore.GetTip()?.Header.Height ?? ChainHeight.Genesis;
+		eventBus.Publish(new FilterDownloadStatusChanged(IsDownloading: downloadedFiltersTip < filterHeaderChain.ServerTipHeight));
+
+		if (isSynchronized)
+		{
+			await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
+		}
+
+		return Unit.Instance;
+	}
+
+	private static async Task<bool> DownloadFiltersAsync(FilterProvider filtersProvider, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus, CancellationToken cancellationToken)
+	{
 		// Don't attempt synchronization without a valid tip hash
 		if (filterHeaderChain.TipHash is null)
 		{
 			await Task.Delay(TimeSpan.FromSeconds(0.5), cancellationToken).ConfigureAwait(false);
-			return Unit.Instance;
+			return false;
 		}
 
 		if (filterStore.GetTip() is not { } storedTip)
 		{
-			return Unit.Instance;
+			return false;
 		}
 
 		var response = await filtersProvider(storedTip.Header.Height, storedTip.Header.BlockHash, cancellationToken)
 			.ConfigureAwait(false);
 
-		if (response.IsOk)
-		{
-			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain, eventBus).ConfigureAwait(false);
-			if (isSynchronized)
-			{
-				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
-			}
-		}
-		else
+		if (!response.IsOk)
 		{
 			var continueAfterSeconds = response.Error;
 			await Task.Delay(continueAfterSeconds, cancellationToken).ConfigureAwait(false);
+			return false;
 		}
-		return Unit.Instance;
+
+		return await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain, eventBus).ConfigureAwait(false);
 	}
 
 	private static async Task<bool> ProcessFiltersAsync(FiltersResponse response, FilterStore filterStore, FilterHeaderChain filterHeaderChain, EventBus eventBus)

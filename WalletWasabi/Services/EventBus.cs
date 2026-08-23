@@ -128,6 +128,7 @@ public record TorNetworkStatusChanged(Issue[] ReportedIssues);
 
 public record RpcStatusChanged(Result<ConnectedRpcStatus, string> Status);
 public record FilterProcessed(FilterModel Filter);
+public record FilterDownloadStatusChanged(bool IsDownloading);
 public record Tick(DateTime DateTime);
 
 public record P2pNodeAdded(EndPoint EndPoint, Node Node);
