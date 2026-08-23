@@ -1,5 +1,3 @@
-using System.Linq;
-
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 public abstract class SelectionStrategy

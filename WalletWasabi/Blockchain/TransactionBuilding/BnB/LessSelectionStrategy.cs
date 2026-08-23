@@ -1,5 +1,3 @@
-using WalletWasabi.Helpers;
-
 namespace WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 /// <summary>

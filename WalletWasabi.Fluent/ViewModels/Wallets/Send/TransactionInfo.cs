@@ -1,8 +1,6 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -14,7 +12,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 public partial class TransactionInfo
 {
 	[AutoNotify] private FeeRate _feeRate = FeeRate.Zero;
-	[AutoNotify] private IEnumerable<SmartCoin> _coins = Enumerable.Empty<SmartCoin>();
+	[AutoNotify] private IEnumerable<SmartCoin> _coins = [];
 
 	public TransactionInfo(Destination destination, int anonScoreTarget)
 	{
@@ -40,7 +38,7 @@ public partial class TransactionInfo
 
 	public TimeSpan ConfirmationTimeSpan { get; set; }
 
-	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = Enumerable.Empty<SmartCoin>();
+	public IEnumerable<SmartCoin> ChangelessCoins { get; set; } = [];
 
 	public IPayjoinClient? PayJoinClient { get; set; }
 
@@ -58,7 +56,7 @@ public partial class TransactionInfo
 
 	public bool IsFixedAmount { get; init; }
 
-	public IReadOnlyList<RecipientInfo> AdditionalRecipients { get; init; } = ImmutableList<RecipientInfo>.Empty;
+	public IReadOnlyList<RecipientInfo> AdditionalRecipients { get; init; } = [];
 
 	public bool IsPayToMany => AdditionalRecipients.Count > 0;
 
@@ -78,13 +76,13 @@ public partial class TransactionInfo
 
 	private void OnFeeChanged()
 	{
-		ChangelessCoins = Enumerable.Empty<SmartCoin>();
+		ChangelessCoins = [];
 	}
 
 	private void OnCoinsChanged()
 	{
 		MaximumPossibleFeeRate = null;
-		ChangelessCoins = Enumerable.Empty<SmartCoin>(); // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
+		ChangelessCoins = []; // Clear ChangelessCoins on pocket change, so we calculate the suggestions with the new pocket.
 	}
 
 	public TransactionInfo Clone()

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
-using System.Threading;
 using WalletWasabi.Blockchain.TransactionBuilding.BnB;
 
 namespace WalletWasabi.Blockchain.TransactionBuilding;
