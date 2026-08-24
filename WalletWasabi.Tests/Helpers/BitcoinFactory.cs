@@ -4,13 +4,11 @@ using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DynamicData;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.Helpers;
@@ -149,9 +147,8 @@ public static class BitcoinFactory
 
 	public static uint256 CreateUint256()
 	{
-		var rand = new UnsecureRandom();
 		var bytes = new byte[32];
-		rand.GetBytes(bytes);
+		Random.Shared.NextBytes(bytes);
 		return new uint256(bytes);
 	}
 
