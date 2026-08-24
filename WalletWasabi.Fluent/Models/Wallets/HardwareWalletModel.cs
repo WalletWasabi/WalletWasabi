@@ -28,17 +28,9 @@ internal class HardwareWalletModel : WalletModel, IHardwareWalletModel
 	{
 		try
 		{
-			// Long enough for a person to read and confirm every output on the device, which takes longer
-			// the more inputs the transaction has.
-			TimeSpan baseTimeout = TimeSpan.FromMinutes(3);
-			TimeSpan additionalTimeoutPer10Inputs = TimeSpan.FromMinutes(1);
-			int inputCount = transactionAuthorizationInfo.Transaction.WalletInputs.Count;
-
-			TimeSpan totalTimeout = baseTimeout + TimeSpan.FromMinutes((inputCount / 10) * additionalTimeoutPer10Inputs.TotalMinutes);
-			using var cts = new CancellationTokenSource(totalTimeout);
-
+			// How long the device may take is the service's business: it knows what it is asking of the device.
 			PSBT signedPsbt = await _hardwareWallets
-				.SignTransactionAsync(Wallet.KeyManager, transactionAuthorizationInfo.Psbt, transactionAuthorizationInfo.Transaction, cts.Token)
+				.SignTransactionAsync(Wallet.KeyManager, transactionAuthorizationInfo.Psbt, transactionAuthorizationInfo.Transaction, CancellationToken.None)
 				.ConfigureAwait(false);
 
 			transactionAuthorizationInfo.Transaction = signedPsbt.ExtractSmartTransaction(transactionAuthorizationInfo.Transaction);

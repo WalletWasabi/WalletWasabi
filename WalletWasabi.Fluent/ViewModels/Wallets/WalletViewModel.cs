@@ -12,7 +12,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
@@ -333,7 +332,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 	{
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
-		// A Trezor coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
+		// A device-signed coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
 		if (!IsWatchOnly || WalletModel.CanCoinJoin)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);

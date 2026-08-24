@@ -29,7 +29,7 @@ public enum CoinjoinError
 	MinInputCountTooLow,
 	CoordinatorLiedAboutInputs,
 	NotEnoughConfirmedUnprivateBalance,
-	TrezorAuthorizationFailed
+	DeviceAuthorizationFailed
 }
 
 public class StatusChangedEventArgs : EventArgs

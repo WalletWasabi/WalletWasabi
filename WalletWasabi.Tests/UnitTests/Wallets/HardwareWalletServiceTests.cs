@@ -233,4 +233,29 @@ public class HardwareWalletServiceTests
 		using var service = new HardwareWalletService(Network.Main);
 		Assert.Equal(HardwareWalletTransport.DirectUsb, service.TransportStatus);
 	}
+
+	[Fact]
+	public void SigningTimeoutGrowsWithTheNumberOfInputs()
+	{
+		// A person confirms every output on the device, so more inputs must buy more time - but a small
+		// transaction still gets the full base allowance.
+		Assert.Equal(TimeSpan.FromMinutes(3), HardwareWalletService.SigningTimeout(0));
+		Assert.Equal(TimeSpan.FromMinutes(3), HardwareWalletService.SigningTimeout(9));
+		Assert.Equal(TimeSpan.FromMinutes(4), HardwareWalletService.SigningTimeout(10));
+		Assert.Equal(TimeSpan.FromMinutes(13), HardwareWalletService.SigningTimeout(100));
+	}
+
+	[Fact]
+	public void RejectedLimitsExplainThemselves()
+	{
+		// The settings fields show these strings as they are, so an empty or vague reason would reach the user.
+		Assert.False(HardwareWalletService.TryValidateMaxRounds(0, out var roundsError));
+		Assert.Contains("between", roundsError);
+
+		Assert.False(HardwareWalletService.TryValidateMaxMiningFeeRate(0m, out var feeRateError));
+		Assert.Contains("sat/vByte", feeRateError);
+
+		Assert.True(HardwareWalletService.TryValidateMaxRounds(10, out _));
+		Assert.True(HardwareWalletService.TryValidateMaxMiningFeeRate(150m, out _));
+	}
 }

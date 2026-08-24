@@ -6,6 +6,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Logging;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -225,49 +226,33 @@ public class CoinJoinManager : BackgroundService
 			return coinCandidates;
 		}
 
-		// A Trezor coinjoin wallet is watch-only until the device authorizes a batch of rounds; that call
-		// also builds the wallet's key chain. The GUI does this from its Play dialog, but with no GUI
-		// (daemon / JSON-RPC) it must happen here, so a headless client can coinjoin too. The user still
-		// approves the rounds and fee cap physically on the device (hold-to-confirm) once per batch.
+		// A device-signed wallet is watch-only until the device authorizes a batch of rounds; that call also
+		// builds the wallet's key chain. Every front end goes through here, so a GUI and a headless client
+		// ask for the authorization on exactly the same terms. The user approves the rounds and the fee cap
+		// physically on the device (hold-to-confirm) once per batch.
 		// The wait for the hold-to-confirm must not stall the command loop (other wallets keep their
 		// start/stop commands responsive), so authorize in a task and re-post the command when done.
-		if (walletToStart.KeyManager.IsTrezorCoinJoinWallet() && walletToStart.KeyChain is null)
+		if (NeedsDeviceAuthorization(walletToStart))
 		{
-			// Before asking anyone to approve anything: if every round this coordinator currently runs pays
-			// more than the wallet's authorized fee cap, the signing device would refuse each of them right
-			// after the user walked over and confirmed the authorization. Check the rounds already polled -
-			// opportunistically, the snapshot is legitimately empty on a cold start - and fail early with
-			// the reason instead. The per-round check in CoinJoinClient stays authoritative.
-			var authorizedFeeCap = new FeeRate(walletToStart.KeyManager.CoinJoinDeviceMaxMiningFeeRate);
-			var knownRounds = await _roundStatusProvider.GetCurrentRoundsAsync(cancellationToken).ConfigureAwait(false);
-			if (knownRounds.Count > 0 && knownRounds.All(r => r.CoinjoinState.Parameters.MiningFeeRate > authorizedFeeCap))
-			{
-				Logger.LogWarning(FormatLog(
-					$"Every round of this coordinator currently pays more than the authorized {authorizedFeeCap.SatoshiPerByte} sat/vByte, "
-					+ "so the signing device would refuse all of them. Raise the fee limit in the coinjoin settings or wait for lower fees.",
-					walletToStart));
-				NotifyCoinJoinStartError(walletToStart, CoinjoinError.MiningFeeRateTooHigh);
-				return;
-			}
-
 			_ = Task.Run(
 				async () =>
 				{
 					try
 					{
-						using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-						authCts.CancelAfter(TimeSpan.FromMinutes(3));
-						await walletToStart
-							.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, authCts.Token)
-							.ConfigureAwait(false);
+						await AuthorizeDeviceAsync(walletToStart, cancellationToken).ConfigureAwait(false);
 
 						// The key chain exists now, so the re-posted command passes this branch and starts mixing.
 						_mailboxProcessor.Post(startCommand);
 					}
+					catch (CoinJoinClientException ex)
+					{
+						Logger.LogWarning(FormatLog(ex.Message, walletToStart));
+						NotifyCoinJoinStartError(walletToStart, ex.CoinjoinError);
+					}
 					catch (Exception ex)
 					{
-						Logger.LogWarning(FormatLog($"Trezor coinjoin authorization failed: {ex.Message}", walletToStart));
-						NotifyCoinJoinStartError(walletToStart, CoinjoinError.TrezorAuthorizationFailed);
+						Logger.LogWarning(FormatLog($"Coinjoin authorization failed: {ex.Message}", walletToStart));
+						NotifyCoinJoinStartError(walletToStart, CoinjoinError.DeviceAuthorizationFailed);
 					}
 				},
 				cancellationToken);
@@ -295,6 +280,40 @@ public class CoinJoinManager : BackgroundService
 
 		// In case there was another start scheduled just remove it.
 		TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStart);
+	}
+
+	/// <summary>Whether this wallet still owes its signing device an authorization before it can coinjoin.</summary>
+	public static bool NeedsDeviceAuthorization(Wallet wallet) =>
+		HardwareWalletService.IsRemoteSigner(wallet.KeyManager) && wallet.KeyChain is null;
+
+	/// <summary>
+	/// Asks the signing device to authorize a batch of coinjoin rounds, which is also what gives the wallet
+	/// its key chain. This owns the whole policy - the fee cap sanity check and how long the user gets to
+	/// confirm - so that a GUI and a headless client behave identically.
+	/// </summary>
+	/// <exception cref="CoinJoinClientException">The device would refuse every round this coordinator runs.</exception>
+	public async Task AuthorizeDeviceAsync(Wallet wallet, CancellationToken cancellationToken)
+	{
+		// Before asking anyone to approve anything: if every round this coordinator currently runs pays more
+		// than the wallet's authorized fee cap, the signing device would refuse each of them right after the
+		// user walked over and confirmed the authorization. Check the rounds already polled - opportunistically,
+		// the snapshot is legitimately empty on a cold start - and fail early with the reason instead. The
+		// per-round check in CoinJoinClient stays authoritative.
+		var authorizedFeeCap = new FeeRate(wallet.KeyManager.CoinJoinDeviceMaxMiningFeeRate);
+		var knownRounds = await _roundStatusProvider.GetCurrentRoundsAsync(cancellationToken).ConfigureAwait(false);
+		if (knownRounds.Count > 0 && knownRounds.All(r => r.CoinjoinState.Parameters.MiningFeeRate > authorizedFeeCap))
+		{
+			throw new CoinJoinClientException(
+				CoinjoinError.MiningFeeRateTooHigh,
+				$"Every round of this coordinator currently pays more than the authorized {authorizedFeeCap.SatoshiPerByte} sat/vByte, "
+				+ "so the signing device would refuse all of them. Raise the fee limit in the coinjoin settings or wait for lower fees.");
+		}
+
+		using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		authCts.CancelAfter(HardwareWalletService.AuthorizationTimeout);
+		await wallet
+			.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, authCts.Token)
+			.ConfigureAwait(false);
 	}
 
 	private void HandleStopCoinJoinCommand(StopCoinJoinCommand stopCommand)
