@@ -48,6 +48,8 @@ public class FilterSynchronizationState
 		assignment = null;
 		lock (_lock)
 		{
+			RewindTrackersToFilterHeaderTipNoLock();
+
 			// Check for and release any stale header assignments
 			if (_headerTracker.GetOldestStaleAssignment(HeaderAssignmentTimeout) is { } staleHeaderHeight)
 			{
@@ -316,6 +318,8 @@ public class FilterSynchronizationState
 		assignment = null;
 		lock (_lock)
 		{
+			RewindTrackersToFilterHeaderTipNoLock();
+
 			// Check for and release any stale filter assignments
 			if (_filterTracker.GetOldestStaleAssignment(FilterAssignmentTimeout) is { } staleFilterHeight)
 			{
@@ -447,15 +451,34 @@ public class FilterSynchronizationState
 		}
 	}
 
+	/// <summary>
+	/// After a reorg rollback the filter header chain tip moves below the trackers'
+	/// <see cref="RequestTracker{TProcessedResponse}.LastHeight"/>; pull them back so the next request
+	/// re-fetches the replaced height instead of skipping past it.
+	/// </summary>
+	private void RewindTrackersToFilterHeaderTipNoLock()
+	{
+		if (_filterHeaderChain.Tip is not { } tip)
+		{
+			return;
+		}
+
+		var tipHeight = (uint)tip.Height;
+		if (_headerTracker.LastHeight > tipHeight)
+		{
+			_headerTracker.RewindTo(tipHeight);
+		}
+
+		if (_filterTracker.LastHeight > tipHeight)
+		{
+			_filterTracker.RewindTo(tipHeight);
+		}
+	}
+
 	private void ClearPendingStateNoLock()
 	{
-		// Clear all pending header ranges
 		_headerTracker.ClearAllPending();
-
-		// Clear all pending filter ranges
 		_filterTracker.ClearAllPending();
-
-		// Clear all buffered header responses awaiting validation
 		_bufferedHeaderResponses.Clear();
 
 		Logger.LogDebug("Cleared all pending filter header and filter assignments due to reorg");

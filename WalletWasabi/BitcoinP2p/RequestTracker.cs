@@ -161,6 +161,17 @@ public class RequestTracker<TProcessedResponse>(TimeProvider timeProvider, uint 
 	{
 		_pendingResponses.Clear();
 	}
+
+	/// <summary>
+	/// Drops all active and pending ranges and continues from <paramref name="height"/>.
+	/// Used when the filter header chain was rolled back below <see cref="LastHeight"/>.
+	/// </summary>
+	public void RewindTo(uint height)
+	{
+		_pendingResponses.Clear();
+		_activeAssignments.Clear();
+		LastHeight = height;
+	}
 }
 
 public abstract record Response(uint StartHeight)
