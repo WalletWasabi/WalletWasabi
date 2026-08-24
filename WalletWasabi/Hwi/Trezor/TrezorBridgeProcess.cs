@@ -5,21 +5,9 @@ using System.Runtime.InteropServices;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Hwi.Trezor;
-
-/// <summary>How the Trezor is currently reachable.</summary>
-public enum HardwareWalletTransport
-{
-	/// <summary>No bridge involved: the device is reached over direct USB.</summary>
-	DirectUsb,
-
-	/// <summary>A bridge started and owned by Wasabi is serving the device.</summary>
-	BridgeStartedByWasabi,
-
-	/// <summary>A bridge Wasabi did not start (e.g. one from the vendor's own software) is serving the device.</summary>
-	ExternalBridge,
-}
 
 /// <summary>
 /// Owns the lifecycle of a standalone Trezor Bridge (trezord) process.
