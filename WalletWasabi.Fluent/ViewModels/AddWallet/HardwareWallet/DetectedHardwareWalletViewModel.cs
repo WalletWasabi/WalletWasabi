@@ -96,7 +96,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		}));
 
 		// Warn up front when coinjoin is offered but the bridge that it needs is not running, so the user
-		// can start Trezor Suite before checking the box instead of hitting an error after confirming.
+		// can start the vendor bridge software before checking the box instead of hitting an error after confirming.
 		if (SupportsCoinjoin)
 		{
 			Task.Run(async () =>

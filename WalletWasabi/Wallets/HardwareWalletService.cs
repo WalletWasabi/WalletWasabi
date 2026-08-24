@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
+using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
@@ -62,19 +63,58 @@ public class HardwareWalletService : IDisposable
 	/// </summary>
 	public static (decimal Min, decimal Max) AllowedAuthorizationFeeRates => (0m, 10_000m);
 
-	/// <summary>Throws when the limits are outside what a device can be asked to approve.</summary>
-	public static void AssertAuthorizationLimits(int? maxRounds, decimal? maxMiningFeeRate)
+	/// <summary>
+	/// Whether the number of rounds is one a device can be asked to approve, with the reason when it is not.
+	/// The reason is written for a person, so a settings field can show it as is.
+	/// </summary>
+	public static bool TryValidateMaxRounds(int? maxRounds, [NotNullWhen(false)] out string? error)
 	{
 		var (minRounds, maxAllowedRounds) = AllowedAuthorizationRounds;
 		if (maxRounds is { } rounds && (rounds < minRounds || rounds > maxAllowedRounds))
 		{
-			throw new ArgumentOutOfRangeException(nameof(maxRounds), rounds, $"The number of rounds must be between {minRounds} and {maxAllowedRounds}.");
+			error = $"Must be a whole number between {minRounds} and {maxAllowedRounds}.";
+			return false;
 		}
 
+		error = null;
+		return true;
+	}
+
+	/// <summary>Whether the mining fee rate is one a device can be authorized to sign at, with the reason when it is not.</summary>
+	public static bool TryValidateMaxMiningFeeRate(decimal? maxMiningFeeRate, [NotNullWhen(false)] out string? error)
+	{
 		var (minFeeRate, maxAllowedFeeRate) = AllowedAuthorizationFeeRates;
 		if (maxMiningFeeRate is { } feeRate && (feeRate <= minFeeRate || feeRate > maxAllowedFeeRate))
 		{
-			throw new ArgumentOutOfRangeException(nameof(maxMiningFeeRate), feeRate, $"The mining fee rate must be above {minFeeRate} and at most {maxAllowedFeeRate} sat/vByte.");
+			error = $"Must be a fee rate above {minFeeRate} and at most {maxAllowedFeeRate} sat/vByte.";
+			return false;
+		}
+
+		error = null;
+		return true;
+	}
+
+	/// <summary>
+	/// How long a device may take to sign a transaction. A person reads and confirms every output on the
+	/// device screen, which takes longer the more inputs there are.
+	/// </summary>
+	public static TimeSpan SigningTimeout(int inputCount) =>
+		TimeSpan.FromMinutes(3) + TimeSpan.FromMinutes(inputCount / 10);
+
+	/// <summary>How long a device may take to confirm a coinjoin authorization (one hold-to-confirm).</summary>
+	public static TimeSpan AuthorizationTimeout => TimeSpan.FromMinutes(3);
+
+	/// <summary>Throws when the limits are outside what a device can be asked to approve.</summary>
+	public static void AssertAuthorizationLimits(int? maxRounds, decimal? maxMiningFeeRate)
+	{
+		if (!TryValidateMaxRounds(maxRounds, out var roundsError))
+		{
+			throw new ArgumentOutOfRangeException(nameof(maxRounds), maxRounds, roundsError);
+		}
+
+		if (!TryValidateMaxMiningFeeRate(maxMiningFeeRate, out var feeRateError))
+		{
+			throw new ArgumentOutOfRangeException(nameof(maxMiningFeeRate), maxMiningFeeRate, feeRateError);
 		}
 	}
 
@@ -197,6 +237,11 @@ public class HardwareWalletService : IDisposable
 	public async Task<PSBT> SignTransactionAsync(KeyManager keyManager, PSBT psbt, SmartTransaction transaction, CancellationToken cancellationToken)
 	{
 		AssertKeysAreOnADevice(keyManager);
+
+		using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeout.CancelAfter(SigningTimeout(transaction.WalletInputs.Count));
+		cancellationToken = timeout.Token;
+
 		if (IsRemoteSigner(keyManager))
 		{
 			return await SignOverBridgeAsync(keyManager, psbt, transaction, cancellationToken).ConfigureAwait(false);
