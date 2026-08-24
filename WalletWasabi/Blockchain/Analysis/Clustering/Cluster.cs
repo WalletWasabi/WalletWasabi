@@ -1,76 +1,54 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using WalletWasabi.Blockchain.Keys;
-
 namespace WalletWasabi.Blockchain.Analysis.Clustering;
 
-public class Cluster(IEnumerable<HdPubKey> keys) : IEquatable<Cluster>
+public record Cluster(IImmutableSet<HdPubKey> Keys)
 {
+	private readonly Lock _lock = new();
 	public LabelsArray Labels => LabelsArray.Merge(KeysSet.Select(x => x.Labels));
 
-	private readonly Lock _lock = new();
-	private HashSet<HdPubKey> KeysSet { get; } = keys.ToHashSet();
-
-	public void Merge(Cluster cluster) => Merge(cluster.KeysSet);
-
-	private void Merge(IEnumerable<HdPubKey> keys)
+	private IImmutableSet<HdPubKey> KeysSet
 	{
-		lock (_lock)
+		get
 		{
-			foreach (var key in keys.ToList())
+			lock (_lock)
 			{
-				KeysSet.Add(key);
-				key.Cluster = this;
+				return field;
 			}
+		}
+
+		set
+		{
+			lock (_lock)
+			{
+				field = value;
+			}
+		}
+	} = Keys;
+
+	public void Merge(Cluster cluster)
+	{
+		KeysSet = KeysSet.Union(cluster.KeysSet);
+
+		foreach (var key in cluster.KeysSet)
+		{
+			key.Cluster = this;
 		}
 	}
 
 	public override string ToString() => Labels;
 
-	#region EqualityAndComparison
+	public virtual bool Equals(Cluster? other) =>
+		other is not null && KeysSet.SetEquals(other.KeysSet);
 
-	public override bool Equals(object? obj) => Equals(obj as Cluster);
-
-	public bool Equals(Cluster? other) => this == other;
-
+	/// <remarks>Hash code is computed for a set. Therefore, an order-independent hash function must be used (e.g. XOR).</remarks>
 	public override int GetHashCode()
 	{
-		lock (_lock)
+		int hash = 0;
+
+		foreach (var key in KeysSet)
 		{
-			int hash = 0;
-			foreach (var key in KeysSet)
-			{
-				hash ^= key.GetHashCode();
-			}
-			return hash;
+			hash ^= key.GetHashCode();
 		}
+
+		return hash;
 	}
-
-	public static bool operator ==(Cluster? x, Cluster? y)
-	{
-		if (ReferenceEquals(x, y))
-		{
-			return true;
-		}
-
-		if (x is null || y is null)
-		{
-			return false;
-		}
-
-		lock (x._lock)
-		{
-			lock (y._lock)
-			{
-				// We lose the order here, which isn't great and may cause problems,
-				// but this is also a significant performance gain.
-				return x.KeysSet.SetEquals(y.KeysSet);
-			}
-		}
-	}
-
-	public static bool operator !=(Cluster? x, Cluster? y) => !(x == y);
-
-	#endregion EqualityAndComparison
 }
