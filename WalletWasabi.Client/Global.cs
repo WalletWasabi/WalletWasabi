@@ -301,11 +301,6 @@ public class Global
 		return manager;
 	}
 
-	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
-	{
-		_p2pConnectionManager.Start(cancellationToken);
-	}
-
 	private RpcClientBase? ConfigureBitcoinRpcClient()
 	{
 		var credentialString = Config.BitcoinRpcCredentialString;
@@ -576,7 +571,6 @@ public class Global
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken linkedCtsToken = linkedCts.Token;
 
-		ConfigureBitcoinNetwork(linkedCtsToken);
 		ConfigureWasabiUpdater(linkedCtsToken);
 		ConfigureExchangeRateUpdater(linkedCtsToken);
 		ConfigureRpcMonitor(linkedCtsToken);
@@ -591,6 +585,9 @@ public class Global
 				StartTorProcessManagerAsync(linkedCtsToken),
 				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
+
+			// Bitcoin P2P network can be started after filters are initialized.
+			_p2pConnectionManager.Start(linkedCtsToken);
 
 			await ConfigureSynchronizerAsync(linkedCtsToken).ConfigureAwait(false);
 
