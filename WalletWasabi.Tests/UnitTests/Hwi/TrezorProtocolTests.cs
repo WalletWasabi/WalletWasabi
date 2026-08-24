@@ -1,6 +1,10 @@
 using NBitcoin;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
+using System.Net.Http;
+using System.Threading;
+using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -316,5 +320,93 @@ public class TrezorProtocolTests
 		// A mixed selection (the GUI's automatic coin selection produces those) is narrowed to one account.
 		var narrowedResult = factory.BuildTransaction(Parameters(0.5m, [segwitCoin.Outpoint, slip25Coin.Outpoint]));
 		Assert.Single(narrowedResult.SpentCoins.Select(coin => coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()).Distinct());
+	}
+
+	/// <summary>
+	/// Answers /call and /read with a canned body and records what was asked, so the wire format the
+	/// transport picks can be asserted without a bridge.
+	/// </summary>
+	private class StubBridgeHandler : HttpMessageHandler
+	{
+		public StubBridgeHandler(string infoResponse)
+		{
+			_infoResponse = infoResponse;
+		}
+
+		private readonly string _infoResponse;
+
+		public List<(string Path, string Body)> Requests { get; } = new();
+		public string DeviceResponse { get; set; } = "";
+
+		protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+		{
+			string path = request.RequestUri!.AbsolutePath;
+			string body = request.Content is null ? "" : await request.Content.ReadAsStringAsync(cancellationToken);
+			Requests.Add((path, body));
+
+			return new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = new StringContent(path == "/" ? _infoResponse : DeviceResponse)
+			};
+		}
+	}
+
+	private const string InitializeFrame = "000000000000";
+	private const string SuccessFrame = "000200000000";
+
+	[Fact]
+	public async Task TrezordGoTakesTheBareHexFrameAsync()
+	{
+		using var handler = new StubBridgeHandler("""{"version":"2.0.33","githash":"trezord-go"}""") { DeviceResponse = SuccessFrame };
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		var response = await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
+
+		Assert.Equal(TrezorMessageType.Success, response.MessageType);
+		Assert.Equal(("/call/1", InitializeFrame), Assert.Single(handler.Requests, r => r.Path != "/"));
+	}
+
+	[Fact]
+	public async Task TrezordNodeTakesTheJsonEnvelopeAsync()
+	{
+		using var handler = new StubBridgeHandler("""{"version":"3.2.1","protocolMessages":true}""")
+		{
+			DeviceResponse = $$"""{"protocol":"bridge","data":"{{SuccessFrame}}"}"""
+		};
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		var response = await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
+
+		Assert.Equal(TrezorMessageType.Success, response.MessageType);
+		Assert.Equal(
+			("/call/1", $$"""{"protocol":"bridge","data":"{{InitializeFrame}}"}"""),
+			Assert.Single(handler.Requests, r => r.Path != "/"));
+	}
+
+	[Fact]
+	public async Task ReadSendsAnEnvelopeWithoutDataAsync()
+	{
+		using var handler = new StubBridgeHandler("""{"version":"3.2.1","protocolMessages":true}""")
+		{
+			DeviceResponse = $$"""{"protocol":"bridge","data":"{{SuccessFrame}}"}"""
+		};
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		var response = await transport.ReadAsync("1", CancellationToken.None);
+
+		Assert.Equal(TrezorMessageType.Success, response.MessageType);
+		Assert.Equal(("/read/1", """{"protocol":"bridge"}"""), Assert.Single(handler.Requests, r => r.Path != "/"));
+	}
+
+	[Fact]
+	public async Task TheWireFormatIsAskedForOnceAsync()
+	{
+		using var handler = new StubBridgeHandler("""{"version":"2.0.33"}""") { DeviceResponse = SuccessFrame };
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
+		await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
+
+		Assert.Single(handler.Requests, r => r.Path == "/");
 	}
 }
