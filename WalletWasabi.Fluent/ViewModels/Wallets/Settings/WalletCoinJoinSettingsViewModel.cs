@@ -111,8 +111,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			});
 
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
-		this.ValidateProperty(x => x.DeviceMaxRounds, ValidateTrezorMaxRounds);
-		this.ValidateProperty(x => x.DeviceMaxMiningFeeRate, ValidateTrezorMaxMiningFeeRate);
+		this.ValidateProperty(x => x.DeviceMaxRounds, ValidateDeviceMaxRounds);
+		this.ValidateProperty(x => x.DeviceMaxMiningFeeRate, ValidateDeviceMaxMiningFeeRate);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
 			.Skip(1)
@@ -187,32 +187,40 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		}
 	}
 
-	private void ValidateTrezorMaxRounds(IValidationErrors errors)
+	private void ValidateDeviceMaxRounds(IValidationErrors errors)
 	{
-		var (minRounds, maxRounds) = HardwareWalletService.AllowedAuthorizationRounds;
-		if (int.TryParse(DeviceMaxRounds, out var rounds) && rounds >= minRounds && rounds <= maxRounds)
+		if (!int.TryParse(DeviceMaxRounds, out var rounds))
 		{
-			_wallet.Settings.CoinJoinDeviceMaxRounds = rounds;
-			_wallet.Settings.Save();
+			errors.Add(ErrorSeverity.Error, "Must be a whole number.");
+			return;
 		}
-		else
+
+		if (!HardwareWalletService.TryValidateMaxRounds(rounds, out var error))
 		{
-			errors.Add(ErrorSeverity.Error, $"Must be a whole number between {minRounds} and {maxRounds}.");
+			errors.Add(ErrorSeverity.Error, error);
+			return;
 		}
+
+		_wallet.Settings.CoinJoinDeviceMaxRounds = rounds;
+		_wallet.Settings.Save();
 	}
 
-	private void ValidateTrezorMaxMiningFeeRate(IValidationErrors errors)
+	private void ValidateDeviceMaxMiningFeeRate(IValidationErrors errors)
 	{
-		var (minFeeRate, maxFeeRate) = HardwareWalletService.AllowedAuthorizationFeeRates;
-		if (decimal.TryParse(DeviceMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate) && feeRate > minFeeRate && feeRate <= maxFeeRate)
+		if (!decimal.TryParse(DeviceMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate))
 		{
-			_wallet.Settings.CoinJoinDeviceMaxMiningFeeRate = feeRate;
-			_wallet.Settings.Save();
+			errors.Add(ErrorSeverity.Error, "Must be a fee rate in sat/vByte.");
+			return;
 		}
-		else
+
+		if (!HardwareWalletService.TryValidateMaxMiningFeeRate(feeRate, out var error))
 		{
-			errors.Add(ErrorSeverity.Error, "Must be a positive fee rate in sat/vByte.");
+			errors.Add(ErrorSeverity.Error, error);
+			return;
 		}
+
+		_wallet.Settings.CoinJoinDeviceMaxMiningFeeRate = feeRate;
+		_wallet.Settings.Save();
 	}
 
 	private Task SetProfile(string profileName)

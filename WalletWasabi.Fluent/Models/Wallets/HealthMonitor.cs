@@ -6,8 +6,8 @@ using System.Reactive.Linq;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 using WalletWasabi.Tor.StatusChecker;
 
 namespace WalletWasabi.Fluent.Models.Wallets;

@@ -122,7 +122,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
-        // A Trezor watch-only wallet imported without coinjoin can opt in later. The device shows the new
+        // A device-backed watch-only wallet imported without coinjoin can opt in later. The device shows the new
         // coinjoin account for confirmation, then the wallet restarts so the coinjoin services pick it up.
         CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
         EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>

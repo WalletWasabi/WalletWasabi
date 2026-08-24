@@ -8,22 +8,13 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
-
-public enum DeviceAuthorizationStatus
-{
-	Idle,
-	AwaitingConfirmation,
-	Confirmed,
-	TransportNotFound,
-	DeviceNotFound,
-	Failed,
-}
 
 [AppLifetime]
 public partial class WalletCoinjoinModel : ReactiveObject
@@ -113,9 +104,17 @@ public partial class WalletCoinjoinModel : ReactiveObject
 		DeviceAuthorizationError = "";
 		try
 		{
-			await _wallet.AuthorizeCoinJoinOnDeviceAsync(_services.Config.CoordinatorIdentifier, CancellationToken.None);
+			await _coinJoinManager.AuthorizeDeviceAsync(_wallet, CancellationToken.None).ConfigureAwait(false);
 			DeviceAuthorization = DeviceAuthorizationStatus.Confirmed;
 			return true;
+		}
+		catch (CoinJoinClientException e)
+		{
+			// The backend refused before the device was disturbed, e.g. no round is within the authorized fee cap.
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
 		}
 		catch (HardwareWalletTransportNotFoundException e)
 		{
@@ -140,18 +139,12 @@ public partial class WalletCoinjoinModel : ReactiveObject
 		}
 	}
 
-	/// <param name="skipDeviceAuthorization">True when the caller already authorized through the dialog.</param>
-	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop, bool skipDeviceAuthorization = false)
+	/// <remarks>
+	/// A wallet whose device still owes an authorization is not handled here: <see cref="CoinJoinManager"/>
+	/// asks for it and resumes the start by itself, so this behaves the same with or without a GUI.
+	/// </remarks>
+	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		if (HardwareWalletService.IsRemoteSigner(_wallet.KeyManager) && !skipDeviceAuthorization)
-		{
-			// Without the authorization no coinjoin can start.
-			if (!await AuthorizeOnDeviceAsync().ConfigureAwait(false))
-			{
-				return;
-			}
-		}
-
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
 
 		_coinJoinManager.RequestCoinJoinStart(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
