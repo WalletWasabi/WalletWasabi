@@ -26,6 +26,9 @@ internal static class LabelTestExtensions
 		pockets.Add(pocket);
 	}
 
+	public static HdPubKey NewKey(string label = "") =>
+		NewKey(label, anonymitySet: 1);
+
 	public static HdPubKey NewKey(string label = "", int anonymitySet = 1)
 	{
 		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true);
