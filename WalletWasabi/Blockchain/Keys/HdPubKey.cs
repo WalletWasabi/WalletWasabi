@@ -71,7 +71,10 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 	public int Index { get; }
 	public bool IsInternal { get; }
 
-	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId = null)
+	public void SetAnonymitySet(double anonset) =>
+		SetAnonymitySet(anonset, outputAnonSetReasonTxId: null);
+
+	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId)
 	{
 		if (outputAnonSetReasonTxId is not null)
 		{
