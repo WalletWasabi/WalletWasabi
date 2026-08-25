@@ -150,7 +150,7 @@ public static class BlockchainAnalyzer
 	{
 		// Calculate punishment to the smallest anonscore input.
 		return (tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet).MinOrDefault(),
-			    tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx)).MinOrDefault());
+			tx.WalletVirtualInputs.Select(x => x.HdPubKey.AnonymitySet + ComputeInputMinSanction(x, tx)).MinOrDefault());
 	}
 
 
