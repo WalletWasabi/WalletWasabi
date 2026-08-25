@@ -387,9 +387,7 @@ public static class BlockchainAnalyzer
 		ComputeInputSanction(virtualInput, tx, WeightedAverage);
 
 	private static double ComputeInputSanction(WalletVirtualInput virtualInput, SmartTransaction tx, AggregationFunction aggregationFunction)
-		=> virtualInput.Coins.Select(x => ComputeInputSanction(x, tx, aggregationFunction)).Max();
-
-
+		=> virtualInput.Coins.Max(x => ComputeInputSanction(x, tx, aggregationFunction));
 
 	private static double ComputeInputSanction(SmartCoin transactionOutput, SmartTransaction tx, AggregationFunction aggregationFunction)
 	{
