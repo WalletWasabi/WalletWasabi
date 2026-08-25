@@ -1,5 +1,4 @@
 using System;
-using System.Threading.Tasks;
 using Microsoft.Extensions.Caching.Memory;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
@@ -23,7 +22,7 @@ public class IntegrationTestFixture : IDisposable
 			.GetResult();
 
 		// Create a wallet for the Bitcoin Core node and get the wallet-specific RPC client
-		const string walletName = "integration_test_wallet";
+		string walletName = "integration_test_wallet";
 		RPCClient walletRpc = BitcoinCoreNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
 
 		// Wrap the wallet-specific client in a CachedRpcClient for consistency
