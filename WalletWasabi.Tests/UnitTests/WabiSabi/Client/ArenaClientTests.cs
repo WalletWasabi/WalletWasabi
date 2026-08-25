@@ -170,7 +170,6 @@ public class ArenaClientTests
 			Task.FromResult(BitcoinFactory.CreateTransaction());
 
 		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
@@ -204,7 +203,7 @@ public class ArenaClientTests
 
 		var inputRegistrationResponse = await inputRegistrationResponseTask;
 		var aliceId = inputRegistrationResponse.Value;
-		var connectionConfirmationResponse1Task = aliceArenaClient.ConfirmConnectionAsync(
+		var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -212,13 +211,13 @@ public class ArenaClientTests
 			inputRegistrationResponse.IssuedAmountCredentials,
 			inputRegistrationResponse.IssuedVsizeCredentials,
 			CancellationToken.None);
+		Assert.False(connectionConfirmationResponse1.Value);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 		// Phase: Connection Confirmation
-		var connectionConfirmationResponse1 = await connectionConfirmationResponse1Task;
-		var connectionConfirmationResponse2Task = aliceArenaClient.ConfirmConnectionAsync(
+		var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -226,6 +225,7 @@ public class ArenaClientTests
 			connectionConfirmationResponse1.IssuedAmountCredentials,
 			connectionConfirmationResponse1.IssuedVsizeCredentials,
 			CancellationToken.None);
+		Assert.True(connectionConfirmationResponse2.Value);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
@@ -238,7 +238,6 @@ public class ArenaClientTests
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 
-		var connectionConfirmationResponse2 = await connectionConfirmationResponse2Task;
 		var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 			round.Id,
 			amountsToRequest,
