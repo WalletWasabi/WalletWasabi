@@ -1,8 +1,9 @@
-using System;
 using Microsoft.Extensions.Caching.Memory;
-using NBitcoin.RPC;
+using System;
+using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.IntegrationTests.BitcoinCore;
+using Xunit;
 
 namespace WalletWasabi.IntegrationTests.Infrastructure;
 
@@ -10,20 +11,22 @@ namespace WalletWasabi.IntegrationTests.Infrastructure;
 /// xUnit fixture that manages a shared Bitcoin Core instance for integration tests.
 /// This fixture is created once per test collection and reused across all tests.
 /// </summary>
-public class IntegrationTestFixture : IDisposable
+public class IntegrationTestFixture : IAsyncLifetime, IAsyncDisposable
 {
 	private volatile bool _disposedValue = false;
 
-	public IntegrationTestFixture()
+	/// <summary>The shared Bitcoin Core node for all integration tests.</summary>
+	public CoreNode BitcoinCoreNode { get; private set; } = null!;
+
+	/// <summary>Wallet-specific RPC client for operations requiring wallet context.</summary>
+	public IRPCClient WalletRpcClient { get; private set; } = null!;
+
+	public async ValueTask InitializeAsync()
 	{
-		BitcoinCoreNode = TestNodeBuilder
-			.CreateAsync(callerFilePath: "IntegrationTests", callerMemberName: "BitcoinCoreData")
-			.GetAwaiter()
-			.GetResult();
+		BitcoinCoreNode = await TestNodeBuilder.CreateAsync(callerFilePath: "IntegrationTests", callerMemberName: "BitcoinCoreData");
 
 		// Create a wallet for the Bitcoin Core node and get the wallet-specific RPC client
-		string walletName = "integration_test_wallet";
-		RPCClient walletRpc = BitcoinCoreNode.RpcClient.CreateWalletAsync(walletName).GetAwaiter().GetResult();
+		var walletRpc = await BitcoinCoreNode.RpcClient.CreateWalletAsync(walletNameOrPath: "integration_test_wallet");
 
 		// Wrap the wallet-specific client in a CachedRpcClient for consistency
 #pragma warning disable CA2000 // Dispose objects before losing scope - MemoryCache ownership transferred to CachedRpcClient
@@ -31,35 +34,15 @@ public class IntegrationTestFixture : IDisposable
 #pragma warning restore CA2000
 
 		// Pre-mine some blocks to have mature coins available (using wallet-specific client)
-		WalletRpcClient.GenerateAsync(110).GetAwaiter().GetResult();
+		await WalletRpcClient.GenerateAsync(110);
 	}
 
-	/// <summary>
-	/// The shared Bitcoin Core node for all integration tests.
-	/// </summary>
-	public CoreNode BitcoinCoreNode { get; }
-
-	/// <summary>
-	/// Wallet-specific RPC client for operations requiring wallet context.
-	/// </summary>
-	public IRPCClient WalletRpcClient { get; }
-
-	protected virtual void Dispose(bool disposing)
+	public async ValueTask DisposeAsync()
 	{
 		if (!_disposedValue)
 		{
-			if (disposing)
-			{
-				BitcoinCoreNode.TryStopAsync().GetAwaiter().GetResult();
-			}
-
+			await BitcoinCoreNode.TryStopAsync();
 			_disposedValue = true;
 		}
-	}
-
-	public void Dispose()
-	{
-		Dispose(true);
-		GC.SuppressFinalize(this);
 	}
 }
