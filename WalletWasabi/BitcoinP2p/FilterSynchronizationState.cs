@@ -411,7 +411,7 @@ public class FilterSynchronizationState
 			}
 
 			var start = filterTip.Height;
-			var endInclusive = Math.Max(0, start - 100 + 1);
+			var endInclusive = start - ChainHeight.Min(start, 100u);
 
 			// Compare filter headers against block headers from tip backwards.
 			for (long height = start; height >= endInclusive; height--)
