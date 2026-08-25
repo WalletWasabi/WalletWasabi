@@ -4,9 +4,7 @@
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<IsPackable>false</IsPackable>
 		<NoWarn>1701;1702;1705;1591;CA1031;CA1822</NoWarn>
-		<ApplicationIcon />
 		<OutputType>Exe</OutputType>
-		<StartupObject />
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
 
 		<!-- https://xunit.net/docs/getting-started/v3/microsoft-testing-platform -->

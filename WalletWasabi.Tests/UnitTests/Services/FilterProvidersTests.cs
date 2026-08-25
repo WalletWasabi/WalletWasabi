@@ -40,8 +40,9 @@ public class FilterProvidersTests
 			}
 		};
 
+		var genesisHash = Network.Main.GetGenesis().GetHash();
 		var provider = FilterProviders.CreateBitcoinRpcFilterProvider(rpc, new ConcurrentChain(Network.Main));
-		var result = await provider(fromHeight: 0, fromHash: uint256.Zero, testCts.Token);
+		var result = await provider(fromHeight: 0, fromHash: genesisHash, testCts.Token);
 
 		Assert.True(result.IsOk);
 		var newFilters = Assert.IsType<FiltersResponse.NewFiltersAvailable>(result.Value);
