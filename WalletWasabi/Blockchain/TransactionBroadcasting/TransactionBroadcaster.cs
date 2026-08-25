@@ -162,13 +162,12 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvider p2pNodeListProvider) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvider p2pNodeListProvider, int minBroadcastNodes) : IBroadcaster
 {
-	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		var connectedNodes = p2pNodeListProvider();
-		if (connectedNodes.Length < MinBroadcastNodes)
+		if (connectedNodes.Length <  minBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
@@ -177,7 +176,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvid
 		if (tx.TryGetFeeRate(out var txFeeRate))
 		{
 			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToImmutableArray();
-			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
+			if (nodesWillingToRelayTx.Length < minBroadcastNodes)
 			{
 				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)
 				{
@@ -190,7 +189,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvid
 		var broadcastToNode = nodesWillingToRelayTx
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
-			.Take(Math.Max(MinBroadcastNodes, 1 + connectedNodes.Length / 5))
+			.Take(Math.Max(minBroadcastNodes, 1 + connectedNodes.Length / 5))
 			.ToArray();
 
 		var broadcastToNodeTasks = broadcastToNode
@@ -363,5 +362,13 @@ public static class MempoolServiceExtensions
 		}
 
 		return entry;
+	}
+}
+
+public static class NetworkExtensions
+{
+	extension(Network network)
+	{
+		public int MinBroadcastNodes => network == Network.RegTest ? 1 : 2;
 	}
 }

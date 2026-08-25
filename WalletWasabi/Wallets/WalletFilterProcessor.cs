@@ -146,17 +146,16 @@ public class WalletFilterProcessor : BackgroundService
 		return matchFound;
 	}
 
-	private async void ReorgedAsync(FilterModel invalidFilter)
+	private async void ReorgedAsync(uint256 invalidBlockHash, ChainHeight invalidBlockHeight)
 	{
 		try
 		{
-			uint256 invalidBlockHash = invalidFilter.Header.BlockHash;
-			var newBestHeight = invalidFilter.Header.Height - 1;
+			var newBestHeight = invalidBlockHeight - 1;
 
 			using (await _reorgLock.LockAsync(CancellationToken.None).ConfigureAwait(false))
 			{
 				_keyManager.SetMaxBestHeight(newBestHeight);
-				_transactionProcessor.UndoBlock(invalidFilter.Header.Height);
+				_transactionProcessor.UndoBlock(invalidBlockHeight);
 				_transactionStore.ReleaseToMempoolFromBlock(invalidBlockHash);
 				_blockFilterIterator.RemoveNewerThan(newBestHeight);
 			}
@@ -169,7 +168,7 @@ public class WalletFilterProcessor : BackgroundService
 
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
-		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.Filter));
+		_chainReorgSubscription = _eventBus.Subscribe<ChainReorganized>(e => ReorgedAsync(e.invalidBlockHash, e.invalidBlockHeight));
 		await base.StartAsync(cancellationToken).ConfigureAwait(false);
 	}
 
