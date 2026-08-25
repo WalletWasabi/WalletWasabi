@@ -1,17 +1,10 @@
-using System.Collections.Generic;
-using NBitcoin;
 using NBitcoin.RPC;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services;
@@ -42,35 +35,43 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
-	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
-	ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	private static async Task<(ChainHeight BestHeight, uint[] BlockHeights, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
+		uint[] blockHeights;
+		uint256[] blockHashes;
+
 		if (blockHeaderChain.Tip?.Height > fromHeight)
 		{
-			var chainBlockHashes = blockHeaderChain
+			var chainBlocks = blockHeaderChain
 				.EnumerateAfter(fromHash)
-				.Select(x => x.HashBlock)
 				.Take(MaxFiltersPerBitcoinRpcRequest)
 				.ToArray();
 
-			return ((uint)blockHeaderChain.Tip.Height, chainBlockHashes);
+			blockHeights = chainBlocks.Select(x => (uint)x.Height).ToArray();
+			blockHashes = chainBlocks.Select(x => x.HashBlock).ToArray();
+
+			return ((uint)blockHeaderChain.Tip.Height, blockHeights, blockHashes);
 		}
 
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - fromHeight);
 		if (nbOfFiltersToFetch == 0)
 		{
-			return ((uint)currentHeight, []);
+			return ((uint)currentHeight, [], []);
 		}
 
+		blockHeights = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch).Select(x => (uint)x).ToArray();
+
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
-			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
+		var blockHashTasks = blockHeights
+			.Select(h => batchClient.GetBlockHashAsync((int)h, cancellationToken))
 			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		return ((uint)currentHeight, blockHashes);
+		blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+
+		return ((uint)currentHeight, blockHeights, blockHashes);
 	}
 
 	/// <summary>
@@ -99,7 +100,7 @@ public static class FilterProviders
 				return BestBlockUnknown;
 			}
 
-			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			var (bestHeight, blockHeights, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -112,17 +113,16 @@ public static class FilterProviders
 			var filterResponses = await Task.WhenAll(filterTasks).ConfigureAwait(false);
 
 			var filters = new FilterModel[blockHashes.Length];
-			var height = fromHeight + 1;
 			for (var i = 0; i < blockHashes.Length; i++)
 			{
 				var blockHash = blockHashes[i];
+				var blockHeight = blockHeights[i];
 				var filterResponse = filterResponses[i];
 
-				var header = new SmartHeader(blockHash, filterResponse.Header, height, DateTimeOffset.UtcNow);
+				var header = new SmartHeader(blockHash, filterResponse.Header, blockHeight, DateTimeOffset.UtcNow);
 				var filter = new FilterModel(header, filterResponse.Filter);
 
 				filters[i] = filter;
-				height++;
 			}
 
 			return NewFiltersAvailable(bestHeight, filters);
@@ -162,6 +162,7 @@ public static class FilterProviders
 			// tip sits at the same height as the stored tip, just on another block.
 			if (synchronizationState.IsReorg(fromHeight, fromHash))
 			{
+				Logger.LogDebug($"Reorg detected at height {fromHeight} (hash: {fromHash})");
 				return BestBlockUnknown;
 			}
 
