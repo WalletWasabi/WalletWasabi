@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions;
 
 internal class DemoCoinSets
 {
-	public static IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> LotOfCoins =
+	public static (string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)[] LotOfCoins =
 		new[]
 		{
 			("", 0, 0.00009503m, true, 1),

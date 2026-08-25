@@ -16,8 +16,7 @@ public class SelfSpendAnonScoreTests
 	{
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 1);
 		var coin = Assert.Single(tx.WalletInputs);
-		var key = coin.HdPubKey;
-		key.SetAnonymitySet(3, tx.GetHash());
+		coin.SetAnonymitySet(3, tx.GetHash());
 
 		BlockchainAnalyzer.Analyze(tx);
 
@@ -33,8 +32,7 @@ public class SelfSpendAnonScoreTests
 	{
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 1, 3);
 		var coin = Assert.Single(tx.WalletInputs);
-		var key = coin.HdPubKey;
-		key.SetAnonymitySet(3, tx.GetHash());
+		coin.SetAnonymitySet(3, tx.GetHash());
 
 		BlockchainAnalyzer.Analyze(tx);
 
@@ -52,10 +50,10 @@ public class SelfSpendAnonScoreTests
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 1);
 		var smallestAnonset = 3;
 
-		tx.WalletInputs.First().HdPubKey.SetAnonymitySet(smallestAnonset, uint256.One);
+		tx.WalletInputs.First().SetAnonymitySet(smallestAnonset, uint256.One);
 		foreach (var coin in tx.WalletInputs.Skip(1))
 		{
-			coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
+			coin.SetAnonymitySet(100, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
@@ -71,10 +69,10 @@ public class SelfSpendAnonScoreTests
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 0, 3, 3);
 		var smallestAnonset = 3;
 
-		tx.WalletInputs.First().HdPubKey.SetAnonymitySet(smallestAnonset, uint256.One);
+		tx.WalletInputs.First().SetAnonymitySet(smallestAnonset, uint256.One);
 		foreach (var coin in tx.WalletInputs.Skip(1))
 		{
-			coin.HdPubKey.SetAnonymitySet(100, tx.GetHash());
+			coin.SetAnonymitySet(100, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
