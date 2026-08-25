@@ -155,7 +155,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	/// Synchronizes filters from Bitcoin Core RPC using the production Synchronizer.
 	/// This fetches all compact block filters from the current tip and stores them.
 	/// </summary>
-	public async Task SyncFiltersAsync(CancellationToken cancellationToken = default)
+	public async Task SyncFiltersRpcAsync(CancellationToken cancellationToken = default)
 	{
 		// Build block header chain from RPC - required for reorg detection
 		var blockHeaderChain = await BuildBlockHeaderChainAsync(cancellationToken).ConfigureAwait(false);
@@ -187,27 +187,6 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			// Run one iteration of the production synchronizer
 			await filterGenerator(Unit.Instance, cancellationToken).ConfigureAwait(false);
 		}
-	}
-
-	/// <summary>
-	/// Builds the block header chain from Bitcoin Core RPC.
-	/// This is needed for reorg detection in the filter provider.
-	/// </summary>
-	private async Task<ConcurrentChain> BuildBlockHeaderChainAsync(CancellationToken cancellationToken)
-	{
-		// ConcurrentChain(Network) already includes the genesis block
-		var chain = new ConcurrentChain(Network);
-		var currentHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-
-		// Build chain from height 1 (genesis is already in chain) to current tip
-		for (int height = 1; height <= currentHeight; height++)
-		{
-			var blockHash = await RpcClient.GetBlockHashAsync(height, cancellationToken).ConfigureAwait(false);
-			var blockHeader = await RpcClient.GetBlockHeaderAsync(blockHash, cancellationToken).ConfigureAwait(false);
-			chain.SetTip(new ChainedBlock(blockHeader, blockHash, chain.Tip));
-		}
-
-		return chain;
 	}
 
 	/// <summary>
@@ -283,6 +262,27 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			// Run one iteration of the production synchronizer
 			await filterGenerator(Unit.Instance, cancellationToken).ConfigureAwait(false);
 		}
+	}
+
+	/// <summary>
+	/// Builds the block header chain from Bitcoin Core RPC.
+	/// This is needed for reorg detection in the filter provider.
+	/// </summary>
+	private async Task<ConcurrentChain> BuildBlockHeaderChainAsync(CancellationToken cancellationToken)
+	{
+		// ConcurrentChain(Network) already includes the genesis block
+		var chain = new ConcurrentChain(Network);
+		var currentHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+
+		// Build chain from height 1 (genesis is already in chain) to current tip
+		for (int height = 1; height <= currentHeight; height++)
+		{
+			var blockHash = await RpcClient.GetBlockHashAsync(height, cancellationToken).ConfigureAwait(false);
+			var blockHeader = await RpcClient.GetBlockHeaderAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			chain.SetTip(new ChainedBlock(blockHeader, blockHash, chain.Tip));
+		}
+
+		return chain;
 	}
 
 	/// <summary>

@@ -40,7 +40,7 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(receiveAddress, fundingAmount, confirmations: 1);
 
 		// Sync filters so wallet can discover the transaction
-		await env.SyncFiltersAsync();
+		await env.SyncFiltersRpcAsync();
 
 		// Start the wallet to process filters
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
@@ -84,7 +84,7 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(address2, Money.Coins(1.0m), confirmations: 0);
 		await env.FundAddressAsync(address3, Money.Coins(1.5m), confirmations: 1); // Only last one confirms all
 
-		await env.SyncFiltersAsync();
+		await env.SyncFiltersRpcAsync();
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
@@ -121,7 +121,7 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(receiveAddress, Money.Coins(0.5m), confirmations: 0);
 		await env.FundAddressAsync(receiveAddress, Money.Coins(0.3m), confirmations: 1);
 
-		await env.SyncFiltersAsync();
+		await env.SyncFiltersRpcAsync();
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
@@ -156,7 +156,7 @@ public class WalletReceiveTests
 
 		// Fund the wallet
 		await env.FundAddressAsync(receiveAddress, Money.Coins(2m), confirmations: 1);
-		await env.SyncFiltersAsync();
+		await env.SyncFiltersRpcAsync();
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
