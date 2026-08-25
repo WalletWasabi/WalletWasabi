@@ -112,14 +112,14 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
 			.Subscribe();
 
-		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
+		// Refresh the paused music box when a pending payment is added or removed.
 		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
 
-		// Same refresh when the "pay in coinjoin regardless of anonymity score" toggle flips.
-		wallet.Settings.WhenAnyValue(x => x.AllowPaymentsRegardlessOfAnonScore)
+		// Same refresh when the "only use private funds for coinjoin payments" toggle flips.
+		wallet.Settings.WhenAnyValue(x => x.OnlyUsePrivateFundsForPayments)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
@@ -334,9 +334,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 		else if (AreAllCoinsPrivate)
 		{
-			if (_wallet.Settings.AllowPaymentsRegardlessOfAnonScore)
+			var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
+
+			if (!_wallet.Settings.OnlyUsePrivateFundsForPayments || hasPendingPayments)
 			{
-				var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
 				PlayVisible = true;
 				PlayEnabled = hasPendingPayments;
 				CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;

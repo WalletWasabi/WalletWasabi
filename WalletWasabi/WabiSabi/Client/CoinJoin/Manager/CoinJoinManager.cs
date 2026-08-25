@@ -602,9 +602,9 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (wallet.IsWalletPrivate() && !(wallet.AllowPaymentsRegardlessOfAnonScore && wallet.BatchedPayments.AreTherePendingPayments))
+		else if (wallet.IsWalletPrivate() && !wallet.BatchedPayments.AreTherePendingPayments)
 		{
-			// A fully private wallet is done mixing, unless it is allowed to fund a pending payment with private coins.
+			// A fully private wallet is done coinjoining, unless it has to fund a pending payment with private coins.
 			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
 			if (!finishedCoinJoin.StopWhenAllMixed)
 			{

@@ -102,7 +102,7 @@ public class Wallet : BackgroundService
 
 	public bool NonPrivateCoinIsolation => KeyManager.NonPrivateCoinIsolation;
 
-	public bool AllowPaymentsRegardlessOfAnonScore => KeyManager.AllowPaymentsRegardlessOfAnonScore;
+	public bool OnlyUsePrivateFundsForPayments => KeyManager.OnlyUsePrivateFundsForPayments;
 
 	public Network Network { get; }
 	public TransactionProcessor TransactionProcessor { get; }

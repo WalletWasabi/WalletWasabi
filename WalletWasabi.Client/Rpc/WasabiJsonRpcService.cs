@@ -136,7 +136,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
-			["allowPaymentsRegardlessOfAnonScore"] = activeWallet.KeyManager.AllowPaymentsRegardlessOfAnonScore,
+			["onlyUsePrivateFundsForPayments"] = activeWallet.KeyManager.OnlyUsePrivateFundsForPayments,
 			["accounts"] = new[] { segwit }
 		};
 

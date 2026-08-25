@@ -18,6 +18,7 @@ using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Services;
 using WalletWasabi.Wallets;
 using ScriptType = WalletWasabi.Fluent.Models.Wallets.ScriptType;
 
@@ -38,7 +39,8 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _isWalletBalanceZero;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _areAllCoinsPrivate;
-	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _allowPaymentsRegardlessOfAnonScore;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _onlyUsePrivateFundsForPayments;
+	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasPendingPayments;
 	[AutoNotify(SetterModifier = AccessModifier.Private)] private bool _hasMusicBoxBeenDisplayed;
 	[AutoNotify] private bool _isMusicBoxFlyoutDisplayed;
 
@@ -94,8 +96,14 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		 WalletModel.Privacy.IsWalletPrivate
 			 .BindTo(this, x => x.AreAllCoinsPrivate);
 
-		 WalletModel.Settings.WhenAnyValue(x => x.AllowPaymentsRegardlessOfAnonScore)
-			 .BindTo(this, x => x.AllowPaymentsRegardlessOfAnonScore);
+		 WalletModel.Settings.WhenAnyValue(x => x.OnlyUsePrivateFundsForPayments)
+			 .BindTo(this, x => x.OnlyUsePrivateFundsForPayments);
+
+		 UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
+			 .Select(_ => wallet.BatchedPayments.AreTherePendingPayments)
+			 .StartWith(wallet.BatchedPayments.AreTherePendingPayments)
+			 .ObserveOn(RxApp.MainThreadScheduler)
+			 .BindTo(this, x => x.HasPendingPayments);
 
 		 IsMusicBoxVisible = this.WhenAnyValue(
 			 x => x.HasMusicBoxBeenDisplayed,
@@ -104,8 +112,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 			 x => x.AreAllCoinsPrivate,
 			 x => x.IsPointerOver,
 			 x => x.IsMusicBoxFlyoutDisplayed,
-			 x => x.AllowPaymentsRegardlessOfAnonScore,
-			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed, allowPaymentsRegardlessOfAnonScore) =>
+			 x => x.OnlyUsePrivateFundsForPayments,
+			 x => x.HasPendingPayments,
+			 (hasBeenDisplayed, isSelected, hasNoBalance, areAllCoinsPrivate, isPointerOver, isMusicBoxFlyoutDisplayed, onlyUsePrivateFundsForPayments, hasPendingPayments) =>
 			 {
 				 if (!hasBeenDisplayed)
 				 {
@@ -124,7 +133,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || allowPaymentsRegardlessOfAnonScore || isPointerOver || isMusicBoxFlyoutDisplayed)) && !WalletModel.IsWatchOnlyWallet;
+				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || !onlyUsePrivateFundsForPayments || hasPendingPayments || isPointerOver || isMusicBoxFlyoutDisplayed)) && !WalletModel.IsWatchOnlyWallet;
 			 });
 
 
