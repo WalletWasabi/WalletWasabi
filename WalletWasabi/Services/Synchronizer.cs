@@ -221,6 +221,7 @@ public static class Synchronizer
 			var isSynchronized = await ProcessFiltersAsync(response.Value, filterStore, filterHeaderChain, eventBus).ConfigureAwait(false);
 			if (isSynchronized)
 			{
+				eventBus.Publish(new SynchronizationStatusChanged());
 				await Task.Delay(TimeSpan.FromSeconds(20), cancellationToken).ConfigureAwait(false);
 			}
 		}
