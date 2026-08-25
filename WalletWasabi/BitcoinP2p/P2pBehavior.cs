@@ -38,6 +38,7 @@ public class P2pBehavior : NodeBehavior
 	protected override void AttachCore()
 	{
 		AttachedNode.MessageReceived += AttachedNode_MessageReceivedAsync;
+		PeerFeeFilters[AttachedNode] = new FeeRate(1m);
 	}
 
 	protected override void DetachCore()
