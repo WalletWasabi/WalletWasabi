@@ -744,7 +744,7 @@ public class Global
 	{
 		List<IBroadcaster> result =
 		[
-			new NetworkBroadcaster(mempoolService, p2PNodeListProvider)
+			new NetworkBroadcaster(mempoolService, p2PNodeListProvider, Network.MinBroadcastNodes)
 		];
 
 		if (_bitcoinRpcClient is not null)

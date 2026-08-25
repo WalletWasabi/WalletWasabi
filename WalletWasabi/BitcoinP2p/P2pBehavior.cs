@@ -136,7 +136,7 @@ public class P2pBehavior : NodeBehavior
 				{
 					var txPayload = new TxPayload(entry.Transaction.Transaction);
 					await node.SendMessageAsync(txPayload).ConfigureAwait(false);
-					entry.BroadcastedTo(node.RemoteSocketEndpoint);
+					entry.BroadcastedTo(node.RemoteSocketEndpoint, node.Network);
 					Logger.LogDebug($"Successfully served transaction to node ({node.RemoteSocketEndpoint}): {entry.TransactionId}.");
 				}
 			}
