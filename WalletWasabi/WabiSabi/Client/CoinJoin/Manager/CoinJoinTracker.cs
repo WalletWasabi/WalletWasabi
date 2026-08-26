@@ -76,14 +76,16 @@ public class CoinJoinTracker : IDisposable
 
 			case RoundEnded roundEnded:
 				var endState = roundEnded.LastRoundState.EndRoundState;
-				// Only reset payments if we KNOW the round failed.
-				// When EndRoundState is None (unknown), the transaction might have been
-				// broadcast, so we must NOT move payments back to pending to avoid double payments.
-				// Payments in Signed state will be resolved by reconciliation or timeout.
-				if (endState != EndRoundState.TransactionBroadcasted &&
-					endState != EndRoundState.None)
+
+				// Only reset the payments of this round, and only if we KNOW that it failed without
+				// broadcasting anything. When the round ended with an unknown state or the coordinator
+				// failed to broadcast, the transaction might be out there, so those payments must stay
+				// in signed state to avoid double payments - they are resolved by reconciliation or timeout.
+				if (endState is not (EndRoundState.TransactionBroadcasted
+					or EndRoundState.None
+					or EndRoundState.TransactionBroadcastFailed))
 				{
-					Wallet.BatchedPayments.MovePaymentsToPending();
+					Wallet.BatchedPayments.MoveFailedRoundPaymentsToPending(roundEnded.LastRoundState.Id);
 				}
 
 				roundEnded.IsStopped = IsStopped;

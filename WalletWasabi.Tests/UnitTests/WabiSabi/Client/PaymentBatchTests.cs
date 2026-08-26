@@ -266,6 +266,148 @@ public class PaymentBatchTests
 		// would have been included in the second coinjoin
 	}
 
+	/// <summary>
+	/// A round that ended with the transaction broadcast must finish its payments, even though the
+	/// TransactionSigned event already moved them out of the in-progress state. Leaving them signed
+	/// makes them time out and be paid again in a following coinjoin.
+	/// </summary>
+	[Fact]
+	public void SuccessfulRoundFinishesSignedPayments()
+	{
+		var paymentBatch = new PaymentBatch();
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var destination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+
+		paymentBatch.AddPayment(destination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+
+		// The coinjoin transaction was signed, so the payment is not in-progress anymore.
+		var coinJoinTxId = CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash();
+		paymentBatch.MovePaymentsToSigned(coinJoinTxId);
+
+		// The round ended with the transaction broadcast.
+		paymentBatch.MovePaymentsToFinished(coinJoinTxId);
+
+		Assert.False(paymentBatch.AreThereUncertainPayments);
+		Assert.False(paymentBatch.AreTherePendingPayments);
+		Assert.IsType<FinishedPayment>(paymentBatch.GetPayments().Single().State);
+
+		// Neither the finalization of the round nor the timeout can resurrect an already paid payment.
+		paymentBatch.MoveUnsignedPaymentsToPending();
+		paymentBatch.TimeoutUncertainPayments();
+		Assert.False(paymentBatch.AreTherePendingPayments);
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters).PaymentCount);
+	}
+
+	/// <summary>
+	/// Only the payments of the given transaction are finished, the ones signed in a different
+	/// coinjoin are left alone.
+	/// </summary>
+	[Fact]
+	public void OnlyThePaymentsOfTheBroadcastTransactionAreFinished()
+	{
+		var paymentBatch = new PaymentBatch();
+		var otherDestination = GetNewSegwitAddress();
+		var destination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+
+		paymentBatch.AddPayment(otherDestination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		var otherTxId = CreateTransactionWithOutput(otherDestination.ScriptPubKey, amount).GetHash();
+		paymentBatch.MovePaymentsToSigned(otherTxId);
+
+		paymentBatch.AddPayment(destination, amount);
+		var pendingPayment = paymentBatch.GetPayments().Single(p => p.State is PendingPayment);
+		paymentBatch.MovePaymentsToInProgress([pendingPayment], new uint256(2));
+		var txId = CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash();
+		paymentBatch.MovePaymentsToSigned(txId);
+
+		paymentBatch.MovePaymentsToFinished(txId);
+
+		Assert.Equal(destination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is FinishedPayment).Destination.ScriptPubKey);
+		Assert.Equal(otherDestination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is SignedUnknownPayment).Destination.ScriptPubKey);
+	}
+
+	/// <summary>
+	/// The finalization of a coinjoin only requeues the payments that were never signed. A signed
+	/// payment could be part of a broadcast transaction, so requeueing it means paying twice.
+	/// </summary>
+	[Fact]
+	public void OnlyUnsignedPaymentsAreMovedBackToPending()
+	{
+		var paymentBatch = new PaymentBatch();
+		var signedDestination = GetNewSegwitAddress();
+		var unsignedDestination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+
+		// A payment that was signed in a round that ended with an unknown state.
+		paymentBatch.AddPayment(signedDestination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		paymentBatch.MovePaymentsToSigned(CreateTransactionWithOutput(signedDestination.ScriptPubKey, amount).GetHash());
+
+		// A payment registered in a second round that never got to the signing phase.
+		paymentBatch.AddPayment(unsignedDestination, amount);
+		var pendingPayment = paymentBatch.GetPayments().Single(p => p.State is PendingPayment);
+		paymentBatch.MovePaymentsToInProgress([pendingPayment], new uint256(2));
+
+		paymentBatch.MoveUnsignedPaymentsToPending();
+
+		Assert.Equal(unsignedDestination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is PendingPayment).Destination.ScriptPubKey);
+		Assert.Equal(signedDestination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is SignedUnknownPayment).Destination.ScriptPubKey);
+	}
+
+	/// <summary>
+	/// A round that is known to have failed requeues its own payments immediately, without waiting
+	/// for the uncertain payment timeout.
+	/// </summary>
+	[Fact]
+	public void FailedRoundRequeuesItsOwnPayments()
+	{
+		var paymentBatch = new PaymentBatch();
+		var destination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+		var roundId = uint256.One;
+
+		paymentBatch.AddPayment(destination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), roundId);
+		paymentBatch.MovePaymentsToSigned(CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash());
+
+		paymentBatch.MoveFailedRoundPaymentsToPending(roundId);
+
+		Assert.True(paymentBatch.AreTherePendingPayments);
+		Assert.False(paymentBatch.AreThereUncertainPayments);
+	}
+
+	/// <summary>
+	/// The double payment that was reported: a round ends without telling whether the transaction was
+	/// broadcast, and the next round - which fails for whatever reason - requeues the payment that is
+	/// still waiting to be resolved.
+	/// </summary>
+	[Fact]
+	public void FailedRoundDoesNotRequeueThePaymentsOfAnotherRound()
+	{
+		var paymentBatch = new PaymentBatch();
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var destination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+		var firstRoundId = uint256.One;
+		var secondRoundId = new uint256(2);
+
+		// The payment is signed in the first round, whose ending is unknown.
+		paymentBatch.AddPayment(destination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), firstRoundId);
+		paymentBatch.MovePaymentsToSigned(CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash());
+
+		// A second round starts (without the payment, it is not pending anymore) and fails.
+		paymentBatch.MoveFailedRoundPaymentsToPending(secondRoundId);
+		paymentBatch.MoveUnsignedPaymentsToPending();
+
+		Assert.False(paymentBatch.AreTherePendingPayments);
+		Assert.True(paymentBatch.AreThereUncertainPayments);
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters).PaymentCount);
+	}
+
 	private static BitcoinAddress GetNewSegwitAddress()
 	{
 		using Key key = new();

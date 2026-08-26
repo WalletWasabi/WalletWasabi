@@ -93,46 +93,60 @@ public class PaymentBatch
 		return InProgressPayments;
 	}
 
-	public void MovePaymentsToFinished(uint256 txId) =>
-		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
-	public void MovePaymentsToPending()
+	/// Marks as finished all the payments that are part of the given coinjoin transaction.
+	///
+	/// Signed payments have to be finished here too. The transaction is signed before the round ends,
+	/// so by the time a round is known to be successful its payments are not in-progress anymore
+	public void MovePaymentsToFinished(uint256 txId)
 	{
-		// Move both in-progress and signed payments back to pending.
-		// This handles both: round failure before signing, and round failure after signing.
+		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
+		MovePaymentsTo(
+			SignedPayments.Where(payment => ((SignedUnknownPayment)payment.State).TransactionId == txId),
+			payment => payment with { State = new FinishedPayment(payment.State, txId) });
+	}
+
+
+	public void MoveUnsignedPaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
-		MovePaymentsTo(SignedPayments, payment => payment with { State = new PendingPayment(payment.State) });
+
+	public void MoveFailedRoundPaymentsToPending(uint256 roundId)
+	{
+		MovePaymentsTo(
+			InProgressPayments.Where(payment => ((InProgressPayment)payment.State).RoundId == roundId),
+			payment => payment with { State = new PendingPayment(payment.State) });
+		MovePaymentsTo(
+			SignedPayments.Where(payment => ((SignedUnknownPayment)payment.State).RoundId == roundId),
+			payment => payment with { State = new PendingPayment(payment.State) });
 	}
 
 	public void MovePaymentsToSigned(uint256 transactionId) =>
 		MovePaymentsTo(InProgressPayments, payment => payment with
 		{
-			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId)
+			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, ((InProgressPayment)payment.State).RoundId, transactionId)
 		});
 
 	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
 	{
-		var uncertainPayments = SignedPayments.ToArray();
-		if (uncertainPayments.Length == 0)
-		{
-			return false;
-		}
-
-		var resolved = false;
 		var txId = transaction.GetHash();
 
-		foreach (var payment in uncertainPayments.Where(p => p.State is SignedUnknownPayment s && s.TransactionId == txId))
+		// The whole operation is done under the lock. Selecting the payments outside of it would
+		// allow another thread to move them in the meantime, and the payment would end up added twice
+		lock (_syncObj)
 		{
-			Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} confirmed.");
-			lock (_syncObj)
+			var resolvedPayments = _payments
+				.Where(payment => payment.State is SignedUnknownPayment signed && signed.TransactionId == txId)
+				.ToArray();
+
+			foreach (var payment in resolvedPayments)
 			{
+				Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} confirmed.");
 				_payments.Remove(payment);
 				_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
 			}
-			resolved = true;
-		}
 
-		return resolved;
+			return resolvedPayments.Length > 0;
+		}
 	}
 
 	/// <summary>
@@ -142,20 +156,16 @@ public class PaymentBatch
 	/// </summary>
 	public void TimeoutUncertainPayments()
 	{
-		var uncertainPayments = SignedPayments.ToArray();
-		foreach (var payment in uncertainPayments)
+		lock (_syncObj)
 		{
-			if (payment.State is not SignedUnknownPayment uncertainState)
+			var uncertainPayments = _payments.Where(payment => payment.State is SignedUnknownPayment).ToArray();
+			foreach (var payment in uncertainPayments)
 			{
-				continue;
-			}
-
-			var elapsed = DateTimeOffset.UtcNow - uncertainState.Timestamp;
-			if (elapsed >= UncertainPaymentTimeout)
-			{
-				Logger.LogInfo($"Payment {payment.Id} timed out after {elapsed.TotalSeconds:F0}s - no matching transaction found, moving back to pending.");
-				lock (_syncObj)
+				var uncertainState = (SignedUnknownPayment)payment.State;
+				var elapsed = DateTimeOffset.UtcNow - uncertainState.Timestamp;
+				if (elapsed >= UncertainPaymentTimeout)
 				{
+					Logger.LogInfo($"Payment {payment.Id} timed out after {elapsed.TotalSeconds:F0}s - no matching transaction found, moving back to pending.");
 					_payments.Remove(payment);
 					_payments.Add(payment with { State = new PendingPayment(uncertainState) });
 				}
@@ -176,8 +186,10 @@ public class PaymentBatch
 			var paymentsToMove = payments.ToArray();
 			foreach (var payment in paymentsToMove)
 			{
+				var movedPayment = move(payment);
 				_payments.Remove(payment);
-				_payments.Add(move(payment));
+				_payments.Add(movedPayment);
+				Logger.LogInfo($"Payment {payment.Id} moved from {payment.State.GetType().Name} to {movedPayment.State.GetType().Name}.");
 			}
 		}
 	}

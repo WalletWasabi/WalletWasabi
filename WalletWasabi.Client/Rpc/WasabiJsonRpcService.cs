@@ -317,6 +317,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 						});
 						break;
 
+					case SignedUnknownPayment signed:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Signed",
+							["round"] = signed.RoundId.ToString(),
+							["txid"] = signed.TransactionId.ToString()
+						});
+						break;
+
 					case FinishedPayment finished:
 						stateHistory.Add(new JsonRpcResult
 						{
