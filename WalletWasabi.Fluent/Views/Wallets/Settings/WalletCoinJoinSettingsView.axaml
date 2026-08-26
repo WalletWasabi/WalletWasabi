@@ -53,8 +53,8 @@
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="When enabled, payments in coinjoin can be funded with private coins, so you can pay without mixing non-private coins first. Disable it to save fees.">
-      <TextBlock Text="Pay in coinjoin regardless of anonymity score" />
+    <DockPanel ToolTip.Tip="When enabled, the control box will be displayed even if you reach 100% privacy.">
+      <TextBlock Text="Display control box at 100% privacy" />
       <ToggleSwitch IsChecked="{Binding AllowPaymentsRegardlessOfAnonScore}" Command="{Binding SetAllowPaymentsRegardlessOfAnonScoreCommand}" />
     </DockPanel>
 

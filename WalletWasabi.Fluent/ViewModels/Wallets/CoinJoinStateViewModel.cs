@@ -118,7 +118,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
 
-		// Same refresh when the "pay in coinjoin regardless of anonymity score" toggle flips.
+		// Same refresh when the "display control box at 100%" toggle flips.
 		wallet.Settings.WhenAnyValue(x => x.AllowPaymentsRegardlessOfAnonScore)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
