@@ -1,4 +1,3 @@
-using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
@@ -143,7 +142,7 @@ public static class BitcoinFactory
 	}
 
 	public static OutPoint CreateOutPoint()
-		=> new(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+		=> new(CreateUint256(), (uint)Random.Shared.Next(0, 101));
 
 	public static uint256 CreateUint256()
 	{
@@ -235,17 +234,5 @@ public static class BitcoinFactory
 
 	}
 
-	public static BitcoinAddress CreateBitcoinAddress(Network network, Key? key = null)
-	{
-		// Segwit script has always a destination address, so it cannot be null.
-		return CreateScript(key).GetDestinationAddress(network)!;
-	}
-
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
-
-	public static MemoryCache CreateMemoryCache() => new(new MemoryCacheOptions
-	{
-		SizeLimit = 1_000,
-		ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-	});
 }
