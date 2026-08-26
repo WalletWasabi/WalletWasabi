@@ -161,16 +161,14 @@ public partial class CompactFilterBehavior(
 
 		switch (validationResult)
 		{
-			case HeaderValidationResult.Success success:
+			case HeaderValidationResult.Success:
 				Logger.LogInfo($"Successfully validated filter header range {assignment}");
-				synchronizationState.OnHeaderCompleted(assignment.StartHeight, success.Headers);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
 
 			case HeaderValidationResult.NotReadyYet:
 				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
-				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, node.Network);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
