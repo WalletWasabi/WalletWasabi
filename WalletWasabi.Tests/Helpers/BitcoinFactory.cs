@@ -129,7 +129,7 @@ public static class BitcoinFactory
 
 	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
 	{
-		Height height = confirmed ? new Height.ChainHeight((uint)CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
+		Height height = confirmed ? new Height.ChainHeight((uint)Random.Shared.Next(0, 201)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
 		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
