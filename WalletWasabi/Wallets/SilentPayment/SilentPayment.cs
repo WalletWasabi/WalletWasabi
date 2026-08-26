@@ -203,7 +203,7 @@ public static class SilentPayment
 
 		return ECPrivKey.Create(sum.ToBytes());
 
-		ECPrivKey NegateKey(Key key, bool isTaproot)
+		static ECPrivKey NegateKey(Key key, bool isTaproot)
 		{
 			var pk = ECPrivKey.Create(key.ToBytes());
 			pk.CreateXOnlyPubKey(out var parity);
