@@ -1,18 +1,11 @@
 using WalletWasabi.Blockchain.Analysis;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.WabiSabi.Client;
 
 public class LiquidityClueProvider
 {
-	public LiquidityClueProvider()
-	{
-		LiquidityClue = null;
-		_liquidityClueLock = new Lock();
-	}
-
 	private Money? LiquidityClue { get; set; }
-	private readonly Lock _liquidityClueLock;
+	private readonly Lock _liquidityClueLock = new();
 
 	public void InitLiquidityClue(IEnumerable<Money> foreignOutputsValues)
 	{
@@ -71,7 +64,7 @@ public class LiquidityClueProvider
 	private static bool TryCalculateLiquidityClue(IEnumerable<Money> foreignOutputsValues, out Money? value)
 	{
 		var denoms = foreignOutputsValues
-			.Where(x => BlockchainAnalyzer.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
+			.Where(x => Anonymity.StdDenoms.Contains(x.Satoshi)) // We only care about denom outputs as those can be considered reasonably mixed.
 			.Distinct()
 			.ToList();
 
