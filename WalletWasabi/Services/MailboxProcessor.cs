@@ -281,7 +281,6 @@ public static class Workers
 					if (DateTime.UtcNow - lastUpdateTime > period)
 					{
 						state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
-						lastUpdateTime = DateTime.UtcNow;
 					}
 				}
 				catch (OperationCanceledException)
@@ -291,6 +290,10 @@ public static class Workers
 				catch (Exception e) when (e is not ChannelClosedException)
 				{
 					Logger.LogError(e);
+				}
+				finally
+				{
+					lastUpdateTime = DateTime.UtcNow;
 				}
 			}
 		};
