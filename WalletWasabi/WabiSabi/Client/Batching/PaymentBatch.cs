@@ -14,10 +14,6 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // payments are moved to finished or back to pending state.
 public class PaymentBatch
 {
-	/// Time to wait before considering an uncertain payment as failed.
-	/// This should be longer than CoinRefrigerator's freeze time
-	private static readonly TimeSpan UncertainPaymentTimeout = TimeSpan.FromMinutes(3);
-
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
@@ -96,13 +92,8 @@ public class PaymentBatch
 	public void MovePaymentsToFinished(uint256 txId) =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
-	public void MovePaymentsToPending()
-	{
-		// Move both in-progress and signed payments back to pending.
-		// This handles both: round failure before signing, and round failure after signing.
+	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
-		MovePaymentsTo(SignedPayments, payment => payment with { State = new PendingPayment(payment.State) });
-	}
 
 	public void MovePaymentsToSigned(uint256 transactionId) =>
 		MovePaymentsTo(InProgressPayments, payment => payment with
@@ -133,34 +124,6 @@ public class PaymentBatch
 		}
 
 		return resolved;
-	}
-
-	/// <summary>
-	/// Moves uncertain payments back to pending state if they have timed out.
-	/// This should be called periodically to handle cases where the coinjoin failed
-	/// but no matching transaction was ever found.
-	/// </summary>
-	public void TimeoutUncertainPayments()
-	{
-		var uncertainPayments = SignedPayments.ToArray();
-		foreach (var payment in uncertainPayments)
-		{
-			if (payment.State is not SignedUnknownPayment uncertainState)
-			{
-				continue;
-			}
-
-			var elapsed = DateTimeOffset.UtcNow - uncertainState.Timestamp;
-			if (elapsed >= UncertainPaymentTimeout)
-			{
-				Logger.LogInfo($"Payment {payment.Id} timed out after {elapsed.TotalSeconds:F0}s - no matching transaction found, moving back to pending.");
-				lock (_syncObj)
-				{
-					_payments.Remove(payment);
-					_payments.Add(payment with { State = new PendingPayment(uncertainState) });
-				}
-			}
-		}
 	}
 
 	public bool AreTherePendingPayments => PendingPayments.Any();

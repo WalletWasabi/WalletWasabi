@@ -436,13 +436,6 @@ public class CoinJoinManager : BackgroundService
 			// Updates coinjoin client states.
 			var wallets = await _getWalletsAsync().ConfigureAwait(false);
 
-			// Timeout any uncertain payments that have been waiting too long.
-			// This moves payments back to pending if no matching transaction was found.
-			foreach (var wallet in wallets)
-			{
-				wallet.BatchedPayments.TimeoutUncertainPayments();
-			}
-
 			_state.CoinJoinClientStates = GetCoinJoinClientStates(wallets);
 			_state.CoinsInCriticalPhase = GetCoinsInCriticalPhase(wallets);
 
