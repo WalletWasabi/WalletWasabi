@@ -93,8 +93,14 @@ public class PaymentBatch
 		return InProgressPayments;
 	}
 
-	public void MovePaymentsToFinished(uint256 txId) =>
+	public void MovePaymentsToFinished(uint256 txId)
+	{
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new FinishedPayment(payment.State, txId) });
+
+		MovePaymentsTo(
+			SignedPayments.Where(payment => payment.State is SignedUnknownPayment signed && signed.TransactionId == txId),
+			payment => payment with { State = new FinishedPayment(payment.State, txId) });
+	}
 
 	public void MovePaymentsToPending()
 	{

@@ -28,6 +28,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	private readonly IWalletModel _wallet;
 
 	[AutoNotify] private string _anonScoreTarget;
+	[AutoNotify] private int _anonScoreTargetValue;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private bool _allowPaymentsRegardlessOfAnonScore;
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
@@ -48,6 +49,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_autoCoinJoin = _wallet.Settings.AutoCoinjoin;
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
+		_anonScoreTargetValue = _wallet.Settings.AnonScoreTarget;
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
 		_allowPaymentsRegardlessOfAnonScore = _wallet.Settings.AllowPaymentsRegardlessOfAnonScore;
 
@@ -104,6 +106,22 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 				DefaultProfileSelected = selectedProfile?.Name == "Default";
 			});
 
+
+		this.WhenAnyValue(x => x.AnonScoreTarget)
+			.Subscribe(text =>
+			{
+				if (int.TryParse(text, out var value) &&
+					value is >= PrivacyProfiles.AbsoluteMinAnonScoreTarget and <= PrivacyProfiles.AbsoluteMaxAnonScoreTarget)
+				{
+					AnonScoreTargetValue = value;
+				}
+			});
+
+		this.WhenAnyValue(x => x.AnonScoreTargetValue)
+			.Select(value => value.ToString())
+			.Where(text => text != AnonScoreTarget)
+			.Subscribe(text => AnonScoreTarget = text);
+
 		this.ValidateProperty(x => x.AnonScoreTarget, ValidateAnonScoreTarget);
 
 		this.WhenAnyValue(x => x.PlebStopThreshold)
@@ -131,6 +149,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		ManuallyUpdateOutputWalletList();
 	}
+
+	public int MinAnonScoreTarget => PrivacyProfiles.AbsoluteMinAnonScoreTarget;
+
+	public int MaxAnonScoreTarget => PrivacyProfiles.AbsoluteMaxAnonScoreTarget;
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }

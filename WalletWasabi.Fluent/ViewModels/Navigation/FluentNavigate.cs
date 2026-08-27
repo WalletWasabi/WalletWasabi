@@ -23,6 +23,7 @@ using WalletWasabi.Fluent.ViewModels.TransactionBroadcasting;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Advanced;
 using WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment;
+using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Features;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.Tiles.PrivacyRing;
@@ -380,6 +381,15 @@ public partial class FluentNavigate
 	public void ShuttingDown(ApplicationViewModel applicationViewModel, bool restart, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new ShuttingDownViewModel(UiContext, applicationViewModel, restart), navigationMode);
+	}
+
+	public FluentDialog<System.Reactive.Unit> CoinJoinDialog(IWalletModel walletModel, Wallet wallet, CoinJoinStateViewModel? coinJoinState, WalletCoinJoinSettingsViewModel settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		var dialog = new CoinJoinDialogViewModel(UiContext, walletModel, wallet, coinJoinState, settings);
+		var target = UiContext.Navigate(navigationTarget);
+		target.To(dialog, navigationMode);
+
+		return new FluentDialog<System.Reactive.Unit>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public FluentDialog<System.Reactive.Unit> CoinJoinPayments(IWalletModel walletModel, Wallet wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

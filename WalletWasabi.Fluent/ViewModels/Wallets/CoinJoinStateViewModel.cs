@@ -24,7 +24,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string MinInputCountTooLowMessage = "Min input count was too low";
 	private const string PauseMessage = "Coinjoin is paused";
 	private const string StoppedMessage = "Coinjoin is stopped";
-	private const string PressPlayToStartMessage = "Press Play to start";
 	private const string RoundSucceedMessage = "Coinjoin successful! Continuing...";
 	private const string RoundFinishedMessage = "Round ended, awaiting next round";
 	private const string AbortedNotEnoughAlicesMessage = "Insufficient participants, retrying...";
@@ -33,8 +32,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string WaitingForBlameRoundMessage = "Awaiting the blame round";
 	private const string WaitingRoundMessage = "Awaiting a round";
 	private const string PlebStopMessage = "Coinjoin may be uneconomical";
-	private const string PlebStopMessageBelow = "Add more funds or click to continue";
-	private const string PlebStopMessageBelowUnconfirmed = "Wait for confirmation or click to continue";
+	private const string PlebStopMessageBelow = "Add more funds or continue from Coinjoin";
+	private const string PlebStopMessageBelowUnconfirmed = "Wait for confirmation or continue from Coinjoin";
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
@@ -67,6 +66,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	[AutoNotify] private bool _isCountDownDelayHappening;
 	[AutoNotify] private bool _areAllCoinsPrivate;
 	[AutoNotify] private bool _isCoinjoinSupported;
+	[AutoNotify] private bool _isCoinjoinActive;
+	[AutoNotify] private bool _isPlebStopActive;
 
 	private DateTimeOffset _countDownStartTime;
 	private DateTimeOffset _countDownEndTime;
@@ -251,6 +252,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				StopVisible = false;
 				IsAutoWaiting = true;
+				IsCoinjoinActive = true;
 
 				var now = DateTimeOffset.UtcNow;
 				var autoStartEnd = now + _autoCoinJoinStartTimer.Interval;
@@ -275,8 +277,9 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PauseVisible = false;
 				PauseSpreading = false;
 				StopVisible = false;
+				IsCoinjoinActive = false;
 
-				// PlayVisible, CurrentStatus and LeftText set inside.
+				// PlayVisible and CurrentStatus set inside.
 				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
 			.OnTrigger(Trigger.AreAllCoinsPrivateChanged, () =>
@@ -298,6 +301,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = false;
 				PauseVisible = IsAutoCoinJoinEnabled;
 				StopVisible = !IsAutoCoinJoinEnabled;
+				IsCoinjoinActive = true;
 
 				CurrentStatus = WaitingMessage;
 			})
@@ -314,23 +318,30 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				PauseVisible = false;
 				StopVisible = false;
+				IsCoinjoinActive = true;
+				IsPlebStopActive = true;
 
 				CurrentStatus = PlebStopMessage;
 				LeftText = _lastPlebStopActivatedEvent is CoinjoinError.NotEnoughConfirmedUnprivateBalance
 					? PlebStopMessageBelowUnconfirmed
 					: PlebStopMessageBelow;
 			})
-			.OnExit(() => LeftText = "");
+			.OnExit(() =>
+			{
+				LeftText = "";
+				IsPlebStopActive = false;
+			});
 	}
 
 	private void RefreshButtonAndTextInStateStoppedOrPaused()
 	{
+		LeftText = "";
+
 		if (IsAutoCoinJoinEnabled)
 		{
 			PlayVisible = true;
 			PlayEnabled = true;
 			CurrentStatus = PauseMessage;
-			LeftText = PressPlayToStartMessage;
 		}
 		else if (AreAllCoinsPrivate)
 		{
@@ -340,13 +351,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				PlayVisible = true;
 				PlayEnabled = hasPendingPayments;
 				CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
-				LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
 			}
 			else
 			{
 				PlayVisible = false;
 				PlayEnabled = true;
-				LeftText = "";
 				CurrentStatus = AllPrivateMessage;
 			}
 		}
@@ -355,7 +364,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			PlayVisible = true;
 			PlayEnabled = true;
 			CurrentStatus = StoppedMessage;
-			LeftText = PressPlayToStartMessage;
 		}
 	}
 

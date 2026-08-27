@@ -1,0 +1,208 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
+             xmlns:settings="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Settings"
+             xmlns:payments="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.CoinJoinPayment"
+             mc:Ignorable="d" d:DesignWidth="760" d:DesignHeight="620"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.CoinJoinDialogView"
+             x:DataType="vm:CoinJoinDialogViewModel"
+             x:CompileBindings="True">
+  <ContentArea Title="{Binding Title}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="{Binding IsCoinjoinAvailable}"
+               NextContent="{Binding StartStopContent}"
+               EnableCancel="True"
+               CancelContent="Close"
+               IsBusy="{Binding IsBusy}"
+               ScrollViewer.VerticalScrollBarVisibility="Auto">
+
+    <StackPanel Spacing="20">
+
+      <!-- Privacy progress + coinjoin strategy -->
+      <Grid ColumnDefinitions="Auto,*" ColumnSpacing="30">
+
+        <StackPanel Grid.Column="0" Spacing="8" VerticalAlignment="Top" HorizontalAlignment="Center">
+          <Button Command="{Binding Privacy.ShowDetailsCommand}" Classes="plain"
+                  ToolTip.Tip="Show privacy details"
+                  HorizontalAlignment="Center">
+            <Panel Width="126" Height="126">
+              <ProgressRing Percentage="{Binding Privacy.ProgressFraction}" StrokeThickness="6" />
+              <StackPanel VerticalAlignment="Center" HorizontalAlignment="Center" Spacing="2">
+                <ThemeImage Source="{StaticResource privacy_indicator_good}" Height="20" Width="20"
+                            Opacity="0.6" HorizontalAlignment="Center" />
+                <TextBlock Text="{Binding Privacy.PercentText}" Classes="h4 bold" HorizontalAlignment="Center" />
+              </StackPanel>
+            </Panel>
+          </Button>
+
+          <!-- Stacked rather than side by side: keeps this column narrow next to the settings. -->
+          <StackPanel Spacing="4" Opacity="0.8"
+                      HorizontalAlignment="Center"
+                      IsVisible="{Binding Privacy.HasPrivateBalance}">
+            <Border HorizontalAlignment="Center" BorderThickness="1" CornerRadius="2"
+                    BorderBrush="{DynamicResource ButtonForeground}">
+              <TextBlock Text="PRIVATE" Classes="bold" Margin="4 2" HorizontalAlignment="Center" />
+            </Border>
+            <CopyableItem ContentToCopy="{Binding Privacy.BalancePrivate.Btc}" HorizontalAlignment="Center">
+              <PrivacyContentControl>
+                <AmountControl Amount="{Binding Privacy.BalancePrivate}" />
+              </PrivacyContentControl>
+            </CopyableItem>
+          </StackPanel>
+
+          <TextBlock Text="PRIVACY PROGRESS" Classes="h8" FontWeight="Bold" Opacity="0.6"
+                     HorizontalAlignment="Center" />
+        </StackPanel>
+
+        <StackPanel Grid.Column="1" Spacing="15"
+                    DataContext="{Binding Settings}"
+                    x:DataType="settings:WalletCoinJoinSettingsViewModel">
+
+          <StackPanel Orientation="Horizontal" Spacing="14" Opacity="0.85" HorizontalAlignment="Stretch">
+            <StackPanel.Styles>
+              <Style Selector="Button">
+                <Setter Property="Height" Value="37" />
+              </Style>
+            </StackPanel.Styles>
+            <Button Theme="{StaticResource FunctionButton}"
+                    Command="{Binding SelectMaximizePrivacySettings}"
+                    Classes.selected="{Binding MaximizePrivacyProfileSelected}"
+                    ToolTip.Tip="Repeats coinjoins to increase privacy, but costs additional fees.">
+              <StackPanel Spacing="10" Orientation="Horizontal">
+                <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource double_shield_regular}" />
+                <TextBlock Margin="0 2 0 0" Text="Enhance Privacy" />
+              </StackPanel>
+            </Button>
+            <Button Theme="{StaticResource FunctionButton}"
+                    Command="{Binding SelectDefaultSettings}"
+                    Classes.selected="{Binding DefaultProfileSelected}"
+                    ToolTip.Tip="Balances privacy and cost.">
+              <StackPanel Spacing="10" Orientation="Horizontal">
+                <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource shield_regular}" />
+                <TextBlock Margin="0 2 0 0" Text="Default Strategy" />
+              </StackPanel>
+            </Button>
+            <Button Theme="{StaticResource FunctionButton}"
+                    Command="{Binding SelectEconomicalSettings}"
+                    Classes.selected="{Binding EconomicalProfileSelected}"
+                    ToolTip.Tip="Minimizes transaction fees and allows non-private coin consolidation.">
+              <StackPanel Spacing="10" Orientation="Horizontal">
+                <PathIcon Opacity="0.9" Foreground="{DynamicResource FunctionButtonForegroundColor}" Data="{StaticResource coinjoin_cost}" />
+                <TextBlock Margin="0 2 0 0" Text="Reduce Costs" />
+              </StackPanel>
+            </Button>
+          </StackPanel>
+
+          <DockPanel ToolTip.Tip="Each round can register at most one non-private coin.">
+            <TextBlock Text="Non-private coin isolation" VerticalAlignment="Center" DockPanel.Dock="Left" />
+            <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}"
+                          Command="{Binding SetNonPrivateCoinIsolationCommand}"
+                          OnContent="{x:Null}" OffContent="{x:Null}"
+                          HorizontalAlignment="Right" />
+          </DockPanel>
+
+          <DockPanel ToolTip.Tip="When enabled, payments in coinjoin can be funded with private coins, so you can pay without mixing non-private coins first. Disable it to save fees.">
+            <TextBlock Text="Pay in coinjoin regardless of anonymity score" VerticalAlignment="Center" DockPanel.Dock="Left" />
+            <ToggleSwitch IsChecked="{Binding AllowPaymentsRegardlessOfAnonScore}"
+                          Command="{Binding SetAllowPaymentsRegardlessOfAnonScoreCommand}"
+                          OnContent="{x:Null}" OffContent="{x:Null}"
+                          HorizontalAlignment="Right" />
+          </DockPanel>
+
+          <StackPanel Spacing="2">
+            <DockPanel>
+              <TextBlock Text="Anonymity score target" VerticalAlignment="Center" DockPanel.Dock="Left"
+                         ToolTip.Tip="Minimum anonymity score to consider a coin private." />
+              <TextBox Classes="standalone" Text="{Binding AnonScoreTarget}" DockPanel.Dock="Right"
+                       Width="80" MaxLength="3" HorizontalAlignment="Right" />
+            </DockPanel>
+            <Slider Minimum="{Binding MinAnonScoreTarget}"
+                    Maximum="{Binding MaxAnonScoreTarget}"
+                    Value="{Binding AnonScoreTargetValue}"
+                    IsSnapToTickEnabled="True" TickFrequency="1" />
+            <DockPanel Opacity="0.5" LastChildFill="False">
+              <TextBlock Text="{Binding MinAnonScoreTarget}" DockPanel.Dock="Left" Classes="h9" />
+              <TextBlock Text="{Binding MaxAnonScoreTarget}" DockPanel.Dock="Right" Classes="h9" />
+            </DockPanel>
+          </StackPanel>
+        </StackPanel>
+      </Grid>
+
+      <Separator />
+
+      <!-- No coordinator: coinjoin cannot run at all, point the user at the settings -->
+      <StackPanel Spacing="14" IsVisible="{Binding !IsCoinjoinAvailable}">
+        <InfoMessage Foreground="{DynamicResource WarningMessageForeground}" HorizontalAlignment="Center">
+          <TextBlock Text="No coordinator is configured, so coinjoin is not available."
+                     TextWrapping="Wrap" />
+        </InfoMessage>
+        <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand" HorizontalAlignment="Center">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource coordinator}" Height="14" />
+            <TextBlock Text="Coordinator settings" />
+          </StackPanel>
+        </Button>
+      </StackPanel>
+
+      <!-- Coins taking part in coinjoin -->
+      <DockPanel IsVisible="{Binding IsCoinjoinAvailable}"
+                 ToolTip.Tip="Choose which coins are used as coinjoin inputs. Unselected coins are excluded.">
+        <TextBlock Text="Coins used for coinjoin" Classes="h8" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left" />
+        <Button Command="{Binding SelectCoinsCommand}" HorizontalAlignment="Right" Cursor="Hand">
+          <StackPanel Orientation="Horizontal" Spacing="8">
+            <PathIcon Data="{StaticResource wallet_coins}" Height="14" />
+            <TextBlock Text="{Binding CoinSelectionText}" />
+          </StackPanel>
+        </Button>
+      </DockPanel>
+
+      <!-- Payments in coinjoin -->
+      <StackPanel Spacing="10" IsVisible="{Binding IsCoinjoinAvailable}">
+        <DockPanel>
+          <TextBlock Text="Payments in coinjoin" Classes="h8" FontWeight="Bold" VerticalAlignment="Center" DockPanel.Dock="Left" />
+          <Button Command="{Binding AddPaymentCommand}" HorizontalAlignment="Right" Cursor="Hand">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource add_regular}" Height="14" />
+              <TextBlock Text="Add payment" />
+            </StackPanel>
+          </Button>
+        </DockPanel>
+
+        <TextBlock IsVisible="{Binding !HasPayments}" Opacity="0.6" TextWrapping="Wrap"
+                   Text="No payments queued — queued payments are sent to their receivers inside the next coinjoin round." />
+
+        <ItemsControl ItemsSource="{Binding Payments}" IsVisible="{Binding HasPayments}">
+          <ItemsControl.ItemTemplate>
+            <DataTemplate DataType="payments:CoinJoinPaymentViewModel">
+              <Border Background="{DynamicResource Layer1BackgroundBrush}"
+                      CornerRadius="4" Padding="12" Margin="0 0 0 4">
+                <DockPanel>
+                  <Button DockPanel.Dock="Right"
+                          Content="Cancel"
+                          Classes="plain"
+                          VerticalAlignment="Center"
+                          IsVisible="{Binding IsCancellable}"
+                          Command="{Binding $parent[ItemsControl].((vm:CoinJoinDialogViewModel)DataContext).CancelPaymentCommand}"
+                          CommandParameter="{Binding}" />
+                  <TextBlock DockPanel.Dock="Right" Text="{Binding Status}" Opacity="0.6"
+                             VerticalAlignment="Center" Margin="0 0 12 0"
+                             IsVisible="{Binding !IsCancellable}" />
+                  <StackPanel>
+                    <FadeOutTextBlock Text="{Binding Address}" Classes="monoSpaced" ToolTip.Tip="{Binding Address}" />
+                    <TextBlock Text="{Binding AmountText}" Opacity="0.6" Margin="0 4 0 0" />
+                  </StackPanel>
+                </DockPanel>
+              </Border>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+
+      <!-- Current coinjoin state -->
+      <TextBlock Text="{Binding CoinJoinState.CurrentStatus}" Opacity="0.6" HorizontalAlignment="Center"
+                 IsVisible="{Binding IsCoinjoinAvailable}" />
+    </StackPanel>
+  </ContentArea>
+</UserControl>
