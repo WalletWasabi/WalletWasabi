@@ -60,6 +60,8 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		try
 		{
+			await Task.WaitForAsync(() => _filterHeaderChain is {HashCount: > 0, HashesLeft: < 100}, cancellationToken).ConfigureAwait(false);
+
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))
@@ -176,5 +178,19 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		_chainReorgSubscription?.Dispose();
 		await base.StopAsync(cancellationToken).ConfigureAwait(false);
+	}
+}
+
+public static class TaskExtensions
+{
+	extension(Task)
+	{
+		public static async Task WaitForAsync(Func<bool> predicate, CancellationToken cancellationToken)
+		{
+			while (!predicate())
+			{
+				await Task.Delay(1_000, cancellationToken).ConfigureAwait(false);
+			}
+		}
 	}
 }
