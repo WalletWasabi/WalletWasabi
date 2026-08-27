@@ -121,33 +121,23 @@ public class PaymentBatchTests
 		Assert.True(paymentBatch.AreThereUncertainPayments);
 	}
 
-	/// <summary>
-	/// Verifies that uncertain payments timeout and move back to pending after the timeout period.
-	/// </summary>
 	[Fact]
-	public void UncertainPaymentsTimeoutAfterWaiting()
+	public void SignedPaymentsAreNotMovedBackToPending()
 	{
 		var paymentBatch = new PaymentBatch();
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
-		// Add payment and move to uncertain state
 		paymentBatch.AddPayment(destination, amount);
-		var payments = paymentBatch.GetPayments().ToArray();
-		paymentBatch.MovePaymentsToInProgress(payments, uint256.One);
-		var signedTxId = CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash();
-		paymentBatch.MovePaymentsToSigned(signedTxId);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		paymentBatch.MovePaymentsToSigned(CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash());
 
-		Assert.True(paymentBatch.AreThereUncertainPayments);
+		paymentBatch.MovePaymentsToPending();
+
 		Assert.False(paymentBatch.AreTherePendingPayments);
-
-		// Timeout should not move payments back immediately (timeout is 3 minutes)
-		paymentBatch.TimeoutUncertainPayments();
 		Assert.True(paymentBatch.AreThereUncertainPayments);
-
-		// Note: To fully test the timeout, we would need to mock DateTimeOffset.UtcNow
-		// or wait 3 minutes. For now, we verify the method doesn't crash and
-		// doesn't immediately move payments back.
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters).PaymentCount);
 	}
 
 	/// <summary>
