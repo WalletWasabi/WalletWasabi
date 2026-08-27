@@ -165,10 +165,15 @@ public static class FilterProviders
 				return BestBlockUnknown;
 			}
 
-			if (filterHeadersTip.Height <= fromHeight)
+			if (filterHeadersTip.Height < fromHeight)
 			{
 				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
+			if (filterHeadersTip.Height == fromHeight)
+			{
+				return AlreadyOnBestBlock;
 			}
 
 			Logger.LogDebug($"Requesting filters from height {fromHeight + 1} (filter headers tip: {filterHeadersTip.Height})");
