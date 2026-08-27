@@ -60,10 +60,6 @@ public class WalletFilterProcessor : BackgroundService
 	{
 		try
 		{
-			await _eventBus.WaitForEventAsync<SynchronizationStatusChanged>(
-				() => _filterHeaderChain.HashesLeft < 2_000,
-				cancellationToken).ConfigureAwait(false);
-
 			while (!cancellationToken.IsCancellationRequested)
 			{
 				using (await _reorgLock.LockAsync(cancellationToken).ConfigureAwait(false))

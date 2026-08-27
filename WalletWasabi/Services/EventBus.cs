@@ -1,8 +1,14 @@
+using System.Linq;
+using System.Collections.Generic;
 using System.Net;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
 using WalletWasabi.Tor.StatusChecker;
+using WalletWasabi.Wallets;
+using System.Threading;
 using NBitcoin.Protocol;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
@@ -107,30 +113,6 @@ public class EventBus
 	}
 }
 
-public static class EventBusExtensions
-{
-	extension(EventBus eventBus)
-	{
-		public Task WaitForEventAsync<TEvent>(CancellationToken cancellationToken) where TEvent : notnull
-			=> eventBus.WaitForEventAsync<TEvent>(() => false, cancellationToken);
-
-		public async Task WaitForEventAsync<TEvent>(Func<bool> unless, CancellationToken cancellationToken = default) where TEvent : notnull
-		{
-			var tcs = new TaskCompletionSource();
-			using var _ = eventBus.Subscribe<TEvent>(_ => tcs.TrySetResult());
-			await using var registration = cancellationToken.Register(
-				static state => ((TaskCompletionSource)state!).TrySetCanceled(),
-				tcs).ConfigureAwait(false);
-
-			if (unless())
-			{
-				tcs.TrySetResult();
-			}
-
-			await tcs.Task.ConfigureAwait(true);
-		}
-	}
-}
 
 public record ExchangeRateChanged(decimal UsdBtcRate);
 public record MiningFeeRatesChanged(FeeRateEstimations AllFeeEstimate);
@@ -165,4 +147,3 @@ public record FilterHeadersTipChanged(uint Height);
 public record BlockHeadersTipChanged(uint Height);
 public record BlockDownloaded(uint Height);
 public record PaymentBatchChanged(IReadOnlyList<Payment> Payments);
-public record SynchronizationStatusChanged;
