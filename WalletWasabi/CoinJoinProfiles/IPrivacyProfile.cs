@@ -5,11 +5,9 @@ public interface IPrivacyProfile
 	string Name => GetType().Name;
 	int AnonScoreTarget { get; }
 	bool NonPrivateCoinIsolation { get; }
-	bool AllowPaymentsRegardlessOfAnonScore { get; }
-	public bool Equals(int anonScoreTarget, bool redCoinIsolation, bool allowPaymentsRegardlessOfAnonScore)
+	public bool Equals(int anonScoreTarget, bool redCoinIsolation)
 	{
 		return anonScoreTarget == AnonScoreTarget
-			&& redCoinIsolation == NonPrivateCoinIsolation
-			&& allowPaymentsRegardlessOfAnonScore == AllowPaymentsRegardlessOfAnonScore;
+			&& redCoinIsolation == NonPrivateCoinIsolation;
 	}
 }
