@@ -33,8 +33,7 @@ public class CoinJoinCoinSelector
 
 	public static CoinJoinCoinSelector FromWallet(Wallet wallet)
 	{
-		var payWithPrivateCoins = wallet.AllowPaymentsRegardlessOfAnonScore
-			&& wallet.IsWalletPrivate()
+		var payWithPrivateCoins = wallet.IsWalletPrivate()
 			&& wallet.BatchedPayments.AreTherePendingPayments;
 
 		return new(

@@ -118,13 +118,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
 
-		// Same refresh when the "pay in coinjoin regardless of anonymity score" toggle flips.
-		wallet.Settings.WhenAnyValue(x => x.AllowPaymentsRegardlessOfAnonScore)
-			.Skip(1)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
-			.Subscribe();
-
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
@@ -334,21 +327,11 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		}
 		else if (AreAllCoinsPrivate)
 		{
-			if (_wallet.Settings.AllowPaymentsRegardlessOfAnonScore)
-			{
-				var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
-				PlayVisible = true;
-				PlayEnabled = hasPendingPayments;
-				CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
-				LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
-			}
-			else
-			{
-				PlayVisible = false;
-				PlayEnabled = true;
-				LeftText = "";
-				CurrentStatus = AllPrivateMessage;
-			}
+			var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
+			PlayVisible = true;
+			PlayEnabled = hasPendingPayments;
+			CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
+			LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
 		}
 		else
 		{
