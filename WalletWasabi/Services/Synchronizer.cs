@@ -69,7 +69,11 @@ public static class FilterProviders
 			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+		var blockHashes = blockHashTasks
+			.Where(t => t.IsCompletedSuccessfully)
+			.Select(t => t.Result)
+			.ToArray();
+
 		return ((uint)currentHeight, blockHashes);
 	}
 
