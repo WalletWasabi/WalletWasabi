@@ -340,33 +340,21 @@ public class CpfpInfoProviderTests
 	{
 		// Arrange
 		using var cts = new CancellationTokenSource();
-		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
-		var requestReceived = false;
-
-		using var mockHttpClient = new MockHttpClient();
-		mockHttpClient.OnSendAsync = _ =>
+		var messageReceived = new TaskCompletionSource<CpfpInfoMessage>(TaskCreationOptions.RunContinuationsAsynchronously);
+		using var mailbox = CreateAndStartMailboxProcessor((message, _, _) =>
 		{
-			requestReceived = true;
-			return Task.FromResult(HttpResponseMessageEx.Ok(cpfpJson));
-		};
-
-		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
-		var eventBus = new EventBus();
-		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
-
-		using var mailbox = CreateAndStartMailboxProcessor(handler, cts.Token);
+			messageReceived.TrySetResult(message);
+			return Task.FromResult(Unit.Instance);
+		}, cts.Token);
 		var provider = new CpfpInfoProvider(mailbox);
 		var tx = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
 		// Act
 		provider.ScheduleRequest(tx);
+		var message = await messageReceived.Task.WaitAsync(TimeSpan.FromSeconds(5));
 
-		// Wait for async processing (prefetch has random delay up to 10 seconds, but we can check cache)
-		await Task.Delay(100);
-
-		// Assert - message was posted (we can't easily verify prefetch completed due to random delay)
-		// But we can verify the provider doesn't throw
-		Assert.False(requestReceived);
+		// Assert
+		Assert.Same(tx, Assert.IsType<CpfpInfoMessage.PreFetchInfoForTransaction>(message).SmartTransaction);
 	}
 
 	[Fact]
