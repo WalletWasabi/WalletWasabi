@@ -1,3 +1,4 @@
+using NBitcoin;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -5,6 +6,9 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -20,6 +24,10 @@ public partial class WalletCoinjoinModel : ReactiveObject
 	private readonly WalletSettingsModel _settings;
 	private CoinJoinManager _coinJoinManager;
 	[AutoNotify] private bool _isCoinjoining;
+	[AutoNotify] private DeviceAuthorizationStatus _deviceAuthorization = DeviceAuthorizationStatus.Idle;
+
+	/// <summary>What went wrong the last time the device was asked, as the backend described it.</summary>
+	[AutoNotify] private string _deviceAuthorizationError = "";
 
 	public WalletCoinjoinModel(IServices services, Wallet wallet, CoinJoinManager coinjoinManager, WalletSettingsModel settings)
 	{
@@ -86,6 +94,55 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public IObservable<bool> IsStarted { get; }
 
+	/// <summary>
+	/// Asks the device for the coinjoin authorization. <see cref="DeviceAuthorization"/> drives both the
+	/// authorization dialog and the music box text, so the user knows when to look at the device.
+	/// </summary>
+	public async Task<bool> AuthorizeOnDeviceAsync()
+	{
+		DeviceAuthorization = DeviceAuthorizationStatus.AwaitingConfirmation;
+		DeviceAuthorizationError = "";
+		try
+		{
+			await _coinJoinManager.AuthorizeDeviceAsync(_wallet, CancellationToken.None).ConfigureAwait(false);
+			DeviceAuthorization = DeviceAuthorizationStatus.Confirmed;
+			return true;
+		}
+		catch (CoinJoinClientException e)
+		{
+			// The backend refused before the device was disturbed, e.g. no round is within the authorized fee cap.
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
+		}
+		catch (HardwareWalletTransportNotFoundException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.TransportNotFound;
+			return false;
+		}
+		catch (HardwareWalletNotFoundException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.DeviceNotFound;
+			return false;
+		}
+		catch (HardwareWalletException e)
+		{
+			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
+			DeviceAuthorizationError = e.Message;
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
+		}
+	}
+
+	/// <remarks>
+	/// A wallet whose device still owes an authorization is not handled here: <see cref="CoinJoinManager"/>
+	/// asks for it and resumes the start by itself, so this behaves the same with or without a GUI.
+	/// </remarks>
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
 		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);

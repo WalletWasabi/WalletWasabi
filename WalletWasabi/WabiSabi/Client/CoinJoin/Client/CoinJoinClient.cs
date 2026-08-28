@@ -598,7 +598,13 @@ public class CoinJoinClient
 		// Maximum signing request delay is 50 seconds, because
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
-		var scheduledDates = signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
+
+		// Spreading the requests hides timing from the coordinator on the assumption that signing is free. A
+		// signer that needs a real part of the phase would be spending the time it needs to sign at all, and
+		// missing the phase leaks far more than the schedule ever hid, so it is asked immediately instead.
+		var scheduledDates = _keyChain.SigningTakesTime
+			? Enumerable.Repeat(DateTimeOffset.UtcNow, aliceClients.Count()).ToImmutableList()
+			: signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
