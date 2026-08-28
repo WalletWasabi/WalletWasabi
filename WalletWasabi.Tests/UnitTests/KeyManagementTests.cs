@@ -188,6 +188,34 @@ public class KeyManagementTests
 	}
 
 	[Fact]
+	public void CanSerializeOutputWalletName()
+	{
+		var filePath = "wallet-output-wallet-name.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		manager.OutputWalletName = "Destination Wallet";
+		manager.ToFile();
+
+		var sameManager = KeyManager.FromFile(filePath);
+		Assert.Equal("Destination Wallet", sameManager.OutputWalletName);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void OutputWalletNameIsNullWhenAbsentFromFile()
+	{
+		// Wallet files written before this field existed must keep mixing into themselves.
+		var filePath = "wallet-no-output-wallet-name.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		manager.ToFile();
+
+		var sameManager = KeyManager.FromFile(filePath);
+		Assert.Null(sameManager.OutputWalletName);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
 	public void CanGenerateKeys()
 	{
 		string password = "password";

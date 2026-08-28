@@ -156,6 +156,12 @@ public class KeyManager
 
 	public string? Icon { get; private set; }
 
+	/// <summary>Name of the wallet that receives this wallet's coinjoin outputs, or <c>null</c> for itself.</summary>
+	/// <remarks>
+	/// Stored as a name rather than a <c>WalletId</c> because that id is regenerated on every load.
+	/// </remarks>
+	public string? OutputWalletName { get; set; }
+
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
 
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
@@ -724,6 +730,7 @@ public class KeyManager
 			("AutoCoinJoin", Encode.Bool(keyManager.AutoCoinJoin)),
 			("PlebStopThreshold", Encode.MoneyBitcoins(keyManager.PlebStopThreshold)),
 			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
+			("OutputWalletName", Encode.Optional(keyManager.OutputWalletName, Encode.String)),
 			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
 			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
 			("AllowPaymentsRegardlessOfAnonScore", Encode.Bool(keyManager.AllowPaymentsRegardlessOfAnonScore)),
@@ -763,6 +770,7 @@ public class KeyManager
 				AutoCoinJoin = get.Optional("AutoCoinJoin", Decode.Bool, false),
 				PlebStopThreshold = get.Optional("PlebStopThreshold", Decode.MoneyBitcoins) ?? DefaultPlebStopThreshold,
 				Icon = get.Optional("Icon", Decode.String),
+				OutputWalletName = get.Optional("OutputWalletName", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
 				AllowPaymentsRegardlessOfAnonScore = get.Optional("AllowPaymentsRegardlessOfAnonScore", Decode.Bool, false),

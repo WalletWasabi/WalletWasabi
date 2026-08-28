@@ -85,7 +85,7 @@
         <ToolTip.Tip>
           <TextBlock>
             - Only loaded wallets can be selected.<LineBreak />
-            - Coins from the coinjoin transaction will be received by this wallet. However, this setting resets after Wasabi restarts.<LineBreak />
+            - Coins are mixed until they reach this wallet's anonymity score target, and are only then handed over to the selected wallet.<LineBreak />
             - The selected wallet cannot be changed when a coinjoin is in progress.
           </TextBlock>
         </ToolTip.Tip>

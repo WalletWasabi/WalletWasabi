@@ -7,8 +7,10 @@ using System.Net;
 using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Collections.Generic;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -173,6 +175,92 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var broadcastedTx = await transactionCompleted.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 	}
+
+	/// <summary>
+	/// Once a wallet reaches its anonymity score target it hands its coins over to the destination
+	/// wallet. That round registers coins which are already private and pays every output to a
+	/// different wallet, so this asserts the whole handover is possible end to end.
+	/// </summary>
+	[Theory]
+	[InlineData(new long[] { 10_000_000, 20_000_000, 30_000_000, 40_000_000, 100_000_000 })]
+	public async Task HandoverCoinJoinTestAsync(long[] amounts)
+	{
+		const int PrivateAnonymitySet = 100;
+		int inputCount = amounts.Length;
+
+		var transactionCompleted = new TaskCompletionSource<Transaction>();
+
+		KeyManager sourceKeyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
+		KeyManager destinationKeyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
+
+		// Every coin is already private, which is what makes this a handover rather than a mixing round.
+		var coins = sourceKeyManager.GetKeys()
+			.Take(inputCount)
+			.Select((x, i) => BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i]), true, PrivateAnonymitySet))
+			.ToArray();
+
+		var httpClient = _apiApplicationFactory.WithWebHostBuilder(builder =>
+			builder.AddMockRpcClient(
+				coins,
+				rpc =>
+					rpc.OnSendRawTransactionAsync = (tx) =>
+					{
+						transactionCompleted.SetResult(tx);
+						return tx.GetHash();
+					})
+			.ConfigureServices(services =>
+			{
+				services.AddSingleton(s => new WabiSabiConfig
+				{
+					MaxInputCountByRound = inputCount - 1,
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(20),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
+					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
+				});
+			})).CreateClient();
+
+		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(httpClient);
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(200));
+		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
+
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
+
+		// Spends the source wallet's coins but pays the outputs to the destination wallet, which is
+		// what CoinJoinTrackerFactory wires up once the source wallet is private.
+		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(
+			_ => apiClient,
+			new KeyChain(sourceKeyManager, ""),
+			new OutputProvider(new InternalDestinationProvider(destinationKeyManager), RandomnessProviders.Insecure),
+			roundStateProvider,
+			redCoinIsolation: false);
+
+		var coinjoinResult = await coinJoinClient.StartCoinJoinAsync(() => coins, cts.Token);
+		Assert.True(coinjoinResult is SuccessfulCoinJoinResult);
+
+		var broadcastedTx = await transactionCompleted.Task;
+		Assert.NotNull(broadcastedTx);
+
+		var destinationScripts = ScriptsOf(destinationKeyManager);
+		var sourceScripts = ScriptsOf(sourceKeyManager);
+
+		Assert.NotEmpty(broadcastedTx.Outputs);
+		Assert.All(broadcastedTx.Outputs, output => Assert.Contains(output.ScriptPubKey, destinationScripts));
+		Assert.All(broadcastedTx.Outputs, output => Assert.DoesNotContain(output.ScriptPubKey, sourceScripts));
+	}
+
+	private static HashSet<Script> ScriptsOf(KeyManager keyManager) =>
+		keyManager.GetKeys()
+			.SelectMany(x => new[]
+			{
+				x.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit),
+				x.PubKey.GetScriptPubKey(ScriptPubKeyType.TaprootBIP86)
+			})
+			.ToHashSet();
 
 	[Fact]
 	public async Task FailToRegisterOutputsCoinJoinTestAsync()

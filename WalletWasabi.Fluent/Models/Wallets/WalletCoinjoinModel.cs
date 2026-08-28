@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -88,7 +89,16 @@ public partial class WalletCoinjoinModel : ReactiveObject
 
 	public async Task StartAsync(bool stopWhenAllMixed, bool overridePlebStop)
 	{
-		Wallet outputWallet = _services.GetWallets().First(x => x.WalletId == _settings.OutputWalletId);
+		// Resolved here rather than at construction because wallets load in an arbitrary order.
+		// An unknown or unloaded destination falls back to mixing into self.
+		var wallets = _services.GetWallets().ToList();
+
+		var destinationName = HandoverPolicy.ResolveDestinationWalletName(
+			_wallet.KeyManager.WalletName,
+			_settings.OutputWalletName,
+			wallets.Select(x => x.KeyManager.WalletName).ToList());
+
+		Wallet outputWallet = wallets.FirstOrDefault(x => x.KeyManager.WalletName == destinationName) ?? _wallet;
 
 		_coinJoinManager.RequestCoinJoinStart(_wallet, outputWallet, stopWhenAllMixed, overridePlebStop);
 	}
