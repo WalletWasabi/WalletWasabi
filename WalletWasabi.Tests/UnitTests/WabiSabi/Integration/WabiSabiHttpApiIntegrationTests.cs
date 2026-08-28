@@ -11,6 +11,7 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
@@ -541,13 +542,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton<IRPCClient>(s => rpc);
 			})).CreateClient();
 
-		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
-		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(stutteredHttpClient);
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
+		var stutteredApiClient = new ArenaClient(
+			apiClient.AmountCredentialClient,
+			apiClient.VsizeCredentialClient,
+			apiClient.CoordinatorIdentifier,
+			_apiApplicationFactory.CreateWabiSabiHttpApiClient(stutteredHttpClient));
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-		var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+		var response = await stutteredApiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}
