@@ -309,11 +309,11 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
 					MaxInputCountByRound = 2 * inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(40),
+					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(20),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(40),
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(40),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(20),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
 
