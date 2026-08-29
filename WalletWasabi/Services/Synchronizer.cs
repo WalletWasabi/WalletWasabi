@@ -43,7 +43,7 @@ public static class FilterProviders
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
 	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
-	ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		if (blockHeaderChain.Tip?.Height > fromHeight)
 		{
@@ -58,18 +58,27 @@ public static class FilterProviders
 
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - fromHeight);
-		if (nbOfFiltersToFetch == 0)
+
+		// = ~ No new block, common case.
+		// < ~ Current height can decrease too in a very rare reorg case.
+		if (nbOfFiltersToFetch <= 0)
 		{
 			return ((uint)currentHeight, []);
 		}
 
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
+		var blockHashTasks = Enumerable.Range((int)fromHeight, (int)nbOfFiltersToFetch + 1)
 			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
 			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		var blockHashes = blockHashTasks
+		if (blockHashTasks[0].IsCompletedSuccessfully && blockHashTasks[0].Result != fromHash)
+		{
+			// Enforce reorg.
+			return (0, []);
+		}
+
+		var blockHashes = blockHashTasks[1..]
 			.Where(t => t.IsCompletedSuccessfully)
 			.Select(t => t.Result)
 			.ToArray();
@@ -104,7 +113,11 @@ public static class FilterProviders
 			}
 
 			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
-			if (blockHashes.Length == 0)
+			if (bestHeight < fromHeight)
+			{
+				return BestBlockUnknown;
+			}
+			else if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
 			}
