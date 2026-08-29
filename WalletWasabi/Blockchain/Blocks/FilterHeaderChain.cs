@@ -31,6 +31,16 @@ public class FilterHeaderChain
 		}
 	}
 
+	public int Count
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _chain.Count;
+			}
+		}
+	}
 	public ChainHeight TipHeight
 	{
 		get

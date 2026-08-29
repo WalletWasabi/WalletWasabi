@@ -326,7 +326,12 @@ public class FilterSynchronizationState
 			}
 
 			// Check if filter headers are synced ahead
-			var filterHeadersTip = _filterHeaderChain.Tip!;
+			var filterHeadersTip = _filterHeaderChain.Tip;
+			if (filterHeadersTip is null)
+			{
+				// Filter headers not yet synced - can't assign filter ranges yet
+				return false;
+			}
 
 			// Find the next range to assign (respecting max lookahead limit)
 			if (!_filterTracker.TryGetNextRangeStartHeight(MaxLookaheadRanges, out var nextRangeStart))
@@ -413,7 +418,7 @@ public class FilterSynchronizationState
 			}
 
 			var start = filterTip.Height;
-			var endInclusive = start - ChainHeight.Min(start, 100u);
+			var endInclusive = start -  ChainHeight.Min((uint)(_filterHeaderChain.Count - 1), 100u);
 
 			// Compare filter headers against block headers from tip backwards.
 			for (long height = start; height >= endInclusive; height--)
