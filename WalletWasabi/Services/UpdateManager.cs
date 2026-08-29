@@ -34,7 +34,7 @@ public static class UpdateManager
 	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version currentVersion, CancellationToken cancellationToken)
 	{
 		using var nostrClient = nostrClientFactory();
-		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
+		using var wasabiNostrClient = new WasabiNostrClient(nostrClient, Constants.WasabiTeamNostrPubKey);
 		try
 		{
 			// Connect to Nostr relays and check for release version updates

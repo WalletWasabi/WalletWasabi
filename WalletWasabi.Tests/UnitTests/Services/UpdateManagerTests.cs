@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NNostr.Client;
+using NNostr.Client.Protocols;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -149,8 +150,42 @@ public class UpdateManagerTests
 	}
 }
 
-public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true) : INostrClient
+public class TesteabletNostrClient : INostrClient
 {
+	public static readonly string WasabiTeamPubKeyHex = NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex();
+
+	private readonly ReleaseInfo[] _releases;
+	private readonly bool _sendEventsReceived;
+	private readonly bool _manualMode;
+	private readonly string _pubkey;
+	private string? _activeSubscriptionId;
+
+	public TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true, string? pubkey = null, bool manualMode = false)
+	{
+		_releases = releases;
+		_sendEventsReceived = sendEventsReceived;
+		_manualMode = manualMode;
+		_pubkey = pubkey ?? WasabiTeamPubKeyHex;
+	}
+
+	public void SimulateEventsReceived(NostrEvent[] events)
+	{
+		if (_activeSubscriptionId is null)
+		{
+			throw new InvalidOperationException("No active subscription.");
+		}
+		EventsReceived?.Invoke(this, (_activeSubscriptionId, events));
+	}
+
+	public void SimulateEoseReceived()
+	{
+		if (_activeSubscriptionId is null)
+		{
+			throw new InvalidOperationException("No active subscription.");
+		}
+		EoseReceived?.Invoke(this, _activeSubscriptionId);
+	}
+
 	public void Dispose()
 	{
 	}
@@ -169,14 +204,22 @@ public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceiv
 
 	public Task CreateSubscription(string subscriptionId, NostrSubscriptionFilter[] filters, CancellationToken token)
 	{
-		var nostrEvents = releases
+		_activeSubscriptionId = subscriptionId;
+
+		if (_manualMode)
+		{
+			return Task.CompletedTask;
+		}
+
+		var nostrEvents = _releases
 			.Select((r, i) => new NostrEvent
 			{
 				Id = i.ToString(),
+				PublicKey = _pubkey,
 				Tags = [ new NostrEventTag{ TagIdentifier = "version", Data = [r.Version.ToString()] }]
 			}).ToArray();
 
-		if (sendEventsReceived)
+		if (_sendEventsReceived)
 		{
 			EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
 		}
