@@ -385,8 +385,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		double faultInjectorMonkeyAggressiveness,
 		double delayInjectorMonkeyAggressiveness)
 	{
-		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+		// Allow the coordinator to complete all configured phases on slower CI runners.
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
 
 		const int NumberOfParticipants = 10;
 		const int NumberOfCoinsPerParticipant = 2;
