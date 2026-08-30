@@ -15,6 +15,7 @@ using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
 using Xunit;
+using System.Collections.Immutable;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -224,7 +225,7 @@ public class TransactionFactoryTests
 
 		// cluster 1 is known by 7 people: Pablo, Daniel, Adolf, Maria, Ding, Joseph and Eve
 		var coinsCluster1 = new[] { sCoins[0], sCoins[1], sCoins[2], sCoins[3], sCoins[4], sCoins[5], sCoins[6] };
-		var cluster1 = new Cluster(coinsCluster1.Select(x => x.HdPubKey));
+		var cluster1 = new Cluster(coinsCluster1.Select(x => x.HdPubKey).ToImmutableHashSet());
 		foreach (var coin in coinsCluster1)
 		{
 			coin.HdPubKey.Cluster = cluster1;
@@ -232,7 +233,7 @@ public class TransactionFactoryTests
 
 		// cluster 2 is known by 6 people: Julio, Lee, Jean, Donald, Jack and Satoshi
 		var coinsCluster2 = new[] { sCoins[7], sCoins[8], sCoins[9] };
-		var cluster2 = new Cluster(coinsCluster2.Select(x => x.HdPubKey));
+		var cluster2 = new Cluster(coinsCluster2.Select(x => x.HdPubKey).ToImmutableHashSet());
 		foreach (var coin in coinsCluster2)
 		{
 			coin.HdPubKey.Cluster = cluster2;
