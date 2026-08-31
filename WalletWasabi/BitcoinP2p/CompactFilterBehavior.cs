@@ -193,6 +193,25 @@ public class CompactFilterBehavior(
 
 	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
+		const int MaxFilterBytes = 1_000_000;
+
+		if (filterPayload.FilterBytes.Length > MaxFilterBytes)
+		{
+			Logger.LogWarning($"Filter too large: {filterPayload.FilterBytes.Length} bytes");
+			HandleInvalidNoLock(node, "Filter exceeds maximum size");
+			return;
+		}
+
+		var filter = new GolombRiceFilter(filterPayload.FilterBytes);
+
+		// Reject degenerate filters: N=0 with data present
+		if (filter.N == 0 && filter.Data.Length > 0)
+		{
+			Logger.LogWarning("Invalid filter: N=0 with non-empty data");
+			HandleInvalidNoLock(node, "Invalid compact filter received");
+			return;
+		}
+
 		_collectedFilters.Add(filterPayload);
 
 		// Check if we've received all filters for this range
