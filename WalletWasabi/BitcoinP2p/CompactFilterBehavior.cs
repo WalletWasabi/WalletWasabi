@@ -7,7 +7,7 @@ using static WalletWasabi.BitcoinP2p.FilterSynchronizationState;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public partial class CompactFilterBehavior(
+public class CompactFilterBehavior(
 	FilterSynchronizationState synchronizationState,
 	ConcurrentChain blockHeaderChain,
 	EventBus eventBus)
@@ -228,7 +228,7 @@ public partial class CompactFilterBehavior(
 		TrySyncNoLock(node);
 	}
 
-	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
+	internal FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
 	{
 		if (filters.Length == 0)
 		{
@@ -286,6 +286,12 @@ public partial class CompactFilterBehavior(
 			if (block is null)
 			{
 				Logger.LogWarning($"Block header not available for height {height}");
+				return null;
+			}
+
+			if (filterPayload.BlockHash != block.HashBlock)
+			{
+				Logger.LogWarning($"The filter's block hash {filterPayload.BlockHash} doesn't match the expected {block.HashBlock} at height {height}");
 				return null;
 			}
 
