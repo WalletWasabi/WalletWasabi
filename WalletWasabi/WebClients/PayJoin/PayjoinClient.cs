@@ -16,13 +16,15 @@ namespace WalletWasabi.WebClients.PayJoin;
 
 public class PayjoinClient : IPayjoinClient
 {
-	public PayjoinClient(Uri paymentUrl, HttpClient httpClient)
+	public PayjoinClient(Uri paymentUrl, HttpClient httpClient, bool disableOutputSubstitution = false)
 	{
 		PaymentUrl = paymentUrl;
 		_httpClient = httpClient;
+		_disableOutputSubstitution = disableOutputSubstitution;
 	}
 
 	public Uri PaymentUrl { get; }
+	private readonly bool _disableOutputSubstitution;
 	private readonly HttpClient _httpClient;
 
 	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
@@ -51,7 +53,7 @@ public class PayjoinClient : IPayjoinClient
 
 		// By default, we want to keep same fee rate and a single additional input
 		optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Helpers.Constants.P2wpkhInputVirtualSize);
-		optionalParameters.DisableOutputSubstitution = false;
+		optionalParameters.DisableOutputSubstitution = _disableOutputSubstitution;
 
 		var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
 		var oldGlobalTx = originalTx.GetGlobalTransaction();
@@ -166,6 +168,24 @@ public class PayjoinClient : IPayjoinClient
 		if (newGlobalTx.LockTime != oldGlobalTx.LockTime)
 		{
 			throw new PayjoinSenderException("The LockTime field of the transaction has been modified");
+		}
+
+		if (_disableOutputSubstitution)
+		{
+			var changeScript = changeHdPubKey?.P2wpkhScript;
+
+			bool IsPreserved(TxOut original) =>
+				newGlobalTx.Outputs.Any(o =>
+					o.ScriptPubKey == original.ScriptPubKey && o.Value == original.Value);
+
+			var paymentOutputsPreserved = oldGlobalTx.Outputs
+				.Where(o => changeScript is null || o.ScriptPubKey != changeScript)
+				.All(IsPreserved);
+
+			if (!paymentOutputsPreserved)
+			{
+				throw new PayjoinSenderException("The payjoin receiver substituted a payment output despite pjos=0 (output substitution disabled)");
+			}
 		}
 
 		// Making sure that our inputs are finalized, and that some of our inputs have not been added.
