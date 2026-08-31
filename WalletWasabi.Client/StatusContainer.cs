@@ -1,5 +1,11 @@
 using System;
+using System.Collections.Generic;
+using System.IO;
+using WalletWasabi.Discoverability;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Helpers;
+using WalletWasabi.Logging;
+using WalletWasabi.Serialization;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Client;
@@ -12,6 +18,7 @@ public class StatusContainer : IDisposable
 	public uint BestNetworkHeight { get; private set; }
 	public bool InstallOnClose { get; private set; }
 	public string InstallerFilePath { get; private set; } = string.Empty;
+	public IReadOnlyList<KnownCoordinator> KnownCoordinators { get; }
 
 	private readonly IDisposable _torConnectionSubscription;
 	private readonly IDisposable _feeRateSubscription;
@@ -40,8 +47,32 @@ public class StatusContainer : IDisposable
 		InstallOnClose = installOnClose;
 		_installOnCloseSubscription =
 			eventBus.Subscribe<InstallOnClosedPreferenceChanged>(e => InstallOnClose = e.InstallOnClose);
+
+		KnownCoordinators = LoadBundledKnownCoordinators();
 	}
 
+	private static IReadOnlyList<KnownCoordinator> LoadBundledKnownCoordinators()
+	{
+		try
+		{
+			var path = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Discoverability", "KnownCoordinators.json");
+			if (File.Exists(path))
+			{
+				var decoder = Decode.ArraySkipInvalid(
+					Decode.KnownCoordinator,
+					onItemError: error => Logger.LogWarning($"Skipping invalid known coordinator entry: {error}"));
+
+				var parsed = JsonDecoder.FromString(decoder)(File.ReadAllText(path));
+				return parsed.Match<IReadOnlyList<KnownCoordinator>>(coords => coords, _ => []);
+			}
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
+		}
+
+		return [];
+	}
 
 	public void Dispose()
 	{

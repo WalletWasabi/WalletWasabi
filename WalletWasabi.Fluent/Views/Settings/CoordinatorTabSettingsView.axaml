@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
+             xmlns:discoverability="using:WalletWasabi.Discoverability"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:CoordinatorTabSettingsViewModel"
              x:Class="WalletWasabi.Fluent.Views.Settings.CoordinatorTabSettingsView"
@@ -18,6 +19,30 @@
           <WhitespaceInputRemovalBehavior />
         </Interaction.Behaviors>
       </TextBox>
+    </DockPanel>
+
+    <DockPanel ToolTip.Tip="Pick a coordinator that has advertised itself on Nostr to fill in the URI above.">
+      <TextBlock Text="Select a coordinator from self-advertised on Nostr" />
+      <ComboBox Name="KnownCoordinatorsComboBox"
+                Width="220"
+                PlaceholderText="Known Coordinators"
+                MaxDropDownHeight="300"
+                ItemsSource="{Binding KnownCoordinators}"
+                SelectionChanged="OnKnownCoordinatorSelectionChanged">
+        <ComboBox.ItemTemplate>
+          <DataTemplate x:DataType="discoverability:KnownCoordinator">
+            <StackPanel Spacing="2" Margin="4,4">
+              <TextBlock Text="{Binding CoordinatorUri}" FontWeight="Bold" TextTrimming="CharacterEllipsis" />
+              <TextBlock Text="{Binding FirstSeen, StringFormat='First seen on {0:yyyy-MM-dd}'}" Opacity="0.6" FontSize="11" />
+            </StackPanel>
+          </DataTemplate>
+        </ComboBox.ItemTemplate>
+        <ComboBox.SelectionBoxItemTemplate>
+          <DataTemplate x:DataType="discoverability:KnownCoordinator">
+            <TextBlock Text="Known Coordinators" />
+          </DataTemplate>
+        </ComboBox.SelectionBoxItemTemplate>
+      </ComboBox>
     </DockPanel>
 
     <DockPanel ToolTip.Tip="The client will refuse to participate in rounds with a mining fee rate (sat/vB) higher than the value indicated here.">

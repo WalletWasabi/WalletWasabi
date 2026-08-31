@@ -121,6 +121,16 @@ public static partial class Decode
 	public static readonly Decoder<DateTimeOffset> DateTimeOffset =
 		String.Map(System.DateTimeOffset.Parse);
 
+	public static Decoder<DateOnly> DateOnly =>
+		String.AndThen(s => System.DateOnly.TryParse(s, System.Globalization.CultureInfo.InvariantCulture, out var d)
+			? Succeed(d)
+			: Fail<DateOnly>($"'{s}' is not a valid date (expected yyyy-MM-dd)."));
+
+	public static Decoder<Uri> HttpUri =>
+		String.AndThen(s => Uri.TryCreate(s, UriKind.Absolute, out var uri) && (uri.Scheme == Uri.UriSchemeHttp || uri.Scheme == Uri.UriSchemeHttps)
+			? Succeed(uri)
+			: Fail<Uri>($"'{s}' is not an absolute HTTP(s) URI."));
+
 	public static Decoder<T> Succeed<T>(T output) =>
 		_ => output;
 
@@ -173,6 +183,22 @@ public static partial class Decode
 			}
 
 			return Result<T[], string>.Fail("It is not an array");
+		};
+
+	public static Decoder<T[]> ArraySkipInvalid<T>(Decoder<T> decoder, Action<string>? onItemError = null) =>
+		value =>
+		{
+			if (value.ValueKind != JsonValueKind.Array)
+			{
+				return Result<T[], string>.Fail("It is not an array");
+			}
+
+			List<T> list = [];
+			foreach (var elem in value.EnumerateArray())
+			{
+				decoder(elem).MatchDo(list.Add, e => onItemError?.Invoke(e));
+			}
+			return list.ToArray();
 		};
 
 	public static Decoder<Dictionary<string, T>> Dictionary<T>(Decoder<T> decoder) =>
