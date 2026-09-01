@@ -3,8 +3,6 @@ using System.Collections.ObjectModel;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
-using ReactiveUI;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 

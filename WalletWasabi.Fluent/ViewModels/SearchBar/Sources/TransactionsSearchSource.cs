@@ -5,16 +5,13 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
-using DynamicData;
 using NBitcoin;
-using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.NavBar;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Patterns;
 using WalletWasabi.Fluent.ViewModels.SearchBar.SearchItems;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
 

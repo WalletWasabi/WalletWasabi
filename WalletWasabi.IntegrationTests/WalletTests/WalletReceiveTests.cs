@@ -1,9 +1,7 @@
 using System;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.IntegrationTests.Infrastructure;
 using Xunit;
 
@@ -40,11 +38,10 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(receiveAddress, fundingAmount, confirmations: 1);
 
 		// Sync filters so wallet can discover the transaction
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Start the wallet to process filters
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-		await wallet.StartAsync(cts.Token);
+		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
 		// Wait for wallet to process filters and find the coin
 		await env.WaitForConditionAsync(
@@ -52,13 +49,12 @@ public class WalletReceiveTests
 			TimeSpan.FromSeconds(30));
 
 		// Assert
-		Assert.Single(wallet.Coins);
-		var coin = wallet.Coins.First();
+		var coin = Assert.Single(wallet.Coins);
 		Assert.Equal(fundingAmount, coin.Amount);
 		Assert.True(coin.Confirmed);
 		Assert.Equal(receiveKey.P2wpkhScript, coin.ScriptPubKey);
 
-		await wallet.StopAsync(CancellationToken.None);
+		await wallet.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
@@ -84,10 +80,9 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(address2, Money.Coins(1.0m), confirmations: 0);
 		await env.FundAddressAsync(address3, Money.Coins(1.5m), confirmations: 1); // Only last one confirms all
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-		await wallet.StartAsync(cts.Token);
+		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
 		await env.WaitForConditionAsync(
 			() => wallet.Coins.Count() >= 3,
@@ -102,7 +97,7 @@ public class WalletReceiveTests
 		// All should be confirmed since last generate confirmed all pending
 		Assert.All(wallet.Coins, c => Assert.True(c.Confirmed));
 
-		await wallet.StopAsync(CancellationToken.None);
+		await wallet.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
@@ -121,10 +116,9 @@ public class WalletReceiveTests
 		await env.FundAddressAsync(receiveAddress, Money.Coins(0.5m), confirmations: 0);
 		await env.FundAddressAsync(receiveAddress, Money.Coins(0.3m), confirmations: 1);
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-		await wallet.StartAsync(cts.Token);
+		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
 		await env.WaitForConditionAsync(
 			() => wallet.Coins.Count() >= 2,
@@ -138,7 +132,7 @@ public class WalletReceiveTests
 		Assert.Equal(Money.Coins(0.3m), amounts[0]);
 		Assert.Equal(Money.Coins(0.5m), amounts[1]);
 
-		await wallet.StopAsync(CancellationToken.None);
+		await wallet.StopAsync(TestContext.Current.CancellationToken);
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
@@ -156,20 +150,18 @@ public class WalletReceiveTests
 
 		// Fund the wallet
 		await env.FundAddressAsync(receiveAddress, Money.Coins(2m), confirmations: 1);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-		await wallet.StartAsync(cts.Token);
+		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
 		await env.WaitForConditionAsync(
 			() => wallet.Coins.Any(),
 			TimeSpan.FromSeconds(30));
 
 		// Assert initial state
-		Assert.Single(wallet.Coins);
-		var initialCoin = wallet.Coins.First();
+		var initialCoin = Assert.Single(wallet.Coins);
 		Assert.False(initialCoin.HdPubKey.IsInternal); // Receive key is external
 
-		await wallet.StopAsync(CancellationToken.None);
+		await wallet.StopAsync(TestContext.Current.CancellationToken);
 	}
 }
