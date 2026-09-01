@@ -560,7 +560,11 @@ public class Global
 	private ChainHeight CalculateSafestHeight()
 	{
 		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
-		var transactionHeight = TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
+		var transactionHeight = TransactionStore.TryGetOldestKnownTransactionHeight(out var h)
+			? h > Constants.ResyncHeightMargin
+				? h - Constants.ResyncHeightMargin
+				: h
+			: checkpointHeight;
 		var birthHeight = WalletManager.GetEarliestBirthHeight();
 		var worstBestHeight = WalletManager.GetWorstBestHeight();
 		return (ChainHeight) Height.Min(checkpointHeight, ((ChainHeight?[]) [transactionHeight, birthHeight, worstBestHeight]).DropNulls());
@@ -740,7 +744,7 @@ public class Global
 	{
 		List<IBroadcaster> result =
 		[
-			new NetworkBroadcaster(mempoolService, p2PNodeListProvider)
+			new NetworkBroadcaster(mempoolService, p2PNodeListProvider, Network.MinBroadcastNodes)
 		];
 
 		if (_bitcoinRpcClient is not null)

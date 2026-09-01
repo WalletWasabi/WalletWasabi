@@ -69,14 +69,40 @@ public static class FilterProviders
 			.ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+		var blockHashes = blockHashTasks
+			.Where(t => t.IsCompletedSuccessfully)
+			.Select(t => t.Result)
+			.ToArray();
+
 		return ((uint)currentHeight, blockHashes);
+	}
+
+	/// <summary>
+	/// The stored filter tip is orphaned when the block header chain has reached its height
+	/// but no longer contains its hash there (the block lost a reorg).
+	/// </summary>
+	private static bool IsOrphanedFilterTip(ConcurrentChain blockHeaderChain, uint fromHeight, uint256 fromHash)
+	{
+		if (blockHeaderChain.Tip is not { } headerTip || headerTip.Height < fromHeight)
+		{
+			// The header chain is behind the stored tip, so it cannot contradict it.
+			return false;
+		}
+
+		var storedTipBlock = blockHeaderChain.GetBlock(fromHash);
+		return storedTipBlock is null || storedTipBlock.Height != (int)fromHeight;
 	}
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		try
 		{
+			if (IsOrphanedFilterTip(blockHeaderChain, fromHeight, fromHash))
+			{
+				// Makes the caller remove the orphaned filter from the store.
+				return BestBlockUnknown;
+			}
+
 			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
 			if (blockHashes.Length == 0)
 			{
@@ -136,23 +162,21 @@ public static class FilterProviders
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 			}
 
-			if (filterHeadersTip.Height <= fromHeight)
-			{
-				// Filter headers not yet synced past our position; wait and retry.
-				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
-				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
-			}
-
-			// Check if a reorg has occurred - filter headers don't match current block chain
+			// Must run before the height comparison below: after a tip reorg the filter header
+			// tip sits at the same height as the stored tip, just on another block.
 			if (synchronizationState.IsReorg(fromHeight, fromHash))
 			{
 				return BestBlockUnknown;
 			}
 
-			// Check if we're already caught up
+			if (filterHeadersTip.Height < fromHeight)
+			{
+				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
+				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
 			if (filterHeadersTip.Height == fromHeight)
 			{
-				Logger.LogDebug("Already on best block");
 				return AlreadyOnBestBlock;
 			}
 

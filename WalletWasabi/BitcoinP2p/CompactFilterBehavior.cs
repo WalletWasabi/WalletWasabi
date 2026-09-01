@@ -14,8 +14,13 @@ public partial class CompactFilterBehavior(
 	: NodeBehavior
 {
 	private static readonly TimeSpan TickSyncInterval = TimeSpan.FromSeconds(2);
-	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
-	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
+	private static readonly TimeSpan HeaderAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(25);
+	private static readonly TimeSpan FilterAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(30);
+	private static readonly TimeSpan HeaderAssignmentTimeoutForTor = TimeSpan.FromSeconds(45);
+	private static readonly TimeSpan FilterAssignmentTimeoutForTor = TimeSpan.FromSeconds(70);
+
+	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
+	private TimeSpan _filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
 
 	private readonly Lock _lock = new();
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
@@ -31,6 +36,12 @@ public partial class CompactFilterBehavior(
 	{
 		AttachedNode.StateChanged += OnStateChanged;
 		AttachedNode.MessageReceived += OnMessageReceived;
+		if (AttachedNode.Behaviors.Find<SocksSettingsBehavior>() is null)
+		{
+			_headerAssignmentTimeout = HeaderAssignmentTimeoutForClearnet;
+			_filterAssignmentTimeout = FilterAssignmentTimeoutForClearnet;
+		}
+
 	}
 
 	protected override void DetachCore()
@@ -161,16 +172,14 @@ public partial class CompactFilterBehavior(
 
 		switch (validationResult)
 		{
-			case HeaderValidationResult.Success success:
+			case HeaderValidationResult.Success:
 				Logger.LogInfo($"Successfully validated filter header range {assignment}");
-				synchronizationState.OnHeaderCompleted(assignment.StartHeight, success.Headers);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
 
 			case HeaderValidationResult.NotReadyYet:
 				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
-				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, node.Network);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
@@ -379,14 +388,9 @@ public partial class CompactFilterBehavior(
 
 	private void ReleaseAssignments()
 	{
-		_lock.Enter();
-		try
+		lock (_lock)
 		{
 			ReleaseAssignmentsNoLock();
-		}
-		finally
-		{
-			_lock.Exit();
 		}
 	}
 
@@ -415,7 +419,7 @@ public partial class CompactFilterBehavior(
 			if (_assignedFilterRange is not null)
 			{
 				var elapsed = nowUtc - _assignedFilterRangeAt;
-				if (elapsed > FilterAssignmentTimeout)
+				if (elapsed > _filterAssignmentTimeout)
 				{
 					HandleInvalidNoLock(node, $"Filter assignment at {_assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
 					return true;
@@ -426,7 +430,7 @@ public partial class CompactFilterBehavior(
 			if (_assignedHeaderRange is not null)
 			{
 				var elapsed = nowUtc - _assignedHeaderRangeAt;
-				if (elapsed > HeaderAssignmentTimeout)
+				if (elapsed > _headerAssignmentTimeout)
 				{
 					HandleInvalidNoLock(node, $"Header assignment at {_assignedHeaderRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
 					return true;

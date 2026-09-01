@@ -245,7 +245,7 @@ public class FilterStore : IFilterStore, IDisposable
 			_eventBus.Publish(new ClientTipHeightChanged(_filterHeaderChain.TipHeight));
 		}
 
-		_eventBus.Publish(new ChainReorganized(filter));
+		_eventBus.Publish(new ChainReorganized(filter.Header.Height, filter.Header.BlockHash));
 
 		return filter;
 	}

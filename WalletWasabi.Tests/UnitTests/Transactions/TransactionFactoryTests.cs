@@ -856,7 +856,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public async Task CanPayToSilentPaymentAddresses()
+	public async Task CanPayToSilentPaymentAddressesAsync()
 	{
 		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
 		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.
@@ -906,7 +906,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public async Task CanPayToLabeledSilentPaymentAddresses()
+	public async Task CanPayToLabeledSilentPaymentAddressesAsync()
 	{
 		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
 		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.

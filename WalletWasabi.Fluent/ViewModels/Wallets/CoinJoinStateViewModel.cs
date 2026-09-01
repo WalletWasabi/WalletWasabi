@@ -112,15 +112,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
 			.Subscribe();
 
-		// Refresh the paused music box when a pending payment is added or removed.
+		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
 		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
-			.Subscribe();
-
-		// Same refresh when the "only use private funds for coinjoin payments" toggle flips.
-		wallet.Settings.WhenAnyValue(x => x.OnlyUsePrivateFundsForPayments)
-			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
@@ -335,21 +328,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		else if (AreAllCoinsPrivate)
 		{
 			var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
-
-			if (!_wallet.Settings.OnlyUsePrivateFundsForPayments || hasPendingPayments)
-			{
-				PlayVisible = true;
-				PlayEnabled = hasPendingPayments;
-				CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
-				LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
-			}
-			else
-			{
-				PlayVisible = false;
-				PlayEnabled = true;
-				LeftText = "";
-				CurrentStatus = AllPrivateMessage;
-			}
+			PlayVisible = true;
+			PlayEnabled = hasPendingPayments;
+			CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
+			LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
 		}
 		else
 		{

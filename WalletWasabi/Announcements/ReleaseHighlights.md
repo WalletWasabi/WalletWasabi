@@ -1,21 +1,17 @@
 ## Release Highlights
 
-#### 🌎 New loading screen
-#### 🥕 Receive Taproot by default
-#### 📎 Support for two new packages for Linux (AppImage)
-#### ⚙️ Bug fixes
+#### 🔗 P2P synchronization fixes after chain reorganizations
+#### 🔐 Security improvements for coinjoin
+#### 🍎 Native macOS Apple Silicon support for hardware wallets
 
 ## Release Summary
-Wasabi Wallet v2.8.1 includes several fixes that improve synchronization UX and performance.
+Wasabi Wallet v2.8.2 fixes P2P synchronization issues after blockchain reorganizations and addresses security vulnerabilities in coinjoin.
 
-### 🌎 New loading screen
-More detailed progress is now displayed while your wallet is loading. Peers, block headers, filter headers, compact filters, and blocks are now visually trackable. Filter headers now download in parallel.
+### 🔗 P2P synchronization fixes after chain reorganizations
+Fixed several issues that caused synchronization failures when the blockchain experienced reorganizations. The wallet now correctly handles orphaned tips and shorter reorg chains without throwing errors, ensuring reliable sync recovery.
 
-### 🥕 Receive Taproot by default
-Taproot addresses use Bitcoin's most scalable and private script type. The soft fork was activated in August 2021 at block height 709,632, but sending to the new bech32m encoding type was not initially supported by wallet software. 5 years have now past, and Wasabi will shift the pressure to upgrade to unupgraded providers.
+### 🔐 Security improvements for coinjoin
+Enhanced coinjoin security by verifying other participants' inputs before signing. This adds an extra layer of protection against malicious coordinators or participants attempting to manipulate transactions.
 
-#### 📎 Support for two new packages for Linux (AppImage)
-Wasabi package that runs anywhere. You can download Wasabi Wallet and run it on your Linux desktop system just like you would do with a Windows or Mac application.
-
-### ⚙️ Bug fixes
-Some issues preventing users from synchronizing with their node were fixed. A bug blocking version upgrade announcements was fixed, and the Nostr relay list was updated.
+### 🍎 Native macOS Apple Silicon support for hardware wallets
+Hardware Wallet Interface (HWI) now runs natively on Apple Silicon Macs, eliminating the need for Rosetta emulation and improving performance when using hardware wallets on M1/M2/M3 machines.

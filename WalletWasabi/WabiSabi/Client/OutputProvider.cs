@@ -15,6 +15,10 @@ public class OutputProvider
 	internal IDestinationProvider DestinationProvider { get; }
 	protected RandomnessProvider Random { get; }
 
+	/// <param name="arePaymentsAllowed">
+	/// Whether the round is allowed to fund batched payments. Only meaningful for
+	/// <see cref="Batching.PaymentAwareOutputProvider"/>; plain decomposition ignores it.
+	/// </param>
 	public virtual IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
 		RoundParameters roundParameters,
