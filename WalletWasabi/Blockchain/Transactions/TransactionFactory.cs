@@ -481,6 +481,11 @@ public class TransactionBuilderWithSilentPaymentSupport
 
 	public PSBT SolveSilentPayment(PSBT psbt)
 	{
+		if (_silentPayments.Count == 0)
+		{
+			return psbt;
+		}
+
 		var keys = _keys ?? [];
 
 		Key GetKeyForScriptPubKey(Script spk)
