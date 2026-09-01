@@ -60,8 +60,6 @@ public class CoinJoinClient
 	private readonly InputVerifier _verifyInputsExistance;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
-	// Minimum anonymity score every registered coin must reach for the round to be allowed to include
-	// batched payments. Zero means payments can be funded regardless of the anonymity score.
 	private readonly int _minAnonScoreForPayments;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
