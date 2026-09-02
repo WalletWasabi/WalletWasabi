@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using NBitcoin;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -19,6 +20,44 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 /// </summary>
 public class SynchronizerReorgTests(ITestOutputHelper output)
 {
+	[Fact]
+	public async Task P2pProvider_HeaderChainBehindCheckpoint_ReturnsAlreadyOnBestBlock()
+	{
+		var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(700_000u, Network.Main);
+		var blockHeaders = new ConcurrentChain(Network.Main);
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(checkpoint.Header);
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, checkpoint.Header.Height);
+
+		var result = await FilterProviders
+			.CreateBitcoinP2pFilterProvider(filterHeaders, blockHeaders, synchronizationState)
+			(checkpoint.Header.Height, checkpoint.Header.BlockHash, CancellationToken.None);
+
+		Proof($"P2P checkpoint={checkpoint.Header.BlockHash} filterHeight={checkpoint.Header.Height} headerHeight={blockHeaders.Tip.Height} got {Describe(result)} want AlreadyOnBestBlock");
+		Assert.True(result.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value);
+	}
+
+	[Fact]
+	public void IsReorg_BlockHeadersBehindFilterHeaders_ReturnsFalse()
+	{
+		var blockHeaders = new ConcurrentChain(Network.RegTest);
+		var blockHeader = Network.RegTest.Consensus.ConsensusFactory.CreateBlockHeader();
+		blockHeader.HashPrevBlock = blockHeaders.Tip.HashBlock;
+		blockHeaders.SetTip(new ChainedBlock(blockHeader, blockHeader.GetHash(), blockHeaders.Tip));
+
+		var anchorHeight = (uint)blockHeaders.Tip.Height;
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(new SmartHeader(blockHeaders.Tip.HashBlock, new uint256(1u), anchorHeight, DateTimeOffset.UtcNow));
+		filterHeaders.AppendTip(new SmartHeader(new uint256(2u), new uint256(2u), anchorHeight + 1, DateTimeOffset.UtcNow));
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, anchorHeight);
+
+		var isReorg = synchronizationState.IsReorg(anchorHeight, blockHeaders.Tip.HashBlock);
+
+		Proof($"P2P filterHeight={filterHeaders.Tip!.Height} headerHeight={blockHeaders.Tip.Height} got reorg={isReorg} want false");
+		Assert.False(isReorg);
+	}
+
 	[Fact]
 	public async Task RpcProvider_OrphanedFilterTip_ReturnsBestBlockUnknown()
 	{
