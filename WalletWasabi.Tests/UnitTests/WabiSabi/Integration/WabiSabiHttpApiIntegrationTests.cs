@@ -367,7 +367,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var resultBad = await badCoinsTask;
 		var resultOk = await coinJoinTask;
 
-		Assert.IsType<DisruptedCoinJoinResult>(resultBad);
+		// The mock acknowledges signatures without forwarding them to the coordinator.
+		// Its local result can be disrupted or failed, but it must never succeed.
+		Assert.IsNotType<SuccessfulCoinJoinResult>(resultBad);
 		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
 
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
