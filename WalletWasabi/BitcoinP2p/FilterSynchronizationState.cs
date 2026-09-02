@@ -411,10 +411,22 @@ public class FilterSynchronizationState
 				return false;
 			}
 
-			var anchorBlock = _blockHeaderChain.GetBlock((int)fromHeight);
-			if (anchorBlock is null || anchorBlock.HashBlock != fromHash)
+			if (_blockHeaderChain.Tip is not { } headerTip || headerTip.Height < fromHeight)
 			{
-				return MarkReorg($"Block {fromHash} at height {fromHeight} not found or mismatched in block header chain. Reorg detected.");
+				// The header chain is behind the stored tip, so it cannot contradict it.
+				return false;
+			}
+
+			var anchorBlock = _blockHeaderChain.GetBlock((int)fromHeight);
+			if (anchorBlock is null)
+			{
+				// A missing header is inconclusive. Wait for the header chain to catch up.
+				return false;
+			}
+
+			if (anchorBlock.HashBlock != fromHash)
+			{
+				return MarkReorg($"Hash mismatch at height {fromHeight}. Filter={fromHash}, Block={anchorBlock.HashBlock}. Reorg detected.");
 			}
 
 			var start = filterTip.Height;
@@ -434,7 +446,8 @@ public class FilterSynchronizationState
 				var block = _blockHeaderChain.GetBlock((int)h);
 				if (block is null)
 				{
-					return MarkReorg($"Missing block header at height {h}. Reorg detected.");
+					// A missing header is inconclusive. Wait for the header chain to catch up.
+					return false;
 				}
 
 				if (filterHeader.BlockHash != block.HashBlock)
