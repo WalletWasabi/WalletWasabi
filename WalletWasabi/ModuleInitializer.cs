@@ -1,10 +1,11 @@
 namespace WalletWasabi;
+
 using System.Collections.Concurrent;
 using System.Reflection;
 using NBitcoin;
 using System.Runtime.CompilerServices;
 
-class ModuleInitializer
+public static class ModuleInitializer
 {
 #pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries -- Moving this initializer to the apps did not work (https://github.com/WalletWasabi/WalletWasabi/pull/14364).
 	[ModuleInitializer]
