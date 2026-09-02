@@ -16,7 +16,7 @@ static void PrintUsage()
 {
 	Console.WriteLine("""
 		Usage:
-		  GenerateCheckpoint.cs --height <uint> --hash <hex> [options]
+		  dotnet run --file GenerateCheckpoint.cs -- --height <uint> --hash <hex> [options]
 
 		Required:
 		  --height <uint>              Block height
