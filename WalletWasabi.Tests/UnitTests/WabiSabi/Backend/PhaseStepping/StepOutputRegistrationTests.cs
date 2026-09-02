@@ -270,7 +270,7 @@ public class StepOutputRegistrationTests
 		await arena.TriggerAndWaitRoundAsync(token);
 		var round1 = Assert.Single(arena.Rounds);
 		var arenaClient1 = WabiSabiFactory.CreateArenaClient(arena);
-		var round2 = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(cfg));
+		var round2 = WabiSabiFactory.CreateRound(cfg, WabiSabiFactory.CreateRoundParameters(cfg));
 
 		arena.Rounds.Add(round2);
 

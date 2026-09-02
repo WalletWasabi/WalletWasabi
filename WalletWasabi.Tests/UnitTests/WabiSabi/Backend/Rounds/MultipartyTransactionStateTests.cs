@@ -80,9 +80,9 @@ public class MultipartyTransactionStateTests
 
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
 		RoundParameters parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-		Round roundLargest = new(parameters, SecureRandom.Instance);
+		Round roundLargest = new(config, parameters, SecureRandom.Instance);
 
-		// First Round is the largest.
+		// First round is the largest.
 		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), roundLargest.Parameters.MaxSuggestedAmount);
 
 		// Simulate 63 successful rounds.
@@ -91,21 +91,23 @@ public class MultipartyTransactionStateTests
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 			parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-			Round round = new(parameters, SecureRandom.Instance);
+			Round round = new(config, parameters, SecureRandom.Instance);
 
-			var maxSuggested = round.Parameters.MaxSuggestedAmount;
+			var maxSuggestedAmount = round.Parameters.MaxSuggestedAmount;
 
-			if (!histogram.TryGetValue(maxSuggested, out int value))
+			if (!histogram.TryGetValue(maxSuggestedAmount, out int value))
 			{
-				histogram.Add(maxSuggested, 1);
+				histogram.Add(maxSuggestedAmount, 1);
 			}
 			else
 			{
-				histogram[maxSuggested] = value + 1;
+				histogram[maxSuggestedAmount] = value + 1;
 			}
 		}
 
 		// Check the distribution of MaxSuggestedAmounts.
+		Assert.Equal(6, histogram.Count);
+
 		Assert.Equal(1, histogram[Money.Coins(10_000)]);
 		Assert.Equal(2, histogram[Money.Coins(1000)]);
 		Assert.Equal(4, histogram[Money.Coins(100)]);
@@ -113,7 +115,7 @@ public class MultipartyTransactionStateTests
 		Assert.Equal(16, histogram[Money.Coins(1)]);
 		Assert.Equal(32, histogram[Money.Coins(0.1m)]);
 
-		// Simulate many unsuccessful input-reg. At the end we should always stick with the largest again.
+		// Simulate many rounds with unsuccessful input-reg. At the end, we should always stick with the largest again.
 		for (int i = 0; i < 2; i++)
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, false);

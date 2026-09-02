@@ -54,7 +54,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 				throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.AliceAlreadyRegistered);
 			}
 
-			if (round.IsInputRegistrationEnded(_config.MaxInputCountByRound))
+			if (round.IsInputRegistrationEnded(round.Config.MaxInputCountByRound))
 			{
 				throw new WrongPhaseException(round, Phase.InputRegistration);
 			}
@@ -375,7 +375,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 
 	private void CheckCoinIsNotBanned(OutPoint input, Round round)
 	{
-		var banningTime = _prison.GetBanTimePeriod(input, _config.GetDoSConfiguration());
+		var banningTime = _prison.GetBanTimePeriod(input, round.Config.GetDoSConfiguration());
 		if (banningTime.Includes(DateTimeOffset.UtcNow))
 		{
 			Logger.LogInfo($"{input} rejected. Banned until {banningTime.EndTime}", round);

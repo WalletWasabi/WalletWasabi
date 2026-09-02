@@ -5,7 +5,7 @@ namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 public class BlameRound : Round
 {
 	public BlameRound(RoundParameters parameters, Round blameOf, ISet<OutPoint> blameWhitelist, WasabiRandom random)
-		: base(parameters, random)
+		: base(blameOf.Config, parameters, random)
 	{
 		BlameOf = blameOf;
 		BlameWhitelist = blameWhitelist;

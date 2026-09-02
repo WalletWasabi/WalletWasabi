@@ -112,7 +112,7 @@ public class RegisterOutputTests
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
 		{ MaxVsizeAllocationPerAlice = Constants.P2wpkhInputVirtualSize + outputScript.EstimateOutputVsize() };
-		var round = WabiSabiFactory.CreateRound(parameters);
+		var round = WabiSabiFactory.CreateRound(cfg, parameters);
 
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
@@ -134,7 +134,7 @@ public class RegisterOutputTests
 		RoundParameters parameters = WabiSabiFactory.CreateRoundParameters(cfg)
 			with
 		{ MaxVsizeAllocationPerAlice = Constants.P2wpkhInputVirtualSize + sha256Bounty.EstimateOutputVsize() };
-		var round = WabiSabiFactory.CreateRound(parameters);
+		var round = WabiSabiFactory.CreateRound(cfg, parameters);
 		using Arena arena = await ArenaBuilder.From(cfg).CreateAndStartAsync(round);
 
 		round.Alices.Add(WabiSabiFactory.CreateAlice(Money.Coins(1), round));
