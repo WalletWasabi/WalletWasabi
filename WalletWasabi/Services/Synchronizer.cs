@@ -166,7 +166,7 @@ public static class FilterProviders
 			// Block headers are synchronized from scratch. Filter headers are synchronized from an appropriate checkpoint.
 			if (blockHeadersChain.Height < filterHeadersChain.TipHeight)
 			{
-				Logger.LogTrace($"Block headers chain is not synchronized yet ({blockHeadersChain.Height} < {filterHeadersChain.TipHeight}). Retrying in 15 seconds.");
+				Logger.LogTrace($"Block headers chain is not synchronized yet ({blockHeadersChain.Height} < {filterHeadersChain.TipHeight}). Retrying in {WaitForBlockHeadersToCatchUp.TotalSeconds} seconds.");
 				return FilterFetchingResult.Fail(WaitForBlockHeadersToCatchUp);
 			}
 
