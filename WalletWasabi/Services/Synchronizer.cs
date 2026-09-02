@@ -158,8 +158,15 @@ public static class FilterProviders
 			var filterHeadersTip = filterHeadersChain.Tip;
 			if (filterHeadersTip is null)
 			{
-				Logger.LogTrace("Filter headers tip is null. Retrying in 1 second");
+				Logger.LogTrace("Filter headers tip is null. Retrying in 1 second.");
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
+			// Block headers are synchronized from scratch. Filter headers are synchronized from an appropriate checkpoint.
+			if (blockHeadersChain.Height < filterHeadersChain.TipHeight)
+			{
+				Logger.LogTrace($"Block headers chain is not synchronized yet ({blockHeadersChain.Height} < {filterHeadersChain.TipHeight}). Retrying in 15 seconds.");
+				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
 			}
 
 			// Must run before the height comparison below: after a tip reorg the filter header
