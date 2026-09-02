@@ -30,6 +30,7 @@ public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint2
 
 public static class FilterProviders
 {
+	public static readonly TimeSpan WaitForBlockHeadersToCatchUp = TimeSpan.FromSeconds(15);
 	private const int MaxFiltersPerBitcoinRpcRequest = 100;
 
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
@@ -166,7 +167,7 @@ public static class FilterProviders
 			if (blockHeadersChain.Height < filterHeadersChain.TipHeight)
 			{
 				Logger.LogTrace($"Block headers chain is not synchronized yet ({blockHeadersChain.Height} < {filterHeadersChain.TipHeight}). Retrying in 15 seconds.");
-				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(15));
+				return FilterFetchingResult.Fail(WaitForBlockHeadersToCatchUp);
 			}
 
 			// Must run before the height comparison below: after a tip reorg the filter header
