@@ -95,15 +95,6 @@ public static class FilterProviders
 			.Select(t => t.Result)
 			.ToArray();
 
-		// Avoid unobserved exceptions.
-		try
-		{
-			await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		}
-		catch
-		{
-		}
-
 		return blockHashes;
 	}
 
