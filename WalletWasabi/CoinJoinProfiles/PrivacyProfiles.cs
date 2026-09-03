@@ -20,12 +20,14 @@ public static class PrivacyProfiles
 	{
 		public int AnonScoreTarget => 10;
 		public bool NonPrivateCoinIsolation => true;
+		public bool OnlyUsePrivateFundsForPayments => false;
 	}
 
 	public record Economical : IPrivacyProfile
 	{
 		public int AnonScoreTarget => 5;
 		public bool NonPrivateCoinIsolation => false;
+		public bool OnlyUsePrivateFundsForPayments => false;
 	}
 
 	public record MaximizePrivacy : IPrivacyProfile
@@ -35,6 +37,7 @@ public static class PrivacyProfiles
 
 		public int AnonScoreTarget { get; } = GetAnonScoreTarget();
 		public bool NonPrivateCoinIsolation => true;
+		public bool OnlyUsePrivateFundsForPayments => true;
 
 		/// <summary>
 		/// This algo linearly decreases the probability of increasing the anonset target, starting from minExclusive.

@@ -67,12 +67,12 @@ public class CoinJoinCoinSelectionTests
 	}
 
 	/// <summary>
-	/// This test is to make sure private coins are selected to fund a payment when the user opted in to
-	/// pay in coinjoin regardless of the anonymity score. In that case <see cref="CoinJoinCoinSelector.FromWallet"/>
-	/// lifts the anonymity score target so every private coin becomes selectable.
+	/// This test is to make sure private coins are selected to fund a pending payment when the wallet is
+	/// already fully private. In that case <see cref="CoinJoinCoinSelector.FromWallet"/> lifts the anonymity
+	/// score target so every private coin becomes selectable.
 	/// </summary>
 	[Fact]
-	public void SelectPrivateCoinsToPayRegardlessOfAnonScore()
+	public void SelectPrivateCoinsToPayWhenWalletIsPrivate()
 	{
 		const int AnonymitySet = 10;
 		var km = KeyManager.CreateNew(out _, "", Network.Main);
