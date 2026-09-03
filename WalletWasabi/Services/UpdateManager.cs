@@ -1,17 +1,11 @@
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
-using NBitcoin;
 using NBitcoin.Crypto;
 using NNostr.Client;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 using static WalletWasabi.Services.UpdateManager;
 
@@ -99,7 +93,7 @@ public static class UpdateManager
 // Downloads and verifies new software releases
 public static class ReleaseDownloader
 {
-	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker();
 
 	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
 		ForOfficiallySupportedOSes(httpClientFactory, eventBus, GetInstallerName);
