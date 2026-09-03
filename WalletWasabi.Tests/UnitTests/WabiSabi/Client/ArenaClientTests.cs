@@ -169,8 +169,7 @@ public class ArenaClientTests
 		mockRpc.OnGetRawTransactionAsync = (_, _) =>
 			Task.FromResult(BitcoinFactory.CreateTransaction());
 
-		using Arena arena = await ArenaBuilder.From(config).With(mockRpc).CreateAndStartAsync(round);
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		using Arena arena = ArenaBuilder.From(config).With(mockRpc).Create(round);
 
 		using var memoryCache = new MemoryCache(new MemoryCacheOptions());
 		var idempotencyRequestCache = new IdempotencyRequestCache(memoryCache);
@@ -204,7 +203,7 @@ public class ArenaClientTests
 
 		var inputRegistrationResponse = await inputRegistrationResponseTask;
 		var aliceId = inputRegistrationResponse.Value;
-		var connectionConfirmationResponse1Task = aliceArenaClient.ConfirmConnectionAsync(
+		var connectionConfirmationResponse1 = await aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -212,13 +211,18 @@ public class ArenaClientTests
 			inputRegistrationResponse.IssuedAmountCredentials,
 			inputRegistrationResponse.IssuedVsizeCredentials,
 			CancellationToken.None);
+		Assert.False(connectionConfirmationResponse1.Value);
 
-		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
+		EventAwaiter<TimeSpan> initialArenaRound = new(
+			h => arena.Tick += h,
+			h => arena.Tick -= h);
+		using var initialArenaRoundTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(1));
+		await arena.StartAsync(initialArenaRoundTimeout.Token);
+		await initialArenaRound.WaitAsync(initialArenaRoundTimeout.Token);
 		Assert.Equal(Phase.ConnectionConfirmation, round.Phase);
 
 		// Phase: Connection Confirmation
-		var connectionConfirmationResponse1 = await connectionConfirmationResponse1Task;
-		var connectionConfirmationResponse2Task = aliceArenaClient.ConfirmConnectionAsync(
+		var connectionConfirmationResponse2 = await aliceArenaClient.ConfirmConnectionAsync(
 			round.Id,
 			aliceId,
 			amountsToRequest,
@@ -226,6 +230,7 @@ public class ArenaClientTests
 			connectionConfirmationResponse1.IssuedAmountCredentials,
 			connectionConfirmationResponse1.IssuedVsizeCredentials,
 			CancellationToken.None);
+		Assert.True(connectionConfirmationResponse2.Value);
 
 		await arena.TriggerAndWaitRoundAsync(TimeSpan.FromMinutes(1));
 
@@ -238,7 +243,6 @@ public class ArenaClientTests
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 
-		var connectionConfirmationResponse2 = await connectionConfirmationResponse2Task;
 		var reissuanceResponse = await bobArenaClient.ReissueCredentialAsync(
 			round.Id,
 			amountsToRequest,

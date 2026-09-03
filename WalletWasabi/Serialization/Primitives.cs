@@ -267,11 +267,11 @@ public static partial class Decode
 			return getters.Errors is [] ? result : Result<T, string>.Fail(string.Join("; ", getters.Errors));
 		};
 
-	public static Decoder<T> AndThen<T, R>(Func<R, Decoder<T>> cb, Decoder<R> decoder) =>
-		value => decoder(value).Match(r => cb(r)(value), s => s);
+	public static Decoder<T> AndThen<T, R>(Func<R, Decoder<T>> callback, Decoder<R> decoder) =>
+		value => decoder(value).Match(r => callback(r)(value), s => s);
 
-	public static Decoder<T> AndThen<T, R>(this Decoder<R> decoder, Func<R, Decoder<T>> cb) =>
-		AndThen(cb, decoder);
+	public static Decoder<T> AndThen<T, R>(this Decoder<R> decoder, Func<R, Decoder<T>> callback) =>
+		AndThen(callback, decoder);
 
 	private static Result<T, string> Integral<T>(
 		string name,
@@ -320,12 +320,18 @@ public static class JsonEncoder
 
 public static class JsonDecoder
 {
+	/// <summary>Comments in JSON are ignored instead of throwing an error.</summary>
+	public static readonly JsonDocumentOptions Options = new()
+	{
+		CommentHandling = JsonCommentHandling.Skip,
+	};
+
 	public static Func<string, Result<T, string>> FromString<T>(Decoder<T> decoder) =>
 		value =>
 		{
 			try
 			{
-				var jsonDocument = JsonDocument.Parse(value);
+				var jsonDocument = JsonDocument.Parse(value, Options);
 				return decoder(jsonDocument.RootElement);
 			}
 			catch (JsonException e)
@@ -342,7 +348,7 @@ public static class JsonDecoder
 		{
 			try
 			{
-				var jsonDocument = await JsonDocument.ParseAsync(value).ConfigureAwait(false);
+				var jsonDocument = await JsonDocument.ParseAsync(value, Options).ConfigureAwait(false);
 				return decoder(jsonDocument.RootElement);
 			}
 			catch (JsonException e)
@@ -356,7 +362,7 @@ public static class JsonDecoder
 		{
 			try
 			{
-				var jsonDocument = JsonDocument.Parse(value);
+				var jsonDocument = JsonDocument.Parse(value, Options);
 				return decoder(jsonDocument.RootElement);
 			}
 			catch (JsonException e)

@@ -1,16 +1,7 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using System.Collections.Immutable;
-using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.WebClients.Wasabi;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.FeeRateEstimation;
@@ -29,7 +20,7 @@ public static class FeeRateProviders
 		"None"
 	];
 
-	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker(false);
+	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
 
 	/*
 	 * https://engineering.block.xyz/blog/augur-an-open-source-bitcoin-fee-estimation-library

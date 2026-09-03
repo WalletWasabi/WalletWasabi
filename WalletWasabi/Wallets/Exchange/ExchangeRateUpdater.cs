@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Services;
 
 namespace WalletWasabi.Wallets.Exchange;
@@ -24,6 +22,4 @@ public static class ExchangeRateUpdater
 
 		return usdExchangeRate;
 	}
-
-	public static void UpdateExchangeRate() => Workers.Tell(ServiceName, new UpdateMessage());
 }

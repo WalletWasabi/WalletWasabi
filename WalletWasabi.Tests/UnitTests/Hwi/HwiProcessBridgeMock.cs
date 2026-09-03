@@ -1,5 +1,7 @@
+using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.IO;
+using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.Models;
@@ -17,7 +19,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 
 	public HardwareWalletModels Model { get; }
 
-	public Task<(string response, int exitCode)> SendCommandAsync(string arguments, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
+	public Task<(string response, int exitCode)> SendCommandAsync(IReadOnlyList<string> argumentList, bool openConsole, CancellationToken cancel, Action<StreamWriter>? standardInputWriter = null)
 	{
 		if (openConsole)
 		{
@@ -57,14 +59,13 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 		};
 
 		string path = HwiParser.NormalizeRawDevicePath(rawPath);
-		string devicePathAndTypeArgumentString = $"--device-path \"{path}\" --device-type \"{model}\"";
 
 		const string SuccessTrueResponse = "{\"success\": true}\r\n";
 
 		string? response = null;
 		int code = 0;
 
-		if (CompareArguments(arguments, "enumerate"))
+		if (ContainsCommand(argumentList, "enumerate"))
 		{
 			response = Model switch
 			{
@@ -79,7 +80,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException($"Mock missing for {model}")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} wipe"))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "wipe"))
 		{
 			response = Model switch
 			{
@@ -92,7 +93,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} setup"))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "setup") && !argumentList.Contains("--interactive"))
 		{
 			response = Model switch
 			{
@@ -105,7 +106,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive setup"))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "setup") && argumentList.Contains("--interactive"))
 		{
 			response = Model switch
 			{
@@ -118,7 +119,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} --interactive restore"))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "restore") && argumentList.Contains("--interactive"))
 		{
 			response = Model switch
 			{
@@ -131,7 +132,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} promptpin"))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "promptpin"))
 		{
 			response = Model switch
 			{
@@ -144,7 +145,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareArguments(arguments, $"{devicePathAndTypeArgumentString} sendpin", true))
+		else if (HasDeviceArgs(argumentList, path, model) && ContainsCommand(argumentList, "sendpin"))
 		{
 			response = Model switch
 			{
@@ -157,7 +158,7 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 				_ => throw new NotImplementedException("Mock missing.")
 			};
 		}
-		else if (CompareGetXbpubArguments(arguments, out string? xpub))
+		else if (TryGetXpubKeyPath(argumentList, out string? xpub))
 		{
 			switch (Model)
 			{
@@ -173,146 +174,115 @@ public class HwiProcessBridgeMock : IHwiProcessInvoker
 					break;
 			}
 		}
-		else if (CompareArguments(out bool t1, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h --addr-type wit", false))
+		else if (TryMatchDisplayAddress(argumentList, path, model, out bool isTestNet, out string? addressPath))
 		{
-			switch (Model)
+			string? addr = (addressPath, isTestNet) switch
 			{
-				case HardwareWalletModels.Trezor_T:
-				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
-				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
-				case HardwareWalletModels.Ledger_Nano_S:
-				case HardwareWalletModels.Ledger_Nano_X:
-				case HardwareWalletModels.Jade:
-				case HardwareWalletModels.BitBox02_BTCOnly:
-					response = t1
-						? "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n"
-						: "{\"address\": \"bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah\"}\r\n";
-					break;
-			}
-		}
-		else if (CompareArguments(out bool t2, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/0h/0h/1 --addr-type wit", false))
-		{
-			switch (Model)
+				("m/84h/0h/0h", true) => "tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy",
+				("m/84h/0h/0h", false) => "bc1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7fdevah",
+				("m/84h/0h/0h/1", true) => "tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6",
+				("m/84h/0h/0h/1", false) => "bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf",
+				("m/84h/1h/0h", _) => "tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy",
+				("m/84h/1h/0h/1", _) => "tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6",
+				_ => null
+			};
+
+			if (addr is not null)
 			{
-				case HardwareWalletModels.Trezor_T:
-				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
-				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
-				case HardwareWalletModels.Ledger_Nano_S:
-				case HardwareWalletModels.Ledger_Nano_X:
-				case HardwareWalletModels.Jade:
-				case HardwareWalletModels.BitBox02_BTCOnly:
-					response = t2
-						? "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n"
-						: "{\"address\": \"bc1qmaveee425a5xjkjcv7m6d4gth45jvtnj23fzyf\"}\r\n";
-					break;
-			}
-		}
-		else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h --addr-type wit", false))
-		{
-			switch (Model)
-			{
-				case HardwareWalletModels.Trezor_T:
-				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
-				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
-				case HardwareWalletModels.Ledger_Nano_S:
-				case HardwareWalletModels.Ledger_Nano_X:
-				case HardwareWalletModels.Jade:
-				case HardwareWalletModels.BitBox02_BTCOnly:
-					response = "{\"address\": \"tb1q7zqqsmqx5ymhd7qn73lm96w5yqdkrmx7rtzlxy\"}\r\n";
-					break;
-			}
-		}
-		else if (CompareArguments(out bool _, arguments, $"{devicePathAndTypeArgumentString} displayaddress --path m/84h/1h/0h/1 --addr-type wit", false))
-		{
-			switch (Model)
-			{
-				case HardwareWalletModels.Trezor_T:
-				case HardwareWalletModels.Trezor_Safe_3 or HardwareWalletModels.Trezor_Safe_5:
-				case HardwareWalletModels.Trezor_1:
-				case HardwareWalletModels.Coldcard:
-				case HardwareWalletModels.Ledger_Nano_S:
-				case HardwareWalletModels.Ledger_Nano_X:
-				case HardwareWalletModels.Jade:
-				case HardwareWalletModels.BitBox02_BTCOnly:
-					response = "{\"address\": \"tb1qmaveee425a5xjkjcv7m6d4gth45jvtnjqhj3l6\"}\r\n";
-					break;
+				response = $"{{\"address\": \"{addr}\"}}\r\n";
 			}
 		}
 
+		var displayString = HwiParser.ToArgumentsDisplayString(argumentList);
 		return response is null
-			? throw new NotImplementedException($"Mocking is not implemented for '{arguments}'.")
+			? throw new NotImplementedException($"Mocking is not implemented for '{displayString}'.")
 			: Task.FromResult((response, code));
 	}
 
-	private static bool CompareArguments(out bool isTestNet, string arguments, string desired, bool useStartWith = false)
+	private static bool ContainsCommand(IReadOnlyList<string> args, string command)
+		=> args.Contains(command, StringComparer.OrdinalIgnoreCase);
+
+	private static bool HasDeviceArgs(IReadOnlyList<string> args, string path, string model)
 	{
-		var testnetDesired = $"--chain test {desired}";
-		isTestNet = false;
+		int pathIndex = IndexOf(args, "--device-path");
+		int typeIndex = IndexOf(args, "--device-type");
 
-		if (useStartWith)
-		{
-			if (arguments.StartsWith(desired, StringComparison.Ordinal))
-			{
-				return true;
-			}
+		bool hasPath = pathIndex >= 0 && pathIndex + 1 < args.Count && args[pathIndex + 1] == path;
+		bool hasType = typeIndex >= 0 && typeIndex + 1 < args.Count && args[typeIndex + 1] == model;
 
-			if (arguments.StartsWith(testnetDesired, StringComparison.Ordinal))
-			{
-				isTestNet = true;
-				return true;
-			}
-		}
-		else
-		{
-			if (arguments == desired)
-			{
-				return true;
-			}
-
-			if (arguments == testnetDesired)
-			{
-				isTestNet = true;
-				return true;
-			}
-		}
-
-		return false;
+		return hasPath && hasType;
 	}
 
-	private static bool CompareArguments(string arguments, string desired, bool useStartWith = false)
-		=> CompareArguments(out _, arguments, desired, useStartWith);
-
-	private static bool CompareGetXbpubArguments(string arguments, [NotNullWhen(returnValue: true)] out string? extPubKey)
+	private static int IndexOf(IReadOnlyList<string> list, string item)
 	{
-		extPubKey = null;
-		string command = "getxpub";
-		if (arguments.Contains(command, StringComparison.Ordinal)
-			&& ((arguments.Contains("--device-path", StringComparison.Ordinal) && arguments.Contains("--device-type", StringComparison.Ordinal))
-				|| arguments.Contains("--fingerprint")))
+		for (int i = 0; i < list.Count; i++)
 		{
-			// The +1 is the space.
-			var keyPath = arguments[(arguments.IndexOf(command) + command.Length + 1)..];
-			if (keyPath == "m/84h/0h/0h")
+			if (list[i] == item)
 			{
-				extPubKey = "xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M";
-			}
-			else if (keyPath == "m/84h/0h/0h/1")
-			{
-				extPubKey = "xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu";
-			}
-			else if (keyPath == "m/84h/1h/0h")
-			{
-				extPubKey = "xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c";
-			}
-			else if (keyPath == "m/84h/1h/0h/1")
-			{
-				extPubKey = "xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA";
+				return i;
 			}
 		}
+		return -1;
+	}
+
+	private static bool TryGetXpubKeyPath(IReadOnlyList<string> args, [NotNullWhen(true)] out string? extPubKey)
+	{
+		extPubKey = null;
+
+		if (!ContainsCommand(args, "getxpub"))
+		{
+			return false;
+		}
+
+		if (!(args.Contains("--device-path") && args.Contains("--device-type")) && !args.Contains("--fingerprint"))
+		{
+			return false;
+		}
+
+		int cmdIndex = IndexOf(args, "getxpub");
+		if (cmdIndex < 0 || cmdIndex + 1 >= args.Count)
+		{
+			return false;
+		}
+
+		string keyPath = args[cmdIndex + 1];
+
+		extPubKey = keyPath switch
+		{
+			"m/84h/0h/0h" => "xpub6DHjDx4gzLV37gJWMxYJAqyKRGN46MT61RHVizdU62cbVUYu9L95cXKzX62yJ2hPbN11EeprS8sSn8kj47skQBrmycCMzFEYBQSntVKFQ5M",
+			"m/84h/0h/0h/1" => "xpub6FJS1ne3STcKdQ9JLXNzZXidmCNZ9dxLiy7WVvsRkcmxjJsrDKJKEAXq4MGyEBM3vHEw2buqXezfNK5SNBrkwK7Fxjz1TW6xzRr2pUyMWFu",
+			"m/84h/1h/0h" => "xpub6CaGC5LjEw1YWw8br7AURnB6ioJY2bEVApXh8NMsPQ9mdDbzN51iwVrnmGSof3MfjjRrntnE8mbYeTW5ywgvCXdjqF8meQEwnhPDQV2TW7c",
+			"m/84h/1h/0h/1" => "xpub6E7pup6CRRS5jM1r3HVYQhHwQHpddJALjRDbsVDtsnQJozHrfE8Pua2X5JhtkWCxdcmGhPXWxV7DoJtSgZSUvUy6cvDchVQt2RGEd4mD4FA",
+			_ => null
+		};
 
 		return extPubKey is not null;
+	}
+
+	private static bool TryMatchDisplayAddress(IReadOnlyList<string> args, string path, string model, out bool isTestNet, [NotNullWhen(true)] out string? addressPath)
+	{
+		isTestNet = false;
+		addressPath = null;
+
+		if (!ContainsCommand(args, "displayaddress"))
+		{
+			return false;
+		}
+
+		if (!HasDeviceArgs(args, path, model))
+		{
+			return false;
+		}
+
+		isTestNet = args.Contains("--chain") && args.Contains("test");
+
+		int pathIndex = IndexOf(args, "--path");
+		if (pathIndex < 0 || pathIndex + 1 >= args.Count)
+		{
+			return false;
+		}
+
+		addressPath = args[pathIndex + 1];
+		return true;
 	}
 }

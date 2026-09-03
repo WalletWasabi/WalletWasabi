@@ -61,13 +61,13 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-coins", w => w.Coins.AsAllCoinsView());
 
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
+		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
 		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
 		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");
-		RegisterNativeFunction<SmartTransaction>("broadcast-tx", tx =>
-			global.TransactionBroadcaster.SendTransactionAsync(tx));
+		//RegisterNativeFunction<SmartTransaction>("broadcast-tx", tx => global.TransactionBroadcaster.SendTransactionAsync(tx));
 		RegisterNativeFunction("connected-nodes", () => global.GetNodes());
 		RegisterNativeFunction<Wallet>("__start_wallet", w =>
 		{
@@ -158,6 +158,22 @@ public class Scheme
 				throw new InvalidOperationException($"Member '{method}' not found");
 			}
 			info = members[0];
+
+			// Check whitelist - verify (Type, PropertyName) is registered
+			var isAllowed = false;
+			for (var type = typ; type != null && !isAllowed; type = type.BaseType)
+			{
+				if (WasabiLibGenerator.AllowedAccessors.Contains((type, info.Name)))
+				{
+					isAllowed = true;
+				}
+			}
+			if (!isAllowed)
+			{
+				throw new UnauthorizedAccessException(
+					$"Access to '{info.Name}' on type '{typ.Name}' is not allowed");
+			}
+
 			_accessors.Add(key, info);
 		}
 
@@ -202,7 +218,7 @@ public class Scheme
 		Directory.CreateDirectory(scriptsDir);
 
 		var appSchemeDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Scheme");
-		string[] libraryFiles = ["Stdlib.scm", "Wasabilib.scm"];
+		string[] libraryFiles = ["Stdlib.scm"];
 
 		foreach (var fileName in libraryFiles)
 		{
@@ -216,6 +232,9 @@ public class Scheme
 				}
 			}
 		}
+
+		var wasabiLibSourceCode = WasabiLibGenerator.Generate();
+		File.WriteAllText(Path.Combine(scriptsDir, "Wasabilib.scm"), wasabiLibSourceCode);
 	}
 
 	private JsonSerializerSettings CreateJsonSerializerSettings(Network network)
@@ -241,11 +260,27 @@ public class Scheme
 
 	public static object ToObject(object obj)
 	{
-		if (obj is not IEnumerable<object> e)
+		return obj switch
 		{
-			return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
-		}
+			null => null!,
+			decimal d => Math.Truncate(d) == d ? (int)d : d,
+			int or short or byte or long or float or double or uint or ulong or ushort => obj,
+			bool => obj,
+			string => obj,
+			char c => c.ToString(),
+			IEnumerable<object> e => ToObjectEnumerable(e),
+			DateTime dt => dt,
+			uint256 i256 => i256,
+			OutPoint op => op,
+			BitcoinAddress addr => addr,
+			IDestination dst => dst,
+			SmartTransaction stx => stx,
+			_ => "#<native>"
+		};
+	}
 
+	private static object ToObjectEnumerable(IEnumerable<object> e)
+	{
 		var arr = e.ToArray();
 		var dict = new Dictionary<string, object>(arr.Length);
 
@@ -282,6 +317,7 @@ public class Scheme
 			Nil _ => false,
 			Unspecified _ => "Done",
 			Closure c => c,
+			Primitive p => $"#{p.Name}",
 			_ => throw new Exception($"Cannot convert {e.GetType().Name} to native object")
 		};
 }

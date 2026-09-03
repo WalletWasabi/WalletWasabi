@@ -11,13 +11,13 @@ using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.UnitTests.Services;
-using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -161,7 +161,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient);
-		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager, roundStateProvider);
@@ -258,6 +257,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				// ignore. There is a rare case for this
 			}
 		}
+		else
+		{
+			// Task.WhenAny does not propagate cancellation or failures from the winning task.
+			// Await it so a timeout fails the test instead of passing without a blame round.
+			await blameRoundWaiterTask;
+		}
 	}
 
 	[Theory]
@@ -323,7 +328,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
-		using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var roundState = await roundStateProvider.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
@@ -367,7 +371,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var resultBad = await badCoinsTask;
 		var resultOk = await coinJoinTask;
 
-		Assert.IsType<DisruptedCoinJoinResult>(resultBad);
+		// The mock acknowledges signatures without forwarding them to the coordinator.
+		// Its local result can be disrupted or failed, but it must never succeed.
+		Assert.IsNotType<SuccessfulCoinJoinResult>(resultBad);
 		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
 
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
@@ -541,13 +547,18 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				services.AddSingleton<IRPCClient>(s => rpc);
 			})).CreateClient();
 
-		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
-		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(stutteredHttpClient);
+		var apiClient = await _apiApplicationFactory.CreateArenaClientAsync(httpClient);
 		var rounds = (await apiClient.GetStatusAsync(RoundStateRequest.Empty, CancellationToken.None)).RoundStates;
 		var round = rounds.First(x => x.CoinjoinState is ConstructionState);
+		using var stutteredHttpClient = new StuttererHttpClient(httpClient);
+		var stutteredApiClient = new ArenaClient(
+			apiClient.AmountCredentialClient,
+			apiClient.VsizeCredentialClient,
+			apiClient.CoordinatorIdentifier,
+			_apiApplicationFactory.CreateWabiSabiHttpApiClient(stutteredHttpClient));
 
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(signingKey, round.Id);
-		var response = await apiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
+		var response = await stutteredApiClient.RegisterInputAsync(round.Id, coinToRegister.Outpoint, ownershipProof, CancellationToken.None);
 
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}

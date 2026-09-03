@@ -14,7 +14,7 @@ public abstract record PaymentState
 
 public record PendingPayment(PaymentState? PreviousState) : PaymentState(PreviousState);
 public record InProgressPayment(PaymentState PreviousState, uint256 RoundId) : PaymentState(PreviousState);
-public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 RoundId, uint256 TransactionId) : PaymentState(PreviousState);
+public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 TransactionId) : PaymentState(PreviousState);
 public record FinishedPayment(PaymentState PreviousState, uint256 TransactionId) : PaymentState(PreviousState);
 
 public record Payment(IDestination Destination, Money Amount)

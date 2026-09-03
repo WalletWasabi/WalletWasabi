@@ -1,8 +1,8 @@
+using NBitcoin;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -19,6 +19,23 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 /// </summary>
 public class SynchronizerReorgTests(ITestOutputHelper output)
 {
+	[Fact]
+	public async Task P2pProvider_HeaderChainBehindFilterCheckpoint_WaitsForHeaderChainToCatchUp()
+	{
+		var checkpoint = FilterCheckpoints.GetCheckpointForBirthday(700_000u, Network.Main);
+		var blockHeaders = new ConcurrentChain(Network.Main);
+		var filterHeaders = new FilterHeaderChain();
+		filterHeaders.AppendTip(checkpoint.Header);
+		var synchronizationState = new FilterSynchronizationState(blockHeaders, filterHeaders, checkpoint.Header.Height);
+
+		var filterProvider = FilterProviders.CreateBitcoinP2pFilterProvider(filterHeaders, blockHeaders, synchronizationState);
+		var result = await filterProvider(checkpoint.Header.Height, checkpoint.Header.BlockHash, TestContext.Current.CancellationToken);
+
+		Proof($"P2P checkpoint={checkpoint.Header.BlockHash} filterHeight={checkpoint.Header.Height} headerHeight={blockHeaders.Tip.Height} got {Describe(result)} want AlreadyOnBestBlock");
+		Assert.False(result.IsOk);
+		Assert.Equal(FilterProviders.WaitForBlockHeadersToCatchUp, result.Error);
+	}
+
 	[Fact]
 	public async Task RpcProvider_OrphanedFilterTip_ReturnsBestBlockUnknown()
 	{

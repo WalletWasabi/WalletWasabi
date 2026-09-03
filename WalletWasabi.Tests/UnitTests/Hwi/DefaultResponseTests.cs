@@ -113,12 +113,12 @@ public class DefaultResponseTests
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 		if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
-			var res = await pb.SendCommandAsync("version", openConsole: true, cts.Token);
+			var res = await pb.SendCommandAsync(["version"], openConsole: true, cts.Token);
 			Assert.Contains("success", res.response);
 		}
 		else
 		{
-			await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync("enumerate", openConsole: true, cts.Token));
+			await Assert.ThrowsAsync<PlatformNotSupportedException>(async () => await pb.SendCommandAsync(["enumerate"], openConsole: true, cts.Token));
 		}
 	}
 
@@ -197,12 +197,12 @@ public class DefaultResponseTests
 		HwiProcessBridge pb = new();
 
 		// Start HWI with "version" argument and test that we get non-empty response.
-		(string response, int exitCode) result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token);
+		(string response, int exitCode) result = await pb.SendCommandAsync(["--version"], openConsole: false, cts.Token);
 		AssertVersion(result);
 
 		// Start HWI with "version" argument and test that we get non-empty response + verify that "standardInputWriter" is actually called.
 		bool stdInputActionCalled = false;
-		result = await pb.SendCommandAsync("--version", openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
+		result = await pb.SendCommandAsync(["--version"], openConsole: false, cts.Token, (sw) => stdInputActionCalled = true);
 		AssertVersion(result);
 		Assert.True(stdInputActionCalled);
 
@@ -226,7 +226,7 @@ public class DefaultResponseTests
 		using var cts = new CancellationTokenSource(ReasonableRequestTimeout);
 
 		HwiProcessBridge processBridge = new();
-		(string response, int exitCode) result = await processBridge.SendCommandAsync("--help", openConsole: false, cts.Token);
+		(string response, int exitCode) result = await processBridge.SendCommandAsync(["--help"], openConsole: false, cts.Token);
 
 		Assert.Equal(0, result.exitCode);
 		Assert.Equal(@"{""error"": ""Help text requested"", ""code"": -17}" + Environment.NewLine, result.response);
