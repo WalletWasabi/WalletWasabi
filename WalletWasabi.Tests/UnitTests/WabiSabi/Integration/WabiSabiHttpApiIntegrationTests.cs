@@ -229,6 +229,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
+		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_=> apiClient, keyManager, roundStateProvider);
@@ -257,6 +258,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			{
 				// ignore. There is a rare case for this
 			}
+		}
+		else
+		{
+			await blameRoundWaiterTask;
 		}
 	}
 
