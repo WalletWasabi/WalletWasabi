@@ -15,7 +15,7 @@ public class FilterProvidersTests(ITestOutputHelper output)
 	private static readonly byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
 
 	[Fact]
-	public async Task BitcoinRpcProviderFetchesBoundedPageAndKeepsBestHeightAsync()
+	public async Task BitcoinRpcProvider_FetchesBoundedPageAndKeepsBestHeightAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));
 
@@ -57,7 +57,7 @@ public class FilterProvidersTests(ITestOutputHelper output)
 	}
 
 	[Fact]
-	public async Task BitcoinRpcProviderHandlesPartialBlockHashFailures()
+	public async Task BitcoinRpcProvider_HandlesPartialBlockHashFailures()
 	{
 		var genesisHash = Network.Main.GetGenesis().GetHash();
 		var blockHashes = Enumerable.Range(1, 100)
@@ -261,6 +261,80 @@ public class FilterProvidersTests(ITestOutputHelper output)
 
 			Assert.True(result.IsOk);
 			Assert.IsType<FiltersResponse.BestBlockUnknown>(result.Value);
+		}
+	}
+
+	/// <summary>
+	/// Blockchain with the best height 100. The RPC client reports the best new height 105. Block hash for height 103 is missing from the RPC client.
+	/// The provider should detect the discontinuity and return <see cref="FiltersResponse.BestBlockUnknown"/>.
+	/// </summary>
+	[Fact(Timeout = 60_000)]
+	public async Task BitcoinRpcProvider_RpcReturnsBlockHashesWithGapAsync()
+	{
+		var network = Network.Main;
+		var blockchain = InitializeBlockchain(network);
+		var rpcClient = CreateRpcMock(network, blockchain);
+
+		var blockAtHeight100 = blockchain.GetBlock(100);
+		Assert.NotNull(blockAtHeight100);
+
+		var provider = FilterProviders.CreateBitcoinRpcFilterProvider(rpcClient, blockchain);
+
+		// Sync 0-100 on the original chain first.
+		{
+			var result = await provider(fromHeight: 0, fromHash: network.GetGenesis().GetHash(), TestContext.Current.CancellationToken);
+
+			Assert.True(result.IsOk);
+			var newFilters = Assert.IsType<FiltersResponse.NewFiltersAvailable>(result.Value);
+
+			// Best height correctly reflects the RPC's reported tip.
+			Assert.Equal(100u, newFilters.BestHeight.Height);
+		}
+
+		var gapDetected = false;
+
+		// Suppose that Bitcoin RPC now knows about block heights 101-105 of the blockchain (but the local chain only has blocks up to 100!).
+		{
+			rpcClient.OnGetBlockCountAsync = () => Task.FromResult(105);
+
+			var oldHandler = rpcClient.OnGetBlockHashAsync;
+			Assert.NotNull(oldHandler);
+
+			// Simulate an RPC gap where the block at height 103 is missing (e.g. due to a reorg or stale reference). The RPC will throw an exception for that height.
+			rpcClient.OnGetBlockHashAsync = async (height) =>
+			{
+				if (height <= 100)
+				{
+					// Serve block hashes from for heights 0-100 normally.
+					return await oldHandler(height).ConfigureAwait(false);
+				}
+
+				// Gap.
+				if (height == 103)
+				{
+					gapDetected = true;
+					throw new RPCException(RPCErrorCode.RPC_INVALID_PARAMETER, "Block with height 103 cannot be found.", result: null);
+				}
+
+				// Made up hash.
+				return new uint256((ulong)height);
+			};
+		}
+
+		// Attempt to sync 101-105 from the RPC. The provider should detect the discontinuity.
+		{
+			var result = await provider(fromHeight: 100, fromHash: blockAtHeight100.HashBlock, TestContext.Current.CancellationToken);
+
+			Assert.True(result.IsOk);
+			Assert.True(gapDetected);
+
+			var newFilters = Assert.IsType<FiltersResponse.NewFiltersAvailable>(result.Value);
+
+			// The RPC client reported the best height was 105. It does not take the gap (height 103) into account. It will get corrected in a next sync attempt.
+			Assert.Equal(105u, newFilters.BestHeight.Height);
+
+			// The RPC client reported a gap at height 103. So the remaining block hashes were ignored.
+			Assert.Equal([101u, 102u], newFilters.Filters.Select(f => f.Header.Height.Height));
 		}
 	}
 

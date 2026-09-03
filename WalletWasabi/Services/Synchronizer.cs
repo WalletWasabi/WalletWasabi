@@ -1,17 +1,10 @@
-using System.Collections.Generic;
-using NBitcoin;
 using NBitcoin.RPC;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services;
@@ -42,7 +35,8 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
-	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+	/// <returns>Result with a best blockchain height along with block hashes to retrieve, or a failure indicating a reorg.</returns>
+	private static async Task<Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
 		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		if (blockHeaderChain.Tip?.Height > fromHeight)
@@ -53,37 +47,64 @@ public static class FilterProviders
 				.Take(MaxFiltersPerBitcoinRpcRequest)
 				.ToArray();
 
-			return ((uint)blockHeaderChain.Tip.Height, chainBlockHashes);
+			return (BestHeight: (uint)blockHeaderChain.Tip.Height, BlockHashes: chainBlockHashes);
 		}
 
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - fromHeight);
+		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - (int)fromHeight);
 
 		// = ~ No new block, common case.
 		// < ~ Current height can decrease too in a very rare reorg case.
 		if (nbOfFiltersToFetch <= 0)
 		{
-			return ((uint)currentHeight, []);
+			return nbOfFiltersToFetch < 0
+				? Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true)
+				: Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Ok((BestHeight: (uint)currentHeight, BlockHashes: []));
 		}
 
+		// Get block hashes from RPC.
+		var heights = Enumerable.Range((int)fromHeight, nbOfFiltersToFetch + 1).ToArray();
+		var blockHashes = await GetBlockHashesByHeightsFromRpcAsync(bitcoinRpcClient, heights, cancellationToken).ConfigureAwait(false);
+
+		// No block hashes returned by the RPC after RPC reported new blocks. It indicates a reorg.
+		if (blockHashes.Length == 0)
+		{
+			return Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true);
+		}
+
+		// The first block hash returned by the RPC does not match the expected `fromHash`. It indicates a reorg.
+		if (blockHashes.Length > 0 && blockHashes[0] != fromHash)
+		{
+			return Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true);
+		}
+
+		return (BestHeight: (uint)currentHeight, BlockHashes: blockHashes[1..]);
+	}
+
+	/// <summary>
+	/// Returns the block hashes for the given heights from the Bitcoin RPC. If any of the requests fail, it will return only the successfully completed block hashes.
+	/// </summary>
+	private static async Task<uint256[]> GetBlockHashesByHeightsFromRpcAsync(IRPCClient bitcoinRpcClient, int[] heights, CancellationToken cancellationToken)
+	{
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = Enumerable.Range((int)fromHeight, (int)nbOfFiltersToFetch + 1)
-			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
-			.ToArray();
+		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		if (blockHashTasks[0].IsCompletedSuccessfully && blockHashTasks[0].Result != fromHash)
-		{
-			// Enforce reorg.
-			return (0, []);
-		}
-
-		var blockHashes = blockHashTasks[1..]
-			.Where(t => t.IsCompletedSuccessfully)
+		var blockHashes = blockHashTasks
+			.TakeWhile(t => t.IsCompletedSuccessfully)
 			.Select(t => t.Result)
 			.ToArray();
 
-		return ((uint)currentHeight, blockHashes);
+		// Avoid unobserved exceptions.
+		try
+		{
+			await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
+		}
+		catch
+		{
+		}
+
+		return blockHashes;
 	}
 
 	/// <summary>
@@ -112,12 +133,15 @@ public static class FilterProviders
 				return BestBlockUnknown;
 			}
 
-			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
-			if (bestHeight < fromHeight)
+			var result = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			if (!result.IsOk)
 			{
 				return BestBlockUnknown;
 			}
-			else if (blockHashes.Length == 0)
+
+			var blockHashes = result.Value.BlockHashes;
+
+			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
 			}
@@ -142,7 +166,7 @@ public static class FilterProviders
 				height++;
 			}
 
-			return NewFiltersAvailable(bestHeight, filters);
+			return NewFiltersAvailable(result.Value.BestHeight, filters);
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
