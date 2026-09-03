@@ -1,7 +1,7 @@
-using System.Net;
+using NBitcoin;
+using NBitcoin.RPC;
 using System.Threading;
 using System.Threading.Tasks;
-using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Logging;
 
@@ -12,9 +12,9 @@ public class StartupTask
 {
 	private IRPCClient RpcClient { get; }
 
-	public StartupTask(IRPCClient rpc)
+	public StartupTask(IRPCClient rpcClient)
 	{
-		RpcClient = rpc;
+		RpcClient = rpcClient;
 	}
 
 	public async Task ExecuteAsync(CancellationToken cancellationToken)
@@ -30,54 +30,56 @@ public class StartupTask
 
 	private async Task AssertRpcNodeFullyInitializedAsync(CancellationToken cancellationToken)
 	{
+		BlockchainInfo blockchainInfo;
+
 		try
 		{
-			var blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
+			blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
+		}
+		catch (Exception)
+		{
+			Logger.LogError("Could not connect to Bitcoin Node RPC.");
+			throw;
+		}
 
-			var blocks = blockchainInfo.Blocks;
-			if (blocks == 0 && RpcClient.Network != Network.RegTest)
+		var blocks = blockchainInfo.Blocks;
+		if (blocks == 0 && RpcClient.Network != Network.RegTest)
+		{
+			throw new NotSupportedException($"{nameof(blocks)} == 0");
+		}
+
+		var headers = blockchainInfo.Headers;
+		if (headers == 0 && RpcClient.Network != Network.RegTest)
+		{
+			throw new NotSupportedException($"{nameof(headers)} == 0");
+		}
+
+		if (blocks != headers)
+		{
+			throw new NotSupportedException("Bitcoin Node is not fully synchronized.");
+		}
+
+		Logger.LogInfo("Bitcoin Node is fully synchronized.");
+
+		if (RpcClient.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
+		{
+			if (blocks < 101)
 			{
-				throw new NotSupportedException($"{nameof(blocks)} == 0");
-			}
-
-			var headers = blockchainInfo.Headers;
-			if (headers == 0 && RpcClient.Network != Network.RegTest)
-			{
-				throw new NotSupportedException($"{nameof(headers)} == 0");
-			}
-
-			if (blocks != headers)
-			{
-				throw new NotSupportedException("Bitcoin Node is not fully synchronized.");
-			}
-
-			Logger.LogInfo("Bitcoin Node is fully synchronized.");
-
-			if (RpcClient.Network == Network.RegTest) // Make sure there's at least 101 block, if not generate it
-			{
-				if (blocks < 101)
+				using Key key = new();
+				BitcoinAddress address = key.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest);
+				var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, address, cancellationToken)
+					?? throw new NotSupportedException($"Bitcoin Node cannot generate blocks on the {Network.RegTest}.");
+				blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
+				blocks = blockchainInfo.Blocks;
+				if (blocks == 0)
 				{
-					using Key key = new();
-					BitcoinAddress address = key.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest);
-					var generateBlocksResponse = await RpcClient.GenerateToAddressAsync(101, address, cancellationToken)
-						?? throw new NotSupportedException($"Bitcoin Node cannot generate blocks on the {Network.RegTest}.");
-					blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
-					blocks = blockchainInfo.Blocks;
-					if (blocks == 0)
-					{
-						throw new NotSupportedException($"{nameof(blocks)} == 0");
-					}
-
-					Logger.LogInfo($"Generated 101 block on {Network.RegTest}.");
+					throw new NotSupportedException($"{nameof(blocks)} == 0");
 				}
 
-				Logger.LogDebug($"Number of blocks is {blocks}.");
+				Logger.LogInfo($"Generated 101 block on {Network.RegTest}.");
 			}
-		}
-		catch (WebException)
-		{
-			Logger.LogError("Bitcoin Node is not running, or incorrect RPC credentials, or network is given in the config file.");
-			throw;
+
+			Logger.LogDebug($"Number of blocks is {blocks}.");
 		}
 	}
 
