@@ -83,7 +83,6 @@ public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 	public HumanMonitorResponse GetHumanMonitor()
 	{
 		var response = _arena.Rounds
-			.Where(r => r.Phase is not Phase.Ended)
 			.OrderByDescending(x => x.InputCount)
 			.Select(r =>
 				new HumanMonitorRoundResponse(
