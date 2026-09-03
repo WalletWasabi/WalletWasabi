@@ -171,7 +171,7 @@ public class WabiSabiConfig : ConfigBase
 		return scriptTypes.ToImmutableSortedSet();
 	}
 
-	public static WabiSabiConfig LoadFile(string filePath)
+	public static WabiSabiConfig? TryLoadFile(string filePath)
 	{
 		try
 		{
@@ -182,11 +182,16 @@ public class WabiSabiConfig : ConfigBase
 		}
 		catch (Exception ex)
 		{
-			var config = new WabiSabiConfig(filePath);
-			config.ToFile();
-			Logger.LogInfo($"{nameof(WabiSabiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogInfo($"Failed to load '{filePath}' config file is corrupted.");
 			Logger.LogWarning(ex);
-			return config;
+
+			var defaultFilePath = $"{filePath}.default";
+			var defaultConfig = new WabiSabiConfig(defaultFilePath);
+			defaultConfig.ToFile();
+
+			Logger.LogInfo($"Default config was stored to '{defaultFilePath}'. Use the config to start fresh.");
+
+			return null;
 		}
 	}
 
