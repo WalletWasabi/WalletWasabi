@@ -261,6 +261,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		}
 		else
 		{
+			// Task.WhenAny does not propagate cancellation or failures from the winning task.
+			// Await it so a timeout fails the test instead of passing without a blame round.
 			await blameRoundWaiterTask;
 		}
 	}
