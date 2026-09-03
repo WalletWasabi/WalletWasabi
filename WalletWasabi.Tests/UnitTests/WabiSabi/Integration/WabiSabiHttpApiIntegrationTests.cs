@@ -17,7 +17,6 @@ using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.UnitTests.Services;
-using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -161,7 +160,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient);
-		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager, roundStateProvider);
@@ -229,7 +227,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		cts.Token.Register(() => transactionCompleted.TrySetCanceled(), useSynchronizationContext: false);
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
-		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.Zero, TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_=> apiClient, keyManager, roundStateProvider);
@@ -330,7 +327,6 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
-		using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var roundState = await roundStateProvider.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
