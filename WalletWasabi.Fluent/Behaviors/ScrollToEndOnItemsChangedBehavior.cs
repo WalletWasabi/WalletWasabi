@@ -5,8 +5,6 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Threading;
 using Avalonia.Xaml.Interactions.Custom;
-using DynamicData.Binding;
-using ReactiveUI;
 
 namespace WalletWasabi.Fluent.Behaviors;
 
