@@ -256,6 +256,34 @@ public class PaymentBatchTests
 		// would have been included in the second coinjoin
 	}
 
+	/// <summary>
+	/// The finalization of a coinjoin only requeues the payments that were never signed. A signed
+	/// payment could be part of a broadcast transaction, so requeueing it means paying twice.
+	/// </summary>
+	[Fact]
+	public void OnlyUnsignedPaymentsAreMovedBackToPending()
+	{
+		var paymentBatch = new PaymentBatch();
+		var signedDestination = GetNewSegwitAddress();
+		var unsignedDestination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+
+		// A payment that was signed in a round that ended with an unknown state.
+		paymentBatch.AddPayment(signedDestination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		paymentBatch.MovePaymentsToSigned(CreateTransactionWithOutput(signedDestination.ScriptPubKey, amount).GetHash());
+
+		// A payment registered in a second round that never got to the signing phase.
+		paymentBatch.AddPayment(unsignedDestination, amount);
+		var pendingPayment = paymentBatch.GetPayments().Single(p => p.State is PendingPayment);
+		paymentBatch.MovePaymentsToInProgress([pendingPayment], new uint256(2));
+
+		paymentBatch.MovePaymentsToPending();
+
+		Assert.Equal(unsignedDestination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is PendingPayment).Destination.ScriptPubKey);
+		Assert.Equal(signedDestination.ScriptPubKey, paymentBatch.GetPayments().Single(p => p.State is SignedUnknownPayment).Destination.ScriptPubKey);
+	}
+
 	private static BitcoinAddress GetNewSegwitAddress()
 	{
 		using Key key = new();
