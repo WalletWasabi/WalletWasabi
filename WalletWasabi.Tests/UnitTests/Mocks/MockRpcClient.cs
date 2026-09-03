@@ -169,11 +169,6 @@ public class MockRpcClient : IRPCClient
 		throw new NotImplementedException();
 	}
 
-	public Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
-	{
-		throw new NotImplementedException();
-	}
-
 	public Task<TimeSpan> UptimeAsync(CancellationToken cancellationToken = default)
 	{
 		return OnUptimeAsync?.Invoke() ?? NotImplementedTask<TimeSpan>(nameof(UptimeAsync));

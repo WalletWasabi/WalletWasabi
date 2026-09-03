@@ -34,8 +34,6 @@ public interface IRPCClient
 
 	Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancellationToken = default);
 
-	Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default);
-
 	Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default);
 
 	Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default);
