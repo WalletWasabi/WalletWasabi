@@ -2,15 +2,15 @@ namespace WalletWasabi.Blockchain.Blocks;
 
 public record SmartHeader
 {
-	public SmartHeader(uint256 blockHash, uint256 header, uint height, DateTimeOffset blockTime)
-		: this(blockHash, header, height, blockTime.ToUnixTimeSeconds())
+	public SmartHeader(uint256 blockHash, uint256 blockFilterHeader, uint height, DateTimeOffset blockTime)
+		: this(blockHash, blockFilterHeader, height, blockTime.ToUnixTimeSeconds())
 	{
 	}
 
-	public SmartHeader(uint256 blockHash, uint256 header, uint height, long epochBlockTime)
+	public SmartHeader(uint256 blockHash, uint256 blockFilterHeader, uint height, long epochBlockTime)
 	{
 		BlockHash = blockHash;
-		BlockFilterHeader = header;
+		BlockFilterHeader = blockFilterHeader;
 		Height = new ChainHeight(height);
 		EpochBlockTime = epochBlockTime;
 	}
