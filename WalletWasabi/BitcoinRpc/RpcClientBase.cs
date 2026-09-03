@@ -112,11 +112,6 @@ public class RpcClientBase : IRPCClient
 		return await RpcClient.GetTxOutAsync(txid, index, includeMempool, cancellationToken).ConfigureAwait(false);
 	}
 
-	public virtual async Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
-	{
-		return await RpcClient.TestMempoolAcceptAsync(transaction, cancellationToken).ConfigureAwait(false);
-	}
-
 	public virtual async Task<ScanTxoutSetResponse> StartScanTxoutSetAsync(ScanTxoutSetParameters parameters, CancellationToken cancellationToken = default)
 	{
 		return await RpcClient.StartScanTxoutSetAsync(parameters, cancellationToken).ConfigureAwait(false);
