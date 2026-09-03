@@ -9,11 +9,13 @@ public static class DenominationBuilder
 		Money maxAllowedOutputAmount,
 		FeeRate feeRate,
 		IEnumerable<ScriptType> allowedOutputTypes,
-		RandomnessProvider random)
-	{
-		Output CreateDenom(decimal sats) =>
-			Output.FromDenomination(Money.Satoshis((ulong)sats), allowedOutputTypes.RandomElement(random), feeRate);
+		RandomnessProvider random) =>
+		CreateDenominationAmounts(minAllowedOutputAmount, maxAllowedOutputAmount)
+			.Select(denomination => Output.FromDenomination(denomination, allowedOutputTypes.RandomElement(random), feeRate))
+			.OrderByDescending(x => x.EffectiveAmount);
 
+	public static IReadOnlyList<Money> CreateDenominationAmounts(Money minAllowedOutputAmount, Money maxAllowedOutputAmount)
+	{
 		IEnumerable<decimal> Times(int times, IEnumerable<decimal> values) =>
 			values
 				.Select(value => times * value)
@@ -31,7 +33,7 @@ public static class DenominationBuilder
 			.Concat(Times(2, PowersOf(10)))
 			.Concat(Times(5, PowersOf(10)))
 			.ToHashSet()
-			.Select(CreateDenom)
-			.OrderByDescending(x => x.EffectiveAmount);
+			.Select(denom => Money.Satoshis((ulong)denom))
+			.ToArray();
 	}
 }
