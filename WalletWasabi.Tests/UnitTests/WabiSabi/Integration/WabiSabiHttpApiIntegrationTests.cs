@@ -1,6 +1,6 @@
-using System.Collections.Immutable;
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -9,20 +9,21 @@ using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using Xunit;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Coordinator.Statistics;
-using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.WabiSabi.Models;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using Xunit;
+using static WalletWasabi.WabiSabi.Client.CoinJoin.Client.CoinJoinClient;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
@@ -266,10 +267,10 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	}
 
 	[Theory]
-	[InlineData(new long[] { 20_000_000, 40_000_000, 60_000_000, 80_000_000 })]
-	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts)
+	[InlineData(new long[] { 10_000_000, 20_000_000 }, new long[] { 30_000_000, 40_000_000 }, new long[] { 50_000_000, 60_000_000 })]
+	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts1, long[] satAmounts2, long[] satAmounts3)
 	{
-		int inputCount = satAmounts.Length;
+		int inputCount = satAmounts1.Length;
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
@@ -280,13 +281,16 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		KeyManager keyManager3 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 
-		var coins = GenerateSmartCoins(keyManager1, satAmounts, inputCount);
-		var badCoins = GenerateSmartCoins(keyManager2, satAmounts, inputCount);
+		// There are three participants. The second participant will fail to register outputs and will enforce a blame round.
+		var participant1Coins = GenerateSmartCoins(keyManager1, satAmounts1, inputCount);
+		var participant2CoinsBad = GenerateSmartCoins(keyManager2, satAmounts2, inputCount);
+		var participant3Coins = GenerateSmartCoins(keyManager3, satAmounts3, inputCount);
 
 		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
-				Enumerable.Concat(coins, badCoins).ToArray(),
+				Enumerable.Concat(participant1Coins, participant2CoinsBad).Concat(participant3Coins).ToArray(),
 				rpc =>
 				{
 					rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
@@ -313,7 +317,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				{
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
-					MaxInputCountByRound = 2 * inputCount,
+					MaxInputCountByRound = 3 * inputCount,
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
 					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
@@ -325,9 +329,8 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		await Task.Delay(100);
 
 		// Create the coinjoin client
-		var apiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
-
-		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
+		var apiClient1 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient1, cts.Token);
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var roundState = await roundStateProvider.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
@@ -348,18 +351,21 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 			return httpClient.SendAsync(req, CancellationToken.None);
 		};
-		var nonSigningApiClient = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
 
-		var coinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient, keyManager1, roundStateProvider);
-		var badCoinJoinClient = WabiSabiFactory.CreateTestCoinJoinClient(_ => nonSigningApiClient, keyManager2, roundStateProvider);
+		var apiClient2Bad = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
+		var apiClient3 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
 
-		var coinJoinTask = coinJoinClient.StartCoinJoinAsync(() => coins, cts.Token);
-		var badCoinsTask = badCoinJoinClient.StartRoundAsync(badCoins, roundState, cts.Token);
+		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
+		var coinJoinClient2Bad = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2Bad, keyManager2, roundStateProvider);
+		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
 
-		// BadCoinsTask will throw.
+		var participant1CoinjoinTask = coinJoinClient1.StartCoinJoinAsync(() => participant1Coins, cts.Token);
+		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, UnrestrictedRound.Instance, roundState, cts.Token);
+		var participant3CoinjoinTask = coinJoinClient3.StartCoinJoinAsync(() => participant3Coins, cts.Token);
+
 		try
 		{
-			await Task.WhenAll(new Task[] {badCoinsTask, coinJoinTask});
+			await Task.WhenAll(new Task[] { participant2CoinjoinTaskBad, participant1CoinjoinTask, participant3CoinjoinTask });
 		}
 		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found."))
 		{
@@ -368,20 +374,32 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			return;
 		}
 
-		var resultBad = await badCoinsTask;
-		var resultOk = await coinJoinTask;
+		var participant1Result = await participant1CoinjoinTask;
+		var participant2ResultBad = await participant2CoinjoinTaskBad;
+		var participant3Result = await participant3CoinjoinTask;
+
+		Assert.IsType<SuccessfulCoinJoinResult>(participant1Result);
 
 		// The mock acknowledges signatures without forwarding them to the coordinator.
 		// Its local result can be disrupted or failed, but it must never succeed.
-		Assert.IsNotType<SuccessfulCoinJoinResult>(resultBad);
-		Assert.IsType<SuccessfulCoinJoinResult>(resultOk);
+		Assert.IsNotType<SuccessfulCoinJoinResult>(participant2ResultBad);
+
+		Assert.IsType<SuccessfulCoinJoinResult>(participant3Result);
 
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
-		Assert.Equal(
-			coins.Select(x => x.Coin.Outpoint.ToString()).OrderBy(x => x),
-			broadcastedTx.Inputs.Select(x => x.PrevOut.ToString()).OrderBy(x => x));
+		// Only coins of the first and the third participant are expected here. The second one failed to register outputs and was blamed.
+		var expectedInputs = participant1Coins.Concat(participant3Coins)
+			.Select(x => x.Coin.Outpoint.ToString())
+			.Order()
+			.ToList();
+
+		var actualInputs = broadcastedTx.Inputs
+			.Select(x => x.PrevOut.ToString())
+			.Order();
+
+		Assert.Equal(expectedInputs, actualInputs);
 	}
 
 	[Theory]

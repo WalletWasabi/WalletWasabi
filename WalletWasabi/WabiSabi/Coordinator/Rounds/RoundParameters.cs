@@ -1,6 +1,4 @@
 using NBitcoin.Policy;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
@@ -49,7 +47,11 @@ public record RoundParameters
 	}
 
 	public Network Network { get; init; }
+
+	/// <summary>Minimum required fee rate for the finalized coinjoin transaction of this round.</summary>
 	public FeeRate MiningFeeRate { get; init; }
+
+	/// <summary>Maximum suggested amount for a single input in this coinjoin round.</summary>
 	public Money MaxSuggestedAmount { get; init; }
 	public int MinInputCountByRound { get; init; }
 	public int MaxInputCountByRound { get; init; }
