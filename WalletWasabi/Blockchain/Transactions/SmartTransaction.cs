@@ -1,15 +1,7 @@
-using NBitcoin;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -17,8 +9,6 @@ namespace WalletWasabi.Blockchain.Transactions;
 [DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
-	#region Constructors
-
 	private Lazy<long[]> _outputValues;
 	private Lazy<bool> _isWasabi2Cj;
 
@@ -56,12 +46,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		_isWasabi2Cj = new Lazy<bool>(
 			() => Transaction.Outputs.Count >= 2 // Sanity check.
 			&& Transaction.Inputs.Count >= 21 // 21 is the absolute minimum input count
-			&& OutputValues.Count(x => Anonymity.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
+			&& OutputValues.Count(x => BlockchainAnalyzer.StdDenoms.Contains(x)) > OutputValues.Length * 0.8 // Most of the outputs contains the denomination.
 			&& OutputValues.Zip(OutputValues.Skip(1)).All(p => p.First >= p.Second), // Outputs are ordered descending.
 			isThreadSafe: true);
 	}
-
-	#endregion Constructors
 
 	#region Members
 
@@ -125,9 +113,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualInputsCache ??= WalletInputs
-					.GroupBy(i => i.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(i => i.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualInputsCache;
 		}
 	}
@@ -138,9 +126,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		get
 		{
 			WalletVirtualOutputsCache ??= WalletOutputs
-					.GroupBy(o => o.HdPubKey.PubKey)
-					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
-					.ToHashSet();
+				.GroupBy(o => o.HdPubKey.PubKey)
+				.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
+				.ToHashSet();
 			return WalletVirtualOutputsCache;
 		}
 	}
@@ -463,81 +451,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		return largestCpfp is not null;
 	}
 
-	#region LineSerialization
-
-	public static SmartTransaction FromLine(string line, Network expectedNetwork)
-	{
-		var parts = line.Split(':', StringSplitOptions.None).Select(x => x.Trim()).ToArray();
-
-		var transactionString = parts[1];
-		Transaction transaction = Transaction.Parse(transactionString, expectedNetwork);
-
-		try
-		{
-			// First is redundant txHash serialization.
-			var heightString = parts[2];
-			var blockHashString = parts[3];
-			var blockIndexString = parts[4];
-			var labelString = parts[5];
-			var firstSeenString = parts[6];
-			var isReplacementString = parts[7];
-
-			var isSpeedupString = "False";
-			var isCancellationString = "False";
-			if (parts.Length > 8)
-			{
-				isSpeedupString = parts[8];
-				if (parts.Length > 9)
-				{
-					isCancellationString = parts[9];
-				}
-			}
-
-			if (!Height.TryParse(heightString, out Height? height))
-			{
-				// FIXME: Unknown is for txs that have not been broadcasted. What we have here is an input error.
-				height = Height.Unknown;
-			}
-			if (!uint256.TryParse(blockHashString, out var blockHash))
-			{
-				blockHash = null;
-			}
-			if (!int.TryParse(blockIndexString, out int blockIndex))
-			{
-				blockIndex = 0;
-			}
-			var label = new LabelsArray(labelString);
-			DateTimeOffset firstSeen = default;
-			if (long.TryParse(firstSeenString, out long unixSeconds))
-			{
-				firstSeen = DateTimeOffset.FromUnixTimeSeconds(unixSeconds);
-			}
-			if (!bool.TryParse(isReplacementString, out bool isReplacement))
-			{
-				isReplacement = false;
-			}
-			if (!bool.TryParse(isSpeedupString, out bool isSpeedup))
-			{
-				isSpeedup = false;
-			}
-			if (!bool.TryParse(isCancellationString, out bool isCancellation))
-			{
-				isCancellation = false;
-			}
-
-			return new SmartTransaction(transaction, height, blockHash, blockIndex, label, isReplacement, isSpeedup, isCancellation, firstSeen);
-		}
-		catch (Exception ex)
-		{
-			Logger.LogDebug(ex);
-			return new SmartTransaction(transaction, Height.Unknown);
-		}
-	}
-
-	#endregion LineSerialization
-
-	#region EqualityAndComparison
-
 	public override bool Equals(object? obj) => Equals(obj as SmartTransaction);
 
 	public bool Equals(SmartTransaction? other) => this == other;
@@ -547,6 +460,4 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public static bool operator ==(SmartTransaction? x, SmartTransaction? y) => y?.GetHash() == x?.GetHash();
 
 	public static bool operator !=(SmartTransaction? x, SmartTransaction? y) => !(x == y);
-
-	#endregion EqualityAndComparison
 }

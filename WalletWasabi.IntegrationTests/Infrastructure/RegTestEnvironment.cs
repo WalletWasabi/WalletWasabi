@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Runtime.CompilerServices;
 using System.Threading;
 using System.Threading.Tasks;
@@ -153,62 +152,55 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	}
 
 	/// <summary>
-	/// Synchronizes filters from Bitcoin Core RPC.
+	/// Synchronizes filters from Bitcoin Core RPC using the production Synchronizer.
 	/// This fetches all compact block filters from the current tip and stores them.
 	/// </summary>
-	public async Task SyncFiltersAsync(CancellationToken cancellationToken = default)
+	public async Task SyncFiltersRpcAsync(CancellationToken cancellationToken = default)
 	{
-		var blockHeaderChain = new ConcurrentChain(Network);
+		// Build block header chain from RPC - required for reorg detection
+		var blockHeaderChain = await BuildBlockHeaderChainAsync(cancellationToken).ConfigureAwait(false);
+
 		var filterProvider = FilterProviders.CreateBitcoinRpcFilterProvider(RpcClient, blockHeaderChain);
 
-		var tip = FilterStore.GetTip();
-		uint fromHeight = (uint)(tip?.Header.Height ?? ChainHeight.Genesis);
-		uint256 fromHash = tip?.Header.BlockHash ?? await RpcClient.GetBlockHashAsync(0, cancellationToken).ConfigureAwait(false);
+		// Use the production Synchronizer's filter generator
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
+		// Run the synchronizer until we're caught up
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var result = await filterProvider(fromHeight, fromHash, cancellationToken).ConfigureAwait(false);
+			var tip = FilterStore.GetTip();
+			var currentHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
 
-			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
+			// Check if we're synced to the current chain tip
+			if (tip is not null && (uint)tip.Header.Height >= currentHeight)
 			{
-				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
-
-				var lastFilter = newFilters.Filters.LastOrDefault();
-				if (lastFilter is not null)
+				// Verify we're on the right chain (not orphaned)
+				var currentHashAtTip = await RpcClient.GetBlockHashAsync((int)(uint)tip.Header.Height, cancellationToken).ConfigureAwait(false);
+				if (currentHashAtTip == tip.Header.BlockHash)
 				{
-					fromHeight = (uint)lastFilter.Header.Height;
-					fromHash = lastFilter.Header.BlockHash;
+					break; // Fully synced and on the right chain
 				}
 			}
-			else if (result is {IsOk: true, Value: FiltersResponse.AlreadyOnBestBlock})
-			{
-				break;
-			}
-			else
-			{
-				// Error or unknown state - wait a bit and retry
-				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-			}
+
+			// Run one iteration of the production synchronizer
+			await filterGenerator(Unit.Instance, cancellationToken).ConfigureAwait(false);
 		}
 	}
 
 	/// <summary>
-	/// Synchronizes filters from Bitcoin Core P2P network.
+	/// Synchronizes filters from Bitcoin Core P2P network using the production Synchronizer.
 	/// This uses the compact filter protocol (BIP 157/158) to fetch filters from a connected peer.
 	/// </summary>
-	public async Task SyncFiltersP2pAsync(CancellationToken cancellationToken = default)
+	public async Task SyncFiltersP2PAsync(CancellationToken cancellationToken = default)
 	{
 		var blockHeaderChain = new ConcurrentChain(Network);
 
 		// Create the filter synchronization state
 		var tip = FilterStore.GetTip();
 		var tipHeight = tip?.Header.Height ?? ChainHeight.Genesis;
-		var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(
-			blockHeaderChain,
-			FilterHeaderChain,
-			tipHeight);
+		var synchronizationState = new FilterSynchronizationState(blockHeaderChain, FilterHeaderChain, tipHeight);
 
 		// Create a P2P connection to Bitcoin Core - behaviors must be added before handshake
 		var node = await BitcoinCoreNode.CreateNewP2pNodeAsync().ConfigureAwait(false);
@@ -251,42 +243,46 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 			blockHeaderChain,
 			synchronizationState);
 
-		uint fromHeight = (uint)tipHeight;
-		uint256 fromHash = tip?.Header.BlockHash ?? await RpcClient.GetBlockHashAsync(0, cancellationToken).ConfigureAwait(false);
+		// Use the production Synchronizer's filter generator
+		var filterGenerator = Synchronizer.CreateFilterGenerator(filterProvider, FilterStore, FilterHeaderChain, EventBus);
 
+		// Run the synchronizer until we're caught up
 		while (true)
 		{
 			cancellationToken.ThrowIfCancellationRequested();
 
-			var result = await filterProvider(fromHeight, fromHash, cancellationToken).ConfigureAwait(false);
+			var currentTip = FilterStore.GetTip();
 
-			if (result is {IsOk: true, Value: FiltersResponse.NewFiltersAvailable newFilters})
-			{
-				await FilterStore.AddNewFiltersAsync(newFilters.Filters).ConfigureAwait(false);
-
-				var lastFilter = newFilters.Filters.LastOrDefault();
-				if (lastFilter is not null)
-				{
-					fromHeight = (uint)lastFilter.Header.Height;
-					fromHash = lastFilter.Header.BlockHash;
-
-					// Check if we've caught up
-					if (fromHeight >= targetHeight)
-					{
-						break;
-					}
-				}
-			}
-			else if (result is {IsOk: true, Value: FiltersResponse.AlreadyOnBestBlock})
+			// Check if we're synced to the target height
+			if (currentTip is not null && (uint)currentTip.Header.Height >= targetHeight)
 			{
 				break;
 			}
-			else
-			{
-				// Error or retry needed - wait a bit
-				await Task.Delay(100, cancellationToken).ConfigureAwait(false);
-			}
+
+			// Run one iteration of the production synchronizer
+			await filterGenerator(Unit.Instance, cancellationToken).ConfigureAwait(false);
 		}
+	}
+
+	/// <summary>
+	/// Builds the block header chain from Bitcoin Core RPC.
+	/// This is needed for reorg detection in the filter provider.
+	/// </summary>
+	private async Task<ConcurrentChain> BuildBlockHeaderChainAsync(CancellationToken cancellationToken)
+	{
+		// ConcurrentChain(Network) already includes the genesis block
+		var chain = new ConcurrentChain(Network);
+		var currentHeight = await RpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
+
+		// Build chain from height 1 (genesis is already in chain) to current tip
+		for (int height = 1; height <= currentHeight; height++)
+		{
+			var blockHash = await RpcClient.GetBlockHashAsync(height, cancellationToken).ConfigureAwait(false);
+			var blockHeader = await RpcClient.GetBlockHeaderAsync(blockHash, cancellationToken).ConfigureAwait(false);
+			chain.SetTip(new ChainedBlock(blockHeader, blockHash, chain.Tip));
+		}
+
+		return chain;
 	}
 
 	/// <summary>

@@ -28,7 +28,7 @@ public class P2pFilterSyncTests
 		var tipHeight = await env.RpcClient.GetBlockCountAsync();
 
 		// Act - Sync all filters via P2P
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		// Assert - Filter store should have filters up to tip
 		var filterTip = env.FilterStore.GetTip();
@@ -43,7 +43,7 @@ public class P2pFilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Initial sync via P2P
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 		var initialTip = env.FilterStore.GetTip();
 		Assert.NotNull(initialTip);
 
@@ -53,7 +53,7 @@ public class P2pFilterSyncTests
 		await env.RpcClient.GenerateAsync(1);
 
 		// Sync again via P2P
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		// Assert - Filter tip should advance by 1
 		var newTip = env.FilterStore.GetTip();
@@ -67,7 +67,7 @@ public class P2pFilterSyncTests
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 		var initialTip = env.FilterStore.GetTip();
 		Assert.NotNull(initialTip);
 
@@ -77,7 +77,7 @@ public class P2pFilterSyncTests
 		const int blocksToMine = 10;
 		await env.RpcClient.GenerateAsync(blocksToMine);
 
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		// Assert
 		var newTip = env.FilterStore.GetTip();
@@ -92,7 +92,7 @@ public class P2pFilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Act
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		// Assert - FilterHeaderChain should be in sync
 		var filterTip = env.FilterStore.GetTip();
@@ -116,7 +116,7 @@ public class P2pFilterSyncTests
 		Assert.True((uint)tip.Header.Height >= 0);
 
 		// Now sync via P2P and verify we catch up
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		var syncedTip = env.FilterStore.GetTip();
 		Assert.NotNull(syncedTip);
@@ -136,7 +136,7 @@ public class P2pFilterSyncTests
 		await env.RpcClient.GenerateAsync(blocksToMine);
 
 		// Act - Sync via P2P
-		await env.SyncFiltersP2pAsync();
+		await env.SyncFiltersP2PAsync();
 
 		// Assert
 		var filterTip = env.FilterStore.GetTip();

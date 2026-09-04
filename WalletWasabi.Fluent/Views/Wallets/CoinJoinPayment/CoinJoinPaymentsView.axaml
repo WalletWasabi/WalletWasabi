@@ -46,9 +46,9 @@
       <!-- Payments list -->
       <StackPanel IsVisible="{Binding HasAnyPayments}" Spacing="20">
 
-        <!-- Pending Payments -->
+        <!-- Queued payments waiting for processing -->
         <StackPanel IsVisible="{Binding HasPendingPayments}" Spacing="8">
-          <TextBlock Text="Pending" Classes="h8" Opacity="0.6" />
+          <TextBlock Text="Queued" Classes="h8" Opacity="0.6" />
           <ItemsControl ItemsSource="{Binding PendingPayments}">
             <ItemsControl.ItemTemplate>
               <DataTemplate DataType="coinJoinPayment:CoinJoinPaymentViewModel">

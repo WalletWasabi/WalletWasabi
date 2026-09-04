@@ -12,7 +12,8 @@ namespace WalletWasabi.Fluent.Controls;
 public enum ReplacementMode
 {
 	Text,
-	Icon
+	Icon,
+	None
 }
 
 public class PrivacyContentControl : ContentControl

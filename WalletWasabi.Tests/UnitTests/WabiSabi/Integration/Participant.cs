@@ -12,7 +12,6 @@ using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
-using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -78,7 +77,6 @@ internal class Participant
 
 		var apiClient = HttpClientFactory;
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient("satoshi"));
-		await using var ticker = new Timer(_ => roundStateUpdater.Update(), 0, TimeSpan.FromSeconds(0), TimeSpan.FromSeconds(1));
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var outputProvider = new OutputProvider(Wallet, RandomnessProviders.Insecure);
@@ -87,6 +85,7 @@ internal class Participant
 		static HdPubKey CreateHdPubKey(ExtPubKey extPubKey)
 		{
 			var hdPubKey = new HdPubKey(extPubKey.PubKey, KeyPath.Parse($"m/84'/0/0/0/{extPubKey.Child}"), LabelsArray.Empty, KeyState.Clean);
+			hdPubKey.SetAnonymitySet(1); // bug if not settled
 			return hdPubKey;
 		}
 

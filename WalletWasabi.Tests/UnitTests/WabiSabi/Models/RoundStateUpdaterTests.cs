@@ -23,6 +23,23 @@ public class RoundStateUpdaterTests
 	private static readonly TimeSpan TestTimeOut = TimeSpan.FromMinutes(10);
 
 	[Fact]
+	public async Task UpdatesAutomaticallyAsync()
+	{
+		var roundState = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
+		var mockHttpClientFactory = MockHttpClientFactory.Create([
+			RoundStateResponseBuilder(roundState with { Phase = Phase.InputRegistration }),
+			RoundStateResponseBuilder(roundState with { Phase = Phase.OutputRegistration, CoinjoinState = roundState.CoinjoinState.GetStateFrom(1) })
+		]);
+		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
+		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient, cts.Token);
+		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
+
+		await roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.InputRegistration, cts.Token);
+		await roundStatusProvider.CreateRoundAwaiterAsync(roundState.Id, Phase.OutputRegistration, cts.Token);
+	}
+
+	[Fact]
 	public async Task RoundStateUpdaterTestsAsync()
 	{
 		var roundState1 = RoundState.FromRound(WabiSabiFactory.CreateRound(cfg: new()));
@@ -43,7 +60,7 @@ public class RoundStateUpdaterTests
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
 		using var roundStatusUpdaterCancellation = new CancellationTokenSource();
-		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient, roundStatusUpdaterCancellation.Token);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.CreateManual(apiClient, roundStatusUpdaterCancellation.Token);
 		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
@@ -122,7 +139,7 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.CreateManual(apiClient);
 		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
@@ -172,7 +189,7 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.CreateManual(apiClient);
 		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 
 		// At this point in time the RoundStateUpdater only knows about `round1` and then we can subscribe to
@@ -209,7 +226,7 @@ public class RoundStateUpdaterTests
 		]);
 		var apiClient = new WabiSabiHttpApiClient("identity", mockHttpClientFactory);
 
-		using var roundStatusUpdater = RoundStateUpdaterForTesting.Create(apiClient);
+		using var roundStatusUpdater = RoundStateUpdaterForTesting.CreateManual(apiClient);
 		var roundStatusProvider = new RoundStateProvider(roundStatusUpdater);
 		using var cancellationTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(1));
 

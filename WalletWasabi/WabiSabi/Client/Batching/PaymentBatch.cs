@@ -1,7 +1,5 @@
 using System.Collections.ObjectModel;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
+using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
 
@@ -20,6 +18,7 @@ public class PaymentBatch
 	private readonly Lock _syncObj = new();
 	private IEnumerable<Payment> PendingPayments => GetPayments().Where(p => p.State is PendingPayment);
 	private IEnumerable<Payment> InProgressPayments => GetPayments().Where(p => p.State is InProgressPayment);
+	private IEnumerable<Payment> SignedPayments => GetPayments().Where(p => p.State is SignedUnknownPayment);
 
 	public Guid AddPayment(IDestination destination, Money amount)
 	{
@@ -96,7 +95,40 @@ public class PaymentBatch
 	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
+	public void MovePaymentsToSigned(uint256 transactionId) =>
+		MovePaymentsTo(InProgressPayments, payment => payment with
+		{
+			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId)
+		});
+
+	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
+	{
+		var uncertainPayments = SignedPayments.ToArray();
+		if (uncertainPayments.Length == 0)
+		{
+			return false;
+		}
+
+		var resolved = false;
+		var txId = transaction.GetHash();
+
+		foreach (var payment in uncertainPayments.Where(p => p.State is SignedUnknownPayment s && s.TransactionId == txId))
+		{
+			Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} confirmed.");
+			lock (_syncObj)
+			{
+				_payments.Remove(payment);
+				_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
+			}
+			resolved = true;
+		}
+
+		return resolved;
+	}
+
 	public bool AreTherePendingPayments => PendingPayments.Any();
+
+	public bool AreThereUncertainPayments => SignedPayments.Any();
 
 	private void MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,

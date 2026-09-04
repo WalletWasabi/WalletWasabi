@@ -25,7 +25,19 @@ public static class WindowsStartupHelper
 			throw new InvalidOperationException($"Path: {pathToExeFile} does not exist.");
 		}
 
-		using RegistryKey key = Registry.CurrentUser.OpenSubKey(KeyPath, writable: true) ?? throw new InvalidOperationException("Registry operation failed.");
+		using RegistryKey? key = runOnSystemStartup
+			? Registry.CurrentUser.CreateSubKey(KeyPath, writable: true)
+			: Registry.CurrentUser.OpenSubKey(KeyPath, writable: true);
+
+		if (key is null)
+		{
+			if (runOnSystemStartup)
+			{
+				throw new InvalidOperationException("Registry operation failed.");
+			}
+
+			return;
+		}
 
 		var existingPath = key.GetValue(nameof(WalletWasabi));
 		if (existingPath is null && runOnSystemStartup)

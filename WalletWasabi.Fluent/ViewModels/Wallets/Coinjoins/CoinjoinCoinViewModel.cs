@@ -13,7 +13,15 @@ public class CoinjoinCoinViewModel : CoinjoinCoinListItem
 		Amount = new Amount(coin.Amount);
 		BtcAddress = coin.ScriptPubKey.GetDestinationAddress(network)?.ToString();
 		TitleText = "";
-		AnonymityScore = (int)coin.AnonymitySet;
+
+		if (coin.HistoricalAnonSet.TryGetValue(coin.Outpoint.Hash, out var anonSetWhenTxProcessed))
+		{
+			AnonymityScore = (int)anonSetWhenTxProcessed;
+		}
+		else
+		{
+			AnonymityScore = (int)coin.AnonymitySet;
+		}
 	}
 
 	public CoinjoinCoinViewModel(UiContext uiContext, CoinjoinCoinViewModel[] coins, int coinjoinInputCount) : base(uiContext)

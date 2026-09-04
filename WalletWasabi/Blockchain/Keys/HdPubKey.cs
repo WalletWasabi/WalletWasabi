@@ -1,18 +1,15 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using NBitcoin.Secp256k1;
 using WalletWasabi.Bases;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Blockchain.Keys;
 
 public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 {
+	public const int DefaultHighAnonymitySet = int.MaxValue;
+
 	private readonly Lazy<Script> _p2wpkhScript;
 	private readonly Lazy<Script> _p2Taproot;
-
 	private Cluster _cluster;
 
 	public HdPubKey(PubKey pubKey, KeyPath fullKeyPath, LabelsArray labels, KeyState keyState)
@@ -49,6 +46,14 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 		set => RaiseAndSetIfChanged(ref _cluster, value);
 	}
 
+	public Dictionary<uint256, double> HistoricalAnonSet { get; } = new();
+
+	public double AnonymitySet
+	{
+		get;
+		private set => RaiseAndSetIfChanged(ref field, value);
+	} = DefaultHighAnonymitySet;
+
 	public PubKey PubKey { get; }
 
 	public KeyPath FullKeyPath { get; }
@@ -65,6 +70,16 @@ public class HdPubKey : NotifyPropertyChangedBase, IEquatable<HdPubKey>
 
 	public int Index { get; }
 	public bool IsInternal { get; }
+
+	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId = null)
+	{
+		if (outputAnonSetReasonTxId is not null)
+		{
+			HistoricalAnonSet[outputAnonSetReasonTxId] = anonset;
+		}
+
+		AnonymitySet = anonset;
+	}
 
 	public void SetLabel(LabelsArray labels, KeyManager? kmToFile = null)
 	{

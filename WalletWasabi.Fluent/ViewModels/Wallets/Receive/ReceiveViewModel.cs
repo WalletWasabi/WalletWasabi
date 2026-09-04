@@ -58,7 +58,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 
 	public ICommand ShowExistingAddressesCommand { get; }
 
-	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Filter(address => address.ScriptType == _scriptType).Count().Select(i => i > 0);
+	public IObservable<bool> HasUnusedAddresses => _wallet.Addresses.Unused.ToObservableChangeSet().Count().Select(i => i > 0);
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{
@@ -77,7 +77,7 @@ public partial class ReceiveViewModel : RoutableViewModel, IDisposable
 
 	private void OnShowExistingAddresses()
 	{
-		UiContext.Navigate(NavigationTarget.DialogScreen).To().ReceiveAddresses(_wallet, _scriptType);
+		UiContext.Navigate(NavigationTarget.DialogScreen).To().ReceiveAddresses(_wallet);
 	}
 
 	public void Dispose() => _disposables.Dispose();

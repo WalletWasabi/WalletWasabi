@@ -22,6 +22,7 @@ public class CoinJoinManager : BackgroundService
 		Func<string, IWabiSabiApiRequestHandler> arenaRequestHandlerFactory,
 		CoinJoinConfiguration coinJoinConfiguration,
 		CoinPrison coinPrison,
+		InputVerifier inputVerifier,
 		EventBus eventBus)
 	{
 		_state = new();
@@ -30,6 +31,7 @@ public class CoinJoinManager : BackgroundService
 		_roundStatusProvider = roundStatusProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_coinPrison = coinPrison;
+		_inputVerifier = inputVerifier;
 		_serverTipHeightChangeSubscription = eventBus.Subscribe<NetworkTipHeightChanged>(h => _serverTipHeight = h.Height);
 		_mailboxProcessor = new MailboxProcessor<CoinJoinCommand>(nameof(CoinJoinManager), HandleCoinJoinCommandsAsync, cancellationToken: _stopCts.Token);
 	}
@@ -42,6 +44,7 @@ public class CoinJoinManager : BackgroundService
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly CoinPrison _coinPrison;
+	private readonly InputVerifier _inputVerifier;
 	private readonly CoinRefrigerator _coinRefrigerator = new();
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
 	private uint _serverTipHeight;
@@ -111,7 +114,7 @@ public class CoinJoinManager : BackgroundService
 
 	private async Task HandleCoinJoinCommandsAsync(Mailbox<CoinJoinCommand> mailbox, CancellationToken cancellationToken)
 	{
-		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, cancellationToken);
+		var coinJoinTrackerFactory = new CoinJoinTrackerFactory(ArenaRequestHandlerFactory, _roundStatusProvider, _coinJoinConfiguration, _inputVerifier, cancellationToken);
 
 		// TODO: Use Workers.EventDriven once we get state ready for it.
 		while (!cancellationToken.IsCancellationRequested)
@@ -492,6 +495,7 @@ public class CoinJoinManager : BackgroundService
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;
+		var unknownEnding = false;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -509,10 +513,13 @@ public class CoinJoinManager : BackgroundService
 		}
 		catch (UnknownRoundEndingException ex)
 		{
-			// Assuming that the round might be broadcast but our client was not able to get the ending status.
+			// The round ending is unknown - the transaction might have been broadcast.
+			// Payments are already in signed state (moved by TransactionSigned event).
+			// The reconciliation process will later check if the transaction was confirmed.
+			unknownEnding = true;
 			_coinRefrigerator.Freeze(ex.Coins);
 			MarkDestinationsUsed(destinationProvider, ex.OutputScripts);
-			Logger.LogDebug(FormatLog(ex.ToString(), wallet));
+			Logger.LogWarning(FormatLog($"Round ending unknown - payments in signed state awaiting resolution: {ex.Message}", wallet));
 		}
 		catch (CoinJoinClientException clientException)
 		{
@@ -561,7 +568,11 @@ public class CoinJoinManager : BackgroundService
 		}
 		finally
 		{
-			batchedPayments.MovePaymentsToPending();
+			// Only move payments to pending if we know the round failed.
+			if (!unknownEnding)
+			{
+				batchedPayments.MovePaymentsToPending();
+			}
 		}
 
 		// If any coins were marked for banning, store them to file
@@ -584,8 +595,9 @@ public class CoinJoinManager : BackgroundService
 		{
 			NotifyWalletStoppedCoinJoin(wallet);
 		}
-		else if (wallet.IsWalletPrivate())
+		else if (wallet.IsWalletPrivate() && !wallet.BatchedPayments.AreTherePendingPayments)
 		{
+			// A fully private wallet is done mixing, unless it is allowed to fund a pending payment with private coins.
 			NotifyCoinJoinStartError(wallet, CoinjoinError.AllCoinsPrivate);
 			if (!finishedCoinJoin.StopWhenAllMixed)
 			{

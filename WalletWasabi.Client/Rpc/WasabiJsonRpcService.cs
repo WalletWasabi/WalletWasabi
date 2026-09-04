@@ -272,10 +272,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 	}
 
 	[JsonRpcMethod("payincoinjoin")]
-	public string PayInCoinJoin(BitcoinAddress address, Money amount)
+	public string PayInCoinJoin(BitcoinAddress address, Money amount, string? password = null)
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password ?? "");
 		return activeWallet.AddCoinJoinPayment(address, amount);
 	}
 
@@ -367,7 +368,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.TryLogin(password, out _);
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password);
 		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToCancel))
 		{
@@ -384,7 +386,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		Guard.NotNull(nameof(txId), txId);
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		activeWallet.TryLogin(password, out _);
+		AssertWalletIsLoaded();
+		AssertWalletIsLoggedIn(activeWallet, password);
 		var mempoolStore = Global.TransactionStore.MempoolStore;
 		if (!mempoolStore.TryGetTransaction(txId, out var smartTransactionToSpeedUp))
 		{

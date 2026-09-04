@@ -342,6 +342,7 @@ public static class WabiSabiFactory
 			roundStateProvider,
 			coinSelector,
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150.0m, 1, AllowSoloCoinjoining: true),
+			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider(),
 			TimeSpan.Zero);
 
@@ -396,6 +397,7 @@ public class TestableCoinJoinClient(
 	RoundStateProvider roundStatusProvider,
 	CoinJoinCoinSelector coinJoinCoinSelector,
 	CoinJoinConfiguration coinJoinConfiguration,
+	InputVerifier inputVerifier,
 	LiquidityClueProvider liquidityClueProvider,
 	TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	: CoinJoinClient(arenaRequestHandlerFactory,
@@ -404,6 +406,7 @@ public class TestableCoinJoinClient(
 		roundStatusProvider,
 		coinJoinCoinSelector,
 		coinJoinConfiguration,
+		inputVerifier,
 		liquidityClueProvider,
 		doNotRegisterInLastMinuteTimeLimit)
 {

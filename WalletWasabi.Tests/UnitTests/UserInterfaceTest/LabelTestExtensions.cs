@@ -26,7 +26,7 @@ internal static class LabelTestExtensions
 		pockets.Add(pocket);
 	}
 
-	public static HdPubKey NewKey(string label = "", int anonymitySet = 1)
+	public static HdPubKey NewKey(string label = "")
 	{
 		var key = KeyManager.GenerateNewKey(label, KeyState.Used, true);
 		key.SetLabel(label);
@@ -36,7 +36,7 @@ internal static class LabelTestExtensions
 
 	public static SmartCoin CreateCoin(decimal amount, string label = "", int anonymitySet = 1)
 	{
-		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label: label, anonymitySet: anonymitySet), amount);
+		var coin = BitcoinFactory.CreateSmartCoin(NewKey(label), amount, anonymitySet: anonymitySet);
 
 		return coin;
 	}

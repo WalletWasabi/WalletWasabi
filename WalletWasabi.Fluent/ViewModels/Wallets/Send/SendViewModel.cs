@@ -111,7 +111,7 @@ public partial class SendViewModel : RoutableViewModel
 		this.WhenAnyValue(x => x.To)
 			.Skip(1)
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe((x) => TryParseUrl(x));
+			.Subscribe(HandleAddressChange);
 
 		this.WhenAnyValue(x => x.PayJoinEndPoint)
 			.Subscribe(endPoint => IsPayJoin = endPoint is { });
@@ -419,16 +419,26 @@ public partial class SendViewModel : RoutableViewModel
 
 		if (string.IsNullOrEmpty(To) && isAutoPasteEnabled && IsNotInDonationWorkflow)
 		{
-			await OnPasteAsync(pasteIfInvalid: false);
+			await PasteIfValidAddressAsync();
 		}
 	}
 
-	private async Task OnPasteAsync(bool pasteIfInvalid = true)
+	private async Task<string> GetClipboardTextAsync()
 	{
 		var text = await ApplicationHelper.GetTextAsync();
-		text = text.WithoutWhitespace();
+		return text.WithoutWhitespace();
+	}
 
-		if (!TryParseUrl(text) && pasteIfInvalid)
+	private async Task OnPasteAsync()
+	{
+		To = await GetClipboardTextAsync();
+	}
+
+	private async Task PasteIfValidAddressAsync()
+	{
+		var text = await GetClipboardTextAsync();
+
+		if (AddressParser.Parse(text, _walletModel.Network).IsOk)
 		{
 			To = text;
 		}
@@ -523,76 +533,84 @@ public partial class SendViewModel : RoutableViewModel
 		}
 	}
 
-	private bool TryParseUrl(string? text)
+	private void HandleAddressChange(string? text)
 	{
 		text = text?.Trim();
 
+		// Skip if this matches the canonical form of the current parsed address
+		if (text == _parsedAddress?.ToCanonicalAddress(_walletModel.Network))
+		{
+			return;
+		}
+
 		if (string.IsNullOrEmpty(text))
 		{
+			_parsedAddress = null;
 			PayJoinEndPoint = null;
 			IsFixedAmount = false;
 			IsBip21 = false;
-			return false;
+			DisplaySilentPaymentInfo = false;
+			return;
 		}
 
-		// Reset PayJoinEndPoint by default
+		// Reset state for new input
 		PayJoinEndPoint = null;
 		IsFixedAmount = false;
 		IsBip21 = false;
 
-		var isSilentPayment = false;
+		var parseResult = AddressParser.Parse(text, _walletModel.Network);
+		if (!parseResult.IsOk)
+		{
+			_parsedAddress = null;
+			DisplaySilentPaymentInfo = false;
+			return;
+		}
 
-		var result = AddressParser.Parse(text, _walletModel.Network)
-			.Match(
-				success =>
+		_parsedAddress = parseResult.Value;
+
+		switch (parseResult.Value)
+		{
+			case Address.Bip21Uri bip21:
+				IsBip21 = true;
+				To = bip21.Address.ToWif(_walletModel.Network);
+
+				if (bip21.Amount is not null)
 				{
-					_parsedAddress = success;
-					switch (success)
-					{
-						case Address.Bip21Uri bip21:
-							IsBip21 = true;
-							To = bip21.Address.ToWif(_walletModel.Network);
+					AmountBtc = bip21.Amount;
+					IsFixedAmount = true;
+				}
 
-							if (bip21.Amount is not null)
-							{
-								AmountBtc = bip21.Amount;
-								IsFixedAmount = true;
-							}
+				if (!string.IsNullOrEmpty(bip21.Label))
+				{
+					SuggestionLabels = new SuggestionLabelsViewModel(
+						UiContext,
+						_walletModel,
+						Intent.Send,
+						3,
+						[bip21.Label]);
+				}
 
-							if (!string.IsNullOrEmpty(bip21.Label))
-							{
-								SuggestionLabels = new SuggestionLabelsViewModel(
-									UiContext,
-									_walletModel,
-									Intent.Send,
-									3,
-									[bip21.Label]);
-							}
+				if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
+				{
+					PayJoinEndPoint = bip21.PayjoinEndpoint;
+				}
+				DisplaySilentPaymentInfo = false;
+				break;
 
-							if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
-							{
-								PayJoinEndPoint = bip21.PayjoinEndpoint;
-							}
-							return true;
+			case Address.Bitcoin bitcoin:
+				To = bitcoin.Address.ToString();
+				DisplaySilentPaymentInfo = false;
+				break;
 
-						case Address.Bitcoin bitcoin:
-							To = bitcoin.Address.ToString();
-							return true;
+			case Address.SilentPayment silentPayment:
+				To = silentPayment.Address.ToWip(_walletModel.Network);
+				DisplaySilentPaymentInfo = _parameters.Donate;
+				break;
 
-						case Address.SilentPayment silentPayment:
-							To = silentPayment.Address.ToWip(_walletModel.Network);
-							isSilentPayment = true;
-							return true;
-
-						default:
-							return true;
-					}
-				},
-				_ => false);
-
-		DisplaySilentPaymentInfo = isSilentPayment && _parameters.Donate;
-
-		return result;
+			default:
+				DisplaySilentPaymentInfo = false;
+				break;
+		}
 	}
 
 	protected override void OnNavigatedTo(bool inHistory, CompositeDisposable disposables)
@@ -626,7 +644,6 @@ public partial class SendViewModel : RoutableViewModel
 			To = Constants.DonationAddress;
 			Caption = "Donate to The Wasabi Wallet Developers to continue maintaining the software";
 			IsFixedAddress = true;
-			TryParseUrl(_to);
 		}
 	}
 

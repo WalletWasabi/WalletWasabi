@@ -1,11 +1,7 @@
-using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Runtime.InteropServices;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 
 namespace WalletWasabi.Tor;
@@ -56,7 +52,7 @@ public class TorSettings
 			}
 		}
 
-		TorBinaryDir = torFolder ?? Path.Combine(BundledAppHelpers.GetBinaryFolder(), "Tor");
+		TorBinaryDir = torFolder ?? Path.Combine(BundledAppHelpers.GetBinaryFolder(BundledApp.Tor), "Tor");
 		TorBinaryFilePath = GetTorBinaryFilePath(TorBinaryDir);
 		TorTransportPluginsDir = Path.Combine(TorBinaryDir, "PluggableTransports");
 
@@ -138,9 +134,9 @@ public class TorSettings
 	private readonly string _geoIp6Path;
 
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
-	public static string GetTorBinaryFilePath(string path, OSPlatform? platform = null)
+	public static string GetTorBinaryFilePath(string path)
 	{
-		return Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName, platform));
+		return Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
 	}
 
 	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>

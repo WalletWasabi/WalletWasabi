@@ -406,7 +406,7 @@ public class P2pConnectionManager : IDisposable
 				connParams.TemplateBehaviors.Add(behavior);
 			}
 
-			if (peerInfo.Endpoint.IsTor() && _torSocks5 is { } torEndpoint)
+			if (_torSocks5 is { } torEndpoint)
 			{
 				connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false,
 					networkCredential: null, streamIsolation: true));
@@ -719,13 +719,14 @@ public class P2pConnectionManager : IDisposable
 			UserAgent = Constants.UserAgents[Random.Shared.Next(Constants.UserAgents.Length)]
 		};
 
-		if (endpoint.IsTor())
+		if (_torSocks5 is { } torEndpoint)
 		{
-			if (_torSocks5 is null)
-			{
-				return null;
-			}
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(_torSocks5));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint));
+		}
+		else if (endpoint.IsTor())
+		{
+			// Cannot connect to .onion endpoint without Tor
+			return null;
 		}
 
 		Node? node = null;

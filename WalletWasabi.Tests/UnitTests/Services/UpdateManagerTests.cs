@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin;
 using NNostr.Client;
+using NNostr.Client.Protocols;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -149,8 +150,42 @@ public class UpdateManagerTests
 	}
 }
 
-public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true) : INostrClient
+public class TesteabletNostrClient : INostrClient
 {
+	public static readonly string WasabiTeamPubKeyHex = NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex();
+
+	private readonly ReleaseInfo[] _releases;
+	private readonly bool _sendEventsReceived;
+	private readonly bool _manualMode;
+	private readonly string _pubkey;
+	private string? _activeSubscriptionId;
+
+	public TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true, string? pubkey = null, bool manualMode = false)
+	{
+		_releases = releases;
+		_sendEventsReceived = sendEventsReceived;
+		_manualMode = manualMode;
+		_pubkey = pubkey ?? WasabiTeamPubKeyHex;
+	}
+
+	public void SimulateEventsReceived(NostrEvent[] events)
+	{
+		if (_activeSubscriptionId is null)
+		{
+			throw new InvalidOperationException("No active subscription.");
+		}
+		EventsReceived?.Invoke(this, (_activeSubscriptionId, events));
+	}
+
+	public void SimulateEoseReceived()
+	{
+		if (_activeSubscriptionId is null)
+		{
+			throw new InvalidOperationException("No active subscription.");
+		}
+		EoseReceived?.Invoke(this, _activeSubscriptionId);
+	}
+
 	public void Dispose()
 	{
 	}
@@ -169,14 +204,22 @@ public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceiv
 
 	public Task CreateSubscription(string subscriptionId, NostrSubscriptionFilter[] filters, CancellationToken token)
 	{
-		var nostrEvents = releases
+		_activeSubscriptionId = subscriptionId;
+
+		if (_manualMode)
+		{
+			return Task.CompletedTask;
+		}
+
+		var nostrEvents = _releases
 			.Select((r, i) => new NostrEvent
 			{
 				Id = i.ToString(),
+				PublicKey = _pubkey,
 				Tags = [ new NostrEventTag{ TagIdentifier = "version", Data = [r.Version.ToString()] }]
 			}).ToArray();
 
-		if (sendEventsReceived)
+		if (_sendEventsReceived)
 		{
 			EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
 		}
@@ -201,7 +244,21 @@ public class TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceiv
 public class RoundStateUpdaterForTesting
 {
 	public static MailboxProcessor<RoundUpdateMessage> Create(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken = null) =>
-		Spawn($"RoundStateUpdater-{Random.Shared.Next()}", EventDriven(
-			new RoundsState(DateTime.UtcNow, TimeSpan.FromSeconds(0), new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
-			RoundStateUpdater.Create(api)), cancellationToken);
+		Create(api, cancellationToken, autoUpdate: true);
+
+	public static MailboxProcessor<RoundUpdateMessage> CreateManual(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken = null) =>
+		Create(api, cancellationToken, autoUpdate: false);
+
+	private static MailboxProcessor<RoundUpdateMessage> Create(IWabiSabiApiRequestHandler api, CancellationToken? cancellationToken, bool autoUpdate) =>
+		Spawn<RoundUpdateMessage>($"RoundStateUpdater-{Random.Shared.Next()}", async (mailbox, token) =>
+		{
+			// Stop the ticker when cancellation or disposal ends the worker.
+			await using var ticker = autoUpdate
+				? new Timer(_ => mailbox.Post(new RoundUpdateMessage.UpdateMessage(DateTime.UtcNow)), null, TimeSpan.Zero, TimeSpan.FromSeconds(1))
+				: null;
+			var process = EventDriven(
+				new RoundsState(DateTime.UtcNow, TimeSpan.Zero, new Dictionary<uint256, RoundState>(), ImmutableList<RoundStateAwaiter>.Empty),
+				RoundStateUpdater.Create(api));
+			await process(mailbox, token).ConfigureAwait(false);
+		}, cancellationToken);
 }

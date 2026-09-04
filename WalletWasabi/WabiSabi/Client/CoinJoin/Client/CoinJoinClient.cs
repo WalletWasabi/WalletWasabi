@@ -28,6 +28,7 @@ public class CoinJoinClient
 		RoundStateProvider roundStatusProvider,
 		CoinJoinCoinSelector coinJoinCoinSelector,
 		CoinJoinConfiguration coinJoinConfiguration,
+		InputVerifier verifyInputsExistance,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
 	{
@@ -37,6 +38,7 @@ public class CoinJoinClient
 		_roundStatusProvider = roundStatusProvider;
 		_liquidityClueProvider = liquidityClueProvider;
 		_coinJoinConfiguration = coinJoinConfiguration;
+		_verifyInputsExistance = verifyInputsExistance;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
@@ -53,6 +55,7 @@ public class CoinJoinClient
 	private readonly RoundStateProvider _roundStatusProvider;
 	private readonly LiquidityClueProvider _liquidityClueProvider;
 	private readonly CoinJoinConfiguration _coinJoinConfiguration;
+	private readonly InputVerifier _verifyInputsExistance;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
@@ -354,8 +357,11 @@ public class CoinJoinClient
 
 			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, roundRestrictions, cancellationToken).ConfigureAwait(false);
 
-			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken)
-				.ConfigureAwait(false);
+			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
+
+			// Notify that we've signed the transaction - payments should now be tracked with the txId
+			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.GetHash()));
+
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
 			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
@@ -761,6 +767,9 @@ public class CoinJoinClient
 		{
 			throw new CoinJoinClientException(CoinjoinError.CoordinatorLiedAboutInputs, "Coordinator lied about registered inputs. It probably tries to be malicious.");
 		}
+
+		// Verify other participants' inputs to detect a malicious coordinator.
+		await _verifyInputsExistance(theirCoins.ToArray(), cancellationToken).ConfigureAwait(false);
 
 		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
 

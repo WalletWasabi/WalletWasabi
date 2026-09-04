@@ -1,16 +1,13 @@
-using Microsoft.Extensions.Caching.Memory;
 using NBitcoin;
 using NBitcoin.RPC;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using DynamicData;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
-using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.Helpers;
@@ -132,24 +129,25 @@ public static class BitcoinFactory
 
 	public static SmartCoin CreateSmartCoin(Transaction tx, HdPubKey pubKey, Money amount, bool confirmed = true, int anonymitySet = 1)
 	{
-		Height height = confirmed ? new Height.ChainHeight((uint)CryptoHelpers.RandomInt(0, 200)) : Height.Mempool;
+		Height height = confirmed ? new Height.ChainHeight((uint)Random.Shared.Next(0, 201)) : Height.Mempool;
 		pubKey.SetKeyState(KeyState.Used);
 		tx.Outputs.Add(new TxOut(amount, pubKey.GetAssumedScriptPubKey()));
 		tx.Inputs.Add(CreateOutPoint());
 		var stx = new SmartTransaction(tx, height);
+
 		var coin = new SmartCoin(stx, (uint)tx.Outputs.Count - 1, pubKey);
-		Anonymity.SetScore(coin, 1.0m / anonymitySet);
+		coin.SetAnonymitySet(anonymitySet, stx.GetHash());
+
 		return coin;
 	}
 
 	public static OutPoint CreateOutPoint()
-		=> new(CreateUint256(), (uint)CryptoHelpers.RandomInt(0, 100));
+		=> new(CreateUint256(), (uint)Random.Shared.Next(0, 101));
 
 	public static uint256 CreateUint256()
 	{
-		var rand = new UnsecureRandom();
 		var bytes = new byte[32];
-		rand.GetBytes(bytes);
+		Random.Shared.NextBytes(bytes);
 		return new uint256(bytes);
 	}
 
@@ -236,17 +234,5 @@ public static class BitcoinFactory
 
 	}
 
-	public static BitcoinAddress CreateBitcoinAddress(Network network, Key? key = null)
-	{
-		// Segwit script has always a destination address, so it cannot be null.
-		return CreateScript(key).GetDestinationAddress(network)!;
-	}
-
 	public static Transaction CreateTransaction() => CreateSmartTransaction(1, 0, 0, 1).Transaction;
-
-	public static MemoryCache CreateMemoryCache() => new(new MemoryCacheOptions
-	{
-		SizeLimit = 1_000,
-		ExpirationScanFrequency = TimeSpan.FromSeconds(30)
-	});
 }
