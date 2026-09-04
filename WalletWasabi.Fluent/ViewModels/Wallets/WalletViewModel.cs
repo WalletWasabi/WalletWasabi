@@ -124,8 +124,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 var canCoinJoin = WalletModel.CanCoinJoin;
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || allowPaymentsRegardlessOfAnonScore || isPointerOver || isMusicBoxFlyoutDisplayed)) && canCoinJoin;
+				 // Always visible for a wallet that can coinjoin (upstream #15011), no pointer-over needed. A
+				 // hardware-backed wallet is watch-only on the host yet may coinjoin, so ask CanCoinJoin, not IsWatchOnly.
+				 return isSelected && !hasNoBalance && WalletModel.CanCoinJoin;
 			 });
 
 
