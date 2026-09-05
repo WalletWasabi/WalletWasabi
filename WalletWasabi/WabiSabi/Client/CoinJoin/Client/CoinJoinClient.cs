@@ -350,9 +350,6 @@ public class CoinJoinClient
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
 
-			// Notify that we've signed the transaction - payments should now be tracked with the txId
-			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.GetHash()));
-
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
 			_liquidityClueProvider.UpdateLiquidityClue(roundState.CoinjoinState.Parameters.MaxSuggestedAmount, unsignedCoinJoin, outputTxOuts);
@@ -847,6 +844,15 @@ public class CoinJoinClient
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
+
+		// Once our last witness reaches the coordinator it can broadcast the transaction, whether or not
+		// we get to know it: the response can be lost, the round can be cancelled, the app can be closed.
+		// So the payments have to leave the in-progress state.
+		if (mustSignAllInputs)
+		{
+			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash()));
+		}
+
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
 
