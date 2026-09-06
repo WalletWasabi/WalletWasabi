@@ -14,23 +14,6 @@ namespace WalletWasabi.Tests.UnitTests.Hwi;
 /// </summary>
 public class TrezorSigningFlowTests
 {
-	private class ScriptedTransport : TrezorBridgeTransport
-	{
-		public ScriptedTransport()
-			: base("http://127.0.0.1:0")
-		{
-		}
-
-		public List<TrezorMessage> Received { get; } = new();
-		public Queue<TrezorMessage> Responses { get; } = new();
-
-		public override Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
-		{
-			Received.Add(message);
-			return Task.FromResult(Responses.Dequeue());
-		}
-	}
-
 	private static TrezorMessage TxRequest(TrezorTxRequestType requestType, int requestIndex = 0, (int Index, byte[] Signature)? serialized = null)
 	{
 		var writer = new ProtoWriter()
