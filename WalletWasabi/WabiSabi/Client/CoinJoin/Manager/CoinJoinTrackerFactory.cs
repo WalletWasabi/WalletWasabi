@@ -54,7 +54,7 @@ public class CoinJoinTrackerFactory
 			GetOrCreateOutputProvider(wallet: wallet, outputWallet: outputWallet),
 			_roundStatusProvider,
 			coinSelector,
-			_coinJoinConfiguration,
+			_coinJoinConfiguration.CappedBy(wallet.KeyChain),
 			_inputVerifier,
 			_liquidityClueProvider,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
