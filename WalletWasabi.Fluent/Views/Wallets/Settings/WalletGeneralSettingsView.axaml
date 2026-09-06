@@ -72,6 +72,10 @@
       <TextBlock Text="Coinjoin" />
       <Button Content="Enable coinjoin" Command="{Binding EnableCoinjoinCommand}" HorizontalAlignment="Right" />
     </DockPanel>
+    <StackPanel Spacing="5" IsVisible="{Binding AddressToConfirm, Converter={x:Static ObjectConverters.IsNotNull}}">
+      <TextBlock Text="Check that the device shows this address:" TextWrapping="Wrap" />
+      <TextBlock Text="{Binding AddressToConfirm}" TextWrapping="Wrap" />
+    </StackPanel>
   </StackPanel>
 
 </UserControl>
