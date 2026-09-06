@@ -42,6 +42,7 @@ public class TrezorDevice : IDisposable
 	private string _bridgeSession = "";
 	private byte[] _deviceSessionId = [];
 	private bool _useOnDevicePassphrase;
+	private bool _disposed;
 
 	public TrezorFeatures? Features { get; private set; }
 
@@ -511,8 +512,43 @@ public class TrezorDevice : IDisposable
 	public static KeyPath GetCoinJoinAccountKeyPath(Network network) =>
 		new(Slip25Purpose, (network == Network.Main ? 0u : 1u) | HardenedIndex, HardenedIndex, 1u | HardenedIndex);
 
+	/// <summary>
+	/// Whether the bridge session this device was acquired with still answers. The bridge forgets it when it is
+	/// restarted, or when it drops the device after a USB error, and nothing tells the wallet at the time; a
+	/// device kept across coinjoin rounds has to be asked before it is reused, or every call on it fails forever.
+	/// GetFeatures is answered without touching the device state, so a live authorization survives the question.
+	/// </summary>
+	public async Task<bool> IsSessionAliveAsync(CancellationToken cancellationToken)
+	{
+		if (_disposed)
+		{
+			return false;
+		}
+
+		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			var response = await _transport.CallAsync(_bridgeSession, TrezorMessages.GetFeatures(), cancellationToken).ConfigureAwait(false);
+			return response.MessageType == TrezorMessageType.Features;
+		}
+		catch (TrezorException)
+		{
+			return false;
+		}
+		finally
+		{
+			_lock.Release();
+		}
+	}
+
 	public void Dispose()
 	{
+		if (_disposed)
+		{
+			return;
+		}
+		_disposed = true;
+
 		if (_bridgeSession.Length > 0)
 		{
 			try
