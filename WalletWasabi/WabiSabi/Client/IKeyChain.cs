@@ -12,6 +12,13 @@ public interface IKeyChain
 	/// </summary>
 	bool SigningTakesTime => false;
 
+	/// <summary>
+	/// The highest mining fee rate this signer will sign at, when it is a device that was authorized with a
+	/// cap; null when no such cap exists. Rounds above it must be skipped before any input is registered,
+	/// because the device refuses them at signing time and the coordinator then bans the registered inputs.
+	/// </summary>
+	FeeRate? MaxMiningFeeRate => null;
+
 	OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData);
 
 	Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin);
