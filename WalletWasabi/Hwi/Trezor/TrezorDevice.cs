@@ -49,6 +49,7 @@ public class TrezorDevice : IDisposable
 	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
 	{
 		string? bridgeUri = null;
+		string? bridgeError = null;
 		IReadOnlyList<TrezorBridgeTransport.BridgeDevice> bridgeDevices = [];
 		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
 		{
@@ -63,13 +64,14 @@ public class TrezorDevice : IDisposable
 			}
 			catch (TrezorException e)
 			{
+				bridgeError = e.Message;
 				Logger.LogDebug(e.Message);
 			}
 		}
 
 		if (bridgeUri is null)
 		{
-			throw new TrezorBridgeNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, which includes the bridge, or download it from {TrezorBridgeProcess.SuiteDownloadUrl} and try again.");
+			throw new TrezorBridgeNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, which includes the bridge, or download it from {TrezorBridgeProcess.SuiteDownloadUrl} and try again. ({bridgeError})");
 		}
 
 		if (bridgeDevices.Count == 0)

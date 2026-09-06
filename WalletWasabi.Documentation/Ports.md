@@ -28,3 +28,7 @@ HiddenWallet's ports (3712x) are chosen within a long range of unassigned IANA p
 | 18444 | Bitcoin Core Regtest RPC                          |
 | 5000  | Stratis: Bitcoin node and Breeze Wallet API       |
 | 5105  | Stratis: Stratis node and Stratis Wallet API      |
+| 21325 | Trezor Bridge (standalone trezord), used by Wasabi for Trezor coinjoin wallets |
+| 21328 | Trezor Bridge bundled in Trezor Suite, used the same way |
+
+The Trezor Bridge ports are plain HTTP on localhost without authentication; what Wasabi does and does not trust the bridge with is written down on `TrezorBridgeTransport` in `WalletWasabi/Hwi/Trezor`.
