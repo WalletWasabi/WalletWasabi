@@ -10,11 +10,6 @@ public abstract record RoundUpdateMessage
 {
 	public record UpdateMessage(DateTime CurrentTime) : RoundUpdateMessage;
 	public record CreateRoundAwaiter(uint256? RoundId, Phase? Phase, Predicate<RoundState>? Predicate, IReplyChannel<Task<RoundState>> ReplayChannel) : RoundUpdateMessage;
-
-	/// <summary>Read the rounds already known, without waiting for one. The status poll keeps these fresh,
-	/// so their parameters can be consulted before committing to anything - see the pre-authorization fee
-	/// check in CoinJoinManager. May be empty: the poll only runs while something is awaiting a round.</summary>
-	public record GetRoundsSnapshot(IReplyChannel<IReadOnlyCollection<RoundState>> ReplyChannel) : RoundUpdateMessage;
 }
 
 public class RoundStateProvider(MailboxProcessor<RoundUpdateMessage> roundStateUpdater)
@@ -32,12 +27,6 @@ public class RoundStateProvider(MailboxProcessor<RoundUpdateMessage> roundStateU
 			CancellationTokenSource.CreateLinkedTokenSource(roundStateUpdater.CancellationToken, cancellationToken);
 		return await awaiter.WaitAsync(cts.Token).ConfigureAwait(false);
 	}
-
-	/// <summary>The rounds currently known to the client, or empty if none have been seen yet.</summary>
-	public Task<IReadOnlyCollection<RoundState>> GetCurrentRoundsAsync(CancellationToken cancellationToken) =>
-		roundStateUpdater.PostAndReplyAsync<IReadOnlyCollection<RoundState>>(
-			chan => new RoundUpdateMessage.GetRoundsSnapshot(chan),
-			cancellationToken);
 
 	public async Task<RoundState> CreateRoundAwaiterAsync(Predicate<RoundState> predicate,
 		CancellationToken cancellationToken)
@@ -83,9 +72,6 @@ public static class RoundStateUpdater
 					};
 				}
 
-				break;
-			case RoundUpdateMessage.GetRoundsSnapshot m:
-				m.ReplyChannel.Reply(state.Rounds.Values.ToArray());
 				break;
 			case RoundUpdateMessage.CreateRoundAwaiter m:
 				var roundStateAwaiter = new RoundStateAwaiter(m.Predicate, m.RoundId, m.Phase, cancellationToken);
