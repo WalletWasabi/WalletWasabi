@@ -346,6 +346,7 @@ public class HardwareWalletService : IDisposable
 			throw new HardwareWalletException(e.Message, e);
 		}
 
+		keyChain.MaxMiningFeeRate = maxMiningFeeRate;
 		return keyChain;
 	}
 

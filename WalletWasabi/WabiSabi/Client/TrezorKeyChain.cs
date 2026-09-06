@@ -41,6 +41,9 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 
 	public TrezorDevice Device => _device;
 
+	/// <summary>The cap the device was authorized with; set by the authorization, so it never drifts from what the device enforces.</summary>
+	public FeeRate? MaxMiningFeeRate { get; internal set; }
+
 	/// <summary>The device has to be asked, and it verifies every foreign input of the round before it signs.</summary>
 	public bool SigningTakesTime => true;
 
