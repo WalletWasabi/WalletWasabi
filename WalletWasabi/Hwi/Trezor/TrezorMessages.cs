@@ -192,6 +192,10 @@ public static class TrezorMessages
 	public static TrezorMessage Initialize() =>
 		TrezorMessage.Empty(TrezorMessageType.Initialize);
 
+	/// <summary>Answered with Features without touching the device state, unlike Initialize which resets the session.</summary>
+	public static TrezorMessage GetFeatures() =>
+		TrezorMessage.Empty(TrezorMessageType.GetFeatures);
+
 	// The device requests the referenced previous transaction piece by piece to verify the spent amounts
 	// of non-taproot inputs. TransactionType field numbers: version=1, inputs=2, bin_outputs=3, lock_time=4,
 	// inputs_cnt=6, outputs_cnt=7. All acks are wire-aliases of TxAck { tx = 1 }.
