@@ -2,6 +2,7 @@ using System.Reactive.Disposables;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using NBitcoin;
 using WalletWasabi.Extensions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -16,10 +17,12 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 {
 	[AutoNotify] private bool _enableCoinjoin;
 	[AutoNotify] private bool _isBridgeUnavailable;
+	[AutoNotify] private string? _addressToConfirm;
 
 	public DetectedHardwareWalletViewModel(UiContext uiContext, WalletCreationOptions.ConnectToHardwareWallet options) : base(uiContext)
 	{
-		var (walletName, device, _) = options;
+		var walletName = options.WalletName;
+		var device = options.Device;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);
@@ -37,7 +40,13 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 
 		EnableBack = false;
 
-		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with { EnableCoinjoin = EnableCoinjoin }));
+		// The device shows the first address of every account it hands out; the page shows the same address so
+		// the user can compare the two, which is what proves the wallet got the keys of this device.
+		NextCommand = ReactiveCommand.CreateFromTask(async () => await OnNextAsync(options with
+		{
+			EnableCoinjoin = EnableCoinjoin,
+			AddressToConfirm = new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString())
+		}));
 
 		NoCommand = ReactiveCommand.Create(OnNo);
 

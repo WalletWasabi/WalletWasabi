@@ -1,10 +1,13 @@
 using NBitcoin;
+using System.Collections.Generic;
+using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.Tests.UnitTests.Hwi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 using Xunit;
@@ -82,7 +85,7 @@ public class HardwareWalletServiceTests
 		using var service = new HardwareWalletService(Network.Main);
 
 		var exception = await Assert.ThrowsAsync<InvalidOperationException>(
-			() => service.EnableCoinJoinAsync(SoftwareWallet(), CancellationToken.None));
+			() => service.EnableCoinJoinAsync(SoftwareWallet(), addressToConfirm: null, CancellationToken.None));
 
 		Assert.Contains("hardware wallet", exception.Message);
 	}
@@ -257,5 +260,71 @@ public class HardwareWalletServiceTests
 
 		Assert.True(HardwareWalletService.TryValidateMaxRounds(10, out _));
 		Assert.True(HardwareWalletService.TryValidateMaxMiningFeeRate(150m, out _));
+	}
+
+	private static TrezorMessage PublicKey(ExtPubKey extPubKey) =>
+		new(TrezorMessageType.PublicKey, new ProtoWriter().WriteStringField(2, extPubKey.ToString(Network.Main)).ToBytes());
+
+	private static TrezorMessage Address(BitcoinAddress address) =>
+		new(TrezorMessageType.Address, new ProtoWriter().WriteStringField(1, address.ToString()).ToBytes());
+
+	private static BitcoinAddress SegwitAddress(KeyManager seed, uint index) =>
+		seed.SegwitExtPubKey.Derive(0).Derive(index).PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
+
+	private static string TemporaryWalletFilePath() =>
+		Path.Combine(Path.GetTempPath(), $"wasabi-import-{Guid.NewGuid()}", "wallet.json");
+
+	private sealed class ShownAddresses : List<BitcoinAddress>, IProgress<BitcoinAddress>
+	{
+		public void Report(BitcoinAddress address) => Add(address);
+	}
+
+	/// <summary>
+	/// The bridge is an unauthenticated local process, so an account it hands out is only saved once the
+	/// device has shown the first address of the account and the caller was told which address to expect.
+	/// </summary>
+	[Fact]
+	public async Task AnImportedAccountIsSavedOnlyAfterTheDeviceShowedItsAddressAsync()
+	{
+		var seed = KeyManager.CreateNew(out _, password: "", Network.Main);
+		var walletFilePath = TemporaryWalletFilePath();
+		using var service = new HardwareWalletService(Network.Main);
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(PublicKey(seed.SegwitExtPubKey));
+		transport.Responses.Enqueue(Address(SegwitAddress(seed, 0)));
+		using var device = new TrezorDevice(transport);
+		var shown = new ShownAddresses();
+
+		try
+		{
+			var keyManager = await service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, shown, CancellationToken.None);
+
+			Assert.Equal(TrezorMessageType.GetAddress, transport.Received.Last().MessageType);
+			Assert.Equal(SegwitAddress(seed, 0), Assert.Single(shown));
+			Assert.Equal(seed.SegwitExtPubKey, keyManager.SegwitExtPubKey);
+			Assert.True(File.Exists(walletFilePath));
+		}
+		finally
+		{
+			Directory.Delete(Path.GetDirectoryName(walletFilePath)!, recursive: true);
+		}
+	}
+
+	[Fact]
+	public async Task AnAccountWhoseAddressTheDeviceDoesNotShowIsNotSavedAsync()
+	{
+		var seed = KeyManager.CreateNew(out _, password: "", Network.Main);
+		var walletFilePath = TemporaryWalletFilePath();
+		using var service = new HardwareWalletService(Network.Main);
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(PublicKey(seed.SegwitExtPubKey));
+		transport.Responses.Enqueue(Address(SegwitAddress(seed, 1)));
+		using var device = new TrezorDevice(transport);
+
+		var exception = await Assert.ThrowsAsync<HardwareWalletException>(
+			() => service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, addressToConfirm: null, CancellationToken.None));
+
+		Assert.Contains("different address", exception.Message);
+		Assert.False(File.Exists(walletFilePath));
 	}
 }
