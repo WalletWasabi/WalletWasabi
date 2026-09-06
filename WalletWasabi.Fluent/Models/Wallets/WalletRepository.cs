@@ -145,7 +145,7 @@ public partial class WalletRepository : ReactiveObject
 		ArgumentNullException.ThrowIfNull(cancelToken);
 
 		var walletFilePath = _services.GetWalletFilePath(walletName);
-		var keyManager = await _services.HardwareWallets.ImportAsync(device, walletFilePath, options.EnableCoinjoin, cancelToken.Value);
+		var keyManager = await _services.HardwareWallets.ImportAsync(device, walletFilePath, options.EnableCoinjoin, options.AddressToConfirm, cancelToken.Value);
 
 		var result = new WalletSettingsModel(_services, keyManager, true);
 		return result;

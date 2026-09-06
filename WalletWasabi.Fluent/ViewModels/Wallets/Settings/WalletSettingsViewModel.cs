@@ -36,6 +36,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
     [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
+    [AutoNotify] private string? _addressToConfirm;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
@@ -130,7 +131,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             try
             {
                 using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(3));
-                await walletModel.EnableCoinjoinAsync(cts.Token);
+                await walletModel.EnableCoinjoinAsync(new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString()), cts.Token);
 
                 // The output provider reads the wallet's supported script types at construction, so restart to pick up the coinjoin account.
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
@@ -140,6 +141,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             {
                 Logger.LogError(ex);
                 await ShowErrorAsync("Enable coinjoin", ex.ToUserFriendlyString(), "Could not enable coinjoin.");
+            }
+            finally
+            {
+                AddressToConfirm = null;
             }
         });
 

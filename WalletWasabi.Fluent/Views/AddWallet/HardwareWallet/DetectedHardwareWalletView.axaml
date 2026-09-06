@@ -30,6 +30,12 @@
                   HorizontalAlignment="Center"
                   Content="Enable coinjoin (adds a coinjoin account, confirm on device)"
                   ToolTip.Tip="Adds a SLIP-25 coinjoin account so this device can take part in coinjoins. You can also enable it later in the wallet settings." />
+        <StackPanel Spacing="5" IsVisible="{Binding AddressToConfirm, Converter={x:Static ObjectConverters.IsNotNull}}">
+          <TextBlock Text="Check that the device shows this address:"
+                     HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+          <TextBlock Text="{Binding AddressToConfirm}"
+                     HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" />
+        </StackPanel>
         <StackPanel Spacing="5" IsVisible="{Binding IsBridgeUnavailable}">
           <TextBlock Text="Trezor Suite or Trezor Bridge must be running to enable coinjoin."
                      HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap"

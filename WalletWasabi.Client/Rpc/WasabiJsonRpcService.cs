@@ -145,14 +145,16 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, cts.Token).ConfigureAwait(false);
+		var verifiedAddresses = new List<string>();
+		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, new AddressCollector(verifiedAddresses), cts.Token).ConfigureAwait(false);
 		Global.WalletManager.AddWallet(keyManager);
 
 		return new JsonRpcResult
 		{
 			["walletName"] = walletName,
 			["masterKeyFingerprint"] = keyManager.MasterFingerprint?.ToString() ?? "",
-			["accounts"] = GetAccounts(keyManager)
+			["accounts"] = GetAccounts(keyManager),
+			["verifiedAddresses"] = verifiedAddresses.ToArray()
 		};
 	}
 
@@ -165,11 +167,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, cts.Token).ConfigureAwait(false);
+		var verifiedAddresses = new List<string>();
+		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, new AddressCollector(verifiedAddresses), cts.Token).ConfigureAwait(false);
 
 		return new JsonRpcResult
 		{
 			["accounts"] = GetAccounts(activeWallet.KeyManager),
+			["verifiedAddresses"] = verifiedAddresses.ToArray(),
 			// The coinjoin services read the wallet's accounts when the wallet starts, so a wallet that was
 			// already loaded has to be started again (restart the daemon) before it can join rounds.
 			["restartRequired"] = activeWallet.Loaded
@@ -281,6 +285,15 @@ public class WasabiJsonRpcService : IJsonRpcService
 		{
 			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with its device. Stop it with stopcoinjoin first.");
 		}
+	}
+
+	/// <summary>
+	/// The addresses the device was asked to show, so the caller can compare them with the device screen. Not
+	/// a <see cref="Progress{T}"/>: that reports asynchronously, after the result would already be built.
+	/// </summary>
+	private sealed class AddressCollector(List<string> addresses) : IProgress<BitcoinAddress>
+	{
+		public void Report(BitcoinAddress address) => addresses.Add(address.ToString());
 	}
 
 	[JsonRpcMethod("loadwallet", initializable: false)]
