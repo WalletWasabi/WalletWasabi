@@ -399,6 +399,34 @@ public class TrezorProtocolTests
 	}
 
 	[Fact]
+	public async Task ABridgeIsIdentifiedBeforeItIsAskedForDevicesAsync()
+	{
+		using var handler = new StubBridgeHandler("""{"version":"2.0.33"}""") { DeviceResponse = "[]" };
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		var devices = await transport.EnumerateAsync(CancellationToken.None);
+
+		Assert.Empty(devices);
+		Assert.Equal(["/", "/enumerate"], handler.Requests.Select(r => r.Path));
+	}
+
+	/// <summary>Any local process can hold the port; one that does not answer like a bridge is not asked anything else.</summary>
+	[Theory]
+	[InlineData("not json")]
+	[InlineData("[]")]
+	[InlineData("{\"hello\":\"world\"}")]
+	public async Task AListenerThatDoesNotAnswerLikeABridgeIsRefusedAsync(string infoResponse)
+	{
+		using var handler = new StubBridgeHandler(infoResponse) { DeviceResponse = "[]" };
+		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
+
+		var exception = await Assert.ThrowsAsync<TrezorException>(() => transport.EnumerateAsync(CancellationToken.None));
+
+		Assert.Contains("not a Trezor Bridge", exception.Message);
+		Assert.Equal("/", Assert.Single(handler.Requests).Path);
+	}
+
+	[Fact]
 	public async Task TheWireFormatIsAskedForOnceAsync()
 	{
 		using var handler = new StubBridgeHandler("""{"version":"2.0.33"}""") { DeviceResponse = SuccessFrame };
