@@ -84,7 +84,7 @@ public partial interface IWalletModel : INotifyPropertyChanged
 
 	bool CanEnableCoinjoin { get; }
 
-	Task EnableCoinjoinAsync(CancellationToken cancellationToken);
+	Task EnableCoinjoinAsync(IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken);
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -224,8 +224,8 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	// A hardware wallet with a free taproot slot can opt into coinjoin later by adding a coinjoin account.
 	public bool CanEnableCoinjoin => Wallet.KeyManager.IsHardwareWallet && !CoinJoinIsSignedByDevice && Wallet.KeyManager.TaprootExtPubKey is null;
 
-	public Task EnableCoinjoinAsync(CancellationToken cancellationToken) =>
-		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, cancellationToken);
+	public Task EnableCoinjoinAsync(IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken) =>
+		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, addressToConfirm, cancellationToken);
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 

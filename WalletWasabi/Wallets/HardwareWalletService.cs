@@ -171,7 +171,11 @@ public class HardwareWalletService : IDisposable
 	/// Also read the coinjoin account, so the device can sign coinjoins. Requires a confirmation on the device,
 	/// and is only possible for models that can act as a remote signer.
 	/// </param>
-	public async Task<KeyManager> ImportAsync(HwiEnumerateEntry device, string walletFilePath, bool enableCoinjoin, CancellationToken cancellationToken)
+	/// <param name="addressToConfirm">
+	/// Told each address the device is about to show, so the caller can put it next to the device for the
+	/// user to compare. Only an import over the bridge shows addresses.
+	/// </param>
+	public async Task<KeyManager> ImportAsync(HwiEnumerateEntry device, string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		if (device.Fingerprint is null)
 		{
@@ -184,7 +188,7 @@ public class HardwareWalletService : IDisposable
 
 		if (enableCoinjoin && CanSignCoinJoins(device))
 		{
-			return await ImportOverBridgeAsync(fingerprint, walletFilePath, genCts.Token).ConfigureAwait(false);
+			return await ImportOverBridgeAsync(fingerprint, walletFilePath, addressToConfirm, genCts.Token).ConfigureAwait(false);
 		}
 
 		var client = new HwiClient(_network);
@@ -199,18 +203,19 @@ public class HardwareWalletService : IDisposable
 	/// Imports the connected device without detecting it over HWI first, which a headless host cannot do.
 	/// Everything is read in one bridge session, so the device is only asked to confirm once.
 	/// </summary>
-	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, CancellationToken cancellationToken)
+	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		using var device = await AcquireAsync(masterFingerprint: null, cancellationToken).ConfigureAwait(false);
 		var fingerprint = await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false);
-		return await ReadAccountsAsync(device, fingerprint, walletFilePath, enableCoinjoin, cancellationToken).ConfigureAwait(false);
+		return await ReadAccountsAsync(device, fingerprint, walletFilePath, enableCoinjoin, addressToConfirm, cancellationToken).ConfigureAwait(false);
 	}
 
 	/// <summary>
 	/// Adds a coinjoin account to an already imported watch-only wallet, so it can start signing coinjoins.
-	/// Requires a confirmation on the device. No-op if the wallet already has one.
+	/// Requires a confirmation on the device, which then shows the first address of the account for the user
+	/// to check, as an import does. No-op if the wallet already has one.
 	/// </summary>
-	public async Task EnableCoinJoinAsync(KeyManager keyManager, CancellationToken cancellationToken)
+	public async Task EnableCoinJoinAsync(KeyManager keyManager, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		if (!keyManager.IsHardwareWallet)
 		{
@@ -224,6 +229,7 @@ public class HardwareWalletService : IDisposable
 		using var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
 		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(_network);
 		var coinJoinExtPubKey = await device.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
+		await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
 
 		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
 	}
@@ -288,11 +294,7 @@ public class HardwareWalletService : IDisposable
 				// A coinjoin account address needs the UnlockPath that only the bridge can send, and the bridge
 				// holds the device anyway - so both accounts of such a wallet are verified over the bridge.
 				using var device = await AcquireAsync(fingerprint, linkedCts.Token).ConfigureAwait(false);
-				var shownAddress = await device.ShowAddressAsync(fullKeyPath, _network, linkedCts.Token).ConfigureAwait(false);
-				if (shownAddress != expectedAddress.ToString())
-				{
-					throw new InvalidOperationException("The device shows a different address than the wallet. Do not use either of them.");
-				}
+				await ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token).ConfigureAwait(false);
 				return;
 			}
 
@@ -401,26 +403,33 @@ public class HardwareWalletService : IDisposable
 		}
 	}
 
-	private async Task<KeyManager> ImportOverBridgeAsync(HDFingerprint fingerprint, string walletFilePath, CancellationToken cancellationToken)
+	private async Task<KeyManager> ImportOverBridgeAsync(HDFingerprint fingerprint, string walletFilePath, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		// Read the regular account from the bridge in the same session as the coinjoin account, so HWI and the
 		// bridge do not contend for the device. If the bridge is unavailable the import fails with a clear error
 		// instead of silently dropping coinjoin.
 		using var device = await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false);
-		return await ReadAccountsAsync(device, fingerprint, walletFilePath, enableCoinjoin: true, cancellationToken).ConfigureAwait(false);
+		return await ReadAccountsAsync(device, fingerprint, walletFilePath, enableCoinjoin: true, addressToConfirm, cancellationToken).ConfigureAwait(false);
 	}
 
-	private async Task<KeyManager> ReadAccountsAsync(TrezorDevice device, HDFingerprint fingerprint, string walletFilePath, bool enableCoinjoin, CancellationToken cancellationToken)
+	/// <summary>
+	/// Reads the accounts and has the device show the first address of each before the wallet is written.
+	/// The bridge is an unauthenticated local process, so nothing it answers is trusted until the device
+	/// itself has shown an address derived from it. A failed check leaves no wallet file behind.
+	/// </summary>
+	internal async Task<KeyManager> ReadAccountsAsync(TrezorDevice device, HDFingerprint fingerprint, string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
 		var segwitAccountKeyPath = KeyManager.GetAccountKeyPath(_network, ScriptPubKeyType.Segwit);
 		var segwitExtPubKey = await device.GetSegwitAccountXpubAsync(segwitAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
+		await ConfirmAccountOnDeviceAsync(device, segwitAccountKeyPath, segwitExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
 
 		KeyManager keyManager;
 		if (enableCoinjoin)
 		{
 			var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(_network);
 			var coinJoinExtPubKey = await device.GetCoinJoinXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
-			keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, coinJoinExtPubKey, null, null, _network, walletFilePath, coinJoinAccountKeyPath);
+			await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
+			keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, coinJoinExtPubKey, null, null, _network, taprootAccountKeyPath: coinJoinAccountKeyPath);
 
 			// Only coins of the coinjoin account can join rounds, so hand out its addresses by default; the
 			// regular account stays available for deposits that should not be coinjoined.
@@ -428,11 +437,35 @@ public class HardwareWalletService : IDisposable
 		}
 		else
 		{
-			keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, _network, walletFilePath);
+			keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, _network);
 		}
 
 		keyManager.SetIcon(WalletType.Trezor);
+		keyManager.SetFilePath(walletFilePath);
+		keyManager.ToFile();
 		return keyManager;
+	}
+
+	/// <summary>Has the device show the first receive address of an account, derived from the xpub just read the way the wallet derives it.</summary>
+	private Task ConfirmAccountOnDeviceAsync(TrezorDevice device, KeyPath accountKeyPath, ExtPubKey accountExtPubKey, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	{
+		var fullKeyPath = accountKeyPath.Derive(0).Derive(0);
+		var expectedAddress = accountExtPubKey.Derive(0).Derive(0).PubKey.GetAddress(fullKeyPath.GetScriptTypeFromKeyPath(), _network);
+		return ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm, cancellationToken);
+	}
+
+	/// <summary>
+	/// Shows the address on the device and checks it against the one the wallet derived. The user comparing
+	/// the two screens is what proves the keys; the check here only catches a transport that showed nothing.
+	/// </summary>
+	private async Task ConfirmAddressOnDeviceAsync(TrezorDevice device, KeyPath fullKeyPath, BitcoinAddress expectedAddress, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
+	{
+		addressToConfirm?.Report(expectedAddress);
+		var shownAddress = await device.ShowAddressAsync(fullKeyPath, _network, cancellationToken).ConfigureAwait(false);
+		if (shownAddress != expectedAddress.ToString())
+		{
+			throw new HardwareWalletException("The device shows a different address than the wallet. Do not use either of them.");
+		}
 	}
 
 	private async Task<PSBT> SignOverBridgeAsync(KeyManager keyManager, PSBT psbt, SmartTransaction transaction, CancellationToken cancellationToken)
