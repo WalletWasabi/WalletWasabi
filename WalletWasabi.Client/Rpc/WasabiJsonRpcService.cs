@@ -133,9 +133,12 @@ public class WasabiJsonRpcService : IJsonRpcService
 		];
 	}
 
-	/// <summary>Imports the connected hardware wallet, which a headless host cannot detect over HWI first.</summary>
+	/// <summary>
+	/// Imports the connected hardware wallet, which a headless host cannot detect over HWI first. The coinjoin
+	/// account is only read when asked for, as in the GUI: it turns the wallet into a remote signer.
+	/// </summary>
 	[JsonRpcMethod("importhardwarewallet", initializable: false)]
-	public async Task<object> ImportHardwareWalletAsync(string walletName, bool enableCoinjoin = true)
+	public async Task<object> ImportHardwareWalletAsync(string walletName, bool enableCoinjoin = false)
 	{
 		AssertNoDeviceCoinJoinInProgress();
 		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
