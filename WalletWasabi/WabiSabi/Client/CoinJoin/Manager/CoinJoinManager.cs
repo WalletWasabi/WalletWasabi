@@ -288,27 +288,11 @@ public class CoinJoinManager : BackgroundService
 
 	/// <summary>
 	/// Asks the signing device to authorize a batch of coinjoin rounds, which is also what gives the wallet
-	/// its key chain. This owns the whole policy - the fee cap sanity check and how long the user gets to
-	/// confirm - so that a GUI and a headless client behave identically.
+	/// its key chain. This owns how long the user gets to confirm, so that a GUI and a headless client
+	/// behave identically. The fee cap the user confirms travels with the key chain into every round.
 	/// </summary>
-	/// <exception cref="CoinJoinClientException">The device would refuse every round this coordinator runs.</exception>
 	public async Task AuthorizeDeviceAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
-		// Before asking anyone to approve anything: if every round this coordinator currently runs pays more
-		// than the wallet's authorized fee cap, the signing device would refuse each of them right after the
-		// user walked over and confirmed the authorization. Check the rounds already polled - opportunistically,
-		// the snapshot is legitimately empty on a cold start - and fail early with the reason instead. The
-		// per-round check in CoinJoinClient stays authoritative.
-		var authorizedFeeCap = new FeeRate(wallet.KeyManager.CoinJoinDeviceMaxMiningFeeRate);
-		var knownRounds = await _roundStatusProvider.GetCurrentRoundsAsync(cancellationToken).ConfigureAwait(false);
-		if (knownRounds.Count > 0 && knownRounds.All(r => r.CoinjoinState.Parameters.MiningFeeRate > authorizedFeeCap))
-		{
-			throw new CoinJoinClientException(
-				CoinjoinError.MiningFeeRateTooHigh,
-				$"Every round of this coordinator currently pays more than the authorized {authorizedFeeCap.SatoshiPerByte} sat/vByte, "
-				+ "so the signing device would refuse all of them. Raise the fee limit in the coinjoin settings or wait for lower fees.");
-		}
-
 		using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
 		authCts.CancelAfter(HardwareWalletService.AuthorizationTimeout);
 		await wallet
@@ -887,4 +871,11 @@ public class CoinJoinManager : BackgroundService
 	}
 }
 
-public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);
+public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining)
+{
+	/// <summary>The configuration this signer can honour: never a higher fee rate than its device was authorized with.</summary>
+	public CoinJoinConfiguration CappedBy(IKeyChain keyChain) =>
+		keyChain.MaxMiningFeeRate is { } cap && cap.SatoshiPerByte < MaxCoinJoinMiningFeeRate
+			? this with { MaxCoinJoinMiningFeeRate = cap.SatoshiPerByte }
+			: this;
+}
