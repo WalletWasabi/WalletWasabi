@@ -90,7 +90,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		walletCoinjoinModel.WhenAnyValue(x => x.DeviceAuthorization)
 					   .ObserveOn(RxApp.MainThreadScheduler)
-					   .Do(status =>
+					   .Subscribe(status =>
 					   {
 						   // Point the user at the device while it waits for the hold-to-confirm, acknowledge
 						   // the confirmation, and tell them when the device declined. Confirmed is transient:
@@ -104,8 +104,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 							   DeviceAuthorizationStatus.Failed => DeviceAuthorizationFailedMessage,
 							   _ => CurrentStatus,
 						   };
-					   })
-					   .Subscribe();
+					   });
 
 		wallet.Privacy.IsWalletPrivate
 					  .BindTo(this, x => x.AreAllCoinsPrivate);
@@ -115,7 +114,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 			? State.WaitingForAutoStart
 			: State.StoppedOrPaused;
 
-		if (wallet.CoinJoinNeedsDeviceAuthorization)
+		if (wallet.HasSeparateCoinJoinAccount)
 		{
 			// Starting coinjoin requires a confirmation on the device, so it never starts automatically.
 			initialState = State.StoppedOrPaused;
@@ -152,22 +151,15 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		{
 			var overridePlebStop = _stateMachine.IsInState(State.PlebStopActive);
 
-			if (wallet.CoinJoinNeedsDeviceAuthorization)
-			{
-				// The same dialog flow users know from sending with a hardware wallet: Continue,
-				// then hold-to-confirm on the device. The coinjoin only starts when the device agreed.
-				var authorized = await UiContext.Navigate().To().CoinJoinAuthDialog(
+			// The same dialog flow users know from sending with a hardware wallet: Continue,
+			// then hold-to-confirm on the device. The coinjoin only starts when the device agreed.
+			if (wallet.HasSeparateCoinJoinAccount
+				&& !await UiContext.Navigate().To().CoinJoinAuthDialog(
 					walletCoinjoinModel,
 					wallet.Settings.WalletType,
 					walletInstance.KeyManager.CoinJoinDeviceMaxRounds,
-					walletInstance.KeyManager.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync();
-
-				if (!authorized)
-				{
-					return;
-				}
-
-				await walletCoinjoinModel.StartAsync(stopWhenAllMixed: !IsAutoCoinJoinEnabled, overridePlebStop);
+					walletInstance.KeyManager.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync())
+			{
 				return;
 			}
 
@@ -231,10 +223,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		});
 		CoinJoinPaymentsCommand = ReactiveCommand.Create(() => UiContext.Navigate(NavigationTarget.DialogScreen).To().CoinJoinPayments(_wallet, _walletInstance));
 
-		// The device firmware caps how much value may leave the wallet in a preauthorized coinjoin (the fee
-		// budget), so a payment output to a foreign address can never be signed: don't offer the feature.
-		AreCoinJoinPaymentsSupported = wallet.SupportsCoinJoinPayments;
-
 		IsCoinjoinSupported = _wallet.Coinjoin is not null;
 	}
 
@@ -282,7 +270,6 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	public ICommand StopPauseCommand { get; }
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
 	public ICommand CoinJoinPaymentsCommand { get; }
-	public bool AreCoinJoinPaymentsSupported { get; }
 
 	private void ConfigureStateMachine()
 	{
