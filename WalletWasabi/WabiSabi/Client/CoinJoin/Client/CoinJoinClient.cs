@@ -200,7 +200,7 @@ public class CoinJoinClient
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					myCoins = info.MySignedCoins;
-					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount, info.MiningFeeRate);
+					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount);
 
 					Logger.LogInfo(FormatLog("Waiting for the blame round.", currentRoundState));
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
@@ -722,12 +722,6 @@ public class CoinJoinClient
 				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
 			}
 
-			if (restrictions.MiningFeeRate != currentMiningFeeRate)
-			{
-				Logger.LogWarning(FormatLog($"Mining fee rate is {currentMiningFeeRate}. Value {restrictions.MiningFeeRate} was expected. Is coordinator cheating?", roundState));
-				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid mining fee rate.");
-			}
-
 			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
 			{
 				if (!restrictions.PreviousRoundSignedCoins.Any(c => c.Outpoint == inputCoin.Outpoint))
@@ -924,5 +918,5 @@ public class CoinJoinClient
 		public static readonly UnrestrictedRound Instance = new();
 	}
 
-	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount, FeeRate MiningFeeRate) : IRoundRestrictions;
+	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount) : IRoundRestrictions;
 }
