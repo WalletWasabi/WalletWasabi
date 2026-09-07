@@ -36,9 +36,9 @@ public class StartupTask
 		{
 			blockchainInfo = await RpcClient.GetBlockchainInfoAsync(cancellationToken);
 		}
-		catch (Exception)
+		catch (Exception ex)
 		{
-			Logger.LogError("Could not connect to Bitcoin Node RPC.");
+			Logger.LogError("Could not connect to Bitcoin Node RPC.", ex);
 			throw;
 		}
 
