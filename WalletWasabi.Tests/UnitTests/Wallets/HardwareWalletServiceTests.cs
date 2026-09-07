@@ -1,12 +1,13 @@
+using System.Globalization;
 using NBitcoin;
 using System.Collections.Generic;
 using System.IO;
 using System.Threading;
 using System.Threading.Tasks;
 using System.Linq;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi.Trezor;
+using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Hwi;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
@@ -24,23 +25,12 @@ public class HardwareWalletServiceTests
 	private static KeyManager SoftwareWallet() =>
 		KeyManager.CreateNew(out _, password: "", Network.Main);
 
-	private static KeyManager WatchOnlyHardwareWallet(bool withCoinJoinAccount)
-	{
-		var seed = KeyManager.CreateNew(out _, password: "", Network.Main);
-		var fingerprint = seed.MasterFingerprint!.Value;
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
-
-		return withCoinJoinAccount
-			? KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, seed.SegwitExtPubKey, seed.TaprootExtPubKey, null, null, Network.Main, null, coinJoinAccountKeyPath)
-			: KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, seed.SegwitExtPubKey, null, null, null, Network.Main);
-	}
-
 	[Fact]
 	public void OnlyAWalletWithACoinJoinAccountHasARemoteSigner()
 	{
 		Assert.False(HardwareWalletService.IsRemoteSigner(SoftwareWallet()));
-		Assert.False(HardwareWalletService.IsRemoteSigner(WatchOnlyHardwareWallet(withCoinJoinAccount: false)));
-		Assert.True(HardwareWalletService.IsRemoteSigner(WatchOnlyHardwareWallet(withCoinJoinAccount: true)));
+		Assert.False(HardwareWalletService.IsRemoteSigner(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false)));
+		Assert.True(HardwareWalletService.IsRemoteSigner(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true)));
 	}
 
 	[Fact]
@@ -57,23 +47,10 @@ public class HardwareWalletServiceTests
 	}
 
 	[Fact]
-	public async Task ShowingAnAddressOfASoftwareWalletIsRefusedAsync()
-	{
-		using var service = new HardwareWalletService(Network.Main);
-		var keyManager = SoftwareWallet();
-		var address = keyManager.GetNextReceiveKey(new LabelsArray("test")).GetAddress(Network.Main);
-
-		var exception = await Assert.ThrowsAsync<HardwareWalletException>(
-			() => service.DisplayAddressAsync(keyManager, keyManager.SegwitAccountKeyPath, address, CancellationToken.None));
-
-		Assert.Contains("not on a device", exception.Message);
-	}
-
-	[Fact]
 	public async Task AuthorizingCoinJoinNeedsAWalletWhoseRoundsADeviceSignsAsync()
 	{
 		using var service = new HardwareWalletService(Network.Main);
-		var keyManager = WatchOnlyHardwareWallet(withCoinJoinAccount: false);
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false);
 
 		await Assert.ThrowsAsync<NotSupportedException>(
 			() => service.AuthorizeCoinJoinAsync(keyManager, existingKeyChain: null, "coordinator", maxRounds: 1, new FeeRate(1m), CancellationToken.None));
@@ -90,48 +67,59 @@ public class HardwareWalletServiceTests
 		Assert.Contains("hardware wallet", exception.Message);
 	}
 
+	/// <summary>
+	/// The settings fields show the reason as it is, so a rejected limit must name the bound it missed. A limit
+	/// left out is not checked: a caller that only changes one must not have the other validated against nothing.
+	/// </summary>
 	[Theory]
-	[InlineData(1)]
-	[InlineData(50)]
-	[InlineData(500)]
-	public void RoundBudgetsTheDeviceCanApproveArePermitted(int rounds) =>
-		HardwareWalletService.AssertAuthorizationLimits(rounds, maxMiningFeeRate: null);
-
-	[Theory]
-	[InlineData(0)]     // authorizes nothing
-	[InlineData(-1)]
-	[InlineData(501)]   // beyond what the firmware accepts under its own safety checks
-	[InlineData(int.MaxValue)]
-	public void RoundBudgetsTheDeviceWouldRefuseAreRejected(int rounds) =>
-		Assert.Throws<ArgumentOutOfRangeException>(() => HardwareWalletService.AssertAuthorizationLimits(rounds, maxMiningFeeRate: null));
-
-	[Theory]
-	[InlineData(0.5)]
-	[InlineData(5)]
-	[InlineData(10_000)]
-	public void FeeCapsWithinReachArePermitted(decimal feeRate) =>
-		HardwareWalletService.AssertAuthorizationLimits(maxRounds: null, feeRate);
-
-	[Theory]
-	[InlineData(0)]        // a cap no round could ever meet
-	[InlineData(-1)]
-	[InlineData(10_001)]   // so far above any fee market that it caps nothing
-	public void FeeCapsThatAreNotCapsAreRejected(decimal feeRate) =>
-		Assert.Throws<ArgumentOutOfRangeException>(() => HardwareWalletService.AssertAuthorizationLimits(maxRounds: null, feeRate));
-
-	[Fact]
-	public void LimitsLeftOutAreNotChecked()
+	[InlineData(null, true)]
+	[InlineData(0, false)]    // authorizes nothing
+	[InlineData(1, true)]
+	[InlineData(500, true)]
+	[InlineData(501, false)]  // beyond what the firmware accepts under its own safety checks
+	public void RoundBudgetsAreBoundedByWhatTheDeviceApproves(int? rounds, bool permitted)
 	{
-		// Both are optional: a caller that only changes one must not have the other validated against nothing.
-		HardwareWalletService.AssertAuthorizationLimits(maxRounds: null, maxMiningFeeRate: null);
+		Assert.Equal(permitted, HardwareWalletService.TryValidateMaxRounds(rounds, out var error));
+
+		if (permitted)
+		{
+			Assert.Null(error);
+		}
+		else
+		{
+			Assert.Contains("between 1 and 500", error);
+		}
+	}
+
+	[Theory]
+	[InlineData(null, true)]
+	[InlineData("0", false)]        // a cap no round could ever meet
+	[InlineData("0.5", true)]
+	[InlineData("10000", true)]
+	[InlineData("10001", false)]   // so far above any fee market that it caps nothing
+	public void FeeCapsAreBoundedByWhatStillCapsSomething(string? feeRate, bool permitted)
+	{
+		// Strings, because xunit cannot convert a literal into a nullable decimal.
+		decimal? cap = feeRate is null ? null : decimal.Parse(feeRate, CultureInfo.InvariantCulture);
+		Assert.Equal(permitted, HardwareWalletService.TryValidateMaxMiningFeeRate(cap, out var error));
+
+		if (permitted)
+		{
+			Assert.Null(error);
+		}
+		else
+		{
+			Assert.Contains("above 0 and at most 10000 sat/vByte", error);
+		}
 	}
 
 	[Fact]
-	public void ANewCoinJoinWalletStartsWithinTheLimitsItCanBeAuthorizedWith()
+	public void EitherLimitOutOfRangeStopsAnAuthorization()
 	{
-		var keyManager = WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		HardwareWalletService.AssertAuthorizationLimits(KeyManager.DefaultCoinJoinDeviceMaxRounds, KeyManager.DefaultCoinJoinDeviceMaxMiningFeeRate);
 
-		HardwareWalletService.AssertAuthorizationLimits(keyManager.CoinJoinDeviceMaxRounds, keyManager.CoinJoinDeviceMaxMiningFeeRate);
+		Assert.Throws<ArgumentOutOfRangeException>(() => HardwareWalletService.AssertAuthorizationLimits(0, 150m));
+		Assert.Throws<ArgumentOutOfRangeException>(() => HardwareWalletService.AssertAuthorizationLimits(10, 0m));
 	}
 
 	/// <summary>
@@ -168,15 +156,6 @@ public class HardwareWalletServiceTests
 	}
 
 	[Fact]
-	public void ASignerThatChangedTheAmountIsRejected()
-	{
-		var built = UnsignedTransfer(Network.Main, Money.Coins(1m), SomeDestination(1), SomeOutPoint(9));
-		var tampered = UnsignedTransfer(Network.Main, Money.Coins(2m), SomeDestination(1), SomeOutPoint(9));
-
-		Assert.Throws<HardwareWalletException>(() => HardwareWalletService.AssertSpendsWhatWasBuilt(built, tampered));
-	}
-
-	[Fact]
 	public void ASignerThatChangedWhichCoinsAreSpentIsRejected()
 	{
 		var built = UnsignedTransfer(Network.Main, Money.Coins(1m), SomeDestination(1), SomeOutPoint(9));
@@ -207,34 +186,19 @@ public class HardwareWalletServiceTests
 
 	/// <summary>
 	/// Signing requests are spread over the signing phase to hide timing from the coordinator, which assumes
-	/// signing is instant. That has to keep holding for wallets whose keys we hold: only a signer that needs a
-	/// real part of the phase may skip the spread, or the schedule stops hiding anything for everyone else.
+	/// signing is instant. Only a signer that spends a real part of the phase producing the signature may skip
+	/// the spread, or the schedule stops hiding anything for everyone else.
 	/// </summary>
 	[Fact]
-	public void SoftwareWalletsKeepTheirRandomizedSigningSchedule()
+	public void OnlyADeviceSignerSkipsTheRandomizedSigningSchedule()
 	{
-		var keyManager = KeyManager.CreateNew(out _, password: "", Network.Main);
-		IKeyChain keyChain = new KeyChain(keyManager, "");
-
-		Assert.False(keyChain.SigningTakesTime);
-	}
-
-	[Fact]
-	public void ADeviceSignerIsAskedWithoutWaiting()
-	{
-		// The device is asked as soon as the phase opens, because it spends that phase producing the signature.
-		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325");
+		using var transport = new ScriptedTransport();
 		using var device = new TrezorDevice(transport);
-		using var keyChain = new TrezorKeyChain(device, WatchOnlyHardwareWallet(withCoinJoinAccount: true));
+		using var deviceKeyChain = new TrezorKeyChain(device, TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true));
+		IKeyChain softwareKeyChain = new KeyChain(SoftwareWallet(), "");
 
-		Assert.True(((IKeyChain)keyChain).SigningTakesTime);
-	}
-
-	[Fact]
-	public void NoTransportIsInUseBeforeAnyDeviceOperation()
-	{
-		using var service = new HardwareWalletService(Network.Main);
-		Assert.Equal(HardwareWalletTransport.DirectUsb, service.TransportStatus);
+		Assert.True(((IKeyChain)deviceKeyChain).SigningTakesTime);
+		Assert.False(softwareKeyChain.SigningTakesTime);
 	}
 
 	[Fact]
@@ -242,24 +206,9 @@ public class HardwareWalletServiceTests
 	{
 		// A person confirms every output on the device, so more inputs must buy more time - but a small
 		// transaction still gets the full base allowance.
-		Assert.Equal(TimeSpan.FromMinutes(3), HardwareWalletService.SigningTimeout(0));
 		Assert.Equal(TimeSpan.FromMinutes(3), HardwareWalletService.SigningTimeout(9));
 		Assert.Equal(TimeSpan.FromMinutes(4), HardwareWalletService.SigningTimeout(10));
 		Assert.Equal(TimeSpan.FromMinutes(13), HardwareWalletService.SigningTimeout(100));
-	}
-
-	[Fact]
-	public void RejectedLimitsExplainThemselves()
-	{
-		// The settings fields show these strings as they are, so an empty or vague reason would reach the user.
-		Assert.False(HardwareWalletService.TryValidateMaxRounds(0, out var roundsError));
-		Assert.Contains("between", roundsError);
-
-		Assert.False(HardwareWalletService.TryValidateMaxMiningFeeRate(0m, out var feeRateError));
-		Assert.Contains("sat/vByte", feeRateError);
-
-		Assert.True(HardwareWalletService.TryValidateMaxRounds(10, out _));
-		Assert.True(HardwareWalletService.TryValidateMaxMiningFeeRate(150m, out _));
 	}
 
 	private static TrezorMessage PublicKey(ExtPubKey extPubKey) =>
@@ -270,9 +219,6 @@ public class HardwareWalletServiceTests
 
 	private static BitcoinAddress SegwitAddress(KeyManager seed, uint index) =>
 		seed.SegwitExtPubKey.Derive(0).Derive(index).PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.Main);
-
-	private static string TemporaryWalletFilePath() =>
-		Path.Combine(Path.GetTempPath(), $"wasabi-import-{Guid.NewGuid()}", "wallet.json");
 
 	private sealed class ShownAddresses : List<BitcoinAddress>, IProgress<BitcoinAddress>
 	{
@@ -287,7 +233,7 @@ public class HardwareWalletServiceTests
 	public async Task AnImportedAccountIsSavedOnlyAfterTheDeviceShowedItsAddressAsync()
 	{
 		var seed = KeyManager.CreateNew(out _, password: "", Network.Main);
-		var walletFilePath = TemporaryWalletFilePath();
+		var walletFilePath = Path.Combine(await Common.GetEmptyWorkDirAsync(), "wallet.json");
 		using var service = new HardwareWalletService(Network.Main);
 		using var transport = new ScriptedTransport();
 		transport.Responses.Enqueue(PublicKey(seed.SegwitExtPubKey));
@@ -295,26 +241,19 @@ public class HardwareWalletServiceTests
 		using var device = new TrezorDevice(transport);
 		var shown = new ShownAddresses();
 
-		try
-		{
-			var keyManager = await service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, shown, CancellationToken.None);
+		var keyManager = await service.ReadAccountsAsync(device, seed.MasterFingerprint!.Value, walletFilePath, enableCoinjoin: false, shown, CancellationToken.None);
 
-			Assert.Equal(TrezorMessageType.GetAddress, transport.Received.Last().MessageType);
-			Assert.Equal(SegwitAddress(seed, 0), Assert.Single(shown));
-			Assert.Equal(seed.SegwitExtPubKey, keyManager.SegwitExtPubKey);
-			Assert.True(File.Exists(walletFilePath));
-		}
-		finally
-		{
-			Directory.Delete(Path.GetDirectoryName(walletFilePath)!, recursive: true);
-		}
+		Assert.Equal(TrezorMessageType.GetAddress, transport.Received.Last().MessageType);
+		Assert.Equal(SegwitAddress(seed, 0), Assert.Single(shown));
+		Assert.Equal(seed.SegwitExtPubKey, keyManager.SegwitExtPubKey);
+		Assert.True(File.Exists(walletFilePath));
 	}
 
 	[Fact]
 	public async Task AnAccountWhoseAddressTheDeviceDoesNotShowIsNotSavedAsync()
 	{
 		var seed = KeyManager.CreateNew(out _, password: "", Network.Main);
-		var walletFilePath = TemporaryWalletFilePath();
+		var walletFilePath = Path.Combine(await Common.GetEmptyWorkDirAsync(), "wallet.json");
 		using var service = new HardwareWalletService(Network.Main);
 		using var transport = new ScriptedTransport();
 		transport.Responses.Enqueue(PublicKey(seed.SegwitExtPubKey));

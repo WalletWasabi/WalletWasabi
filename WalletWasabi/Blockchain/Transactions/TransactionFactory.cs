@@ -1,18 +1,9 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
 using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Trezor;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -147,14 +138,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			// Spending the SLIP-25 coinjoin account happens under an UnlockPath session on the device,
-			// which forbids own key paths outside that account: its change must return to it.
 			bool spendsCoinJoinAccountOnly = KeyManager.IsTrezorCoinJoinWallet()
 				&& allowedSmartCoinInputs.All(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath());
-
-			changeHdPubKey = spendsCoinJoinAccountOnly
-				? KeyManager.GetNextCoinJoinAccountChangeKey()
-				: KeyManager.GetNextChangeKey();
+			changeHdPubKey = KeyManager.GetNextChangeKey(coinJoinAccount: spendsCoinJoinAccountOnly);
 
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
@@ -327,9 +313,8 @@ public class TransactionFactory
 	}
 
 	/// <summary>
-	/// A Trezor coinjoin wallet has two accounts the device unlocks separately: the segwit account (HWI)
-	/// and the SLIP-25 coinjoin account (bridge, per-authorization). One transaction can only be signed
-	/// from one of them, so coin selection must never mix them.
+	/// A Trezor coinjoin wallet signs everything over the bridge, but the device unlocks the segwit and the SLIP-25
+	/// coinjoin account separately, so one transaction can only be signed from one of them: never mix them.
 	/// </summary>
 	private List<SmartCoin> RestrictToSingleTrezorAccount(List<SmartCoin> allowedSmartCoinInputs, long totalAmount)
 	{
@@ -345,9 +330,7 @@ public class TransactionFactory
 			return allowedSmartCoinInputs;
 		}
 
-		// Prefer the regular account so the coinjoined (private) coins stay untouched; fall back to the
-		// coinjoin account when only it can cover the payment. This also narrows mixed selections coming
-		// from the GUI's automatic coin selection.
+		// Prefer the regular account so the coinjoined (private) coins stay untouched; fall back to the coinjoin account when only it covers the payment.
 		if (otherCoins.Sum(x => x.Amount.Satoshi) >= totalAmount)
 		{
 			return otherCoins;

@@ -1,29 +1,18 @@
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
 using System.Text.Json;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Hwi.Trezor;
 
 /// <summary>
-/// Talks to a Trezor device through the Trezor Bridge (trezord) local HTTP API.
-/// The bridge is provided by a running Trezor Suite or a standalone trezord process.
-/// Messages are framed as: message type (u16, big endian) || payload length (u32, big endian) || protobuf payload,
-/// hex-encoded in the HTTP body.
+/// Talks to a Trezor device through the Trezor Bridge local HTTP API (Trezor Suite's, or a standalone trezord).
+/// Frames are message type (u16 BE) || payload length (u32 BE) || protobuf payload, hex-encoded in the body.
 ///
-/// The bridge is trusted with nothing. It is plain HTTP on localhost without authentication, so any process
-/// running as this user can bind its port and answer; the Origin header it wants is a browser courtesy, not
-/// a credential. The probe on "/" tells a bridge apart from an unrelated listener and is not a security
-/// boundary. What keeps funds safe is the device: account keys are proven by an address the device shows at
-/// import, the firmware enforces the user-approved rounds, fee cap and SLIP-25 isolation on every SignTx, and
-/// coinjoin signatures are verified before they leave the wallet. What a process owning the port can do is
-/// spend the coinjoin authorization the user confirmed, within its caps and for as long as the wallet keeps
-/// its key chain (until the wallet stops or the round budget is used up), which is the same power such a
-/// process already has over Trezor Suite.
+/// The bridge is trusted with nothing: it is unauthenticated HTTP on localhost, any local process can hold its
+/// port, and the probe on "/" only tells a bridge apart from an unrelated listener. The device keeps funds safe:
+/// imported account keys are proven by an address it shows, and the firmware enforces the confirmed rounds, fee
+/// cap and SLIP-25 isolation on every SignTx. A process owning the port can at most spend the authorization the
+/// user confirmed, within its caps - the power it already has over Trezor Suite.
 /// </summary>
 public class TrezorBridgeTransport : IDisposable
 {
@@ -31,34 +20,25 @@ public class TrezorBridgeTransport : IDisposable
 	public static readonly string[] DefaultBridgeUris = ["http://127.0.0.1:21325", "http://127.0.0.1:21328"];
 
 #pragma warning disable CA2000 // Dispose objects before losing scope - the HttpClient owns the handler and disposes it.
-	public TrezorBridgeTransport(string bridgeUri)
-		: this(bridgeUri, new SocketsHttpHandler())
-	{
-	}
-#pragma warning restore CA2000
-
-	internal TrezorBridgeTransport(string bridgeUri, HttpMessageHandler handler)
+	public TrezorBridgeTransport(string bridgeUri, HttpMessageHandler? handler = null)
 	{
 		_bridgeUri = bridgeUri;
-		_httpClient = CreateHttpClient(handler);
-	}
-
-	private static HttpClient CreateHttpClient(HttpMessageHandler handler)
-	{
-		var httpClient = new HttpClient(handler, disposeHandler: true)
+		_httpClient = new HttpClient(handler ?? new SocketsHttpHandler(), disposeHandler: true)
 		{
 			// Device calls block until the user interacts with the device, do not time them out here.
 			Timeout = Timeout.InfiniteTimeSpan
 		};
 
 		// Standalone trezord rejects requests without a whitelisted origin with 403.
-		httpClient.DefaultRequestHeaders.Add("Origin", "https://wallet.trezor.io");
-		return httpClient;
+		_httpClient.DefaultRequestHeaders.Add("Origin", "https://wallet.trezor.io");
 	}
+#pragma warning restore CA2000
 
 	private readonly string _bridgeUri;
 	private readonly HttpClient _httpClient;
-	private BridgeWireFormat _wireFormat = BridgeWireFormat.Unknown;
+
+	/// <summary>Whether this bridge wants device frames wrapped in a JSON envelope (trezord-node in Trezor Suite) rather than bare hex (trezord-go); null until asked.</summary>
+	private bool? _protocolMessages;
 
 	public record BridgeDevice(string Path, string? Session);
 
@@ -70,7 +50,7 @@ public class TrezorBridgeTransport : IDisposable
 		return json.RootElement.EnumerateArray()
 			.Select(device => new BridgeDevice(
 				device.GetProperty("path").GetString()!,
-				device.GetProperty("session").ValueKind == JsonValueKind.Null ? null : device.GetProperty("session").GetString()))
+				device.GetProperty("session").GetString()))
 			.ToList();
 	}
 
@@ -95,32 +75,23 @@ public class TrezorBridgeTransport : IDisposable
 		message.Payload.CopyTo(frame, 6);
 
 		string response = await PostDeviceMessageAsync($"call/{session}", Convert.ToHexStringLower(frame), cancellationToken).ConfigureAwait(false);
-
-		byte[] responseFrame = Convert.FromHexString(response);
-		var messageType = (TrezorMessageType)BinaryPrimitives.ReadUInt16BigEndian(responseFrame);
-		return new TrezorMessage(messageType, responseFrame[6..]);
+		return ParseFrame(response);
 	}
 
-	/// <summary>
-	/// Reads one queued message from the device without sending anything. A call that was canceled
-	/// client-side leaves its reply queued on the bridge; the next request would read that stale reply
-	/// and be off by one forever. Draining with bare reads on session open restores the pairing.
-	/// </summary>
-	public virtual async Task<TrezorMessage> ReadAsync(string session, CancellationToken cancellationToken)
+	/// <summary>Reads one queued message without sending anything: a client-side cancel leaves its reply on the bridge, which would offset every later request by one.</summary>
+	public virtual async Task<TrezorMessage> ReadAsync(string session, CancellationToken cancellationToken) =>
+		ParseFrame(await PostDeviceMessageAsync($"read/{session}", null, cancellationToken).ConfigureAwait(false));
+
+	private static TrezorMessage ParseFrame(string hexFrame)
 	{
-		string response = await PostDeviceMessageAsync($"read/{session}", null, cancellationToken).ConfigureAwait(false);
-		byte[] responseFrame = Convert.FromHexString(response);
-		var messageType = (TrezorMessageType)BinaryPrimitives.ReadUInt16BigEndian(responseFrame);
-		return new TrezorMessage(messageType, responseFrame[6..]);
+		byte[] frame = Convert.FromHexString(hexFrame);
+		return new TrezorMessage((TrezorMessageType)BinaryPrimitives.ReadUInt16BigEndian(frame), frame[6..]);
 	}
 
-	/// <summary>
-	/// Sends a device message frame to <paramref name="path"/> and returns the response frame, hex encoded.
-	/// A <see langword="null"/> <paramref name="hexFrame"/> means the endpoint takes no frame, like /read.
-	/// </summary>
+	/// <summary>Posts a device message frame to <paramref name="path"/> and returns the response frame, hex encoded; a null <paramref name="hexFrame"/> is for endpoints that take none, like /read.</summary>
 	private async Task<string> PostDeviceMessageAsync(string path, string? hexFrame, CancellationToken cancellationToken)
 	{
-		if (await EnsureBridgeAsync(cancellationToken).ConfigureAwait(false) is BridgeWireFormat.RawHex)
+		if (!await EnsureBridgeAsync(cancellationToken).ConfigureAwait(false))
 		{
 			return await PostAsync(path, hexFrame ?? "", cancellationToken).ConfigureAwait(false);
 		}
@@ -137,50 +108,33 @@ public class TrezorBridgeTransport : IDisposable
 	}
 
 	/// <summary>
-	/// Asks the bridge once who it is, and stops when the answer does not look like a Trezor Bridge: any
-	/// local process can hold the port, and one that is not a bridge should fail here rather than somewhere
-	/// inside the device protocol. The same answer says which wire format /call and /read take. trezord-go
-	/// accepts the bare hex frame; the trezord-node bundled in Trezor Suite only accepts it wrapped in a JSON
-	/// envelope and answers 400 otherwise. It announces that with the protocolMessages flag.
+	/// Asks the bridge once who it is, so a stray process on the port fails here rather than inside the device protocol;
+	/// returns its protocolMessages flag (JSON envelope on /call and /read, which trezord-node in Trezor Suite requires).
 	/// </summary>
-	private async Task<BridgeWireFormat> EnsureBridgeAsync(CancellationToken cancellationToken)
+	private async Task<bool> EnsureBridgeAsync(CancellationToken cancellationToken)
 	{
-		if (_wireFormat is not BridgeWireFormat.Unknown)
+		if (_protocolMessages is { } known)
 		{
-			return _wireFormat;
+			return known;
 		}
 
 		string response = await PostAsync("", "", cancellationToken).ConfigureAwait(false);
-		if (!TryReadBridgeInfo(response, out bool protocolMessages))
-		{
-			throw new TrezorException($"Something answers at {_bridgeUri}, but it is not a Trezor Bridge.");
-		}
-
-		_wireFormat = protocolMessages ? BridgeWireFormat.ProtocolMessage : BridgeWireFormat.RawHex;
-		return _wireFormat;
-	}
-
-	/// <summary>Every bridge answers "/" with a JSON object carrying its version; anything else is not one.</summary>
-	private static bool TryReadBridgeInfo(string response, out bool protocolMessages)
-	{
-		protocolMessages = false;
 		try
 		{
 			using var json = JsonDocument.Parse(response);
-			if (json.RootElement.ValueKind is not JsonValueKind.Object
-				|| !json.RootElement.TryGetProperty("version", out var version)
-				|| version.ValueKind is not JsonValueKind.String)
+			if (json.RootElement.ValueKind is JsonValueKind.Object
+				&& json.RootElement.TryGetProperty("version", out var version)
+				&& version.ValueKind is JsonValueKind.String)
 			{
-				return false;
+				_protocolMessages = json.RootElement.TryGetProperty("protocolMessages", out var flag) && flag.ValueKind is JsonValueKind.True;
+				return _protocolMessages.Value;
 			}
-
-			protocolMessages = json.RootElement.TryGetProperty("protocolMessages", out var flag) && flag.ValueKind is JsonValueKind.True;
-			return true;
 		}
 		catch (JsonException)
 		{
-			return false;
 		}
+
+		throw new TrezorException($"Something answers at {_bridgeUri}, but it is not a Trezor Bridge.");
 	}
 
 	private async Task<string> PostAsync(string path, string content, CancellationToken cancellationToken)
@@ -214,17 +168,5 @@ public class TrezorBridgeTransport : IDisposable
 	public void Dispose()
 	{
 		_httpClient.Dispose();
-	}
-
-	/// <summary>How the bridge wants device message frames on its /call and /read endpoints.</summary>
-	private enum BridgeWireFormat
-	{
-		Unknown,
-
-		/// <summary>trezord-go: the hex frame is the whole body.</summary>
-		RawHex,
-
-		/// <summary>trezord-node, bundled in Trezor Suite: the hex frame goes in a JSON envelope.</summary>
-		ProtocolMessage
 	}
 }

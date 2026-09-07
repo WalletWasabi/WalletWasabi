@@ -94,5 +94,7 @@ public class TrezorSigningFlowTests
 		Assert.Equal(new byte[] { 0x53, 0x4C }, txInputFields[14][0].Bytes);
 		Assert.Equal(new byte[] { 0x01 }, txInputFields[15][0].Bytes);
 		Assert.Equal(new byte[] { 0x51, 0x20 }, txInputFields[19][0].Bytes);
+		Assert.Equal(2UL, txInputFields[6][0].VarInt); // EXTERNAL
+		Assert.False(txInputFields.ContainsKey(1)); // No address_n for a foreign input.
 	}
 }
