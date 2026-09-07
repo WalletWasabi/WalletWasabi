@@ -101,9 +101,8 @@ public class TestWallet : IKeyChain, IDestinationProvider
 			throw new ArgumentException("Destination doesn't belong to this wallet.");
 		}
 
-		var transaction = unsignedCoinJoin.Transaction;
-		transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
-		return transaction;
+		unsignedCoinJoin.Transaction.Sign(extKey.PrivateKey.GetBitcoinSecret(Rpc.Network), coin);
+		return unsignedCoinJoin.Transaction;
 	}
 
 	public void TrySetScriptStates(KeyState state, IEnumerable<Script> scripts)
