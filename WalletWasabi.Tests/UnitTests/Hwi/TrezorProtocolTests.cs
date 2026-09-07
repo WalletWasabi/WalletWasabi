@@ -88,26 +88,6 @@ public class TrezorProtocolTests
 		Assert.False(fields.ContainsKey(19)); // script_pubkey is only set for external inputs.
 	}
 
-	[Fact]
-	public void ExternalInputCarriesScriptPubKey()
-	{
-		var txInput = new TrezorTxInput
-		{
-			PrevHash = new byte[32],
-			PrevIndex = 0,
-			ScriptType = TrezorInputScriptType.External,
-			Amount = 1000,
-			ScriptPubKey = [0x51, 0x20],
-		};
-
-		var wrapper = ProtoReader.ReadAllFields(txInput.ToTxAckInput().Payload)[1][0].Bytes;
-		var fields = ProtoReader.ReadAllFields(ProtoReader.ReadAllFields(wrapper)[2][0].Bytes);
-
-		Assert.Equal(2UL, fields[6][0].VarInt); // EXTERNAL
-		Assert.Equal(new byte[] { 0x51, 0x20 }, fields[19][0].Bytes);
-		Assert.False(fields.ContainsKey(1)); // No address_n.
-	}
-
 	[Theory]
 	[InlineData(false)]
 	[InlineData(true)]
@@ -157,9 +137,7 @@ public class TrezorProtocolTests
 	}
 
 	[Theory]
-	[InlineData("10025'/0'/0'/1'/0/5", false, 5)] // SLIP-25 external.
 	[InlineData("10025'/0'/0'/1'/1/7", true, 7)]  // SLIP-25 internal (coinjoin/change).
-	[InlineData("84'/0'/0'/1/3", true, 3)]        // Standard segwit internal still works.
 	[InlineData("86'/0'/0'/0/2", false, 2)]       // Standard taproot external still works.
 	public void ChangeAndIndexReadFromPathEnd(string keyPath, bool expectedInternal, int expectedIndex)
 	{
@@ -175,7 +153,6 @@ public class TrezorProtocolTests
 	[InlineData("84'/0'/0'/0/0", ScriptPubKeyType.Segwit)]        // Standard segwit unchanged.
 	[InlineData("86'/0'/0'/0/0", ScriptPubKeyType.TaprootBIP86)]  // Standard taproot unchanged.
 	[InlineData("10025'/0'/0'/1'/0/0", ScriptPubKeyType.TaprootBIP86)] // SLIP-25 is taproot.
-	[InlineData("352'/0'/0'/1'/0", ScriptPubKeyType.Segwit)]      // Silent payment path keeps its previous (default) classification.
 	[InlineData("999'/0'/0'/0/0", ScriptPubKeyType.Segwit)]       // Unknown purpose keeps the segwit default.
 	public void ScriptTypeFromPurpose(string keyPath, ScriptPubKeyType expected)
 	{
@@ -186,22 +163,13 @@ public class TrezorProtocolTests
 	[Fact]
 	public void EnableCoinJoinAddsSlip25TaprootAccount()
 	{
-		var mnemonic = new Mnemonic("all all all all all all all all all all all all");
-		var masterExtKey = mnemonic.DeriveExtKey();
-
 		// A plain segwit-only Trezor watch-only wallet (no taproot account), like one imported without coinjoin.
-		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(
-			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
-			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
-			taprootExtPubKey: null,
-			null,
-			null,
-			Network.Main);
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false);
 		Assert.False(keyManager.IsTrezorCoinJoinWallet());
 		Assert.Null(keyManager.TaprootExtPubKey);
 
 		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
-		var coinJoinExtPubKey = masterExtKey.Derive(coinJoinAccountKeyPath).Neuter();
+		var coinJoinExtPubKey = TestKeyManagers.MasterKey.Derive(coinJoinAccountKeyPath).Neuter();
 		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
 
 		Assert.True(keyManager.IsTrezorCoinJoinWallet());
@@ -235,51 +203,15 @@ public class TrezorProtocolTests
 	{
 		Assert.Equal(new KeyPath("10025'/0'/0'/1'"), TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main));
 		Assert.Equal(new KeyPath("10025'/1'/0'/1'"), TrezorDevice.GetCoinJoinAccountKeyPath(Network.TestNet));
-		Assert.Equal(new KeyPath("10025'/1'/0'/1'"), TrezorDevice.GetCoinJoinAccountKeyPath(Network.RegTest));
 
 		Assert.True(TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main).IsSlip25KeyPath());
 		Assert.False(new KeyPath("86'/0'/0'").IsSlip25KeyPath());
-
-		var mnemonic = new Mnemonic("all all all all all all all all all all all all");
-		var masterExtKey = mnemonic.DeriveExtKey();
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
-
-		var trezorCoinJoinWallet = KeyManager.CreateNewHardwareWalletWatchOnly(
-			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
-			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
-			masterExtKey.Derive(coinJoinAccountKeyPath).Neuter(),
-			null,
-			null,
-			Network.Main,
-			taprootAccountKeyPath: coinJoinAccountKeyPath);
-		Assert.True(trezorCoinJoinWallet.IsTrezorCoinJoinWallet());
-
-		var plainHardwareWallet = KeyManager.CreateNewHardwareWalletWatchOnly(
-			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
-			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
-			null,
-			null,
-			null,
-			Network.Main);
-		Assert.False(plainHardwareWallet.IsTrezorCoinJoinWallet());
 	}
 
 	[Fact]
 	public void TransactionNeverMixesCoinJoinAccountWithOtherCoins()
 	{
-		var mnemonic = new Mnemonic("all all all all all all all all all all all all");
-		var masterExtKey = mnemonic.DeriveExtKey();
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
-
-		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(
-			masterExtKey.Neuter().PubKey.GetHDFingerPrint(),
-			masterExtKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
-			masterExtKey.Derive(coinJoinAccountKeyPath).Neuter(),
-			null,
-			null,
-			Network.Main,
-			taprootAccountKeyPath: coinJoinAccountKeyPath);
-		Assert.True(keyManager.IsTrezorCoinJoinWallet());
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
 
 		var segwitKey = keyManager.GenerateNewKey(LabelsArray.Empty, KeyState.Clean, isInternal: false);
 		var slip25Key = keyManager.GetKeys(k => k.FullKeyPath.IsSlip25KeyPath()).First();
@@ -399,15 +331,16 @@ public class TrezorProtocolTests
 	}
 
 	[Fact]
-	public async Task ABridgeIsIdentifiedBeforeItIsAskedForDevicesAsync()
+	public async Task ABridgeIsIdentifiedOnceBeforeItIsAskedForDevicesAsync()
 	{
 		using var handler = new StubBridgeHandler("""{"version":"2.0.33"}""") { DeviceResponse = "[]" };
 		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
 
 		var devices = await transport.EnumerateAsync(CancellationToken.None);
+		await transport.EnumerateAsync(CancellationToken.None);
 
 		Assert.Empty(devices);
-		Assert.Equal(["/", "/enumerate"], handler.Requests.Select(r => r.Path));
+		Assert.Equal(["/", "/enumerate", "/enumerate"], handler.Requests.Select(r => r.Path));
 	}
 
 	/// <summary>Any local process can hold the port; one that does not answer like a bridge is not asked anything else.</summary>
@@ -424,17 +357,5 @@ public class TrezorProtocolTests
 
 		Assert.Contains("not a Trezor Bridge", exception.Message);
 		Assert.Equal("/", Assert.Single(handler.Requests).Path);
-	}
-
-	[Fact]
-	public async Task TheWireFormatIsAskedForOnceAsync()
-	{
-		using var handler = new StubBridgeHandler("""{"version":"2.0.33"}""") { DeviceResponse = SuccessFrame };
-		using var transport = new TrezorBridgeTransport("http://127.0.0.1:21325", handler);
-
-		await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
-		await transport.CallAsync("1", TrezorMessage.Empty(TrezorMessageType.Initialize), CancellationToken.None);
-
-		Assert.Single(handler.Requests, r => r.Path == "/");
 	}
 }

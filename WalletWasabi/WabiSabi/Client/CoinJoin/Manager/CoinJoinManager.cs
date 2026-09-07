@@ -1,12 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using System.Collections.Concurrent;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Hwi.Trezor;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
-using WalletWasabi.Wallets;
 using WalletWasabi.WabiSabi.Client.Banning;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
@@ -226,12 +221,9 @@ public class CoinJoinManager : BackgroundService
 			return coinCandidates;
 		}
 
-		// A device-signed wallet is watch-only until the device authorizes a batch of rounds; that call also
-		// builds the wallet's key chain. Every front end goes through here, so a GUI and a headless client
-		// ask for the authorization on exactly the same terms. The user approves the rounds and the fee cap
-		// physically on the device (hold-to-confirm) once per batch.
-		// The wait for the hold-to-confirm must not stall the command loop (other wallets keep their
-		// start/stop commands responsive), so authorize in a task and re-post the command when done.
+		// A device-signed wallet is watch-only until the device authorizes a batch of rounds, which also builds
+		// its key chain. The wait for the hold-to-confirm must not stall the command loop, so authorize in a
+		// task and re-post the command when done.
 		if (NeedsDeviceAuthorization(walletToStart))
 		{
 			_ = Task.Run(
@@ -240,14 +232,7 @@ public class CoinJoinManager : BackgroundService
 					try
 					{
 						await AuthorizeDeviceAsync(walletToStart, cancellationToken).ConfigureAwait(false);
-
-						// The key chain exists now, so the re-posted command passes this branch and starts mixing.
 						_mailboxProcessor.Post(startCommand);
-					}
-					catch (CoinJoinClientException ex)
-					{
-						Logger.LogWarning(FormatLog(ex.Message, walletToStart));
-						NotifyCoinJoinStartError(walletToStart, ex.CoinjoinError);
 					}
 					catch (Exception ex)
 					{
@@ -286,11 +271,7 @@ public class CoinJoinManager : BackgroundService
 	public static bool NeedsDeviceAuthorization(Wallet wallet) =>
 		HardwareWalletService.IsRemoteSigner(wallet.KeyManager) && wallet.KeyChain is null;
 
-	/// <summary>
-	/// Asks the signing device to authorize a batch of coinjoin rounds, which is also what gives the wallet
-	/// its key chain. This owns how long the user gets to confirm, so that a GUI and a headless client
-	/// behave identically. The fee cap the user confirms travels with the key chain into every round.
-	/// </summary>
+	/// <summary>Asks the signing device to authorize a batch of rounds, with the same confirmation time for every front end.</summary>
 	public async Task AuthorizeDeviceAsync(Wallet wallet, CancellationToken cancellationToken)
 	{
 		using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);

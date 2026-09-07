@@ -10,8 +10,6 @@ using System.Text.Json.Nodes;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Io;
 using WalletWasabi.Models;
@@ -387,25 +385,15 @@ public class KeyManager
 		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
-	public HdPubKey GetNextChangeKey() =>
+	/// <param name="coinJoinAccount">Take the change from the SLIP-25 coinjoin account: the device signs it under an UnlockPath
+	/// session that forbids every other own key path, so its change must return to it and it cannot take a regular transaction's.</param>
+	public HdPubKey GetNextChangeKey(bool coinJoinAccount = false) =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
 			x.IsInternal &&
-			MatchesChangeScriptPubKeyType(x) &&
-			// SLIP-25 keys only sign in a coinjoin or unlocked-path session, so they cannot take change of regular transactions.
-			!(this.IsTrezorCoinJoinWallet() && x.FullKeyPath.IsSlip25KeyPath()))
-			.First();
-
-	/// <summary>
-	/// Change key inside the SLIP-25 coinjoin account. Spending that account happens under an UnlockPath
-	/// session, in which the device forbids every own key path outside the unlocked subtree — so the
-	/// change of such a transaction must return to the coinjoin account, like in Trezor Suite.
-	/// </summary>
-	public HdPubKey GetNextCoinJoinAccountChangeKey() =>
-		GetKeys(x =>
-			x.KeyState == KeyState.Clean &&
-			x.IsInternal &&
-			x.FullKeyPath.IsSlip25KeyPath())
+			(coinJoinAccount
+				? x.FullKeyPath.IsSlip25KeyPath()
+				: MatchesChangeScriptPubKeyType(x) && !(this.IsTrezorCoinJoinWallet() && x.FullKeyPath.IsSlip25KeyPath())))
 			.First();
 
 	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
@@ -527,9 +515,8 @@ public class KeyManager
 	}
 
 	/// <summary>
-	/// Turns this hardware wallet into a Trezor coinjoin wallet by adopting a SLIP-25 coinjoin account as its
-	/// taproot account. The taproot slot must be empty (a wallet with a regular m/86' taproot account is not
-	/// converted, to avoid orphaning its coins). Persists the change.
+	/// Adopts a SLIP-25 coinjoin account as this hardware wallet's taproot account and persists it. The taproot slot
+	/// must be empty: a wallet with a regular m/86' account is not converted, so its coins are not orphaned.
 	/// </summary>
 	public void SetCoinJoinAccount(KeyPath coinJoinAccountKeyPath, ExtPubKey coinJoinExtPubKey)
 	{

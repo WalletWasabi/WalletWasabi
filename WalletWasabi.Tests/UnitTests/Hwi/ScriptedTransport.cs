@@ -5,7 +5,10 @@ using WalletWasabi.Hwi.Trezor;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
 
-/// <summary>A bridge transport that answers device calls from a queue, to drive <see cref="TrezorDevice"/> without a device.</summary>
+/// <summary>
+/// A bridge transport that answers device calls from a queue, to drive <see cref="TrezorDevice"/> without a device.
+/// Once the queue runs dry it answers like a bridge that forgot the session.
+/// </summary>
 internal class ScriptedTransport : TrezorBridgeTransport
 {
 	public ScriptedTransport()
@@ -19,6 +22,12 @@ internal class ScriptedTransport : TrezorBridgeTransport
 	public override Task<TrezorMessage> CallAsync(string session, TrezorMessage message, CancellationToken cancellationToken)
 	{
 		Received.Add(message);
-		return Task.FromResult(Responses.Dequeue());
+
+		if (!Responses.TryDequeue(out var response))
+		{
+			throw new TrezorException("session not found");
+		}
+
+		return Task.FromResult(response);
 	}
 }

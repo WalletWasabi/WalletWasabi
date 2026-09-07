@@ -24,8 +24,6 @@ public partial class CoinJoinAuthDialogViewModel : AuthorizationDialogBase
 
 		EnableBack = false;
 
-		AuthorizationFailedMessage = $"Authorization failed.{Environment.NewLine}Please, check your device and try again.";
-
 		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(HardwareWalletService.BridgeDownloadUrl));
 	}
 

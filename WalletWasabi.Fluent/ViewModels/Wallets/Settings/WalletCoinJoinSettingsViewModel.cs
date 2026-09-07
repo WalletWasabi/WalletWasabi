@@ -51,7 +51,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
-		HasDeviceAuthorizationLimits = _wallet.CoinJoinNeedsDeviceAuthorization;
+		HasDeviceAuthorizationLimits = _wallet.HasSeparateCoinJoinAccount;
 		_deviceMaxRounds = _wallet.Settings.CoinJoinDeviceMaxRounds.ToString();
 		_deviceMaxMiningFeeRate = _wallet.Settings.CoinJoinDeviceMaxMiningFeeRate.ToString(System.Globalization.CultureInfo.InvariantCulture);
 
@@ -177,15 +177,10 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private void ValidateDeviceMaxRounds(IValidationErrors errors)
 	{
-		if (!int.TryParse(DeviceMaxRounds, out var rounds))
+		string? error = null;
+		if (!int.TryParse(DeviceMaxRounds, out var rounds) || !HardwareWalletService.TryValidateMaxRounds(rounds, out error))
 		{
-			errors.Add(ErrorSeverity.Error, "Must be a whole number.");
-			return;
-		}
-
-		if (!HardwareWalletService.TryValidateMaxRounds(rounds, out var error))
-		{
-			errors.Add(ErrorSeverity.Error, error);
+			errors.Add(ErrorSeverity.Error, error ?? "Must be a whole number.");
 			return;
 		}
 
@@ -195,15 +190,11 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	private void ValidateDeviceMaxMiningFeeRate(IValidationErrors errors)
 	{
-		if (!decimal.TryParse(DeviceMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate))
+		string? error = null;
+		if (!decimal.TryParse(DeviceMaxMiningFeeRate, System.Globalization.NumberStyles.Number, System.Globalization.CultureInfo.InvariantCulture, out var feeRate)
+			|| !HardwareWalletService.TryValidateMaxMiningFeeRate(feeRate, out error))
 		{
-			errors.Add(ErrorSeverity.Error, "Must be a fee rate in sat/vByte.");
-			return;
-		}
-
-		if (!HardwareWalletService.TryValidateMaxMiningFeeRate(feeRate, out var error))
-		{
-			errors.Add(ErrorSeverity.Error, error);
+			errors.Add(ErrorSeverity.Error, error ?? "Must be a fee rate in sat/vByte.");
 			return;
 		}
 

@@ -136,23 +136,11 @@ public class Wallet : BackgroundService
 		? Coins.Where(coin => coin.ScriptType is ScriptType.Taproot)
 		: Coins;
 
-	/// <summary>
-	/// Asks the connected device to authorize coinjoin rounds. It shows the number of rounds and the maximum
-	/// mining fee rate this wallet allows, and the user confirms physically. Afterwards the wallet has a key
-	/// chain that produces ownership proofs and signatures without further interaction.
-	/// </summary>
-	public async Task AuthorizeCoinJoinOnDeviceAsync(string coordinatorIdentifier, CancellationToken cancellationToken)
-	{
+	/// <summary>Has the device authorize this wallet's rounds and fee cap, which gives the wallet the key chain that signs them.</summary>
+	public async Task AuthorizeCoinJoinOnDeviceAsync(string coordinatorIdentifier, CancellationToken cancellationToken) =>
 		KeyChain = await _hardwareWallets
-			.AuthorizeCoinJoinAsync(
-				KeyManager,
-				KeyChain,
-				coordinatorIdentifier,
-				KeyManager.CoinJoinDeviceMaxRounds,
-				new FeeRate(KeyManager.CoinJoinDeviceMaxMiningFeeRate),
-				cancellationToken)
+			.AuthorizeCoinJoinAsync(KeyManager, KeyChain, coordinatorIdentifier, KeyManager.CoinJoinDeviceMaxRounds, new FeeRate(KeyManager.CoinJoinDeviceMaxMiningFeeRate), cancellationToken)
 			.ConfigureAwait(false);
-	}
 
 	/// <summary>
 	/// Get all the transactions associated to the wallet ordered by blockchain.

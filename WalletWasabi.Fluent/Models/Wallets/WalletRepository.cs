@@ -137,8 +137,7 @@ public partial class WalletRepository : ReactiveObject
 
 	private async Task<WalletSettingsModel> ConnectToHardwareWalletAsync(WalletCreationOptions.ConnectToHardwareWallet options, CancellationToken? cancelToken)
 	{
-		var walletName = options.WalletName;
-		var device = options.Device;
+		var (walletName, device, _, _) = options;
 
 		ArgumentException.ThrowIfNullOrEmpty(walletName);
 		ArgumentNullException.ThrowIfNull(device);

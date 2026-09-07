@@ -328,7 +328,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		yield return new WalletBalanceTileViewModel(UiContext, WalletModel.Balances);
 
 		// A device-signed coinjoin wallet is watch-only but does coinjoin, so it still has a privacy progress to show.
-		if (!IsWatchOnly || WalletModel.CanCoinJoin)
+		if (WalletModel.CanCoinJoin)
 		{
 			yield return new PrivacyControlTileViewModel(UiContext, WalletModel);
 		}
