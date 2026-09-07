@@ -1,8 +1,3 @@
-using WalletWasabi.Crypto;
-using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using WalletWasabi.Wallets;
-
 namespace WalletWasabi.WabiSabi.Client;
 
 public class KeyChain : IKeyChain

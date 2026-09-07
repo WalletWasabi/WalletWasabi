@@ -128,7 +128,7 @@
                       </MenuItem.Icon>
                     </MenuItem>
                     <MenuItem Header="Coinjoin Payments" Command="{Binding CoinJoinStateViewModel.CoinJoinPaymentsCommand}"
-                              IsVisible="{Binding CoinJoinStateViewModel.AreCoinJoinPaymentsSupported}">
+                              IsVisible="{Binding !WalletModel.HasSeparateCoinJoinAccount}">
                       <MenuItem.Icon>
                         <PathIcon Data="{StaticResource embedded_payment}" />
                       </MenuItem.Icon>

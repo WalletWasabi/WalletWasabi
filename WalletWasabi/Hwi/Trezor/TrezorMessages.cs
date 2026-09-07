@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using System.Text;
 
 namespace WalletWasabi.Hwi.Trezor;
@@ -36,7 +34,6 @@ public enum TrezorMessageType : ushort
 
 public enum TrezorInputScriptType : uint
 {
-	SpendAddress = 0,
 	External = 2,
 	SpendWitness = 3,
 	SpendTaproot = 5,

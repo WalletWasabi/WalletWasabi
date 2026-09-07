@@ -203,15 +203,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     // them are eligible for coinjoin right away, without a hop through the regular account.
     public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
 
-    // Taproot change would land in the coinjoin account, which only coinjoins can spend.
-    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes => _wallet.HasSeparateCoinJoinAccount
-        ? [PreferredScriptPubKeyType.Specified.SegWit]
-        :
-        [
-            PreferredScriptPubKeyType.Unspecified.Instance,
-            PreferredScriptPubKeyType.Specified.SegWit,
-            PreferredScriptPubKeyType.Specified.Taproot
-        ];
+    public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes { get; } =
+    [
+        PreferredScriptPubKeyType.Unspecified.Instance,
+        PreferredScriptPubKeyType.Specified.SegWit,
+        PreferredScriptPubKeyType.Specified.Taproot
+    ];
 
     public IEnumerable<SendWorkflow> SendWorkflows { get; } = Enum.GetValues<SendWorkflow>();
 

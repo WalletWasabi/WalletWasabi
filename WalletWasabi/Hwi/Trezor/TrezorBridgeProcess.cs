@@ -1,32 +1,17 @@
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Logging;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Hwi.Trezor;
 
 /// <summary>
-/// Owns the lifecycle of a standalone Trezor Bridge (trezord) process.
-///
-/// Coinjoin needs the bridge (HWI cannot unlock SLIP-25); HWI needs direct USB access - and only one of them
-/// can hold the device at a time. This starts trezord when the bridge is needed and stops it when the device
-/// has to be handed back. A bridge it did not start (e.g. one provided by Trezor Suite) is never touched:
-/// if a bridge is already reachable it is reused as is.
-///
-/// Callers do not use this directly: the hardware wallet service owns an instance and takes care of the
-/// handover, so that no caller has to remember a bridge exists.
+/// Starts a standalone trezord when no bridge is running (coinjoin needs it, HWI cannot unlock SLIP-25) and stops
+/// it again when HWI has to take the USB device. A bridge it did not start, e.g. Trezor Suite's, is left alone.
+/// The hardware wallet service owns the instance and does the handover, so no caller has to know a bridge exists.
 /// </summary>
 public class TrezorBridgeProcess : IDisposable
 {
-	/// <summary>
-	/// Official Trezor Suite releases, offered when no bridge is running. Standalone trezord-go is
-	/// deprecated and publishes no releases anymore; the bridge now ships inside Trezor Suite. An already
-	/// installed standalone trezord keeps working and is still auto-started when found.
-	/// </summary>
+	/// <summary>Offered when no bridge is running: standalone trezord-go is deprecated, the bridge now ships inside Trezor Suite.</summary>
 	public const string SuiteDownloadUrl = "https://github.com/trezor/trezor-suite/releases/latest";
 
 	private readonly SemaphoreSlim _lock = new(1, 1);
@@ -92,10 +77,7 @@ public class TrezorBridgeProcess : IDisposable
 		}
 	}
 
-	/// <summary>
-	/// Stops the trezord we started (if any), freeing the USB device for HWI. Bridges we did not start are
-	/// left running. Returns whether a bridge of ours was actually stopped, so the caller can put it back.
-	/// </summary>
+	/// <summary>Stops the trezord we started, freeing the USB device for HWI; returns whether one was stopped, so the caller can put it back.</summary>
 	public bool StopIfOurs()
 	{
 		_lock.Wait();
@@ -172,14 +154,7 @@ public class TrezorBridgeProcess : IDisposable
 				? ["/Applications/Utilities/TREZOR Bridge/trezord", "/usr/local/bin/trezord"]
 				: ["/usr/bin/trezord", "/usr/local/bin/trezord"];
 
-		foreach (var candidate in candidates)
-		{
-			if (File.Exists(candidate))
-			{
-				return candidate;
-			}
-		}
-		return null;
+		return candidates.FirstOrDefault(File.Exists);
 	}
 
 	public void Dispose()

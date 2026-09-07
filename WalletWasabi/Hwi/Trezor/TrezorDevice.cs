@@ -1,36 +1,20 @@
-using NBitcoin;
 using System.Buffers.Binary;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Hwi.Trezor;
 
 /// <summary>
-/// High level operations for Trezor coinjoin support: SLIP-25 account discovery,
-/// coinjoin authorization (confirmed on the device with max rounds and max fee),
-/// SLIP-19 ownership proofs and transaction signing.
-/// These are not available through HWI, so the device is driven directly through the Trezor Bridge.
+/// The Trezor operations HWI cannot do - SLIP-25 account discovery, coinjoin authorization, SLIP-19 ownership
+/// proofs and signing - driven directly through the Trezor Bridge.
 /// </summary>
 public class TrezorDevice : IDisposable
 {
 	/// <summary>SLIP-25 purpose (10025') dedicated to coinjoin accounts, enforced by the firmware.</summary>
 	public const uint Slip25Purpose = 10025 | HardenedIndex;
 
-	/// <summary>Number of coinjoin rounds one device authorization is good for.</summary>
-	public const int DefaultMaxRounds = 10;
-
 	private const uint HardenedIndex = 0x80000000;
 
 	/// <summary>First firmware version that accepts coinjoin requests from any coordinator (signature verification against the zkSNACKs key was removed).</summary>
 	private static readonly Version MinimumSupportedFirmwareVersion = new(2, 7, 2);
-
-	private TrezorDevice(string bridgeUri)
-		: this(new TrezorBridgeTransport(bridgeUri))
-	{
-	}
 
 	internal TrezorDevice(TrezorBridgeTransport transport)
 	{
@@ -40,7 +24,6 @@ public class TrezorDevice : IDisposable
 	private readonly TrezorBridgeTransport _transport;
 	private readonly SemaphoreSlim _lock = new(1, 1);
 	private string _bridgeSession = "";
-	private byte[] _deviceSessionId = [];
 	private bool _useOnDevicePassphrase;
 	private bool _disposed;
 
@@ -49,52 +32,30 @@ public class TrezorDevice : IDisposable
 	/// <summary>Finds and acquires the connected Trezor with the given master fingerprint.</summary>
 	public static async Task<TrezorDevice> FindAsync(HDFingerprint? masterFingerprint, CancellationToken cancellationToken)
 	{
-		string? bridgeUri = null;
-		string? bridgeError = null;
-		IReadOnlyList<TrezorBridgeTransport.BridgeDevice> bridgeDevices = [];
-		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
-		{
-#pragma warning disable CA2000 // Dispose objects before losing scope - false positive, disposed by the using declaration.
-			using var enumerationTransport = new TrezorBridgeTransport(candidateUri);
-#pragma warning restore CA2000
-			try
-			{
-				bridgeDevices = await enumerationTransport.EnumerateAsync(cancellationToken).ConfigureAwait(false);
-				bridgeUri = candidateUri;
-				break;
-			}
-			catch (TrezorException e)
-			{
-				bridgeError = e.Message;
-				Logger.LogDebug(e.Message);
-			}
-		}
-
+		var (bridgeUri, bridgeDevices, bridgeError) = await EnumerateAnyBridgeAsync(cancellationToken).ConfigureAwait(false);
 		if (bridgeUri is null)
 		{
-			throw new TrezorBridgeNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, which includes the bridge, or download it from {TrezorBridgeProcess.SuiteDownloadUrl} and try again. ({bridgeError})");
+			throw new HardwareWalletTransportNotFoundException($"Trezor Bridge is not running. Start Trezor Suite, which includes the bridge, or download it from {TrezorBridgeProcess.SuiteDownloadUrl} and try again. ({bridgeError})");
 		}
 
 		if (bridgeDevices.Count == 0)
 		{
-			throw new TrezorDeviceNotFoundException("No Trezor device found. Connect the Trezor and unlock it with its PIN.");
+			throw new HardwareWalletNotFoundException("No Trezor device found. Connect the Trezor and unlock it with its PIN.");
 		}
 
 		string? lastError = null;
 		bool sawPassphraseProtectedDevice = false;
 		foreach (var bridgeDevice in bridgeDevices)
 		{
-			// The standard wallet (empty passphrase) is tried first, so it opens without any device
-			// interaction. Only when its fingerprint does not match and the device protects wallets with a
-			// passphrase is the device asked again with on-device passphrase entry: that is what unlocks a
-			// hidden wallet, and the fingerprint check rejects a mistyped passphrase before anything is signed.
+			// The standard wallet (empty passphrase) is tried first; on-device passphrase entry only when its
+			// fingerprint does not match, and the fingerprint check rejects a mistyped passphrase before anything is signed.
 			foreach (bool useOnDevicePassphrase in (bool[])[false, true])
 			{
 				TrezorDevice? device = null;
 				try
 				{
 #pragma warning disable CA2000 // Dispose objects before losing scope - disposed in the finally block or owned by the caller.
-					device = new TrezorDevice(bridgeUri) { _useOnDevicePassphrase = useOnDevicePassphrase };
+					device = new TrezorDevice(new TrezorBridgeTransport(bridgeUri)) { _useOnDevicePassphrase = useOnDevicePassphrase };
 #pragma warning restore CA2000
 					await device.OpenAsync(bridgeDevice, cancellationToken).ConfigureAwait(false);
 					if (masterFingerprint is null || await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false) == masterFingerprint)
@@ -126,9 +87,30 @@ public class TrezorDevice : IDisposable
 		string passphraseHint = sawPassphraseProtectedDevice
 			? " If this wallet uses a passphrase, enter the exact same passphrase on the device."
 			: "";
-		throw new TrezorDeviceNotFoundException(lastError is null
+		throw new HardwareWalletNotFoundException(lastError is null
 			? $"No Trezor device with master fingerprint '{masterFingerprint}' found.{passphraseHint}"
 			: $"No usable Trezor device found. Last error: {lastError}");
+	}
+
+	/// <summary>The first bridge that answers, with the devices it lists; the URI is null when none does.</summary>
+	private static async Task<(string? Uri, IReadOnlyList<TrezorBridgeTransport.BridgeDevice> Devices, string? Error)> EnumerateAnyBridgeAsync(CancellationToken cancellationToken)
+	{
+		string? error = null;
+		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
+		{
+			using var transport = new TrezorBridgeTransport(candidateUri);
+			try
+			{
+				return (candidateUri, await transport.EnumerateAsync(cancellationToken).ConfigureAwait(false), null);
+			}
+			catch (TrezorException e)
+			{
+				error = e.Message;
+				Logger.LogDebug(e.Message);
+			}
+		}
+
+		return (null, [], error);
 	}
 
 	private async Task OpenAsync(TrezorBridgeTransport.BridgeDevice bridgeDevice, CancellationToken cancellationToken)
@@ -156,7 +138,6 @@ public class TrezorDevice : IDisposable
 			throw UnexpectedMessage(features, TrezorMessageType.Features);
 		}
 		Features = TrezorFeatures.FromMessage(features);
-		_deviceSessionId = features.GetBytes(35);
 
 		if (Features.Model == "1")
 		{
@@ -168,23 +149,9 @@ public class TrezorDevice : IDisposable
 		}
 	}
 
-	/// <summary>Quick check whether a Trezor Bridge (Trezor Suite or standalone trezord) is reachable, used to warn the user before offering coinjoin.</summary>
-	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken)
-	{
-		foreach (string candidateUri in TrezorBridgeTransport.DefaultBridgeUris)
-		{
-			using var transport = new TrezorBridgeTransport(candidateUri);
-			try
-			{
-				await transport.EnumerateAsync(cancellationToken).ConfigureAwait(false);
-				return true;
-			}
-			catch (TrezorException)
-			{
-			}
-		}
-		return false;
-	}
+	/// <summary>Whether a Trezor Bridge (Trezor Suite or standalone trezord) is reachable, to warn the user before offering coinjoin.</summary>
+	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken) =>
+		(await EnumerateAnyBridgeAsync(cancellationToken).ConfigureAwait(false)).Uri is not null;
 
 	public async Task<HDFingerprint> GetMasterFingerprintAsync(CancellationToken cancellationToken)
 	{
@@ -202,51 +169,29 @@ public class TrezorDevice : IDisposable
 		return new HDFingerprint(fingerprintBytes);
 	}
 
-	/// <summary>
-	/// Gets the xpub of a regular (segwit) account through the bridge. Used so that a coinjoin enabled import can
-	/// read every account from the bridge in one device session, avoiding contention with HWI for the USB device.
-	/// </summary>
-	public async Task<ExtPubKey> GetSegwitAccountXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken)
-	{
-		var response = await LockedCallAsync(
-			TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), TrezorInputScriptType.SpendWitness),
-			TrezorMessageType.PublicKey,
-			cancellationToken).ConfigureAwait(false);
-
-		return ExtPubKey.Parse(response.GetString(2), network);
-	}
-
-	/// <summary>Gets the xpub of the SLIP-25 coinjoin account. The device shows a confirmation for unlocking the coinjoin path.</summary>
-	public async Task<ExtPubKey> GetCoinJoinXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken)
-	{
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-		try
+	/// <summary>Gets an account xpub through the bridge; a SLIP-25 path first needs UnlockPath, which the device confirms on screen.</summary>
+	public Task<ExtPubKey> GetAccountXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
 		{
-			await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+			bool isCoinJoinAccount = accountKeyPath.IsSlip25KeyPath();
+			if (isCoinJoinAccount)
+			{
+				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+			}
+
 			var response = await CallAsync(
-				TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), TrezorInputScriptType.SpendTaproot),
+				TrezorMessages.GetPublicKey(accountKeyPath.Indexes, GetCoinName(network), isCoinJoinAccount ? TrezorInputScriptType.SpendTaproot : TrezorInputScriptType.SpendWitness),
 				TrezorMessageType.PublicKey,
 				cancellationToken).ConfigureAwait(false);
 
 			return ExtPubKey.Parse(response.GetString(2), network);
-		}
-		finally
-		{
-			_lock.Release();
-		}
-	}
+		}, cancellationToken);
 
-	/// <summary>
-	/// Shows a receive address on the device screen so the user can check it against the host. SLIP-25
-	/// (coinjoin account) paths need the UnlockPath preamble, which HWI cannot send; that is why address
-	/// verification of a Trezor coinjoin wallet goes through the bridge. Returns the address the device shows.
-	/// </summary>
-	public async Task<string> ShowAddressAsync(KeyPath fullKeyPath, Network network, CancellationToken cancellationToken)
-	{
-		bool isCoinJoinAccount = fullKeyPath.Indexes.Length > 0 && fullKeyPath.Indexes[0] == Slip25Purpose;
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-		try
+	/// <summary>Shows a receive address on the device screen and returns it; a SLIP-25 path needs the UnlockPath preamble HWI cannot send.</summary>
+	public Task<string> ShowAddressAsync(KeyPath fullKeyPath, Network network, CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
 		{
+			bool isCoinJoinAccount = fullKeyPath.IsSlip25KeyPath();
 			if (isCoinJoinAccount)
 			{
 				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
@@ -262,32 +207,22 @@ public class TrezorDevice : IDisposable
 				cancellationToken).ConfigureAwait(false);
 
 			return response.GetString(1);
-		}
-		finally
-		{
-			_lock.Release();
-		}
-	}
+		}, cancellationToken);
 
 	/// <summary>
 	/// Asks the user to authorize coinjoin rounds on the device. The device displays the maximum number of rounds
 	/// and the maximum mining fee rate, both confirmed with hold-to-confirm. The authorization is kept in the
 	/// device session and one round is spent by each signed coinjoin transaction.
 	/// </summary>
-	public async Task AuthorizeCoinJoinAsync(string coordinatorIdentifier, int maxRounds, FeeRate maxFeeRate, KeyPath accountKeyPath, Network network, CancellationToken cancellationToken)
-	{
-		ulong maxFeePerKvbyte = (ulong)maxFeeRate.FeePerK.Satoshi;
-		await LockedCallAsync(
-			TrezorMessages.AuthorizeCoinJoin(coordinatorIdentifier, (ulong)maxRounds, maxCoordinatorFeeRate: 0, maxFeePerKvbyte, accountKeyPath.Indexes, GetCoinName(network)),
+	public Task AuthorizeCoinJoinAsync(string coordinatorIdentifier, int maxRounds, FeeRate maxFeeRate, KeyPath accountKeyPath, Network network, CancellationToken cancellationToken) =>
+		LockedCallAsync(
+			TrezorMessages.AuthorizeCoinJoin(coordinatorIdentifier, (ulong)maxRounds, maxCoordinatorFeeRate: 0, (ulong)maxFeeRate.FeePerK.Satoshi, accountKeyPath.Indexes, GetCoinName(network)),
 			TrezorMessageType.Success,
-			cancellationToken).ConfigureAwait(false);
-	}
+			cancellationToken);
 
 	/// <summary>Gets a SLIP-19 ownership proof for a coin of the authorized coinjoin account, without user interaction.</summary>
-	public async Task<byte[]> GetOwnershipProofAsync(KeyPath keyPath, byte[] commitmentData, Network network, CancellationToken cancellationToken)
-	{
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-		try
+	public Task<byte[]> GetOwnershipProofAsync(KeyPath keyPath, byte[] commitmentData, Network network, CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
 		{
 			await CallAsync(TrezorMessages.DoPreauthorized(), TrezorMessageType.PreauthorizedRequest, cancellationToken).ConfigureAwait(false);
 			var response = await CallAsync(
@@ -296,28 +231,18 @@ public class TrezorDevice : IDisposable
 				cancellationToken).ConfigureAwait(false);
 
 			return response.GetBytes(1);
-		}
-		finally
-		{
-			_lock.Release();
-		}
-	}
+		}, cancellationToken);
 
-	/// <summary>
-	/// Signs a coinjoin transaction with the previously given authorization, without user interaction.
-	/// Returns the 64 byte BIP-340 signatures indexed by input.
-	/// </summary>
-	public async Task<Dictionary<int, byte[]>> SignCoinJoinAsync(
+	/// <summary>Signs a coinjoin with the standing authorization, without user interaction; returns the 64 byte BIP-340 signatures indexed by input.</summary>
+	public Task<Dictionary<int, byte[]>> SignCoinJoinAsync(
 		IReadOnlyList<TrezorTxInput> inputs,
 		IReadOnlyList<TrezorTxOutput> outputs,
 		uint version,
 		uint lockTime,
 		Money minRegistrableAmount,
 		Network network,
-		CancellationToken cancellationToken)
-	{
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-		try
+		CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
 		{
 			await CallAsync(TrezorMessages.DoPreauthorized(), TrezorMessageType.PreauthorizedRequest, cancellationToken).ConfigureAwait(false);
 
@@ -333,19 +258,13 @@ public class TrezorDevice : IDisposable
 
 			// Coinjoins are taproot-only, so the device never asks for previous transactions here.
 			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions: null, cancellationToken).ConfigureAwait(false);
-		}
-		finally
-		{
-			_lock.Release();
-		}
-	}
+		}, cancellationToken);
 
 	/// <summary>
-	/// Signs a regular transaction on the device. Spending from the SLIP-25 coinjoin account first unlocks
-	/// that path; the user confirms every output on the device. For non-taproot inputs the device asks for
-	/// the referenced previous transactions (<paramref name="previousTransactions"/>) to verify the amounts.
+	/// Signs a regular transaction on the device, unlocking the SLIP-25 path first when spending from the coinjoin
+	/// account; non-taproot inputs need <paramref name="previousTransactions"/> so the device can verify the amounts.
 	/// </summary>
-	public async Task<Dictionary<int, byte[]>> SignTransactionAsync(
+	public Task<Dictionary<int, byte[]>> SignTransactionAsync(
 		IReadOnlyList<TrezorTxInput> inputs,
 		IReadOnlyList<TrezorTxOutput> outputs,
 		uint version,
@@ -353,10 +272,8 @@ public class TrezorDevice : IDisposable
 		Network network,
 		bool unlockCoinJoinAccount,
 		IReadOnlyDictionary<uint256, Transaction>? previousTransactions,
-		CancellationToken cancellationToken)
-	{
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
-		try
+		CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
 		{
 			if (unlockCoinJoinAccount)
 			{
@@ -364,12 +281,7 @@ public class TrezorDevice : IDisposable
 			}
 			var signTx = TrezorMessages.SignTx(inputs.Count, outputs.Count, GetCoinName(network), version, lockTime, coinJoinRequest: null);
 			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions, cancellationToken).ConfigureAwait(false);
-		}
-		finally
-		{
-			_lock.Release();
-		}
-	}
+		}, cancellationToken);
 
 	private async Task<Dictionary<int, byte[]>> RunSigningFlowAsync(
 		TrezorMessage signTx,
@@ -394,8 +306,7 @@ public class TrezorDevice : IDisposable
 				signatures[signatureIndex] = txRequest.Signature;
 			}
 
-			// A request carrying tx_hash refers to the PREVIOUS transaction with that id, not to the one
-			// being signed. The device streams through it to verify the amounts of non-taproot inputs.
+			// tx_hash names a PREVIOUS transaction, which the device streams through to verify non-taproot input amounts.
 			Transaction? previousTransaction = null;
 			if (txRequest.TxHash is { } txHash)
 			{
@@ -446,12 +357,16 @@ public class TrezorDevice : IDisposable
 		}
 	}
 
-	private async Task<TrezorMessage> LockedCallAsync(TrezorMessage message, TrezorMessageType expectedResponse, CancellationToken cancellationToken)
+	private Task<TrezorMessage> LockedCallAsync(TrezorMessage message, TrezorMessageType expectedResponse, CancellationToken cancellationToken) =>
+		LockedAsync(() => CallAsync(message, expectedResponse, cancellationToken), cancellationToken);
+
+	/// <summary>One device conversation at a time: a multi-message operation must not be interleaved with another.</summary>
+	private async Task<T> LockedAsync<T>(Func<Task<T>> operation, CancellationToken cancellationToken)
 	{
 		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
-			return await CallAsync(message, expectedResponse, cancellationToken).ConfigureAwait(false);
+			return await operation().ConfigureAwait(false);
 		}
 		finally
 		{
@@ -482,11 +397,8 @@ public class TrezorDevice : IDisposable
 					break;
 
 				case TrezorMessageType.PassphraseRequest:
-					// The standard wallet answers with an empty passphrase, like HWI signing: no device
-					// interaction needed. For a hidden wallet the user types the passphrase on the Trezor
-					// screen so it never reaches the host; FindAsync opts in to that only after the standard
-					// wallet's fingerprint did not match. The wallet is pinned by its master fingerprint, so
-					// a wrong passphrase produces a different device and is rejected before anything is signed.
+					// Empty passphrase for the standard wallet, like HWI; a hidden wallet's passphrase is typed on
+					// the device so it never reaches the host (see FindAsync).
 					var passphraseAck = _useOnDevicePassphrase
 						? TrezorMessages.PassphraseAckOnDevice()
 						: TrezorMessages.PassphraseAck("");
@@ -513,10 +425,8 @@ public class TrezorDevice : IDisposable
 		new(Slip25Purpose, (network == Network.Main ? 0u : 1u) | HardenedIndex, HardenedIndex, 1u | HardenedIndex);
 
 	/// <summary>
-	/// Whether the bridge session this device was acquired with still answers. The bridge forgets it when it is
-	/// restarted, or when it drops the device after a USB error, and nothing tells the wallet at the time; a
-	/// device kept across coinjoin rounds has to be asked before it is reused, or every call on it fails forever.
-	/// GetFeatures is answered without touching the device state, so a live authorization survives the question.
+	/// Whether the bridge session this device was acquired with still answers; a restarted bridge forgets it
+	/// without telling anyone. GetFeatures leaves the device state alone, so a live authorization survives the question.
 	/// </summary>
 	public async Task<bool> IsSessionAliveAsync(CancellationToken cancellationToken)
 	{
@@ -525,19 +435,14 @@ public class TrezorDevice : IDisposable
 			return false;
 		}
 
-		await _lock.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
-			var response = await _transport.CallAsync(_bridgeSession, TrezorMessages.GetFeatures(), cancellationToken).ConfigureAwait(false);
+			var response = await LockedAsync(() => _transport.CallAsync(_bridgeSession, TrezorMessages.GetFeatures(), cancellationToken), cancellationToken).ConfigureAwait(false);
 			return response.MessageType == TrezorMessageType.Features;
 		}
 		catch (TrezorException)
 		{
 			return false;
-		}
-		finally
-		{
-			_lock.Release();
 		}
 	}
 

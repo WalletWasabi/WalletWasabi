@@ -1,11 +1,4 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Crypto;
 using WalletWasabi.Hwi.Trezor;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -21,16 +14,10 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 
 	public TrezorKeyChain(TrezorDevice device, KeyManager keyManager)
 	{
-		if (!keyManager.IsHardwareWallet)
-		{
-			throw new ArgumentException("A Trezor key chain requires a hardware wallet key manager.");
-		}
-
-		_device = device;
+		Device = device;
 		_keyManager = keyManager;
 	}
 
-	private readonly TrezorDevice _device;
 	private readonly KeyManager _keyManager;
 	private readonly object _signingLock = new();
 	private (uint256 TxId, Dictionary<OutPoint, WitScript> Witnesses)? _signedTransactionCache;
@@ -39,7 +26,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	// so the commitment seen at input registration is the one to use at signing.
 	private volatile byte[] _roundCommitmentData = [];
 
-	public TrezorDevice Device => _device;
+	public TrezorDevice Device { get; }
 
 	/// <summary>The cap the device was authorized with; set by the authorization, so it never drifts from what the device enforces.</summary>
 	public FeeRate? MaxMiningFeeRate { get; internal set; }
@@ -52,9 +39,10 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	// signing happens on thread pool threads without a synchronization context to deadlock on.
 	public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData commitmentData)
 	{
-		var keyPath = GetKeyPath(destination.ScriptPubKey);
+		var keyPath = _keyManager.TryGetKeyPath(destination.ScriptPubKey)
+			?? throw new InvalidOperationException($"The key path for '{destination.ScriptPubKey}' was not found.");
 		_roundCommitmentData = commitmentData.ToBytes();
-		byte[] proof = _device
+		byte[] proof = Device
 			.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), CancellationToken.None)
 			.GetAwaiter()
 			.GetResult();
@@ -106,7 +94,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 					ScriptType = keyPath is null ? TrezorInputScriptType.External : TrezorInputScriptType.SpendTaproot,
 					Amount = (ulong)spentOutput.Value.Satoshi,
 					ScriptPubKey = spentOutput.ScriptPubKey.ToBytes(),
-					OwnershipProof = keyPath is null ? GetForeignOwnershipProof(unsignedCoinJoin, input.PrevOut) : [],
+					OwnershipProof = keyPath is null ? ForeignProof(input.PrevOut) : [],
 					CommitmentData = keyPath is null ? _roundCommitmentData : [],
 				};
 			})
@@ -128,27 +116,23 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			})
 			.ToList();
 
-		var signatures = _device
-			.SignCoinJoinAsync(inputs, outputs, (uint)transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, CancellationToken.None)
+		var signatures = Device
+			.SignCoinJoinAsync(inputs, outputs, transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, CancellationToken.None)
 			.GetAwaiter()
 			.GetResult();
 
 		return signatures.ToDictionary(
 			signature => transaction.Inputs[signature.Key].PrevOut,
 			signature => new WitScript(Op.GetPushOp(signature.Value)));
+
+		byte[] ForeignProof(OutPoint outpoint) =>
+			unsignedCoinJoin.OwnershipProofs.TryGetValue(outpoint, out var proof)
+				? proof.ToBytes()
+				: throw new InvalidOperationException($"The ownership proof of the foreign input '{outpoint}' was not found.");
 	}
-
-	private static byte[] GetForeignOwnershipProof(TransactionWithPrecomputedData unsignedCoinJoin, OutPoint outpoint) =>
-		unsignedCoinJoin.OwnershipProofs.TryGetValue(outpoint, out var proof)
-			? proof.ToBytes()
-			: throw new InvalidOperationException($"The ownership proof of the foreign input '{outpoint}' was not found.");
-
-	private KeyPath GetKeyPath(Script scriptPubKey) =>
-		_keyManager.TryGetKeyPath(scriptPubKey)
-			?? throw new InvalidOperationException($"The key path for '{scriptPubKey}' was not found.");
 
 	public void Dispose()
 	{
-		_device.Dispose();
+		Device.Dispose();
 	}
 }
