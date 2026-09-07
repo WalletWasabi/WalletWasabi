@@ -66,12 +66,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation,
-				x => x.OnlyUsePrivateFundsForPayments)
-			.Skip(1)
-			.Do(_ => SetValues())
-			.Subscribe();
-
-		this.WhenAnyValue(
+				x => x.OnlyUsePrivateFundsForPayments,
 				x => x.CoinJoinDeviceMaxRounds,
 				x => x.CoinJoinDeviceMaxMiningFeeRate)
 			.Skip(1)
@@ -89,9 +84,6 @@ public partial class WalletSettingsModel : ReactiveObject
 	public WalletType WalletType { get; }
 
 	public int MinGapLimit => _keyManager.MinGapLimit;
-
-	/// <summary>See <see cref="IWalletModel.HasSeparateCoinJoinAccount"/>.</summary>
-	public bool HasSeparateCoinJoinAccount => HardwareWalletService.IsRemoteSigner(_keyManager);
 
 	public bool IsCoinJoinPaused { get; set; }
 

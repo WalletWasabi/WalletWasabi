@@ -1,4 +1,3 @@
-using NBitcoin;
 using System.Linq;
 using System.Reactive.Linq;
 using System.Threading;
@@ -8,7 +7,6 @@ using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
@@ -108,33 +106,16 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			DeviceAuthorization = DeviceAuthorizationStatus.Confirmed;
 			return true;
 		}
-		catch (CoinJoinClientException e)
-		{
-			// The backend refused before the device was disturbed, e.g. no round is within the authorized fee cap.
-			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
-			DeviceAuthorizationError = e.Message;
-			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
-			return false;
-		}
-		catch (HardwareWalletTransportNotFoundException e)
-		{
-			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
-			DeviceAuthorizationError = e.Message;
-			DeviceAuthorization = DeviceAuthorizationStatus.TransportNotFound;
-			return false;
-		}
-		catch (HardwareWalletNotFoundException e)
-		{
-			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
-			DeviceAuthorizationError = e.Message;
-			DeviceAuthorization = DeviceAuthorizationStatus.DeviceNotFound;
-			return false;
-		}
 		catch (HardwareWalletException e)
 		{
 			Logger.LogWarning($"Coinjoin authorization failed: {e.Message}");
 			DeviceAuthorizationError = e.Message;
-			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			DeviceAuthorization = e switch
+			{
+				HardwareWalletTransportNotFoundException => DeviceAuthorizationStatus.TransportNotFound,
+				HardwareWalletNotFoundException => DeviceAuthorizationStatus.DeviceNotFound,
+				_ => DeviceAuthorizationStatus.Failed,
+			};
 			return false;
 		}
 	}

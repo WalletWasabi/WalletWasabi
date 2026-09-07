@@ -1,12 +1,9 @@
 using NBitcoin;
-using System.Linq;
 using System.Threading.Tasks;
 using System.Threading;
-using WalletWasabi.Hwi;
 using WalletWasabi.Wallets;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
