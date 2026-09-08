@@ -2,11 +2,11 @@
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
 		<NetPackagesVersion>10.0.11</NetPackagesVersion>
-		<AvaloniaVersion>11.3.20</AvaloniaVersion>
+		<AvaloniaVersion>11.3.21</AvaloniaVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- AspNetCore. -->
-		<PackageVersion Include="Markdown.Avalonia" Version="11.0.3-a1" />
+		<PackageVersion Include="Markdown.Avalonia" Version="11.0.3" />
 		<PackageVersion Include="Microsoft.AspNetCore.WebUtilities" Version="$(NetPackagesVersion)" />
 		<PackageVersion Include="Microsoft.Extensions.Caching.Abstractions" Version="$(NetPackagesVersion)" />
 		<PackageVersion Include="Microsoft.Extensions.Caching.Memory" Version="$(NetPackagesVersion)" />
