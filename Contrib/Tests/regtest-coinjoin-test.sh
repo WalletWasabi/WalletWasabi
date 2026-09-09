@@ -9,6 +9,8 @@ BITCOIN_RPC_PORT=18443
 BITCOIN_P2P_PORT=18444
 COORDINATOR_PORT=37126
 WASABI_WALLET_RPC_PORT=37128
+WASABI_JSONRPC_USER="wasabi_rpc_user"
+WASABI_JSONRPC_PASSWORD="wasabi_rpc_password"
 
 # Colors for output
 RED='\033[0;31m'
@@ -160,16 +162,46 @@ dotnet run --project WalletWasabi.Daemon -- \
   --rpcport=$WASABI_WALLET_RPC_PORT \
   --datadir="$WASABI_DATADIR/Client" \
   --jsonrpcserverenabled=true \
+  --jsonrpcuser="$WASABI_JSONRPC_USER" \
+  --jsonrpcpassword="$WASABI_JSONRPC_PASSWORD" \
   --maxcoinjoinminingfeerate=500 \
   --absolutemininputcount=4 \
   --usetor="disabled" &> "$WASABI_DATADIR/Client/stdout.log" &
 
 WALLET_PID=$!
 
-echo -e "${YELLOW}Wait for Wasabi Wallet Daemon (PID $WALLET_PID) to fully start...${NC}"
+echo -e "${YELLOW}Wait for Wasabi Wallet Client (PID $WALLET_PID, data directory '$WASABI_DATADIR') to fully start...${NC}"
 sleep 5
 
-echo -e "${YELLOW}Creating Wasabi Wallets${NC}"
+echo -e "${YELLOW}Creating wallets in Wasabi Client${NC}"
+
+wasabi_rpc_call() {
+  local request="$1"
+  local wallet_name="${2:-}"
+  echo "→ ${request}" >&2
+
+  local response=$(curl -s -S -w '\n%{http_code}' \
+      -u "${WASABI_JSONRPC_USER}:${WASABI_JSONRPC_PASSWORD}" \
+      -X POST "http://127.0.0.1:${WASABI_WALLET_RPC_PORT}/${wallet_name}" \
+      -H "Content-Type: application/json" -d "$request")
+  local curl_exit=$?
+
+  if [[ $curl_exit -ne 0 ]]; then
+    echo "← Error: curl exit code was ${curl_exit}" >&2
+    return 1
+  fi
+
+  local http_code=$(tail -n1 <<< "$response")
+  response=$(sed '$d' <<< "$response")
+
+  if [[ "$http_code" != "200" ]]; then
+    echo "← Error: HTTP status ${http_code}, HTTP body: ${response:-<empty>}" >&2
+    return 1
+  else
+    echo "← ${response:-<empty>}" >&2
+    echo "$response"
+  fi
+}
 
 # Function to start a wallet and perform coinjoin
 create_and_fund_wallet() {
@@ -177,37 +209,29 @@ create_and_fund_wallet() {
 
   echo -e "${YELLOW}Creating Wasabi wallet $wallet_name...${NC}"
   local request="{\"jsonrpc\":\"2.0\",\"id\":\"1\",\"method\":\"createwallet\",\"params\":[\"$wallet_name\", \"\"]}"
-  echo "→ $request"
-
-  local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
-  echo "← $response"
+  wasabi_rpc_call "$request"
 
   echo -e "${YELLOW}Generating a block to make sure wallet loading will succeed...${NC}"
   bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest generatetoaddress 1 $(bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" getnewaddress) > /dev/null
 
   echo -e "${YELLOW}Loading wallet $wallet_name...${NC}"
   local request="{\"jsonrpc\":\"2.0\",\"id\":\"2\",\"method\":\"loadwallet\",\"params\":[\"$wallet_name\"]}"
-  echo "→ $request"
-
-  local response=$(curl -s -X POST "http://127.0.0.1:$WASABI_WALLET_RPC_PORT/" -H "Content-Type: application/json" -d "$request")
-  echo "← $response"
+  wasabi_rpc_call "$request" "$wallet_name"
 
   local i
   for (( i = 0; i < 4; i++ )); do
-    echo -e "${YELLOW}Generating address #$i for $wallet_name...${NC}"
+    echo -e "${YELLOW}Generating address #$i for $wallet_name in Wasabi client...${NC}"
     local request='{"jsonrpc":"2.0","id":"3","method":"getnewaddress","params":["label"]}'
-    echo "→ $request"
-    local response=$(curl -s -X POST http://127.0.0.1:$WASABI_WALLET_RPC_PORT/$wallet_name -H "Content-Type: application/json" -d "$request")
-    echo "← $response"
+    local response=$(wasabi_rpc_call "$request" "$wallet_name")
 
     local address=$(echo "$response" | jq -r '.result.address')
 
     if [[ -z "$address" || "$address" == "null" ]]; then
-        echo -e "${RED}Error: Failed to get new address for wallet '$wallet_name'${NC}"
+        echo -e "${RED}Error: Failed to get new address for wallet '$wallet_name' from Wasabi Client${NC}"
         exit 1
     fi
 
-    echo -e "${YELLOW}Sending funds to $wallet_name ($address)...${NC}"
+    echo -e "${YELLOW}Sending funds to $wallet_name from Bitcoin node ($address)...${NC}"
     bitcoin-cli -regtest -rpcport=$BITCOIN_RPC_PORT -rpcuser=regtest -rpcpassword=regtest -rpcwallet="default" \
       sendtoaddress "$address" 1.0 > /dev/null
   done
@@ -217,9 +241,8 @@ start_coinjoin()
 {
   local wallet_name=$1
   echo -e "${YELLOW}Starting coinjoin...${NC}"
-  curl -s -X POST http://127.0.0.1:$WASABI_WALLET_RPC_PORT/$wallet_name \
-      -H "Content-Type: application/json" \
-      -d '{"jsonrpc":"2.0","id":"1","method":"startcoinjoin","params":[]}' > /dev/null
+  local request='{"jsonrpc":"2.0","id":"1","method":"startcoinjoin","params":[]}'
+  wasabi_rpc_call "$request" "$wallet_name" > /dev/null
 
   echo -e "${GREEN}✓ Coinjoin initiated for $wallet_name${NC}"
 }
