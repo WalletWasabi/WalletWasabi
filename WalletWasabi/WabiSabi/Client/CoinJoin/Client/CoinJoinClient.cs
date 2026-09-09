@@ -301,6 +301,12 @@ public class CoinJoinClient
 					"No inputs participated in this round.");
 			}
 
+			if (mySignedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.NotAllAlicesSign)
+			{
+				Logger.LogInfo(FormatLog("Round ended with NotAllAlicesSign but we have no signed coins. Returning failure.", roundState));
+				return new FailedCoinJoinResult();
+			}
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
