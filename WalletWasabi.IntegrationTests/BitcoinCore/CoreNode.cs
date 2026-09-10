@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Threading;
 using System.Threading.Tasks;
@@ -275,15 +274,6 @@ public class CoreNode
 	public async Task<Node> CreateNewP2pNodeAsync()
 	{
 		return await Node.ConnectAsync(Network, P2pEndPoint).ConfigureAwait(false);
-	}
-
-	public async Task<IEnumerable<Block>> GenerateAsync(int blockCount)
-	{
-		var blocks = await RpcClient.GenerateAsync(blockCount).ConfigureAwait(false);
-		var rpc = RpcClient.PrepareBatch();
-		var tasks = blocks.Select(b => rpc.GetBlockAsync(b));
-		await rpc.SendBatchAsync().ConfigureAwait(false);
-		return await Task.WhenAll(tasks).ConfigureAwait(false);
 	}
 
 	/// <param name="onlyOwned">Only stop if this node owns the process.</param>

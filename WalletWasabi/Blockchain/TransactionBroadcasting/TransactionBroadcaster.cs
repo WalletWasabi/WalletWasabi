@@ -1,21 +1,13 @@
-using NBitcoin;
 using NBitcoin.Protocol;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
-using System.Collections.Immutable;
 using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
@@ -122,7 +114,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	{
 		Broadcaster = broadcaster;
 		HttpClientFactory = httpClientFactory;
-		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker();
 	}
 
 	public IHttpClientFactory HttpClientFactory { get; }

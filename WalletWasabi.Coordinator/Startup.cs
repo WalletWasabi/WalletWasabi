@@ -56,7 +56,10 @@ public class Startup(IConfiguration configuration)
 
 		services.AddControllers();
 
-		WabiSabiConfig config = WabiSabiConfig.LoadFile(Path.Combine(dataDir, "Config.json"));
+		var configFilePath = Path.Combine(dataDir, "Config.json");
+		var config = WabiSabiConfig.TryLoadFile(configFilePath) ??
+			throw new InvalidDataException($"Failed to load '{configFilePath}' config.");
+
 		services.AddSingleton(config);
 
 		var torSetting = new TorSettings(dataDir,

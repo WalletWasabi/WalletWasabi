@@ -26,7 +26,7 @@ public class TorManagerService(TorSettings torSettings, WabiSabiConfig config, I
 		var (_, torControlClient) = await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 		Logger.LogInfo($"{nameof(TorManager)} is initialized.");
 
-		if (torControlClient is { } nonNullTorControlClient)
+		if (torControlClient is not null)
 		{
 			// Multiple URLs can be configured but that would need to create multiple onion services and we don't want to do that.
 			var address = urls.Split(";").First();
@@ -34,12 +34,12 @@ public class TorManagerService(TorSettings torSettings, WabiSabiConfig config, I
 			string onionServiceId;
 			if (!string.IsNullOrWhiteSpace(config.OnionServicePrivateKey))
 			{
-				onionServiceId = await nonNullTorControlClient
+				onionServiceId = await torControlClient
 					.CreateOnionServiceAsync(config.OnionServicePrivateKey, 80, uri.Port, cancellationToken).ConfigureAwait(false);
 			}
 			else
 			{
-				(onionServiceId, var privateKey) = await nonNullTorControlClient
+				(onionServiceId, var privateKey) = await torControlClient
 					.CreateKeylessOnionServiceAsync(80, uri.Port, cancellationToken).ConfigureAwait(false);
 				config.OnionServicePrivateKey = privateKey;
 				config.AnnouncerConfig.CoordinatorUri = $"http://{onionServiceId}.onion";

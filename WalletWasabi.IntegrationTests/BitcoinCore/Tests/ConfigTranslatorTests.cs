@@ -15,7 +15,8 @@ public class ConfigTranslatorTests
 		var translatorMain = new CoreConfigTranslator(config, Network.Main);
 		var translatorTest = new CoreConfigTranslator(config, Network.TestNet);
 		var translatorReg = new CoreConfigTranslator(config, Network.RegTest);
-		Assert.Null(translatorMain.TryGetRpcUser());
+
+        Assert.Null(translatorMain.TryGetRpcUser());
 		Assert.Null(translatorTest.TryGetRpcUser());
 		Assert.Null(translatorReg.TryGetRpcUser());
 

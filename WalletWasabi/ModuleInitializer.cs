@@ -1,10 +1,10 @@
-namespace WalletWasabi;
 using System.Collections.Concurrent;
 using System.Reflection;
-using NBitcoin;
 using System.Runtime.CompilerServices;
 
-class ModuleInitializer
+namespace WalletWasabi;
+
+public static class ModuleInitializer
 {
 #pragma warning disable CA2255 // The 'ModuleInitializer' attribute should not be used in libraries -- Moving this initializer to the apps did not work (https://github.com/WalletWasabi/WalletWasabi/pull/14364).
 	[ModuleInitializer]
@@ -25,10 +25,10 @@ class ModuleInitializer
 		// Get the internal dictionary
 		var networks = networksField!.GetValue(bitcoinInstance) as ConcurrentDictionary<ChainName, Network>;
 
-		var testnet4 = networks![new ChainName("testnet4")];
+		var testnet4 = networks![Network.TestNet4.ChainName];
 
-		// Replaces testnet by testnet4 network
-		networks[new ChainName("testnet")] = testnet4;
+		// Replaces TestNet by TestNet4 network
+		networks[Network.TestNet.ChainName] = testnet4;
 
 		var otherAliasesField = typeof(Network)
 			.GetField("_OtherAliases", BindingFlags.NonPublic | BindingFlags.Static);

@@ -183,6 +183,8 @@ public class CoinJoinClient
 			throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, $"No coin was selected from '{coinCandidates.Count()}' number of coins. Probably it was not economical, total amount of coins were: {Money.Satoshis(coinCandidates.Sum(c => c.Amount))} BTC.");
 		}
 
+		IRoundRestrictions roundRestrictions = UnrestrictedRound.Instance;
+
 		// Keep going to blame round until there's none, so CJs won't be DDoS-ed.
 		while (true)
 		{
@@ -194,13 +196,14 @@ public class CoinJoinClient
 				ExtraRoundTimeoutMargin);
 			using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, coinJoinRoundTimeoutCts.Token);
 
-			var result = await StartRoundAsync(myCoins, currentRoundState, linkedCts.Token).ConfigureAwait(false);
+			var result = await StartRoundAsync(myCoins, roundRestrictions, currentRoundState, linkedCts.Token).ConfigureAwait(false);
 
 			switch (result)
 			{
 				case DisruptedCoinJoinResult info:
 					// Only use successfully registered coins in the blame round.
 					myCoins = info.MySignedCoins;
+					roundRestrictions = new BlameRoundRestrictions(info.AllRoundCoins, info.MaxSuggestedAmount);
 
 					Logger.LogInfo(FormatLog("Waiting for the blame round.", currentRoundState));
 					currentRoundState = await WaitForBlameRoundAsync(currentRoundState.Id, cancellationToken).ConfigureAwait(false);
@@ -220,7 +223,7 @@ public class CoinJoinClient
 		throw new InvalidOperationException("Blame rounds were not successful.");
 	}
 
-	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, RoundState roundState, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
 
@@ -239,13 +242,14 @@ public class CoinJoinClient
 
 		try
 		{
-			ImmutableArray<AliceClient> aliceClientsThatSigned = [];
+			ImmutableArray<AliceClient> myAliceClientsThatSigned = [];
 			IEnumerable<TxOut> outputTxOuts = [];
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
-				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
-				(aliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, cancelOrRoundEndedCts.Token)
+				using CancellationTokenSource cancelOrRoundEndedCts =
+					CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				(myAliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, roundRestrictions, cancelOrRoundEndedCts.Token)
 						.ConfigureAwait(false);
 			}
 			catch (OperationCanceledException)
@@ -261,7 +265,7 @@ public class CoinJoinClient
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
 
-			var mySignedCoins = aliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
+			var mySignedCoins = myAliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
 			try
 			{
@@ -300,13 +304,23 @@ public class CoinJoinClient
 					"No inputs participated in this round.");
 			}
 
+			if (mySignedCoins.IsEmpty && roundState.EndRoundState == EndRoundState.NotAllAlicesSign)
+			{
+				Logger.LogInfo(FormatLog("Round ended with NotAllAlicesSign but we have no signed coins. Returning failure.", roundState));
+				return new FailedCoinJoinResult();
+			}
+
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: mySignedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
 					UnsignedCoinJoin: unsignedCoinJoin!),
-				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(mySignedCoins),
+				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
+					mySignedCoins,
+					roundState.CoinjoinState.Inputs.ToImmutableArray(),
+					roundState.CoinjoinState.Parameters.MaxSuggestedAmount,
+					roundState.CoinjoinState.Parameters.MiningFeeRate),
 				_ => new FailedCoinJoinResult()
 			};
 		}
@@ -329,9 +343,10 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, IEnumerable<TxOut> OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
+	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, TxOut[] OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
 		RoundState roundState,
 		IEnumerable<SmartCoin> smartCoins,
+		IRoundRestrictions roundRestrictions,
 		CancellationToken cancellationToken)
 	{
 		var registeredAliceClients = ImmutableArray<AliceClient>.Empty;
@@ -349,12 +364,9 @@ public class CoinJoinClient
 
 			CoinsInCriticalPhase = registeredAliceClients.Select(alice => alice.SmartCoin).ToImmutableList();
 
-			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, cancellationToken).ConfigureAwait(false);
+			var outputTxOuts = await ProceedWithOutputRegistrationPhaseAsync(roundId, registeredAliceClients, roundRestrictions, cancellationToken).ConfigureAwait(false);
 
 			var (unsignedCoinJoin, aliceClientsThatSigned) = await ProceedWithSigningStateAsync(roundId, registeredAliceClients, outputTxOuts, cancellationToken).ConfigureAwait(false);
-
-			// Notify that we've signed the transaction - payments should now be tracked with the txId
-			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.GetHash()));
 
 			LogCoinJoinSummary(registeredAliceClients, outputTxOuts, roundState);
 
@@ -691,7 +703,11 @@ public class CoinJoinClient
 		Logger.LogDebug(FormatLog(string.Join(Environment.NewLine, summary), roundState));
 	}
 
-	private async Task<IEnumerable<TxOut>> ProceedWithOutputRegistrationPhaseAsync(uint256 roundId, ImmutableArray<AliceClient> registeredAliceClients, CancellationToken cancellationToken)
+	private async Task<TxOut[]> ProceedWithOutputRegistrationPhaseAsync(
+		uint256 roundId,
+		ImmutableArray<AliceClient> registeredAliceClients,
+		IRoundRestrictions roundRestrictions,
+		CancellationToken cancellationToken)
 	{
 		// Waiting for OutputRegistration phase, all the Alices confirmed their connections, so the list of the inputs will be complete.
 		var roundState = await _roundStatusProvider.CreateRoundAwaiterAsync(roundId, Phase.OutputRegistration, cancellationToken).ConfigureAwait(false);
@@ -699,6 +715,29 @@ public class CoinJoinClient
 		var remainingTime = roundParameters.OutputRegistrationTimeout - RoundStateProvider.QueryFrequency;
 		var now = DateTimeOffset.UtcNow;
 		var outputRegistrationPhaseEndTime = now + remainingTime;
+
+		// Check if the round restrictions for blame rounds are satisfied. If not, it means that the coordinator is trying to cheat.
+		if (roundRestrictions is BlameRoundRestrictions restrictions)
+		{
+			var currentMaxSuggestedAmount = roundState.CoinjoinState.Parameters.MaxSuggestedAmount;
+			var currentMiningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
+
+			if (restrictions.SuggestedAmount != currentMaxSuggestedAmount)
+			{
+				Logger.LogWarning(FormatLog($"Suggested amount is {currentMaxSuggestedAmount}. Value {restrictions.SuggestedAmount} was expected. Is coordinator cheating?", roundState));
+				throw new InvalidOperationException($"Round ({roundState.Id}) uses invalid suggested amount.");
+			}
+
+			foreach (var inputCoin in roundState.CoinjoinState.Inputs)
+			{
+				if (!restrictions.PreviousRoundSignedCoins.Any(c => c.Outpoint == inputCoin.Outpoint))
+				{
+					// Blame rounds must contain only coins that were in the previous round. If a coin is not whitelisted, it means that the coordinator is trying to cheat.
+					Logger.LogWarning(FormatLog($"Coin '{inputCoin.Outpoint}' is not whitelisted for this round. Is coordinator cheating?", roundState));
+					throw new InvalidOperationException($"Round ({roundState.Id}) contains coin '{inputCoin.Outpoint}' that is not allowed.");
+				}
+			}
+		}
 
 		// Splitting the remaining time.
 		// Both operations are done under output registration phase, so we have to do the random timing taking that into account.
@@ -852,6 +891,15 @@ public class CoinJoinClient
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;
+
+		// Once our last witness reaches the coordinator it can broadcast the transaction, whether or not
+		// we get to know it: the response can be lost, the round can be cancelled, the app can be closed.
+		// So the payments have to leave the in-progress state.
+		if (mustSignAllInputs)
+		{
+			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash()));
+		}
+
 		await SignTransactionAsync(alicesToSign, unsignedCoinJoin, signingStateStartTime, signingStateEndTime, combinedToken).ConfigureAwait(false);
 		Logger.LogInfo(FormatLog($"{alicesToSign.Length} out of {registeredAliceClients.Length} of your Alices have signed the coinjoin transaction.", roundState));
 
@@ -880,4 +928,12 @@ public class CoinJoinClient
 
 		return result;
 	}
+
+	public interface IRoundRestrictions;
+	public record UnrestrictedRound : IRoundRestrictions
+	{
+		public static readonly UnrestrictedRound Instance = new();
+	}
+
+	public record BlameRoundRestrictions(ImmutableArray<Coin> PreviousRoundSignedCoins, Money SuggestedAmount) : IRoundRestrictions;
 }

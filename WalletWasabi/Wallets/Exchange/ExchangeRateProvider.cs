@@ -1,11 +1,5 @@
-using System.Collections.Immutable;
 using System.Net.Http;
-using System.Threading;
-using System.Threading.Tasks;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 
 namespace WalletWasabi.Wallets.Exchange;
@@ -24,7 +18,7 @@ public static class ExchangeRateProviders
 		"None"
 	];
 
-	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker(false);
+	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
 
 	public static ExchangeRateProvider BlockstreamAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetExchangeRateAsync("Blockstream", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
