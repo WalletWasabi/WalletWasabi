@@ -11,7 +11,7 @@ public static class ExchangeRateProviders
 {
 	public static readonly ImmutableArray<string> Providers =
 	[
-		"BlockstreamInfo",
+		"BlockchainInfo",
 		"MempoolSpace",
 		"CoinGecko",
 		"Gemini",
@@ -20,8 +20,8 @@ public static class ExchangeRateProviders
 
 	private static UserAgentPicker PickRandomUserAgent = UserAgent.GenerateUserAgentPicker();
 
-	public static ExchangeRateProvider BlockstreamAsync(IHttpClientFactory httpClientFactory) =>
-		cancellationToken => GetExchangeRateAsync("Blockstream", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
+	public static ExchangeRateProvider BlockchainInfoAsync(IHttpClientFactory httpClientFactory) =>
+		cancellationToken => GetExchangeRateAsync("BlockchainInfo", "https://blockchain.info/ticker", JsonPath(".USD.buy"),
 			httpClientFactory, PickRandomUserAgent(), cancellationToken);
 
 	public static ExchangeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
