@@ -48,10 +48,8 @@ public class CompactFilterBlockHashReproTests
 			filterHeaderChain,
 			tipHeight: 0);
 		var behavior = new CompactFilterBehavior(synchronizationState, blockHeaderChain, new EventBus());
-		var payload = new CompactFilterPayload(
-			FilterType.Basic,
-			markerHash,
-			legitimateFilter.ToBytes());
+		// Notice that the compact filter contains markerHash block hash instead of the canonical block hash. That's the attacker's choice.
+		var payload = new CompactFilterPayload(FilterType.Basic, markerHash, legitimateFilter.ToBytes());
 
 		var result = behavior.ValidateFilters(1u, [payload], network);
 

@@ -628,7 +628,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public void DoNotSilentPaymentWithPayjoin()
+	public void SilentPaymentAndPayjoinAreMutuallyExclusive()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(
 			new[]
