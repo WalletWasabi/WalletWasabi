@@ -15,7 +15,7 @@ public class ExternalApiTests
 
 	[Fact]
 	public async Task BlockchainInfoExchangeRateProviderTestsAsync() =>
-		await AssertExchangeRateProviderAsync(ExchangeRateProviders.BlockstreamAsync);
+		await AssertExchangeRateProviderAsync(ExchangeRateProviders.BlockchainInfoAsync);
 
 	[Fact]
 	public async Task CoinGeckoExchangeRateProviderTestsAsync() =>
