@@ -281,7 +281,7 @@ public class Global
 
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
 		IDnsResolver dnsResolver = torEndpoint is not null
-			? new DnsSocksResolver(torEndpoint)
+			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
 		var manager = new P2pConnectionManager(
