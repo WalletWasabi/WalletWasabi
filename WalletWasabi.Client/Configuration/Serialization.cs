@@ -1,6 +1,5 @@
 using System;
 using System.Linq;
-using System.Net;
 using System.Text.Json.Nodes;
 using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
@@ -56,9 +55,6 @@ public static class PersistentConfigDecode
 	public static Decoder<ValueList<T>> ValueList<T>(Decoder<T> decoder) where T : IEquatable<T> =>
 		Array(decoder).Map(x => new ValueList<T>(x));
 
-	private static IPEndPoint DefaultEndPoint = new (IPAddress.None, 0);
-
-
 	public static readonly Decoder<PersistentConfig> PersistentConfig2_8_0 =
 		Object(get =>
 		{
@@ -81,16 +77,13 @@ public static class PersistentConfigDecode
 					DustThreshold: get.Required("DustThreshold", Decode.MoneyBitcoins),
 					EnableGpu: get.Required("EnableGpu", Decode.Bool),
 					ExchangeRateProvider: get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
-					FeeRateEstimationProvider: get.Optional("FeeRateEstimationProvider", Decode.String) ??
-					                           "BlockstreamInfo",
-					ExternalTransactionBroadcaster: get.Optional("ExternalTransactionBroadcaster", Decode.String) ??
-					                                "MempoolSpace",
+					FeeRateEstimationProvider: get.Optional("FeeRateEstimationProvider", Decode.String) ?? "BlockstreamInfo",
+					ExternalTransactionBroadcaster: get.Optional("ExternalTransactionBroadcaster", Decode.String) ?? "MempoolSpace",
 					CoordinatorIdentifier: get.Required("CoordinatorIdentifier", Decode.String),
 					MaxCoinJoinMiningFeeRate: get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
 					AbsoluteMinInputCount: get.Required("AbsoluteMinInputCount", Decode.Int),
 					MaxDaysInMempool: get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
-					ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ??
-					                      Helpers.ValueList<string>.Empty,
+					ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ?? [],
 					ConfigVersion: get.Required("ConfigVersion", Decode.Int)
 				);
 			}
@@ -126,49 +119,13 @@ public static class PersistentConfigDecode
 			MaxCoinJoinMiningFeeRate : get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
 			AbsoluteMinInputCount : get.Required("AbsoluteMinInputCount", Decode.Int),
 			MaxDaysInMempool : get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
-			ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ?? Helpers.ValueList<string>.Empty,
+			ExperimentalFeatures: get.Optional("ExperimentalFeatures", ValueList(Decode.String)) ?? [],
 			ConfigVersion : get.Required("ConfigVersion", Decode.Int)
-		));
-
-	public static readonly Decoder<PersistentConfigPrev2_6_0> PersistentConfigPrev2_6_0 =
-		Object(get => new PersistentConfigPrev2_6_0(
-			get.Required("MainNetBackendUri", Decode.String),
-			get.Required("TestNetBackendUri", Decode.String),
-			get.Required("RegTestBackendUri", Decode.String),
-			get.Required("MainNetCoordinatorUri", Decode.String),
-			get.Required("TestNetCoordinatorUri", Decode.String),
-			get.Required("RegTestCoordinatorUri", Decode.String),
-			get.Required("UseTor", UseTor),
-			get.Required("TerminateTorOnExit", Decode.Bool),
-			get.Required("TorBridges", Decode.Array(Decode.String)),
-			get.Required("DownloadNewVersion", Decode.Bool),
-			get.Optional("UseBitcoinRpc", Decode.Bool, false),
-			get.Optional("MainNetBitcoinRpcCredentialString", Decode.String) ?? "",
-			get.Optional("TestNetBitcoinRpcCredentialString", Decode.String) ?? "",
-			get.Optional("RegTestBitcoinRpcCredentialString", Decode.String) ?? "",
-			get.Optional("MainNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
-			get.Optional("TestNetBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
-			get.Optional("RegTestBitcoinRpcEndPoint", Decode.EndPoint) ?? DefaultEndPoint,
-			get.Required("JsonRpcServerEnabled", Decode.Bool),
-			get.Required("JsonRpcUser", Decode.String),
-			get.Required("JsonRpcPassword", Decode.String),
-			get.Required("JsonRpcServerPrefixes", Decode.Array(Decode.String)),
-			get.Required("DustThreshold", Decode.MoneyBitcoins),
-			get.Required("EnableGpu", Decode.Bool),
-			get.Required("CoordinatorIdentifier", Decode.String),
-			get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
-			get.Optional("FeeRateEstimationProvider", Decode.String) ?? "BlockstreamInfo",
-			get.Optional("ExternalTransactionBroadcaster", Decode.String) ?? "MempoolSpace",
-			get.Required("MaxCoinJoinMiningFeeRate", Decode.Decimal),
-			get.Required("AbsoluteMinInputCount", Decode.Int),
-			get.Optional("MaxDaysInMempool", Decode.Int, Constants.DefaultMaxDaysInMempool),
-			get.Required("ConfigVersion", Decode.Int)
 		));
 
 	public static readonly Decoder<IPersistentConfig> PersistentConfig =
 		OneOf([
 			PersistentConfig2_8_0.Map(IPersistentConfig (x) => x),
 			PersistentConfig2_6_0.Map(IPersistentConfig (x) => x),
-			PersistentConfigPrev2_6_0.Map(IPersistentConfig (x) => x)
 		]);
 }
