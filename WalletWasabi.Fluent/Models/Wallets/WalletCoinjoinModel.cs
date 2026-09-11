@@ -118,6 +118,22 @@ public partial class WalletCoinjoinModel : ReactiveObject
 			};
 			return false;
 		}
+		catch (OperationCanceledException)
+		{
+			// The confirmation timed out (CoinJoinManager caps the wait). A cancelled task must not reach the
+			// command's ThrownExceptions, which would take the whole application down.
+			Logger.LogWarning("Coinjoin authorization timed out waiting for the device.");
+			DeviceAuthorizationError = $"The device did not confirm within {HardwareWalletService.AuthorizationTimeout.TotalMinutes:0} minutes.";
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
+		}
+		catch (Exception e)
+		{
+			Logger.LogError(e);
+			DeviceAuthorizationError = e.ToUserFriendlyString();
+			DeviceAuthorization = DeviceAuthorizationStatus.Failed;
+			return false;
+		}
 	}
 
 	/// <remarks>
