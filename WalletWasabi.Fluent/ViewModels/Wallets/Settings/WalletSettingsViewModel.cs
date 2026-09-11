@@ -3,8 +3,10 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
+using WalletWasabi.Logging;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -34,6 +36,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
     [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
+    [AutoNotify] private string? _addressToConfirm;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
@@ -102,6 +105,16 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             _ => walletModel.Settings.ChangeScriptPubKeyType
         };
 
+        if (walletModel.HasSeparateCoinJoinAccount
+            && _changeScriptPubKeyType is not PreferredScriptPubKeyType.Specified { ScriptType: ScriptPubKeyType.Segwit })
+        {
+            // SegWit is the only valid choice here (the taproot keys of this wallet belong to its
+            // coinjoin account); coerce so the selector does not show an empty value.
+            _changeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
+            walletModel.Settings.ChangeScriptPubKeyType = _changeScriptPubKeyType;
+            walletModel.Settings.Save();
+        }
+
         DefaultSendWorkflow = walletModel.Settings.DefaultSendWorkflow;
         this.WhenAnyValue(x => x.DefaultSendWorkflow)
             .Subscribe(value => IsAutomaticDefaultSendWorkflow = value == SendWorkflow.Automatic);
@@ -109,6 +122,31 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         WalletCoinJoinSettings = new WalletCoinJoinSettingsViewModel(UiContext, walletModel);
 
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
+
+        // A device-backed watch-only wallet imported without coinjoin can opt in later. The device shows the new
+        // coinjoin account for confirmation, then the wallet restarts so the coinjoin services pick it up.
+        CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
+        EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
+        {
+            try
+            {
+                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(3));
+                await walletModel.EnableCoinjoinAsync(new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString()), cts.Token);
+
+                // The output provider reads the wallet's supported script types at construction, so restart to pick up the coinjoin account.
+                UiContext.Navigate(MetaData.NavigationTarget).Clear();
+                AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex);
+                await ShowErrorAsync("Enable coinjoin", ex.ToUserFriendlyString(), "Could not enable coinjoin.");
+            }
+            finally
+            {
+                AddressToConfirm = null;
+            }
+        });
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
@@ -157,9 +195,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public bool IsHardwareWallet { get; }
     public bool IsWatchOnly { get; }
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
+
+    public bool HasSeparateCoinJoinAccount => _wallet.HasSeparateCoinJoinAccount;
     public bool IsDefaultSendWorkflowSettingVisible => !(IsWatchOnly || IsHardwareWallet);
 
+    // When coinjoin funds live in their own account, taproot receive addresses come from it: deposits to
+    // them are eligible for coinjoin right away, without a hop through the regular account.
     public IEnumerable<ScriptType> ReceiveScriptTypes { get; } = [ScriptType.SegWit, ScriptType.Taproot];
+
     public IEnumerable<PreferredScriptPubKeyType> ChangeScriptPubKeyTypes { get; } =
     [
         PreferredScriptPubKeyType.Unspecified.Instance,
@@ -172,6 +215,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
     public ICommand ResyncWalletCommand { get; }
+    public bool CanEnableCoinjoin { get; }
+    public ICommand EnableCoinjoinCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {

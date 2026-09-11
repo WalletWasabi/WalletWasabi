@@ -1,10 +1,13 @@
 using System.Collections.Generic;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Crypto;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
+using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
@@ -52,6 +55,29 @@ public class CoinJoinClientTests
 		Assert.False(CoinJoinClient.SanityCheck(
 			new[] { output2, output3 },
 			new[] { output1, AddOneSat(output2), SubOneSat(output3), output4 }));
+	}
+
+	/// <summary>
+	/// A device signer refuses every round above the cap it was authorized with, so the client must skip such
+	/// rounds before registering inputs; the global cap still applies when it is the stricter one.
+	/// </summary>
+	[Theory]
+	[InlineData(null, 50)]
+	[InlineData(5, 5)]
+	[InlineData(150, 50)]
+	public void TheFeeCapIsTheStricterOfGlobalAndDevice(int? authorizedSatPerByte, int expectedSatPerByte)
+	{
+		var global = new CoinJoinConfiguration("coordinator", 50m, 1, AllowSoloCoinjoining: false);
+		var keyChain = new CappedKeyChain(authorizedSatPerByte is { } cap ? new FeeRate((decimal)cap) : null);
+
+		Assert.Equal(expectedSatPerByte, global.CappedBy(keyChain).MaxCoinJoinMiningFeeRate);
+	}
+
+	private sealed class CappedKeyChain(FeeRate? cap) : IKeyChain
+	{
+		public FeeRate? MaxMiningFeeRate => cap;
+		public OwnershipProof GetOwnershipProof(IDestination destination, CoinJoinInputCommitmentData committedData) => throw new NotSupportedException();
+		public Transaction Sign(TransactionWithPrecomputedData unsignedCoinJoin, Coin coin) => throw new NotSupportedException();
 	}
 
 	[Fact]

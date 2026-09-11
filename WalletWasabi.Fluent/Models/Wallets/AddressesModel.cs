@@ -18,11 +18,13 @@ public class AddressesModel
 {
 	private readonly ISubject<HdPubKey> _newAddressGenerated = new Subject<HdPubKey>();
 	private readonly Wallet _wallet;
+	private readonly WalletWasabi.Wallets.HardwareWalletService _hardwareWallets;
 	private readonly SourceList<HdPubKey> _source;
 
 	public AddressesModel(IServices services, Wallet wallet)
 	{
 		_wallet = wallet;
+		_hardwareWallets = services.HardwareWallets;
 		_source = new SourceList<HdPubKey>();
 		_source.AddRange(GetUnusedKeys());
 
@@ -35,7 +37,7 @@ public class AddressesModel
 			.Subscribe();
 
 		_source.Connect()
-			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, Hide))
+			.Transform(key => (IAddress) new Address(_wallet.KeyManager, key, _hardwareWallets, Hide))
 			.Bind(out var unusedAddresses)
 			.Subscribe();
 
@@ -47,7 +49,7 @@ public class AddressesModel
 	public IAddress NextReceiveAddress(IEnumerable<string> destinationLabels, ScriptPubKeyType scriptPubKeyType)
 	{
 		var pubKey = _wallet.GetNextReceiveAddress(destinationLabels, scriptPubKeyType);
-		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, Hide);
+		var nextReceiveAddress = new Address(_wallet.KeyManager, pubKey, _hardwareWallets, Hide);
 		_newAddressGenerated.OnNext(pubKey);
 
 		return nextReceiveAddress;

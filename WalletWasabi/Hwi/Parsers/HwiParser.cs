@@ -226,8 +226,9 @@ public static class HwiParser
 
 	private static HwiEnumerateEntry ParseHwiEnumerateEntry(JsonNode json)
 	{
-        var modelToken = json["model"]
-            ?? throw new ArgumentNullException($"'modelToken' can't be null;");
+        // HWI omits "model" while a device is mid-interaction (e.g. a Trezor awaiting its passphrase);
+        // fall back to "type" or Unknown instead of failing the whole enumeration.
+        var modelToken = json["model"] ?? json["type"];
 
         var pathString = json["path"]?.GetValue<string>()?.Trim()
             ?? throw new ArgumentNullException($"Path can't be null;");
@@ -271,7 +272,7 @@ public static class HwiParser
 		}
 
 		HardwareWalletModels model = HardwareWalletModels.Unknown;
-		if (TryParseHardwareWalletVendor(modelToken, out HardwareWalletModels t))
+		if (modelToken is not null && TryParseHardwareWalletVendor(modelToken, out HardwareWalletModels t))
 		{
 			model = t;
 		}

@@ -9,7 +9,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Settings.WalletToolsView">
   <StackPanel Classes="settingsLayout" Spacing="20">
 
-    <DockPanel>
+    <DockPanel IsVisible="{Binding !IsWatchOnly}">
       <ToolTip.Tip>
         <TextBlock Text="It is recommended that you verify your wallet Recovery Words from time to time." />
       </ToolTip.Tip>

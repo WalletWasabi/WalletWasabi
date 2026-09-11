@@ -126,7 +126,7 @@ public class CoinJoinManager : BackgroundService
 				switch (command)
 				{
 					case StartCoinJoinCommand startCommand:
-						HandleStartCoinJoinCommand(startCommand, coinJoinTrackerFactory);
+						await HandleStartCoinJoinCommandAsync(startCommand, coinJoinTrackerFactory, cancellationToken).ConfigureAwait(false);
 						break;
 
 					case StopCoinJoinCommand stopCommand:
@@ -153,7 +153,7 @@ public class CoinJoinManager : BackgroundService
 		await WaitAndHandleResultOfTasksAsync(nameof(_state.TrackedAutoStarts), _state.TrackedAutoStarts.Values.Select(x => x.Task).ToArray()).ConfigureAwait(false);
 	}
 
-	private void HandleStartCoinJoinCommand(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory)
+	private async Task HandleStartCoinJoinCommandAsync(StartCoinJoinCommand startCommand, CoinJoinTrackerFactory coinJoinTrackerFactory, CancellationToken cancellationToken)
 	{
 		var walletToStart = startCommand.Wallet;
 
@@ -221,6 +221,29 @@ public class CoinJoinManager : BackgroundService
 			return coinCandidates;
 		}
 
+		// A device-signed wallet is watch-only until the device authorizes a batch of rounds, which also builds
+		// its key chain. The wait for the hold-to-confirm must not stall the command loop, so authorize in a
+		// task and re-post the command when done.
+		if (NeedsDeviceAuthorization(walletToStart))
+		{
+			_ = Task.Run(
+				async () =>
+				{
+					try
+					{
+						await AuthorizeDeviceAsync(walletToStart, cancellationToken).ConfigureAwait(false);
+						_mailboxProcessor.Post(startCommand);
+					}
+					catch (Exception ex)
+					{
+						Logger.LogWarning(FormatLog($"Coinjoin authorization failed: {ex.Message}", walletToStart));
+						NotifyCoinJoinStartError(walletToStart, CoinjoinError.DeviceAuthorizationFailed);
+					}
+				},
+				cancellationToken);
+			return;
+		}
+
 		var coinJoinTracker = coinJoinTrackerFactory.CreateAndStart(walletToStart, startCommand.OutputWallet, SanityChecksAndGetCoinCandidatesFunc, startCommand.StopWhenAllMixed, startCommand.OverridePlebStop);
 
 		if (!_state.TrackedCoinJoins.TryAdd(walletToStart.WalletId, coinJoinTracker))
@@ -242,6 +265,20 @@ public class CoinJoinManager : BackgroundService
 
 		// In case there was another start scheduled just remove it.
 		TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStart);
+	}
+
+	/// <summary>Whether this wallet still owes its signing device an authorization before it can coinjoin.</summary>
+	public static bool NeedsDeviceAuthorization(Wallet wallet) =>
+		HardwareWalletService.IsRemoteSigner(wallet.KeyManager) && wallet.KeyChain is null;
+
+	/// <summary>Asks the signing device to authorize a batch of rounds, with the same confirmation time for every front end.</summary>
+	public async Task AuthorizeDeviceAsync(Wallet wallet, CancellationToken cancellationToken)
+	{
+		using var authCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		authCts.CancelAfter(HardwareWalletService.AuthorizationTimeout);
+		await wallet
+			.AuthorizeCoinJoinOnDeviceAsync(_coinJoinConfiguration.CoordinatorIdentifier, authCts.Token)
+			.ConfigureAwait(false);
 	}
 
 	private void HandleStopCoinJoinCommand(StopCoinJoinCommand stopCommand)
@@ -815,4 +852,11 @@ public class CoinJoinManager : BackgroundService
 	}
 }
 
-public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining);
+public record CoinJoinConfiguration(string CoordinatorIdentifier,  decimal MaxCoinJoinMiningFeeRate, int AbsoluteMinInputCount, bool AllowSoloCoinjoining)
+{
+	/// <summary>The configuration this signer can honour: never a higher fee rate than its device was authorized with.</summary>
+	public CoinJoinConfiguration CappedBy(IKeyChain keyChain) =>
+		keyChain.MaxMiningFeeRate is { } cap && cap.SatoshiPerByte < MaxCoinJoinMiningFeeRate
+			? this with { MaxCoinJoinMiningFeeRate = cap.SatoshiPerByte }
+			: this;
+}

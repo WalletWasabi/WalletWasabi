@@ -10,6 +10,7 @@ using System.Text.Json.Nodes;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.CoinJoinProfiles;
+using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Io;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
@@ -25,6 +26,8 @@ namespace WalletWasabi.Blockchain.Keys;
 public class KeyManager
 {
 	public const bool DefaultAutoCoinjoin = false;
+	public const int DefaultCoinJoinDeviceMaxRounds = 50; // Failed/blame rounds also consume an authorized round, so leave headroom before the device asks again.
+	public const decimal DefaultCoinJoinDeviceMaxMiningFeeRate = 5m; // sat/vByte, the device refuses rounds above this cap; keep it tight so coinjoin never overpays on mainnet.
 
 	public const int AbsoluteMinGapLimit = 21;
 	public const int MaxGapLimit = 10_000;
@@ -158,6 +161,12 @@ public class KeyManager
 
 	public int AnonScoreTarget { get; set; } = PrivacyProfiles.DefaultProfile.AnonScoreTarget;
 
+	/// <summary>Max coinjoin rounds one device authorization is good for. Shown on the device and confirmed there.</summary>
+	public int CoinJoinDeviceMaxRounds { get; set; } = DefaultCoinJoinDeviceMaxRounds;
+
+	/// <summary>Max mining fee rate (sat/vByte) the device is authorized to sign coinjoins at. Shown on the device.</summary>
+	public decimal CoinJoinDeviceMaxMiningFeeRate { get; set; } = DefaultCoinJoinDeviceMaxMiningFeeRate;
+
 	public bool NonPrivateCoinIsolation { get; set; } = PrivacyProfiles.DefaultProfile.NonPrivateCoinIsolation;
 
 	public ScriptPubKeyType DefaultReceiveScriptType { get; set; } = ScriptPubKeyType.TaprootBIP86;
@@ -192,7 +201,7 @@ public class KeyManager
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
 	private readonly HdPubKeyGenerator _segwitInternalKeyGenerator;
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
-	private readonly HdPubKeyGenerator? _taprootInternalKeyGenerator;
+	private HdPubKeyGenerator? _taprootInternalKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentScanKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentSpendKeyGenerator;
 	private List<(SilentPaymentAddress Address, ECPrivKey ScanSecret)> _silentPaymentScanData = new();
@@ -239,10 +248,10 @@ public class KeyManager
 		return new KeyManager(encryptedSecret, extKey.ChainCode, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, blockchainState, filePath, segwitAccountKeyPath, taprootAccountKeyPath);
 	}
 
-	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, ExtPubKey? silentPaymentScanExtPubKey, ExtPubKey? silentPaymentSpendExtPubKey, Network network, string? filePath = null)
+	public static KeyManager CreateNewHardwareWalletWatchOnly(HDFingerprint masterFingerprint, ExtPubKey segwitExtPubKey, ExtPubKey? taprootExtPubKey, ExtPubKey? silentPaymentScanExtPubKey, ExtPubKey? silentPaymentSpendExtPubKey, Network network, string? filePath = null, KeyPath? taprootAccountKeyPath = null)
 	{
 		var birthHeight = FilterCheckpoints.GetWasabiGenesisFilter(network).Header.Height;
-		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath);
+		return new KeyManager(null, null, masterFingerprint, segwitExtPubKey, taprootExtPubKey, silentPaymentScanExtPubKey, silentPaymentSpendExtPubKey, AbsoluteMinGapLimit, new BlockchainState(network, birthHeight: birthHeight), filePath, taprootAccountKeyPath: taprootAccountKeyPath);
 	}
 
 	public static KeyManager Recover(Mnemonic mnemonic, string password, Network network, KeyPath swAccountKeyPath, KeyPath? trAccountKeyPath = null, string? filePath = null, int minGapLimit = AbsoluteMinGapLimit, ChainHeight? birthHeight = null)
@@ -376,11 +385,15 @@ public class KeyManager
 		return (newKey, newHdPubKeys, newHdPubKeyGenerator);
 	}
 
-	public HdPubKey GetNextChangeKey() =>
+	/// <param name="coinJoinAccount">Take the change from the SLIP-25 coinjoin account: the device signs it under an UnlockPath
+	/// session that forbids every other own key path, so its change must return to it and it cannot take a regular transaction's.</param>
+	public HdPubKey GetNextChangeKey(bool coinJoinAccount = false) =>
 		GetKeys(x =>
 			x.KeyState == KeyState.Clean &&
 			x.IsInternal &&
-			MatchesChangeScriptPubKeyType(x))
+			(coinJoinAccount
+				? x.FullKeyPath.IsSlip25KeyPath()
+				: MatchesChangeScriptPubKeyType(x) && !(this.IsTrezorCoinJoinWallet() && x.FullKeyPath.IsSlip25KeyPath())))
 			.First();
 
 	public ImmutableArray<HdPubKey> GetNextCoinJoinKeys() =>
@@ -499,6 +512,34 @@ public class KeyManager
 			TaprootAccountKeyPath = GetAccountKeyPath(GetNetwork(), ScriptPubKeyType.TaprootBIP86);
 			TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		}
+	}
+
+	/// <summary>
+	/// Adopts a SLIP-25 coinjoin account as this hardware wallet's taproot account and persists it. The taproot slot
+	/// must be empty: a wallet with a regular m/86' account is not converted, so its coins are not orphaned.
+	/// </summary>
+	public void SetCoinJoinAccount(KeyPath coinJoinAccountKeyPath, ExtPubKey coinJoinExtPubKey)
+	{
+		lock (_criticalStateLock)
+		{
+			if (TaprootExtPubKey is not null)
+			{
+				throw new InvalidOperationException("This wallet already has a taproot account.");
+			}
+
+			TaprootAccountKeyPath = coinJoinAccountKeyPath;
+			TaprootExtPubKey = coinJoinExtPubKey;
+			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
+			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
+
+			// Only coins of the SLIP-25 account can join rounds, so hand out its addresses by default;
+			// segwit receive stays available in the dropdown for deposits that should not be coinjoined.
+			DefaultReceiveScriptType = ScriptPubKeyType.TaprootBIP86;
+
+			AssertCleanKeysIndexedNoLock();
+		}
+
+		ToFile();
 	}
 
 	public void SetKeyState(KeyState newKeyState, HdPubKey hdPubKey)
@@ -723,6 +764,8 @@ public class KeyManager
 			("PlebStopThreshold", Encode.MoneyBitcoins(keyManager.PlebStopThreshold)),
 			("Icon", Encode.Optional(keyManager.Icon, Encode.String)),
 			("AnonScoreTarget", Encode.Int(keyManager.AnonScoreTarget)),
+			("CoinJoinDeviceMaxRounds", Encode.Int(keyManager.CoinJoinDeviceMaxRounds)),
+			("CoinJoinDeviceMaxMiningFeeRate", Encode.Decimal(keyManager.CoinJoinDeviceMaxMiningFeeRate)),
 			("RedCoinIsolation", Encode.Bool(keyManager.NonPrivateCoinIsolation)),
 			("DefaultReceiveScriptType", Encode.ScriptPubKeyType(keyManager.DefaultReceiveScriptType)),
 			("ChangeScriptPubKeyType", Encode.PreferredScriptPubKeyType(keyManager.ChangeScriptPubKeyType)),
@@ -761,6 +804,8 @@ public class KeyManager
 				PlebStopThreshold = get.Optional("PlebStopThreshold", Decode.MoneyBitcoins) ?? DefaultPlebStopThreshold,
 				Icon = get.Optional("Icon", Decode.String),
 				AnonScoreTarget = get.Optional("AnonScoreTarget", Decode.Int, 10),
+				CoinJoinDeviceMaxRounds = get.Optional("CoinJoinDeviceMaxRounds", Decode.Int, DefaultCoinJoinDeviceMaxRounds),
+				CoinJoinDeviceMaxMiningFeeRate = get.Optional("CoinJoinDeviceMaxMiningFeeRate", Decode.Decimal, DefaultCoinJoinDeviceMaxMiningFeeRate),
 				NonPrivateCoinIsolation = get.Optional("RedCoinIsolation", Decode.Bool, false),
 				DefaultReceiveScriptType = get.Optional("DefaultReceiveScriptType", Decode.ScriptPubKeyType, ScriptPubKeyType.TaprootBIP86),
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
@@ -775,10 +820,11 @@ public class KeyManager
 public static class KeyPathExtensions
 {
 	public static ScriptPubKeyType GetScriptTypeFromKeyPath(this KeyPath keyPath) =>
-		keyPath.ToBytes().First() switch
+		(keyPath.Indexes[0] & ~0x80000000u) switch // Purpose index without the hardened bit.
 		{
 			84 => ScriptPubKeyType.Segwit,
 			86 => ScriptPubKeyType.TaprootBIP86,
+			10025 => ScriptPubKeyType.TaprootBIP86, // SLIP-25 coinjoin accounts are taproot only.
 			_ => ScriptPubKeyType.Segwit // User can specify a specify whatever (like m/999'/999'/999')
 										 // throw new NotSupportedException("Unknown script type.")
 		};
