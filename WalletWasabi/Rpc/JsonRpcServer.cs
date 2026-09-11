@@ -1,11 +1,7 @@
 using Microsoft.Extensions.Hosting;
 using System.IO;
-using System.Linq;
 using System.Net;
 using System.Text;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Services.Terminate;
 
 namespace WalletWasabi.Rpc;
@@ -19,7 +15,7 @@ public class JsonRpcServer : BackgroundService
 		_requestHandler = new JsonRpcRequestHandler<IJsonRpcService>(service, config.Network);
 
 		_listener = new HttpListener();
-		_listener.AuthenticationSchemes = AuthenticationSchemes.Basic | AuthenticationSchemes.Anonymous;
+		_listener.AuthenticationSchemes = AuthenticationSchemes.Basic;
 
 		foreach (var prefix in _config.Prefixes)
 		{
@@ -139,11 +135,6 @@ public class JsonRpcServer : BackgroundService
 
 	private bool IsAuthorized(HttpListenerContext context)
 	{
-		if (!_config.RequiresCredentials)
-		{
-			return true;
-		}
-
 		var user = context.User;
 		if (user is null)
 		{
@@ -154,8 +145,6 @@ public class JsonRpcServer : BackgroundService
 		return CheckValidCredentials(identity);
 	}
 
-	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity)
-	{
-		return identity is { } && (identity.Name == _config.JsonRpcUser && identity.Password == _config.JsonRpcPassword);
-	}
+	private bool CheckValidCredentials(HttpListenerBasicIdentity? identity) =>
+		identity is not null && identity.Name == _config.JsonRpcUser && identity.Password == _config.JsonRpcPassword;
 }

@@ -1,8 +1,4 @@
-using NBitcoin;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;

@@ -1,10 +1,3 @@
-using NBitcoin;
-using System.Linq;
-using WalletWasabi.Crypto;
-using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Coordinator.Models;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
-
 namespace WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 
 // This class represents actions of the BIP 370 creator and constructor roles

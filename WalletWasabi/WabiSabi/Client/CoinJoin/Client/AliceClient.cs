@@ -1,18 +1,6 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Crypto;
-using WalletWasabi.Logging;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
-using WalletWasabi.Extensions;
 using System.Net.Http;
-using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.WabiSabi.Coordinator.Models;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
+using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using static WalletWasabi.Logging.LoggerTools;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;

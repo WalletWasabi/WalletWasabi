@@ -1,9 +1,6 @@
-using System.Collections.Generic;
-using NBitcoin;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
 using WalletWasabi.Crypto;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Models;
 using WalletWasabi.WabiSabi.Crypto;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;

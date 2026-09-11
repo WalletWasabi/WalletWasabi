@@ -70,7 +70,8 @@ public partial class TorControlClientFactory(RandomnessProvider random)
 	/// <exception cref="TorControlException">If authentication fails for some reason.</exception>
 	internal async Task<TorControlClient> AuthSafeCookieOrThrowAsync(TorControlClient controlClient, string cookieString, CancellationToken cancellationToken)
 	{
-		byte[] nonceBytes = _random(32);
+		Span<byte> nonceBytes = stackalloc byte[32];
+		_random(nonceBytes);
 		string clientNonce = Convert.ToHexString(nonceBytes);
 
 		TorControlReply authChallengeReply = await controlClient.SendCommandAsync($"AUTHCHALLENGE SAFECOOKIE {clientNonce}\r\n", cancellationToken).ConfigureAwait(false);

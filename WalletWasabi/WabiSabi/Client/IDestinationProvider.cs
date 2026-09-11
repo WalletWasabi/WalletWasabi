@@ -1,7 +1,3 @@
-using NBitcoin;
-using System.Collections.Generic;
-using WalletWasabi.Blockchain.Keys;
-
 namespace WalletWasabi.WabiSabi.Client;
 
 public interface IDestinationProvider

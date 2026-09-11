@@ -1,8 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 

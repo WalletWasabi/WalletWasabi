@@ -1,9 +1,3 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using WabiSabi.Crypto.ZeroKnowledge;
-
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 
 public class BobClient

@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using NBitcoin;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Helpers;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 

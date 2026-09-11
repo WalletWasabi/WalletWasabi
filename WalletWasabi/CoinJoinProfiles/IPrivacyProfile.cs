@@ -7,6 +7,7 @@ public interface IPrivacyProfile
 	bool NonPrivateCoinIsolation { get; }
 	public bool Equals(int anonScoreTarget, bool redCoinIsolation)
 	{
-		return anonScoreTarget == AnonScoreTarget && redCoinIsolation == NonPrivateCoinIsolation;
+		return anonScoreTarget == AnonScoreTarget
+			&& redCoinIsolation == NonPrivateCoinIsolation;
 	}
 }

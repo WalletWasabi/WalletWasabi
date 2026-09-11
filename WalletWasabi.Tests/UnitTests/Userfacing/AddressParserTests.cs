@@ -1,4 +1,5 @@
 using NBitcoin;
+using WalletWasabi.Payjoin;
 using WalletWasabi.Userfacing;
 using Xunit;
 
@@ -9,6 +10,10 @@ namespace WalletWasabi.Tests.UnitTests.Userfacing;
 /// </summary>
 public class AddressParserTests
 {
+	/// <summary>A realistic BIP 77 <c>pj=</c> value.</summary>
+	/// <seealso cref="Bip77UriParams"/>
+	private const string Bip77PjUrl = "https://payjo.in/TXJCGKTKXLUUZ#EX1WKV8CEC-OH1QYPM59NK2LXXS4890SUAXXYT25Z2VAPHP0X7YEYCJXGWAG6UG9ZU6NQ-RK1Q0DJS3VVDXWQQTLQ8022QGXSX7ML9PHZ6EDSF6AKEWQG758JPS2EV";
+
 	[Fact]
 	public void TryParse_BitcoinAddressTests()
 	{
@@ -25,7 +30,7 @@ public class AddressParserTests
 
 		foreach ((string address, Network network) in tests)
 		{
-			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Remove(0, 1), network).Error);
+			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address[1..], network).Error);
 			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Remove(5, 1), network).Error);
 			Assert.Equal("Invalid Bitcoin address.", AddressParser.Parse(address.Insert(4, "b"), network).Error);
 			Assert.Equal(
@@ -75,11 +80,11 @@ public class AddressParserTests
 		Assert.Equal("Luke-Jr", result.Label);
 		Assert.Equal(20.3m, result.Amount);
 
-		// As per BIP21, keys are case sensitive, "Amount" and "Label" is not valid, only "amount" and "label" is.
+		// As per BIP321, keys are case insensitive, "Amount" and "Label" are thus valid.
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?Amount=20.3&Label=Luke-Jr", Network.Main).Value);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
-		Assert.Equal(null!, result.Label);
-		Assert.Equal(null!, result.Amount);
+		Assert.Equal("Luke-Jr", result.Label);
+		Assert.Equal(20.3m, result.Amount);
 
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX?amount=50&label=Luke-Jr&message=Donation%20for%20project%20xyz", Network.Main).Value);
 		Assert.Equal("18cBEMRxXHqzWWCxZNtU91F5sbUNKhL5PX", result.Address.ToWif(Network.Main));
@@ -114,11 +119,69 @@ public class AddressParserTests
 		Assert.Equal("bolt11_example", result.Label);
 		Assert.Equal(0.02m, result.Amount);
 
-		// Bip21 Uri with silent payment address}
+		// BIP321 Uri with silent payment address
 		result = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse("bitcoin:sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv?amount=0.02&label=bolt11_example", Network.Main).Value);
 		var sp = Assert.IsType<Address.SilentPayment>(result.Address);
 		Assert.Equal("sp1qqgste7k9hx0qftg6qmwlkqtwuy6cycyavzmzj85c6qdfhjdpdjtdgqjuexzk6murw56suy3e0rd2cgqvycxttddwsvgxe2usfpxumr70xc9pkqwv", sp.ToWif(Network.Main));
 		Assert.Equal("bolt11_example", result.Label);
 		Assert.Equal(0.02m, result.Amount);
+	}
+
+	/// <summary>
+	/// Inside a BIP 21 URI the whole pj value is percent-encoded. <see cref="AddressParser"/> must hand back the decoded URL and fragment intact.
+	/// </summary>
+	[Fact]
+	public void PreservesBip77PjUrlFragmentParameters()
+	{
+		string encodedPjUrl = Uri.EscapeDataString(Bip77PjUrl);
+		string bip21 = $"bitcoin:tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx?amount=0.00010727&pj={encodedPjUrl}";
+
+		var result = AddressParser.Parse(bip21, Network.TestNet).Value;
+
+		var uri = Assert.IsType<Address.Bip21Uri>(result);
+		Assert.Equal(Bip77PjUrl, uri.PayjoinEndpoint);
+		Assert.Equal(0.00010727m, uri.Amount);
+	}
+
+	/// <summary>
+	/// <c>pjos=0</c> (output substitution disabled) must survive parsing so the sender can rebuild a faithful BIP 21.
+	/// </summary>
+	[Fact]
+	public void PreservesPjosParameter()
+	{
+		string bip21 = $"bitcoin:tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx?amount=1&pj={Uri.EscapeDataString(Bip77PjUrl)}&pjos=0";
+
+		var result = AddressParser.Parse(bip21, Network.TestNet).Value;
+
+		var uri = Assert.IsType<Address.Bip21Uri>(result);
+		Assert.Equal("0", uri.PayjoinOutputSubstitution);
+
+		// And it round-trips through serialization.
+		Assert.Contains("pjos=0", uri.ToWif(Network.TestNet));
+	}
+
+	[Fact]
+	public void Bip77UriParams_DetectsVersionAndExtractsReceiverKey()
+	{
+		Assert.True(Bip77UriParams.IsBip77(Bip77PjUrl));
+		Assert.True(Bip77UriParams.TryGetReceiverKey(Bip77PjUrl, out var receiverKey));
+		Assert.Equal("RK1Q0DJS3VVDXWQQTLQ8022QGXSX7ML9PHZ6EDSF6AKEWQG758JPS2EV", receiverKey);
+
+		// A BIP 78 (v1) endpoint has no BIP 77 fragment params.
+		Assert.False(Bip77UriParams.IsBip77("https://btcpay.example/BTC/pj"));
+		Assert.False(Bip77UriParams.TryGetReceiverKey("https://btcpay.example/BTC/pj", out _));
+
+		// A fragment without the receiver key is not BIP 77.
+		Assert.False(Bip77UriParams.IsBip77("https://payjo.in/TXJCGKTKXLUUZ#EX1WKV8CEC"));
+	}
+
+	/// <summary>BIP 21 without a <c>pj</c> parameter yields no payjoin endpoint.</summary>
+	[Fact]
+	public void NoPjParameter_YieldsNullEndpoint()
+	{
+		var result = AddressParser.Parse("bitcoin:tb1qw508d6qejxtdg4y5r3zarvary0c5xw7kxpjzsx?amount=1", Network.TestNet).Value;
+
+		var uri = Assert.IsType<Address.Bip21Uri>(result);
+		Assert.Null(uri.PayjoinEndpoint);
 	}
 }

@@ -1,8 +1,8 @@
-﻿using System.Net.Http;
+using System.Net.Http;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Mocks;
 
 public class MockHttpClient : HttpClient
 {

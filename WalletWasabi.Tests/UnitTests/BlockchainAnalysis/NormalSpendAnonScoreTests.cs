@@ -14,15 +14,14 @@ public class NormalSpendAnonScoreTests
 	{
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 1, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
-		var key = coin.HdPubKey;
-		key.SetAnonymitySet(3, tx.GetHash());
+		coin.SetAnonymitySet(3, tx.GetHash());
 
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt our input,
 		// so its anonset should become 1.
 		Assert.Empty(tx.WalletOutputs);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 	}
 
 	[Fact]
@@ -32,7 +31,7 @@ public class NormalSpendAnonScoreTests
 
 		foreach (var coin in tx.WalletInputs)
 		{
-			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
+			coin.SetAnonymitySet(3, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
@@ -40,7 +39,7 @@ public class NormalSpendAnonScoreTests
 		// Since we sent this money to someone we should assume that someone learnt our inputs,
 		// so its anonset should become 1.
 		Assert.Empty(tx.WalletOutputs);
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -48,15 +47,14 @@ public class NormalSpendAnonScoreTests
 	{
 		var tx = BitcoinFactory.CreateSmartTransaction(0, 3, 1, 0);
 		var coin = Assert.Single(tx.WalletInputs);
-		var key = coin.HdPubKey;
-		key.SetAnonymitySet(3, tx.GetHash());
+		coin.SetAnonymitySet(3, tx.GetHash());
 
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt our input,
 		// so its anonset should become 1.
 		Assert.Empty(tx.WalletOutputs);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 	}
 
 	[Fact]
@@ -66,7 +64,7 @@ public class NormalSpendAnonScoreTests
 
 		foreach (var coin in tx.WalletInputs)
 		{
-			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
+			coin.SetAnonymitySet(3, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
@@ -74,8 +72,8 @@ public class NormalSpendAnonScoreTests
 		// Since we sent this money to someone we should assume that someone learnt both our input and output,
 		// so its anonset should become 1.
 		var output = Assert.Single(tx.WalletOutputs);
-		Assert.Equal(1, output.HdPubKey.AnonymitySet);
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.Equal(1, output.AnonymitySet);
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -85,15 +83,15 @@ public class NormalSpendAnonScoreTests
 
 		foreach (var coin in tx.WalletInputs)
 		{
-			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
+			coin.SetAnonymitySet(3, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our input and output,
 		// so its anonset should become 1.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -103,15 +101,15 @@ public class NormalSpendAnonScoreTests
 
 		foreach (var coin in tx.WalletInputs)
 		{
-			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
+			coin.SetAnonymitySet(3, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our inputs and output,
 		// so its anonset should become 1.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 	}
 
 	[Fact]
@@ -121,14 +119,14 @@ public class NormalSpendAnonScoreTests
 
 		foreach (var coin in tx.WalletInputs)
 		{
-			coin.HdPubKey.SetAnonymitySet(3, tx.GetHash());
+			coin.SetAnonymitySet(3, tx.GetHash());
 		}
 
 		BlockchainAnalyzer.Analyze(tx);
 
 		// Since we sent this money to someone we should assume that someone learnt both our inputs and outputs,
 		// so its anonset should become 1.
-		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
-		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.HdPubKey.AnonymitySet));
+		Assert.All(tx.WalletOutputs, x => Assert.Equal(1, x.AnonymitySet));
+		Assert.All(tx.WalletInputs, x => Assert.Equal(1, x.AnonymitySet));
 	}
 }

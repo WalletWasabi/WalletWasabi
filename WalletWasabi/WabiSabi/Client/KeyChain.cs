@@ -1,8 +1,4 @@
-using NBitcoin;
-using System.Linq;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
-using WalletWasabi.Extensions;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;

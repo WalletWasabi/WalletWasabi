@@ -31,6 +31,11 @@ public record P2pNodeClient(
 			using var lts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 			var block = await Node.DownloadBlockAsync(blockHash, lts.Token).ConfigureAwait(false);
 
+			if (block is null)
+			{
+				return null;
+			}
+
 			// Validate block
 			if (!block.Check())
 			{
@@ -42,21 +47,23 @@ public record P2pNodeClient(
 			IncreaseTimeout(-1);
 			return block;
 		}
-		catch (Exception ex)
+		catch (Exception ex) when (ex is OperationCanceledException or TimeoutException)
 		{
-			if (ex is OperationCanceledException or TimeoutException)
-			{
-				IncreaseTimeout(+1);
-				// It could be a slow connection and not a misbehaving node.
-				Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
-			}
-			else
-			{
-				Logger.LogDebug(ex);
-				Error(P2pConnectionManager.MisbehaviorType.Unknown);
-			}
-			return null;
+			IncreaseTimeout(+1);
+			// It could be a slow connection and not a misbehaving node.
+			Error(P2pConnectionManager.MisbehaviorType.TimedOutDownloadingBlock);
 		}
+		catch (InvalidOperationException ex)
+		{
+			Logger.LogWarning(ex);
+			Error(P2pConnectionManager.MisbehaviorType.ProvidedInvalidData);
+		}
+		catch (Exception)
+		{
+			// ignored
+		}
+
+		return null;
 	}
 }
 
@@ -76,8 +83,8 @@ public class P2pConnectionManager : IDisposable
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
-	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(60);
-	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(15);
+	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(10);
+	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(3);
 
 	private readonly Network _network;
 	private readonly List<NodeBehavior> _templateBehaviors = [];
@@ -210,7 +217,7 @@ public class P2pConnectionManager : IDisposable
 	{
 		while (!cancellationToken.IsCancellationRequested)
 		{
-			var nodes = Nodes;
+			var nodes = Nodes.Where(n => n.CanServeBlocks).ToArray();
 
 			if (nodes.Length == 0)
 			{
@@ -399,7 +406,7 @@ public class P2pConnectionManager : IDisposable
 				connParams.TemplateBehaviors.Add(behavior);
 			}
 
-			if (peerInfo.Endpoint.IsTor() && _torSocks5 is { } torEndpoint)
+			if (_torSocks5 is { } torEndpoint)
 			{
 				connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false,
 					networkCredential: null, streamIsolation: true));
@@ -712,13 +719,14 @@ public class P2pConnectionManager : IDisposable
 			UserAgent = Constants.UserAgents[Random.Shared.Next(Constants.UserAgents.Length)]
 		};
 
-		if (endpoint.IsTor())
+		if (_torSocks5 is { } torEndpoint)
 		{
-			if (_torSocks5 is null)
-			{
-				return null;
-			}
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(_torSocks5));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint));
+		}
+		else if (endpoint.IsTor())
+		{
+			// Cannot connect to .onion endpoint without Tor
+			return null;
 		}
 
 		Node? node = null;

@@ -1,6 +1,5 @@
 using System.Diagnostics;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers.PowerSaving;
 
@@ -16,22 +15,9 @@ public class MacOsInhibitorTask : BaseInhibitorTask
 
 	public static MacOsInhibitorTask Create(TimeSpan basePeriod, string reason)
 	{
-		// The script is written with newlines but we need to pass the script to
-		// bash -c as a one-liner, so that's why we use the "ReplaceLineEndings" command.
-		//
-		// Note that this script requires dollar signs ($) and quotes (") to be escaped.
-		string innerCommand = $$"""
-			caffeinate -i &
-			caffeinatePid=$!;
-			trap \"kill -9 \$caffeinatePid\" 0 SIGINT SIGTERM;
-			while (ps -p {{Environment.ProcessId}} );
-			do
-				sleep 1;
-			done;
-			""".ReplaceLineEndings(replacementText: " ");
-
-		string command = $"/bin/bash";
-		string arguments = $"-c \"{innerCommand}\"";
+		// -w switch makes sure that the caffeinate will stop doing its job once Wasabi process exits.
+		var command = "caffeinate";
+		var arguments = $"-i -w {Environment.ProcessId}";
 
 		Logger.LogTrace($"Command to invoke: {command} {arguments}");
 		ProcessStartInfo startInfo = GetProcessStartInfo(command, arguments);

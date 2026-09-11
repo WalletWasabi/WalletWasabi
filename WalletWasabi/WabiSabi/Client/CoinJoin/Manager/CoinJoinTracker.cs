@@ -1,12 +1,7 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
-using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client;
 
@@ -72,8 +67,21 @@ public class CoinJoinTracker : IDisposable
 				InCriticalCoinJoinState = false;
 				break;
 
+			case TransactionSigned transactionSigned:
+				// We've signed the transaction - move payments to signed state with the txId.
+				// This captures the txId immediately so we can reconcile later if the round
+				// outcome is unknown.
+				Wallet.BatchedPayments.MovePaymentsToSigned(transactionSigned.TransactionId);
+				break;
+
 			case RoundEnded roundEnded:
-				if (roundEnded.LastRoundState.EndRoundState != EndRoundState.TransactionBroadcasted)
+				var endState = roundEnded.LastRoundState.EndRoundState;
+				// Only reset payments if we KNOW the round failed.
+				// When EndRoundState is None (unknown), the transaction might have been
+				// broadcast, so we must NOT move payments back to pending to avoid double payments.
+				// Payments in Signed state will be resolved by reconciliation or timeout.
+				if (endState != EndRoundState.TransactionBroadcasted &&
+					endState != EndRoundState.None)
 				{
 					Wallet.BatchedPayments.MovePaymentsToPending();
 				}

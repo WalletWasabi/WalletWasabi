@@ -440,9 +440,9 @@ public partial class FluentNavigate
 		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public void ReceiveAddresses(IWalletModel wallet, Models.Wallets.ScriptType scriptType, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void ReceiveAddresses(IWalletModel wallet, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		UiContext.Navigate(navigationTarget).To(new ReceiveAddressesViewModel(UiContext, wallet, scriptType), navigationMode);
+		UiContext.Navigate(navigationTarget).To(new ReceiveAddressesViewModel(UiContext, wallet), navigationMode);
 	}
 
 	public void WalletCoinJoinSettings(IWalletModel walletModel, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

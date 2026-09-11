@@ -1,21 +1,13 @@
-using NBitcoin;
 using NBitcoin.Protocol;
-using System.Linq;
 using System.Net;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Mempool;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.WebClients.Wasabi;
-using System.Collections.Immutable;
 using System.Text;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.WebClients;
@@ -122,7 +114,7 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	{
 		Broadcaster = broadcaster;
 		HttpClientFactory = httpClientFactory;
-		_userAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+		_userAgentGetter = UserAgent.GenerateUserAgentPicker();
 	}
 
 	public IHttpClientFactory HttpClientFactory { get; }
@@ -162,13 +154,12 @@ public class ExternalTransactionBroadcaster : IBroadcaster
 	public record ExternalBroadcasterInfo(string Name, (string ClearNet, string Onion) ApiDomain, string ApiEndpoint);
 }
 
-public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvider p2pNodeListProvider) : IBroadcaster
+public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvider p2pNodeListProvider, int minBroadcastNodes) : IBroadcaster
 {
-	public const int MinBroadcastNodes = 2;
 	public async Task<BroadcastingResult> BroadcastAsync(SmartTransaction tx, CancellationToken cancellationToken)
 	{
 		var connectedNodes = p2pNodeListProvider();
-		if (connectedNodes.Length < MinBroadcastNodes)
+		if (connectedNodes.Length <  minBroadcastNodes)
 		{
 			return BroadcastingResult.Fail(new BroadcastError.NotEnoughP2pNodes());
 		}
@@ -177,7 +168,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvid
 		if (tx.TryGetFeeRate(out var txFeeRate))
 		{
 			nodesWillingToRelayTx = P2pBehavior.GetNodesWillingToRelay(txFeeRate).Intersect(connectedNodes).ToImmutableArray();
-			if (nodesWillingToRelayTx.Length < MinBroadcastNodes)
+			if (nodesWillingToRelayTx.Length < minBroadcastNodes)
 			{
 				if (P2pBehavior.GetMinPeerFeeFilter() is { } minPeerFeeRate)
 				{
@@ -190,7 +181,7 @@ public class NetworkBroadcaster(MempoolService mempoolService, P2pNodeListProvid
 		var broadcastToNode = nodesWillingToRelayTx
 			.Where(n => n.IsConnected)
 			.OrderBy(_ => Guid.NewGuid())
-			.Take(Math.Max(MinBroadcastNodes, 1 + connectedNodes.Length / 5))
+			.Take(Math.Max(minBroadcastNodes, 1 + connectedNodes.Length / 5))
 			.ToArray();
 
 		var broadcastToNodeTasks = broadcastToNode
@@ -363,5 +354,13 @@ public static class MempoolServiceExtensions
 		}
 
 		return entry;
+	}
+}
+
+public static class NetworkExtensions
+{
+	extension(Network network)
+	{
+		public int MinBroadcastNodes => network == Network.RegTest ? 1 : 2;
 	}
 }

@@ -76,7 +76,7 @@ public class SmartCoinSelector : ICoinSelector
 			.Select(group => (
 				Coins: group.Coins,
 				Unconfirmed: group.Coins.Any(x => !x.Confirmed),    // If group has an unconfirmed, then the whole group is unconfirmed.
-				AnonymitySet: group.Coins.Min(x => x.HdPubKey.AnonymitySet), // The group is as anonymous as its weakest member.
+				AnonymitySet: group.Coins.Min(x => x.AnonymitySet), // The group is as anonymous as its weakest member.
 				ClusterPrivacy: group.Privacy, // The number people/entities that know the cluster.
 				Amount: group.Coins.Sum(x => x.Amount)
 			));

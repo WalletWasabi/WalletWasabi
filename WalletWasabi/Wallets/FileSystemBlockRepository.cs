@@ -18,13 +18,13 @@ public class FileSystemBlockRepository
 	{
 		BlocksFolderPath = blocksFolderPath;
 		_network = network;
-		_targetBlocksFolderSize = targetBlocksFolderSizeInMegabytes * MegaByte;
+		_targetBlocksFolderSizeBytes = targetBlocksFolderSizeInMegabytes * MegaByte;
 		RemoveBlockFolderForRegTest();
 	}
 
 	public string BlocksFolderPath { get; }
 	private readonly Network _network;
-	private readonly long _targetBlocksFolderSize;
+	private readonly long _targetBlocksFolderSizeBytes;
 	private readonly AsyncLock _blockFolderLock = new();
 
 	private void Prune()
@@ -36,7 +36,7 @@ public class FileSystemBlockRepository
 				.Select(x => new FileInfo(x))
 				.OrderByDescending(x => x.LastAccessTimeUtc)
 				.Scan((fileInfo:(FileInfo)null!, accumSize: 0L), (acc, fileInfo) => (fileInfo, acc.accumSize + fileInfo.Length))
-				.SkipWhile(x => x.accumSize < _targetBlocksFolderSize * MegaByte)
+				.SkipWhile(x => x.accumSize < _targetBlocksFolderSizeBytes)
 				.Select(x => x.fileInfo)
 				.ToArray();
 

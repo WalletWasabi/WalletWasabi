@@ -54,6 +54,14 @@
       <Setter Property="IsVisible" Value="False" />
     </Style>
 
+    <!-- No replacement mode: nothing is drawn in place of the hidden content -->
+    <Style Selector="^[PrivacyReplacementMode=None] /template/ PrivacyTextPresenter#PART_PrivacyText">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="^[PrivacyReplacementMode=None] /template/ Viewbox#PART_Icon">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
     <!-- UseOpacity = true -->
     <Style Selector="^[UseOpacity=True] /template/ ContentPresenter#PART_ContentPresenter">
       <Setter Property="Opacity" Value="{Binding IsContentRevealed^, RelativeSource={RelativeSource TemplatedParent}, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}" />

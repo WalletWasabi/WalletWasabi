@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using NBitcoin;
 using WabiSabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;

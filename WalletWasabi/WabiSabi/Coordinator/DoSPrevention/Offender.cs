@@ -1,6 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;

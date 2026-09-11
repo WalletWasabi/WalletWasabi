@@ -15,7 +15,7 @@ public static class CrashReporter
 		{
 			var serializedException = exceptionToReport.ToSerializableException();
 			var base64ExceptionString = SerializableException.ToBase64String(serializedException);
-			var args = $"crashreport -exception=\"{base64ExceptionString}\"";
+			string[] args = ["crashreport", $"-exception={base64ExceptionString}"];
 
 			var path = Process.GetCurrentProcess().MainModule?.FileName;
 			if (string.IsNullOrEmpty(path))

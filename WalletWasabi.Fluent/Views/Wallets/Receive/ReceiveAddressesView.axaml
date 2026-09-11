@@ -25,6 +25,9 @@
     <TreeDataGrid Source="{Binding Source}"
                   VerticalAlignment="Stretch"
                   Margin="0 20 0 0">
+      <Interaction.Behaviors>
+        <TreeDataGridMissingCellsWorkaroundBehavior />
+      </Interaction.Behaviors>
       <TreeDataGrid.Styles>
         <Style Selector="TreeDataGridRow">
           <Setter Property="Theme" Value="{StaticResource ReceiveAddressesViewTreeDataGridRow}" />

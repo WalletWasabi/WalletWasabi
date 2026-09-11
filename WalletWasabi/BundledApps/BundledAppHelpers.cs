@@ -1,6 +1,5 @@
 using System.IO;
 using System.Runtime.InteropServices;
-using WalletWasabi.Helpers;
 
 namespace WalletWasabi.BundledApps;
 
@@ -26,7 +25,7 @@ public static class BundledAppHelpers
 		}
 	}
 
-	public static string GetBinaryFolder(OSPlatform? platform = null)
+	public static string GetBinaryFolder(BundledApp app, OSPlatform? platform = null)
 	{
 		platform ??= GetCurrentPlatform();
 
@@ -46,7 +45,10 @@ public static class BundledAppHelpers
 		}
 		else if (platform == OSPlatform.OSX)
 		{
-			path = Path.Combine(commonPartialPath, "osx64");
+			// Only HWI has a native arm64 build. Tor is universal; bitcoind is x86_64-only (Rosetta).
+			path = app == BundledApp.Hwi && RuntimeInformation.ProcessArchitecture == Architecture.Arm64
+				? Path.Combine(commonPartialPath, "osx-arm64")
+				: Path.Combine(commonPartialPath, "osx64");
 		}
 		else
 		{
@@ -56,10 +58,19 @@ public static class BundledAppHelpers
 		return path;
 	}
 
-	public static string GetBinaryPath(string binaryNameWithoutExtension, OSPlatform? platform = null)
+	public static string GetBinaryPath(BundledApp app)
 	{
-		platform ??= GetCurrentPlatform();
-		string binaryFolder = GetBinaryFolder(platform);
+		var platform = GetCurrentPlatform();
+		var binaryFolder = GetBinaryFolder(app, platform);
+
+		var binaryNameWithoutExtension = app switch
+		{
+			BundledApp.Tor => "tor",
+			BundledApp.Hwi => "hwi",
+			BundledApp.Bitcoind => "bitcoind",
+			_ => throw new NotSupportedException($"Bundled app '{app}' is not supported.")
+		};
+
 		string fileName = GetFilenameWithExtension(binaryNameWithoutExtension, platform);
 
 		return Path.Combine(binaryFolder, fileName);
@@ -67,7 +78,7 @@ public static class BundledAppHelpers
 
 	public static string GetFilenameWithExtension(string binaryNameWithoutExtension, OSPlatform? platform = null)
 	{
-        platform ??= GetCurrentPlatform();
-        return platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
-    }
+		platform ??= GetCurrentPlatform();
+		return platform.Value == OSPlatform.Windows ? $"{binaryNameWithoutExtension}.exe" : $"{binaryNameWithoutExtension}";
+	}
 }

@@ -1,10 +1,5 @@
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.IO;
 using System.Runtime.CompilerServices;
-using System.Text;
 using System.Threading;
-using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
@@ -14,197 +9,83 @@ namespace WalletWasabi.Logging;
 
 public static class Logger
 {
-	private static readonly Lock Lock = new();
-	private static LogLevel MinimumLevel { get; set; } = LogLevel.Critical;
-	private static HashSet<LogMode> Modes { get; } = new();
-	public static string FilePath { get; private set; } = "Log.txt";
-	public static string EntrySeparator { get; } = Environment.NewLine;
-	private static long MaximumLogFileSizeBytes { get; set; } = 10_000_000;
-	private static long LogFileSizeBytes { get; set; }
+	private static readonly Lock ConfigLock = new();
 
-	public static void Configure(string filePath, LogLevel? logLevel = null, LogMode[]? logModes = null)
+	private static LogLevel LogLevel = LogLevel.Info;
+	private static LogMode[] LogModes = [LogMode.Console, LogMode.File];
+
+	public static string FilePath
 	{
-		FilePath = filePath;
-		IoHelpers.EnsureContainingDirectoryExists(FilePath);
-
-		lock (Lock)
+		get
 		{
-			if (File.Exists(FilePath))
+			lock (ConfigLock)
 			{
-				LogFileSizeBytes = new FileInfo(FilePath).Length;
-			}
-
-#if RELEASE
-			logLevel ??= LogLevel.Info;
-			logModes ??= [LogMode.Console, LogMode.File];
-#else
-			logLevel ??= LogLevel.Debug;
-			logModes ??= [LogMode.Debug, LogMode.Console, LogMode.File];
-#endif
-
-			MinimumLevel = logLevel.Value;
-
-			Modes.Clear();
-			Modes.UnionWith(logModes);
-
-			if (MinimumLevel == LogLevel.Trace)
-			{
-				MaximumLogFileSizeBytes = 0;
+				return field;
 			}
 		}
-	}
-
-	private static string GetShortNameLevel(LogLevel level) =>
-		level switch
+		private set
 		{
-			LogLevel.Trace => "TRC",
-			LogLevel.Debug => "DBG",
-			LogLevel.Info => "INF",
-			LogLevel.Warning => "WRN",
-			LogLevel.Error => "ERR",
-			LogLevel.Critical => "CRT",
-			_ => throw new ArgumentOutOfRangeException(nameof(level), level, null)
-		};
+			lock (ConfigLock)
+			{
+				field = value;
+			}
+		}
+	} = "Logs.txt";
 
-	private static ConsoleColor GetConsoleColor(LogLevel level) =>
-		level switch
-		{
-			LogLevel.Warning => ConsoleColor.Yellow,
-			LogLevel.Error or LogLevel.Critical => ConsoleColor.Red,
-			_ => Console.ForegroundColor
-		};
+	private static Lazy<LoggerCore> Core { get; } = new(() => new LoggerCore(FilePath, LogLevel, LogModes), isThreadSafe: true);
 
-	private static string FormatCategory(string callerFilePath, int callerLineNumber)
+	/// <summary>
+	/// Configure the logger. Must be called before any logging occurs.
+	/// </summary>
+	public static void Configure(string? filePath = null, LogLevel? logLevel = null, LogMode[]? logModes = null)
 	{
-		if (string.IsNullOrWhiteSpace(callerFilePath))
+		lock (ConfigLock)
 		{
-			return "";
-		}
-
-		var filePath = Path.GetFileName(callerFilePath);
-		var category = $"{filePath}:{callerLineNumber}";
-		return category.Length > 30 ? $"..{category[^28..]}" : category;
-	}
-
-	private static void AppendMessageContent(StringBuilder builder, string message, string category)
-	{
-		if (message.Length == 0 && category.Length == 0)
-		{
-			return;
-		}
-
-		if (category.Length == 0)
-		{
-			builder.Append(message);
-		}
-		else if (message.Length == 0)
-		{
-			builder.Append(category);
-		}
-		else
-		{
-			builder.Append($"{category,-30} | {message}");
-		}
-	}
-
-	private static string ContextToString(object? ctx) =>
-		ctx switch
-		{
-			not null => ctx.ToString()!,
-			_ => ""
-		};
-
-	public static void Log(LogLevel level, string message, object? ctx = null, string callerFilePath = "",
-		int callerLineNumber = -1)
-	{
-		if (Modes.Count == 0)
-		{
-			return;
-		}
-
-		if (level < MinimumLevel)
-		{
-			return;
-		}
-
-		var category = FormatCategory(callerFilePath, callerLineNumber);
-
-		var messageBuilder = new StringBuilder();
-		messageBuilder.Append(
-			$"{DateTime.UtcNow.ToLocalTime():yyyy-MM-dd HH:mm:ss.fff} [{Environment.CurrentManagedThreadId,2}] {GetShortNameLevel(level)} | ");
-
-		AppendMessageContent(messageBuilder, message, category);
-		messageBuilder.Append(EntrySeparator);
-
-		if (ctx is not null)
-		{
-			messageBuilder.AppendLine(ContextToString(ctx));
-		}
-
-		var finalMessage = messageBuilder.ToString();
-
-		var finalFileMessage = messageBuilder.ToString();
-		lock (Lock)
-		{
-			if (Modes.Contains(LogMode.Console))
+			if (Core.IsValueCreated)
 			{
-				lock (Console.Out)
-				{
-					Console.ForegroundColor = GetConsoleColor(level);
-					Console.Write(finalMessage);
-					Console.ResetColor();
-				}
+				throw new InvalidOperationException("Logger has already been initialized and cannot be reconfigured.");
 			}
 
-			if (Modes.Contains(LogMode.Debug))
+			if (logLevel.HasValue)
 			{
-				Debug.Write(finalMessage);
+				LogLevel = logLevel.Value;
 			}
 
-			if (!Modes.Contains(LogMode.File))
+			if (filePath is not null)
 			{
-				return;
+				FilePath = filePath;
 			}
 
-			if (MaximumLogFileSizeBytes > 0)
+			if (logModes is not null)
 			{
-				// Simplification here is that: 1 character ~ 1 byte.
-				LogFileSizeBytes += finalFileMessage.Length;
-
-				if (LogFileSizeBytes > MaximumLogFileSizeBytes)
-				{
-					LogFileSizeBytes = 0;
-					File.Delete(FilePath);
-				}
+				LogModes = logModes;
 			}
-
-			File.AppendAllText(FilePath, finalFileMessage);
 		}
 	}
 
 	public static void LogTrace(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Trace, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Trace, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogDebug(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Debug, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Debug, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogInfo(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Info, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Info, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogWarning(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Warning, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Warning, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogError(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Error, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Error, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogCritical(string message, object? ctx = null, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>
-		Log(LogLevel.Critical, message, ctx, callerFilePath, callerLineNumber);
+		Core.Value.Log(LogLevel.Critical, message, ctx, callerFilePath, callerLineNumber);
 
 	public static void LogTrace(Exception exception, [CallerFilePath] string callerFilePath = "",
 		[CallerLineNumber] int callerLineNumber = -1) =>

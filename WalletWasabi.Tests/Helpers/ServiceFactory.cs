@@ -11,7 +11,7 @@ namespace WalletWasabi.Tests.Helpers;
 public static class ServiceFactory
 {
 	public static TransactionFactory CreateTransactionFactory(
-		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins,
+		(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)[] coins,
 		bool watchOnly = false)
 	{
 		string password = "foo";
@@ -26,27 +26,29 @@ public static class ServiceFactory
 
 	public static SmartCoin[] CreateCoins(
 		KeyManager keyManager,
-		IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> coins)
+		(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)[] coins)
 	{
-		var coinArray = coins.ToArray();
-
 		var generated = keyManager.GetKeys().Length;
-		var toGenerate = coinArray.Length - generated;
+		var toGenerate = coins.Length - generated;
 		for (int i = 0; i < toGenerate; i++)
 		{
 			keyManager.GenerateNewKey("", KeyState.Clean, false);
 		}
 
-		var keys = keyManager.GetKeys().Take(coinArray.Length).ToArray();
-		for (int i = 0; i < coinArray.Length; i++)
+		var keys = keyManager.GetKeys().Take(coins.Length).ToArray();
+		var sCoins = new List<SmartCoin>(coins.Length);
+
+		foreach (var c in coins)
 		{
-			var c = coinArray[i];
 			var k = keys[c.KeyIndex];
 			k.SetLabel(c.Label);
-			k.SetAnonymitySet(c.AnonymitySet);
+
+			var sCoin = BitcoinFactory.CreateSmartCoin(keys[c.KeyIndex], c.Amount, c.Confirmed, c.AnonymitySet);
+			sCoin.SetAnonymitySet(c.AnonymitySet);
+
+			sCoins.Add(sCoin);
 		}
 
-		var sCoins = coins.Select(x => BitcoinFactory.CreateSmartCoin(keys[x.KeyIndex], x.Amount, x.Confirmed, x.AnonymitySet)).ToArray();
 		foreach (var coin in sCoins)
 		{
 			foreach (var sameLabelCoin in sCoins.Where(c => !c.HdPubKey.Labels.IsEmpty && c.HdPubKey.Labels == coin.HdPubKey.Labels))
@@ -56,12 +58,12 @@ public static class ServiceFactory
 		}
 
 		var uniqueCoins = sCoins.Distinct().Count();
-		if (uniqueCoins != sCoins.Length)
+		if (uniqueCoins != sCoins.Count)
 		{
-			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Length}, unique coins:{uniqueCoins}.");
+			throw new InvalidOperationException($"Coin clones have been detected. Number of all coins:{sCoins.Count}, unique coins:{uniqueCoins}.");
 		}
 
-		return sCoins;
+		return sCoins.ToArray();
 	}
 
 	public static KeyManager CreateKeyManager(string password = "blahblahblah", bool isTaprootAllowed = false, Mnemonic? mnemonic = null)

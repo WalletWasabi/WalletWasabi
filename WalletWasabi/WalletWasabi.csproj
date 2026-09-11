@@ -58,6 +58,9 @@
 		<None Update="BundledApps\Binaries\osx64\hwi">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
+		<None Update="BundledApps\Binaries\osx-arm64\hwi">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
 		<None Update="BundledApps\Binaries\win-x64\hwi.exe">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>
@@ -71,9 +74,6 @@
 		<!-- Rest. -->
 		<None Update="Announcements\ReleaseHighlights.md">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
-		</None>
-		<None Update="Scheme\Wasabilib.scm">
-		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>
 		</None>
 		<None Update="Scheme\Stdlib.scm">
 		  <CopyToOutputDirectory>Always</CopyToOutputDirectory>

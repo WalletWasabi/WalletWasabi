@@ -1,5 +1,3 @@
-using WalletWasabi.Wallets;
-
 namespace WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 public class StartedEventArgs : StatusChangedEventArgs

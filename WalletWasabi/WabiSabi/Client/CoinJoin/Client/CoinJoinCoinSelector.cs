@@ -1,13 +1,5 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -20,17 +12,20 @@ public class CoinJoinCoinSelector
 	/// <param name="consolidationMode">If true it attempts to select as many coins as it can.</param>
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
+	/// <param name="arePaymentsPending">Tells whether there is a coinjoin payment waiting to be funded.</param>
 	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
-		CoinJoinCoinSelectorRandomnessGenerator? generator = null)
+		CoinJoinCoinSelectorRandomnessGenerator? generator = null,
+		Func<bool>? arePaymentsPending = null)
 	{
 		ConsolidationMode = consolidationMode;
 		AnonScoreTarget = anonScoreTarget;
 		SemiPrivateThreshold = semiPrivateThreshold;
 
 		_generator = generator ?? new(MaxInputsRegistrableByWallet, RandomnessProviders.Secure);
+		_arePaymentsPending = arePaymentsPending ?? (() => false);
 	}
 
 	public bool ConsolidationMode { get; }
@@ -38,12 +33,14 @@ public class CoinJoinCoinSelector
 	public int SemiPrivateThreshold { get; }
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
+	private readonly Func<bool> _arePaymentsPending;
 
 	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
 		new(
 			wallet.ConsolidationMode,
 			wallet.AnonScoreTarget,
-			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0);
+			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0,
+			arePaymentsPending: () => wallet.BatchedPayments.AreTherePendingPayments);
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
@@ -65,11 +62,15 @@ public class CoinJoinCoinSelector
 			return ImmutableList<SmartCoin>.Empty;
 		}
 
+		var effectiveAnonScoreTarget = _arePaymentsPending() && filteredCoins.All(x => x.IsPrivate(AnonScoreTarget))
+			? int.MaxValue
+			: AnonScoreTarget;
+
 		var privateCoins = filteredCoins
-			.Where(x => x.IsPrivate(AnonScoreTarget))
+			.Where(x => x.IsPrivate(effectiveAnonScoreTarget))
 			.ToArray();
 		var semiPrivateCoins = filteredCoins
-			.Where(x => x.IsSemiPrivate(AnonScoreTarget, SemiPrivateThreshold))
+			.Where(x => x.IsSemiPrivate(effectiveAnonScoreTarget, SemiPrivateThreshold))
 			.ToArray();
 
 		// redCoins will only fill up if redCoinIsolation is turned on. Otherwise the coin will be in semiPrivateCoins.

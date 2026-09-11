@@ -7,12 +7,7 @@ public static class RandomExtensions
 	public static RandomnessProvider CreateSeeded(int seed)
 	{
 		var random = new Random(seed);
-		return length =>
-		{
-			var buffer = new byte[length];
-			random.NextBytes(buffer);
-			return buffer;
-		};
+		return random.NextBytes;
 	}
 
 	public static long GetInt64(this RandomnessProvider generator, long fromInclusive, long toExclusive)
@@ -24,14 +19,15 @@ public static class RandomExtensions
 
 		var range = (ulong)(toExclusive - fromInclusive);
 
-		var bytes = generator(8);
-		var value = BitConverter.ToUInt64(bytes, 0);
+		Span<byte> bytes = stackalloc byte[8];
+		generator(bytes);
+		var value = BitConverter.ToUInt64(bytes);
 
 		var max = ulong.MaxValue - (ulong.MaxValue % range);
 		while (value >= max)
 		{
-			bytes = generator(8);
-			value = BitConverter.ToUInt64(bytes, 0);
+			generator(bytes);
+			value = BitConverter.ToUInt64(bytes);
 		}
 
 		return (long)(value % range) + fromInclusive;

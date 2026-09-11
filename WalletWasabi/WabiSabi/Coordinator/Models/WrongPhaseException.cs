@@ -1,5 +1,3 @@
-using System.Linq;
-using NBitcoin;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Models;

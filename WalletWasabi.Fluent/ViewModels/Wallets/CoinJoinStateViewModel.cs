@@ -7,6 +7,7 @@ using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.State;
 using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
+using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
@@ -37,6 +38,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 	private const string NoCoinsEligibleToMixMessage = "Insufficient funds eligible for coinjoin";
 	private const string UserInSendWorkflowMessage = "Awaiting closure of send dialog";
 	private const string AllPrivateMessage = "Hurray! All your funds are private!";
+	private const string AllCoinsArePrivate = "All coins are private";
 	private const string GeneralErrorMessage = "Awaiting valid conditions";
 	private const string WaitingForConfirmedFunds = "Awaiting confirmed funds";
 	private const string CoinsRejectedMessage = "Some funds are rejected from coinjoining";
@@ -52,6 +54,7 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 	[AutoNotify] private bool _isAutoWaiting;
 	[AutoNotify] private bool _playVisible;
+	[AutoNotify] private bool _playEnabled = true;
 	[AutoNotify] private bool _pauseVisible;
 	[AutoNotify] private bool _pauseSpreading;
 	[AutoNotify] private bool _stopVisible;
@@ -107,6 +110,12 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 
 		this.WhenAnyValue(x => x.AreAllCoinsPrivate)
 			.Do(_ => _stateMachine.Fire(Trigger.AreAllCoinsPrivateChanged))
+			.Subscribe();
+
+		// Refresh the paused music box when a pending payment is added or removed (when paying in coinjoin regardless of anon score)
+		UiContext.Services.EventBus.AsObservable<PaymentBatchChanged>()
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Do(_ => _stateMachine.Fire(Trigger.PendingPaymentsChanged))
 			.Subscribe();
 
 		PlayCommand = ReactiveCommand.CreateFromTask(async () =>
@@ -196,7 +205,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		WalletStartedCoinJoin,
 		WalletStoppedCoinJoin,
 		AutoCoinJoinOff,
-		AreAllCoinsPrivateChanged
+		AreAllCoinsPrivateChanged,
+		PendingPaymentsChanged
 	}
 
 	public IObservable<bool> CanNavigateToCoinjoinSettings { get; }
@@ -267,6 +277,10 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				// Refresh the UI according to AreAllCoinsPrivate, the play button and the left-text.
 				RefreshButtonAndTextInStateStoppedOrPaused();
 			})
+			.OnTrigger(Trigger.PendingPaymentsChanged, () =>
+			{
+				RefreshButtonAndTextInStateStoppedOrPaused();
+			})
 			.OnExit(() => LeftText = "");
 
 		_stateMachine.Configure(State.Playing)
@@ -307,18 +321,22 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 		if (IsAutoCoinJoinEnabled)
 		{
 			PlayVisible = true;
+			PlayEnabled = true;
 			CurrentStatus = PauseMessage;
 			LeftText = PressPlayToStartMessage;
 		}
 		else if (AreAllCoinsPrivate)
 		{
-			PlayVisible = false;
-			LeftText = "";
-			CurrentStatus = AllPrivateMessage;
+			var hasPendingPayments = _walletInstance.BatchedPayments.AreTherePendingPayments;
+			PlayVisible = true;
+			PlayEnabled = hasPendingPayments;
+			CurrentStatus = hasPendingPayments ? StoppedMessage : AllCoinsArePrivate;
+			LeftText = hasPendingPayments ? PressPlayToStartMessage : "";
 		}
 		else
 		{
 			PlayVisible = true;
+			PlayEnabled = true;
 			CurrentStatus = StoppedMessage;
 			LeftText = PressPlayToStartMessage;
 		}

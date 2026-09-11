@@ -1,4 +1,3 @@
-using NBitcoin;
 using WalletWasabi.JsonConverters;
 
 namespace WalletWasabi.WabiSabi.Client.Banning;

@@ -3,6 +3,11 @@ on:
   push:
     branches: [ "*" ]
   pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
 jobs:
   build:
     runs-on: ubuntu-latest
@@ -18,3 +23,42 @@ jobs:
           authToken: '${{ secrets.CACHIX_AUTH_TOKEN }}'
       - run: nix build --print-build-logs .#all
       - run: echo OK
+
+  unit-tests:
+    name: Unit tests (${{ matrix.runtime }})
+    runs-on: ${{ matrix.os }}
+    env:
+      AVALONIA_TELEMETRY_OPTOUT: '1'
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      DOTNET_NOLOGO: '1'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            runtime: linux-x64
+          - os: windows-latest
+            runtime: win-x64
+          - os: macos-15-intel
+            runtime: osx-x64
+          - os: macos-15
+            runtime: osx-arm64
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - name: Cache NuGet packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.nuget/packages
+          key: ${{ runner.os }}-${{ matrix.runtime }}-nuget-${{ hashFiles('Directory.Packages.props', 'NuGet.Config', 'global.json', '**/packages.lock.json') }}
+          restore-keys: |
+            ${{ runner.os }}-${{ matrix.runtime }}-nuget-
+            ${{ runner.os }}-nuget-
+      - name: Restore
+        run: dotnet restore WalletWasabi.Tests/WalletWasabi.Tests.csproj
+      - name: Build
+        run: dotnet build WalletWasabi.Tests/WalletWasabi.Tests.csproj --no-restore --configuration Release
+      - name: Test
+        run: dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj --no-build --configuration Release --filter-namespace "*UnitTests*" --no-progress --no-ansi --output Normal

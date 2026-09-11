@@ -1,7 +1,8 @@
 ---
 name: Bug Report
 about: Report a bug
-
+title: "[Bug]: "
+labels: ["bug", "untriaged"]
 ---
 
 ### Before anything else

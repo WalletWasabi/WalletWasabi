@@ -1,5 +1,3 @@
-using WalletWasabi.Blockchain.TransactionOutputs;
-
 namespace WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 
 public class CoinBanned : CoinJoinProgressEventArgs

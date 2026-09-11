@@ -71,9 +71,9 @@ public class TransactionProcessorTests
 
 		var coin1 = Assert.Single(tp1.Coins);
 		var coin2 = Assert.Single(tp2.Coins);
-		Assert.Equal(1, coin1.HdPubKey.AnonymitySet);
-		Assert.NotEqual(HdPubKey.DefaultHighAnonymitySet, coin2.HdPubKey.AnonymitySet);
-		Assert.Equal(1, coin2.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin1.AnonymitySet);
+		Assert.NotEqual(HdPubKey.DefaultHighAnonymitySet, coin2.AnonymitySet);
+		Assert.Equal(1, coin2.AnonymitySet);
 	}
 
 	[Fact]
@@ -1048,7 +1048,7 @@ public class TransactionProcessorTests
 		// It is relevant even when all the coins can be dust.
 		Assert.True(relevant.IsNews);
 		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 		Assert.Equal(amount, coin.Amount);
 	}
 
@@ -1077,8 +1077,8 @@ public class TransactionProcessorTests
 
 		// It is relevant even when all the coins can be dust.
 		Assert.True(relevant.IsNews);
-		var coin = Assert.Single(transactionProcessor.Coins, c => c.HdPubKey.AnonymitySet > 1);
-		Assert.Equal(5, coin.HdPubKey.AnonymitySet);
+		var coin = Assert.Single(transactionProcessor.Coins, c => c.AnonymitySet > 1);
+		Assert.Equal(5, coin.AnonymitySet);
 		Assert.Equal(amount, coin.Amount);
 	}
 

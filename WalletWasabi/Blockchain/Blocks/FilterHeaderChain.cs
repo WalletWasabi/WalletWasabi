@@ -1,8 +1,3 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-
 namespace WalletWasabi.Blockchain.Blocks;
 
 /// <summary>
@@ -36,6 +31,16 @@ public class FilterHeaderChain
 		}
 	}
 
+	public int Count
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _chain.Count;
+			}
+		}
+	}
 	public ChainHeight TipHeight
 	{
 		get

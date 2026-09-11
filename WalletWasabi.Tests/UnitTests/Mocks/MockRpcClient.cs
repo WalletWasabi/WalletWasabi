@@ -6,7 +6,7 @@ using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.BitcoinRpc.Models;
 
-namespace WalletWasabi.Tests.UnitTests;
+namespace WalletWasabi.Tests.UnitTests.Mocks;
 
 public class MockRpcClient : IRPCClient
 {
@@ -30,8 +30,8 @@ public class MockRpcClient : IRPCClient
 	public Network Network { get; set; } = Network.RegTest;
 	public RPCCredentialString CredentialString => new();
 
-	public List<Block> Blockchain = new();
-	public List<Transaction> Mempool = new();
+	public List<Block> Blockchain { get; set; } = new();
+	public List<Transaction> Mempool { get; set; } = new();
 
 	private static Task<T> NotImplementedTask<T>(string nameOfMethod) =>
 		Task.FromException<T>(new NotImplementedException($"{nameOfMethod} was invoked but never assigned."));

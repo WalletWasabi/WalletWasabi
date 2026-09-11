@@ -53,6 +53,9 @@ public static class PersistentConfigDecode
 			Decode.String
 		]);
 
+	public static readonly Decoder<string> ExchangeRateProvider =
+		Decode.String.Map(s => string.Equals(s, "BlockstreamInfo", StringComparison.OrdinalIgnoreCase) ? "BlockchainInfo" : s);
+
 	public static Decoder<ValueList<T>> ValueList<T>(Decoder<T> decoder) where T : IEquatable<T> =>
 		Array(decoder).Map(x => new ValueList<T>(x));
 
@@ -80,7 +83,7 @@ public static class PersistentConfigDecode
 					JsonRpcServerPrefixes: get.Required("JsonRpcServerPrefixes", ValueList(Decode.String)),
 					DustThreshold: get.Required("DustThreshold", Decode.MoneyBitcoins),
 					EnableGpu: get.Required("EnableGpu", Decode.Bool),
-					ExchangeRateProvider: get.Optional("ExchangeRateProvider", Decode.String) ?? "Mempoolspace",
+					ExchangeRateProvider: get.Optional("ExchangeRateProvider", ExchangeRateProvider) ?? "MempoolSpace",
 					FeeRateEstimationProvider: get.Optional("FeeRateEstimationProvider", Decode.String) ??
 					                           "BlockstreamInfo",
 					ExternalTransactionBroadcaster: get.Optional("ExternalTransactionBroadcaster", Decode.String) ??
