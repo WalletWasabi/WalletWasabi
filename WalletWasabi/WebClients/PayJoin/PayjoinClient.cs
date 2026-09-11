@@ -264,6 +264,18 @@ public class PayjoinClient : IPayjoinClient
 			}
 		}
 
+		if (changeHdPubKey?.GetAssumedScriptPubKey() is { } changeScriptPubKey && oldGlobalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeScriptPubKey) is { } originalChange)
+		{
+			var allowedReduction = optionalParameters.AdditionalFeeOutputIndex is not null && newPSBT.TryGetFee(out var newFee)
+				? Money.Min(optionalParameters.MaxAdditionalFeeContribution ?? Money.Zero, newFee - originalFee)
+				: Money.Zero;
+
+			if (!newGlobalTx.Outputs.Any(x => x.ScriptPubKey == changeScriptPubKey && x.Value >= originalChange.Value - allowedReduction))
+			{
+				throw new PayjoinSenderException("The payjoin receiver tried to take our change");
+			}
+		}
+
 		return newPSBT;
 	}
 
