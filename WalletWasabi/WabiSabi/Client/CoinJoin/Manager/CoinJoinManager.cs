@@ -503,8 +503,6 @@ public class CoinJoinManager : BackgroundService
 			if (result is SuccessfulCoinJoinResult successfulCoinjoin)
 			{
 				var coinjoinTxId = successfulCoinjoin.UnsignedCoinJoin.GetHash();
-				// The payments were moved to signed before the witnesses were sent (and the wallet may already have
-				// finished them when it saw the transaction), so they are matched by the coinjoin's transaction id.
 				var paymentsTotal = Money.Satoshis(batchedPayments.GetPayments()
 					.Where(p => p.State switch
 					{
