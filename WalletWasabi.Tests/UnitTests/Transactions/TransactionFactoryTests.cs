@@ -649,7 +649,7 @@ public class TransactionFactoryTests
 	{
 		public Uri PaymentUrl => new("https://example.com/payjoin");
 
-		public Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
+		public Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken)
 		{
 			throw new NotImplementedException("This should never be called in the test");
 		}
