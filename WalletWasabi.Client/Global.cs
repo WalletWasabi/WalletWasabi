@@ -320,7 +320,11 @@ public class Global
 			return null;
 		}
 
-		var bitcoinRpcUri = Config.BitcoinRpcUri;
+		if (!Uri.TryCreate(Config.BitcoinRpcUri, UriKind.Absolute, out var bitcoinRpcUri))
+		{
+			throw new UriFormatException($"Config property '{nameof(Config.BitcoinRpcUri)}' was set to an invalid URI value: {Config.BitcoinRpcUri}");
+		}
+
 		RPCClient internalRpcClient;
 
 		try
@@ -333,7 +337,7 @@ public class Global
 		}
 
 		// Use Tor only if the address ends with .onion. Especially, do not use Tor for loopback (i.e. `localhost`).
-		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+		if (bitcoinRpcUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 		{
 			internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 		}
