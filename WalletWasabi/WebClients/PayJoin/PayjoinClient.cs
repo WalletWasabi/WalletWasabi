@@ -27,7 +27,7 @@ public class PayjoinClient : IPayjoinClient
 	private readonly bool _disableOutputSubstitution;
 	private readonly HttpClient _httpClient;
 
-	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey changeHdPubKey, CancellationToken cancellationToken)
+	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken)
 	{
 		if (originalTx.IsAllFinalized())
 		{
@@ -35,11 +35,11 @@ public class PayjoinClient : IPayjoinClient
 		}
 
 		var optionalParameters = new PayjoinClientParameters();
-		if (changeHdPubKey is { })
+		if (changeHdPubKey is not null)
 		{
-			var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.P2wpkhScript);
+			var changeOutput = originalTx.Outputs.FirstOrDefault(x => x.ScriptPubKey == changeHdPubKey.GetAssumedScriptPubKey());
 
-			if (changeOutput is PSBTOutput o)
+			if (changeOutput is { } o)
 			{
 				optionalParameters.AdditionalFeeOutputIndex = (int)o.Index;
 			}
@@ -172,7 +172,7 @@ public class PayjoinClient : IPayjoinClient
 
 		if (_disableOutputSubstitution)
 		{
-			var changeScript = changeHdPubKey?.P2wpkhScript;
+			var changeScript = changeHdPubKey?.GetAssumedScriptPubKey();
 
 			bool IsPreserved(TxOut original) =>
 				newGlobalTx.Outputs.Any(o =>

@@ -252,12 +252,10 @@ public class TransactionFactory
 			builder.SignPSBT(psbt);
 
 			// Try to pay using payjoin
-			if (isPayJoin && KeyManager.MasterFingerprint is { } masterFingerprint)
+			if (payjoinClient is not null && KeyManager.MasterFingerprint is { } masterFingerprint)
 			{
-#pragma warning disable CS8604 // Possible null reference argument.
 				// changeHdPubKey is never null
 				psbt = TryNegotiatePayjoin(payjoinClient, builder, psbt, masterFingerprint, changeHdPubKey);
-#pragma warning restore CS8604 // Possible null reference argument.
 				psbt.AddKeyPaths(KeyManager);
 				psbt.AddPrevTxs(_transactionStore);
 			}
@@ -326,7 +324,7 @@ public class TransactionFactory
 		TransactionBuilderWithSilentPaymentSupport builder,
 		PSBT psbt,
 		HDFingerprint masterFingerprint,
-		HdPubKey changeHdPubKey)
+		HdPubKey? changeHdPubKey)
 	{
 		try
 		{
