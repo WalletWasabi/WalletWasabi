@@ -47,15 +47,55 @@
                           Classes="activeHyperLink skip"
                           VerticalAlignment="Center" />
                   <Button Name="PART_NextButton" Classes="action"
-                          IsVisible="{TemplateBinding EnableNext}"
-                          Content="{TemplateBinding NextContent}"
-                          Command="{Binding NextCommand}"
-                          IsDefault="{Binding IsActive}">
+                        Content="{TemplateBinding NextContent}"
+                        Command="{Binding NextCommand}"
+                        IsDefault="{Binding IsActive}">
+                    <Button.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="EnableNext" RelativeSource="{RelativeSource TemplatedParent}" />
+                        <Binding Path="NextButtonSubActions" Converter="{x:Static ObjectConverters.IsNull}"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                      </MultiBinding>
+                    </Button.IsVisible>
                     <Interaction.Behaviors>
-                      <FocusOnAttachedBehavior
-                        IsEnabled="{Binding FocusNext, RelativeSource={RelativeSource TemplatedParent}}" />
+                      <FocusOnAttachedBehavior>
+                        <FocusOnAttachedBehavior.IsEnabled>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="FocusNext" RelativeSource="{RelativeSource TemplatedParent}" />
+                            <Binding Path="NextButtonSubActions" Converter="{x:Static ObjectConverters.IsNull}"
+                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                          </MultiBinding>
+                        </FocusOnAttachedBehavior.IsEnabled>
+                      </FocusOnAttachedBehavior>
                     </Interaction.Behaviors>
                   </Button>
+
+                  <SubActionButton Name="PART_NextSubButton"
+                                 Content="{TemplateBinding NextContent}"
+                                 Command="{Binding NextCommand}"
+                                 SubCommands="{TemplateBinding NextButtonSubActions}"
+                                 CornerRadius="20 20 20 20">
+                    <SubActionButton.IsVisible>
+                      <MultiBinding Converter="{x:Static BoolConverters.And}">
+                        <Binding Path="EnableNext" RelativeSource="{RelativeSource TemplatedParent}" />
+                        <Binding Path="NextButtonSubActions" Converter="{x:Static ObjectConverters.IsNotNull}"
+                                 RelativeSource="{RelativeSource TemplatedParent}" />
+                      </MultiBinding>
+                    </SubActionButton.IsVisible>
+                    <Interaction.Behaviors>
+                      <FocusOnAttachedBehavior>
+                        <FocusOnAttachedBehavior.IsEnabled>
+                          <MultiBinding Converter="{x:Static BoolConverters.And}">
+                            <Binding Path="FocusNext" RelativeSource="{RelativeSource TemplatedParent}" />
+                            <Binding Path="NextButtonSubActions" Converter="{x:Static ObjectConverters.IsNotNull}"
+                                     RelativeSource="{RelativeSource TemplatedParent}" />
+                          </MultiBinding>
+                        </FocusOnAttachedBehavior.IsEnabled>
+                      </FocusOnAttachedBehavior>
+                      <ExecuteCommandOnKeyDownBehavior Key="Enter" Command="{Binding NextCommand}"
+                                                       IsEnabled="{Binding IsActive}" />
+                    </Interaction.Behaviors>
+                  </SubActionButton>
                 </StackPanel>
                 <ContentPresenter Content="{TemplateBinding BottomContent}"
                                   x:Name="PART_BottomContentPresenter" />
