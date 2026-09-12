@@ -51,6 +51,7 @@ public partial class SendViewModel : RoutableViewModel
 	private readonly ObservableAsPropertyHelper<Amount?> _balanceLatest;
 
 	private Address? _parsedAddress;
+	private bool _payjoinDisableOutputSubstitution;
 
 	[AutoNotify] private string _caption = "";
 	[AutoNotify] private string _to;
@@ -450,7 +451,7 @@ public partial class SendViewModel : RoutableViewModel
 			Uri.IsWellFormedUriString(endPoint, UriKind.Absolute))
 		{
 			var payjoinEndPointUri = new Uri(endPoint);
-			if (UiContext.Services.GetUseTor() != TorMode.Disabled)
+			if (UiContext.Services.GetUseTor() is TorMode.Disabled)
 			{
 				if (payjoinEndPointUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 				{
@@ -467,7 +468,7 @@ public partial class SendViewModel : RoutableViewModel
 
 			HttpClient httpClient = UiContext.Services.CreateHttpClient(endPoint);
 			httpClient.BaseAddress = new Uri(endPoint);
-			return new PayjoinClient(payjoinEndPointUri, httpClient);
+			return new PayjoinClient(payjoinEndPointUri, httpClient, _payjoinDisableOutputSubstitution);
 		}
 
 		return null;
@@ -557,6 +558,7 @@ public partial class SendViewModel : RoutableViewModel
 		PayJoinEndPoint = null;
 		IsFixedAmount = false;
 		IsBip21 = false;
+		_payjoinDisableOutputSubstitution = false;
 
 		var parseResult = AddressParser.Parse(text, _walletModel.Network);
 		if (!parseResult.IsOk)
@@ -593,6 +595,7 @@ public partial class SendViewModel : RoutableViewModel
 				if (!string.IsNullOrEmpty(bip21.PayjoinEndpoint))
 				{
 					PayJoinEndPoint = bip21.PayjoinEndpoint;
+					_payjoinDisableOutputSubstitution = bip21.PayjoinOutputSubstitution == "0";
 				}
 				DisplaySilentPaymentInfo = false;
 				break;

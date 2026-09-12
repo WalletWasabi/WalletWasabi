@@ -49,10 +49,15 @@ public class TransactionFactory
 		}
 
 		var isSilentPayment = payments.Requests.Select(x => x.Destination).OfType<Destination.Silent>().Any();
+		var isPayJoin = payjoinClient is not null;
 		var canUsePrivateKeys = !KeyManager.IsWatchOnly;
 		if (isSilentPayment && !canUsePrivateKeys)
 		{
 			throw new InvalidOperationException("Silent payments requires a hot wallet.");
+		}
+		if (isSilentPayment && isPayJoin)
+		{
+			throw new InvalidOperationException("Silent payments cannot be combined with Payjoin.");
 		}
 
 		// Get allowed coins to spend.
@@ -247,7 +252,7 @@ public class TransactionFactory
 			builder.SignPSBT(psbt);
 
 			// Try to pay using payjoin
-			if (payjoinClient is not null && KeyManager.MasterFingerprint is { } masterFingerprint)
+			if (isPayJoin && KeyManager.MasterFingerprint is { } masterFingerprint)
 			{
 #pragma warning disable CS8604 // Possible null reference argument.
 				// changeHdPubKey is never null
@@ -260,7 +265,7 @@ public class TransactionFactory
 			psbt.Finalize();
 			tx = psbt.ExtractTransaction();
 
-			if (payjoinClient is not null)
+			if (isPayJoin)
 			{
 				builder.CoinFinder = (outpoint) => psbt.Inputs.Select(x => x.GetCoin()).Single(x => x?.Outpoint == outpoint)!;
 			}
@@ -476,6 +481,11 @@ public class TransactionBuilderWithSilentPaymentSupport
 
 	public PSBT SolveSilentPayment(PSBT psbt)
 	{
+		if (_silentPayments.Count == 0)
+		{
+			return psbt;
+		}
+
 		var keys = _keys ?? [];
 
 		Key GetKeyForScriptPubKey(Script spk)

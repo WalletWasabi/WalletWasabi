@@ -7,7 +7,7 @@ using static WalletWasabi.BitcoinP2p.FilterSynchronizationState;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public partial class CompactFilterBehavior(
+public class CompactFilterBehavior(
 	FilterSynchronizationState synchronizationState,
 	ConcurrentChain blockHeaderChain,
 	EventBus eventBus)
@@ -193,6 +193,25 @@ public partial class CompactFilterBehavior(
 
 	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
+		const int MaxFilterBytes = 1_000_000;
+
+		if (filterPayload.FilterBytes.Length > MaxFilterBytes)
+		{
+			Logger.LogWarning($"Filter too large: {filterPayload.FilterBytes.Length} bytes");
+			HandleInvalidNoLock(node, "Filter exceeds maximum size");
+			return;
+		}
+
+		var filter = new GolombRiceFilter(filterPayload.FilterBytes);
+
+		// Reject degenerate filters: N=0 with data present
+		if (filter.N == 0 && filter.Data.Length > 0)
+		{
+			Logger.LogWarning("Invalid filter: N=0 with non-empty data");
+			HandleInvalidNoLock(node, "Invalid compact filter received");
+			return;
+		}
+
 		_collectedFilters.Add(filterPayload);
 
 		// Check if we've received all filters for this range
@@ -228,7 +247,7 @@ public partial class CompactFilterBehavior(
 		TrySyncNoLock(node);
 	}
 
-	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
+	internal FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
 	{
 		if (filters.Length == 0)
 		{
@@ -286,6 +305,12 @@ public partial class CompactFilterBehavior(
 			if (block is null)
 			{
 				Logger.LogWarning($"Block header not available for height {height}");
+				return null;
+			}
+
+			if (filterPayload.BlockHash != block.HashBlock)
+			{
+				Logger.LogWarning($"The filter's block hash {filterPayload.BlockHash} doesn't match the expected {block.HashBlock} at height {height}");
 				return null;
 			}
 

@@ -832,7 +832,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
+	internal async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
 		uint256 roundId,
 		ImmutableArray<AliceClient> registeredAliceClients,
 		IEnumerable<TxOut> outputTxOuts,
@@ -858,12 +858,20 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var isItSoloCoinjoin = signingState.Inputs.Count() == registeredAliceClients.Length;
+		var actualInputCount = signingState.Inputs.Count();
+		var isItSoloCoinjoin = actualInputCount == registeredAliceClients.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
 			Logger.LogInfo("I am the only one in that coinjoin.", roundState);
 		}
+
+		var hasTooFewInputs = actualInputCount < _coinJoinConfiguration.AbsoluteMinInputCount;
+		if (hasTooFewInputs)
+		{
+			Logger.LogInfo(FormatLog($"Transaction has {actualInputCount} inputs but minimum required is {_coinJoinConfiguration.AbsoluteMinInputCount}.", roundState));
+		}
+
 		bool allMyOutputsArePresent = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 
 		if (!allMyOutputsArePresent)
@@ -880,7 +888,7 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog("Effective fee rate of the transaction is lower than expected.", roundState));
 		}
 
-		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
