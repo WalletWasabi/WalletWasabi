@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
 
 namespace WalletWasabi.Serialization;
@@ -118,6 +119,14 @@ public static partial class Encode
 			("BannedUntil", DatetimeOffset(r.BannedUntil))
 		]);
 
+	public static JsonNode CoinjoinCosts(CoinjoinCosts costs) =>
+		Object([
+			("TransactionId", UInt256(costs.TransactionId)),
+			("MiningFee", MoneySatoshis(costs.MiningFee)),
+			("WastedDust", MoneySatoshis(costs.WastedDust)),
+			("PaymentsTotal", MoneySatoshis(costs.PaymentsTotal))
+		]);
+
 	public static JsonNode ClientPrison(IEnumerable<PrisonedCoinRecord> p) =>
 		Array(p.Select(PrisonedCoinRecord));
 }
@@ -212,5 +221,13 @@ public static partial class Decode
 		Object(get => new PrisonedCoinRecord(
 			get.Required("Outpoint", OutPoint),
 			get.Required("BannedUntil", DateTimeOffset)
+		));
+
+	public static Decoder<CoinjoinCosts> CoinjoinCosts =>
+		Object(get => new CoinjoinCosts(
+			get.Required("TransactionId", UInt256),
+			get.Required("MiningFee", MoneySatoshis),
+			get.Required("WastedDust", MoneySatoshis),
+			get.Required("PaymentsTotal", MoneySatoshis)
 		));
 }

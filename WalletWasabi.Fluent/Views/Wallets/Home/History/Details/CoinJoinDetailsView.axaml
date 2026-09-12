@@ -86,6 +86,43 @@
         </PrivacyContentControl>
       </PreviewItem>
 
+      <!-- Mining fee -->
+      <PreviewItem IsVisible="{Binding IsFeeBreakdownVisible}"
+                     Margin="25 0 0 0"
+                     Icon="{StaticResource paper_cash_regular}"
+                     Label="Mining fee"
+                     ToolTip.Tip="Fee paid to miners for the wallet's inputs and outputs."
+                     CopyableContent="{Binding MiningFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <PrivacyContentControl>
+          <AmountControl Classes="WithUsd" Amount="{Binding MiningFeeAmount}" />
+        </PrivacyContentControl>
+      </PreviewItem>
+
+      <!-- Wasted dust -->
+      <PreviewItem IsVisible="{Binding IsFeeBreakdownVisible}"
+                     Margin="25 0 0 0"
+                     Icon="{StaticResource coinjoin_cost}"
+                     Label="Wasted dust"
+                     ToolTip.Tip="Leftover amount that was too small to become an output, so it was given up."
+                     CopyableContent="{Binding WastedDustAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <PrivacyContentControl>
+          <AmountControl Classes="WithUsd" Amount="{Binding WastedDustAmount}" />
+        </PrivacyContentControl>
+      </PreviewItem>
+
+      <Separator IsVisible="{Binding IsPaymentsVisible}" />
+
+      <!-- Payments -->
+      <PreviewItem IsVisible="{Binding IsPaymentsVisible}"
+                     Icon="{StaticResource embedded_payment}"
+                     Label="Payments"
+                     ToolTip.Tip="Total value of the payments made within this coinjoin."
+                     CopyableContent="{Binding PaymentsAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+        <PrivacyContentControl>
+          <AmountControl Classes="WithUsd" Amount="{Binding PaymentsAmount}" />
+        </PrivacyContentControl>
+      </PreviewItem>
+
       <!-- Confirmation Time -->
       <PreviewItem IsVisible="{Binding IsConfirmationTimeVisible}"
                      Icon="{StaticResource timer_regular}"
