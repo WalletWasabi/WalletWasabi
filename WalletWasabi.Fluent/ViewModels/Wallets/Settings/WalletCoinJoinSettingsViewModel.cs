@@ -29,6 +29,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	[AutoNotify] private string _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
+	[AutoNotify] private bool _onlyUsePrivateFundsForPayments;
 	[AutoNotify] private bool _maximizePrivacyProfileSelected;
 	[AutoNotify] private bool _defaultProfileSelected;
 	[AutoNotify] private bool _economicalProfileSelected;
@@ -48,6 +49,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_plebStopThreshold = _wallet.Settings.PlebStopThreshold.ToString();
 		_anonScoreTarget = _wallet.Settings.AnonScoreTarget.ToString();
 		_nonPrivateCoinIsolation = _wallet.Settings.NonPrivateCoinIsolation;
+		_onlyUsePrivateFundsForPayments = _wallet.Settings.OnlyUsePrivateFundsForPayments;
 
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
@@ -70,6 +72,13 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			return Task.CompletedTask;
 		});
 
+		SetOnlyUsePrivateFundsForPaymentsCommand = ReactiveCommand.CreateFromTask(() =>
+		{
+			_wallet.Settings.OnlyUsePrivateFundsForPayments = OnlyUsePrivateFundsForPayments;
+			_wallet.Settings.Save();
+			return Task.CompletedTask;
+		});
+
 		SelectMaximizePrivacySettings = ReactiveCommand.CreateFromTask(() => SetProfile("MaximizePrivacy"));
 
 		SelectDefaultSettings = ReactiveCommand.CreateFromTask(() => SetProfile("Default"));
@@ -78,7 +87,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		this.WhenAnyValue(
 				x => x.AnonScoreTarget,
-				x => x.NonPrivateCoinIsolation)
+				x => x.NonPrivateCoinIsolation,
+				x => x.OnlyUsePrivateFundsForPayments)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(_ =>
 			{
@@ -86,7 +96,8 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 					.FirstOrDefault(p =>
 						p.Equals(
 							int.TryParse(AnonScoreTarget, out var anonScoreTarget) ? anonScoreTarget : 0,
-							NonPrivateCoinIsolation));
+							NonPrivateCoinIsolation,
+							OnlyUsePrivateFundsForPayments));
 
 				MaximizePrivacyProfileSelected = selectedProfile?.Name == "MaximizePrivacy";
 				EconomicalProfileSelected = selectedProfile?.Name == "Economical";
@@ -123,6 +134,7 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 	public ICommand SetAutoCoinJoin { get; }
 	public ICommand SetNonPrivateCoinIsolationCommand { get; }
+	public ICommand SetOnlyUsePrivateFundsForPaymentsCommand { get; }
 	public ICommand SelectMaximizePrivacySettings { get; }
 	public ICommand SelectDefaultSettings { get; }
 	public ICommand SelectEconomicalSettings { get; }
@@ -177,6 +189,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 
 		NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
 		_wallet.Settings.NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
+
+		OnlyUsePrivateFundsForPayments = profile.OnlyUsePrivateFundsForPayments;
+		_wallet.Settings.OnlyUsePrivateFundsForPayments = profile.OnlyUsePrivateFundsForPayments;
 
 		_wallet.Settings.Save();
 		return Task.CompletedTask;

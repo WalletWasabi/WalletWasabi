@@ -20,7 +20,8 @@ public class OutputProvider
 		RoundParameters roundParameters,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
-		int availableVsize)
+		int availableVsize,
+		bool arePaymentsAllowed)
 	{
 		AmountDecomposer amountDecomposer = new(
 			roundParameters.MiningFeeRate,
