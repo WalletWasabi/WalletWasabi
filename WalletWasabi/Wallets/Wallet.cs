@@ -210,19 +210,17 @@ public class Wallet : BackgroundService
 		return pcPrivate;
 	}
 
-	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
+	public bool TryLogin(string password)
 	{
-		compatibilityPasswordUsed = null;
-
 		if (KeyManager.IsWatchOnly)
 		{
 			IsLoggedIn = true;
 			Password = "";
 		}
-		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
+		else if (PasswordHelper.TryPassword(KeyManager, password))
 		{
 			IsLoggedIn = true;
-			Password = compatibilityPasswordUsed ?? Guard.Correct(password);
+			Password = password;
 			KeyChain = new KeyChain(KeyManager, Password);
 		}
 
