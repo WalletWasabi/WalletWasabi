@@ -61,18 +61,18 @@ public class KeyManager
 		_segwitInternalKeyGenerator = new HdPubKeyGenerator(SegwitExtPubKey.Derive(1), SegwitAccountKeyPath.Derive(1), MinGapLimit);
 
 		TaprootAccountKeyPath = taprootAccountKeyPath ?? GetAccountKeyPath(_blockchainState.Network, ScriptPubKeyType.TaprootBIP86);
-		if (TaprootExtPubKey is { })
+		if (TaprootExtPubKey is not null)
 		{
 			TaprootExternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(0), TaprootAccountKeyPath.Derive(0), MinGapLimit);
 			_taprootInternalKeyGenerator = new HdPubKeyGenerator(TaprootExtPubKey.Derive(1), TaprootAccountKeyPath.Derive(1), MinGapLimit);
 		}
 
-		if (SilentPaymentScanExtPubKey is { })
+		if (SilentPaymentScanExtPubKey is not null)
 		{
 			_silentPaymentScanKeyGenerator = new HdPubKeyGenerator(SilentPaymentScanExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Scan), MinGapLimit);
 		}
 
-		if (SilentPaymentSpendExtPubKey is { })
+		if (SilentPaymentSpendExtPubKey is not null)
 		{
 			_silentPaymentSpendKeyGenerator = new HdPubKeyGenerator(SilentPaymentSpendExtPubKey, GetAccountKeyPath(_blockchainState.Network, KeyPurpose.Spend), MinGapLimit);
 		}
@@ -133,11 +133,11 @@ public class KeyManager
 
 	public ExtPubKey? TaprootExtPubKey { get; private set; }
 
-	public int MinGapLimit { get; private set; }
+	public int MinGapLimit { get; }
 
-	public KeyPath SegwitAccountKeyPath { get; private set; }
+	public KeyPath SegwitAccountKeyPath { get; }
 
-	public KeyPath TaprootAccountKeyPath { get; private set; }
+	public KeyPath TaprootAccountKeyPath { get; }
 
 	public ExtPubKey? SilentPaymentScanExtPubKey { get; private set; }
 
@@ -479,7 +479,7 @@ public class KeyManager
 
 			// Backwards compatibility:
 			MasterFingerprint ??= secret.PubKey.GetHDFingerPrint();
-			DeriveTaprootExtPubKey(extKey);
+			TaprootExtPubKey ??= extKey.Derive(TaprootAccountKeyPath).Neuter();
 			DeriveSilentPaymentExtPubKeys(extKey);
 
 			MasterKeyAndPasswordHash = (passwordHash, extKey);
@@ -489,15 +489,6 @@ public class KeyManager
 		catch (SecurityException ex)
 		{
 			throw new SecurityException("Invalid passphrase.", ex);
-		}
-	}
-
-	private void DeriveTaprootExtPubKey(ExtKey extKey)
-	{
-		if (TaprootExtPubKey is null)
-		{
-			TaprootAccountKeyPath = GetAccountKeyPath(GetNetwork(), ScriptPubKeyType.TaprootBIP86);
-			TaprootExtPubKey = extKey.Derive(TaprootAccountKeyPath).Neuter();
 		}
 	}
 
