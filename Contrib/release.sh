@@ -52,6 +52,33 @@ PACKAGES_DIR="$ROOT_DIR/packages"
 # Common name for all packages
 PACKAGE_FILE_NAME_PREFIX="Wasabi-$VERSION"
 
+sign_windows_file() {
+  local file_path="$1"
+
+  # Do not echo credentials passed to AzureSignTool.
+  set +x
+  if ! azuresigntool sign \
+      -kvu "https://wasabiwallet.vault.azure.net/" \
+      -kvc "WasabiCodeSignCert" \
+      -kvi "$AZURE_CLIENT_ID" \
+      -kvs "$AZURE_CLIENT_SECRET" \
+      --azure-key-vault-tenant-id "$AZURE_TENANT_ID" \
+      -tr "http://timestamp.digicert.com" \
+      "$file_path"; then
+    set -x
+    return 1
+  fi
+  set -x
+
+  WINDOWS_SIGNED_FILE="$file_path" powershell.exe -NoProfile -Command '
+    $signature = Get-AuthenticodeSignature -LiteralPath $env:WINDOWS_SIGNED_FILE
+    if ($signature.Status -ne "Valid") {
+      Write-Error "Invalid Authenticode signature for $env:WINDOWS_SIGNED_FILE: $($signature.Status)"
+      exit 1
+    }
+  '
+}
+
 if [[ "$RUNNER_OS" == "Windows" ]]; then
   ZIP="7z.exe a"
 else
@@ -493,6 +520,11 @@ BUILD_INSTALLER_DIR="$BUILD_DIR/win-installer"
 WINDOWS_PACKAGE_BUILD_DIR="$BUILD_DIR"/win-x64
 
 mkdir -p "$BUILD_INSTALLER_DIR"
+
+# Keep the portable ZIP unsigned for reproducibility checks and sign only the MSI payload.
+sign_windows_file "$WINDOWS_PACKAGE_BUILD_DIR/${EXECUTABLE_NAME}.exe"
+sign_windows_file "$WINDOWS_PACKAGE_BUILD_DIR/${EXECUTABLE_NAME}d.exe"
+
 "$HEAT_EXE" dir $WINDOWS_PACKAGE_BUILD_DIR \
     -o $WINDOWS_INSTALLER_DIR/ComponentsGenerated.wxs \
     -cg PublishedComponents \
@@ -519,17 +551,7 @@ mkdir -p "$BUILD_INSTALLER_DIR"
 # Remove unwanted file
 rm $PACKAGES_DIR/*.wixpdb
 
-# Define paths (using your existing variables)
-SIGNTOOL="azuresigntool"
-
-"$SIGNTOOL" sign \
-    -kvu "https://wasabiwallet.vault.azure.net/" \
-    -kvc "WasabiCodeSignCert" \
-    -kvi "$AZURE_CLIENT_ID" \
-    -kvs "$AZURE_CLIENT_SECRET" \
-    --azure-key-vault-tenant-id "$AZURE_TENANT_ID" \
-    -tr "http://timestamp.digicert.com" \
-    "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
+sign_windows_file "$PACKAGES_DIR/$PACKAGE_FILE_NAME_PREFIX.msi"
 fi
 
 #------------------------------------------------------------------------------------#
