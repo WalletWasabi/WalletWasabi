@@ -183,8 +183,8 @@
       },
       "System.Interactive.Async": {
         "type": "Transitive",
-        "resolved": "7.0.0",
-        "contentHash": "Ckj+tg2BVOZ0oLp7FAbjfvRyA/BMkUhVxROLd+x22zncRR6KD7CdFzAYp+9Mo2cedxAMo2X9ZNyhZu68jdDITw=="
+        "resolved": "7.0.1",
+        "contentHash": "oL1iox7sAJL8i+muGzVMQjDB0axQgOoT5CkwYdap8cQJMkWDWMRErNqhOcZkn31+aKr/uCfgMEdhUARCU4G7gg=="
       },
       "walletwasabi": {
         "type": "Project",
@@ -195,9 +195,9 @@
           "Microsoft.Extensions.Hosting.Abstractions": "[10.0.11, )",
           "Microsoft.Extensions.Http": "[10.0.11, )",
           "Microsoft.Win32.SystemEvents": "[10.0.11, )",
-          "NBitcoin": "[10.0.7, )",
-          "NNostr.Client": "[0.0.54, )",
-          "System.Linq.Async": "[7.0.0, )",
+          "NBitcoin": "[10.0.10, )",
+          "NNostr.Client": "[0.0.55, )",
+          "System.Linq.Async": "[7.0.1, )",
           "WabiSabi": "[1.0.1.2, )"
         }
       },
@@ -286,9 +286,9 @@
       },
       "NBitcoin": {
         "type": "CentralTransitive",
-        "requested": "[10.0.7, )",
-        "resolved": "10.0.7",
-        "contentHash": "vdC7GYGspnM8rKovshvc6p40p66HsvrVAY8/3r718jDxYFHOxLWU2bUJXiogOJiCSRHfzbaiGK4lFDV0qKd05g==",
+        "requested": "[10.0.10, )",
+        "resolved": "10.0.10",
+        "contentHash": "YSCBYgTy53gxDs59zcVYWGret3HPmaMmzTyRiLdCjA/EwBm+dmu5mNvTcQb8PQVt/TJxoz2ULfBhTSrTwSYZhQ==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
           "Newtonsoft.Json": "13.0.1"
@@ -296,9 +296,9 @@
       },
       "NNostr.Client": {
         "type": "CentralTransitive",
-        "requested": "[0.0.54, )",
-        "resolved": "0.0.54",
-        "contentHash": "wN/7Thnu7g0l7LedUcO7DzXinw3bu9C5nKn2p6VZSNG3vymRuyH35VG64Qr63wEM+bHfPuxrQ9IyQNOwwKl4Mg==",
+        "requested": "[0.0.55, )",
+        "resolved": "0.0.55",
+        "contentHash": "Vd6qx0FoYWt54e9HLqUXbJq3iEphRYYLB3PJnp+y+3wyvdg5bi0G5qd+DTTx/mlglKAWvDT9H+GFhRvubwLbMQ==",
         "dependencies": {
           "LibChaCha20": "1.0.1",
           "LinqKit.Core": "1.2.5",
@@ -314,11 +314,11 @@
       },
       "System.Linq.Async": {
         "type": "CentralTransitive",
-        "requested": "[7.0.0, )",
-        "resolved": "7.0.0",
-        "contentHash": "A2Wci92Oyuodi8YLMQCJJ0vHqzgRFgEUG1K6tQNcoxHd3w05B1LvGzXvxQnGYPIL4Cr4hicHytpk2F2Jx8TZHg==",
+        "requested": "[7.0.1, )",
+        "resolved": "7.0.1",
+        "contentHash": "gwQtBHVY/WgqWgAYSe4JspXR+f1FvMbVIW4ixsJpGV/Kj8Nun3zp1ajIdvCWfmac8ektJGVLiJ/OR8JU9nZnMg==",
         "dependencies": {
-          "System.Interactive.Async": "7.0.0"
+          "System.Interactive.Async": "7.0.1"
         }
       },
       "WabiSabi": {

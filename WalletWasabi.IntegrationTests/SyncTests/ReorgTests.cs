@@ -31,7 +31,7 @@ public class ReorgTests
 
 		// Mine some blocks and sync
 		await env.RpcClient.GenerateAsync(5);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		var preTip = env.FilterStore.GetTip();
 		Assert.NotNull(preTip);
@@ -45,7 +45,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(2);
 
 		// Re-sync filters - this should detect the reorg and handle it
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
 		var postTip = env.FilterStore.GetTip();
@@ -79,7 +79,8 @@ public class ReorgTests
 		var tipHeight = await env.RpcClient.GetBlockCountAsync();
 		var blockToInvalidate = await env.RpcClient.GetBlockHashAsync(tipHeight);
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
+
 
 		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
@@ -99,7 +100,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(1);
 
 		// Re-sync
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Note: The wallet would need to reprocess filters to detect the reorg
 		// This is a simplified test - in reality, the wallet needs to be notified
@@ -119,7 +120,7 @@ public class ReorgTests
 
 		// Mine initial blocks
 		await env.RpcClient.GenerateAsync(10);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		var initialTip = env.FilterStore.GetTip();
 		Assert.NotNull(initialTip);
@@ -136,7 +137,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(reorgDepth + 2);
 
 		// Re-sync
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
 		var newTip = env.FilterStore.GetTip();
@@ -177,7 +178,7 @@ public class ReorgTests
 		}
 
 		// Sync filters and start the wallet
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		await wallet.StartAsync(TestContext.Current.CancellationToken);
 
@@ -208,7 +209,7 @@ public class ReorgTests
 		await env.RpcClient.GenerateAsync(NumberOfCoins + 3);
 
 		// Re-sync filters (this should trigger ChainReorganized events)
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Wait for wallet to process the reorg and re-sync
 		// The coins will either:

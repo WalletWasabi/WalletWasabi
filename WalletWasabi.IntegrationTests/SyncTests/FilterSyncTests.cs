@@ -1,5 +1,3 @@
-using System;
-using System.Threading;
 using System.Threading.Tasks;
 using WalletWasabi.IntegrationTests.Infrastructure;
 using Xunit;
@@ -30,7 +28,7 @@ public class FilterSyncTests
 		var tipHeight = await env.RpcClient.GetBlockCountAsync();
 
 		// Act - Sync all filters
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter store should have filters up to tip
 		var filterTip = env.FilterStore.GetTip();
@@ -45,7 +43,7 @@ public class FilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Initial sync
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 		var initialTip = env.FilterStore.GetTip();
 		Assert.NotNull(initialTip);
 
@@ -55,7 +53,7 @@ public class FilterSyncTests
 		await env.RpcClient.GenerateAsync(1);
 
 		// Sync again
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - Filter tip should advance by 1
 		var newTip = env.FilterStore.GetTip();
@@ -69,17 +67,17 @@ public class FilterSyncTests
 		// Arrange
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 		var initialTip = env.FilterStore.GetTip();
 		Assert.NotNull(initialTip);
 
 		var initialHeight = (uint)initialTip.Header.Height;
 
 		// Act - Mine multiple blocks
-		const int blocksToMine = 10;
+		int blocksToMine = 10;
 		await env.RpcClient.GenerateAsync(blocksToMine);
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert
 		var newTip = env.FilterStore.GetTip();
@@ -94,7 +92,7 @@ public class FilterSyncTests
 		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
 
 		// Act
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		// Assert - FilterHeaderChain should be in sync
 		var filterTip = env.FilterStore.GetTip();
@@ -118,7 +116,7 @@ public class FilterSyncTests
 		Assert.True((uint)tip.Header.Height >= 0);
 
 		// Now sync and verify we catch up
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		var syncedTip = env.FilterStore.GetTip();
 		Assert.NotNull(syncedTip);

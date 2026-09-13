@@ -1,4 +1,3 @@
-using DynamicData;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;

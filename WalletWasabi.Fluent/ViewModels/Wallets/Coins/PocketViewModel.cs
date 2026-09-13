@@ -2,11 +2,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using DynamicData;
 using DynamicData.Aggregation;
-using ReactiveUI;
 using WalletWasabi.Blockchain.TransactionOutputs;
-using WalletWasabi.Fluent.Models;
 using WalletWasabi.Fluent.Models.Wallets;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Coins;

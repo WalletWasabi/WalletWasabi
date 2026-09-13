@@ -30,7 +30,6 @@
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux" />
 		<PackageReference Include="Avalonia.Themes.Fluent" />
 		<PackageReference Include="Avalonia.Fonts.Inter" />
-		<PackageReference Include="DynamicData" />
 		<PackageReference Include="Markdown.Avalonia" />
 		<PackageReference Include="QRackers" />
 		<PackageReference Include="NScheme" />

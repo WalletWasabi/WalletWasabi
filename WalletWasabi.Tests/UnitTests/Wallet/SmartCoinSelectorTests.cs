@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using DynamicData;
 using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
@@ -95,7 +94,7 @@ public class SmartCoinSelectorTests
 	{
 		Money target = Money.Coins(1m);
 		List<SmartCoin> availableCoins = GenerateDuplicateSmartCoins(("Juan", 0.1m), count: 11);
-		availableCoins.Add(GenerateDuplicateSmartCoins(("Beto", 0.2m), count: 5));
+		availableCoins.AddRange(GenerateDuplicateSmartCoins(("Beto", 0.2m), count: 5));
 
 		SmartCoinSelector selector = new(availableCoins);
 		List<Coin> coinsToSpend = selector.Select(suggestion: EmptySuggestion, target).Cast<Coin>().ToList();

@@ -43,7 +43,7 @@ public class WalletSendTests
 
 		// Fund the wallet with confirmed coins
 		await env.FundAddressAsync(receiveAddress, Money.Coins(2m), confirmations: 1);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
@@ -119,7 +119,7 @@ public class WalletSendTests
 		var receiveAddress = receiveKey.GetP2wpkhAddress(env.Network);
 
 		await env.FundAddressAsync(receiveAddress, Money.Coins(1m), confirmations: 1);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
@@ -185,7 +185,7 @@ public class WalletSendTests
 
 		// We need at least one block for filters to exist
 		await env.RpcClient.GenerateAsync(1);
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
@@ -244,7 +244,7 @@ public class WalletSendTests
 		await env.FundAddressAsync(key2.GetP2wpkhAddress(env.Network), Money.Coins(0.5m), confirmations: 0);
 		await env.FundAddressAsync(key3.GetP2wpkhAddress(env.Network), Money.Coins(1.0m), confirmations: 1);
 
-		await env.SyncFiltersRpcAsync();
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 		await wallet.StartAsync(cts.Token);
