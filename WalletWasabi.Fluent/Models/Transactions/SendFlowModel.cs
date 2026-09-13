@@ -49,6 +49,6 @@ public record SendFlowModel
 
 	public Pocket[] GetPockets() =>
 		AvailableCoins.GetPockets(Wallet.AnonScoreTarget)
-					  .Select(x => new Pocket(x))
-		              .ToArray();
+			.Select(x => new Pocket(x))
+			.ToArray();
 }

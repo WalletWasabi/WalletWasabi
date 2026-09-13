@@ -1,4 +1,3 @@
-using DynamicData;
 using NBitcoin;
 using Nito.AsyncEx;
 using System.Collections.Generic;
@@ -51,9 +50,13 @@ public partial class PrivacySuggestionsModel
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
-	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(TransactionInfo transactionInfo, BuildTransactionResult transactionResult, [EnumeratorCancellation] CancellationToken cancellationToken, bool includeSuggestions)
+	public async IAsyncEnumerable<PrivacyItem> BuildPrivacySuggestionsAsync(
+		TransactionInfo transactionInfo,
+		BuildTransactionResult transactionResult,
+		SuggestionParameters? suggestionParameters,
+		[EnumeratorCancellation] CancellationToken cancellationToken)
 	{
-		var parameters = new Parameters(transactionInfo, transactionResult, includeSuggestions);
+		var parameters = new Parameters(transactionInfo, transactionResult, suggestionParameters);
 		var result = new List<PrivacyItem>();
 
 		using CancellationTokenSource singleRunCts = new();
@@ -98,7 +101,7 @@ public partial class PrivacySuggestionsModel
 		{
 			yield return warning;
 
-			if (parameters.IncludeSuggestions && parameters.TransactionInfo.IsOtherPocketSelectionPossible)
+			if (parameters.SuggestionParameters is not null && parameters.TransactionInfo.IsOtherPocketSelectionPossible)
 			{
 				yield return new LabelManagementSuggestion();
 			}
@@ -153,7 +156,7 @@ public partial class PrivacySuggestionsModel
 			yield return new SemiPrivateFundsWarning();
 		}
 
-		if (!parameters.IncludeSuggestions)
+		if (parameters.SuggestionParameters is null)
 		{
 			// Return early, to avoid needless compute.
 			yield break;
@@ -270,9 +273,14 @@ public partial class PrivacySuggestionsModel
 		{
 			yield return new CreatesChangeWarning();
 
-			if (parameters.IncludeSuggestions && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsPayToMany)
+			if (parameters.SuggestionParameters is not null && !parameters.TransactionInfo.IsFixedAmount && !parameters.TransactionInfo.IsPayJoin && !parameters.TransactionInfo.IsPayToMany)
 			{
-				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(parameters.TransactionInfo, parameters.Transaction, linkedCts).ConfigureAwait(false);
+				var suggestions = await CreateChangeAvoidanceSuggestionsAsync(
+					parameters.SuggestionParameters.MaxAdditionalCoins,
+					parameters.TransactionInfo,
+					parameters.Transaction,
+					linkedCts).ConfigureAwait(false);
+
 				foreach (var suggestion in suggestions)
 				{
 					yield return suggestion;
@@ -281,7 +289,11 @@ public partial class PrivacySuggestionsModel
 		}
 	}
 
-	private async Task<List<ChangeAvoidanceSuggestion>> CreateChangeAvoidanceSuggestionsAsync(TransactionInfo info, BuildTransactionResult transaction, CancellationTokenSource linkedCts)
+	private async Task<List<ChangeAvoidanceSuggestion>> CreateChangeAvoidanceSuggestionsAsync(
+		int maxAdditionalCoins,
+		TransactionInfo info,
+		BuildTransactionResult transaction,
+		CancellationTokenSource linkedCts)
 	{
 		var result = new List<ChangeAvoidanceSuggestion>();
 
@@ -289,8 +301,7 @@ public partial class PrivacySuggestionsModel
 		// Reporting up-to-date exchange rates would just confuse users.
 		decimal usdExchangeRate = _exchangeRate;
 
-		// Only allow to create 2 more inputs with BnB.
-		int maxInputCount = transaction.SpentCoins.Count() + 2;
+		int maxInputCount = transaction.SpentCoins.Count() + maxAdditionalCoins;
 
 		var pockets = _sendFlow.GetPockets();
 		var spentCoins = transaction.SpentCoins;
@@ -307,7 +318,8 @@ public partial class PrivacySuggestionsModel
 			coinsToUse = coinsToUse.Where(x => x.Confirmed).ToImmutableArray();
 		}
 
-		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token).ConfigureAwait(false);
+		var suggestions = CreateChangeAvoidanceSuggestionsAsync(info, coinsToUse, maxInputCount, usdExchangeRate, linkedCts.Token)
+			.ConfigureAwait(false);
 
 		await foreach (var suggestion in suggestions)
 		{
@@ -467,5 +479,7 @@ public partial class PrivacySuggestionsModel
 				: "");
 	}
 
-	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, bool IncludeSuggestions);
+	private record Parameters(TransactionInfo TransactionInfo, BuildTransactionResult Transaction, SuggestionParameters? SuggestionParameters);
+
+	public record SuggestionParameters(int MaxAdditionalCoins);
 }

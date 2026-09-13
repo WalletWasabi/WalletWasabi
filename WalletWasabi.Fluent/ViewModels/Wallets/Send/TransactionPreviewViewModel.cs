@@ -390,7 +390,10 @@ public partial class TransactionPreviewViewModel : RoutableViewModel
 				})
 			.DisposeWith(disposables);
 
-		this.WhenAnyValue(x => x.Transaction)
+		this.WhenAnyValue(
+			x => x.Transaction,
+			x => x.PrivacySuggestions.MaxAdditionalCoins,
+			(transaction, maxAdditionalCoins) => transaction)
 			.WhereNotNull()
 			.Throttle(TimeSpan.FromMilliseconds(100))
 			.ObserveOn(RxApp.MainThreadScheduler)

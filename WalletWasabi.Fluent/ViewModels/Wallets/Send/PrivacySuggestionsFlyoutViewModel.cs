@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Fluent.Models.Transactions;
 using WalletWasabi.Fluent.Models.Wallets;
-using WalletWasabi.Wallets;
+using static WalletWasabi.Fluent.Models.Transactions.PrivacySuggestionsModel;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
@@ -24,6 +24,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	[AutoNotify] private bool _badPrivacy;
 	[AutoNotify] private bool _goodPrivacy;
 	[AutoNotify] private bool _maxPrivacy;
+	[AutoNotify] private int _maxAdditionalCoins;
 
 	public PrivacySuggestionsFlyoutViewModel(UiContext uiContext, IWalletModel wallet, SendFlowModel sendParameters) : base(uiContext)
 	{
@@ -38,7 +39,7 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 	{
 		var previewWarningList = new List<PrivacyWarning>();
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: false))
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, suggestionParameters: null, cancellationToken))
 		{
 			if (item is PrivacyWarning warning)
 			{
@@ -67,7 +68,9 @@ public partial class PrivacySuggestionsFlyoutViewModel : ViewModelBase
 
 		IsBusy = true;
 
-		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, cancellationToken, includeSuggestions: true))
+		var suggestionParameters = new SuggestionParameters(_maxAdditionalCoins);
+
+		await foreach (var item in _privacySuggestionsModel.BuildPrivacySuggestionsAsync(info, transaction, suggestionParameters, cancellationToken))
 		{
 			if (item is PrivacyWarning warning)
 			{
