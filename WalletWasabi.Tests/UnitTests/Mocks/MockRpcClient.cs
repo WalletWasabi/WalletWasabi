@@ -169,19 +169,9 @@ public class MockRpcClient : IRPCClient
 		throw new NotImplementedException();
 	}
 
-	public Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default)
-	{
-		throw new NotImplementedException();
-	}
-
 	public Task<TimeSpan> UptimeAsync(CancellationToken cancellationToken = default)
 	{
 		return OnUptimeAsync?.Invoke() ?? NotImplementedTask<TimeSpan>(nameof(UptimeAsync));
-	}
-
-	public Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken = default*/)
-	{
-		throw new NotImplementedException();
 	}
 
 	public Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default)
@@ -210,6 +200,11 @@ public class MockRpcClient : IRPCClient
 	}
 
 	public Task<bool> SupportsBlockFiltersAsync(CancellationToken cancellationToken)
+	{
+		throw new NotImplementedException();
+	}
+
+	public Task<ScanTxoutSetResponse> StartScanTxoutSetAsync(ScanTxoutSetParameters parameters, CancellationToken cancellationToken = default)
 	{
 		throw new NotImplementedException();
 	}

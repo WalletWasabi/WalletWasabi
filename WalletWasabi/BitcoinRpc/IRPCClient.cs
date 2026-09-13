@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
-using NBitcoin;
 using NBitcoin.RPC;
 using WalletWasabi.BitcoinRpc.Models;
 
@@ -38,8 +34,6 @@ public interface IRPCClient
 
 	Task<MemPoolInfo> GetMempoolInfoAsync(CancellationToken cancellationToken = default);
 
-	Task<MempoolAcceptResult> TestMempoolAcceptAsync(Transaction transaction, CancellationToken cancellationToken = default);
-
 	Task<EstimateSmartFeeResponse> EstimateSmartFeeAsync(int confirmationTarget, EstimateSmartFeeMode estimateMode = EstimateSmartFeeMode.Conservative, CancellationToken cancellationToken = default);
 
 	Task<GetTxOutResponse?> GetTxOutAsync(uint256 txid, int index, bool includeMempool = true, CancellationToken cancellationToken = default);
@@ -51,8 +45,6 @@ public interface IRPCClient
 	Task<uint256> GetBlockHashAsync(int height, CancellationToken cancellationToken = default);
 
 	Task InvalidateBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default);
-
-	Task AbandonTransactionAsync(uint256 txid /*, CancellationToken cancellationToken*/);
 
 	Task<BumpResponse> BumpFeeAsync(uint256 txid, CancellationToken cancellationToken = default);
 
@@ -77,4 +69,6 @@ public interface IRPCClient
 	Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default);
 
 	Task<RPCClient> CreateWalletAsync(string walletNameOrPath, CreateWalletOptions? options = null, CancellationToken cancellationToken = default);
+
+	Task<ScanTxoutSetResponse> StartScanTxoutSetAsync(ScanTxoutSetParameters parameters, CancellationToken cancellationToken = default);
 }
