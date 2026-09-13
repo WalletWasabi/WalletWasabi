@@ -37,8 +37,7 @@ public class WalletGenerator
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
-		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
-		PasswordHelper.Guard(password);
+		PasswordHelper.AssertCorrectPassword(password);
 
 		var km = mnemonic is null
 			? KeyManager.CreateNew(out mnemonic, password, Network)
@@ -52,8 +51,7 @@ public class WalletGenerator
 	{
 		string walletFilePath = GetWalletFilePath(walletName, WalletsDir);
 
-		// Here we are not letting anything that will be autocorrected later. We need to generate the wallet exactly with the entered password because of compatibility.
-		PasswordHelper.Guard(password);
+		PasswordHelper.AssertCorrectPassword(password);
 
 		shares ??= Shamir.Generate(
 			DefaultShamirThreshold,

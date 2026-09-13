@@ -2,7 +2,6 @@ using NBitcoin.WalletPolicies;
 using WalletWasabi.Extensions;
 using WalletWasabi.Userfacing;
 using WalletWasabi.Wallets;
-using static WalletWasabi.Blockchain.Keys.WpkhWalletPolicyHelper;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -13,7 +12,7 @@ public partial class WalletInfoModel
 		var network = wallet.Network;
 		if (!wallet.KeyManager.IsWatchOnly)
 		{
-			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Password, out _);
+			var secret = PasswordHelper.GetMasterExtKey(wallet.KeyManager, wallet.Password);
 
 			ExtendedMasterPrivateKey = secret.GetWif(network).ToWif();
 			ExtendedAccountPrivateKey = secret.Derive(wallet.KeyManager.SegwitAccountKeyPath).GetWif(network).ToWif();
