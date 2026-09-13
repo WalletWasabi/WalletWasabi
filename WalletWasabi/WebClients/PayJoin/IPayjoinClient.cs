@@ -4,5 +4,5 @@ public interface IPayjoinClient
 {
 	Uri PaymentUrl { get; }
 
-	Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken);
+	Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey segwitAccountKey, RootedKeyPath segwitRootedKeyPath, IHDKey? taprootAccountKey, RootedKeyPath taprootRootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken);
 }
