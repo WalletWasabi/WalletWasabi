@@ -334,6 +334,8 @@ public class TransactionFactory
 				psbt,
 				KeyManager.SegwitExtPubKey,
 				new RootedKeyPath(masterFingerprint, KeyManager.SegwitAccountKeyPath),
+				KeyManager.TaprootExtPubKey,
+				new RootedKeyPath(masterFingerprint, KeyManager.TaprootAccountKeyPath),
 				changeHdPubKey,
 				CancellationToken.None).GetAwaiter().GetResult(); // WTF??!
 			builder.SignPSBT(psbt);

@@ -27,7 +27,7 @@ public class PayjoinClient : IPayjoinClient
 	private readonly bool _disableOutputSubstitution;
 	private readonly HttpClient _httpClient;
 
-	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey accountKey, RootedKeyPath rootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken)
+	public async Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey segwitAccountKey, RootedKeyPath segwitRootedKeyPath, IHDKey? taprootAccountKey, RootedKeyPath taprootRootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken)
 	{
 		if (originalTx.IsAllFinalized())
 		{
@@ -55,7 +55,8 @@ public class PayjoinClient : IPayjoinClient
 		optionalParameters.MaxAdditionalFeeContribution = originalFeeRate.GetFee(Helpers.Constants.P2wpkhInputVirtualSize);
 		optionalParameters.DisableOutputSubstitution = _disableOutputSubstitution;
 
-		var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
+		var sentBefore = -originalTx.GetBalance(ScriptPubKeyType.Segwit, segwitAccountKey, segwitRootedKeyPath)
+						 - (taprootAccountKey is null ? Money.Zero : originalTx.GetBalance(ScriptPubKeyType.TaprootBIP86, taprootAccountKey,  taprootRootedKeyPath));
 		var oldGlobalTx = originalTx.GetGlobalTransaction();
 
 		var cloned = originalTx.Clone();
@@ -190,10 +191,21 @@ public class PayjoinClient : IPayjoinClient
 
 		// Making sure that our inputs are finalized, and that some of our inputs have not been added.
 		int ourInputCount = 0;
-		var accountHDScriptPubkey = new HDKeyScriptPubKey(accountKey, ScriptPubKeyType.Segwit);
-		foreach (var input in newPSBT.Inputs.CoinsFor(accountHDScriptPubkey, accountKey, rootedKeyPath))
+		var segwitAccountHDScriptPubkey = new HDKeyScriptPubKey(segwitAccountKey, ScriptPubKeyType.Segwit);
+		var segwitCoins = newPSBT.Inputs.CoinsFor(segwitAccountHDScriptPubkey, segwitAccountKey, segwitRootedKeyPath);
+		var taprootCoins = Array.Empty<PSBTInput>();
+
+		if (taprootAccountKey is not null)
 		{
-			if (oldGlobalTx.Inputs.FindIndexedInput(input.PrevOut) is IndexedTxIn ourInput)
+			var taprootAccountHDScriptPubkey = new HDKeyScriptPubKey(taprootAccountKey, ScriptPubKeyType.TaprootBIP86);
+
+			taprootCoins = newPSBT.Inputs
+				.CoinsFor(taprootAccountHDScriptPubkey, taprootAccountKey, taprootRootedKeyPath).ToArray();
+		}
+
+		foreach (var input in (PSBTInput[]) [..segwitCoins, ..taprootCoins])
+		{
+			if (oldGlobalTx.Inputs.FindIndexedInput(input.PrevOut) is { } ourInput)
 			{
 				ourInputCount++;
 				if (input.IsFinalized())
@@ -212,6 +224,7 @@ public class PayjoinClient : IPayjoinClient
 			}
 		}
 
+		var senderInputType = segwitCoins.Any() ? ScriptPubKeyType.Segwit : ScriptPubKeyType.TaprootBIP86;
 		foreach (var input in newPSBT.Inputs)
 		{
 			if (originalTx.Inputs.FindIndexedInput(input.PrevOut) is null)
@@ -223,7 +236,7 @@ public class PayjoinClient : IPayjoinClient
 
 				// Making sure that the receiver's inputs are finalized and match format
 				var payjoinInputType = input.GetInputScriptPubKeyType();
-				if (payjoinInputType is null || payjoinInputType.Value != ScriptPubKeyType.Segwit)
+				if (payjoinInputType is null || payjoinInputType != senderInputType)
 				{
 					throw new PayjoinSenderException("The payjoin receiver included an input that is not the same segwit input type");
 				}
@@ -251,7 +264,8 @@ public class PayjoinClient : IPayjoinClient
 			throw new PayjoinSenderException("The payjoin receiver added too much inputs");
 		}
 
-		var sentAfter = -newPSBT.GetBalance(ScriptPubKeyType.Segwit, accountKey, rootedKeyPath);
+		var sentAfter  = -newPSBT.GetBalance(ScriptPubKeyType.Segwit, segwitAccountKey, segwitRootedKeyPath)
+		                 - (taprootAccountKey is null ? Money.Zero : newPSBT.GetBalance(ScriptPubKeyType.TaprootBIP86, taprootAccountKey,  taprootRootedKeyPath));
 
 		if (sentAfter > sentBefore)
 		{
