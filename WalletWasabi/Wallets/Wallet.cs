@@ -1,22 +1,11 @@
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -216,19 +205,17 @@ public class Wallet : BackgroundService
 		return pcPrivate;
 	}
 
-	public bool TryLogin(string password, out string? compatibilityPasswordUsed)
+	public bool TryLogin(string password)
 	{
-		compatibilityPasswordUsed = null;
-
 		if (KeyManager.IsWatchOnly)
 		{
 			IsLoggedIn = true;
 			Password = "";
 		}
-		else if (PasswordHelper.TryPassword(KeyManager, password, out compatibilityPasswordUsed))
+		else if (PasswordHelper.TryPassword(KeyManager, password))
 		{
 			IsLoggedIn = true;
-			Password = compatibilityPasswordUsed ?? Guard.Correct(password);
+			Password = password;
 			KeyChain = new KeyChain(KeyManager, Password);
 		}
 

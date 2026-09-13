@@ -458,8 +458,6 @@ public class KeyManager
 			throw new SecurityException("This is a watch-only wallet.");
 		}
 
-		password ??= "";
-
 		var passwordHash = System.Security.Cryptography.SHA256.HashData(Encoding.UTF8.GetBytes(password));
 
 		if (MasterKeyAndPasswordHash is { MasterKey: var masterKey, PasswordHash: var storedPasswordHash })
