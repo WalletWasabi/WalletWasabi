@@ -1,8 +1,8 @@
 <Project>
 	<PropertyGroup>
 		<ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
-		<NetPackagesVersion>10.0.11</NetPackagesVersion>
-		<AvaloniaVersion>11.3.21</AvaloniaVersion>
+		<NetPackagesVersion>10.0.12</NetPackagesVersion>
+		<AvaloniaVersion>11.3.22</AvaloniaVersion>
 	</PropertyGroup>
 	<ItemGroup>
 		<!-- AspNetCore. -->
@@ -49,7 +49,7 @@
 		<!-- Testing. -->
 		<PackageVersion Include="coverlet.collector" Version="10.0.1" />
 		<PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(NetPackagesVersion)" />
-		<PackageVersion Include="xunit.v3" Version="4.0.0" />
+		<PackageVersion Include="xunit.v3" Version="4.0.1" />
 		<!-- Scheme. -->
 		<PackageVersion Include="NScheme" Version="0.0.1" />
 	</ItemGroup>
