@@ -1,5 +1,6 @@
 using System;
 using System.Reactive.Disposables;
+using System.Reactive.Linq;
 using Avalonia;
 using Avalonia.Xaml.Interactions.Custom;
 using ReactiveUI;
@@ -32,7 +33,8 @@ public sealed class MobileBusyBehavior : AttachedToVisualTreeBehavior<MobilePage
 			};
 			if (source is null) return;
 			activity.Disposable = page.Bind(MobilePage.IsBusyProperty,
-				MobileCommandActivity.Observe(source.WhenAnyValue(x => x.IsBusy), source.NextCommand, source.SkipCommand));
+				MobileCommandActivity.Observe(source.WhenAnyValue(x => x.IsBusy), source.NextCommand, source.SkipCommand)
+					.ObserveOn(RxApp.MainThreadScheduler));
 		});
 		return new CompositeDisposable(context, activity);
 	}
