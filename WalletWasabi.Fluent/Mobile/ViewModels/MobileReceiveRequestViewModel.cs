@@ -16,16 +16,25 @@ public sealed class MobileReceiveRequestViewModel : ReactiveObject, IDisposable
 	private string _paymentRequest;
 	private string _error = "";
 	private bool[,]? _matrix;
+	private bool _disposed;
 
 	public MobileReceiveRequestViewModel(ReceiveAddressViewModel source)
 	{
 		Source = source;
 		_paymentRequest = source.Address;
-		var canCopy = this.WhenAnyValue(x => x.Error).Select(x => string.IsNullOrEmpty(x));
-		var copy = ReactiveCommand.CreateFromTask(() => source.UiContext.Clipboard.SetTextAsync(PaymentRequest), canCopy);
+		// Copy eligibility depends on a valid request, not on a transient clipboard error.
+		var canCopy = this.WhenAnyValue(x => x.PaymentRequest).Select(x => !string.IsNullOrEmpty(x));
+		var copy = ReactiveCommand.CreateFromTask(async () =>
+		{
+			await source.UiContext.Clipboard.SetTextAsync(PaymentRequest);
+			if (!_disposed) Error = "";
+		}, canCopy);
 		CopyRequestCommand = copy;
 		copy.DisposeWith(_disposables);
-		copy.ThrownExceptions.Subscribe(_ => Error = "Could not access the clipboard.").DisposeWith(_disposables);
+		copy.ThrownExceptions.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
+		{
+			if (!_disposed) Error = "Could not access the clipboard. You can try copying again.";
+		}).DisposeWith(_disposables);
 
 		this.WhenAnyValue(x => x.Amount)
 			.Select(value => TryCreateRequest(source.Address, value, out var request) ? request : null)
@@ -42,7 +51,11 @@ public sealed class MobileReceiveRequestViewModel : ReactiveObject, IDisposable
 					.Catch<bool[,]?, Exception>(_ => Observable.Return<bool[,]?>(null)))
 			.Switch()
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Subscribe(matrix => Matrix = matrix)
+			.Subscribe(matrix =>
+			{
+				Matrix = matrix;
+				if (matrix is null && PaymentRequest.Length > 0) Error = "QR generation failed. You can still copy the address or payment request.";
+			})
 			.DisposeWith(_disposables);
 	}
 
@@ -59,7 +72,6 @@ public sealed class MobileReceiveRequestViewModel : ReactiveObject, IDisposable
 		request = address;
 		if (string.IsNullOrWhiteSpace(input)) return true;
 		var text = input.Trim();
-		// No exponent, grouping, signs, localized separators or precision loss.
 		var separator = text.IndexOf('.');
 		if (separator >= 0 && text.Length - separator - 1 > 8) return false;
 		foreach (var c in text) if ((c < '0' || c > '9') && c != '.') return false;
@@ -68,5 +80,10 @@ public sealed class MobileReceiveRequestViewModel : ReactiveObject, IDisposable
 		return true;
 	}
 
-	public void Dispose() => _disposables.Dispose();
+	public void Dispose()
+	{
+		if (_disposed) return;
+		_disposed = true;
+		_disposables.Dispose();
+	}
 }
