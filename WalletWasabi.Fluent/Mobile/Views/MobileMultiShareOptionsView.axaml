@@ -1,0 +1,30 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileMultiShareOptionsView" x:DataType="vm:MultiShareOptionsViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Multi-share backup" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Create backup shares" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <TextBlock Text="Choose your recovery threshold" Classes="mobile-title" TextWrapping="Wrap"/>
+        <TextBlock Text="Split the backup into shares and choose how many are needed to recover your wallet." Classes="mobile-caption"/>
+        <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+          <TextBlock Text="Total shares" Classes="mobile-label"/>
+          <NumericUpDown Name="ShareCount" Value="{Binding Shares, Mode=TwoWay}" Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                         ClipValueToMinMax="True" ParsingNumberStyle="None" HorizontalAlignment="Stretch" MinWidth="0" MinHeight="{DynamicResource MobileTouchTarget}"
+                         AutomationProperties.Name="Total backup shares"/>
+          <TextBlock Text="The number of separate backup shares you will write down." Classes="mobile-caption"/>
+          <TextBlock Text="Shares needed to recover" Classes="mobile-label"/>
+          <NumericUpDown Name="RecoveryThreshold" Value="{Binding Threshold, Mode=TwoWay}" Minimum="1" Maximum="16" Increment="1" FormatString="0"
+                         ClipValueToMinMax="True" ParsingNumberStyle="None" HorizontalAlignment="Stretch" MinWidth="0" MinHeight="{DynamicResource MobileTouchTarget}"
+                         AutomationProperties.Name="Recovery threshold"/>
+          <TextBlock Text="For example, a threshold of 2 with 3 total shares allows recovery with any 2 of those shares." Classes="mobile-caption"/>
+        </StackPanel></Border>
+        <Border Classes="mobile-note"><TextBlock Text="If fewer than the required shares survive, this backup cannot restore the wallet. Store shares separately and plan for loss or damage." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

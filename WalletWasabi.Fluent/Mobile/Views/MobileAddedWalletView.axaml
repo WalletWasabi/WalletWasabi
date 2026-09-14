@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileAddedWalletView" x:DataType="vm:AddedWalletPageViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Wallet added">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Open wallet" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <Border Width="112" Height="112" CornerRadius="56" Background="{DynamicResource MobileAccentSurface}" HorizontalAlignment="Center">
+          <m:MobileGlyph Kind="check" Width="52" Height="52" Foreground="{DynamicResource MobileAccent}"/>
+        </Border>
+        <TextBlock Text="{Binding WalletName}" Classes="mobile-title" TextWrapping="Wrap" TextAlignment="Center"/>
+        <TextBlock Text="{Binding WalletType}" Classes="mobile-caption" TextAlignment="Center"/>
+        <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+          <TextBlock Text="Your wallet has been added" Classes="mobile-label"/>
+          <TextBlock Text="The wallet will open and synchronize its history. Keep your backup stored safely, separately from this device." Classes="mobile-caption"/>
+        </StackPanel></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

@@ -3,6 +3,7 @@ using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Themes.Fluent;
+using ReactiveUI.Avalonia;
 using Xunit;
 
 [assembly: AvaloniaTestApplication(typeof(WalletWasabi.Fluent.Mobile.Tests.TestAppBuilder))]
@@ -14,6 +15,7 @@ public static class TestAppBuilder
 {
 	public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<MobileTestApplication>()
 		.UseSkia()
+		.UseReactiveUI()
 		.UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }
 

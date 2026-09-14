@@ -40,7 +40,9 @@ public sealed class MobileLoginView : MobileEntryView
 
 public sealed class MobileEntryViewLocator : IDataTemplate
 {
-	public bool Match(object? data) => data is WelcomePageViewModel or AddWalletPageViewModel or
+	private readonly MobileBackupViewLocator _backupViews = new();
+
+	public bool Match(object? data) => _backupViews.Match(data) || data is WelcomePageViewModel or AddWalletPageViewModel or
 		WalletNamePageViewModel or LoginViewModel or LoadingViewModel or MobileWalletsListViewModel;
 	public Control Build(object? data) => data switch
 	{
@@ -50,6 +52,7 @@ public sealed class MobileEntryViewLocator : IDataTemplate
 		LoginViewModel => new MobileLoginView(),
 		LoadingViewModel => new MobileLoadingView(),
 		MobileWalletsListViewModel => new MobileWalletsListView(),
+		_ when _backupViews.Match(data) => _backupViews.Build(data),
 		_ => throw new ArgumentException("Not a supported mobile entry route.", nameof(data))
 	};
 }

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileRecoverWalletView" x:DataType="vm:RecoverWalletViewModel" x:CompileBindings="True">
+  <UserControl.Styles>
+    <Style Selector="TextBox"><Setter Property="IsUndoEnabled" Value="False"/></Style>
+  </UserControl.Styles>
+  <m:MobilePage Header="Restore from recovery words" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Continue" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <TextBlock Text="Restore your wallet" Classes="mobile-title"/>
+        <TextBlock Text="Enter your BIP39 backup in order. The wallet checks the word count and checksum before continuing." Classes="mobile-caption"/>
+        <Border Classes="mobile-card"
+                ime:TextInputOptions.IsSensitive="True" ime:TextInputOptions.ShowSuggestions="False" ime:TextInputOptions.AutoCapitalization="False">
+          <StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+            <TextBlock Text="Words in their original order" Classes="mobile-label"/>
+            <c:TagsBox Name="RecoveryInput" Items="{Binding Mnemonics}" Suggestions="{Binding Suggestions}"
+                       ItemCountLimit="24" SuggestionsAreCaseSensitive="False" RestrictInputToSuggestions="True"
+                       AllowDuplication="True" EnableCounter="True" EnableDelete="False"
+                       Watermark="Enter one recovery word at a time"/>
+            <TextBlock Text="{Binding Mnemonics.Count, StringFormat='{0} words entered'}" Classes="mobile-caption"/>
+            <TextBlock Text="The entered words passed the wallet's validation." Foreground="{DynamicResource MobileAccent}"
+                       TextWrapping="Wrap" IsVisible="{Binding IsMnemonicsValid}"/>
+          </StackPanel>
+        </Border>
+        <Button Classes="mobile-button" Content="Advanced recovery options" Command="{Binding AdvancedRecoveryOptionsDialogCommand}" HorizontalAlignment="Stretch"/>
+        <Border Classes="mobile-note"><TextBlock Text="Recovery words belong only in a wallet you trust. They are not needed to receive bitcoin or to approve a payment." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>
