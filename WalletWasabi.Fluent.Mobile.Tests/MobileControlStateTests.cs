@@ -124,7 +124,7 @@ public sealed class MobileControlStateTests
 	[AvaloniaFact]
 	public void PrivacyThemeChangesDoNotAlterCoinJoinProgressGeometry()
 	{
-		var view = new MobileWalletView();
+		var view = new MobileWalletSurface();
 		var window = CreateWindow(view, 390);
 		try
 		{

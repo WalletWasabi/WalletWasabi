@@ -1,11 +1,9 @@
 <UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
-             xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:p="using:WalletWasabi.Fluent.Mobile.Presentation"
              x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletNavigation"
-             x:DataType="vm:MobileWalletViewModel" x:CompileBindings="True">
+             x:DataType="p:IMobileWalletPresentation" x:CompileBindings="True">
   <UserControl.Resources><m:MobileNavigationSectionConverter x:Key="NavigationSection"/></UserControl.Resources>
-  <Border BorderBrush="{DynamicResource MobileDivider}" BorderThickness="0,1,0,0"
-          Background="{DynamicResource MobileSurface}" Padding="8,4">
+  <Border BorderBrush="{DynamicResource MobileDivider}" BorderThickness="0,1,0,0" Background="{DynamicResource MobileSurface}" Padding="8,4">
     <Panel>
       <UniformGrid Name="DarkNavigation" Columns="4" Rows="1" IsVisible="{DynamicResource MobileDarkLayout}">
         <m:MobileActionButton Label="Home" Icon="home" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="home" IsSelected="{Binding Section, Converter={StaticResource NavigationSection}, ConverterParameter=home}"/>
@@ -15,8 +13,8 @@
       </UniformGrid>
       <UniformGrid Name="LightNavigation" Columns="5" Rows="1" IsVisible="{DynamicResource MobileLightLayout}">
         <m:MobileActionButton Label="Home" Icon="home" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="home" IsSelected="{Binding Section, Converter={StaticResource NavigationSection}, ConverterParameter=home}"/>
-        <m:MobileActionButton Label="Send" Icon="send" Background="Transparent" BorderThickness="0" Command="{Binding Wallet.DefaultSendCommand}" IsEnabled="{Binding Wallet.IsSendButtonVisible}"/>
-        <m:MobileActionButton Label="Receive" Icon="receive" Background="Transparent" BorderThickness="0" Command="{Binding Wallet.DefaultReceiveCommand}"/>
+        <m:MobileActionButton Label="Send" Icon="send" Background="Transparent" BorderThickness="0" Command="{Binding SendCommand}" IsEnabled="{Binding CanSend}"/>
+        <m:MobileActionButton Label="Receive" Icon="receive" Background="Transparent" BorderThickness="0" Command="{Binding ReceiveCommand}"/>
         <m:MobileActionButton Label="Privacy" Icon="shield" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="privacy" IsSelected="{Binding Section, Converter={StaticResource NavigationSection}, ConverterParameter=privacy}"/>
         <m:MobileActionButton Label="History" Icon="history" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="history" IsSelected="{Binding Section, Converter={StaticResource NavigationSection}, ConverterParameter=history}"/>
       </UniformGrid>

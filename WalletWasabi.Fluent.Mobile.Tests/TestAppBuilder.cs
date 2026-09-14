@@ -2,6 +2,7 @@ using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Media;
 using Avalonia.Themes.Fluent;
 using ReactiveUI.Avalonia;
 using Xunit;
@@ -15,6 +16,8 @@ public static class TestAppBuilder
 {
 	public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<MobileTestApplication>()
 		.UseSkia()
+		.WithInterFont()
+		.With(new FontManagerOptions { DefaultFamilyName = "fonts:Inter#Inter, $Default" })
 		.UseReactiveUI()
 		.UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }

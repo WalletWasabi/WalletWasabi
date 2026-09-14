@@ -25,16 +25,24 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 30
     env:
+      TZ: UTC
       WASABI_MOBILE_TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/mobile-previews
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
-      - name: Test native resource validation and token export
-        run: python3 -m unittest discover -s Contrib/Mobile -p test_mobile_design.py -v
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - name: Install visual comparison dependencies
+        run: python -m pip install -r Contrib/Mobile/requirements-visual.txt
+      - name: Test resource validation and visual comparison
+        run: |
+          python -m unittest discover -s Contrib/Mobile -p test_mobile_design.py -v
+          python -m unittest discover -s Contrib/Mobile -p test_visual_review.py -v
       - name: Validate native resources and export design tokens
-        run: python3 Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
+        run: python Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
       - name: Archive exact validation sources
         run: git archive --format=zip HEAD -o "$RUNNER_TEMP/mobile-validation-source.zip"
       - uses: actions/upload-artifact@v4
@@ -45,7 +53,17 @@ jobs:
       - name: Build shared native UI and compiled XAML
         run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-ui-build.binlog
       - name: Run native mobile regression and rendering tests
+        id: native-tests
         run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
+      - name: Compare native frames with reviewed baselines
+        if: always() && steps.native-tests.outcome != 'skipped'
+        # Missing baselines are unreviewed, not a pass. The gallery is emitted before
+        # the gate fails. Enroll images locally only after actually reviewing them.
+        run: >-
+          python Contrib/Mobile/visual_review.py report
+          --actual TestResults/mobile-previews
+          --baseline Contrib/Mobile/Baselines
+          --output TestResults/mobile-visual-review
       - uses: actions/upload-artifact@v4
         if: always()
         with:

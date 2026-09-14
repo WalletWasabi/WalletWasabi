@@ -1,0 +1,22 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileCoordinatorSettingsPanel"
+             x:DataType="vm:CoordinatorTabSettingsViewModel" x:CompileBindings="True">
+  <StackPanel Margin="0,12" Spacing="{DynamicResource MobileSpaceMedium}" IsEnabled="{Binding !IsReadOnly}">
+    <Border Classes="mobile-card"><m:MobileSettingsField Header="Coordinator endpoint" Description="Choose a coordinator you have independently evaluated. Availability and policies can differ.">
+      <TextBox Name="CoordinatorEndpoint" Classes="mobile-input" Text="{Binding CoordinatorUri, Mode=TwoWay}" Watermark="https://coordinator.example"
+               ime:TextInputOptions.AutoCapitalization="False" ime:TextInputOptions.ShowSuggestions="False" AutomationProperties.Name="CoinJoin coordinator endpoint"/>
+    </m:MobileSettingsField></Border>
+    <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceLarge}">
+      <m:MobileSettingsField Header="Maximum mining fee rate" Description="Upper limit in satoshis per virtual byte. The existing wallet validator enforces the accepted range.">
+        <TextBox Name="CoinJoinMiningFeeLimit" Classes="mobile-input" Text="{Binding MaxCoinJoinMiningFeeRate, Mode=TwoWay}" Watermark="sat/vB"
+                 ime:TextInputOptions.ShowSuggestions="False" AutomationProperties.Name="Maximum CoinJoin mining fee rate"/>
+      </m:MobileSettingsField>
+      <m:MobileSettingsField Header="Minimum input count" Description="Minimum inputs required for a round. Do not interpret this setting as a guarantee of anonymity.">
+        <TextBox Name="MinimumInputCount" Classes="mobile-input" Text="{Binding AbsoluteMinInputCount, Mode=TwoWay}" Watermark="Inputs"
+                 ime:TextInputOptions.ShowSuggestions="False" AutomationProperties.Name="Minimum CoinJoin input count"/>
+      </m:MobileSettingsField>
+    </StackPanel></Border>
+    <Border Classes="mobile-note"><TextBlock Text="Coordinator settings and per-wallet CoinJoin preferences are separate. Review the wallet's privacy settings before starting a round." Classes="mobile-caption"/></Border>
+  </StackPanel>
+</UserControl>

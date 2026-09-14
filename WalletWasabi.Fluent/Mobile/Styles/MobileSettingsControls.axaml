@@ -1,0 +1,30 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+  <Styles.Resources>
+    <ControlTheme x:Key="{x:Type m:MobileSettingsField}" TargetType="m:MobileSettingsField">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
+            <ContentPresenter Name="PART_HeaderPresenter" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                              TextElement.Foreground="{DynamicResource MobileText}" TextElement.FontSize="{DynamicResource MobileFontBody}" TextElement.FontWeight="SemiBold"/>
+            <TextBlock Text="{TemplateBinding Description}" Classes="mobile-caption"
+                       IsVisible="{TemplateBinding Description, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+            <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                              HorizontalContentAlignment="Stretch"/>
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+  </Styles.Resources>
+  <Style Selector="ComboBox.mobile-select">
+    <Setter Property="HorizontalAlignment" Value="Stretch"/>
+    <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>
+    <Setter Property="Background" Value="{DynamicResource MobileSurface}"/>
+    <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/>
+  </Style>
+  <Style Selector="TextBlock.mobile-connection-status"><Setter Property="Foreground" Value="{DynamicResource MobileNegative}"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+  <Style Selector="TextBlock.mobile-connection-status.success"><Setter Property="Foreground" Value="{DynamicResource MobilePositive}"/></Style>
+</Styles>
