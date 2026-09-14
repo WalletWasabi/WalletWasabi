@@ -1,0 +1,23 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings" xmlns:v="using:WalletWasabi.Fluent.Views.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSettingsView" x:DataType="vm:SettingsPageViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Settings" ShowBack="True" BackCommand="{Binding NextCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,8,16,16" Spacing="16">
+      <Border Classes="mobile-card"><Grid ColumnDefinitions="48,*"><m:MobileGlyph Kind="leaf" Width="36" Height="36" Foreground="{DynamicResource MobileAccent}"/><StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="Wasabi Wallet" Classes="mobile-title"/><TextBlock Text="Your bitcoin. Your keys. Your privacy." Classes="mobile-caption"/></StackPanel></Grid></Border>
+      <TextBlock Text="Appearance and privacy" Classes="mobile-label"/>
+      <Border Classes="mobile-card" IsEnabled="{Binding !IsReadOnly}"><StackPanel Spacing="8">
+        <ToggleSwitch Classes="mobile-switch" Content="Dark appearance" IsChecked="{Binding UiContext.ApplicationSettings.DarkModeEnabled, Mode=TwoWay}"/>
+        <ToggleSwitch Classes="mobile-switch" Content="Discreet mode" IsChecked="{Binding UiContext.MainViewModel.PrivacyMode.PrivacyMode, Mode=TwoWay}"/>
+        <TextBlock Text="Hide balances, amounts, and addresses when looking at your wallet." Classes="mobile-caption"/>
+        <ToggleSwitch Classes="mobile-switch" Content="Copy new address automatically" IsChecked="{Binding UiContext.ApplicationSettings.AutoCopy, Mode=TwoWay}"/>
+        <ToggleSwitch Classes="mobile-switch" Content="Paste payment addresses automatically" IsChecked="{Binding UiContext.ApplicationSettings.AutoPaste, Mode=TwoWay}"/>
+      </StackPanel></Border>
+      <Border Classes="mobile-note" IsVisible="{Binding IsReadOnly}"><TextBlock Text="Some settings were overridden at startup and cannot be changed here." Classes="mobile-caption"/></Border>
+      <TextBlock Text="Advanced configuration" Classes="mobile-label"/>
+      <Expander Header="General settings" HorizontalAlignment="Stretch"><v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
+      <Expander Header="Bitcoin node and network" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=1}"><v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
+      <Expander Header="CoinJoin coordinator" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=2}"><v:CoordinatorTabSettingsView DataContext="{Binding CoordinatorTabSettings}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
+      <Expander Header="Connections and Tor" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=3}"><v:ConnectionsSettingsTabView DataContext="{Binding ConnectionsSettingsTab}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
+      <Border Classes="mobile-note" IsVisible="{Binding IsModified}"><StackPanel Spacing="12"><TextBlock Text="Some changes require restarting Wasabi. Allow active CoinJoin work to finish before restarting." Classes="mobile-caption"/><Button Classes="mobile-button" Content="Restart Wasabi" Command="{Binding RestartCommand}" HorizontalAlignment="Stretch"/></StackPanel></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
