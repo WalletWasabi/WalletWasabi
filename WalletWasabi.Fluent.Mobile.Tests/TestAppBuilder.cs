@@ -13,7 +13,8 @@ namespace WalletWasabi.Fluent.Mobile.Tests;
 public static class TestAppBuilder
 {
 	public static AppBuilder BuildAvaloniaApp() => AppBuilder.Configure<MobileTestApplication>()
-		.UseHeadless(new AvaloniaHeadlessPlatformOptions());
+		.UseSkia()
+		.UseHeadless(new AvaloniaHeadlessPlatformOptions { UseHeadlessDrawing = false });
 }
 
 /// <summary>Loads production resources without starting the backend, networking or a wallet.</summary>
@@ -29,7 +30,8 @@ public sealed class MobileTestApplication : Application
 			"avares://WalletWasabi.Fluent/Icons/Icons.axaml",
 			"avares://WalletWasabi.Fluent/Styles/Styles.axaml",
 			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileTheme.axaml",
-			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml"
+			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml",
+			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileEntryControls.axaml"
 		};
 		foreach (var source in sources)
 		{

@@ -27,6 +27,7 @@
   <Project Path="WalletWasabi.Fluent.Generators/WalletWasabi.Fluent.Generators.csproj" />
   <Project Path="WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj" />
   <Project Path="WalletWasabi.Fluent/WalletWasabi.Fluent.csproj" />
+  <Project Path="WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj" />
   <Project Path="WalletWasabi.Tests/WalletWasabi.Tests.csproj">
     <BuildType Solution="Release|x64" Project="Debug" />
   </Project>

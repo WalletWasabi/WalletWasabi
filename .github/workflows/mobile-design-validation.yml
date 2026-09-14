@@ -24,6 +24,8 @@ jobs:
   shared-ui:
     runs-on: ubuntu-latest
     timeout-minutes: 30
+    env:
+      WASABI_MOBILE_TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/mobile-previews
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
@@ -40,7 +42,7 @@ jobs:
           retention-days: 3
       - name: Build shared native UI and compiled XAML
         run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-ui-build.binlog
-      - name: Run native mobile regression tests
+      - name: Run native mobile regression and rendering tests
         run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
       - uses: actions/upload-artifact@v4
         if: always()
