@@ -20,6 +20,14 @@ internal static class MobileScreenshot
 	public static byte[] Capture(Window window, string name, string scenario, string contentKind = "bound-fixture")
 	{
 		Assert.Matches("^[a-z0-9-]+$", name);
+		// A binding change can queue layout and a compositor commit after the current
+		// render tick. Drain both queues before reading the last presented framebuffer;
+		// otherwise interaction captures can contain the preceding UI state.
+		for (var pass = 0; pass < 3; pass++)
+		{
+			Dispatcher.UIThread.RunJobs();
+			AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+		}
 		Dispatcher.UIThread.RunJobs();
 		using var frame = window.CaptureRenderedFrame();
 		Assert.NotNull(frame);
