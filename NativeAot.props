@@ -47,10 +47,12 @@
 		<NativeDebugSymbols>false</NativeDebugSymbols>
 	</PropertyGroup>
 
-	<!-- Shared Fine-Grained Reflection Rooting Descriptor for Desktop, Mobile & Wasabi Core -->
-	<!-- Add specific types, methods, or namespaces here as discovered during AOT runtime testing -->
+	<!-- Shared reflection roots plus only the current host's descriptor.
+	     MSBuildProjectName is available here even before a host overrides TargetFramework. -->
 	<ItemGroup Condition="('$(PublishAot)' == 'true' or '$(EnableNativeAot)' == 'true' or '$(RunAOTCompilation)' == 'true') and !$(MSBuildProjectName.EndsWith('.Generators')) and '$(IsRoslynComponent)' != 'true'">
 		<TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)Roots.xml" />
+		<TrimmerRootDescriptor Include="$(MSBuildThisFileDirectory)Contrib/Aot/$(MSBuildProjectName).xml"
+		                       Condition="Exists('$(MSBuildThisFileDirectory)Contrib/Aot/$(MSBuildProjectName).xml')" />
 		<RuntimeHostConfigurationOption Include="System.Text.Json.JsonSerializer.IsReflectionDisabledByDefault" Value="false" Trim="false" />
 	</ItemGroup>
 

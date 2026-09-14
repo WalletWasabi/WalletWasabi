@@ -1,0 +1,7 @@
+<linker>
+  <assembly fullname="WalletWasabi.Fluent.iOS">
+    <!-- Program is the actual entry point; there is no IOS.Application type. -->
+    <type fullname="WalletWasabi.Fluent.IOS.Program" preserve="all" />
+    <type fullname="WalletWasabi.Fluent.IOS.AppDelegate" preserve="all" />
+  </assembly>
+</linker>
