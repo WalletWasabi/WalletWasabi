@@ -52,16 +52,14 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		_selectedOutputWallet = UiContext.WalletRepository.Wallets.Items.First(x => x.Id == _wallet.Settings.OutputWalletId);
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
-
 		NextCommand = CancelCommand;
 
-		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(
-			() =>
-			{
-				_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
-				_wallet.Settings.Save();
-				return Task.CompletedTask;
-			});
+		SetAutoCoinJoin = ReactiveCommand.CreateFromTask(() =>
+		{
+			_wallet.Settings.AutoCoinjoin = AutoCoinJoin;
+			_wallet.Settings.Save();
+			return Task.CompletedTask;
+		});
 
 		SetNonPrivateCoinIsolationCommand = ReactiveCommand.CreateFromTask(() =>
 		{
@@ -71,23 +69,15 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 		});
 
 		SelectMaximizePrivacySettings = ReactiveCommand.CreateFromTask(() => SetProfile("MaximizePrivacy"));
-
 		SelectDefaultSettings = ReactiveCommand.CreateFromTask(() => SetProfile("Default"));
-
 		SelectEconomicalSettings = ReactiveCommand.CreateFromTask(() => SetProfile("Economical"));
 
-		this.WhenAnyValue(
-				x => x.AnonScoreTarget,
-				x => x.NonPrivateCoinIsolation)
-			.ObserveOn(RxApp.TaskpoolScheduler)
+		this.WhenAnyValue(x => x.AnonScoreTarget, x => x.NonPrivateCoinIsolation)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Subscribe(_ =>
 			{
-				var selectedProfile = PrivacyProfiles.Profiles
-					.FirstOrDefault(p =>
-						p.Equals(
-							int.TryParse(AnonScoreTarget, out var anonScoreTarget) ? anonScoreTarget : 0,
-							NonPrivateCoinIsolation));
-
+				var selectedProfile = PrivacyProfiles.Profiles.FirstOrDefault(p => p.Equals(
+					int.TryParse(AnonScoreTarget, out var target) ? target : 0, NonPrivateCoinIsolation));
 				MaximizePrivacyProfileSelected = selectedProfile?.Name == "MaximizePrivacy";
 				EconomicalProfileSelected = selectedProfile?.Name == "Economical";
 				DefaultProfileSelected = selectedProfile?.Name == "Default";
@@ -99,22 +89,23 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.Skip(1)
 			.Throttle(TimeSpan.FromMilliseconds(1000))
 			.ObserveOn(RxApp.TaskpoolScheduler)
-			.Subscribe(
-				x =>
+			.Subscribe(x =>
+			{
+				if (Money.TryParse(x, out var result) && result != _wallet.Settings.PlebStopThreshold)
 				{
-					if (Money.TryParse(x, out var result) && result != _wallet.Settings.PlebStopThreshold)
-					{
-						_wallet.Settings.PlebStopThreshold = result;
-						_wallet.Settings.Save();
-					}
-				});
+					_wallet.Settings.PlebStopThreshold = result;
+					_wallet.Settings.Save();
+				}
+			});
 
 		this.WhenAnyValue(x => x.SelectedOutputWallet)
 			.Skip(1)
+			.Where(x => x is not null)
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
 		walletModel.IsCoinjoinStarted
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Select(isRunning => !isRunning)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
@@ -131,17 +122,19 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 	{
 		_disposable.Dispose();
 		_disposable = new CompositeDisposable();
-
 		UiContext.WalletRepository.Wallets
 			.Connect()
 			.AutoRefresh(x => x.IsLoaded)
 			.Filter(x => (x.Id == _wallet.Id || x.Settings.OutputWalletId != _wallet.Id) && x.IsLoaded)
 			.SortBy(i => i.Name)
+			.ObserveOn(RxApp.MainThreadScheduler)
 			.Bind(out var wallets)
 			.Subscribe()
 			.DisposeWith(_disposable);
 
-		_wallets = wallets;
+		// Replacing the backing field silently leaves already-open mobile and desktop
+		// selectors bound to the disposed previous list.
+		Wallets = wallets;
 	}
 
 	private void ValidateAnonScoreTarget(IValidationErrors errors)
@@ -158,26 +151,17 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 				_wallet.Settings.Save();
 			}
 		}
-		else
-		{
-			errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
-		}
+		else errors.Add(ErrorSeverity.Error, $"Must be a number between {PrivacyProfiles.AbsoluteMinAnonScoreTarget} and {PrivacyProfiles.AbsoluteMaxAnonScoreTarget}");
 	}
 
 	private Task SetProfile(string profileName)
 	{
 		var profile = PrivacyProfiles.Profiles.FirstOrDefault(p => p.Name == profileName);
-		if (profile is null)
-		{
-			return Task.CompletedTask;
-		}
-
+		if (profile is null) return Task.CompletedTask;
 		AnonScoreTarget = profile.AnonScoreTarget.ToString();
 		_wallet.Settings.AnonScoreTarget = profile.AnonScoreTarget;
-
 		NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
 		_wallet.Settings.NonPrivateCoinIsolation = profile.NonPrivateCoinIsolation;
-
 		_wallet.Settings.Save();
 		return Task.CompletedTask;
 	}

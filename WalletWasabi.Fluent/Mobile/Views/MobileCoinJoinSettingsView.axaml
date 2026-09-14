@@ -1,0 +1,6 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileCoinJoinSettingsView" x:DataType="vm:WalletCoinJoinSettingsViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="CoinJoin settings" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><v:MobileCoinJoinSettingsPanel Margin="16,16"/></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

@@ -9,13 +9,16 @@ using WalletWasabi.Fluent.ViewModels.Settings;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
+using WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
 namespace WalletWasabi.Fluent.Mobile.Views;
 
 /// <summary>Installed on MobileShell only. Unsupported routes fall through to the shared static locator.</summary>
 public sealed class MobileViewLocator : IDataTemplate
 {
-	public bool Match(object? data) => data is WalletViewModel or SendViewModel or ReceiveViewModel or ReceiveAddressViewModel or TransactionPreviewViewModel or SendFeeViewModel or SettingsPageViewModel;
+	public bool Match(object? data) => data is WalletViewModel or SendViewModel or ReceiveViewModel or
+		ReceiveAddressViewModel or TransactionPreviewViewModel or SendFeeViewModel or SettingsPageViewModel or
+		WalletSettingsViewModel or WalletCoinJoinSettingsViewModel;
 	public Control Build(object? data) => data switch
 	{
 		WalletViewModel => new MobileWalletView(),
@@ -25,6 +28,8 @@ public sealed class MobileViewLocator : IDataTemplate
 		TransactionPreviewViewModel => new MobileTransactionPreviewView(),
 		SendFeeViewModel => new MobileSendFeeView(),
 		SettingsPageViewModel => new MobileSettingsView(),
+		WalletSettingsViewModel => new MobileWalletSettingsView(),
+		WalletCoinJoinSettingsViewModel => new MobileCoinJoinSettingsView(),
 		_ => throw new ArgumentException("Not a supported mobile route.", nameof(data))
 	};
 }
@@ -33,6 +38,9 @@ public sealed class MobileSendView : UserControl { public MobileSendView() => Av
 public sealed class MobileReceiveView : UserControl { public MobileReceiveView() => AvaloniaXamlLoader.Load(this); }
 public sealed class MobileTransactionPreviewView : UserControl { public MobileTransactionPreviewView() => AvaloniaXamlLoader.Load(this); }
 public sealed class MobileSettingsView : UserControl { public MobileSettingsView() => AvaloniaXamlLoader.Load(this); }
+public sealed class MobileWalletSettingsView : UserControl { public MobileWalletSettingsView() => AvaloniaXamlLoader.Load(this); }
+public sealed class MobileCoinJoinSettingsView : UserControl { public MobileCoinJoinSettingsView() => AvaloniaXamlLoader.Load(this); }
+public sealed class MobileCoinJoinSettingsPanel : UserControl { public MobileCoinJoinSettingsPanel() => AvaloniaXamlLoader.Load(this); }
 
 public sealed class MobileWalletView : UserControl
 {
