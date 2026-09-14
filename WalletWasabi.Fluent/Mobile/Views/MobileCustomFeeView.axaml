@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileCustomFeeView"
+             x:DataType="vm:CustomFeeRateDialogViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Custom network fee" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer>
+      <Button Classes="mobile-button primary" Content="Use this fee rate" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/>
+    </m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <TextBlock Text="Set your fee rate" Classes="mobile-title"/>
+        <TextBlock Text="The rate is applied to the actual virtual size of the transaction. Review shows the total fee before you sign." Classes="mobile-caption"/>
+        <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
+          <TextBlock Text="Satoshis per virtual byte" Classes="mobile-label"/>
+          <TextBox Classes="mobile-input" Text="{Binding CustomFee, Mode=TwoWay}"
+                   Watermark="sat/vB" MaxLength="32" AutomationProperties.Name="Custom fee in satoshis per virtual byte"/>
+        </StackPanel></Border>
+        <Border Classes="mobile-note"><TextBlock Text="A lower fee can delay confirmation. A higher fee cannot guarantee a confirmation time. The wallet validates the rate before accepting it." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>
