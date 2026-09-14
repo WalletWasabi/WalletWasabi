@@ -2,8 +2,8 @@
         xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create">
   <Styles.Resources>
     <ResourceDictionary>
-    <ControlTheme x:Key="MobileBackupCandidateContainer" TargetType="ContentPresenter" x:DataType="words:RecoveryWordViewModel" x:CompileBindings="True">
-      <Setter Property="IsVisible" Value="{Binding !IsConfirmed}"/>
+    <ControlTheme x:Key="MobileBackupCandidateContainer" TargetType="ContentPresenter">
+      <Setter Property="IsVisible" Value="{CompiledBinding !IsConfirmed, DataType={x:Type words:RecoveryWordViewModel}}"/>
       <Setter Property="Margin" Value="{DynamicResource MobileBackupWordMargin}"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
     </ControlTheme>
