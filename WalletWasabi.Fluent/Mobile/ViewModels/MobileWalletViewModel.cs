@@ -3,8 +3,8 @@ using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Globalization;
 using System.Linq;
-using System.Reactive;
 using System.Reactive.Disposables;
+using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
@@ -13,6 +13,7 @@ using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
+using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Mobile.ViewModels;
@@ -32,6 +33,7 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 	private int _privacyPercent;
 	private bool _discreet;
 	private bool _busy;
+	private bool _disposed;
 	private MobileTransactionItem? _transaction;
 	private IReadOnlyList<double> _balanceHistory = Array.Empty<double>();
 	private TransactionModel[] _history = Array.Empty<TransactionModel>();
@@ -41,17 +43,30 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 		Wallet = wallet;
 		_discreet = wallet.UiContext.ApplicationSettings.PrivacyMode;
 		_usdRate = wallet.WalletModel.AmountProvider.UsdExchangeRate;
-		_lifetime.Add(_subscriptions);
-		_lifetime.Add(_coinSubscriptions);
+		_lifetime.Add(_subscriptions); _lifetime.Add(_coinSubscriptions);
 		NavigateCommand = Own(ReactiveCommand.Create<string>(Navigate));
-		ToggleDiscreetCommand = Own(ReactiveCommand.Create(() => wallet.UiContext.MainViewModel.PrivacyMode.Toggle()));
+		ToggleDiscreetCommand = Own(ReactiveCommand.Create(() =>
+		{
+			if (wallet.UiContext.MainViewModel is { } main) main.PrivacyMode.Toggle();
+			else wallet.UiContext.ApplicationSettings.PrivacyMode = !wallet.UiContext.ApplicationSettings.PrivacyMode;
+		}));
+		SwitchWalletCommand = Own(ReactiveCommand.Create(() => wallet.UiContext.Navigate().To(new MobileWalletsListViewModel(wallet.UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear)));
 		SelectFilterCommand = Own(ReactiveCommand.Create<string>(filter => Filter = filter));
 		var canEdit = this.WhenAnyValue(x => x.SelectionCount, x => x.IsBusy, (count, busy) => count > 0 && !busy);
 		ExcludeSelectedCommand = Own(ReactiveCommand.CreateFromTask(() => SetExclusionAsync(true), canEdit));
 		IncludeSelectedCommand = Own(ReactiveCommand.CreateFromTask(() => SetExclusionAsync(false), canEdit));
 		CopyTransactionIdCommand = Own(ReactiveCommand.CreateFromTask(async () =>
 		{
-			if (SelectedTransaction is { } tx) await wallet.UiContext.Clipboard.SetTextAsync(tx.Model.Id.ToString());
+			if (SelectedTransaction is not { } tx) return;
+			try { await wallet.UiContext.Clipboard.SetTextAsync(tx.Model.Id.ToString()); if (!_disposed) Message = "Transaction ID copied."; }
+			catch (Exception) { if (!_disposed) Message = "Could not access the clipboard."; }
+		}));
+		OpenExplorerCommand = Own(ReactiveCommand.CreateFromTask(async () =>
+		{
+			if (SelectedTransaction is not { } tx) return;
+			if (wallet.WalletModel.Network != Network.Main) { Message = "The public explorer shortcut is available only for Bitcoin mainnet."; return; }
+			try { await wallet.UiContext.FileSystem.OpenBrowserAsync($"https://mempool.space/tx/{tx.Model.Id}"); }
+			catch (Exception) { if (!_disposed) Message = "Could not open the external browser."; }
 		}));
 		this.WhenAnyValue(x => x.Query, x => x.Filter).Subscribe(_ => RebuildHistory()).DisposeWith(_lifetime);
 	}
@@ -63,10 +78,12 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 	public IReadOnlyList<string> Filters { get; } = new[] { "All", "Received", "Sent", "CoinJoin" };
 	public ICommand NavigateCommand { get; }
 	public ICommand ToggleDiscreetCommand { get; }
+	public ICommand SwitchWalletCommand { get; }
 	public ICommand SelectFilterCommand { get; }
 	public ICommand ExcludeSelectedCommand { get; }
 	public ICommand IncludeSelectedCommand { get; }
 	public ICommand CopyTransactionIdCommand { get; }
+	public ICommand OpenExplorerCommand { get; }
 	public string Section { get => _section; private set => this.RaiseAndSetIfChanged(ref _section, value); }
 	public string Query { get => _query; set => this.RaiseAndSetIfChanged(ref _query, value); }
 	public string Filter { get => _filter; set => this.RaiseAndSetIfChanged(ref _filter, value); }
@@ -91,60 +108,37 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 
 	public void Activate()
 	{
-		var subscriptions = new CompositeDisposable();
-		_subscriptions.Disposable = subscriptions;
-		Wallet.WalletModel.Balances.ObserveOn(RxApp.MainThreadScheduler).Subscribe(amount =>
-		{
-			_balanceSatoshis = amount.Btc.Satoshi;
-			NotifyAmounts();
-			UpdateChart();
-		}).DisposeWith(subscriptions);
-		Wallet.WalletModel.AmountProvider.BtcToUsdExchangeRate.ObserveOn(RxApp.MainThreadScheduler).Subscribe(rate =>
-		{
-			_usdRate = rate; NotifyAmounts(); RebuildHistory();
-		}).DisposeWith(subscriptions);
+		ObjectDisposedException.ThrowIf(_disposed, this);
+		var subscriptions = new CompositeDisposable(); _subscriptions.Disposable = subscriptions;
+		Wallet.WalletModel.Balances.ObserveOn(RxApp.MainThreadScheduler).Subscribe(amount => { _balanceSatoshis = amount.Btc.Satoshi; NotifyAmounts(); UpdateChart(); }).DisposeWith(subscriptions);
+		Wallet.WalletModel.AmountProvider.BtcToUsdExchangeRate.ObserveOn(RxApp.MainThreadScheduler).Subscribe(rate => { _usdRate = rate; NotifyAmounts(); RebuildHistory(); }).DisposeWith(subscriptions);
 		Wallet.UiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(hidden =>
 		{
-			_discreet = hidden; NotifyAmounts(); RebuildHistory();
-			foreach (var coin in Coins) coin.Refresh();
+			_discreet = hidden; NotifyAmounts(); RebuildHistory(); foreach (var coin in Coins) coin.Refresh();
 		}).DisposeWith(subscriptions);
 		Wallet.WalletModel.Privacy.Progress.ObserveOn(RxApp.MainThreadScheduler).Subscribe(value => PrivacyPercent = Math.Clamp(value, 0, 100)).DisposeWith(subscriptions);
 		Wallet.WalletModel.Transactions.Cache.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 		{
-			_history = Wallet.WalletModel.Transactions.Cache.Items.OrderByDescending(x => x.Date).ToArray();
+			_history = Wallet.WalletModel.Transactions.Cache.Items.SelectMany(IndividualTransactions).GroupBy(x => x.Id).Select(x => x.First()).OrderByDescending(x => x.Date).ToArray();
 			RebuildHistory(); UpdateChart();
 		}).DisposeWith(subscriptions);
 		Wallet.WalletModel.Coins.List.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => RebuildCoins()).DisposeWith(subscriptions);
 	}
-
-	public void Deactivate()
+	private static IEnumerable<TransactionModel> IndividualTransactions(TransactionModel transaction)
 	{
-		_subscriptions.Disposable = Disposable.Empty;
-		_coinSubscriptions.Disposable = Disposable.Empty;
+		if (transaction.IsCoinjoinGroup) { foreach (var child in transaction.Children) foreach (var individual in IndividualTransactions(child)) yield return individual; }
+		else yield return transaction;
 	}
-
+	public void Deactivate() { _subscriptions.Disposable = Disposable.Empty; _coinSubscriptions.Disposable = Disposable.Empty; }
 	private T Own<T>(T command) where T : IDisposable { _lifetime.Add(command); return command; }
-
-	private void NotifyAmounts()
-	{
-		this.RaisePropertyChanged(nameof(BalanceText));
-		this.RaisePropertyChanged(nameof(FiatBalanceText));
-		this.RaisePropertyChanged(nameof(ShowHistoryChart));
-	}
-
+	private void NotifyAmounts() { this.RaisePropertyChanged(nameof(BalanceText)); this.RaisePropertyChanged(nameof(FiatBalanceText)); this.RaisePropertyChanged(nameof(ShowHistoryChart)); }
 	public void Navigate(string section)
 	{
 		if (section is not ("home" or "history" or "privacy" or "coinjoin" or "coins" or "discover" or "transaction")) return;
-		Section = section;
-		Message = "";
+		if (section == "home") { Query = ""; Filter = "All"; }
+		Section = section; Message = "";
 	}
-
-	private void OpenTransaction(MobileTransactionItem transaction)
-	{
-		SelectedTransaction = transaction;
-		Navigate("transaction");
-	}
-
+	private void OpenTransaction(MobileTransactionItem transaction) { SelectedTransaction = transaction; Navigate("transaction"); }
 	private void RebuildHistory()
 	{
 		var selectedId = SelectedTransaction?.Model.Id;
@@ -160,55 +154,36 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 		}
 		this.RaisePropertyChanged(nameof(IsEmpty));
 	}
-
 	private void UpdateChart()
 	{
-		// Reconstruct wallet balance from actual net changes, not a market-price chart.
 		var recent = _history.Take(30).ToArray();
 		var values = new List<double> { _balanceSatoshis / 100_000_000d };
 		var balance = _balanceSatoshis / 100_000_000d;
-		foreach (var transaction in recent)
-		{
-			balance -= (double)transaction.Amount.ToDecimal(MoneyUnit.BTC);
-			values.Add(balance);
-		}
-		values.Reverse(); BalanceHistory = values;
-		this.RaisePropertyChanged(nameof(ShowHistoryChart));
+		foreach (var transaction in recent) { balance -= (double)transaction.Amount.ToDecimal(MoneyUnit.BTC); values.Add(balance); }
+		values.Reverse(); BalanceHistory = values; this.RaisePropertyChanged(nameof(ShowHistoryChart));
 	}
-
 	private void RebuildCoins()
 	{
 		var selected = Coins.Where(x => x.IsSelected).Select(x => x.Outpoint).ToHashSet(StringComparer.Ordinal);
 		_coinSubscriptions.Disposable = Disposable.Empty;
-		var subscriptions = new CompositeDisposable();
-		_coinSubscriptions.Disposable = subscriptions;
+		var subscriptions = new CompositeDisposable(); _coinSubscriptions.Disposable = subscriptions;
 		Coins.Clear();
 		foreach (var model in Wallet.WalletModel.Coins.List.Items.OrderByDescending(x => x.Amount))
 		{
 			var row = new MobileCoinItem(model, () => _discreet, OnSelectionChanged);
-			row.IsSelected = selected.Contains(row.Outpoint);
-			Coins.Add(row);
+			row.IsSelected = selected.Contains(row.Outpoint); Coins.Add(row);
 			model.SubscribeToCoinChanges(subscriptions);
 			model.Changed.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => { row.Refresh(); NotifyCoins(); }).DisposeWith(subscriptions);
 		}
 		NotifyCoins();
 	}
-
 	private void NotifyCoins()
 	{
-		this.RaisePropertyChanged(nameof(CoinCount)); this.RaisePropertyChanged(nameof(PrivateCoinCount));
-		this.RaisePropertyChanged(nameof(PendingCoinCount)); this.RaisePropertyChanged(nameof(ExcludedCoinCount));
-		OnSelectionChanged();
+		this.RaisePropertyChanged(nameof(CoinCount)); this.RaisePropertyChanged(nameof(PrivateCoinCount)); this.RaisePropertyChanged(nameof(PendingCoinCount)); this.RaisePropertyChanged(nameof(ExcludedCoinCount)); OnSelectionChanged();
 		var total = Coins.Sum(x => x.Model.Amount.Satoshi);
-		if (total > 0) PrivacyPercent = (int)(Coins.Where(x => x.Model.IsPrivate).Sum(x => x.Model.Amount.Satoshi) * 100m / total);
-		else PrivacyPercent = 0;
+		PrivacyPercent = total > 0 ? (int)(Coins.Where(x => x.Model.IsPrivate).Sum(x => x.Model.Amount.Satoshi) * 100m / total) : 0;
 	}
-
-	private void OnSelectionChanged()
-	{
-		this.RaisePropertyChanged(nameof(SelectionCount)); this.RaisePropertyChanged(nameof(SelectionText));
-	}
-
+	private void OnSelectionChanged() { this.RaisePropertyChanged(nameof(SelectionCount)); this.RaisePropertyChanged(nameof(SelectionText)); }
 	private async Task SetExclusionAsync(bool exclude)
 	{
 		if (IsBusy) return;
@@ -221,28 +196,26 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 			var selectedIds = selected.Select(x => x.GetSmartCoin().Outpoint).ToHashSet();
 			var excluded = Wallet.WalletModel.Coins.List.Items.Where(x => selectedIds.Contains(x.GetSmartCoin().Outpoint) ? exclude : x.IsExcludedFromCoinJoin).ToArray();
 			await Wallet.WalletModel.Coins.UpdateExcludedCoinsFromCoinjoinAsync(excluded);
+			if (_disposed) return;
 			Message = exclude ? "Selected coins excluded from CoinJoin. They are not frozen from spending." : "Selected coins included in CoinJoin eligibility.";
 			RebuildCoins();
 		}
-		catch (Exception) { Message = "Could not save CoinJoin exclusions. The operation was not confirmed; refresh and try again."; }
-		finally { IsBusy = false; }
+		catch (Exception) { if (!_disposed) Message = "Could not confirm saving CoinJoin exclusions. Refresh and try again."; }
+		finally { if (!_disposed) IsBusy = false; }
 	}
-
-	public void Dispose() => _lifetime.Dispose();
+	public void Dispose() { if (_disposed) return; _disposed = true; _lifetime.Dispose(); }
 }
 
 public sealed class MobileTransactionItem
 {
 	public MobileTransactionItem(TransactionModel model, bool hidden, decimal rate, Action<MobileTransactionItem> open)
 	{
-		Model = model;
-		Title = model.IsCoinjoin ? "CoinJoin" : model.Amount < Money.Zero ? "Sent" : "Received";
+		Model = model; Title = model.IsCoinjoin ? "CoinJoin" : model.Amount < Money.Zero ? "Sent" : "Received";
 		Icon = model.IsCoinjoin ? "coinjoin" : model.Amount < Money.Zero ? "send" : "receive";
 		var btc = model.Amount.ToDecimal(MoneyUnit.BTC);
 		AmountText = hidden ? "•••••• BTC" : $"{(btc > 0 ? "+" : "")}{btc:0.########} BTC";
 		FiatText = hidden ? "•••••• USD" : rate > 0 ? $"${Math.Abs(btc) * rate:N2} USD" : "";
-		Labels = hidden ? "Hidden in discreet mode" : model.Labels.ToString();
-		Id = hidden ? "Hidden in discreet mode" : model.Id.ToString();
+		Labels = hidden ? "Hidden in discreet mode" : model.Labels.ToString(); Id = hidden ? "Hidden in discreet mode" : model.Id.ToString();
 		Date = model.Date.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
 		Status = model.IsConfirmed ? $"{model.Confirmations} confirmations" : model.Status.ToString();
 		Fee = hidden ? "•••••• BTC" : model.Fee is { } fee ? $"{fee.ToDecimal(MoneyUnit.BTC):0.########} BTC" : "Unknown";
@@ -282,7 +255,6 @@ public sealed class MobileCoinItem : ReactiveObject
 	public void Refresh() { this.RaisePropertyChanged(nameof(Address)); this.RaisePropertyChanged(nameof(AmountText)); this.RaisePropertyChanged(nameof(Privacy)); this.RaisePropertyChanged(nameof(Status)); }
 }
 
-/// <summary>Stateless row command; no subscriptions and no captured application services.</summary>
 internal sealed class MobileActionCommand(Action execute) : ICommand
 {
 	public event EventHandler? CanExecuteChanged { add { } remove { } }
