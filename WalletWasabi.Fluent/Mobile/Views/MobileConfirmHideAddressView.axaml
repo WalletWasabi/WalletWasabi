@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileConfirmHideAddressView"
+             x:DataType="vm:ConfirmHideAddressViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Hide this address?" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><StackPanel Spacing="8">
+      <Button Classes="mobile-button primary" Content="Hide address" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/>
+      <Button Classes="mobile-button" Content="Keep address visible" Command="{Binding CancelCommand}" HorizontalAlignment="Stretch"/>
+    </StackPanel></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+      <m:MobileGlyph Kind="eye" Width="56" Height="56" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/>
+      <Border Classes="mobile-card"><c:PrivacyContentControl><TextBlock Text="{Binding Labels}" Classes="mobile-label" TextWrapping="Wrap"/></c:PrivacyContentControl></Border>
+      <TextBlock Text="The address will no longer appear in your list of addresses awaiting payment." Classes="mobile-caption"/>
+      <Border Classes="mobile-note"><TextBlock Text="Hiding an address does not revoke it. A sender can still pay to it, and the wallet still controls it." Classes="mobile-caption"/></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
