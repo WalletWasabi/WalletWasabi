@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSuccessView"
+             x:DataType="vm:SuccessViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Complete">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}" VerticalAlignment="Center">
+      <Border Width="112" Height="112" CornerRadius="56" Background="{DynamicResource MobileAccentSurface}" HorizontalAlignment="Center"><m:MobileGlyph Kind="check" Width="54" Height="54" Foreground="{DynamicResource MobileAccent}"/></Border>
+      <TextBlock Text="Operation completed" Classes="mobile-title" TextAlignment="Center" TextWrapping="Wrap"/>
+      <TextBlock Text="Returning to your wallet…" Classes="mobile-caption" TextAlignment="Center"/>
+    </StackPanel>
+  </m:MobilePage>
+</UserControl>
