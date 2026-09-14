@@ -10,10 +10,7 @@ using WalletWasabi.Fluent.ViewModels.Navigation;
 
 namespace WalletWasabi.Fluent.Mobile.Behaviors;
 
-/// <summary>
-/// Owns the busy binding only for recognized native route contexts. Detached pages and
-/// replaced view models release all subscriptions; arbitrary design data is left alone.
-/// </summary>
+/// <summary>View-owned activity binding, including commands replaced after navigation.</summary>
 public sealed class MobileBusyBehavior : AttachedToVisualTreeBehavior<MobilePage>
 {
 	protected override IDisposable OnAttachedToVisualTreeOverride()
@@ -33,7 +30,8 @@ public sealed class MobileBusyBehavior : AttachedToVisualTreeBehavior<MobilePage
 			};
 			if (source is null) return;
 			activity.Disposable = page.Bind(MobilePage.IsBusyProperty,
-				MobileCommandActivity.Observe(source.WhenAnyValue(x => x.IsBusy), source.NextCommand, source.SkipCommand)
+				MobileCommandActivity.ObserveCommands(source.WhenAnyValue(x => x.IsBusy),
+					source.WhenAnyValue(x => x.NextCommand), source.WhenAnyValue(x => x.SkipCommand))
 					.ObserveOn(RxApp.MainThreadScheduler));
 		});
 		return new CompositeDisposable(context, activity);
