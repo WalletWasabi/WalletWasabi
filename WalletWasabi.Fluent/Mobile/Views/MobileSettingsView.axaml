@@ -13,10 +13,10 @@
       </StackPanel></Border>
       <Border Classes="mobile-note" IsVisible="{Binding IsReadOnly}"><TextBlock Text="Some settings were overridden at startup and cannot be changed here." Classes="mobile-caption"/></Border>
       <TextBlock Text="Advanced configuration" Classes="mobile-label"/>
-      <Expander Header="General settings" HorizontalAlignment="Stretch"><v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
-      <Expander Header="Bitcoin node and network" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=1}"><v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
-      <Expander Header="CoinJoin coordinator" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=2}"><v:CoordinatorTabSettingsView DataContext="{Binding CoordinatorTabSettings}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
-      <Expander Header="Connections and Tor" HorizontalAlignment="Stretch" IsExpanded="{Binding SelectedTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=3}"><v:ConnectionsSettingsTabView DataContext="{Binding ConnectionsSettingsTab}" IsEnabled="{Binding !IsReadOnly}"/></Expander>
+      <Expander Header="General settings" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"><v:GeneralSettingsTabView DataContext="{Binding GeneralSettingsTab}"/></Expander>
+      <Expander Header="Bitcoin node and network" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=1}"><v:BitcoinTabSettingsView DataContext="{Binding BitcoinTabSettings}"/></Expander>
+      <Expander Header="CoinJoin coordinator" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=2}"><v:CoordinatorTabSettingsView DataContext="{Binding CoordinatorTabSettings}"/></Expander>
+      <Expander Header="Connections and Tor" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=3}"><v:ConnectionsSettingsTabView DataContext="{Binding ConnectionsSettingsTab}"/></Expander>
       <Border Classes="mobile-note" IsVisible="{Binding IsModified}"><StackPanel Spacing="12"><TextBlock Text="Some changes require restarting Wasabi. Allow active CoinJoin work to finish before restarting." Classes="mobile-caption"/><Button Classes="mobile-button" Content="Restart Wasabi" Command="{Binding RestartCommand}" HorizontalAlignment="Stretch"/></StackPanel></Border>
     </StackPanel></ScrollViewer>
   </m:MobilePage>
