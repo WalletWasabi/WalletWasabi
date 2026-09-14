@@ -1,0 +1,45 @@
+name: Mobile design validation
+
+on:
+  push:
+    branches: [feature/mobile-support]
+  pull_request:
+    paths:
+      - 'WalletWasabi.Fluent/**'
+      - 'WalletWasabi.Fluent.Mobile.Tests/**'
+      - '.github/workflows/mobile-design-validation.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: mobile-design-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  shared-ui:
+    runs-on: ubuntu-latest
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - name: Archive exact validation sources
+        run: git archive --format=zip HEAD -o "$RUNNER_TEMP/mobile-validation-source.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-validation-source
+          path: ${{ runner.temp }}/mobile-validation-source.zip
+          retention-days: 3
+      - name: Build shared native UI
+        run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false
+      - name: Run mobile UI regression tests
+        if: hashFiles('WalletWasabi.Fluent.Mobile.Tests/*.csproj') != ''
+        run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
+      - uses: actions/upload-artifact@v4
+        if: always() && hashFiles('TestResults/**') != ''
+        with:
+          name: mobile-ui-test-results
+          path: TestResults
