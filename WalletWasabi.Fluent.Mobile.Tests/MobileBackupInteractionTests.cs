@@ -149,7 +149,9 @@ public sealed class MobileBackupInteractionTests
 		try
 		{
 			window.Show(); Pump();
-			var presenter = panel.GetVisualDescendants().OfType<ContentPresenter>().Single(x => x.Name == "PART_ContentPresenter");
+			// Nested buttons have presenters with the same part name. Select the owner's template, not descendants' templates.
+			var presenter = panel.GetVisualDescendants().OfType<ContentPresenter>()
+				.Single(x => x.Name == "PART_ContentPresenter" && ReferenceEquals(x.TemplatedParent, panel));
 			var reveal = panel.GetVisualDescendants().OfType<ToggleButton>().Single(x => x.Name == "PART_Reveal");
 			var acknowledge = panel.GetVisualDescendants().OfType<CheckBox>().Single(x => x.Name == "PART_Acknowledge");
 			Assert.False(panel.IsRevealed);
