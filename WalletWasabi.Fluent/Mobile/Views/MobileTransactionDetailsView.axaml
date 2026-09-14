@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileTransactionDetailsView"
+             x:DataType="vm:TransactionDetailsViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Transaction details" ShowBack="True" BackCommand="{Binding NextCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceMedium}">
+      <Border Classes="mobile-card"><StackPanel Spacing="12">
+        <m:MobileGlyph Kind="history" Width="42" Height="42" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/>
+        <TextBlock Text="{Binding AmountText}" Classes="mobile-label" HorizontalAlignment="Center"/>
+        <c:PrivacyContentControl HorizontalAlignment="Center"><c:AmountControl Classes="WithUsd" Amount="{Binding Amount}"/></c:PrivacyContentControl>
+        <TextBlock Text="Confirmed" Foreground="{DynamicResource MobileAccent}" IsVisible="{Binding IsConfirmed}" HorizontalAlignment="Center"/>
+        <TextBlock Text="Unconfirmed" Foreground="{DynamicResource MobileWarning}" IsVisible="{Binding !IsConfirmed}" HorizontalAlignment="Center"/>
+        <TextBlock Text="{Binding Confirmations, StringFormat='{}{0} confirmations'}" Classes="mobile-caption" HorizontalAlignment="Center"/>
+      </StackPanel></Border>
+      <Border Classes="mobile-card"><StackPanel Spacing="16">
+        <m:MobileDetailRow Header="Transaction ID" CopyText="{Binding TransactionId, StringFormat='{}{0}'}"><c:PrivacyContentControl><TextBlock Text="{Binding TransactionId}" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></c:PrivacyContentControl></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Date and time" CopyText="{Binding DateString}"><TextBlock Text="{Binding DateString}" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Labels" CopyText="{Binding Labels, StringFormat='{}{0}'}" IsVisible="{Binding IsLabelsVisible}"><c:PrivacyContentControl><TextBlock Text="{Binding Labels}" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></c:PrivacyContentControl></m:MobileDetailRow>
+      </StackPanel></Border>
+      <Border Classes="mobile-card"><StackPanel Spacing="16">
+        <m:MobileDetailRow Header="Network fee" IsVisible="{Binding IsFeeVisible}"><c:PrivacyContentControl><c:AmountControl Classes="WithUsd" Amount="{Binding Fee}"/></c:PrivacyContentControl></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Fee rate" IsVisible="{Binding IsFeeRateVisible}"><TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:0.###} sat/vB'}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Block height" IsVisible="{Binding IsConfirmed}" CopyText="{Binding BlockHeight, StringFormat='{}{0}'}"><TextBlock Text="{Binding BlockHeight}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Estimated confirmation" IsVisible="{Binding IsConfirmationTimeVisible}"><TextBlock Text="{Binding ConfirmationTime}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
+      </StackPanel></Border>
+      <Border Classes="mobile-card" IsVisible="{Binding !!DestinationAddresses.Count}"><StackPanel Spacing="12">
+        <TextBlock Text="Destination addresses" Classes="mobile-label"/>
+        <ItemsControl ItemsSource="{Binding DestinationAddresses}"><ItemsControl.ItemTemplate><DataTemplate x:CompileBindings="False">
+          <m:MobileDetailRow CopyText="{Binding StringFormat='{}{0}'}" Margin="0,0,0,12"><c:PrivacyContentControl><TextBlock Text="{Binding}" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></c:PrivacyContentControl></m:MobileDetailRow>
+        </DataTemplate></ItemsControl.ItemTemplate></ItemsControl>
+      </StackPanel></Border>
+      <Border Classes="mobile-card"><m:MobileDetailRow Header="Raw transaction" CopyText="{Binding TransactionHex}"><TextBlock Text="Copy transaction hex" Classes="mobile-caption"/></m:MobileDetailRow></Border>
+      <TextBlock Text="Confirmation estimates can change. Copying does not publish the transaction to an external service." Classes="mobile-caption"/>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
