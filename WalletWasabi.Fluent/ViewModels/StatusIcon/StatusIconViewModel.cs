@@ -15,7 +15,7 @@ public partial class StatusIconViewModel : ViewModelBase
 	{
 		HealthMonitor = uiContext.HealthMonitor;
 
-		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://wasabiwallet.io/#download"));
+		ManualUpdateCommand = ReactiveCommand.CreateFromTask(() => UiContext.OpenBrowserAsync("https://wasabiwallet.io/#download"));
 		UpdateCommand = ReactiveCommand.Create(
 			() =>
 			{
@@ -25,7 +25,7 @@ public partial class StatusIconViewModel : ViewModelBase
 
 		AskMeLaterCommand = ReactiveCommand.Create(() => HealthMonitor.CheckForUpdates = false);
 
-		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync("https://status.torproject.org"));
+		OpenTorStatusSiteCommand = ReactiveCommand.CreateFromTask(() => UiContext.OpenBrowserAsync("https://status.torproject.org"));
 
 		this.WhenAnyValue(
 				x => x.HealthMonitor.UpdateAvailable,

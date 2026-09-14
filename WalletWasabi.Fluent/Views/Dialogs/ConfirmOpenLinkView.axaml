@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="dialog:ConfirmOpenLinkViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ConfirmOpenLinkView">
+  <ContentArea Title="{Binding Title}"
+                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <QuestionControl YesCommand="{Binding NextCommand}"
+                       NoCommand="{Binding CancelCommand}"
+                       YesContent="Open" NoContent="Cancel"
+                       HighlightButton="YesButton">
+      <QuestionControl.IconContent>
+        <Viewbox MaxHeight="150" Margin="40">
+          <PathIcon Data="{StaticResource globe}" Opacity="0.6" />
+        </Viewbox>
+      </QuestionControl.IconContent>
+      <StackPanel Spacing="10">
+        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="You are about to leave Wasabi Wallet and open this clearnet link in your browser:" />
+        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Bold" Text="{Binding Link}" />
+        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="Your browser doesn't use Wasabi's Tor connection, so the website may see your IP address." />
+      </StackPanel>
+    </QuestionControl>
+  </ContentArea>
+</UserControl>
