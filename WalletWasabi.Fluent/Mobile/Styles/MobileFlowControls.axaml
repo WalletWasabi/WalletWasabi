@@ -1,6 +1,17 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls">
   <Styles.Resources>
+    <ControlTheme x:Key="{x:Type m:MobileSensitiveContent}" TargetType="m:MobileSensitiveContent">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Panel>
+          <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="{TemplateBinding HorizontalContentAlignment}" VerticalContentAlignment="{TemplateBinding VerticalContentAlignment}"
+                            IsVisible="{TemplateBinding IsHidden, Converter={x:Static BoolConverters.Not}}"/>
+          <TextBlock Name="PART_Redacted" Text="Hidden in discreet mode" Classes="mobile-caption" IsVisible="{TemplateBinding IsHidden}"/>
+        </Panel>
+      </ControlTemplate></Setter>
+    </ControlTheme>
     <ControlTheme x:Key="MobileClipboardButtonTheme" TargetType="c:ClipboardCopyButton">
       <Setter Property="MinWidth" Value="{DynamicResource MobileTouchTarget}"/>
       <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>
