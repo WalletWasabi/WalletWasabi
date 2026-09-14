@@ -52,12 +52,8 @@ public sealed class MobileAuthorizationViewTests
 				Assert.False(TextInputOptions.GetAutoCapitalization(input));
 				Assert.True(input.Bounds.Height >= 48);
 			}
-			using var frame = window.CaptureRenderedFrame();
-			Assert.NotNull(frame);
-			var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS")
-				?? Path.Combine(AppContext.BaseDirectory, "mobile-previews");
-			Directory.CreateDirectory(directory);
-			frame.Save(Path.Combine(directory, $"authorization-unbound-{(password ? "password" : "hardware")}-{width}-{(dark ? "dark" : "light")}.png"));
+			MobileScreenshot.Capture(window, $"authorization-unbound-{(password ? "password" : "hardware")}-{width}-{(dark ? "dark" : "light")}",
+				password ? "password-authorization" : "hardware-authorization", "unbound-layout");
 		}
 		finally { window.Close(); }
 	}

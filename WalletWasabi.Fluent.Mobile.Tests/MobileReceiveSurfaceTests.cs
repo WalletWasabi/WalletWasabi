@@ -24,7 +24,7 @@ public sealed class MobileReceiveSurfaceTests
 	{
 		get
 		{
-			using var key = new Key(Enumerable.Repeat((byte)0x42, 32).ToArray());
+			using var key = new NBitcoin.Key(Enumerable.Repeat((byte)0x42, 32).ToArray());
 			return key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest).ToString();
 		}
 	}

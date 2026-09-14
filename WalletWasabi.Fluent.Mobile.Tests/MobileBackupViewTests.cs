@@ -59,12 +59,8 @@ public sealed class MobileBackupViewTests
 					$"{name} exceeds the {width}-DIP viewport.");
 			}
 			Assert.All(view.GetVisualDescendants().OfType<MobileSecretPanel>(), panel => Assert.False(panel.IsRevealed));
-			using var frame = window.CaptureRenderedFrame();
-			Assert.NotNull(frame);
-			var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS")
-				?? Path.Combine(AppContext.BaseDirectory, "mobile-previews");
-			Directory.CreateDirectory(directory);
-			frame.Save(Path.Combine(directory, $"backup-unbound-{name}-{width}-{(dark ? "dark" : "light")}.png"));
+			MobileScreenshot.Capture(window, $"backup-unbound-{name}-{width}-{(dark ? "dark" : "light")}",
+				"backup-" + name, "unbound-layout");
 		}
 		finally { window.Close(); }
 	}

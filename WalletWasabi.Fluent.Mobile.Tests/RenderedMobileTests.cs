@@ -139,15 +139,9 @@ public sealed class RenderedMobileTests
 		Content = content, RequestedThemeVariant = dark ? ThemeVariant.Dark : ThemeVariant.Light
 	};
 
-	private static void SaveFrame(Window window, string name)
-	{
-		using var frame = window.CaptureRenderedFrame();
-		Assert.NotNull(frame);
-		Assert.True(frame.PixelSize.Width > 0 && frame.PixelSize.Height > 0);
-		var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS") ?? Path.Combine(AppContext.BaseDirectory, "mobile-previews");
-		Directory.CreateDirectory(directory);
-		frame.Save(Path.Combine(directory, name + ".png"));
-	}
+	private static void SaveFrame(Window window, string name) =>
+		MobileScreenshot.Capture(window, name, name,
+			name.StartsWith("entry-", StringComparison.Ordinal) ? "unbound-layout" : "synthetic-components");
 
 	public sealed class CommandHost
 	{

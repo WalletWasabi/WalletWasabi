@@ -32,11 +32,8 @@ public sealed class WalletSettingsViewTests
 					if (scroll.IsVisible && scroll.Viewport.Width > 0)
 						Assert.True(scroll.Extent.Width <= scroll.Viewport.Width + 1);
 				}
-				using var frame = window.CaptureRenderedFrame();
-				Assert.NotNull(frame);
-				var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS") ?? Path.Combine(AppContext.BaseDirectory, "mobile-previews");
-				Directory.CreateDirectory(directory);
-				frame.Save(Path.Combine(directory, $"settings-unbound-{(isCoinjoin ? "coinjoin" : "wallet")}-{width}-{(dark ? "dark" : "light")}.png"));
+				MobileScreenshot.Capture(window, $"settings-unbound-{(isCoinjoin ? "coinjoin" : "wallet")}-{width}-{(dark ? "dark" : "light")}",
+					isCoinjoin ? "coinjoin-settings" : "wallet-settings", "unbound-layout");
 			}
 			finally { window.Close(); }
 		}

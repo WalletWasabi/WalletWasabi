@@ -52,13 +52,8 @@ public sealed class MobileSecondaryFlowTests
 				Assert.True(scroll.Extent.Width <= scroll.Viewport.Width + 1,
 					$"{name}: content exceeds the {width}-DIP viewport.");
 			}
-			using var frame = window.CaptureRenderedFrame();
-			Assert.NotNull(frame);
-			Assert.True(frame.PixelSize.Width > 0 && frame.PixelSize.Height > 0);
-			var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS")
-				?? Path.Combine(AppContext.BaseDirectory, "mobile-previews");
-			Directory.CreateDirectory(directory);
-			frame.Save(Path.Combine(directory, $"secondary-unbound-{name}-{width}-{(dark ? "dark" : "light")}.png"));
+			MobileScreenshot.Capture(window, $"secondary-unbound-{name}-{width}-{(dark ? "dark" : "light")}",
+				"secondary-" + name, "unbound-layout");
 		}
 		finally { window.Close(); }
 	}

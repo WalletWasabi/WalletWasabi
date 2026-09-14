@@ -48,6 +48,18 @@ class RepeatabilityTests(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "independent"):
             repeat(self.first, self.first, self.output)
 
+    def test_unmanifested_png_cannot_bypass_the_visual_gate(self):
+        Image.new("RGBA", (4, 4), "red").save(self.first / "orphan.png")
+        with self.assertRaisesRegex(ValueError, "Unmanifested"):
+            repeat(self.first, self.second, self.output)
+
+    def test_nested_or_uppercase_png_cannot_bypass_the_visual_gate(self):
+        nested = self.second / "hidden"
+        nested.mkdir()
+        Image.new("RGBA", (4, 4), "red").save(nested / "orphan.PNG")
+        with self.assertRaisesRegex(ValueError, "Unmanifested"):
+            repeat(self.first, self.second, self.output)
+
 
 class TestResultTests(unittest.TestCase):
     def trx(self, total=2, executed=2, passed=2, outcomes=("Passed", "Passed")):

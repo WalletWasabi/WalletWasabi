@@ -13,11 +13,23 @@ CONTEXT = ("engine", "contentKind", "scenario", "width", "height", "dipWidth", "
            "scale", "theme", "culture", "timezone", "commit", "motion", "caret")
 
 
+def collect_evidence(directory: Path) -> dict:
+    frames = {frame["image"]: frame for frame in collect_frames(directory)}
+    # Every PNG emitted by the native suite must participate in review. This rejects
+    # accidental direct Save() calls that otherwise bypass canonical frame manifests.
+    images = {path.relative_to(directory).as_posix() for path in directory.rglob("*")
+              if path.is_file() and path.suffix.lower() == ".png"}
+    orphaned = sorted(images - frames.keys())
+    if orphaned:
+        raise ValueError(f"Unmanifested native screenshots: {orphaned}")
+    return frames
+
+
 def verify(first: Path, second: Path, output: Path) -> dict:
     if first.resolve() == second.resolve():
         raise ValueError("Repeatability requires two independent capture directories")
-    left = {f["image"]: f for f in collect_frames(first)}
-    right = {f["image"]: f for f in collect_frames(second)}
+    left = collect_evidence(first)
+    right = collect_evidence(second)
     differences = []
     for name in sorted(left.keys() | right.keys()):
         if name not in left or name not in right:
