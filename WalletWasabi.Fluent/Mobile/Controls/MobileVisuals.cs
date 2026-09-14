@@ -54,34 +54,44 @@ public sealed class MobilePrivacyRing : Control
 	public static readonly StyledProperty<IBrush?> ForegroundProperty = AvaloniaProperty.Register<MobilePrivacyRing, IBrush?>(nameof(Foreground));
 	public static readonly StyledProperty<IBrush?> TrackProperty = AvaloniaProperty.Register<MobilePrivacyRing, IBrush?>(nameof(Track));
 	public static readonly StyledProperty<double> StrokeThicknessProperty = AvaloniaProperty.Register<MobilePrivacyRing, double>(nameof(StrokeThickness), 10);
-	static MobilePrivacyRing() => AffectsRender<MobilePrivacyRing>(ValueProperty, ForegroundProperty, TrackProperty, StrokeThicknessProperty);
+	public static readonly StyledProperty<double> StartAngleProperty = AvaloniaProperty.Register<MobilePrivacyRing, double>(nameof(StartAngle), -90);
+	public static readonly StyledProperty<double> SweepAngleProperty = AvaloniaProperty.Register<MobilePrivacyRing, double>(nameof(SweepAngle), 360);
+	private RingGeometryKey? _geometryKey;
+	private Geometry? _trackGeometry;
+	private Geometry? _progressGeometry;
+
+	static MobilePrivacyRing() => AffectsRender<MobilePrivacyRing>(ValueProperty, ForegroundProperty, TrackProperty, StrokeThicknessProperty, StartAngleProperty, SweepAngleProperty);
 	public double Value { get => GetValue(ValueProperty); set => SetValue(ValueProperty, value); }
 	public IBrush? Foreground { get => GetValue(ForegroundProperty); set => SetValue(ForegroundProperty, value); }
 	public IBrush? Track { get => GetValue(TrackProperty); set => SetValue(TrackProperty, value); }
 	public double StrokeThickness { get => GetValue(StrokeThicknessProperty); set => SetValue(StrokeThicknessProperty, value); }
+	public double StartAngle { get => GetValue(StartAngleProperty); set => SetValue(StartAngleProperty, value); }
+	public double SweepAngle { get => GetValue(SweepAngleProperty); set => SetValue(SweepAngleProperty, value); }
+
 	public override void Render(DrawingContext context)
 	{
+		if (!double.IsFinite(Bounds.Width) || !double.IsFinite(Bounds.Height)) return;
 		var thickness = double.IsFinite(StrokeThickness) ? Math.Max(1, StrokeThickness) : 10;
 		var radius = (Math.Min(Bounds.Width, Bounds.Height) - thickness) / 2;
 		if (radius <= 0) return;
-		var center = new Point(Bounds.Width / 2, Bounds.Height / 2);
-		context.DrawEllipse(null, new Pen(Track, thickness), center, radius, radius);
-		var fraction = double.IsFinite(Value) ? Math.Clamp(Value, 0, 100) / 100 : 0;
-		if (fraction <= 0) return;
-		var geometry = new StreamGeometry();
-		using (var g = geometry.Open())
+		var start = double.IsFinite(StartAngle) ? Math.IEEERemainder(StartAngle, 360) : -90;
+		var sweep = double.IsFinite(SweepAngle) ? Math.Clamp(SweepAngle, -360, 360) : 360;
+		var value = double.IsFinite(Value) ? Math.Clamp(Value, 0, 100) : 0;
+		var key = new RingGeometryKey(Bounds.Size, thickness, start, sweep, value);
+		if (_geometryKey is null || _geometryKey.Value != key)
 		{
-			g.BeginFigure(new Point(center.X, center.Y - radius), false);
-			var count = Math.Max(1, (int)Math.Ceiling(fraction * 180));
-			for (var i = 1; i <= count; i++)
-			{
-				var angle = fraction * Math.PI * 2 * i / count - Math.PI / 2;
-				g.LineTo(new Point(center.X + Math.Cos(angle) * radius, center.Y + Math.Sin(angle) * radius));
-			}
-			g.EndFigure(false);
+			var center = new Point(Bounds.Width / 2, Bounds.Height / 2);
+			_trackGeometry = MobileArcGeometry.Create(center, radius, start, sweep);
+			_progressGeometry = value == 0 ? null : MobileArcGeometry.Create(center, radius, start, sweep * value / 100);
+			_geometryKey = key;
 		}
-		context.DrawGeometry(null, new Pen(Foreground, thickness, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), geometry);
+		if (_trackGeometry is not null)
+			context.DrawGeometry(null, new Pen(Track, thickness, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), _trackGeometry);
+		if (_progressGeometry is not null)
+			context.DrawGeometry(null, new Pen(Foreground, thickness, lineCap: PenLineCap.Round, lineJoin: PenLineJoin.Round), _progressGeometry);
 	}
+
+	private readonly record struct RingGeometryKey(Size Size, double Thickness, double Start, double Sweep, double Value);
 }
 
 /// <summary>Uses supplied historical values; never fabricates prices or balances.</summary>
