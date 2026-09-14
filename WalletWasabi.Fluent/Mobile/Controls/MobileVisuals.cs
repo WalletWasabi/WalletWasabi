@@ -10,7 +10,7 @@ namespace WalletWasabi.Fluent.Mobile.Controls;
 public sealed class MobileGlyph : Control
 {
 	public static readonly StyledProperty<string> KindProperty = AvaloniaProperty.Register<MobileGlyph, string>(nameof(Kind), "shield");
-	public static readonly StyledProperty<IBrush?> ForegroundProperty = AvaloniaProperty.Register<MobileGlyph, IBrush?>(nameof(Foreground), Brushes.CurrentColor);
+	public static readonly StyledProperty<IBrush?> ForegroundProperty = AvaloniaProperty.Register<MobileGlyph, IBrush?>(nameof(Foreground), Brushes.Black);
 	private static readonly IReadOnlyDictionary<string, Geometry> Shapes = new Dictionary<string, Geometry>(StringComparer.Ordinal)
 	{
 		["home"] = Geometry.Parse("M3,11 L12,3 21,11 M5,10 L5,21 10,21 10,15 14,15 14,21 19,21 19,10"),
@@ -47,7 +47,7 @@ public sealed class MobileGlyph : Control
 	protected override Size MeasureOverride(Size availableSize) => new(24, 24);
 }
 
-/// <summary>Percentage of balance meeting the wallet anonymity target, not a probability of anonymity.</summary>
+/// <summary>Percentage of balance meeting the anonymity target; not a probability of anonymity.</summary>
 public sealed class MobilePrivacyRing : Control
 {
 	public static readonly StyledProperty<double> ValueProperty = AvaloniaProperty.Register<MobilePrivacyRing, double>(nameof(Value));
@@ -84,7 +84,7 @@ public sealed class MobilePrivacyRing : Control
 	}
 }
 
-/// <summary>Uses only supplied historical values. Never fabricates a price or balance series.</summary>
+/// <summary>Uses supplied historical values; never fabricates prices or balances.</summary>
 public sealed class MobileSparkline : Control
 {
 	public static readonly StyledProperty<IReadOnlyList<double>?> ValuesProperty = AvaloniaProperty.Register<MobileSparkline, IReadOnlyList<double>?>(nameof(Values));
@@ -103,6 +103,7 @@ public sealed class MobileSparkline : Control
 			min = Math.Min(min, value); max = Math.Max(max, value);
 		}
 		var range = max - min;
+		if (!double.IsFinite(range)) return;
 		var geometry = new StreamGeometry();
 		using (var g = geometry.Open())
 		{
@@ -117,7 +118,7 @@ public sealed class MobileSparkline : Control
 	}
 }
 
-/// <summary>Renders the generator's [x,y] matrix with four quiet modules and device-pixel aligned cells.</summary>
+/// <summary>Generator [x,y] matrix with four quiet modules and device-pixel aligned cells.</summary>
 public sealed class MobileQrCode : Control
 {
 	public static readonly StyledProperty<bool[,]?> MatrixProperty = AvaloniaProperty.Register<MobileQrCode, bool[,]?>(nameof(Matrix));
