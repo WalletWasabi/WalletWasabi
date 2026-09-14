@@ -31,6 +31,8 @@ jobs:
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Test native resource validation and token export
+        run: python3 -m unittest discover -s Contrib/Mobile -p test_mobile_design.py -v
       - name: Validate native resources and export design tokens
         run: python3 Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
       - name: Archive exact validation sources
