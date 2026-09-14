@@ -1,0 +1,11 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWelcomeView" x:DataType="vm:WelcomePageViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Wasabi Wallet">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="{Binding NextLabel}" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="MobileGetStarted"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="24,28,24,24" Spacing="24">
+      <Border Classes="mobile-note" Width="128" Height="128" CornerRadius="32" HorizontalAlignment="Center"><m:MobileGlyph Kind="leaf" Width="80" Height="80" Foreground="{DynamicResource MobileAccent}"/></Border>
+      <TextBlock Text="Your bitcoin.&#10;Your privacy." Classes="mobile-amount" TextAlignment="Center" TextWrapping="Wrap"/>
+      <TextBlock Text="A more private Bitcoin starts with you." Classes="mobile-caption" TextAlignment="Center"/>
+      <Border Classes="mobile-card"><StackPanel Spacing="18"><TextBlock Text="Your keys stay with you" Classes="mobile-label"/><TextBlock Text="Create or restore a self-custodial wallet. You control access to your funds." Classes="mobile-caption"/><TextBlock Text="Privacy you can understand" Classes="mobile-label"/><TextBlock Text="Fresh addresses, sender labels, coin control, and optional CoinJoin." Classes="mobile-caption"/><TextBlock Text="Open source. Bitcoin only." Classes="mobile-label"/><TextBlock Text="Keep your recovery backup offline. Anyone with it may be able to spend your bitcoin." Classes="mobile-caption"/></StackPanel></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

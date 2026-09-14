@@ -1,0 +1,10 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletsListView" x:DataType="vm:MobileWalletsListViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Your wallets">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Add a wallet" Command="{Binding UiContext.MainViewModel.NavigateToMobileAddWalletCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <Grid RowDefinitions="Auto,*" Margin="16,16"><TextBlock Text="Choose a wallet to open." Classes="mobile-caption" Margin="0,0,0,16"/>
+      <ListBox Grid.Row="1" ItemsSource="{Binding Wallets}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
+        <ListBox.ItemTemplate><DataTemplate x:DataType="vm:WalletPageViewModel"><m:MobileChoiceButton Label="{Binding Title}" Description="{Binding WalletModel.Settings.WalletType}" Icon="leaf" Margin="0,4" Command="{Binding $parent[UserControl].((vm:MobileWalletsListViewModel)DataContext).SelectWalletCommand}" CommandParameter="{Binding}"/></DataTemplate></ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+  </m:MobilePage>
+</UserControl>

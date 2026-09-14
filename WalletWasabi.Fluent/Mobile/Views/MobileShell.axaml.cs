@@ -28,6 +28,7 @@ public sealed class MobileShell : UserControl
 	public MobileShell()
 	{
 		AvaloniaXamlLoader.Load(this);
+		DataTemplates.Insert(0, new MobileEntryViewLocator());
 		AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
 	}
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)

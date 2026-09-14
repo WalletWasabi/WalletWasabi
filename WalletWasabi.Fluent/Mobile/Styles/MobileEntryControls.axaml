@@ -1,0 +1,27 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+  <Styles.Resources>
+    <ControlTheme x:Key="{x:Type m:MobileChoiceButton}" TargetType="m:MobileChoiceButton">
+      <Setter Property="Background" Value="{DynamicResource MobileCardFill}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
+      <Setter Property="BorderThickness" Value="{DynamicResource MobileHairline}"/>
+      <Setter Property="CornerRadius" Value="{DynamicResource MobileCardRadius}"/>
+      <Setter Property="Padding" Value="{DynamicResource MobileGutter}"/>
+      <Setter Property="MinHeight" Value="{DynamicResource MobileButtonHeight}"/>
+      <Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Border Name="PART_Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="40,*,20">
+            <Border Width="36" Height="36" CornerRadius="18" Background="{DynamicResource MobileAccentSurface}" VerticalAlignment="Center"><m:MobileGlyph Kind="{TemplateBinding Icon}" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/></Border>
+            <StackPanel Grid.Column="1" Margin="10,0" Spacing="6" VerticalAlignment="Center"><TextBlock Text="{TemplateBinding Label}" Foreground="{TemplateBinding Foreground}" FontSize="{DynamicResource MobileFontBody}" FontWeight="SemiBold" TextWrapping="Wrap"/><TextBlock Text="{TemplateBinding Description}" Foreground="{DynamicResource MobileSecondary}" FontSize="{DynamicResource MobileFontCaption}" TextWrapping="Wrap"/></StackPanel>
+            <m:MobileGlyph Grid.Column="2" Kind="next" Width="16" Height="16" Foreground="{DynamicResource MobileSecondary}" VerticalAlignment="Center"/>
+          </Grid>
+        </Border>
+      </ControlTemplate></Setter>
+      <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource MobileRaised}"/></Style>
+      <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+      <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+      <Style Selector="^:focus-visible /template/ Border#PART_Surface"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="BorderThickness" Value="2"/></Style>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>

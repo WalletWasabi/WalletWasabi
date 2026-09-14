@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Login" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileLoginView" x:DataType="vm:LoginViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Unlock wallet" IsBusy="{Binding IsBusy}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Open wallet" Command="{Binding NextCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="MobileUnlockWallet"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,28" Spacing="20">
+      <Border Classes="mobile-note" Width="112" Height="112" CornerRadius="28" HorizontalAlignment="Center"><m:MobileGlyph Kind="lock" Width="52" Height="52" Foreground="{DynamicResource MobileAccent}"/></Border>
+      <TextBlock Text="{Binding WalletName}" Classes="mobile-title" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock Text="{Binding WalletType}" Classes="mobile-caption" TextAlignment="Center"/>
+      <StackPanel Spacing="10" IsVisible="{Binding IsPasswordNeeded}"><TextBlock Text="Wallet passphrase" Classes="mobile-label"/><TextBox Name="PassphraseInput" Classes="mobile-input" Text="{Binding Password, Mode=TwoWay}" PasswordChar="●" IsUndoEnabled="False" IsEnabled="{Binding !IsBusy}" Watermark="Enter your passphrase" AutomationProperties.Name="Wallet passphrase"/></StackPanel>
+      <TextBlock Text="{Binding ErrorMessage}" Classes="mobile-error"/>
+      <Button Classes="mobile-button flat" Content="Clear passphrase" Command="{Binding OkCommand}" IsVisible="{Binding IsPasswordNeeded}" IsEnabled="{Binding !IsBusy}"/>
+      <Border Classes="mobile-note"><TextBlock Text="Authentication is performed by your wallet. Wasabi does not send this passphrase to a server." Classes="mobile-caption"/></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
