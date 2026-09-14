@@ -31,6 +31,8 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Icons/Icons.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileTheme.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml" />
   </Application.Styles>
   <NativeMenu.Menu>
     <NativeMenu>
