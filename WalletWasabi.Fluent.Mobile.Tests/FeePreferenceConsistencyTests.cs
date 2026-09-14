@@ -45,7 +45,7 @@ public sealed class FeePreferenceConsistencyTests
 		Assert.True(priority.IsSelected);
 		quotes.OnNext([new(6, 6, 2), new(3, 3, 4), new(1, 2, 7)]);
 		scheduler.Start();
-		Assert.Empty(selection.Options.Where(x => x.IsSelected));
+		Assert.DoesNotContain(selection.Options, x => x.IsSelected);
 		Assert.Equal(new[] { 1 }, writes);
 		Assert.Contains("saved target is 1 blocks", selection.Status);
 		priority.Execute(null);
@@ -78,10 +78,10 @@ public sealed class FeePreferenceConsistencyTests
 		scheduler.Start();
 		quotes.OnNext([]);
 		scheduler.Start();
-		Assert.Empty(selection.Options.Where(x => x.IsSelected));
+		Assert.DoesNotContain(selection.Options, x => x.IsSelected);
 		quotes.OnNext(NormalQuotes());
 		scheduler.Start();
-		Assert.Equal(3, Assert.Single(selection.Options.Where(x => x.IsSelected)).TargetBlocks);
+		Assert.Equal(3, Assert.Single(selection.Options, x => x.IsSelected).TargetBlocks);
 		Assert.Empty(writes);
 	}
 

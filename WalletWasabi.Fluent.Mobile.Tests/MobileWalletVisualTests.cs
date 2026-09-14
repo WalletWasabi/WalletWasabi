@@ -39,7 +39,7 @@ public sealed class MobileWalletVisualTests
 			Assert.Same(fixture, view.FindControl<Grid>("PresentationRoot")!.DataContext);
 			Assert.InRange(view.Bounds.Width, width - 1, width + 1);
 			var pages = new[] { "HomePage", "HistoryPage", "PrivacyPage", "CoinJoinPage", "CoinsPage", "TransactionPage", "DiscoverPage" };
-			Assert.Single(pages.Select(name => view.FindControl<Control>(name)!).Where(control => control.IsVisible));
+			Assert.Single(pages.Select(name => view.FindControl<Control>(name)!), control => control.IsVisible);
 			MobileScreenshot.AssertNoHorizontalOverflow(view);
 			Assert.Empty(bindings.Errors);
 		}
@@ -70,7 +70,7 @@ public sealed class MobileWalletVisualTests
 			Press(window, view.FindControl<Button>("SentFilter")!);
 			Assert.Equal("Sent", fixture.Filter);
 			Assert.Single(fixture.Transactions);
-			Assert.True(view.FindControl<Button>("SentFilter")!.Classes.Contains("selected"));
+			Assert.Contains("selected", view.FindControl<Button>("SentFilter")!.Classes);
 			view.FindControl<TextBox>("TransactionQuery")!.Text = "no matching transaction";
 			Pump(); Assert.True(fixture.IsEmpty);
 			MobileScreenshot.Capture(window, $"wallet-empty-search-{(dark ? "dark" : "light")}", "empty-search");

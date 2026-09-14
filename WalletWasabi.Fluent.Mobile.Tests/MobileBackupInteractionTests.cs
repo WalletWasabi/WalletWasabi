@@ -221,7 +221,7 @@ public sealed class MobileBackupInteractionTests
 			Assert.True(words[5].IsSelected);
 			for (var index = 0; index < 5; index++) words[index].IsConfirmed = true;
 			Pump();
-			Assert.Single(grid.Children.Where(x => x.IsVisible));
+			Assert.Single(grid.Children, x => x.IsVisible);
 			Assert.True(button.IsVisible);
 			Assert.InRange(grid.Bounds.Height, 1, 100);
 		}

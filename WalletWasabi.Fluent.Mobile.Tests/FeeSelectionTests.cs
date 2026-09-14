@@ -22,7 +22,7 @@ public sealed class FeeSelectionTests
 		var priority = selection.Options.Single(x => x.RequestedBlocks == 1);
 		priority.SelectCommand.Execute(null);
 		Assert.Equal(new[] { 1 }, writes);
-		Assert.Single(selection.Options.Where(x => x.IsSelected));
+		Assert.Single(selection.Options, x => x.IsSelected);
 	}
 
 	[Fact]
@@ -36,7 +36,7 @@ public sealed class FeeSelectionTests
 		scheduler.Start();
 		selection.Options.Single(x => x.RequestedBlocks == 1).SelectCommand.Execute(null);
 		Assert.Equal(new[] { 6 }, writes);
-		Assert.Single(selection.Options.Where(x => x.IsSelected));
+		Assert.Single(selection.Options, x => x.IsSelected);
 		Assert.True(selection.Options.Single(x => x.RequestedBlocks == 1).IsSelected);
 	}
 
