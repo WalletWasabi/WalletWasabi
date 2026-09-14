@@ -13,8 +13,8 @@
         <m:MobileGlyph Kind="history" Width="42" Height="42" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/>
         <TextBlock Text="{Binding AmountText}" Classes="mobile-label" HorizontalAlignment="Center"/>
         <m:MobileSensitiveContent IsHidden="{Binding UiContext.ApplicationSettings.PrivacyMode, FallbackValue=True}" HorizontalAlignment="Center"><c:AmountControl Classes="WithUsd" Amount="{Binding Amount}"/></m:MobileSensitiveContent>
-        <TextBlock Text="Confirmed" Foreground="{DynamicResource MobileAccent}" IsVisible="{Binding IsConfirmed}" HorizontalAlignment="Center"/>
-        <TextBlock Text="Unconfirmed" Foreground="{DynamicResource MobileWarning}" IsVisible="{Binding !IsConfirmed}" HorizontalAlignment="Center"/>
+        <TextBlock Name="ConfirmedStatus" Text="Confirmed" Foreground="{DynamicResource MobileAccent}" IsVisible="{Binding IsConfirmed, FallbackValue=False}" HorizontalAlignment="Center"/>
+        <TextBlock Name="UnconfirmedStatus" Text="Unconfirmed" Foreground="{DynamicResource MobileWarning}" IsVisible="{Binding !IsConfirmed, FallbackValue=False}" HorizontalAlignment="Center"/>
         <TextBlock Text="{Binding Confirmations, StringFormat='{}{0} confirmations'}" Classes="mobile-caption" HorizontalAlignment="Center"/>
       </StackPanel></Border>
       <Border Classes="mobile-card"><StackPanel Spacing="16">
@@ -25,7 +25,7 @@
       <Border Classes="mobile-card"><StackPanel Spacing="16">
         <m:MobileDetailRow Header="Network fee" IsVisible="{Binding IsFeeVisible}"><m:MobileSensitiveContent IsHidden="{Binding UiContext.ApplicationSettings.PrivacyMode, FallbackValue=True}"><c:AmountControl Classes="WithUsd" Amount="{Binding Fee}"/></m:MobileSensitiveContent></m:MobileDetailRow>
         <m:MobileDetailRow Header="Fee rate" IsVisible="{Binding IsFeeRateVisible}"><TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='{}{0:0.###} sat/vB'}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
-        <m:MobileDetailRow Header="Block height" IsVisible="{Binding IsConfirmed}" CopyText="{Binding BlockHeight, StringFormat='{}{0}'}"><TextBlock Text="{Binding BlockHeight}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
+        <m:MobileDetailRow Header="Block height" IsVisible="{Binding IsConfirmed, FallbackValue=False}" CopyText="{Binding BlockHeight, StringFormat='{}{0}'}"><TextBlock Text="{Binding BlockHeight}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
         <m:MobileDetailRow Header="Estimated confirmation" IsVisible="{Binding IsConfirmationTimeVisible}"><TextBlock Text="{Binding ConfirmationTime}" Foreground="{DynamicResource MobileText}"/></m:MobileDetailRow>
       </StackPanel></Border>
       <Border Classes="mobile-card" IsVisible="{Binding !!DestinationAddresses.Count}"><StackPanel Spacing="12">

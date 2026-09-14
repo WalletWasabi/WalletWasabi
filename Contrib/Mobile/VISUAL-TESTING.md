@@ -1,137 +1,155 @@
-# Native mobile rendering and visual review
+# Native mobile rendering and acceptance gates
 
-This patch targets `wieslawsoltes/WalletWasabi`, branch `feature/mobile-support`,
-starting at commit `4d8989a85c090c1fd3405af99a4e90eed761a310`.
+The production mobile UI is Avalonia C# and compiled XAML. The headless suite loads
+those same controls and styles and captures actual Skia framebuffers. It does not
+render HTML or paint substitute screenshots.
 
-## What runs in production
+## Gate contract
 
-`MobileWalletView` still owns its original `MobileWalletViewModel` and
-`MobileTransactionNavigation`. Its named `Root` is retained. The inner
-`MobileWalletSurface` adapts that live model through `IMobileWalletPresentation`.
-The exact same surface is instantiated by headless tests with a test-assembly-only
-fixture. There is no production mock wallet, alternate signing engine, or HTML view.
+`Mobile design validation / shared-ui` must succeed before accepting a mobile UI
+change. It builds both the shared application and native test assembly, executes
+the complete native suite twice in independent processes, compares the first run
+with explicitly reviewed baselines, and compares both runs with each other.
 
-`MobileWalletPresentation` delegates every wallet action to the existing command.
-It observes the current wallet's default send/receive choices, amounts, transactions,
-coins and CoinJoin state. It owns and disposes its event subscriptions and row
-adapters, not the wallet or its commands. Supplied rendering presentations remain
-caller-owned. The source-owned `Root` and presentation-owned `PresentationRoot`
-are intentionally separate compiled-binding scopes.
+The workflow pins Ubuntu 24.04, .NET SDK 10.0.401, Python 3.13 and the visual-tool
+dependencies. It uses UTC and the application's invariant-globalization setting.
+The native test application loads the existing Inter dependency and real mobile
+resources. No Android/iOS workload or physical device is required for this suite.
 
-The native surface covers Home, History, Privacy, CoinJoin, Coins, Transaction
-Details and Discover. Four vertical native settings panels replace the settings
-host's embedded desktop General, Bitcoin, Coordinator and Connections layouts.
-Existing settings view models continue to validate and save values. The node
-verification action is still the original command. Desktop-only options are not
-advertised as Android/iOS integrations.
+A successful job requires all of the following:
 
-## What the new tests prove when executed
+- Every discovered native test executed and passed. Empty, failed, skipped,
+  incomplete and inconsistent TRX results are rejected.
+- Every emitted PNG has a validated `.frame.json` manifest; its image name,
+  dimensions, engine and PNG-byte hash agree with the actual file. Unmanifested
+  PNGs, including nested or differently cased filenames, cannot bypass the gate.
+- Every canonical frame matches its independently committed approval. Missing,
+  extra/unreviewed, corrupt or changed captures fail the job. Previously approved
+  cases cannot silently disappear from the suite.
+- Every frame and its rendering context match the second fresh process exactly.
+  Comparing a directory with itself is rejected.
 
-`MobileWalletVisualTests` declares 50 cases:
+The checked-in approvals use `comparison: rgba-sha256`: SHA-256 of the dimensions
+and decoded RGBA8 raster, independent of PNG compression and metadata. **Any changed
+channel fails. There are no masks, resizes or allowed pixel differences for these
+approvals.** The comparator also supports PNG baselines with diagnostic tolerances;
+those options do not apply to fingerprint approvals. Inspect each frame's
+`verification` field rather than treating the generic tolerance defaults as the
+policy for exact-hash records.
 
-- 42 populated production-surface cases: seven destinations, 320 × 568,
-  390 × 844 and 430 × 932 device-independent pixels, light and dark themes.
-- Two themed interaction cases for navigation, filter/search bindings, discreet
-  amounts, coin selection and exclusion action bindings.
-- Transaction row navigation, a light/dark/light pixel round trip, two critical
-  CoinJoin-state presentation cases, 2,000-row virtualization, and context teardown.
+`MobileSnapshotState` prepares only the current test window for static capture. It
+settles transitions, uses Fluent's declared final expander-chevron angle and hides
+the blinking insertion caret. It preserves focus, focus outlines, bindings,
+commands, layout and content. Production motion is not disabled. Animation timing
+and touch delivery are separate validation concerns.
 
-`MobileSettingsPanelTests` adds 18 cases: 16 **unbound** settings-panel layout
-captures, the RPC credential input policy, and content-context inheritance.
-Those unbound cases are not settings persistence or RPC connection tests.
+## Reproduce locally
 
-The fixture instantiates the real `MobileTransactionItem` and `TransactionModel`
-presentation types using synthetic metadata. It never starts a wallet, signs,
-broadcasts, connects to a coordinator or connects to an RPC endpoint. Its commands
-exercise UI binding behavior, not the underlying payment implementation. The live
-adapter delegates to existing production commands; that integration still requires
-native and end-to-end validation.
-
-`MobileScreenshot` captures actual Skia pixels using Avalonia Headless. Each PNG
-has a `.frame.json` record containing its commit, theme, viewport, scale, culture,
-timezone, content kind, dimensions and SHA-256. Populated tests assert binding
-warnings are absent, verify horizontal scroll extents, and reject blank frames.
-
-## Execute native tests
-
-Prerequisites: the repository's .NET 10 SDK and restored packages. This shared UI
-suite does not need Android/iOS workloads, a wallet or mainnet funds.
+Use the pinned CI environment when comparing exact pixels. Other operating
+systems, font configurations or Skia versions may legitimately produce different
+rasters and must not be enrolled as replacements without review.
 
 ```sh
+set -eu
 python3 -m pip install -r Contrib/Mobile/requirements-visual.txt
-python3 -m unittest discover -s Contrib/Mobile -p test_visual_review.py -v
+python3 -m unittest discover -s Contrib/Mobile -p 'test_*.py' -v
+python3 Contrib/Mobile/mobile_design.py --check
 
 export TZ=UTC
+export GITHUB_SHA="$(git rev-parse HEAD)"
 export WASABI_MOBILE_TEST_ARTIFACTS="$PWD/TestResults/mobile-previews"
-dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false
-dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj \
-  -c Release -p:UseCdp=false --logger trx --results-directory TestResults
-```
 
-The test application loads Inter through its existing NuGet dependency. No font
-files are bundled with this patch. Run approvals and comparisons on the same OS,
-rendering dependencies, font configuration, timezone and scale. Fixture wallet
-captures use the invariant culture, matching the repository’s InvariantGlobalization setting.
+dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj \
+  -c Release -p:UseCdp=false -bl:TestResults/mobile-ui-build.binlog
+dotnet build WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj \
+  -c Release -p:UseCdp=false -bl:TestResults/mobile-tests-build.binlog
 
-## Review and explicitly approve
+dotnet vstest WalletWasabi.Fluent.Mobile.Tests/bin/Release/net10.0/WalletWasabi.Fluent.Mobile.Tests.dll \
+  --logger:"trx;LogFileName=mobile-ui.trx" --ResultsDirectory:TestResults
+python3 Contrib/Mobile/verify_test_results.py TestResults/mobile-ui.trx
 
-Create the first gallery without representing new images as approved:
+export WASABI_MOBILE_TEST_ARTIFACTS="$PWD/TestResults/repeat/mobile-previews"
+dotnet vstest WalletWasabi.Fluent.Mobile.Tests/bin/Release/net10.0/WalletWasabi.Fluent.Mobile.Tests.dll \
+  --logger:"trx;LogFileName=mobile-ui-repeat.trx" --ResultsDirectory:TestResults/repeat
+python3 Contrib/Mobile/verify_test_results.py TestResults/repeat/mobile-ui-repeat.trx
 
-```sh
+python3 Contrib/Mobile/verify_repeatability.py \
+  TestResults/mobile-previews TestResults/repeat/mobile-previews \
+  --output TestResults/repeatability.json
 python3 Contrib/Mobile/visual_review.py report \
-  --actual TestResults/mobile-previews \
-  --output TestResults/mobile-visual-review \
-  --allow-unreviewed
-```
-
-Open `TestResults/mobile-visual-review/index.html` and inspect the native frames.
-`--allow-unreviewed` is an explicit first-review convenience; the report still says
-**unreviewed**, never **passed**, for images with no approved baseline.
-
-After human review:
-
-```sh
-python3 Contrib/Mobile/visual_review.py approve \
-  --actual TestResults/mobile-previews \
-  --baseline Contrib/Mobile/Baselines --reviewed
-```
-
-Existing baseline files require the additional `--replace` option. CI does not run
-`approve`, does not auto-update baselines, and does not use `--allow-unreviewed`.
-Commit the reviewed PNGs and `approval.json` through the normal review process.
-No baseline PNGs are supplied with this patch because no native capture ran here.
-
-Subsequent comparison:
-
-```sh
-python3 Contrib/Mobile/visual_review.py report \
-  --actual TestResults/mobile-previews \
-  --baseline Contrib/Mobile/Baselines \
+  --actual TestResults/mobile-previews --baseline Contrib/Mobile/Baselines \
   --output TestResults/mobile-visual-review
 ```
 
-The gate rejects changed images, dimension mismatches, missing baselines, corrupt
-capture metadata and empty capture runs. It compares without resizing. Defaults:
-maximum per-channel delta 8 for a changed pixel, changed fraction at most 0.5%,
-and mean channel error at most 0.5. Differences are retained as diagnostic images,
-not replacement UI screenshots. The actual/approved/difference gallery and JSON
-report are uploaded even when the visual gate fails.
+Upstream uses MTP/xUnit v3, while Avalonia 11's headless adapter uses VSTest/xUnit v2.
+The explicit build plus `dotnet vstest` sequence is intentional; do not replace it
+with an incompatible invocation or accept a zero-test result.
 
-The default CI gate intentionally fails as **unreviewed** until native baselines
-are actually reviewed. This is distinct from a C# build or test failure.
+## Review and enrollment
 
-## Evidence and limitations for this delivery
+Download the `mobile-ui-validation` artifact. Read both TRX files and
+`repeatability.json`, then open `mobile-visual-review/index.html`. Inspect actual
+native frames at every affected viewport and theme, including error, empty,
+privacy-hidden and compact-phone scrolled states. Fix rendering or binding defects
+before approving. A repeatable defect is still a defect.
 
-Executed here: Python comparator/report/approval regression tests using synthetic
-image fixtures; source-structure and integration checks; guarded overlay installer
-tests. See the accompanying executed-results files for counts and output.
+New captures intentionally fail the baseline gate until reviewed. Enrollment is an
+explicit local operation, never a CI step:
 
-Not executed here: C# compilation, compiled-XAML validation, the 68 newly declared
-native cases, native screenshots, or Android/iOS tests. This editing environment
-has no .NET SDK and external SDK/package downloads failed. The GitHub write batch
-was blocked twice and did not create a commit; this is a local source overlay.
+```sh
+python3 Contrib/Mobile/visual_review.py approve \
+  --actual ReviewedCaptures --baseline Contrib/Mobile/Baselines \
+  --fingerprints-only --reviewed
+```
 
-The Python images used to test the comparator are not screenshots of the wallet.
-Passing those tests does not prove the Avalonia views compile, render correctly,
-or match the original bitmap designs. No bitmap-parity or release-readiness claim
-is made. Some other routes still use the existing shared responsive views.
+Put only the reviewed new cases in `ReviewedCaptures`, with both PNGs and manifests,
+when extending the existing corpus. Replacing existing approvals additionally
+requires `--replace` and review of each changed image. Preserve source run, artifact
+and commit provenance in the review record. The low-level enrollment command writes
+an approval manifest; it does not create or certify that provenance for you.
+
+Commit the approval separately from the producing implementation. A subsequent
+independent CI run must pass against it. Never use `--allow-unreviewed`, automated
+approval, changed thresholds or `continue-on-error` to make CI green. Fingerprints
+identify reviewed rasters but do not reconstruct approved images; retain the
+producing artifacts for inspection and future comparison. A fingerprint mismatch
+must be investigated, not regenerated blindly.
+
+## What each capture proves
+
+`contentKind` separates evidence that must not be conflated:
+
+| Kind | Scope |
+| --- | --- |
+| `bound-fixture` | Populated production wallet surfaces and real presentation types, using test-only wallet metadata and command fixtures. |
+| `bound-regtest-presentation` | Production Receive/Request Amount surface, deterministic regtest address, real QR encoder and injected clipboard boundary. Scannable cases also decode the rendered framebuffer through the production reader's ZXing/Skia pipeline. |
+| `bound-regtest-authorization` | Production passphrase dialog, view model, command and `WalletAuthModel`/`PasswordHelper`, using an isolated in-memory regtest wallet. Incorrect input must not complete authorization; a correct retry returns the real dialog result. |
+| `unbound-layout` | View construction, template layout, resource resolution and safe unavailable-state defaults. Not a successful wallet operation or persistence test. |
+| `synthetic-components` | Deliberately synthetic native component reference scene. Not wallet data. |
+
+Receive amount changes cancel obsolete QR work and clear stale matrices. Invalid
+amounts cannot be copied as valid requests. Returning from Request Amount to Receive
+clears the hidden amount before exposing the bare address. QR failure permits
+copying a valid payload and retrying QR generation; clipboard failure remains
+visible without discarding a valid QR. Source navigation and hardware-address
+verification commands remain owned by the existing wallet view model.
+
+The passphrase tests create no files or funded wallet, never start wallet services,
+never render recovery words, and never sign or broadcast. Unrelated wallet-model
+capabilities fail if accessed. Editable passphrases are cleared on success, rejection,
+teardown and verifier exceptions; immutable managed strings are not claimed to be
+securely zeroized.
+
+## Other CI and release validation
+
+The standard Build job covers the Nix build/test path. Android, iOS and all three
+desktop Native AOT publication jobs are independent checks. Shared linker roots are
+in `Roots.xml`; host-only descriptors live in `Contrib/Aot/<project>.xml`, so a
+desktop publish never requires a mobile host assembly.
+
+A green headless job is a native UI regression gate, **not** a certification of
+pixel parity with the original multi-screen design boards, physical-device touch,
+OS keyboard or accessibility behavior, hardware-wallet transport, funded signing
+and broadcast, or release readiness. Original design conformance still requires
+review alongside those references. Device and transaction evidence must be recorded
+separately rather than inferred from successful screenshot comparisons.

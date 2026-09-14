@@ -52,6 +52,11 @@ public sealed class MobileSecondaryFlowTests
 				Assert.True(scroll.Extent.Width <= scroll.Viewport.Width + 1,
 					$"{name}: content exceeds the {width}-DIP viewport.");
 			}
+			if (name == "transaction-details")
+			{
+				Assert.False(view.FindControl<TextBlock>("ConfirmedStatus")!.IsVisible);
+				Assert.False(view.FindControl<TextBlock>("UnconfirmedStatus")!.IsVisible);
+			}
 			MobileScreenshot.Capture(window, $"secondary-unbound-{name}-{width}-{(dark ? "dark" : "light")}",
 				"secondary-" + name, "unbound-layout");
 		}
