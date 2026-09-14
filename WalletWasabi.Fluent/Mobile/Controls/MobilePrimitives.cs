@@ -3,12 +3,16 @@ using System.Globalization;
 using System.Windows.Input;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.Metadata;
+using Avalonia.Controls.Presenters;
 using Avalonia.Controls.Primitives;
 using Avalonia.Data.Converters;
 using Avalonia.LogicalTree;
 
 namespace WalletWasabi.Fluent.Mobile.Controls;
 
+[TemplatePart("PART_FooterPresenter", typeof(ContentPresenter))]
+[TemplatePart("PART_HeaderActionsPresenter", typeof(ContentPresenter))]
 public sealed class MobilePage : HeaderedContentControl
 {
 	public static readonly StyledProperty<ICommand?> BackCommandProperty = AvaloniaProperty.Register<MobilePage, ICommand?>(nameof(BackCommand));
@@ -22,11 +26,13 @@ public sealed class MobilePage : HeaderedContentControl
 	public object? HeaderActions { get => GetValue(HeaderActionsProperty); set => SetValue(HeaderActionsProperty, value); }
 	public bool IsBusy { get => GetValue(IsBusyProperty); set => SetValue(IsBusyProperty, value); }
 
+	protected override bool RegisterContentPresenter(ContentPresenter presenter) =>
+		presenter.Name is "PART_FooterPresenter" or "PART_HeaderActionsPresenter" || base.RegisterContentPresenter(presenter);
+
 	protected override void OnPropertyChanged(AvaloniaPropertyChangedEventArgs change)
 	{
 		base.OnPropertyChanged(change);
 		if (change.Property != FooterProperty && change.Property != HeaderActionsProperty) return;
-		// Extra content slots participate in inheritance even before a presenter is realized.
 		if (change.OldValue is ILogical previous) LogicalChildren.Remove(previous);
 		if (change.NewValue is ILogical next) LogicalChildren.Add(next);
 	}
