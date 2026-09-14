@@ -1,0 +1,29 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls">
+  <Styles.Resources>
+    <ControlTheme x:Key="MobileClipboardButtonTheme" TargetType="c:ClipboardCopyButton">
+      <Setter Property="MinWidth" Value="{DynamicResource MobileTouchTarget}"/>
+      <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Button Classes="mobile-button flat" Command="{TemplateBinding CopyCommand}" AutomationProperties.Name="Copy value"
+                MinWidth="{DynamicResource MobileTouchTarget}" MinHeight="{DynamicResource MobileTouchTarget}">
+          <m:MobileGlyph Kind="copy" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/>
+        </Button>
+      </ControlTemplate></Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="{x:Type m:MobileDetailRow}" TargetType="m:MobileDetailRow">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Grid ColumnDefinitions="*,Auto" RowDefinitions="Auto,Auto">
+          <ContentPresenter Name="PART_HeaderPresenter" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                            VerticalAlignment="Center" TextElement.Foreground="{DynamicResource MobileSecondary}" TextElement.FontSize="{DynamicResource MobileFontCaption}"/>
+          <c:ClipboardCopyButton Grid.Column="1" Grid.RowSpan="2" Theme="{StaticResource MobileClipboardButtonTheme}" Text="{TemplateBinding CopyText}"
+                                 IsVisible="{TemplateBinding CopyText, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" VerticalAlignment="Top"/>
+          <ContentPresenter Grid.Row="1" Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Stretch" Margin="0,6,4,0"/>
+        </Grid>
+      </ControlTemplate></Setter>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>
