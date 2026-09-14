@@ -1,4 +1,5 @@
-<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:b="using:WalletWasabi.Fluent.Mobile.Behaviors">
   <Styles.Resources>
     <m:MobileSectionConverter x:Key="MobileSectionEquals"/>
     <x:Double x:Key="MobilePageHeaderHeight">60</x:Double>
@@ -12,20 +13,26 @@
       <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
       <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
       <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+      <Setter Property="(Interaction.Behaviors)">
+        <BehaviorCollectionTemplate><BehaviorCollection><b:MobileBusyBehavior/></BehaviorCollection></BehaviorCollectionTemplate>
+      </Setter>
       <Setter Property="Template">
         <ControlTemplate>
           <Grid RowDefinitions="Auto,*,Auto" Background="{TemplateBinding Background}">
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0" MinHeight="{DynamicResource MobilePageHeaderHeight}">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0" MinHeight="{DynamicResource MobilePageHeaderHeight}"
+                  IsEnabled="{TemplateBinding IsBusy, Converter={x:Static BoolConverters.Not}}">
               <Button Classes="mobile-button flat" Width="{DynamicResource MobileTouchTarget}" Command="{TemplateBinding BackCommand}" IsVisible="{TemplateBinding ShowBack}" AutomationProperties.Name="Back">
                 <m:MobileGlyph Kind="back" Width="20" Height="20" Foreground="{DynamicResource MobileText}"/>
               </Button>
               <ContentPresenter Name="PART_HeaderPresenter" Grid.Column="1" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" VerticalAlignment="Center" HorizontalAlignment="Center" TextElement.FontSize="18" TextElement.FontWeight="SemiBold"/>
               <ContentPresenter Name="PART_HeaderActionsPresenter" Grid.Column="2" Content="{TemplateBinding HeaderActions}" VerticalAlignment="Center"/>
             </Grid>
-            <ContentPresenter Grid.Row="1" Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+            <ContentPresenter Grid.Row="1" Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"
+                              IsEnabled="{TemplateBinding IsBusy, Converter={x:Static BoolConverters.Not}}"/>
             <StackPanel Grid.Row="2">
               <ProgressBar IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" Height="2" Foreground="{DynamicResource MobileAccent}"/>
-              <ContentPresenter Name="PART_FooterPresenter" Content="{TemplateBinding Footer}" HorizontalContentAlignment="Stretch" Margin="{DynamicResource MobilePageFooterMargin}"/>
+              <ContentPresenter Name="PART_FooterPresenter" Content="{TemplateBinding Footer}" HorizontalContentAlignment="Stretch" Margin="{DynamicResource MobilePageFooterMargin}"
+                                IsEnabled="{TemplateBinding IsBusy, Converter={x:Static BoolConverters.Not}}"/>
             </StackPanel>
           </Grid>
         </ControlTemplate>
