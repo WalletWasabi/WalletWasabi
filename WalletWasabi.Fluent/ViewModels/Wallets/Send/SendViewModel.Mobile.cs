@@ -2,6 +2,7 @@ using System;
 using System.Linq;
 using System.Reactive.Linq;
 using WalletWasabi.FeeRateEstimation;
+using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Mobile.ViewModels;
 using WalletWasabi.Services;
@@ -14,26 +15,19 @@ public partial class SendViewModel
 	public MobileSendFeeSelection CreateMobileFeeSelection()
 	{
 		var chart = new FeeChartViewModel(UiContext);
-		var updates = UiContext.Services.EventBus.AsObservable<MiningFeeRatesChanged>()
-			.Select(e =>
-			{
-				TransactionFeeHelper.TryGetFeeEstimates(e.AllFeeEstimate, _wallet.Network, out var estimates);
-				return estimates;
-			})
-			.Where(estimates => estimates is not null && estimates.Estimations.Count > 0)
+		// Upstream now exposes the current snapshot synchronously; absence of a
+		// snapshot disables the cards instead of waiting on the removed async API.
+		// Continue listening so unavailable estimates recover without reopening Send.
+		var quotes = Observable.Defer(() => UiContext.Services.EventBus.AsObservable<MiningFeeRatesChanged>()
+			.Select(change => change.AllFeeEstimate)
+			.StartWith(_wallet.FeeRateEstimations))
 			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(estimates => CreateMobileQuotes(chart, estimates!))
-			.Publish().RefCount();
-
-		var initial = Observable.FromAsync(cancellation => TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancellation))
-			.Timeout(TimeSpan.FromSeconds(15))
-			.TakeUntil(updates)
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Select(estimates => CreateMobileQuotes(chart, estimates))
-			.Catch<MobileFeeTargetQuote[], Exception>(_ => Observable.Return(Array.Empty<MobileFeeTargetQuote>()));
+			.Select(snapshot => TransactionFeeHelper.TryGetFeeEstimates(snapshot, _wallet.Network, out var estimates)
+				? CreateMobileQuotes(chart, estimates)
+				: Array.Empty<MobileFeeTargetQuote>());
 
 		return new MobileSendFeeSelection(UiContext.Services.GetFeeTarget(), UiContext.Services.SetFeeTarget,
-			initial.Merge(updates), RxApp.MainThreadScheduler);
+			quotes, RxApp.MainThreadScheduler);
 	}
 
 	private static MobileFeeTargetQuote[] CreateMobileQuotes(FeeChartViewModel chart, FeeRateEstimations estimates)
