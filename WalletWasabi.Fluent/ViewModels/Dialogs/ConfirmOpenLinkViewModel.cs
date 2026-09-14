@@ -3,7 +3,7 @@ using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Dialogs;
 
-[NavigationMetaData(Title = "Leaving Wasabi Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
+[NavigationMetaData(Title = "Privacy Warning", NavigationTarget = NavigationTarget.CompactDialogScreen)]
 public partial class ConfirmOpenLinkViewModel : DialogViewModelBase<bool>
 {
 	public ConfirmOpenLinkViewModel(UiContext uiContext, string link) : base(uiContext)

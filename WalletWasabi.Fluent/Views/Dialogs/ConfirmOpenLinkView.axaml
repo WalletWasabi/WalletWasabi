@@ -11,17 +11,20 @@
                  ScrollViewer.VerticalScrollBarVisibility="Disabled">
     <QuestionControl YesCommand="{Binding NextCommand}"
                        NoCommand="{Binding CancelCommand}"
-                       YesContent="Open" NoContent="Cancel"
+                       YesContent="Launch browser" NoContent="Cancel"
                        HighlightButton="YesButton">
       <QuestionControl.IconContent>
         <Viewbox MaxHeight="150" Margin="40">
-          <PathIcon Data="{StaticResource globe}" Opacity="0.6" />
+          <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
         </Viewbox>
       </QuestionControl.IconContent>
       <StackPanel Spacing="10">
-        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="You are about to leave Wasabi Wallet and open this clearnet link in your browser:" />
-        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Bold" Text="{Binding Link}" />
-        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="Your browser doesn't use Wasabi's Tor connection, so the website may see your IP address." />
+        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="This link will open in your default browser:" />
+        <DockPanel HorizontalAlignment="Center">
+          <ClipboardCopyButton DockPanel.Dock="Right" Margin="5 0 0 0" Text="{Binding Link}" />
+          <TextBlock VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Bold" Text="{Binding Link}" />
+        </DockPanel>
+        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="If Tor Browser is not your default browser, you will reveal your IP address to the website by opening the link." />
       </StackPanel>
     </QuestionControl>
   </ContentArea>

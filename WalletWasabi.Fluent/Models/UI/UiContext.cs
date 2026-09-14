@@ -89,7 +89,8 @@ public class UiContext
 
 	public async Task OpenBrowserAsync(string link)
 	{
-		if (await Navigate().To().ConfirmOpenLink(link).GetResultAsync())
+		var success = await Navigate().To().ConfirmOpenLink(link).GetResultAsync();
+		if (success)
 		{
 			await IoHelpers.OpenBrowserAsync(link);
 		}
