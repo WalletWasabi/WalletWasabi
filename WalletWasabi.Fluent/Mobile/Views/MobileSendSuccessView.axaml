@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendSuccessView"
+             x:DataType="vm:SendSuccessViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="{Binding Title}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Return to wallet" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}" VerticalAlignment="Center">
+      <Border Width="112" Height="112" CornerRadius="56" Background="{DynamicResource MobileAccentSurface}" HorizontalAlignment="Center">
+        <m:MobileGlyph Kind="check" Width="54" Height="54" Foreground="{DynamicResource MobileAccent}"/>
+      </Border>
+      <TextBlock Text="{Binding Title}" Classes="mobile-title" TextWrapping="Wrap" TextAlignment="Center"/>
+      <TextBlock Text="{Binding Caption}" Classes="mobile-caption" TextAlignment="Center"/>
+      <Border Classes="mobile-note"><TextBlock Text="A sent transaction is not yet a confirmed transaction. Track its status in your wallet history." Classes="mobile-caption"/></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
