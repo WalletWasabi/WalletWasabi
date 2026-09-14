@@ -31,12 +31,11 @@ public sealed class MobileTestApplication : Application
 			"avares://WalletWasabi.Fluent/Styles/Styles.axaml",
 			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileTheme.axaml",
 			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml",
+			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileCompositionTokens.axaml",
 			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileEntryControls.axaml"
 		};
 		foreach (var source in sources)
-		{
 			Styles.Add(new StyleInclude(new Uri("avares://WalletWasabi.Fluent/")) { Source = new Uri(source) });
-		}
 		Resources["ToggleSwitchThemeMinWidth"] = 0d;
 		DataTemplates.Add(new ViewLocator());
 	}

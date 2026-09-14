@@ -14,7 +14,6 @@
       <TextBlock x:CompileBindings="True" Text="{Binding Message}" Foreground="{DynamicResource SystemControlErrorTextForegroundBrush}" TextWrapping="Wrap" />
     </DataTemplate>
   </Application.DataTemplates>
-
   <Application.Resources>
     <x:Double x:Key="ToggleSwitchThemeMinWidth">0</x:Double>
     <converters:BoolStringConverter x:Key="ShowHideBoolConverter" True="Hide" False="Show" />
@@ -24,7 +23,6 @@
       <NativeMenuItem Header="Quit" Command="{Binding QuitCommand}" />
     </NativeMenu>
   </Application.Resources>
-
   <Application.Styles>
     <FluentTheme />
     <StyleInclude Source="avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml"/>
@@ -33,12 +31,9 @@
     <StyleInclude Source="avares://WalletWasabi.Fluent/Styles/Styles.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileTheme.axaml" />
     <StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml" />
+    <StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileCompositionTokens.axaml" />
   </Application.Styles>
-  <NativeMenu.Menu>
-    <NativeMenu>
-      <NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" />
-    </NativeMenu>
-  </NativeMenu.Menu>
+  <NativeMenu.Menu><NativeMenu><NativeMenuItem Header="About Wasabi Wallet" Command="{Binding AboutCommand}" /></NativeMenu></NativeMenu.Menu>
   <TrayIcon.Icons>
     <TrayIcons>
       <TrayIcon Icon="/Assets/WasabiLogo.ico" Command="{Binding ShowCommand}" ToolTipText="Wasabi Wallet">

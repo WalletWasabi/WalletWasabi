@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendView" x:DataType="vm:SendViewModel" x:CompileBindings="True">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendView" x:DataType="vm:SendViewModel" x:CompileBindings="True">
   <m:MobilePage Header="Send Bitcoin" ShowBack="True" BackCommand="{Binding CancelCommand}" IsBusy="{Binding IsBusy}">
     <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Review payment" Command="{Binding NextCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="MobileReviewPayment"/></m:MobilePage.Footer>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled">
@@ -17,6 +17,7 @@
           </Border>
           <TextBlock Text="The fee will be subtracted from this payment." Classes="mobile-caption" IsVisible="{Binding IsPrimarySubtractFee}"/>
         </StackPanel>
+        <v:MobileSendFeeSelector/>
         <StackPanel Spacing="8">
           <TextBlock Text="Recipient labels" Classes="mobile-label"/>
           <TextBlock Text="Only stored in your wallet. Labels help you avoid linking unrelated payments." Classes="mobile-caption"/>
