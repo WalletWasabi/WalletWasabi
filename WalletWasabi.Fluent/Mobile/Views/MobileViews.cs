@@ -44,56 +44,95 @@ public sealed class MobileCoinJoinSettingsPanel : UserControl { public MobileCoi
 
 public sealed class MobileWalletView : UserControl
 {
+	private readonly Grid _root;
 	private MobileWalletViewModel? _model;
 	private bool _attached;
-	public MobileWalletView() => AvaloniaXamlLoader.Load(this);
+
+	public MobileWalletView()
+	{
+		AvaloniaXamlLoader.Load(this);
+		_root = this.FindControl<Grid>("Root")!;
+		// Its compiled bindings expect MobileWalletViewModel, not the parent WalletViewModel.
+		_root.DataContext = null;
+	}
+
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) { base.OnAttachedToVisualTree(e); _attached = true; BindWallet(); }
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { _attached = false; Release(); base.OnDetachedFromVisualTree(e); }
 	protected override void OnDataContextChanged(EventArgs e) { base.OnDataContextChanged(e); if (_attached) BindWallet(); }
+
 	private void BindWallet()
 	{
-		if (_model?.Wallet == DataContext) return;
+		if (ReferenceEquals(_model?.Wallet, DataContext)) return;
 		Release();
 		if (DataContext is WalletViewModel wallet)
 		{
 			_model = new MobileWalletViewModel(wallet);
-			this.FindControl<Grid>("Root")!.DataContext = _model;
+			_root.DataContext = _model;
 			_model.Activate();
 		}
 	}
-	private void Release() { this.FindControl<Grid>("Root")!.DataContext = null; _model?.Dispose(); _model = null; }
+
+	private void Release() { _root.DataContext = null; _model?.Dispose(); _model = null; }
 }
 
 public sealed class MobileReceiveAddressView : UserControl
 {
+	private readonly MobilePage _root;
 	private MobileReceiveRequestViewModel? _model;
 	private bool _attached;
-	public MobileReceiveAddressView() => AvaloniaXamlLoader.Load(this);
+
+	public MobileReceiveAddressView()
+	{
+		AvaloniaXamlLoader.Load(this);
+		_root = this.FindControl<MobilePage>("Root")!;
+		_root.DataContext = null;
+	}
+
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) { base.OnAttachedToVisualTree(e); _attached = true; BindAddress(); }
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { _attached = false; Release(); base.OnDetachedFromVisualTree(e); }
 	protected override void OnDataContextChanged(EventArgs e) { base.OnDataContextChanged(e); if (_attached) BindAddress(); }
+
 	private void BindAddress()
 	{
-		if (_model?.Source == DataContext) return;
+		if (ReferenceEquals(_model?.Source, DataContext)) return;
 		Release();
-		if (DataContext is ReceiveAddressViewModel source) { _model = new MobileReceiveRequestViewModel(source); this.FindControl<MobilePage>("Root")!.DataContext = _model; }
+		if (DataContext is ReceiveAddressViewModel source)
+		{
+			_model = new MobileReceiveRequestViewModel(source);
+			_root.DataContext = _model;
+		}
 	}
-	private void Release() { this.FindControl<MobilePage>("Root")!.DataContext = null; _model?.Dispose(); _model = null; }
+
+	private void Release() { _root.DataContext = null; _model?.Dispose(); _model = null; }
 }
 
 public sealed class MobileSendFeeView : UserControl
 {
+	private readonly MobilePage _root;
 	private MobileFeeViewModel? _model;
 	private bool _attached;
-	public MobileSendFeeView() => AvaloniaXamlLoader.Load(this);
+
+	public MobileSendFeeView()
+	{
+		AvaloniaXamlLoader.Load(this);
+		_root = this.FindControl<MobilePage>("Root")!;
+		_root.DataContext = null;
+	}
+
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) { base.OnAttachedToVisualTree(e); _attached = true; BindFee(); }
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { _attached = false; Release(); base.OnDetachedFromVisualTree(e); }
 	protected override void OnDataContextChanged(EventArgs e) { base.OnDataContextChanged(e); if (_attached) BindFee(); }
+
 	private void BindFee()
 	{
-		if (_model?.Source == DataContext) return;
+		if (ReferenceEquals(_model?.Source, DataContext)) return;
 		Release();
-		if (DataContext is SendFeeViewModel source) { _model = new MobileFeeViewModel(source); this.FindControl<MobilePage>("Root")!.DataContext = _model; }
+		if (DataContext is SendFeeViewModel source)
+		{
+			_model = new MobileFeeViewModel(source);
+			_root.DataContext = _model;
+		}
 	}
-	private void Release() { this.FindControl<MobilePage>("Root")!.DataContext = null; _model?.Dispose(); _model = null; }
+
+	private void Release() { _root.DataContext = null; _model?.Dispose(); _model = null; }
 }
