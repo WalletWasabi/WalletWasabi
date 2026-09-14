@@ -27,6 +27,7 @@ public sealed class MobileSendFeeSelection : ReactiveObject, IDisposable
 	{
 		_selectTarget = selectTarget ?? throw new ArgumentNullException(nameof(selectTarget));
 		ArgumentNullException.ThrowIfNull(quotes);
+		ArgumentNullException.ThrowIfNull(scheduler);
 		_preferredTarget = preferredTarget;
 		Options = new[]
 		{
@@ -48,14 +49,23 @@ public sealed class MobileSendFeeSelection : ReactiveObject, IDisposable
 			var matches = quotes.Where(x => x.RequestedBlocks == option.RequestedBlocks && x.TargetBlocks > 0 && x.SatoshiPerVbyte > 0).ToArray();
 			option.Update(matches.Length == 1 ? matches[0] : null);
 		}
+
+		// A highlighted card is a claim about the target used by transaction review.
+		// Never round a saved preference to the nearest card, and never silently save
+		// a new target when refreshed estimates clamp an existing card differently.
 		var available = Options.Where(x => x.IsAvailable).ToArray();
+		var selected = available.FirstOrDefault(x => x.RequestedBlocks == _selectedRequest && x.TargetBlocks == _preferredTarget)
+			?? available.Where(x => x.TargetBlocks == _preferredTarget)
+				.OrderBy(x => Math.Abs((long)x.RequestedBlocks - _preferredTarget)).FirstOrDefault();
+		_selectedRequest = selected?.RequestedBlocks;
+		RefreshSelection();
 		Status = available.Length == 0
 			? "Estimates are unavailable. Review can still offer a custom fee rate."
-			: "Estimated rates. The final transaction fee is calculated in review.";
-		if (_selectedRequest is null && available.Length > 0)
-			_selectedRequest = available.OrderBy(x => Math.Abs(x.TargetBlocks - _preferredTarget))
-				.ThenBy(x => Math.Abs(x.RequestedBlocks - _preferredTarget)).First().RequestedBlocks;
-		RefreshSelection();
+			: selected is not null
+				? "Estimated rates. The final transaction fee is calculated in review."
+				: _preferredTarget > 0
+					? $"The saved target is {_preferredTarget} blocks. Choose a card to change it, or keep that target for review."
+					: "Choose a confirmation target, or set the fee in transaction review.";
 	}
 
 	private void Select(MobileFeeTargetOption option)
@@ -63,13 +73,12 @@ public sealed class MobileSendFeeSelection : ReactiveObject, IDisposable
 		if (_disposed || !option.IsAvailable) return;
 		try
 		{
-			// The existing preview initializes its fee from this same preference and
-			// rechecks it against current estimates and the actual transaction size.
+			// Commit presentation state only after saving the target succeeds.
 			_selectTarget(option.TargetBlocks);
 			_preferredTarget = option.TargetBlocks;
 			_selectedRequest = option.RequestedBlocks;
-			Status = "Confirmation target selected. Review shows the final fee before signing.";
 			RefreshSelection();
+			Status = "Confirmation target selected. Review shows the final fee before signing.";
 		}
 		catch (Exception)
 		{
@@ -79,7 +88,8 @@ public sealed class MobileSendFeeSelection : ReactiveObject, IDisposable
 
 	private void RefreshSelection()
 	{
-		foreach (var option in Options) option.IsSelected = option.IsAvailable && option.RequestedBlocks == _selectedRequest;
+		foreach (var option in Options)
+			option.IsSelected = option.IsAvailable && option.TargetBlocks == _preferredTarget && option.RequestedBlocks == _selectedRequest;
 	}
 
 	public void Dispose()
