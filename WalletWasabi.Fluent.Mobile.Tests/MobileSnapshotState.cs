@@ -3,6 +3,7 @@ using Avalonia.Animation;
 using Avalonia.Controls;
 using Avalonia.Media;
 using Avalonia.VisualTree;
+using ShapePath = Avalonia.Controls.Shapes.Path;
 
 namespace WalletWasabi.Fluent.Mobile.Tests;
 
@@ -21,6 +22,12 @@ internal static class MobileSnapshotState
 			// current base values. A paused clock would instead freeze a random tween.
 			visual.Transitions = null;
 			PrepareTransform(visual.RenderTransform);
+			// Fluent's chevron uses Style.Animations (not Transitions). The animation
+			// owns its original RotateTransform, so use a fresh transform at its
+			// declared final angle. Keep every pixel and the actual expanded state.
+			if (visual is ShapePath { Name: "ExpandCollapseChevron" } &&
+				visual.GetVisualAncestors().OfType<Expander>().FirstOrDefault() is { } expander)
+				visual.RenderTransform = new RotateTransform(expander.IsExpanded ? 180 : 0);
 			if (visual is TextBox textBox)
 			{
 				// Preserve keyboard focus and its visible focus outline. The blinking

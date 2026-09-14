@@ -18,13 +18,16 @@ def verify(path: Path) -> int:
     total = int(counters.get("total", "0"))
     executed = int(counters.get("executed", "0"))
     passed = int(counters.get("passed", "0"))
-    if total <= 0 or executed <= 0 or passed != executed:
+    if total <= 0 or executed != total or passed != executed:
         raise ValueError(f"Native tests did not pass: {passed}/{executed} executed; {total} discovered")
     if summary.get("outcome") != "Completed":
         raise ValueError(f"Native test run did not complete: {summary.get('outcome')}")
     for name in ("failed", "error", "timeout", "aborted", "disconnected"):
         if int(counters.get(name, "0")):
             raise ValueError(f"Native test run contains {name} results")
+    results = root.findall("t:Results/t:UnitTestResult", namespace)
+    if len(results) != executed or any(result.get("outcome") != "Passed" for result in results):
+        raise ValueError("Native test results disagree with successful execution counters")
     return executed
 
 

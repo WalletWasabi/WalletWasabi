@@ -12,6 +12,9 @@ on:
       - 'Directory.Packages.props'
       - '.github/workflows/mobile-design-validation.yml'
       - 'global.json'
+      - 'Roots.xml'
+      - 'NativeAot.props'
+      - 'Contrib/Aot/**'
       - 'WalletWasabi.Client/**'
       - 'WalletWasabi/**'
   workflow_dispatch:
@@ -25,7 +28,7 @@ concurrency:
 
 jobs:
   shared-ui:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     timeout-minutes: 30
     env:
       TZ: UTC
@@ -41,7 +44,7 @@ jobs:
           retention-days: 3
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          dotnet-version: '10.0.401'
       - uses: actions/setup-python@v5
         with:
           python-version: '3.13'
@@ -51,6 +54,7 @@ jobs:
         run: |
           python -m unittest discover -s Contrib/Mobile -p test_mobile_design.py -v
           python -m unittest discover -s Contrib/Mobile -p test_visual_review.py -v
+          python -m unittest discover -s Contrib/Mobile -p test_validation_gates.py -v
       - name: Validate native resources and export design tokens
         run: python Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
       - name: Build shared native UI and compiled XAML
@@ -59,20 +63,32 @@ jobs:
         run: dotnet build WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-tests-build.binlog
       - name: Run native mobile regression and rendering tests
         id: native-tests
-        # The root uses MTP for upstream xUnit v3. Avalonia 11 headless remains
-        # xUnit v2, so invoke its VSTest adapter explicitly without altering global.json.
+        # Upstream uses MTP/xUnit v3. Avalonia 11 headless uses its VSTest/xUnit v2 adapter.
         run: |
           dotnet vstest WalletWasabi.Fluent.Mobile.Tests/bin/Release/net10.0/WalletWasabi.Fluent.Mobile.Tests.dll --logger:"trx;LogFileName=mobile-ui.trx" --ResultsDirectory:TestResults
           python Contrib/Mobile/verify_test_results.py TestResults/mobile-ui.trx
       - name: Compare native frames with reviewed baselines
         if: always() && steps.native-tests.outcome != 'skipped'
-        # Missing baselines are unreviewed, not a pass. The gallery is emitted before
-        # the gate fails. Enroll images locally only after actually reviewing them.
+        # Missing or changed baselines fail. CI never approves its own output.
         run: >-
           python Contrib/Mobile/visual_review.py report
           --actual TestResults/mobile-previews
           --baseline Contrib/Mobile/Baselines
           --output TestResults/mobile-visual-review
+      - name: Repeat native tests in a fresh process
+        id: repeat-tests
+        if: always() && steps.native-tests.outcome == 'success'
+        env:
+          WASABI_MOBILE_TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/repeat/mobile-previews
+        run: |
+          dotnet vstest WalletWasabi.Fluent.Mobile.Tests/bin/Release/net10.0/WalletWasabi.Fluent.Mobile.Tests.dll --logger:"trx;LogFileName=mobile-ui-repeat.trx" --ResultsDirectory:TestResults/repeat
+          python Contrib/Mobile/verify_test_results.py TestResults/repeat/mobile-ui-repeat.trx
+      - name: Gate cross-process raster repeatability
+        if: always() && steps.repeat-tests.outcome == 'success'
+        run: >-
+          python Contrib/Mobile/verify_repeatability.py
+          TestResults/mobile-previews TestResults/repeat/mobile-previews
+          --output TestResults/repeatability.json
       - name: Preserve restore diagnostics
         if: always()
         shell: bash
@@ -85,5 +101,5 @@ jobs:
         with:
           name: mobile-ui-validation
           path: TestResults
-          if-no-files-found: warn
+          if-no-files-found: error
           retention-days: 7
