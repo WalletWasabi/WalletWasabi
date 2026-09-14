@@ -1,0 +1,54 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+  <Styles.Resources>
+    <m:MobileSectionConverter x:Key="MobileSectionEquals"/>
+    <ControlTheme x:Key="{x:Type m:MobilePage}" TargetType="m:MobilePage">
+      <Setter Property="Background" Value="{DynamicResource MobileBackground}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="VerticalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Grid RowDefinitions="Auto,*,Auto" Background="{TemplateBinding Background}">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0" MinHeight="60">
+              <Button Classes="mobile-button flat" Width="48" Command="{TemplateBinding BackCommand}" IsVisible="{TemplateBinding ShowBack}" AutomationProperties.Name="Back">
+                <m:MobileGlyph Kind="back" Width="20" Height="20" Foreground="{DynamicResource MobileText}"/>
+              </Button>
+              <ContentPresenter Grid.Column="1" Content="{TemplateBinding Header}" VerticalAlignment="Center" HorizontalAlignment="Center" TextElement.FontSize="18" TextElement.FontWeight="SemiBold"/>
+              <ContentPresenter Grid.Column="2" Content="{TemplateBinding HeaderActions}" VerticalAlignment="Center"/>
+            </Grid>
+            <ContentPresenter Grid.Row="1" Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
+            <StackPanel Grid.Row="2">
+              <ProgressBar IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" Height="2" Foreground="{DynamicResource MobileAccent}"/>
+              <ContentPresenter Content="{TemplateBinding Footer}" HorizontalContentAlignment="Stretch" Margin="16,8,16,16"/>
+            </StackPanel>
+          </Grid>
+        </ControlTemplate>
+      </Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="{x:Type m:MobileActionButton}" TargetType="m:MobileActionButton">
+      <Setter Property="MinHeight" Value="64"/>
+      <Setter Property="MinWidth" Value="48"/>
+      <Setter Property="Padding" Value="4,10"/>
+      <Setter Property="Background" Value="{DynamicResource MobileCardFill}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileSecondary}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
+      <Setter Property="BorderThickness" Value="1"/>
+      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <Border Name="PART_Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
+            <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
+              <m:MobileGlyph Kind="{TemplateBinding Icon}" Width="22" Height="22" Foreground="{TemplateBinding Foreground}"/>
+              <TextBlock Text="{TemplateBinding Label}" FontSize="11" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
+            </StackPanel>
+          </Border>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^:selected"><Setter Property="Foreground" Value="{DynamicResource MobileAccent}"/><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
+      <Style Selector="^:pointerover"><Setter Property="Background" Value="{DynamicResource MobileRaised}"/></Style>
+      <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.7"/></Style>
+      <Style Selector="^:focus-visible /template/ Border#PART_Surface"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="BorderThickness" Value="2"/></Style>
+      <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.4"/></Style>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>
