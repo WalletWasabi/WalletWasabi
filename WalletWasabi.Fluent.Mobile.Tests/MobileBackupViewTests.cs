@@ -59,6 +59,8 @@ public sealed class MobileBackupViewTests
 					$"{name} exceeds the {width}-DIP viewport.");
 			}
 			Assert.All(view.GetVisualDescendants().OfType<MobileSecretPanel>(), panel => Assert.False(panel.IsRevealed));
+			// An unavailable binding must not announce that an unverified backup is valid.
+			if (view.FindControl<TextBlock>("PositiveValidation") is { } validation) Assert.False(validation.IsVisible);
 			MobileScreenshot.Capture(window, $"backup-unbound-{name}-{width}-{(dark ? "dark" : "light")}",
 				"backup-" + name, "unbound-layout");
 		}

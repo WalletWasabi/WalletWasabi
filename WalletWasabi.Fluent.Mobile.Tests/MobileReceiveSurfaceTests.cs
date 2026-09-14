@@ -14,6 +14,11 @@ using WalletWasabi.Fluent.Mobile.ViewModels;
 using WalletWasabi.Fluent.Mobile.Views;
 using Gma.QrCodeNet.Encoding;
 using Xunit;
+using SkiaSharp;
+using ZXing;
+using ZXing.Common;
+using ZXing.QrCode;
+using ZXing.SkiaSharp;
 
 namespace WalletWasabi.Fluent.Mobile.Tests;
 
@@ -43,7 +48,8 @@ public sealed class MobileReceiveSurfaceTests
 	{
 		using var culture = new CultureScope();
 		using var bindings = new MobileScreenshot.BindingErrors();
-		using var state = CreateState(failQr: scenario == "qr-error");
+		string? copied = null;
+		using var state = CreateState(failQr: scenario == "qr-error", copy: text => { copied = text; return Task.CompletedTask; });
 		if (scenario is "amount" or "invalid") state.Amount = scenario == "amount" ? "0.015" : "0.000000001";
 		var view = new MobileReceiveSurface { DataContext = state };
 		var window = CreateWindow(view, width, height, dark);
@@ -56,7 +62,18 @@ public sealed class MobileReceiveSurfaceTests
 			Assert.Same(state.Matrix, view.FindControl<MobileQrCode>("RequestQr")!.Matrix);
 			Assert.Equal(scenario != "invalid", view.FindControl<Button>("CopyReceive")!.IsEffectivelyEnabled);
 			Assert.Equal(scenario is "amount" or "invalid", view.FindControl<StackPanel>("AmountEditor")!.IsVisible);
-			if (scenario is "address" or "amount") AssertEncodedPayload(state);
+			if (scenario is "address" or "amount")
+			{
+				AssertEncodedPayload(state);
+				// Small phones scroll vertically; verify the complete QR can be brought
+				// into view and actually decoded from the rendered framebuffer.
+				view.FindControl<MobileQrCode>("RequestQr")!.BringIntoView(); Pump();
+				MobileScreenshot.Capture(window, $"receive-scannable-{scenario}-{width}-{height}-{(dark ? "dark" : "light")}",
+					"receive-scannable-" + scenario, "bound-regtest-presentation");
+				Assert.Equal(state.PaymentRequest, DecodeRenderedQr(window));
+				Press(window, view.FindControl<Button>("CopyReceive")!);
+				Assert.Equal(state.PaymentRequest, copied);
+			}
 			else Assert.Null(state.Matrix);
 			MobileScreenshot.AssertNoHorizontalOverflow(window);
 			Assert.Empty(bindings.Errors);
@@ -147,6 +164,20 @@ public sealed class MobileReceiveSurfaceTests
 
 	// Use the application's actual QR encoder, not a synthetic module pattern.
 	private static IObservable<bool[,]> Encode(string text) => Observable.Return(new QrEncoder().Encode(text).Matrix.InternalArray);
+
+	private static string? DecodeRenderedQr(Window window)
+	{
+		using var frame = window.CaptureRenderedFrame();
+		Assert.NotNull(frame);
+		using var encoded = new MemoryStream();
+		frame.Save(encoded);
+		using var bitmap = SKBitmap.Decode(encoded.ToArray());
+		Assert.NotNull(bitmap);
+		// Same luminance source and decoder as the production camera reader, but
+		// with real headless Skia pixels instead of requiring a physical camera.
+		var source = new SKBitmapLuminanceSource(bitmap);
+		return new QRCodeReader().decode(new BinaryBitmap(new HybridBinarizer(source)))?.Text;
+	}
 
 	private static void AssertEncodedPayload(MobileReceivePresentation state)
 	{

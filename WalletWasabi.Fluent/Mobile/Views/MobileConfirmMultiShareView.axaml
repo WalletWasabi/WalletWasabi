@@ -21,7 +21,7 @@
           <StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
             <TextBlock Text="{Binding CurrentWord.Index, StringFormat='Choose word #{0}'}" Classes="mobile-label" IsVisible="{Binding !AllWordsConfirmed}"/>
             <TextBlock Text="Choose from your written backup. Tap an incorrect selection again to change it." Classes="mobile-caption" IsVisible="{Binding !AllWordsConfirmed}"/>
-            <TextBlock Text="Backup words verified" Classes="mobile-label" IsVisible="{Binding AllWordsConfirmed}"/>
+            <TextBlock Name="PositiveValidation" Text="Backup words verified" Classes="mobile-label" IsVisible="{Binding AllWordsConfirmed, FallbackValue=False}"/>
           </StackPanel>
         </Border>
         <ItemsControl Name="VerificationSlots" ItemsSource="{Binding ConfirmationWords}">

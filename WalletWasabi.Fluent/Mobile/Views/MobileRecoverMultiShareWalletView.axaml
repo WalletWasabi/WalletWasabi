@@ -23,8 +23,8 @@
                        AllowDuplication="True" EnableCounter="True" EnableDelete="False"
                        Watermark="Enter one recovery word at a time"/>
             <TextBlock Text="{Binding Mnemonics.Count, StringFormat='{}{0} words entered'}" Classes="mobile-caption"/>
-            <TextBlock Text="The entered words passed the wallet's validation." Foreground="{DynamicResource MobileAccent}"
-                       TextWrapping="Wrap" IsVisible="{Binding IsMnemonicsValid}"/>
+            <TextBlock Name="PositiveValidation" Text="The entered words passed the wallet's validation." Foreground="{DynamicResource MobileAccent}"
+                       TextWrapping="Wrap" IsVisible="{Binding IsMnemonicsValid, FallbackValue=False}"/>
           </StackPanel>
         </Border>
         <Button Classes="mobile-button" Content="Advanced recovery options" Command="{Binding AdvancedRecoveryOptionsDialogCommand}"
