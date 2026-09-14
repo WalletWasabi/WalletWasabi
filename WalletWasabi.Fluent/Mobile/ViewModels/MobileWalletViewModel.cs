@@ -24,6 +24,8 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 	private readonly CompositeDisposable _lifetime = new();
 	private readonly SerialDisposable _subscriptions = new();
 	private readonly SerialDisposable _coinSubscriptions = new();
+	private readonly Dictionary<uint256, MobileTransactionItem> _transactionRows = new();
+	private readonly Dictionary<string, MobileCoinItem> _coinRows = new(StringComparer.Ordinal);
 	private string _section = "home";
 	private string _query = "";
 	private string _filter = "All";
@@ -43,7 +45,8 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 		Wallet = wallet;
 		_discreet = wallet.UiContext.ApplicationSettings.PrivacyMode;
 		_usdRate = wallet.WalletModel.AmountProvider.UsdExchangeRate;
-		_lifetime.Add(_subscriptions); _lifetime.Add(_coinSubscriptions);
+		_lifetime.Add(_subscriptions);
+		_lifetime.Add(_coinSubscriptions);
 		NavigateCommand = Own(ReactiveCommand.Create<string>(Navigate));
 		ToggleDiscreetCommand = Own(ReactiveCommand.Create(() =>
 		{
@@ -109,81 +112,135 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 	public void Activate()
 	{
 		ObjectDisposedException.ThrowIf(_disposed, this);
-		var subscriptions = new CompositeDisposable(); _subscriptions.Disposable = subscriptions;
+		var subscriptions = new CompositeDisposable();
+		_subscriptions.Disposable = subscriptions;
 		Wallet.WalletModel.Balances.ObserveOn(RxApp.MainThreadScheduler).Subscribe(amount => { _balanceSatoshis = amount.Btc.Satoshi; NotifyAmounts(); UpdateChart(); }).DisposeWith(subscriptions);
 		Wallet.WalletModel.AmountProvider.BtcToUsdExchangeRate.ObserveOn(RxApp.MainThreadScheduler).Subscribe(rate => { _usdRate = rate; NotifyAmounts(); RebuildHistory(); }).DisposeWith(subscriptions);
 		Wallet.UiContext.ApplicationSettings.WhenAnyValue(x => x.PrivacyMode).ObserveOn(RxApp.MainThreadScheduler).Subscribe(hidden =>
 		{
-			_discreet = hidden; NotifyAmounts(); RebuildHistory(); foreach (var coin in Coins) coin.Refresh();
+			_discreet = hidden;
+			NotifyAmounts();
+			RebuildHistory();
+			foreach (var coin in Coins) coin.Refresh();
 		}).DisposeWith(subscriptions);
 		Wallet.WalletModel.Privacy.Progress.ObserveOn(RxApp.MainThreadScheduler).Subscribe(value => PrivacyPercent = Math.Clamp(value, 0, 100)).DisposeWith(subscriptions);
 		Wallet.WalletModel.Transactions.Cache.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 		{
 			_history = Wallet.WalletModel.Transactions.Cache.Items.SelectMany(IndividualTransactions).GroupBy(x => x.Id).Select(x => x.First()).OrderByDescending(x => x.Date).ToArray();
-			RebuildHistory(); UpdateChart();
+			RebuildHistory();
+			UpdateChart();
 		}).DisposeWith(subscriptions);
 		Wallet.WalletModel.Coins.List.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => RebuildCoins()).DisposeWith(subscriptions);
 	}
+
 	private static IEnumerable<TransactionModel> IndividualTransactions(TransactionModel transaction)
 	{
-		if (transaction.IsCoinjoinGroup) { foreach (var child in transaction.Children) foreach (var individual in IndividualTransactions(child)) yield return individual; }
+		if (transaction.IsCoinjoinGroup)
+		{
+			foreach (var child in transaction.Children)
+				foreach (var individual in IndividualTransactions(child))
+					yield return individual;
+		}
 		else yield return transaction;
 	}
+
 	public void Deactivate() { _subscriptions.Disposable = Disposable.Empty; _coinSubscriptions.Disposable = Disposable.Empty; }
 	private T Own<T>(T command) where T : IDisposable { _lifetime.Add(command); return command; }
 	private void NotifyAmounts() { this.RaisePropertyChanged(nameof(BalanceText)); this.RaisePropertyChanged(nameof(FiatBalanceText)); this.RaisePropertyChanged(nameof(ShowHistoryChart)); }
+
 	public void Navigate(string section)
 	{
 		if (section is not ("home" or "history" or "privacy" or "coinjoin" or "coins" or "discover" or "transaction")) return;
 		if (section == "home") { Query = ""; Filter = "All"; }
-		Section = section; Message = "";
+		Section = section;
+		Message = "";
 	}
+
 	private void OpenTransaction(MobileTransactionItem transaction) { SelectedTransaction = transaction; Navigate("transaction"); }
+
 	private void RebuildHistory()
 	{
-		var selectedId = SelectedTransaction?.Model.Id;
-		Transactions.Clear(); RecentTransactions.Clear();
+		var present = new HashSet<uint256>();
+		var visible = new List<MobileTransactionItem>();
+		var recent = new List<MobileTransactionItem>(4);
 		foreach (var model in _history)
 		{
-			var row = new MobileTransactionItem(model, _discreet, _usdRate, OpenTransaction);
-			if (RecentTransactions.Count < 4) RecentTransactions.Add(row);
-			if (model.Id == selectedId) SelectedTransaction = row;
+			present.Add(model.Id);
+			if (!_transactionRows.TryGetValue(model.Id, out var row))
+			{
+				row = new MobileTransactionItem(model, _discreet, _usdRate, OpenTransaction);
+				_transactionRows.Add(model.Id, row);
+			}
+			else row.Update(model, _discreet, _usdRate);
+			if (recent.Count < 4) recent.Add(row);
 			if (Filter == "CoinJoin" && !model.IsCoinjoin || Filter == "Received" && (model.IsCoinjoin || model.Amount <= Money.Zero) || Filter == "Sent" && (model.IsCoinjoin || model.Amount >= Money.Zero)) continue;
 			if (!string.IsNullOrWhiteSpace(Query) && !model.Id.ToString().Contains(Query, StringComparison.OrdinalIgnoreCase) && !model.Labels.ToString().Contains(Query, StringComparison.OrdinalIgnoreCase) && !row.Title.Contains(Query, StringComparison.OrdinalIgnoreCase)) continue;
-			Transactions.Add(row);
+			visible.Add(row);
+		}
+		foreach (var removed in _transactionRows.Keys.Where(id => !present.Contains(id)).ToArray()) _transactionRows.Remove(removed);
+		MobileCollectionSync.Reconcile(RecentTransactions, recent);
+		MobileCollectionSync.Reconcile(Transactions, visible);
+		if (SelectedTransaction is { } selected && !present.Contains(selected.Model.Id))
+		{
+			SelectedTransaction = null;
+			if (Section == "transaction") { Section = "history"; Message = "This transaction is no longer present in the wallet history."; }
 		}
 		this.RaisePropertyChanged(nameof(IsEmpty));
 	}
+
 	private void UpdateChart()
 	{
-		var recent = _history.Take(30).ToArray();
 		var values = new List<double> { _balanceSatoshis / 100_000_000d };
 		var balance = _balanceSatoshis / 100_000_000d;
-		foreach (var transaction in recent) { balance -= (double)transaction.Amount.ToDecimal(MoneyUnit.BTC); values.Add(balance); }
-		values.Reverse(); BalanceHistory = values; this.RaisePropertyChanged(nameof(ShowHistoryChart));
+		foreach (var transaction in _history.Take(30)) { balance -= (double)transaction.Amount.ToDecimal(MoneyUnit.BTC); values.Add(balance); }
+		values.Reverse();
+		if (BalanceHistory.SequenceEqual(values)) return;
+		BalanceHistory = values;
+		this.RaisePropertyChanged(nameof(ShowHistoryChart));
 	}
+
 	private void RebuildCoins()
 	{
-		var selected = Coins.Where(x => x.IsSelected).Select(x => x.Outpoint).ToHashSet(StringComparer.Ordinal);
 		_coinSubscriptions.Disposable = Disposable.Empty;
-		var subscriptions = new CompositeDisposable(); _coinSubscriptions.Disposable = subscriptions;
-		Coins.Clear();
+		var subscriptions = new CompositeDisposable();
+		_coinSubscriptions.Disposable = subscriptions;
+		var present = new HashSet<string>(StringComparer.Ordinal);
+		var desired = new List<MobileCoinItem>();
 		foreach (var model in Wallet.WalletModel.Coins.List.Items.OrderByDescending(x => x.Amount))
 		{
-			var row = new MobileCoinItem(model, () => _discreet, OnSelectionChanged);
-			row.IsSelected = selected.Contains(row.Outpoint); Coins.Add(row);
-			model.SubscribeToCoinChanges(subscriptions);
-			model.Changed.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => { row.Refresh(); NotifyCoins(); }).DisposeWith(subscriptions);
+			var id = model.GetSmartCoin().Outpoint.ToString();
+			present.Add(id);
+			if (!_coinRows.TryGetValue(id, out var row))
+			{
+				row = new MobileCoinItem(model, () => _discreet, OnSelectionChanged);
+				_coinRows.Add(id, row);
+			}
+			else row.ReplaceModel(model);
+			desired.Add(row);
+		}
+		foreach (var removed in _coinRows.Keys.Where(id => !present.Contains(id)).ToArray()) _coinRows.Remove(removed);
+		MobileCollectionSync.Reconcile(Coins, desired);
+		foreach (var row in desired)
+		{
+			row.Model.SubscribeToCoinChanges(subscriptions);
+			row.Model.Changed.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => { row.Refresh(); NotifyCoins(); }).DisposeWith(subscriptions);
 		}
 		NotifyCoins();
 	}
+
 	private void NotifyCoins()
 	{
-		this.RaisePropertyChanged(nameof(CoinCount)); this.RaisePropertyChanged(nameof(PrivateCoinCount)); this.RaisePropertyChanged(nameof(PendingCoinCount)); this.RaisePropertyChanged(nameof(ExcludedCoinCount)); OnSelectionChanged();
+		this.RaisePropertyChanged(nameof(CoinCount));
+		this.RaisePropertyChanged(nameof(PrivateCoinCount));
+		this.RaisePropertyChanged(nameof(PendingCoinCount));
+		this.RaisePropertyChanged(nameof(ExcludedCoinCount));
+		OnSelectionChanged();
 		var total = Coins.Sum(x => x.Model.Amount.Satoshi);
 		PrivacyPercent = total > 0 ? (int)(Coins.Where(x => x.Model.IsPrivate).Sum(x => x.Model.Amount.Satoshi) * 100m / total) : 0;
 	}
+
 	private void OnSelectionChanged() { this.RaisePropertyChanged(nameof(SelectionCount)); this.RaisePropertyChanged(nameof(SelectionText)); }
+
 	private async Task SetExclusionAsync(bool exclude)
 	{
 		if (IsBusy) return;
@@ -203,55 +260,92 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 		catch (Exception) { if (!_disposed) Message = "Could not confirm saving CoinJoin exclusions. Refresh and try again."; }
 		finally { if (!_disposed) IsBusy = false; }
 	}
-	public void Dispose() { if (_disposed) return; _disposed = true; _lifetime.Dispose(); }
+
+	public void Dispose()
+	{
+		if (_disposed) return;
+		_disposed = true;
+		_lifetime.Dispose();
+		_transactionRows.Clear();
+		_coinRows.Clear();
+	}
 }
 
-public sealed class MobileTransactionItem
+public sealed class MobileTransactionItem : ReactiveObject
 {
+	private TransactionModel _model;
+	private bool _hidden;
+	private decimal _rate;
+	private DisplayState _displayState;
+	private static readonly string[] DisplayProperties =
+	{
+		nameof(Model), nameof(Title), nameof(Icon), nameof(AmountText), nameof(FiatText), nameof(Labels),
+		nameof(Id), nameof(Date), nameof(Status), nameof(Fee), nameof(FeeRate), nameof(Block), nameof(IsIncoming)
+	};
+
 	public MobileTransactionItem(TransactionModel model, bool hidden, decimal rate, Action<MobileTransactionItem> open)
 	{
-		Model = model; Title = model.IsCoinjoin ? "CoinJoin" : model.Amount < Money.Zero ? "Sent" : "Received";
-		Icon = model.IsCoinjoin ? "coinjoin" : model.Amount < Money.Zero ? "send" : "receive";
-		var btc = model.Amount.ToDecimal(MoneyUnit.BTC);
-		AmountText = hidden ? "•••••• BTC" : $"{(btc > 0 ? "+" : "")}{btc:0.########} BTC";
-		FiatText = hidden ? "•••••• USD" : rate > 0 ? $"${Math.Abs(btc) * rate:N2} USD" : "";
-		Labels = hidden ? "Hidden in discreet mode" : model.Labels.ToString(); Id = hidden ? "Hidden in discreet mode" : model.Id.ToString();
-		Date = model.Date.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
-		Status = model.IsConfirmed ? $"{model.Confirmations} confirmations" : model.Status.ToString();
-		Fee = hidden ? "•••••• BTC" : model.Fee is { } fee ? $"{fee.ToDecimal(MoneyUnit.BTC):0.########} BTC" : "Unknown";
-		FeeRate = model.FeeRate is { } feeRate ? $"{feeRate.SatoshiPerByte:0.###} sat/vB" : "Unknown";
-		Block = model.BlockHeight > 0 ? model.BlockHeight.ToString(CultureInfo.InvariantCulture) : "Unconfirmed";
+		_model = model;
+		Update(model, hidden, rate);
 		OpenCommand = new MobileActionCommand(() => open(this));
 	}
-	public TransactionModel Model { get; }
-	public string Title { get; }
-	public string Icon { get; }
-	public string AmountText { get; }
-	public string FiatText { get; }
-	public string Labels { get; }
-	public string Id { get; }
-	public string Date { get; }
-	public string Status { get; }
-	public string Fee { get; }
-	public string FeeRate { get; }
-	public string Block { get; }
+
+	public TransactionModel Model => _model;
+	public string Title => Model.IsCoinjoin ? "CoinJoin" : Model.Amount < Money.Zero ? "Sent" : "Received";
+	public string Icon => Model.IsCoinjoin ? "coinjoin" : Model.Amount < Money.Zero ? "send" : "receive";
+	public string AmountText => _hidden ? "•••••• BTC" : $"{(Model.Amount > Money.Zero ? "+" : "")}{Model.Amount.ToDecimal(MoneyUnit.BTC):0.########} BTC";
+	public string FiatText => _hidden ? "•••••• USD" : _rate > 0 ? $"${Math.Abs(Model.Amount.ToDecimal(MoneyUnit.BTC)) * _rate:N2} USD" : "";
+	public string Labels => _hidden ? "Hidden in discreet mode" : Model.Labels.ToString();
+	public string Id => _hidden ? "Hidden in discreet mode" : Model.Id.ToString();
+	public string Date => Model.Date.ToLocalTime().ToString("MMM d, yyyy · HH:mm", CultureInfo.InvariantCulture);
+	public string Status => Model.IsConfirmed ? $"{Model.Confirmations} confirmations" : Model.Status.ToString();
+	public string Fee => _hidden ? "•••••• BTC" : Model.Fee is { } fee ? $"{fee.ToDecimal(MoneyUnit.BTC):0.########} BTC" : "Unknown";
+	public string FeeRate => Model.FeeRate is { } feeRate ? $"{feeRate.SatoshiPerByte:0.###} sat/vB" : "Unknown";
+	public string Block => Model.BlockHeight > 0 ? Model.BlockHeight.ToString(CultureInfo.InvariantCulture) : "Unconfirmed";
 	public bool IsIncoming => !Model.IsCoinjoin && Model.Amount > Money.Zero;
 	public ICommand OpenCommand { get; }
+
+	public void Update(TransactionModel model, bool hidden, decimal rate)
+	{
+		var next = new DisplayState(model.Id, model.Amount.Satoshi, model.Fee?.Satoshi, model.FeeRate?.SatoshiPerByte,
+			model.Date, model.Labels.ToString(), model.Confirmations, model.BlockHeight, model.IsConfirmed, model.IsCoinjoin, model.Status.ToString(), hidden, rate);
+		_model = model;
+		_hidden = hidden;
+		_rate = rate;
+		if (next == _displayState) return;
+		_displayState = next;
+		foreach (var property in DisplayProperties) this.RaisePropertyChanged(property);
+	}
+
+	private readonly record struct DisplayState(uint256 Id, long Satoshis, long? FeeSatoshis, decimal? FeeRate,
+		DateTimeOffset Date, string Labels, uint Confirmations, uint Block, bool Confirmed, bool Coinjoin, string Status, bool Hidden, decimal Rate);
 }
 
 public sealed class MobileCoinItem : ReactiveObject
 {
 	private readonly Func<bool> _hidden;
 	private readonly Action _selectionChanged;
+	private CoinModel _model;
 	private bool _selected;
-	public MobileCoinItem(CoinModel model, Func<bool> hidden, Action selectionChanged) { Model = model; _hidden = hidden; _selectionChanged = selectionChanged; }
-	public CoinModel Model { get; }
+	public MobileCoinItem(CoinModel model, Func<bool> hidden, Action selectionChanged) { _model = model; _hidden = hidden; _selectionChanged = selectionChanged; }
+	public CoinModel Model => _model;
 	public string Outpoint => Model.GetSmartCoin().Outpoint.ToString();
 	public string Address => _hidden() ? "Hidden in discreet mode" : Model.BtcAddress ?? Outpoint;
 	public string AmountText => _hidden() ? "•••••• BTC" : $"{Model.Amount.ToDecimal(MoneyUnit.BTC):0.########} BTC";
 	public string Privacy => Model.IsPrivate ? "Private" : Model.IsSemiPrivate ? "Semi-private" : "Non-private";
 	public string Status => Model.IsCoinJoinInProgress ? "CoinJoin in progress" : Model.IsExcludedFromCoinJoin ? "Excluded from CoinJoin" : Model.IsConfirmed ? "Confirmed" : "Unconfirmed";
-	public bool IsSelected { get => _selected; set { this.RaiseAndSetIfChanged(ref _selected, value); _selectionChanged(); } }
+	public bool IsSelected
+	{
+		get => _selected;
+		set { if (_selected == value) return; this.RaiseAndSetIfChanged(ref _selected, value); _selectionChanged(); }
+	}
+	public void ReplaceModel(CoinModel model)
+	{
+		if (model.GetSmartCoin().Outpoint != _model.GetSmartCoin().Outpoint) throw new ArgumentException("A row cannot change its coin identity.", nameof(model));
+		_model = model;
+		this.RaisePropertyChanged(nameof(Model));
+		Refresh();
+	}
 	public void Refresh() { this.RaisePropertyChanged(nameof(Address)); this.RaisePropertyChanged(nameof(AmountText)); this.RaisePropertyChanged(nameof(Privacy)); this.RaisePropertyChanged(nameof(Status)); }
 }
 
