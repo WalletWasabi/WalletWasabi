@@ -4,6 +4,7 @@ using Avalonia.Headless.XUnit;
 using Avalonia.Markup.Xaml.Styling;
 using Avalonia.Media;
 using Avalonia.Themes.Fluent;
+using ReactiveUI;
 using ReactiveUI.Avalonia;
 using Xunit;
 
@@ -27,6 +28,13 @@ public sealed class MobileTestApplication : Application
 {
 	public override void Initialize()
 	{
+		// ReactiveUI 22 commands use RxSchedulers directly. Under a test runner,
+		// UseReactiveUI's RxApp setter only sets the thread-local test override
+		// when RxSchedulers already has a default. Initialize both before views
+		// create commands; never send CanExecuteChanged to a worker thread.
+		RxApp.MainThreadScheduler = AvaloniaScheduler.Instance;
+		RxSchedulers.MainThreadScheduler = AvaloniaScheduler.Instance;
+
 		Styles.Add(new FluentTheme());
 		var sources = new[]
 		{
@@ -43,5 +51,15 @@ public sealed class MobileTestApplication : Application
 			Styles.Add(new StyleInclude(new Uri("avares://WalletWasabi.Fluent/")) { Source = new Uri(source) });
 		Resources["ToggleSwitchThemeMinWidth"] = 0d;
 		DataTemplates.Add(new ViewLocator());
+	}
+}
+
+public sealed class MobileSchedulerTests
+{
+	[AvaloniaFact]
+	public void CommandsAndLegacyObserversUseTheHeadlessDispatcher()
+	{
+		Assert.Same(AvaloniaScheduler.Instance, RxApp.MainThreadScheduler);
+		Assert.Same(AvaloniaScheduler.Instance, RxSchedulers.MainThreadScheduler);
 	}
 }
