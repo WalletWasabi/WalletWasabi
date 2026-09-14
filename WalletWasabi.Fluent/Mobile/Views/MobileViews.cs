@@ -46,6 +46,7 @@ public sealed class MobileWalletView : UserControl
 {
 	private readonly Grid _root;
 	private MobileWalletViewModel? _model;
+	private MobileTransactionNavigation? _transactionNavigation;
 	private bool _attached;
 
 	public MobileWalletView()
@@ -68,11 +69,27 @@ public sealed class MobileWalletView : UserControl
 		{
 			_model = new MobileWalletViewModel(wallet);
 			_root.DataContext = _model;
-			_model.Activate();
+			try
+			{
+				_model.Activate();
+				_transactionNavigation = MobileTransactionNavigation.Attach(_model);
+			}
+			catch
+			{
+				Release();
+				throw;
+			}
 		}
 	}
 
-	private void Release() { _root.DataContext = null; _model?.Dispose(); _model = null; }
+	private void Release()
+	{
+		_transactionNavigation?.Dispose();
+		_transactionNavigation = null;
+		_root.DataContext = null;
+		_model?.Dispose();
+		_model = null;
+	}
 }
 
 public sealed class MobileReceiveAddressView : UserControl
