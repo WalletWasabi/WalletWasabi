@@ -1,14 +1,14 @@
 ## Release Highlights
 
-#### 🌳 Payjoin now supports Taproot addresses
+#### 🌳 Taproot support for Payjoin
 #### 🔐 Stricter security controls across the wallet
 #### 🛡️ Enhanced coinjoin blame round protection
 
 ## Release Summary
-Wasabi Wallet v2.8.3 brings Taproot support to Payjoin transactions, implements stricter security controls throughout the wallet, and enhances coinjoin reliability with improved blame round handling.
+Wasabi Wallet v2.8.3 adds Taproot support for Payjoin transactions, implements stricter security controls throughout the wallet, and strengthens verification of coinjoin blame rounds.
 
 ### 🌳 Payjoin now supports Taproot addresses
-Payjoin transactions now work with Taproot (P2TR) addresses, enabling more efficient and private collaborative transactions with lower fees and improved fungibility.
+Payjoin transactions now work with Taproot (P2TR) addresses. Payjoins are two-party collaborative transactions that improve fungibility.
 
 ### 🔐 Stricter security controls
 Multiple security hardening measures have been implemented:
@@ -19,13 +19,13 @@ Multiple security hardening measures have been implemented:
 
 ### 🛡️ Enhanced coinjoin blame round protection
 Improved coinjoin reliability and security:
-- Clients now verify blame round inputs before participating
+- Clients now verify blame round inputs match the original round
 - Fixed payment stalling when only non-private coins are temporarily banned
 - Wallet no longer participates in blame rounds when it didn't sign in the original round
 
 ### 🎵 Music box always visible
-The coinjoin music box is now always visible in the UI for easier access to coinjoin status and controls.
+The coinjoin "music box" is now always visible in the UI for easier access to coinjoin status and controls.
 
 ### 🐛 Bug fixes
-- Fixed Blockstream exchange rate provider
+- Fixed blockchain info exchange rate provider
 - Improved handling of missing Windows startup registry key
