@@ -1,6 +1,12 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
   <Styles.Resources>
     <m:MobileSectionConverter x:Key="MobileSectionEquals"/>
+    <x:Double x:Key="MobilePageHeaderHeight">60</x:Double>
+    <x:Double x:Key="MobileActionHeight">64</x:Double>
+    <x:Double x:Key="MobileActionIconSize">22</x:Double>
+    <x:Double x:Key="MobileActionLabelSize">11</x:Double>
+    <Thickness x:Key="MobilePageFooterMargin">16,8,16,16</Thickness>
+    <Thickness x:Key="MobileActionPadding">4,10</Thickness>
     <ControlTheme x:Key="{x:Type m:MobilePage}" TargetType="m:MobilePage">
       <Setter Property="Background" Value="{DynamicResource MobileBackground}"/>
       <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
@@ -9,37 +15,37 @@
       <Setter Property="Template">
         <ControlTemplate>
           <Grid RowDefinitions="Auto,*,Auto" Background="{TemplateBinding Background}">
-            <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0" MinHeight="60">
-              <Button Classes="mobile-button flat" Width="48" Command="{TemplateBinding BackCommand}" IsVisible="{TemplateBinding ShowBack}" AutomationProperties.Name="Back">
+            <Grid ColumnDefinitions="Auto,*,Auto" Margin="8,0" MinHeight="{DynamicResource MobilePageHeaderHeight}">
+              <Button Classes="mobile-button flat" Width="{DynamicResource MobileTouchTarget}" Command="{TemplateBinding BackCommand}" IsVisible="{TemplateBinding ShowBack}" AutomationProperties.Name="Back">
                 <m:MobileGlyph Kind="back" Width="20" Height="20" Foreground="{DynamicResource MobileText}"/>
               </Button>
-              <ContentPresenter Grid.Column="1" Content="{TemplateBinding Header}" VerticalAlignment="Center" HorizontalAlignment="Center" TextElement.FontSize="18" TextElement.FontWeight="SemiBold"/>
-              <ContentPresenter Grid.Column="2" Content="{TemplateBinding HeaderActions}" VerticalAlignment="Center"/>
+              <ContentPresenter Name="PART_HeaderPresenter" Grid.Column="1" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}" VerticalAlignment="Center" HorizontalAlignment="Center" TextElement.FontSize="18" TextElement.FontWeight="SemiBold"/>
+              <ContentPresenter Name="PART_HeaderActionsPresenter" Grid.Column="2" Content="{TemplateBinding HeaderActions}" VerticalAlignment="Center"/>
             </Grid>
             <ContentPresenter Grid.Row="1" Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch"/>
             <StackPanel Grid.Row="2">
               <ProgressBar IsIndeterminate="True" IsVisible="{TemplateBinding IsBusy}" Height="2" Foreground="{DynamicResource MobileAccent}"/>
-              <ContentPresenter Content="{TemplateBinding Footer}" HorizontalContentAlignment="Stretch" Margin="16,8,16,16"/>
+              <ContentPresenter Name="PART_FooterPresenter" Content="{TemplateBinding Footer}" HorizontalContentAlignment="Stretch" Margin="{DynamicResource MobilePageFooterMargin}"/>
             </StackPanel>
           </Grid>
         </ControlTemplate>
       </Setter>
     </ControlTheme>
     <ControlTheme x:Key="{x:Type m:MobileActionButton}" TargetType="m:MobileActionButton">
-      <Setter Property="MinHeight" Value="64"/>
-      <Setter Property="MinWidth" Value="48"/>
-      <Setter Property="Padding" Value="4,10"/>
+      <Setter Property="MinHeight" Value="{DynamicResource MobileActionHeight}"/>
+      <Setter Property="MinWidth" Value="{DynamicResource MobileTouchTarget}"/>
+      <Setter Property="Padding" Value="{DynamicResource MobileActionPadding}"/>
       <Setter Property="Background" Value="{DynamicResource MobileCardFill}"/>
       <Setter Property="Foreground" Value="{DynamicResource MobileSecondary}"/>
       <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
-      <Setter Property="BorderThickness" Value="1"/>
-      <Setter Property="CornerRadius" Value="12"/>
+      <Setter Property="BorderThickness" Value="{DynamicResource MobileHairline}"/>
+      <Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/>
       <Setter Property="Template">
         <ControlTemplate>
           <Border Name="PART_Surface" Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}" BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{TemplateBinding CornerRadius}" Padding="{TemplateBinding Padding}">
             <StackPanel Spacing="6" HorizontalAlignment="Center" VerticalAlignment="Center">
-              <m:MobileGlyph Kind="{TemplateBinding Icon}" Width="22" Height="22" Foreground="{TemplateBinding Foreground}"/>
-              <TextBlock Text="{TemplateBinding Label}" FontSize="11" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
+              <m:MobileGlyph Kind="{TemplateBinding Icon}" Width="{DynamicResource MobileActionIconSize}" Height="{DynamicResource MobileActionIconSize}" Foreground="{TemplateBinding Foreground}"/>
+              <TextBlock Text="{TemplateBinding Label}" FontSize="{DynamicResource MobileActionLabelSize}" Foreground="{TemplateBinding Foreground}" HorizontalAlignment="Center"/>
             </StackPanel>
           </Border>
         </ControlTemplate>
