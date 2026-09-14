@@ -45,9 +45,7 @@
 		<BundleResource Include="..\WalletWasabi\Announcements\ReleaseHighlights.md">
 			<Link>Announcements\ReleaseHighlights.md</Link>
 		</BundleResource>
-		<BundleResource Include="..\WalletWasabi\Scheme\Wasabilib.scm">
-			<Link>Scheme\Wasabilib.scm</Link>
-		</BundleResource>
+		<!-- Bootstrap generates Wasabilib.scm in the writable scripts directory. -->
 		<BundleResource Include="..\WalletWasabi\Scheme\Stdlib.scm">
 			<Link>Scheme\Stdlib.scm</Link>
 		</BundleResource>
