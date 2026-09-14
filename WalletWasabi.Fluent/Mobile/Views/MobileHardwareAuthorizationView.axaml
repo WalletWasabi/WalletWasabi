@@ -1,0 +1,43 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Dialogs.Authorization"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileHardwareAuthorizationView"
+             x:DataType="vm:HardwareWalletAuthDialogViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Authorize on your device" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer>
+      <StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
+        <Button Name="AuthorizeHardware" Classes="mobile-button primary" Content="Verify on hardware wallet"
+                Command="{Binding NextCommand}" HorizontalAlignment="Stretch"
+                AutomationProperties.AutomationId="MobileAuthorizeHardware"/>
+        <Button Classes="mobile-button" Content="Cancel" Command="{Binding CancelCommand}" HorizontalAlignment="Stretch"/>
+      </StackPanel>
+    </m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <Border Classes="mobile-card">
+          <StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+            <Border Width="88" Height="88" CornerRadius="44" Background="{DynamicResource MobileAccentSurface}" HorizontalAlignment="Center">
+              <m:MobileGlyph Kind="shield" Width="42" Height="42" Foreground="{DynamicResource MobileAccent}"/>
+            </Border>
+            <TextBlock Text="Your device approves the transaction" Classes="mobile-title" TextWrapping="Wrap" TextAlignment="Center"/>
+            <TextBlock Text="{Binding WalletType}" Classes="mobile-caption" TextAlignment="Center"/>
+          </StackPanel>
+        </Border>
+        <Border Classes="mobile-card">
+          <StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+            <TextBlock Text="Connect and unlock your hardware wallet" Classes="mobile-label" TextWrapping="Wrap"/>
+            <TextBlock Text="Use the connection supported by your device and this platform. The existing hardware-wallet integration performs the authorization." Classes="mobile-caption"/>
+            <TextBlock Text="Verify on the hardware display" Classes="mobile-label" TextWrapping="Wrap"/>
+            <TextBlock Text="Check the recipient, payment amount, and fee before approving on your device." Classes="mobile-caption"/>
+          </StackPanel>
+        </Border>
+        <TextBlock Name="AuthorizationError" Text="{Binding AuthorizationFailedMessage}" Classes="mobile-error"
+                   IsVisible="{Binding HasAuthorizationFailed}"/>
+        <Border Classes="mobile-note">
+          <TextBlock Text="Wasabi does not need your device's recovery words. Do not enter them into a phone or computer to approve this transaction." Classes="mobile-caption"/>
+        </Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>
