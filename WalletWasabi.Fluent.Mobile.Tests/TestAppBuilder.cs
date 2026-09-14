@@ -1,7 +1,8 @@
 using Avalonia;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
-using Avalonia.Markup.Xaml;
+using Avalonia.Markup.Xaml.Styling;
+using Avalonia.Themes.Fluent;
 using Xunit;
 
 [assembly: AvaloniaTestApplication(typeof(WalletWasabi.Fluent.Mobile.Tests.TestAppBuilder))]
@@ -20,6 +21,21 @@ public sealed class MobileTestApplication : Application
 {
 	public override void Initialize()
 	{
-		AvaloniaXamlLoader.Load(this, new Uri("avares://WalletWasabi.Fluent/App.axaml"));
+		Styles.Add(new FluentTheme());
+		var sources = new[]
+		{
+			"avares://Avalonia.Controls.TreeDataGrid/Themes/Fluent.axaml",
+			"avares://WalletWasabi.Fluent/Styles/Themes/Fluent.axaml",
+			"avares://WalletWasabi.Fluent/Icons/Icons.axaml",
+			"avares://WalletWasabi.Fluent/Styles/Styles.axaml",
+			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileTheme.axaml",
+			"avares://WalletWasabi.Fluent/Mobile/Styles/MobileControls.axaml"
+		};
+		foreach (var source in sources)
+		{
+			Styles.Add(new StyleInclude(new Uri("avares://WalletWasabi.Fluent/")) { Source = new Uri(source) });
+		}
+		Resources["ToggleSwitchThemeMinWidth"] = 0d;
+		DataTemplates.Add(new ViewLocator());
 	}
 }
