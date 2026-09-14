@@ -13,11 +13,11 @@
       <ListBox Grid.Row="1" ItemsSource="{Binding Source.Items}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
         <ListBox.ItemTemplate><DataTemplate x:DataType="vm:AddressViewModel">
           <Border Classes="mobile-card" Margin="0,0,0,12"><StackPanel Spacing="12">
-            <c:PrivacyContentControl><StackPanel Spacing="8">
+            <m:MobileSensitiveContent IsHidden="{Binding UiContext.ApplicationSettings.PrivacyMode, FallbackValue=True}"><StackPanel Spacing="8">
               <TextBlock Text="{Binding Labels}" Classes="mobile-label" TextWrapping="Wrap"/>
               <TextBlock Text="{Binding AddressText}" Foreground="{DynamicResource MobileText}" TextWrapping="Wrap"/>
               <TextBlock Text="{Binding ScriptType}" Classes="mobile-caption"/>
-            </StackPanel></c:PrivacyContentControl>
+            </StackPanel></m:MobileSensitiveContent>
             <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
               <Button Classes="mobile-button" Content="Show QR" Command="{Binding NavigateCommand}" HorizontalAlignment="Stretch" Margin="0,0,4,4"/>
               <Button Grid.Column="1" Classes="mobile-button" Content="Copy address" Command="{Binding CopyAddressCommand}" HorizontalAlignment="Stretch" Margin="4,0,0,4"/>
