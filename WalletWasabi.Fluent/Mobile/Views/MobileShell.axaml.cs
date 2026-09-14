@@ -12,6 +12,7 @@ using Avalonia.Markup.Xaml;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
 using ReactiveUI;
+using WalletWasabi.Fluent.Mobile.Controls;
 using WalletWasabi.Fluent.Mobile.ViewModels;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Navigation;
@@ -25,12 +26,15 @@ public sealed class MobileShell : UserControl
 	private CompositeDisposable? _subscriptions;
 	private TopLevel? _topLevel;
 	private RoutableViewModel? _lastPage;
+
 	public MobileShell()
 	{
 		AvaloniaXamlLoader.Load(this);
 		DataTemplates.Insert(0, new MobileEntryViewLocator());
+		DataTemplates.Insert(0, new MobileFlowViewLocator());
 		AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
 	}
+
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		base.OnAttachedToVisualTree(e);
@@ -38,18 +42,23 @@ public sealed class MobileShell : UserControl
 		if (_topLevel is not null) _topLevel.BackRequested += OnBackRequested;
 		BindNavigation();
 	}
+
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e)
 	{
 		if (_topLevel is not null) _topLevel.BackRequested -= OnBackRequested;
 		_topLevel = null;
-		_subscriptions?.Dispose(); _subscriptions = null; _lastPage = null;
+		_subscriptions?.Dispose();
+		_subscriptions = null;
+		_lastPage = null;
 		base.OnDetachedFromVisualTree(e);
 	}
+
 	protected override void OnDataContextChanged(EventArgs e)
 	{
 		base.OnDataContextChanged(e);
 		if (_topLevel is not null) BindNavigation();
 	}
+
 	private void BindNavigation()
 	{
 		_subscriptions?.Dispose();
@@ -59,7 +68,18 @@ public sealed class MobileShell : UserControl
 		main.WhenAnyValue(x => x.MainScreen.CurrentPage, x => x.DialogScreen.CurrentPage, x => x.FullScreen.CurrentPage, x => x.CompactDialogScreen.CurrentPage)
 			.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => UpdatePresentation(main)).DisposeWith(_subscriptions);
 	}
-	private static RoutableViewModel? ActivePage(MainViewModel main) => main.CompactDialogScreen.CurrentPage ?? main.DialogScreen.CurrentPage ?? main.FullScreen.CurrentPage ?? main.MainScreen.CurrentPage;
+
+	private static RoutableViewModel? ActivePage(MainViewModel main) =>
+		main.CompactDialogScreen.CurrentPage ?? main.DialogScreen.CurrentPage ?? main.FullScreen.CurrentPage ?? main.MainScreen.CurrentPage;
+
+	private ContentControl ActiveHost(MainViewModel main)
+	{
+		var name = main.CompactDialogScreen.CurrentPage is not null ? "CompactContent"
+			: main.DialogScreen.CurrentPage is not null ? "DialogContent"
+			: main.FullScreen.CurrentPage is not null ? "FullContent" : "MainContent";
+		return this.FindControl<ContentControl>(name)!;
+	}
+
 	private void UpdatePresentation(MainViewModel main)
 	{
 		this.FindControl<Border>("ApplicationNavigation")!.IsVisible = main.MainScreen.CurrentPage is not WalletViewModel;
@@ -68,19 +88,30 @@ public sealed class MobileShell : UserControl
 		var page = ActivePage(main);
 		if (ReferenceEquals(page, _lastPage)) return;
 		_lastPage = page;
-		var targetName = main.CompactDialogScreen.CurrentPage is not null ? "CompactContent" : main.DialogScreen.CurrentPage is not null ? "DialogContent" : main.FullScreen.CurrentPage is not null ? "FullContent" : "MainContent";
+		var host = ActiveHost(main);
 		Dispatcher.UIThread.Post(() =>
 		{
 			if (_topLevel is null || !ReferenceEquals(page, ActivePage(main))) return;
-			this.FindControl<ContentControl>(targetName)?.Focus();
+			host.Focus();
 		}, DispatcherPriority.Background);
 	}
-	private void OnBackRequested(object? sender, RoutedEventArgs e) { if (HandleBack()) e.Handled = true; }
-	private void OnKeyDown(object? sender, KeyEventArgs e) { if (e.Key is Key.Escape or Key.BrowserBack && HandleBack()) e.Handled = true; }
+
+	private void OnBackRequested(object? sender, RoutedEventArgs e)
+	{
+		if (HandleBack()) e.Handled = true;
+	}
+
+	private void OnKeyDown(object? sender, KeyEventArgs e)
+	{
+		if ((e.Key is Key.Escape or Key.BrowserBack) && HandleBack()) e.Handled = true;
+	}
+
 	private bool HandleBack()
 	{
 		if (DataContext is not MainViewModel main || ActivePage(main) is not { } page) return false;
-		if (page.IsBusy) return true;
+		// Reactive commands can be executing before the view model sets IsBusy.
+		// Inspect only the topmost route, not a busy page beneath an authorization dialog.
+		if (page.IsBusy || ActiveHost(main).GetVisualDescendants().OfType<MobilePage>().Any(x => x.IsBusy)) return true;
 		// Settings.CancelCommand is reset-to-default, not dismissal.
 		if (page is SettingsPageViewModel) { Execute(page.NextCommand); return true; }
 		if (main.IsDialogOpen())
@@ -98,9 +129,11 @@ public sealed class MobileShell : UserControl
 		}
 		return page.EnableBack && Execute(page.BackCommand);
 	}
+
 	private static bool Execute(ICommand? command)
 	{
 		if (command?.CanExecute(null) != true) return false;
-		command.Execute(null); return true;
+		command.Execute(null);
+		return true;
 	}
 }
