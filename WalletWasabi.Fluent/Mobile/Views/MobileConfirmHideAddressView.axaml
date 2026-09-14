@@ -1,7 +1,6 @@
 <UserControl xmlns="https://github.com/avaloniaui"
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
-             xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Dialogs"
              x:Class="WalletWasabi.Fluent.Mobile.Views.MobileConfirmHideAddressView"
              x:DataType="vm:ConfirmHideAddressViewModel" x:CompileBindings="True">
@@ -13,7 +12,7 @@
     </StackPanel></m:MobilePage.Footer>
     <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
       <m:MobileGlyph Kind="eye" Width="56" Height="56" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/>
-      <Border Classes="mobile-card"><c:PrivacyContentControl><TextBlock Text="{Binding Labels}" Classes="mobile-label" TextWrapping="Wrap"/></c:PrivacyContentControl></Border>
+      <Border Classes="mobile-card"><m:MobileSensitiveContent IsHidden="{Binding UiContext.ApplicationSettings.PrivacyMode, FallbackValue=True}"><TextBlock Text="{Binding Labels}" Classes="mobile-label" TextWrapping="Wrap"/></m:MobileSensitiveContent></Border>
       <TextBlock Text="The address will no longer appear in your list of addresses awaiting payment." Classes="mobile-caption"/>
       <Border Classes="mobile-note"><TextBlock Text="Hiding an address does not revoke it. A sender can still pay to it, and the wallet still controls it." Classes="mobile-caption"/></Border>
     </StackPanel></ScrollViewer>
