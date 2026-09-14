@@ -126,23 +126,13 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 		Wallet.WalletModel.Privacy.Progress.ObserveOn(RxApp.MainThreadScheduler).Subscribe(value => PrivacyPercent = Math.Clamp(value, 0, 100)).DisposeWith(subscriptions);
 		Wallet.WalletModel.Transactions.Cache.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ =>
 		{
-			_history = Wallet.WalletModel.Transactions.Cache.Items.SelectMany(IndividualTransactions).GroupBy(x => x.Id).Select(x => x.First()).OrderByDescending(x => x.Date).ToArray();
+			_history = MobileHistoryProjection.Flatten(Wallet.WalletModel.Transactions.Cache.Items);
 			RebuildHistory();
 			UpdateChart();
 		}).DisposeWith(subscriptions);
 		Wallet.WalletModel.Coins.List.Connect().ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => RebuildCoins()).DisposeWith(subscriptions);
 	}
 
-	private static IEnumerable<TransactionModel> IndividualTransactions(TransactionModel transaction)
-	{
-		if (transaction.IsCoinjoinGroup)
-		{
-			foreach (var child in transaction.Children)
-				foreach (var individual in IndividualTransactions(child))
-					yield return individual;
-		}
-		else yield return transaction;
-	}
 
 	public void Deactivate() { _subscriptions.Disposable = Disposable.Empty; _coinSubscriptions.Disposable = Disposable.Empty; }
 	private T Own<T>(T command) where T : IDisposable { _lifetime.Add(command); return command; }
@@ -173,7 +163,7 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 			}
 			else row.Update(model, _discreet, _usdRate);
 			if (recent.Count < 4) recent.Add(row);
-			if (Filter == "CoinJoin" && !model.IsCoinjoin || Filter == "Received" && (model.IsCoinjoin || model.Amount <= Money.Zero) || Filter == "Sent" && (model.IsCoinjoin || model.Amount >= Money.Zero)) continue;
+			if (!MobileHistoryProjection.MatchesFilter(model.Type, Filter)) continue;
 			if (!string.IsNullOrWhiteSpace(Query) && !model.Id.ToString().Contains(Query, StringComparison.OrdinalIgnoreCase) && !model.Labels.ToString().Contains(Query, StringComparison.OrdinalIgnoreCase) && !row.Title.Contains(Query, StringComparison.OrdinalIgnoreCase)) continue;
 			visible.Add(row);
 		}
@@ -190,10 +180,7 @@ public sealed class MobileWalletViewModel : ReactiveObject, IDisposable
 
 	private void UpdateChart()
 	{
-		var values = new List<double> { _balanceSatoshis / 100_000_000d };
-		var balance = _balanceSatoshis / 100_000_000d;
-		foreach (var transaction in _history.Take(30)) { balance -= (double)transaction.Amount.ToDecimal(MoneyUnit.BTC); values.Add(balance); }
-		values.Reverse();
+		var values = MobileHistoryProjection.BalanceHistory(_balanceSatoshis, _history);
 		if (BalanceHistory.SequenceEqual(values)) return;
 		BalanceHistory = values;
 		this.RaisePropertyChanged(nameof(ShowHistoryChart));
@@ -291,8 +278,8 @@ public sealed class MobileTransactionItem : ReactiveObject
 	}
 
 	public TransactionModel Model => _model;
-	public string Title => Model.IsCoinjoin ? "CoinJoin" : Model.Amount < Money.Zero ? "Sent" : "Received";
-	public string Icon => Model.IsCoinjoin ? "coinjoin" : Model.Amount < Money.Zero ? "send" : "receive";
+	public string Title => MobileHistoryProjection.Title(Model.Type);
+	public string Icon => MobileHistoryProjection.Icon(Model.Type);
 	public string AmountText => _hidden ? "•••••• BTC" : $"{(Model.Amount > Money.Zero ? "+" : "")}{Model.Amount.ToDecimal(MoneyUnit.BTC):0.########} BTC";
 	public string FiatText => _hidden ? "•••••• USD" : _rate > 0 ? $"${Math.Abs(Model.Amount.ToDecimal(MoneyUnit.BTC)) * _rate:N2} USD" : "";
 	public string Labels => _hidden ? "Hidden in discreet mode" : Model.Labels.ToString();
@@ -302,13 +289,13 @@ public sealed class MobileTransactionItem : ReactiveObject
 	public string Fee => _hidden ? "•••••• BTC" : Model.Fee is { } fee ? $"{fee.ToDecimal(MoneyUnit.BTC):0.########} BTC" : "Unknown";
 	public string FeeRate => Model.FeeRate is { } feeRate ? $"{feeRate.SatoshiPerByte:0.###} sat/vB" : "Unknown";
 	public string Block => Model.BlockHeight > 0 ? Model.BlockHeight.ToString(CultureInfo.InvariantCulture) : "Unconfirmed";
-	public bool IsIncoming => !Model.IsCoinjoin && Model.Amount > Money.Zero;
+	public bool IsIncoming => Model.Type == TransactionType.IncomingTransaction;
 	public ICommand OpenCommand { get; }
 
 	public void Update(TransactionModel model, bool hidden, decimal rate)
 	{
 		var next = new DisplayState(model.Id, model.Amount.Satoshi, model.Fee?.Satoshi, model.FeeRate?.SatoshiPerByte,
-			model.Date, model.Labels.ToString(), model.Confirmations, model.BlockHeight, model.IsConfirmed, model.IsCoinjoin, model.Status.ToString(), hidden, rate);
+			model.Date, model.Labels.ToString(), model.Confirmations, model.BlockHeight, model.IsConfirmed, model.Type, model.Status.ToString(), hidden, rate);
 		_model = model;
 		_hidden = hidden;
 		_rate = rate;
@@ -318,7 +305,7 @@ public sealed class MobileTransactionItem : ReactiveObject
 	}
 
 	private readonly record struct DisplayState(uint256 Id, long Satoshis, long? FeeSatoshis, decimal? FeeRate,
-		DateTimeOffset Date, string Labels, uint Confirmations, uint Block, bool Confirmed, bool Coinjoin, string Status, bool Hidden, decimal Rate);
+		DateTimeOffset Date, string Labels, uint Confirmations, uint Block, bool Confirmed, TransactionType Type, string Status, bool Hidden, decimal Rate);
 }
 
 public sealed class MobileCoinItem : ReactiveObject
