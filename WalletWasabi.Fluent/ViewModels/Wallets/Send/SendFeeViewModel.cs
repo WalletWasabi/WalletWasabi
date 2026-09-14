@@ -2,11 +2,9 @@ using System.Reactive.Concurrency;
 using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
-using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -113,16 +111,9 @@ public partial class SendFeeViewModel : DialogViewModelBase<FeeRate>
 
 		RxApp.MainThreadScheduler.Schedule(async () =>
 		{
-			FeeRateEstimations feeRateEstimations;
-			using var cancelTokenSource = new CancellationTokenSource(TimeSpan.FromSeconds(15));
-
-			try
+			if (!TransactionFeeHelper.TryGetFeeEstimates(_wallet, out var feeRateEstimations))
 			{
-				feeRateEstimations = await TransactionFeeHelper.GetFeeEstimatesWhenReadyAsync(_wallet, cancelTokenSource.Token);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogInfo(ex);
+				Logger.LogInfo("Transaction fee estimations are not available.");
 				await FeeEstimationsAreNotAvailableAsync();
 				return;
 			}

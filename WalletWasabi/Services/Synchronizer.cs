@@ -1,17 +1,10 @@
-using System.Collections.Generic;
-using NBitcoin;
 using NBitcoin.RPC;
-using System.Linq;
 using System.Net.Http;
 using System.Net.Sockets;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.BitcoinP2p;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Stores;
 
 namespace WalletWasabi.Services;
@@ -30,6 +23,7 @@ public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint2
 
 public static class FilterProviders
 {
+	public static readonly TimeSpan WaitForBlockHeadersToCatchUp = TimeSpan.FromSeconds(15);
 	private const int MaxFiltersPerBitcoinRpcRequest = 100;
 
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
@@ -39,11 +33,12 @@ public static class FilterProviders
 	public static FilterProvider CreateBitcoinRpcFilterProvider(IRPCClient bitcoinClient, ConcurrentChain blockHeaderChain) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, blockHeaderChain, fromHash, fromHeight, cancellationToken);
 
-	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, CompactFilterBehavior.FilterSynchronizationState synchronizationState) =>
+	public static FilterProvider CreateBitcoinP2pFilterProvider(FilterHeaderChain filterHeadersChain, ConcurrentChain blockHeadersChain, FilterSynchronizationState synchronizationState) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinP2pAsync(filterHeadersChain, blockHeadersChain, synchronizationState, fromHeight, fromHash, cancellationToken);
 
-	private static async Task<(ChainHeight BestHeight, uint256[] BlockHashes)> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
-	ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
+	/// <returns>Result with a best blockchain height along with block hashes to retrieve, or a failure indicating a reorg.</returns>
+	private static async Task<Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>> GetBlockHashesAsync(IRPCClient bitcoinRpcClient,
+		ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		if (blockHeaderChain.Tip?.Height > fromHeight)
 		{
@@ -53,31 +48,91 @@ public static class FilterProviders
 				.Take(MaxFiltersPerBitcoinRpcRequest)
 				.ToArray();
 
-			return ((uint)blockHeaderChain.Tip.Height, chainBlockHashes);
+			return (BestHeight: (uint)blockHeaderChain.Tip.Height, BlockHashes: chainBlockHashes);
 		}
 
 		var currentHeight = await bitcoinRpcClient.GetBlockCountAsync(cancellationToken).ConfigureAwait(false);
-		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - fromHeight);
-		if (nbOfFiltersToFetch == 0)
+		var nbOfFiltersToFetch = Math.Min(MaxFiltersPerBitcoinRpcRequest, currentHeight - (int)fromHeight);
+
+		// = ~ No new block, common case.
+		// < ~ Current height can decrease too in a very rare reorg case.
+		if (nbOfFiltersToFetch <= 0)
 		{
-			return ((uint)currentHeight, []);
+			return nbOfFiltersToFetch < 0
+				? Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true)
+				: Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Ok((BestHeight: (uint)currentHeight, BlockHashes: []));
 		}
 
+		// Get block hashes from RPC.
+		var heights = Enumerable.Range((int)fromHeight, nbOfFiltersToFetch + 1).ToArray();
+		var blockHashes = await GetBlockHashesByHeightsFromRpcAsync(bitcoinRpcClient, heights, cancellationToken).ConfigureAwait(false);
+
+		// No block hashes returned by the RPC after RPC reported new blocks. It indicates a reorg.
+		if (blockHashes.Length == 0)
+		{
+			return Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true);
+		}
+
+		// The first block hash returned by the RPC does not match the expected `fromHash`. It indicates a reorg.
+		if (blockHashes.Length > 0 && blockHashes[0] != fromHash)
+		{
+			return Result<(ChainHeight BestHeight, uint256[] BlockHashes), bool>.Fail(true);
+		}
+
+		return (BestHeight: (uint)currentHeight, BlockHashes: blockHashes[1..]);
+	}
+
+	/// <summary>
+	/// Returns the block hashes for the given heights from the Bitcoin RPC. If any of the requests fail, it will return only the successfully completed block hashes.
+	/// </summary>
+	private static async Task<uint256[]> GetBlockHashesByHeightsFromRpcAsync(IRPCClient bitcoinRpcClient, int[] heights, CancellationToken cancellationToken)
+	{
 		var batchClient = bitcoinRpcClient.PrepareBatch();
-		var blockHashTasks = Enumerable.Range((int)fromHeight + 1, (int)nbOfFiltersToFetch)
-			.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken))
-			.ToArray();
+		var blockHashTasks = heights.Select(h => batchClient.GetBlockHashAsync(h, cancellationToken)).ToArray();
 		await batchClient.SendBatchAsync(cancellationToken).ConfigureAwait(false);
 
-		var blockHashes = await Task.WhenAll(blockHashTasks).ConfigureAwait(false);
-		return ((uint)currentHeight, blockHashes);
+		var blockHashes = blockHashTasks
+			.TakeWhile(t => t.IsCompletedSuccessfully)
+			.Select(t => t.Result)
+			.ToArray();
+
+		return blockHashes;
+	}
+
+	/// <summary>
+	/// The stored filter tip is orphaned when the block header chain has reached its height
+	/// but no longer contains its hash there (the block lost a reorg).
+	/// </summary>
+	private static bool IsOrphanedFilterTip(ConcurrentChain blockHeaderChain, uint fromHeight, uint256 fromHash)
+	{
+		if (blockHeaderChain.Tip is not { } headerTip || headerTip.Height < fromHeight)
+		{
+			// The header chain is behind the stored tip, so it cannot contradict it.
+			return false;
+		}
+
+		var storedTipBlock = blockHeaderChain.GetBlock(fromHash);
+		return storedTipBlock is null || storedTipBlock.Height != (int)fromHeight;
 	}
 
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinRpcAsync(IRPCClient bitcoinRpcClient, ConcurrentChain blockHeaderChain, uint256 fromHash, uint fromHeight, CancellationToken cancellationToken)
 	{
 		try
 		{
-			var (bestHeight, blockHashes) = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			if (IsOrphanedFilterTip(blockHeaderChain, fromHeight, fromHash))
+			{
+				// Makes the caller remove the orphaned filter from the store.
+				return BestBlockUnknown;
+			}
+
+			var result = await GetBlockHashesAsync(bitcoinRpcClient, blockHeaderChain, fromHash, fromHeight, cancellationToken).ConfigureAwait(false);
+			if (!result.IsOk)
+			{
+				return BestBlockUnknown;
+			}
+
+			var blockHashes = result.Value.BlockHashes;
+
 			if (blockHashes.Length == 0)
 			{
 				return AlreadyOnBestBlock;
@@ -103,7 +158,7 @@ public static class FilterProviders
 				height++;
 			}
 
-			return NewFiltersAvailable(bestHeight, filters);
+			return NewFiltersAvailable(result.Value.BestHeight, filters);
 		}
 		catch (RPCException e) when (e.RPCCode == RPCErrorCode.RPC_INVALID_PARAMETER) // Block height out of range
 		{
@@ -122,7 +177,7 @@ public static class FilterProviders
 	private static async Task<FilterFetchingResult> GetFiltersFromBitcoinP2pAsync(
 		FilterHeaderChain filterHeadersChain,
 		ConcurrentChain blockHeadersChain,
-		CompactFilterBehavior.FilterSynchronizationState synchronizationState,
+		FilterSynchronizationState synchronizationState,
 		uint fromHeight,
 		uint256 fromHash,
 		CancellationToken cancellationToken)
@@ -132,27 +187,32 @@ public static class FilterProviders
 			var filterHeadersTip = filterHeadersChain.Tip;
 			if (filterHeadersTip is null)
 			{
-				Logger.LogTrace("Filter headers tip is null. Retrying in 1 second");
+				Logger.LogTrace("Filter headers tip is null. Retrying in 1 second.");
 				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 			}
 
-			if (filterHeadersTip.Height <= fromHeight)
+			// Block headers are synchronized from scratch. Filter headers are synchronized from an appropriate checkpoint.
+			if (blockHeadersChain.Height < filterHeadersChain.TipHeight)
 			{
-				// Filter headers not yet synced past our position; wait and retry.
-				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
-				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+				Logger.LogTrace($"Block headers chain is not synchronized yet ({blockHeadersChain.Height} < {filterHeadersChain.TipHeight}). Retrying in {WaitForBlockHeadersToCatchUp.TotalSeconds} seconds.");
+				return FilterFetchingResult.Fail(WaitForBlockHeadersToCatchUp);
 			}
 
-			// Check if a reorg has occurred - filter headers don't match current block chain
+			// Must run before the height comparison below: after a tip reorg the filter header
+			// tip sits at the same height as the stored tip, just on another block.
 			if (synchronizationState.IsReorg(fromHeight, fromHash))
 			{
 				return BestBlockUnknown;
 			}
 
-			// Check if we're already caught up
+			if (filterHeadersTip.Height < fromHeight)
+			{
+				Logger.LogTrace($"Filter headers not synced past current position (tip: {filterHeadersTip.Height}, current: {fromHeight}), retrying in 1 second");
+				return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+			}
+
 			if (filterHeadersTip.Height == fromHeight)
 			{
-				Logger.LogDebug("Already on best block");
 				return AlreadyOnBestBlock;
 			}
 

@@ -1,8 +1,5 @@
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.Helpers.PowerSaving;
 

@@ -119,7 +119,7 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 					 return isSelected && !WalletModel.IsCoinJoinEnabled && (isPointerOver || isMusicBoxFlyoutDisplayed);
 				 }
 
-				 return (isSelected && !hasNoBalance && (!areAllCoinsPrivate || (isPointerOver || isMusicBoxFlyoutDisplayed))) && !WalletModel.IsWatchOnlyWallet;
+				 return isSelected && !hasNoBalance && !WalletModel.IsWatchOnlyWallet;
 			 });
 
 

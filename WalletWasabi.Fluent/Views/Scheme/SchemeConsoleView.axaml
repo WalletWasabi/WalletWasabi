@@ -44,6 +44,11 @@
                     <Run Text="{Binding Text}" />
                   </TextBlock>
                 </DataTemplate>
+                <DataTemplate DataType="{x:Type console:SchemeInternalOutputResult}">
+                  <TextBlock Foreground="{DynamicResource ConsoleInternalOutputResultForegroundColor }" TextAlignment="Right" Margin="0 10 0 0">
+                    <Run Text="{Binding Text}" />
+                  </TextBlock>
+                </DataTemplate>
               </ItemsControl.DataTemplates>
               <Interaction.Behaviors>
                 <behaviors:ScrollToEndOnItemsChangedBehavior ScrollViewer="OutputScrollViewer" />

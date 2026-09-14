@@ -7,7 +7,7 @@ namespace WalletWasabi.Tests.UnitTests.Transactions;
 
 internal class DemoCoinSets
 {
-	public static IEnumerable<(string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)> LotOfCoins =
+	public static (string Label, int KeyIndex, decimal Amount, bool Confirmed, int AnonymitySet)[] LotOfCoins =
 		new[]
 		{
 			("", 0, 0.00009503m, true, 1),
@@ -2772,7 +2772,7 @@ internal class DemoCoinSets
 			}
 		}
 
-		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Labels}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.HdPubKey.AnonymitySet})");
+		var coinTexts = coins.Select(coin => $"(\"{coin.HdPubKey.Labels}\", {keyAndIndex[coin.HdPubKey]}, {coin.Amount}m, {coin.Confirmed.ToString().ToLowerInvariant()}, {coin.AnonymitySet})");
 		var result = string.Join($",\r\n", coinTexts);
 		return result;
 	}

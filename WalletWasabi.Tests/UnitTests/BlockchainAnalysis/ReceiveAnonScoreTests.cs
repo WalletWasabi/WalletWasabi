@@ -20,7 +20,7 @@ public class ReceiveAnonScoreTests
 		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 	}
 
 	[Fact]
@@ -31,7 +31,7 @@ public class ReceiveAnonScoreTests
 		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 	}
 
 	[Fact]
@@ -42,6 +42,6 @@ public class ReceiveAnonScoreTests
 		BlockchainAnalyzer.Analyze(tx);
 
 		var coin = Assert.Single(tx.WalletOutputs);
-		Assert.Equal(1, coin.HdPubKey.AnonymitySet);
+		Assert.Equal(1, coin.AnonymitySet);
 	}
 }

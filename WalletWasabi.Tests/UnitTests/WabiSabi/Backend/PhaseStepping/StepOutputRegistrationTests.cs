@@ -7,7 +7,6 @@ using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Services;
-using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -282,15 +281,12 @@ public class StepOutputRegistrationTests
 		var task1a = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1a, keyChain1, roundStateProvider, token, token, token);
 		var task1b = AliceClient.CreateRegisterAndConfirmInputAsync(RoundState.FromRound(round1), arenaClient1, coin1b, keyChain1, roundStateProvider, token, token, token);
 
-		roundStateUpdater.Update();
 		while (Phase.ConnectionConfirmation != round1.Phase)
 		{
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		void Update(Task _) => roundStateUpdater.Update();
-		Task updateTask = Task.Delay(TimeSpan.FromMilliseconds(100)).ContinueWith(Update);
-		await Task.WhenAll(task1a, task1b, updateTask);
+		await Task.WhenAll(task1a, task1b);
 		var aliceClient1a = await task1a;
 		var aliceClient1b = await task1b;
 
@@ -307,8 +303,7 @@ public class StepOutputRegistrationTests
 			await arena.TriggerAndWaitRoundAsync(token);
 		}
 
-		Task updateTask2 = Task.Delay(TimeSpan.FromMilliseconds(100)).ContinueWith(Update);
-		await Task.WhenAll(task2a, task2b, updateTask2);
+		await Task.WhenAll(task2a, task2b);
 		var aliceClient2a = await task2a;
 		var aliceClient2b = await task2b;
 

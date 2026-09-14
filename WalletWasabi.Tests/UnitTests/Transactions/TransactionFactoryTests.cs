@@ -1,5 +1,6 @@
 using NBitcoin;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 using NBitcoin.DataEncoders;
 using NBitcoin.Secp256k1;
@@ -14,6 +15,7 @@ using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Wallets;
 using WalletWasabi.Wallets.SilentPayment;
+using WalletWasabi.WebClients.PayJoin;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
@@ -90,7 +92,7 @@ public class TransactionFactoryTests
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
 		Assert.Equal(Money.Coins(0.16m), spentCoin.Amount);
-		Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
+		Assert.Equal(200, spentCoin.AnonymitySet);
 		Assert.False(result.SpendsUnconfirmed);
 		var tx = result.Transaction.Transaction;
 		Assert.Equal(2, tx.Outputs.Count);
@@ -121,7 +123,7 @@ public class TransactionFactoryTests
 		Assert.True(result.Signed);
 		var spentCoin = Assert.Single(result.SpentCoins);
 		Assert.Equal(Money.Coins(0.16m), spentCoin.Amount);
-		Assert.Equal(200, spentCoin.HdPubKey.AnonymitySet);
+		Assert.Equal(200, spentCoin.AnonymitySet);
 		Assert.False(result.SpendsUnconfirmed);
 		var tx = result.Transaction.Transaction;
 		Assert.Equal(2, tx.Outputs.Count);
@@ -154,8 +156,8 @@ public class TransactionFactoryTests
 
 		Assert.True(result.Signed);
 		Assert.Equal(2, result.SpentCoins.Count());
-		var spentCoin200 = Assert.Single(result.SpentCoins, x => x.HdPubKey.AnonymitySet == 200);
-		var spentCoin100 = Assert.Single(result.SpentCoins, x => x.HdPubKey.AnonymitySet == 100);
+		var spentCoin200 = Assert.Single(result.SpentCoins, x => x.AnonymitySet == 200);
+		var spentCoin100 = Assert.Single(result.SpentCoins, x => x.AnonymitySet == 100);
 
 		Assert.Equal(Money.Coins(0.16m), spentCoin200.Amount);
 		Assert.Equal(Money.Coins(0.04m), spentCoin100.Amount);
@@ -625,6 +627,34 @@ public class TransactionFactoryTests
 		Assert.Throws<InvalidOperationException>(() => transactionFactory.BuildTransaction(txParameters));
 	}
 
+	[Fact]
+	public void SilentPaymentAndPayjoinAreMutuallyExclusive()
+	{
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			new[]
+			{
+				("Pablo", 0, 1m, confirmed: true, anonymitySet: 1)
+			});
+
+		var silentPaymentAddress = SilentPaymentAddress.Parse("sp1qq2exrz9xjumnvujw7zmav4r3vhfj9rvmd0aytjx0xesvzlmn48ctgqnqdgaan0ahmcfw3cpq5nxvnczzfhhvl3hmsps683cap4y696qecs7wejl3", Network.Main);
+		var payment = new PaymentIntent(silentPaymentAddress, Money.Coins(0.5m));
+		var txParameters = CreateBuilder().SetPayment(payment).SetFeeRate(2m).Build();
+
+		var payjoinClient = new StubPayjoinClient();
+		var ex = Assert.Throws<InvalidOperationException>(() => transactionFactory.BuildTransaction(txParameters, payjoinClient: payjoinClient));
+		Assert.Contains("Silent payments cannot be combined with Payjoin", ex.Message);
+	}
+
+	private class StubPayjoinClient : IPayjoinClient
+	{
+		public Uri PaymentUrl => new("https://example.com/payjoin");
+
+		public Task<PSBT> RequestPayjoin(PSBT originalTx, IHDKey segwitAccountKey, RootedKeyPath segwitRootedKeyPath, IHDKey? taprootAccountKey, RootedKeyPath taprootRootedKeyPath, HdPubKey? changeHdPubKey, CancellationToken cancellationToken)
+		{
+			throw new NotImplementedException("This should never be called in the test");
+		}
+	}
+
 	/// <summary>
 	/// Tests that we throw <see cref="TransactionSizeException"/> when NBitcoin returns a coin selection whose sum is lower than the desired one.
 	/// This can happen because bitcoin transactions can have only a limited number of coin inputs because of the transaction size limit.
@@ -856,7 +886,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public async Task CanPayToSilentPaymentAddresses()
+	public async Task CanPayToSilentPaymentAddressesAsync()
 	{
 		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
 		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.
@@ -906,7 +936,7 @@ public class TransactionFactoryTests
 	}
 
 	[Fact]
-	public async Task CanPayToLabeledSilentPaymentAddresses()
+	public async Task CanPayToLabeledSilentPaymentAddressesAsync()
 	{
 		// Create a crediting transaction which received 1 BTC. Then it spends that UTXO to send 0.9 BTC to a
 		// silent payment address (sp1qqdpppm9jc....qulwdyd) to finally send the new UTXO to bc1q03j8...6rrpr.

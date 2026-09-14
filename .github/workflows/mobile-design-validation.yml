@@ -11,6 +11,9 @@ on:
       - 'Directory.Build.props'
       - 'Directory.Packages.props'
       - '.github/workflows/mobile-design-validation.yml'
+      - 'global.json'
+      - 'WalletWasabi.Client/**'
+      - 'WalletWasabi/**'
   workflow_dispatch:
 
 permissions:
@@ -29,6 +32,13 @@ jobs:
       WASABI_MOBILE_TEST_ARTIFACTS: ${{ github.workspace }}/TestResults/mobile-previews
     steps:
       - uses: actions/checkout@v4
+      - name: Archive exact validation sources
+        run: git archive --format=zip HEAD -o "$RUNNER_TEMP/mobile-validation-source.zip"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: mobile-validation-source
+          path: ${{ runner.temp }}/mobile-validation-source.zip
+          retention-days: 3
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
@@ -43,18 +53,17 @@ jobs:
           python -m unittest discover -s Contrib/Mobile -p test_visual_review.py -v
       - name: Validate native resources and export design tokens
         run: python Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
-      - name: Archive exact validation sources
-        run: git archive --format=zip HEAD -o "$RUNNER_TEMP/mobile-validation-source.zip"
-      - uses: actions/upload-artifact@v4
-        with:
-          name: mobile-validation-source
-          path: ${{ runner.temp }}/mobile-validation-source.zip
-          retention-days: 3
       - name: Build shared native UI and compiled XAML
         run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-ui-build.binlog
+      - name: Build native mobile regression and rendering tests
+        run: dotnet build WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-tests-build.binlog
       - name: Run native mobile regression and rendering tests
         id: native-tests
-        run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
+        # The root uses MTP for upstream xUnit v3. Avalonia 11 headless remains
+        # xUnit v2, so invoke its VSTest adapter explicitly without altering global.json.
+        run: |
+          dotnet vstest WalletWasabi.Fluent.Mobile.Tests/bin/Release/net10.0/WalletWasabi.Fluent.Mobile.Tests.dll --logger:"trx;LogFileName=mobile-ui.trx" --ResultsDirectory:TestResults
+          python Contrib/Mobile/verify_test_results.py TestResults/mobile-ui.trx
       - name: Compare native frames with reviewed baselines
         if: always() && steps.native-tests.outcome != 'skipped'
         # Missing baselines are unreviewed, not a pass. The gallery is emitted before
@@ -64,6 +73,13 @@ jobs:
           --actual TestResults/mobile-previews
           --baseline Contrib/Mobile/Baselines
           --output TestResults/mobile-visual-review
+      - name: Preserve restore diagnostics
+        if: always()
+        shell: bash
+        run: |
+          mkdir -p TestResults
+          dotnet --info > TestResults/dotnet-info.txt
+          git diff -- '**/packages.lock.json' > TestResults/restored-lockfiles.patch
       - uses: actions/upload-artifact@v4
         if: always()
         with:

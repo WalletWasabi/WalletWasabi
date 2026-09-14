@@ -53,6 +53,8 @@ multisig
 nulldata
 keyhash
 previousblockhash
+anonscore
+AnonScores
 anonset
 anonsets
 satoshi

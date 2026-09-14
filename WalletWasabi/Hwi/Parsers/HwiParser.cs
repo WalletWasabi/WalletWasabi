@@ -342,7 +342,7 @@ public static class HwiParser
 		return Version.Parse(onlyVersion);
 	}
 
-	public static string ToArgumentString(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string? commandArguments)
+	public static IReadOnlyList<string> ToArguments(Network network, IEnumerable<HwiOption> options, HwiCommands? command, string? commandArguments)
 	{
 		options ??= [];
 		var fullOptions = new List<HwiOption>(options);
@@ -352,55 +352,56 @@ public static class HwiParser
 			fullOptions.Insert(0, HwiOption.TestNet);
 		}
 
-		var optionsString = string.Join(
-			" --",
-			fullOptions.Select(x =>
+		var arguments = new List<string>();
+
+		foreach (var option in fullOptions)
+		{
+			string optionName = option.Type switch
 			{
-				string optionString = x.Type switch
-				{
-					HwiOptions.DeviceType => "device-type",
-					HwiOptions.DevicePath => "device-path",
-					HwiOptions.TestNet => "chain test",
-					_ => x.Type.ToString().ToLowerInvariant(),
-				};
+				HwiOptions.DeviceType => "--device-type",
+				HwiOptions.DevicePath => "--device-path",
+				HwiOptions.TestNet => "--chain",
+				_ => $"--{option.Type.ToString().ToLowerInvariant()}",
+			};
 
-				if (string.IsNullOrWhiteSpace(x.Arguments))
-				{
-					return optionString;
-				}
+			arguments.Add(optionName);
 
-				return $"{optionString} \"{x.Arguments}\"";
-			}));
-
-		optionsString = string.IsNullOrWhiteSpace(optionsString) ? "" : $"--{optionsString}";
-		var argumentBuilder = new StringBuilder(optionsString);
+			// TestNet uses "--chain test" as two separate arguments
+			if (option.Type == HwiOptions.TestNet)
+			{
+				arguments.Add("test");
+			}
+			else if (!string.IsNullOrWhiteSpace(option.Arguments))
+			{
+				arguments.Add(option.Arguments);
+			}
+		}
 
 		if (command is not null)
 		{
-			if (argumentBuilder.Length != 0)
-			{
-				argumentBuilder.Append(' ');
-			}
-			argumentBuilder.Append(command.Value.ToString().ToLowerInvariant());
+			arguments.Add(command.Value.ToString().ToLowerInvariant());
 		}
 
 		commandArguments = Guard.Correct(commandArguments);
 		if (commandArguments.Length != 0)
 		{
-			argumentBuilder.Append(' ');
-			argumentBuilder.Append(commandArguments);
+			// Split command arguments (e.g., "--path m/84h/0h/0h --addr-type wit")
+			// into separate arguments for proper escaping
+			var parts = commandArguments.Split(' ', StringSplitOptions.RemoveEmptyEntries);
+			arguments.AddRange(parts);
 		}
 
-		var arguments = argumentBuilder.ToString().Trim();
 		return arguments;
 	}
 
-	public static string ToHwiFriendlyString(this HardwareWalletModels me)
-	{
-		return me.ToString().ToLowerInvariant();
-	}
+	public static string ToArgumentsDisplayString(IReadOnlyList<string> arguments) =>
+		string.Join(" ", arguments.Select(arg =>
+			arg.Contains(' ') || arg.Contains('"') ? $"\"{arg.Replace("\"", "\\\"")}\"" : arg));
 
-	public static bool TryParseJToken(string text, [NotNullWhen(true)] out JsonNode? token)
+	public static string ToHwiFriendlyString(this HardwareWalletModels me) =>
+		me.ToString().ToLowerInvariant();
+
+	private static bool TryParseJToken(string text, [NotNullWhen(true)] out JsonNode? token)
 	{
 		token = null;
 		try

@@ -73,12 +73,13 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
-              --filter "FullyQualifiedName~UnitTests" \
+            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
               --no-build \
               --configuration Release \
-              -r linux-x64 \
-              --logger "console;verbosity=detailed"
+              --filter-namespace "*UnitTests*" \
+              --no-progress \
+              --no-ansi \
+              --output Detailed
             runHook postCheck
           '';
         });
@@ -94,11 +95,12 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
-              -r linux-x64 \
-              --logger "console;verbosity=detailed"
+              --no-progress \
+              --no-ansi \
+              --output Detailed
             runHook postCheck
           '';
         });
@@ -115,17 +117,19 @@
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test WalletWasabi.Tests/WalletWasabi.Tests.csproj \
-              --filter "FullyQualifiedName~UnitTests" \
+            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
+              --filter-namespace "*UnitTests*" \
               --no-build \
               --configuration Release \
-              -r linux-x64 \
-              --logger "console;verbosity=detailed"
-            dotnet test WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
+              --no-progress \
+              --no-ansi \
+              --output Detailed
+            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
               --no-build \
               --configuration Release \
-              -r linux-x64 \
-              --logger "console;verbosity=detailed"
+              --no-progress \
+              --no-ansi \
+              --output Detailed
             runHook postCheck
           '';
         });

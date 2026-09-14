@@ -1,7 +1,7 @@
 using ReactiveUI;
 using System.Threading.Tasks;
-using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 

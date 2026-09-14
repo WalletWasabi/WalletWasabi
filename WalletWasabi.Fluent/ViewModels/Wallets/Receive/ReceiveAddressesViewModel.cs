@@ -15,14 +15,12 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 public partial class ReceiveAddressesViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly ScriptType _scriptType;
 
 	[AutoNotify] private FlatTreeDataGridSource<AddressViewModel> _source = new(Enumerable.Empty<AddressViewModel>());
 
-	public ReceiveAddressesViewModel(UiContext uiContext, IWalletModel wallet, WalletWasabi.Fluent.Models.Wallets.ScriptType scriptType) : base(uiContext)
+	public ReceiveAddressesViewModel(UiContext uiContext, IWalletModel wallet) : base(uiContext)
 	{
 		_wallet = wallet;
-		_scriptType = scriptType;
 
 		EnableBack = true;
 		SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -34,7 +32,6 @@ public partial class ReceiveAddressesViewModel : RoutableViewModel
 	{
 		_wallet.Addresses.Unused
 			.ToObservableChangeSet()
-			.Filter(x => x.ScriptType == _scriptType)
 			.Transform(CreateAddressViewModel)
 			.DisposeMany()
 			.Bind(out var unusedAddresses)

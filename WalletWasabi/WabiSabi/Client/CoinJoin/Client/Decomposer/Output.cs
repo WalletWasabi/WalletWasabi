@@ -1,6 +1,3 @@
-using NBitcoin;
-using WalletWasabi.Extensions;
-
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 public record Output

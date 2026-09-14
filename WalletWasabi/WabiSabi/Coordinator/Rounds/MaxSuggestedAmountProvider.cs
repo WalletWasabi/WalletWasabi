@@ -1,7 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using NBitcoin;
-
 namespace WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 public class MaxSuggestedAmountProvider

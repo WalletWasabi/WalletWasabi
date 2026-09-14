@@ -777,8 +777,8 @@ public class PocketSelectionTests
 
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 999),
 		};
 		var coinsView = new CoinsView(privateCoins.ToArray());
 		var pocket = new Pocket((LabelsArray.Empty, coinsView));
@@ -803,8 +803,8 @@ public class PocketSelectionTests
 
 		var semiPrivateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 5),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 5),
 		};
 		var coinsView = new CoinsView(semiPrivateCoins.ToArray());
 		var pocket = new Pocket((LabelsArray.Empty, coinsView));
@@ -829,8 +829,8 @@ public class PocketSelectionTests
 
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 999),
 		};
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
 		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
@@ -838,8 +838,8 @@ public class PocketSelectionTests
 
 		var semiPrivateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 5), 0.5m),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 5),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 0.5m, anonymitySet: 5),
 		};
 		var semiPrivateCoinsView = new CoinsView(semiPrivateCoins.ToArray());
 		var semiPrivatePocket = new Pocket((LabelsArray.Empty, semiPrivateCoinsView));
@@ -862,9 +862,9 @@ public class PocketSelectionTests
 		var pockets = new List<Pocket>();
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999)
 		};
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());
 		var privatePocket = new Pocket((LabelsArray.Empty, privateCoinsView));
@@ -894,9 +894,9 @@ public class PocketSelectionTests
 		var pockets = new List<Pocket>();
 		var privateCoins = new[]
 		{
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m),
-			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(anonymitySet: 999), 1m)
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999),
+			BitcoinFactory.CreateSmartCoin(LabelTestExtensions.NewKey(), 1m, anonymitySet: 999)
 		};
 
 		var privateCoinsView = new CoinsView(privateCoins.ToArray());

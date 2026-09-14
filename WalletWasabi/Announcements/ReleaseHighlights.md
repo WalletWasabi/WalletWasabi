@@ -1,46 +1,39 @@
 ## Release Highlights
-#### ⚙️ P2P synchronization for compact filters
-#### 🚀 Pay in coinjoin
-#### ↘️ Sub-1 sat/vByte transaction fees
-#### ♻️ Payment batching
-#### 📎 Support for arm64 Linux, Tails, and Whonix
-#### 📜 Scheme scripting language
-#### 🔑 Signet test network
-#### 💀 Forward compatibility for Tor
+
+#### 🌳 Taproot support for Payjoin
+#### 🔐 Stricter security controls across the wallet
+#### 🛡️ Enhanced coinjoin blame round protection
 
 ## Release Summary
-Wasabi Wallet v2.8.0 is a massive release with P2P synchronization, faster onboarding, improved privacy, lower fees, and expanded device support.
+Wasabi Wallet v2.8.3 adds Taproot support for Payjoin transactions, implements stricter security controls throughout the wallet, and strengthens verification of coinjoin blame rounds.
 
-### ⚙️ P2P synchronization for compact filters
-Wasabi pioneered the use of compact block filters for private wallet synchronization. This involved implementing a custom indexer to build the filters, and hosting a server to provide them to clients.
+### Deprecation of compatibility password feature
+Please create a new wallet if you see the following message while logging in to your wallet:
+*Compatibility passphrase was used! Please consider generating a new wallet to ensure recoverability!*
 
-Progress continued on block filters, resulting in standardized BIPs and direct support in Bitcoin node software. This version of Wasabi uses Bitcoin’s P2P network to download compact filters, eliminating the centralized server.
+Five years ago, because of a clipboard bug on macOS (OSX) in the Avalonia UI framework, users who created wallets by pasting complex passwords (with non-ASCII characters) got their password silently truncated and corrupted. Wallets created with the buggy passwords would be unrecoverable using standard BIP39 tools.
 
-Onboarding new users to Wasabi is now faster thanks to wallet birthday checkpoints. Newly generated wallets no longer waste time and bandwidth downloading old blockchain history since it would be impossible for a new wallet to have previously received any transactions.
+The mechanism for working around that issue will soon be removed.
 
-### 🚀 Pay in coinjoin
-Sending payments directly inside a coinjoin transaction uses block space more efficiently and improves privacy in several ways:
+### 🌳 Payjoin now supports Taproot addresses
+Payjoin transactions now work with Taproot (P2TR) addresses. Payjoins are two-party collaborative transactions that improve fungibility.
 
-- The age of your inputs is not revealed, so the receiver does not learn how long you’ve held your coins. 
-- The size of your change is not revealed, so the receiver does not learn the amount of coins you have left over. 
-- You can batch multiple payments into one transaction without revealing they originate from the same sender.
+### 🔐 Stricter security controls
+Multiple security hardening measures have been implemented:
+- Payjoin now requires Tor to be enabled for enhanced privacy
+- Improved validation of compact block filters
+- Better network diversity by connecting to nodes in different net groups
+- Fixed value-conservation checks for Payjoin sender
 
-### ↘️ Sub-1 sat/vByte transaction fees
-You can now spend coins using fee rates as low as 0.1 sat/vByte, letting you save up to 90% on mining fees. If a low fee transaction gets “stuck”, you can use Replace By Fee (RBF) to speed it up.
+### 🛡️ Enhanced coinjoin blame round protection
+Improved coinjoin reliability and security:
+- Clients now verify blame round inputs match the original round
+- Fixed payment stalling when only non-private coins are temporarily banned
+- Wallet no longer participates in blame rounds when it didn't sign in the original round
 
-### ♻️ Payment batching
-You can now pay to multiple addresses in the same transaction. This significantly reduces the amount of block space used compared to sending each payment individually.
+### 🎵 Music box always visible
+The coinjoin "music box" is now always visible in the UI for easier access to coinjoin status and controls.
 
-### 📎 Support for arm64 Linux, Tails, and Whonix
-Linux users with arm64 devices are now part of the Wasabi family. Tails and Whonix installations are now automatic and no longer require manual Tor configuration.
-
-### 📜 Scheme scripting language
-The scripting language is an experimental feature that makes Wasabi programmable, queryable, and extensible.
-
-### 🔑 Signet test network
-Testnet3 and Testnet4 use proof of work for generating blocks, just like mainnet. Because testnet coins have no value, low mining difficulty allows an attacker with a small amount of hashpower to flood blocks or create long reorgs.
-
-Signet is another test network that allows a set of signers to create blocks. This reduces the unpredictable behavior so developers can work with a stable environment.
-
-### 💀 Forward compatibility for Tor
-The Tor Project is terminating network support for versions <0.4.9 on September 1, 2026. This release of Wasabi upgrades the bundled Tor dependency to ensure forward compatibility.
+### 🐛 Bug fixes
+- Fixed blockchain info exchange rate provider
+- Improved handling of missing Windows startup registry key

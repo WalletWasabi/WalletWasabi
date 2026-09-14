@@ -1,8 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
-using NBitcoin;
-using WalletWasabi.Extensions;
-
 namespace WalletWasabi.Blockchain.Keys;
 
 public record HdPubKeyGenerator(ExtPubKey ExtPubKey, KeyPath KeyPath, int MinGapLimit)

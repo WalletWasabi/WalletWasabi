@@ -34,7 +34,6 @@ public static class EnvironmentHelpers
 			if (!string.IsNullOrEmpty(home))
 			{
 				directory = Path.Combine(home, "." + appName.ToLowerInvariant());
-				Logger.LogInfo($"Using HOME environment variable for initializing application data at `{directory}`.");
 			}
 			else
 			{
@@ -47,7 +46,6 @@ public static class EnvironmentHelpers
 			if (!string.IsNullOrEmpty(localAppData))
 			{
 				directory = Path.Combine(localAppData, appName);
-				Logger.LogInfo($"Using APPDATA environment variable for initializing application data at `{directory}`.");
 			}
 			else
 			{
@@ -61,7 +59,6 @@ public static class EnvironmentHelpers
 			return directory;
 		}
 
-		Logger.LogInfo($"Creating data directory at `{directory}`.");
 		Directory.CreateDirectory(directory);
 
 		DataDirDict.TryAdd(appName, directory);

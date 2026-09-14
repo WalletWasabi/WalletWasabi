@@ -171,6 +171,7 @@
           <ScrollToSelectedItemBehavior />
           <HistoryItemTypeClassBehavior />
           <SetLastChildBehavior />
+          <TreeDataGridMissingCellsWorkaroundBehavior />
         </Interaction.Behaviors>
         <TreeDataGrid.ElementFactory>
           <treeDataGrid:PrivacyElementFactory />

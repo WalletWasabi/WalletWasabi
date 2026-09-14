@@ -6,6 +6,7 @@ using NBitcoin;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.Tests.UnitTests.Mocks;
 
 namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 

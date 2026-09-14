@@ -13,12 +13,16 @@
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
-               EnableNext="True" NextContent="Continue" FocusNext="True">
+               EnableNext="True" NextContent="Continue" FocusNext="False">
     <ListBox
       ItemsSource="{Binding WalletBackupTypes}"
       SelectedItem="{Binding WalletBackupType}"
+      Focusable="True"
       HorizontalAlignment="Center"
       VerticalAlignment="Center">
+      <Interaction.Behaviors>
+        <FocusOnAttachedBehavior />
+      </Interaction.Behaviors>
       <ListBox.ItemsPanel>
         <ItemsPanelTemplate>
           <StackPanel Spacing="8" />

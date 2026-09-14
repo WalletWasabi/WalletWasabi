@@ -65,7 +65,7 @@ public static partial class Encode
 		String(s.ToWif());
 
 	public static JsonNode WalletHeight(ChainHeight height) =>
-		String(Math.Max(0, height.Height - Constants.ResyncHeightMargin).ToString());
+		String(Math.Max(0L, (long)height.Height - Constants.ResyncHeightMargin).ToString());
 
 	public static JsonNode BlockchainState(BlockchainState s) =>
 		Object(s.BirthHeight is not {} nonNullBirthHeight

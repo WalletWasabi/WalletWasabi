@@ -1,9 +1,4 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
-using System.Linq;
-using WalletWasabi.Extensions;
 
 using AmountVsizePair = (long Amount, long Vsize);
 namespace WalletWasabi.WabiSabi.Client.CredentialDependencies;

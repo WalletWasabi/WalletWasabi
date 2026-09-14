@@ -1,5 +1,3 @@
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.WabiSabi.Models;
 
 namespace WalletWasabi.WabiSabi.Coordinator.PostRequests;

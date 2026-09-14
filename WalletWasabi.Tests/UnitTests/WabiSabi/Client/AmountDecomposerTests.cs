@@ -5,7 +5,6 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
-using WalletWasabi.WabiSabi;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Models;
 using Xunit;
@@ -65,7 +64,7 @@ public class AmountDecomposerTests
 		}
 		else
 		{
-			// The number of outputs cannot be ensure bacause of random scriptype generation. Instead we verify the total.
+			// The number of outputs cannot be ensure because of random scriptype generation. Instead we verify the total.
 			Assert.InRange(outputValues.Sum(x => x.ScriptType.EstimateOutputVsize()), 1, availableVsize);
 		}
 

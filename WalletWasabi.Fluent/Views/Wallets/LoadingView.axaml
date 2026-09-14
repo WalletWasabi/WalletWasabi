@@ -18,6 +18,7 @@
 
   <UserControl.Resources>
     <SolidColorBrush x:Key="SyncProgressOrangeBrush" Color="{StaticResource OrangeCoinColor}" />
+    <SolidColorBrush x:Key="SyncProgressNeutralBrush" Color="White" />
   </UserControl.Resources>
 
   <UserControl.Styles>
@@ -38,7 +39,6 @@
       <Setter Property="Foreground" Value="{DynamicResource SystemAccentColor}" />
     </Style>
     <Style Selector="Border.SyncCard TextBlock.CardLabel">
-      <Setter Property="Opacity" Value="0.6" />
       <Setter Property="FontSize" Value="12" />
       <Setter Property="TextAlignment" Value="Center" />
     </Style>
@@ -112,7 +112,15 @@
                 <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
               </Interaction.Behaviors>
               <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource entities_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <Panel>
+                  <PathIcon Data="{StaticResource entities_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                  </Panel>
+                </Panel>
                 <TextBlock Text="Peers connected" Classes="CardLabel" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
@@ -126,12 +134,6 @@
                     </Interaction.Behaviors>
                   </ProgressBar>
                 </Panel>
-                <Panel Height="14" HorizontalAlignment="Center">
-                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
-                </Panel>
               </StackPanel>
             </Border>
 
@@ -141,7 +143,15 @@
                 <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
               </Interaction.Behaviors>
               <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource organization_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <Panel>
+                  <PathIcon Data="{StaticResource organization_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                  </Panel>
+                </Panel>
                 <TextBlock Text="Block headers" Classes="CardLabel" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
@@ -155,12 +165,6 @@
                     </Interaction.Behaviors>
                   </ProgressBar>
                 </Panel>
-                <Panel Height="14" HorizontalAlignment="Center">
-                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
-                </Panel>
               </StackPanel>
             </Border>
 
@@ -170,7 +174,15 @@
                 <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
               </Interaction.Behaviors>
               <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource sorting}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <Panel>
+                  <PathIcon Data="{StaticResource sorting}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                  </Panel>
+                </Panel>
                 <TextBlock Text="Filter headers" Classes="CardLabel" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
@@ -184,12 +196,6 @@
                     </Interaction.Behaviors>
                   </ProgressBar>
                 </Panel>
-                <Panel Height="14" HorizontalAlignment="Center">
-                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
-                </Panel>
               </StackPanel>
             </Border>
 
@@ -199,7 +205,15 @@
                 <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
               </Interaction.Behaviors>
               <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource fingerprint_regular}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <Panel>
+                  <PathIcon Data="{StaticResource fingerprint_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                  </Panel>
+                </Panel>
                 <TextBlock Text="Compact filters" Classes="CardLabel" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
@@ -213,12 +227,6 @@
                     </Interaction.Behaviors>
                   </ProgressBar>
                 </Panel>
-                <Panel Height="14" HorizontalAlignment="Center">
-                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
-                </Panel>
               </StackPanel>
             </Border>
 
@@ -228,7 +236,15 @@
                 <behaviors:BlinkOnChangeBehavior Value="{Binding Current}" />
               </Interaction.Behaviors>
               <StackPanel Spacing="6" HorizontalAlignment="Center">
-                <PathIcon Data="{StaticResource wallet_coins}" Classes="CardIcon" HorizontalAlignment="Center" />
+                <Panel>
+                  <PathIcon Data="{StaticResource cube_multiple_regular}" Classes="CardIcon" HorizontalAlignment="Center" VerticalAlignment="Center" />
+                  <Panel HorizontalAlignment="Right" VerticalAlignment="Center">
+                    <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
+                              Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
+                    <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
+                              Foreground="{StaticResource SyncProgressNeutralBrush}" IsVisible="{Binding !IsComplete}" />
+                  </Panel>
+                </Panel>
                 <TextBlock Text="Blocks" Classes="CardLabel" HorizontalAlignment="Center" />
                 <TextBlock Text="{Binding Current, StringFormat={}{0:N0}}" Classes="CardValue" HorizontalAlignment="Center" />
                 <Panel Height="5" Margin="0 4 0 0" MinWidth="90">
@@ -241,12 +257,6 @@
                         TrueBrush="{DynamicResource SystemAccentColor}" />
                     </Interaction.Behaviors>
                   </ProgressBar>
-                </Panel>
-                <Panel Height="14" HorizontalAlignment="Center">
-                  <PathIcon Data="{StaticResource checkmark_circle}" Width="14" Height="14"
-                            Foreground="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsComplete}" />
-                  <PathIcon Data="{StaticResource arrow_download_regular}" Width="14" Height="14"
-                            Foreground="{StaticResource SyncProgressOrangeBrush}" IsVisible="{Binding !IsComplete}" />
                 </Panel>
               </StackPanel>
             </Border>

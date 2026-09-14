@@ -1,9 +1,4 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using System.Threading.Channels;
-using NBitcoin;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;

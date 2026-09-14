@@ -1,16 +1,5 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Collections.Immutable;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WabiSabi.Crypto.ZeroKnowledge;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WabiSabi.Client.CredentialDependencies;
-using WalletWasabi.WabiSabi.Coordinator.Models;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 

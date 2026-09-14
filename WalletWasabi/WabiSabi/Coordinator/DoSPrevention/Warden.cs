@@ -1,12 +1,7 @@
 using Microsoft.Extensions.Hosting;
-using System.Collections.Generic;
 using System.IO;
-using System.Linq;
-using System.Threading;
 using System.Threading.Channels;
-using System.Threading.Tasks;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 

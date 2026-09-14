@@ -1,17 +1,11 @@
 using System.Diagnostics;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Runtime.InteropServices;
 using System.Security.Cryptography;
-using System.Threading;
-using System.Threading.Tasks;
-using NBitcoin;
 using NBitcoin.Crypto;
 using NNostr.Client;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.WebClients;
 using static WalletWasabi.Services.UpdateManager;
 
@@ -28,18 +22,18 @@ public static class UpdateManager
 	public record UpdateMessage;
 
 	public static MessageHandler<UpdateMessage, Unit> CreateUpdater(Func<INostrClient> nostrClientFactory,
-		AsyncReleaseDownloader releaseDownloader, EventBus eventBus) =>
-		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, cancellationToken);
+		AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version? currentVersion = null) =>
+		(_, _, cancellationToken) => UpdateAsync(nostrClientFactory, releaseDownloader, eventBus, currentVersion ?? Constants.ClientVersion, cancellationToken);
 
-	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task<Unit> UpdateAsync(Func<INostrClient> nostrClientFactory, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version currentVersion, CancellationToken cancellationToken)
 	{
 		using var nostrClient = nostrClientFactory();
-		using var wasabiNostrClient = new WasabiNostrClient(nostrClient);
+		using var wasabiNostrClient = new WasabiNostrClient(nostrClient, Constants.WasabiTeamNostrPubKey);
 		try
 		{
 			// Connect to Nostr relays and check for release version updates
 			await wasabiNostrClient.ConnectAndSubscribeAsync(cancellationToken).ConfigureAwait(false);
-			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, cancellationToken)
+			await ProcessReleaseEventsAsync(wasabiNostrClient, releaseDownloader, eventBus, currentVersion, cancellationToken)
 				.ConfigureAwait(false);
 		}
 		catch (AggregateException e)
@@ -55,7 +49,7 @@ public static class UpdateManager
 		return Unit.Instance;
 	}
 
-	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, CancellationToken cancellationToken)
+	private static async Task ProcessReleaseEventsAsync(WasabiNostrClient wasabiNostrClient, AsyncReleaseDownloader releaseDownloader, EventBus eventBus, Version currentVersion, CancellationToken cancellationToken)
 	{
 		using var sixtySeconds = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		using var linkedCancellationTokenSource = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, sixtySeconds.Token);
@@ -70,7 +64,7 @@ public static class UpdateManager
 
 			// Find release with version greater than current version
 			var latestRelease = releases
-				.Where(x => x.Version > Constants.ClientVersion)
+				.Where(x => x.Version > currentVersion)
 				.MaxBy(x => x.Version);
 
 			if(latestRelease is not null)
@@ -99,10 +93,21 @@ public static class UpdateManager
 // Downloads and verifies new software releases
 public static class ReleaseDownloader
 {
-	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker(false);
+	private static readonly UserAgentPicker UserAgentGetter = UserAgent.GenerateUserAgentPicker();
 
 	public static AsyncReleaseDownloader ForOfficiallySupportedOSes(IHttpClientFactory httpClientFactory, EventBus eventBus) =>
-		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(httpClientFactory, eventBus, releaseInfo, cancellationToken);
+		ForOfficiallySupportedOSes(httpClientFactory, eventBus, GetInstallerName);
+
+	internal static AsyncReleaseDownloader ForOfficiallySupportedOSes(
+		IHttpClientFactory httpClientFactory,
+		EventBus eventBus,
+		Func<Version, string> getInstallerName) =>
+		(releaseInfo, cancellationToken) => DownloadNewWasabiReleaseVersionAsync(
+			httpClientFactory,
+			eventBus,
+			releaseInfo,
+			getInstallerName(releaseInfo.Version),
+			cancellationToken);
 
 	public static AsyncReleaseDownloader ForUnsupportedLinuxDistributions() =>
 		(_, _) =>
@@ -119,7 +124,12 @@ public static class ReleaseDownloader
 		};
 
 	// Downloads and verifies a new Wasabi release version
-	private static async Task DownloadNewWasabiReleaseVersionAsync(IHttpClientFactory httpClientFactory, EventBus eventBus, ReleaseInfo releaseInfo, CancellationToken cancellationToken)
+	private static async Task DownloadNewWasabiReleaseVersionAsync(
+		IHttpClientFactory httpClientFactory,
+		EventBus eventBus,
+		ReleaseInfo releaseInfo,
+		string installerFileName,
+		CancellationToken cancellationToken)
 	{
 		var installDirectory = GetInstallDirectory(releaseInfo);
 
@@ -135,7 +145,6 @@ public static class ReleaseDownloader
 		Logger.LogInfo("Trying to download new version.");
 
 		// Find appropriate installer for current platform
-		var installerFileName = GetInstallerName(releaseInfo.Version);
 		var installerUriResult = GetInstallerUri(installerFileName);
 		if (!installerUriResult.IsOk)
 		{
@@ -251,13 +260,20 @@ public static class ReleaseDownloader
 	}
 
 	private static string GetInstallerName(Version version) =>
-		(PlatformInformation.GetOsPlatform(), RuntimeInformation.ProcessArchitecture) switch
+		GetInstallerName(
+			version,
+			PlatformInformation.GetOsPlatform(),
+			RuntimeInformation.ProcessArchitecture,
+			PlatformInformation.IsDebianBasedOS());
+
+	internal static string GetInstallerName(Version version, OS platform, Architecture architecture, bool isDebianBased) =>
+		(platform, architecture, isDebianBased) switch
 		{
-			(OS.Windows, _) => $"Wasabi-{version}.msi",
-			(OS.OSX, Architecture.Arm64) => $"Wasabi-{version}-arm64.dmg",
-			(OS.OSX, _) => $"Wasabi-{version}.dmg",
-			(OS.Linux, _) when PlatformInformation.IsDebianBasedOS() => $"Wasabi-{version}.deb",
-			(OS.Linux, Architecture.X64) => $"Wasabi-{version}-linux-x64.tar.gz",
+			(OS.Windows, _, _) => $"Wasabi-{version}.msi",
+			(OS.OSX, Architecture.Arm64, _) => $"Wasabi-{version}-arm64.dmg",
+			(OS.OSX, _, _) => $"Wasabi-{version}.dmg",
+			(OS.Linux, _, true) => $"Wasabi-{version}.deb",
+			(OS.Linux, Architecture.X64, false) => $"Wasabi-{version}-linux-x64.tar.gz",
 			_ => throw new NotSupportedException($"Unsupported platform: '{RuntimeInformation.OSDescription}'.")
 		};
 
@@ -276,7 +292,7 @@ public static class Installer
 			}
 			if (RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 			{
-				startInfo = ProcessStartInfoFactory.Make(installerPath, "", true);
+				startInfo = ProcessStartInfoFactory.Make(installerPath, [], true);
 			}
 			else
 			{

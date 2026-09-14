@@ -1,14 +1,8 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Blockchain.Analysis;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Cache;
-using WalletWasabi.Extensions;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 
@@ -285,7 +279,7 @@ public class TransactionProcessor(
 			if (KeyManager.TryGetKeyForScriptPubKey(representative.ScriptPubKey, out HdPubKey? ownKey)
 				&& !ReferenceEquals(ownKey, representative.HdPubKey))
 			{
-				ownKey.SetAnonymitySet(representative.HdPubKey.AnonymitySet);
+				ownKey.SetAnonymitySet(representative.AnonymitySet);
 			}
 		}
 	}

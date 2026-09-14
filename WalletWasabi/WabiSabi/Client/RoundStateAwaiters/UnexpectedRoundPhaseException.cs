@@ -1,4 +1,3 @@
-using NBitcoin;
 using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 

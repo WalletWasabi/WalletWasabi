@@ -1,7 +1,6 @@
 using System.IO.Pipelines;
 using System.Threading;
 using System.Threading.Tasks;
-using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Logging;
 using WalletWasabi.Tor.Control;
 using Xunit;
@@ -26,7 +25,7 @@ public class TorControlFactoryTests
 		string serverHash = "E3C00FB4A14AF48B43CE8A13E4BB01F8C72796352072B1994EE21D35148931C1";
 		string serverNonce = "1650507A46A2979974DA72A833523B72789A65F6E24EAA59C5DF1D3DC294228D";
 
-		TorControlClientFactory clientFactory = new(_ => Convert.FromHexString(clientNonce));
+		TorControlClientFactory clientFactory = new(span => Convert.FromHexString(clientNonce).CopyTo(span));
 
 		Pipe toServer = new();
 		Pipe toClient = new();

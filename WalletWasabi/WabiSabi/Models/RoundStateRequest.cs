@@ -1,6 +1,3 @@
-using System.Collections.Immutable;
-using NBitcoin;
-
 namespace WalletWasabi.WabiSabi.Models;
 public record RoundStateCheckpoint(uint256 RoundId, int StateId);
 

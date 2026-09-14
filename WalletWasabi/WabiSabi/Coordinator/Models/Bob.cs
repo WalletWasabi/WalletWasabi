@@ -1,4 +1,3 @@
-using NBitcoin;
 using WalletWasabi.Extensions;
 
 namespace WalletWasabi.WabiSabi.Coordinator.Models;

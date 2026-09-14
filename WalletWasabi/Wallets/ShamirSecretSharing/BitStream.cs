@@ -94,12 +94,12 @@ class BitStream
 		while (count >= 8)
 		{
 			val <<= 8;
-			if (!TryReadByte(out var readedByte))
+			if (!TryReadByte(out var readByte))
 			{
 				bits = 0U;
 				return false;
 			}
-			val |= (ulong)readedByte;
+			val |= readByte;
 			count -= 8;
 		}
 

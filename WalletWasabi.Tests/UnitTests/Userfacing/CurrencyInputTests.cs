@@ -7,7 +7,7 @@ public class CurrencyInputTests
 {
 	[Theory]
 	[ClassData(typeof(BitcoinTestData))]
-	public void CorrectBitcoinAmountText(string amount, bool expectedResult, string expectedCorrection)
+	public void CorrectBitcoinAmountText(string amount, bool expectedResult, string? expectedCorrection)
 	{
 		var result = CurrencyInput.TryCorrectBitcoinAmount(amount, out var correction);
 		Assert.Equal(expectedCorrection, correction);

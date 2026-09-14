@@ -1,7 +1,8 @@
 ---
 name: Feature Request
 about: Request a Feature
-
+title: "[Feature]: "
+labels: ["feature", "untriaged"]
 ---
 
 <!-- Ensure you are familiar with the project by reading the documentation and browsing through the already existing feature requests.

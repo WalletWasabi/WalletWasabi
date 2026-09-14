@@ -1,12 +1,5 @@
-using System.Collections.Generic;
-using NBitcoin;
-using System.Collections.Immutable;
-using System.Linq;
-using WalletWasabi.Extensions;
-using WalletWasabi.WabiSabi.Models;
-using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 
 namespace WalletWasabi.WabiSabi.Client;
 

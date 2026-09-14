@@ -14,6 +14,7 @@ using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Logging;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 using WalletWasabi.WabiSabi.Coordinator.Models;
@@ -240,7 +241,7 @@ public partial class Arena : PeriodicRunner
 					Logger.LogInfo($"{coinjoin.Outputs.Count()} outputs were added.", round);
 
 					round.CoordinatorScript = GetCoordinatorScriptPreventReuse(round);
-					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript);
+					coinjoin = AddCoordinationFee(round, coinjoin, round.CoordinatorScript, _config.TrimCoordinatorOutput);
 
 					round.CoinjoinState = FinalizeTransaction(coinjoin);
 
@@ -511,7 +512,7 @@ public partial class Arena : PeriodicRunner
 		}
 	}
 
-	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey)
+	public static ConstructionState AddCoordinationFee(Round round, ConstructionState coinjoin, Script coordinatorScriptPubKey, bool trimCoordinatorOutput = false)
 	{
 		var sizeToPayFor = coinjoin.EstimatedVsize + coordinatorScriptPubKey.EstimateOutputVsize();
 		var miningFee = round.Parameters.MiningFeeRate.GetFee(sizeToPayFor) + Money.Satoshis(1);
@@ -526,7 +527,11 @@ public partial class Arena : PeriodicRunner
 
 		if (availableCoordinationFee > minEconomicalOutput)
 		{
-			var txOut = new TxOut(availableCoordinationFee, coordinatorScriptPubKey);
+			var coordinatorOutputValue = trimCoordinatorOutput
+				? TrimToDenomination(round, availableCoordinationFee, minEconomicalOutput)
+				: availableCoordinationFee;
+
+			var txOut = new TxOut(coordinatorOutputValue, coordinatorScriptPubKey);
 			if (!txOut.IsDust())
 			{
 				return coinjoin.AddOutputNoMinAmountCheck(txOut)
@@ -536,6 +541,22 @@ public partial class Arena : PeriodicRunner
 
 		Logger.LogWarning($"Available coordination fee wasn't taken, because it was too small: {availableCoordinationFee}.", round);
 		return coinjoin;
+	}
+
+	private static Money TrimToDenomination(Round round, Money coordinatorOutputValue, Money minEconomicalOutput)
+	{
+		var denomination = DenominationBuilder
+			.CreateDenominationAmounts(round.Parameters.AllowedOutputAmounts.Min, coordinatorOutputValue)
+			.OrderByDescending(x => x.Satoshi)
+			.FirstOrDefault();
+
+		if (denomination is null || denomination <= minEconomicalOutput)
+		{
+			return coordinatorOutputValue;
+		}
+
+		Logger.LogInfo($"Coordinator output trimmed from {coordinatorOutputValue} to {denomination}, {(coordinatorOutputValue - denomination).Satoshi} satoshis were given up to the miners.", round);
+		return denomination;
 	}
 
 	private Script GetCoordinatorScriptPreventReuse(Round round)

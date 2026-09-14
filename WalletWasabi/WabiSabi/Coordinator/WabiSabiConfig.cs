@@ -1,12 +1,8 @@
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.IO;
 using System.Net;
-using NBitcoin;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
 using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
@@ -110,6 +106,8 @@ public class WabiSabiConfig : ConfigBase
 
 	public bool DelayTransactionSigning { get; init; } = false;
 
+	public bool TrimCoordinatorOutput { get; init; } = false;
+
 	public AnnouncerConfig AnnouncerConfig { get; set; } = new();
 
 	public ImmutableSortedSet<ScriptType> AllowedInputTypes => GetScriptTypes(AllowP2wpkhInputs, AllowP2trInputs, false, false, false);
@@ -173,7 +171,7 @@ public class WabiSabiConfig : ConfigBase
 		return scriptTypes.ToImmutableSortedSet();
 	}
 
-	public static WabiSabiConfig LoadFile(string filePath)
+	public static WabiSabiConfig? TryLoadFile(string filePath)
 	{
 		try
 		{
@@ -184,11 +182,16 @@ public class WabiSabiConfig : ConfigBase
 		}
 		catch (Exception ex)
 		{
-			var config = new WabiSabiConfig(filePath);
-			config.ToFile();
-			Logger.LogInfo($"{nameof(WabiSabiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
+			Logger.LogInfo($"Failed to load '{filePath}' config file is corrupted.");
 			Logger.LogWarning(ex);
-			return config;
+
+			var defaultFilePath = $"{filePath}.default";
+			var defaultConfig = new WabiSabiConfig(defaultFilePath);
+			defaultConfig.ToFile();
+
+			Logger.LogInfo($"Default config was stored to '{defaultFilePath}'. Use the config to start fresh.");
+
+			return null;
 		}
 	}
 

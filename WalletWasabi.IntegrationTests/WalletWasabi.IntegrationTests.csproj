@@ -4,8 +4,12 @@
 		<DisableImplicitNamespaceImports>true</DisableImplicitNamespaceImports>
 		<IsPackable>false</IsPackable>
 		<NoWarn>1701;1702;1705;1591;CA1031;CA1822</NoWarn>
-		<OutputType>Library</OutputType>
+		<OutputType>Exe</OutputType>
 		<CopyLocalLockFileAssemblies>true</CopyLocalLockFileAssemblies>
+
+		<!-- https://xunit.net/docs/getting-started/v3/microsoft-testing-platform -->
+		<UseMicrosoftTestingPlatformRunner>true</UseMicrosoftTestingPlatformRunner>
+		<TestingPlatformDotnetTestSupport>true</TestingPlatformDotnetTestSupport>
 	</PropertyGroup>
 
 	<ItemGroup>
@@ -14,12 +18,7 @@
 			<PrivateAssets>all</PrivateAssets>
 		</PackageReference>
 		<PackageReference Include="Microsoft.Extensions.Caching.Memory" />
-		<PackageReference Include="Microsoft.NET.Test.Sdk" />
-		<PackageReference Include="xunit" />
-		<PackageReference Include="xunit.runner.visualstudio">
-			<PrivateAssets>all</PrivateAssets>
-			<IncludeAssets>runtime; build; native; contentfiles; analyzers</IncludeAssets>
-		</PackageReference>
+		<PackageReference Include="xunit.v3" />
 	</ItemGroup>
 
 	<ItemGroup>
@@ -27,9 +26,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<None Update="xunit.runner.json">
-			<CopyToOutputDirectory>Always</CopyToOutputDirectory>
-		</None>
+		<Content Include="xunit.runner.json" CopyToOutputDirectory="PreserveNewest" />
 		<None Update="BundledApps\Binaries\linux-arm64\bitcoind">
 			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
 		</None>

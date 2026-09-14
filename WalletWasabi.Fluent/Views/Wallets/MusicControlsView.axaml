@@ -92,6 +92,7 @@
 
               <Button Classes="plain"
                       IsVisible="{Binding CoinJoinStateViewModel.PlayVisible}"
+                      IsEnabled="{Binding CoinJoinStateViewModel.PlayEnabled}"
                       Command="{Binding CoinJoinStateViewModel.PlayCommand}">
                 <PathIcon Data="{StaticResource play_regular}" />
               </Button>

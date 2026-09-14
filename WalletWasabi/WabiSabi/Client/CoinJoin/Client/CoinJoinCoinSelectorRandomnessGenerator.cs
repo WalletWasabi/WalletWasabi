@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-using System.Linq;
 using WalletWasabi.Crypto.Randomness;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;

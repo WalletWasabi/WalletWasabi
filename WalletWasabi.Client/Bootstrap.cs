@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -20,6 +21,8 @@ public class Scheme
 	private Env _env;
 	private bool _initialized = false;
 	private JsonSerializerSettings _defaultJsonSerializerSettings;
+
+	public Action<string>? OnDisplay { get; set; }
 
 	public Scheme(Global global)
 	{
@@ -58,19 +61,23 @@ public class Scheme
 		RegisterNativeFunction<Wallet>("wallet-coins", w => w.Coins.AsAllCoinsView());
 
 		RegisterNativeFunction<Wallet>("wallet-hdpubkeys", w => w.KeyManager.GetKeys());
-		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? new Dictionary<int,FeeRate>());
+		RegisterNativeFunction<Wallet>("wallet-transactions", w => w.GetTransactions());
+		RegisterNativeFunction("fee-rate-estimations", () => global.Status.FeeRates?.Estimations ?? ImmutableSortedDictionary<int, FeeRate>.Empty);
 		RegisterNativeFunction("exchange-rate-usd", () => global.Status.UsdExchangeRate);
 		RegisterNativeFunction("tor-running?", () => global.Status.IsTorRunning);
 		RegisterNativeFunction("tor-settings", () => global.TorSettings);
 		RegisterNativeFunction("onion-service-uri", () => global.OnionServiceUri?.ToString() ?? "");
-		RegisterNativeFunction<SmartTransaction>("broadcast-tx", tx =>
-			global.TransactionBroadcaster.SendTransactionAsync(tx));
+		//RegisterNativeFunction<SmartTransaction>("broadcast-tx", tx => global.TransactionBroadcaster.SendTransactionAsync(tx));
 		RegisterNativeFunction("connected-nodes", () => global.GetNodes());
 		RegisterNativeFunction<Wallet>("__start_wallet", w =>
 		{
 			global.WalletManager.StartWalletAsync(w).GetAwaiter().GetResult();
 			return w;
 		});
+
+		RegisterNativeFunction<string, Closure>("on",
+			(eventName, func) => SubscribeEvent(global, eventName, func));
+		RegisterNativeAction<object>("display", o => OnDisplay?.Invoke(o?.ToString() ?? ""));
 
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
@@ -86,6 +93,16 @@ public class Scheme
 		{
 			var param = ConvertSchemeToNative(args[0]);
 			return ConvertNativeToScheme(fn((T)param), 0);
+		}, 1));
+	}
+
+	private void RegisterNativeAction<T>(string name, Action<T> fn)
+	{
+		_env.Define(name, new Primitive(name, args =>
+		{
+			var param = ConvertSchemeToNative(args[0]);
+			fn((T)param);
+			return Unspecified.Instance;
 		}, 1));
 	}
 
@@ -123,6 +140,7 @@ public class Scheme
 	private object ConvertSchemeToNative(Value e) => ToNativeObject(e);
 
 	private readonly Dictionary<(Type, string), MemberInfo> _accessors = new();
+
 	private object GetterFn(string method, object instance)
 	{
 		var typ = instance.GetType();
@@ -140,6 +158,22 @@ public class Scheme
 				throw new InvalidOperationException($"Member '{method}' not found");
 			}
 			info = members[0];
+
+			// Check whitelist - verify (Type, PropertyName) is registered
+			var isAllowed = false;
+			for (var type = typ; type != null && !isAllowed; type = type.BaseType)
+			{
+				if (WasabiLibGenerator.AllowedAccessors.Contains((type, info.Name)))
+				{
+					isAllowed = true;
+				}
+			}
+			if (!isAllowed)
+			{
+				throw new UnauthorizedAccessException(
+					$"Access to '{info.Name}' on type '{typ.Name}' is not allowed");
+			}
+
 			_accessors.Add(key, info);
 		}
 
@@ -150,6 +184,17 @@ public class Scheme
 			_ => throw new ArgumentOutOfRangeException()
 		};
 		return result!;
+	}
+
+	private object SubscribeEvent(Global global, string eventName, Closure func)
+	{
+		var eventType = Type.GetType($"WalletWasabi.Services.{eventName}, WalletWasabi", throwOnError: false);
+		if (eventType is null)
+		{
+			throw new ArgumentException($"event {eventName} does not exist");
+		}
+		global.EventBus.Subscribe(eventType, arg => Interpreter.Apply(func, [ConvertNativeToScheme(arg, 0)]));
+		return Unspecified.Instance;
 	}
 
 	public async Task<Value> ExecuteAsync(string prg)
@@ -173,7 +218,7 @@ public class Scheme
 		Directory.CreateDirectory(scriptsDir);
 
 		var appSchemeDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Scheme");
-		string[] libraryFiles = ["Stdlib.scm", "Wasabilib.scm"];
+		string[] libraryFiles = ["Stdlib.scm"];
 
 		foreach (var fileName in libraryFiles)
 		{
@@ -187,6 +232,9 @@ public class Scheme
 				}
 			}
 		}
+
+		var wasabiLibSourceCode = WasabiLibGenerator.Generate();
+		File.WriteAllText(Path.Combine(scriptsDir, "Wasabilib.scm"), wasabiLibSourceCode);
 	}
 
 	private JsonSerializerSettings CreateJsonSerializerSettings(Network network)
@@ -212,18 +260,43 @@ public class Scheme
 
 	public static object ToObject(object obj)
 	{
-		if (obj is not IEnumerable<object> e)
+		return obj switch
 		{
-			return obj is decimal d && Math.Truncate(d) == d ? (int)d : obj;
+			null => null!,
+			decimal d => Math.Truncate(d) == d ? (int)d : d,
+			int or short or byte or long or float or double or uint or ulong or ushort => obj,
+			bool => obj,
+			string => obj,
+			char c => c.ToString(),
+			IEnumerable<object> e => ToObjectEnumerable(e),
+			DateTime dt => dt,
+			uint256 i256 => i256,
+			OutPoint op => op,
+			BitcoinAddress addr => addr,
+			IDestination dst => dst,
+			SmartTransaction stx => stx,
+			_ => "#<native>"
+		};
+	}
+
+	private static object ToObjectEnumerable(IEnumerable<object> e)
+	{
+		var arr = e.ToArray();
+		var dict = new Dictionary<string, object>(arr.Length);
+
+		foreach (var item in arr)
+		{
+			if (item is IEnumerable<object> pair && pair.ToArray() is [string key, var value])
+			{
+				dict[key] = ToObject(value);
+			}
+			else
+			{
+				return arr.Select(ToObject).ToArray();
+			}
 		}
 
-		if (e.All(i => i is IEnumerable<object> ie && ie.Count() == 2 && ie.First() is string))
-		{
-			return e.ToDictionary(x => ((IEnumerable<object>) x).First(),
-				x => ToObject(((IEnumerable<object>) x).ElementAt(1)));
-		}
-
-		return e.Select(ToObject);
+		return dict;
 	}
 
 	public string ToJson(Value e) =>
@@ -243,6 +316,8 @@ public class Scheme
 			Pair p => SExpr.Iterate(p).Select(ToNativeObject),
 			Nil _ => false,
 			Unspecified _ => "Done",
+			Closure c => c,
+			Primitive p => $"#{p.Name}",
 			_ => throw new Exception($"Cannot convert {e.GetType().Name} to native object")
 		};
 }

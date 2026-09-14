@@ -38,6 +38,8 @@ using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.StatusChecker;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.Banning;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.Wallets;
@@ -281,7 +283,7 @@ public class Global
 
 		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings?.SocksEndpoint : null;
 		IDnsResolver dnsResolver = torEndpoint is not null
-			? new DnsSocksResolver(torEndpoint)
+			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
 
 		var manager = new P2pConnectionManager(
@@ -299,11 +301,6 @@ public class Global
 
 		manager.DisposeUsing(_disposables);
 		return manager;
-	}
-
-	private void ConfigureBitcoinNetwork(CancellationToken cancellationToken)
-	{
-		_p2pConnectionManager.Start(cancellationToken);
 	}
 
 	private RpcClientBase? ConfigureBitcoinRpcClient()
@@ -325,7 +322,11 @@ public class Global
 			return null;
 		}
 
-		var bitcoinRpcUri = Config.BitcoinRpcUri;
+		if (!Uri.TryCreate(Config.BitcoinRpcUri, UriKind.Absolute, out var bitcoinRpcUri))
+		{
+			throw new UriFormatException($"Config property '{nameof(Config.BitcoinRpcUri)}' was set to an invalid URI value: {Config.BitcoinRpcUri}");
+		}
+
 		RPCClient internalRpcClient;
 
 		try
@@ -338,7 +339,7 @@ public class Global
 		}
 
 		// Use Tor only if the address ends with .onion. Especially, do not use Tor for loopback (i.e. `localhost`).
-		if (new Uri(bitcoinRpcUri).DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
+		if (bitcoinRpcUri.DnsSafeHost.EndsWith(".onion", StringComparison.OrdinalIgnoreCase))
 		{
 			internalRpcClient.HttpClient = ExternalSourcesHttpClientFactory.CreateClient("long-live-rpc-connection");
 		}
@@ -410,7 +411,7 @@ public class Global
 				_ =>
 				{
 					var tip = FilterStore.GetTip()!.Header;
-					var synchronizationState = new CompactFilterBehavior.FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
+					var synchronizationState = new FilterSynchronizationState(_blockHeaders, FilterHeaders, tip.Height, EventBus);
 					_p2pConnectionManager.AddBehavior(new CompactFilterBehavior(synchronizationState, _blockHeaders, EventBus));
 
 					return FilterProviders.CreateBitcoinP2pFilterProvider(FilterHeaders, _blockHeaders, synchronizationState);
@@ -478,15 +479,15 @@ public class Global
 	private void ConfigureExchangeRateUpdater(CancellationToken cancellationToken)
 	{
 		var mempoolSpaceExchangeProvider = ExchangeRateProviders.MempoolSpaceAsync(ExternalSourcesHttpClientFactory);
-		var blockstreamInfoExchangeProvider = ExchangeRateProviders.BlockstreamAsync(ExternalSourcesHttpClientFactory);
+		var blockchainInfoExchangeProvider = ExchangeRateProviders.BlockchainInfoAsync(ExternalSourcesHttpClientFactory);
 		var coinGeckoExchangeProvider = ExchangeRateProviders.CoinGeckoAsync(ExternalSourcesHttpClientFactory);
 		var geminiExchangeProvider = ExchangeRateProviders.GeminiAsync(ExternalSourcesHttpClientFactory);
 		ExchangeRateProvider exchangeRateProvider = Config.ExchangeRateProvider.ToLower() switch
 		{
-			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceExchangeProvider, blockstreamInfoExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider ]),
-			"blockstreaminfo" => ExchangeRateProviders.Composed([blockstreamInfoExchangeProvider, mempoolSpaceExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider]),
-			"coingecko" => ExchangeRateProviders.Composed([coinGeckoExchangeProvider, mempoolSpaceExchangeProvider, blockstreamInfoExchangeProvider, geminiExchangeProvider]),
-			"gemini" => ExchangeRateProviders.Composed([geminiExchangeProvider, blockstreamInfoExchangeProvider, blockstreamInfoExchangeProvider, coinGeckoExchangeProvider, ]),
+			"mempoolspace" => ExchangeRateProviders.Composed([mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider ]),
+			"blockchaininfo" => ExchangeRateProviders.Composed([blockchainInfoExchangeProvider, mempoolSpaceExchangeProvider, coinGeckoExchangeProvider, geminiExchangeProvider]),
+			"coingecko" => ExchangeRateProviders.Composed([coinGeckoExchangeProvider, mempoolSpaceExchangeProvider, blockchainInfoExchangeProvider, geminiExchangeProvider]),
+			"gemini" => ExchangeRateProviders.Composed([geminiExchangeProvider, blockchainInfoExchangeProvider, blockchainInfoExchangeProvider, coinGeckoExchangeProvider, ]),
 			"" or "none" => ExchangeRateProviders.NoneAsync(),
 			var providerName => throw new ArgumentException( $"Not supported exchange rate provider '{providerName}'. Default: '{Constants.DefaultExchangeRateProvider}'")
 		};
@@ -565,7 +566,11 @@ public class Global
 	private ChainHeight CalculateSafestHeight()
 	{
 		var checkpointHeight = FilterCheckpoints.GetMostRecentCheckpoint(Network).Header.Height;
-		var transactionHeight = TransactionStore.TryGetOldestKnownTransactionHeight(out var h) ? h - Constants.ResyncHeightMargin : checkpointHeight;
+		var transactionHeight = TransactionStore.TryGetOldestKnownTransactionHeight(out var h)
+			? h > Constants.ResyncHeightMargin
+				? h - Constants.ResyncHeightMargin
+				: h
+			: checkpointHeight;
 		var birthHeight = WalletManager.GetEarliestBirthHeight();
 		var worstBestHeight = WalletManager.GetWorstBestHeight();
 		return (ChainHeight) Height.Min(checkpointHeight, ((ChainHeight?[]) [transactionHeight, birthHeight, worstBestHeight]).DropNulls());
@@ -576,7 +581,6 @@ public class Global
 		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, _stoppingCts.Token);
 		CancellationToken linkedCtsToken = linkedCts.Token;
 
-		ConfigureBitcoinNetwork(linkedCtsToken);
 		ConfigureWasabiUpdater(linkedCtsToken);
 		ConfigureExchangeRateUpdater(linkedCtsToken);
 		ConfigureRpcMonitor(linkedCtsToken);
@@ -591,6 +595,9 @@ public class Global
 				StartTorProcessManagerAsync(linkedCtsToken),
 				InitializeBitcoinStoreAsync(linkedCtsToken))
 				.ConfigureAwait(false);
+
+			// Bitcoin P2P network can be started after filters are initialized.
+			_p2pConnectionManager.Start(linkedCtsToken);
 
 			await ConfigureSynchronizerAsync(linkedCtsToken).ConfigureAwait(false);
 
@@ -736,14 +743,14 @@ public class Global
 
 		Func<string, WabiSabiHttpApiClient> wabiSabiHttpClientFactory = (identity) => new WabiSabiHttpApiClient(identity, coordinatorHttpClientFactory);
 		var coinJoinConfiguration = new CoinJoinConfiguration(Config.CoordinatorIdentifier, Config.MaxCoinjoinMiningFeeRate, Config.AbsoluteMinInputCount, AllowSoloCoinjoining: false);
-		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, EventBus), "CoinJoin Manager");
+		HostedServices.Register<CoinJoinManager>(() => new CoinJoinManager(WalletManager.GetWalletsAsync, new RoundStateProvider(roundUpdater), wabiSabiHttpClientFactory, coinJoinConfiguration, _coinPrison, CreateInputVerifier(), EventBus), "CoinJoin Manager");
 	}
 
 	private List<IBroadcaster> CreateBroadcasters(P2pNodeListProvider p2PNodeListProvider, MempoolService mempoolService)
 	{
 		List<IBroadcaster> result =
 		[
-			new NetworkBroadcaster(mempoolService, p2PNodeListProvider)
+			new NetworkBroadcaster(mempoolService, p2PNodeListProvider, Network.MinBroadcastNodes)
 		];
 
 		if (_bitcoinRpcClient is not null)
@@ -759,6 +766,17 @@ public class Global
 		}
 
 		return result;
+	}
+
+	private InputVerifier CreateInputVerifier()
+	{
+		if (_bitcoinRpcClient is not null)
+		{
+			Logger.LogInfo("Using Bitcoin RPC for coinjoin input verification (10% sample).");
+			return InputVerifiers.CreateRpcVerifier(_bitcoinRpcClient);
+		}
+
+		return InputVerifiers.NoVerification();
 	}
 
 	public ImmutableArray<Node> GetNodes() => _p2pConnectionManager.Nodes;
