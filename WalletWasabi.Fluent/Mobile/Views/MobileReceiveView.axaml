@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Receive" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveView" x:DataType="vm:ReceiveViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Receive Bitcoin" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Create receiving address" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,16" Spacing="24">
+      <Border Classes="mobile-card"><StackPanel Spacing="16"><m:MobileGlyph Kind="receive" Width="56" Height="56" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/><TextBlock Text="A new address. Every time." Classes="mobile-title" TextAlignment="Center" TextWrapping="Wrap"/><TextBlock Text="Label the sender so your wallet can help you avoid combining coins from unrelated sources." Classes="mobile-caption" TextAlignment="Center"/></StackPanel></Border>
+      <TextBlock Text="Who is sending you bitcoin?" Classes="mobile-label"/>
+      <c:TagsBox Items="{Binding SuggestionLabels.Labels}" TopItems="{Binding SuggestionLabels.TopSuggestions}" Suggestions="{Binding SuggestionLabels.Suggestions}" IsCurrentTextValid="{Binding SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}" ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}" Watermark="Add a sender label" TagSeparator="," MaxTextLength="{StaticResource MaxLabelLength}" RestrictInputToSuggestions="False"/>
+      <Border Classes="mobile-note"><TextBlock Text="Labels remain in your wallet. They are not automatically included in the QR code or payment request." Classes="mobile-caption"/></Border>
+      <Button Classes="mobile-button" Content="Previously generated addresses" Command="{Binding ShowExistingAddressesCommand}" IsVisible="{Binding HasUnusedAddresses^}" HorizontalAlignment="Stretch"/>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>
