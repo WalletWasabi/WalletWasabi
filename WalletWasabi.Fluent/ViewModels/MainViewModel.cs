@@ -151,11 +151,11 @@ public partial class MainViewModel : ViewModelBase
 			UiContext.Navigate().To(new AddWalletPageViewModel(UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear);
 		});
 
-		NavigateToMobileSettingsCommand = ReactiveUI.ReactiveCommand.Create(() =>
-		{
-			ActiveMobileTab = "Settings";
-			UiContext.Navigate().To(new SettingsPageViewModel(UiContext), NavigationTarget.HomeScreen, NavigationMode.Clear);
-		});
+		// Settings is a result-returning dialog, not a root page. Awaiting it lets
+		// Done/Back complete the existing dialog lifecycle and preserves the wallet.
+		// Reuse the application-lifetime instance rather than accumulating settings
+		// subscriptions on every tap of the mobile navigation bar.
+		NavigateToMobileSettingsCommand = ReactiveUI.ReactiveCommand.CreateFromTask(OpenMobileSettingsAsync, IsMainContentEnabled);
 
 		this.WhenAnyValue(x => x.MainScreen.CurrentPage)
 			.Subscribe(page =>
@@ -199,6 +199,25 @@ public partial class MainViewModel : ViewModelBase
 				                          name.Contains("WelcomePage") ||
 				                          name.Contains("AddWalletPage");
 			});
+	}
+
+	private async Task OpenMobileSettingsAsync()
+	{
+		var previousTab = ActiveMobileTab;
+		var previousPage = MainScreen.CurrentPage;
+		ActiveMobileTab = "Settings";
+		SettingsPage.SelectedTab = 0;
+		try
+		{
+			await UiContext.Navigate(NavigationTarget.DialogScreen).NavigateDialogAsync(SettingsPage);
+		}
+		finally
+		{
+			if (ReferenceEquals(previousPage, MainScreen.CurrentPage))
+			{
+				ActiveMobileTab = previousTab;
+			}
+		}
 	}
 
 	public IObservable<bool> IsMainContentEnabled { get; }
@@ -314,8 +333,7 @@ public partial class MainViewModel : ViewModelBase
 
 		UiContext.EditableSearchSource.SetQueries(queries);
 
-		queries
-			.Subscribe(querySubject);
+		queries.Subscribe(querySubject);
 
 		return searchBar;
 	}
