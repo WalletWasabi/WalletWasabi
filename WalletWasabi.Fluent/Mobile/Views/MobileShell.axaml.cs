@@ -17,13 +17,13 @@ using WalletWasabi.Fluent.Mobile.ViewModels;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.Settings;
-using WalletWasabi.Fluent.ViewModels.Wallets;
 
 namespace WalletWasabi.Fluent.Mobile.Views;
 
 public sealed class MobileShell : UserControl
 {
 	private CompositeDisposable? _subscriptions;
+	private IDisposable? _noticeTimer;
 	private TopLevel? _topLevel;
 	private RoutableViewModel? _lastPage;
 
@@ -32,6 +32,7 @@ public sealed class MobileShell : UserControl
 		AvaloniaXamlLoader.Load(this);
 		DataTemplates.Insert(0, new MobileEntryViewLocator());
 		DataTemplates.Insert(0, new MobileFlowViewLocator());
+		DataTemplates.Insert(0, new MobileAuthorizationViewLocator());
 		AddHandler(KeyDownEvent, OnKeyDown, RoutingStrategies.Tunnel);
 	}
 
@@ -50,6 +51,7 @@ public sealed class MobileShell : UserControl
 		_subscriptions?.Dispose();
 		_subscriptions = null;
 		_lastPage = null;
+		ClearNavigationNotice();
 		base.OnDetachedFromVisualTree(e);
 	}
 
@@ -63,36 +65,65 @@ public sealed class MobileShell : UserControl
 	{
 		_subscriptions?.Dispose();
 		_subscriptions = new CompositeDisposable();
+		_lastPage = null;
+		ClearNavigationNotice();
+		this.FindControl<Border>("ApplicationNavigation")!.IsVisible = false;
 		if (DataContext is not MainViewModel main) return;
 		main.IsMobileLayout = true;
-		main.WhenAnyValue(x => x.MainScreen.CurrentPage, x => x.DialogScreen.CurrentPage, x => x.FullScreen.CurrentPage, x => x.CompactDialogScreen.CurrentPage)
-			.ObserveOn(RxApp.MainThreadScheduler).Subscribe(_ => UpdatePresentation(main)).DisposeWith(_subscriptions);
+		main.WhenAnyValue(x => x.MainScreen.CurrentPage, x => x.DialogScreen.CurrentPage,
+			x => x.FullScreen.CurrentPage, x => x.CompactDialogScreen.CurrentPage)
+			.ObserveOn(RxApp.MainThreadScheduler)
+			.Subscribe(_ => UpdatePresentation(main))
+			.DisposeWith(_subscriptions);
 	}
 
-	private static RoutableViewModel? ActivePage(MainViewModel main) =>
-		main.CompactDialogScreen.CurrentPage ?? main.DialogScreen.CurrentPage ?? main.FullScreen.CurrentPage ?? main.MainScreen.CurrentPage;
+	private static MobileShellLayer ActiveLayer(MainViewModel main) => MobileShellNavigation.GetTopLayer(
+		main.FullScreen.CurrentPage is not null,
+		main.DialogScreen.CurrentPage is not null,
+		main.CompactDialogScreen.CurrentPage is not null);
 
-	private ContentControl ActiveHost(MainViewModel main)
+	private static RoutableViewModel? ActivePage(MainViewModel main) => ActiveLayer(main) switch
 	{
-		var name = main.CompactDialogScreen.CurrentPage is not null ? "CompactContent"
-			: main.DialogScreen.CurrentPage is not null ? "DialogContent"
-			: main.FullScreen.CurrentPage is not null ? "FullContent" : "MainContent";
-		return this.FindControl<ContentControl>(name)!;
-	}
+		MobileShellLayer.CompactDialog => main.CompactDialogScreen.CurrentPage,
+		MobileShellLayer.Dialog => main.DialogScreen.CurrentPage,
+		MobileShellLayer.FullScreen => main.FullScreen.CurrentPage,
+		_ => main.MainScreen.CurrentPage
+	};
+
+	private ContentControl Host(MobileShellLayer layer) => this.FindControl<ContentControl>(layer switch
+	{
+		MobileShellLayer.CompactDialog => "CompactContent",
+		MobileShellLayer.Dialog => "DialogContent",
+		MobileShellLayer.FullScreen => "FullContent",
+		_ => "MainContent"
+	})!;
 
 	private void UpdatePresentation(MainViewModel main)
 	{
-		this.FindControl<Border>("ApplicationNavigation")!.IsVisible = main.MainScreen.CurrentPage is not WalletViewModel;
-		this.FindControl<ContentControl>("FullContent")!.IsEnabled = main.DialogScreen.CurrentPage is null && main.CompactDialogScreen.CurrentPage is null;
-		this.FindControl<ContentControl>("DialogContent")!.IsEnabled = main.CompactDialogScreen.CurrentPage is null;
+		if (!ReferenceEquals(DataContext, main)) return;
+		var layer = ActiveLayer(main);
+		this.FindControl<Border>("ApplicationNavigation")!.IsVisible = layer == MobileShellLayer.Main &&
+			MobileShellNavigation.ShowApplicationNavigation(main.MainScreen.CurrentPage?.GetType());
+
+		// Keep the original route instances alive, but do not expose underlying
+		// wallet content to input or accessibility while an authorization is on top.
+		foreach (var candidate in Enum.GetValues<MobileShellLayer>())
+		{
+			var host = Host(candidate);
+			host.IsVisible = candidate == layer;
+			host.IsEnabled = candidate == layer;
+		}
+
 		var page = ActivePage(main);
 		if (ReferenceEquals(page, _lastPage)) return;
 		_lastPage = page;
-		var host = ActiveHost(main);
+		ClearNavigationNotice();
+		var activeHost = Host(layer);
 		Dispatcher.UIThread.Post(() =>
 		{
-			if (_topLevel is null || !ReferenceEquals(page, ActivePage(main))) return;
-			host.Focus();
+			// A queued focus request may outlive a DataContext replacement.
+			if (_topLevel is null || !ReferenceEquals(DataContext, main) || !ReferenceEquals(page, ActivePage(main))) return;
+			activeHost.Focus();
 		}, DispatcherPriority.Background);
 	}
 
@@ -109,25 +140,48 @@ public sealed class MobileShell : UserControl
 	private bool HandleBack()
 	{
 		if (DataContext is not MainViewModel main || ActivePage(main) is not { } page) return false;
-		// Reactive commands can be executing before the view model sets IsBusy.
-		// Inspect only the topmost route, not a busy page beneath an authorization dialog.
-		if (page.IsBusy || ActiveHost(main).GetVisualDescendants().OfType<MobilePage>().Any(x => x.IsBusy)) return true;
-		// Settings.CancelCommand is reset-to-default, not dismissal.
-		if (page is SettingsPageViewModel) { Execute(page.NextCommand); return true; }
-		if (main.IsDialogOpen())
+		var layer = ActiveLayer(main);
+		if (page.IsBusy || Host(layer).GetVisualDescendants().OfType<MobilePage>().Any(x => x.IsBusy))
+		{
+			ShowNavigationNotice();
+			return true;
+		}
+		// Settings.CancelCommand resets preferences; it must never implement Back.
+		if (page is SettingsPageViewModel)
+		{
+			Execute(layer == MobileShellLayer.Main ? main.NavigateToMobileWalletsCommand : page.NextCommand);
+			return true;
+		}
+		if (layer != MobileShellLayer.Main)
 		{
 			if (page.EnableBack && Execute(page.BackCommand)) return true;
 			if (page.EnableCancelOnEscape && Execute(page.CancelCommand)) return true;
 			main.ShowDialogAlert();
+			ShowNavigationNotice();
 			return true;
 		}
-		var walletView = this.FindControl<ContentControl>("MainContent")!.GetVisualDescendants().OfType<MobileWalletView>().FirstOrDefault();
+		var walletView = Host(MobileShellLayer.Main).GetVisualDescendants().OfType<MobileWalletView>().FirstOrDefault();
 		if (walletView?.FindControl<Grid>("Root")?.DataContext is MobileWalletViewModel wallet && wallet.Section != "home")
 		{
 			wallet.Navigate(wallet.Section == "transaction" ? "history" : "home");
 			return true;
 		}
 		return page.EnableBack && Execute(page.BackCommand);
+	}
+
+	private void ShowNavigationNotice()
+	{
+		_noticeTimer?.Dispose();
+		var notice = this.FindControl<Border>("NavigationNotice")!;
+		notice.IsVisible = true;
+		_noticeTimer = DispatcherTimer.RunOnce(() => notice.IsVisible = false, TimeSpan.FromSeconds(3));
+	}
+
+	private void ClearNavigationNotice()
+	{
+		_noticeTimer?.Dispose();
+		_noticeTimer = null;
+		this.FindControl<Border>("NavigationNotice")!.IsVisible = false;
 	}
 
 	private static bool Execute(ICommand? command)

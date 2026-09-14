@@ -1,25 +1,32 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileShell" x:DataType="vm:MainViewModel" x:CompileBindings="True" Background="{DynamicResource MobileBackground}" Foreground="{DynamicResource MobileText}">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileShell"
+             x:DataType="vm:MainViewModel" x:CompileBindings="True"
+             Background="{DynamicResource MobileBackground}" Foreground="{DynamicResource MobileText}">
   <UserControl.DataTemplates><v:MobileViewLocator/></UserControl.DataTemplates>
   <Interaction.Behaviors><RegisterNotificationHostBehavior/></Interaction.Behaviors>
   <UserControl.Styles>
     <Style Selector="ContentArea"><Setter Property="MinWidth" Value="0"/><Setter Property="MaxWidth" Value="Infinity"/></Style>
     <Style Selector="ContentArea /template/ StackPanel#PART_Header"><Setter Property="Margin" Value="16,12,16,0"/></Style>
     <Style Selector="ContentArea /template/ ScrollViewer#PART_ScrollViewer"><Setter Property="Margin" Value="16,12,16,16"/></Style>
-    <Style Selector="Button"><Setter Property="MinHeight" Value="48"/></Style>
-    <Style Selector="TextBox"><Setter Property="MinHeight" Value="48"/></Style>
+    <Style Selector="Button"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/></Style>
+    <Style Selector="TextBox"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/></Style>
   </UserControl.Styles>
   <Panel>
     <Grid RowDefinitions="*,Auto" IsEnabled="{Binding IsMainContentEnabled^}">
       <ContentControl Name="MainContent" Content="{Binding MainScreen.CurrentPage}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Focusable="True"/>
-      <Border Name="ApplicationNavigation" Grid.Row="1" Background="{DynamicResource MobileSurface}" BorderBrush="{DynamicResource MobileDivider}" BorderThickness="0,1,0,0" Padding="8,4">
+      <Border Name="ApplicationNavigation" Grid.Row="1" Background="{DynamicResource MobileSurface}" BorderBrush="{DynamicResource MobileDivider}" BorderThickness="0,1,0,0" Padding="8,4" IsVisible="False">
         <UniformGrid Columns="3" Rows="1">
-          <m:MobileActionButton Label="Wallets" Icon="home" Command="{Binding NavigateToMobileWalletsCommand}" Background="Transparent" BorderThickness="0"/>
-          <m:MobileActionButton Label="Add wallet" Icon="leaf" Command="{Binding NavigateToMobileAddWalletCommand}" Background="Transparent" BorderThickness="0"/>
-          <m:MobileActionButton Label="Settings" Icon="settings" Command="{Binding NavigateToMobileSettingsCommand}" Background="Transparent" BorderThickness="0"/>
+          <m:MobileActionButton Label="Wallets" Icon="home" Command="{Binding NavigateToMobileWalletsCommand}" Background="Transparent" BorderThickness="0"
+                                IsSelected="{Binding ActiveMobileTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=Wallets}"/>
+          <m:MobileActionButton Label="Add wallet" Icon="leaf" Command="{Binding NavigateToMobileAddWalletCommand}" Background="Transparent" BorderThickness="0"
+                                IsSelected="{Binding ActiveMobileTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=AddWallet}"/>
+          <m:MobileActionButton Label="Settings" Icon="settings" Command="{Binding NavigateToMobileSettingsCommand}" Background="Transparent" BorderThickness="0"
+                                IsSelected="{Binding ActiveMobileTab, Converter={StaticResource MobileSectionEquals}, ConverterParameter=Settings}"/>
         </UniformGrid>
       </Border>
     </Grid>
-    <!-- Navigation models, authorization and result completion remain the existing instances. -->
+    <!-- Models and dialog results remain owned by the existing navigation stacks. -->
     <Border Background="{DynamicResource MobileBackground}" IsVisible="{Binding FullScreen.IsDialogOpen}" KeyboardNavigation.TabNavigation="Cycle">
       <ContentControl Name="FullContent" Content="{Binding FullScreen.CurrentPage}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Focusable="True"/>
     </Border>
@@ -28,6 +35,10 @@
     </Border>
     <Border Background="{DynamicResource MobileBackground}" IsVisible="{Binding CompactDialogScreen.IsDialogOpen}" KeyboardNavigation.TabNavigation="Cycle">
       <ContentControl Name="CompactContent" Content="{Binding CompactDialogScreen.CurrentPage}" HorizontalContentAlignment="Stretch" VerticalContentAlignment="Stretch" Focusable="True"/>
+    </Border>
+    <Border Name="NavigationNotice" Classes="mobile-note" Margin="16,0,16,88" VerticalAlignment="Bottom"
+            IsHitTestVisible="False" IsVisible="False" AutomationProperties.Name="Navigation unavailable">
+      <TextBlock Text="Wait for the current operation, or use this screen's available cancel action." Classes="mobile-caption"/>
     </Border>
   </Panel>
 </UserControl>
