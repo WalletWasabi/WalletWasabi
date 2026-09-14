@@ -1,4 +1,4 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels" xmlns:wallets="using:WalletWasabi.Fluent.ViewModels.Wallets" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletView" x:CompileBindings="True">
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels" xmlns:wallets="using:WalletWasabi.Fluent.ViewModels.Wallets" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletView" x:CompileBindings="True">
   <UserControl.Resources>
     <DataTemplate x:Key="TransactionRow" x:DataType="vm:MobileTransactionItem">
       <Button Classes="mobile-button flat" Command="{Binding OpenCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="0,12">
@@ -20,7 +20,7 @@
       <ScrollViewer IsVisible="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=home}" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16,8,16,20" Spacing="16">
           <Border Classes="mobile-card" Background="{DynamicResource MobileBalanceFill}"><StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Total balance" Foreground="{DynamicResource MobileBalanceText}" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="mobile-button flat" MinHeight="32" Padding="4" Command="{Binding ToggleDiscreetCommand}" AutomationProperties.Name="Show or hide financial information"><m:MobileGlyph Kind="eye" Width="18" Height="18" Foreground="{DynamicResource MobileBalanceText}"/></Button></Grid>
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Total balance" Foreground="{DynamicResource MobileBalanceText}" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="mobile-button flat" MinHeight="48" Padding="4" Command="{Binding ToggleDiscreetCommand}" AutomationProperties.Name="Show or hide financial information"><m:MobileGlyph Kind="eye" Width="18" Height="18" Foreground="{DynamicResource MobileBalanceText}"/></Button></Grid>
             <TextBlock Text="{Binding BalanceText}" FontSize="28" FontWeight="SemiBold" Foreground="{DynamicResource MobileBalanceText}" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding FiatBalanceText}" Foreground="{DynamicResource MobileBalanceText}" FontSize="13"/>
             <m:MobileSparkline Height="54" Values="{Binding BalanceHistory}" Foreground="{DynamicResource MobileBalanceText}" IsVisible="{Binding ShowHistoryChart}"/>
@@ -37,6 +37,7 @@
           <Border Classes="mobile-card" Padding="12,0"><ItemsControl ItemsSource="{Binding RecentTransactions}" ItemTemplate="{StaticResource TransactionRow}"/></Border>
           <TextBlock Text="Your transactions will appear here after the wallet is synchronized." Classes="mobile-caption" IsVisible="{Binding IsEmpty}"/>
           <Button Classes="mobile-button flat" Content="Switch wallet" Command="{Binding SwitchWalletCommand}"/>
+          <Button Classes="mobile-button flat" Content="Discover Wasabi" Command="{Binding NavigateCommand}" CommandParameter="discover" IsVisible="{DynamicResource MobileLightLayout}"/>
         </StackPanel>
       </ScrollViewer>
       <Grid RowDefinitions="Auto,Auto,*" Margin="16,8,16,0" IsVisible="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=history}">
@@ -52,7 +53,11 @@
       <ScrollViewer IsVisible="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=privacy}" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16,8,16,20" Spacing="16">
           <TextBlock Text="Privacy" Classes="mobile-title"/><TextBlock Text="Understand and control your wallet's privacy." Classes="mobile-caption"/>
-          <Grid Width="196" Height="196" HorizontalAlignment="Center"><m:MobilePrivacyRing Value="{Binding PrivacyPercent}" Foreground="{DynamicResource MobileAccent}" Track="{DynamicResource MobileRingTrack}"/><StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6"><TextBlock Text="{Binding PrivacyPercent, StringFormat='{}{0}%'}" FontSize="44" FontWeight="SemiBold" Foreground="{DynamicResource MobileText}" HorizontalAlignment="Center"/><TextBlock Text="Private balance" Classes="mobile-caption"/><m:MobileGlyph Kind="leaf" Width="22" Height="22" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/></StackPanel></Grid>
+          <Grid Width="196" Height="196" HorizontalAlignment="Center">
+            <m:MobilePrivacyRing Name="PrivacyBalanceGauge" Value="{Binding PrivacyPercent}" Foreground="{DynamicResource MobileAccent}" Track="{DynamicResource MobileRingTrack}"
+                                 StartAngle="{DynamicResource MobilePrivacyStartAngle}" SweepAngle="{DynamicResource MobilePrivacySweepAngle}"/>
+            <StackPanel HorizontalAlignment="Center" VerticalAlignment="Center" Spacing="6"><TextBlock Text="{Binding PrivacyPercent, StringFormat='{}{0}%'}" FontSize="44" FontWeight="SemiBold" Foreground="{DynamicResource MobileText}" HorizontalAlignment="Center"/><TextBlock Text="Private balance" Classes="mobile-caption"/><m:MobileGlyph Kind="leaf" Width="22" Height="22" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center"/></StackPanel>
+          </Grid>
           <TextBlock Text="{Binding PrivacyDescription}" Classes="mobile-caption" TextAlignment="Center"/>
           <Border Classes="mobile-note"><Grid ColumnDefinitions="32,*"><m:MobileGlyph Kind="shield" Width="22" Height="22" Foreground="{DynamicResource MobileAccent}"/><TextBlock Grid.Column="1" Text="A fresh receive address and deliberate coin selection help avoid unnecessary links between payments." Classes="mobile-caption"/></Grid></Border>
           <TextBlock Text="Your UTXOs" Classes="mobile-label"/>
@@ -64,7 +69,7 @@
       <ScrollViewer IsVisible="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=coinjoin}" HorizontalScrollBarVisibility="Disabled">
         <StackPanel Margin="16,8,16,20" Spacing="16"><TextBlock Text="CoinJoin" Classes="mobile-title"/>
           <Border Classes="mobile-card" IsVisible="{Binding HasCoinjoin}"><StackPanel Spacing="16" DataContext="{Binding Wallet.CoinJoinStateViewModel}" x:DataType="wallets:CoinJoinStateViewModel">
-            <Grid Width="140" Height="140" HorizontalAlignment="Center"><m:MobilePrivacyRing Value="{Binding ProgressValue}" Foreground="{DynamicResource MobileAccent}" Track="{DynamicResource MobileRingTrack}"/><m:MobileGlyph Kind="coinjoin" Width="54" Height="54" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid>
+            <Grid Width="140" Height="140" HorizontalAlignment="Center"><m:MobilePrivacyRing Name="CoinJoinProgressRing" Value="{Binding ProgressValue}" Foreground="{DynamicResource MobileAccent}" Track="{DynamicResource MobileRingTrack}"/><m:MobileGlyph Kind="coinjoin" Width="54" Height="54" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center" VerticalAlignment="Center"/></Grid>
             <TextBlock Text="{Binding CurrentStatus}" Classes="mobile-label" TextWrapping="Wrap" TextAlignment="Center"/>
             <Grid ColumnDefinitions="*,*"><TextBlock Text="{Binding LeftText}" Classes="mobile-caption"/><TextBlock Grid.Column="1" Text="{Binding RightText}" Classes="mobile-caption" HorizontalAlignment="Right"/></Grid>
             <Border Classes="mobile-note" IsVisible="{Binding IsInCriticalPhase}"><TextBlock Text="Signing phase. Keep the app open; stopping is temporarily unavailable." Classes="mobile-caption"/></Border>
@@ -110,11 +115,6 @@
         </StackPanel>
       </ScrollViewer>
     </Panel>
-    <Border Grid.Row="2" BorderBrush="{DynamicResource MobileDivider}" BorderThickness="0,1,0,0" Background="{DynamicResource MobileSurface}" Padding="8,4"><UniformGrid Columns="4" Rows="1">
-      <m:MobileActionButton Label="Home" Icon="home" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="home" IsSelected="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=home}"/>
-      <m:MobileActionButton Label="Transactions" Icon="history" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="history" IsSelected="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=history}"/>
-      <m:MobileActionButton Label="Privacy" Icon="shield" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="privacy" IsSelected="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=privacy}"/>
-      <m:MobileActionButton Label="Discover" Icon="discover" Background="Transparent" BorderThickness="0" Command="{Binding NavigateCommand}" CommandParameter="discover" IsSelected="{Binding Section, Converter={StaticResource MobileSectionEquals}, ConverterParameter=discover}"/>
-    </UniformGrid></Border>
+    <v:MobileWalletNavigation Grid.Row="2"/>
   </Grid>
 </UserControl>
