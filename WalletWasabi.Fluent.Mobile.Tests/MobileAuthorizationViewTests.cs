@@ -1,6 +1,7 @@
 using Avalonia.Controls;
 using Avalonia.Headless;
 using Avalonia.Headless.XUnit;
+using Avalonia.Input.TextInput;
 using Avalonia.Styling;
 using Avalonia.Threading;
 using Avalonia.VisualTree;
@@ -45,6 +46,10 @@ public sealed class MobileAuthorizationViewTests
 				var input = passphraseView.FindControl<TextBox>("PassphraseInput")!;
 				Assert.Equal('●', input.PasswordChar);
 				Assert.False(input.RevealPassword);
+				Assert.False(input.IsUndoEnabled);
+				Assert.True(TextInputOptions.GetIsSensitive(input));
+				Assert.Equal(false, TextInputOptions.GetShowSuggestions(input));
+				Assert.False(TextInputOptions.GetAutoCapitalization(input));
 				Assert.True(input.Bounds.Height >= 48);
 			}
 			using var frame = window.CaptureRenderedFrame();
@@ -55,6 +60,19 @@ public sealed class MobileAuthorizationViewTests
 			frame.Save(Path.Combine(directory, $"authorization-unbound-{(password ? "password" : "hardware")}-{width}-{(dark ? "dark" : "light")}.png"));
 		}
 		finally { window.Close(); }
+	}
+
+	[AvaloniaFact]
+	public void LoginPassphraseHasTheSameSensitiveInputPolicy()
+	{
+		var view = new MobileLoginView();
+		var input = view.FindControl<TextBox>("PassphraseInput")!;
+		Assert.Equal('●', input.PasswordChar);
+		Assert.False(input.RevealPassword);
+		Assert.False(input.IsUndoEnabled);
+		Assert.True(TextInputOptions.GetIsSensitive(input));
+		Assert.Equal(false, TextInputOptions.GetShowSuggestions(input));
+		Assert.False(TextInputOptions.GetAutoCapitalization(input));
 	}
 
 	[Fact]
