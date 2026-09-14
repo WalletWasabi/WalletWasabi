@@ -171,5 +171,116 @@ class VisualReviewTests(unittest.TestCase):
         self.assertEqual({"unit-fixture.png", "new-case.png"}, {frame["image"] for frame in approval["frames"]})
 
 
+class RasterFingerprintTests(unittest.TestCase):
+    def setUp(self):
+        self.tmp = tempfile.TemporaryDirectory()
+        self.addCleanup(self.tmp.cleanup)
+        self.root = Path(self.tmp.name)
+        self.actual = self.root / "actual"
+        self.actual.mkdir()
+        self.baseline = self.root / "baseline"
+        self.frame()
+
+    def frame(self, name="unit-fixture.png", image=None, **save_options):
+        image = image or Image.new("RGBA", (10, 10), (10, 20, 30, 255))
+        image.save(self.actual / name, **save_options)
+        record = dict(engine="avalonia-headless-skia", contentKind="synthetic-parser-unit-test", image=name,
+                      width=image.width, height=image.height, sha256=hashlib.sha256((self.actual / name).read_bytes()).hexdigest())
+        (self.actual / (name[:-4] + ".frame.json")).write_text(json.dumps(record))
+        return record
+
+    def enroll(self):
+        approve(self.actual, self.baseline, reviewed=True, fingerprints_only=True)
+
+    def result(self, **options):
+        return report(self.actual, self.root / "report", self.baseline, **options)
+
+    def test_reviewed_fingerprints_need_no_binary_baseline(self):
+        self.enroll()
+        self.assertEqual(["approval.json"], [p.name for p in self.baseline.iterdir()])
+        result = self.result()
+        self.assertTrue(result["gatePassed"])
+        self.assertEqual("rgba-sha256", result["frames"][0]["verification"])
+        self.assertEqual(result["frames"][0]["approvedFingerprint"], result["frames"][0]["actualFingerprint"])
+        self.assertFalse((self.root / "report/diff/unit-fixture.png").exists())
+
+    def test_reencoding_png_without_changing_pixels_passes(self):
+        self.enroll()
+        self.frame(compress_level=0)
+        self.assertTrue(self.result()["gatePassed"])
+
+    def test_single_channel_change_fails_even_with_maximum_tolerances(self):
+        self.enroll()
+        image = Image.new("RGBA", (10, 10), (10, 20, 30, 255))
+        image.putpixel((4, 5), (11, 20, 30, 255))
+        self.frame(image=image)
+        result = self.result(pixel_tolerance=255, maximum_changed_fraction=1, maximum_mean_error=255)
+        self.assertFalse(result["gatePassed"])
+        self.assertEqual("different", result["frames"][0]["status"])
+        self.assertNotIn("changed_fraction", result["frames"][0])
+
+    def test_alpha_is_part_of_the_exact_fingerprint(self):
+        self.enroll()
+        self.frame(image=Image.new("RGBA", (10, 10), (10, 20, 30, 254)))
+        self.assertFalse(self.result()["gatePassed"])
+
+    def test_dimensions_cannot_be_changed_or_rescaled(self):
+        self.enroll()
+        self.frame(image=Image.new("RGBA", (20, 5), (10, 20, 30, 255)))
+        result = self.result()
+        self.assertFalse(result["gatePassed"])
+        self.assertEqual("dimension-mismatch", result["frames"][0]["status"])
+
+    def test_rgb_and_equivalent_rgba_have_the_same_fingerprint(self):
+        self.enroll()
+        self.frame(image=Image.new("RGB", (10, 10), (10, 20, 30)))
+        self.assertTrue(self.result()["gatePassed"])
+
+    def test_invalid_reviewed_hash_is_rejected(self):
+        self.enroll()
+        path = self.baseline / "approval.json"
+        approval = json.loads(path.read_text())
+        approval["frames"][0]["rgbaSha256"] = "not-a-sha256"
+        path.write_text(json.dumps(approval))
+        with self.assertRaisesRegex(ValueError, "Invalid reviewed RGBA fingerprint"):
+            self.result()
+
+    def test_fingerprint_enrollment_still_requires_explicit_review(self):
+        with self.assertRaisesRegex(ValueError, "--reviewed"):
+            approve(self.actual, self.baseline, reviewed=False, fingerprints_only=True)
+
+    def test_fingerprint_replacement_still_requires_explicit_permission(self):
+        self.enroll()
+        with self.assertRaisesRegex(ValueError, "protected"):
+            self.enroll()
+
+    def test_missing_approved_capture_fails_even_in_render_only_mode(self):
+        self.frame("second-case.png")
+        self.enroll()
+        (self.actual / "second-case.png").unlink()
+        (self.actual / "second-case.frame.json").unlink()
+        result = self.result(allow_unreviewed=True)
+        self.assertFalse(result["gatePassed"])
+        self.assertEqual(1, result["missingCaptured"])
+        self.assertEqual("missing-captures", result["status"])
+        self.assertEqual("missing-capture", result["frames"][-1]["status"])
+
+    def test_new_capture_still_needs_approval(self):
+        self.enroll()
+        self.frame("new-case.png")
+        result = self.result()
+        self.assertFalse(result["gatePassed"])
+        self.assertEqual(1, result["unreviewed"])
+
+    def test_unknown_comparison_policy_fails_closed(self):
+        self.enroll()
+        path = self.baseline / "approval.json"
+        approval = json.loads(path.read_text())
+        approval["frames"][0]["comparison"] = "always-pass"
+        path.write_text(json.dumps(approval))
+        with self.assertRaisesRegex(ValueError, "Unknown baseline comparison"):
+            self.result()
+
+
 if __name__ == "__main__":
     unittest.main()
