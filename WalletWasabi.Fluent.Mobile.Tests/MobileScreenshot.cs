@@ -20,12 +20,12 @@ internal static class MobileScreenshot
 	public static byte[] Capture(Window window, string name, string scenario, string contentKind = "bound-fixture")
 	{
 		Assert.Matches("^[a-z0-9-]+$", name);
-		// A binding change can queue layout and a compositor commit after the current
-		// render tick. Drain both queues before reading the last presented framebuffer;
-		// otherwise interaction captures can contain the preceding UI state.
+		// Bindings, layout and compositor commits are drained before saving. Static
+		// baselines compare settled states, never wall-clock-dependent transitions.
 		for (var pass = 0; pass < 3; pass++)
 		{
 			Dispatcher.UIThread.RunJobs();
+			MobileSnapshotState.Prepare(window);
 			AvaloniaHeadlessPlatform.ForceRenderTimerTick();
 		}
 		Dispatcher.UIThread.RunJobs();
@@ -53,6 +53,7 @@ internal static class MobileScreenshot
 		File.WriteAllText(Path.Combine(directory, name + ".frame.json"), JsonSerializer.Serialize(new
 		{
 			engine = "avalonia-headless-skia", contentKind, scenario, image = name + ".png",
+			motion = "settled-transitions", caret = "hidden-for-static-snapshot",
 			width = frame.PixelSize.Width, height = frame.PixelSize.Height,
 			dipWidth = window.ClientSize.Width, dipHeight = window.ClientSize.Height,
 			scale = window.RenderScaling, theme = window.ActualThemeVariant.ToString(),
