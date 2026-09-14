@@ -1,0 +1,32 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveAddressesView"
+             x:DataType="vm:ReceiveAddressesViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Addresses awaiting payment" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button" Content="Close" Command="{Binding CancelCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <Grid RowDefinitions="Auto,*" Margin="{DynamicResource MobileGutter}">
+      <TextBlock Text="Open a request to show its QR code. Prefer a fresh address for a different sender." Classes="mobile-caption" Margin="0,0,0,16"/>
+      <ListBox Grid.Row="1" ItemsSource="{Binding Source.Items}" Background="Transparent" BorderThickness="0" HorizontalContentAlignment="Stretch">
+        <ListBox.ItemTemplate><DataTemplate x:DataType="vm:AddressViewModel">
+          <Border Classes="mobile-card" Margin="0,0,0,12"><StackPanel Spacing="12">
+            <c:PrivacyContentControl><StackPanel Spacing="8">
+              <TextBlock Text="{Binding Labels}" Classes="mobile-label" TextWrapping="Wrap"/>
+              <TextBlock Text="{Binding AddressText}" Foreground="{DynamicResource MobileText}" TextWrapping="Wrap"/>
+              <TextBlock Text="{Binding ScriptType}" Classes="mobile-caption"/>
+            </StackPanel></c:PrivacyContentControl>
+            <Grid ColumnDefinitions="*,*" RowDefinitions="Auto,Auto">
+              <Button Classes="mobile-button" Content="Show QR" Command="{Binding NavigateCommand}" HorizontalAlignment="Stretch" Margin="0,0,4,4"/>
+              <Button Grid.Column="1" Classes="mobile-button" Content="Copy address" Command="{Binding CopyAddressCommand}" HorizontalAlignment="Stretch" Margin="4,0,0,4"/>
+              <Button Grid.Row="1" Classes="mobile-button flat" Content="Edit labels" Command="{Binding EditLabelCommand}" HorizontalAlignment="Stretch" Margin="0,4,4,0"/>
+              <Button Grid.Row="1" Grid.Column="1" Classes="mobile-button flat" Content="Hide address" Command="{Binding HideAddressCommand}" HorizontalAlignment="Stretch" Margin="4,4,0,0"/>
+            </Grid>
+          </StackPanel></Border>
+        </DataTemplate></ListBox.ItemTemplate>
+      </ListBox>
+    </Grid>
+  </m:MobilePage>
+</UserControl>
