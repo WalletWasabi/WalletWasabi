@@ -1,17 +1,31 @@
 ## Release Highlights
 
-#### 🔗 P2P synchronization fixes after chain reorganizations
-#### 🔐 Security improvements for coinjoin
-#### 🍎 Native macOS Apple Silicon support for hardware wallets
+#### 🌳 Payjoin now supports Taproot addresses
+#### 🔐 Stricter security controls across the wallet
+#### 🛡️ Enhanced coinjoin blame round protection
 
 ## Release Summary
-Wasabi Wallet v2.8.2 fixes P2P synchronization issues after blockchain reorganizations and addresses security vulnerabilities in coinjoin.
+Wasabi Wallet v2.8.3 brings Taproot support to Payjoin transactions, implements stricter security controls throughout the wallet, and enhances coinjoin reliability with improved blame round handling.
 
-### 🔗 P2P synchronization fixes after chain reorganizations
-Fixed several issues that caused synchronization failures when the blockchain experienced reorganizations. The wallet now correctly handles orphaned tips and shorter reorg chains without throwing errors, ensuring reliable sync recovery.
+### 🌳 Payjoin now supports Taproot addresses
+Payjoin transactions now work with Taproot (P2TR) addresses, enabling more efficient and private collaborative transactions with lower fees and improved fungibility.
 
-### 🔐 Security improvements for coinjoin
-Enhanced coinjoin security by verifying other participants' inputs before signing. This adds an extra layer of protection against malicious coordinators or participants attempting to manipulate transactions.
+### 🔐 Stricter security controls
+Multiple security hardening measures have been implemented:
+- Payjoin now requires Tor to be enabled for enhanced privacy
+- Improved validation of compact block filters
+- Better network diversity by connecting to nodes in different net groups
+- Fixed value-conservation checks for Payjoin sender
 
-### 🍎 Native macOS Apple Silicon support for hardware wallets
-Hardware Wallet Interface (HWI) now runs natively on Apple Silicon Macs, eliminating the need for Rosetta emulation and improving performance when using hardware wallets on M1/M2/M3 machines.
+### 🛡️ Enhanced coinjoin blame round protection
+Improved coinjoin reliability and security:
+- Clients now verify blame round inputs before participating
+- Fixed payment stalling when only non-private coins are temporarily banned
+- Wallet no longer participates in blame rounds when it didn't sign in the original round
+
+### 🎵 Music box always visible
+The coinjoin music box is now always visible in the UI for easier access to coinjoin status and controls.
+
+### 🐛 Bug fixes
+- Fixed Blockstream exchange rate provider
+- Improved handling of missing Windows startup registry key
