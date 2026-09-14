@@ -7,6 +7,9 @@ on:
     paths:
       - 'WalletWasabi.Fluent/**'
       - 'WalletWasabi.Fluent.Mobile.Tests/**'
+      - 'Contrib/Mobile/**'
+      - 'Directory.Build.props'
+      - 'Directory.Packages.props'
       - '.github/workflows/mobile-design-validation.yml'
   workflow_dispatch:
 
@@ -20,12 +23,14 @@ concurrency:
 jobs:
   shared-ui:
     runs-on: ubuntu-latest
-    timeout-minutes: 25
+    timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
           dotnet-version: '10.0.x'
+      - name: Validate native resources and export design tokens
+        run: python3 Contrib/Mobile/mobile_design.py --check --export TestResults/mobile-design-tokens.json
       - name: Archive exact validation sources
         run: git archive --format=zip HEAD -o "$RUNNER_TEMP/mobile-validation-source.zip"
       - uses: actions/upload-artifact@v4
@@ -33,13 +38,14 @@ jobs:
           name: mobile-validation-source
           path: ${{ runner.temp }}/mobile-validation-source.zip
           retention-days: 3
-      - name: Build shared native UI
-        run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false
-      - name: Run mobile UI regression tests
-        if: hashFiles('WalletWasabi.Fluent.Mobile.Tests/*.csproj') != ''
-        run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
+      - name: Build shared native UI and compiled XAML
+        run: dotnet build WalletWasabi.Fluent/WalletWasabi.Fluent.csproj -c Release -p:UseCdp=false -bl:TestResults/mobile-ui-build.binlog
+      - name: Run native mobile regression tests
+        run: dotnet test WalletWasabi.Fluent.Mobile.Tests/WalletWasabi.Fluent.Mobile.Tests.csproj -c Release -p:UseCdp=false --logger 'trx;LogFileName=mobile-ui.trx' --results-directory TestResults
       - uses: actions/upload-artifact@v4
-        if: always() && hashFiles('TestResults/**') != ''
+        if: always()
         with:
-          name: mobile-ui-test-results
+          name: mobile-ui-validation
           path: TestResults
+          if-no-files-found: warn
+          retention-days: 7
