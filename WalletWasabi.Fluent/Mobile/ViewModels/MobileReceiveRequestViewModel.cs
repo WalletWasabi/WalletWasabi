@@ -3,8 +3,8 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Receive;
 
 namespace WalletWasabi.Fluent.Mobile.ViewModels;
 
-/// <summary>Adapts the existing, wallet-generated receive address to native request state.</summary>
-public sealed class MobileReceiveRequestViewModel : MobilePaymentRequestState
+/// <summary>Owns only mobile presentation state; wallet navigation and hardware verification stay with Source.</summary>
+public sealed class MobileReceiveRequestViewModel : MobileReceivePresentation
 {
 	public MobileReceiveRequestViewModel(ReceiveAddressViewModel source)
 		: base(source.Address, source.UiContext.QrCodeGenerator.Generate,

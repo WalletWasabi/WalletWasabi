@@ -1,16 +1,20 @@
-<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveAddressView" x:CompileBindings="True">
-  <m:MobilePage Name="Root" x:DataType="vm:MobileReceiveRequestViewModel" Header="Receive Bitcoin" ShowBack="True" BackCommand="{Binding Source.BackCommand}">
-    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding Source.NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
-    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,8,16,16" Spacing="18">
-      <Border Classes="mobile-card"><TextBlock Text="Receive to your wallet" Classes="mobile-label" HorizontalAlignment="Center"/></Border>
-      <Border Background="White" CornerRadius="16" Padding="8" HorizontalAlignment="Center"><m:MobileQrCode Matrix="{Binding Matrix}" Width="248" Height="248" AutomationProperties.Name="Receiving address or payment request QR code"/></Border>
-      <TextBlock Text="Your Bitcoin address" Classes="mobile-label"/>
-      <Border Classes="mobile-card"><TextBlock Text="{Binding Source.Address}" FontSize="14" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></Border>
-      <Grid ColumnDefinitions="*,*"><Button Classes="mobile-button" Content="Copy address" Command="{Binding Source.CopyAddressCommand}" HorizontalAlignment="Stretch" Margin="0,0,8,0"/><Button Grid.Column="1" Classes="mobile-button" Content="Copy request" Command="{Binding CopyRequestCommand}" HorizontalAlignment="Stretch"/></Grid>
-      <StackPanel Spacing="8"><TextBlock Text="Request an amount (optional)" Classes="mobile-label"/><TextBox Classes="mobile-input" Text="{Binding Amount, Mode=TwoWay}" MaxLength="24" Watermark="0.00000000 BTC" AutomationProperties.Name="Requested BTC amount"/><TextBlock Text="{Binding Error}" Classes="mobile-error"/></StackPanel>
-      <TextBlock Text="{Binding PaymentRequest}" Classes="mobile-caption" TextWrapping="Wrap"/>
-      <Border Classes="mobile-note"><Grid ColumnDefinitions="28,*"><m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/><TextBlock Grid.Column="1" Text="This address belongs to your wallet. Use a fresh receiving address for each sender. Copy request includes only the address and optional BTC amount." Classes="mobile-caption"/></Grid></Border>
-      <Button Classes="mobile-button" Content="Verify on hardware wallet" Command="{Binding Source.ShowOnHwWalletCommand}" IsVisible="{Binding Source.IsHardwareWallet}" HorizontalAlignment="Stretch"/>
-    </StackPanel></ScrollViewer>
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels"
+             xmlns:views="using:WalletWasabi.Fluent.Mobile.Views"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveAddressView" x:CompileBindings="True">
+  <m:MobilePage Name="Root" x:DataType="vm:MobileReceiveRequestViewModel" Header="Receive Bitcoin"
+                ShowBack="True" BackCommand="{Binding Source.BackCommand}">
+    <m:MobilePage.Footer>
+      <Button Classes="mobile-button primary" Content="Done" Command="{Binding Source.NextCommand}" HorizontalAlignment="Stretch"/>
+    </m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="16,8,16,16" Spacing="16">
+        <views:MobileReceiveSurface/>
+        <Button Classes="mobile-button" Content="Verify on hardware wallet" Command="{Binding Source.ShowOnHwWalletCommand}"
+                IsVisible="{Binding Source.IsHardwareWallet}" HorizontalAlignment="Stretch"/>
+      </StackPanel>
+    </ScrollViewer>
   </m:MobilePage>
 </UserControl>

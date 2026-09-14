@@ -66,6 +66,13 @@ public class MobilePaymentRequestState : ReactiveObject, IDisposable
 	public string Error => _validationError.Length > 0 ? _validationError : _qrError.Length > 0 ? _qrError : _clipboardError;
 	public ICommand CopyRequestCommand { get; }
 
+	/// <summary>Retry the current request without changing its validated payload.</summary>
+	protected void RefreshRequest()
+	{
+		ObjectDisposedException.ThrowIf(_disposed, this);
+		Regenerate();
+	}
+
 	private void Regenerate()
 	{
 		var revision = ++_revision;
