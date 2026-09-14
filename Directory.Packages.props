@@ -20,6 +20,8 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.2" />
     <!-- SQLite. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(NetPackagesVersion)" />
+    <!-- iOS references the bundle explicitly; match the upstream SQLite resolution. -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="$(NetPackagesVersion)" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />

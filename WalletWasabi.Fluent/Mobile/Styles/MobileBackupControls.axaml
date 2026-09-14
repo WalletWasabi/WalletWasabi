@@ -1,6 +1,7 @@
 <Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create">
   <Styles.Resources>
+    <ResourceDictionary>
     <ControlTheme x:Key="MobileBackupCandidateContainer" TargetType="ContentPresenter" x:DataType="words:RecoveryWordViewModel" x:CompileBindings="True">
       <Setter Property="IsVisible" Value="{Binding !IsConfirmed}"/>
       <Setter Property="Margin" Value="{DynamicResource MobileBackupWordMargin}"/>
@@ -55,6 +56,7 @@
       </ControlTemplate></Setter>
       <Style Selector="^:confirmed"><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
     </ControlTheme>
+      </ResourceDictionary>
   </Styles.Resources>
   <Style Selector="ToggleButton.mobile-backup-toggle">
     <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>

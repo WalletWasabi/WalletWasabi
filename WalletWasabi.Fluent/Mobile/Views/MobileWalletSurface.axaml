@@ -6,7 +6,7 @@
     <Style Selector="Button.mobile-button"><Setter Property="MinWidth" Value="{DynamicResource MobileTouchTarget}"/></Style>
     <Style Selector="TextBlock.mobile-transaction-amount"><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
     <Style Selector="TextBlock.mobile-transaction-amount.mobile-incoming"><Setter Property="Foreground" Value="{DynamicResource MobilePositive}"/></Style>
-    <Style Selector="ListBox.mobile-rows"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
+    <Style Selector="ListBox.mobile-rows"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/></Style>
     <Style Selector="ListBox.mobile-rows ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
   </UserControl.Styles>
   <UserControl.Resources>
@@ -46,7 +46,7 @@
           <Border Classes="mobile-card" Background="{DynamicResource MobileBalanceFill}"><StackPanel Spacing="8">
             <Grid ColumnDefinitions="*,Auto">
               <TextBlock Text="Total balance" Foreground="{DynamicResource MobileBalanceText}" VerticalAlignment="Center"/>
-              <Button Name="DiscreetAction" Grid.Column="1" Classes="mobile-button flat" Padding="4" Command="{Binding ToggleDiscreetCommand}" AutomationProperties.Name="Show or hide financial information">
+              <Button Name="DiscreetAction" Grid.Column="2" Classes="mobile-button flat" Padding="4" Command="{Binding ToggleDiscreetCommand}" AutomationProperties.Name="Show or hide financial information">
                 <m:MobileGlyph Kind="eye" Width="18" Height="18" Foreground="{DynamicResource MobileBalanceText}"/>
               </Button>
             </Grid>

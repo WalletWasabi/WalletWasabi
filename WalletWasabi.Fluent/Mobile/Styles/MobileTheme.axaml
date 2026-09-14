@@ -89,4 +89,5 @@
   <Style Selector="TextBox.mobile-input"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/><Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/><Setter Property="Background" Value="{DynamicResource MobileSurface}"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/><Setter Property="Padding" Value="12"/><Setter Property="FontSize" Value="{DynamicResource MobileFontBody}"/></Style>
   <Style Selector="TextBox.mobile-input:focus"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
   <Style Selector="ToggleSwitch.mobile-switch"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
+  <Style Selector="ListBox.mobile-stretch-list ListBoxItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
 </Styles>

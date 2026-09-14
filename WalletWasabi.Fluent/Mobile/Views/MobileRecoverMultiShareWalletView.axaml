@@ -22,7 +22,7 @@
                        ItemCountLimit="33" SuggestionsAreCaseSensitive="False" RestrictInputToSuggestions="True"
                        AllowDuplication="True" EnableCounter="True" EnableDelete="False"
                        Watermark="Enter one recovery word at a time"/>
-            <TextBlock Text="{Binding Mnemonics.Count, StringFormat='{0} words entered'}" Classes="mobile-caption"/>
+            <TextBlock Text="{Binding Mnemonics.Count, StringFormat='{}{0} words entered'}" Classes="mobile-caption"/>
             <TextBlock Text="The entered words passed the wallet's validation." Foreground="{DynamicResource MobileAccent}"
                        TextWrapping="Wrap" IsVisible="{Binding IsMnemonicsValid}"/>
           </StackPanel>
