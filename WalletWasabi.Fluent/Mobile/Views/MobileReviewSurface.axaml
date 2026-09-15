@@ -2,39 +2,32 @@
              xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
              xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReviewSurface" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileAmountDisplay.axaml"/></UserControl.Styles>
   <UserControl.Resources><m:MobilePrivacyMessageConverter x:Key="ReviewPrivacyMessage"/></UserControl.Resources>
   <StackPanel Name="ReviewRoot" x:DataType="v:MobileReviewSurface" Spacing="16" IsEnabled="{Binding !IsBusy}">
-    <Border Name="PendingReview" Classes="mobile-note" IsVisible="{Binding !HasReview}">
-      <TextBlock Text="Preparing the transaction for review…" Classes="mobile-caption"/>
-    </Border>
+    <Border Name="PendingReview" Classes="mobile-note" IsVisible="{Binding !HasReview}"><TextBlock Text="Preparing the transaction for review…" Classes="mobile-caption"/></Border>
     <StackPanel Name="ReviewContent" Spacing="16" IsVisible="{Binding HasReview}">
-      <Border Classes="mobile-card">
-        <Grid ColumnDefinitions="44,*" ColumnSpacing="12">
-          <Border Width="44" Height="44" CornerRadius="22" Background="{DynamicResource MobileAccentSurface}" VerticalAlignment="Top">
-            <m:MobileGlyph Kind="send" Width="24" Height="24" Foreground="{DynamicResource MobileAccent}"/>
-          </Border>
-          <StackPanel Grid.Column="1" Spacing="8">
-            <TextBlock Text="You are sending" Classes="mobile-caption"/>
-            <c:AmountControl Name="PaymentAmount" Amount="{Binding Amount}" Classes="WithUsd"/>
-            <TextBlock Text="{Binding Recipient}" Classes="mobile-caption" TextWrapping="Wrap"/>
-          </StackPanel>
-        </Grid>
-      </Border>
-      <Border Name="SingleRecipient" Classes="mobile-card" IsVisible="{Binding !IsPayToMany}">
-        <StackPanel Spacing="8"><TextBlock Text="RECIPIENT ADDRESS" Classes="mobile-caption" FontSize="10"/>
-          <SelectableTextBlock Text="{Binding AddressText}" Foreground="{DynamicResource MobileText}" FontSize="13" TextWrapping="Wrap"/>
+      <Border Classes="mobile-card"><Grid ColumnDefinitions="44,*" ColumnSpacing="12">
+        <Border Width="44" Height="44" CornerRadius="22" Background="{DynamicResource MobileAccentSurface}" VerticalAlignment="Top"><m:MobileGlyph Kind="send" Width="24" Height="24" Foreground="{DynamicResource MobileAccent}"/></Border>
+        <StackPanel Grid.Column="1" Spacing="8"><TextBlock Text="You are sending" Classes="mobile-caption"/>
+          <c:AmountControl Name="PaymentAmount" Theme="{StaticResource MobileAmountDisplayTheme}" Amount="{Binding Amount}" FontSize="22"/>
+          <TextBlock Text="{Binding Recipient}" Classes="mobile-caption" TextWrapping="Wrap"/>
         </StackPanel>
-      </Border>
+      </Grid></Border>
+      <Border Name="SingleRecipient" Classes="mobile-card" IsVisible="{Binding !IsPayToMany}"><StackPanel Spacing="8">
+        <TextBlock Text="RECIPIENT ADDRESS" Classes="mobile-caption" FontSize="10"/>
+        <SelectableTextBlock Text="{Binding AddressText}" Foreground="{DynamicResource MobileText}" FontSize="13" TextWrapping="Wrap"/>
+      </StackPanel></Border>
       <ItemsControl Name="ReviewRecipients" ItemsSource="{Binding Recipients}" IsVisible="{Binding IsPayToMany}">
         <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:RecipientSummaryViewModel">
           <Border Classes="mobile-card" Margin="0,0,0,8"><StackPanel Spacing="8">
-            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock Text="{Binding Recipient}" Classes="mobile-label" TextWrapping="Wrap"/><c:AmountControl Grid.Column="1" Amount="{Binding Amount}"/></Grid>
+            <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock Text="{Binding Recipient}" Classes="mobile-label" TextWrapping="Wrap"/><c:AmountControl Theme="{StaticResource MobileAmountDisplayTheme}" Grid.Column="1" Amount="{Binding Amount}"/></Grid>
             <SelectableTextBlock Text="{Binding AddressText}" Foreground="{DynamicResource MobileText}" TextWrapping="Wrap" FontSize="12"/>
           </StackPanel></Border>
         </DataTemplate></ItemsControl.ItemTemplate>
       </ItemsControl>
       <Border Classes="mobile-card"><StackPanel Spacing="12">
-        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock Text="Network fee" Classes="mobile-caption"/><c:AmountControl Name="PaymentFee" Grid.Column="1" Amount="{Binding Fee}"/></Grid>
+        <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock Text="Network fee" Classes="mobile-caption"/><c:AmountControl Name="PaymentFee" Theme="{StaticResource MobileAmountDisplayTheme}" Grid.Column="1" Amount="{Binding Fee}"/></Grid>
         <Border Height="1" Background="{DynamicResource MobileDivider}"/>
         <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='Fee rate: {0:0.###} sat/vB'}" Classes="mobile-caption"/>
         <TextBlock Text="{Binding ConfirmationTime, StringFormat='Estimated confirmation: {0}'}" Classes="mobile-caption"/>
@@ -46,9 +39,7 @@
       </Grid>
       <Button Name="ReviewUndoAction" Classes="mobile-button flat" Content="Undo last change" Command="{Binding UndoCommand}" IsVisible="{Binding CanUndo}"/>
       <TextBlock Text="Privacy review" Classes="mobile-label"/>
-      <Border Name="AnalysisInProgress" Classes="mobile-note" IsVisible="{Binding IsPrivacyAnalyzing}">
-        <TextBlock Text="Checking privacy and coin selection…" Classes="mobile-caption"/>
-      </Border>
+      <Border Name="AnalysisInProgress" Classes="mobile-note" IsVisible="{Binding IsPrivacyAnalyzing}"><TextBlock Text="Checking privacy and coin selection…" Classes="mobile-caption"/></Border>
       <ItemsControl Name="ReviewWarnings" ItemsSource="{Binding Warnings}"><ItemsControl.ItemTemplate>
         <DataTemplate x:CompileBindings="False"><Border Classes="mobile-note" Margin="0,0,0,8"><Grid ColumnDefinitions="28,*">
           <m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileWarning}"/>
@@ -59,12 +50,9 @@
         <Border.IsVisible><MultiBinding Converter="{x:Static BoolConverters.And}"><Binding Path="HasReview"/><Binding Path="!IsPrivacyAnalyzing"/><Binding Path="IsMaxPrivacy"/></MultiBinding></Border.IsVisible>
         <TextBlock Text="No privacy warnings were found for this transaction. This is not a guarantee of anonymity." Classes="mobile-caption"/>
       </Border>
-      <ListBox Name="ReviewSuggestions" Classes="mobile-stretch-list" ItemsSource="{Binding Suggestions}"
-               SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}" Background="Transparent" BorderThickness="0"
-               IsEnabled="{Binding !IsPrivacyAnalyzing}">
-        <ListBox.ItemTemplate><DataTemplate x:CompileBindings="False"><Border Classes="mobile-card" Margin="0,4">
-          <TextBlock Text="{Binding Converter={StaticResource ReviewPrivacyMessage}}" Foreground="{DynamicResource MobileText}" TextWrapping="Wrap" FontSize="13"/>
-        </Border></DataTemplate></ListBox.ItemTemplate>
+      <ListBox Name="ReviewSuggestions" Classes="mobile-stretch-list" ItemsSource="{Binding Suggestions}" SelectedItem="{Binding SelectedSuggestion, Mode=TwoWay}"
+               Background="Transparent" BorderThickness="0" IsEnabled="{Binding !IsPrivacyAnalyzing}">
+        <ListBox.ItemTemplate><DataTemplate x:CompileBindings="False"><Border Classes="mobile-card" Margin="0,4"><TextBlock Text="{Binding Converter={StaticResource ReviewPrivacyMessage}}" Foreground="{DynamicResource MobileText}" TextWrapping="Wrap" FontSize="13"/></Border></DataTemplate></ListBox.ItemTemplate>
       </ListBox>
       <Border Name="PayJoinNotice" Classes="mobile-note" IsVisible="{Binding IsPayJoin}"><TextBlock Text="PayJoin is enabled for this payment." Classes="mobile-caption"/></Border>
     </StackPanel>

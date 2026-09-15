@@ -91,7 +91,13 @@ internal static class MobileScreenshot
 		public void Log(LogEventLevel level, string area, object? source, string messageTemplate, params object?[] propertyValues)
 		{
 			if (area == "Binding" && level >= LogEventLevel.Warning)
-				_errors.Enqueue($"{source?.GetType().Name}: {messageTemplate} [{string.Join(", ", propertyValues.Select(value => value?.ToString()))}]");
+			{
+				var error = $"{source?.GetType().Name}: {messageTemplate} [{string.Join(", ", propertyValues.Select(value => value?.ToString()))}]";
+				_errors.Enqueue(error);
+				// Collection assertions abbreviate strings; preserve the full diagnostic
+				// in the TRX output. These tests contain only isolated fixture data.
+				Console.Error.WriteLine("NATIVE BINDING ERROR: " + error);
+			}
 			if (_previous?.IsEnabled(level, area) == true) _previous.Log(level, area, source, messageTemplate, propertyValues);
 		}
 		public void Dispose() { if (ReferenceEquals(Logger.Sink, this)) Logger.Sink = _previous; }
