@@ -53,13 +53,15 @@
                                  AutomationProperties.Name="Receiving Bitcoin address"/>
           </Border>
         </StackPanel>
-        <Button Name="CopyReceive" Classes="mobile-button primary" Command="{Binding CopyRequestCommand}"
-                HorizontalAlignment="Stretch" AutomationProperties.Name="{Binding CopyLabel}">
-          <StackPanel Orientation="Horizontal" Spacing="8" HorizontalAlignment="Center">
-            <m:MobileGlyph Kind="copy" Width="18" Height="18" Foreground="{DynamicResource MobileOnAccent}"/>
-            <TextBlock Text="{Binding CopyLabel}" VerticalAlignment="Center"/>
-          </StackPanel>
-        </Button>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <Button Name="CopyReceive" Grid.ColumnSpan="{Binding CopyColumnSpan}" Classes="mobile-button primary"
+                  Command="{Binding CopyRequestCommand}" HorizontalAlignment="Stretch" Content="{Binding CopyLabel}"
+                  FontSize="12" Padding="8" AutomationProperties.Name="{Binding CopyLabel}"/>
+          <Button Name="ShareReceive" Grid.Column="1" Classes="mobile-button" Content="Share"
+                  Command="{Binding Share.Command}" IsVisible="{Binding Share.IsSupported}"
+                  FontSize="12" Padding="8" HorizontalAlignment="Stretch" AutomationProperties.Name="Share Bitcoin request"/>
+        </Grid>
+        <TextBlock Name="ShareError" Text="{Binding Share.Error}" Classes="mobile-error" IsVisible="{Binding Share.HasError}"/>
       </StackPanel>
     </Border>
     <StackPanel Name="RequestPayload" IsVisible="{Binding IsRequestMode}" Spacing="6">
@@ -67,11 +69,9 @@
       <SelectableTextBlock Text="{Binding PaymentRequest}" Foreground="{DynamicResource MobileSecondary}"
                            FontSize="12" TextWrapping="Wrap" AutomationProperties.Name="Payment request payload"/>
     </StackPanel>
-    <Border Classes="mobile-note">
-      <Grid ColumnDefinitions="28,*">
-        <m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/>
-        <TextBlock Grid.Column="1" Text="Use a fresh address for each sender. A payment request contains only this address and your optional BTC amount." Classes="mobile-caption"/>
-      </Grid>
-    </Border>
+    <Border Classes="mobile-note"><Grid ColumnDefinitions="28,*">
+      <m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/>
+      <TextBlock Grid.Column="1" Text="Use a fresh address for each sender. A payment request contains only this address and your optional BTC amount." Classes="mobile-caption"/>
+    </Grid></Border>
   </StackPanel>
 </UserControl>

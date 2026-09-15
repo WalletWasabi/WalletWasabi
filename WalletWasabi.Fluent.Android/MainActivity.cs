@@ -26,17 +26,20 @@ public class MainActivity : AvaloniaMainActivity<App>
 {
 	private WasabiApplication? _app;
 
+	protected override void OnResume()
+	{
+		base.OnResume();
+		if (Avalonia.Application.Current is { } application)
+			WalletWasabi.Fluent.Mobile.Services.MobileSharing.Register(application, new AndroidShareService(this));
+	}
+
 	protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
 	{
 		// TODO: Crash reporting
-
 		Log.Error("WASABI", "CustomizeAppBuilder");
-
 		try
 		{
 			Global.IsTorEnabled = false;
-
-			// TODO: Do we need on Android EnsureSingleInstance with true?
 			_app = WasabiAppBuilder
 				.Create("Wasabi GUI", System.Array.Empty<string>())
 				.EnsureSingleInstance(false)
@@ -44,8 +47,6 @@ public class MainActivity : AvaloniaMainActivity<App>
 				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 				.OnTermination(TerminateApplication)
 				.Build();
-
-			// TODO: WasabiAppExtensions.RunAsDesktopGuiAsync
 			_app.RunAsyncMobile(afterStarting: () =>
 			{
 				App.InitializeMobile(_app, builder);
@@ -54,52 +55,35 @@ public class MainActivity : AvaloniaMainActivity<App>
 		}
 		catch (Exception ex)
 		{
-			// TODO:
-			// CrashReporter.Invoke(ex);
-
 			Logger.LogCritical(ex);
-
 			Log.Error("WASABI", $"{ex}");
 		}
-
 		return base.CustomizeAppBuilder(builder);
 	}
 
-	/// <summary>
-	/// Do not call this method it should only be called by TerminateService.
-	/// </summary>
+	/// <summary>Do not call this method; it should only be called by TerminateService.</summary>
 	private static void TerminateApplication()
 	{
-		// TODO:
-		// Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		// TODO: integrate mobile termination lifecycle.
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
 	{
 		ReadOnlyCollection<Exception> innerExceptions = e.Flatten().InnerExceptions;
-
 		switch (innerExceptions)
 		{
 			case [SocketException { SocketErrorCode: SocketError.OperationAborted }]:
-			// Source of this exception is NBitcoin library.
 			case [OperationCanceledException { Message: "The peer has been disconnected" }]:
-				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 				Logger.LogTrace(e);
 				break;
-
 			default:
 				Logger.LogDebug(e);
 				break;
 		}
 	}
 
-	private static void LogUnhandledException(object? sender, Exception e) =>
-		Logger.LogWarning(e);
+	private static void LogUnhandledException(object? sender, Exception e) => Logger.LogWarning(e);
 
-	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members",
-		Justification = "Required to bootstrap Avalonia's Visual Previewer")]
-	private static AppBuilder BuildAvaloniaApp()
-	{
-		return AppBuilderAndroidExtension.SetupAppBuilder(AppBuilder.Configure(() => new App()).UseReactiveUI());
-	}
+	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
+	private static AppBuilder BuildAvaloniaApp() => AppBuilderAndroidExtension.SetupAppBuilder(AppBuilder.Configure(() => new App()).UseReactiveUI());
 }

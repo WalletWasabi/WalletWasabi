@@ -5,6 +5,7 @@ using System.Reactive.Disposables;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using ReactiveUI;
+using WalletWasabi.Fluent.Mobile.Services;
 
 namespace WalletWasabi.Fluent.Mobile.ViewModels;
 
@@ -19,9 +20,11 @@ public class MobileReceivePresentation : MobilePaymentRequestState
 	private bool _isRequestMode;
 
 	public MobileReceivePresentation(string address, Func<string, IObservable<bool[,]>> generate,
-		Func<string, Task> copy, IScheduler scheduler) : base(address, generate, copy, scheduler)
+		Func<string, Task> copy, IScheduler scheduler, IMobileShareService? sharing = null) : base(address, generate, copy, scheduler)
 	{
 		Address = address;
+		Share = new MobileShareRequestState(sharing, this.WhenAnyValue(x => x.PaymentRequest), scheduler);
+		_commands.Add(Share);
 		var receive = ReactiveCommand.Create(() => SetMode(false), outputScheduler: scheduler);
 		var request = ReactiveCommand.Create(() => SetMode(true), outputScheduler: scheduler);
 		var retry = ReactiveCommand.Create(RefreshRequest,
@@ -36,6 +39,8 @@ public class MobileReceivePresentation : MobilePaymentRequestState
 	}
 
 	public string Address { get; }
+	public MobileShareRequestState Share { get; }
+	public int CopyColumnSpan => Share.IsSupported ? 1 : 2;
 	public bool IsRequestMode => _isRequestMode;
 	public bool IsAddressMode => !_isRequestMode;
 	public string Heading => IsRequestMode ? "Request Bitcoin" : "Ready to receive";
@@ -52,8 +57,7 @@ public class MobileReceivePresentation : MobilePaymentRequestState
 	{
 		if (_isRequestMode == request) return;
 		_isRequestMode = request;
-		// Returning to Receive cancels an in-flight request QR before exposing the
-		// address-only mode. A hidden amount must never survive in the copied payload.
+		// A hidden amount must never survive in the address-only copied or shared payload.
 		if (!request) Amount = "";
 		this.RaisePropertyChanged(nameof(IsRequestMode));
 		this.RaisePropertyChanged(nameof(IsAddressMode));

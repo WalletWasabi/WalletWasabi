@@ -11,9 +11,6 @@ using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.IOS;
 
-// The UIApplicationDelegate for the application. This class is responsible for launching the
-// User Interface of the application, as well as listening (and optionally responding) to
-// application events from iOS.
 [Register("AppDelegate")]
 [Preserve(AllMembers = true)]
 public class AppDelegate : AvaloniaAppDelegate<App>
@@ -36,11 +33,9 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 	protected override AppBuilder CustomizeAppBuilder(AppBuilder builder)
 	{
 		LogToFile("CustomizeAppBuilder starting...");
-
 		try
 		{
 			Global.IsTorEnabled = false;
-
 			_app = WasabiAppBuilder
 				.Create("Wasabi GUI", System.Array.Empty<string>())
 				.EnsureSingleInstance(false)
@@ -48,60 +43,45 @@ public class AppDelegate : AvaloniaAppDelegate<App>
 				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
 				.OnTermination(TerminateApplication)
 				.Build();
-
 			LogToFile("WasabiAppBuilder built successfully");
-
 			builder = App.InitializeMobile(_app, builder);
-
-			_app.RunAsyncMobile(afterStarting: () =>
-			{
-				LogToFile("App starting completed");
-			});
+			_app.RunAsyncMobile(afterStarting: () => LogToFile("App starting completed"));
 		}
 		catch (Exception ex)
 		{
 			Logger.LogCritical(ex);
 			LogToFile($"EXCEPTION in CustomizeAppBuilder: {ex}");
 		}
-
-		return builder;
+		return builder.AfterSetup(_ =>
+		{
+			if (Avalonia.Application.Current is { } application)
+				WalletWasabi.Fluent.Mobile.Services.MobileSharing.Register(application, new IosShareService());
+		});
 	}
 
-	/// <summary>
-	/// Do not call this method it should only be called by TerminateService.
-	/// </summary>
+	/// <summary>Do not call this method; it should only be called by TerminateService.</summary>
 	private static void TerminateApplication()
 	{
-		// TODO:
-		// Dispatcher.UIThread.Post(() => (Application.Current?.ApplicationLifetime as IClassicDesktopStyleApplicationLifetime)?.MainWindow?.Close());
+		// TODO: integrate mobile termination lifecycle.
 	}
 
 	private static void LogUnobservedTaskException(object? sender, AggregateException e)
 	{
 		ReadOnlyCollection<Exception> innerExceptions = e.Flatten().InnerExceptions;
-
 		switch (innerExceptions)
 		{
 			case [SocketException { SocketErrorCode: SocketError.OperationAborted }]:
-			// Source of this exception is NBitcoin library.
 			case [OperationCanceledException { Message: "The peer has been disconnected" }]:
-				// Until https://github.com/MetacoSA/NBitcoin/pull/1089 is resolved.
 				Logger.LogTrace(e);
 				break;
-
 			default:
 				Logger.LogDebug(e);
 				break;
 		}
 	}
 
-	private static void LogUnhandledException(object? sender, Exception e) =>
-		Logger.LogWarning(e);
+	private static void LogUnhandledException(object? sender, Exception e) => Logger.LogWarning(e);
 
-	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members",
-		Justification = "Required to bootstrap Avalonia's Visual Previewer")]
-	private static AppBuilder BuildAvaloniaApp()
-	{
-		return AppBuilderIOSExtension.SetupAppBuilder(AppBuilder.Configure(() => new App()).UseReactiveUI());
-	}
+	[SuppressMessage("CodeQuality", "IDE0051:Remove unused private members", Justification = "Required to bootstrap Avalonia's Visual Previewer")]
+	private static AppBuilder BuildAvaloniaApp() => AppBuilderIOSExtension.SetupAppBuilder(AppBuilder.Configure(() => new App()).UseReactiveUI());
 }
