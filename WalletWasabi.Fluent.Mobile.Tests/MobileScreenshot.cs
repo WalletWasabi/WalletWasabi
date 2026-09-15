@@ -20,16 +20,18 @@ internal static class MobileScreenshot
 	public static byte[] Capture(Window window, string name, string scenario, string contentKind = "bound-fixture")
 	{
 		Assert.Matches("^[a-z0-9-]+$", name);
-		// Bindings, layout and compositor commits are drained before saving. Static
-		// baselines compare settled states, never wall-clock-dependent transitions.
-		for (var pass = 0; pass < 3; pass++)
-		{
-			Dispatcher.UIThread.RunJobs();
-			MobileSnapshotState.Prepare(window);
-			AvaloniaHeadlessPlatform.ForceRenderTimerTick();
-		}
+		for (var pass = 0; pass < 3; pass++) DrainRender(window);
 		Dispatcher.UIThread.RunJobs();
-		using var frame = window.CaptureRenderedFrame();
+		var frame = window.CaptureRenderedFrame();
+		// A newly created window can have no compositor frame yet. Retry only that
+		// absence, with bounded render drains; never retry mismatched or blank pixels.
+		for (var attempt = 0; frame is null && attempt < 8; attempt++)
+		{
+			DrainRender(window);
+			Dispatcher.UIThread.RunJobs();
+			frame = window.CaptureRenderedFrame();
+		}
+		using var frameLifetime = frame;
 		Assert.NotNull(frame);
 		Assert.True(frame.PixelSize.Width > 0 && frame.PixelSize.Height > 0);
 		var directory = Environment.GetEnvironmentVariable("WASABI_MOBILE_TEST_ARTIFACTS")
@@ -66,8 +68,14 @@ internal static class MobileScreenshot
 		return pixels;
 	}
 
-	public static bool IsShown(Visual visual) => visual.IsVisible && visual.GetVisualAncestors().All(parent => parent.IsVisible);
+	private static void DrainRender(Window window)
+	{
+		Dispatcher.UIThread.RunJobs();
+		MobileSnapshotState.Prepare(window);
+		AvaloniaHeadlessPlatform.ForceRenderTimerTick();
+	}
 
+	public static bool IsShown(Visual visual) => visual.IsVisible && visual.GetVisualAncestors().All(parent => parent.IsVisible);
 	public static void AssertNoHorizontalOverflow(Control view)
 	{
 		foreach (var scroll in view.GetVisualDescendants().OfType<ScrollViewer>())
@@ -94,8 +102,6 @@ internal static class MobileScreenshot
 			{
 				var error = $"{source?.GetType().Name}: {messageTemplate} [{string.Join(", ", propertyValues.Select(value => value?.ToString()))}]";
 				_errors.Enqueue(error);
-				// Collection assertions abbreviate strings; preserve the full diagnostic
-				// in the TRX output. These tests contain only isolated fixture data.
 				Console.Error.WriteLine("NATIVE BINDING ERROR: " + error);
 			}
 			if (_previous?.IsEnabled(level, area) == true) _previous.Log(level, area, source, messageTemplate, propertyValues);

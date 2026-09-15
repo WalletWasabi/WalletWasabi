@@ -27,17 +27,16 @@
     <ControlTheme x:Key="{x:Type m:MobileAppearanceSelector}" TargetType="m:MobileAppearanceSelector">
       <Setter Property="Template"><ControlTemplate>
         <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
-          <Button Name="PART_Light" Classes="mobile-button" MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use light appearance">
+          <Button Name="PART_Light" Classes="mobile-button" Classes.selected="{TemplateBinding IsDark, Converter={x:Static BoolConverters.Not}}"
+                  MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use light appearance">
             <StackPanel Spacing="8"><Path Data="M12,2 L12,5 M12,19 L12,22 M2,12 L5,12 M19,12 L22,12 M5,5 L7,7 M17,17 L19,19 M5,19 L7,17 M17,7 L19,5 M16,12 A4,4 0 1 1 8,12 A4,4 0 1 1 16,12" Width="24" Height="24" Stretch="Uniform" Stroke="{DynamicResource MobileSecondary}" StrokeThickness="1.5" HorizontalAlignment="Center"/><TextBlock Text="Light" FontSize="12" HorizontalAlignment="Center"/></StackPanel>
           </Button>
-          <Button Name="PART_Dark" Grid.Column="1" Classes="mobile-button" MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use dark appearance">
+          <Button Name="PART_Dark" Grid.Column="1" Classes="mobile-button" Classes.selected="{TemplateBinding IsDark}"
+                  MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use dark appearance">
             <StackPanel Spacing="8"><Path Data="M19,16 A9,9 0 1 1 8,3 A8,8 0 0 0 19,16 Z" Width="24" Height="24" Stretch="Uniform" Stroke="{DynamicResource MobileSecondary}" StrokeThickness="1.5" HorizontalAlignment="Center"/><TextBlock Text="Dark" FontSize="12" HorizontalAlignment="Center"/></StackPanel>
           </Button>
         </Grid>
       </ControlTemplate></Setter>
-      <Style Selector="^:light /template/ Button#PART_Light, ^:dark /template/ Button#PART_Dark">
-        <Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="Foreground" Value="{DynamicResource MobileAccent}"/>
-      </Style>
     </ControlTheme>
   </Styles.Resources>
 </Styles>
