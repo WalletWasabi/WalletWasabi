@@ -105,9 +105,9 @@
       },
       "WabiSabi": {
         "type": "Direct",
-        "requested": "[1.1.4, )",
-        "resolved": "1.1.4",
-        "contentHash": "mH5u5skRMw3R5YAg1TVvgtGf23ur/o5LGTKPMUYxiXbWuefD/eRGER4KN3/3MfElVKE+CfLepkqWZ+CP24rRgA==",
+        "requested": "[1.2.0, )",
+        "resolved": "1.2.0",
+        "contentHash": "nJy1vJB1ngqZ1f6n91FXCylw0EMbUPLu1zH1s/4f3U1xHTQt/+BXBAlxjILJBYeaHGAkS4J9RBm0EpIA7eZteQ==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -270,7 +270,10 @@
       "SQLitePCLRaw.core": {
         "type": "Transitive",
         "resolved": "2.1.12",
-        "contentHash": "ETpNw9DY3ckWLgRRAeCHj+GKOuPi61aeczkXhgHexUvqoZBAYg8RYESE2J7O1M7+o6QbdSEZwrw9bfqztUVWXg=="
+        "contentHash": "ETpNw9DY3ckWLgRRAeCHj+GKOuPi61aeczkXhgHexUvqoZBAYg8RYESE2J7O1M7+o6QbdSEZwrw9bfqztUVWXg==",
+        "dependencies": {
+          "System.Memory": "4.5.3"
+        }
       },
       "SQLitePCLRaw.lib.e_sqlite3": {
         "type": "Transitive",
