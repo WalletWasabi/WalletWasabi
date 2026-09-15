@@ -317,12 +317,12 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.DeltaNotZero, $"Round ({round.Id}): Vsize credentials delta must be zero.");
 		}
 
-		if (request.RealAmountCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+		if (request.RealAmountCredentialRequests.Requested.Count != ProtocolConstants.CredentialNumber)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of amount credentials.");
 		}
 
-		if (request.RealVsizeCredentialRequests.Requested.Count() != ProtocolConstants.CredentialNumber)
+		if (request.RealVsizeCredentialRequests.Requested.Count != ProtocolConstants.CredentialNumber)
 		{
 			throw new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongNumberOfCreds, $"Round ({round.Id}): Incorrect requested number of weight credentials.");
 		}
