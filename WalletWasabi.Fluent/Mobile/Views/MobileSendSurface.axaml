@@ -7,7 +7,7 @@
         <TextBlock Text="{Binding Caption}" Classes="mobile-caption" IsVisible="{Binding Caption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
         <StackPanel Spacing="8">
           <TextBlock Text="Recipient" Classes="mobile-label"/>
-          <TextBox Name="RecipientInput" Classes="mobile-input" Text="{Binding To, Mode=TwoWay}" IsReadOnly="{Binding IsFixedAddress}" MaxLength="500" Watermark="Bitcoin address or payment URI" AutomationProperties.Name="Recipient address"/>
+          <TextBox Name="RecipientInput" Classes="mobile-input" Text="{Binding To, Mode=TwoWay}" IsReadOnly="{Binding IsFixedAddress}" MaxLength="500" TextWrapping="Wrap" Watermark="Bitcoin address or payment URI" AutomationProperties.Name="Recipient address"/>
           <Grid ColumnDefinitions="*,*"><Button Classes="mobile-button" Name="PasteRecipient" Content="Paste address" Command="{Binding PasteCommand}" IsVisible="{Binding IsNotInDonationWorkflow}" HorizontalAlignment="Stretch" Margin="0,0,8,0"/><Button Grid.Column="1" Classes="mobile-button" Name="ScanRecipient" Content="Scan QR code" Command="{Binding QrCommand}" IsVisible="{Binding IsQrButtonVisible}" HorizontalAlignment="Stretch"/></Grid>
           <TextBlock Text="Silent Payment address: reusable without publishing a conventional receiving address." Classes="mobile-caption" IsVisible="{Binding DisplaySilentPaymentInfo}"/>
         </StackPanel>
@@ -26,7 +26,7 @@
         <ItemsControl Name="BatchRecipients" ItemsSource="{Binding AdditionalRecipients}" x:CompileBindings="False">
           <ItemsControl.ItemTemplate><DataTemplate><Border Classes="mobile-card" Margin="0,0,0,12"><StackPanel Spacing="12">
             <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Additional payment" Classes="mobile-label"/><Button Grid.Column="1" Classes="mobile-button flat" Content="Remove" Command="{Binding Value.RemoveCommand}"/></Grid>
-            <TextBox Classes="mobile-input" Text="{Binding Value.To, Mode=TwoWay}" Watermark="Bitcoin address" MaxLength="500"/>
+            <TextBox Classes="mobile-input" Text="{Binding Value.To, Mode=TwoWay}" Watermark="Bitcoin address" MaxLength="500" TextWrapping="Wrap"/>
             <TextBlock Text="{Binding Value.AddressError}" Classes="mobile-error"/>
             <Grid ColumnDefinitions="*,Auto"><Button Classes="mobile-button flat" Content="Paste" Command="{Binding Value.PasteCommand}"/><Button Grid.Column="1" Classes="mobile-button flat" Content="Max" Command="{Binding Value.InsertMaxCommand}"/></Grid>
             <c:DualCurrencyEntryBox Theme="{DynamicResource MobileAmountEntryTheme}" AmountBtc="{Binding Value.AmountBtc, Mode=TwoWay}" ConversionRate="{Binding $parent[v:MobileSendSurface].DataContext.ExchangeRate}" CurrencyCode="BTC" ConversionCurrencyCode="USD" ValidatePasteBalance="False"/>
