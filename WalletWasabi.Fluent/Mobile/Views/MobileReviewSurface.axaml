@@ -3,7 +3,7 @@
              xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
              x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReviewSurface" x:CompileBindings="True">
   <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileAmountDisplay.axaml"/></UserControl.Styles>
-  <UserControl.Resources><m:MobilePrivacyMessageConverter x:Key="ReviewPrivacyMessage"/></UserControl.Resources>
+  <UserControl.Resources><m:MobilePrivacyMessageConverter x:Key="ReviewPrivacyMessage"/><m:MobileFeeRateConverter x:Key="ReviewFeeRate"/></UserControl.Resources>
   <StackPanel Name="ReviewRoot" x:DataType="v:MobileReviewSurface" Spacing="16" IsEnabled="{Binding !IsBusy}">
     <Border Name="PendingReview" Classes="mobile-note" IsVisible="{Binding !HasReview}"><TextBlock Text="Preparing the transaction for review…" Classes="mobile-caption"/></Border>
     <StackPanel Name="ReviewContent" Spacing="16" IsVisible="{Binding HasReview}">
@@ -29,7 +29,7 @@
       <Border Classes="mobile-card"><StackPanel Spacing="12">
         <Grid ColumnDefinitions="*,Auto" ColumnSpacing="8"><TextBlock Text="Network fee" Classes="mobile-caption"/><c:AmountControl Name="PaymentFee" Theme="{StaticResource MobileAmountDisplayTheme}" Grid.Column="1" Amount="{Binding Fee}"/></Grid>
         <Border Height="1" Background="{DynamicResource MobileDivider}"/>
-        <TextBlock Text="{Binding FeeRate.SatoshiPerByte, StringFormat='Fee rate: {0:0.###} sat/vB'}" Classes="mobile-caption"/>
+        <TextBlock Name="FeeRateLabel" Text="{Binding FeeRate, Converter={StaticResource ReviewFeeRate}}" Classes="mobile-caption"/>
         <TextBlock Text="{Binding ConfirmationTime, StringFormat='Estimated confirmation: {0}'}" Classes="mobile-caption"/>
         <TextBlock Text="Confirmation estimates are not guarantees." Classes="mobile-caption"/>
       </StackPanel></Border>
