@@ -1,0 +1,45 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+  <Styles.Resources>
+    <!-- Reuses the original currency parser, focus handling and validation contract.
+         Only the layout differs: a full-width primary amount and secondary fiat row. -->
+    <ControlTheme x:Key="MobileAmountEntryTheme" TargetType="c:DualCurrencyEntryBox">
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="Template">
+        <ControlTemplate>
+          <StackPanel Spacing="8">
+            <Grid RowDefinitions="Auto,Auto" ColumnDefinitions="*,48" ColumnSpacing="4" RowSpacing="4">
+              <c:CurrencyEntryBox Name="PART_LeftEntryBox" Text="{TemplateBinding Text, Mode=TwoWay}"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" CurrencyCode="{TemplateBinding CurrencyCode}"
+                                 ConversionRate="{TemplateBinding ConversionRate}" IsFiat="False"
+                                 Watermark="{TemplateBinding Watermark}" IsApproximate="False"
+                                 BalanceBtc="{TemplateBinding BalanceBtc}" BalanceUsd="{TemplateBinding BalanceUsd}"
+                                 ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" Background="Transparent" BorderThickness="0" Padding="0"
+                                 MinHeight="48" Foreground="{DynamicResource MobileText}"/>
+              <c:CurrencyEntryBox Name="PART_RightEntryBox" Text="{TemplateBinding ConversionText, Mode=TwoWay}"
+                                 IsReadOnly="{TemplateBinding IsReadOnly}" CurrencyCode="{TemplateBinding ConversionCurrencyCode}"
+                                 ConversionRate="{TemplateBinding ConversionRate}" IsFiat="True"
+                                 Watermark="{TemplateBinding ConversionWatermark}" IsApproximate="{TemplateBinding IsConversionApproximate}"
+                                 BalanceBtc="{TemplateBinding BalanceBtc}" BalanceUsd="{TemplateBinding BalanceUsd}"
+                                 ValidatePasteBalance="{TemplateBinding ValidatePasteBalance}" Background="Transparent" BorderThickness="0" Padding="0"
+                                 MinHeight="32" Foreground="{DynamicResource MobileSecondary}"/>
+              <Button Name="PART_SwapButton" Grid.Column="1" Grid.RowSpan="2" Classes="mobile-button flat"
+                      Width="48" Height="48" VerticalAlignment="Center" AutomationProperties.Name="Switch Bitcoin and fiat input">
+                <m:MobileGlyph Kind="coinjoin" Width="18" Height="18" Foreground="{DynamicResource MobileAccent}"/>
+              </Button>
+            </Grid>
+            <DataValidationErrors/>
+          </StackPanel>
+        </ControlTemplate>
+      </Setter>
+      <Style Selector="^ /template/ c|CurrencyEntryBox#PART_LeftEntryBox"><Setter Property="Grid.Row" Value="0"/><Setter Property="FontSize" Value="28"/></Style>
+      <Style Selector="^ /template/ c|CurrencyEntryBox#PART_RightEntryBox"><Setter Property="Grid.Row" Value="1"/><Setter Property="FontSize" Value="13"/></Style>
+      <Style Selector="^:reversed /template/ c|CurrencyEntryBox#PART_LeftEntryBox"><Setter Property="Grid.Row" Value="1"/><Setter Property="FontSize" Value="13"/></Style>
+      <Style Selector="^:reversed /template/ c|CurrencyEntryBox#PART_RightEntryBox"><Setter Property="Grid.Row" Value="0"/><Setter Property="FontSize" Value="28"/></Style>
+      <Style Selector="^ /template/ c|CurrencyEntryBox /template/ TextBlock#PART_CurrencyCode"><Setter Property="FontSize" Value="13"/></Style>
+      <Style Selector="^:noexchangerate /template/ c|CurrencyEntryBox#PART_RightEntryBox"><Setter Property="IsVisible" Value="False"/></Style>
+      <Style Selector="^:noexchangerate /template/ Button#PART_SwapButton"><Setter Property="IsVisible" Value="False"/></Style>
+      <Style Selector="^:readonly /template/ Button#PART_SwapButton"><Setter Property="IsEnabled" Value="False"/></Style>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>

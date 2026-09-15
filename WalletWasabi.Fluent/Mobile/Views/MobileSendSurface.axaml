@@ -1,0 +1,42 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:p="using:WalletWasabi.Fluent.Mobile.Presentation"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendSurface" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileSendControls.axaml"/></UserControl.Styles>
+      <StackPanel Name="SendRoot" Spacing="16" x:DataType="p:IMobileSendPresentation" IsEnabled="{Binding !IsBusy}">
+        <TextBlock Text="{Binding Caption}" Classes="mobile-caption" IsVisible="{Binding Caption, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"/>
+        <StackPanel Spacing="8">
+          <TextBlock Text="Recipient" Classes="mobile-label"/>
+          <TextBox Name="RecipientInput" Classes="mobile-input" Text="{Binding To, Mode=TwoWay}" IsReadOnly="{Binding IsFixedAddress}" MaxLength="500" Watermark="Bitcoin address or payment URI" AutomationProperties.Name="Recipient address"/>
+          <Grid ColumnDefinitions="*,*"><Button Classes="mobile-button" Name="PasteRecipient" Content="Paste address" Command="{Binding PasteCommand}" IsVisible="{Binding IsNotInDonationWorkflow}" HorizontalAlignment="Stretch" Margin="0,0,8,0"/><Button Grid.Column="1" Classes="mobile-button" Name="ScanRecipient" Content="Scan QR code" Command="{Binding QrCommand}" IsVisible="{Binding IsQrButtonVisible}" HorizontalAlignment="Stretch"/></Grid>
+          <TextBlock Text="Silent Payment address: reusable without publishing a conventional receiving address." Classes="mobile-caption" IsVisible="{Binding DisplaySilentPaymentInfo}"/>
+        </StackPanel>
+        <StackPanel Spacing="8">
+          <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Amount" Classes="mobile-label" VerticalAlignment="Center"/><Button Grid.Column="1" Classes="mobile-button flat" Name="MaximumAmount" Content="Max" Foreground="{DynamicResource MobileAccent}" Command="{Binding InsertMaxCommand}" IsEnabled="{Binding !IsFixedAmount}"/></Grid>
+          <Border Classes="mobile-card">
+            <c:DualCurrencyEntryBox Theme="{DynamicResource MobileAmountEntryTheme}" Name="AmountInput" AmountBtc="{Binding AmountBtc, Mode=TwoWay}" IsReadOnly="{Binding IsFixedAmount}" ConversionRate="{Binding ExchangeRate}" CurrencyCode="BTC" ConversionCurrencyCode="USD" IsConversionReversed="{Binding ConversionReversed, Mode=TwoWay}" BalanceBtc="{Binding BalanceLatest.Btc}" BalanceUsd="{Binding BalanceLatest.Usd^}" ValidatePasteBalance="False"/>
+          </Border>
+          <TextBlock Text="The fee will be subtracted from this payment." Classes="mobile-caption" IsVisible="{Binding IsPrimarySubtractFee}"/>
+        </StackPanel>
+        <v:MobileSendFeeSelector Name="FeeOptions" DataContext="{Binding FeeSelection}"/>
+        <StackPanel Spacing="8">
+          <TextBlock Text="Recipient labels" Classes="mobile-label"/>
+          <c:TagsBox DefaultLabel="{Binding DefaultLabel}" Items="{Binding Labels}" TopItems="{Binding TopSuggestions}" Suggestions="{Binding Suggestions}" IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}" ForceAdd="{Binding ForceAdd, Mode=TwoWay}" Name="RecipientLabels" Watermark="Who are you paying?" TagSeparator="," MaxTextLength="{StaticResource MaxLabelLength}" RestrictInputToSuggestions="False"/>
+        </StackPanel>
+        <ItemsControl Name="BatchRecipients" ItemsSource="{Binding AdditionalRecipients}" x:CompileBindings="False">
+          <ItemsControl.ItemTemplate><DataTemplate><Border Classes="mobile-card" Margin="0,0,0,12"><StackPanel Spacing="12">
+            <Grid ColumnDefinitions="*,Auto"><TextBlock Text="Additional payment" Classes="mobile-label"/><Button Grid.Column="1" Classes="mobile-button flat" Content="Remove" Command="{Binding Value.RemoveCommand}"/></Grid>
+            <TextBox Classes="mobile-input" Text="{Binding Value.To, Mode=TwoWay}" Watermark="Bitcoin address" MaxLength="500"/>
+            <TextBlock Text="{Binding Value.AddressError}" Classes="mobile-error"/>
+            <Grid ColumnDefinitions="*,Auto"><Button Classes="mobile-button flat" Content="Paste" Command="{Binding Value.PasteCommand}"/><Button Grid.Column="1" Classes="mobile-button flat" Content="Max" Command="{Binding Value.InsertMaxCommand}"/></Grid>
+            <c:DualCurrencyEntryBox Theme="{DynamicResource MobileAmountEntryTheme}" AmountBtc="{Binding Value.AmountBtc, Mode=TwoWay}" ConversionRate="{Binding $parent[v:MobileSendSurface].DataContext.ExchangeRate}" CurrencyCode="BTC" ConversionCurrencyCode="USD" ValidatePasteBalance="False"/>
+            <TextBlock Text="{Binding Value.AmountError}" Classes="mobile-error"/>
+            <TextBlock Text="Fee will be subtracted from this payment." Classes="mobile-caption" IsVisible="{Binding Value.IsSubtractFee}"/>
+            <c:TagsBox Items="{Binding Value.SuggestionLabels.Labels}" TopItems="{Binding Value.SuggestionLabels.TopSuggestions}" Suggestions="{Binding Value.SuggestionLabels.Suggestions}" IsCurrentTextValid="{Binding Value.SuggestionLabels.IsCurrentTextValid, Mode=OneWayToSource}" ForceAdd="{Binding Value.SuggestionLabels.ForceAdd, Mode=TwoWay}" Watermark="Recipient labels" TagSeparator="," MaxTextLength="{StaticResource MaxLabelLength}"/>
+          </StackPanel></Border></DataTemplate></ItemsControl.ItemTemplate>
+        </ItemsControl>
+        <Button Classes="mobile-button" Name="AddRecipient" Content="Add another payment" Command="{Binding AddRecipientCommand}" IsVisible="{Binding IsNotInDonationWorkflow}" HorizontalAlignment="Stretch"/>
+        <Border Classes="mobile-note"><Grid ColumnDefinitions="28,*"><m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/><StackPanel Grid.Column="1" Spacing="6"><TextBlock Text="Privacy before signing" Classes="mobile-label"/><TextBlock Text="Next, review the real transaction, network fee, selected coins, and privacy warnings. Nothing is sent by this screen." Classes="mobile-caption"/></StackPanel></Grid></Border>
+        <Border Classes="mobile-note" IsVisible="{Binding IsPayJoin}"><TextBlock Text="This payment requests PayJoin. The existing PayJoin validation and authorization workflow will be used." Classes="mobile-caption"/></Border>
+      </StackPanel>
+</UserControl>

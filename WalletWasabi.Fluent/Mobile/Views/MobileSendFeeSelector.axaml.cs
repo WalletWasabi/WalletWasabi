@@ -7,29 +7,40 @@ using WalletWasabi.Fluent.ViewModels.Wallets.Send;
 
 namespace WalletWasabi.Fluent.Mobile.Views;
 
+/// <summary>Accepts either wallet-owned Send or a caller-owned fee presentation.</summary>
 public sealed class MobileSendFeeSelector : UserControl
 {
-	private MobileSendFeeSelection? _selection;
-	private SendViewModel? _source;
+	private readonly StackPanel _root;
+	private MobileSendFeeSelection? _owned;
+	private object? _context;
 	private bool _attached;
-	public MobileSendFeeSelector() => AvaloniaXamlLoader.Load(this);
+
+	public MobileSendFeeSelector()
+	{
+		AvaloniaXamlLoader.Load(this);
+		_root = this.FindControl<StackPanel>("FeeRoot")!;
+		_root.DataContext = null;
+	}
 	protected override void OnAttachedToVisualTree(VisualTreeAttachmentEventArgs e) { base.OnAttachedToVisualTree(e); _attached = true; BindSource(); }
 	protected override void OnDetachedFromVisualTree(VisualTreeAttachmentEventArgs e) { _attached = false; Release(); base.OnDetachedFromVisualTree(e); }
 	protected override void OnDataContextChanged(EventArgs e) { base.OnDataContextChanged(e); if (_attached) BindSource(); }
 	private void BindSource()
 	{
-		if (ReferenceEquals(_source, DataContext)) return;
+		if (ReferenceEquals(_context, DataContext)) return;
 		Release();
-		if (DataContext is not SendViewModel source) return;
-		_source = source;
-		_selection = source.CreateMobileFeeSelection();
-		this.FindControl<StackPanel>("FeeRoot")!.DataContext = _selection;
+		_context = DataContext;
+		_root.DataContext = DataContext switch
+		{
+			SendViewModel source => _owned = source.CreateMobileFeeSelection(),
+			MobileSendFeeSelection selection => selection,
+			_ => null
+		};
 	}
 	private void Release()
 	{
-		this.FindControl<StackPanel>("FeeRoot")!.DataContext = null;
-		_selection?.Dispose();
-		_selection = null;
-		_source = null;
+		_root.DataContext = null;
+		_owned?.Dispose();
+		_owned = null;
+		_context = null;
 	}
 }
