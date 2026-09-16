@@ -28,9 +28,9 @@ public class HardwareWalletServiceTests
 	[Fact]
 	public void OnlyAWalletWithACoinJoinAccountHasARemoteSigner()
 	{
-		Assert.False(HardwareWalletService.IsRemoteSigner(SoftwareWallet()));
-		Assert.False(HardwareWalletService.IsRemoteSigner(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false)));
-		Assert.True(HardwareWalletService.IsRemoteSigner(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true)));
+		Assert.False(SoftwareWallet().HasCoinJoinAccount);
+		Assert.False(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false).HasCoinJoinAccount);
+		Assert.True(TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true).HasCoinJoinAccount);
 	}
 
 	[Fact]
