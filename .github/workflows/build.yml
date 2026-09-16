@@ -52,7 +52,7 @@ jobs:
         uses: actions/cache@v4
         with:
           path: ~/.nuget/packages
-          key: ${{ runner.os }}-${{ matrix.runtime }}-nuget-${{ hashFiles('Directory.Packages.props', 'NuGet.Config', 'global.json', '**/packages.lock.json') }}
+          key: ${{ runner.os }}-${{ matrix.runtime }}-nuget-${{ hashFiles('Directory.Packages.props', 'NuGet.Config', 'global.json', 'deps.json', '**/packages.lock.json') }}
           restore-keys: |
             ${{ runner.os }}-${{ matrix.runtime }}-nuget-
             ${{ runner.os }}-nuget-

@@ -9,7 +9,7 @@
     <File Path=".gitignore" />
     <File Path="Contrib/release.sh" />
     <File Path="CONTRIBUTING.md" />
-    <File Path="deps.nix" />
+    <File Path="deps.json" />
     <File Path="Directory.Build.props" />
     <File Path="Directory.Packages.props" />
     <File Path="exclusion.dic" />
