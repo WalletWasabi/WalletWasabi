@@ -8,24 +8,34 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Dialogs.ConfirmOpenLinkView">
   <ContentArea Title="{Binding Title}"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
-    <QuestionControl YesCommand="{Binding NextCommand}"
-                       NoCommand="{Binding CancelCommand}"
-                       YesContent="Launch browser" NoContent="Cancel"
-                       HighlightButton="YesButton">
+               Caption="Detected an attempt to open a website link in your default browser"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <QuestionControl Content="Do you want to launch your default browser?"
+                     YesCommand="{Binding NextCommand}"
+                     NoCommand="{Binding CancelCommand}"
+                     HighlightButton="YesButton">
       <QuestionControl.IconContent>
-        <Viewbox MaxHeight="150" Margin="40">
-          <PathIcon Data="{StaticResource warning_regular}" Foreground="{DynamicResource WarningMessageForeground}" />
-        </Viewbox>
+        <ScrollViewer>
+          <StackPanel Spacing="15" Margin="0,0,0,32" MaxWidth="500" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+
+            <!-- Website link -->
+            <PreviewItem Label="Website Link" Icon="{StaticResource globe}">
+              <DockPanel HorizontalAlignment="Left">
+                <ClipboardCopyButton DockPanel.Dock="Right" Width="30" ToolTip.Tip="Copy" Text="{Binding Link}" />
+                <TextBlock Text="{Binding Link}" TextWrapping="Wrap" />
+              </DockPanel>
+            </PreviewItem>
+            <Separator />
+
+            <!-- Explanation -->
+            <PreviewItem Label="Warning" Icon="{StaticResource warning_regular}">
+              <TextBlock Text="Opening this link in your default browser will reveal your IP address unless Tor Browser is set as the default. If you want to keep your privacy, copy the link and open it in Tor Browser manually."
+                         TextWrapping="Wrap" />
+            </PreviewItem>
+
+          </StackPanel>
+        </ScrollViewer>
       </QuestionControl.IconContent>
-      <StackPanel Spacing="10">
-        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="This link will open in your default browser:" />
-        <DockPanel HorizontalAlignment="Center">
-          <ClipboardCopyButton DockPanel.Dock="Right" Margin="5 0 0 0" Text="{Binding Link}" />
-          <TextBlock VerticalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" FontWeight="Bold" Text="{Binding Link}" />
-        </DockPanel>
-        <TextBlock HorizontalAlignment="Center" TextAlignment="Center" TextWrapping="Wrap" Text="If Tor Browser is not your default browser, you will reveal your IP address to the website by opening the link." />
-      </StackPanel>
     </QuestionControl>
   </ContentArea>
 </UserControl>
