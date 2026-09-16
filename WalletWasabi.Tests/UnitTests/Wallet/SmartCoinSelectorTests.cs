@@ -1,7 +1,8 @@
-using System.Collections.Generic;
-using System.Linq;
 using DynamicData;
 using NBitcoin;
+using System.Collections.Generic;
+using System.Collections.Immutable;
+using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -176,7 +177,7 @@ public class SmartCoinSelectorTests
 			.Select(x => x.Select(y => y.Value)) // Group the coin pairs into clusters.
 			.SelectMany(x => x
 				.Select(coinPair => (coinPair,
-					cluster: new Cluster(coinPair.Select(z => z.key))))).ToList();
+					cluster: new Cluster(coinPair.Select(z => z.key).ToImmutableHashSet())))).ToList();
 
 		// Set each key with its corresponding cluster object.
 		foreach (var x in coinPairClusters)
