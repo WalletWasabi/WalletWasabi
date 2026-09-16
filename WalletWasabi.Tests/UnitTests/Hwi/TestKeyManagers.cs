@@ -1,6 +1,5 @@
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
-using WalletWasabi.Hwi.Trezor;
 
 namespace WalletWasabi.Tests.UnitTests.Hwi;
 
@@ -13,15 +12,19 @@ internal static class TestKeyManagers
 	public static KeyManager WatchOnlyHardwareWallet(bool withCoinJoinAccount)
 	{
 		var masterKey = MasterKey;
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
-
-		return KeyManager.CreateNewHardwareWalletWatchOnly(
+		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(
 			masterKey.Neuter().PubKey.GetHDFingerPrint(),
 			masterKey.Derive(new KeyPath("84'/0'/0'")).Neuter(),
-			withCoinJoinAccount ? masterKey.Derive(coinJoinAccountKeyPath).Neuter() : null,
 			null,
 			null,
-			Network.Main,
-			taprootAccountKeyPath: withCoinJoinAccount ? coinJoinAccountKeyPath : null);
+			null,
+			Network.Main);
+		if (withCoinJoinAccount)
+		{
+			var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
+			keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, masterKey.Derive(coinJoinAccountKeyPath).Neuter());
+		}
+
+		return keyManager;
 	}
 }
