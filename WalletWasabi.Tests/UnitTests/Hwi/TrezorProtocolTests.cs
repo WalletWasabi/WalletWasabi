@@ -45,7 +45,7 @@ public class TrezorProtocolTests
 	[Fact]
 	public void AuthorizeCoinJoinEncoding()
 	{
-		var accountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
+		var accountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
 		var message = TrezorMessages.AuthorizeCoinJoin("CoinJoinCoordinatorIdentifier", 10, 0, 150_000, accountKeyPath.Indexes, "Bitcoin");
 
 		Assert.Equal(TrezorMessageType.AuthorizeCoinJoin, message.MessageType);
@@ -165,14 +165,14 @@ public class TrezorProtocolTests
 	{
 		// A plain segwit-only Trezor watch-only wallet (no taproot account), like one imported without coinjoin.
 		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false);
-		Assert.False(keyManager.IsTrezorCoinJoinWallet());
+		Assert.False(keyManager.HasCoinJoinAccount);
 		Assert.Null(keyManager.TaprootExtPubKey);
 
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
+		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
 		var coinJoinExtPubKey = TestKeyManagers.MasterKey.Derive(coinJoinAccountKeyPath).Neuter();
 		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
 
-		Assert.True(keyManager.IsTrezorCoinJoinWallet());
+		Assert.True(keyManager.HasCoinJoinAccount);
 		Assert.Equal(coinJoinExtPubKey, keyManager.TaprootExtPubKey);
 		Assert.Equal(coinJoinAccountKeyPath, keyManager.TaprootAccountKeyPath);
 
@@ -188,7 +188,7 @@ public class TrezorProtocolTests
 	{
 		// A hot wallet must not be treated as a Trezor coinjoin wallet and its change keys must still be segwit/taproot.
 		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
-		Assert.False(keyManager.IsTrezorCoinJoinWallet());
+		Assert.False(keyManager.HasCoinJoinAccount);
 
 		var changeKey = keyManager.GetNextChangeKey();
 		Assert.True(changeKey.IsInternal);
@@ -201,10 +201,10 @@ public class TrezorProtocolTests
 	[Fact]
 	public void Slip25AccountDetection()
 	{
-		Assert.Equal(new KeyPath("10025'/0'/0'/1'"), TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main));
-		Assert.Equal(new KeyPath("10025'/1'/0'/1'"), TrezorDevice.GetCoinJoinAccountKeyPath(Network.TestNet));
+		Assert.Equal(new KeyPath("10025'/0'/0'/1'"), Slip25.GetCoinJoinAccountKeyPath(Network.Main));
+		Assert.Equal(new KeyPath("10025'/1'/0'/1'"), Slip25.GetCoinJoinAccountKeyPath(Network.TestNet));
 
-		Assert.True(TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main).IsSlip25KeyPath());
+		Assert.True(Slip25.GetCoinJoinAccountKeyPath(Network.Main).IsSlip25KeyPath());
 		Assert.False(new KeyPath("86'/0'/0'").IsSlip25KeyPath());
 	}
 

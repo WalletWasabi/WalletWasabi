@@ -2,7 +2,6 @@ using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Hwi.Trezor;
 using WalletWasabi.Wallets.SilentPayment;
 
 namespace WalletWasabi.Blockchain.Transactions;
@@ -95,7 +94,7 @@ public class TransactionFactory
 			}
 		}
 
-		allowedSmartCoinInputs = RestrictToSingleTrezorAccount(allowedSmartCoinInputs, totalAmount);
+		allowedSmartCoinInputs = RestrictToSingleAccount(allowedSmartCoinInputs, totalAmount);
 
 		var builder = new TransactionBuilderWithSilentPaymentSupport(Network);
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
@@ -135,7 +134,7 @@ public class TransactionFactory
 		}
 		else
 		{
-			bool spendsCoinJoinAccountOnly = KeyManager.IsTrezorCoinJoinWallet()
+			bool spendsCoinJoinAccountOnly = KeyManager.HasCoinJoinAccount
 				&& allowedSmartCoinInputs.All(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath());
 			changeHdPubKey = KeyManager.GetNextChangeKey(coinJoinAccount: spendsCoinJoinAccountOnly);
 
@@ -294,12 +293,12 @@ public class TransactionFactory
 	}
 
 	/// <summary>
-	/// A Trezor coinjoin wallet signs everything over the bridge, but the device unlocks the segwit and the SLIP-25
-	/// coinjoin account separately, so one transaction can only be signed from one of them: never mix them.
+	/// A device unlocks the segwit and the SLIP-25 coinjoin account separately, so one transaction can only be
+	/// signed from one of them: never mix them.
 	/// </summary>
-	private List<SmartCoin> RestrictToSingleTrezorAccount(List<SmartCoin> allowedSmartCoinInputs, long totalAmount)
+	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, long totalAmount)
 	{
-		if (!KeyManager.IsTrezorCoinJoinWallet())
+		if (!KeyManager.HasCoinJoinAccount)
 		{
 			return allowedSmartCoinInputs;
 		}

@@ -33,12 +33,13 @@ public class HardwareWalletService : IDisposable
 	/// <summary>How the device is currently reached.</summary>
 	public HardwareWalletTransport TransportStatus => _bridge.Status;
 
-	/// <summary>Whether a bridge is reachable, to warn before offering coinjoin on an import screen.</summary>
-	public Task<bool> IsCoinJoinTransportAvailableAsync(CancellationToken cancellationToken) =>
-		TrezorDevice.IsBridgeAvailableAsync(cancellationToken);
-
-	/// <summary>Whether this wallet's coinjoins are signed by a device rather than by keys we hold.</summary>
-	public static bool IsRemoteSigner(KeyManager keyManager) => keyManager.IsTrezorCoinJoinWallet();
+	/// <summary>Whether a bridge is reachable, to warn before offering coinjoin on an import screen. Answers within a few seconds.</summary>
+	public async Task<bool> IsCoinJoinTransportAvailableAsync(CancellationToken cancellationToken)
+	{
+		using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeout.CancelAfter(TimeSpan.FromSeconds(5));
+		return await TrezorDevice.IsBridgeAvailableAsync(timeout.Token).ConfigureAwait(false);
+	}
 
 	/// <summary>Most coinjoin rounds one device authorization may cover; the firmware refuses more under its own safety checks.</summary>
 	public const int MaxAuthorizationRounds = 500;
@@ -76,7 +77,7 @@ public class HardwareWalletService : IDisposable
 	public static TimeSpan SigningTimeout(int inputCount) =>
 		TimeSpan.FromMinutes(3) + TimeSpan.FromMinutes(inputCount / 10);
 
-	/// <summary>How long a device may take to confirm a coinjoin authorization (one hold-to-confirm).</summary>
+	/// <summary>How long a device may take for one confirmation on its screen: a coinjoin authorization, or an account it shows while importing.</summary>
 	public static TimeSpan AuthorizationTimeout => TimeSpan.FromMinutes(3);
 
 	/// <summary>Throws when the limits are outside what a device can be asked to approve.</summary>
@@ -95,6 +96,13 @@ public class HardwareWalletService : IDisposable
 
 	/// <summary>Whether a detected device can act as a coinjoin remote signer, to offer it while importing.</summary>
 	public static bool CanSignCoinJoins(HwiEnumerateEntry device) => device.Model.SupportsCoinJoin();
+
+	private static CancellationTokenSource ConfirmationTimeout(CancellationToken cancellationToken)
+	{
+		var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		cts.CancelAfter(AuthorizationTimeout);
+		return cts;
+	}
 
 	/// <summary>Lists the connected devices. Releases a bridge we own first, since HWI needs the device itself.</summary>
 	public async Task<HwiEnumerateEntry[]> DetectAsync(CancellationToken cancellationToken)
@@ -140,8 +148,7 @@ public class HardwareWalletService : IDisposable
 			throw new InvalidOperationException("The device did not report a master fingerprint.");
 		}
 
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
-		using var genCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
+		using var genCts = ConfirmationTimeout(cancellationToken);
 
 		if (enableCoinjoin && CanSignCoinJoins(device))
 		{
@@ -159,6 +166,8 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Imports the connected device without detecting it over HWI first, which a headless host cannot do.</summary>
 	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
+		using var timeout = ConfirmationTimeout(cancellationToken);
+		cancellationToken = timeout.Token;
 		using var device = await AcquireAsync(masterFingerprint: null, cancellationToken).ConfigureAwait(false);
 		var fingerprint = await device.GetMasterFingerprintAsync(cancellationToken).ConfigureAwait(false);
 		return await ReadAccountsAsync(device, fingerprint, walletFilePath, enableCoinjoin, addressToConfirm, cancellationToken).ConfigureAwait(false);
@@ -167,17 +176,19 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Adds a coinjoin account to an imported watch-only wallet; the device confirms it and shows its first address to check, as an import does.</summary>
 	public async Task EnableCoinJoinAsync(KeyManager keyManager, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
-		if (!keyManager.IsHardwareWallet)
-		{
-			throw new InvalidOperationException("Only a hardware wallet can have a coinjoin account added.");
-		}
-		if (IsRemoteSigner(keyManager))
+		if (keyManager.HasCoinJoinAccount)
 		{
 			return;
 		}
+		if (!keyManager.CanAddCoinJoinAccount)
+		{
+			throw new InvalidOperationException("Only a hardware wallet without a taproot account can have a coinjoin account added.");
+		}
 
+		using var timeout = ConfirmationTimeout(cancellationToken);
+		cancellationToken = timeout.Token;
 		using var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
-		var coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(_network);
+		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(_network);
 		var coinJoinExtPubKey = await device.GetAccountXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
 		await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
 
@@ -197,7 +208,7 @@ public class HardwareWalletService : IDisposable
 		timeout.CancelAfter(SigningTimeout(transaction.WalletInputs.Count));
 		cancellationToken = timeout.Token;
 
-		if (IsRemoteSigner(keyManager))
+		if (keyManager.HasCoinJoinAccount)
 		{
 			return await SignOverBridgeAsync(keyManager, psbt, transaction, cancellationToken).ConfigureAwait(false);
 		}
@@ -205,7 +216,7 @@ public class HardwareWalletService : IDisposable
 		// A Trezor wallet (recognised by its icon) shares the bridge, so HWI has to borrow the device from a bridge
 		// of ours; only put that bridge back if we actually took it. The device forgets a coinjoin authorization
 		// when its session ends, so the next coinjoin start asks for a new confirmation.
-		bool borrowedFromOurBridge = keyManager.Icon is { } icon && Enum.TryParse<WalletType>(icon, ignoreCase: true, out var walletType) && walletType is WalletType.Trezor && _bridge.StopIfOurs();
+		bool borrowedFromOurBridge = string.Equals(keyManager.Icon, nameof(WalletType.Trezor), StringComparison.OrdinalIgnoreCase) && _bridge.StopIfOurs();
 		try
 		{
 			var signedPsbt = await new HwiClient(_network).SignTxAsync(keyManager.MasterFingerprint!.Value, psbt, cancellationToken).ConfigureAwait(false);
@@ -231,7 +242,7 @@ public class HardwareWalletService : IDisposable
 		using var linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cts.Token, cancellationToken);
 		try
 		{
-			if (IsRemoteSigner(keyManager))
+			if (keyManager.HasCoinJoinAccount)
 			{
 				// A coinjoin account address needs the UnlockPath that only the bridge can send, and the bridge
 				// holds the device anyway - so both accounts of such a wallet are verified over the bridge.
@@ -263,7 +274,7 @@ public class HardwareWalletService : IDisposable
 		FeeRate maxMiningFeeRate,
 		CancellationToken cancellationToken)
 	{
-		if (!IsRemoteSigner(keyManager))
+		if (!keyManager.HasCoinJoinAccount)
 		{
 			throw new NotSupportedException("This wallet has no coinjoin account, so no device can authorize its coinjoins.");
 		}
@@ -295,7 +306,7 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Makes sure the device of this wallet can be reached, if it needs a transport of ours at all.</summary>
 	public async Task EnsureReadyAsync(KeyManager keyManager, CancellationToken cancellationToken)
 	{
-		if (IsRemoteSigner(keyManager))
+		if (keyManager.HasCoinJoinAccount)
 		{
 			await _bridge.EnsureRunningAsync(cancellationToken).ConfigureAwait(false);
 		}
@@ -304,7 +315,7 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Hands the device back, for when this wallet no longer needs it.</summary>
 	public void Release(KeyManager keyManager)
 	{
-		if (IsRemoteSigner(keyManager))
+		if (keyManager.HasCoinJoinAccount)
 		{
 			_bridge.StopIfOurs();
 		}
@@ -336,21 +347,21 @@ public class HardwareWalletService : IDisposable
 		var segwitExtPubKey = await device.GetAccountXpubAsync(segwitAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
 		await ConfirmAccountOnDeviceAsync(device, segwitAccountKeyPath, segwitExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
 
-		KeyPath? coinJoinAccountKeyPath = null;
+		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(_network);
 		ExtPubKey? coinJoinExtPubKey = null;
 		if (enableCoinjoin)
 		{
-			coinJoinAccountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(_network);
 			coinJoinExtPubKey = await device.GetAccountXpubAsync(coinJoinAccountKeyPath, _network, cancellationToken).ConfigureAwait(false);
 			await ConfirmAccountOnDeviceAsync(device, coinJoinAccountKeyPath, coinJoinExtPubKey, addressToConfirm, cancellationToken).ConfigureAwait(false);
 		}
 
-		// Only coins of the coinjoin account can join rounds, so its addresses are handed out by default; the
-		// regular account stays available for deposits that should not be coinjoined.
-		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, coinJoinExtPubKey, null, null, _network, walletFilePath, coinJoinAccountKeyPath);
-		keyManager.DefaultReceiveScriptType = ScriptPubKeyType.TaprootBIP86;
+		var keyManager = KeyManager.CreateNewHardwareWalletWatchOnly(fingerprint, segwitExtPubKey, null, null, null, _network, walletFilePath);
 		keyManager.SetIcon(WalletType.Trezor);
-		keyManager.ToFile();
+		if (coinJoinExtPubKey is not null)
+		{
+			keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, coinJoinExtPubKey);
+		}
+
 		return keyManager;
 	}
 

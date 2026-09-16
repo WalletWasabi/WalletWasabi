@@ -105,16 +105,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             _ => walletModel.Settings.ChangeScriptPubKeyType
         };
 
-        if (walletModel.HasSeparateCoinJoinAccount
-            && _changeScriptPubKeyType is not PreferredScriptPubKeyType.Specified { ScriptType: ScriptPubKeyType.Segwit })
-        {
-            // SegWit is the only valid choice here (the taproot keys of this wallet belong to its
-            // coinjoin account); coerce so the selector does not show an empty value.
-            _changeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
-            walletModel.Settings.ChangeScriptPubKeyType = _changeScriptPubKeyType;
-            walletModel.Settings.Save();
-        }
-
         DefaultSendWorkflow = walletModel.Settings.DefaultSendWorkflow;
         this.WhenAnyValue(x => x.DefaultSendWorkflow)
             .Subscribe(value => IsAutomaticDefaultSendWorkflow = value == SendWorkflow.Automatic);
@@ -124,16 +114,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         VerifyRecoveryWordsCommand = ReactiveCommand.Create(() => Navigate().To().WalletVerifyRecoveryWords(walletModel));
 
         // A device-backed watch-only wallet imported without coinjoin can opt in later. The device shows the new
-        // coinjoin account for confirmation, then the wallet restarts so the coinjoin services pick it up.
+        // coinjoin account for confirmation; then the application restarts, since every page of this wallet was built for a wallet without one.
         CanEnableCoinjoin = walletModel.CanEnableCoinjoin;
         EnableCoinjoinCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             try
             {
-                using var cts = new System.Threading.CancellationTokenSource(TimeSpan.FromMinutes(3));
-                await walletModel.EnableCoinjoinAsync(new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString()), cts.Token);
+                await walletModel.EnableCoinjoinAsync(new Progress<BitcoinAddress>(address => AddressToConfirm = address.ToString()), System.Threading.CancellationToken.None);
 
-                // The output provider reads the wallet's supported script types at construction, so restart to pick up the coinjoin account.
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
             }
