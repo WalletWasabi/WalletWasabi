@@ -73,7 +73,8 @@ public static class TransactionFeeHelper
 			estimates = TestNetFeeRateEstimations;
 			return true;
 		}
-		if (feeRateEstimations is not null)
+
+		if (feeRateEstimations is { Estimations.Count: > 0 })
 		{
 			estimates = feeRateEstimations;
 			return true;
