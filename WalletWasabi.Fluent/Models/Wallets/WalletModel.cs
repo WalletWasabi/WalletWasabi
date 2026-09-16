@@ -204,14 +204,13 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
 
-	private bool CoinJoinIsSignedByDevice => HardwareWalletService.IsRemoteSigner(Wallet.KeyManager);
+	private bool CoinJoinIsSignedByDevice => Wallet.KeyManager.HasCoinJoinAccount;
 
 	public bool CanCoinJoin => !IsWatchOnlyWallet || CoinJoinIsSignedByDevice;
 
 	public bool HasSeparateCoinJoinAccount => CoinJoinIsSignedByDevice;
 
-	// A hardware wallet with a free taproot slot can opt into coinjoin later by adding a coinjoin account.
-	public bool CanEnableCoinjoin => Wallet.KeyManager.IsHardwareWallet && !CoinJoinIsSignedByDevice && Wallet.KeyManager.TaprootExtPubKey is null;
+	public bool CanEnableCoinjoin => Wallet.KeyManager.CanAddCoinJoinAccount;
 
 	public Task EnableCoinjoinAsync(IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken) =>
 		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, addressToConfirm, cancellationToken);
