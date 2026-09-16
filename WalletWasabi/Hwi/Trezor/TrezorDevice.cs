@@ -8,9 +8,6 @@ namespace WalletWasabi.Hwi.Trezor;
 /// </summary>
 public class TrezorDevice : IDisposable
 {
-	/// <summary>SLIP-25 purpose (10025') dedicated to coinjoin accounts, enforced by the firmware.</summary>
-	public const uint Slip25Purpose = 10025 | HardenedIndex;
-
 	private const uint HardenedIndex = 0x80000000;
 
 	/// <summary>First firmware version that accepts coinjoin requests from any coordinator (signature verification against the zkSNACKs key was removed).</summary>
@@ -176,7 +173,7 @@ public class TrezorDevice : IDisposable
 			bool isCoinJoinAccount = accountKeyPath.IsSlip25KeyPath();
 			if (isCoinJoinAccount)
 			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
 			}
 
 			var response = await CallAsync(
@@ -194,7 +191,7 @@ public class TrezorDevice : IDisposable
 			bool isCoinJoinAccount = fullKeyPath.IsSlip25KeyPath();
 			if (isCoinJoinAccount)
 			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
 			}
 
 			var response = await CallAsync(
@@ -277,7 +274,7 @@ public class TrezorDevice : IDisposable
 		{
 			if (unlockCoinJoinAccount)
 			{
-				await CallAsync(TrezorMessages.UnlockPath([Slip25Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
+				await CallAsync(TrezorMessages.UnlockPath([Slip25.Purpose]), TrezorMessageType.UnlockedPathRequest, cancellationToken).ConfigureAwait(false);
 			}
 			var signTx = TrezorMessages.SignTx(inputs.Count, outputs.Count, GetCoinName(network), version, lockTime, coinJoinRequest: null);
 			return await RunSigningFlowAsync(signTx, inputs, outputs, previousTransactions, cancellationToken).ConfigureAwait(false);
@@ -419,10 +416,6 @@ public class TrezorDevice : IDisposable
 
 	private static string GetCoinName(Network network) =>
 		network == Network.Main ? "Bitcoin" : network == Network.TestNet ? "Testnet" : "Regtest";
-
-	/// <summary>SLIP-25 coinjoin account: m/10025'/coin_type'/account'/1' where 1' stands for taproot.</summary>
-	public static KeyPath GetCoinJoinAccountKeyPath(Network network) =>
-		new(Slip25Purpose, (network == Network.Main ? 0u : 1u) | HardenedIndex, HardenedIndex, 1u | HardenedIndex);
 
 	/// <summary>
 	/// Whether the bridge session this device was acquired with still answers; a restarted bridge forgets it

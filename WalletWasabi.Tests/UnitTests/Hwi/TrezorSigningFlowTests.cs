@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Hwi.Trezor;
 using Xunit;
 
@@ -41,7 +42,7 @@ public class TrezorSigningFlowTests
 		transport.Responses.Enqueue(TxRequest(TrezorTxRequestType.TxInput, 0));                   // TxAckOutput 1, signing pass starts
 		transport.Responses.Enqueue(TxRequest(TrezorTxRequestType.TxFinished, serialized: (0, signature)));
 
-		var accountKeyPath = TrezorDevice.GetCoinJoinAccountKeyPath(Network.Main);
+		var accountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
 		var inputs = new List<TrezorTxInput>
 		{
 			new()

@@ -1,9 +1,6 @@
-namespace WalletWasabi.Wallets;
+namespace WalletWasabi.Fluent.Models.Wallets;
 
-/// <summary>
-/// Where a wallet stands in asking its signing device to authorize a batch of coinjoin rounds.
-/// Reported by the backend so every front end (GUI, daemon, JSON-RPC) tells the same story.
-/// </summary>
+/// <summary>Where a wallet stands in asking its signing device to authorize a batch of coinjoin rounds, for the dialog and the music box to show.</summary>
 public enum DeviceAuthorizationStatus
 {
 	/// <summary>Nothing has been asked of the device.</summary>

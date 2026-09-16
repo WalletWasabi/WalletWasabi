@@ -139,10 +139,8 @@ public class WasabiJsonRpcService : IJsonRpcService
 		AssertNoDeviceCoinJoinInProgress();
 		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
 
-		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 		var verifiedAddresses = new List<string>();
-		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, new AddressCollector(verifiedAddresses), cts.Token).ConfigureAwait(false);
+		var keyManager = await Global.HardwareWallets.ImportConnectedAsync(walletFilePath, enableCoinjoin, new AddressCollector(verifiedAddresses), CancellationToken.None).ConfigureAwait(false);
 		Global.WalletManager.AddWallet(keyManager);
 
 		return new JsonRpcResult
@@ -161,18 +159,13 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertNoDeviceCoinJoinInProgress();
 
-		// Reading the coinjoin account asks for a confirmation on the device, give the user time for it.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
 		var verifiedAddresses = new List<string>();
-		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, new AddressCollector(verifiedAddresses), cts.Token).ConfigureAwait(false);
+		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, new AddressCollector(verifiedAddresses), CancellationToken.None).ConfigureAwait(false);
 
 		return new JsonRpcResult
 		{
 			["accounts"] = GetAccounts(activeWallet.KeyManager),
-			["verifiedAddresses"] = verifiedAddresses.ToArray(),
-			// The coinjoin services read the wallet's accounts when the wallet starts, so a wallet that was
-			// already loaded has to be started again (restart the daemon) before it can join rounds.
-			["restartRequired"] = activeWallet.Loaded
+			["verifiedAddresses"] = verifiedAddresses.ToArray()
 		};
 	}
 
@@ -185,7 +178,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 
-		if (!HardwareWalletService.IsRemoteSigner(activeWallet.KeyManager))
+		if (!activeWallet.KeyManager.HasCoinJoinAccount)
 		{
 			throw new InvalidOperationException($"No device signs the coinjoins of wallet '{activeWallet.WalletName}', so it has no authorization limits.");
 		}
@@ -272,7 +265,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		var busy = Global.WalletManager.GetWallets()
-			.FirstOrDefault(w => HardwareWalletService.IsRemoteSigner(w.KeyManager) && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
+			.FirstOrDefault(w => w.KeyManager.HasCoinJoinAccount && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
 		if (busy is not null)
 		{
 			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with its device. Stop it with stopcoinjoin first.");
@@ -308,7 +301,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
-			["coinjoinSignedByDevice"] = HardwareWalletService.IsRemoteSigner(km),
+			["coinjoinSignedByDevice"] = km.HasCoinJoinAccount,
 			["coinjoinDeviceMaxRounds"] = km.CoinJoinDeviceMaxRounds,
 			["coinjoinDeviceMaxMiningFeeRate"] = km.CoinJoinDeviceMaxMiningFeeRate,
 			["accounts"] = GetAccounts(km)
@@ -439,7 +432,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
 		AssertWalletIsLoaded();
 
-		if (HardwareWalletService.IsRemoteSigner(activeWallet.KeyManager))
+		if (activeWallet.KeyManager.HasCoinJoinAccount)
 		{
 			// The device approves how much value may leave the wallet in a round, never where it goes, so it
 			// cannot show this payment's destination and refuses to sign a round containing it.
