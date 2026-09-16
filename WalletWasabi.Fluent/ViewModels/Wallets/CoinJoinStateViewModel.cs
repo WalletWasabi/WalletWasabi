@@ -157,8 +157,8 @@ public partial class CoinJoinStateViewModel : ViewModelBase
 				&& !await UiContext.Navigate().To().CoinJoinAuthDialog(
 					walletCoinjoinModel,
 					wallet.Settings.WalletType,
-					walletInstance.KeyManager.CoinJoinDeviceMaxRounds,
-					walletInstance.KeyManager.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync())
+					wallet.Settings.CoinJoinDeviceMaxRounds,
+					wallet.Settings.CoinJoinDeviceMaxMiningFeeRate).GetResultAsync())
 			{
 				return;
 			}

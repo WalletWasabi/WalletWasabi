@@ -110,8 +110,7 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 			{
 				try
 				{
-					using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(5));
-					IsBridgeUnavailable = !await UiContext.HardwareWalletInterface.IsCoinJoinTransportAvailableAsync(cts.Token);
+					IsBridgeUnavailable = !await UiContext.HardwareWalletInterface.IsCoinJoinTransportAvailableAsync(CancellationToken.None);
 				}
 				catch (Exception ex)
 				{
