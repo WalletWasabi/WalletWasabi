@@ -16,7 +16,7 @@ public partial class BugReportLinkViewModel : TriggerCommandViewModel
 {
 	public BugReportLinkViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.BugReportLink));
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.OpenBrowserAsync(AboutViewModel.BugReportLink));
 	}
 
 	public override ICommand TargetCommand { get; }

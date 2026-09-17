@@ -15,9 +15,4 @@ public class FileSystemModel
 	{
 		IoHelpers.OpenFolderInFileExplorer(dirPath);
 	}
-
-	public Task OpenBrowserAsync(string url)
-	{
-		return IoHelpers.OpenBrowserAsync(url);
-	}
 }

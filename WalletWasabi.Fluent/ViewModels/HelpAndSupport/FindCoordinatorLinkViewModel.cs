@@ -17,7 +17,7 @@ public partial class FindCoordinatorLinkViewModel : TriggerCommandViewModel
 {
 	public FindCoordinatorLinkViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
 	}
 
 	public override ICommand TargetCommand { get; }
