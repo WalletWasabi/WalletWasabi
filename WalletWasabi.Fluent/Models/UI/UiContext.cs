@@ -1,3 +1,4 @@
+using System.Threading.Tasks;
 using WalletWasabi.Announcements;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
@@ -5,6 +6,7 @@ using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.Navigation;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Helpers;
 
 namespace WalletWasabi.Fluent.Models.UI;
 
@@ -83,6 +85,15 @@ public class UiContext
 	{
 		return _navigate?.Navigate(target)
 			?? throw new InvalidOperationException($"{GetType().Name} {nameof(Navigate)} hasn't been initialized.");
+	}
+
+	public async Task OpenBrowserAsync(string link)
+	{
+		var success = await Navigate().To().ConfirmOpenLink(link).GetResultAsync();
+		if (success)
+		{
+			await IoHelpers.OpenBrowserAsync(link);
+		}
 	}
 
 	public void SetMainViewModel(MainViewModel viewModel)

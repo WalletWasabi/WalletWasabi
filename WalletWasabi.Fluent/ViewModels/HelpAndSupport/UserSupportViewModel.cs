@@ -16,7 +16,7 @@ public partial class UserSupportViewModel : TriggerCommandViewModel
 {
 	public UserSupportViewModel(UiContext uiContext) : base(uiContext)
 	{
-		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.FileSystem.OpenBrowserAsync(AboutViewModel.UserSupportLink));
+		TargetCommand = ReactiveCommand.CreateFromTask(async () => await UiContext.OpenBrowserAsync(AboutViewModel.UserSupportLink));
 	}
 
 	public override ICommand TargetCommand { get; }
