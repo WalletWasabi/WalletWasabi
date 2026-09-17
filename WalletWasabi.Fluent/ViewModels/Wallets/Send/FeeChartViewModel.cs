@@ -214,37 +214,44 @@ public partial class FeeChartViewModel : ViewModelBase
 		return 0;
 	}
 
-	public void UpdateFeeEstimates(IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> wildFeeEstimates, FeeRate? maxFee = null)
+	/// <summary>
+	/// Updates the chart if there are usable estimates. Otherwise, returns false and preserves the current chart.
+	/// </summary>
+	public bool TryUpdateFeeEstimates(IEnumerable<(TimeSpan timeSpan, FeeRate feeRate)> wildFeeEstimates, FeeRate? maxFee = null)
 	{
 		Dictionary<int, double> feeEstimates = wildFeeEstimates.ToDictionary(
 				x => (int)x.timeSpan.TotalMinutes / 10,
 				x => Math.Round((double)x.feeRate.SatoshiPerByte, 3));
 
-		var enableCursor = true;
+		if (feeEstimates.Count == 0)
+		{
+			return false;
+		}
+
 		var areAllValuesEqual = AreEstimatedFeeRatesEqual(feeEstimates);
 		var correctedFeeEstimates = areAllValuesEqual ? feeEstimates : DistinctByValues(feeEstimates);
 
 		var xs = correctedFeeEstimates.Select(x => (double)x.Key).ToArray();
 		var ys = correctedFeeEstimates.Select(x => x.Value).ToArray();
 
-		List<double>? xts;
-		List<double>? yts;
-		if (xs.Length == 1)
-		{
-			xs = new[] { xs[0], xs[0] };
-			ys = new[] { ys[0], ys[0] };
-			xts = xs.ToList();
-			yts = ys.ToList();
-			enableCursor = false;
-		}
-		else
-		{
-			GetSmoothValuesSubdivide(xs, ys, out xts, out yts);
-		}
+		GetSmoothValuesSubdivide(xs, ys, out var xts, out var yts);
 
 		if (maxFee is { })
 		{
 			RemoveOverpaymentValues(xts, yts, (double)maxFee.SatoshiPerByte);
+		}
+
+		if (xts.Count == 0)
+		{
+			return false;
+		}
+
+		var enableCursor = xts.Count > 1;
+		if (!enableCursor)
+		{
+			// The line chart needs two points, even when only one estimate is affordable.
+			xts.Add(xts[0]);
+			yts.Add(yts[0]);
 		}
 
 		var confirmationTargetValues = xts.ToArray();
@@ -253,19 +260,12 @@ public partial class FeeChartViewModel : ViewModelBase
 
 		_updatingCurrentValue = true;
 
-		if (satoshiPerByteValues.Length != 0)
-		{
-			var maxY = satoshiPerByteValues.Max();
-			var minY = (double)Constants.MinRelayFeeRate.SatoshiPerByte; // If values are not the same, it will be always rendered starting from 1.
+		var maxY = satoshiPerByteValues.Max();
+		var minY = (double)Constants.MinRelayFeeRate.SatoshiPerByte; // If values are not the same, it will be always rendered starting from 1.
 
-			SatoshiPerByteLabels = areAllValuesEqual
-				? new[] { "", "", maxY.ToString("F0") }
-				: new[] { minY.ToString("F0"), ((maxY + minY) / 2).ToString("F0"), maxY.ToString("F0") };
-		}
-		else
-		{
-			SatoshiPerByteLabels = null;
-		}
+		SatoshiPerByteLabels = areAllValuesEqual
+			? new[] { "", "", maxY.ToString("F0") }
+			: new[] { minY.ToString("F0"), ((maxY + minY) / 2).ToString("F0"), maxY.ToString("F0") };
 
 		ConfirmationTargetLabels = confirmationTargetLabels;
 		ConfirmationTargetValues = confirmationTargetValues;
@@ -285,6 +285,7 @@ public partial class FeeChartViewModel : ViewModelBase
 		EnableCursor = enableCursor;
 
 		_updatingCurrentValue = false;
+		return true;
 	}
 
 	private void RemoveOverpaymentValues(List<double> xts, List<double> yts, double maxFeeSatoshiPerByte)

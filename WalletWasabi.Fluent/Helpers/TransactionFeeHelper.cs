@@ -73,7 +73,7 @@ public static class TransactionFeeHelper
 			estimates = TestNetFeeRateEstimations;
 			return true;
 		}
-		if (feeRateEstimations is not null)
+		if (feeRateEstimations is { Estimations.Count: > 0 })
 		{
 			estimates = feeRateEstimations;
 			return true;
@@ -164,9 +164,8 @@ public static class TransactionFeeHelper
 		}
 
 		var feeChartViewModel = new FeeChartViewModel(uiContext);
-		feeChartViewModel.UpdateFeeEstimates(feeEstimates.WildEstimations);
-
-		if (!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
+		if (!feeChartViewModel.TryUpdateFeeEstimates(feeEstimates.WildEstimations) ||
+			!feeChartViewModel.TryGetConfirmationTarget(feeRate, out var blockTarget))
 		{
 			return false;
 		}
