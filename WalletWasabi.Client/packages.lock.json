@@ -27,15 +27,23 @@
         "resolved": "0.0.1",
         "contentHash": "sFGydpttLN0bx8US2vRio7mFhqpqdQOAAQL9lABPi50epQ1bVcEdUgpFd3olvEMf6zyn1G3TErUsKyZGA19TeQ=="
       },
+      "Fable.Core": {
+        "type": "Transitive",
+        "resolved": "3.1.6",
+        "contentHash": "w6M1F0zoLk4kTFc1Lx6x1Ft6BD3QwRe0eaLiinAqbjVkcF+iK+NiXGJO+a6q9RAF9NCg0vI48Xku7aNeqG4JVw==",
+        "dependencies": {
+          "FSharp.Core": "4.7.1"
+        }
+      },
+      "FSharp.Core": {
+        "type": "Transitive",
+        "resolved": "10.0.102",
+        "contentHash": "umz5pbtOvL/F9U5sibhREzZT2ewAs//nRTMwj8XcOOjMdOP828tipLpEhb2fZNijhiyikJ6Nr/dsMc/lj58W9w=="
+      },
       "LibChaCha20": {
         "type": "Transitive",
         "resolved": "1.0.1",
         "contentHash": "pLKTZWVPKf5vd1MthOCph/p7iR3DM8PQOeBLe7e5VGXVqju4GOWT+JAgKReQ+7sWU4HDC+hJF/Thrj08YFkugg=="
-      },
-      "LinqKit.Core": {
-        "type": "Transitive",
-        "resolved": "1.2.5",
-        "contentHash": "+5UKyagtVX33TSeOGorYzDXus/ypAISfM7HFfrix4BEmuuGF+nhSjf8P9csejLQ79ny5ms33M5/lQ2SkwC0Jxw=="
       },
       "Microsoft.Data.Sqlite.Core": {
         "type": "Transitive",
@@ -165,45 +173,75 @@
       },
       "NBitcoin.Secp256k1": {
         "type": "Transitive",
-        "resolved": "3.1.6",
-        "contentHash": "Ao9jN/16lhQoI0aMdUxgiEfuyFdg2nd2SdinqqEFuCyYl1NH6upa++Tp0wbXHTr6jf7klXh3wjmsX+ArzliZRQ=="
+        "resolved": "3.1.0",
+        "contentHash": "DVJbhT1plnBqPNnl5MNW1Aw5DCdfQ7MwlcL6PKcBIWPlQUO4T1FZRC4g2Axp9fd40eDKkyhq9MHlN9EeO09sGw=="
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
         "resolved": "13.0.1",
         "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
       },
+      "Nostra": {
+        "type": "Transitive",
+        "resolved": "0.0.5",
+        "contentHash": "idrYbS9eMyjnZmrHADU7Od0fMfULn3adIZsWTveVul0ugswbtn/6i1nz+uiQAvfBEovv22EZpqvBZrmDMXVgbA==",
+        "dependencies": {
+          "FSharp.Core": "10.0.102",
+          "LibChaCha20": "1.0.1",
+          "NBitcoin.Secp256k1": "3.1.0",
+          "SQLitePCLRaw.bundle_e_sqlite3": "3.0.5",
+          "Thoth.Json.Net": "12.0.0"
+        }
+      },
+      "SQLite": {
+        "type": "Transitive",
+        "resolved": "3.53.4",
+        "contentHash": "KN7jeWqgUPeBRe1FlcpZURzxomuKKEKHmBBQfg+Nx7NkY1LjKhzHvH+3ASkNvhayESE34nMBinL9CV21JfPRJw=="
+      },
       "SQLitePCLRaw.bundle_e_sqlite3": {
         "type": "Transitive",
-        "resolved": "2.1.12",
-        "contentHash": "mAgscpQMLw5/nfA1Q5oJVAT29yROUo1ifZGbbTpx/lwZpSxMUGoYbKfmvdm8oXER+RzxqBmmQzeBEVKfeHv2nw==",
+        "resolved": "3.0.5",
+        "contentHash": "SW8iASIyWMrLzqabUHYQRvALhvD4ylSBsj4PgEVGwc36kQjc9xT5kSV/XQ9rU7nIpBWD+LPyX3Hlw5FzyUzGeQ==",
         "dependencies": {
-          "SQLitePCLRaw.lib.e_sqlite3": "2.1.12",
-          "SQLitePCLRaw.provider.e_sqlite3": "2.1.12"
+          "SQLite": "3.53.4",
+          "SQLitePCLRaw.config.e_sqlite3": "3.0.5"
+        }
+      },
+      "SQLitePCLRaw.config.e_sqlite3": {
+        "type": "Transitive",
+        "resolved": "3.0.5",
+        "contentHash": "aSk8WE5tF2MybESMgtZAEyMVCAWA0nBqOMc48HFoa9UoSdtm3goDXVzNRnefeKIwE6bV9NaNXptn1F9ReMQI0Q==",
+        "dependencies": {
+          "SQLitePCLRaw.provider.e_sqlite3": "3.0.5"
         }
       },
       "SQLitePCLRaw.core": {
         "type": "Transitive",
-        "resolved": "2.1.12",
-        "contentHash": "ETpNw9DY3ckWLgRRAeCHj+GKOuPi61aeczkXhgHexUvqoZBAYg8RYESE2J7O1M7+o6QbdSEZwrw9bfqztUVWXg=="
-      },
-      "SQLitePCLRaw.lib.e_sqlite3": {
-        "type": "Transitive",
-        "resolved": "2.1.12",
-        "contentHash": "fWi8Dbknuhgg72fWinIdjXVaqO1hHL4YBBwVLnr7e1c9TAZwJ0QE38j9syW1hwx6HaqEVTwI+O07WPdZn8Rp0w=="
+        "resolved": "3.0.5",
+        "contentHash": "k81AYXXRCw3Zj8rOhyBoCsx/U97KYDFI2CSKr/ijl5BwpsW/hX/4kBiDmerFaoust8nxBwa0IHQFw8MmSHRtnQ=="
       },
       "SQLitePCLRaw.provider.e_sqlite3": {
         "type": "Transitive",
-        "resolved": "2.1.12",
-        "contentHash": "W3oH4XIfCzFrgUSDKHhN6N+dgzA5YHOR2VxX8GB6Qy7CyrJJgxPEG8NirgYWlPQC5P2jz2knSsexWu4tDUL33g==",
+        "resolved": "3.0.5",
+        "contentHash": "um8YSWduhhuskTG2bHfZrBqMNQOydfU8pcseT+cu5RivOGyoUbCrGXxgoRNTmRYw2VbMWnEZVVFcneZT/5dsBg==",
         "dependencies": {
-          "SQLitePCLRaw.core": "2.1.12"
+          "SQLitePCLRaw.core": "3.0.5"
         }
       },
       "System.Interactive.Async": {
         "type": "Transitive",
         "resolved": "7.0.1",
         "contentHash": "oL1iox7sAJL8i+muGzVMQjDB0axQgOoT5CkwYdap8cQJMkWDWMRErNqhOcZkn31+aKr/uCfgMEdhUARCU4G7gg=="
+      },
+      "Thoth.Json.Net": {
+        "type": "Transitive",
+        "resolved": "12.0.0",
+        "contentHash": "n2YyONYdWCFS4Pu7wrqgV/l5tPuN+t3gxEfs/2RwqCiQkRnbgKs9dK61zHeZS5YganAoFbxLSwbaNL7SvSrS9g==",
+        "dependencies": {
+          "FSharp.Core": "4.7.2",
+          "Fable.Core": "3.1.6",
+          "Newtonsoft.Json": "13.0.1"
+        }
       },
       "walletwasabi": {
         "type": "Project",
@@ -215,7 +253,7 @@
           "Microsoft.Extensions.Http": "[10.0.12, )",
           "Microsoft.Win32.SystemEvents": "[10.0.12, )",
           "NBitcoin": "[10.0.10, )",
-          "NNostr.Client": "[0.0.55, )",
+          "Nostra.CSharp": "[0.0.5, )",
           "System.Linq.Async": "[7.0.1, )",
           "WabiSabi": "[1.2.1, )"
         }
@@ -292,16 +330,14 @@
           "Newtonsoft.Json": "13.0.1"
         }
       },
-      "NNostr.Client": {
+      "Nostra.CSharp": {
         "type": "CentralTransitive",
-        "requested": "[0.0.55, )",
-        "resolved": "0.0.55",
-        "contentHash": "Vd6qx0FoYWt54e9HLqUXbJq3iEphRYYLB3PJnp+y+3wyvdg5bi0G5qd+DTTx/mlglKAWvDT9H+GFhRvubwLbMQ==",
+        "requested": "[0.0.5, )",
+        "resolved": "0.0.5",
+        "contentHash": "vlvYrL4xY6pHLRKyilvEjKt76vbxOZmwuT1rof002mfU8bJ65nEnnzJN8VHAQ0/+OOHOFsMZvSHWLJJ9DCcw7Q==",
         "dependencies": {
-          "LibChaCha20": "1.0.1",
-          "LinqKit.Core": "1.2.5",
-          "NBitcoin.Secp256k1": "3.1.6",
-          "System.Interactive.Async": "6.0.1"
+          "Nostra": "0.0.5",
+          "SQLitePCLRaw.bundle_e_sqlite3": "3.0.5"
         }
       },
       "System.Linq.Async": {

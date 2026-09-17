@@ -3,9 +3,10 @@ using System.Collections.Immutable;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Microsoft.FSharp.Collections;
 using NBitcoin;
-using NNostr.Client;
-using NNostr.Client.Protocols;
+using Nostra;
+using Nostra.CSharp;
 using WalletWasabi.Helpers;
 using WalletWasabi.Services;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
@@ -13,7 +14,12 @@ using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WebClients;
 using Xunit;
+using static WalletWasabi.Discoverability.NostrExtensions;
 using static WalletWasabi.Services.Workers;
+using Shareable = Nostra.ShareableModule;
+using SecretKey = Nostra.SecretKeyModule;
+using Event = Nostra.EventModule;
+using SubscriptionFilter = Nostra.Client.SubscriptionFilter;
 
 namespace WalletWasabi.Tests.UnitTests.Services;
 
@@ -25,7 +31,7 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		var nostrClientFactory = () => new TesteabletNostrClient([
+		var nostrClientFactory = () => new TestableNostrClient([
 			new ReleaseInfo(new Version(1, 0, 0), emptyTags),
 			new ReleaseInfo(new Version(3, 5, 8), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 1), emptyTags)
@@ -33,7 +39,7 @@ public class UpdateManagerTests
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0), nostrPubKey: TestableNostrClient.TestNPub);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
@@ -56,7 +62,7 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		var nostrClientFactory = () => new TesteabletNostrClient([
+		var nostrClientFactory = () => new TestableNostrClient([
 			new ReleaseInfo(new Version(1, 0, 0), emptyTags),
 			new ReleaseInfo(new Version(3, 5, 8), emptyTags),
 			new ReleaseInfo(new Version(3, 4, 0), emptyTags)
@@ -64,7 +70,7 @@ public class UpdateManagerTests
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(1));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0));
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, currentVersion: new Version(1, 0, 0), nostrPubKey: TestableNostrClient.TestNPub);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
@@ -87,7 +93,7 @@ public class UpdateManagerTests
 		// Arrange
 		var emptyTags = ImmutableDictionary<string, Uri>.Empty;
 		var eventBus = new EventBus();
-		var nostrClientFactory = () => new TesteabletNostrClient([
+		var nostrClientFactory = () => new TestableNostrClient([
 			new ReleaseInfo(new Version(0, 1, 0), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 0), emptyTags),
 			new ReleaseInfo(new Version(2, 5, 1), emptyTags)
@@ -95,7 +101,7 @@ public class UpdateManagerTests
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, nostrPubKey: TestableNostrClient.TestNPub);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
@@ -113,11 +119,11 @@ public class UpdateManagerTests
 	{
 		// Arrange
 		var eventBus = new EventBus();
-		var nostrClientFactory = () => new TesteabletNostrClient([]);
+		var nostrClientFactory = () => new TestableNostrClient([]);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(100));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, nostrPubKey: TestableNostrClient.TestNPub);
 
 		// Act
 		var updateStatusObtainedTask = new TaskCompletionSource<UpdateManager.UpdateStatus>();
@@ -136,11 +142,11 @@ public class UpdateManagerTests
 		// Arrange
 		var eventBus = new EventBus();
 		// this nostr client doesn't return any event
-		var nostrClientFactory = () => new TesteabletNostrClient([], sendEventsReceived: false);
+		var nostrClientFactory = () => new TestableNostrClient([], sendEventsReceived: false);
 		AsyncReleaseDownloader doNothingDownloader = (_, _) => Task.CompletedTask;
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(10));
-		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus);
+		var updaterFunc = UpdateManager.CreateUpdater(nostrClientFactory, doNothingDownloader, eventBus, nostrPubKey: TestableNostrClient.TestNPub);
 
 		// Act
 		var updateTask = updaterFunc(new UpdateManager.UpdateMessage(), Unit.Instance, cts.Token);
@@ -150,95 +156,99 @@ public class UpdateManagerTests
 	}
 }
 
-public class TesteabletNostrClient : INostrClient
+public class TestableNostrClient : INostrClient
 {
-	public static readonly string WasabiTeamPubKeyHex = NIP19.FromNIP19Npub(Constants.WasabiTeamNostrPubKey).ToHex();
+	public static readonly AuthorIdT WasabiTeamPubKey = Shareable.FromNPub.Invoke(Constants.WasabiTeamNostrPubKey);
+
+	// Test secret key for signing events in tests
+	private static readonly SecretKeyT TestSecretKey = SecretKey.CreateRandom();
+	public static readonly AuthorIdT TestPubKey = SecretKey.getPubKey(TestSecretKey);
+	public static readonly string TestNPub = Shareable.ToNPub(TestPubKey);
 
 	private readonly ReleaseInfo[] _releases;
 	private readonly bool _sendEventsReceived;
 	private readonly bool _manualMode;
-	private readonly string _pubkey;
+	private readonly SecretKeyT _secretKey;
 	private string? _activeSubscriptionId;
+	private Action<object, RelayMessageResult>? _onMessage;
 
-	public TesteabletNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true, string? pubkey = null, bool manualMode = false)
+	public TestableNostrClient(ReleaseInfo[] releases, bool sendEventsReceived = true, SecretKeyT? secretKey = null, bool manualMode = false)
 	{
 		_releases = releases;
 		_sendEventsReceived = sendEventsReceived;
 		_manualMode = manualMode;
-		_pubkey = pubkey ?? WasabiTeamPubKeyHex;
+		_secretKey = secretKey ?? TestSecretKey;
 	}
 
-	public void SimulateEventsReceived(NostrEvent[] events)
+	public void SimulateEventsReceived(EventT[] events)
 	{
-		if (_activeSubscriptionId is null)
+		if (_activeSubscriptionId is null || _onMessage is null)
 		{
 			throw new InvalidOperationException("No active subscription.");
 		}
-		EventsReceived?.Invoke(this, (_activeSubscriptionId, events));
+
+		foreach (var evt in events)
+		{
+			_onMessage(this, new RelayMessageResult.Event(_activeSubscriptionId, evt));
+		}
 	}
 
 	public void SimulateEoseReceived()
 	{
-		if (_activeSubscriptionId is null)
+		if (_activeSubscriptionId is null || _onMessage is null)
 		{
 			throw new InvalidOperationException("No active subscription.");
 		}
-		EoseReceived?.Invoke(this, _activeSubscriptionId);
+		_onMessage(this, new RelayMessageResult.EndOfStoredEvents(_activeSubscriptionId));
 	}
 
 	public void Dispose()
 	{
 	}
 
-	public Task Disconnect() => Task.CompletedTask;
+	public Task ConnectAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-	public Task Connect(CancellationToken token) => Task.CompletedTask;
+	public Task DisconnectAsync(CancellationToken cancellationToken) => Task.CompletedTask;
 
-	public IAsyncEnumerable<string> ListenForRawMessages() => Enumerable.Empty<string>().ToAsyncEnumerable();
-
-	public Task ListenForMessages() => Task.CompletedTask;
-
-	public Task PublishEvent(NostrEvent nostrEvent, CancellationToken token) => Task.CompletedTask;
-
-	public Task CloseSubscription(string subscriptionId, CancellationToken token) => Task.CompletedTask;
-
-	public Task CreateSubscription(string subscriptionId, NostrSubscriptionFilter[] filters, CancellationToken token)
+	public void Subscribe(string subscriptionId, SubscriptionFilter filter)
 	{
 		_activeSubscriptionId = subscriptionId;
+	}
+
+	public void Publish(EventT signedEvent)
+	{
+	}
+
+	public Task StartListeningAsync(Action<object, RelayMessageResult> onMessage, Action<string>? onError, CancellationToken cancellationToken)
+	{
+		_onMessage = onMessage;
 
 		if (_manualMode)
 		{
 			return Task.CompletedTask;
 		}
 
-		var nostrEvents = _releases
-			.Select((r, i) => new NostrEvent
-			{
-				Id = i.ToString(),
-				PublicKey = _pubkey,
-				Tags = [ new NostrEventTag{ TagIdentifier = "version", Data = [r.Version.ToString()] }]
-			}).ToArray();
+		if (_activeSubscriptionId is null)
+		{
+			return Task.CompletedTask;
+		}
 
 		if (_sendEventsReceived)
 		{
-			EventsReceived?.Invoke(this, (subscriptionId, nostrEvents));
+			foreach (var (release, i) in _releases.Select((r, i) => (r, i)))
+			{
+				var tags = ListModule.OfSeq([CreateTag("version", release.Version.ToString())]);
+
+				var unsignedEvent = Event.Create(Kind.Text, tags, "");
+				var signedEvent = Event.Sign(_secretKey, unsignedEvent);
+
+				onMessage(this, new RelayMessageResult.Event(_activeSubscriptionId, signedEvent));
+			}
 		}
-		EoseReceived?.Invoke(this, subscriptionId);
+
+		onMessage(this, new RelayMessageResult.EndOfStoredEvents(_activeSubscriptionId));
 		return Task.CompletedTask;
 	}
-
-	public Task ConnectAndWaitUntilConnected(CancellationToken connectionCancellationToken,
-		CancellationToken lifetimeCancellationToken) => Task.CompletedTask;
-
-	// Events required by INostrClient interface but not used in this test mock
-#pragma warning disable CS0067
-	public event EventHandler<string>? MessageReceived;
-	public event EventHandler<string>? InvalidMessageReceived;
-	public event EventHandler<string>? NoticeReceived;
-	public event EventHandler<(string subscriptionId, NostrEvent[] events)>? EventsReceived;
-	public event EventHandler<(string eventId, bool success, string messafe)>? OkReceived;
-	public event EventHandler<string>? EoseReceived;
-#pragma warning restore CS0067
 }
 
 public class RoundStateUpdaterForTesting

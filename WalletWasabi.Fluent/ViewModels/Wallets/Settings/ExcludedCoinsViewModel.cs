@@ -4,7 +4,6 @@ using System.Reactive.Disposables;
 using System.Reactive.Disposables.Fluent;
 using System.Reactive.Linq;
 using System.Windows.Input;
-using LinqKit;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
@@ -54,7 +53,7 @@ public partial class ExcludedCoinsViewModel : DialogViewModelBase<Unit>
 		_wallet.Coinjoin?.WhenAnyValue(x => x.IsCoinjoining)
 			.Subscribe(x =>
 			{
-				CoinList.CoinItems.ForEach(y =>
+				CoinList.CoinItems.ToList().ForEach(y =>
 				{
 					var wasSelected = y.IsSelected;
 					y.CanBeSelected = !x;

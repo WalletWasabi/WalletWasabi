@@ -130,9 +130,29 @@
     "hash": "sha256-7dKCwRC+Jt4CTLz9LF3LpmaB8ch1HFrcan7CmM3toPg="
   },
   {
+    "pname": "Fable.Core",
+    "version": "3.1.6",
+    "hash": "sha256-QRmb28K6jgOyYFGfiv+HXBPidtpfyCEvaNwDqi4U0+o="
+  },
+  {
     "pname": "Fizzler",
     "version": "1.2.1",
     "hash": "sha256-FROW1WzitXTauf2Hn7YejOLqNKN2Nd+Q2etFB1pYsvA="
+  },
+  {
+    "pname": "FSharp.Core",
+    "version": "10.0.102",
+    "hash": "sha256-wHpFHhigRcGlbgLXMCO/PiLxUIjzGoFOyU3BfGB80go="
+  },
+  {
+    "pname": "FSharp.Core",
+    "version": "4.7.1",
+    "hash": "sha256-CP8VRRVV3piWdqY8o0JP2+uktsNhVQOD4BqVVnH66lU="
+  },
+  {
+    "pname": "FSharp.Core",
+    "version": "4.7.2",
+    "hash": "sha256-1eDe16w8+syA35AtrSiViMHQYgwBqmdViS4yCa4AMZ8="
   },
   {
     "pname": "HarfBuzzSharp",
@@ -168,11 +188,6 @@
     "pname": "LibChaCha20",
     "version": "1.0.1",
     "hash": "sha256-5kuzrI/kpMfj7TO+wo1CkMiBzE8UPNKQb+cZSZzX7Y4="
-  },
-  {
-    "pname": "LinqKit.Core",
-    "version": "1.2.5",
-    "hash": "sha256-0z4RpAt+WvydeCN0GJu4vsMfCxzxmoi+LTE6fQ51NZY="
   },
   {
     "pname": "Markdown.Avalonia",
@@ -475,11 +490,6 @@
     "hash": "sha256-vhp1Rjl//09c8U912Mqfu6/Ip0/ljnZkCkDo9k45dtU="
   },
   {
-    "pname": "NBitcoin.Secp256k1",
-    "version": "3.1.6",
-    "hash": "sha256-IpekRXATZon/9ZnyIH5+fxxVkKtslDYqDvi7lY+pRxM="
-  },
-  {
     "pname": "NETStandard.Library",
     "version": "2.0.3",
     "hash": "sha256-Prh2RPebz/s8AzHb2sPHg3Jl8s31inv9k+Qxd293ybo="
@@ -490,9 +500,14 @@
     "hash": "sha256-K2tSVW4n4beRPzPu3rlVaBEMdGvWSv/3Q1fxaDh4Mjo="
   },
   {
-    "pname": "NNostr.Client",
-    "version": "0.0.55",
-    "hash": "sha256-hgVW/Xy29yWGpbVop5yH6d1yTLaOcWZJW6P+6aOUi/Y="
+    "pname": "Nostra",
+    "version": "0.0.5",
+    "hash": "sha256-y5UPcqPjM8GUq0QXNLbYmFc8UrdQpqh5asZTyFmVTuo="
+  },
+  {
+    "pname": "Nostra.CSharp",
+    "version": "0.0.5",
+    "hash": "sha256-4+jB7rNafydB7shZubC+YHuM+/ybQ+CIFdRCCUp69Eo="
   },
   {
     "pname": "NScheme",
@@ -580,14 +595,34 @@
     "hash": "sha256-LzuHFVeOWsdDpXhnXb7UVP0xPi3GipgjXrSOv1WqXVY="
   },
   {
+    "pname": "SQLite",
+    "version": "3.53.4",
+    "hash": "sha256-VkHrWOiEKf1z0J/ClL2qYQpumQmfQUHekSpeSqbXc8o="
+  },
+  {
     "pname": "SQLitePCLRaw.bundle_e_sqlite3",
     "version": "2.1.12",
     "hash": "sha256-qaBua1oxP27zZ1+RmX0BKt7/6KqeH/1p7Uak5oWwVOE="
   },
   {
+    "pname": "SQLitePCLRaw.bundle_e_sqlite3",
+    "version": "3.0.5",
+    "hash": "sha256-4yXOYahryjgfvTVIcmRIHhxqOWY1Rv7IIDX6ZhGYwqE="
+  },
+  {
+    "pname": "SQLitePCLRaw.config.e_sqlite3",
+    "version": "3.0.5",
+    "hash": "sha256-HDkIERpKFOiYg5g2vqnE2jkO3GabKXxATekkIqvuOrE="
+  },
+  {
     "pname": "SQLitePCLRaw.core",
     "version": "2.1.12",
     "hash": "sha256-rwaQQTj/ptyVpZkTPWTSVHFtb6zHVDprO5EHk9rp3KU="
+  },
+  {
+    "pname": "SQLitePCLRaw.core",
+    "version": "3.0.5",
+    "hash": "sha256-dHa0uOBn2IxMtZijGJO1EQN7iOBcKNUk9LRDP+n2kEg="
   },
   {
     "pname": "SQLitePCLRaw.lib.e_sqlite3",
@@ -598,6 +633,11 @@
     "pname": "SQLitePCLRaw.provider.e_sqlite3",
     "version": "2.1.12",
     "hash": "sha256-3ysycZkuXXGRhsRnHjz0+GWAl8FUy81BSUq1lMWZdZU="
+  },
+  {
+    "pname": "SQLitePCLRaw.provider.e_sqlite3",
+    "version": "3.0.5",
+    "hash": "sha256-EMbT2qxDK7OC3aBsNeX3/8zjYYeSFBvZFlZSfwbvWyU="
   },
   {
     "pname": "Svg.Custom",
@@ -626,18 +666,8 @@
   },
   {
     "pname": "System.Interactive.Async",
-    "version": "6.0.1",
-    "hash": "sha256-4yzkdop+BMlpQ+qz/H7D7LkH1Ekh9n51t9yteHpv/58="
-  },
-  {
-    "pname": "System.Interactive.Async",
     "version": "7.0.1",
     "hash": "sha256-XCw2cZ8FLZroVZkQL0WC6k6H4XMsIvZAxV79KLV7jC0="
-  },
-  {
-    "pname": "System.Linq.Async",
-    "version": "6.0.1",
-    "hash": "sha256-uH5fZhcyQVtnsFc6GTUaRRrAQm05v5euJyWCXSFSOYI="
   },
   {
     "pname": "System.Linq.Async",
@@ -708,6 +738,11 @@
     "pname": "System.Threading.Tasks.Extensions",
     "version": "4.6.0",
     "hash": "sha256-OwIB0dpcdnyfvTUUj6gQfKW2XF2pWsQhykwM1HNCHqY="
+  },
+  {
+    "pname": "Thoth.Json.Net",
+    "version": "12.0.0",
+    "hash": "sha256-1JlFBF6nIS5P80Kb/mpgI8gBtSy0V1OCGAK2Hzhdg30="
   },
   {
     "pname": "Tmds.DBus.Protocol",
