@@ -5,18 +5,20 @@ using ReactiveUI;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Extensions;
-using WalletWasabi.Hwi;
 using WalletWasabi.Logging;
+using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public class Address : ReactiveObject, IAddress
 {
 	private readonly Action<Address> _onHide;
+	private readonly HardwareWalletService _hardwareWallets;
 
-	public Address(KeyManager keyManager, HdPubKey hdPubKey, Action<Address> onHide)
+	public Address(KeyManager keyManager, HdPubKey hdPubKey, HardwareWalletService hardwareWallets, Action<Address> onHide)
 	{
 		KeyManager = keyManager;
+		_hardwareWallets = hardwareWallets;
 		HdPubKey = hdPubKey;
 		Network = keyManager.GetNetwork();
 		HdFingerprint = KeyManager.MasterFingerprint;
@@ -49,30 +51,13 @@ public class Address : ReactiveObject, IAddress
 
 	public async Task ShowOnHwWalletAsync()
 	{
-		if (HdFingerprint is null)
-		{
-			return;
-		}
-
-		using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(60));
 		try
 		{
-			var client = new HwiClient(Network);
-			await client.DisplayAddressAsync(HdFingerprint.Value, FullKeyPath, cts.Token).ConfigureAwait(false);
-		}
-		catch (FormatException ex) when (ex.Message.Contains("network") && Network == Network.TestNet)
-		{
-			// This exception happens every time on TestNet because of Wasabi Keypath handling.
-			// The user doesn't need to know about it.
+			await _hardwareWallets.DisplayAddressAsync(KeyManager, FullKeyPath, BitcoinAddress, CancellationToken.None).ConfigureAwait(false);
 		}
 		catch (Exception ex)
 		{
 			Logger.LogError(ex);
-			if (cts.IsCancellationRequested)
-			{
-				throw new ApplicationException("User response didn't arrive in time.");
-			}
-
 			throw;
 		}
 	}
