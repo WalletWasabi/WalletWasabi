@@ -20,4 +20,12 @@
 		<PackageReference Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" PrivateAssets="all" />
 		<AdditionalFiles Include="$(MSBuildThisFileDirectory)BannedSymbols.txt"/>
 	</ItemGroup>
+
+	<!-- The WabiSabi package ships a managed WabiSabi.dll next to a native wabisabi.dll, which is one file name on
+	     Windows. Only the coordinator uses the native library, so a Windows publish leaves it out. -->
+	<Target Name="DropNativeWabiSabiOnWindows" AfterTargets="ComputeFilesToPublish" BeforeTargets="_HandleFileConflictsForPublish" Condition="'$(RuntimeIdentifier)' == 'win-x64'">
+		<ItemGroup>
+			<ResolvedFileToPublish Remove="@(ResolvedFileToPublish)" Condition="'%(ResolvedFileToPublish.AssetType)' == 'native' and '%(Filename)%(Extension)' == 'wabisabi.dll'" />
+		</ItemGroup>
+	</Target>
 </Project>
