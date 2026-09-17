@@ -1,0 +1,10 @@
+global using SecretKey = Nostra.SecretKeyModule;
+global using Shareable = Nostra.CSharp.Shareable;
+global using Events = Nostra.EventModule;
+global using Event = Nostra.EventT;
+global using EventIds = Nostra.EventIdModule;
+global using EventId = Nostra.EventIdT;
+global using AuthorIds = Nostra.AuthorIdModule;
+global using AuthorId = Nostra.AuthorIdT;
+global using Tags = Nostra.TagModule;
+global using Tag = Nostra.TagT;

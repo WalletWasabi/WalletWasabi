@@ -1,8 +1,3 @@
-using NBitcoin;
-using NBitcoin.Secp256k1;
-using NNostr.Client.Protocols;
-// ReSharper disable AutoPropertyCanBeMadeGetOnly.Global
-
 namespace WalletWasabi.Discoverability;
 
 public record AnnouncerConfig
@@ -18,8 +13,7 @@ public record AnnouncerConfig
 
 	private static string InitKey()
 	{
-		using var key = new Key();
-		using var privKey = ECPrivKey.Create(key.ToBytes());
-		return privKey.ToNIP19();
+		var secretKey = SecretKey.CreateRandom();
+		return Shareable.ToNSec(secretKey);
 	}
 }

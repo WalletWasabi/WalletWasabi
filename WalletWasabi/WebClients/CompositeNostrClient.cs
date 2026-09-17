@@ -1,136 +1,115 @@
-using System.Collections.Generic;
-using System.Linq;
-using System.Net.WebSockets;
-using System.Threading;
-using System.Threading.Tasks;
-using NNostr.Client;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
+using Nostra.CSharp;
+using static Nostra.Client;
+using RelayClient = Nostra.Client.RelayClient;
+using SubscriptionFilter = Nostra.Client.SubscriptionFilter;
 
 namespace WalletWasabi.WebClients;
 
+/// <summary>
+/// Abstraction over Nostra's RelayClient to support both single and multi-relay scenarios.
+/// </summary>
+public interface INostrClient : IDisposable
+{
+	Task ConnectAsync(CancellationToken cancellationToken);
+	Task DisconnectAsync(CancellationToken cancellationToken);
+	void Subscribe(string subscriptionId, SubscriptionFilter filter);
+	void Publish(Event signedEvent);
+	Task StartListeningAsync(Action<object, RelayMessageResult> onMessage, Action<string>? onError, CancellationToken cancellationToken);
+}
+
+/// <summary>
+/// Manages multiple relay connections in parallel.
+/// </summary>
 public class CompositeNostrClient : INostrClient
 {
-	private readonly NostrClient[] _clients;
+	private readonly Uri[] _relayUris;
+	private readonly List<(Uri Uri, RelayClient Client)> _connectedClients = new();
 
-	public Dictionary<Uri, WebSocketState?> States => _clients.ToDictionary(c => c.Relay, c => c.State);
+	public int ConnectedCount => _connectedClients.Count;
 
-	public CompositeNostrClient(Uri[] relays, Action<WebSocket> websocketConfigure)
+	public CompositeNostrClient(Uri[] relays)
 	{
-		_clients = relays.Select(r =>
+		if (relays.Length == 0)
 		{
-			var c = new NostrClient(r, websocketConfigure);
-			c.MessageReceived += (sender, message) => MessageReceived?.Invoke(sender, message);
-			c.InvalidMessageReceived += (sender, message) => InvalidMessageReceived?.Invoke(sender, message);
-			c.NoticeReceived += (sender, message) => NoticeReceived?.Invoke(sender, message);
-			c.EventsReceived += (sender, events) => EventsReceived?.Invoke(sender, events);
-			c.OkReceived += (sender, ok) => OkReceived?.Invoke(sender, ok);
-			c.EoseReceived += (sender, message) => EoseReceived?.Invoke(sender, message);
-			c.StateChanged += (sender, state) => StateChanged?.Invoke(sender, (r, state));
-			return c;
-		}).ToArray();
+			throw new ArgumentException("At least one relay is required.", nameof(relays));
+		}
+		_relayUris = relays;
 	}
 
-	public async Task Connect(CancellationToken token)
+	public async Task ConnectAsync(CancellationToken cancellationToken)
 	{
-		var tasks = _clients.Select(async client =>
+		var tasks = _relayUris.Select(async uri =>
 		{
 			try
 			{
-				await client.Connect(token).ConfigureAwait(false);
-				return Result<NostrClient, Exception>.Ok(client);
+				var client = await ConnectToRelayAsync(uri).ConfigureAwait(false);
+				return Result<(Uri, RelayClient), Exception>.Ok((uri, client));
 			}
 			catch (Exception ex)
 			{
-				Logger.LogError($"Connect failed for relay {client.Relay}: {ex.Message}");
-				return Result<NostrClient, Exception>.Fail(ex);
+				Logger.LogDebug($"Connect failed for relay {uri}: {ex.Message}");
+				return Result<(Uri, RelayClient), Exception>.Fail(ex);
 			}
 		});
 
 		var results = await Task.WhenAll(tasks).ConfigureAwait(false);
 
-		var successCount = results.Count(r => r.IsOk);
+		foreach (var result in results.Where(r => r.IsOk))
+		{
+			_connectedClients.Add(result.Value);
+		}
+
+		var successCount = _connectedClients.Count;
 		var failureCount = results.Count(r => !r.IsOk);
 
 		if (failureCount > 0)
 		{
-			Logger.LogInfo($"Connect: {successCount}/{_clients.Length} relays succeeded");
+			Logger.LogInfo($"Connect: {successCount}/{_relayUris.Length} relays succeeded");
 		}
 
 		if (successCount == 0)
 		{
 			throw new AggregateException(
-				$"All {_clients.Length} Nostr relays failed during {"Connect"}",
+				$"All {_relayUris.Length} Nostr relays failed during connection",
 				results.Where(r => !r.IsOk).Select(r => r.Error));
 		}
 	}
 
-	public Task Disconnect() =>
-		Task.WhenAll(_clients.Select(c => c.Disconnect()));
+	public Task DisconnectAsync(CancellationToken cancellationToken)
+	{
+		var tasks = _connectedClients.Select(c => c.Client.DisconnectAsync(cancellationToken));
+		return Task.WhenAll(tasks);
+	}
 
-	public IAsyncEnumerable<string> ListenForRawMessages() =>
-		_clients.Select(c => c.ListenForRawMessages()).ToArray().Merge();
+	public void Subscribe(string subscriptionId, SubscriptionFilter filter)
+	{
+		foreach (var (_, client) in _connectedClients)
+		{
+			client.Subscribe(subscriptionId, filter);
+		}
+	}
 
-	public Task ListenForMessages() =>
-		Task.WhenAll(_clients.Select(c => c.ListenForMessages()));
+	public void Publish(Event signedEvent)
+	{
+		foreach (var (_, client) in _connectedClients)
+		{
+			client.Publish(signedEvent);
+		}
+	}
 
-	public Task PublishEvent(NostrEvent nostrEvent, CancellationToken token) =>
-		Task.WhenAll(_clients.Select(c => c.PublishEvent(nostrEvent, token)));
+	public Task StartListeningAsync(Action<object, RelayMessageResult> onMessage, Action<string>? onError, CancellationToken cancellationToken)
+	{
+		var tasks = _connectedClients.Select(c =>
+			c.Client.StartListeningAsync(
+				msg => onMessage(c.Client, msg),
+				onError));
 
-	public Task CloseSubscription(string subscriptionId, CancellationToken token) =>
-		Task.WhenAll(_clients.Select(c => c.CloseSubscription(subscriptionId, token)));
-
-	public Task CreateSubscription(string subscriptionId, NostrSubscriptionFilter[] filters, CancellationToken token) =>
-		Task.WhenAll(_clients.Select(c => c.CreateSubscription(subscriptionId, filters, token)));
+		return Task.WhenAll(tasks);
+	}
 
 	public void Dispose()
 	{
-		foreach (var client in _clients)
-		{
-			client.Dispose();
-		}
+		// RelayClient doesn't implement IDisposable
+		_connectedClients.Clear();
 	}
-
-	public async Task ConnectAndWaitUntilConnected(CancellationToken connectionCancellationToken,
-		CancellationToken lifetimeCancellationToken)
-	{
-		var tasks = _clients.Select(async client =>
-		{
-			try
-			{
-				await client.ConnectAndWaitUntilConnected(connectionCancellationToken, lifetimeCancellationToken).ConfigureAwait(false);
-				return Result<NostrClient, Exception>.Ok(client);
-			}
-			catch (Exception ex)
-			{
-				Logger.LogDebug($"Connect failed for relay {client.Relay}: {ex.Message}");
-				return Result<NostrClient, Exception>.Fail(ex);
-			}
-		});
-
-		var results = await Task.WhenAll(tasks).ConfigureAwait(false);
-
-		var successCount = results.Count(r => r.IsOk);
-		var failureCount = results.Count(r => !r.IsOk);
-
-		if (failureCount > 0)
-		{
-			Logger.LogInfo($"Connect: {successCount} out of {_clients.Length} relays succeeded");
-		}
-
-		if (successCount == 0)
-		{
-			throw new AggregateException(
-				$"All {_clients.Length} Nostr relays failed during connection",
-				results.Where(r => !r.IsOk).Select(r => r.Error));
-		}
-	}
-
-	public event EventHandler<string>? MessageReceived;
-	public event EventHandler<string>? InvalidMessageReceived;
-	public event EventHandler<string>? NoticeReceived;
-	public event EventHandler<(string subscriptionId, NostrEvent[] events)>? EventsReceived;
-	public event EventHandler<(string eventId, bool success, string messafe)>? OkReceived;
-	public event EventHandler<string>? EoseReceived;
-	public event EventHandler<(Uri, WebSocketState?)>? StateChanged;
 }
