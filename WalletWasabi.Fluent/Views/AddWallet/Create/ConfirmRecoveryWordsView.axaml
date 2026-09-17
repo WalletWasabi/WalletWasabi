@@ -3,10 +3,49 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:create="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="create:ConfirmRecoveryWordsViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.AddWallet.Create.ConfirmRecoveryWordsView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <!-- Desktop Layout Visibility -->
+    <Style Selector="ItemsControl.desktop-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector="Grid.desktop-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+
+    <!-- Mobile Layout Visibility -->
+    <Style Selector="ItemsControl.mobile-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="Grid.mobile-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+
+    <!-- Mobile Overrides -->
+    <Style Selector=".mobile ItemsControl.desktop-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile Grid.desktop-layout">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile ItemsControl.mobile-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector=".mobile Grid.mobile-layout">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                  Caption="{Binding Caption}"
                  EnableCancel="{Binding EnableCancel}"
@@ -14,9 +53,7 @@
                  EnableNext="True"
                  NextContent="Continue"
                  EnableSkip="{Binding IsSkipEnabled}"
-                 IsBusy="{Binding IsBusy}"
-                 ScrollViewer.HorizontalScrollBarVisibility="Auto"
-                 ScrollViewer.VerticalScrollBarVisibility="Disabled">
+                 IsBusy="{Binding IsBusy}">
 
     <DockPanel>
 
@@ -60,7 +97,8 @@
       </ItemsControl>
 
       <Panel VerticalAlignment="Center" HorizontalAlignment="Center">
-        <ItemsControl ItemsSource="{Binding ConfirmationWords}">
+        <!-- Desktop Layout: 3 columns, max height 200, large margin -->
+        <ItemsControl Classes="desktop-layout" ItemsSource="{Binding ConfirmationWords}">
           <ItemsControl.Styles>
             <Style Selector="TextBlock.error">
               <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
@@ -84,9 +122,37 @@
           </ItemsControl.ItemTemplate>
         </ItemsControl>
 
-        <Grid ColumnDefinitions="*,1,*,1,*">
+        <!-- Mobile Layout: 2 columns, max height 260, compact margin -->
+        <ItemsControl Classes="mobile-layout" ItemsSource="{Binding ConfirmationWords}">
+          <ItemsControl.Styles>
+            <Style Selector="TextBlock.error">
+              <Setter Property="Foreground" Value="{DynamicResource SystemErrorTextColor}" />
+            </Style>
+          </ItemsControl.Styles>
+          <ItemsControl.ItemsPanel>
+            <ItemsPanelTemplate>
+              <WrapPanel MaxHeight="260" Orientation="Vertical" VerticalAlignment="Top" HorizontalAlignment="Center" />
+            </ItemsPanelTemplate>
+          </ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate>
+            <DataTemplate>
+              <StackPanel Orientation="Horizontal" Margin="15 0" Width="80">
+                <TextBlock Text="{Binding Index, Mode=OneWay, StringFormat={}{0}.}" Opacity="0.5" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
+                <TextBlock Text="{Binding SelectedWord}" FontWeight="SemiBold" Margin="5 0 0 0"
+                           Classes.error="{Binding !IsConfirmed}" FontSize="{DynamicResource FontSizeH6}"
+                           Height="42" />
+              </StackPanel>
+            </DataTemplate>
+          </ItemsControl.ItemTemplate>
+        </ItemsControl>
+
+        <Grid Classes="desktop-layout" ColumnDefinitions="*,1,*,1,*">
           <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
           <Separator Classes="vertical" Grid.Column="3" Margin="0 0 0 20" />
+        </Grid>
+        <Grid Classes="mobile-layout" ColumnDefinitions="*,1,*">
+          <Separator Classes="vertical" Grid.Column="1" Margin="0 0 0 20" />
         </Grid>
       </Panel>
 

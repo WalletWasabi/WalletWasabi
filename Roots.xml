@@ -1,0 +1,28 @@
+<linker>
+  <!-- NBitcoin reflection fields required by ModuleInitializer. -->
+  <assembly fullname="NBitcoin">
+    <type fullname="NBitcoin.Bitcoin" preserve="all" />
+    <type fullname="NBitcoin.Network" preserve="all" />
+    <type fullname="NBitcoin.ChainName" preserve="all" />
+  </assembly>
+
+  <!-- Shared assemblies only. Host roots live in Contrib/Aot/<project>.xml;
+       requiring another platform's host here breaks ILC with IL2007. -->
+  <assembly fullname="WalletWasabi" />
+  <assembly fullname="WalletWasabi.Client" />
+  <assembly fullname="WalletWasabi.Fluent" />
+
+  <!-- ReactiveUI reflection helpers. -->
+  <assembly fullname="ReactiveUI" />
+  <assembly fullname="ReactiveUI.Avalonia" />
+
+  <!-- Avalonia XAML behaviors and interactivity required by XamlTypeResolver. -->
+  <assembly fullname="Xaml.Behaviors.Interactions.Custom" />
+  <assembly fullname="Xaml.Behaviors.Interactions.DragAndDrop" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Draggable" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Events" />
+  <assembly fullname="Xaml.Behaviors.Interactions.Responsive" />
+  <assembly fullname="Xaml.Behaviors.Interactions" />
+  <assembly fullname="Xaml.Behaviors.Interactivity" />
+  <assembly fullname="Avalonia.Controls.TreeDataGrid" />
+</linker>

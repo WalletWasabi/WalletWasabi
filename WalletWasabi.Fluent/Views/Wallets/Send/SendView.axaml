@@ -6,10 +6,16 @@
              xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              xmlns:models="clr-namespace:WalletWasabi.Fluent.Models"
              xmlns:helpers="clr-namespace:WalletWasabi.Fluent.Helpers"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d"
              x:DataType="vm:SendViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
 
   <UserControl.Resources>
     <converters:BooleanConverter x:Key="AddressWatermarkConverter"
@@ -42,6 +48,41 @@
 
     <Style Selector="FlyoutPresenter PathIcon">
       <Setter Property="Foreground" Value="{DynamicResource AcrylicTrimForeground}" />
+    </Style>
+
+    <Style Selector="DockPanel > Label">
+      <Setter Property="MinWidth" Value="80" />
+      <Setter Property="DockPanel.Dock" Value="Left" />
+    </Style>
+
+    <Style Selector="DockPanel.field-to">
+      <Setter Property="MaxHeight" Value="63" />
+    </Style>
+
+    <Style Selector=".mobile DockPanel.field-to">
+      <Setter Property="MaxHeight" Value="Infinity" />
+    </Style>
+
+    <Style Selector=".mobile DockPanel">
+      <Setter Property="LastChildFill" Value="True" />
+    </Style>
+
+    <Style Selector=".mobile Label">
+      <Setter Property="DockPanel.Dock" Value="Top" />
+      <Setter Property="MinWidth" Value="0" />
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector=".mobile TextBlock.indent-mobile">
+      <Setter Property="Margin" Value="0,0,0,4" />
+    </Style>
+
+    <Style Selector=".mobile Button.indent-mobile">
+      <Setter Property="Margin" Value="0,0,0,10" />
+    </Style>
+
+    <Style Selector=".mobile Button">
+      <Setter Property="Margin" Value="0" />
     </Style>
   </UserControl.Styles>
 
@@ -77,9 +118,6 @@
     </ContentArea.TopContent>
     <DockPanel LastChildFill="False" Margin="0,0,12,0">
       <DockPanel.Styles>
-        <Style Selector="DockPanel > Label">
-          <Setter Property="MinWidth" Value="80" />
-        </Style>
         <Style Selector="AnimatedButton.flash">
           <Setter Property="InitialOpacity" Value="0.8" />
         </Style>
@@ -106,8 +144,8 @@
                  IsVisible="{Binding IsPayToMany}" />
 
       <!-- To -->
-      <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10" MaxHeight="63">
-        <Label DockPanel.Dock="Left" Content="_To:" Target="toTb" />
+      <DockPanel Classes="field-to" DockPanel.Dock="Top" Margin="0,0,0,10">
+        <Label Content="_To:" Target="toTb" />
 
         <TextBox x:Name="toTb" MaxLength="250" Text="{Binding To}" Classes="monoSpaced"
                  IsReadOnly="{Binding IsFixedAddress}"
@@ -153,12 +191,12 @@
         </TextBox>
       </DockPanel>
       <DockPanel DockPanel.Dock="Top" IsVisible="{Binding DisplaySilentPaymentInfo}">
-        <Label DockPanel.Dock="Left" Content="" Target="sp_info" />
+        <Label Content="" Target="sp_info" />
       <TextBlock x:Name="sp_info" Opacity="0.6" Text="ⓘ Silent Payments are privately reusable static addresses"/>
       </DockPanel>
       <!-- Amount -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,15">
-        <Label DockPanel.Dock="Left" Content="_Amount:" Target="amountTb" />
+        <Label Content="_Amount:" Target="amountTb" />
         <DockPanel>
           <Image Width="120" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                  DockPanel.Dock="Right" IsVisible="{Binding IsPayJoin}" Margin="0 8 8 0" VerticalAlignment="Top" />
@@ -198,13 +236,13 @@
         </DockPanel>
       </DockPanel>
       <!-- Fee subtraction indicator for primary recipient -->
-      <TextBlock DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+      <TextBlock Classes="indent-mobile" DockPanel.Dock="Top" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
                  Text="The transaction fee will be subtracted from this payment"
                  ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
                  IsVisible="{Binding IsPrimarySubtractFee}" />
       <!-- Recipient -->
       <DockPanel DockPanel.Dock="Top" Margin="0,0,0,10">
-        <Label DockPanel.Dock="Left" Content="_Recipient:" Target="LabelTagBox"
+        <Label Content="_Recipient:" Target="LabelTagBox"
                Margin="0,10,0,10"/>
         <TagsBox x:Name="LabelTagBox"
                  DefaultLabel="{Binding DefaultLabel}"
@@ -263,7 +301,7 @@
                     </TextBox.InnerRightContent>
                   </TextBox>
                 </DockPanel>
-                <TextBlock Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                <TextBlock Classes="indent-mobile" Text="{Binding Value.AddressError}" IsVisible="{Binding Value.AddressError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
                 <!-- Amount -->
                 <DockPanel Margin="0,0,0,15">
@@ -279,10 +317,10 @@
                                           ValidatePasteBalance="False" />
                   </DockPanel>
                 </DockPanel>
-                <TextBlock Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
+                <TextBlock Classes="indent-mobile" Text="{Binding Value.AmountError}" IsVisible="{Binding Value.AmountError, Converter={x:Static StringConverters.IsNotNullOrEmpty}}"
                            Foreground="{DynamicResource SystemErrorTextColor}" Margin="80,0,0,4" />
                 <!-- Fee subtraction indicator -->
-                <TextBlock Opacity="0.6" FontSize="12" Margin="80,0,0,4"
+                <TextBlock Classes="indent-mobile" Opacity="0.6" FontSize="12" Margin="80,0,0,4"
                            Text="The transaction fee will be subtracted from this payment"
                            ToolTip.Tip="Since the total of all payments equals your available balance, the fee will be deducted from this payment."
                            IsVisible="{Binding Value.IsSubtractFee}" />
@@ -308,7 +346,7 @@
       </ItemsControl>
 
       <!-- Add Recipient Button -->
-      <Button DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
+      <Button Classes="indent-mobile" DockPanel.Dock="Top" Command="{Binding AddRecipientCommand}"
               Content="+ Add another payment" Margin="80,0,0,10" HorizontalAlignment="Left"
               IsVisible="{Binding IsNotInDonationWorkflow}" Cursor="Hand"
               ToolTip.ShowOnDisabled="True">

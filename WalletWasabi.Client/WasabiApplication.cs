@@ -52,6 +52,27 @@ public class WasabiApplication
 
 	}
 
+	public void RunAsyncMobile(Action afterStarting)
+	{
+		var exitCode = ProcessAppArguments();
+		if (exitCode is not null)
+		{
+			return;
+		}
+
+		try
+		{
+			BeforeStarting();
+
+			afterStarting();
+		}
+		catch (Exception e)
+		{
+			Logger.LogInfo("Exception occurred while the application was starting or running", e);
+			throw;
+		}
+	}
+
 	public ExitCode Run(Action afterStarting)
 	{
 		var exitCode = ProcessAppArguments();

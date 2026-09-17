@@ -130,9 +130,22 @@ public class LoggerCore
 			{
 				lock (Console.Out)
 				{
-					Console.ForegroundColor = GetConsoleColor(level);
+					try
+					{
+						Console.ForegroundColor = GetConsoleColor(level);
+					}
+					catch (PlatformNotSupportedException)
+					{
+						// Mobile hosts can provide console output without console colors.
+					}
 					Console.Write(finalMessage);
-					Console.ResetColor();
+					try
+					{
+						Console.ResetColor();
+					}
+					catch (PlatformNotSupportedException)
+					{
+					}
 				}
 			}
 

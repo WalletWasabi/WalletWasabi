@@ -35,11 +35,14 @@ public partial class NavBarViewModel : ViewModelBase, IWalletSelector
 			.Subscribe();
 
 		Wallets = wallets;
+		SelectWalletCommand = ReactiveUI.ReactiveCommand.Create<WalletPageViewModel>(wallet => SelectedWallet = wallet);
 	}
 
 	public ObservableCollection<NavBarItemViewModel> BottomItems { get; }
 
 	public ReadOnlyObservableCollection<WalletPageViewModel> Wallets { get; }
+
+	public System.Windows.Input.ICommand SelectWalletCommand { get; }
 
 	// AutoInterfaces (such as IWalletModel) cannot be seen by AutoNotifyGenerator.
 	public IWalletModel? SelectedWalletModel

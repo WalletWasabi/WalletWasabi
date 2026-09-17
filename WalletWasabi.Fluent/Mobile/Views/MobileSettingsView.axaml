@@ -1,0 +1,19 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSettingsView" x:DataType="vm:SettingsPageViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Settings" ShowBack="True" BackCommand="{Binding NextCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Done" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,8,16,16" Spacing="16">
+      <v:MobilePreferencesPanel Name="Preferences" IsDark="{Binding UiContext.ApplicationSettings.DarkModeEnabled, Mode=TwoWay}"
+                                PrivacyMode="{Binding UiContext.MainViewModel.PrivacyMode.PrivacyMode, Mode=TwoWay}"
+                                AutoCopy="{Binding UiContext.ApplicationSettings.AutoCopy, Mode=TwoWay}"
+                                AutoPaste="{Binding UiContext.ApplicationSettings.AutoPaste, Mode=TwoWay}"
+                                IsReadOnly="{Binding IsReadOnly, FallbackValue=True}"/>
+      <Border Classes="mobile-note" IsVisible="{Binding IsReadOnly, FallbackValue=False}"><TextBlock Text="Some settings were overridden at startup and cannot be changed here." Classes="mobile-caption"/></Border>
+      <TextBlock Text="Advanced configuration" Classes="mobile-label"/>
+      <Expander Header="General settings" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}"><v:MobileGeneralSettingsPanel DataContext="{Binding GeneralSettingsTab}"/></Expander>
+      <Expander Header="Bitcoin node and network" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=1}"><v:MobileBitcoinSettingsPanel DataContext="{Binding BitcoinTabSettings}"/></Expander>
+      <Expander Header="CoinJoin coordinator" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=2}"><v:MobileCoordinatorSettingsPanel DataContext="{Binding CoordinatorTabSettings}"/></Expander>
+      <Expander Header="Connections and Tor" HorizontalAlignment="Stretch" IsEnabled="{Binding !IsReadOnly}" IsExpanded="{Binding SelectedTab, Mode=OneWay, Converter={StaticResource MobileSectionEquals}, ConverterParameter=3}"><v:MobileConnectionsSettingsPanel DataContext="{Binding ConnectionsSettingsTab}"/></Expander>
+      <Border Classes="mobile-note" IsVisible="{Binding IsModified, FallbackValue=False}"><StackPanel Spacing="12"><TextBlock Text="Some changes require restarting Wasabi. Allow active CoinJoin work to finish before restarting." Classes="mobile-caption"/><Button Classes="mobile-button" Content="Restart Wasabi" Command="{Binding RestartCommand}" HorizontalAlignment="Stretch"/></StackPanel></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

@@ -1,0 +1,34 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Settings" xmlns:wallets="using:WalletWasabi.Fluent.Models.Wallets" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileCoinJoinSettingsPanel" x:DataType="vm:WalletCoinJoinSettingsViewModel" x:CompileBindings="True">
+  <StackPanel Spacing="16">
+    <TextBlock Text="Choose your privacy strategy" Classes="mobile-title" TextWrapping="Wrap"/>
+    <TextBlock Text="Balance privacy and mining fees. Changing a profile updates this wallet's CoinJoin settings." Classes="mobile-caption"/>
+    <StackPanel Spacing="8">
+      <Button Classes="mobile-button" Classes.selected="{Binding MaximizePrivacyProfileSelected}" Command="{Binding SelectMaximizePrivacySettings}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"><StackPanel Spacing="6"><TextBlock Text="Enhance privacy" FontWeight="SemiBold"/><TextBlock Text="A higher anonymity target; additional rounds can cost more." Classes="mobile-caption"/></StackPanel></Button>
+      <Button Classes="mobile-button" Classes.selected="{Binding DefaultProfileSelected}" Command="{Binding SelectDefaultSettings}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"><StackPanel Spacing="6"><TextBlock Text="Balanced" FontWeight="SemiBold"/><TextBlock Text="The wallet's default privacy and cost strategy." Classes="mobile-caption"/></StackPanel></Button>
+      <Button Classes="mobile-button" Classes.selected="{Binding EconomicalProfileSelected}" Command="{Binding SelectEconomicalSettings}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch"><StackPanel Spacing="6"><TextBlock Text="Reduce costs" FontWeight="SemiBold"/><TextBlock Text="Lower fees, with non-private coin consolidation allowed." Classes="mobile-caption"/></StackPanel></Button>
+    </StackPanel>
+    <Border Classes="mobile-card"><StackPanel Spacing="12">
+      <TextBlock Text="Coin selection" Classes="mobile-label"/>
+      <ToggleSwitch Classes="mobile-switch" Content="Isolate non-private coins" IsChecked="{Binding NonPrivateCoinIsolation, Mode=TwoWay}" Command="{Binding SetNonPrivateCoinIsolationCommand}"/>
+      <TextBlock Text="Register at most one non-private coin in a round to reduce links between unrelated sources." Classes="mobile-caption"/>
+      <TextBlock Text="Anonymity score target" Classes="mobile-label"/>
+      <TextBox Classes="mobile-input" Text="{Binding AnonScoreTarget, Mode=TwoWay}" MaxLength="3" Watermark="Wallet anonymity target" AutomationProperties.Name="Anonymity score target"/>
+      <TextBlock Text="A wallet heuristic, not a probability or a guarantee of anonymity." Classes="mobile-caption"/>
+    </StackPanel></Border>
+    <Border Classes="mobile-card"><StackPanel Spacing="12">
+      <TextBlock Text="Automation" Classes="mobile-label"/>
+      <ToggleSwitch Classes="mobile-switch" Content="Automatically start CoinJoin" IsChecked="{Binding AutoCoinJoin, Mode=TwoWay}" Command="{Binding SetAutoCoinJoin}"/>
+      <TextBlock Text="CoinJoin stops below this balance" Classes="mobile-label"/>
+      <c:CurrencyEntryBox Text="{Binding PlebStopThreshold, Mode=TwoWay}" CurrencyCode="BTC" MinHeight="48"/>
+      <TextBlock Text="The wallet's balance threshold and coordinator rules still apply. Mobile background execution is not guaranteed." Classes="mobile-caption"/>
+    </StackPanel></Border>
+    <Border Classes="mobile-card"><StackPanel Spacing="12">
+      <TextBlock Text="Receive CoinJoin outputs in" Classes="mobile-label"/>
+      <ComboBox ItemsSource="{Binding Wallets}" SelectedItem="{Binding SelectedOutputWallet, Mode=TwoWay}" IsEnabled="{Binding IsOutputWalletSelectionEnabled}" HorizontalAlignment="Stretch" MinHeight="48" AutomationProperties.Name="CoinJoin output wallet">
+        <ComboBox.ItemTemplate><DataTemplate x:DataType="wallets:IWalletModel"><TextBlock Text="{Binding Name}" TextTrimming="CharacterEllipsis"/></DataTemplate></ComboBox.ItemTemplate>
+      </ComboBox>
+      <TextBlock Text="Only eligible loaded wallets appear. This selection is session-only and resets after restarting Wasabi. It cannot change during an active CoinJoin." Classes="mobile-caption"/>
+    </StackPanel></Border>
+    <Border Classes="mobile-note"><Grid ColumnDefinitions="28,*"><m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/><TextBlock Grid.Column="1" Text="Profile, isolation, and automation changes are saved through the existing wallet settings model. Review their fee and privacy implications before enabling automatic CoinJoin." Classes="mobile-caption"/></Grid></Border>
+  </StackPanel>
+</UserControl>

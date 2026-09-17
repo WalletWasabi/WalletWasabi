@@ -14,9 +14,7 @@
                EnableNext="True"
                NextContent="Continue"
                EnableSkip="{Binding IsSkipEnabled}"
-               IsBusy="{Binding IsBusy}"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto"
-               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+               IsBusy="{Binding IsBusy}">
     <DockPanel>
 
       <ItemsControl ItemsSource="{Binding AvailableWords}"

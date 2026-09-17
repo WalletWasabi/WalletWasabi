@@ -40,7 +40,7 @@ public partial class WalletPageViewModel : ViewModelBase, IDisposable
 
 		// Show Loading page when wallet is logged in
 		this.WhenAnyValue(x => x.IsLoggedIn)
-			.Where(x => x)
+			.Where(x => x && !WalletModel.IsLoaded)
 			.Do(_ => ShowWalletLoading())
 			.Subscribe()
 			.DisposeWith(_disposables);

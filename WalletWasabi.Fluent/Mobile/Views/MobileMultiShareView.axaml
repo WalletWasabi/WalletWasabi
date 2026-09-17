@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileMultiShareView" x:DataType="vm:MultiShareViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Write down this share" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Continue" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" IsEnabled="{Binding #BackupWords.IsAcknowledged}"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding CurrentShare, StringFormat='Share {0}'}" Classes="mobile-title"/>
+          <TextBlock Grid.Column="1" Text="{Binding TotalShares, StringFormat='of {0} shares'}" Classes="mobile-caption" VerticalAlignment="Center"/>
+        </Grid>
+        <TextBlock Text="Write every word in this share in order, then continue. Store different shares in separate safe locations." Classes="mobile-caption"/>
+        <m:MobileSecretPanel Name="BackupWords" Header="Share words">
+          <ItemsControl ItemsSource="{Binding MnemonicWords}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate><DataTemplate x:DataType="words:RecoveryWordViewModel">
+              <m:MobileRecoveryWordTile Index="{Binding Index}" Word="{Binding Word}" IsConfirmed="{Binding IsConfirmed}" Margin="{DynamicResource MobileBackupWordMargin}"/>
+            </DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+        </m:MobileSecretPanel>
+        <Border Classes="mobile-note"><TextBlock Text="Keep this share private. You will verify your shares after recording all of them. Do not photograph or upload them." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

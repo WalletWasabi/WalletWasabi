@@ -32,8 +32,15 @@ public partial class PasswordAuthDialogViewModel : AuthorizationDialogBase
 
 	protected override async Task<bool> AuthorizeAsync()
 	{
-		var success = await _wallet.Auth.TryPasswordAsync(Password);
-		Password = "";
-		return success;
+		try
+		{
+			return await _wallet.Auth.TryPasswordAsync(Password);
+		}
+		finally
+		{
+			// Clear editable sensitive state on both success and verifier exceptions.
+			// This does not claim secure zeroization of immutable managed strings.
+			Password = "";
+		}
 	}
 }

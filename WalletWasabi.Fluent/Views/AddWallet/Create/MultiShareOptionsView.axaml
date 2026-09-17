@@ -95,8 +95,7 @@
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
-               EnableNext="True" NextContent="Continue" FocusNext="True"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+               EnableNext="True" NextContent="Continue" FocusNext="True">
     <StackPanel HorizontalAlignment="Center"
                 VerticalAlignment="Center">
       <!-- Number of shares in which the seed will be split. -->

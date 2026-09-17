@@ -11,8 +11,7 @@
                CancelContent="Cancel"
                EnableCancel="{Binding EnableCancel}"
                EnableBack="{Binding EnableBack}"
-               EnableNext="True" NextContent="Continue" FocusNext="True"
-               ScrollViewer.HorizontalScrollBarVisibility="Auto">
+               EnableNext="True" NextContent="Continue" FocusNext="True">
     <ContentArea.Caption>
       <MultiBinding StringFormat="Share #{0} of {1}. Write down the multi-share words in the correct order and store them in a safe place. They are needed to recover your wallet.">
         <Binding Path="CurrentShare" />

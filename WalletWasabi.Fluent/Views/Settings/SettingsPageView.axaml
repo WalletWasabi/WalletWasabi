@@ -5,10 +5,22 @@
              xmlns:v="using:WalletWasabi.Fluent.Views.Settings"
              xmlns:settings="using:WalletWasabi.Fluent.ViewModels.Settings"
              xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
              x:DataType="settings:SettingsPageViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Settings.SettingsPageView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="ContentArea.mobile /template/ DockPanel#PART_ButtonArea">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
 
   <ContentArea Title="{Binding Title}"
                  Caption="Manage appearance, privacy and other settings"

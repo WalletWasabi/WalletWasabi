@@ -1,3 +1,5 @@
+using System;
+using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Markup.Xaml;
 
@@ -8,6 +10,24 @@ public class ConfirmRecoveryWordsView : UserControl
 	public ConfirmRecoveryWordsView()
 	{
 		InitializeComponent();
+
+		this.GetObservable(BoundsProperty)
+			.Subscribe(bounds =>
+			{
+				bool isMobile = bounds.Width > 0 && bounds.Width <= 600;
+				WalletWasabi.Logging.Logger.LogInfo($"[ConfirmRecoveryWordsView] Bounds changed: {bounds.Width}x{bounds.Height}, isMobile: {isMobile}");
+				if (isMobile)
+				{
+					if (!Classes.Contains("mobile"))
+					{
+						Classes.Add("mobile");
+					}
+				}
+				else
+				{
+					Classes.Remove("mobile");
+				}
+			});
 	}
 
 	private void InitializeComponent()

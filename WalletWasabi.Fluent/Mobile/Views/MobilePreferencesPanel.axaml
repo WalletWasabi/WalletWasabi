@@ -1,0 +1,17 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobilePreferencesPanel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobilePreferenceControls.axaml"/></UserControl.Styles>
+  <StackPanel Name="PreferencesRoot" x:DataType="v:MobilePreferencesPanel" Spacing="16" IsEnabled="{Binding !IsReadOnly}">
+    <TextBlock Text="Appearance" Classes="mobile-label"/>
+    <m:MobileAppearanceSelector Name="Appearance" IsDark="{Binding IsDark, Mode=TwoWay}"/>
+    <TextBlock Text="Privacy" Classes="mobile-label" Margin="0,8,0,0"/>
+    <Border Classes="mobile-card" Padding="4"><StackPanel>
+      <m:MobilePreferenceToggle Name="DiscreetMode" Label="Hide balances" Description="Conceal amounts and private wallet details." IsChecked="{Binding PrivacyMode, Mode=TwoWay}"/>
+      <Border Height="1" Background="{DynamicResource MobileDivider}" Margin="12,0"/>
+      <m:MobilePreferenceToggle Name="AutoCopyToggle" Label="Copy new addresses" Description="Copy a newly generated receiving address automatically." IsChecked="{Binding AutoCopy, Mode=TwoWay}"/>
+      <Border Height="1" Background="{DynamicResource MobileDivider}" Margin="12,0"/>
+      <m:MobilePreferenceToggle Name="AutoPasteToggle" Label="Paste payment addresses" Description="Allow the wallet to populate payment addresses from your clipboard." IsChecked="{Binding AutoPaste, Mode=TwoWay}"/>
+    </StackPanel></Border>
+  </StackPanel>
+</UserControl>

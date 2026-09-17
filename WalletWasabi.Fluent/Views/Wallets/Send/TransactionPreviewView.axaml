@@ -9,7 +9,7 @@
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.TransactionPreviewView">
   <ContentArea Caption=""
-                 MinWidth="550"
+                 MaxWidth="550" HorizontalAlignment="Stretch"
                  EnableCancel="{Binding EnableCancel}"
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="{Binding NextButtonText}"

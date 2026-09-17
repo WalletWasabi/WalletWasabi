@@ -13,6 +13,16 @@
 	</PropertyGroup>
 
 	<PropertyGroup>
+		<UseCdp Condition="'$(UseCdp)' == ''">false</UseCdp>
+		<UseCdp Condition="Exists('..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')">true</UseCdp>
+		<UseCdp Condition="Exists('..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')">true</UseCdp>
+	</PropertyGroup>
+
+	<PropertyGroup Condition="'$(UseCdp)' == 'true'">
+		<DefineConstants>$(DefineConstants);USE_CDP</DefineConstants>
+	</PropertyGroup>
+
+	<PropertyGroup>
 		<PackageId>WalletWasabi.Fluent</PackageId>
 	</PropertyGroup>
 
@@ -25,6 +35,7 @@
 		<PackageReference Include="ReactiveUI.Avalonia" />
 		<PackageReference Include="Avalonia.Diagnostics" Condition="'$(Configuration)' == 'Debug'" />
 		<PackageReference Include="Xaml.Behaviors.Avalonia" />
+		<PackageReference Include="Xaml.Behaviors.Interactions.Responsive" />
 		<PackageReference Include="Avalonia.Skia" />
 		<PackageReference Include="SkiaSharp" />
 		<PackageReference Include="SkiaSharp.NativeAssets.Linux" />
@@ -36,11 +47,17 @@
 		<PackageReference Include="NScheme" />
 	</ItemGroup>
 
+	<ItemGroup Condition="'$(UseCdp)' == 'true'">
+		<ProjectReference Condition="Exists('..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')" Include="..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj" />
+		<ProjectReference Condition="Exists('..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')" Include="..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj" />
+	</ItemGroup>
+
 	<ItemGroup>
 		<ProjectReference Include="..\WalletWasabi.Client\WalletWasabi.Client.csproj" />
 
 		<!-- See explanation of the additional properties here: https://github.com/dotnet/roslyn/issues/60744#issuecomment-1438273464 -->
-		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true" />
+		<ProjectReference Include="..\WalletWasabi.Fluent.Generators\WalletWasabi.Fluent.Generators.csproj" OutputItemType="Analyzer" ReferenceOutputAssembly="false" AdditionalProperties="IsRidAgnostic=true;PublishAot=false" />
+		<ProjectReference Include="..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj" Condition="'$(UseCdp)' != 'false' and Exists('..\..\CDP\src\Avalonia.Diagnostics.Cdp.v11\Avalonia.Diagnostics.Cdp.v11.csproj')" />
 	</ItemGroup>
 
 	<ItemGroup>

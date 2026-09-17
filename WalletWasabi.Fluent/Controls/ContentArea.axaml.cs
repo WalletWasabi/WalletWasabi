@@ -2,6 +2,8 @@ using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.Presenters;
 using Avalonia.Media;
+using Avalonia.VisualTree;
+using System;
 
 namespace WalletWasabi.Fluent.Controls;
 
@@ -51,6 +53,57 @@ public class ContentArea : ContentControl
 
 	public static readonly StyledProperty<IBrush> HeaderBackgroundProperty =
 		AvaloniaProperty.Register<ContentArea, IBrush>(nameof(HeaderBackground));
+
+	public ContentArea()
+	{
+		this.GetObservable(EnableBackProperty).Subscribe(enableBack =>
+		{
+			if (enableBack)
+			{
+				if (!Classes.Contains("hasBack"))
+				{
+					Classes.Add("hasBack");
+				}
+			}
+			else
+			{
+				Classes.Remove("hasBack");
+			}
+		});
+
+		this.GetObservable(BoundsProperty).Subscribe(bounds =>
+		{
+			bool isMobile = bounds.Width > 0 && bounds.Width <= 600;
+
+			if (isMobile)
+			{
+				if (!Classes.Contains("mobile"))
+				{
+					Classes.Add("mobile");
+				}
+			}
+			else
+			{
+				Classes.Remove("mobile");
+			}
+
+			var parent = this.FindAncestorOfType<UserControl>();
+			if (parent != null)
+			{
+				if (isMobile)
+				{
+					if (!parent.Classes.Contains("mobile"))
+					{
+						parent.Classes.Add("mobile");
+					}
+				}
+				else
+				{
+					parent.Classes.Remove("mobile");
+				}
+			}
+		});
+	}
 
 	private ContentPresenter? _titlePresenter;
 	private ContentPresenter? _captionPresenter;

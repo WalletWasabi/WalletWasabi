@@ -1,0 +1,25 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendFeeSelector" x:CompileBindings="True">
+  <StackPanel Name="FeeRoot" Spacing="10" x:DataType="vm:MobileSendFeeSelection">
+    <TextBlock Text="Network fee" Classes="mobile-label"/>
+    <ItemsControl ItemsSource="{Binding Options}">
+      <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="{DynamicResource MobileFeeColumns}" Rows="{DynamicResource MobileFeeRows}"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+      <ItemsControl.ItemTemplate><DataTemplate x:DataType="vm:MobileFeeTargetOption">
+        <Button Classes="mobile-button" Classes.selected="{Binding IsSelected}" Command="{Binding SelectCommand}" HorizontalAlignment="Stretch" HorizontalContentAlignment="Stretch" Padding="8,12" Margin="2,3">
+          <Panel>
+            <Grid ColumnDefinitions="24,*,Auto" IsVisible="{DynamicResource MobileLightLayout}">
+              <m:MobileGlyph Kind="check" Width="16" Height="16" IsVisible="{Binding IsSelected}" Foreground="{DynamicResource MobileAccent}"/>
+              <StackPanel Grid.Column="1" Spacing="4"><TextBlock Text="{Binding Title}" FontSize="13" FontWeight="SemiBold"/><TextBlock Text="{Binding Estimate}" Classes="mobile-caption"/></StackPanel>
+              <TextBlock Grid.Column="2" Text="{Binding Rate}" FontSize="12" VerticalAlignment="Center"/>
+            </Grid>
+            <StackPanel Spacing="10" IsVisible="{DynamicResource MobileDarkLayout}">
+              <TextBlock Text="{Binding Title}" FontSize="12" FontWeight="SemiBold" HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Estimate}" Classes="mobile-caption" HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding Rate}" FontSize="12" Foreground="{DynamicResource MobileAccent}" HorizontalAlignment="Center" TextWrapping="Wrap"/>
+            </StackPanel>
+          </Panel>
+        </Button>
+      </DataTemplate></ItemsControl.ItemTemplate>
+    </ItemsControl>
+    <TextBlock Text="{Binding Status}" Classes="mobile-caption"/>
+  </StackPanel>
+</UserControl>

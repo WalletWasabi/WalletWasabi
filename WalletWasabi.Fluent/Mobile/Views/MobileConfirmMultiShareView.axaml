@@ -1,0 +1,45 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileConfirmMultiShareView" x:DataType="vm:ConfirmMultiShareViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Verify your share" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Continue" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding CurrentShare, StringFormat='Share {0}'}" Classes="mobile-title"/>
+          <TextBlock Grid.Column="1" Text="{Binding TotalShares, StringFormat='of {0} shares'}" Classes="mobile-caption" VerticalAlignment="Center"/>
+        </Grid>
+        <Grid ColumnDefinitions="*,Auto">
+          <TextBlock Text="{Binding CurrentSharePage, StringFormat='Page {0}'}" Classes="mobile-caption"/>
+          <TextBlock Grid.Column="1" Text="{Binding TotalCurrenSharePages, StringFormat='of {0} pages'}" Classes="mobile-caption"/>
+        </Grid>
+        <Border Classes="mobile-note">
+          <StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
+            <TextBlock Text="{Binding CurrentWord.Index, StringFormat='Choose word #{0}'}" Classes="mobile-label" IsVisible="{Binding !AllWordsConfirmed}"/>
+            <TextBlock Text="Choose from your written backup. Tap an incorrect selection again to change it." Classes="mobile-caption" IsVisible="{Binding !AllWordsConfirmed}"/>
+            <TextBlock Name="PositiveValidation" Text="Backup words verified" Classes="mobile-label" IsVisible="{Binding AllWordsConfirmed, FallbackValue=False}"/>
+          </StackPanel>
+        </Border>
+        <ItemsControl Name="VerificationSlots" ItemsSource="{Binding ConfirmationWords}">
+            <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+            <ItemsControl.ItemTemplate><DataTemplate x:DataType="words:RecoveryWordViewModel">
+              <m:MobileRecoveryWordTile Index="{Binding Index}" Word="{Binding SelectedWord}" IsConfirmed="{Binding IsConfirmed}" Margin="{DynamicResource MobileBackupWordMargin}"/>
+            </DataTemplate></ItemsControl.ItemTemplate>
+          </ItemsControl>
+        <TextBlock Text="Choose a word" Classes="mobile-label" IsVisible="{Binding !AllWordsConfirmed}"/>
+        <ItemsControl Name="CandidateWords" ItemsSource="{Binding AvailableWords}" ItemContainerTheme="{StaticResource MobileBackupCandidateContainer}" IsVisible="{Binding !AllWordsConfirmed}">
+          <ItemsControl.ItemsPanel><ItemsPanelTemplate><UniformGrid Columns="2"/></ItemsPanelTemplate></ItemsControl.ItemsPanel>
+          <ItemsControl.ItemTemplate><DataTemplate x:DataType="words:RecoveryWordViewModel">
+            <ToggleButton Classes="mobile-backup-toggle" Content="{Binding Word}" IsChecked="{Binding IsSelected, Mode=TwoWay}"
+                          IsEnabled="{Binding IsEnabled}"
+                          HorizontalAlignment="Stretch"/>
+          </DataTemplate></ItemsControl.ItemTemplate>
+        </ItemsControl>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

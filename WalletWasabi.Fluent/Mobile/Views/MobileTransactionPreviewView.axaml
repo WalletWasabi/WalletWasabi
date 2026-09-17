@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send" xmlns:send="using:WalletWasabi.Fluent.Views.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileTransactionPreviewView" x:DataType="vm:TransactionPreviewViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Review transaction" ShowBack="True" BackCommand="{Binding BackCommand}" IsBusy="{Binding IsBusy}">
+    <m:MobilePage.HeaderActions><Button Classes="mobile-button flat" Command="{Binding CancelCommand}" AutomationProperties.Name="Cancel payment"><m:MobileGlyph Kind="close" Width="20" Height="20" Foreground="{DynamicResource MobileText}"/></Button></m:MobilePage.HeaderActions>
+    <m:MobilePage.Footer><StackPanel Spacing="8">
+      <Button Classes="mobile-button primary" Content="{Binding NextButtonText}" Command="{Binding NextCommand}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="MobileConfirmTransaction"/>
+      <Button Classes="mobile-button" Content="Sign and send instead" Command="{Binding SkipCommand}" IsVisible="{Binding PreferPsbtWorkflow, FallbackValue=False}" IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch"/>
+    </StackPanel></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,8,16,16" Spacing="16">
+      <v:MobileReviewSurface Name="ReviewSurface" Amount="{Binding DisplayedTransactionSummary.Amount}" Fee="{Binding DisplayedTransactionSummary.Fee}"
+        FeeRate="{Binding DisplayedTransactionSummary.FeeRate}" ConfirmationTime="{Binding DisplayedTransactionSummary.ConfirmationTime}"
+        Recipient="{Binding DisplayedTransactionSummary.Recipient}" AddressText="{Binding DisplayedTransactionSummary.AddressText}"
+        Recipients="{Binding DisplayedTransactionSummary.Recipients}" IsPayToMany="{Binding DisplayedTransactionSummary.IsPayToMany}"
+        IsPayJoin="{Binding DisplayedTransactionSummary.IsPayJoin}" IsBusy="{Binding IsBusy}"
+        Warnings="{Binding PrivacySuggestions.Warnings}" Suggestions="{Binding PrivacySuggestions.Suggestions}"
+        SelectedSuggestion="{Binding PrivacySuggestions.SelectedSuggestion, Mode=TwoWay}"
+        IsPrivacyAnalyzing="{Binding PrivacySuggestions.IsBusy, FallbackValue=True}" IsMaxPrivacy="{Binding PrivacySuggestions.MaxPrivacy, FallbackValue=False}"
+        IsFeeAdjustable="{Binding IsFeeAdjustable}" CanUndo="{Binding CanUndo}" AdjustFeeCommand="{Binding AdjustFeeCommand}"
+        ChangeCoinsCommand="{Binding ChangeCoinsCommand}" UndoCommand="{Binding UndoCommand}"/>
+      <Expander Header="Advanced transaction details" HorizontalAlignment="Stretch">
+        <ScrollViewer HorizontalScrollBarVisibility="Auto"><send:TransactionSummary DataContext="{Binding DisplayedTransactionSummary}"/></ScrollViewer>
+      </Expander>
+      <TextBlock Text="Check the recipient and every amount. Confirmation continues through Wasabi's existing wallet authorization flow." Classes="mobile-caption"/>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

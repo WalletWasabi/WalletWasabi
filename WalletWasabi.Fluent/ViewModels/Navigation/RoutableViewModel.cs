@@ -9,6 +9,10 @@ namespace WalletWasabi.Fluent.ViewModels.Navigation;
 public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 {
 	private CompositeDisposable? _currentDisposable;
+	private ICommand? _nextCommand;
+	private ICommand? _skipCommand;
+	private ICommand _backCommand;
+	private ICommand _cancelCommand;
 
 	[AutoNotify] private bool _isBusy;
 	[AutoNotify] private bool _enableCancelOnPressed;
@@ -19,8 +23,8 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	protected RoutableViewModel(UiContext uiContext) : base(uiContext)
 	{
-		BackCommand = ReactiveCommand.Create(() => Navigate().Back(), this.WhenAnyValue(model => model.IsBusy, b => !b));
-		CancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
+		_backCommand = ReactiveCommand.Create(() => Navigate().Back(), this.WhenAnyValue(model => model.IsBusy, b => !b));
+		_cancelCommand = ReactiveCommand.Create(() => Navigate().Clear());
 	}
 
 	public abstract string Title { get; protected set; }
@@ -29,13 +33,31 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 
 	public virtual NavigationTarget DefaultTarget => NavigationTarget.HomeScreen;
 
-	public ICommand? NextCommand { get; protected set; }
+	// Some routes recreate commands in OnNavigatedTo. Both compiled bindings and
+	// command-activity observers must see replacements. Ownership remains with the route.
+	public ICommand? NextCommand
+	{
+		get => _nextCommand;
+		protected set => this.RaiseAndSetIfChanged(ref _nextCommand, value);
+	}
 
-	public ICommand? SkipCommand { get; protected set; }
+	public ICommand? SkipCommand
+	{
+		get => _skipCommand;
+		protected set => this.RaiseAndSetIfChanged(ref _skipCommand, value);
+	}
 
-	public ICommand BackCommand { get; protected set; }
+	public ICommand BackCommand
+	{
+		get => _backCommand;
+		protected set => this.RaiseAndSetIfChanged(ref _backCommand, value);
+	}
 
-	public ICommand CancelCommand { get; protected set; }
+	public ICommand CancelCommand
+	{
+		get => _cancelCommand;
+		protected set => this.RaiseAndSetIfChanged(ref _cancelCommand, value);
+	}
 
 	private void DoNavigateTo(bool isInHistory)
 	{

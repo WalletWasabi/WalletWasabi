@@ -136,6 +136,9 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public void SelectTransaction(uint256 txid)
 	{
+		// Preserve the intent even before a native row or desktop grid is available.
+		SelectionRequests.Request(txid);
+
 		var transactionsSnapshot = Transactions.ToArray();
 		var txnItem = transactionsSnapshot.FirstOrDefault(item =>
 		{

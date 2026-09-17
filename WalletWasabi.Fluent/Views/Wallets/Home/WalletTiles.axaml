@@ -3,19 +3,39 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:collections="clr-namespace:System.Collections;assembly=System.Runtime"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              mc:Ignorable="d" d:DesignWidth="800"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Home.WalletTiles"
              x:CompileBindings="True"
              x:DataType="collections:IEnumerable">
 
-  <ScrollViewer HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Disabled">
+
+  <UserControl.Styles>
+    <Style Selector="ItemsControl > ContentPresenter">
+      <Setter Property="Width" Value="310" />
+      <Setter Property="Height" Value="150" />
+    </Style>
+    <Style Selector=".mobile ItemsControl > ContentPresenter">
+      <Setter Property="Width" Value="330" />
+      <Setter Property="Height" Value="145" />
+    </Style>
+    <Style Selector="ScrollViewer">
+      <Setter Property="HorizontalScrollBarVisibility" Value="Auto" />
+      <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+    <Style Selector=".mobile ScrollViewer">
+      <Setter Property="HorizontalScrollBarVisibility" Value="Hidden" />
+      <Setter Property="VerticalScrollBarVisibility" Value="Disabled" />
+    </Style>
+    <Style Selector=".mobile ScrollViewer /template/ ScrollBar#PART_HorizontalScrollBar">
+      <Setter Property="Height" Value="0" />
+      <Setter Property="Opacity" Value="0" />
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
+
+  <ScrollViewer>
     <ItemsControl ItemsSource="{Binding}">
-      <ItemsControl.Styles>
-        <Style Selector="ItemsControl > ContentPresenter">
-          <Setter Property="Width" Value="310" />
-          <Setter Property="Height" Value="150" />
-        </Style>
-      </ItemsControl.Styles>
       <ItemsControl.ItemsPanel>
         <ItemsPanelTemplate>
           <StackPanel Orientation="Horizontal" />

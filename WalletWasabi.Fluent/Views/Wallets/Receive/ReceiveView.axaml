@@ -4,9 +4,25 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:receive="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              x:DataType="receive:ReceiveViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Receive.ReceiveView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="UserControl.mobile InfoMessage">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector="UserControl.mobile TextBlock">
+      <Setter Property="FontSize" Value="13" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Continue"
                  EnableCancel="{Binding EnableCancel}"

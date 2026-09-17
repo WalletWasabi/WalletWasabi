@@ -1,0 +1,21 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Receive"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileAddressLabelEditView"
+             x:DataType="vm:AddressLabelEditViewModel" x:CompileBindings="True">
+  <UserControl.Styles><StyleInclude Source="avares://WalletWasabi.Fluent/Mobile/Styles/MobileFlowControls.axaml"/></UserControl.Styles>
+  <m:MobilePage Header="Edit address labels" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Save labels" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+      <TextBlock Text="Remember who is paying you" Classes="mobile-title" TextWrapping="Wrap"/>
+      <TextBlock Text="Labels help with coin selection. They stay in your wallet and are not published with the transaction." Classes="mobile-caption"/>
+      <c:TagsBox Items="{Binding SuggestionLabels.Labels}" TopItems="{Binding SuggestionLabels.TopSuggestions}"
+                 Suggestions="{Binding SuggestionLabels.Suggestions}" RestrictInputToSuggestions="False"
+                 IsCurrentTextValid="{Binding IsCurrentTextValid, Mode=OneWayToSource}"
+                 ForceAdd="{Binding SuggestionLabels.ForceAdd, Mode=TwoWay}"
+                 Watermark="Add a sender label" TagSeparator="," MaxTextLength="{StaticResource MaxLabelLength}"/>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

@@ -1,0 +1,2 @@
+# CI visual-difference tooling. Native screenshots are rendered by Avalonia, not Pillow.
+Pillow==12.3.0

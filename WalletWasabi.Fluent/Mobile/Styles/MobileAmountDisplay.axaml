@@ -1,0 +1,21 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:c="using:WalletWasabi.Fluent.Controls" xmlns:wallet="using:WalletWasabi.Fluent.Models.Wallets">
+  <Styles.Resources>
+    <!-- Typed content avoids transient route data in untyped amount Run bindings. -->
+    <DataTemplate x:Key="MobileAmountContent" x:DataType="wallet:Amount" x:CompileBindings="True">
+      <StackPanel Spacing="5">
+        <TextBlock Text="{Binding FormattedBtc, StringFormat='{}{0} BTC'}" Foreground="{DynamicResource MobileText}"
+                   FontWeight="SemiBold" TextWrapping="Wrap"/>
+        <TextBlock Text="{Binding Usd^, StringFormat='≈ ${0:N2} USD'}" IsVisible="{Binding HasUsdBalance^}"
+                   Classes="mobile-caption" TextWrapping="Wrap"/>
+      </StackPanel>
+    </DataTemplate>
+    <ControlTheme x:Key="MobileAmountDisplayTheme" TargetType="c:AmountControl">
+      <Setter Property="FontSize" Value="14"/>
+      <Setter Property="Template"><ControlTemplate>
+        <ContentPresenter Content="{TemplateBinding Amount}" ContentTemplate="{StaticResource MobileAmountContent}"
+                          TextElement.FontSize="{TemplateBinding FontSize}" HorizontalContentAlignment="Stretch"/>
+      </ControlTemplate></Setter>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>

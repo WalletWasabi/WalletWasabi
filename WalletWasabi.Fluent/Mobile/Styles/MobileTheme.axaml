@@ -1,0 +1,93 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <!-- Native DIP values; color roles match the approved HTML Reference Edition. -->
+  <Styles.Resources>
+    <ResourceDictionary>
+      <ResourceDictionary.ThemeDictionaries>
+        <ResourceDictionary x:Key="Light">
+          <SolidColorBrush x:Key="MobileBackground">#FAFBFC</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSurface">#FFFFFF</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileRaised">#F0F3F3</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSubtle">#F2F6F5</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileAccentSurface">#E8F4EE</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileText">#111B21</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSecondary">#69767A</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileAccent">#208348</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileOnAccent">#FFFFFF</SolidColorBrush>
+          <SolidColorBrush x:Key="MobilePositive">#208348</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileNegative">#B83B3B</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileWarning">#886315</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileBorder">#E5E9EB</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileDivider">#EDF0F2</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileRingTrack">#E4F2EA</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileBalanceText">#FFFFFF</SolidColorBrush>
+          <LinearGradientBrush x:Key="MobileBalanceFill" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#639C72" Offset="0"/><GradientStop Color="#388751" Offset="0.6"/><GradientStop Color="#72B48B" Offset="1"/>
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MobilePrimaryFill" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#278B4B" Offset="0"/><GradientStop Color="#197D41" Offset="1"/>
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MobileCardFill" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#FFFFFF" Offset="0"/><GradientStop Color="#F2F6F5" Offset="1"/>
+          </LinearGradientBrush>
+        </ResourceDictionary>
+        <ResourceDictionary x:Key="Dark">
+          <SolidColorBrush x:Key="MobileBackground">#080E0D</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSurface">#101817</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileRaised">#1A2421</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSubtle">#151E1C</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileAccentSurface">#1D3426</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileText">#F0F5F2</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileSecondary">#AEBBB6</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileAccent">#79DC91</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileOnAccent">#08190E</SolidColorBrush>
+          <SolidColorBrush x:Key="MobilePositive">#96EDA0</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileNegative">#E99A96</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileWarning">#E9C775</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileBorder">#304139</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileDivider">#21312A</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileRingTrack">#203B29</SolidColorBrush>
+          <SolidColorBrush x:Key="MobileBalanceText">#F0F5F2</SolidColorBrush>
+          <LinearGradientBrush x:Key="MobileBalanceFill" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#253B2B" Offset="0"/><GradientStop Color="#101A15" Offset="0.55"/><GradientStop Color="#233A2A" Offset="1"/>
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MobilePrimaryFill" StartPoint="0%,0%" EndPoint="0%,100%">
+            <GradientStop Color="#96EDA0" Offset="0"/><GradientStop Color="#50B66C" Offset="1"/>
+          </LinearGradientBrush>
+          <LinearGradientBrush x:Key="MobileCardFill" StartPoint="0%,0%" EndPoint="100%,100%">
+            <GradientStop Color="#1A2421" Offset="0"/><GradientStop Color="#101817" Offset="1"/>
+          </LinearGradientBrush>
+        </ResourceDictionary>
+      </ResourceDictionary.ThemeDictionaries>
+      <x:Double x:Key="MobileTouchTarget">48</x:Double>
+      <x:Double x:Key="MobileButtonHeight">56</x:Double>
+      <x:Double x:Key="MobileFontCaption">12</x:Double>
+      <x:Double x:Key="MobileFontBody">15</x:Double>
+      <x:Double x:Key="MobileFontTitle">23</x:Double>
+      <x:Double x:Key="MobileFontAmount">32</x:Double>
+      <x:Double x:Key="MobileSpaceSmall">8</x:Double>
+      <x:Double x:Key="MobileSpaceMedium">16</x:Double>
+      <x:Double x:Key="MobileSpaceLarge">24</x:Double>
+      <Thickness x:Key="MobileGutter">16</Thickness>
+      <CornerRadius x:Key="MobileCardRadius">16</CornerRadius>
+      <CornerRadius x:Key="MobileInputRadius">12</CornerRadius>
+      <Thickness x:Key="MobileHairline">1</Thickness>
+    </ResourceDictionary>
+  </Styles.Resources>
+  <!-- All selectors are opt-in; desktop styles and dialogs retain their own themes. -->
+  <Style Selector="TextBlock.mobile-title"><Setter Property="FontSize" Value="{DynamicResource MobileFontTitle}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
+  <Style Selector="TextBlock.mobile-caption"><Setter Property="FontSize" Value="{DynamicResource MobileFontCaption}"/><Setter Property="Foreground" Value="{DynamicResource MobileSecondary}"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+  <Style Selector="TextBlock.mobile-label"><Setter Property="FontSize" Value="{DynamicResource MobileFontBody}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
+  <Style Selector="TextBlock.mobile-amount"><Setter Property="FontSize" Value="{DynamicResource MobileFontAmount}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
+  <Style Selector="TextBlock.mobile-error"><Setter Property="Foreground" Value="{DynamicResource MobileNegative}"/><Setter Property="TextWrapping" Value="Wrap"/></Style>
+  <Style Selector="Border.mobile-card"><Setter Property="Background" Value="{DynamicResource MobileCardFill}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/><Setter Property="BorderThickness" Value="{DynamicResource MobileHairline}"/><Setter Property="CornerRadius" Value="{DynamicResource MobileCardRadius}"/><Setter Property="Padding" Value="{DynamicResource MobileGutter}"/></Style>
+  <Style Selector="Border.mobile-note"><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/><Setter Property="Padding" Value="{DynamicResource MobileGutter}"/></Style>
+  <Style Selector="Button.mobile-button"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/><Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/><Setter Property="Padding" Value="16,10"/><Setter Property="Background" Value="{DynamicResource MobileRaised}"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/><Setter Property="BorderThickness" Value="1"/><Setter Property="HorizontalContentAlignment" Value="Center"/></Style>
+  <Style Selector="Button.mobile-button.primary"><Setter Property="Background" Value="{DynamicResource MobilePrimaryFill}"/><Setter Property="Foreground" Value="{DynamicResource MobileOnAccent}"/><Setter Property="FontWeight" Value="SemiBold"/><Setter Property="MinHeight" Value="{DynamicResource MobileButtonHeight}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
+  <Style Selector="Button.mobile-button.flat"><Setter Property="Background" Value="Transparent"/><Setter Property="BorderThickness" Value="0"/><Setter Property="Padding" Value="8"/></Style>
+  <Style Selector="Button.mobile-button.selected"><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="Foreground" Value="{DynamicResource MobileAccent}"/></Style>
+  <Style Selector="Button.mobile-button:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+  <Style Selector="TextBox.mobile-input"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/><Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/><Setter Property="Background" Value="{DynamicResource MobileSurface}"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/><Setter Property="Padding" Value="12"/><Setter Property="FontSize" Value="{DynamicResource MobileFontBody}"/></Style>
+  <Style Selector="TextBox.mobile-input:focus"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
+  <Style Selector="ToggleSwitch.mobile-switch"><Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/><Setter Property="Foreground" Value="{DynamicResource MobileText}"/></Style>
+  <Style Selector="ListBox.mobile-stretch-list ListBoxItem"><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
+</Styles>

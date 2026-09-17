@@ -1,0 +1,20 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels"
+             xmlns:views="using:WalletWasabi.Fluent.Mobile.Views"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveAddressView" x:CompileBindings="True">
+  <m:MobilePage Name="Root" x:DataType="vm:MobileReceiveRequestViewModel" Header="Receive Bitcoin"
+                ShowBack="True" BackCommand="{Binding Source.BackCommand}">
+    <m:MobilePage.Footer>
+      <Button Classes="mobile-button primary" Content="Done" Command="{Binding Source.NextCommand}" HorizontalAlignment="Stretch"/>
+    </m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="16,8,16,16" Spacing="16">
+        <views:MobileReceiveSurface/>
+        <Button Classes="mobile-button" Content="Verify on hardware wallet" Command="{Binding Source.ShowOnHwWalletCommand}"
+                IsVisible="{Binding Source.IsHardwareWallet}" HorizontalAlignment="Stretch"/>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

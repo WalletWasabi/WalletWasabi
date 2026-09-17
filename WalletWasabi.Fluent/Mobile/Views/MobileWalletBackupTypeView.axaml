@@ -1,0 +1,29 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletBackupTypeView" x:DataType="vm:WalletBackupTypeViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Wallet backup" ShowBack="True" BackCommand="{Binding BackCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Continue" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <TextBlock Text="Choose how to back up your wallet" Classes="mobile-title" TextWrapping="Wrap"/>
+        <TextBlock Text="Choose the backup format you are creating or restoring. Keep your backup separate from this device." Classes="mobile-caption"/>
+        <ListBox Classes="mobile-backup-types mobile-stretch-list" ItemsSource="{Binding WalletBackupTypes}" SelectedItem="{Binding WalletBackupType, Mode=TwoWay}"
+                 Background="Transparent" BorderThickness="0" AutomationProperties.Name="Wallet backup format">
+          <ListBox.ItemTemplate><DataTemplate x:DataType="models:WalletBackupType">
+            <Border Classes="mobile-card mobile-backup-choice" Classes.selected="{Binding $parent[ListBoxItem].IsSelected}">
+              <StackPanel Spacing="{DynamicResource MobileSpaceSmall}">
+                <TextBlock Text="{Binding Options.Description}" Classes="mobile-label" TextWrapping="Wrap"/>
+                <TextBlock Text="{Binding Options.HelpText}" Classes="mobile-caption"/>
+              </StackPanel>
+            </Border>
+          </DataTemplate></ListBox.ItemTemplate>
+        </ListBox>
+        <Border Classes="mobile-note"><TextBlock Text="Your backup restores access to your funds. Wasabi will never ask you to send it to support or enter it to approve a payment." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

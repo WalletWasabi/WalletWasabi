@@ -118,7 +118,7 @@ public class Config
 	public Network Network => GetEffectiveValue<Network>(nameof(Network));
 
 	public string CoordinatorUri => GetEffectiveValue<string>(nameof(CoordinatorUri));
-	public TorMode UseTor => Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorMode>(nameof(UseTor));
+	public TorMode UseTor => !Global.IsTorEnabled || Network == Network.RegTest ? TorMode.Disabled : GetEffectiveValue<TorMode>(nameof(UseTor));
 	public string? TorFolder => GetEffectiveValue<string?>(nameof(TorFolder));
 	public int TorSocksPort => GetEffectiveValue<int>(nameof(TorSocksPort));
 	public int TorControlPort => GetEffectiveValue<int>(nameof(TorControlPort));

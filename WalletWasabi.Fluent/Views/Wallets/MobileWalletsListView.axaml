@@ -1,0 +1,49 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:wallets="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets"
+             mc:Ignorable="d" d:DesignWidth="400" d:DesignHeight="800"
+             x:DataType="wallets:MobileWalletsListViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.MobileWalletsListView">
+  <ContentArea Title="Wallets" ScrollViewer.VerticalScrollBarVisibility="Auto">
+    <ListBox Name="WalletsListBox" ItemsSource="{Binding Wallets}"
+             Background="Transparent"
+             SelectingItemsControlBehavior.EnableSelectionAnimation="True">
+      <ListBox.Styles>
+        <Style Selector="ListBoxItem">
+          <Setter Property="Padding" Value="0" />
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+        <Style Selector="ListBoxItem:selected /template/ ContentPresenter#PART_ContentPresenter">
+          <Setter Property="Background" Value="Transparent" />
+        </Style>
+      </ListBox.Styles>
+      <ListBox.ItemTemplate>
+        <DataTemplate DataType="wallets:WalletPageViewModel">
+          <Border Margin="0 6" Padding="16" CornerRadius="12" Background="{DynamicResource TileButtonBackground}" BorderBrush="{DynamicResource TileButtonBorderBrush}" BorderThickness="1">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+              <!-- Wallet Icon -->
+              <PathIcon Grid.Column="0" Data="{StaticResource nav_wallet_24_regular}" Width="24" Height="24" Margin="0 0 16 0" Foreground="{DynamicResource SystemAccentColor}" />
+              
+              <!-- Wallet Title & Status -->
+              <StackPanel Grid.Column="1" VerticalAlignment="Center" Spacing="4">
+                <TextBlock Text="{Binding Title}" FontSize="16" FontWeight="SemiBold" Foreground="{DynamicResource TextControlForeground}" />
+                <StackPanel Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
+                  <Ellipse Width="8" Height="8" Fill="{DynamicResource SystemAccentColor}" IsVisible="{Binding IsLoggedIn}" />
+                  <TextBlock Text="Logged In" FontSize="12" Opacity="0.6" IsVisible="{Binding IsLoggedIn}" />
+                  <TextBlock Text="Locked" FontSize="12" Opacity="0.4" IsVisible="{Binding !IsLoggedIn}" />
+                  <TextBlock Text="(Loading...)" FontSize="12" Opacity="0.6" IsVisible="{Binding IsLoading}" />
+                </StackPanel>
+              </StackPanel>
+              
+              <!-- Arrow Icon -->
+              <PathIcon Grid.Column="2" Data="{StaticResource arrow_right_regular}" Width="16" Height="16" Opacity="0.5" />
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </ContentArea>
+</UserControl>

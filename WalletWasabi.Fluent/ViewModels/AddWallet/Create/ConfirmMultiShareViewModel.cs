@@ -225,13 +225,13 @@ public partial class ConfirmMultiShareViewModel : RoutableViewModel
 
 	private void SetNextWord()
 	{
-		if (ConfirmationWords.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
+		if (_words.FirstOrDefault(x => !x.IsConfirmed) is { } nextWord)
 		{
 			CurrentWord = nextWord;
 		}
 		else
 		{
-			CurrentWord = ConfirmationWords.Last();
+			CurrentWord = _words.Last();
 		}
 
 		EnableAvailableWords(true);

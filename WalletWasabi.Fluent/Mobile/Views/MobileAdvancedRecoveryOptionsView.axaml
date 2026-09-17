@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileAdvancedRecoveryOptionsView" x:DataType="vm:AdvancedRecoveryOptionsViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="Recovery options" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="Apply recovery options" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <TextBlock Text="Choose where recovery begins" Classes="mobile-title" TextWrapping="Wrap"/>
+        <TextBlock Text="Keep the defaults unless you know the original wallet requires different scanning parameters." Classes="mobile-caption"/>
+        <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+          <TextBlock Text="Address gap limit" Classes="mobile-label"/>
+          <TextBox Classes="mobile-input" Text="{Binding MinGapLimit, Mode=TwoWay}" MaxLength="10" AutomationProperties.Name="Recovery address gap limit"/>
+          <TextBlock Text="How far the wallet searches through unused addresses." Classes="mobile-caption"/>
+          <TextBlock Text="First block to scan" Classes="mobile-label"/>
+          <TextBox Classes="mobile-input" Text="{Binding BirthHeight, Mode=TwoWay}" MaxLength="10" AutomationProperties.Name="Recovery starting block height"/>
+          <TextBlock Text="Choose a height no later than the wallet's first payment, within the range supported by this wallet." Classes="mobile-caption"/>
+        </StackPanel></Border>
+        <Border Classes="mobile-note"><TextBlock Text="A starting height that is too recent, or a gap limit that is too small, may miss earlier activity. The wallet validates the supported numeric ranges." Classes="mobile-caption"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

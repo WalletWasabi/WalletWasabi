@@ -5,9 +5,22 @@
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              xmlns:advanced="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Advanced"
              xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             xmlns:r="clr-namespace:Avalonia.Xaml.Interactions.Responsive;assembly=Xaml.Behaviors.Interactions.Responsive"
              x:DataType="advanced:WalletInfoViewModel"
              x:CompileBindings="True"
              x:Class="WalletWasabi.Fluent.Views.Wallets.Advanced.WalletInfoView">
+  <Interaction.Behaviors>
+    <r:AdaptiveBehavior>
+      <r:AdaptiveClassSetter MaxWidth="600" ClassName="mobile" />
+    </r:AdaptiveBehavior>
+  </Interaction.Behaviors>
+
+  <UserControl.Styles>
+    <Style Selector="UserControl.mobile StackPanel">
+      <Setter Property="Margin" Value="0" />
+    </Style>
+  </UserControl.Styles>
+
   <ContentArea Title="{Binding Title}"
                  EnableNext="True" NextContent="Done"
                  EnableCancel="{Binding EnableCancel}"
@@ -25,7 +38,7 @@
                      CopyableContent="{Binding ExtendedMasterPrivateKey}"
                      IsVisible="{Binding !!ExtendedMasterPrivateKey}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterPrivateKey}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterPrivateKey}" TextWrapping="Wrap" />
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedMasterPrivateKey}" />
 
@@ -34,7 +47,7 @@
                      CopyableContent="{Binding ExtendedMasterZprv}"
                      IsVisible="{Binding !!ExtendedMasterZprv}"
                      PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterZprv}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedMasterZprv}" TextWrapping="Wrap" />
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedMasterZprv}" />
 
@@ -42,7 +55,7 @@
                      Label="Extended Master Fingerprint"
                      CopyableContent="{Binding MasterKeyFingerprint}"
                      IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}">
-        <TextBlock Classes="monoSpaced" Text="{Binding MasterKeyFingerprint}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding MasterKeyFingerprint}" TextWrapping="Wrap" />
       </PreviewItem>
       <Separator IsVisible="{Binding MasterKeyFingerprint, Converter={x:Static StringConverters.IsNotNullOrEmpty}}" />
 
@@ -65,7 +78,7 @@
                    CopyableContent="{Binding ExtendedAccountPrivateKey}"
                    IsVisible="{Binding !!ExtendedAccountPrivateKey}"
                    PrivacyModeEnabled="{Binding !ShowSensitiveData}">
-        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountPrivateKey}" />
+        <TextBlock Classes="monoSpaced" Text="{Binding ExtendedAccountPrivateKey}" TextWrapping="Wrap" />
       </PreviewItem>
       <Separator IsVisible="{Binding !!ExtendedAccountPrivateKey}" />
 

@@ -1,0 +1,74 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create">
+  <Styles.Resources>
+    <ResourceDictionary>
+    <ControlTheme x:Key="MobileBackupCandidateContainer" TargetType="ContentPresenter">
+      <Setter Property="IsVisible" Value="{CompiledBinding !IsConfirmed, DataType={x:Type words:RecoveryWordViewModel}}"/>
+      <Setter Property="Margin" Value="{DynamicResource MobileBackupWordMargin}"/>
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+    </ControlTheme>
+    <x:Double x:Key="MobileBackupWordGap">4</x:Double>
+    <Thickness x:Key="MobileBackupWordMargin">0,0,8,8</Thickness>
+    <ControlTheme x:Key="{x:Type m:MobileSecretPanel}" TargetType="m:MobileSecretPanel">
+      <Setter Property="HorizontalContentAlignment" Value="Stretch"/>
+      <Setter Property="Template"><ControlTemplate>
+        <StackPanel Spacing="{DynamicResource MobileSpaceMedium}">
+          <ContentPresenter Name="PART_HeaderPresenter" Content="{TemplateBinding Header}" ContentTemplate="{TemplateBinding HeaderTemplate}"
+                            TextElement.Foreground="{DynamicResource MobileText}" TextElement.FontWeight="SemiBold"/>
+          <ToggleButton Name="PART_Reveal" Classes="mobile-backup-toggle" HorizontalAlignment="Stretch"
+                        IsChecked="{Binding IsRevealed, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}"
+                        AutomationProperties.Name="Show or hide backup words">
+            <Panel>
+              <TextBlock Text="Show backup words" IsVisible="{TemplateBinding IsRevealed, Converter={x:Static BoolConverters.Not}}"/>
+              <TextBlock Text="Hide backup words" IsVisible="{TemplateBinding IsRevealed}"/>
+            </Panel>
+          </ToggleButton>
+          <Border Classes="mobile-note" IsVisible="{TemplateBinding IsRevealed, Converter={x:Static BoolConverters.Not}}">
+            <TextBlock Text="Check your surroundings before revealing your backup. Write it down privately; do not photograph or share it." Classes="mobile-caption"/>
+          </Border>
+          <ContentPresenter Name="PART_ContentPresenter" Content="{TemplateBinding Content}" ContentTemplate="{TemplateBinding ContentTemplate}"
+                            HorizontalContentAlignment="Stretch" IsVisible="{TemplateBinding IsRevealed}"/>
+          <CheckBox Name="PART_Acknowledge" MinHeight="{DynamicResource MobileTouchTarget}"
+                    IsVisible="{TemplateBinding IsRevealed}"
+                    IsChecked="{Binding IsAcknowledged, RelativeSource={RelativeSource TemplatedParent}, Mode=TwoWay}">
+            <TextBlock Text="I have written these words down in order." TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/>
+          </CheckBox>
+        </StackPanel>
+      </ControlTemplate></Setter>
+    </ControlTheme>
+    <ControlTheme x:Key="{x:Type m:MobileRecoveryWordTile}" TargetType="m:MobileRecoveryWordTile">
+      <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>
+      <Setter Property="Background" Value="{DynamicResource MobileSurface}"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
+      <Setter Property="BorderThickness" Value="{DynamicResource MobileHairline}"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Border Background="{TemplateBinding Background}" BorderBrush="{TemplateBinding BorderBrush}"
+                BorderThickness="{TemplateBinding BorderThickness}" CornerRadius="{DynamicResource MobileInputRadius}" Padding="8">
+          <Grid ColumnDefinitions="24,*" MinHeight="32">
+            <TextBlock Text="{TemplateBinding Index}" Classes="mobile-caption" VerticalAlignment="Center"/>
+            <Panel Grid.Column="1" VerticalAlignment="Center">
+              <TextBlock Name="PART_Word" Text="{TemplateBinding Word}" TextWrapping="Wrap" Foreground="{TemplateBinding Foreground}" FontSize="{DynamicResource MobileFontBody}"/>
+              <TextBlock Text="—" Classes="mobile-caption" IsVisible="{TemplateBinding Word, Converter={x:Static StringConverters.IsNullOrEmpty}}"/>
+            </Panel>
+          </Grid>
+        </Border>
+      </ControlTemplate></Setter>
+      <Style Selector="^:confirmed"><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
+    </ControlTheme>
+      </ResourceDictionary>
+  </Styles.Resources>
+  <Style Selector="ToggleButton.mobile-backup-toggle">
+    <Setter Property="MinHeight" Value="{DynamicResource MobileTouchTarget}"/>
+    <Setter Property="Background" Value="{DynamicResource MobileRaised}"/>
+    <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+    <Setter Property="BorderBrush" Value="{DynamicResource MobileBorder}"/>
+    <Setter Property="CornerRadius" Value="{DynamicResource MobileInputRadius}"/>
+    <Setter Property="Padding" Value="12,10"/>
+    <Setter Property="HorizontalContentAlignment" Value="Center"/>
+  </Style>
+  <Style Selector="ToggleButton.mobile-backup-toggle:checked"><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="Foreground" Value="{DynamicResource MobileAccent}"/></Style>
+  <Style Selector="ToggleButton.mobile-backup-toggle:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+  <Style Selector="ListBox.mobile-backup-types ListBoxItem"><Setter Property="Padding" Value="0"/><Setter Property="Margin" Value="0,0,0,12"/><Setter Property="HorizontalContentAlignment" Value="Stretch"/></Style>
+  <Style Selector="Border.mobile-backup-choice.selected"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/><Setter Property="Background" Value="{DynamicResource MobileAccentSurface}"/></Style>
+</Styles>

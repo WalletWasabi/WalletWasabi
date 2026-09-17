@@ -1,17 +1,27 @@
+using System;
+using System.Diagnostics;
+using System.IO;
 using System.Linq;
+using System.Reactive;
 using System.Reactive.Concurrency;
+using System.Threading;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
 using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Markup.Xaml;
 using NBitcoin;
+using ReactiveUI;
 using WalletWasabi.Announcements;
+using WalletWasabi.Client;
+using WalletWasabi.Client.Configuration;
+using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Models.ClientConfig;
 using WalletWasabi.Fluent.Models.FileSystem;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels;
 using WalletWasabi.Fluent.ViewModels.SearchBar.Sources;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent;
 
@@ -32,6 +42,8 @@ public class App : Application
 		_backendInitializeAsync = backendInitializeAsync;
 	}
 
+	public Func<Task>? BackendInitializeAsync { get; set; }
+
 	public override void Initialize()
 	{
 		AvaloniaXamlLoader.Load(this);
@@ -39,22 +51,42 @@ public class App : Application
 
 	public override void OnFrameworkInitializationCompleted()
 	{
-		if (!Design.IsDesignMode)
+		if (!Design.IsDesignMode && ApplicationLifetime is not null)
 		{
+#if USE_CDP
+			if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
+			{
+				try
+				{
+					Avalonia.Diagnostics.Cdp.CdpServer.EnsureInitialized();
+					Avalonia.Diagnostics.Cdp.CdpServer.Start(9222);
+					Logger.LogInfo("CDP Server started on port 9222");
+				}
+				catch (Exception ex)
+				{
+					Logger.LogError("Failed to start CDP Server", ex);
+				}
+			}
+#endif
+
+			var uiContext = CreateUiContext();
+			var mainViewModel = new MainViewModel(uiContext);
+			_applicationStateManager = new ApplicationStateManager(ApplicationLifetime, uiContext, mainViewModel, _startInBg);
+			var applicationViewModel = _applicationStateManager.ApplicationViewModel;
+			DataContext = applicationViewModel;
+
+			WalletWasabi.Fluent.Helpers.MobileAutomation.Start(mainViewModel);
+
 			if (ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
 			{
-				var uiContext = CreateUiContext();
-				var mainViewModel = new MainViewModel(uiContext);
-				_applicationStateManager = new ApplicationStateManager(desktop, uiContext, mainViewModel, _startInBg);
-				var applicationViewModel = _applicationStateManager.ApplicationViewModel;
-				DataContext = applicationViewModel;
-
 				desktop.ShutdownMode = ShutdownMode.OnExplicitShutdown;
 				desktop.Exit += (sender, args) =>
 				{
 					mainViewModel.ClearStacks();
 					uiContext.HealthMonitor.Dispose();
 				};
+
+
 
 				RxApp.MainThreadScheduler.Schedule(
 					async () =>
@@ -66,12 +98,117 @@ public class App : Application
 
 				InitializeTrayIcons();
 			}
+			else if (ApplicationLifetime is ISingleViewApplicationLifetime single)
+			{
+#if USE_CDP
+				if (System.Environment.GetEnvironmentVariable("WASABI_USE_CDP") == "1")
+				{
+					void TryRegister()
+					{
+						try
+						{
+							var topLevel = TopLevel.GetTopLevel(single.MainView);
+							if (topLevel != null)
+							{
+								Avalonia.Diagnostics.Cdp.CdpServer.Register(topLevel, "Wasabi Wallet Mobile");
+								Logger.LogInfo("Registered single view TopLevel with CDP Server");
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError("Failed to register single view TopLevel with CDP Server", ex);
+						}
+					}
+
+					if (single.MainView != null)
+					{
+						var initialTopLevel = TopLevel.GetTopLevel(single.MainView);
+						if (initialTopLevel != null)
+						{
+							TryRegister();
+						}
+						else
+						{
+							single.MainView.AttachedToVisualTree += (s, e) => TryRegister();
+						}
+					}
+				}
+#endif
+
+				Avalonia.Threading.Dispatcher.UIThread.Post(
+					async () =>
+					{
+						mainViewModel.Initialize();
+						try
+						{
+							if (BackendInitializeAsync is not null)
+							{
+								await BackendInitializeAsync();
+							}
+							else if (_backendInitializeAsync is not null)
+							{
+								await _backendInitializeAsync();
+							}
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError("BackendInitializeAsync failed", ex);
+						}
+					});
+			}
 		}
 
 		base.OnFrameworkInitializationCompleted();
 #if DEBUG
-		this.AttachDevTools();
+		if (CanRunDevTools())
+		{
+			this.AttachDevTools();
+		}
 #endif
+	}
+
+	public static AppBuilder InitializeMobile(WasabiApplication app, AppBuilder appBuilder)
+	{
+		RxApp.DefaultExceptionHandler = Observer.Create<Exception>(ex =>
+		{
+			if (Debugger.IsAttached)
+			{
+				Debugger.Break();
+			}
+			Logger.LogError(ex);
+		});
+
+		Logger.LogInfo("Wasabi Mobile GUI started.");
+		UiConfig uiConfig = LoadOrCreateUiConfig(Config.DataDir);
+		var services = Services.Create(app.Global, uiConfig, app.TerminateService);
+		
+		appBuilder = appBuilder
+			.AfterSetup(b =>
+			{
+				ThemeHelper.ApplyTheme(uiConfig.DarkModeEnabled ? Theme.Dark : Theme.Light);
+				if (Application.Current is App a)
+				{
+					a.BackendInitializeAsync = async () =>
+					{
+						using CancellationTokenSource stopLoadingCts = new();
+						await app.Global.InitializeAsync(initializeSleepInhibitor: false, app.TerminateService, stopLoadingCts.Token).ConfigureAwait(false);
+						await StartupHelper.ModifyStartupSettingAsync(uiConfig.RunOnSystemStartup).ConfigureAwait(false);
+					};
+				}
+			});
+
+		return appBuilder;
+	}
+
+	private static UiConfig LoadOrCreateUiConfig(string dataDir)
+	{
+		Directory.CreateDirectory(dataDir);
+		return UiConfig.LoadFile(Path.Combine(dataDir, "UiConfig.json"));
+	}
+
+	private bool CanRunDevTools()
+	{
+		return !OperatingSystem.IsAndroid() && !OperatingSystem.IsIOS();
 	}
 
 	private void InitializeTrayIcons()

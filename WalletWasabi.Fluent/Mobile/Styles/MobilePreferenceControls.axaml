@@ -1,0 +1,42 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls">
+  <Styles.Resources>
+    <ControlTheme x:Key="{x:Type m:MobilePreferenceToggle}" TargetType="m:MobilePreferenceToggle">
+      <Setter Property="MinHeight" Value="64"/><Setter Property="HorizontalAlignment" Value="Stretch"/>
+      <Setter Property="Padding" Value="12"/><Setter Property="IsThreeState" Value="False"/>
+      <Setter Property="Foreground" Value="{DynamicResource MobileText}"/>
+      <Setter Property="Template"><ControlTemplate>
+        <Border Name="PART_Surface" Background="Transparent" CornerRadius="12" BorderThickness="1" BorderBrush="Transparent" Padding="{TemplateBinding Padding}">
+          <Grid ColumnDefinitions="*,44" ColumnSpacing="12">
+            <StackPanel Spacing="5" VerticalAlignment="Center">
+              <TextBlock Text="{TemplateBinding Label}" Foreground="{TemplateBinding Foreground}" FontSize="14" TextWrapping="Wrap"/>
+              <TextBlock Text="{TemplateBinding Description}" Classes="mobile-caption" FontSize="11"/>
+            </StackPanel>
+            <Border Grid.Column="1" Name="PART_Track" Width="44" Height="26" CornerRadius="13" Background="{DynamicResource MobileSecondary}" VerticalAlignment="Center" Padding="3">
+              <Ellipse Name="PART_Thumb" Width="20" Height="20" Fill="{DynamicResource MobileSurface}" HorizontalAlignment="Left"/>
+            </Border>
+          </Grid>
+        </Border>
+      </ControlTemplate></Setter>
+      <Style Selector="^:checked /template/ Border#PART_Track"><Setter Property="Background" Value="{DynamicResource MobileAccent}"/></Style>
+      <Style Selector="^:checked /template/ Ellipse#PART_Thumb"><Setter Property="HorizontalAlignment" Value="Right"/></Style>
+      <Style Selector="^:focus-visible /template/ Border#PART_Surface"><Setter Property="BorderBrush" Value="{DynamicResource MobileAccent}"/></Style>
+      <Style Selector="^:pointerover /template/ Border#PART_Surface"><Setter Property="Background" Value="{DynamicResource MobileRaised}"/></Style>
+      <Style Selector="^:pressed"><Setter Property="Opacity" Value="0.75"/></Style>
+      <Style Selector="^:disabled"><Setter Property="Opacity" Value="0.45"/></Style>
+    </ControlTheme>
+    <ControlTheme x:Key="{x:Type m:MobileAppearanceSelector}" TargetType="m:MobileAppearanceSelector">
+      <Setter Property="Template"><ControlTemplate>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <Button Name="PART_Light" Classes="mobile-button" Classes.selected="{TemplateBinding IsDark, Converter={x:Static BoolConverters.Not}}"
+                  MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use light appearance">
+            <StackPanel Spacing="8"><Path Data="M12,2 L12,5 M12,19 L12,22 M2,12 L5,12 M19,12 L22,12 M5,5 L7,7 M17,17 L19,19 M5,19 L7,17 M17,7 L19,5 M16,12 A4,4 0 1 1 8,12 A4,4 0 1 1 16,12" Width="24" Height="24" Stretch="Uniform" Stroke="{DynamicResource MobileSecondary}" StrokeThickness="1.5" HorizontalAlignment="Center"/><TextBlock Text="Light" FontSize="12" HorizontalAlignment="Center"/></StackPanel>
+          </Button>
+          <Button Name="PART_Dark" Grid.Column="1" Classes="mobile-button" Classes.selected="{TemplateBinding IsDark}"
+                  MinHeight="76" HorizontalAlignment="Stretch" AutomationProperties.Name="Use dark appearance">
+            <StackPanel Spacing="8"><Path Data="M19,16 A9,9 0 1 1 8,3 A8,8 0 0 0 19,16 Z" Width="24" Height="24" Stretch="Uniform" Stroke="{DynamicResource MobileSecondary}" StrokeThickness="1.5" HorizontalAlignment="Center"/><TextBlock Text="Dark" FontSize="12" HorizontalAlignment="Center"/></StackPanel>
+          </Button>
+        </Grid>
+      </ControlTemplate></Setter>
+    </ControlTheme>
+  </Styles.Resources>
+</Styles>

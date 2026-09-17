@@ -64,4 +64,26 @@
     <Setter Property="Width" Value="275" />
     <Setter Property="HorizontalAlignment" Value="Right" />
   </Style>
+
+  <!-- Mobile Settings Layout overrides -->
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout TextBox">
+    <Setter Property="Width" Value="NaN" />
+    <Setter Property="HorizontalAlignment" Value="Stretch" />
+  </Style>
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout > DockPanel > TextBlock">
+    <Setter Property="TextWrapping" Value="Wrap" />
+    <Setter Property="Margin" Value="0 4 10 0" />
+  </Style>
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout > DockPanel > ComboBox">
+    <Setter Property="Width" Value="150" />
+  </Style>
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout > DockPanel > TextBox">
+    <Setter Property="Width" Value="160" />
+  </Style>
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout > DockPanel > CurrencyEntryBox">
+    <Setter Property="Width" Value="160" />
+  </Style>
+  <Style Selector="UserControl.mobile StackPanel.settingsLayout > DockPanel > DockPanel">
+    <Setter Property="Width" Value="160" />
+  </Style>
 </Styles>

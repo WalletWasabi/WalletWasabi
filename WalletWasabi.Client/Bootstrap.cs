@@ -82,12 +82,12 @@ public class Scheme
 		_defaultJsonSerializerSettings = CreateJsonSerializerSettings(global.Network);
 	}
 
-	private void RegisterNativeFunction(string name, Func<object> fn)
+	private void RegisterNativeFunction(string name, Func<object?> fn)
 	{
 		_env.Define(name, new Primitive(name, _ => ConvertNativeToScheme(fn(), 0), 0));
 	}
 
-	private void RegisterNativeFunction<T>(string name, Func<T, object> fn)
+	private void RegisterNativeFunction<T>(string name, Func<T, object?> fn)
 	{
 		_env.Define(name, new Primitive(name, args =>
 		{
@@ -106,7 +106,7 @@ public class Scheme
 		}, 1));
 	}
 
-	private void RegisterNativeFunction<T0, T1>(string name, Func<T0, T1, object> fn)
+	private void RegisterNativeFunction<T0, T1>(string name, Func<T0, T1, object?> fn)
 	{
 		_env.Define(name, new Primitive(name, args =>
 		{
@@ -116,7 +116,7 @@ public class Scheme
 		}, 2));
 	}
 
-	private Value ConvertNativeToScheme(object obj, int depth)
+	private Value ConvertNativeToScheme(object? obj, int depth)
 	{
 		if (depth++ >= 5)
 		{

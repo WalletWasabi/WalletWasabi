@@ -1,0 +1,4 @@
+<linker>
+  <!-- Keep the existing desktop reflection surface without rooting mobile hosts. -->
+  <assembly fullname="WalletWasabi.Fluent.Desktop" />
+</linker>

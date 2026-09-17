@@ -10,7 +10,7 @@
              x:Class="WalletWasabi.Fluent.Views.Wallets.Send.SendSuccessView">
   <ContentArea EnableNext="False"
                  ScrollViewer.VerticalScrollBarVisibility="Disabled"
-                 MinWidth="500">
+                 MaxWidth="500" HorizontalAlignment="Stretch">
     <views:SuccessAnimationView VerticalAlignment="Center" />
   </ContentArea>
 </UserControl>

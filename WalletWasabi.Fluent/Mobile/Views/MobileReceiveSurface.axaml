@@ -1,0 +1,77 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:vm="using:WalletWasabi.Fluent.Mobile.ViewModels"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileReceiveSurface"
+             x:DataType="vm:MobileReceivePresentation" x:CompileBindings="True">
+  <StackPanel Spacing="16">
+    <Border Background="{DynamicResource MobileRaised}" CornerRadius="16" Padding="4">
+      <Grid ColumnDefinitions="*,*">
+        <Button Name="AddressMode" Classes="mobile-button flat" Classes.selected="{Binding IsAddressMode}"
+                Content="Receive" FontSize="14" HorizontalAlignment="Stretch" Margin="0,0,4,0"
+                Command="{Binding SelectAddressCommand}" AutomationProperties.Name="Receive without an amount"/>
+        <Button Name="RequestMode" Grid.Column="1" Classes="mobile-button flat" Classes.selected="{Binding IsRequestMode}"
+                Content="Request amount" FontSize="14" HorizontalAlignment="Stretch"
+                Command="{Binding SelectRequestCommand}" AutomationProperties.Name="Request a BTC amount"/>
+      </Grid>
+    </Border>
+    <StackPanel Name="AmountEditor" IsVisible="{Binding IsRequestMode}" Spacing="8">
+      <TextBlock Text="Amount · BTC" Classes="mobile-label"/>
+      <TextBox Name="RequestedAmount" Classes="mobile-input" Text="{Binding Amount, Mode=TwoWay}"
+               MaxLength="24" Watermark="0.00000000" AutomationProperties.Name="Requested BTC amount"/>
+      <TextBlock Text="Optional. Use a decimal point and up to eight decimal places." Classes="mobile-caption"/>
+    </StackPanel>
+    <Border Name="ReceiveError" Classes="mobile-note" IsVisible="{Binding HasError}">
+      <StackPanel Spacing="8">
+        <TextBlock Text="{Binding Error}" Classes="mobile-error" TextWrapping="Wrap"/>
+        <Button Name="RetryQr" Classes="mobile-button" Content="Retry QR code" Command="{Binding RetryQrCommand}"
+                IsVisible="{Binding CanRetryQr}" HorizontalAlignment="Stretch"/>
+      </StackPanel>
+    </Border>
+    <Border Classes="mobile-card" Padding="16">
+      <StackPanel Spacing="16">
+        <StackPanel Spacing="6">
+          <TextBlock Text="{Binding Heading}" Classes="mobile-title" HorizontalAlignment="Center"/>
+          <TextBlock Text="Scan to send Bitcoin to this wallet." Classes="mobile-caption" HorizontalAlignment="Center"/>
+        </StackPanel>
+        <Border Background="White" CornerRadius="18" Padding="4" HorizontalAlignment="Center">
+          <Grid Width="224" Height="224">
+            <m:MobileQrCode Name="RequestQr" Matrix="{Binding Matrix}" Width="224" Height="224"
+                            AutomationProperties.Name="Receiving address or payment request QR code"/>
+            <StackPanel Name="QrPlaceholder" IsVisible="{Binding !HasQr}" Spacing="12"
+                        HorizontalAlignment="Center" VerticalAlignment="Center" MaxWidth="180">
+              <m:MobileGlyph Kind="qr" Width="40" Height="40" Foreground="#64726D" HorizontalAlignment="Center"/>
+              <TextBlock Text="{Binding QrStatus}" Foreground="#384840" TextWrapping="Wrap" TextAlignment="Center"/>
+            </StackPanel>
+          </Grid>
+        </Border>
+        <StackPanel Spacing="8">
+          <TextBlock Text="YOUR BITCOIN ADDRESS" Classes="mobile-caption" FontSize="10"/>
+          <Border Background="{DynamicResource MobileRaised}" CornerRadius="12" Padding="12">
+            <SelectableTextBlock Name="ReceivingAddress" Text="{Binding Address}" FontSize="13"
+                                 TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"
+                                 AutomationProperties.Name="Receiving Bitcoin address"/>
+          </Border>
+        </StackPanel>
+        <Grid ColumnDefinitions="*,*" ColumnSpacing="8">
+          <Button Name="CopyReceive" Grid.ColumnSpan="{Binding CopyColumnSpan}" Classes="mobile-button primary"
+                  Command="{Binding CopyRequestCommand}" HorizontalAlignment="Stretch" Content="{Binding CopyLabel}"
+                  FontSize="12" Padding="8" AutomationProperties.Name="{Binding CopyLabel}"/>
+          <Button Name="ShareReceive" Grid.Column="1" Classes="mobile-button" Content="Share"
+                  Command="{Binding Share.Command}" IsVisible="{Binding Share.IsSupported}"
+                  FontSize="12" Padding="8" HorizontalAlignment="Stretch" AutomationProperties.Name="Share Bitcoin request"/>
+        </Grid>
+        <TextBlock Name="ShareError" Text="{Binding Share.Error}" Classes="mobile-error" IsVisible="{Binding Share.HasError}"/>
+      </StackPanel>
+    </Border>
+    <StackPanel Name="RequestPayload" IsVisible="{Binding IsRequestMode}" Spacing="6">
+      <TextBlock Text="PAYMENT REQUEST" Classes="mobile-caption" FontSize="10"/>
+      <SelectableTextBlock Text="{Binding PaymentRequest}" Foreground="{DynamicResource MobileSecondary}"
+                           FontSize="12" TextWrapping="Wrap" AutomationProperties.Name="Payment request payload"/>
+    </StackPanel>
+    <Border Classes="mobile-note"><Grid ColumnDefinitions="28,*">
+      <m:MobileGlyph Kind="shield" Width="20" Height="20" Foreground="{DynamicResource MobileAccent}"/>
+      <TextBlock Grid.Column="1" Text="Use a fresh address for each sender. A payment request contains only this address and your optional BTC amount." Classes="mobile-caption"/>
+    </Grid></Border>
+  </StackPanel>
+</UserControl>

@@ -1,0 +1,32 @@
+<Styles xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
+  <Styles.Resources><ResourceDictionary>
+    <ResourceDictionary.ThemeDictionaries>
+      <ResourceDictionary x:Key="Light">
+        <SolidColorBrush x:Key="MobileQuickFill">#00FFFFFF</SolidColorBrush>
+        <SolidColorBrush x:Key="MobileQuickBorder">#00FFFFFF</SolidColorBrush>
+        <x:Double x:Key="MobileBalanceHeight">190</x:Double>
+        <x:Double x:Key="MobilePrivacyGaugeSize">156</x:Double>
+        <HorizontalAlignment x:Key="MobilePrivacyGaugeAlignment">Left</HorizontalAlignment>
+        <x:Boolean x:Key="MobileLightLayout">True</x:Boolean>
+        <x:Boolean x:Key="MobileDarkLayout">False</x:Boolean>
+        <x:Int32 x:Key="MobileFeeColumns">1</x:Int32>
+        <x:Int32 x:Key="MobileFeeRows">3</x:Int32>
+        <x:Double x:Key="MobilePrivacyStartAngle">135</x:Double>
+        <x:Double x:Key="MobilePrivacySweepAngle">270</x:Double>
+      </ResourceDictionary>
+      <ResourceDictionary x:Key="Dark">
+        <SolidColorBrush x:Key="MobileQuickFill">#151E1C</SolidColorBrush>
+        <SolidColorBrush x:Key="MobileQuickBorder">#304139</SolidColorBrush>
+        <x:Double x:Key="MobileBalanceHeight">172</x:Double>
+        <x:Double x:Key="MobilePrivacyGaugeSize">208</x:Double>
+        <HorizontalAlignment x:Key="MobilePrivacyGaugeAlignment">Center</HorizontalAlignment>
+        <x:Boolean x:Key="MobileLightLayout">False</x:Boolean>
+        <x:Boolean x:Key="MobileDarkLayout">True</x:Boolean>
+        <x:Int32 x:Key="MobileFeeColumns">3</x:Int32>
+        <x:Int32 x:Key="MobileFeeRows">1</x:Int32>
+        <x:Double x:Key="MobilePrivacyStartAngle">-90</x:Double>
+        <x:Double x:Key="MobilePrivacySweepAngle">360</x:Double>
+      </ResourceDictionary>
+    </ResourceDictionary.ThemeDictionaries>
+  </ResourceDictionary></Styles.Resources>
+</Styles>

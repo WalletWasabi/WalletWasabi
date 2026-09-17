@@ -1,0 +1,28 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:conv="using:WalletWasabi.Fluent.Converters"
+             xmlns:models="using:WalletWasabi.Models" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileConnectionsSettingsPanel"
+             x:DataType="vm:ConnectionsSettingsTabViewModel" x:CompileBindings="True">
+  <StackPanel Margin="0,12" Spacing="{DynamicResource MobileSpaceMedium}" IsEnabled="{Binding !IsReadOnly}">
+    <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceLarge}">
+      <m:MobileSettingsField Header="Exchange-rate provider" Description="Preferred fiat-rate source. The backend may use another provider when it is unavailable.">
+        <ComboBox Name="ExchangeRateProvider" Classes="mobile-select" ItemsSource="{Binding ExchangeRateProviders}" SelectedItem="{Binding Settings.ExchangeRateProvider, Mode=TwoWay}" AutomationProperties.Name="Exchange-rate provider"/>
+      </m:MobileSettingsField>
+      <m:MobileSettingsField Header="Fee-estimate provider" Description="Preferred network fee-estimate source; final transaction fees remain visible during review.">
+        <ComboBox Name="FeeRateProvider" Classes="mobile-select" ItemsSource="{Binding FeeRateEstimationProviders}" SelectedItem="{Binding Settings.FeeRateEstimationProvider, Mode=TwoWay}" AutomationProperties.Name="Fee-estimate provider"/>
+      </m:MobileSettingsField>
+      <m:MobileSettingsField Header="External transaction broadcaster">
+        <ComboBox Name="TransactionBroadcaster" Classes="mobile-select" ItemsSource="{Binding ExternalBroadcastProviders}" SelectedItem="{Binding Settings.ExternalTransactionBroadcaster, Mode=TwoWay}" AutomationProperties.Name="External transaction broadcaster"/>
+      </m:MobileSettingsField>
+    </StackPanel></Border>
+    <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceLarge}">
+      <m:MobileSettingsField Header="Network anonymization (Tor)" Description="This is the saved configuration. Actual availability depends on this platform's Tor integration.">
+        <ComboBox Name="TorMode" Classes="mobile-select" ItemsSource="{Binding TorModes}" SelectedItem="{Binding Settings.UseTor, Mode=TwoWay}" AutomationProperties.Name="Tor configuration">
+          <ComboBox.ItemTemplate><DataTemplate x:DataType="models:TorMode"><TextBlock Text="{Binding Converter={x:Static conv:EnumConverters.ToFriendlyName}}"/></DataTemplate></ComboBox.ItemTemplate>
+        </ComboBox>
+      </m:MobileSettingsField>
+      <ToggleSwitch Classes="mobile-switch" Content="Stop managed Tor on exit" IsChecked="{Binding Settings.TerminateTorOnExit, Mode=TwoWay}"
+                    IsVisible="{Binding Settings.UseTor, ConverterParameter={x:Static models:TorMode.Enabled}, Converter={x:Static conv:EnumToBoolConverter.Instance}}"/>
+    </StackPanel></Border>
+  </StackPanel>
+</UserControl>

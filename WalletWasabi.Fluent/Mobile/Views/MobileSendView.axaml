@@ -1,0 +1,12 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Send"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileSendView" x:DataType="vm:SendViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Send Bitcoin" ShowBack="True" BackCommand="{Binding CancelCommand}" IsBusy="{Binding IsBusy}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Review payment" Command="{Binding NextCommand}"
+                                IsEnabled="{Binding !IsBusy}" HorizontalAlignment="Stretch" AutomationProperties.AutomationId="MobileReviewPayment"/></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <v:MobileSendSurface Margin="16,8,16,16"/>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

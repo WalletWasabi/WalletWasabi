@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Wallets.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletSettingsView" x:DataType="vm:WalletSettingsViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Wallet settings" ShowBack="True" BackCommand="{Binding CancelCommand}">
+    <m:MobilePage.Footer><Button Classes="mobile-button primary" Content="Save and close" Command="{Binding NextCommand}" HorizontalAlignment="Stretch"/></m:MobilePage.Footer>
+    <TabControl SelectedIndex="{Binding SelectedTab, Mode=TwoWay}" HorizontalAlignment="Stretch" Margin="16,0">
+      <TabItem Header="General"><ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="0,16,0,8" Spacing="16">
+        <TextBlock Text="Your wallet, your preferences." Classes="mobile-title" TextWrapping="Wrap"/>
+        <Border Classes="mobile-card"><StackPanel Spacing="10"><TextBlock Text="Wallet name" Classes="mobile-label"/><TextBox Classes="mobile-input" Text="{Binding WalletName, Mode=TwoWay}" MaxLength="100" AutomationProperties.Name="Wallet name"/></StackPanel></Border>
+        <Border Classes="mobile-card"><StackPanel Spacing="12">
+          <TextBlock Text="Sending" Classes="mobile-label"/>
+          <ToggleSwitch Classes="mobile-switch" Content="Prefer PSBT workflow" IsChecked="{Binding PreferPsbtWorkflow, Mode=TwoWay}"/>
+          <TextBlock Text="Export a partially signed transaction for an external signer instead of signing immediately." Classes="mobile-caption"/>
+          <StackPanel Spacing="8" IsVisible="{Binding IsDefaultSendWorkflowSettingVisible}"><TextBlock Text="Default coin selection" Classes="mobile-caption"/><ComboBox ItemsSource="{Binding SendWorkflows}" SelectedItem="{Binding DefaultSendWorkflow, Mode=TwoWay}" MinHeight="48" HorizontalAlignment="Stretch"/></StackPanel>
+          <TextBlock Text="Change address type" Classes="mobile-caption"/><ComboBox ItemsSource="{Binding ChangeScriptPubKeyTypes}" SelectedItem="{Binding ChangeScriptPubKeyType, Mode=TwoWay}" MinHeight="48" HorizontalAlignment="Stretch"/>
+        </StackPanel></Border>
+        <Border Classes="mobile-card" IsVisible="{Binding SeveralReceivingScriptTypes}"><StackPanel Spacing="12"><TextBlock Text="Receiving" Classes="mobile-label"/><TextBlock Text="Default address type" Classes="mobile-caption"/><ComboBox ItemsSource="{Binding ReceiveScriptTypes}" SelectedItem="{Binding DefaultReceiveScriptType, Mode=TwoWay}" MinHeight="48" HorizontalAlignment="Stretch"/></StackPanel></Border>
+        <TextBlock Text="Recovery and maintenance" Classes="mobile-label"/>
+        <Button Classes="mobile-button" Content="Verify recovery backup" Command="{Binding VerifyRecoveryWordsCommand}" IsVisible="{Binding !IsWatchOnly}" HorizontalAlignment="Stretch"/>
+        <Button Classes="mobile-button" Content="Resynchronize wallet" Command="{Binding ResyncWalletCommand}" HorizontalAlignment="Stretch"/>
+        <Border Classes="mobile-note"><TextBlock Text="Workflow preferences are saved when changed. The wallet name is saved with Save and close. Recovery verification and resynchronization use the existing wallet confirmation flows." Classes="mobile-caption"/></Border>
+      </StackPanel></ScrollViewer></TabItem>
+      <TabItem Header="CoinJoin"><ScrollViewer HorizontalScrollBarVisibility="Disabled"><v:MobileCoinJoinSettingsPanel DataContext="{Binding WalletCoinJoinSettings}" Margin="0,16,0,8"/></ScrollViewer></TabItem>
+    </TabControl>
+  </m:MobilePage>
+</UserControl>

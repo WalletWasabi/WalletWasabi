@@ -106,9 +106,12 @@
 
     <!-- Dialog Fullscreen State -->
     <Style Selector="^[FullScreenEnabled=True] /template/ Border#PART_Border">
-      <Setter Property="Margin" Value="0 30 0 0" />
+      <Setter Property="Margin" Value="0" />
       <Setter Property="BorderThickness" Value="0" />
       <Setter Property="BoxShadow" Value="{DynamicResource EmptyBoxShadow}" />
+      <Setter Property="MaxWidth" Value="Infinity" />
+      <Setter Property="MaxHeight" Value="Infinity" />
+      <Setter Property="CornerRadius" Value="0" />
     </Style>
     <Style Selector="^[FullScreenEnabled=True] /template/ Panel#PART_DialogHost">
       <Setter Property="Margin" Value="0" />

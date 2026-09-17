@@ -1,0 +1,18 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:c="using:WalletWasabi.Fluent.Controls"
+             xmlns:models="using:WalletWasabi.Fluent.Models" xmlns:words="using:WalletWasabi.Fluent.ViewModels.AddWallet.Create"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileErrorView" x:DataType="vm:ShowErrorDialogViewModel" x:CompileBindings="True">
+  
+  <m:MobilePage Header="{Binding Title}">
+    <m:MobilePage.Footer><Button Name="PrimaryAction" Classes="mobile-button primary" Content="OK" Command="{Binding NextCommand}" HorizontalAlignment="Stretch" /></m:MobilePage.Footer>
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled">
+      <StackPanel Margin="{DynamicResource MobileGutter}" Spacing="{DynamicResource MobileSpaceLarge}">
+        <m:MobileGlyph Kind="shield" Width="56" Height="56" Foreground="{DynamicResource MobileWarning}" HorizontalAlignment="Center"/>
+        <TextBlock Text="{Binding Caption}" Classes="mobile-title" TextWrapping="Wrap"/>
+        <Border Classes="mobile-card"><TextBlock Text="{Binding Message}" TextWrapping="Wrap" Foreground="{DynamicResource MobileText}"/></Border>
+      </StackPanel>
+    </ScrollViewer>
+  </m:MobilePage>
+</UserControl>

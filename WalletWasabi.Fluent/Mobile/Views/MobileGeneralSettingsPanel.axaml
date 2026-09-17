@@ -1,0 +1,24 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileGeneralSettingsPanel"
+             x:DataType="vm:GeneralSettingsTabViewModel" x:CompileBindings="True">
+  <StackPanel Margin="0,12" Spacing="{DynamicResource MobileSpaceMedium}" IsEnabled="{Binding !IsReadOnly}">
+    <Border Classes="mobile-card"><m:MobileSettingsField Header="Rendering" Description="Use the configured graphics backend where this platform supports it. A restart may be required.">
+      <ToggleSwitch Name="GpuRendering" Classes="mobile-switch" Content="Enable GPU" IsChecked="{Binding Settings.EnableGpu, Mode=TwoWay}"/>
+    </m:MobileSettingsField></Border>
+    <Border Classes="mobile-note"><TextBlock Text="Appearance and clipboard preferences are above. Mobile updates and background execution are controlled by your operating system and installation method." Classes="mobile-caption"/></Border>
+    <Expander Header="Desktop-only preferences" IsVisible="{x:Static v:MobileSettingsPlatform.ShowDesktopOptions}" HorizontalAlignment="Stretch">
+      <StackPanel Spacing="{DynamicResource MobileSpaceMedium}" Margin="0,12">
+        <m:MobileSettingsField Header="System startup" Description="Applies to the desktop application, not the Android or iOS startup lifecycle.">
+          <ToggleSwitch Classes="mobile-switch" Content="Launch at sign-in" IsChecked="{Binding Settings.RunOnSystemStartup, Mode=TwoWay}"/>
+        </m:MobileSettingsField>
+        <m:MobileSettingsField Header="Window closing" Description="A desktop window preference, not a guarantee of mobile background execution.">
+          <ToggleSwitch Classes="mobile-switch" Content="Hide instead of exit" IsChecked="{Binding Settings.HideOnClose, Mode=TwoWay}"/>
+        </m:MobileSettingsField>
+        <m:MobileSettingsField Header="Desktop updates">
+          <ToggleSwitch Classes="mobile-switch" Content="Download new versions" IsChecked="{Binding Settings.DownloadNewVersion, Mode=TwoWay}"/>
+        </m:MobileSettingsField>
+      </StackPanel>
+    </Expander>
+  </StackPanel>
+</UserControl>

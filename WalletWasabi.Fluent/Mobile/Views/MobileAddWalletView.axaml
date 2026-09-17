@@ -1,0 +1,13 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls" xmlns:vm="using:WalletWasabi.Fluent.ViewModels.AddWallet" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileAddWalletView" x:DataType="vm:AddWalletPageViewModel" x:CompileBindings="True">
+  <m:MobilePage Header="Add a wallet" ShowBack="{Binding EnableCancel}" BackCommand="{Binding CancelCommand}" IsBusy="{Binding IsBusy}">
+    <ScrollViewer HorizontalScrollBarVisibility="Disabled"><StackPanel Margin="16,16" Spacing="16">
+      <TextBlock Text="Make yourself at home." Classes="mobile-title" TextWrapping="Wrap"/>
+      <TextBlock Text="Choose how to bring your bitcoin into Wasabi." Classes="mobile-caption"/>
+      <m:MobileChoiceButton Label="Create a new wallet" Description="Generate a new wallet and protect its recovery backup." Icon="leaf" Command="{Binding CreateWalletCommand}" AutomationProperties.AutomationId="MobileCreateWallet"/>
+      <m:MobileChoiceButton Label="Restore a wallet" Description="Recover access using an existing recovery backup." Icon="history" Command="{Binding RecoverWalletCommand}"/>
+      <m:MobileChoiceButton Label="Import wallet file" Description="Import a compatible Wasabi JSON wallet using the system file picker." Icon="receive" Command="{Binding ImportWalletCommand}"/>
+      <m:MobileChoiceButton Label="Connect a hardware wallet" Description="Use a device supported by this platform and Wasabi's hardware integration." Icon="lock" Command="{Binding ConnectHardwareWalletCommand}"/>
+      <Border Classes="mobile-note"><TextBlock Text="Hardware support depends on the device, connection, and mobile platform. No funds are transferred when adding a wallet." Classes="mobile-caption"/></Border>
+    </StackPanel></ScrollViewer>
+  </m:MobilePage>
+</UserControl>

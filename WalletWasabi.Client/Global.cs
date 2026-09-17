@@ -52,6 +52,8 @@ namespace WalletWasabi.Client;
 
 public class Global
 {
+	public static bool IsTorEnabled { get; set; } = true;
+
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="_stoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
@@ -59,7 +61,7 @@ public class Global
 	{
 		DataDir = dataDir;
 		Config = config;
-		TorSettings = new TorSettings(
+		TorSettings = !IsTorEnabled ? null : new TorSettings(
 			DataDir,
 			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
 			terminateOnExit: Config.TerminateTorOnExit,
@@ -139,7 +141,7 @@ public class Global
 
 	public StatusContainer Status { get; }
 	public string DataDir { get; }
-	public TorSettings TorSettings { get; }
+	public TorSettings? TorSettings { get; }
 
 	public FilterHeaderChain FilterHeaders { get; }
 	public FilterStore FilterStore { get; }
@@ -279,7 +281,7 @@ public class Global
 			}
 		}
 
-		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings.SocksEndpoint : null;
+		var torEndpoint = Config.UseTor != TorMode.Disabled ? TorSettings?.SocksEndpoint : null;
 		IDnsResolver dnsResolver = torEndpoint is not null
 			? new DnsSocksResolver(torEndpoint){ StreamIsolation = true }
 			: DnsResolver.Instance;
@@ -347,7 +349,7 @@ public class Global
 
 	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
 		Config.UseTor != TorMode.Disabled
-			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config)
+			? new OnionHttpClientFactory(TorSettings!.SocksEndpoint.ToUri("socks5"), config)
 			: new HttpClientFactory(config);
 
 	private void ConfigureFeeRateUpdater(CancellationToken cancellationToken)
@@ -510,7 +512,7 @@ public class Global
 		}
 
 		Uri[] relayUrls = [new ("wss://relay.primal.net"), new("wss://nos.lol"), new("wss://nostr.mom")];
-		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings.SocksEndpoint);
+		var nostrClientFactory = () => NostrClientFactory.Create(relayUrls, TorSettings!.SocksEndpoint);
 
 		// The feature is disabled on linux at the moment because we install Wasabi Wallet as a Debian package.
 		var installerDownloader = !Config.DownloadNewVersion
@@ -673,8 +675,8 @@ public class Global
 	{
 		if (Config.UseTor != TorMode.Disabled)
 		{
-			TorProcessManager processManager = new(TorSettings, EventBus);
-			_torManager = new TorManager(TorSettings, processManager);
+			TorProcessManager processManager = new(TorSettings!, EventBus);
+			_torManager = new TorManager(TorSettings!, processManager);
 			_torManager.DisposeUsing(_asyncDisposables);
 			await _torManager.StartAsync(attempts: 3, cancellationToken).ConfigureAwait(false);
 			Logger.LogInfo($"{nameof(TorManager)} is initialized.");

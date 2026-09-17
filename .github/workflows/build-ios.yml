@@ -1,0 +1,39 @@
+name: Build iOS
+
+on:
+  push:
+    branches: [ "*" ]
+  pull_request:
+
+jobs:
+  build:
+    runs-on: macos-26
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Install Workloads
+        run: dotnet workload install ios --version 10.0.203.1
+
+      - name: Build iOS App (Simulator)
+        run: |
+          dotnet build WalletWasabi.Fluent.iOS/WalletWasabi.Fluent.iOS.csproj \
+            -c Release \
+            -r iossimulator-arm64 \
+            -o publish-app \
+            -p:CodesignKey="-"
+
+      - name: Zip iOS App Bundle
+        run: |
+          zip -r wasabi-ios-app.zip publish-app/WalletWasabi.Fluent.iOS.app
+
+      - name: Upload App Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-ios-app
+          path: wasabi-ios-app.zip

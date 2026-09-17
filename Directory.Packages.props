@@ -20,6 +20,8 @@
     <PackageVersion Include="SkiaSharp.NativeAssets.iOS" Version="3.119.2" />
     <!-- SQLite. -->
     <PackageVersion Include="Microsoft.Data.Sqlite" Version="$(NetPackagesVersion)" />
+    <!-- iOS references the bundle explicitly; match the upstream SQLite resolution. -->
+    <PackageVersion Include="SQLitePCLRaw.bundle_e_sqlite3" Version="2.1.12" />
     <PackageVersion Include="Microsoft.Win32.SystemEvents" Version="$(NetPackagesVersion)" />
     <!-- C# analysis. -->
     <PackageVersion Include="Microsoft.CodeAnalysis.Common" Version="5.0.0" />
@@ -42,11 +44,19 @@
     <PackageVersion Include="Avalonia.Fonts.Inter" Version="$(AvaloniaVersion)" />
     <PackageVersion Include="QRackers" Version="1.1.0" />
     <PackageVersion Include="DynamicData" Version="9.4.1" />
+    <PackageVersion Include="Xaml.Behaviors.Interactions.Responsive" Version="11.3.9.4" />
     <!-- UI Mobile. -->
+    <PackageVersion Include="Avalonia.ReactiveUI" Version="11.3.9" />
+    <PackageVersion Include="Chrome.DevTools.Avalonia.v11" Version="0.1.0-preview.27" />
     <PackageVersion Include="Avalonia.Android" Version="$(AvaloniaVersion)" />
-    <PackageVersion Include="Xamarin.AndroidX.AppCompat" Version="1.3.1.3" />
-    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.3.1.3" />
+    <PackageVersion Include="Xamarin.AndroidX.AppCompat" Version="1.6.1.5" />
+    <PackageVersion Include="Xamarin.AndroidX.Lifecycle.ViewModel" Version="2.6.2.2" />
     <PackageVersion Include="Avalonia.iOS" Version="$(AvaloniaVersion)" />
+    <!-- Avalonia 11 headless uses xUnit v2; core tests retain upstream xUnit v3/MTP. -->
+    <PackageVersion Include="Avalonia.Headless.XUnit" Version="$(AvaloniaVersion)" />
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="18.0.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.5" />
     <!-- Testing. -->
     <PackageVersion Include="coverlet.collector" Version="6.0.4" />
     <PackageVersion Include="Microsoft.AspNetCore.Mvc.Testing" Version="$(NetPackagesVersion)" />

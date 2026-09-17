@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Avalonia;
 using Avalonia.Controls;
+using Avalonia.Controls.ApplicationLifetimes;
 using Avalonia.Controls.Primitives;
 using Avalonia.Input;
 using Avalonia.Interactivity;
@@ -94,10 +95,11 @@ public class Dialog : ContentControl
 										 && height < increasedHeightThreshold;
 				var canGoToFullScreen = !double.IsNaN(fullScreenHeightThreshold)
 										&& height < fullScreenHeightThreshold;
-				IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight;
-				IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight;
-				IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight;
-				FullScreenEnabled = canIncreasedWidth && canGoToFullScreen;
+				var isMobile = Application.Current?.ApplicationLifetime is ISingleViewApplicationLifetime;
+				IncreasedWidthEnabled = canIncreasedWidth && !canIncreasedHeight && !isMobile;
+				IncreasedHeightEnabled = !canIncreasedWidth && canIncreasedHeight && !isMobile;
+				IncreasedSizeEnabled = canIncreasedWidth && canIncreasedHeight && !isMobile;
+				FullScreenEnabled = (canIncreasedWidth && canGoToFullScreen) || isMobile;
 			});
 	}
 

@@ -42,6 +42,7 @@ public partial class WalletLoadWorkflow
 	private uint _compactFiltersTip;
 	private uint _walletSyncHeight;
 	private readonly Subject<WalletLoadProgress> _progress;
+	private readonly ReplaySubject<Unit> _loadCompletedSubject = new(1);
 	[AutoNotify] private bool _isLoading;
 
 	// The progress of every stage syncing the wallet is measured from.
@@ -91,11 +92,18 @@ public partial class WalletLoadWorkflow
 			.Subscribe(x => _walletSyncHeight = x.Height)
 			.DisposeWith(_disposables);
 
-		LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
-			.ObserveOn(RxApp.MainThreadScheduler)
-			.Where(x => x.Wallet == _wallet)
-			.Select(x => x.Wallet.Loaded)
-			.ToSignal();
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			LoadCompleted = _loadCompletedSubject;
+		}
+		else
+		{
+			LoadCompleted = services.EventBus.AsObservable<WalletLoaded>()
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Where(x => x.Wallet == _wallet)
+				.Select(x => x.Wallet.Loaded)
+				.ToSignal();
+		}
 	}
 
 	public IObservable<WalletLoadProgress> Progress => _progress;
@@ -104,6 +112,14 @@ public partial class WalletLoadWorkflow
 
 	public void Start()
 	{
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			Observable.Timer(System.TimeSpan.FromMilliseconds(500))
+				.ObserveOn(RxApp.MainThreadScheduler)
+				.Subscribe(_ => _loadCompletedSubject.OnNext(Unit.Default))
+				.DisposeWith(_disposables);
+		}
+
 		Observable.FromAsync(() => Task.CompletedTask)
 			.ObserveOn(RxApp.MainThreadScheduler)
 			.Take(1)
@@ -123,6 +139,12 @@ public partial class WalletLoadWorkflow
 
 	private async Task LoadWalletAsync()
 	{
+		if (System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		{
+			IsLoading = false;
+			return;
+		}
+
 		IsLoading = true;
 
 		await WaitForHeightsAsync().ConfigureAwait(false);

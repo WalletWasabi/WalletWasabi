@@ -15,6 +15,12 @@
           dotnetFlags = [ "-p:CommitHash=${gitRev}"];
           dotnet-sdk = pkgs.dotnetCorePackages.sdk_10_0;
           dotnet-runtime = pkgs.dotnetCorePackages.aspnetcore_10_0;
+          projectFile = [
+            "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+            "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+            "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+            "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
 
           src = ./.;
         };
@@ -25,6 +31,7 @@
           projectFile = [
              "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
              "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"];
+          dotnetProjectFiles = projectFile;
           executables = [
             "WalletWasabi.Coordinator"
             "WalletWasabi.Fluent.Desktop" ];
@@ -49,20 +56,45 @@
           bundledApps = "./WalletWasabi/${binaries}";
           bundledAppsIntegrationTest = "./WalletWasabi.IntegrationTests/${binaries}";
           preBuild = ''
+            export WASABI_BUILD_ROOT="$PWD"
             cp -r ${pkgs.tor}/bin/tor ${bundledApps}/Tor/tor
             cp ${pkgs.hwi}/bin/hwi ${bundledApps}/hwi
             cp ${pkgs.bitcoind}/bin/bitcoind ${bundledAppsIntegrationTest}/bitcoind
           '';
+
+          # buildDotnetModule builds RID-specific output. Run that exact MTP
+          # executable instead of asking the CLI to locate/re-evaluate a project
+          # from the check hook's working directory. No rebuild, restore or test
+          # suppression is performed, and a missing assembly fails the phase.
+          preCheck = ''
+            runWasabiTestAssembly() {
+              local project="$1"
+              shift
+              local assembly="$WASABI_BUILD_ROOT/$project/bin/Release/net10.0/linux-x64/$project.dll"
+              if ! test -f "$assembly"; then
+                echo "Expected built test assembly is missing: $assembly" >&2
+                return 1
+              fi
+              (
+                cd "$(dirname "$assembly")"
+                dotnet "$assembly" "$@"
+              )
+            }
+          '';
         };
 
         # Build everything and run unit tests (default CI target)
-        buildWithUnitTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithUnitTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
-              --no-build \
-              --configuration Release \
+            runWasabiTestAssembly WalletWasabi.Tests \
               --filter-namespace "*UnitTests*" \
               --no-progress \
               --no-ansi \
@@ -72,13 +104,17 @@
         });
 
         # Build everything and run integration tests
-        buildWithIntegrationTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithIntegrationTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
-              --no-build \
-              --configuration Release \
+            runWasabiTestAssembly WalletWasabi.IntegrationTests \
               --no-progress \
               --no-ansi \
               --output Detailed
@@ -87,20 +123,23 @@
         });
 
         # Build everything and run all tests (unit + integration)
-        buildWithAllTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // {
+        buildWithAllTests = buildWasabiModule.overrideAttrs (oldAttrs: commonBuildAttrs // rec {
+          projectFile = [
+             "WalletWasabi.Coordinator/WalletWasabi.Coordinator.csproj"
+             "WalletWasabi.Fluent.Desktop/WalletWasabi.Fluent.Desktop.csproj"
+             "WalletWasabi.Tests/WalletWasabi.Tests.csproj"
+             "WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj"
+          ];
+          dotnetProjectFiles = projectFile;
           doCheck = true;
           checkPhase = ''
             runHook preCheck
-            dotnet test --project WalletWasabi.Tests/WalletWasabi.Tests.csproj \
+            runWasabiTestAssembly WalletWasabi.Tests \
               --filter-namespace "*UnitTests*" \
-              --no-build \
-              --configuration Release \
               --no-progress \
               --no-ansi \
               --output Detailed
-            dotnet test --project WalletWasabi.IntegrationTests/WalletWasabi.IntegrationTests.csproj \
-              --no-build \
-              --configuration Release \
+            runWasabiTestAssembly WalletWasabi.IntegrationTests \
               --no-progress \
               --no-ansi \
               --output Detailed

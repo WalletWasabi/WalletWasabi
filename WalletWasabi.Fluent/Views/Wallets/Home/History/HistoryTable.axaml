@@ -6,6 +6,8 @@
              xmlns:historyItems="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Home.History.HistoryItems"
              xmlns:treeDataGrid="clr-namespace:WalletWasabi.Fluent.TreeDataGrid"
              xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
+             xmlns:model="clr-namespace:WalletWasabi.Fluent.Models.Wallets"
+             xmlns:converters="clr-namespace:WalletWasabi.Fluent.Converters"
              mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
              x:DataType="history:HistoryViewModel"
              x:CompileBindings="True"
@@ -133,6 +135,21 @@
     </ContextMenu>
   </UserControl.Resources>
 
+  <UserControl.Styles>
+    <Style Selector="TreeDataGrid">
+      <Setter Property="IsVisible" Value="True" />
+    </Style>
+    <Style Selector=".mobile TreeDataGridCellsPresenter > Control:nth-child(4)" x:SetterTargetType="Control">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile TreeDataGridCellsPresenter > Control:nth-child(5)" x:SetterTargetType="Control">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+    <Style Selector=".mobile TreeDataGridRow Button.historyDetails" x:SetterTargetType="Button">
+      <Setter Property="IsVisible" Value="False" />
+    </Style>
+  </UserControl.Styles>
+
   <DockPanel>
     <StackPanel Margin="0 20 0 20" HorizontalAlignment="Left" DockPanel.Dock="Top" Orientation="Horizontal" Spacing="6" VerticalAlignment="Center">
       <TextBlock VerticalAlignment="Center" Text="Transactions" FontSize="{StaticResource FontSizeH5}" />
@@ -225,6 +242,7 @@
           </Style>
         </TreeDataGrid.Styles>
       </TreeDataGrid>
+
       <DummyRowsControl Margin="{StaticResource HistoryTablePlaceholderPanelMargin}"
                         RowHeight="{StaticResource TreeDataGridRowHeight}"
                         IsVisible="{Binding IsTransactionHistoryEmpty}">

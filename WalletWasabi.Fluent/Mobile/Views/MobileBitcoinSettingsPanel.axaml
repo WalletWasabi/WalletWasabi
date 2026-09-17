@@ -1,0 +1,31 @@
+<UserControl xmlns="https://github.com/avaloniaui" xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:m="using:WalletWasabi.Fluent.Mobile.Controls"
+             xmlns:ime="clr-namespace:Avalonia.Input.TextInput;assembly=Avalonia.Base"
+             xmlns:vm="using:WalletWasabi.Fluent.ViewModels.Settings" x:Class="WalletWasabi.Fluent.Mobile.Views.MobileBitcoinSettingsPanel"
+             x:DataType="vm:BitcoinTabSettingsViewModel" x:CompileBindings="True">
+  <StackPanel Margin="0,12" Spacing="{DynamicResource MobileSpaceMedium}" IsEnabled="{Binding !IsReadOnly}">
+    <Border Classes="mobile-card"><m:MobileSettingsField Header="Bitcoin network" Description="Addresses and node settings must belong to the selected network.">
+      <ComboBox Name="BitcoinNetwork" Classes="mobile-select" ItemsSource="{Binding Networks}" SelectedItem="{Binding Settings.Network, Mode=TwoWay}" AutomationProperties.Name="Bitcoin network"/>
+    </m:MobileSettingsField></Border>
+    <Border Classes="mobile-card"><StackPanel Spacing="{DynamicResource MobileSpaceLarge}">
+      <m:MobileSettingsField Header="Full node endpoint" Description="Wasabi downloads blocks from this Bitcoin RPC endpoint.">
+        <TextBox Name="RpcEndpoint" Classes="mobile-input" Text="{Binding BitcoinRpcUri, Mode=TwoWay}" Watermark="http://host:8332"
+                 ime:TextInputOptions.AutoCapitalization="False" ime:TextInputOptions.ShowSuggestions="False" AutomationProperties.Name="Bitcoin RPC endpoint">
+          <Interaction.Behaviors><WhitespacePasteRemovalBehavior/><WhitespaceInputRemovalBehavior/></Interaction.Behaviors>
+        </TextBox>
+      </m:MobileSettingsField>
+      <m:MobileSettingsField Header="RPC credentials" Description="Use an rpcuser:rpcpassword credential string or a supported cookie-file setting.">
+        <TextBox Name="RpcCredentials" Classes="mobile-input" Text="{Binding BitcoinRpcCredentialString, Mode=TwoWay}"
+                 PasswordChar="●" RevealPassword="False" IsUndoEnabled="False" Watermark="Credentials"
+                 ime:TextInputOptions.IsSensitive="True" ime:TextInputOptions.ShowSuggestions="False" ime:TextInputOptions.AutoCapitalization="False"
+                 AutomationProperties.Name="Bitcoin RPC credentials"/>
+      </m:MobileSettingsField>
+      <Button Name="VerifyNodeConnection" Classes="mobile-button" Content="Verify connection" Command="{Binding VerifyConnectionCommand}" HorizontalAlignment="Stretch"/>
+      <TextBlock Text="{Binding ConnectionStatusMessage}" Classes="mobile-connection-status" Classes.success="{Binding ConnectionStatusIsSuccess}"/>
+    </StackPanel></Border>
+    <Border Classes="mobile-card"><m:MobileSettingsField Header="Dust attack limit (BTC)" Description="Small incoming payments below this limit may be hidden when an address has already received coins.">
+      <TextBox Name="DustAttackLimit" Classes="mobile-input" Text="{Binding DustThreshold, Mode=TwoWay}" Watermark="0.00000000"
+               ime:TextInputOptions.ShowSuggestions="False" AutomationProperties.Name="Dust attack limit in BTC"/>
+    </m:MobileSettingsField></Border>
+  </StackPanel>
+</UserControl>

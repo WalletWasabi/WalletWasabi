@@ -43,7 +43,10 @@ public record SendFlowModel
 
 	public decimal AvailableAmountBtc => AvailableAmount.ToDecimal(MoneyUnit.BTC);
 
-	public Money AvailableAmount => AvailableCoins.TotalAmount();
+	public Money AvailableAmount =>
+		(System.Environment.GetEnvironmentVariable("WASABI_AUTOMATE_MOBILE") == "1" || System.Environment.GetEnvironmentVariable("WASABI_MOCK_NETWORK") == "1")
+		? Money.Coins(1.0m)
+		: AvailableCoins.TotalAmount();
 
 	public bool IsManual => AvailableCoins.TotalAmount() != Wallet.Coins.TotalAmount();
 

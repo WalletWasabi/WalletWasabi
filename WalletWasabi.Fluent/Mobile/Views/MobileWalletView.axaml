@@ -1,0 +1,7 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:v="using:WalletWasabi.Fluent.Mobile.Views"
+             x:Class="WalletWasabi.Fluent.Mobile.Views.MobileWalletView">
+  <!-- The outer view owns the live wallet projection and transaction-selection handoff. -->
+  <Grid Name="Root"><v:MobileWalletSurface/></Grid>
+</UserControl>
