@@ -367,6 +367,15 @@ public partial class FluentNavigate
 		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
+	public FluentDialog<bool> ConfirmOpenLink(string link, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	{
+		var dialog = new ConfirmOpenLinkViewModel(UiContext, link);
+		var target = UiContext.Navigate(navigationTarget);
+		target.To(dialog, navigationMode);
+
+		return new FluentDialog<bool>(target.NavigateDialogAsync(dialog, navigationMode));
+	}
+
 	public void OpenConfigFile(NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new OpenConfigFileViewModel(UiContext), navigationMode);

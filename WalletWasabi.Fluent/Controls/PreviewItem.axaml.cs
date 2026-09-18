@@ -98,7 +98,7 @@ public class PreviewItem : ContentControl
 		var isCopyButtonVisible = button.CopyCommand.IsExecuting
 			.CombineLatest(this.WhenAnyValue(x => x.IsPointerOver, x => x.CopyableContent, (a, b) => a && !string.IsNullOrWhiteSpace(b?.ToString())))
 			.Select(x => x.First || x.Second)
-			.CombineLatest(this.WhenAnyValue(x => x.IsCopyButtonEnabled))
+			.CombineLatest(this.WhenAnyValue(x => x.IsCopyButtonEnabled, x => x.PrivacyModeEnabled, (enabled, privacy) => enabled && !privacy))
 			.Select(x => x.First && x.Second);
 
 		Bind(IsCopyButtonVisibleProperty, isCopyButtonVisible);

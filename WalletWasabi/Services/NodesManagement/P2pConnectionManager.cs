@@ -78,13 +78,14 @@ public class P2pConnectionManager : IDisposable
 	private const int MinCompactFilterNodes = 5;
 	private const double RotationScoreThreshold = 1.1;
 	private const int DefaultCrawlerCount = 10;
+	private const int MaxPeersPerNetgroup = 3;
 
 	private static readonly TimeSpan ReconnectCooldown = TimeSpan.FromMinutes(5);
 	private static readonly TimeSpan QuickDisconnectThreshold = TimeSpan.FromSeconds(30);
 	private static readonly TimeSpan MaintainInterval = TimeSpan.FromSeconds(6);
 	private static readonly TimeSpan RotateInterval = TimeSpan.FromMinutes(3);
-	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(10);
-	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(3);
+	private static readonly TimeSpan CrawlerConnectionTimeout = TimeSpan.FromSeconds(15);
+	private static readonly TimeSpan CrawlerHarvestTimeout = TimeSpan.FromSeconds(4);
 
 	private readonly Network _network;
 	private readonly List<NodeBehavior> _templateBehaviors = [];
@@ -319,7 +320,7 @@ public class P2pConnectionManager : IDisposable
 		Logger.LogInfo($"Current timeout value used on block download is: {timeout} seconds.");
 	}
 
-	private async Task<PeerInfo[]> GetPeersAsync(CancellationToken cancellationToken)
+	private async Task<PeerInfo[]> GetDiscoveredPeersAsync(CancellationToken cancellationToken)
 	{
 		if (_discoveryCoordinator is null)
 		{
@@ -374,13 +375,61 @@ public class P2pConnectionManager : IDisposable
 			.Select(kvp => kvp.Key)
 			.ToHashSet();
 
-		var peers = await GetPeersAsync(cancellationToken).ConfigureAwait(false);
-		var availablePeers = peers.Where(p => IsAvailable(p.Endpoint)).ToArray();
+		// Track netgroup counts for connected nodes
+		var netgroupCounts = _connectedNodes.Values
+			.GroupBy(n => GetNetgroup(n.PeerInfo.Endpoint))
+			.ToDictionary(g => g.Key, g => g.Count());
+
+		var peers = await GetDiscoveredPeersAsync(cancellationToken).ConfigureAwait(false);
+		var availablePeers = peers
+			.Select(p => (Peer: p, NetGroup: GetNetgroup(p.Endpoint)))
+			.Where(p => IsAvailable(p.Peer.Endpoint))
+			.GroupBy(p => p.NetGroup)
+			.SelectMany(g => g.OrderByDescending(p => p.Peer.Score).Take(MaxPeersPerNetgroup - netgroupCounts.GetValueOrDefault(g.Key, 0)))
+			.Select(p => p.Peer)
+			.ToArray();
+
 		return availablePeers;
 
 		bool IsAvailable(EndPoint endpoint) =>
-			!connectedKeys.Contains(endpoint) && !cooldownEndpoints.Contains(endpoint);
+			!connectedKeys.Contains(endpoint) &&
+			!cooldownEndpoints.Contains(endpoint);
 	}
+
+	private static string GetNetgroup(EndPoint endpoint)
+	{
+		if (endpoint is IPEndPoint ipEp)
+		{
+			var ip = ipEp.Address;
+
+			if (ip.IsIPv4MappedToIPv6)
+			{
+				ip = ip.MapToIPv4();
+			}
+
+			if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetwork)
+			{
+				var b = ip.GetAddressBytes();
+				return $"v4:{Convert.ToHexString(b.AsSpan(0,2))}"; // /16 fallback. Bitcoin Core uses an AS map instead
+			}
+
+			if (ip.AddressFamily == System.Net.Sockets.AddressFamily.InterNetworkV6)
+			{
+				var b = ip.GetAddressBytes(); // 16 bytes
+				return $"v6:{Convert.ToHexString(b.AsSpan(0, 4))}";
+			}
+		}
+
+		if (endpoint is DnsEndPoint dns && IsOnionHost(dns.Host))
+		{
+			return "onion:*";
+		}
+
+		return $"other:{endpoint.GetType().Name}";
+	}
+
+	static bool IsOnionHost(string host) =>
+		host.EndsWith(".onion", StringComparison.OrdinalIgnoreCase);
 
 	private async Task ConnectToPeerAsync(PeerInfo peerInfo, CancellationToken cancellationToken)
 	{
@@ -709,8 +758,21 @@ public class P2pConnectionManager : IDisposable
 
 	private async Task<Node?> VisitEndpointAsync(EndPoint endpoint, CancellationToken cancellationToken)
 	{
+		if (!endpoint.IsValid() || endpoint.IsI2P())
+		{
+			return null;
+		}
+
+		if (endpoint is IPEndPoint {Address: var ip} && ip.IsCjdns())
+		{
+			return null;
+		}
+
 		using var timeoutCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeoutCts.CancelAfter(CrawlerConnectionTimeout);
+		var crawlerConnectionTimeout = endpoint is DnsEndPoint dnsEndPoint && IsOnionHost(dnsEndPoint.Host)
+			? CrawlerConnectionTimeout * 2
+			: CrawlerConnectionTimeout;
+		timeoutCts.CancelAfter(crawlerConnectionTimeout);
 
 		var connParams = new NodeConnectionParameters
 		{
@@ -721,7 +783,7 @@ public class P2pConnectionManager : IDisposable
 
 		if (_torSocks5 is { } torEndpoint)
 		{
-			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint));
+			connParams.TemplateBehaviors.Add(new SocksSettingsBehavior(torEndpoint, onlyForOnionHosts: false, streamIsolation:false, networkCredential:null));
 		}
 		else if (endpoint.IsTor())
 		{

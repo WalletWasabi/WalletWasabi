@@ -1,6 +1,4 @@
-using DynamicData;
 using NBitcoin;
-using ReactiveUI;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reactive.Disposables;
@@ -12,7 +10,6 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Hwi.Models;
-using WalletWasabi.Models;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;

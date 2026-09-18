@@ -30,7 +30,8 @@ public class CoinJoinClient
 		CoinJoinConfiguration coinJoinConfiguration,
 		InputVerifier verifyInputsExistance,
 		LiquidityClueProvider liquidityClueProvider,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
+		int minAnonScoreForPayments = 0)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_keyChain = keyChain;
@@ -42,6 +43,7 @@ public class CoinJoinClient
 		_coinJoinCoinSelector = coinJoinCoinSelector;
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
+		_minAnonScoreForPayments = minAnonScoreForPayments;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -58,6 +60,7 @@ public class CoinJoinClient
 	private readonly InputVerifier _verifyInputsExistance;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
+	private readonly int _minAnonScoreForPayments;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -784,7 +787,9 @@ public class CoinJoinClient
 		// Verify other participants' inputs to detect a malicious coordinator.
 		await _verifyInputsExistance(theirCoins.ToArray(), cancellationToken).ConfigureAwait(false);
 
-		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
+		var arePaymentsAllowed = registeredAliceClients.All(x => x.SmartCoin.IsPrivate(_minAnonScoreForPayments));
+
+		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum(), arePaymentsAllowed).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoinEffectiveValues, outputTxOuts, roundParameters.MiningFeeRate, availableVsizes, roundParameters.MaxAmountCredentialValue, roundParameters.MaxVsizeCredentialValue);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);
@@ -840,7 +845,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
+	internal async Task<(Transaction UnsignedCoinJoin, ImmutableArray<AliceClient> AliceClientsThatSigned)> ProceedWithSigningStateAsync(
 		uint256 roundId,
 		ImmutableArray<AliceClient> registeredAliceClients,
 		IEnumerable<TxOut> outputTxOuts,
@@ -866,12 +871,20 @@ public class CoinJoinClient
 		// now when we identify as satoshi.
 		// In this scenario we should ban the coordinator and stop dealing with it.
 		// see more: https://github.com/WalletWasabi/WalletWasabi/issues/8171
-		var isItSoloCoinjoin = signingState.Inputs.Count() == registeredAliceClients.Length;
+		var actualInputCount = signingState.Inputs.Count();
+		var isItSoloCoinjoin = actualInputCount == registeredAliceClients.Length;
 		var isItForbiddenSoloCoinjoining = isItSoloCoinjoin && !_coinJoinConfiguration.AllowSoloCoinjoining;
 		if (isItForbiddenSoloCoinjoining)
 		{
 			Logger.LogInfo("I am the only one in that coinjoin.", roundState);
 		}
+
+		var hasTooFewInputs = actualInputCount < _coinJoinConfiguration.AbsoluteMinInputCount;
+		if (hasTooFewInputs)
+		{
+			Logger.LogInfo(FormatLog($"Transaction has {actualInputCount} inputs but minimum required is {_coinJoinConfiguration.AbsoluteMinInputCount}.", roundState));
+		}
+
 		bool allMyOutputsArePresent = SanityCheck(outputTxOuts, unsignedCoinJoin.Transaction.Outputs);
 
 		if (!allMyOutputsArePresent)
@@ -888,7 +901,7 @@ public class CoinJoinClient
 			Logger.LogInfo(FormatLog("Effective fee rate of the transaction is lower than expected.", roundState));
 		}
 
-		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
+		var mustSignAllInputs = !isItForbiddenSoloCoinjoining && !hasTooFewInputs && allMyOutputsArePresent && !isCoordinatorTakingExtraFees;
 		if (!mustSignAllInputs)
 		{
 			Logger.LogInfo(FormatLog("A subset of inputs will be signed.", roundState));
