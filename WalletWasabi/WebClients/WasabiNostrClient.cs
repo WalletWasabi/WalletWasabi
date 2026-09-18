@@ -18,12 +18,14 @@ public class WasabiNostrClient : IDisposable
 	private readonly Dictionary<string, NostrEvent> _events = new();
 	private readonly HashSet<object> _eoseReceivedFrom = new();
 	private readonly INostrClient _nostrClient;
+	private readonly string _pubkey;
 	private readonly string _nostrSubscriptionId = Guid.NewGuid().ToString();
 	private int _connectedClientsCount;
 
-	public WasabiNostrClient(INostrClient nostrClient)
+	public WasabiNostrClient(INostrClient nostrClient, string pubkeyNpub)
 	{
 		_nostrClient = nostrClient;
+		_pubkey = NIP19.FromNIP19Npub(pubkeyNpub).ToHex();
 		_nostrClient.EventsReceived += OnNostrEventsReceived;
 		_nostrClient.EoseReceived += OnEoseReceived;
 	}
@@ -60,6 +62,11 @@ public class WasabiNostrClient : IDisposable
 
 		foreach (var nostrEvent in args.events)
 		{
+			if (nostrEvent.PublicKey != _pubkey)
+			{
+				continue;
+			}
+
 			if (!_events.TryAdd(nostrEvent.Id, nostrEvent))
 			{
 				continue;

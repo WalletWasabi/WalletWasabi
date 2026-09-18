@@ -6,7 +6,7 @@ public partial class LinkViewModel : ViewModelBase
 {
 	public LinkViewModel(UiContext uiContext) : base(uiContext)
 	{
-		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.FileSystem.OpenBrowserAsync(link));
+		OpenBrowserCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.OpenBrowserAsync(link));
 
 		CopyLinkCommand = ReactiveCommand.CreateFromTask<string>(async (link) => await UiContext.Clipboard.SetTextAsync(link));
 	}

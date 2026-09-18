@@ -4,6 +4,7 @@ using System.Linq;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.BlockFilters;
 using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -94,6 +95,13 @@ public class KeyManagementTests
 
 		var newLastKey = manager.GetKeys(KeyState.Clean, isInternal: false).Last();
 		Assert.Equal(manager.MinGapLimit, newLastKey.Index - lastKey.Index);
+	}
+
+	[Fact]
+	public void OnlyUsePrivateFundsForPaymentsIsOffByDefault()
+	{
+		Assert.False(KeyManager.CreateNew(out _, "", Network.Main).OnlyUsePrivateFundsForPayments);
+		Assert.True(new PrivacyProfiles.MaximizePrivacy().OnlyUsePrivateFundsForPayments);
 	}
 
 	[Fact]

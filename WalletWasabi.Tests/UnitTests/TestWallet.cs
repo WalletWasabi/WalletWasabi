@@ -8,9 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Crypto;
-using WalletWasabi.Helpers;
 using WalletWasabi.WabiSabi.Client;
-using WalletWasabi.Extensions;
 
 namespace WalletWasabi.Tests.UnitTests;
 
@@ -57,38 +55,6 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		return (tx, biggestUtxo);
 	}
 
-	public Transaction CreateSelfTransfer(FeeRate feeRate)
-	{
-		var (tx, spendingCoin) = CreateTemplateTransaction();
-		tx.Outputs.Add(spendingCoin.Amount - feeRate.GetFeeWithZero(Constants.P2wpkhOutputVirtualSize), CreateNewAddress());
-		return tx;
-	}
-
-	public async Task<Transaction> SendToAsync(Money amount, Script scriptPubKey, FeeRate feeRate, CancellationToken cancellationToken)
-	{
-		const int FinalSignedTxVirtualSize = 222;
-		var effectiveOutputCost = amount + feeRate.GetFeeWithZero(FinalSignedTxVirtualSize);
-		var tx = CreateSelfTransfer(FeeRate.Zero);
-
-		if (tx.Outputs[0].Value < effectiveOutputCost)
-		{
-			throw new ArgumentException("Not enough satoshis in input.");
-		}
-
-		if (effectiveOutputCost != tx.Outputs[0].Value)
-		{
-			tx.Outputs[0].Value -= effectiveOutputCost;
-			tx.Outputs.Add(amount, scriptPubKey);
-		}
-		else
-		{
-			// Sending whole coin.
-			tx.Outputs[0].ScriptPubKey = scriptPubKey;
-		}
-		await SendRawTransactionAsync(SignTransaction(tx), cancellationToken).ConfigureAwait(false);
-		return tx;
-	}
-
 	public async Task<uint256> SendRawTransactionAsync(Transaction tx, CancellationToken cancellationToken)
 	{
 		var txid = await Rpc.SendRawTransactionAsync(tx, cancellationToken).ConfigureAwait(false);
@@ -109,9 +75,6 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		signedTx.Sign(secrets, inputsToSign);
 		return signedTx;
 	}
-
-	public ExtPubKey GetSegwitAccountExtPubKey() =>
-		ExtKey.Derive(KeyPath.Parse("m/84'/0'/0'")).Neuter();
 
 	public ExtPubKey GetExtPubKey(Script scriptPubKey) =>
 		ScriptPubKeys[scriptPubKey].Neuter();
@@ -151,9 +114,6 @@ public class TestWallet : IKeyChain, IDestinationProvider
 		Enumerable.Range(0, count).Select(_ => CreateNewAddress());
 
 	public IEnumerable<ScriptType> SupportedScriptTypes { get; } = [ScriptType.P2WPKH];
-
-	public IEnumerable<IDestination> GetNextInternalDestinations(int count) =>
-		Enumerable.Range(0, count).Select(_ => CreateNewAddress(true));
 
 	public void ScanTransaction(Transaction tx)
 	{

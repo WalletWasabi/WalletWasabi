@@ -137,7 +137,7 @@ public record CpfpInfoArrived;
 public record WalletLoaded(Wallet Wallet);
 
 public record NewTransactionInMempool(SmartTransaction Transaction);
-public record ChainReorganized(FilterModel Filter);
+public record ChainReorganized(ChainHeight invalidBlockHeight, uint256 invalidBlockHash);
 public record FiltersReceived(FilterModel[] Filters);
 public record WalletRelevantTransactionProcessed(string WalletName, ProcessedResult Result);
 public record NodeDisconnectedQuickly(EndPoint EndPoint, Node Node);

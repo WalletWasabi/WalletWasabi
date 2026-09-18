@@ -1,4 +1,6 @@
 using WalletWasabi.BitcoinRpc;
+using WalletWasabi.Crypto.Randomness;
+using WalletWasabi.Extensions;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
@@ -20,7 +22,7 @@ public static class InputVerifiers
 
 			var sampleSize = Math.Max(1, (int)(coins.Length * samplePercentage));
 			var sample = coins
-				.OrderBy(_ => Random.Shared.Next())
+				.ToShuffled(RandomnessProviders.Secure)
 				.Take(sampleSize)
 				.ToList();
 

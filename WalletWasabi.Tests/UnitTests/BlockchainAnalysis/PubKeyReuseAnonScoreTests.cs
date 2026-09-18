@@ -67,7 +67,7 @@ public class PubKeyReuseAnonScoreTests
 		var reuse = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			othersInputCount: 0,
-			Enumerable.Empty<Money>(),
+			[],
 			new[] { (Money.Coins(1.1m), 100, BitcoinFactory.CreateHdPubKey(km)) },
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, reuse) });
 
@@ -108,7 +108,7 @@ public class PubKeyReuseAnonScoreTests
 		var key = BitcoinFactory.CreateHdPubKey(km);
 		var tx = BitcoinFactory.CreateSmartTransaction(
 			othersInputCount: 0,
-			Enumerable.Empty<Money>(),
+			[],
 			new[] { (Money.Coins(1.1m), 100, key), (Money.Coins(1.2m), 100, key), (Money.Coins(1.3m), 100, key), (Money.Coins(1.4m), 100, key) },
 			new[] { (Money.Coins(1m), HdPubKey.DefaultHighAnonymitySet, BitcoinFactory.CreateHdPubKey(km)) });
 

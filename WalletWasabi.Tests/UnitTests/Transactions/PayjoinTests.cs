@@ -11,6 +11,7 @@ using System.Text;
 using WalletWasabi.Tests.Helpers;
 using System.Net.Mime;
 using WalletWasabi.Tests.UnitTests.Mocks;
+using WalletWasabi.Userfacing;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -54,6 +55,132 @@ public class PayjoinTests
 
 		// Assert that the final URI does not contain `something=1` and that it contains proper parameters (in lowercase!).
 		Assert.Equal("http://test.me/btc/?v=1&disableoutputsubstitution=false&maxadditionalfeecontribution=5000000", result.AbsoluteUri);
+	}
+
+	[Fact]
+	public void ApplyOptionalParametersWithDisableOutputSubstitutionTest()
+	{
+		var clientParameters = new PayjoinClientParameters
+		{
+			Version = 1,
+			MaxAdditionalFeeContribution = new Money(50, MoneyUnit.MilliBTC),
+			DisableOutputSubstitution = true
+		};
+
+		Uri result = PayjoinClient.ApplyOptionalParameters(new Uri("http://test.me/btc/"), clientParameters);
+
+		Assert.Contains("disableoutputsubstitution=true", result.AbsoluteUri);
+	}
+
+	[Fact]
+	public void PjosZeroInvoiceStillSignsAProposalWithAReplacedDestination()
+	{
+		using var merchantKey = new Key();
+		using var attackerKey = new Key();
+		var merchantAddress = merchantKey.PubKey.WitHash.GetAddress(Network.Main);
+		var merchantScript = merchantAddress.ScriptPubKey;
+		var attackerScript = attackerKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit);
+		var amount = Money.Coins(0.001m);
+		const string endpoint = "https://payjoin.invalid/endpoint";
+
+		// This is a genuine merchant invoice. pjos=0 requires the sender to forbid
+		// replacement of the output paying merchantAddress.
+		var uri = $"bitcoin:{merchantAddress}?amount=0.001&pj={Uri.EscapeDataString(endpoint)}&pjos=0";
+		var parsed = Assert.IsType<Address.Bip21Uri>(AddressParser.Parse(uri, Network.Main).Value);
+		Assert.Equal("0", parsed.PayjoinOutputSubstitution);
+
+		Uri? requestUri = null;
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = async request =>
+		{
+			requestUri = request.RequestUri;
+			var body = await request.Content!.ReadAsStringAsync().ConfigureAwait(false);
+			var proposal = PSBT.Parse(body, Network.Main).GetGlobalTransaction();
+
+			// The untrusted Payjoin endpoint keeps the amount unchanged but replaces
+			// the authenticated merchant destination with the attacker's destination.
+			var paymentOutput = proposal.Outputs.Single(x => x.ScriptPubKey == merchantScript);
+			paymentOutput.ScriptPubKey = attackerScript;
+
+			return new HttpResponseMessage(HttpStatusCode.OK)
+			{
+				Content = new StringContent(
+					PSBT.FromTransaction(proposal, Network.Main).ToHex(),
+					Encoding.UTF8,
+					MediaTypeNames.Text.Plain)
+			};
+		};
+
+		// This mirrors SendViewModel: only the pj endpoint is propagated. The parsed
+		var payjoinClient = new PayjoinClient(new Uri(parsed.PayjoinEndpoint!), mockHttpClient, parsed.PayjoinOutputSubstitution != "0");
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(
+			[("sender", 0, 0.1m, true, 1)]);
+		var parameters = TransactionParametersBuilder.CreateDefault()
+			.SetFeeRate(2)
+			.SetAllowUnconfirmed(true)
+			.SetPayment(new PaymentIntent(merchantScript, amount))
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+
+		var result = transactionFactory.BuildTransaction(parameters, payjoinClient: payjoinClient);
+		var finalTransaction = result.Transaction.Transaction;
+
+		Assert.NotNull(requestUri);
+		Assert.Contains("disableoutputsubstitution=false", requestUri.Query);
+		Assert.DoesNotContain(finalTransaction.Outputs, x => x.ScriptPubKey == merchantScript);
+		Assert.Contains(finalTransaction.Outputs, x => x.ScriptPubKey == attackerScript && x.Value == amount);
+		Assert.True(result.Signed);
+	}
+
+	[Fact]
+	public void OutputSubstitutionRejectedWhenPjosDisabledTest()
+	{
+		// BIP78: When pjos=0, the receiver must not substitute outputs.
+		// This tests that we reject proposals that substitute the payment output when output substitution is disabled.
+		var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
+		var amountToPay = Money.Coins(0.001m);
+		var originalDestination = BitcoinFactory.CreateScript();
+		var attackerDestination = BitcoinFactory.CreateScript();
+		var payment = new PaymentIntent(originalDestination, amountToPay);
+
+		// Malicious server substitutes the payment output with attacker's address
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
+			{
+				var globalTx = psbt.GetGlobalTransaction();
+
+				// Find and substitute the payment output
+				foreach (var output in globalTx.Outputs)
+				{
+					if (output.ScriptPubKey == originalDestination)
+					{
+						output.ScriptPubKey = attackerDestination;
+					}
+				}
+
+				return PSBT.FromTransaction(globalTx, Network.Main);
+			});
+
+		// Create PayjoinClient with output substitution disabled (pjos=0)
+		var payjoinClient = new PayjoinClient(new Uri("http://localhost"), mockHttpClient, disableOutputSubstitution: true);
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+
+		// The transaction should fall back to non-payjoin because the substitution attack was detected
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: payjoinClient);
+
+		// Verify the attack was blocked - the transaction should only have the original input
+		Assert.Single(tx.Transaction.Transaction.Inputs);
+
+		// The payment should go to the original destination, not the attacker
+		var paymentOutput = tx.Transaction.Transaction.Outputs.FirstOrDefault(o => o.Value == amountToPay);
+		Assert.NotNull(paymentOutput);
+		Assert.Equal(originalDestination, paymentOutput.ScriptPubKey);
 	}
 
 	[Fact]
@@ -392,6 +519,119 @@ public class PayjoinTests
 			.Build();
 		tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
 		Assert.Single(tx.Transaction.Transaction.Inputs);
+	}
+
+	[Fact]
+	public void ChangeTheftByScriptSubstitutionIsRejected()
+	{
+		// Scenario: Attacker substitutes the sender's change script with their own.
+		// Expected: The attack is detected by value conservation checks and rejected.
+		var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
+		var amountToPay = Money.Coins(0.001m);
+		var paymentDestination = BitcoinFactory.CreateScript();
+		var attackerScript = BitcoinFactory.CreateScript();
+		var payment = new PaymentIntent(paymentDestination, amountToPay);
+
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
+			{
+				var globalTx = psbt.GetGlobalTransaction();
+
+				// Malicious server substitutes the change output's script with attacker's script
+				// while keeping the same value, effectively stealing the entire change
+				foreach (var output in globalTx.Outputs)
+				{
+					if (output.ScriptPubKey != paymentDestination)
+					{
+						// This is the change output - substitute it with attacker's address
+						output.ScriptPubKey = attackerScript;
+					}
+				}
+
+				return PSBT.FromTransaction(globalTx, Network.Main);
+			});
+
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
+		var finalTx = tx.Transaction.Transaction;
+
+		// The attack should be rejected - verify the transaction fell back to original (non-payjoin)
+		Assert.Single(finalTx.Inputs);
+
+		// Critically, verify the change output was NOT stolen - it should go to our wallet, not the attacker
+		var changeOutput = finalTx.Outputs.SingleOrDefault(o => o.ScriptPubKey != paymentDestination);
+		Assert.NotNull(changeOutput);
+
+		// The change should NOT go to the attacker
+		Assert.NotEqual(attackerScript, changeOutput.ScriptPubKey);
+
+		// The change should go to the wallet's change address (the key manager should recognize it)
+		Assert.True(transactionFactory.KeyManager.TryGetKeyForScriptPubKey(changeOutput.ScriptPubKey, out _),
+			"Change output script should be recognized by KeyManager");
+
+		// Verify the payment output is preserved correctly
+		var paymentOutput = finalTx.Outputs.SingleOrDefault(o => o.ScriptPubKey == paymentDestination);
+		Assert.NotNull(paymentOutput);
+		Assert.Equal(amountToPay, paymentOutput.Value);
+	}
+
+	[Fact]
+	public void ChangeSkimmingIsRejected()
+	{
+		var walletCoins = new[] { ("Pablo", 0, 0.1m, confirmed: true, anonymitySet: 1) };
+		var amountToPay = Money.Coins(0.001m);
+		var paymentDestination = BitcoinFactory.CreateScript();
+		var payment = new PaymentIntent(paymentDestination, amountToPay);
+
+		using var mockHttpClient = new MockHttpClient();
+		mockHttpClient.OnSendAsync = req =>
+			PayjoinServerOkAsync(req, psbt =>
+			{
+				var globalTx = psbt.GetGlobalTransaction();
+
+				// Malicious server skims value from the change output
+				// by reducing its value without adding any inputs
+				var skimAmount = Money.Coins(0.005m); // Skim 0.005 BTC
+				foreach (var output in globalTx.Outputs)
+				{
+					if (output.ScriptPubKey != paymentDestination)
+					{
+						output.Value -= skimAmount;
+					}
+				}
+
+				return PSBT.FromTransaction(globalTx, Network.Main);
+			});
+
+		var transactionFactory = ServiceFactory.CreateTransactionFactory(walletCoins);
+		var txParameters = CreateBuilder()
+			.SetPayment(payment)
+			.SetAllowedInputs(transactionFactory.Coins.Select(x => x.Outpoint))
+			.Build();
+
+		var tx = transactionFactory.BuildTransaction(txParameters, payjoinClient: NewPayjoinClient(mockHttpClient));
+		var finalTx = tx.Transaction.Transaction;
+
+		// The attack should be rejected - verify the transaction fell back to original
+		Assert.Single(finalTx.Inputs);
+
+		// Verify the change output has approximately the expected value
+		// (input amount - payment - expected fee, not the skimmed amount)
+		var changeOutput = finalTx.Outputs.SingleOrDefault(o => o.ScriptPubKey != paymentDestination);
+		Assert.NotNull(changeOutput);
+
+		var inputAmount = Money.Coins(0.1m);
+		var expectedChangeApprox = inputAmount - amountToPay - tx.Fee;
+
+		// Change should be close to expected (original transaction, not skimmed)
+		Assert.Equal(expectedChangeApprox, changeOutput.Value);
 	}
 
 	[Fact]

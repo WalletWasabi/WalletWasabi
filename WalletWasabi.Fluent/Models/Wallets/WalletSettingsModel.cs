@@ -23,7 +23,7 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
-	[AutoNotify] private bool _allowPaymentsRegardlessOfAnonScore;
+	[AutoNotify] private bool _onlyUsePrivateFundsForPayments;
 	[AutoNotify] private WalletId? _outputWalletId;
 	[AutoNotify] private ScriptType _defaultReceiveScriptType;
 	[AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
@@ -43,7 +43,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
-		_allowPaymentsRegardlessOfAnonScore = _keyManager.AllowPaymentsRegardlessOfAnonScore;
+		_onlyUsePrivateFundsForPayments = _keyManager.OnlyUsePrivateFundsForPayments;
 
 		if (!isNewWallet)
 		{
@@ -62,7 +62,7 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation,
-				x => x.AllowPaymentsRegardlessOfAnonScore)
+				x => x.OnlyUsePrivateFundsForPayments)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -109,7 +109,7 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
 		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
-		_keyManager.AllowPaymentsRegardlessOfAnonScore = AllowPaymentsRegardlessOfAnonScore;
+		_keyManager.OnlyUsePrivateFundsForPayments = OnlyUsePrivateFundsForPayments;
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;
 		_keyManager.DefaultReceiveScriptType = ScriptType.ToScriptPubKeyType(DefaultReceiveScriptType);
 		_keyManager.ChangeScriptPubKeyType = ChangeScriptPubKeyType;

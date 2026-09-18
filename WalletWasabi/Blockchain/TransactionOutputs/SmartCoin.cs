@@ -39,6 +39,7 @@ public class SmartCoin : NotifyPropertyChangedBase, IEquatable<SmartCoin>, IDest
 	public ScriptType ScriptType => ScriptPubKey.GetScriptType();
 	public Money Amount => TxOut.Value;
 	public double AnonymitySet => HdPubKey.AnonymitySet;
+	public Dictionary<uint256, double> HistoricalAnonSet => HdPubKey.HistoricalAnonSet;
 
 	public void SetAnonymitySet(double anonset, uint256? outputAnonSetReasonTxId = null)
 	{

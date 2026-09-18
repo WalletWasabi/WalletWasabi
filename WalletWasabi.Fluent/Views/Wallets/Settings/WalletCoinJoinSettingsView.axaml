@@ -53,9 +53,9 @@
       <ToggleSwitch IsChecked="{Binding NonPrivateCoinIsolation}" Command="{Binding SetNonPrivateCoinIsolationCommand}" />
     </DockPanel>
 
-    <DockPanel ToolTip.Tip="When enabled, payments in coinjoin can be funded with private coins, so you can pay without mixing non-private coins first. Disable it to save fees.">
-      <TextBlock Text="Pay in coinjoin regardless of anonymity score" />
-      <ToggleSwitch IsChecked="{Binding AllowPaymentsRegardlessOfAnonScore}" Command="{Binding SetAllowPaymentsRegardlessOfAnonScoreCommand}" />
+    <DockPanel ToolTip.Tip="When enabled, payments in coinjoin are only funded with coins that reached the anonymity score target, so a payment waits until the wallet is private. When disabled, any coin can fund them.">
+      <TextBlock Text="Only use private funds for coinjoin payments" />
+      <ToggleSwitch IsChecked="{Binding OnlyUsePrivateFundsForPayments}" Command="{Binding SetOnlyUsePrivateFundsForPaymentsCommand}" />
     </DockPanel>
 
     <DockPanel>

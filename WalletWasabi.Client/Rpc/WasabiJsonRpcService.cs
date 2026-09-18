@@ -136,7 +136,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			["isHardwareWallet"] = activeWallet.KeyManager.IsHardwareWallet,
 			["isAutoCoinjoin"] = activeWallet.KeyManager.AutoCoinJoin,
 			["isNonPrivateCoinIsolation"] = activeWallet.KeyManager.NonPrivateCoinIsolation,
-			["allowPaymentsRegardlessOfAnonScore"] = activeWallet.KeyManager.AllowPaymentsRegardlessOfAnonScore,
+			["onlyUsePrivateFundsForPayments"] = activeWallet.KeyManager.OnlyUsePrivateFundsForPayments,
 			["accounts"] = new[] { segwit }
 		};
 
@@ -314,6 +314,14 @@ public class WasabiJsonRpcService : IJsonRpcService
 						{
 							["status"] = "In progress",
 							["round"] = inProgress.RoundId.ToString()
+						});
+						break;
+
+					case SignedUnknownPayment signed:
+						stateHistory.Add(new JsonRpcResult
+						{
+							["status"] = "Signed",
+							["txid"] = signed.TransactionId.ToString()
 						});
 						break;
 

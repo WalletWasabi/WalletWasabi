@@ -28,7 +28,7 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-
+using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.Tests.Helpers;
 

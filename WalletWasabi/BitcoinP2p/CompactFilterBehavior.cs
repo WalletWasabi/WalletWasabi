@@ -7,15 +7,20 @@ using static WalletWasabi.BitcoinP2p.FilterSynchronizationState;
 
 namespace WalletWasabi.BitcoinP2p;
 
-public partial class CompactFilterBehavior(
+public class CompactFilterBehavior(
 	FilterSynchronizationState synchronizationState,
 	ConcurrentChain blockHeaderChain,
 	EventBus eventBus)
 	: NodeBehavior
 {
 	private static readonly TimeSpan TickSyncInterval = TimeSpan.FromSeconds(2);
-	private static readonly TimeSpan HeaderAssignmentTimeout = TimeSpan.FromSeconds(25);
-	private static readonly TimeSpan FilterAssignmentTimeout = TimeSpan.FromSeconds(30);
+	private static readonly TimeSpan HeaderAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(25);
+	private static readonly TimeSpan FilterAssignmentTimeoutForClearnet = TimeSpan.FromSeconds(30);
+	private static readonly TimeSpan HeaderAssignmentTimeoutForTor = TimeSpan.FromSeconds(45);
+	private static readonly TimeSpan FilterAssignmentTimeoutForTor = TimeSpan.FromSeconds(70);
+
+	private TimeSpan _headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
+	private TimeSpan _filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
 
 	private readonly Lock _lock = new();
 	private readonly List<CompactFilterPayload> _collectedFilters = [];
@@ -31,6 +36,12 @@ public partial class CompactFilterBehavior(
 	{
 		AttachedNode.StateChanged += OnStateChanged;
 		AttachedNode.MessageReceived += OnMessageReceived;
+		if (AttachedNode.Behaviors.Find<SocksSettingsBehavior>() is null)
+		{
+			_headerAssignmentTimeout = HeaderAssignmentTimeoutForClearnet;
+			_filterAssignmentTimeout = FilterAssignmentTimeoutForClearnet;
+		}
+
 	}
 
 	protected override void DetachCore()
@@ -161,16 +172,14 @@ public partial class CompactFilterBehavior(
 
 		switch (validationResult)
 		{
-			case HeaderValidationResult.Success success:
+			case HeaderValidationResult.Success:
 				Logger.LogInfo($"Successfully validated filter header range {assignment}");
-				synchronizationState.OnHeaderCompleted(assignment.StartHeight, success.Headers);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
 
 			case HeaderValidationResult.NotReadyYet:
 				Logger.LogDebug($"Buffering filter header range {assignment} for later validation");
-				synchronizationState.BufferUnvalidatedHeaders(assignment, filterHashArray, cfHeaders.PreviousFilterHeader, node.Network);
 				_assignedHeaderRange = null;
 				TrySyncNoLock(node);
 				break;
@@ -184,6 +193,25 @@ public partial class CompactFilterBehavior(
 
 	private void HandleFilterMessageNoLock(Node node, CompactFilterPayload filterPayload, RangeRequest assignment)
 	{
+		const int MaxFilterBytes = 1_000_000;
+
+		if (filterPayload.FilterBytes.Length > MaxFilterBytes)
+		{
+			Logger.LogWarning($"Filter too large: {filterPayload.FilterBytes.Length} bytes");
+			HandleInvalidNoLock(node, "Filter exceeds maximum size");
+			return;
+		}
+
+		var filter = new GolombRiceFilter(filterPayload.FilterBytes);
+
+		// Reject degenerate filters: N=0 with data present
+		if (filter.N == 0 && filter.Data.Length > 0)
+		{
+			Logger.LogWarning("Invalid filter: N=0 with non-empty data");
+			HandleInvalidNoLock(node, "Invalid compact filter received");
+			return;
+		}
+
 		_collectedFilters.Add(filterPayload);
 
 		// Check if we've received all filters for this range
@@ -219,7 +247,7 @@ public partial class CompactFilterBehavior(
 		TrySyncNoLock(node);
 	}
 
-	private FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
+	internal FilterModel[]? ValidateFilters(uint startHeight, CompactFilterPayload[] filters, Network network)
 	{
 		if (filters.Length == 0)
 		{
@@ -277,6 +305,12 @@ public partial class CompactFilterBehavior(
 			if (block is null)
 			{
 				Logger.LogWarning($"Block header not available for height {height}");
+				return null;
+			}
+
+			if (filterPayload.BlockHash != block.HashBlock)
+			{
+				Logger.LogWarning($"The filter's block hash {filterPayload.BlockHash} doesn't match the expected {block.HashBlock} at height {height}");
 				return null;
 			}
 
@@ -379,14 +413,9 @@ public partial class CompactFilterBehavior(
 
 	private void ReleaseAssignments()
 	{
-		_lock.Enter();
-		try
+		lock (_lock)
 		{
 			ReleaseAssignmentsNoLock();
-		}
-		finally
-		{
-			_lock.Exit();
 		}
 	}
 
@@ -415,7 +444,7 @@ public partial class CompactFilterBehavior(
 			if (_assignedFilterRange is not null)
 			{
 				var elapsed = nowUtc - _assignedFilterRangeAt;
-				if (elapsed > FilterAssignmentTimeout)
+				if (elapsed > _filterAssignmentTimeout)
 				{
 					HandleInvalidNoLock(node, $"Filter assignment at {_assignedFilterRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
 					return true;
@@ -426,7 +455,7 @@ public partial class CompactFilterBehavior(
 			if (_assignedHeaderRange is not null)
 			{
 				var elapsed = nowUtc - _assignedHeaderRangeAt;
-				if (elapsed > HeaderAssignmentTimeout)
+				if (elapsed > _headerAssignmentTimeout)
 				{
 					HandleInvalidNoLock(node, $"Header assignment at {_assignedHeaderRange.StartHeight} timed out after {elapsed.TotalSeconds:F1}s, disconnecting {node.Peer.Endpoint}");
 					return true;

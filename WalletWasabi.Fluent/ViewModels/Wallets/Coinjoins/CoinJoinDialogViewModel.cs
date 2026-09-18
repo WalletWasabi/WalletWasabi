@@ -90,6 +90,8 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 			}
 		});
 
+		CoordinatorHelpCommand = ReactiveCommand.CreateFromTask(() => UiContext.OpenBrowserAsync(WalletViewModel.FindCoordinatorLink));
+
 		AddPaymentCommand = ReactiveCommand.Create(
 			() => Navigate(NavigationTarget.DialogScreen).To().AddCoinJoinPayment(_walletModel, _wallet));
 
@@ -110,6 +112,8 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 
 	public bool IsCoinjoinAvailable => _coinJoinState is not null;
 
+	public string FindCoordinatorLink => WalletViewModel.FindCoordinatorLink;
+
 	public ICommand AddPaymentCommand { get; }
 
 	public ICommand CancelPaymentCommand { get; }
@@ -117,6 +121,8 @@ public partial class CoinJoinDialogViewModel : DialogViewModelBase<Unit>
 	public ICommand SelectCoinsCommand { get; }
 
 	public ICommand NavigateToCoordinatorSettingsCommand { get; }
+
+	public ICommand CoordinatorHelpCommand { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
 	{

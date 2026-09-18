@@ -103,10 +103,10 @@
                           HorizontalAlignment="Right" />
           </DockPanel>
 
-          <DockPanel ToolTip.Tip="When enabled, payments in coinjoin can be funded with private coins, so you can pay without mixing non-private coins first. Disable it to save fees.">
-            <TextBlock Text="Pay in coinjoin regardless of anonymity score" VerticalAlignment="Center" DockPanel.Dock="Left" />
-            <ToggleSwitch IsChecked="{Binding AllowPaymentsRegardlessOfAnonScore}"
-                          Command="{Binding SetAllowPaymentsRegardlessOfAnonScoreCommand}"
+          <DockPanel ToolTip.Tip="When enabled, payments in coinjoin are only funded with coins that reached the anonymity score target, so a payment waits until the wallet is private. When disabled, any coin can fund them.">
+            <TextBlock Text="Only use private funds for coinjoin payments" VerticalAlignment="Center" DockPanel.Dock="Left" />
+            <ToggleSwitch IsChecked="{Binding OnlyUsePrivateFundsForPayments}"
+                          Command="{Binding SetOnlyUsePrivateFundsForPaymentsCommand}"
                           OnContent="{x:Null}" OffContent="{x:Null}"
                           HorizontalAlignment="Right" />
           </DockPanel>
@@ -138,12 +138,19 @@
           <TextBlock Text="No coordinator is configured, so coinjoin is not available."
                      TextWrapping="Wrap" />
         </InfoMessage>
-        <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand" HorizontalAlignment="Center">
-          <StackPanel Orientation="Horizontal" Spacing="8">
-            <PathIcon Data="{StaticResource coordinator}" Height="14" />
-            <TextBlock Text="Coordinator settings" />
-          </StackPanel>
-        </Button>
+        <StackPanel Orientation="Horizontal" Spacing="20" HorizontalAlignment="Center">
+          <Button Command="{Binding NavigateToCoordinatorSettingsCommand}" Cursor="Hand">
+            <StackPanel Orientation="Horizontal" Spacing="8">
+              <PathIcon Data="{StaticResource coordinator}" Height="14" />
+              <TextBlock Text="Coordinator settings" />
+            </StackPanel>
+          </Button>
+          <Button Classes="activeHyperLink"
+                  Content="How do I find one?"
+                  Command="{Binding CoordinatorHelpCommand}"
+                  ToolTip.Tip="{Binding FindCoordinatorLink}"
+                  VerticalAlignment="Center" />
+        </StackPanel>
       </StackPanel>
 
       <!-- Coins taking part in coinjoin -->

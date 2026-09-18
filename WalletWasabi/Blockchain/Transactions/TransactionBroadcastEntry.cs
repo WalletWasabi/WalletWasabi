@@ -28,13 +28,13 @@ public class TransactionBroadcastEntry
 	private readonly List<EndPoint> _confirmedBy = new();
 	private readonly Lock _syncObj = new();
 
-	public void BroadcastedTo(EndPoint nodeEndpoint)
+	public void BroadcastedTo(EndPoint nodeEndpoint, Network network)
 	{
 		lock (_syncObj)
 		{
 			_broadcastTo.Add(nodeEndpoint);
 			var count = _broadcastTo.GroupBy(x => x).Count();
-			if (count >= NetworkBroadcaster.MinBroadcastNodes)
+			if (count >= network.MinBroadcastNodes)
 			{
 				BroadcastCompleted.TrySetResult(_broadcastTo.ToArray());
 			}

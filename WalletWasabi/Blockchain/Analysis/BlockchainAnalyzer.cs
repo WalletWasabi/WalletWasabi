@@ -250,29 +250,29 @@ public static class BlockchainAnalyzer
 					// then its anonset haven't been set yet.
 					// In that case the acquired anonset does not have to be intersected with the default anonset,
 					// so this coin gets the acquired anonset.
-					hdPubKey.SetAnonymitySet(anonset, txid);
+					coin.SetAnonymitySet(anonset, txid);
 				}
 				else if (tx.WalletVirtualInputs.Select(x => x.HdPubKey).Contains(hdPubKey))
 				{
 					// If it's a reuse of an input's pubkey, then intersection punishment is senseless.
-					hdPubKey.SetAnonymitySet(startingOutputAnonset.sanctioned, txid);
+					coin.SetAnonymitySet(startingOutputAnonset.sanctioned, txid);
 				}
-				else if (hdPubKey.HistoricalAnonSet.ContainsKey(txid))
+				else if (coin.HistoricalAnonSet.ContainsKey(txid))
 				{
 					// If we already processed this transaction for this script
 					// then we'll go with normal processing.
 					// It may be a duplicated processing or new information arrived (like other wallet loaded)
 					// If there are more anonsets already
 					// then it's address reuse that we have already punished so leave it alone.
-					if (hdPubKey.HistoricalAnonSet.Count == 1)
+					if (coin.HistoricalAnonSet.Count == 1)
 					{
-						hdPubKey.SetAnonymitySet(anonset, txid);
+						coin.SetAnonymitySet(anonset, txid);
 					}
 				}
 				else
 				{
 					// It's address reuse.
-					hdPubKey.SetAnonymitySet(Intersect(new[] { anonset, coin.AnonymitySet }), txid);
+					coin.SetAnonymitySet(Intersect(new[] { anonset, coin.AnonymitySet }), txid);
 				}
 			}
 		}
@@ -320,11 +320,11 @@ public static class BlockchainAnalyzer
 		{
 			if (Math.Abs(coin.AnonymitySet - HdPubKey.DefaultHighAnonymitySet) < 0.000001)
 			{
-				coin.HdPubKey.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
+				coin.SetAnonymitySet(startingOutputAnonset, tx.GetHash());
 			}
 			else
 			{
-				coin.HdPubKey.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, coin.AnonymitySet }), tx.GetHash());
+				coin.SetAnonymitySet(Intersect(new[] { startingOutputAnonset, coin.AnonymitySet }), tx.GetHash());
 			}
 		}
 	}
