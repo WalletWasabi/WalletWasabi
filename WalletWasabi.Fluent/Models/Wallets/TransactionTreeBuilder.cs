@@ -255,7 +255,6 @@ public class TransactionTreeBuilder
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 		coinjoinGroup.Fee = fee;
 
-		// The costs of the group are only known when they are known for every coinjoin in it.
 		if (coinjoinGroup.Children.Count > 0 && coinjoinGroup.Children.All(x => x.CoinjoinCosts is not null))
 		{
 			coinjoinGroup.CoinjoinCosts = coinjoinGroup.Children.Aggregate(CoinjoinCosts.Zero, (total, child) => total + child.CoinjoinCosts!);
