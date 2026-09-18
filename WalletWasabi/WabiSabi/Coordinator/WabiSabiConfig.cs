@@ -1,8 +1,6 @@
 using System.IO;
-using System.Net;
 using WalletWasabi.Bases;
 using WalletWasabi.Discoverability;
-using WalletWasabi.Helpers;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
