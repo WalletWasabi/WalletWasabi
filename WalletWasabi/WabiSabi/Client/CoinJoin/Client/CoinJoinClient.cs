@@ -234,7 +234,6 @@ public class CoinJoinClient
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
-		var miningFeeRate = roundState.CoinjoinState.Parameters.MiningFeeRate;
 
 		// the task is watching if the round ends during operations. If it does it will trigger cancellation.
 		using CancellationTokenSource waitRoundEndedTaskCts = new();
@@ -319,19 +318,13 @@ public class CoinJoinClient
 				return new FailedCoinJoinResult();
 			}
 
-			var effectiveInputSum = Money.Satoshis(myAliceClientsThatSigned.Sum(a => a.EffectiveValue));
-			var inputMiningFee = Money.Satoshis(myAliceClientsThatSigned.Sum(a => a.SmartCoin.Amount)) - effectiveInputSum;
-			var outputMiningFee = Money.Satoshis(outputTxOuts.Sum(o => miningFeeRate.GetFee(o.ScriptPubKey.EstimateOutputVsize())));
-			var wastedDust = effectiveInputSum - Money.Satoshis(outputTxOuts.Sum(o => o.Value)) - outputMiningFee;
-
 			return roundState.EndRoundState switch
 			{
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: mySignedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
 					UnsignedCoinJoin: unsignedCoinJoin!,
-					MiningFee: inputMiningFee + outputMiningFee,
-					WastedDust: wastedDust),
+					Costs: CalculateCosts(roundState.Assert<SigningState>(), myAliceClientsThatSigned.Select(a => a.SmartCoin.Coin), outputTxOuts)),
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
 					mySignedCoins,
 					roundState.CoinjoinState.Inputs.ToImmutableArray(),
@@ -593,6 +586,23 @@ public class CoinJoinClient
 				roundState.CreateVsizeCredentialClient(_secureRandom),
 				_coinJoinConfiguration.CoordinatorIdentifier,
 				ArenaRequestHandlerFactory($"bob-{identity}")));
+	}
+
+	internal static CoinjoinCosts CalculateCosts(SigningState signingState, IEnumerable<Coin> myInputs, IEnumerable<TxOut> myOutputs)
+	{
+		var miningFeeRate = signingState.Parameters.MiningFeeRate;
+		var myInputsArray = myInputs.ToArray();
+
+		var myOutputScripts = myOutputs.Select(output => output.ScriptPubKey).ToHashSet();
+		var myRegisteredOutputs = signingState.Outputs.Where(output => myOutputScripts.Contains(output.ScriptPubKey)).ToArray();
+
+		var miningFee =
+			myInputsArray.Sum(coin => miningFeeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize())) +
+			myRegisteredOutputs.Sum(output => miningFeeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize()));
+
+		var wastedDust = myInputsArray.Sum(coin => coin.Amount) - myRegisteredOutputs.Sum(output => output.Value) - miningFee;
+
+		return new CoinjoinCosts(miningFee, wastedDust, Money.Zero);
 	}
 
 	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)

@@ -3,6 +3,7 @@ using ReactiveUI;
 using System.Collections.Generic;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.WabiSabi.Client;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
 
@@ -52,11 +53,7 @@ public partial class TransactionModel : ReactiveObject
 
 	public Money? Fee { get; set; }
 
-	public Money? CoinjoinMiningFee { get; set; }
-
-	public Money? CoinjoinWastedDust { get; set; }
-
-	public Money? CoinjoinPaymentsTotal { get; set; }
+	public CoinjoinCosts? CoinjoinCosts { get; set; }
 
 	public bool CanCancelTransaction { get; init; }
 

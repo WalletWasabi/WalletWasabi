@@ -171,7 +171,7 @@ public class KeyManager
 
 	public List<OutPoint> ExcludedCoinsFromCoinJoin { get; private set; } = new();
 
-	public List<CoinjoinCosts> CoinjoinCosts { get; private set; } = new();
+	public Dictionary<uint256, CoinjoinCosts> CoinjoinCosts { get; private set; } = new();
 
 	public string? FilePath { get; private set; }
 
@@ -710,9 +710,9 @@ public class KeyManager
 		ToFile();
 	}
 
-	public void AddCoinjoinCosts(CoinjoinCosts coinjoinCosts)
+	public void AddCoinjoinCosts(uint256 transactionId, CoinjoinCosts coinjoinCosts)
 	{
-		CoinjoinCosts.Add(coinjoinCosts);
+		CoinjoinCosts[transactionId] = coinjoinCosts;
 		ToFile();
 	}
 
@@ -780,7 +780,7 @@ public class KeyManager
 				ChangeScriptPubKeyType = get.Optional("ChangeScriptPubKeyType", Decode.PreferredScriptPubKeyType) ?? PreferredScriptPubKeyType.Unspecified.Instance,
 				DefaultSendWorkflow = get.Optional("DefaultSendWorkflow", Decode.SendWorkflow, SendWorkflow.Automatic),
 				ExcludedCoinsFromCoinJoin = get.Optional("ExcludedCoinsFromCoinJoin", Decode.Array(Decode.OutPoint))?.ToList() ?? [],
-				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToList() ?? []
+				CoinjoinCosts = get.Optional("CoinjoinCosts", Decode.Array(Decode.CoinjoinCosts))?.ToDictionary() ?? []
 			};
 			km._hdPubKeyCache.AddRangeKeys(get.Required("HdPubKeys", Decode.Array(Decode.HdPubKey)));
 			return km;

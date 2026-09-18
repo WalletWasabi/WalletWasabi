@@ -514,7 +514,7 @@ public class CoinJoinManager : BackgroundService
 				_coinRefrigerator.Freeze(successfulCoinjoin.Coins);
 				batchedPayments.MovePaymentsToFinished(coinjoinTxId);
 				MarkDestinationsUsed(destinationProvider, successfulCoinjoin.OutputScripts);
-				wallet.KeyManager.AddCoinjoinCosts(new CoinjoinCosts(coinjoinTxId, successfulCoinjoin.MiningFee, successfulCoinjoin.WastedDust, paymentsTotal));
+				wallet.KeyManager.AddCoinjoinCosts(coinjoinTxId, successfulCoinjoin.Costs with { PaymentsTotal = paymentsTotal });
 				Logger.LogInfo(FormatLog($"{nameof(CoinJoinClient)} finished. Coinjoin transaction was broadcast.", wallet));
 			}
 			else

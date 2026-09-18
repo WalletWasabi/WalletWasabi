@@ -5,4 +5,12 @@ namespace WalletWasabi.WabiSabi.Client;
 /// inputs and outputs, the leftover amount that couldn't be decomposed into outputs (wasted dust) and
 /// the total value of the payments made within the coinjoin.
 /// </summary>
-public record CoinjoinCosts(uint256 TransactionId, Money MiningFee, Money WastedDust, Money PaymentsTotal);
+public record CoinjoinCosts(Money MiningFee, Money WastedDust, Money PaymentsTotal)
+{
+	public static readonly CoinjoinCosts Zero = new(Money.Zero, Money.Zero, Money.Zero);
+
+	public Money TotalFee => MiningFee + WastedDust;
+
+	public static CoinjoinCosts operator +(CoinjoinCosts left, CoinjoinCosts right) =>
+		new(left.MiningFee + right.MiningFee, left.WastedDust + right.WastedDust, left.PaymentsTotal + right.PaymentsTotal);
+}

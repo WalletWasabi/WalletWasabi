@@ -6,8 +6,7 @@ public record SuccessfulCoinJoinResult(
 	ImmutableList<SmartCoin> Coins,
 	ImmutableList<Script> OutputScripts,
 	Transaction UnsignedCoinJoin,
-	Money MiningFee,
-	Money WastedDust) : CoinJoinResult;
+	CoinjoinCosts Costs) : CoinJoinResult;
 
 public record FailedCoinJoinResult : CoinJoinResult;
 

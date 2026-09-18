@@ -119,12 +119,12 @@ public static partial class Encode
 			("BannedUntil", DatetimeOffset(r.BannedUntil))
 		]);
 
-	public static JsonNode CoinjoinCosts(CoinjoinCosts costs) =>
+	public static JsonNode CoinjoinCosts(KeyValuePair<uint256, CoinjoinCosts> costs) =>
 		Object([
-			("TransactionId", UInt256(costs.TransactionId)),
-			("MiningFee", MoneySatoshis(costs.MiningFee)),
-			("WastedDust", MoneySatoshis(costs.WastedDust)),
-			("PaymentsTotal", MoneySatoshis(costs.PaymentsTotal))
+			("TransactionId", UInt256(costs.Key)),
+			("MiningFee", MoneySatoshis(costs.Value.MiningFee)),
+			("WastedDust", MoneySatoshis(costs.Value.WastedDust)),
+			("PaymentsTotal", MoneySatoshis(costs.Value.PaymentsTotal))
 		]);
 
 	public static JsonNode ClientPrison(IEnumerable<PrisonedCoinRecord> p) =>
@@ -223,11 +223,12 @@ public static partial class Decode
 			get.Required("BannedUntil", DateTimeOffset)
 		));
 
-	public static Decoder<CoinjoinCosts> CoinjoinCosts =>
-		Object(get => new CoinjoinCosts(
+	public static Decoder<KeyValuePair<uint256, CoinjoinCosts>> CoinjoinCosts =>
+		Object(get => KeyValuePair.Create(
 			get.Required("TransactionId", UInt256),
-			get.Required("MiningFee", MoneySatoshis),
-			get.Required("WastedDust", MoneySatoshis),
-			get.Required("PaymentsTotal", MoneySatoshis)
+			new CoinjoinCosts(
+				get.Required("MiningFee", MoneySatoshis),
+				get.Required("WastedDust", MoneySatoshis),
+				get.Required("PaymentsTotal", MoneySatoshis))
 		));
 }

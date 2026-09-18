@@ -20,14 +20,6 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
-	[AutoNotify] private string _coinJoinFeeRawString = "";
-	[AutoNotify] private string _coinJoinFeeString = "";
-	[AutoNotify] private Amount? _coinJoinFeeAmount;
-	[AutoNotify] private Amount? _miningFeeAmount;
-	[AutoNotify] private Amount? _wastedDustAmount;
-	[AutoNotify] private Amount? _paymentsAmount;
-	[AutoNotify] private bool _isFeeBreakdownVisible;
-	[AutoNotify] private bool _isPaymentsVisible;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
@@ -36,6 +28,9 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	{
 		_wallet = wallet;
 		_transaction = transaction;
+
+		Costs = new CoinjoinCostsViewModel(wallet.AmountProvider.Create);
+
 		var allWalletInputs = transaction.WalletInputs.Union(transaction.Children.SelectMany(x => x.WalletInputs)).ToList();
 		var allWalletOutputs = transaction.WalletOutputs.Union(transaction.Children.SelectMany(x => x.WalletOutputs)).ToList();
 		var freshWalletInputs = allWalletInputs.Where(x => !allWalletOutputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
@@ -66,6 +61,7 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	public CoinjoinCoinListViewModel InputList { get; }
 	public CoinjoinCoinListViewModel OutputList { get; }
+	public CoinjoinCostsViewModel Costs { get; }
 
 	public TimeSpan? ConfirmationTime { get; set; }
 
@@ -88,30 +84,10 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 		{
 			Date = transaction.DateToolTipString;
 			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
-			UpdateCosts(transaction);
+			Costs.Update(transaction);
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;
 		}
-	}
-
-	private void UpdateCosts(TransactionModel transaction)
-	{
-		if (transaction.CoinjoinMiningFee is { } miningFee && transaction.CoinjoinWastedDust is { } wastedDust)
-		{
-			// The costs were recorded when the coinjoins were made, so the payments are not reported as fees.
-			CoinJoinFeeAmount = _wallet.AmountProvider.Create(miningFee + wastedDust);
-			MiningFeeAmount = _wallet.AmountProvider.Create(miningFee);
-			WastedDustAmount = _wallet.AmountProvider.Create(wastedDust);
-			IsFeeBreakdownVisible = true;
-		}
-		else
-		{
-			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
-			IsFeeBreakdownVisible = false;
-		}
-
-		IsPaymentsVisible = transaction.CoinjoinPaymentsTotal is { } payments && payments != Money.Zero;
-		PaymentsAmount = IsPaymentsVisible ? _wallet.AmountProvider.Create(transaction.CoinjoinPaymentsTotal!) : null;
 	}
 }

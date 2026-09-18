@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -255,11 +256,9 @@ public class TransactionTreeBuilder
 		coinjoinGroup.Fee = fee;
 
 		// The costs of the group are only known when they are known for every coinjoin in it.
-		if (coinjoinGroup.Children.All(x => x.CoinjoinMiningFee is not null))
+		if (coinjoinGroup.Children.Count > 0 && coinjoinGroup.Children.All(x => x.CoinjoinCosts is not null))
 		{
-			coinjoinGroup.CoinjoinMiningFee = coinjoinGroup.Children.Sum(x => x.CoinjoinMiningFee ?? Money.Zero);
-			coinjoinGroup.CoinjoinWastedDust = coinjoinGroup.Children.Sum(x => x.CoinjoinWastedDust ?? Money.Zero);
-			coinjoinGroup.CoinjoinPaymentsTotal = coinjoinGroup.Children.Sum(x => x.CoinjoinPaymentsTotal ?? Money.Zero);
+			coinjoinGroup.CoinjoinCosts = coinjoinGroup.Children.Aggregate(CoinjoinCosts.Zero, (total, child) => total + child.CoinjoinCosts!);
 		}
 
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
@@ -289,7 +288,6 @@ public class TransactionTreeBuilder
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
-		var coinjoinCosts = _wallet.KeyManager.CoinjoinCosts.FirstOrDefault(x => x.TransactionId == transactionSummary.GetHash());
 
 		return new TransactionModel
 		{
@@ -313,9 +311,7 @@ public class TransactionTreeBuilder
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Fee = transactionSummary.GetFee(),
 			FeeRate = transactionSummary.FeeRate(),
-			CoinjoinMiningFee = coinjoinCosts?.MiningFee,
-			CoinjoinWastedDust = coinjoinCosts?.WastedDust,
-			CoinjoinPaymentsTotal = coinjoinCosts?.PaymentsTotal
+			CoinjoinCosts = _wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(transactionSummary.GetHash())
 		};
 	}
 
