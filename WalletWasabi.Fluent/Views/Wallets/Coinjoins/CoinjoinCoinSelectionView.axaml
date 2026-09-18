@@ -1,0 +1,53 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
+             xmlns:coins="clr-namespace:WalletWasabi.Fluent.Views.Wallets.Coins"
+             xmlns:sorting="clr-namespace:WalletWasabi.Fluent.Controls.Sorting"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="800" d:DesignHeight="450"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.CoinjoinCoinSelectionView"
+             x:DataType="vm:CoinjoinCoinSelectionViewModel"
+             x:CompileBindings="True">
+  <ContentArea Title="{Binding Title}"
+               EnableBack="{Binding EnableBack}"
+               EnableNext="True"
+               NextContent="Done"
+               EnableCancel="False"
+               IsBusy="{Binding IsBusy}"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <ContentArea.Caption>Only the selected coins will be used as inputs for coinjoin. Unselected coins are excluded and will not gain privacy.</ContentArea.Caption>
+    <ContentArea.TopContent>
+      <StackPanel Orientation="Horizontal" Spacing="4">
+        <Button DockPanel.Dock="Right" Theme="{StaticResource DialogSortButton}" ToolTip.Tip="Sorting">
+          <Button.Flyout>
+            <Flyout Placement="BottomEdgeAlignedRight">
+              <sorting:SortControl Sortables="{Binding CoinList.Sortables}" />
+            </Flyout>
+          </Button.Flyout>
+        </Button>
+        <ToggleButton Theme="{StaticResource DialogSelectAllButton}"
+                      Command="{Binding ToggleSelectionCommand}"
+                      IsChecked="{Binding HasSelection}" />
+      </StackPanel>
+    </ContentArea.TopContent>
+    <DockPanel>
+      <InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+                   HorizontalAlignment="Center"
+                   Opacity="{Binding IsCoinjoining, Converter={x:Static conv:BoolOpacityConverters.BoolToOpacity}}"
+                   DockPanel.Dock="Bottom"
+                   Margin="0,16,0,0">
+        <TextBlock Text="Stop the coinjoin process to change the selected coins." />
+      </InfoMessage>
+      <InfoMessage Foreground="{DynamicResource WarningMessageForeground}"
+                   HorizontalAlignment="Center"
+                   IsVisible="{Binding !HasSelection}"
+                   DockPanel.Dock="Bottom"
+                   Margin="0,16,0,0">
+        <TextBlock Text="No coins are selected, so coinjoin cannot start." />
+      </InfoMessage>
+      <coins:CoinListView DataContext="{Binding CoinList}" />
+    </DockPanel>
+  </ContentArea>
+</UserControl>
