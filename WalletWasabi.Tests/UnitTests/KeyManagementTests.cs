@@ -7,6 +7,7 @@ using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.CoinJoinProfiles;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
+using WalletWasabi.WabiSabi.Client;
 using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
@@ -147,6 +148,56 @@ public class KeyManagementTests
 		Assert.Equal(manager.TaprootExtPubKey, sameManager.TaprootExtPubKey);
 		Assert.Equal(manager.SilentPaymentScanExtPubKey, sameManager.SilentPaymentScanExtPubKey);
 		Assert.Equal(manager.SilentPaymentSpendExtPubKey, sameManager.SilentPaymentSpendExtPubKey);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void CanSerializeCoinjoinCosts()
+	{
+		var filePath = "wallet-coinjoin-costs.json";
+		var manager = KeyManager.CreateNew(out _, "", Network.Main, filePath);
+		var transactionId = uint256.Parse("0000000000000000000000000000000000000000000000000000000000000001");
+
+		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(690), Money.Satoshis(10), Money.Satoshis(50_000)));
+
+		var sameManager = KeyManager.FromFile(filePath);
+
+		var (sameTransactionId, costs) = Assert.Single(sameManager.CoinjoinCosts);
+		Assert.Equal(transactionId, sameTransactionId);
+		Assert.Equal(Money.Satoshis(690), costs.MiningFee);
+		Assert.Equal(Money.Satoshis(10), costs.WastedDust);
+		Assert.Equal(Money.Satoshis(50_000), costs.PaymentsTotal);
+
+		DeleteFileAndDirectoryIfExists(filePath);
+	}
+
+	[Fact]
+	public void RecordingTheCostsOfTheSameCoinjoinTwiceKeepsOneRecord()
+	{
+		// A round can be reported more than once - the costs belong to the transaction, so the last word wins.
+		var manager = KeyManager.CreateNew(out _, "", Network.Main);
+		var transactionId = uint256.Parse("0000000000000000000000000000000000000000000000000000000000000002");
+
+		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(100), Money.Zero, Money.Zero));
+		manager.AddCoinjoinCosts(transactionId, new CoinjoinCosts(Money.Satoshis(200), Money.Zero, Money.Zero));
+
+		var (_, costs) = Assert.Single(manager.CoinjoinCosts);
+		Assert.Equal(Money.Satoshis(200), costs.MiningFee);
+	}
+
+	[Fact]
+	public void WalletsWithoutRecordedCoinjoinCostsCanStillBeLoaded()
+	{
+		// Coinjoins made before the costs were recorded have no record, and the details screen falls back to a single figure.
+		var filePath = "wallet-without-coinjoin-costs.json";
+		KeyManager.CreateNew(out _, "", Network.Main, filePath).ToFile();
+
+		var json = File.ReadAllText(filePath);
+		Assert.Contains("\"CoinjoinCosts\"", json);
+		File.WriteAllText(filePath, json.Replace("\"CoinjoinCosts\": [],", ""));
+
+		Assert.Empty(KeyManager.FromFile(filePath).CoinjoinCosts);
 
 		DeleteFileAndDirectoryIfExists(filePath);
 	}

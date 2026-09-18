@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.Wallets;
 
 namespace WalletWasabi.Fluent.Models.Wallets;
@@ -254,6 +255,11 @@ public class TransactionTreeBuilder
 		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
 		coinjoinGroup.Fee = fee;
 
+		if (coinjoinGroup.Children.Count > 0 && coinjoinGroup.Children.All(x => x.CoinjoinCosts is not null))
+		{
+			coinjoinGroup.CoinjoinCosts = coinjoinGroup.Children.Aggregate(CoinjoinCosts.Zero, (total, child) => total + child.CoinjoinCosts!);
+		}
+
 		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
@@ -303,7 +309,8 @@ public class TransactionTreeBuilder
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
 			Fee = transactionSummary.GetFee(),
-			FeeRate = transactionSummary.FeeRate()
+			FeeRate = transactionSummary.FeeRate(),
+			CoinjoinCosts = _wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(transactionSummary.GetHash())
 		};
 	}
 

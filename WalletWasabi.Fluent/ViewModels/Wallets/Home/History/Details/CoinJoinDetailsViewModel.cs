@@ -17,7 +17,6 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	private readonly TransactionModel _transaction;
 
 	[AutoNotify] private string _date = "";
-	[AutoNotify] private Amount? _coinJoinFeeAmount;
 	[AutoNotify] private uint256? _transactionId;
 	[AutoNotify] private bool _isConfirmed;
 	[AutoNotify] private uint _confirmations;
@@ -34,6 +33,8 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		_wallet = wallet;
 		_transaction = transaction;
 
+		Costs = new CoinjoinCostsViewModel(wallet.AmountProvider.Create);
+
 		TransactionHex = transaction.Hex.Value;
 
 		SetupCancel(enableCancel: false, enableCancelOnEscape: true, enableCancelOnPressed: true);
@@ -42,6 +43,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	public CoinjoinCoinListViewModel InputList { get; }
 	public CoinjoinCoinListViewModel OutputList { get; }
+	public CoinjoinCostsViewModel Costs { get; }
 	public string TransactionHex { get; }
 
 	protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
@@ -59,7 +61,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
 		{
 			Date = transaction.DateToolTipString;
-			CoinJoinFeeAmount = _wallet.AmountProvider.Create(Math.Abs(transaction.Amount));
+			Costs.Update(transaction);
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;
