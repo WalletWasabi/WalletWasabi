@@ -1,6 +1,8 @@
 using System.Collections.Generic;
 using System.Collections.Immutable;
+using System.Diagnostics;
 using System.Linq;
+using System.Net.Http;
 using System.Reflection;
 using System.Threading;
 using System.Threading.Tasks;
@@ -107,8 +109,10 @@ public class CoinJoinClientTests
 		Assert.Null(requestHandler.CapturedSignature);
 	}
 
-	[Fact]
-	public async Task RoundEndedBeforeRegistrationIsNotReportedAsRejectedAsync()
+	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public async Task RoundEndedBeforeRegistrationIsNotReportedAsRejectedAsync(bool coordinatorAnswers)
 	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig { StandardInputRegistrationTimeout = TimeSpan.FromMinutes(1) });
 		var roundState = RoundState.FromRound(round);
@@ -116,10 +120,11 @@ public class CoinJoinClientTests
 		round.SetPhase(Phase.Ended);
 
 		// The coordinator already aborted the round, but the client's round state is still in input registration.
+		// Either the coordinator says so, or it doesn't answer before our round status shows the end.
 		var (keyChain, coin, _) = WabiSabiFactory.CreateCoinKeyPairs();
 		var requestHandler = new InputRegistrationFailingRequestHandler(
 			RoundState.FromRound(round),
-			new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, exceptionData: new WrongPhaseExceptionData(Phase.Ended)));
+			coordinatorAnswers ? new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, exceptionData: new WrongPhaseExceptionData(Phase.Ended)) : null);
 		using var updaterCts = new CancellationTokenSource();
 		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, updaterCts.Token);
 		var coinJoinClient = CreateCoinJoinClient(keyChain, requestHandler, new RoundStateProvider(roundStateUpdater));
@@ -142,17 +147,22 @@ public class CoinJoinClientTests
 		Assert.Equal(EndRoundState.AbortedNotEnoughAlices, roundEnded?.LastRoundState.EndRoundState);
 	}
 
+	public static TheoryData<Exception, CoinjoinError> RegistrationErrors => new()
+	{
+		{ new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(DateTimeOffset.UtcNow.AddDays(1))), CoinjoinError.CoinsRejected },
+		{ new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound), CoinjoinError.UserWasntInRound },
+		{ new HttpRequestException("The coordinator is unreachable."), CoinjoinError.UserWasntInRound },
+	};
+
 	[Theory]
-	[InlineData(WabiSabiProtocolErrorCode.InputBanned, CoinjoinError.CoinsRejected)]
-	[InlineData(WabiSabiProtocolErrorCode.InputSpent, CoinjoinError.UserWasntInRound)]
-	public async Task FailedRegistrationIsReportedWithoutWaitingForTheRoundAsync(WabiSabiProtocolErrorCode errorCode, CoinjoinError expectedError)
+	[MemberData(nameof(RegistrationErrors))]
+	public async Task FailedRegistrationIsReportedWithoutWaitingForTheRoundAsync(Exception registrationError, CoinjoinError expectedError)
 	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig { StandardInputRegistrationTimeout = TimeSpan.FromMinutes(1) });
 		var roundState = RoundState.FromRound(round);
 
 		var (keyChain, coin, _) = WabiSabiFactory.CreateCoinKeyPairs();
-		var exceptionData = errorCode is WabiSabiProtocolErrorCode.InputBanned ? new InputBannedExceptionData(DateTimeOffset.UtcNow.AddDays(1)) : null;
-		var requestHandler = new InputRegistrationFailingRequestHandler(roundState, new WabiSabiProtocolException(errorCode, exceptionData: exceptionData));
+		var requestHandler = new InputRegistrationFailingRequestHandler(roundState, registrationError);
 
 		// Round states are never updated, so the client would time out if it waited for the round to end.
 		using var updaterCts = new CancellationTokenSource();
@@ -280,7 +290,8 @@ public class CoinJoinClientTests
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());
 
-	private sealed class InputRegistrationFailingRequestHandler(RoundState roundState, Exception registrationError) : IWabiSabiApiRequestHandler
+	/// <summary>Fails every input registration with the given error, or never answers when there is none.</summary>
+	private sealed class InputRegistrationFailingRequestHandler(RoundState roundState, Exception? registrationError) : IWabiSabiApiRequestHandler
 	{
 		private readonly TaskCompletionSource _registrationAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
 
@@ -289,10 +300,16 @@ public class CoinJoinClientTests
 		public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
 			Task.FromResult(new RoundStateResponse([roundState]));
 
-		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 		{
 			_registrationAttempted.TrySetResult();
-			return Task.FromException<InputRegistrationResponse>(registrationError);
+			if (registrationError is not null)
+			{
+				throw registrationError;
+			}
+
+			await Task.Delay(Timeout.Infinite, cancellationToken);
+			throw new UnreachableException();
 		}
 
 		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
