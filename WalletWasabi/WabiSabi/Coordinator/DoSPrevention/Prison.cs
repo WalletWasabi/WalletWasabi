@@ -1,5 +1,4 @@
 using System.Threading.Channels;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 
 namespace WalletWasabi.WabiSabi.Coordinator.DoSPrevention;
 
@@ -15,7 +14,7 @@ public class Prison
 	private readonly Dictionary<uint256, List<Offender>> _offendersByTxId;
 	private readonly Dictionary<OutPoint, TimeFrame> _banningTimeCache = new();
 
-	/// <remarks>_lock object to guard <see cref="_offendersByTxId"/>and <see cref="_banningTimeCache"/></remarks>
+	/// <remarks>Lock object to guard <see cref="_offendersByTxId"/>and <see cref="_banningTimeCache"/></remarks>
 	private readonly Lock _lock = new();
 
 	public void CoordinatorStabilitySafetyBan(OutPoint outPoint, uint256 roundId) =>
@@ -111,7 +110,7 @@ public class Prison
 		var banningTime = EffectiveMinTimeFrame(offender switch
 		{
 			null => TimeFrame.Zero,
-			{ Offense: CoordinatorStabilitySafety } => new TimeFrame(offender.StartedTime, configuration.MinTimeInPrison + TimeSpan.FromHours(new Random().Next(0, 4))),
+			{ Offense: CoordinatorStabilitySafety } => new TimeFrame(offender.StartedTime, configuration.MinTimeInPrison + TimeSpan.FromHours(Random.Shared.Next(0, 4))),
 			{ Offense: FailedToVerify } => new TimeFrame(offender.StartedTime, configuration.MinTimeForFailedToVerify),
 			{ Offense: Cheating } => new TimeFrame(offender.StartedTime, configuration.MinTimeForCheating),
 			{ Offense: RoundDisruption offense } => new TimeFrame(offender.StartedTime, CalculatePunishment(offender, offense)),
@@ -123,6 +122,7 @@ public class Prison
 		{
 			_banningTimeCache[outpoint] = banningTime;
 		}
+
 		return banningTime;
 	}
 
@@ -139,8 +139,9 @@ public class Prison
 				_offendersByTxId.Add(offender.OutPoint.Hash, new List<Offender> { offender });
 			}
 
-			_banningTimeCache.Remove(offender.OutPoint);
+			_ = _banningTimeCache.Remove(offender.OutPoint);
 		}
+
 		if (!_notificationChannelWriter.TryWrite(offender))
 		{
 			Logger.LogWarning($"Failed to persist offender '{offender.OutPoint}'.");
