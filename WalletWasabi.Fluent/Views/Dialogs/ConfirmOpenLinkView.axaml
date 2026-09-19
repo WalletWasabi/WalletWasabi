@@ -1,0 +1,41 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:dialog="using:WalletWasabi.Fluent.ViewModels.Dialogs"
+             mc:Ignorable="d" d:DesignWidth="428" d:DesignHeight="371"
+             x:DataType="dialog:ConfirmOpenLinkViewModel"
+             x:CompileBindings="True"
+             x:Class="WalletWasabi.Fluent.Views.Dialogs.ConfirmOpenLinkView">
+  <ContentArea Title="{Binding Title}"
+               Caption="Detected an attempt to open a website link in your default browser"
+               ScrollViewer.VerticalScrollBarVisibility="Disabled">
+    <QuestionControl Content="Do you want to launch your default browser?"
+                     YesCommand="{Binding NextCommand}"
+                     NoCommand="{Binding CancelCommand}"
+                     HighlightButton="YesButton">
+      <QuestionControl.IconContent>
+        <ScrollViewer>
+          <StackPanel Spacing="15" Margin="0,0,0,32" MaxWidth="500" HorizontalAlignment="Stretch" VerticalAlignment="Top">
+
+            <!-- Website link -->
+            <PreviewItem Label="Website Link" Icon="{StaticResource globe}">
+              <DockPanel HorizontalAlignment="Left">
+                <ClipboardCopyButton DockPanel.Dock="Right" Width="30" ToolTip.Tip="Copy" Text="{Binding Link}" />
+                <TextBlock Text="{Binding Link}" TextWrapping="Wrap" />
+              </DockPanel>
+            </PreviewItem>
+            <Separator />
+
+            <!-- Explanation -->
+            <PreviewItem Label="Warning" Icon="{StaticResource warning_regular}">
+              <TextBlock Text="Opening this link in your default browser will reveal your IP address unless Tor Browser is set as the default. If you want to keep your privacy, copy the link and open it in Tor Browser manually."
+                         TextWrapping="Wrap" />
+            </PreviewItem>
+
+          </StackPanel>
+        </ScrollViewer>
+      </QuestionControl.IconContent>
+    </QuestionControl>
+  </ContentArea>
+</UserControl>

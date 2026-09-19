@@ -1,0 +1,59 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:coinjoins="clr-namespace:WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins"
+             xmlns:conv="clr-namespace:WalletWasabi.Fluent.Converters"
+             mc:Ignorable="d" d:DesignWidth="800"
+             x:Class="WalletWasabi.Fluent.Views.Wallets.Coinjoins.CoinjoinCostsView"
+             x:DataType="coinjoins:CoinjoinCostsViewModel"
+             x:CompileBindings="True">
+  <StackPanel Spacing="15">
+
+    <!-- Fees -->
+    <PreviewItem Icon="{StaticResource btc_logo}"
+                 Label="Fees"
+                 CopyableContent="{Binding TotalFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+      <PrivacyContentControl>
+        <AmountControl Classes="WithUsd" Amount="{Binding TotalFeeAmount}" />
+      </PrivacyContentControl>
+    </PreviewItem>
+
+    <!-- Mining fee -->
+    <PreviewItem IsVisible="{Binding IsBreakdownVisible}"
+                 Margin="25 0 0 0"
+                 Icon="{StaticResource paper_cash_regular}"
+                 Label="Mining fee"
+                 ToolTip.Tip="Fee paid to miners for the wallet's inputs and outputs."
+                 CopyableContent="{Binding MiningFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+      <PrivacyContentControl>
+        <AmountControl Classes="WithUsd" Amount="{Binding MiningFeeAmount}" />
+      </PrivacyContentControl>
+    </PreviewItem>
+
+    <!-- Wasted dust -->
+    <PreviewItem IsVisible="{Binding IsBreakdownVisible}"
+                 Margin="25 0 0 0"
+                 Icon="{StaticResource coinjoin_cost}"
+                 Label="Wasted dust"
+                 ToolTip.Tip="Leftover amount that was too small to become an output, so it was given up."
+                 CopyableContent="{Binding WastedDustAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+      <PrivacyContentControl>
+        <AmountControl Classes="WithUsd" Amount="{Binding WastedDustAmount}" />
+      </PrivacyContentControl>
+    </PreviewItem>
+
+    <Separator IsVisible="{Binding ArePaymentsVisible}" />
+
+    <!-- Payments -->
+    <PreviewItem IsVisible="{Binding ArePaymentsVisible}"
+                 Icon="{StaticResource embedded_payment}"
+                 Label="Payments"
+                 ToolTip.Tip="Total value of the payments batched into the coinjoin."
+                 CopyableContent="{Binding PaymentsAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
+      <PrivacyContentControl>
+        <AmountControl Classes="WithUsd" Amount="{Binding PaymentsAmount}" />
+      </PrivacyContentControl>
+    </PreviewItem>
+  </StackPanel>
+</UserControl>

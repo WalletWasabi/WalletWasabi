@@ -155,7 +155,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	/// Synchronizes filters from Bitcoin Core RPC using the production Synchronizer.
 	/// This fetches all compact block filters from the current tip and stores them.
 	/// </summary>
-	public async Task SyncFiltersRpcAsync(CancellationToken cancellationToken = default)
+	public async Task SyncFiltersRpcAsync(CancellationToken cancellationToken)
 	{
 		// Build block header chain from RPC - required for reorg detection
 		var blockHeaderChain = await BuildBlockHeaderChainAsync(cancellationToken).ConfigureAwait(false);
@@ -193,7 +193,7 @@ public sealed class RegTestEnvironment : IAsyncDisposable
 	/// Synchronizes filters from Bitcoin Core P2P network using the production Synchronizer.
 	/// This uses the compact filter protocol (BIP 157/158) to fetch filters from a connected peer.
 	/// </summary>
-	public async Task SyncFiltersP2PAsync(CancellationToken cancellationToken = default)
+	public async Task SyncFiltersP2PAsync(CancellationToken cancellationToken)
 	{
 		var blockHeaderChain = new ConcurrentChain(Network);
 

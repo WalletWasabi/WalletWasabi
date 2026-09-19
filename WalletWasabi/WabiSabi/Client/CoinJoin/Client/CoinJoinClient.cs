@@ -30,7 +30,8 @@ public class CoinJoinClient
 		CoinJoinConfiguration coinJoinConfiguration,
 		InputVerifier verifyInputsExistance,
 		LiquidityClueProvider liquidityClueProvider,
-		TimeSpan doNotRegisterInLastMinuteTimeLimit = default)
+		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
+		int minAnonScoreForPayments = 0)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_keyChain = keyChain;
@@ -42,6 +43,7 @@ public class CoinJoinClient
 		_coinJoinCoinSelector = coinJoinCoinSelector;
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
+		_minAnonScoreForPayments = minAnonScoreForPayments;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -58,6 +60,7 @@ public class CoinJoinClient
 	private readonly InputVerifier _verifyInputsExistance;
 	private readonly CoinJoinCoinSelector _coinJoinCoinSelector;
 	private readonly TimeSpan _doNotRegisterInLastMinuteTimeLimit;
+	private readonly int _minAnonScoreForPayments;
 	private readonly TimeSpan _maxWaitingTimeForRound = TimeSpan.FromMinutes(10);
 
 	private async Task<RoundState> WaitForRoundAsync(uint256 excludeRound, CancellationToken token)
@@ -324,7 +327,8 @@ public class CoinJoinClient
 				EndRoundState.TransactionBroadcasted => new SuccessfulCoinJoinResult(
 					Coins: mySignedCoins,
 					OutputScripts: outputTxOuts.Select(o => o.ScriptPubKey).ToImmutableList(),
-					UnsignedCoinJoin: unsignedCoinJoin!),
+					UnsignedCoinJoin: unsignedCoinJoin!,
+					Costs: CalculateCosts(roundState.Assert<SigningState>(), myAliceClientsThatSigned.Select(a => a.SmartCoin.Coin), outputTxOuts)),
 				EndRoundState.NotAllAlicesSign => new DisruptedCoinJoinResult(
 					mySignedCoins,
 					roundState.CoinjoinState.Inputs.ToImmutableArray(),
@@ -596,6 +600,23 @@ public class CoinJoinClient
 				ArenaRequestHandlerFactory($"bob-{identity}")));
 	}
 
+	internal static CoinjoinCosts CalculateCosts(SigningState signingState, IEnumerable<Coin> myInputs, IEnumerable<TxOut> myOutputs)
+	{
+		var miningFeeRate = signingState.Parameters.MiningFeeRate;
+		var myInputsArray = myInputs.ToArray();
+
+		var myOutputScripts = myOutputs.Select(output => output.ScriptPubKey).ToHashSet();
+		var myRegisteredOutputs = signingState.Outputs.Where(output => myOutputScripts.Contains(output.ScriptPubKey)).ToArray();
+
+		var miningFee =
+			myInputsArray.Sum(coin => miningFeeRate.GetFee(coin.ScriptPubKey.EstimateInputVsize())) +
+			myRegisteredOutputs.Sum(output => miningFeeRate.GetFee(output.ScriptPubKey.EstimateOutputVsize()));
+
+		var wastedDust = myInputsArray.Sum(coin => coin.Amount) - myRegisteredOutputs.Sum(output => output.Value) - miningFee;
+
+		return new CoinjoinCosts(miningFee, wastedDust, Money.Zero);
+	}
+
 	internal static bool SanityCheck(IEnumerable<TxOut> expectedOutputs, IEnumerable<TxOut> coinJoinOutputs)
 	{
 		var consolidatedOutputs = expectedOutputs
@@ -788,7 +809,9 @@ public class CoinJoinClient
 		// Verify other participants' inputs to detect a malicious coordinator.
 		await _verifyInputsExistance(theirCoins.ToArray(), cancellationToken).ConfigureAwait(false);
 
-		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum()).ToArray();
+		var arePaymentsAllowed = registeredAliceClients.All(x => x.SmartCoin.IsPrivate(_minAnonScoreForPayments));
+
+		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum(), arePaymentsAllowed).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoinEffectiveValues, outputTxOuts, roundParameters.MiningFeeRate, availableVsizes, roundParameters.MaxAmountCredentialValue, roundParameters.MaxVsizeCredentialValue);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);

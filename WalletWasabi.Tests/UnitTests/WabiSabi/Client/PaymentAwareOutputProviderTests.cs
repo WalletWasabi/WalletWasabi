@@ -38,7 +38,8 @@ public class PaymentAwareOutputProviderTests
 			roundParameters,
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
-			availableVsize).ToArray();
+			availableVsize,
+			arePaymentsAllowed: true).ToArray();
 
 		var nonAwaredOutputProvider = new OutputProvider(wallet, RandomnessProviders.Insecure);
 		var decomposedOutputs = nonAwaredOutputProvider.GetOutputs(
@@ -46,7 +47,8 @@ public class PaymentAwareOutputProviderTests
 			roundParameters,
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
-			availableVsize).ToArray();
+			availableVsize,
+			arePaymentsAllowed: true).ToArray();
 
 		static decimal ToDecimal(TxOut o) => o.Value.ToDecimal(MoneyUnit.BTC);
 		Assert.Equal(outputs.Sum(ToDecimal), decomposedOutputs.Sum(ToDecimal));
@@ -88,7 +90,8 @@ public class PaymentAwareOutputProviderTests
 			roundParameters,
 			registeredCoinsEffectiveValues,
 			new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m), Money.Coins(0.0025m), Money.Coins(0.0001m) },
-			int.MaxValue).ToArray();
+			int.MaxValue,
+			arePaymentsAllowed: true).ToArray();
 
 		Assert.All(payments.Take(4).Zip(scriptPubKeys, outputs, (x, y, z) => (Payment: x, Destination: y, Output: z)), x =>
 		{
@@ -100,6 +103,48 @@ public class PaymentAwareOutputProviderTests
 		Assert.InRange(outputs.Sum(x => x.Value.ToDecimal(MoneyUnit.BTC)),
 			totalRegisteredEffectiveValue - 0.00025m,
 			totalRegisteredEffectiveValue); // no money was lost
+	}
+
+	[Fact]
+	public void DoNotCreateOutputsForPaymentsWhenPaymentsAreNotAllowedTest()
+	{
+		var rpc = new MockRpcClient();
+		var wallet = new TestWallet("random-wallet", rpc);
+		var paymentBatch = new PaymentBatch();
+
+		using Key key = new();
+		var destination = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network);
+		paymentBatch.AddPayment(destination, Money.Coins(0.1m));
+
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var registeredCoinsEffectiveValues = new[] { Money.Coins(0.5m) };
+		var theirCoinEffectiveValues = new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m) };
+
+		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch, RandomnessProviders.Insecure);
+		var outputs = outputProvider.GetOutputs(
+			roundId: uint256.Zero,
+			roundParameters,
+			registeredCoinsEffectiveValues,
+			theirCoinEffectiveValues,
+			availableVsize: 1_000,
+			arePaymentsAllowed: false).ToArray();
+
+		// The payment was not registered and it is still waiting for a round where it can be funded.
+		Assert.DoesNotContain(outputs, x => x.ScriptPubKey == destination.ScriptPubKey);
+		Assert.True(paymentBatch.AreTherePendingPayments);
+
+		// Everything that was registered got decomposed, exactly like a payment-unaware provider does.
+		var nonAwaredOutputProvider = new OutputProvider(wallet, RandomnessProviders.Insecure);
+		var decomposedOutputs = nonAwaredOutputProvider.GetOutputs(
+			uint256.Zero,
+			roundParameters,
+			registeredCoinsEffectiveValues,
+			theirCoinEffectiveValues,
+			availableVsize: 1_000,
+			arePaymentsAllowed: false).ToArray();
+
+		static decimal ToDecimal(TxOut o) => o.Value.ToDecimal(MoneyUnit.BTC);
+		Assert.Equal(outputs.Sum(ToDecimal), decomposedOutputs.Sum(ToDecimal));
 	}
 
 	[Theory]
