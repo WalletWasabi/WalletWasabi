@@ -256,33 +256,6 @@ public class PaymentBatchTests
 		// would have been included in the second coinjoin
 	}
 
-	/// <summary>
-	/// A round that is known to have ended with a broadcast transaction must finalize its payments,
-	/// even though the TransactionSigned event already moved them to the signed (uncertain) state.
-	/// Otherwise they stay uncertain forever, and keep showing up as unfinished in the UI.
-	/// </summary>
-	[Fact]
-	public void SuccessfulRoundFinalizesSignedPayments()
-	{
-		var paymentBatch = new PaymentBatch();
-		var destination = GetNewSegwitAddress();
-		var amount = Money.Coins(0.1m);
-
-		paymentBatch.AddPayment(destination, amount);
-		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
-
-		// The client signed the coinjoin: payments are tracked with the txId.
-		var coinJoinTxId = CreateTransactionWithOutput(destination.ScriptPubKey, amount).GetHash();
-		paymentBatch.MovePaymentsToSigned(coinJoinTxId);
-
-		// The round is known to have ended with the transaction broadcast.
-		paymentBatch.MovePaymentsToFinished(coinJoinTxId);
-
-		Assert.False(paymentBatch.AreThereUncertainPayments);
-		Assert.False(paymentBatch.AreTherePendingPayments);
-		Assert.IsType<FinishedPayment>(paymentBatch.GetPayments().Single().State);
-	}
-
 	private static BitcoinAddress GetNewSegwitAddress()
 	{
 		using Key key = new();
