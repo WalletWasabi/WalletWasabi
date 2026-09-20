@@ -16,7 +16,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionModel _transaction;
+	private readonly CoinJoinTransactionGroupModel _transaction;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private string _status = "";
@@ -24,25 +24,23 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 	[AutoNotify] private ObservableCollection<uint256>? _transactionIds;
 	[AutoNotify] private int _txCount;
 
-	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext)
+	public CoinJoinsDetailsViewModel(UiContext uiContext, IWalletModel wallet, CoinJoinTransactionGroupModel transaction) : base(uiContext)
 	{
 		_wallet = wallet;
 		_transaction = transaction;
 
 		Costs = new CoinjoinCostsViewModel(wallet.AmountProvider.Create);
 
-		var allWalletInputs = transaction.WalletInputs.Union(transaction.Children.SelectMany(x => x.WalletInputs)).ToList();
-		var allWalletOutputs = transaction.WalletOutputs.Union(transaction.Children.SelectMany(x => x.WalletOutputs)).ToList();
+		var allWalletInputs = transaction.Children.SelectMany(x => x.WalletInputs).ToList();
+		var allWalletOutputs = transaction.Children.SelectMany(x => x.WalletOutputs).ToList();
 		var freshWalletInputs = allWalletInputs.Where(x => !allWalletOutputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
 		var finalWalletOutputs = allWalletOutputs.Where(x => !allWalletInputs.Select(y => y.Outpoint).Contains(x.Outpoint)).OrderByDescending(x => x.Amount).ToList();
 
-		var allInputs = transaction.ForeignInputs.Value
-			.Union(transaction.Children.SelectMany(x => x.ForeignInputs.Value))
+		var allInputs = transaction.Children.SelectMany(x => x.ForeignInputs.Value)
 			.Union(allWalletInputs.Select(x => x.Outpoint))
 			.ToList();
 
-		var allOutputs = transaction.ForeignOutputs.Value.Select(x => new OutPoint(x.Transaction.GetHash(), x.N))
-			.Union(transaction.Children.SelectMany(x => x.ForeignOutputs.Value.Select(y => new OutPoint(y.Transaction.GetHash(), y.N))))
+		var allOutputs = transaction.Children.SelectMany(x => x.ForeignOutputs.Value.Select(y => new OutPoint(y.Transaction.GetHash(), y.N)))
 			.Union(allWalletOutputs.Select(x => x.Outpoint))
 			.ToList();
 
@@ -80,11 +78,11 @@ public partial class CoinJoinsDetailsViewModel : RoutableViewModel
 
 	private void Update()
 	{
-		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
+		if (_wallet.Transactions.TryGetById<CoinJoinTransactionGroupModel>(_transaction.Id, out var transaction))
 		{
 			Date = transaction.DateToolTipString;
 			Status = transaction.IsConfirmed ? "Confirmed" : "Pending";
-			Costs.Update(transaction);
+			Costs.Update(transaction.CoinjoinCosts, transaction.Amount);
 			TransactionId = transaction.Id;
 			TransactionIds = new ObservableCollection<uint256>(transaction.Children.Select(x => x.Id));
 			TxCount = TransactionIds.Count;

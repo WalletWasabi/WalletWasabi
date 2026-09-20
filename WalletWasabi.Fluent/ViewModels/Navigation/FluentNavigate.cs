@@ -59,7 +59,7 @@ public partial class FluentNavigate
 		return new FluentDialog<string?>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public void TransactionDetails(IWalletModel wallet, TransactionModel model, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void TransactionDetails(IWalletModel wallet, RegularTransactionModel model, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new TransactionDetailsViewModel(UiContext, wallet, model), navigationMode);
 	}
@@ -400,7 +400,7 @@ public partial class FluentNavigate
 		return new FluentDialog<System.Reactive.Unit>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
-	public void CoinJoinDetails(IWalletModel wallet, TransactionModel transaction, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void CoinJoinDetails(IWalletModel wallet, CoinJoinTransactionModel transaction, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new CoinJoinDetailsViewModel(UiContext, wallet, transaction), navigationMode);
 	}
@@ -512,7 +512,7 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new SuccessViewModel(UiContext), navigationMode);
 	}
 
-	public void CoinJoinsDetails(IWalletModel wallet, TransactionModel transaction, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public void CoinJoinsDetails(IWalletModel wallet, CoinJoinTransactionGroupModel transaction, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
 		UiContext.Navigate(navigationTarget).To(new CoinJoinsDetailsViewModel(UiContext, wallet, transaction), navigationMode);
 	}

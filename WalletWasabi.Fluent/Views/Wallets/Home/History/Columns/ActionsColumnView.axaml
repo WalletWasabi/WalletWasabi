@@ -45,7 +45,7 @@
       <!-- Cancel -->
       <Button Classes="plain" ToolTip.Tip="Cancel Transaction"
               Command="{Binding CancelTransactionCommand}"
-              IsVisible="{Binding Transaction.CanCancelTransaction}">
+              IsVisible="{Binding CanBeCancelled}">
         <PathIcon Data="{StaticResource dismiss_light}" Height="16" />
       </Button>
 

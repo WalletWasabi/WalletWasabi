@@ -62,7 +62,7 @@
           </PathIcon>
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanBeCancelled}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
@@ -117,7 +117,7 @@
           <PathIcon Data="{StaticResource rocket_regular}" />
         </MenuItem.Icon>
       </MenuItem>
-      <MenuItem Header="Cancel Transaction" IsVisible="{Binding Transaction.CanCancelTransaction}"
+      <MenuItem Header="Cancel Transaction" IsVisible="{Binding CanBeCancelled}"
                 Command="{Binding CancelTransactionCommand}">
         <MenuItem.Icon>
           <PathIcon Data="{StaticResource dismiss_light}" />
