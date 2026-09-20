@@ -76,14 +76,7 @@
       
       <Separator />
 
-      <!-- CJ fee  -->
-      <PreviewItem Icon="{StaticResource btc_logo}"
-                   Label="Fees"
-                   CopyableContent="{Binding CoinJoinFeeAmount.Btc, Converter={x:Static conv:MoneyConverters.ToFeeWithoutUnit}}">
-        <PrivacyContentControl>
-          <AmountControl Classes="WithUsd" Amount="{Binding CoinJoinFeeAmount}" />
-        </PrivacyContentControl>
-      </PreviewItem>
+      <coinjoins:CoinjoinCostsView DataContext="{Binding Costs}" />
 
       <Separator IsVisible="{Binding IsConfirmationTimeVisible}" />
 
