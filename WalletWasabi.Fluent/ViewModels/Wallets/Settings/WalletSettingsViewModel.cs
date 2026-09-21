@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
@@ -93,7 +94,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
             if (int.Parse(MinGapLimit) > _wallet.Settings.MinGapLimit)
             {
-                _wallet.Settings.MinGapLimit = int.Parse(MinGapLimit);
+                await Task.Run(() => _wallet.Settings.MinGapLimit = int.Parse(MinGapLimit));
                 await ResyncWalletCommand!.Execute();
             }
 
