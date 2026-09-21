@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
@@ -65,10 +66,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
         SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-        var canSave = this.WhenAnyValue(x => x.WalletName, x => x.Validations,
-            (name, validations) => !string.IsNullOrWhiteSpace(name) && !validations.Any);
+        var canSave = this.WhenAnyValue(x => x.WalletName, x => x.MinGapLimit, x => x.Validations,
+            (name, _, validations) => !string.IsNullOrWhiteSpace(name) && !validations.Any);
 
-        NextCommand = ReactiveCommand.Create(() =>
+        NextCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             if (_wallet.Name != WalletName)
             {
@@ -89,6 +90,13 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             }
 
             _wallet.Settings.Save();
+
+            if (int.Parse(MinGapLimit) > _wallet.Settings.MinGapLimit)
+            {
+                _wallet.Settings.MinGapLimit = int.Parse(MinGapLimit);
+                await ResyncWalletCommand!.Execute();
+            }
+
             Navigate().Back();
         }, canSave);
 
@@ -162,11 +170,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     private void ValidateMinGapLimit(IValidationErrors errors)
     {
         var min = _wallet.Settings.MinGapLimit;
-        if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit >= min && minGapLimit <= KeyManager.MaxGapLimit)
-        {
-            _wallet.Settings.MinGapLimit = minGapLimit;
-        }
-        else
+        if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < min || minGapLimit > KeyManager.MaxGapLimit)
         {
             errors.Add(ErrorSeverity.Error, $"Must be a number between {min} and {KeyManager.MaxGapLimit}.");
         }
@@ -189,7 +193,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
-    public ICommand ResyncWalletCommand { get; }
+    public ReactiveCommand<Unit, Unit> ResyncWalletCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {
