@@ -17,7 +17,7 @@ namespace WalletWasabi.Coordinator.Controllers;
 [LateResponseLoggerFilter]
 [Route("[controller]")]
 [Produces("application/json")]
-[RequestSizeLimit(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSize)]
+[RequestSizeLimit(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSizeInBytes)]
 public class WabiSabiController : ControllerBase, IWabiSabiApiRequestHandler
 {
 	public WabiSabiController(IdempotencyRequestCache idempotencyRequestCache, Arena arena)

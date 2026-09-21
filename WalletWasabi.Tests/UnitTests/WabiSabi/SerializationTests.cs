@@ -84,8 +84,8 @@ public class SerializationTests
 		int largestValidRequest = 4 * credentialRequest;
 
 		// The cap never rejects a valid request and stays far below the Kestrel default (~30 MB).
-		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSize > largestValidRequest);
-		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSize < 30_000_000);
+		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSizeInBytes > largestValidRequest);
+		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSizeInBytes < 30_000_000);
 
 		// The limit is wired onto the coordinator endpoints.
 		Assert.NotNull(typeof(WabiSabiController).GetCustomAttribute<RequestSizeLimitAttribute>());

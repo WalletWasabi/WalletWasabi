@@ -25,7 +25,7 @@ public static class ProtocolConstants
 	// Upper bound on a coordinator request body, enforced before deserialization. The largest
 	// request permitted by the collection bounds above stays well under 400 KB, so this bounds
 	// the pre-authentication parse cost while keeping a wide margin for any valid request.
-	public const int MaxRequestSize = 2 * 1024 * 1024;
+	public const int MaxRequestSizeInBytes = 2 * 1024 * 1024;
 
 	public const string WabiSabiProtocolIdentifier = "WabiSabi_v1.0";
 	public const string DomainStrobeSeparator = "domain-separator";
