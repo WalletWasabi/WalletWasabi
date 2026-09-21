@@ -295,13 +295,13 @@ public partial class FluentNavigate
 		UiContext.Navigate(navigationTarget).To(new SchemeConsoleViewModel(UiContext, schemeInterpreter), navigationMode);
 	}
 
-	public FluentDialog<int?> ResyncWallet(uint birthHeight, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
+	public FluentDialog<(int StartingHeight, int MinGapLimit)?> ResyncWallet(uint birthHeight, int minGapLimit, NavigationTarget navigationTarget = NavigationTarget.CompactDialogScreen, NavigationMode navigationMode = NavigationMode.Normal)
 	{
-		var dialog = new ResyncWalletViewModel(UiContext, birthHeight);
+		var dialog = new ResyncWalletViewModel(UiContext, birthHeight, minGapLimit);
 		var target = UiContext.Navigate(navigationTarget);
 		target.To(dialog, navigationMode);
 
-		return new FluentDialog<int?>(target.NavigateDialogAsync(dialog, navigationMode));
+		return new FluentDialog<(int StartingHeight, int MinGapLimit)?>(target.NavigateDialogAsync(dialog, navigationMode));
 	}
 
 	public void GeneralSettingsTab(ApplicationSettings settings, NavigationTarget navigationTarget = NavigationTarget.DialogScreen, NavigationMode navigationMode = NavigationMode.Normal)

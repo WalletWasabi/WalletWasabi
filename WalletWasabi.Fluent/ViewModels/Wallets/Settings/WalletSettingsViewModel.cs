@@ -1,11 +1,9 @@
 using System.Collections.Generic;
-using System.Reactive;
 using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
 using NBitcoin;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -37,14 +35,12 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
     [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
-    [AutoNotify] private string _minGapLimit;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
         _wallet = walletModel;
         _walletName = walletModel.Name;
         _preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
-        _minGapLimit = walletModel.Settings.MinGapLimit.ToString();
         _selectedTab = 0;
         IsHardwareWallet = walletModel.IsHardwareWallet;
         IsWatchOnly = walletModel.IsWatchOnlyWallet;
@@ -64,13 +60,11 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                 }
             });
 
-        this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
-
         SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
-        var canSave = this.WhenAnyValue(x => x.WalletName, x => x.MinGapLimit, x => x.Validations,
-            (name, _, validations) => !string.IsNullOrWhiteSpace(name) && !validations.Any);
+        var canSave = this.WhenAnyValue(x => x.WalletName, x => x.Validations,
+            (name, validations) => !string.IsNullOrWhiteSpace(name) && !validations.Any);
 
-        NextCommand = ReactiveCommand.CreateFromTask(async () =>
+        NextCommand = ReactiveCommand.Create(() =>
         {
             if (_wallet.Name != WalletName)
             {
@@ -91,13 +85,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             }
 
             _wallet.Settings.Save();
-
-            if (int.Parse(MinGapLimit) > _wallet.Settings.MinGapLimit)
-            {
-                await Task.Run(() => _wallet.Settings.MinGapLimit = int.Parse(MinGapLimit));
-                await ResyncWalletCommand!.Execute();
-            }
-
             Navigate().Back();
         }, canSave);
 
@@ -126,9 +113,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var heightToResync = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight).GetResultAsync();
-            if (heightToResync is not null)
+            var result = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight, walletModel.Settings.MinGapLimit).GetResultAsync();
+            if (result is var (heightToResync, minGapLimit))
             {
+                if (minGapLimit > walletModel.Settings.MinGapLimit)
+                {
+                    await Task.Run(() => walletModel.Settings.MinGapLimit = minGapLimit);
+                }
+
                 walletModel.Settings.RescanWallet((uint)heightToResync);
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
@@ -168,15 +160,6 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             });
     }
 
-    private void ValidateMinGapLimit(IValidationErrors errors)
-    {
-        var min = _wallet.Settings.MinGapLimit;
-        if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < min || minGapLimit > KeyManager.MaxGapLimit)
-        {
-            errors.Add(ErrorSeverity.Error, $"Must be a number between {min} and {KeyManager.MaxGapLimit}.");
-        }
-    }
-
     public bool IsHardwareWallet { get; }
     public bool IsWatchOnly { get; }
     public bool SeveralReceivingScriptTypes => _wallet.SeveralReceivingScriptTypes;
@@ -194,7 +177,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
     public WalletCoinJoinSettingsViewModel WalletCoinJoinSettings { get; private set; }
     public ICommand VerifyRecoveryWordsCommand { get; }
-    public ReactiveCommand<Unit, Unit> ResyncWalletCommand { get; }
+    public ICommand ResyncWalletCommand { get; }
 
     protected override void OnNavigatedTo(bool isInHistory, CompositeDisposable disposables)
     {

@@ -21,11 +21,6 @@
     </TextBox>
   </DockPanel>
 
-    <DockPanel ToolTip.Tip="Number of unused addresses derived ahead. Raising it and saving resyncs the wallet so funds on the new addresses are found.">
-      <TextBlock Text="Gap Limit" />
-      <TextBox Classes="standalone" Text="{Binding MinGapLimit}" DockPanel.Dock="Right" Watermark="e.g., 100" MaxLength="5" />
-    </DockPanel>
-
     <DockPanel IsVisible="{Binding IsHardwareWallet}">
       <TextBlock Text="PSBT workflow" />
       <ToggleSwitch IsChecked="{Binding PreferPsbtWorkflow}" />
