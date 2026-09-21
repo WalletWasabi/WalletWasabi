@@ -177,7 +177,7 @@ public class CoinJoinClient
 			if (roundParameters.MaxSuggestedAmount != default && myCoins.Any(c => c.Amount > roundParameters.MaxSuggestedAmount))
 			{
 				excludeRound = currentRoundState.Id;
-				Logger.LogInfo(FormatLog($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{myCoins.Select(c => c.Amount).Max()}' BTC.", currentRoundState));
+				Logger.LogDebug(FormatLog($"Skipping the round for more optimal mixing. Max suggested amount is '{roundParameters.MaxSuggestedAmount}' BTC, biggest coin amount is: '{myCoins.Select(c => c.Amount).Max()}' BTC.", currentRoundState));
 
 				continue;
 			}
@@ -442,7 +442,7 @@ public class CoinJoinClient
 				{
 					case WabiSabiProtocolErrorCode.RoundNotFound:
 						// if the round does not exist then it ended/aborted.
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.", roundState));
+						Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} arrived too late because the round doesn't exist anymore. Aborting input registrations: '{WabiSabiProtocolErrorCode.RoundNotFound}'.", roundState));
 						registrationsCts.Cancel();
 						confirmationsCts.Cancel();
 						break;
@@ -450,7 +450,7 @@ public class CoinJoinClient
 					case WabiSabiProtocolErrorCode.WrongPhase:
 						if (wpe.ExceptionData is WrongPhaseExceptionData wrongPhaseExceptionData)
 						{
-							Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.", roundState));
+							Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} arrived too late. Aborting input registrations: '{WabiSabiProtocolErrorCode.WrongPhase}'.", roundState));
 							if (wrongPhaseExceptionData.CurrentPhase != Phase.InputRegistration)
 							{
 								// Cancel all remaining pending input registrations because they will arrive late too.
@@ -470,16 +470,16 @@ public class CoinJoinClient
 						break;
 
 					case WabiSabiProtocolErrorCode.AliceAlreadyRegistered:
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} was already registered.", roundState));
+						Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} was already registered.", roundState));
 						break;
 
 					case WabiSabiProtocolErrorCode.AliceAlreadyConfirmedConnection:
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} already confirmed connection.", roundState));
+						Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} already confirmed connection.", roundState));
 						break;
 
 					case WabiSabiProtocolErrorCode.InputSpent:
 						// FIXME: Now what?
-						Logger.LogWarning(FormatLog($"{coin.Coin.Outpoint} is spent according to the coordinator. The wallet is not fully synchronized, corrupted or the coordinator lies.", roundState));
+						Logger.LogWarning(FormatLog("A coin is spent according to the coordinator. The wallet is not fully synchronized, corrupted or the coordinator lies.", roundState));
 						break;
 
 					case WabiSabiProtocolErrorCode.InputBanned or WabiSabiProtocolErrorCode.InputLongBanned:
@@ -490,15 +490,15 @@ public class CoinJoinClient
 						}
 						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
 						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} is banned until {bannedUntil}.", roundState));
+						Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} is banned until {bannedUntil}.", roundState));
 						break;
 
 					case WabiSabiProtocolErrorCode.InputNotWhitelisted:
-						Logger.LogWarning(FormatLog($"{coin.Coin.Outpoint} cannot be registered in the blame round.", roundState));
+						Logger.LogWarning(FormatLog("A coin cannot be registered in the blame round.", roundState));
 						break;
 
 					default:
-						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.", roundState));
+						Logger.LogDebug(FormatLog($"{coin.Coin.Outpoint} cannot be registered: '{wpe.ErrorCode}'.", roundState));
 						break;
 				}
 			}
@@ -759,7 +759,7 @@ public class CoinJoinClient
 				if (!restrictions.PreviousRoundSignedCoins.Any(c => c.Outpoint == inputCoin.Outpoint))
 				{
 					// Blame rounds must contain only coins that were in the previous round. If a coin is not whitelisted, it means that the coordinator is trying to cheat.
-					Logger.LogWarning(FormatLog($"Coin '{inputCoin.Outpoint}' is not whitelisted for this round. Is coordinator cheating?", roundState));
+					Logger.LogWarning(FormatLog("A coin is not whitelisted for this round. Is coordinator cheating?", roundState));
 					throw new InvalidOperationException($"Round ({roundState.Id}) contains coin '{inputCoin.Outpoint}' that is not allowed.");
 				}
 			}
@@ -843,12 +843,12 @@ public class CoinJoinClient
 				switch (e)
 				{
 					case DependencyGraphTaskScheduler.UnknownError s:
-						Logger.LogInfo(FormatLog($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...", roundState));
+						Logger.LogDebug(FormatLog($"Script ({s.ScriptPubKey}) registration failed by unknown reasons. Continuing...", roundState));
 						break;
 
 					case DependencyGraphTaskScheduler.AlreadyRegisteredScriptError s:
 						_outputProvider.DestinationProvider.TrySetScriptStates(KeyState.Used, [s.ScriptPubKey]);
-						Logger.LogInfo(FormatLog($"Script ({s.ScriptPubKey}) was already registered. Continuing...", roundState));
+						Logger.LogDebug(FormatLog($"Script ({s.ScriptPubKey}) was already registered. Continuing...", roundState));
 						break;
 				}
 			}

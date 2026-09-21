@@ -96,7 +96,7 @@ public class AliceClient
 		AliceClient aliceClient = new(response.Value, roundState, arenaClient, coin, response.IssuedAmountCredentials, response.IssuedVsizeCredentials);
 		coin.CoinJoinInProgress = true;
 
-		Logger.LogInfo(FormatLog($"Registered {coin.Outpoint}.", aliceClient));
+		Logger.LogDebug(FormatLog($"Registered {coin.Outpoint}.", aliceClient));
 
 		return aliceClient;
 	}
@@ -159,7 +159,7 @@ public class AliceClient
 
 			await RemoveInputAsync(linkedCts.Token).ConfigureAwait(false);
 			SmartCoin.CoinJoinInProgress = false;
-			Logger.LogInfo(FormatLog($"Unregistered {SmartCoin.Outpoint}.", this));
+			Logger.LogDebug(FormatLog($"Unregistered {SmartCoin.Outpoint}.", this));
 		}
 		catch (OperationCanceledException e)
 		{
@@ -172,7 +172,7 @@ public class AliceClient
 		catch (Exception e)
 		{
 			// Log and swallow the exception because there is nothing else that can be done here.
-			Logger.LogWarning(FormatLog($"{SmartCoin.Coin.Outpoint} unregistration failed with {e}.", this));
+			Logger.LogWarning(FormatLog($"Unregistration failed with {e}.", this));
 		}
 	}
 

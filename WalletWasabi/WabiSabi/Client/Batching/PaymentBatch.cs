@@ -27,7 +27,7 @@ public class PaymentBatch
 		{
 			_payments.Add(payment);
 		}
-		Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
+		Logger.LogDebug($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey}.");
 		return payment.Id;
 	}
 
@@ -40,7 +40,7 @@ public class PaymentBatch
 				if (payment.State is PendingPayment)
 				{
 					_payments.Remove(payment);
-					Logger.LogInfo($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey} was canceled.");
+					Logger.LogDebug($"Payment {payment.Id} for {payment.Amount} BTC to {payment.Destination.ScriptPubKey} was canceled.");
 				}
 				else
 				{
@@ -158,7 +158,7 @@ public class PaymentBatch
 		Logger.LogInfo($"Best payment set contains {paymentSet.PaymentCount} payments.");
 		foreach (var payment in paymentSet.Payments)
 		{
-			Logger.LogInfo($"Id {payment.Id} to {payment.Destination.ScriptPubKey}  {payment.Amount.ToDecimal(MoneyUnit.BTC)} BTC.");
+			Logger.LogDebug($"Id {payment.Id} to {payment.Destination.ScriptPubKey}  {payment.Amount.ToDecimal(MoneyUnit.BTC)} BTC.");
 		}
 	}
 }
