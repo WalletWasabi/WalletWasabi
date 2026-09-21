@@ -1,5 +1,4 @@
 using NBitcoin.RPC;
-using WalletWasabi.BitcoinRpc.Models;
 
 namespace WalletWasabi.BitcoinRpc;
 
@@ -62,9 +61,9 @@ public interface IRPCClient
 
 	Task SendBatchAsync(CancellationToken cancellationToken = default);
 
-	Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default);
+	Task<GetBlockRPCResponse> GetVerboseBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default);
 
-	Task<BlockFilter> GetBlockFilterAsync(uint256 blockId, CancellationToken cancellationToken = default);
+	Task<BlockFilter> GetBlockFilterAsync(uint256 blockHash, CancellationToken cancellationToken = default);
 
 	Task<uint256[]> GenerateToAddressAsync(int nBlocks, BitcoinAddress address, CancellationToken cancellationToken = default);
 

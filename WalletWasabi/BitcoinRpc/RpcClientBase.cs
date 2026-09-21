@@ -1,7 +1,6 @@
 using System.Globalization;
 using NBitcoin.RPC;
 using Newtonsoft.Json.Linq;
-using WalletWasabi.BitcoinRpc.Models;
 
 namespace WalletWasabi.BitcoinRpc;
 
@@ -147,10 +146,9 @@ public class RpcClientBase : IRPCClient
 		return new RpcClientBase(RpcClient.PrepareBatch());
 	}
 
-	public virtual async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	public virtual async Task<GetBlockRPCResponse> GetVerboseBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)
 	{
-		var resp = await RpcClient.SendCommandAsync(RPCOperations.getblock, cancellationToken, blockId, 3).ConfigureAwait(false);
-		return RpcParser.ParseVerboseBlockResponse(resp.ResultString);
+		return await RpcClient.GetBlockAsync(blockHash, GetBlockVerbosity.WithFullTxAndPrevouts, cancellationToken).ConfigureAwait(false);
 	}
 
 	public virtual async Task<BlockFilter> GetBlockFilterAsync(uint256 blockId, CancellationToken cancellationToken = default)

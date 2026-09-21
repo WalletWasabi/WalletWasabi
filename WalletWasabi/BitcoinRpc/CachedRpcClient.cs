@@ -1,7 +1,6 @@
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.Extensions.Primitives;
 using NBitcoin.RPC;
-using WalletWasabi.BitcoinRpc.Models;
 using WalletWasabi.Cache;
 
 namespace WalletWasabi.BitcoinRpc;
@@ -46,7 +45,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetBestBlockHashAsync(cancellationToken),
+			action: (request, cancellationToken) => base.GetBestBlockHashAsync(cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 4),
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -57,7 +56,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHash, cancellationToken),
+			action: (request, cancellationToken) => base.GetBlockAsync(blockHash, cancellationToken),
 			options: GetBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -68,18 +67,18 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetBlockAsync(blockHeight, cancellationToken),
+			action: (request, cancellationToken) => base.GetBlockAsync(blockHeight, cancellationToken),
 			options: GetBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
 
-	public override async Task<VerboseBlockInfo> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
+	public override async Task<GetBlockRPCResponse> GetVerboseBlockAsync(uint256 blockId, CancellationToken cancellationToken = default)
 	{
 		string cacheKey = $"{nameof(GetVerboseBlockAsync)}:{blockId}";
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetVerboseBlockAsync(blockId, cancellationToken),
+			action: (request, cancellationToken) => base.GetVerboseBlockAsync(blockId, cancellationToken),
 			options: GetVerboseBlockCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -90,7 +89,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetBlockHeaderAsync(blockHash, cancellationToken),
+			action: (request, cancellationToken) => base.GetBlockHeaderAsync(blockHash, cancellationToken),
 			options: GetBlockHeaderCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -101,7 +100,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetBlockCountAsync(cancellationToken),
+			action: (request, cancellationToken) => base.GetBlockCountAsync(cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -112,7 +111,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetPeersInfoAsync(cancellationToken),
+			action: (request, cancellationToken) => base.GetPeersInfoAsync(cancellationToken),
 			options: GetPeersInfoCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -123,7 +122,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken),
+			action: (request, cancellationToken) => base.GetMempoolEntryAsync(txid, throwIfNotFound, cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 20, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -134,7 +133,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetMempoolInfoAsync(cancellationToken),
+			action: (request, cancellationToken) => base.GetMempoolInfoAsync(cancellationToken),
 			options: GetMempoolInfoCacheOptions,
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -145,7 +144,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken),
+			action: (request, cancellationToken) => base.EstimateSmartFeeAsync(confirmationTarget, estimateMode, cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 1, expireInSeconds: 60),
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -156,7 +155,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetRawMempoolAsync(cancellationToken),
+			action: (request, cancellationToken) => base.GetRawMempoolAsync(cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 20, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
@@ -167,7 +166,7 @@ public class CachedRpcClient : RpcClientBase
 
 		return await _idempotencyRequestCache.GetCachedResponseAsync(
 			cacheKey,
-			action: (string request, CancellationToken cancellationToken) => base.GetTxOutAsync(txid, index, includeMempool, cancellationToken),
+			action: (request, cancellationToken) => base.GetTxOutAsync(txid, index, includeMempool, cancellationToken),
 			options: CacheOptionsWithExpirationToken(size: 2, expireInSeconds: 2),
 			cancellationToken).ConfigureAwait(false);
 	}
