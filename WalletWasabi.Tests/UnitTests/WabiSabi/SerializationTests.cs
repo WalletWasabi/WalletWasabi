@@ -21,20 +21,19 @@ public class SerializationTests
 	[Fact]
 	public void OversizedCredentialRequestIsRejected()
 	{
-		const string pt = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
-		const string scalar = "0000000000000000000000000000000000000000000000000000000000000001";
+		string pt = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+		string scalar = "0000000000000000000000000000000000000000000000000000000000000001";
 
-		string presentation = $"{{\"Ca\":\"{pt}\",\"Cx0\":\"{pt}\",\"Cx1\":\"{pt}\",\"CV\":\"{pt}\",\"S\":\"{pt}\"}}";
+		string presentation = $$"""{"Ca":"{{pt}}","Cx0":"{{pt}}","Cx1":"{{pt}}","CV":"{{pt}}","S":"{{pt}}"}""";
 
-		string RequestWithNonces(int n) =>
-			"{\"Delta\":0,\"Presented\":[],\"Requested\":[],\"Proofs\":[{\"PublicNonces\":["
-			+ string.Join(",", Enumerable.Repeat($"\"{pt}\"", n))
-			+ $"],\"Responses\":[\"{scalar}\"]}}]}}";
+		string RequestWithNonces(int n)
+		{
+			string pts = string.Join(",", Enumerable.Repeat($"\"{pt}\"", n));
+			return $$"""{"Delta":0,"Presented":[],"Requested":[],"Proofs":[{"PublicNonces":[{{pts}}],"Responses":["{{scalar}}"]}]}""";
+		}
 
 		string RequestWithPresentations(int n) =>
-			"{\"Delta\":0,\"Presented\":["
-			+ string.Join(",", Enumerable.Repeat(presentation, n))
-			+ "],\"Requested\":[],\"Proofs\":[]}";
+			"""{"Delta":0,"Presented":[""" + string.Join(",", Enumerable.Repeat(presentation, n)) + """],"Requested":[],"Proofs":[]}""";
 
 		// The largest legitimate proof (a full-supply range proof has 2w+1 public nonces) decodes.
 		Assert.NotNull(JsonDecoder.FromString(RequestWithNonces(WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces), Decode.RealCredentialsRequest));
@@ -51,12 +50,10 @@ public class SerializationTests
 	[Fact]
 	public void OversizedRoundStateRequestIsRejected()
 	{
-		const string checkpoint = "{\"RoundId\":\"0000000000000000000000000000000000000000000000000000000000000000\",\"StateId\":0}";
+		string checkpoint = """{"RoundId":"0000000000000000000000000000000000000000000000000000000000000000","StateId":0}""";
 
 		string RequestWithCheckpoints(int n) =>
-			"{\"RoundCheckpoints\":["
-			+ string.Join(",", Enumerable.Repeat(checkpoint, n))
-			+ "]}";
+			"""{"RoundCheckpoints":[""" + string.Join(",", Enumerable.Repeat(checkpoint, n)) + """]}""";
 
 		// A status request with the maximum number of tracked rounds decodes.
 		Assert.NotNull((object?)Decode.CoordinatorMessage<RoundStateRequest>(RequestWithCheckpoints(WalletWasabi.WabiSabi.ProtocolConstants.MaxRoundCheckpoints)));
