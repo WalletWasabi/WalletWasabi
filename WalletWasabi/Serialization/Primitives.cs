@@ -158,25 +158,27 @@ public static partial class Decode
 		{
 			if (value.ValueKind == JsonValueKind.Array)
 			{
-				if (value.GetArrayLength() > maxCount)
+				var length = value.GetArrayLength();
+				if (length > maxCount)
 				{
 					return Result<T[], string>.Fail($"Array length exceeds the maximum of {maxCount}.");
 				}
 
-				List<T> list = [];
-				foreach (var t in value.EnumerateArray().Select(
-					         elem => decoder(elem)
-					         ))
+				var result = new T[length];
+				var i = 0;
+				foreach (var elem in value.EnumerateArray())
 				{
-					if (!t.IsOk)
+					var decoded = decoder(elem);
+					if (!decoded.IsOk)
 					{
-						return Result<T[], string>.Fail(t.Error);
+						return Result<T[], string>.Fail(decoded.Error);
 					}
 
-					list.Add(t.Value);
+					result[i] = decoded.Value;
+					i++;
 				}
 
-				return list.ToArray();
+				return result;
 			}
 
 			return Result<T[], string>.Fail("It is not an array");
