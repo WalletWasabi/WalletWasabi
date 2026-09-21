@@ -77,6 +77,12 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	public WalletType WalletType { get; }
 
+	public int MinGapLimit
+	{
+		get => _keyManager.MinGapLimit;
+		set => _keyManager.SetMinGapLimit(value);
+	}
+
 	public bool IsCoinJoinPaused { get; set; }
 
 	/// <summary>

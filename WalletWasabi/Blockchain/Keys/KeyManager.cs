@@ -195,9 +195,9 @@ public class KeyManager
 	#endregion Properties
 
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
-	private readonly HdPubKeyGenerator _segwitInternalKeyGenerator;
+	private HdPubKeyGenerator _segwitInternalKeyGenerator;
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
-	private readonly HdPubKeyGenerator? _taprootInternalKeyGenerator;
+	private HdPubKeyGenerator? _taprootInternalKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentScanKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentSpendKeyGenerator;
 	private List<(SilentPaymentAddress Address, ECPrivKey ScanSecret)> _silentPaymentScanData = new();
@@ -621,6 +621,21 @@ public class KeyManager
 		}
 
 		return availableCandidates.Count > 0;
+	}
+
+	public void SetMinGapLimit(int minGapLimit)
+	{
+		lock (_criticalStateLock)
+		{
+			MinGapLimit = Math.Clamp(minGapLimit, AbsoluteMinGapLimit, MaxGapLimit);
+			HdPubKeyGenerator Raise(HdPubKeyGenerator g) => g with { MinGapLimit = Math.Max(g.MinGapLimit, MinGapLimit) };
+			SegwitExternalKeyGenerator = Raise(SegwitExternalKeyGenerator);
+			_segwitInternalKeyGenerator = Raise(_segwitInternalKeyGenerator);
+			TaprootExternalKeyGenerator = TaprootExternalKeyGenerator is { } t ? Raise(t) : null;
+			_taprootInternalKeyGenerator = _taprootInternalKeyGenerator is { } ti ? Raise(ti) : null;
+			AssertCleanKeysIndexedNoLock();
+			ToFile();
+		}
 	}
 
 	public void ToFile()

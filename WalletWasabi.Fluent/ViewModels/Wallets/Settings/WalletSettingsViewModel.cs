@@ -3,6 +3,7 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Windows.Input;
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.Infrastructure;
 using WalletWasabi.Fluent.Models.Wallets;
@@ -34,12 +35,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
     [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
+    [AutoNotify] private string _minGapLimit;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
     {
         _wallet = walletModel;
         _walletName = walletModel.Name;
         _preferPsbtWorkflow = walletModel.Settings.PreferPsbtWorkflow;
+        _minGapLimit = walletModel.Settings.MinGapLimit.ToString();
         _selectedTab = 0;
         IsHardwareWallet = walletModel.IsHardwareWallet;
         IsWatchOnly = walletModel.IsWatchOnlyWallet;
@@ -58,6 +61,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                     errors.Add(error.Severity, error.Message);
                 }
             });
+
+        this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
         SetupCancel(enableCancel: true, enableCancelOnEscape: true, enableCancelOnPressed: true);
         var canSave = this.WhenAnyValue(x => x.WalletName, x => x.Validations,
@@ -152,6 +157,19 @@ public partial class WalletSettingsViewModel : RoutableViewModel
                 walletModel.Settings.PreferPsbtWorkflow = value;
                 walletModel.Settings.Save();
             });
+    }
+
+    private void ValidateMinGapLimit(IValidationErrors errors)
+    {
+        var min = _wallet.Settings.MinGapLimit;
+        if (int.TryParse(MinGapLimit, out var minGapLimit) && minGapLimit >= min && minGapLimit <= KeyManager.MaxGapLimit)
+        {
+            _wallet.Settings.MinGapLimit = minGapLimit;
+        }
+        else
+        {
+            errors.Add(ErrorSeverity.Error, $"Must be a number between {min} and {KeyManager.MaxGapLimit}.");
+        }
     }
 
     public bool IsHardwareWallet { get; }
