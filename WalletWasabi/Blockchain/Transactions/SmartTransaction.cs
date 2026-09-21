@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Blockchain.Analysis;
@@ -39,8 +40,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		IsReplacement = isReplacement;
 		IsSpeedup = isSpeedup;
 		IsCancellation = isCancellation;
-		_walletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
-		_walletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
 		_outputValues = new Lazy<long[]>(() => Transaction.Outputs.Select(x => x.Value.Satoshi).ToArray(), true);
 		_isWasabi2Cj = new Lazy<bool>(
@@ -57,10 +56,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
-	private readonly HashSet<SmartCoin> _walletInputsInternal;
+	private ImmutableHashSet<SmartCoin> _walletInputsInternal = [];
 
 	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
-	private readonly HashSet<SmartCoin> _walletOutputsInternal;
+	private ImmutableHashSet<SmartCoin> _walletOutputsInternal = [];
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
@@ -267,7 +266,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
-		if (_walletInputsInternal.Add(input))
+		if (ImmutableInterlocked.Update(ref _walletInputsInternal, (set, item) => set.Add(item), input))
 		{
 			ForeignInputsCache = null;
 			WalletVirtualInputsCache = null;
@@ -278,7 +277,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryAddWalletOutput(SmartCoin output)
 	{
-		if (_walletOutputsInternal.Add(output))
+		if (ImmutableInterlocked.Update(ref _walletOutputsInternal, (set, item) => set.Add(item), output))
 		{
 			ForeignOutputsCache = null;
 			WalletVirtualOutputsCache = null;
@@ -290,7 +289,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryRemoveWalletOutput(SmartCoin output)
 	{
-		if (_walletOutputsInternal.Remove(output))
+		if (ImmutableInterlocked.Update(ref _walletOutputsInternal, (set, item) => set.Remove(item), output))
 		{
 			ForeignOutputsCache = null;
 			WalletVirtualOutputsCache = null;
