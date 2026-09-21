@@ -22,9 +22,9 @@ public partial class CoinjoinCostsViewModel : ReactiveObject
 		_createAmount = createAmount;
 	}
 
-	public void Update(TransactionModel transaction)
+	public void Update(CoinjoinCosts? coinjoinCosts, Money amount)
 	{
-		if (transaction.CoinjoinCosts is { } costs)
+		if (coinjoinCosts is { } costs)
 		{
 			TotalFeeAmount = _createAmount(costs.TotalFee);
 			MiningFeeAmount = _createAmount(costs.MiningFee);
@@ -37,7 +37,7 @@ public partial class CoinjoinCostsViewModel : ReactiveObject
 		else
 		{
 			// allow backwards compatibility with transactions that were created before the costs were recorded
-			TotalFeeAmount = _createAmount(Math.Abs(transaction.Amount));
+			TotalFeeAmount = _createAmount(Math.Abs(amount));
 			MiningFeeAmount = null;
 			WastedDustAmount = null;
 			IsBreakdownVisible = false;

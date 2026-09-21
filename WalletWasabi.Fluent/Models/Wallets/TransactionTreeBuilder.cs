@@ -26,7 +26,7 @@ public class TransactionTreeBuilder
 
 	public async Task<IEnumerable<TransactionModel>> BuildAsync(List<TransactionSummary> summaries, CancellationToken cancellationToken)
 	{
-		TransactionModel? coinJoinGroup = default;
+		var coinjoins = new List<CoinJoinTransactionModel>();
 
 		var result = new List<TransactionModel>();
 
@@ -41,26 +41,23 @@ public class TransactionTreeBuilder
 
 			if (item.IsOwnCoinjoin())
 			{
-				coinJoinGroup ??= await CreateCoinjoinGroupAsync(i, item, cancellationToken);
-
-				coinJoinGroup.Add(await CreateCoinjoinTransactionAsync(i, item, cancellationToken));
+				coinjoins.Add(await CreateCoinjoinTransactionAsync(i, item, cancellationToken));
 			}
 
-			if (coinJoinGroup is { } cjg &&
+			if (coinjoins.Count > 0 &&
 				((i + 1 < summaries.Count && !summaries[i + 1].IsOwnCoinjoin()) || // The next item is not CJ so add the group.
 				 i == summaries.Count - 1)) // There is no following item in the list so add the group.
 			{
-				if (cjg.Children.Count == 1)
+				if (coinjoins.Count == 1)
 				{
-					result.Add(cjg.Children[0]);
+					result.Add(coinjoins[0]);
 				}
 				else
 				{
-					UpdateCoinjoinGroup(cjg);
-					result.Add(cjg);
+					result.Add(CreateCoinjoinGroup(coinjoins));
 				}
 
-				coinJoinGroup = null;
+				coinjoins = new List<CoinJoinTransactionModel>();
 			}
 		}
 
@@ -115,7 +112,7 @@ public class TransactionTreeBuilder
 		return found is not null;
 	}
 
-	private async Task<TransactionModel> CreateRegularAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
+	private async Task<RegularTransactionModel> CreateRegularAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var itemType = GetItemType(transactionSummary);
 		var date = transactionSummary.FirstSeen.ToLocalTime();
@@ -124,7 +121,7 @@ public class TransactionTreeBuilder
 		var status = GetItemStatus(transactionSummary, serverHeight);
 		var haveFeeEstimations = _wallet.FeeRateEstimations is not null;
 
-		return new TransactionModel
+		return new RegularTransactionModel(itemType)
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
@@ -136,11 +133,9 @@ public class TransactionTreeBuilder
 			DateToolTipString = date.ToUserFacingString(),
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager) && haveFeeEstimations,
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager) && haveFeeEstimations,
-			Type = itemType,
 			Status = status,
 			Confirmations = confirmations,
 			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0u, // FIXME: this is wrong. Only confirmed txs have a BlockHeigh
-			BlockHash = transactionSummary.BlockHash,
 			HexFunction = transactionSummary.Hex,
 			WalletInputs = transactionSummary.WalletInputs,
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
@@ -152,39 +147,11 @@ public class TransactionTreeBuilder
 		};
 	}
 
-	private async Task<TransactionModel> CreateCoinjoinGroupAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
-	{
-		var date = transactionSummary.FirstSeen.ToLocalTime();
-		var serverHeight = _services.GetServerTipHeight();
-		var confirmations = transactionSummary.GetConfirmations(serverHeight);
-		var status = GetItemStatus(transactionSummary, serverHeight);
-
-		return new TransactionModel
-		{
-			Amount = Money.Zero,
-			Labels = transactionSummary.Labels,
-			Confirmations = confirmations,
-			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
-			Id = transactionSummary.GetHash(),
-			Date = date,
-			DateString = date.ToUserFacingFriendlyString(),
-			DateToolTipString = date.ToUserFacingString(),
-			OrderIndex = index,
-			HexFunction = transactionSummary.Hex,
-			WalletInputs = transactionSummary.WalletInputs,
-			ForeignInputsFunction = transactionSummary.ForeignInputs,
-			WalletOutputs = transactionSummary.WalletOutputs,
-			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
-			Type = TransactionType.CoinjoinGroup,
-			Status = status,
-		};
-	}
-
-	private TransactionModel CreateSpeedUpGroup(TransactionSummary transactionSummary, TransactionModel parent, IEnumerable<TransactionModel> children)
+	private SpeedUpTransactionGroupModel CreateSpeedUpGroup(TransactionSummary transactionSummary, TransactionModel parent, IReadOnlyList<TransactionModel> children)
 	{
 		var isConfirmed = children.All(x => x.IsConfirmed);
 
-		var result = new TransactionModel
+		var result = new SpeedUpTransactionGroupModel(GetItemType(transactionSummary))
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = parent.Amount,
@@ -192,9 +159,8 @@ public class TransactionTreeBuilder
 			Date = parent.Date.ToLocalTime(),
 			DateString = parent.DateString,
 			DateToolTipString = parent.DateToolTipString,
-			Confirmations = parent.Confirmations,
-			BlockHeight = parent.BlockHeight,
-			BlockHash = parent.BlockHash,
+			Confirmations = transactionSummary.GetConfirmations(_services.GetServerTipHeight()),
+			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0u,
 			HexFunction = transactionSummary.Hex,
 			WalletInputs = transactionSummary.WalletInputs,
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
@@ -204,13 +170,12 @@ public class TransactionTreeBuilder
 			Labels = parent.Labels,
 			CanCancelTransaction = transactionSummary.Transaction.IsCancellable(_wallet.KeyManager),
 			CanSpeedUpTransaction = transactionSummary.Transaction.IsSpeedupable(_wallet.KeyManager),
-
-			Type = GetItemType(transactionSummary),
 			Status =
 				isConfirmed
 				? TransactionStatus.Confirmed
 				: TransactionStatus.Pending,
 			HasBeenSpedUp = true,
+			Children = children,
 		};
 
 		var dates = children.Select(tx => tx.Date).ToImmutableArray();
@@ -226,69 +191,61 @@ public class TransactionTreeBuilder
 
 		foreach (var child in children)
 		{
-			result.Add(child);
 			child.IsChild = true;
 		}
 
 		return result;
 	}
 
-	private void UpdateCoinjoinGroup(TransactionModel coinjoinGroup)
+	private CoinJoinTransactionGroupModel CreateCoinjoinGroup(IReadOnlyList<CoinJoinTransactionModel> coinjoins)
 	{
-		foreach (var child in coinjoinGroup.Children)
-		{
-			child.IsChild = true;
-		}
+		var first = coinjoins[0];
 
-		var isConfirmed = coinjoinGroup.Children.All(x => x.IsConfirmed);
-		coinjoinGroup.Status =
-			isConfirmed
-			? TransactionStatus.Confirmed
-			: TransactionStatus.Pending;
-
-		coinjoinGroup.ConfirmedTooltip = coinjoinGroup.Children.MinBy(x => x.Confirmations)?.ConfirmedTooltip ?? "";
-		coinjoinGroup.Date = coinjoinGroup.Children.Select(tx => tx.Date).Max().ToLocalTime();
-
-		var amount = coinjoinGroup.Children.Sum(x => x.Amount);
-		coinjoinGroup.Amount = amount;
-
-		var fee = coinjoinGroup.Children.Sum(x => x.Fee ?? Money.Zero);
-		coinjoinGroup.Fee = fee;
-
-		if (coinjoinGroup.Children.Count > 0 && coinjoinGroup.Children.All(x => x.CoinjoinCosts is not null))
-		{
-			coinjoinGroup.CoinjoinCosts = coinjoinGroup.Children.Aggregate(CoinjoinCosts.Zero, (total, child) => total + child.CoinjoinCosts!);
-		}
-
-		var dates = coinjoinGroup.Children.Select(tx => tx.Date).ToImmutableArray();
+		var dates = coinjoins.Select(tx => tx.Date).ToImmutableArray();
 		var firstDate = dates.Min().ToLocalTime();
 		var lastDate = dates.Max().ToLocalTime();
+		var isSameDay = firstDate.Day == lastDate.Day;
 
-		coinjoinGroup.DateString = lastDate.ToUserFacingFriendlyString();
-
-		if (firstDate.Day == lastDate.Day)
+		foreach (var coinjoin in coinjoins)
 		{
-			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: false)}";
+			coinjoin.IsChild = true;
 
-			foreach (var child in coinjoinGroup.Children)
+			if (isSameDay)
 			{
-				child.DateString = child.Date.ToLocalTime().ToOnlyTimeString();
+				coinjoin.DateString = coinjoin.Date.ToLocalTime().ToOnlyTimeString();
 			}
 		}
-		else
+
+		return new CoinJoinTransactionGroupModel
 		{
-			coinjoinGroup.DateToolTipString = $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}";
-		}
+			Id = first.Id,
+			OrderIndex = first.OrderIndex,
+			Labels = first.Labels,
+			Date = lastDate,
+			DateString = lastDate.ToUserFacingFriendlyString(),
+			DateToolTipString = isSameDay
+				? $"{firstDate.ToUserFacingString(withTime: false)}"
+				: $"{firstDate.ToUserFacingString(withTime: true)} - {lastDate.ToUserFacingString(withTime: true)}",
+			Status = coinjoins.All(x => x.IsConfirmed)
+				? TransactionStatus.Confirmed
+				: TransactionStatus.Pending,
+			ConfirmedTooltip = coinjoins.MinBy(x => x.Confirmations)?.ConfirmedTooltip ?? "",
+			Amount = coinjoins.Sum(x => x.Amount),
+			CoinjoinCosts = coinjoins.All(x => x.CoinjoinCosts is not null)
+				? coinjoins.Aggregate(CoinjoinCosts.Zero, (total, coinjoin) => total + coinjoin.CoinjoinCosts!)
+				: null,
+			Children = coinjoins,
+		};
 	}
 
-	private async Task<TransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
+	private async Task<CoinJoinTransactionModel> CreateCoinjoinTransactionAsync(int index, TransactionSummary transactionSummary, CancellationToken cancellationToken)
 	{
 		var date = transactionSummary.FirstSeen.ToLocalTime();
 		var serverHeight = _services.GetServerTipHeight();
 		var confirmations = transactionSummary.GetConfirmations(serverHeight);
 		var status = GetItemStatus(transactionSummary, serverHeight);
 
-		return new TransactionModel
+		return new CoinJoinTransactionModel
 		{
 			Id = transactionSummary.GetHash(),
 			Amount = transactionSummary.Amount,
@@ -297,18 +254,14 @@ public class TransactionTreeBuilder
 			DateString = date.ToUserFacingFriendlyString(),
 			DateToolTipString = date.ToUserFacingString(),
 			Labels = transactionSummary.Labels,
-			Type = TransactionType.Coinjoin,
 			Status = status,
 			Confirmations = confirmations,
-			BlockHeight = transactionSummary.Height is Height.ChainHeight(var h) ? h : 0,
-			BlockHash = transactionSummary.BlockHash,
 			HexFunction = transactionSummary.Hex,
 			WalletInputs = transactionSummary.WalletInputs,
 			ForeignInputsFunction = transactionSummary.ForeignInputs,
 			WalletOutputs = transactionSummary.WalletOutputs,
 			ForeignOutputsFunction = transactionSummary.ForeignOutputs,
 			ConfirmedTooltip = await GetConfirmationToolTipAsync(status, confirmations, transactionSummary.Transaction, cancellationToken),
-			Fee = transactionSummary.GetFee(),
 			FeeRate = transactionSummary.FeeRate(),
 			CoinjoinCosts = _wallet.KeyManager.CoinjoinCosts.GetValueOrDefault(transactionSummary.GetHash())
 		};

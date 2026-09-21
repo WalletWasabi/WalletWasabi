@@ -32,7 +32,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _isFeeRateVisible;
 
-	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel model) : base(uiContext)
+	public TransactionDetailsViewModel(UiContext uiContext, IWalletModel wallet, RegularTransactionModel model) : base(uiContext)
 	{
 		_wallet = wallet;
 
@@ -69,7 +69,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	public bool IsFeeVisible { get; }
 
-	private async Task UpdateValuesAsync(TransactionModel model, CancellationToken cancellationToken)
+	private async Task UpdateValuesAsync(RegularTransactionModel model, CancellationToken cancellationToken)
 	{
 		DateString = model.DateToolTipString;
 		Labels = model.Labels;
@@ -119,7 +119,7 @@ public partial class TransactionDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateCurrentTransactionAsync(CancellationToken cancellationToken)
 	{
-		if (_wallet.Transactions.TryGetById(TransactionId, false, out var transaction))
+		if (_wallet.Transactions.TryGetById<RegularTransactionModel>(TransactionId, out var transaction))
 		{
 			await UpdateValuesAsync(transaction, cancellationToken);
 		}
