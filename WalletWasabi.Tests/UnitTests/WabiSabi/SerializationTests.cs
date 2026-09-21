@@ -16,6 +16,36 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi;
 public class SerializationTests
 {
 	[Fact]
+	public void OversizedCredentialRequestIsRejected()
+	{
+		const string pt = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+		const string scalar = "0000000000000000000000000000000000000000000000000000000000000001";
+
+		string presentation = $"{{\"Ca\":\"{pt}\",\"Cx0\":\"{pt}\",\"Cx1\":\"{pt}\",\"CV\":\"{pt}\",\"S\":\"{pt}\"}}";
+
+		string RequestWithNonces(int n) =>
+			"{\"Delta\":0,\"Presented\":[],\"Requested\":[],\"Proofs\":[{\"PublicNonces\":["
+			+ string.Join(",", Enumerable.Repeat($"\"{pt}\"", n))
+			+ $"],\"Responses\":[\"{scalar}\"]}}]}}";
+
+		string RequestWithPresentations(int n) =>
+			"{\"Delta\":0,\"Presented\":["
+			+ string.Join(",", Enumerable.Repeat(presentation, n))
+			+ "],\"Requested\":[],\"Proofs\":[]}";
+
+		// The largest legitimate proof (a full-supply range proof has 2w+1 public nonces) decodes.
+		Assert.NotNull(JsonDecoder.FromString(RequestWithNonces(WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces), Decode.RealCredentialsRequest));
+		Assert.NotNull(JsonDecoder.FromString(RequestWithPresentations(WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber), Decode.RealCredentialsRequest));
+
+		// One element past the bound is rejected before the whole collection is materialized.
+		Assert.Null(JsonDecoder.FromString(RequestWithNonces(WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces + 1), Decode.RealCredentialsRequest));
+		Assert.Null(JsonDecoder.FromString(RequestWithPresentations(WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber + 1), Decode.RealCredentialsRequest));
+
+		// The oversized collection that enabled unauthenticated CPU exhaustion is rejected outright.
+		Assert.Null(JsonDecoder.FromString(RequestWithNonces(100_000), Decode.RealCredentialsRequest));
+	}
+
+	[Fact]
 	public void IssuanceRequestSerialization()
 	{
 		// Serialization round test.
