@@ -84,8 +84,9 @@ public partial class WalletViewModel : RoutableViewModel, IWalletViewModel
 		walletModel.IsCoinjoinRunning
 			.BindTo(this, x => x.IsCoinJoining);
 
-		 this.WhenAnyValue(x => x.IsWalletBalanceZero)
-		 	.Subscribe(_ => IsSendButtonVisible = !IsWalletBalanceZero && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
+		 // Keep the button in discreet mode, otherwise its absence reveals an empty wallet.
+		 this.WhenAnyValue(x => x.IsWalletBalanceZero, x => x.UiContext.ApplicationSettings.PrivacyMode)
+		 	.Subscribe(_ => IsSendButtonVisible = (!IsWalletBalanceZero || UiContext.ApplicationSettings.PrivacyMode) && (!WalletModel.IsWatchOnlyWallet || WalletModel.IsHardwareWallet));
 
 		 this.WhenAnyValue(x => x.IsSendButtonVisible)
 			 .Subscribe(_ => IsDonateButtonVisible = IsSendButtonVisible && WalletModel.Network == Network.Main);
