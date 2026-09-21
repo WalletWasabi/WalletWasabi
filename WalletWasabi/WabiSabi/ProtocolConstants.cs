@@ -5,6 +5,17 @@ public static class ProtocolConstants
 	public const int CredentialNumber = 2;
 	public const long MaxVsizeCredentialValue = 255;
 
+	// Upper bounds used to reject oversized credential requests during deserialization,
+	// before any per-element elliptic-curve work. A range proof over the full supply needs
+	// at most MaxRangeProofWidth bits, giving 2w+1 equations (public nonces) and 3w+1
+	// witnesses (responses). A request carries CredentialNumber presentations and requests,
+	// and one proof per statement: CredentialNumber show proofs, CredentialNumber range
+	// proofs and one balance proof.
+	public const int MaxRangeProofWidth = 51;
+	public const int MaxProofNonces = 2 * MaxRangeProofWidth + 1;
+	public const int MaxProofResponses = 3 * MaxRangeProofWidth + 1;
+	public const int MaxProofsPerRequest = 2 * CredentialNumber + 1;
+
 	public const string WabiSabiProtocolIdentifier = "WabiSabi_v1.0";
 	public const string DomainStrobeSeparator = "domain-separator";
 

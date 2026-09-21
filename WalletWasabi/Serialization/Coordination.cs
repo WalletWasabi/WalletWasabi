@@ -14,6 +14,7 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
 using static WalletWasabi.JsonConverters.ReflectionUtils;
+using ProtocolConstants = WalletWasabi.WabiSabi.ProtocolConstants;
 
 namespace WalletWasabi.Serialization;
 
@@ -357,16 +358,16 @@ public static partial class Decode
 
 	public static Decoder<ZeroCredentialsRequest> ZeroCredentialsRequest =>
 		Object(get => CreateInstance<ZeroCredentialsRequest>([
-			get.Required("Requested", Array(IssuanceRequest)),
-			get.Required("Proofs", Array(Proof))
+			get.Required("Requested", Array(IssuanceRequest, ProtocolConstants.CredentialNumber)),
+			get.Required("Proofs", Array(Proof, ProtocolConstants.MaxProofsPerRequest))
 			]));
 
 	public static Decoder<RealCredentialsRequest> RealCredentialsRequest =>
 		Object(get => CreateInstance<RealCredentialsRequest>([
 			get.Required("Delta", Int64),
-			get.Required("Presented", Array(CredentialPresentation)),
-			get.Required("Requested", Array(IssuanceRequest)),
-			get.Required("Proofs", Array(Proof))
+			get.Required("Presented", Array(CredentialPresentation, ProtocolConstants.CredentialNumber)),
+			get.Required("Requested", Array(IssuanceRequest, ProtocolConstants.CredentialNumber)),
+			get.Required("Proofs", Array(Proof, ProtocolConstants.MaxProofsPerRequest))
 			])).Catch();
 
 	public static Decoder<CredentialsResponse> CredentialsResponse =>

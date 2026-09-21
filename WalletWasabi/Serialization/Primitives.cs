@@ -151,11 +151,18 @@ public static partial class Decode
 			return Result<T, string>.Fail("Can't get the index of a non-array element");
 		};
 
-	public static Decoder<T[]> Array<T>(Decoder<T> decoder) =>
+	public static Decoder<T[]> Array<T>(Decoder<T> decoder) => Array(decoder, int.MaxValue);
+
+	public static Decoder<T[]> Array<T>(Decoder<T> decoder, int maxCount) =>
 		value =>
 		{
 			if (value.ValueKind == JsonValueKind.Array)
 			{
+				if (value.GetArrayLength() > maxCount)
+				{
+					return Result<T[], string>.Fail($"Array length exceeds the maximum of {maxCount}.");
+				}
+
 				List<T> list = [];
 				foreach (var t in value.EnumerateArray().Select(
 					         elem => decoder(elem)
