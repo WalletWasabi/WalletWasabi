@@ -116,12 +116,7 @@ public partial class WalletSettingsViewModel : RoutableViewModel
             var result = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight, walletModel.Settings.MinGapLimit).GetResultAsync();
             if (result is not null)
             {
-                if (result.MinGapLimit > walletModel.Settings.MinGapLimit)
-                {
-                    await Task.Run(() => walletModel.Settings.MinGapLimit = result.MinGapLimit);
-                }
-
-                walletModel.Settings.RescanWallet(result.StartingHeight);
+                walletModel.Settings.RescanWallet(result.StartingHeight, result.MinGapLimit);
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
             }
