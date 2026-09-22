@@ -30,7 +30,8 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<ResyncWalletDia
 		NextCommand = ReactiveCommand.Create(
 			() =>
 			{
-				var result = new ResyncWalletDialogResult(uint.Parse(StartingHeight), int.Parse(MinGapLimit));
+				var startingHeight = StartingHeight is "" ? 0u : uint.Parse(StartingHeight);
+				var result = new ResyncWalletDialogResult(startingHeight, int.Parse(MinGapLimit));
 				Close(DialogResultKind.Normal, result);
 			},
 			this.WhenAnyValue(x => x.StartingHeight, x => x.MinGapLimit).Select(_ => !Validations.Any));
@@ -48,9 +49,10 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<ResyncWalletDia
 	{
 		if (StartingHeight == "")
 		{
-			errors.Add(ErrorSeverity.Error, "Must be a number a block height.");
+			return;
 		}
-		else if (!int.TryParse(StartingHeight, out _))
+
+		if (!int.TryParse(StartingHeight, out _))
 		{
 			StartingHeight = new string(StartingHeight.Where(char.IsDigit).ToArray());
 		}
