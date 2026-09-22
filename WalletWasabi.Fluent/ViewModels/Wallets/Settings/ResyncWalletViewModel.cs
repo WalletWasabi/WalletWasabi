@@ -48,10 +48,9 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<ResyncWalletDia
 	{
 		if (StartingHeight == "")
 		{
-			return;
+			errors.Add(ErrorSeverity.Error, "Must be a number a block height.");
 		}
-
-		if (!int.TryParse(StartingHeight, out _))
+		else if (!int.TryParse(StartingHeight, out _))
 		{
 			StartingHeight = new string(StartingHeight.Where(char.IsDigit).ToArray());
 		}
