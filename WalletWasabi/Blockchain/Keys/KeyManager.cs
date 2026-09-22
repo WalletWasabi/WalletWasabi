@@ -354,7 +354,7 @@ public class KeyManager
 			generatorSetter(newHdPubKeyGenerator);
 			_hdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
 			newKey.SetLabel(labels);
-			ToFile();
+			ToFileNoLock();
 			return newKey;
 		}
 	}
@@ -588,7 +588,7 @@ public class KeyManager
 		{
 			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
 			{
-				ToFile();
+				ToFileNoLock();
 			}
 		}
 	}
@@ -628,30 +628,27 @@ public class KeyManager
 		lock (_criticalStateLock)
 		{
 			MinGapLimit = Math.Clamp(newValue, AbsoluteMinGapLimit, MaxGapLimit);
-			HdPubKeyGenerator Raise(HdPubKeyGenerator g) => g with { MinGapLimit = Math.Max(g.MinGapLimit, MinGapLimit) };
-			SegwitExternalKeyGenerator = Raise(SegwitExternalKeyGenerator);
-			_segwitInternalKeyGenerator = Raise(_segwitInternalKeyGenerator);
-			TaprootExternalKeyGenerator = TaprootExternalKeyGenerator is { } t ? Raise(t) : null;
-			_taprootInternalKeyGenerator = _taprootInternalKeyGenerator is { } ti ? Raise(ti) : null;
 			AssertCleanKeysIndexedNoLock();
-			ToFile();
+			ToFileNoLock();
 		}
 	}
 
 	public void ToFile()
+	{
+		lock (_criticalStateLock)
+		{
+			ToFileNoLock();
+		}
+	}
+
+	private void ToFileNoLock()
 	{
 		if (FilePath is not { } filePath)
 		{
 			return;
 		}
 
-		string jsonString;
-
-		lock (_criticalStateLock)
-		{
-			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManagerNoLock);
-		}
-
+		string jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManagerNoLock);
 		File.SafelyWriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
 
@@ -685,7 +682,7 @@ public class KeyManager
 			_blockchainState.Height = height;
 			if (toFile)
 			{
-				ToFile();
+				ToFileNoLock();
 			}
 		}
 	}
