@@ -28,7 +28,7 @@
     <PackageVersion Include="Microsoft.CodeAnalysis.BannedApiAnalyzers" Version="4.14.0" />
     <PackageVersion Include="System.Linq.Async" Version="7.0.1" />
     <!-- Core libraries. -->
-    <PackageVersion Include="WabiSabi" Version="1.3.0" />
+    <PackageVersion Include="WabiSabi" Version="1.3.1" />
     <PackageVersion Include="NBitcoin" Version="10.0.13" />
     <!-- UI. -->
     <PackageVersion Include="Avalonia" Version="$(AvaloniaVersion)" />
