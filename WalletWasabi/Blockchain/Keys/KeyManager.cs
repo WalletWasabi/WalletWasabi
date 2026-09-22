@@ -195,9 +195,9 @@ public class KeyManager
 	#endregion Properties
 
 	private HdPubKeyGenerator SegwitExternalKeyGenerator { get; set; }
-	private HdPubKeyGenerator _segwitInternalKeyGenerator;
+	private readonly HdPubKeyGenerator _segwitInternalKeyGenerator;
 	private HdPubKeyGenerator? TaprootExternalKeyGenerator { get; set; }
-	private HdPubKeyGenerator? _taprootInternalKeyGenerator;
+	private readonly HdPubKeyGenerator? _taprootInternalKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentScanKeyGenerator;
 	private HdPubKeyGenerator? _silentPaymentSpendKeyGenerator;
 	private List<(SilentPaymentAddress Address, ECPrivKey ScanSecret)> _silentPaymentScanData = new();
@@ -687,6 +687,16 @@ public class KeyManager
 		}
 	}
 
+	public void SetResyncParameters(ChainHeight newStartingHeight, int newMinGapLimit)
+	{
+		lock (_criticalStateLock)
+		{
+			_blockchainState.Height = newStartingHeight;
+			MinGapLimit = newMinGapLimit;
+			ToFileNoLock();
+		}
+	}
+
 	public void SetMaxBestHeight(ChainHeight newHeight)
 	{
 		lock (_criticalStateLock)
@@ -737,7 +747,7 @@ public class KeyManager
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentSpendExtPubKey", Encode.Optional(keyManager.SilentPaymentSpendExtPubKey, Encode.ExtPubKey)),
-			("MinGapLimit", Encode.Int(Math.Max(keyManager.SegwitExternalKeyGenerator.MinGapLimit, keyManager.TaprootExternalKeyGenerator?.MinGapLimit ?? 0))),
+			("MinGapLimit", Encode.Int(keyManager.MinGapLimit)),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
 			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),
