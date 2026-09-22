@@ -623,11 +623,11 @@ public class KeyManager
 		return availableCandidates.Count > 0;
 	}
 
-	public void SetMinGapLimit(int minGapLimit)
+	public void SetMinGapLimit(int newValue)
 	{
 		lock (_criticalStateLock)
 		{
-			MinGapLimit = Math.Clamp(minGapLimit, AbsoluteMinGapLimit, MaxGapLimit);
+			MinGapLimit = Math.Clamp(newValue, AbsoluteMinGapLimit, MaxGapLimit);
 			HdPubKeyGenerator Raise(HdPubKeyGenerator g) => g with { MinGapLimit = Math.Max(g.MinGapLimit, MinGapLimit) };
 			SegwitExternalKeyGenerator = Raise(SegwitExternalKeyGenerator);
 			_segwitInternalKeyGenerator = Raise(_segwitInternalKeyGenerator);
