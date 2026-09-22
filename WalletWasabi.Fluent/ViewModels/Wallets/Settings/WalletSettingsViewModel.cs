@@ -32,8 +32,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private int _selectedTab;
     [AutoNotify] private ScriptType _defaultReceiveScriptType;
     [AutoNotify] private bool _isSegWitDefaultReceiveScriptType;
-    [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
-    [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
+    [AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
+    [AutoNotify] private SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
