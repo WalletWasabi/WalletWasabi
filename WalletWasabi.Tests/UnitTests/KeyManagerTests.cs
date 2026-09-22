@@ -91,15 +91,19 @@ public class KeyManagerTests
 		var manager = KeyManager.CreateNew(out _, "password", Network.Main);
 
 		// Default limit.
-		Assert.Equal(21, manager.MinGapLimit);
+		Assert.Equal(KeyManager.AbsoluteMinGapLimit, manager.MinGapLimit);
 
 		// Increase it.
 		manager.SetMinGapLimit(100);
 		Assert.Equal(100, manager.MinGapLimit);
 
 		// Decrease it.
-		manager.SetMinGapLimit(21);
-		Assert.Equal(21, manager.MinGapLimit);
+		manager.SetMinGapLimit(KeyManager.AbsoluteMinGapLimit);
+		Assert.Equal(KeyManager.AbsoluteMinGapLimit, manager.MinGapLimit);
+
+		// Decrease it below allowed minimum.
+		manager.SetMinGapLimit(KeyManager.AbsoluteMinGapLimit - 1);
+		Assert.Equal(KeyManager.AbsoluteMinGapLimit, manager.MinGapLimit);
 	}
 
 	[Fact]
