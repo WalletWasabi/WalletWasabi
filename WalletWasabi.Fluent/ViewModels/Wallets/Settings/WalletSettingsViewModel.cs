@@ -114,14 +114,14 @@ public partial class WalletSettingsViewModel : RoutableViewModel
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
             var result = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight, walletModel.Settings.MinGapLimit).GetResultAsync();
-            if (result is var (heightToResync, minGapLimit))
+            if (result is not null)
             {
-                if (minGapLimit > walletModel.Settings.MinGapLimit)
+                if (result.MinGapLimit > walletModel.Settings.MinGapLimit)
                 {
-                    await Task.Run(() => walletModel.Settings.MinGapLimit = minGapLimit);
+                    await Task.Run(() => walletModel.Settings.MinGapLimit = result.MinGapLimit);
                 }
 
-                walletModel.Settings.RescanWallet((uint)heightToResync);
+                walletModel.Settings.RescanWallet(result.StartingHeight);
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
             }

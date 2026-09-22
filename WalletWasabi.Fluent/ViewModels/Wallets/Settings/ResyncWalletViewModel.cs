@@ -1,15 +1,15 @@
 using System.Linq;
 using System.Reactive.Linq;
-using ReactiveUI;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
+public record ResyncWalletDialogResult(uint StartingHeight, int MinGapLimit);
+
 [NavigationMetaData(Title = "Resync Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
-public partial class ResyncWalletViewModel : DialogViewModelBase<(int StartingHeight, int MinGapLimit)?>
+public partial class ResyncWalletViewModel : DialogViewModelBase<ResyncWalletDialogResult?>
 {
 	[AutoNotify] private string _startingHeight = "";
 	[AutoNotify] private string _minGapLimit;
@@ -29,7 +29,10 @@ public partial class ResyncWalletViewModel : DialogViewModelBase<(int StartingHe
 
 		NextCommand = ReactiveCommand.Create(
 			() =>
-				Close(DialogResultKind.Normal, (StartingHeight is "" ? 0 : int.Parse(StartingHeight), int.Parse(MinGapLimit))),
+			{
+				var result = new ResyncWalletDialogResult(StartingHeight is "" ? 0u : uint.Parse(StartingHeight), int.Parse(MinGapLimit));
+				Close(DialogResultKind.Normal, result);
+			},
 			this.WhenAnyValue(x => x.StartingHeight, x => x.MinGapLimit).Select(_ => !Validations.Any));
 	}
 
