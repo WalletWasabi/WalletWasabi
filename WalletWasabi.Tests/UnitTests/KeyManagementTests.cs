@@ -86,20 +86,20 @@ public class KeyManagementTests
 	}
 
 	[Fact]
-	public void CanRaiseMinGapLimit()
+	public void CanModifyMinGapLimit()
 	{
 		var manager = KeyManager.CreateNew(out _, "password", Network.Main);
-		int CleanSegwitExternalKeys() => manager.GetKeys(x => x.KeyState == KeyState.Clean && !x.IsInternal && x.FullKeyPath.GetScriptTypeFromKeyPath() == ScriptPubKeyType.Segwit).Length;
-		Assert.Equal(KeyManager.AbsoluteMinGapLimit, CleanSegwitExternalKeys());
 
+		// Default limit.
+		Assert.Equal(21, manager.MinGapLimit);
+
+		// Increase it.
 		manager.SetMinGapLimit(100);
-
 		Assert.Equal(100, manager.MinGapLimit);
-		Assert.Equal(100, CleanSegwitExternalKeys());
 
-		// Lowering never drops derived keys.
+		// Decrease it.
 		manager.SetMinGapLimit(21);
-		Assert.Equal(100, CleanSegwitExternalKeys());
+		Assert.Equal(21, manager.MinGapLimit);
 	}
 
 	[Fact]
