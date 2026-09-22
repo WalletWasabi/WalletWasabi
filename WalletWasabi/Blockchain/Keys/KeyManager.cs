@@ -623,16 +623,6 @@ public class KeyManager
 		return availableCandidates.Count > 0;
 	}
 
-	public void SetMinGapLimit(int newValue)
-	{
-		lock (_criticalStateLock)
-		{
-			MinGapLimit = Math.Clamp(newValue, AbsoluteMinGapLimit, MaxGapLimit);
-			AssertCleanKeysIndexedNoLock();
-			ToFileNoLock();
-		}
-	}
-
 	public void ToFile()
 	{
 		lock (_criticalStateLock)
