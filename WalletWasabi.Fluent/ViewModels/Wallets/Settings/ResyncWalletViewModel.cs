@@ -1,30 +1,48 @@
 using System.Linq;
 using System.Reactive.Linq;
-using ReactiveUI;
+using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Fluent.Validation;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
-using WalletWasabi.Models;
 
 namespace WalletWasabi.Fluent.ViewModels.Wallets.Settings;
 
+public record ResyncWalletDialogResult(uint StartingHeight, int MinGapLimit);
+
 [NavigationMetaData(Title = "Resync Wallet", NavigationTarget = NavigationTarget.CompactDialogScreen)]
-public partial class ResyncWalletViewModel : DialogViewModelBase<int?>
+public partial class ResyncWalletViewModel : DialogViewModelBase<ResyncWalletDialogResult?>
 {
 	[AutoNotify] private string _startingHeight = "";
+	[AutoNotify] private string _minGapLimit;
 	private readonly uint _birthHeight;
+	private readonly int _currentMinGapLimit;
 
-	public ResyncWalletViewModel(UiContext uiContext, uint birthHeight) : base(uiContext)
+	public ResyncWalletViewModel(UiContext uiContext, uint birthHeight, int minGapLimit) : base(uiContext)
 	{
 		_birthHeight = birthHeight;
+		_currentMinGapLimit = minGapLimit;
+		_minGapLimit = minGapLimit.ToString();
 		StartingHeight = birthHeight.ToString();
 		this.ValidateProperty(x => x.StartingHeight, ValidateStartingHeight);
+		this.ValidateProperty(x => x.MinGapLimit, ValidateMinGapLimit);
 
 		SetupCancel(false, true, true);
 
 		NextCommand = ReactiveCommand.Create(
 			() =>
-				Close(DialogResultKind.Normal, StartingHeight is "" ? 0 : int.Parse(StartingHeight)),
-			this.WhenAnyValue(x => x.StartingHeight).Select(_ => !Validations.Any));
+			{
+				var startingHeight = StartingHeight is "" ? 0u : uint.Parse(StartingHeight);
+				var result = new ResyncWalletDialogResult(startingHeight, int.Parse(MinGapLimit));
+				Close(DialogResultKind.Normal, result);
+			},
+			this.WhenAnyValue(x => x.StartingHeight, x => x.MinGapLimit).Select(_ => !Validations.Any));
+	}
+
+	private void ValidateMinGapLimit(IValidationErrors errors)
+	{
+		if (!int.TryParse(MinGapLimit, out var minGapLimit) || minGapLimit < _currentMinGapLimit || minGapLimit > KeyManager.MaxGapLimit)
+		{
+			errors.Add(ErrorSeverity.Error, $"Must be a number between {_currentMinGapLimit} and {KeyManager.MaxGapLimit}.");
+		}
 	}
 
 	private void ValidateStartingHeight(IValidationErrors errors)
