@@ -14,6 +14,7 @@
                  EnableBack="{Binding EnableBack}"
                  EnableNext="True" NextContent="{Binding NextButtonText}"
                  EnableSkip="{Binding PreferPsbtWorkflow}" SkipContent="Send Now"
+                 NextButtonSubActions="{Binding CopyHexCommand}" SubActionContent="Copy TX Hex"
                  IsBusy="{Binding IsBusy}"
                  ScrollViewer.VerticalScrollBarVisibility="Auto"
                  Title="Preview Transaction">
@@ -27,7 +28,7 @@
         <Image Width="120" Margin="10 4 10 5" Source="avares://WalletWasabi.Fluent/Assets/TechnologyLogos/payjoin.png"
                ToolTip.Tip="Your privacy is being protected with payjoin."
                IsVisible="{Binding CurrentTransactionSummary.IsPayJoin}" />
-
+        
         <Button Command="{Binding UndoCommand}" Classes="plain" Padding="10 0 10 10"
                 ToolTip.Tip="Undo last modification" IsVisible="{Binding CanUndo}">
           <Viewbox Height="20">
