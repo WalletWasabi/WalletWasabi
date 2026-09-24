@@ -46,6 +46,7 @@
       </TreeDataGrid.Styles>
       <Interaction.Behaviors>
         <behaviors:SetLastChildBehavior />
+        <TreeDataGridMissingCellsWorkaroundBehavior />
       </Interaction.Behaviors>
       <TreeDataGrid.ElementFactory>
         <treeDataGrid:PrivacyElementFactory />
