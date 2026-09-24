@@ -96,14 +96,22 @@ public static class PersistentConfigManager
 			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return defaultConfig;
 		}
+		catch (Exception ex) when (ex is IOException or UnauthorizedAccessException)
+		{
+			// The file exists but can't be read right now (e.g. locked by another process). It is not corrupted,
+			// so it must not be replaced with the defaults: that would silently discard the user's settings.
+			throw;
+		}
 		catch (Exception ex)
 		{
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 
+			var backupFilePath = $"{filePath}.corrupted";
+			File.Copy(filePath, backupFilePath, overwrite: true);
 			ToFile(filePath, defaultConfig);
 			UpdateNetwork(filePath, defaultConfig.Network);
 
-			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
+			Logger.LogInfo($"{nameof(Config)} file was corrupted and has been moved to '{backupFilePath}'. Recreated default version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;
 		}

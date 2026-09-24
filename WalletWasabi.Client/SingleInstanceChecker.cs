@@ -1,5 +1,6 @@
 using System;
 using System.IO;
+using System.Threading;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Client;
@@ -11,8 +12,39 @@ public class SingleInstanceChecker : IDisposable
 		LockFilePath = Path.Combine(dataDirectory, ".wasabi-lock");
 	}
 
+	/// <summary>
+	/// Passed to the new process when the app restarts itself, so it waits for the old process to release the lock.
+	/// </summary>
+	public const string RestartArgument = "--restarted";
+
+	/// <summary>How long a restarted instance waits for the previous instance to shut down.</summary>
+	public static readonly TimeSpan RestartWaitTimeout = TimeSpan.FromSeconds(60);
+
 	private FileStream? _lockFileStream;
 	public string LockFilePath { get; }
+
+	/// <summary>
+	/// Verifies whether this is the only instance running for the given directory, retrying until <paramref name="waitTimeout"/> elapses.
+	/// </summary>
+	/// <returns><c>true</c> if this is the first instance, <c>false</c> if another instance is running.</returns>
+	public bool IsFirstInstance(TimeSpan waitTimeout)
+	{
+		var deadline = DateTime.UtcNow + waitTimeout;
+		while (true)
+		{
+			if (IsFirstInstance())
+			{
+				return true;
+			}
+
+			if (DateTime.UtcNow >= deadline)
+			{
+				return false;
+			}
+
+			Thread.Sleep(250);
+		}
+	}
 
 	/// <summary>
 	/// This function verifies whether is the only instance running on this machine and the given directory or not.

@@ -2,6 +2,7 @@ using System.Diagnostics;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using WalletWasabi.BundledApps;
+using WalletWasabi.Client;
 using WalletWasabi.Fluent.ViewModels;
 
 namespace WalletWasabi.Fluent.Helpers;
@@ -27,7 +28,8 @@ public static class AppLifetimeHelper
 			throw new InvalidOperationException($"Invalid path: '{path}'");
 		}
 
-		var startInfo = ProcessStartInfoFactory.Make(path, []);
+		// The new process starts before this one has shut down, so it has to wait for the single instance lock.
+		var startInfo = ProcessStartInfoFactory.Make(path, [SingleInstanceChecker.RestartArgument]);
 		using var p = Process.Start(startInfo);
 	}
 
