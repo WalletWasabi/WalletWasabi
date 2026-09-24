@@ -145,7 +145,8 @@ public class TransactionStore : IDisposable
 				{
 					updated = true;
 
-					if (_sqliteStorage.BulkUpdate(tx) == 0)
+					// Persist the merged instance: the incoming one lacks the labels, first seen time and confirmation it was merged with.
+					if (_sqliteStorage.BulkUpdate(foundTx) == 0)
 					{
 						throw new UnreachableException($"Transaction '{tx.GetHash()}' was update in memory but not in database.");
 					}

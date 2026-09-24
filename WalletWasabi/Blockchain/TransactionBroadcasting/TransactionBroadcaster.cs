@@ -329,10 +329,8 @@ public class TransactionBroadcaster(IBroadcaster[] broadcasters, MempoolService 
 
 	private void BelieveTransaction(SmartTransaction transaction)
 	{
-		if (transaction.Height == Height.Unknown)
-		{
-			transaction.SetUnconfirmed();
-		}
+		// Atomic check-and-set: a confirmation that arrives meanwhile must not be wiped.
+		transaction.SetMempoolIfUnknown();
 
 		mempoolService.TryAddToBroadcastStore(transaction);
 		mempoolService.ReportSuccessfullyBroadcastedTransaction(transaction);
