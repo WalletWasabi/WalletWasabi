@@ -36,7 +36,7 @@ public partial class PrivacySuggestionsModel
 
 	private readonly CoinJoinManager? _cjManager;
 	private readonly SendFlowModel _sendFlow;
-	private decimal _exchangeRate;
+	private readonly IServices _services;
 	private readonly Wallet _wallet;
 	private CancellationTokenSource? _singleRunCancellationTokenSource;
 	private CancellationTokenSource? _linkedCancellationTokenSource;
@@ -46,7 +46,7 @@ public partial class PrivacySuggestionsModel
 		_sendFlow = sendFlow;
 		_wallet = sendFlow.Wallet;
 		_cjManager = services.GetHostedService<CoinJoinManager>();
-		services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
+		_services = services;
 	}
 
 	/// <remarks>Method supports being called multiple times. In that case the last call cancels the previous one.</remarks>
@@ -176,7 +176,7 @@ public partial class PrivacySuggestionsModel
 
 		allSemiPrivateCoin = wasCoinjoiningCoinUsed ? allSemiPrivateCoin : allSemiPrivateCoin.Except(coinsToExclude).ToArray();
 
-		var usdExchangeRate = _exchangeRate;
+		var usdExchangeRate = _services.GetUsdExchangeRate();
 		var totalAmount = parameters.Transaction.CalculateDestinationAmount(parameters.TransactionInfo.Destination).ToDecimal(MoneyUnit.BTC);
 		FullPrivacySuggestion? fullPrivacySuggestion = null;
 
@@ -286,7 +286,7 @@ public partial class PrivacySuggestionsModel
 
 		// Exchange rate can change substantially during computation itself.
 		// Reporting up-to-date exchange rates would just confuse users.
-		decimal usdExchangeRate = _exchangeRate;
+		decimal usdExchangeRate = _services.GetUsdExchangeRate();
 
 		// Only allow to create 2 more inputs with BnB.
 		int maxInputCount = transaction.SpentCoins.Count() + 2;

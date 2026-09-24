@@ -2,6 +2,7 @@ using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive;
 using System.Reactive.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Fluent.Extensions;
@@ -60,12 +61,14 @@ public static class ObservableExtensions
 
 	public static IObservableCache<TObject, TKey> FetchAsync<TObject, TKey>(
 		this IObservable<Unit> signal,
-		Func<Task<IEnumerable<TObject>>> source,
+		Func<CancellationToken, Task<IEnumerable<TObject>>> source,
 		Func<TObject, TKey> keySelector,
 		IEqualityComparer<TObject>? equalityComparer = null)
 		where TKey : notnull where TObject : notnull
 	{
-		return signal.SelectMany(_ => Observable.FromAsync(source))
+		// Switch cancels a fetch that is still running when a newer signal arrives, so slow fetches
+		// (e.g. history rebuilds during a rescan) don't pile up in memory; only the latest result is kept.
+		return signal.Select(_ => Observable.FromAsync(source)).Switch()
 			.EditDiff(keySelector, equalityComparer)
 			.DisposeMany()
 			.AsObservableCache();

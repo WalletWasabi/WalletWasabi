@@ -541,7 +541,9 @@ public class Global
 					: CpfpInfoUpdater.Create(ExternalSourcesHttpClientFactory, Network, EventBus))),
 			_stoppingCts.Token);
 		cpfpUpdater.DisposeUsing(_disposables);
-		EventBus.Subscribe<FilterProcessed>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()))
+		// Refresh when new filters (blocks) arrive. FilterProcessed fires for every filter of every wallet, which floods
+		// the unbounded mailbox with updates during a rescan.
+		EventBus.Subscribe<FiltersReceived>(_ => cpfpUpdater.Post(new CpfpInfoMessage.UpdateMessage()))
 			.DisposeUsing(_disposables);
 		return new CpfpInfoProvider(cpfpUpdater);
 	}

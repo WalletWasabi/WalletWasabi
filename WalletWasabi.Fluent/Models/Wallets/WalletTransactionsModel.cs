@@ -36,7 +36,9 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		_treeBuilder = new TransactionTreeBuilder(wallet, services);
 
 		TransactionProcessed =
-			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>().ToSignal()
+			services.EventBus.AsObservable<WalletRelevantTransactionProcessed>()
+				.Where(x => x.WalletName == wallet.WalletName) // Other wallets' transactions don't change this wallet's history.
+				.ToSignal()
 				.Merge(services.EventBus.AsObservable<FiltersReceived>().ToSignal())
 				.Sample(TimeSpan.FromSeconds(1))
 				.ObserveOn(RxApp.MainThreadScheduler)
@@ -52,7 +54,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
-			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)
+			.FetchAsync(BuildSummaryAsync, model => model.Id)
 			.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
