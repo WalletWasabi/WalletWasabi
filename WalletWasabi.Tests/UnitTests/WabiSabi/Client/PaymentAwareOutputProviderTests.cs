@@ -36,6 +36,7 @@ public class PaymentAwareOutputProviderTests
 		var outputs = outputProvider.GetOutputs(
 			roundId: uint256.Zero,
 			roundParameters,
+			registeredInputs: [],
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
 			availableVsize,
@@ -45,6 +46,7 @@ public class PaymentAwareOutputProviderTests
 		var decomposedOutputs = nonAwaredOutputProvider.GetOutputs(
 			uint256.Zero,
 			roundParameters,
+			registeredInputs: [],
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
 			availableVsize,
@@ -88,6 +90,7 @@ public class PaymentAwareOutputProviderTests
 		var outputs = outputProvider.GetOutputs(
 			roundId: uint256.Zero,
 			roundParameters,
+			registeredInputs: [],
 			registeredCoinsEffectiveValues,
 			new[] { Money.Coins(0.2m), Money.Coins(0.1m), Money.Coins(0.05m), Money.Coins(0.0025m), Money.Coins(0.0001m) },
 			int.MaxValue,
@@ -124,6 +127,7 @@ public class PaymentAwareOutputProviderTests
 		var outputs = outputProvider.GetOutputs(
 			roundId: uint256.Zero,
 			roundParameters,
+			registeredInputs: [],
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
 			availableVsize: 1_000,
@@ -138,6 +142,7 @@ public class PaymentAwareOutputProviderTests
 		var decomposedOutputs = nonAwaredOutputProvider.GetOutputs(
 			uint256.Zero,
 			roundParameters,
+			registeredInputs: [],
 			registeredCoinsEffectiveValues,
 			theirCoinEffectiveValues,
 			availableVsize: 1_000,
@@ -166,7 +171,7 @@ public class PaymentAwareOutputProviderTests
 		payments.ToList().ForEach(p => paymentBatch.AddPayment(p.Destination, p.Amount));
 
 		var availableMoney = Money.Coins(decimal.Parse(availableAmountStr));
-		var paymentSet = paymentBatch.GetBestPaymentSet(availableMoney, availableVsize, roundParameters);
+		var paymentSet = paymentBatch.GetBestPaymentSet(availableMoney, availableVsize, roundParameters, registeredInputs: []);
 
 		Assert.True(paymentSet.TotalAmount < availableMoney);
 		Assert.True(paymentSet.TotalVSize < availableVsize);

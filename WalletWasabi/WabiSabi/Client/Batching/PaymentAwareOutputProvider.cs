@@ -16,6 +16,7 @@ public class PaymentAwareOutputProvider(
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
 		RoundParameters roundParameters,
+		IEnumerable<OutPoint> registeredInputs,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize,
@@ -28,15 +29,16 @@ public class PaymentAwareOutputProvider(
 				Logger.LogInfo("There are pending payments but they cannot be funded with non-private coins.");
 			}
 
-			return base.GetOutputs(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, availableVsize, arePaymentsAllowed);
+			return base.GetOutputs(roundId, roundParameters, registeredInputs, registeredCoinEffectiveValues, theirCoinEffectiveValues, availableVsize, arePaymentsAllowed);
 		}
 
-		return GetOutputsIncludingPayments(roundId, roundParameters, registeredCoinEffectiveValues, theirCoinEffectiveValues, availableVsize);
+		return GetOutputsIncludingPayments(roundId, roundParameters, registeredInputs, registeredCoinEffectiveValues, theirCoinEffectiveValues, availableVsize);
 	}
 
 	private IEnumerable<TxOut> GetOutputsIncludingPayments(
 		uint256 roundId,
 		RoundParameters roundParameters,
+		IEnumerable<OutPoint> registeredInputs,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)
@@ -45,7 +47,7 @@ public class PaymentAwareOutputProvider(
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters);
+		var bestPaymentSet = batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters, registeredInputs);
 
 		// Return the payments.
 		foreach (var payment in bestPaymentSet.Payments)
