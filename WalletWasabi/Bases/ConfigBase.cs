@@ -18,7 +18,10 @@ public abstract class ConfigBase : NotifyPropertyChangedBase
 	{
 		lock (_fileLock)
 		{
-			File.WriteAllText(FilePath, EncodeAsJson(), Encoding.UTF8);
+			// Write-then-rename, so a crash or a concurrent reader never sees a truncated file.
+			var tempFilePath = $"{FilePath}.tmp";
+			File.WriteAllText(tempFilePath, EncodeAsJson(), Encoding.UTF8);
+			File.Move(tempFilePath, FilePath, overwrite: true);
 		}
 	}
 

@@ -1,4 +1,5 @@
 using System.Diagnostics;
+using System.Linq;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using WalletWasabi.BundledApps;
@@ -28,8 +29,15 @@ public static class AppLifetimeHelper
 			throw new InvalidOperationException($"Invalid path: '{path}'");
 		}
 
+		// Keep the user's arguments (e.g. --datadir, --network), but not the start-hidden one: a restart should show the window.
+		var arguments = Environment.GetCommandLineArgs()
+			.Skip(1)
+			.Where(arg => arg != SingleInstanceChecker.RestartArgument && !arg.Contains(StartupHelper.SilentArgument))
+			.ToList();
+
 		// The new process starts before this one has shut down, so it has to wait for the single instance lock.
-		var startInfo = ProcessStartInfoFactory.Make(path, [SingleInstanceChecker.RestartArgument]);
+		arguments.Add(SingleInstanceChecker.RestartArgument);
+		var startInfo = ProcessStartInfoFactory.Make(path, arguments);
 		using var p = Process.Start(startInfo);
 	}
 

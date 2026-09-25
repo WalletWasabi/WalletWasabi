@@ -18,7 +18,6 @@ public class WasabiApplication
 	public Global Global { get; }
 	public Config Config { get; }
 	public SingleInstanceChecker SingleInstanceChecker { get; }
-	private bool IsFirstInstance { get; }
 	public TerminateService TerminateService { get; }
 	private static Guid InstanceGuid { get; } = Guid.NewGuid();
 
@@ -33,8 +32,12 @@ public class WasabiApplication
 		// Take the single instance lock before touching the config files, so a second instance
 		// (or a restarted one while the old one is still shutting down) never rewrites them.
 		SingleInstanceChecker = new(Config.DataDir);
-		IsFirstInstance = !AppConfig.MustCheckSingleInstance || SingleInstanceChecker.IsFirstInstance(
-			AppConfig.Arguments.Contains(SingleInstanceChecker.RestartArgument) ? SingleInstanceChecker.RestartWaitTimeout : TimeSpan.Zero);
+		if (AppConfig.MustCheckSingleInstance && !SingleInstanceChecker.IsFirstInstance(
+			AppConfig.Arguments.Contains(SingleInstanceChecker.RestartArgument) ? SingleInstanceChecker.RestartWaitTimeout : TimeSpan.Zero))
+		{
+			Logger.LogCritical($"Wasabi is already running. Please stop the other instance first.");
+			Environment.Exit((int)ExitCode.FailedAlreadyRunningError);
+		}
 
 		Config = new Config(LoadOrCreateConfigs(), wasabiAppBuilder.Arguments);
 		Logger.LogDebug($"Wasabi was started with these argument(s): {string.Join(" ", AppConfig.Arguments.DefaultIfEmpty("none"))}.");
@@ -61,12 +64,6 @@ public class WasabiApplication
 
 	public ExitCode Run(Action afterStarting)
 	{
-		var exitCode = ProcessAppArguments();
-		if (exitCode is not null)
-		{
-			return exitCode.Value;
-		}
-
 		try
 		{
 			TerminateService.Activate();
@@ -88,12 +85,6 @@ public class WasabiApplication
 
 	public async Task<ExitCode> RunAsync(Func<Task> afterStarting)
 	{
-		var exitCode = ProcessAppArguments();
-		if (exitCode is not null)
-		{
-			return exitCode.Value;
-		}
-
 		try
 		{
 			TerminateService.Activate();
@@ -111,17 +102,6 @@ public class WasabiApplication
 		{
 			BeforeStopping();
 		}
-	}
-
-	private ExitCode? ProcessAppArguments()
-	{
-		if (!IsFirstInstance)
-		{
-			Logger.LogCritical($"Wasabi is already running. Please stop the other instance first.");
-			return ExitCode.FailedAlreadyRunningError;
-		}
-
-		return null;
 	}
 
 	private void BeforeStarting()

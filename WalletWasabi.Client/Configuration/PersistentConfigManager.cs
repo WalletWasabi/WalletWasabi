@@ -66,7 +66,11 @@ public static class PersistentConfigManager
 	public static string ToFile(string filePath, PersistentConfig obj)
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
-		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
+
+		// Write-then-rename, so a concurrent reader never sees a truncated file (which would be treated as corrupted).
+		var tempFilePath = $"{filePath}.tmp";
+		File.WriteAllText(tempFilePath, jsonString, Encoding.UTF8);
+		File.Move(tempFilePath, filePath, overwrite: true);
 
 		return jsonString;
 	}
@@ -111,7 +115,7 @@ public static class PersistentConfigManager
 			ToFile(filePath, defaultConfig);
 			UpdateNetwork(filePath, defaultConfig.Network);
 
-			Logger.LogInfo($"{nameof(Config)} file was corrupted and has been moved to '{backupFilePath}'. Recreated default version at path: '{filePath}'.");
+			Logger.LogInfo($"{nameof(Config)} file was corrupted and has been backed up to '{backupFilePath}'. Recreated default version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;
 		}
