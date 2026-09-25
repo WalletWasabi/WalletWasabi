@@ -79,6 +79,12 @@ public partial class AddWalletPageViewModel : DialogViewModelBase<Unit>
 
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
+			// An imported wallet may have history from before the oldest stored filter (#14870).
+			if (await RestartIfOlderFiltersNeededAsync(walletSettings, walletName, walletSettings.BestHeight + 1, "Import wallet"))
+			{
+				return;
+			}
+
 			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
 		catch (Exception ex)

@@ -2,6 +2,8 @@ using System.Reactive.Disposables;
 using System.Reactive.Linq;
 using System.Threading.Tasks;
 using System.Windows.Input;
+using WalletWasabi.Fluent.Helpers;
+using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Dialogs.Base;
 
 namespace WalletWasabi.Fluent.ViewModels.Navigation;
@@ -118,6 +120,32 @@ public abstract partial class RoutableViewModel : ViewModelBase, INavigatable
 				: NavigationTarget.DialogScreen;
 
 		await Navigate(target).ShowErrorAsync(UiContext, title, message, caption);
+	}
+
+	/// <summary>
+	/// Block filters are only downloaded at startup, from the oldest wallet birthday. When a new wallet needs older
+	/// filters than the stored ones, save it and restart, so it is picked up by the startup checkpointing.
+	/// </summary>
+	/// <param name="startHeight">The first height the new wallet needs a filter for.</param>
+	/// <returns><c>true</c> if the application is restarting.</returns>
+	protected async Task<bool> RestartIfOlderFiltersNeededAsync(WalletSettingsModel walletSettings, string? walletName, uint startHeight, string caption)
+	{
+		if (UiContext.Services.GetMinimumBlockHeight() is not { } minHeight || startHeight >= minHeight)
+		{
+			return false;
+		}
+
+		UiContext.WalletRepository.SaveWallet(walletSettings);
+
+		UiContext.Services.SetLastSelectedWallet(walletName);
+		UiContext.Services.UiConfig.ToFile();
+
+		await ShowErrorAsync(
+			"Restart required",
+			"Wasabi needs to download older block filters for this wallet. The application will restart to begin this process.",
+			caption);
+		AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
+		return true;
 	}
 
 	protected void SetupCancel(bool enableCancel, bool enableCancelOnEscape, bool enableCancelOnPressed, bool escapeGoesBack = false)

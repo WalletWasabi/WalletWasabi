@@ -34,6 +34,7 @@ public class WalletFilterProcessor : BackgroundService
 		_transactionProcessor = transactionProcessor;
 		_blockProvider = blockProvider;
 		_eventBus = eventBus;
+		_filterStore = filterStore;
 		_blockFilterIterator = new(filterStore);
 		_initialSynchronizationFinished = new TaskCompletionSource();
 	}
@@ -44,7 +45,10 @@ public class WalletFilterProcessor : BackgroundService
 	private readonly TransactionProcessor _transactionProcessor;
 	private readonly BlockProvider _blockProvider;
 	private readonly EventBus _eventBus;
+	private readonly FilterStore _filterStore;
 	private readonly BlockFilterIterator _blockFilterIterator;
+	private bool _loggedMissingOlderFilters;
+	private bool _reachedOldestStoredFilter;
 	private readonly TaskCompletionSource _initialSynchronizationFinished;
 
 	public Task InitialSynchronizationFinished => _initialSynchronizationFinished.Task;
@@ -76,6 +80,27 @@ public class WalletFilterProcessor : BackgroundService
 					}
 
 					var currentHeight = lastHeight + 1;
+
+					// The filter store is checkpointed at startup from the oldest wallet birthday. A wallet added later
+					// with an earlier birthday (e.g. a hardware wallet) needs older filters that only a restart downloads.
+					// Only checked until the wallet is past the oldest stored filter, to avoid a database query per block.
+					if (!_reachedOldestStoredFilter)
+					{
+						if (_filterStore.GetMinimumBlockHeight() is { } minHeight && currentHeight < minHeight)
+						{
+							if (!_loggedMissingOlderFilters)
+							{
+								Logger.LogWarning($"Wallet needs block filters from height {currentHeight}, but the oldest stored filter is at {minHeight}. Restart Wasabi to download the older filters.");
+								_loggedMissingOlderFilters = true;
+							}
+
+							await Task.Delay(2_000, cancellationToken).ConfigureAwait(false);
+							continue;
+						}
+
+						_reachedOldestStoredFilter = true;
+					}
+
 					var filter = await _blockFilterIterator.GetAndRemoveAsync(currentHeight, cancellationToken).ConfigureAwait(false);
 					if (filter is null)
 					{
