@@ -110,12 +110,22 @@ public static class PersistentConfigManager
 		{
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 
+			// The backup is best effort: failing to write it must not prevent recovering with the defaults.
 			var backupFilePath = $"{filePath}.corrupted";
-			File.Copy(filePath, backupFilePath, overwrite: true);
+			try
+			{
+				File.Copy(filePath, backupFilePath, overwrite: true);
+				Logger.LogInfo($"{nameof(Config)} file was corrupted and has been backed up to '{backupFilePath}'.");
+			}
+			catch (Exception backupEx)
+			{
+				Logger.LogWarning($"{nameof(Config)} file was corrupted and could not be backed up to '{backupFilePath}': {backupEx.Message}");
+			}
+
 			ToFile(filePath, defaultConfig);
 			UpdateNetwork(filePath, defaultConfig.Network);
 
-			Logger.LogInfo($"{nameof(Config)} file was corrupted and has been backed up to '{backupFilePath}'. Recreated default version at path: '{filePath}'.");
+			Logger.LogInfo($"Recreated default {nameof(Config)} version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;
 		}

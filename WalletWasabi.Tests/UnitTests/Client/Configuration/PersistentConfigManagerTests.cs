@@ -351,4 +351,20 @@ public class PersistentConfigManagerTests
 		Assert.Equal(PersistentConfigManager.DefaultMainNetConfig.Network, ((PersistentConfig)config).Network);
 		Assert.Equal("{ not json", File.ReadAllText($"{configPath}.corrupted"));
 	}
+
+	[Fact]
+	public async Task CorruptedConfigFileRecoversWhenBackupFailsAsync()
+	{
+		string workDirectory = await Common.GetEmptyWorkDirAsync();
+		string configPath = Path.Combine(workDirectory, "Config.json");
+		File.WriteAllText(configPath, "{ not json");
+
+		// A directory in the way makes the backup copy fail.
+		Directory.CreateDirectory($"{configPath}.corrupted");
+
+		var config = PersistentConfigManager.LoadFile(configPath);
+
+		Assert.Equal(PersistentConfigManager.DefaultMainNetConfig.Network, ((PersistentConfig)config).Network);
+		Assert.Equal(config, PersistentConfigManager.LoadFile(configPath));
+	}
 }
