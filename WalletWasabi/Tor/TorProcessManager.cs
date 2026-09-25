@@ -103,8 +103,10 @@ public class TorProcessManager
 			// The expectation is that if the conditions are met that the user really canceled the operation. Rarely it might not be true but it's a reasonable assumption.
 			throw new OperationCanceledException("The operation was canceled.", socketException);
 		}
-		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
+		catch (SocketException) when (!cancellationToken.IsCancellationRequested)
 		{
+			// Any socket error (refused, reset, timed out, ...) means Tor is not usable right now. Only reporting
+			// ConnectionRefused let other errors escape and end the Tor restart loop (#14907).
 			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
