@@ -63,8 +63,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private readonly HashSet<SmartCoin> _walletInputsInternal;
 
+	/// <summary>Cached value of <see cref="_walletInputsInternal"/> or <c>null</c> when a new snapshot must be created.</summary>
+	private HashSet<SmartCoin>? _walletInputsInternalCache;
+
 	/// <summary>Coins those are on the output side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private readonly HashSet<SmartCoin> _walletOutputsInternal;
+
+	/// <summary>Cached value of <see cref="_walletOutputsInternal"/> or <c>null</c> when a new snapshot must be created.</summary>
+	private HashSet<SmartCoin>? _walletOutputsInternalCache;
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<IndexedTxIn>? _foreignInputsCache;
@@ -87,7 +93,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				return _walletInputsInternal.ToArray();
+				_walletInputsInternalCache ??= _walletInputsInternal.ToHashSet();
+				return _walletInputsInternalCache;
 			}
 		}
 	}
@@ -98,7 +105,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				return _walletOutputsInternal.ToArray();
+				_walletOutputsInternalCache ??= _walletOutputsInternal.ToHashSet();
+				return _walletOutputsInternalCache;
 			}
 		}
 	}
@@ -394,6 +402,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletInputsInternal.Add(input))
 			{
+				_walletInputsInternalCache = null;
 				_foreignInputsCache = null;
 				_walletVirtualInputsCache = null;
 				return true;
@@ -408,6 +417,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletOutputsInternal.Add(output))
 			{
+				_walletOutputsInternalCache = null;
 				_foreignOutputsCache = null;
 				_walletVirtualOutputsCache = null;
 				_foreignVirtualOutputsCache = null;
@@ -423,6 +433,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletOutputsInternal.Remove(output))
 			{
+				_walletOutputsInternalCache = null;
 				_foreignOutputsCache = null;
 				_walletVirtualOutputsCache = null;
 				_foreignVirtualOutputsCache = null;
