@@ -81,19 +81,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<ForeignVirtualOutput>? _foreignVirtualOutputsCache;
 
-	/// <summary>Snapshot of <see cref="_walletInputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
-	private SmartCoin[]? _walletInputsSnapshot;
-
-	/// <summary>Snapshot of <see cref="_walletOutputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
-	private SmartCoin[]? _walletOutputsSnapshot;
-
 	public IReadOnlyCollection<SmartCoin> WalletInputs
 	{
 		get
 		{
 			lock (_stateLock)
 			{
-				return _walletInputsSnapshot ??= _walletInputsInternal.ToArray();
+				return _walletInputsInternal.ToArray();
 			}
 		}
 	}
@@ -104,7 +98,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				return _walletOutputsSnapshot ??= _walletOutputsInternal.ToArray();
+				return _walletOutputsInternal.ToArray();
 			}
 		}
 	}
@@ -400,7 +394,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletInputsInternal.Add(input))
 			{
-				_walletInputsSnapshot = null;
 				_foreignInputsCache = null;
 				_walletVirtualInputsCache = null;
 				return true;
@@ -415,7 +408,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletOutputsInternal.Add(output))
 			{
-				_walletOutputsSnapshot = null;
 				_foreignOutputsCache = null;
 				_walletVirtualOutputsCache = null;
 				_foreignVirtualOutputsCache = null;
@@ -431,7 +423,6 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			if (_walletOutputsInternal.Remove(output))
 			{
-				_walletOutputsSnapshot = null;
 				_foreignOutputsCache = null;
 				_walletVirtualOutputsCache = null;
 				_foreignVirtualOutputsCache = null;
