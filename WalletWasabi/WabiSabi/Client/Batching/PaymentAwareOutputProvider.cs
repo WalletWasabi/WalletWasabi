@@ -47,7 +47,7 @@ public class PaymentAwareOutputProvider(
 		// registered in the round.
 		var registeredValues = registeredCoinEffectiveValues.ToArray();
 		var availableAmount = registeredValues.Sum();
-		var bestPaymentSet = batchedPayments.GetBestPaymentSet(availableAmount, availableVsize, roundParameters, registeredInputs);
+		var bestPaymentSet = batchedPayments.MoveBestPaymentSetToInProgress(availableAmount, availableVsize, roundParameters, registeredInputs, roundId);
 
 		// Return the payments.
 		foreach (var payment in bestPaymentSet.Payments)
@@ -55,7 +55,6 @@ public class PaymentAwareOutputProvider(
 			yield return payment.ToTxOut();
 		}
 
-		batchedPayments.MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
 		availableVsize -= bestPaymentSet.TotalVSize;
 		availableAmount -= bestPaymentSet.TotalAmount;
 

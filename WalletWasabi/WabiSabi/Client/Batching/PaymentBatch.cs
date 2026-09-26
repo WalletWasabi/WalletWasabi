@@ -94,6 +94,17 @@ public class PaymentBatch
 		return bestPaymentSet;
 	}
 
+	// Selecting and moving under the same lock, so the selected payments cannot change in between.
+	public PaymentSet MoveBestPaymentSetToInProgress(Money availableAmount, int availableVsize, RoundParameters roundParameters, IEnumerable<OutPoint> registeredInputs, uint256 roundId)
+	{
+		lock (_syncObj)
+		{
+			var bestPaymentSet = GetBestPaymentSet(availableAmount, availableVsize, roundParameters, registeredInputs);
+			MovePaymentsToInProgress(bestPaymentSet.Payments, roundId);
+			return bestPaymentSet;
+		}
+	}
+
 	public IEnumerable<Payment> MovePaymentsToInProgress(IEnumerable<Payment> payments, uint256 roundId)
 	{
 		MovePaymentsTo(payments, payment => payment with { State = new InProgressPayment(payment.State, roundId) });
