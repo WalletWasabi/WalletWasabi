@@ -1,11 +1,14 @@
 using System.Linq;
+using System.Reflection;
 using System.Threading;
+using Microsoft.AspNetCore.Mvc;
 using NBitcoin.Secp256k1;
 using WabiSabi;
 using WabiSabi.CredentialRequesting;
 using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
+using WalletWasabi.Coordinator.Controllers;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Serialization;
 using WalletWasabi.WabiSabi.Models;
@@ -15,6 +18,79 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi;
 
 public class SerializationTests
 {
+	[Fact]
+	public void OversizedCredentialRequestIsRejected()
+	{
+		string pt = "0279BE667EF9DCBBAC55A06295CE870B07029BFCDB2DCE28D959F2815B16F81798";
+		string scalar = "0000000000000000000000000000000000000000000000000000000000000001";
+
+		string presentation = $$"""{"Ca":"{{pt}}","Cx0":"{{pt}}","Cx1":"{{pt}}","CV":"{{pt}}","S":"{{pt}}"}""";
+
+		string RequestWithNonces(int n)
+		{
+			string pts = string.Join(",", Enumerable.Repeat($"\"{pt}\"", n));
+			return $$"""{"Delta":0,"Presented":[],"Requested":[],"Proofs":[{"PublicNonces":[{{pts}}],"Responses":["{{scalar}}"]}]}""";
+		}
+
+		string RequestWithPresentations(int n) =>
+			"""{"Delta":0,"Presented":[""" + string.Join(",", Enumerable.Repeat(presentation, n)) + """],"Requested":[],"Proofs":[]}""";
+
+		// The largest legitimate proof (a full-supply range proof has 2w+1 public nonces) decodes.
+		Assert.NotNull(JsonDecoder.FromString(RequestWithNonces(WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces), Decode.RealCredentialsRequest));
+		Assert.NotNull(JsonDecoder.FromString(RequestWithPresentations(WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber), Decode.RealCredentialsRequest));
+
+		// One element past the bound is rejected before the whole collection is materialized.
+		Assert.Null(JsonDecoder.FromString(RequestWithNonces(WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces + 1), Decode.RealCredentialsRequest));
+		Assert.Null(JsonDecoder.FromString(RequestWithPresentations(WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber + 1), Decode.RealCredentialsRequest));
+
+		// The oversized collection that enabled unauthenticated CPU exhaustion is rejected outright.
+		Assert.Null(JsonDecoder.FromString(RequestWithNonces(100_000), Decode.RealCredentialsRequest));
+	}
+
+	[Fact]
+	public void OversizedRoundStateRequestIsRejected()
+	{
+		string checkpoint = """{"RoundId":"0000000000000000000000000000000000000000000000000000000000000000","StateId":0}""";
+
+		string RequestWithCheckpoints(int n) =>
+			"""{"RoundCheckpoints":[""" + string.Join(",", Enumerable.Repeat(checkpoint, n)) + """]}""";
+
+		// A status request with the maximum number of tracked rounds decodes.
+		Assert.NotNull((object?)Decode.CoordinatorMessage<RoundStateRequest>(RequestWithCheckpoints(WalletWasabi.WabiSabi.ProtocolConstants.MaxRoundCheckpoints)));
+
+		// One element past the bound is rejected before the whole collection is materialized.
+		Assert.Null((object?)Decode.CoordinatorMessage<RoundStateRequest>(RequestWithCheckpoints(WalletWasabi.WabiSabi.ProtocolConstants.MaxRoundCheckpoints + 1)));
+
+		// The oversized unauthenticated checkpoint array is rejected outright.
+		Assert.Null((object?)Decode.CoordinatorMessage<RoundStateRequest>(RequestWithCheckpoints(100_000)));
+	}
+
+	[Fact]
+	public void RequestSizeCapCoversTheLargestValidRequestAndBoundsThePreAuthParse()
+	{
+		// A group element serializes as 33 bytes of hex and a scalar as 32, quoted.
+		const int groupElement = 68;
+		const int scalar = 66;
+
+		int proof = WalletWasabi.WabiSabi.ProtocolConstants.MaxProofNonces * groupElement
+			+ WalletWasabi.WabiSabi.ProtocolConstants.MaxProofResponses * scalar;
+		int issuance = groupElement + WalletWasabi.WabiSabi.ProtocolConstants.MaxRangeProofWidth * groupElement;
+		int credentialRequest =
+			WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber * (5 * groupElement)
+			+ WalletWasabi.WabiSabi.ProtocolConstants.CredentialNumber * issuance
+			+ WalletWasabi.WabiSabi.ProtocolConstants.MaxProofsPerRequest * proof;
+
+		// The largest message carries four credential requests.
+		int largestValidRequest = 4 * credentialRequest;
+
+		// The cap never rejects a valid request and stays far below the Kestrel default (~30 MB).
+		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSizeInBytes > largestValidRequest);
+		Assert.True(WalletWasabi.WabiSabi.ProtocolConstants.MaxRequestSizeInBytes < 30_000_000);
+
+		// The limit is wired onto the coordinator endpoints.
+		Assert.NotNull(typeof(WabiSabiController).GetCustomAttribute<RequestSizeLimitAttribute>());
+	}
+
 	[Fact]
 	public void IssuanceRequestSerialization()
 	{
