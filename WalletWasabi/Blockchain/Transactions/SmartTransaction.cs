@@ -9,8 +9,8 @@ namespace WalletWasabi.Blockchain.Transactions;
 [DebuggerDisplay("{Transaction.GetHash()}")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
-	private Lazy<long[]> _outputValues;
-	private Lazy<bool> _isWasabi2Cj;
+	private readonly Lazy<long[]> _outputValues;
+	private readonly Lazy<bool> _isWasabi2Cj;
 
 	public SmartTransaction(
 		Transaction transaction,
