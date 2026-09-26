@@ -11,20 +11,24 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 {
 	private IWalletModel _wallet;
 
-	public TransactionHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext, transaction)
+	public TransactionHistoryItemViewModel(UiContext uiContext, IWalletModel wallet, RegularTransactionModel transaction) : base(uiContext, transaction)
 	{
 		_wallet = wallet;
 
+		Transaction = transaction;
 		CanBeSpedUp = transaction.CanSpeedUpTransaction && !IsChild;
+		CanBeCancelled = transaction.CanCancelTransaction;
 		ShowDetailsCommand = ReactiveCommand.Create(() => UiContext.Navigate().To().TransactionDetails(wallet, transaction));
 		SpeedUpTransactionCommand = ReactiveCommand.CreateFromTask(async () => await OnSpeedUpTransactionAsync(transaction, CancellationToken.None), Observable.Return(CanBeSpedUp));
-		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(transaction.CanCancelTransaction));
+		CancelTransactionCommand = ReactiveCommand.Create(() => OnCancelTransaction(transaction), Observable.Return(CanBeCancelled));
 		HasBeenSpedUp = transaction.HasBeenSpedUp;
 	}
 
-	public bool TransactionOperationsVisible => Transaction.CanCancelTransaction || CanBeSpedUp;
+	public override RegularTransactionModel Transaction { get; }
 
-	private async Task OnSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
+	public bool TransactionOperationsVisible => CanBeCancelled || CanBeSpedUp;
+
+	private async Task OnSpeedUpTransactionAsync(RegularTransactionModel transaction, CancellationToken cancellationToken)
 	{
 		try
 		{
@@ -38,7 +42,7 @@ public partial class TransactionHistoryItemViewModel : HistoryItemViewModelBase
 		}
 	}
 
-	private void OnCancelTransaction(TransactionModel transaction)
+	private void OnCancelTransaction(RegularTransactionModel transaction)
 	{
 		try
 		{

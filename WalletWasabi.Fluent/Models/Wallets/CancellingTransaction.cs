@@ -3,6 +3,6 @@
 namespace WalletWasabi.Fluent.Models.Wallets;
 
 public record CancellingTransaction(
-	TransactionModel TargetTransaction,
+	RegularTransactionModel TargetTransaction,
 	BuildTransactionResult CancelTransaction,
 	Amount Fee);

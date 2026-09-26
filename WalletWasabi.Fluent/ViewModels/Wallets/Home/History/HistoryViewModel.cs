@@ -62,8 +62,8 @@ public partial class HistoryViewModel : ActivatableViewModel
 				{
 					CanUserResizeColumn = false,
 					CanUserSortColumn = true,
-					CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction.IsCoinjoin),
-					CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction.IsCoinjoin),
+					CompareAscending = HistoryItemViewModelBase.SortAscending(x => x.Transaction is CoinJoinTransactionModel or CoinJoinTransactionGroupModel),
+					CompareDescending = HistoryItemViewModelBase.SortDescending(x => x.Transaction is CoinJoinTransactionModel or CoinJoinTransactionGroupModel),
 				},
 				width: new GridLength(0, GridUnitType.Auto)),
 			x => x.Children,
@@ -213,21 +213,23 @@ public partial class HistoryViewModel : ActivatableViewModel
 
 	public HistoryItemViewModelBase CreateViewModel(TransactionModel transaction, HistoryItemViewModelBase? parent = null)
 	{
-		HistoryItemViewModelBase viewModel = transaction.Type switch
+		HistoryItemViewModelBase viewModel = transaction switch
 		{
-			TransactionType.IncomingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.OutgoingTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.SelfTransferTransaction => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.Coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.CoinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.Cancellation => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction),
-			TransactionType.CPFP => new SpeedUpHistoryItemViewModel(UiContext, _wallet, transaction, parent),
-			_ => new TransactionHistoryItemViewModel(UiContext, _wallet, transaction)
+			CoinJoinTransactionModel coinjoin => new CoinJoinHistoryItemViewModel(UiContext, _wallet, coinjoin),
+			CoinJoinTransactionGroupModel coinjoinGroup => new CoinJoinsHistoryItemViewModel(UiContext, _wallet, coinjoinGroup),
+			RegularTransactionModel { Type: TransactionType.CPFP } cpfp => new SpeedUpHistoryItemViewModel(UiContext, _wallet, cpfp, parent),
+			RegularTransactionModel regular => new TransactionHistoryItemViewModel(UiContext, _wallet, regular),
+			_ => throw new NotSupportedException($"Unknown kind of history row: {transaction.GetType().Name}.")
 		};
 
-		var children = transaction.Children.Reverse();
+		IReadOnlyList<TransactionModel> children = transaction switch
+		{
+			CoinJoinTransactionGroupModel coinjoinGroup => coinjoinGroup.Children,
+			SpeedUpTransactionGroupModel speedUpGroup => speedUpGroup.Children,
+			_ => []
+		};
 
-		foreach (var child in children)
+		foreach (var child in children.Reverse())
 		{
 			var historyItemViewModelBase = CreateViewModel(child, viewModel);
 			viewModel.Children.Add(historyItemViewModelBase);

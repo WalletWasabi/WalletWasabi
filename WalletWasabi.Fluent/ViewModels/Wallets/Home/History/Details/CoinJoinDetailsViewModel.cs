@@ -14,7 +14,7 @@ namespace WalletWasabi.Fluent.ViewModels.Wallets.Home.History.Details;
 public partial class CoinJoinDetailsViewModel : RoutableViewModel
 {
 	private readonly IWalletModel _wallet;
-	private readonly TransactionModel _transaction;
+	private readonly CoinJoinTransactionModel _transaction;
 
 	[AutoNotify] private string _date = "";
 	[AutoNotify] private uint256? _transactionId;
@@ -25,7 +25,7 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 	[AutoNotify] private FeeRate? _feeRate;
 	[AutoNotify] private bool _feeRateVisible;
 
-	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, TransactionModel transaction) : base(uiContext)
+	public CoinJoinDetailsViewModel(UiContext uiContext, IWalletModel wallet, CoinJoinTransactionModel transaction) : base(uiContext)
 	{
 		InputList = new CoinjoinCoinListViewModel(uiContext, transaction.WalletInputs, wallet.Network, transaction.WalletInputs.Count + transaction.ForeignInputs.Value.Count);
 		OutputList = new CoinjoinCoinListViewModel(uiContext, transaction.WalletOutputs, wallet.Network, transaction.WalletOutputs.Count + transaction.ForeignOutputs.Value.Count);
@@ -58,10 +58,10 @@ public partial class CoinJoinDetailsViewModel : RoutableViewModel
 
 	private async Task UpdateAsync(CancellationToken cancellationToken)
 	{
-		if (_wallet.Transactions.TryGetById(_transaction.Id, _transaction.IsChild, out var transaction))
+		if (_wallet.Transactions.TryGetById<CoinJoinTransactionModel>(_transaction.Id, out var transaction))
 		{
 			Date = transaction.DateToolTipString;
-			Costs.Update(transaction);
+			Costs.Update(transaction.CoinjoinCosts, transaction.Amount);
 			Confirmations = transaction.Confirmations;
 			IsConfirmed = Confirmations > 0;
 			TransactionId = transaction.Id;

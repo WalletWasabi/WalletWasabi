@@ -280,7 +280,14 @@ public static class Workers
 					var msg = await inbox.ReceiveAsync(cancellationToken).ConfigureAwait(false);
 					if (DateTime.UtcNow - lastUpdateTime > period)
 					{
-						state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
+						try
+						{
+							state = await handler(msg, state, cancellationToken).ConfigureAwait(false);
+						}
+						finally
+						{
+							lastUpdateTime = DateTime.UtcNow;
+						}
 					}
 				}
 				catch (OperationCanceledException)
@@ -290,10 +297,6 @@ public static class Workers
 				catch (Exception e) when (e is not ChannelClosedException)
 				{
 					Logger.LogError(e);
-				}
-				finally
-				{
-					lastUpdateTime = DateTime.UtcNow;
 				}
 			}
 		};

@@ -1,6 +1,4 @@
-using System.Collections.Generic;
 using NBitcoin;
-using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Fluent.Models.Wallets;
 using WalletWasabi.Fluent.ViewModels.Wallets.Coinjoins;
 using WalletWasabi.WabiSabi.Client;
@@ -19,7 +17,7 @@ public class CoinjoinCostsViewModelTests
 		var costs = new CoinjoinCosts(Money.Satoshis(700), Money.Satoshis(300), Money.Zero);
 		var viewModel = new CoinjoinCostsViewModel(CreateAmount);
 
-		viewModel.Update(CreateCoinjoin(costs, amount: Money.Satoshis(-1_000)));
+		viewModel.Update(costs, amount: Money.Satoshis(-1_000));
 
 		Assert.True(viewModel.IsBreakdownVisible);
 		Assert.Equal(Money.Satoshis(700), viewModel.MiningFeeAmount?.Btc);
@@ -38,7 +36,7 @@ public class CoinjoinCostsViewModelTests
 		var costs = new CoinjoinCosts(Money.Satoshis(700), Money.Satoshis(300), Money.Coins(0.5m));
 		var viewModel = new CoinjoinCostsViewModel(CreateAmount);
 
-		viewModel.Update(CreateCoinjoin(costs, amount: -Money.Coins(0.5m) - Money.Satoshis(1_000)));
+		viewModel.Update(costs, amount: -Money.Coins(0.5m) - Money.Satoshis(1_000));
 
 		Assert.True(viewModel.ArePaymentsVisible);
 		Assert.Equal(Money.Coins(0.5m), viewModel.PaymentsAmount?.Btc);
@@ -52,7 +50,7 @@ public class CoinjoinCostsViewModelTests
 	{
 		var viewModel = new CoinjoinCostsViewModel(CreateAmount);
 
-		viewModel.Update(CreateCoinjoin(costs: null, amount: Money.Satoshis(-1_234)));
+		viewModel.Update(coinjoinCosts: null, amount: Money.Satoshis(-1_234));
 
 		Assert.False(viewModel.IsBreakdownVisible);
 		Assert.False(viewModel.ArePaymentsVisible);
@@ -67,8 +65,8 @@ public class CoinjoinCostsViewModelTests
 		// The same view model is reused as the transaction list updates, so nothing may linger.
 		var viewModel = new CoinjoinCostsViewModel(CreateAmount);
 
-		viewModel.Update(CreateCoinjoin(new CoinjoinCosts(Money.Satoshis(700), Money.Satoshis(300), Money.Coins(0.5m)), Money.Satoshis(-1_000)));
-		viewModel.Update(CreateCoinjoin(costs: null, amount: Money.Satoshis(-1_234)));
+		viewModel.Update(new CoinjoinCosts(Money.Satoshis(700), Money.Satoshis(300), Money.Coins(0.5m)), Money.Satoshis(-1_000));
+		viewModel.Update(coinjoinCosts: null, amount: Money.Satoshis(-1_234));
 
 		Assert.False(viewModel.IsBreakdownVisible);
 		Assert.False(viewModel.ArePaymentsVisible);
@@ -78,26 +76,4 @@ public class CoinjoinCostsViewModelTests
 	}
 
 	private static Amount CreateAmount(Money? money) => new(money ?? Money.Zero);
-
-	private static TransactionModel CreateCoinjoin(CoinjoinCosts? costs, Money amount) =>
-		new()
-		{
-			OrderIndex = 0,
-			Id = uint256.One,
-			Labels = LabelsArray.Empty,
-			Date = DateTimeOffset.UtcNow,
-			DateString = "",
-			DateToolTipString = "",
-			Confirmations = 1,
-			ConfirmedTooltip = "",
-			Type = TransactionType.Coinjoin,
-			Status = TransactionStatus.Confirmed,
-			HexFunction = () => "",
-			ForeignInputsFunction = () => [],
-			WalletInputs = [],
-			ForeignOutputsFunction = () => [],
-			WalletOutputs = [],
-			Amount = amount,
-			CoinjoinCosts = costs
-		};
 }

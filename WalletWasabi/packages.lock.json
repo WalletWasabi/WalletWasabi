@@ -72,12 +72,12 @@
       },
       "NBitcoin": {
         "type": "Direct",
-        "requested": "[10.0.10, )",
-        "resolved": "10.0.10",
-        "contentHash": "YSCBYgTy53gxDs59zcVYWGret3HPmaMmzTyRiLdCjA/EwBm+dmu5mNvTcQb8PQVt/TJxoz2ULfBhTSrTwSYZhQ==",
+        "requested": "[10.0.13, )",
+        "resolved": "10.0.13",
+        "contentHash": "oSwpN9miCcn712RnaZ3AJbwY6caNIqi36mOCp60cZtzJIoV+C23Vgj+6ObdLWnN0/QTBXU2TWlnE3bcH2vItHg==",
         "dependencies": {
           "Microsoft.Extensions.Logging.Abstractions": "1.0.0",
-          "Newtonsoft.Json": "13.0.1"
+          "Newtonsoft.Json": "13.0.4"
         }
       },
       "NNostr.Client": {
@@ -105,9 +105,9 @@
       },
       "WabiSabi": {
         "type": "Direct",
-        "requested": "[1.3.0, )",
-        "resolved": "1.3.0",
-        "contentHash": "xWyCCXDuDNV22c8CWPcnbQUb1quY6EeWwiKu30/7PjfVhPluMnknkKVJp5FoiPxKiX1Jo0U/FgTMaHu3R7t1GA==",
+        "requested": "[1.3.1, )",
+        "resolved": "1.3.1",
+        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }
@@ -255,8 +255,8 @@
       },
       "Newtonsoft.Json": {
         "type": "Transitive",
-        "resolved": "13.0.1",
-        "contentHash": "ppPFpBcvxdsfUonNcvITKqLl3bqxWbDCZIzDWHzjpdAHRFfZe0Dw9HmA0+za13IdyrgJwpkDTDA9fHaxOrt20A=="
+        "resolved": "13.0.4",
+        "contentHash": "pdgNNMai3zv51W5aq268sujXUyx7SNdE2bj1wZcWjAQrKMFZV260lbqYop1d2GM67JI1huLRwxo9ZqnfF/lC6A=="
       },
       "SQLitePCLRaw.bundle_e_sqlite3": {
         "type": "Transitive",

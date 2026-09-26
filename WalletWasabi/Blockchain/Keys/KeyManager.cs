@@ -354,7 +354,7 @@ public class KeyManager
 			generatorSetter(newHdPubKeyGenerator);
 			_hdPubKeyCache.AddRangeKeys(newlyGeneratedKeySet);
 			newKey.SetLabel(labels);
-			ToFile();
+			ToFileNoLock();
 			return newKey;
 		}
 	}
@@ -588,7 +588,7 @@ public class KeyManager
 		{
 			if (AssertLockedInternalKeysIndexedNoLock(howMany, preferTaproot))
 			{
-				ToFile();
+				ToFileNoLock();
 			}
 		}
 	}
@@ -625,18 +625,20 @@ public class KeyManager
 
 	public void ToFile()
 	{
+		lock (_criticalStateLock)
+		{
+			ToFileNoLock();
+		}
+	}
+
+	private void ToFileNoLock()
+	{
 		if (FilePath is not { } filePath)
 		{
 			return;
 		}
 
-		string jsonString;
-
-		lock (_criticalStateLock)
-		{
-			jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManagerNoLock);
-		}
-
+		string jsonString = JsonEncoder.ToReadableString(this, EncodeKeyManagerNoLock);
 		File.SafelyWriteAllText(filePath, jsonString, Encoding.UTF8);
 	}
 
@@ -670,8 +672,18 @@ public class KeyManager
 			_blockchainState.Height = height;
 			if (toFile)
 			{
-				ToFile();
+				ToFileNoLock();
 			}
+		}
+	}
+
+	public void SetResyncParameters(ChainHeight newStartingHeight, int newMinGapLimit)
+	{
+		lock (_criticalStateLock)
+		{
+			_blockchainState.Height = newStartingHeight;
+			MinGapLimit = newMinGapLimit;
+			ToFileNoLock();
 		}
 	}
 
@@ -725,7 +737,7 @@ public class KeyManager
 			("TaprootExtPubKey", Encode.Optional(keyManager.TaprootExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentScanExtPubKey", Encode.Optional(keyManager.SilentPaymentScanExtPubKey, Encode.ExtPubKey)),
 			("SilentPaymentSpendExtPubKey", Encode.Optional(keyManager.SilentPaymentSpendExtPubKey, Encode.ExtPubKey)),
-			("MinGapLimit", Encode.Int(Math.Max(keyManager.SegwitExternalKeyGenerator.MinGapLimit, keyManager.TaprootExternalKeyGenerator?.MinGapLimit ?? 0))),
+			("MinGapLimit", Encode.Int(keyManager.MinGapLimit)),
 			("AccountKeyPath", Encode.KeyPath(keyManager.SegwitAccountKeyPath)),
 			("TaprootAccountKeyPath", Encode.KeyPath(keyManager.TaprootAccountKeyPath)),
 			("BlockchainState", Encode.BlockchainState(keyManager._blockchainState)),

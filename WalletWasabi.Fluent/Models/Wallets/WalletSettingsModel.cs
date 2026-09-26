@@ -77,6 +77,8 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	public WalletType WalletType { get; }
 
+	public int MinGapLimit => _keyManager.MinGapLimit;
+
 	public bool IsCoinJoinPaused { get; set; }
 
 	/// <summary>
@@ -116,8 +118,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_isDirty = true;
 	}
 
-	public void RescanWallet(uint startingHeight = 0)
+	public void RescanWallet(uint startingHeight, int minGapLimit)
 	{
-		_keyManager.SetBestHeight(startingHeight + Constants.ResyncHeightMargin);
+		_keyManager.SetResyncParameters(startingHeight + Constants.ResyncHeightMargin, minGapLimit);
 	}
 }

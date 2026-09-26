@@ -31,8 +31,8 @@ public partial class WalletSettingsViewModel : RoutableViewModel
     [AutoNotify] private int _selectedTab;
     [AutoNotify] private ScriptType _defaultReceiveScriptType;
     [AutoNotify] private bool _isSegWitDefaultReceiveScriptType;
-    [AutoNotify] private WalletWasabi.Models.PreferredScriptPubKeyType _changeScriptPubKeyType;
-    [AutoNotify] private WalletWasabi.Models.SendWorkflow _defaultSendWorkflow;
+    [AutoNotify] private PreferredScriptPubKeyType _changeScriptPubKeyType;
+    [AutoNotify] private SendWorkflow _defaultSendWorkflow;
     [AutoNotify] private bool _isAutomaticDefaultSendWorkflow;
 
     public WalletSettingsViewModel(UiContext uiContext, IWalletModel walletModel) : base(uiContext)
@@ -112,10 +112,10 @@ public partial class WalletSettingsViewModel : RoutableViewModel
 
         ResyncWalletCommand = ReactiveCommand.CreateFromTask(async () =>
         {
-            var heightToResync = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight).GetResultAsync();
-            if (heightToResync is not null)
+            var result = await UiContext.Navigate().To().ResyncWallet(walletModel.GetWalletStats().BirthHeight, walletModel.Settings.MinGapLimit).GetResultAsync();
+            if (result is not null)
             {
-                walletModel.Settings.RescanWallet((uint)heightToResync);
+                walletModel.Settings.RescanWallet(result.StartingHeight, result.MinGapLimit);
                 UiContext.Navigate(MetaData.NavigationTarget).Clear();
                 AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
             }
