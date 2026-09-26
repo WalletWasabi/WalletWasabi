@@ -29,7 +29,7 @@
         </ScrollViewer>
       </TabItem>
 
-      <TabItem Header="Tools" IsVisible="{Binding !IsWatchOnly}">
+      <TabItem Header="Tools">
         <ScrollViewer HorizontalScrollBarVisibility="Disabled" VerticalScrollBarVisibility="Auto">
           <v:WalletToolsView />
         </ScrollViewer>

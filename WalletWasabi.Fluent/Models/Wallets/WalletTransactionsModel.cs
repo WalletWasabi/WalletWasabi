@@ -67,20 +67,17 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 	public IObservable<(IWalletModel Wallet, ProcessedResult EventArgs)> NewTransactionArrived { get; }
 	public IObservable<Unit> RequestedCpfpInfoArrived { get; }
 
-	public bool TryGetById(uint256 transactionId, bool isChild, [NotNullWhen(true)] out TransactionModel? transaction)
+	// The type of a coinjoin group has the same id as its first coinjoin
+	public bool TryGetById<T>(uint256 transactionId, [NotNullWhen(true)] out T? transaction) where T : TransactionModel
 	{
-		var result = isChild
-			? Cache.Items.SelectMany(x => x.Children).FirstOrDefault(x => x.Id == transactionId)
-			: Cache.Items.FirstOrDefault(x => x.Id == transactionId);
+		var groupedCoinjoins = Cache.Items.OfType<CoinJoinTransactionGroupModel>().SelectMany(x => x.Children);
 
-		if (result is null)
-		{
-			transaction = default;
-			return false;
-		}
+		transaction = Cache.Items
+			.Concat(groupedCoinjoins)
+			.OfType<T>()
+			.FirstOrDefault(x => x.Id == transactionId);
 
-		transaction = result;
-		return true;
+		return transaction is not null;
 	}
 
 	public async Task<SmartTransaction> LoadFromFileAsync(string path)
@@ -107,7 +104,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return estimate;
 	}
 
-	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(TransactionModel transaction, CancellationToken cancellationToken)
+	public async Task<SpeedupTransaction> CreateSpeedUpTransactionAsync(RegularTransactionModel transaction, CancellationToken cancellationToken)
 	{
 		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{
@@ -136,7 +133,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return new SpeedupTransaction(targetTransaction, boostingTransaction, areWePayingTheFee, fee);
 	}
 
-	public CancellingTransaction CreateCancellingTransaction(TransactionModel transaction)
+	public CancellingTransaction CreateCancellingTransaction(RegularTransactionModel transaction)
 	{
 		if (!_wallet.TransactionStore.TryGetTransaction(transaction.Id, out var targetTransaction))
 		{

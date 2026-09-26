@@ -85,18 +85,18 @@ public partial class WalletStatsModel : ReactiveObject, IWalletStatsModel, IDisp
 
 		var singleCoinjoins =
 			walletModel.Transactions.Cache.Items
-									.Where(x => x.Type == TransactionType.Coinjoin)
+									.OfType<CoinJoinTransactionModel>()
 									.ToList();
 
 		var groupedCoinjoins =
 			walletModel.Transactions.Cache.Items
-									.Where(x => x.Type == TransactionType.CoinjoinGroup)
+									.OfType<CoinJoinTransactionGroupModel>()
 									.ToList();
 
 		var nestedCoinjoins = groupedCoinjoins.SelectMany(x => x.Children).ToList();
 		var nonCoinjoins =
 			walletModel.Transactions.Cache.Items
-									.Where(x => !x.IsCoinjoin)
+									.Where(x => x is not (CoinJoinTransactionModel or CoinJoinTransactionGroupModel))
 									.ToList();
 
 		TotalTransactionCount = singleCoinjoins.Count + nestedCoinjoins.Count + nonCoinjoins.Count;

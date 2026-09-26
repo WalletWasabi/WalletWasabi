@@ -12,7 +12,7 @@ using Xunit;
 
 namespace WalletWasabi.Tests.UnitTests;
 
-public class KeyManagementTests
+public class KeyManagerTests
 {
 	[Fact]
 	public void CanCreateNew()

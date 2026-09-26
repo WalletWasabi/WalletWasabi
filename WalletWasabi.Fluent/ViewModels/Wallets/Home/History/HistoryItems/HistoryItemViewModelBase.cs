@@ -20,10 +20,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 
 	protected HistoryItemViewModelBase(UiContext uiContext, TransactionModel transaction) : base(uiContext)
 	{
-		Transaction = transaction;
 		IsChild = transaction.IsChild;
 		ClipboardCopyCommand = ReactiveCommand.CreateFromTask<string>(text => UiContext.Clipboard.SetTextAsync(text));
-		HasBeenSpedUp = transaction.HasBeenSpedUp;
 
 		this.WhenAnyValue(x => x.IsFlashing)
 			.Where(x => x)
@@ -70,7 +68,7 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 		set => IsSelected = value;
 	}
 
-	public TransactionModel Transaction { get; }
+	public abstract TransactionModel Transaction { get; }
 
 	public ObservableCollection<HistoryItemViewModelBase> Children { get; } = new();
 
@@ -87,6 +85,8 @@ public abstract partial class HistoryItemViewModelBase : ViewModelBase, ITreeDat
 	public bool HasBeenSpedUp { get; set; }
 
 	public bool CanBeSpedUp { get; protected set; }
+
+	public bool CanBeCancelled { get; protected set; }
 
 	public ICommand? CancelTransactionCommand { get; protected set; }
 
