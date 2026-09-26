@@ -443,9 +443,21 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
+	/// <summary>
+	/// Update the transaction with the data acquired from another transaction.
+	/// </summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
+		// Deadlock prevention.
+		var otherBlockHash = tx.BlockHash;
+		var otherBlockIndex = tx.BlockIndex;
+		var otherHeight = tx.Height;
+		var otherFirstSeen = tx.FirstSeen;
+		var otherLabels = tx.Labels;
+		var otherIsReplacement = tx.IsReplacement;
+		var otherIsSpeedup = tx.IsSpeedup;
+		var otherIsCancellation = tx.IsCancellation;
+
 		lock (_stateLock)
 		{
 			var updated = false;
@@ -459,51 +471,53 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			// Set the height related properties.
 			if (tx.Confirmed)
 			{
-				if (_height != tx.Height)
+				if (_height != otherHeight)
 				{
-					_height = tx.Height;
+					_height = otherHeight;
 					updated = true;
 				}
 
-				if (tx.BlockHash is { } && _blockHash != tx.BlockHash)
+				if (otherBlockHash is { } && _blockHash != otherBlockHash)
 				{
-					_blockHash = tx.BlockHash;
-					_blockIndex = tx.BlockIndex;
+					_blockHash = otherBlockHash;
+					_blockIndex = otherBlockIndex;
 					updated = true;
 				}
 			}
-			else if (_height == Height.Unknown && tx.Height == Height.Mempool)
+			else if (_height == Height.Unknown && otherHeight == Height.Mempool)
 			{
-				_height = tx.Height;
+				_height = otherHeight;
 				updated = true;
 			}
 
 			// Always the earlier seen is the firstSeen.
-			if (tx.FirstSeen < _firstSeen)
+			if (otherFirstSeen < _firstSeen)
 			{
-				_firstSeen = tx.FirstSeen;
+				_firstSeen = otherFirstSeen;
 				updated = true;
 			}
 
 			// Merge labels.
-			if (_labels != tx.Labels)
+			if (_labels != otherLabels)
 			{
-				_labels = LabelsArray.Merge(Labels, tx.Labels);
+				_labels = LabelsArray.Merge(_labels, otherLabels);
 				updated = true;
 			}
 
 			// If we have a flag set on the other, then we make sure it is set on this as well.
-			if (_isReplacement is false && tx.IsReplacement is true)
+			if (_isReplacement is false && otherIsReplacement is true)
 			{
 				_isReplacement = true;
 				updated = true;
 			}
-			if (_isSpeedup is false && tx.IsSpeedup is true)
+
+			if (_isSpeedup is false && otherIsSpeedup is true)
 			{
 				_isSpeedup = true;
 				updated = true;
 			}
-			if (_isCancellation is false && tx.IsCancellation is true)
+
+			if (_isCancellation is false && otherIsCancellation is true)
 			{
 				_isCancellation = true;
 				updated = true;
