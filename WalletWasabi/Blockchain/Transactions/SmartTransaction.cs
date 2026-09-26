@@ -60,7 +60,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// Guards the wallet coin sets, their snapshots and the derived caches.
 	/// Nothing is called out of this class while holding it, so it is always the innermost lock.
 	/// </summary>
-	private readonly object _stateLock = new();
+	private readonly Lock _stateLock = new();
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private readonly HashSet<SmartCoin> _walletInputsInternal;
