@@ -207,7 +207,7 @@ public static class TransactionModifierWalletExtensions
 			allowDoubleSpend: true,
 			tryToSign: true);
 
-		rbf.Transaction.Labels = LabelsArray.Merge(rbf.Transaction.Labels, transactionToSpeedUp.Labels);
+		rbf.Transaction.SetLabels(LabelsArray.Merge(rbf.Transaction.Labels, transactionToSpeedUp.Labels));
 
 		if (transactionToSpeedUp.IsCancellation)
 		{
