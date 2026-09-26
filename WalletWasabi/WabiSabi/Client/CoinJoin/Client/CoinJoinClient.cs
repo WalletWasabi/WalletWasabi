@@ -272,6 +272,10 @@ public class CoinJoinClient
 			{
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
 			}
+			catch (WabiSabiProtocolException ex) when (ex.ExceptionData is WrongPhaseExceptionData { CurrentPhase: Phase.Ended })
+			{
+				// Same as above, the coordinator told us the round ended before our round status did.
+			}
 
 			var mySignedCoins = myAliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
 
@@ -366,7 +370,10 @@ public class CoinJoinClient
 			registeredAliceClients = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				cancellationToken.ThrowIfCancellationRequested();
+
+				var error = smartCoins.Any(coin => coin.IsBanned) ? CoinjoinError.CoinsRejected : CoinjoinError.UserWasntInRound;
+				throw new CoinJoinClientException(error, $"None of the {smartCoins.Count()} inputs could be registered.");
 			}
 
 			Logger.LogInfo(FormatLog($"Successfully registered {registeredAliceClients.Length} inputs.", roundState));
@@ -462,6 +469,11 @@ public class CoinJoinClient
 									confirmationsCts.Cancel();
 								}
 							}
+
+							if (wrongPhaseExceptionData.CurrentPhase == Phase.Ended)
+							{
+								throw;
+							}
 						}
 						else
 						{
@@ -489,6 +501,9 @@ public class CoinJoinClient
 							Logger.LogError(FormatLog($"{nameof(InputBannedExceptionData)} is missing.", roundState));
 						}
 						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+
+						// Mark the coin now so that we can tell a ban apart from other registration failures.
+						coin.BannedUntilUtc = bannedUntil;
 						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
 						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} is banned until {bannedUntil}.", roundState));
 						break;
@@ -569,7 +584,6 @@ public class CoinJoinClient
 
 		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
 		{
-			// In this case the coordinator aborted the round - throw only one exception and log outside.
 			throw lastUnexpectedRoundPhaseException;
 		}
 

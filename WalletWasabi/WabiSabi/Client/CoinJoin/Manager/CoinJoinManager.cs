@@ -208,11 +208,11 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				// If all coin candidates are private it makes no sense to mix.
+				// If all coin candidates are private it makes no sense to mix them.
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)))
 				{
 					throw new CoinJoinClientException(
-						CoinjoinError.NoCoinsEligibleToMix,
+						GetUnavailableNonPrivateCoinsError(coinSelectionResult, walletToStart),
 						$"All coin candidates are already private and {nameof(startCommand.StopWhenAllMixed)} was {startCommand.StopWhenAllMixed}");
 				}
 			}
@@ -313,37 +313,35 @@ public class CoinJoinManager : BackgroundService
 			return result;
 		}
 
-		var anyNonPrivateUnconfirmed = result.UnconfirmedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-		var anyNonPrivateImmature = result.ImmatureCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-		var anyNonPrivateBanned = result.BannedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
-		var anyNonPrivateExcluded = result.ExcludedCoins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+		throw new CoinJoinClientException(GetUnavailableNonPrivateCoinsError(result, wallet), "No candidate coins available for coinjoin.");
+	}
 
-		var errorMessage = $"Coin candidates are empty! {nameof(anyNonPrivateUnconfirmed)}:{anyNonPrivateUnconfirmed} " +
-			$"{nameof(anyNonPrivateImmature)}:{anyNonPrivateImmature} " +
-			$"{nameof(anyNonPrivateBanned)}:{anyNonPrivateBanned} " +
-			$"{nameof(anyNonPrivateExcluded)}:{anyNonPrivateExcluded}";
 
-		if (anyNonPrivateUnconfirmed)
+	private static CoinjoinError GetUnavailableNonPrivateCoinsError(CoinSelectionResult result, Wallet wallet)
+	{
+		bool AnyNonPrivate(SmartCoin[] coins) => coins.Any(x => !x.IsPrivate(wallet.AnonScoreTarget));
+
+		if (AnyNonPrivate(result.UnconfirmedCoins))
 		{
-			throw new CoinJoinClientException(CoinjoinError.NoConfirmedCoinsEligibleToMix, errorMessage);
+			return CoinjoinError.NoConfirmedCoinsEligibleToMix;
 		}
 
-		if (anyNonPrivateImmature)
+		if (AnyNonPrivate(result.ImmatureCoins))
 		{
-			throw new CoinJoinClientException(CoinjoinError.OnlyImmatureCoinsAvailable, errorMessage);
+			return CoinjoinError.OnlyImmatureCoinsAvailable;
 		}
 
-		if (anyNonPrivateBanned)
+		if (AnyNonPrivate(result.BannedCoins))
 		{
-			throw new CoinJoinClientException(CoinjoinError.CoinsRejected, errorMessage);
+			return CoinjoinError.CoinsRejected;
 		}
 
-		if (anyNonPrivateExcluded)
+		if (AnyNonPrivate(result.ExcludedCoins))
 		{
-			throw new CoinJoinClientException(CoinjoinError.OnlyExcludedCoinsAvailable, errorMessage);
+			return CoinjoinError.OnlyExcludedCoinsAvailable;
 		}
 
-		throw new CoinJoinClientException(CoinjoinError.NoCoinsEligibleToMix, "No candidate coins available to mix.");
+		return CoinjoinError.NoCoinsEligibleToMix;
 	}
 
 	private bool TryRemoveTrackedAutoStart(ConcurrentDictionary<WalletId, TrackedAutoStart> trackedAutoStarts, Wallet wallet)
