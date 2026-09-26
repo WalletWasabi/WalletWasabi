@@ -173,12 +173,13 @@ public class TransactionSqliteStorage : IDisposable
 		foreach (SmartTransaction tx in transactions)
 		{
 			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
-			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(tx.Height);
+			var (height, blockHashValue, blockIndex) = tx.GetBlockInfo();
+			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(height);
 
-			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
+			byte[]? blockHash = blockHashValue?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
 
-			blockIndexParameter.Value = tx.BlockIndex;
+			blockIndexParameter.Value = blockIndex;
 			labelsParameter.Value = tx.Labels.ToString();
 			firstSeenParameter.Value = tx.FirstSeen.ToUnixTimeSeconds();
 			isReplacementParameter.Value = tx.IsReplacement ? 1 : 0;
@@ -272,12 +273,13 @@ public class TransactionSqliteStorage : IDisposable
 		foreach (SmartTransaction tx in transactions)
 		{
 			txidParameter.Value = tx.GetHash().ToBytes(lendian: false);
-			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(tx.Height);
+			var (height, blockHashValue, blockIndex) = tx.GetBlockInfo();
+			blockHeightParameter.Value = HeightToBackwardCompatibleInteger(height);
 
-			byte[]? blockHash = tx.BlockHash?.ToBytes(lendian: false);
+			byte[]? blockHash = blockHashValue?.ToBytes(lendian: false);
 			blockHashParameter.Value = (blockHash is not null) ? blockHash : DBNull.Value;
 
-			blockIndexParameter.Value = tx.BlockIndex;
+			blockIndexParameter.Value = blockIndex;
 			labelsParameter.Value = tx.Labels.ToString();
 			firstSeenParameter.Value = tx.FirstSeen.ToUnixTimeSeconds();
 			isReplacementParameter.Value = tx.IsReplacement ? 1 : 0;

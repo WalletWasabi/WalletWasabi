@@ -28,17 +28,17 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Labels = labels ?? LabelsArray.Empty;
+		_labels = labels ?? LabelsArray.Empty;
 
-		Height = height ?? Unknown;
-		BlockHash = blockHash;
-		BlockIndex = blockIndex;
+		_height = height ?? Unknown;
+		_blockHash = blockHash;
+		_blockIndex = blockIndex;
 
-		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
+		_firstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
-		IsReplacement = isReplacement;
-		IsSpeedup = isSpeedup;
-		IsCancellation = isCancellation;
+		_isReplacement = isReplacement;
+		_isSpeedup = isSpeedup;
+		_isCancellation = isCancellation;
 		_walletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		_walletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
@@ -55,6 +55,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public long[] OutputValues => _outputValues.Value;
 	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
+
+	/// <summary>
+	/// Guards the wallet coin sets, their snapshots and the derived caches.
+	/// Nothing is called out of this class while holding it, so it is always the innermost lock.
+	/// </summary>
+	private readonly object _stateLock = new();
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
 	private readonly HashSet<SmartCoin> _walletInputsInternal;
@@ -77,20 +83,47 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
 	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; } = null;
 
-	public IReadOnlyCollection<SmartCoin> WalletInputs => _walletInputsInternal;
+	/// <summary>Snapshot of <see cref="_walletInputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
+	private SmartCoin[]? _walletInputsSnapshot;
 
-	public IReadOnlyCollection<SmartCoin> WalletOutputs => _walletOutputsInternal;
+	/// <summary>Snapshot of <see cref="_walletOutputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
+	private SmartCoin[]? _walletOutputsSnapshot;
+
+	public IReadOnlyCollection<SmartCoin> WalletInputs
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _walletInputsSnapshot ??= _walletInputsInternal.ToArray();
+			}
+		}
+	}
+
+	public IReadOnlyCollection<SmartCoin> WalletOutputs
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _walletOutputsSnapshot ??= _walletOutputsInternal.ToArray();
+			}
+		}
+	}
 
 	public IReadOnlyCollection<IndexedTxIn> ForeignInputs
 	{
 		get
 		{
-			if (ForeignInputsCache is null)
+			lock (_stateLock)
 			{
-				var walletInputOutpoints = WalletInputs.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
-				ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+				if (ForeignInputsCache is null)
+				{
+					var walletInputOutpoints = _walletInputsInternal.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
+					ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+				}
+				return ForeignInputsCache;
 			}
-			return ForeignInputsCache;
 		}
 	}
 
@@ -98,12 +131,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			if (ForeignOutputsCache is null)
+			lock (_stateLock)
 			{
-				var walletOutputIndices = WalletOutputs.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
-				ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+				if (ForeignOutputsCache is null)
+				{
+					var walletOutputIndices = _walletOutputsInternal.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
+					ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+				}
+				return ForeignOutputsCache;
 			}
-			return ForeignOutputsCache;
 		}
 	}
 
@@ -112,11 +148,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			WalletVirtualInputsCache ??= WalletInputs
-				.GroupBy(i => i.HdPubKey.PubKey)
-				.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
-				.ToHashSet();
-			return WalletVirtualInputsCache;
+			lock (_stateLock)
+			{
+				WalletVirtualInputsCache ??= _walletInputsInternal
+					.GroupBy(i => i.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
+					.ToHashSet();
+				return WalletVirtualInputsCache;
+			}
 		}
 	}
 
@@ -125,11 +164,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			WalletVirtualOutputsCache ??= WalletOutputs
-				.GroupBy(o => o.HdPubKey.PubKey)
-				.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
-				.ToHashSet();
-			return WalletVirtualOutputsCache;
+			lock (_stateLock)
+			{
+				WalletVirtualOutputsCache ??= _walletOutputsInternal
+					.GroupBy(o => o.HdPubKey.PubKey)
+					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
+					.ToHashSet();
+				return WalletVirtualOutputsCache;
+			}
 		}
 	}
 
@@ -138,31 +180,67 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	{
 		get
 		{
-			ForeignVirtualOutputsCache ??= ForeignOutputs
-					.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
-					.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
-					.ToHashSet();
-			return ForeignVirtualOutputsCache;
+			lock (_stateLock)
+			{
+				ForeignVirtualOutputsCache ??= ForeignOutputs
+						.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
+						.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
+						.ToHashSet();
+				return ForeignVirtualOutputsCache;
+			}
 		}
 	}
 
 	public Transaction Transaction { get; }
 
-	public Height Height { get; private set; }
+	// The mutable state below is guarded by _stateLock, because the transaction is shared between the
+	// sync, broadcaster, store and UI threads.
+	private Height _height;
+	private uint256? _blockHash;
+	private int _blockIndex;
+	private LabelsArray _labels;
+	private DateTimeOffset _firstSeen;
+	private bool _isReplacement;
+	private bool _isSpeedup;
+	private bool _isCancellation;
 
-	public uint256? BlockHash { get; private set; }
+	public Height Height { get { lock (_stateLock) { return _height; } } }
 
-	public int BlockIndex { get; private set; }
+	public uint256? BlockHash { get { lock (_stateLock) { return _blockHash; } } }
 
-	public LabelsArray Labels { get; set; }
+	public int BlockIndex { get { lock (_stateLock) { return _blockIndex; } } }
 
-	public DateTimeOffset FirstSeen { get; private set; }
+	public LabelsArray Labels
+	{
+		get { lock (_stateLock) { return _labels; } }
+		set { lock (_stateLock) { _labels = value; } }
+	}
 
-	public bool IsReplacement { get; private set; }
+	public DateTimeOffset FirstSeen { get { lock (_stateLock) { return _firstSeen; } } }
 
-	public bool IsSpeedup { get; private set; }
+	public bool IsReplacement { get { lock (_stateLock) { return _isReplacement; } } }
 
-	public bool IsCancellation { get; private set; }
+	public bool IsSpeedup { get { lock (_stateLock) { return _isSpeedup; } } }
+
+	public bool IsCancellation { get { lock (_stateLock) { return _isCancellation; } } }
+
+	/// <summary>Reads <see cref="Height"/>, <see cref="BlockHash"/> and <see cref="BlockIndex"/> as one consistent snapshot.</summary>
+	public (Height Height, uint256? BlockHash, int BlockIndex) GetBlockInfo()
+	{
+		lock (_stateLock)
+		{
+			return (_height, _blockHash, _blockIndex);
+		}
+	}
+
+	/// <summary>Merges <paramref name="labels"/> into <see cref="Labels"/> atomically, so concurrent merges are not lost.</summary>
+	public void AddLabels(LabelsArray labels)
+	{
+		lock (_stateLock)
+		{
+			_labels = LabelsArray.Merge(_labels, labels);
+		}
+	}
 
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
 	public bool IsCPFPd => ChildrenPayForThisTx.Any();
@@ -267,37 +345,49 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public bool TryAddWalletInput(SmartCoin input)
 	{
-		if (_walletInputsInternal.Add(input))
+		lock (_stateLock)
 		{
-			ForeignInputsCache = null;
-			WalletVirtualInputsCache = null;
-			return true;
+			if (_walletInputsInternal.Add(input))
+			{
+				_walletInputsSnapshot = null;
+				ForeignInputsCache = null;
+				WalletVirtualInputsCache = null;
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	public bool TryAddWalletOutput(SmartCoin output)
 	{
-		if (_walletOutputsInternal.Add(output))
+		lock (_stateLock)
 		{
-			ForeignOutputsCache = null;
-			WalletVirtualOutputsCache = null;
-			ForeignVirtualOutputsCache = null;
-			return true;
+			if (_walletOutputsInternal.Add(output))
+			{
+				_walletOutputsSnapshot = null;
+				ForeignOutputsCache = null;
+				WalletVirtualOutputsCache = null;
+				ForeignVirtualOutputsCache = null;
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	public bool TryRemoveWalletOutput(SmartCoin output)
 	{
-		if (_walletOutputsInternal.Remove(output))
+		lock (_stateLock)
 		{
-			ForeignOutputsCache = null;
-			WalletVirtualOutputsCache = null;
-			ForeignVirtualOutputsCache = null;
-			return true;
+			if (_walletOutputsInternal.Remove(output))
+			{
+				_walletOutputsSnapshot = null;
+				ForeignOutputsCache = null;
+				WalletVirtualOutputsCache = null;
+				ForeignVirtualOutputsCache = null;
+				return true;
+			}
+			return false;
 		}
-		return false;
 	}
 
 	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
@@ -311,69 +401,81 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 		}
 
-		// Set the height related properties.
-		if (tx.Confirmed)
+		// Snapshot the other transaction first, so we never hold the locks of two instances at once
+		// (a.TryUpdate(b) racing b.TryUpdate(a) would deadlock).
+		var (otherHeight, otherBlockHash, otherBlockIndex) = tx.GetBlockInfo();
+		var otherFirstSeen = tx.FirstSeen;
+		var otherLabels = tx.Labels;
+		var otherIsReplacement = tx.IsReplacement;
+		var otherIsSpeedup = tx.IsSpeedup;
+		var otherIsCancellation = tx.IsCancellation;
+
+		lock (_stateLock)
 		{
-			if (Height != tx.Height)
+			// Set the height related properties.
+			if (otherHeight is ChainHeight)
 			{
-				Height = tx.Height;
+				if (_height != otherHeight)
+				{
+					_height = otherHeight;
+					updated = true;
+				}
+
+				if (otherBlockHash is { } && _blockHash != otherBlockHash)
+				{
+					_blockHash = otherBlockHash;
+					_blockIndex = otherBlockIndex;
+					updated = true;
+				}
+			}
+			else if (_height == Height.Unknown && otherHeight == Height.Mempool)
+			{
+				_height = otherHeight;
 				updated = true;
 			}
 
-			if (tx.BlockHash is { } && BlockHash != tx.BlockHash)
+			// Always the earlier seen is the firstSeen.
+			if (otherFirstSeen < _firstSeen)
 			{
-				BlockHash = tx.BlockHash;
-				BlockIndex = tx.BlockIndex;
+				_firstSeen = otherFirstSeen;
 				updated = true;
 			}
-		}
-		else if (Height == Height.Unknown && tx.Height == Height.Mempool)
-		{
-			Height = tx.Height;
-			updated = true;
-		}
 
-		// Always the earlier seen is the firstSeen.
-		if (tx.FirstSeen < FirstSeen)
-		{
-			FirstSeen = tx.FirstSeen;
-			updated = true;
-		}
-
-		// Merge labels.
-		if (Labels != tx.Labels)
-		{
-			Labels = LabelsArray.Merge(Labels, tx.Labels);
-			updated = true;
-		}
-
-		// If we have a flag set on the other, then we make sure it is set on this as well.
-		if (IsReplacement is false && tx.IsReplacement is true)
-		{
-			IsReplacement = true;
-			updated = true;
-		}
-		if (IsSpeedup is false && tx.IsSpeedup is true)
-		{
-			IsSpeedup = true;
-			updated = true;
-		}
-		if (IsCancellation is false && tx.IsCancellation is true)
-		{
-			IsCancellation = true;
-			updated = true;
-		}
-
-		// If we have witness on the other tx, then we should have it on this as well.
-		for (int i = 0; i < Transaction.Inputs.Count; i++)
-		{
-			var input = Transaction.Inputs[i];
-			var otherInput = tx.Transaction.Inputs[i];
-
-			if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+			// Merge labels.
+			if (_labels != otherLabels)
 			{
-				input.WitScript = otherInput.WitScript;
+				_labels = LabelsArray.Merge(_labels, otherLabels);
 				updated = true;
+			}
+
+			// If we have a flag set on the other, then we make sure it is set on this as well.
+			if (_isReplacement is false && otherIsReplacement is true)
+			{
+				_isReplacement = true;
+				updated = true;
+			}
+			if (_isSpeedup is false && otherIsSpeedup is true)
+			{
+				_isSpeedup = true;
+				updated = true;
+			}
+			if (_isCancellation is false && otherIsCancellation is true)
+			{
+				_isCancellation = true;
+				updated = true;
+			}
+
+			// If we have witness on the other tx, then we should have it on this as well.
+			for (int i = 0; i < Transaction.Inputs.Count; i++)
+			{
+				var input = Transaction.Inputs[i];
+				var otherInput = tx.Transaction.Inputs[i];
+
+				if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+				{
+					input.WitScript = otherInput.WitScript;
+					updated = true;
+				}
 			}
 		}
 
@@ -382,24 +484,52 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public void SetReplacement()
 	{
-		IsReplacement = true;
+		lock (_stateLock)
+		{
+			_isReplacement = true;
+		}
 	}
 
 	public void SetSpeedup()
 	{
-		IsSpeedup = true;
+		lock (_stateLock)
+		{
+			_isSpeedup = true;
+		}
 	}
 
 	public void SetCancellation()
 	{
-		IsCancellation = true;
+		lock (_stateLock)
+		{
+			_isCancellation = true;
+		}
 	}
 
 	public void SetUnconfirmed()
 	{
-		Height = Height.Mempool;
-		BlockHash = null;
-		BlockIndex = 0;
+		lock (_stateLock)
+		{
+			_height = Height.Mempool;
+			_blockHash = null;
+			_blockIndex = 0;
+		}
+	}
+
+	/// <summary>Moves the transaction to the mempool unless its height is already known (e.g. it confirmed meanwhile).</summary>
+	/// <returns><c>true</c> if the height was changed.</returns>
+	public bool SetMempoolIfUnknown()
+	{
+		lock (_stateLock)
+		{
+			if (_height != Height.Unknown)
+			{
+				return false;
+			}
+
+			_height = Height.Mempool;
+			return true;
+		}
 	}
 
 	public bool IsOwnCoinjoin()

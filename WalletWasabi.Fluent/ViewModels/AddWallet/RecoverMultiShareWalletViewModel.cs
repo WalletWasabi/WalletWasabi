@@ -158,19 +158,8 @@ public partial class RecoverMultiShareWalletViewModel : RoutableViewModel
 				options = options with { WalletBackup = recoveryWordsBackup, MinGapLimit = MinGapLimit, BirthHeight = BirthHeight};
 				var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options);
 
-				var filterMinHeight = UiContext.Services.GetMinimumBlockHeight();
-				if (filterMinHeight is { } minHeight && BirthHeight < minHeight)
+				if (await RestartIfOlderFiltersNeededAsync(walletSettings, walletName, BirthHeight, "Wallet recovery"))
 				{
-					UiContext.WalletRepository.SaveWallet(walletSettings);
-
-					UiContext.Services.SetLastSelectedWallet(walletName);
-					UiContext.Services.UiConfig.ToFile();
-
-					await ShowErrorAsync(
-						"Restart required",
-						"Wasabi needs to download older block filters for this wallet. The application will restart to begin this process.",
-						"Wallet recovery");
-					AppLifetimeHelper.Shutdown(withShutdownPrevention: true, restart: true);
 					return;
 				}
 

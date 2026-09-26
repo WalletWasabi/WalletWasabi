@@ -53,6 +53,13 @@ public partial class DetectedHardwareWalletViewModel : RoutableViewModel
 		{
 			CancelCts ??= new CancellationTokenSource();
 			var walletSettings = await UiContext.WalletRepository.NewWalletAsync(options, CancelCts.Token);
+
+			// A hardware wallet may have history from before the oldest stored filter (#14870).
+			if (await RestartIfOlderFiltersNeededAsync(walletSettings, options.WalletName, walletSettings.BestHeight + 1, "Hardware wallet"))
+			{
+				return;
+			}
+
 			Navigate().To().AddedWalletPage(walletSettings, options);
 		}
 		catch (Exception ex)

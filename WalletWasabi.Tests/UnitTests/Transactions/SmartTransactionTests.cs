@@ -1,4 +1,8 @@
 using NBitcoin;
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -7,6 +11,7 @@ using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -285,5 +290,85 @@ public class SmartTransactionTests
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCancellation: isCancellation), defaultNetwork };
 		}
+	}
+
+	[Fact]
+	public void WalletInputsCanBeEnumeratedWhileAddingInputs()
+	{
+		// https://github.com/WalletWasabi/WalletWasabi/issues/14824
+		var km = ServiceFactory.CreateKeyManager();
+		var coins = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m)).ToArray();
+		var tx = Transaction.Create(Network.Main);
+		foreach (var coin in coins)
+		{
+			tx.Inputs.Add(coin.Outpoint);
+		}
+		tx.Outputs.Add(Money.Coins(2.9m), new Key());
+		var stx = new SmartTransaction(tx, Height.Mempool);
+
+		Assert.True(stx.TryAddWalletInput(coins[0]));
+		Assert.Equal(2, stx.ForeignInputs.Count);
+
+		// Previously WalletInputs was the live set, so this threw "Collection was modified".
+		foreach (var _ in stx.WalletInputs)
+		{
+			Assert.True(stx.TryAddWalletInput(coins[1]));
+		}
+
+		Assert.Equal(2, stx.WalletInputs.Count);
+		Assert.Single(stx.ForeignInputs);
+	}
+
+	[Fact]
+	public void ConcurrentUpdatesDoNotLoseLabelsOrFirstSeen()
+	{
+		var tx = Transaction.Create(Network.Main);
+		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
+		tx.Outputs.Add(Money.Coins(1), new Key());
+		var start = DateTimeOffset.UtcNow;
+		var stx = new SmartTransaction(tx, Height.Mempool, firstSeen: start);
+
+		const int Count = 2000;
+		Parallel.For(0, Count, i =>
+		{
+			stx.TryUpdate(new SmartTransaction(tx, Height.Mempool, labels: new LabelsArray($"update{i}"), firstSeen: start.AddSeconds(-i)));
+			stx.AddLabels(new LabelsArray($"add{i}"));
+		});
+
+		Assert.Equal(2 * Count, stx.Labels.Count);
+		Assert.Equal(start.AddSeconds(-(Count - 1)), stx.FirstSeen);
+	}
+
+	[Fact]
+	public async Task BlockInfoIsNeverTornAsync()
+	{
+		var tx = Transaction.Create(Network.Main);
+		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
+		tx.Outputs.Add(Money.Coins(1), new Key());
+		var stx = new SmartTransaction(tx, Height.Mempool);
+		var confirmed = new SmartTransaction(tx, new ChainHeight(5), BitcoinFactory.CreateUint256(), blockIndex: 3);
+
+		using var cts = new CancellationTokenSource(TimeSpan.FromMilliseconds(500));
+		var writer = Task.Run(() =>
+		{
+			while (!cts.IsCancellationRequested)
+			{
+				stx.TryUpdate(confirmed);
+				stx.SetUnconfirmed();
+			}
+		});
+
+		var torn = 0;
+		while (!cts.IsCancellationRequested)
+		{
+			var (height, blockHash, blockIndex) = stx.GetBlockInfo();
+			if ((height is ChainHeight) != (blockHash is not null) || (blockHash is null) != (blockIndex == 0))
+			{
+				torn++;
+			}
+		}
+
+		await writer;
+		Assert.Equal(0, torn);
 	}
 }

@@ -1,8 +1,12 @@
 using System.Collections.Generic;
 using System.Linq.Expressions;
 using System.Reactive;
+using System.Reactive.Disposables;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
+using WalletWasabi.Logging;
 
 namespace WalletWasabi.Fluent.Extensions;
 
@@ -60,14 +64,73 @@ public static class ObservableExtensions
 
 	public static IObservableCache<TObject, TKey> FetchAsync<TObject, TKey>(
 		this IObservable<Unit> signal,
-		Func<Task<IEnumerable<TObject>>> source,
+		Func<CancellationToken, Task<IEnumerable<TObject>>> source,
 		Func<TObject, TKey> keySelector,
 		IEqualityComparer<TObject>? equalityComparer = null)
 		where TKey : notnull where TObject : notnull
 	{
-		return signal.SelectMany(_ => Observable.FromAsync(source))
+		return signal.FetchLatestAsync(source)
 			.EditDiff(keySelector, equalityComparer)
 			.DisposeMany()
 			.AsObservableCache();
+	}
+
+	/// <summary>
+	/// Runs <paramref name="source"/> once per signal, one run at a time. Signals that arrive while a run is in
+	/// progress collapse into a single follow-up run, so slow fetches (e.g. history rebuilds during a rescan)
+	/// neither pile up in parallel nor get cancelled before they can finish. A failed run is logged and the
+	/// next signal retries; it does not terminate the sequence.
+	/// </summary>
+	public static IObservable<T> FetchLatestAsync<T>(this IObservable<Unit> signal, Func<CancellationToken, Task<T>> source)
+	{
+		return Observable.Create<T>(observer =>
+		{
+			var cts = new CancellationTokenSource();
+			var cancellationToken = cts.Token;
+
+			// Capacity 1 with DropWrite: at most one run is pending while another one is running.
+			var pending = Channel.CreateBounded<Unit>(new BoundedChannelOptions(1) { FullMode = BoundedChannelFullMode.DropWrite });
+			var subscription = signal.Subscribe(
+				x => pending.Writer.TryWrite(x),
+				ex => pending.Writer.TryComplete(ex),
+				() => pending.Writer.TryComplete());
+
+			_ = Task.Run(async () =>
+			{
+				try
+				{
+					await foreach (var _ in pending.Reader.ReadAllAsync(cancellationToken).ConfigureAwait(false))
+					{
+						try
+						{
+							observer.OnNext(await source(cancellationToken).ConfigureAwait(false));
+						}
+						catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+						{
+							return;
+						}
+						catch (Exception ex)
+						{
+							Logger.LogError(ex);
+						}
+					}
+
+					observer.OnCompleted();
+				}
+				catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+				{
+				}
+				catch (Exception ex)
+				{
+					observer.OnError(ex);
+				}
+			});
+
+			return Disposable.Create(() =>
+			{
+				subscription.Dispose();
+				cts.Cancel();
+			});
+		});
 	}
 }
