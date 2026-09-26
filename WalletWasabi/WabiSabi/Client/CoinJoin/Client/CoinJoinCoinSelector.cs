@@ -13,12 +13,14 @@ public class CoinJoinCoinSelector
 	/// <param name="anonScoreTarget">Tries to select few coins over this threshold.</param>
 	/// <param name="semiPrivateThreshold">Minimum anonymity of coins that can be selected together.</param>
 	/// <param name="arePaymentsPending">Tells whether there is a coinjoin payment waiting to be funded.</param>
+	/// <param name="failedAttemptInputs">The inputs of each failed attempt of the pending payments. One input of each is selected, if available, so the payments can be retried.</param>
 	public CoinJoinCoinSelector(
 		bool consolidationMode,
 		int anonScoreTarget,
 		int semiPrivateThreshold,
 		CoinJoinCoinSelectorRandomnessGenerator? generator = null,
-		Func<bool>? arePaymentsPending = null)
+		Func<bool>? arePaymentsPending = null,
+		Func<IEnumerable<ImmutableArray<OutPoint>>>? failedAttemptInputs = null)
 	{
 		ConsolidationMode = consolidationMode;
 		AnonScoreTarget = anonScoreTarget;
@@ -26,6 +28,7 @@ public class CoinJoinCoinSelector
 
 		_generator = generator ?? new(MaxInputsRegistrableByWallet, RandomnessProviders.Secure);
 		_arePaymentsPending = arePaymentsPending ?? (() => false);
+		_failedAttemptInputs = failedAttemptInputs ?? (() => []);
 	}
 
 	public bool ConsolidationMode { get; }
@@ -34,13 +37,15 @@ public class CoinJoinCoinSelector
 	private RandomnessProvider Rnd => _generator.Rnd;
 	private readonly CoinJoinCoinSelectorRandomnessGenerator _generator;
 	private readonly Func<bool> _arePaymentsPending;
+	private readonly Func<IEnumerable<ImmutableArray<OutPoint>>> _failedAttemptInputs;
 
 	public static CoinJoinCoinSelector FromWallet(Wallet wallet) =>
 		new(
 			wallet.ConsolidationMode,
 			wallet.AnonScoreTarget,
 			wallet.NonPrivateCoinIsolation ? Constants.SemiPrivateThreshold : 0,
-			arePaymentsPending: () => wallet.BatchedPayments.AreTherePendingPayments);
+			arePaymentsPending: () => wallet.BatchedPayments.AreTherePendingPayments,
+			failedAttemptInputs: () => wallet.BatchedPayments.GetFailedAttemptInputs());
 
 	/// <param name="liquidityClue">Weakly prefer not to select inputs over this.</param>
 	public ImmutableList<SmartCoin> SelectCoinsForRound(IEnumerable<SmartCoin> coins, UtxoSelectionParameters parameters, Money liquidityClue)
@@ -295,6 +300,22 @@ public class CoinJoinCoinSelector
 			if (nonSelectedCoinsOnSameAddresses.Count > 0)
 			{
 				Logger.LogInfo($"{nonSelectedCoinsOnSameAddresses.Count} coins were added to the selection because they are on the same addresses of some selected coins.");
+			}
+		}
+
+		// A payment that was signed in a transaction which was not broadcast can only be made in a transaction
+		// that conflicts with it. Add one of its inputs to the selection if none was selected.
+		foreach (var inputs in _failedAttemptInputs())
+		{
+			if (winner.Any(x => inputs.Contains(x.Outpoint)))
+			{
+				continue;
+			}
+
+			if (filteredCoins.Where(x => inputs.Contains(x.Outpoint)).RandomElement(Rnd) is { } failedAttemptCoin)
+			{
+				winner.Add(failedAttemptCoin);
+				Logger.LogInfo($"Coin {failedAttemptCoin.Outpoint} was added to the selection to protect a pending payment from being made twice.");
 			}
 		}
 

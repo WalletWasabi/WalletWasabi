@@ -14,13 +14,20 @@ public abstract record PaymentState
 
 public record PendingPayment(PaymentState? PreviousState) : PaymentState(PreviousState);
 public record InProgressPayment(PaymentState PreviousState, uint256 RoundId) : PaymentState(PreviousState);
-public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 TransactionId) : PaymentState(PreviousState);
+public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 TransactionId, ImmutableArray<OutPoint> Inputs) : PaymentState(PreviousState);
 public record FinishedPayment(PaymentState PreviousState, uint256 TransactionId) : PaymentState(PreviousState);
+
+public record FailedAttempt(uint256 TransactionId, ImmutableArray<OutPoint> Inputs);
 
 public record Payment(IDestination Destination, Money Amount)
 {
 	public Guid Id { get; } = Guid.NewGuid();
 	public PaymentState State { get; init; } = new PendingPayment(null);
+
+	public ImmutableList<FailedAttempt> FailedAttempts { get; init; } = [];
+
+	public bool IsProtectedBy(IReadOnlySet<OutPoint> retryInputs) =>
+		FailedAttempts.All(attempt => attempt.Inputs.Any(retryInputs.Contains));
 
 	public TxOut ToTxOut() => new(Amount, Destination.ScriptPubKey);
 

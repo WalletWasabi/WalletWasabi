@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
 using WalletWasabi.Blockchain.Keys;
@@ -141,6 +142,54 @@ public class CoinJoinCoinSelectionTests
 
 		Assert.NotEmpty(coins);
 		Assert.All(coins, coin => Assert.Contains(coin, coinCandidates));
+	}
+
+	/// <summary>
+	/// A payment signed in a transaction that was not broadcast can only be made again in a transaction that conflicts
+	/// with it, so one of that transaction's inputs is added to the selection whenever none was selected.
+	/// </summary>
+	[Fact]
+	public void SelectAnInputOfEveryFailedPaymentAttempt()
+	{
+		const int AnonymitySet = 10;
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+
+		var coinCandidates = Enumerable
+			.Range(0, 10)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1))
+			.ToList();
+
+		foreach (var sc in coinCandidates)
+		{
+			var sci = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1);
+			sci.Transaction.TryAddWalletInput(BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km, isInternal: true), Money.Coins(1m), anonymitySet: AnonymitySet + 1));
+			sc.Transaction.TryAddWalletInput(sci);
+		}
+
+		// Two failed attempts. The inputs that are not ours or not available can never be selected.
+		var firstAttempt = coinCandidates.Take(2).Select(x => x.Outpoint).Append(BitcoinFactory.CreateOutPoint()).ToImmutableArray();
+		var secondAttempt = coinCandidates.Skip(2).Take(2).Select(x => x.Outpoint).Append(BitcoinFactory.CreateOutPoint()).ToImmutableArray();
+		var unavailableAttempt = ImmutableArray.Create(BitcoinFactory.CreateOutPoint());
+
+		for (var i = 0; i < 20; i++)
+		{
+			var coinJoinCoinSelector = new CoinJoinCoinSelector(
+				consolidationMode: false,
+				anonScoreTarget: AnonymitySet,
+				semiPrivateThreshold: 0,
+				CreateSelectorGenerator(inputTarget: 2),
+				arePaymentsPending: () => true,
+				failedAttemptInputs: () => [firstAttempt, secondAttempt, unavailableAttempt]);
+
+			var coins = coinJoinCoinSelector.SelectCoinsForRound(
+				coins: coinCandidates,
+				CreateUtxoSelectionParameters(),
+				liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+			Assert.Contains(coins, coin => firstAttempt.Contains(coin.Outpoint));
+			Assert.Contains(coins, coin => secondAttempt.Contains(coin.Outpoint));
+			Assert.All(coins, coin => Assert.Contains(coin, coinCandidates));
+		}
 	}
 
 	[Fact]

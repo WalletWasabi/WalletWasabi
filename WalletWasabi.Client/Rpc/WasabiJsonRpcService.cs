@@ -341,6 +341,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 			}
 
 			paymentResult["state"] = stateHistory;
+			paymentResult["failedattempts"] = x.FailedAttempts.Select(a => a.TransactionId.ToString()).ToArray();
 
 			if (x.Destination.ScriptPubKey.GetDestinationAddress(activeWallet.Network) is { } address)
 			{

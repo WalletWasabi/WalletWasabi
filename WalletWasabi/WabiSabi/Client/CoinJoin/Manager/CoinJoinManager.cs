@@ -496,7 +496,6 @@ public class CoinJoinManager : BackgroundService
 		var batchedPayments = wallet.BatchedPayments;
 		CoinJoinClientException? cjClientException = null;
 		var forceStop = false;
-		var unknownEnding = false;
 		try
 		{
 			var result = await finishedCoinJoin.CoinJoinTask.ConfigureAwait(false);
@@ -525,12 +524,11 @@ public class CoinJoinManager : BackgroundService
 		catch (UnknownRoundEndingException ex)
 		{
 			// The round ending is unknown - the transaction might have been broadcast.
-			// Payments are already in signed state (moved by TransactionSigned event).
-			// The reconciliation process will later check if the transaction was confirmed.
-			unknownEnding = true;
+			// Signed payments go back to pending, but they are only paid again in a transaction
+			// that conflicts with this one.
 			_coinRefrigerator.Freeze(ex.Coins);
 			MarkDestinationsUsed(destinationProvider, ex.OutputScripts);
-			Logger.LogWarning(FormatLog($"Round ending unknown - payments in signed state awaiting resolution: {ex.Message}", wallet));
+			Logger.LogWarning(FormatLog($"Round ending unknown: {ex.Message}", wallet));
 		}
 		catch (CoinJoinClientException clientException)
 		{
@@ -579,11 +577,7 @@ public class CoinJoinManager : BackgroundService
 		}
 		finally
 		{
-			// Only move payments to pending if we know the round failed.
-			if (!unknownEnding)
-			{
-				batchedPayments.MovePaymentsToPending();
-			}
+			batchedPayments.MovePaymentsToPending();
 		}
 
 		// If any coins were marked for banning, store them to file
