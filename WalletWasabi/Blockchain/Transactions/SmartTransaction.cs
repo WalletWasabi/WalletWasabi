@@ -300,16 +300,12 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
 	public bool IsCPFPd => ChildrenPayForThisTx.Any();
 
-	/// <summary>
-	/// Children transactions those are paying for this transaction.
-	/// </summary>
+	/// <summary>Children transactions those are paying for this transaction.</summary>
 	public IEnumerable<SmartTransaction> ChildrenPayForThisTx => WalletOutputs
 		.Where(x => x.SpenderTransaction is { } spender && spender.IsCPFP && spender.Height == Height)
 		.Select(x => x.SpenderTransaction!);
 
-	/// <summary>
-	/// Parent transactions this transaction is paying for.
-	/// </summary>
+	/// <summary>Parent transactions this transaction is paying for.</summary>
 	public IEnumerable<SmartTransaction> ParentsThisTxPaysFor =>
 		IsSpeedup && !IsCancellation && ForeignInputs.Count == 0 && ForeignOutputs.Count == 0
 			? WalletInputs
