@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Helpers;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
@@ -113,8 +112,8 @@ public class SmartTransactionTests
 		t.Outputs.Add(txout2);
 		SmartTransaction st1 = new(t);
 
-		Assert.Single(st1.ForeignVirtualOutputs);
-		Assert.Equal(2, st1.ForeignVirtualOutputs.First().OutPoints.Count);
+		var walletVirtualOutput = Assert.Single(st1.ForeignVirtualOutputs);
+		Assert.Equal(2, walletVirtualOutput.OutPoints.Count);
 
 		Transaction t2 = Transaction.Create(network);
 
@@ -125,8 +124,8 @@ public class SmartTransactionTests
 		t2.Outputs.Add(txout4);
 		SmartTransaction st2 = new(t2);
 
-		Assert.Single(st2.ForeignVirtualOutputs);
-		Assert.Equal(2, st2.ForeignVirtualOutputs.First().OutPoints.Count);
+		walletVirtualOutput = Assert.Single(st2.ForeignVirtualOutputs);
+		Assert.Equal(2, walletVirtualOutput.OutPoints.Count);
 	}
 
 	[Fact]
@@ -146,8 +145,8 @@ public class SmartTransactionTests
 		st1.TryAddWalletInput(sc);
 		st1.TryAddWalletInput(sc2);
 
-		Assert.Single(st1.WalletVirtualInputs);
-		Assert.Equal(2, st1.WalletVirtualInputs.First().Coins.Count);
+		var walletVirtualInput = Assert.Single(st1.WalletVirtualInputs);
+		Assert.Equal(2, walletVirtualInput.Coins.Count);
 	}
 
 	[Fact]
@@ -167,9 +166,9 @@ public class SmartTransactionTests
 		st1.TryAddWalletOutput(sc);
 		st1.TryAddWalletOutput(sc2);
 
-		Assert.Single(st1.WalletVirtualOutputs);
-		Assert.Equal(Money.Coins(3), st1.WalletVirtualOutputs.First().Amount);
-		Assert.Equal(2, st1.WalletVirtualOutputs.First().Coins.Count);
+		var walletVirtualOutput = Assert.Single(st1.WalletVirtualOutputs);
+		Assert.Equal(Money.Coins(3), walletVirtualOutput.Amount);
+		Assert.Equal(2, walletVirtualOutput.Coins.Count);
 	}
 
 	public static IEnumerable<object[]> GetSmartTransactionCombinations()
