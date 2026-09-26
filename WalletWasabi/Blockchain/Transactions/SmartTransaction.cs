@@ -67,19 +67,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private readonly HashSet<SmartCoin> _walletOutputsInternal;
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; }
+	private HashSet<IndexedTxIn>? _foreignInputsCache;
 
 	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; }
+	private HashSet<IndexedTxOut>? _foreignOutputsCache;
 
 	/// <summary>Cached computation of <see cref="WalletVirtualInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<WalletVirtualInput>? WalletVirtualInputsCache { get; set; }
+	private HashSet<WalletVirtualInput>? _walletVirtualInputsCache;
 
 	/// <summary>Cached computation of <see cref="WalletVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<WalletVirtualOutput>? WalletVirtualOutputsCache { get; set; }
+	private HashSet<WalletVirtualOutput>? _walletVirtualOutputsCache;
 
 	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; }
+	private HashSet<ForeignVirtualOutput>? _foreignVirtualOutputsCache;
 
 	/// <summary>Snapshot of <see cref="_walletInputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
 	private SmartCoin[]? _walletInputsSnapshot;
@@ -115,13 +115,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				if (ForeignInputsCache is null)
+				if (_foreignInputsCache is null)
 				{
 					var walletInputOutpoints = _walletInputsInternal.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
-					ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
+					_foreignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 				}
 
-				return ForeignInputsCache;
+				return _foreignInputsCache;
 			}
 		}
 	}
@@ -132,13 +132,13 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				if (ForeignOutputsCache is null)
+				if (_foreignOutputsCache is null)
 				{
 					var walletOutputIndices = _walletOutputsInternal.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
-					ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
+					_foreignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 				}
 
-				return ForeignOutputsCache;
+				return _foreignOutputsCache;
 			}
 		}
 	}
@@ -150,11 +150,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				WalletVirtualInputsCache ??= _walletInputsInternal
+				_walletVirtualInputsCache ??= _walletInputsInternal
 					.GroupBy(i => i.HdPubKey.PubKey)
 					.Select(g => new WalletVirtualInput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
-				return WalletVirtualInputsCache;
+				return _walletVirtualInputsCache;
 			}
 		}
 	}
@@ -166,11 +166,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				WalletVirtualOutputsCache ??= _walletOutputsInternal
+				_walletVirtualOutputsCache ??= _walletOutputsInternal
 					.GroupBy(o => o.HdPubKey.PubKey)
 					.Select(g => new WalletVirtualOutput(g.Key.ToBytes(), g.ToHashSet()))
 					.ToHashSet();
-				return WalletVirtualOutputsCache;
+				return _walletVirtualOutputsCache;
 			}
 		}
 	}
@@ -182,11 +182,11 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		{
 			lock (_stateLock)
 			{
-				ForeignVirtualOutputsCache ??= ForeignOutputs
+				_foreignVirtualOutputsCache ??= ForeignOutputs
 						.GroupBy(o => o.TxOut.ScriptPubKey.ExtractKeyId(), new ByteArrayEqualityComparer())
 						.Select(g => new ForeignVirtualOutput(g.Key, g.Sum(o => o.TxOut.Value), g.Select(o => new OutPoint(GetHash(), o.N)).ToHashSet()))
 						.ToHashSet();
-				return ForeignVirtualOutputsCache;
+				return _foreignVirtualOutputsCache;
 			}
 		}
 	}
@@ -401,8 +401,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (_walletInputsInternal.Add(input))
 			{
 				_walletInputsSnapshot = null;
-				ForeignInputsCache = null;
-				WalletVirtualInputsCache = null;
+				_foreignInputsCache = null;
+				_walletVirtualInputsCache = null;
 				return true;
 			}
 			return false;
@@ -416,9 +416,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (_walletOutputsInternal.Add(output))
 			{
 				_walletOutputsSnapshot = null;
-				ForeignOutputsCache = null;
-				WalletVirtualOutputsCache = null;
-				ForeignVirtualOutputsCache = null;
+				_foreignOutputsCache = null;
+				_walletVirtualOutputsCache = null;
+				_foreignVirtualOutputsCache = null;
 				return true;
 			}
 			return false;
@@ -432,9 +432,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 			if (_walletOutputsInternal.Remove(output))
 			{
 				_walletOutputsSnapshot = null;
-				ForeignOutputsCache = null;
-				WalletVirtualOutputsCache = null;
-				ForeignVirtualOutputsCache = null;
+				_foreignOutputsCache = null;
+				_walletVirtualOutputsCache = null;
+				_foreignVirtualOutputsCache = null;
 				return true;
 			}
 			return false;
