@@ -501,6 +501,8 @@ public class CoinJoinClient
 							Logger.LogError(FormatLog($"{nameof(InputBannedExceptionData)} is missing.", roundState));
 						}
 						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+
+						// Mark the coin now so that we can tell a ban apart from other registration failures.
 						coin.BannedUntilUtc = bannedUntil;
 						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
 						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} is banned until {bannedUntil}.", roundState));

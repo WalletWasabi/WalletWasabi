@@ -208,7 +208,7 @@ public class CoinJoinManager : BackgroundService
 					throw new CoinJoinClientException(CoinjoinError.AllCoinsPrivate);
 				}
 
-				// If all coin candidates are private it makes no sense to mix.
+				// If all coin candidates are private it makes no sense to mix them.
 				if (coinCandidates.All(x => x.IsPrivate(walletToStart.AnonScoreTarget)))
 				{
 					throw new CoinJoinClientException(
