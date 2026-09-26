@@ -66,19 +66,19 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	private readonly HashSet<SmartCoin> _walletOutputsInternal;
 
 	/// <summary>Cached computation of <see cref="ForeignInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; } = null;
+	private HashSet<IndexedTxIn>? ForeignInputsCache { get; set; }
 
 	/// <summary>Cached computation of <see cref="ForeignOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; } = null;
+	private HashSet<IndexedTxOut>? ForeignOutputsCache { get; set; }
 
 	/// <summary>Cached computation of <see cref="WalletVirtualInputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<WalletVirtualInput>? WalletVirtualInputsCache { get; set; } = null;
+	private HashSet<WalletVirtualInput>? WalletVirtualInputsCache { get; set; }
 
 	/// <summary>Cached computation of <see cref="WalletVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<WalletVirtualOutput>? WalletVirtualOutputsCache { get; set; } = null;
+	private HashSet<WalletVirtualOutput>? WalletVirtualOutputsCache { get; set; }
 
 	/// <summary>Cached computation of <see cref="ForeignVirtualOutputs"/> or <c>null</c> when re-computation is needed.</summary>
-	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; } = null;
+	private HashSet<ForeignVirtualOutput>? ForeignVirtualOutputsCache { get; set; }
 
 	/// <summary>Snapshot of <see cref="_walletInputsInternal"/> handed out to readers or <c>null</c> when it needs to be re-created.</summary>
 	private SmartCoin[]? _walletInputsSnapshot;
