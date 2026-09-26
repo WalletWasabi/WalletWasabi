@@ -7,11 +7,9 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Blockchain.Transactions;
 
 [DebuggerDisplay("{Transaction.GetHash()}")]
+[SuppressMessage("Style", "IDE0032:Use auto property", Justification = "Auto properties are not used to allow synchronized batch updates of properties")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
-	private readonly Lazy<long[]> _outputValues;
-	private readonly Lazy<bool> _isWasabi2Cj;
-
 	public SmartTransaction(
 		Transaction transaction,
 		Height? height = null,
@@ -28,17 +26,17 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		// Because we don't modify those transactions, we can cache the hash
 		Transaction.PrecomputeHash(false, true);
 
-		Labels = labels ?? LabelsArray.Empty;
+		_labels = labels ?? LabelsArray.Empty;
 
-		Height = height ?? Unknown;
-		BlockHash = blockHash;
-		BlockIndex = blockIndex;
+		_height = height ?? Unknown;
+		_blockHash = blockHash;
+		_blockIndex = blockIndex;
 
-		FirstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
+		_firstSeen = firstSeen == default ? DateTimeOffset.UtcNow : firstSeen;
 
-		IsReplacement = isReplacement;
-		IsSpeedup = isSpeedup;
-		IsCancellation = isCancellation;
+		_isReplacement = isReplacement;
+		_isSpeedup = isSpeedup;
+		_isCancellation = isCancellation;
 		_walletInputsInternal = new HashSet<SmartCoin>(Transaction.Inputs.Count);
 		_walletOutputsInternal = new HashSet<SmartCoin>(Transaction.Outputs.Count);
 
@@ -52,6 +50,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	#region Members
+
+	private readonly Lazy<long[]> _outputValues;
+	private readonly Lazy<bool> _isWasabi2Cj;
 
 	public long[] OutputValues => _outputValues.Value;
 	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
@@ -119,6 +120,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 					var walletInputOutpoints = _walletInputsInternal.Select(smartCoin => smartCoin.Outpoint).ToHashSet();
 					ForeignInputsCache = Transaction.Inputs.AsIndexedInputs().Where(i => !walletInputOutpoints.Contains(i.PrevOut)).ToHashSet();
 				}
+
 				return ForeignInputsCache;
 			}
 		}
@@ -135,6 +137,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 					var walletOutputIndices = _walletOutputsInternal.Select(smartCoin => smartCoin.Outpoint.N).ToHashSet();
 					ForeignOutputsCache = Transaction.Outputs.AsIndexedOutputs().Where(o => !walletOutputIndices.Contains(o.N)).ToHashSet();
 				}
+
 				return ForeignOutputsCache;
 			}
 		}
@@ -190,21 +193,109 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 
 	public Transaction Transaction { get; }
 
-	public Height Height { get; private set; }
+	private Height _height;
 
-	public uint256? BlockHash { get; private set; }
+	public Height Height
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _height;
+			}
+		}
+	}
 
-	public int BlockIndex { get; private set; }
+	private uint256? _blockHash;
 
-	public LabelsArray Labels { get; set; }
+	public uint256? BlockHash
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _blockHash;
+			}
+		}
+	}
 
-	public DateTimeOffset FirstSeen { get; private set; }
+	private int _blockIndex;
 
-	public bool IsReplacement { get; private set; }
+	public int BlockIndex
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _blockIndex;
+			}
+		}
+	}
 
-	public bool IsSpeedup { get; private set; }
+	private LabelsArray _labels;
 
-	public bool IsCancellation { get; private set; }
+	public LabelsArray Labels
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _labels;
+			}
+		}
+	}
+
+	private DateTimeOffset _firstSeen;
+
+	public DateTimeOffset FirstSeen
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _firstSeen;
+			}
+		}
+	}
+
+	private bool _isReplacement;
+
+	public bool IsReplacement
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _isReplacement;
+			}
+		}
+	}
+
+	private bool _isSpeedup;
+
+	public bool IsSpeedup
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _isSpeedup;
+			}
+		}
+	}
+
+	private bool _isCancellation;
+
+	public bool IsCancellation
+	{
+		get
+		{
+			lock (_stateLock)
+			{
+				return _isCancellation;
+			}
+		}
+	}
 
 	public bool IsCPFP => ParentsThisTxPaysFor.Any();
 	public bool IsCPFPd => ChildrenPayForThisTx.Any();
@@ -357,103 +448,126 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// <summary>Update the transaction with the data acquired from another transaction. (For example merge their labels.)</summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
-		var updated = false;
-
-		// If this is not the same tx, then don't update.
-		if (this != tx)
+		lock (_stateLock)
 		{
-			throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
-		}
+			var updated = false;
 
-		// Set the height related properties.
-		if (tx.Confirmed)
-		{
-			if (Height != tx.Height)
+			// If this is not the same tx, then don't update.
+			if (this != tx)
 			{
-				Height = tx.Height;
+				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
+			}
+
+			// Set the height related properties.
+			if (tx.Confirmed)
+			{
+				if (_height != tx.Height)
+				{
+					_height = tx.Height;
+					updated = true;
+				}
+
+				if (tx.BlockHash is { } && _blockHash != tx.BlockHash)
+				{
+					_blockHash = tx.BlockHash;
+					_blockIndex = tx.BlockIndex;
+					updated = true;
+				}
+			}
+			else if (_height == Height.Unknown && tx.Height == Height.Mempool)
+			{
+				_height = tx.Height;
 				updated = true;
 			}
 
-			if (tx.BlockHash is { } && BlockHash != tx.BlockHash)
+			// Always the earlier seen is the firstSeen.
+			if (tx.FirstSeen < _firstSeen)
 			{
-				BlockHash = tx.BlockHash;
-				BlockIndex = tx.BlockIndex;
+				_firstSeen = tx.FirstSeen;
 				updated = true;
 			}
-		}
-		else if (Height == Height.Unknown && tx.Height == Height.Mempool)
-		{
-			Height = tx.Height;
-			updated = true;
-		}
 
-		// Always the earlier seen is the firstSeen.
-		if (tx.FirstSeen < FirstSeen)
-		{
-			FirstSeen = tx.FirstSeen;
-			updated = true;
-		}
-
-		// Merge labels.
-		if (Labels != tx.Labels)
-		{
-			Labels = LabelsArray.Merge(Labels, tx.Labels);
-			updated = true;
-		}
-
-		// If we have a flag set on the other, then we make sure it is set on this as well.
-		if (IsReplacement is false && tx.IsReplacement is true)
-		{
-			IsReplacement = true;
-			updated = true;
-		}
-		if (IsSpeedup is false && tx.IsSpeedup is true)
-		{
-			IsSpeedup = true;
-			updated = true;
-		}
-		if (IsCancellation is false && tx.IsCancellation is true)
-		{
-			IsCancellation = true;
-			updated = true;
-		}
-
-		// If we have witness on the other tx, then we should have it on this as well.
-		for (int i = 0; i < Transaction.Inputs.Count; i++)
-		{
-			var input = Transaction.Inputs[i];
-			var otherInput = tx.Transaction.Inputs[i];
-
-			if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+			// Merge labels.
+			if (_labels != tx.Labels)
 			{
-				input.WitScript = otherInput.WitScript;
+				_labels = LabelsArray.Merge(Labels, tx.Labels);
 				updated = true;
 			}
-		}
 
-		return updated;
+			// If we have a flag set on the other, then we make sure it is set on this as well.
+			if (_isReplacement is false && tx.IsReplacement is true)
+			{
+				_isReplacement = true;
+				updated = true;
+			}
+			if (_isSpeedup is false && tx.IsSpeedup is true)
+			{
+				_isSpeedup = true;
+				updated = true;
+			}
+			if (_isCancellation is false && tx.IsCancellation is true)
+			{
+				_isCancellation = true;
+				updated = true;
+			}
+
+			// If we have witness on the other tx, then we should have it on this as well.
+			for (int i = 0; i < Transaction.Inputs.Count; i++)
+			{
+				var input = Transaction.Inputs[i];
+				var otherInput = tx.Transaction.Inputs[i];
+
+				if ((input.WitScript is null || input.WitScript == WitScript.Empty) && (otherInput.WitScript is not null && otherInput.WitScript != WitScript.Empty))
+				{
+					input.WitScript = otherInput.WitScript;
+					updated = true;
+				}
+			}
+
+			return updated;
+		}
 	}
 
 	public void SetReplacement()
 	{
-		IsReplacement = true;
+		lock (_stateLock)
+		{
+			_isReplacement = true;
+		}
 	}
 
 	public void SetSpeedup()
 	{
-		IsSpeedup = true;
+		lock (_stateLock)
+		{
+			_isSpeedup = true;
+		}
 	}
 
 	public void SetCancellation()
 	{
-		IsCancellation = true;
+		lock (_stateLock)
+		{
+			_isCancellation = true;
+		}
 	}
 
 	public void SetUnconfirmed()
 	{
-		Height = Height.Mempool;
-		BlockHash = null;
-		BlockIndex = 0;
+		lock (_stateLock)
+		{
+			_height = Height.Mempool;
+			_blockHash = null;
+			_blockIndex = 0;
+		}
+	}
+
+	public void SetLabels(LabelsArray labels)
+	{
+		lock (_stateLock)
+		{
+			_labels = labels;
+		}
 	}
 
 	public bool IsOwnCoinjoin()
