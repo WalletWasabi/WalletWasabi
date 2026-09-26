@@ -56,10 +56,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	public long[] OutputValues => _outputValues.Value;
 	public bool IsWasabi2Cj => _isWasabi2Cj.Value;
 
-	/// <summary>
-	/// Guards the wallet coin sets, their snapshots and the derived caches.
-	/// Nothing is called out of this class while holding it, so it is always the innermost lock.
-	/// </summary>
+	/// <summary>Guards modifiable properties of this object.</summary>
 	private readonly Lock _stateLock = new();
 
 	/// <summary>Coins those are on the input side of the tx and belong to ANY loaded wallet. Later if more wallets are loaded this list can increase.</summary>
