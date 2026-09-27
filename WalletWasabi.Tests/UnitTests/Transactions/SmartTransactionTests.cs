@@ -1,4 +1,7 @@
 using NBitcoin;
+using System;
+using System.Threading.Tasks;
+using WalletWasabi.Blockchain.Analysis.Clustering;
 using System.Collections.Generic;
 using System.Linq;
 using WalletWasabi.Blockchain.Keys;
@@ -6,6 +9,7 @@ using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 using WalletWasabi.Tests.Helpers;
 using Xunit;
+using static WalletWasabi.Models.Height;
 
 namespace WalletWasabi.Tests.UnitTests.Transactions;
 
@@ -284,5 +288,26 @@ public class SmartTransactionTests
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isCancellation: isCancellation), defaultNetwork };
 		}
+	}
+
+	[Fact]
+	public async Task CrossUpdatesDoNotDeadlockAsync()
+	{
+		var tx = Transaction.Create(Network.Main);
+		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
+		tx.Outputs.Add(Money.Coins(1), new Key());
+
+		// Two instances of the same transaction (e.g. store and broadcast store) updating each other,
+		// which takes their locks in opposite orders if TryUpdate reads the other one under its own lock.
+		var a = new SmartTransaction(tx, new ChainHeight(5), BitcoinFactory.CreateUint256(), blockIndex: 1);
+		var b = new SmartTransaction(tx, Height.Mempool, labels: new LabelsArray("b"));
+
+		var ab = Task.Run(() => { for (var i = 0; i < 20_000; i++) { a.TryUpdate(b); } });
+		var ba = Task.Run(() => { for (var i = 0; i < 20_000; i++) { b.TryUpdate(a); } });
+
+		await Task.WhenAll(ab, ba).WaitAsync(TimeSpan.FromSeconds(10));
+
+		Assert.Equal(new ChainHeight(5), b.Height);
+		Assert.Contains("b", (IEnumerable<string>)a.Labels);
 	}
 }

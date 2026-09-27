@@ -448,10 +448,10 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	/// </summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
-		// Deadlock prevention.
-		var otherBlockHash = tx.BlockHash;
-		var otherBlockIndex = tx.BlockIndex;
-		var otherHeight = tx.Height;
+		// Deadlock prevention: read everything from tx before taking our lock, and never touch tx's lock-taking
+		// members inside it (a.TryUpdate(b) racing b.TryUpdate(a) would otherwise deadlock).
+		// Height, block hash and index are read as one snapshot, so they can't come from different updates.
+		var (otherHeight, otherBlockHash, otherBlockIndex) = tx.GetBlockInfo();
 		var otherFirstSeen = tx.FirstSeen;
 		var otherLabels = tx.Labels;
 		var otherIsReplacement = tx.IsReplacement;
@@ -468,8 +468,8 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				throw new InvalidOperationException($"{GetHash()} != {tx.GetHash()}");
 			}
 
-			// Set the height related properties.
-			if (tx.Confirmed)
+			// Set the height related properties. (Not tx.Confirmed: it takes tx's lock while we hold ours.)
+			if (otherHeight is ChainHeight)
 			{
 				if (_height != otherHeight)
 				{
@@ -579,6 +579,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		lock (_stateLock)
 		{
 			_labels = labels;
+		}
+	}
+
+	/// <summary>Reads <see cref="Height"/>, <see cref="BlockHash"/> and <see cref="BlockIndex"/> as one consistent snapshot.</summary>
+	public (Height Height, uint256? BlockHash, int BlockIndex) GetBlockInfo()
+	{
+		lock (_stateLock)
+		{
+			return (_height, _blockHash, _blockIndex);
 		}
 	}
 
