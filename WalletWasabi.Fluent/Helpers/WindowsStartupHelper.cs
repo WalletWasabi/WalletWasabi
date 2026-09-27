@@ -9,7 +9,7 @@ public static class WindowsStartupHelper
 {
 	private const string KeyPath = "SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Run";
 
-	public static void AddOrRemoveRegistryKey(bool runOnSystemStartup)
+	public static void AddOrRemoveRegistryKey(bool runOnSystemStartup, string keyPath = KeyPath)
 	{
 		if (!RuntimeInformation.IsOSPlatform(OSPlatform.Windows))
 		{
@@ -26,8 +26,8 @@ public static class WindowsStartupHelper
 		}
 
 		using RegistryKey? key = runOnSystemStartup
-			? Registry.CurrentUser.CreateSubKey(KeyPath, writable: true)
-			: Registry.CurrentUser.OpenSubKey(KeyPath, writable: true);
+			? Registry.CurrentUser.CreateSubKey(keyPath, writable: true)
+			: Registry.CurrentUser.OpenSubKey(keyPath, writable: true);
 
 		if (key is null)
 		{
