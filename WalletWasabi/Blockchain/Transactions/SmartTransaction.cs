@@ -582,6 +582,15 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
+	/// <summary>Merges <paramref name="labels"/> into <see cref="Labels"/> atomically, so concurrent merges are not lost.</summary>
+	public void AddLabels(LabelsArray labels)
+	{
+		lock (_stateLock)
+		{
+			_labels = LabelsArray.Merge(_labels, labels);
+		}
+	}
+
 	/// <summary>Reads <see cref="Height"/>, <see cref="BlockHash"/> and <see cref="BlockIndex"/> as one consistent snapshot.</summary>
 	public (Height Height, uint256? BlockHash, int BlockIndex) GetBlockInfo()
 	{

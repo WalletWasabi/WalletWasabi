@@ -310,4 +310,22 @@ public class SmartTransactionTests
 		Assert.Equal(new ChainHeight(5), b.Height);
 		Assert.Contains("b", (IEnumerable<string>)a.Labels);
 	}
+
+	[Fact]
+	public void ConcurrentLabelMergesAreNotLost()
+	{
+		var tx = Transaction.Create(Network.Main);
+		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
+		tx.Outputs.Add(Money.Coins(1), new Key());
+		var stx = new SmartTransaction(tx, Height.Mempool);
+
+		const int Count = 2000;
+		System.Threading.Tasks.Parallel.For(0, Count, i =>
+		{
+			stx.TryUpdate(new SmartTransaction(tx, Height.Mempool, labels: new LabelsArray($"update{i}")));
+			stx.AddLabels(new LabelsArray($"add{i}"));
+		});
+
+		Assert.Equal(2 * Count, stx.Labels.Count);
+	}
 }
