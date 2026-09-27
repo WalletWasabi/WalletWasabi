@@ -782,10 +782,10 @@ public class TransactionFactoryTests
 	[Fact]
 	public void SelectLockTimeForTransaction()
 	{
-		var lockTimeZero = int.MinValue;
+		var lockTimeZero = uint.MaxValue;
 		var samplingSize = 10_000;
 
-		var dictionary = Enumerable.Range(-99, 100).ToDictionary(x => x, x => 0);
+		var dictionary = Enumerable.Range(-99, 101).ToDictionary(x => (uint)x, x => 0);
 		dictionary[lockTimeZero] = 0;
 
 		var curTip = 100_000u;
@@ -793,16 +793,16 @@ public class TransactionFactoryTests
 
 		foreach (var i in Enumerable.Range(0, samplingSize))
 		{
-			var lt = lockTimeSelector.GetLockTimeBasedOnDistribution(curTip).Value;
-			Assert.InRange(lt, 0u, curTip);
-			var diff = lt == 0 ? lockTimeZero : (int)lt - (int)curTip;
+			var lt = (uint)lockTimeSelector.GetLockTimeBasedOnDistribution(curTip).Height;
+			var diff = lt == 0 ? lockTimeZero : lt - curTip;
 			dictionary[diff]++;
 		}
 
 		Assert.InRange(dictionary[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
-		Assert.InRange(dictionary[0], samplingSize * 0.075, samplingSize * 0.090); // around 8.15%
+		Assert.InRange(dictionary[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
+		Assert.InRange(dictionary[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
 
-		var rest = dictionary.Where(x => x.Key is >= -99 and < 0).Select(x => x.Value);
+		var rest = dictionary.Where(x => x.Key < 0).Select(x => x.Value);
 		Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);
 	}
 

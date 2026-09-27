@@ -93,6 +93,10 @@ public class WalletSendTests
 		Assert.Single(txResult.SpentCoins);
 		Assert.True(txResult.Fee > Money.Zero);
 
+		// The privacy-preserving lock-time distribution can select tip + 1.
+		// Advance regtest so every supported selection is final before broadcasting.
+		await env.RpcClient.GenerateAsync(1);
+
 		// Broadcast the transaction
 		var broadcaster = new TransactionBroadcaster([new RpcBroadcaster(env.RpcClient)], env.MempoolService);
 		await broadcaster.SendTransactionAsync(txResult.Transaction);
@@ -109,7 +113,7 @@ public class WalletSendTests
 
 	[Theory(Timeout = 120_000)]
 	[InlineData(0.95)]
-	[InlineData(0.978)] // Previously selected tip + 1, which Bitcoin Core rejects as non-final.
+	[InlineData(0.978)] // Select tip + 1, as allowed by the production privacy distribution.
 	[InlineData(0.99)]
 	public async Task Wallet_BroadcastsTransactionWithSelectedLockTime(double randomValue)
 	{
@@ -140,6 +144,8 @@ public class WalletSendTests
 			var factory = new TransactionFactory(env.Network, keyManager, wallet.Coins, env.TransactionStore, RegTestEnvironment.DefaultPassword);
 			var selector = new LockTimeSelector(new FixedRandom(randomValue));
 			var result = factory.BuildTransaction(parameters, () => selector.GetLockTimeBasedOnDistribution(wallet.FilterHeaderChain.TipHeight));
+
+			await env.RpcClient.GenerateAsync(1);
 
 			// Use RPC directly so failures include Bitcoin Core's exact rejection reason.
 			await env.RpcClient.SendRawTransactionAsync(result.Transaction.Transaction, TestContext.Current.CancellationToken);
