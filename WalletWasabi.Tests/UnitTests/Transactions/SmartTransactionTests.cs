@@ -328,4 +328,32 @@ public class SmartTransactionTests
 
 		Assert.Equal(2 * Count, stx.Labels.Count);
 	}
+
+	[Fact]
+	public void WalletInputsCanBeEnumeratedWhileAddingInputs()
+	{
+		// https://github.com/WalletWasabi/WalletWasabi/issues/14824
+		var km = ServiceFactory.CreateKeyManager();
+		var coins = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m)).ToArray();
+		var tx = Transaction.Create(Network.Main);
+		foreach (var coin in coins)
+		{
+			tx.Inputs.Add(coin.Outpoint);
+		}
+		tx.Outputs.Add(Money.Coins(2.9m), new Key());
+		var stx = new SmartTransaction(tx, Height.Mempool);
+
+		Assert.True(stx.TryAddWalletInput(coins[0]));
+		Assert.Equal(2, stx.ForeignInputs.Count);
+
+		// Previously WalletInputs was the live set, so this threw "Collection was modified".
+		// Deterministic and single-threaded: it checks the snapshot semantics, not timing.
+		foreach (var _ in stx.WalletInputs)
+		{
+			Assert.True(stx.TryAddWalletInput(coins[1]));
+		}
+
+		Assert.Equal(2, stx.WalletInputs.Count);
+		Assert.Single(stx.ForeignInputs);
+	}
 }
