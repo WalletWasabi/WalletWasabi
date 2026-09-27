@@ -78,9 +78,11 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				{
 					IList<CoinModel> oldSelection = Selection.ToArray();
 					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					var oldSinglePocket = GetSinglePocket();
 					Rebuild(viewModels, pockets, availableCoins);
 					UpdateSelection(coinItemsCollection, oldSelection);
 					RestoreExpandedRows(oldExpandedItemsLabel);
+					ExpandSinglePocket(oldSinglePocket);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -174,6 +176,16 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		foreach (var item in itemsToExpand)
 		{
 			item.IsExpanded = true;
+		}
+	}
+
+	private PocketViewModel? GetSinglePocket() => _itemsCollection is [PocketViewModel pocket] ? pocket : null;
+
+	private void ExpandSinglePocket(PocketViewModel? oldSinglePocket)
+	{
+		if (GetSinglePocket() is { } pocket && pocket != oldSinglePocket)
+		{
+			pocket.IsExpanded = true;
 		}
 	}
 }
