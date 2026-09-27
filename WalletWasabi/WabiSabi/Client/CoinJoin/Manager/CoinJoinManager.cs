@@ -331,14 +331,14 @@ public class CoinJoinManager : BackgroundService
 			return CoinjoinError.OnlyImmatureCoinsAvailable;
 		}
 
-		if (AnyNonPrivate(result.BannedCoins))
-		{
-			return CoinjoinError.CoinsRejected;
-		}
-
 		if (AnyNonPrivate(result.ExcludedCoins))
 		{
 			return CoinjoinError.OnlyExcludedCoinsAvailable;
+		}
+
+		if (AnyNonPrivate(result.BannedCoins))
+		{
+			return CoinjoinError.CoinsRejected;
 		}
 
 		return CoinjoinError.NoCoinsEligibleToMix;
