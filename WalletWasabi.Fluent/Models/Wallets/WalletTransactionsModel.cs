@@ -86,18 +86,6 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return txn;
 	}
 
-	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(uint256 id, CancellationToken cancellationToken)
-	{
-		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
-		{
-			throw new InvalidOperationException($"Transaction not found! ID: {id}");
-		}
-
-		return await TransactionFeeHelper.EstimateConfirmationTimeAsync(_wallet.FeeRateEstimations, _wallet.Network, smartTransaction, _wallet.CpfpInfoProvider, cancellationToken);
-	}
-
-	public async Task<TimeSpan?> TryEstimateConfirmationTimeAsync(TransactionModel model, CancellationToken cancellationToken) => await TryEstimateConfirmationTimeAsync(model.Id, cancellationToken);
-
 	public TimeSpan? TryEstimateConfirmationTime(TransactionInfo info)
 	{
 		TransactionFeeHelper.TryEstimateConfirmationTime(_wallet, info.FeeRate, out var estimate);
@@ -176,15 +164,17 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 		return boostingTransactionFee - originalFee;
 	}
 
-	public IEnumerable<BitcoinAddress> GetDestinationAddresses(uint256 id)
+	public IEnumerable<BitcoinAddress> GetDestinationAddresses(SingleTransactionModel transaction)
 	{
-		if (!_wallet.TransactionStore.TryGetTransaction(id, out var smartTransaction))
-		{
-			throw new InvalidOperationException($"Transaction not found! ID: {id}");
-		}
+		var inputs = transaction.WalletInputs
+			.Select(x => new KnownInput(x.Amount))
+			.Concat<IInput>(transaction.ForeignInputs.Value.Select(_ => new ForeignInput()))
+			.ToList();
 
-		List<IInput> inputs = smartTransaction.GetInputs().ToList();
-		List<Output> outputs = smartTransaction.GetOutputs(_wallet.Network).ToList();
+		var outputs = transaction.WalletOutputs
+			.Select(x => new OwnOutput(x.Amount, x.ScriptPubKey.GetDestinationAddress(_wallet.Network)!, x.HdPubKey.IsInternal))
+			.Concat<Output>(transaction.ForeignOutputs.Value.Select(x => new ForeignOutput(x.TxOut.Value, x.TxOut.ScriptPubKey.GetDestinationAddress(_wallet.Network)!)))
+			.ToList();
 
 		return GetDestinationAddresses(inputs, outputs);
 	}

@@ -159,6 +159,16 @@ public class Wallet : BackgroundService
 	{
 		var cpfpInfos = await CpfpInfoProvider.GetCachedCpfpInfoAsync(cancellationToken).ConfigureAwait(false);
 
+		// Wait for the transaction being processed, so no summary is built from half its coins.
+		var summaries = TransactionProcessor.WhenIdle(() => SummarizeTransactions(cpfpInfos));
+
+		return sortForUi
+			? summaries.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
+			: summaries.OrderByBlockchain().ToList();
+	}
+
+	private IEnumerable<TransactionSummary> SummarizeTransactions(CachedCpfpInfo[] cpfpInfos)
+	{
 		Dictionary<uint256, TransactionSummary> mapByTxid = new();
 
 		foreach (SmartCoin coin in GetAllCoins())
@@ -175,7 +185,7 @@ public class Wallet : BackgroundService
 					effectiveFeeRate = new FeeRate(cachedCpfpInfo.CpfpInfo.EffectiveFeePerVSize);
 				}
 
-				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate));
+				mapByTxid.Add(coin.TransactionId, new TransactionSummary(coin.Transaction, coin.Amount, effectiveFeeRate, KeyManager));
 			}
 
 			if (coin.SpenderTransaction is { } spenderTransaction)
@@ -194,14 +204,12 @@ public class Wallet : BackgroundService
 						effectiveFeeRate = new FeeRate(cachedCpfpInfo.CpfpInfo.EffectiveFeePerVSize);
 					}
 
-					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate));
+					mapByTxid.Add(spenderTxId, new TransactionSummary(spenderTransaction, Money.Zero - coin.Amount, effectiveFeeRate, KeyManager));
 				}
 			}
 		}
 
-		return sortForUi
-			? mapByTxid.Values.OrderBy(x => x.FirstSeen).ThenBy(x => x.Height).ThenBy(x => x.BlockIndex).ToList()
-			: mapByTxid.Values.OrderByBlockchain().ToList();
+		return mapByTxid.Values;
 	}
 
 	public HdPubKey GetNextReceiveAddress(IEnumerable<string> destinationLabels, ScriptPubKeyType scriptPubKeyType)
