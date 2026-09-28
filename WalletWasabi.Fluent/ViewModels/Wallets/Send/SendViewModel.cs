@@ -88,7 +88,6 @@ public partial class SendViewModel : RoutableViewModel
 		_conversionReversed = UiContext.Services.GetSendAmountConversionReversed();
 
 		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
-		UiContext.Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate);
 
 		Balance =
 			_parameters.IsManual
@@ -637,6 +636,11 @@ public partial class SendViewModel : RoutableViewModel
 		}
 
 		_suggestionLabels.Activate(disposables);
+
+		// Subscribed per navigation: the EventBus holds its subscribers strongly, so a subscription made in the
+		// constructor kept every Send view model (and all it references) alive for the lifetime of the app.
+		_exchangeRate = UiContext.Services.GetUsdExchangeRate();
+		disposables.Add(UiContext.Services.EventBus.Subscribe<ExchangeRateChanged>(er => _exchangeRate = er.UsdBtcRate));
 
 		RxApp.MainThreadScheduler.Schedule(async () => await OnAutoPasteAsync());
 
