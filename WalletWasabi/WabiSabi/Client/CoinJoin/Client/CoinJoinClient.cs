@@ -255,8 +255,7 @@ public class CoinJoinClient
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
-				using CancellationTokenSource cancelOrRoundEndedCts =
-					CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
 				(myAliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, roundRestrictions, cancelOrRoundEndedCts.Token)
 						.ConfigureAwait(false);
 			}

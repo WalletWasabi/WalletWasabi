@@ -1,5 +1,4 @@
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Linq;
 using System.Net.Http;
@@ -32,7 +31,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CoinJoinClientTests
 {
 	[Fact]
-	public async Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimum()
+	public async Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimumAsync()
 	{
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig()) with
 		{
@@ -109,11 +108,15 @@ public class CoinJoinClientTests
 		Assert.Null(requestHandler.CapturedSignature);
 	}
 
-	[Theory]
+	/// <summary>
+	/// When a round ends during input registration, <see cref="EndRoundState.AbortedNotEnoughAlices"/> is expected.
+	/// </summary>
+	[Theory(Timeout = 30_000)]
 	[InlineData(true)]
 	[InlineData(false)]
-	public async Task RoundEndedBeforeRegistrationIsNotReportedAsRejectedAsync(bool coordinatorAnswers)
+	public async Task RoundEndingDuring_InputRegistration_Reports_AbortedNotEnoughAlices_Async(bool coordinatorAnswers)
 	{
+		// Create a round that is already ended with the "Not enough alices" error.
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig { StandardInputRegistrationTimeout = TimeSpan.FromMinutes(1) });
 		var roundState = RoundState.FromRound(round);
 		round.EndRoundState = EndRoundState.AbortedNotEnoughAlices;
@@ -121,57 +124,72 @@ public class CoinJoinClientTests
 
 		// The coordinator already aborted the round, but the client's round state is still in input registration.
 		// Either the coordinator says so, or it doesn't answer before our round status shows the end.
+		var inputRegistrationError = coordinatorAnswers
+			? new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, exceptionData: new WrongPhaseExceptionData(Phase.Ended))
+			: null;
+
+		// Round state (i.e. with AbortedNotEnoughAlices) to report through GetStatus API endpoint. 
+		var getStatusRoundState = RoundState.FromRound(round);
+
+		var requestHandler = new InputRegistrationFailingRequestHandler(getStatusRoundState, inputRegistrationError);
+		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, TestContext.Current.CancellationToken);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 		var (keyChain, coin, _) = WabiSabiFactory.CreateCoinKeyPairs();
-		var requestHandler = new InputRegistrationFailingRequestHandler(
-			RoundState.FromRound(round),
-			coordinatorAnswers ? new WabiSabiProtocolException(WabiSabiProtocolErrorCode.WrongPhase, exceptionData: new WrongPhaseExceptionData(Phase.Ended)) : null);
-		using var updaterCts = new CancellationTokenSource();
-		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, updaterCts.Token);
-		var coinJoinClient = CreateCoinJoinClient(keyChain, requestHandler, new RoundStateProvider(roundStateUpdater));
+		var coinJoinClient = CreateCoinJoinClient(keyChain, requestHandler, roundStateProvider);
 
 		RoundEnded? roundEnded = null;
 		coinJoinClient.CoinJoinClientProgress += (_, e) => roundEnded = e as RoundEnded ?? roundEnded;
 
-		using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(30));
-		var roundTask = coinJoinClient.StartRoundAsync([coin], CoinJoinClient.UnrestrictedRound.Instance, roundState, timeout.Token);
+		var roundTask = coinJoinClient.StartRoundAsync(
+			[coin],
+			CoinJoinClient.UnrestrictedRound.Instance,
+			roundState,
+			TestContext.Current.CancellationToken);
 
 		// The client learns that the round ended only after the registration failed.
-		await requestHandler.RegistrationAttempted.WaitAsync(timeout.Token);
+		await requestHandler.RegistrationAttempted.WaitAsync(TestContext.Current.CancellationToken);
+
 		while (!roundTask.IsCompleted)
 		{
 			roundStateUpdater.Update();
-			await Task.Delay(50, timeout.Token);
+			await Task.Delay(50, TestContext.Current.CancellationToken);
 		}
 
-		Assert.IsType<FailedCoinJoinResult>(await roundTask);
-		Assert.Equal(EndRoundState.AbortedNotEnoughAlices, roundEnded?.LastRoundState.EndRoundState);
+		var coinJoinResult = await roundTask;
+		_ = Assert.IsType<FailedCoinJoinResult>(coinJoinResult);
+
+		Assert.NotNull(roundEnded);
+		Assert.Equal(EndRoundState.AbortedNotEnoughAlices, roundEnded.LastRoundState.EndRoundState);
 	}
 
-	public static TheoryData<Exception, CoinjoinError> RegistrationErrors => new()
+	[Theory(Timeout = 10_000)]
+	[InlineData(1)]
+	[InlineData(2)]
+	[InlineData(3)]
+	public async Task RoundEndingDuring_InputRegistration_Reports_ExpectedError_Async(int testId)
 	{
-		{ new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(DateTimeOffset.UtcNow.AddDays(1))), CoinjoinError.CoinsRejected },
-		{ new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound), CoinjoinError.UserWasntInRound },
-		{ new HttpRequestException("The coordinator is unreachable."), CoinjoinError.UserWasntInRound },
-	};
+		(CoinjoinError expectedError, Exception inputRegistrationError) = testId switch
+		{
+			1 => (CoinjoinError.CoinsRejected,
+				new WabiSabiProtocolException(WabiSabiProtocolErrorCode.InputBanned, exceptionData: new InputBannedExceptionData(DateTimeOffset.UtcNow.AddDays(1)))),
+			2 => (CoinjoinError.UserWasntInRound, (Exception)new WabiSabiProtocolException(WabiSabiProtocolErrorCode.RoundNotFound)),
+			3 => (CoinjoinError.UserWasntInRound, new HttpRequestException("The coordinator is unreachable.")),
+			_ => throw new ArgumentOutOfRangeException(nameof(testId), testId, "Unknown test case."),
+		};
 
-	[Theory]
-	[MemberData(nameof(RegistrationErrors))]
-	public async Task FailedRegistrationIsReportedWithoutWaitingForTheRoundAsync(Exception registrationError, CoinjoinError expectedError)
-	{
 		var round = WabiSabiFactory.CreateRound(new WabiSabiConfig { StandardInputRegistrationTimeout = TimeSpan.FromMinutes(1) });
-		var roundState = RoundState.FromRound(round);
+		var getStatusRoundState = RoundState.FromRound(round);
 
-		var (keyChain, coin, _) = WabiSabiFactory.CreateCoinKeyPairs();
-		var requestHandler = new InputRegistrationFailingRequestHandler(roundState, registrationError);
+		var requestHandler = new InputRegistrationFailingRequestHandler(getStatusRoundState, inputRegistrationError);
 
 		// Round states are never updated, so the client would time out if it waited for the round to end.
-		using var updaterCts = new CancellationTokenSource();
-		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, updaterCts.Token);
-		var coinJoinClient = CreateCoinJoinClient(keyChain, requestHandler, new RoundStateProvider(roundStateUpdater));
+		using var roundStateUpdater = RoundStateUpdaterForTesting.CreateManual(requestHandler, TestContext.Current.CancellationToken);
+		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
+		var (keyChain, coin, _) = WabiSabiFactory.CreateCoinKeyPairs();
+		var coinJoinClient = CreateCoinJoinClient(keyChain, requestHandler, roundStateProvider);
 
-		using var timeout = new CancellationTokenSource(TimeSpan.FromSeconds(10));
 		var ex = await Assert.ThrowsAsync<CoinJoinClientException>(
-			() => coinJoinClient.StartRoundAsync([coin], CoinJoinClient.UnrestrictedRound.Instance, roundState, timeout.Token));
+			() => coinJoinClient.StartRoundAsync([coin], CoinJoinClient.UnrestrictedRound.Instance, getStatusRoundState, TestContext.Current.CancellationToken));
 
 		Assert.Equal(expectedError, ex.CoinjoinError);
 	}
@@ -185,38 +203,26 @@ public class CoinJoinClientTests
 		var output4 = new TxOut(Money.Coins(4), BitcoinFactory.CreateScript());
 
 		// Exact match (one expected)
-		Assert.True(CoinJoinClient.SanityCheck(
-			new[] { output1 },
-			new[] { output1, output2, output3, output4 }));
+		Assert.True(CoinJoinClient.SanityCheck([output1], [output1, output2, output3, output4]));
 
 		// Exact match (two expected)
-		Assert.True(CoinJoinClient.SanityCheck(
-			new[] { output2, output3 },
-			new[] { output1, output2, output3, output4 }));
+		Assert.True(CoinJoinClient.SanityCheck([output2, output3],[output1, output2, output3, output4]));
 
 		// Missing output
-		Assert.False(CoinJoinClient.SanityCheck(
-			new[] { output2, output3 },
-			new[] { output1, output2, output4 }));
+		Assert.False(CoinJoinClient.SanityCheck([output2, output3], [output1, output2, output4]));
 
 		static TxOut AddSats(long sats, TxOut output) => new(output.Value + sats, output.ScriptPubKey);
 		static TxOut AddOneSat(TxOut output) => AddSats(1, output);
 		static TxOut SubOneSat(TxOut output) => AddSats(-1, output);
 
 		// More money in one output
-		Assert.True(CoinJoinClient.SanityCheck(
-			new[] { output2, output3 },
-			new[] { output1, AddOneSat(output2), output3, output4 }));
+		Assert.True(CoinJoinClient.SanityCheck([output2, output3], [output1, AddOneSat(output2), output3, output4]));
 
 		// More money in all output
-		Assert.True(CoinJoinClient.SanityCheck(
-			new[] { output2, output3 },
-			new[] { output1, AddOneSat(output2), AddOneSat(output3), output4 }));
+		Assert.True(CoinJoinClient.SanityCheck([output2, output3], [output1, AddOneSat(output2), AddOneSat(output3), output4]));
 
 		// Same scriptpubkeys, same amount of money but outputs were manipulated
-		Assert.False(CoinJoinClient.SanityCheck(
-			new[] { output2, output3 },
-			new[] { output1, AddOneSat(output2), SubOneSat(output3), output4 }));
+		Assert.False(CoinJoinClient.SanityCheck([output2, output3], [output1, AddOneSat(output2), SubOneSat(output3), output4]));
 	}
 
 	[Fact]
@@ -289,79 +295,81 @@ public class CoinJoinClientTests
 			new CoinJoinConfiguration("CoinJoinCoordinatorIdentifier", 150m, AbsoluteMinInputCount: 2, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
 			new LiquidityClueProvider());
+}
 
-	/// <summary>Fails every input registration with the given error, or never answers when there is none.</summary>
-	private sealed class InputRegistrationFailingRequestHandler(RoundState roundState, Exception? registrationError) : IWabiSabiApiRequestHandler
+/// <summary>
+/// Fails every input registration with the given error, or never answers when there is none.
+/// </summary>
+file sealed class InputRegistrationFailingRequestHandler(RoundState roundState, Exception? registrationError) : IWabiSabiApiRequestHandler
+{
+	private readonly TaskCompletionSource _registrationAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
+
+	public Task RegistrationAttempted => _registrationAttempted.Task;
+
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
+		Task.FromResult(new RoundStateResponse([roundState]));
+
+	public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
 	{
-		private readonly TaskCompletionSource _registrationAttempted = new(TaskCreationOptions.RunContinuationsAsynchronously);
-
-		public Task RegistrationAttempted => _registrationAttempted.Task;
-
-		public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
-			Task.FromResult(new RoundStateResponse([roundState]));
-
-		public async Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken)
+		_registrationAttempted.TrySetResult();
+		if (registrationError is not null)
 		{
-			_registrationAttempted.TrySetResult();
-			if (registrationError is not null)
-			{
-				throw registrationError;
-			}
-
-			await Task.Delay(Timeout.Infinite, cancellationToken);
-			throw new UnreachableException();
+			throw registrationError;
 		}
 
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
+		await Task.Delay(Timeout.Infinite, cancellationToken);
+		throw new UnreachableException();
 	}
 
-	private sealed class SigningCaptureRequestHandler(RoundState roundState) : IWabiSabiApiRequestHandler
+	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+}
+
+file sealed class SigningCaptureRequestHandler(RoundState roundState) : IWabiSabiApiRequestHandler
+{
+	public int SignatureRequests { get; private set; }
+	public TransactionSignaturesRequest? CapturedSignature { get; private set; }
+
+	public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
+		Task.FromResult(new RoundStateResponse([roundState]));
+
+	public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
 	{
-		public int SignatureRequests { get; private set; }
-		public TransactionSignaturesRequest? CapturedSignature { get; private set; }
-
-		public Task<RoundStateResponse> GetStatusAsync(RoundStateRequest request, CancellationToken cancellationToken) =>
-			Task.FromResult(new RoundStateResponse([roundState]));
-
-		public Task SignTransactionAsync(TransactionSignaturesRequest request, CancellationToken cancellationToken)
-		{
-			SignatureRequests++;
-			CapturedSignature = request;
-			return Task.CompletedTask;
-		}
-
-		public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
-
-		public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
-			throw new NotSupportedException();
+		SignatureRequests++;
+		CapturedSignature = request;
+		return Task.CompletedTask;
 	}
+
+	public Task<InputRegistrationResponse> RegisterInputAsync(InputRegistrationRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task<ConnectionConfirmationResponse> ConfirmConnectionAsync(ConnectionConfirmationRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task RegisterOutputAsync(OutputRegistrationRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task RemoveInputAsync(InputsRemovalRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task<ReissueCredentialResponse> ReissuanceAsync(ReissueCredentialRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
+
+	public Task ReadyToSignAsync(ReadyToSignRequestRequest request, CancellationToken cancellationToken) =>
+		throw new NotSupportedException();
 }
