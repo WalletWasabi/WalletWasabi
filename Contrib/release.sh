@@ -326,10 +326,10 @@ cp -a "${BUILD_DIR}/${DEBIAN_FULL_PLATFORM_NAME}" $DEBIAN_BIN/wasabiwallet
 
 # Create wrapper scripts
 echo "#!/usr/bin/env sh
-${INSTALL_DIR}/${EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}
+\"${INSTALL_DIR}/${EXECUTABLE_NAME}\" \"\$@\"" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}
 
 echo "#!/usr/bin/env sh
-${INSTALL_DIR}/${EXECUTABLE_NAME}d \$@" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
+\"${INSTALL_DIR}/${EXECUTABLE_NAME}d\" \"\$@\"" > ${DEBIAN_BIN}/${EXECUTABLE_NAME}d
 
 # Remove execution to everything except for executables and their wrapper scripts
 chmod 0755 ${DEBIAN_BIN}/wasabiwallet
@@ -346,7 +346,7 @@ chmod 0755 "${DEBIAN_BUNDLED_BINARIES}/Tor/tor"
 if [[ "$PACKAGE_COORDINATOR" == "yes" ]]; then
   # Create wrapper scripts
   echo "#!/usr/bin/env sh
-  ${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME} \$@" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
+  \"${INSTALL_DIR}/${COORDINATOR_EXECUTABLE_NAME}\" \"\$@\"" > ${DEBIAN_BIN}/${COORDINATOR_EXECUTABLE_NAME}
 
   # Remove execution to everything except for executables and their wrapper scripts
   chmod 0755 ${DEBIAN_BIN}/wasabiwallet/${COORDINATOR_EXECUTABLE_NAME}
