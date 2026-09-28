@@ -582,7 +582,7 @@ public class CoinJoinClient
 			.Cast<AliceClient>()
 			.ToImmutableArray();
 
-		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
+		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is not null)
 		{
 			throw lastUnexpectedRoundPhaseException;
 		}
