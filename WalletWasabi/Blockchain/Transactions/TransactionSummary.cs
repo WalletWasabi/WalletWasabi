@@ -23,7 +23,6 @@ public class TransactionSummary
 		FirstSeen = tx.FirstSeen;
 		Labels = tx.Labels;
 		Height = tx.Height;
-		BlockHash = tx.BlockHash;
 		BlockIndex = tx.BlockIndex;
 		IsCancellation = tx.IsCancellation;
 		IsSpeedup = tx.IsSpeedup;
@@ -58,7 +57,6 @@ public class TransactionSummary
 	public DateTimeOffset FirstSeen { get; }
 	public LabelsArray Labels { get; }
 	public Height Height { get; }
-	public uint256? BlockHash { get; }
 	public int BlockIndex { get; }
 	public bool IsCancellation { get; }
 	public bool IsSpeedup { get; }

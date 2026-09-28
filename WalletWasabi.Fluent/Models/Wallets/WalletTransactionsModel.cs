@@ -11,7 +11,6 @@ using NBitcoin;
 using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Blockchain.Transactions.Summary;
 using WalletWasabi.Fluent.Extensions;
 using WalletWasabi.Fluent.Helpers;
 using WalletWasabi.Fluent.ViewModels.Wallets.Send;
@@ -166,52 +165,37 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 
 	public IEnumerable<BitcoinAddress> GetDestinationAddresses(SingleTransactionModel transaction)
 	{
-		var inputs = transaction.WalletInputs
-			.Select(x => new KnownInput(x.Amount))
-			.Concat<IInput>(transaction.ForeignInputs.Value.Select(_ => new ForeignInput()))
-			.ToList();
-
-		var outputs = transaction.WalletOutputs
-			.Select(x => new OwnOutput(x.Amount, x.ScriptPubKey.GetDestinationAddress(_wallet.Network)!, x.HdPubKey.IsInternal))
-			.Concat<Output>(transaction.ForeignOutputs.Value.Select(x => new ForeignOutput(x.TxOut.Value, x.TxOut.ScriptPubKey.GetDestinationAddress(_wallet.Network)!)))
-			.ToList();
-
-		return GetDestinationAddresses(inputs, outputs);
-	}
-
-	private IEnumerable<BitcoinAddress> GetDestinationAddresses(ICollection<IInput> inputs, ICollection<Output> outputs)
-	{
-		var myOwnInputs = inputs.OfType<KnownInput>().ToList();
-		var foreignInputs = inputs.OfType<ForeignInput>().ToList();
-		var myOwnOutputs = outputs.OfType<OwnOutput>().ToList();
-		var foreignOutputs = outputs.OfType<ForeignOutput>().ToList();
+		var myOwnOutputs = transaction.WalletOutputs;
+		var foreignOutputs = transaction.ForeignOutputs.Value;
 
 		// All inputs and outputs are my own, transaction is a self-spend.
-		if (foreignInputs.Count == 0 && foreignOutputs.Count == 0)
+		if (transaction.ForeignInputs.Value.Count == 0 && foreignOutputs.Count == 0)
 		{
 			// Classic self-spend to one or more external addresses.
-			if (myOwnOutputs.Any(x => !x.IsInternal))
+			if (myOwnOutputs.Any(x => !x.HdPubKey.IsInternal))
 			{
 				// Destinations are the external addresses.
-				return myOwnOutputs.Where(x => !x.IsInternal).Select(x => x.DestinationAddress);
+				return myOwnOutputs.Where(x => !x.HdPubKey.IsInternal).Select(x => GetAddress(x.TxOut));
 			}
 
 			// Edge-case: self-spend to one or more internal addresses.
 			// We can't know the destinations, return all the outputs.
-			return myOwnOutputs.Select(x => x.DestinationAddress);
+			return myOwnOutputs.Select(x => GetAddress(x.TxOut));
 		}
 
 		// All inputs are foreign but some outputs are my own, someone is sending coins to me.
-		if (myOwnInputs.Count == 0 && myOwnOutputs.Count != 0)
+		if (transaction.WalletInputs.Count == 0 && myOwnOutputs.Count != 0)
 		{
 			// All outputs that are my own are the destinations.
-			return myOwnOutputs.Select(x => x.DestinationAddress);
+			return myOwnOutputs.Select(x => GetAddress(x.TxOut));
 		}
 
 		// I'm sending a transaction to someone else.
 		// All outputs that are not my own are the destinations.
-		return foreignOutputs.Select(x => x.DestinationAddress);
+		return foreignOutputs.Select(x => GetAddress(x.TxOut));
 	}
+
+	private BitcoinAddress GetAddress(TxOut txOut) => txOut.ScriptPubKey.GetDestinationAddress(_wallet.Network)!;
 
 	public void Dispose() => _disposable.Dispose();
 }
