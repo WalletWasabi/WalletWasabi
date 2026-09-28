@@ -369,8 +369,6 @@ public class CoinJoinClient
 			registeredAliceClients = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
-				cancellationToken.ThrowIfCancellationRequested();
-
 				var error = smartCoins.Any(coin => coin.IsBanned) ? CoinjoinError.CoinsRejected : CoinjoinError.UserWasntInRound;
 				throw new CoinJoinClientException(error, $"None of the {smartCoins.Count} inputs could be registered.");
 			}
@@ -403,7 +401,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		int eventInvokedAlready = 0;
 
@@ -418,9 +416,9 @@ public class CoinJoinClient
 		using CancellationTokenSource confirmationsCts = new();
 
 		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
-		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
-		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
-		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
+		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancellationToken);
+		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancellationToken);
+		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancellationToken);
 
 		async Task<AliceClient?> RegisterInputAsync(SmartCoin coin)
 		{
@@ -518,9 +516,10 @@ public class CoinJoinClient
 			}
 			catch (OperationCanceledException ex)
 			{
-				if (cancel.IsCancellationRequested)
+				if (cancellationToken.IsCancellationRequested)
 				{
 					Logger.LogDebug(FormatLog("User requested cancellation of registration and confirmation.", roundState));
+					throw;
 				}
 				else if (registrationsCts.IsCancellationRequested)
 				{
