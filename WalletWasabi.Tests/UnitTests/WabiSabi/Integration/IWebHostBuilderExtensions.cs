@@ -1,3 +1,4 @@
+using System.Collections.Immutable;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Hosting;
@@ -12,7 +13,7 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Integration;
 
 public static class IWebHostBuilderExtensions
 {
-	public static IWebHostBuilder AddMockRpcClient(this IWebHostBuilder builder, SmartCoin[] coins, Action<MockRpcClient> options)
+	public static IWebHostBuilder AddMockRpcClient(this IWebHostBuilder builder, ImmutableList<SmartCoin> coins, Action<MockRpcClient> options)
 	{
 		var rpc = BitcoinFactory.GetMockMinimalRpc();
 		rpc.Network = Network.Main;

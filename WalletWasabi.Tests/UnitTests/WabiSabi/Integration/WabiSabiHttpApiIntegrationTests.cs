@@ -290,7 +290,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		var coordinatorApp = _apiApplicationFactory.WithWebHostBuilder(builder =>
 			builder.AddMockRpcClient(
-				Enumerable.Concat(participant1Coins, participant2CoinsBad).Concat(participant3Coins).ToArray(),
+				Enumerable.Concat(participant1Coins, participant2CoinsBad).Concat(participant3Coins).ToImmutableList(),
 				rpc =>
 				{
 					rpc.OnGetRawTransactionAsync = (txid, throwIfNotFound) =>
@@ -583,7 +583,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		Assert.NotEqual(Guid.Empty, response.Value);
 	}
 
-	private SmartCoin[] GenerateSmartCoins(KeyManager keyManager, long[] amounts, int inputCount)
+	private ImmutableList<SmartCoin> GenerateSmartCoins(KeyManager keyManager, long[] amounts, int inputCount)
 	{
 		var anonscore = 0;
 
@@ -594,7 +594,7 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 				anonscore++;
 				return BitcoinFactory.CreateSmartCoin(x, Money.Satoshis(amounts[i]), true, anonscore);
 			})
-			.ToArray();
+			.ToImmutableList();
 	}
 
 	public class TestableRpcClient : RpcClientBase

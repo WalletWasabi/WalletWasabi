@@ -231,7 +231,7 @@ public class CoinJoinClient
 		throw new InvalidOperationException("Blame rounds were not successful.");
 	}
 
-	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartRoundAsync(ImmutableList<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
 
@@ -358,7 +358,7 @@ public class CoinJoinClient
 
 	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, TxOut[] OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
 		RoundState roundState,
-		IEnumerable<SmartCoin> smartCoins,
+		ImmutableList<SmartCoin> smartCoins,
 		IRoundRestrictions roundRestrictions,
 		CancellationToken cancellationToken)
 	{
@@ -373,7 +373,7 @@ public class CoinJoinClient
 				cancellationToken.ThrowIfCancellationRequested();
 
 				var error = smartCoins.Any(coin => coin.IsBanned) ? CoinjoinError.CoinsRejected : CoinjoinError.UserWasntInRound;
-				throw new CoinJoinClientException(error, $"None of the {smartCoins.Count()} inputs could be registered.");
+				throw new CoinJoinClientException(error, $"None of the {smartCoins.Count} inputs could be registered.");
 			}
 
 			Logger.LogInfo(FormatLog($"Successfully registered {registeredAliceClients.Length} inputs.", roundState));
@@ -954,7 +954,7 @@ public class CoinJoinClient
 		return (unsignedCoinJoin.Transaction, alicesToSign);
 	}
 
-	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;
