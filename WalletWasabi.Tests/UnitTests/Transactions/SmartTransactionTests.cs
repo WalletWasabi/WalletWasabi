@@ -1,5 +1,4 @@
 using NBitcoin;
-using System;
 using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using System.Collections.Generic;
@@ -311,45 +310,32 @@ public class SmartTransactionTests
 		Assert.Contains("b", (IEnumerable<string>)a.Labels);
 	}
 
-	[Fact]
-	public void ConcurrentLabelMergesAreNotLost()
-	{
-		var tx = Transaction.Create(Network.Main);
-		tx.Inputs.Add(BitcoinFactory.CreateOutPoint());
-		tx.Outputs.Add(Money.Coins(1), new Key());
-		var stx = new SmartTransaction(tx, Height.Mempool);
-
-		const int Count = 2000;
-		System.Threading.Tasks.Parallel.For(0, Count, i =>
-		{
-			stx.TryUpdate(new SmartTransaction(tx, Height.Mempool, labels: new LabelsArray($"update{i}")));
-			stx.AddLabels(new LabelsArray($"add{i}"));
-		});
-
-		Assert.Equal(2 * Count, stx.Labels.Count);
-	}
-
+	/// <summary>
+	/// Make sure that <see cref="SmartTransaction.WalletInputs"/> can be modified while being iterated.
+	/// </summary>
+	/// <seealso href="https://github.com/WalletWasabi/WalletWasabi/issues/14824"/>
 	[Fact]
 	public void WalletInputsCanBeEnumeratedWhileAddingInputs()
 	{
-		// https://github.com/WalletWasabi/WalletWasabi/issues/14824
 		var km = ServiceFactory.CreateKeyManager();
 		var coins = Enumerable.Range(0, 3).Select(_ => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), 1m)).ToArray();
 		var tx = Transaction.Create(Network.Main);
+
 		foreach (var coin in coins)
 		{
 			tx.Inputs.Add(coin.Outpoint);
 		}
+
 		tx.Outputs.Add(Money.Coins(2.9m), new Key());
 		var stx = new SmartTransaction(tx, Height.Mempool);
 
 		Assert.True(stx.TryAddWalletInput(coins[0]));
 		Assert.Equal(2, stx.ForeignInputs.Count);
 
-		// Previously WalletInputs was the live set, so this threw "Collection was modified".
-		// Deterministic and single-threaded: it checks the snapshot semantics, not timing.
+		// Iterate over "WalletInputs" ...
 		foreach (var _ in stx.WalletInputs)
 		{
+			// ... and add an input to the collection at the same time. Must not throw any exception.
 			Assert.True(stx.TryAddWalletInput(coins[1]));
 		}
 

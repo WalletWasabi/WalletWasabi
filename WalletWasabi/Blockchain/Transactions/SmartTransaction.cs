@@ -7,7 +7,6 @@ using WalletWasabi.Models;
 namespace WalletWasabi.Blockchain.Transactions;
 
 [DebuggerDisplay("{Transaction.GetHash()}")]
-[SuppressMessage("Style", "IDE0032:Use auto property", Justification = "Auto properties are not used to allow synchronized batch updates of properties")]
 public class SmartTransaction : IEquatable<SmartTransaction>
 {
 	public SmartTransaction(
@@ -314,7 +313,7 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 				.Select(x => x.Transaction)
 				.Where(x => x.Height == Height
 					|| (x.Height == Height.Mempool && Height == Height.Unknown)) // It's ok if we didn't yet get to the mempool to consider this CPFP.
-			: Enumerable.Empty<SmartTransaction>();
+			: [];
 
 	public bool Confirmed => Height is ChainHeight;
 
@@ -444,19 +443,24 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 	}
 
 	/// <summary>
+	/// Reads all properties needed by <see cref="TryUpdate(SmartTransaction)"/> as one consistent snapshot.
+	/// </summary>
+	internal (Height Height, uint256? BlockHash, int BlockIndex, DateTimeOffset FirstSeen, LabelsArray Labels, bool IsReplacement, bool IsSpeedup, bool IsCancellation) GetUpdateProperties()
+	{
+		lock (_stateLock)
+		{
+			return (_height, _blockHash, _blockIndex, _firstSeen, _labels, _isReplacement, _isSpeedup, _isCancellation);
+		}
+	}
+
+	/// <summary>
 	/// Update the transaction with the data acquired from another transaction.
 	/// </summary>
 	public bool TryUpdate(SmartTransaction tx)
 	{
-		// Deadlock prevention: read everything from tx before taking our lock, and never touch tx's lock-taking
-		// members inside it (a.TryUpdate(b) racing b.TryUpdate(a) would otherwise deadlock).
-		// Height, block hash and index are read as one snapshot, so they can't come from different updates.
-		var (otherHeight, otherBlockHash, otherBlockIndex) = tx.GetBlockInfo();
-		var otherFirstSeen = tx.FirstSeen;
-		var otherLabels = tx.Labels;
-		var otherIsReplacement = tx.IsReplacement;
-		var otherIsSpeedup = tx.IsSpeedup;
-		var otherIsCancellation = tx.IsCancellation;
+		// Read the other transaction properties in one batch before acquiring the lock to avoid a deadlock.
+		var (otherHeight, otherBlockHash, otherBlockIndex, otherFirstSeen, otherLabels, otherIsReplacement, otherIsSpeedup, otherIsCancellation)
+			= tx.GetUpdateProperties();
 
 		lock (_stateLock)
 		{
@@ -574,6 +578,9 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
+	/// <summary>
+	/// Set labels to <paramref name="labels"/>. 
+	/// </summary>
 	public void SetLabels(LabelsArray labels)
 	{
 		lock (_stateLock)
@@ -582,21 +589,14 @@ public class SmartTransaction : IEquatable<SmartTransaction>
 		}
 	}
 
-	/// <summary>Merges <paramref name="labels"/> into <see cref="Labels"/> atomically, so concurrent merges are not lost.</summary>
+	/// <summary>
+	/// Append <paramref name="labels"/> to the current labels.
+	/// </summary>
 	public void AddLabels(LabelsArray labels)
 	{
 		lock (_stateLock)
 		{
 			_labels = LabelsArray.Merge(_labels, labels);
-		}
-	}
-
-	/// <summary>Reads <see cref="Height"/>, <see cref="BlockHash"/> and <see cref="BlockIndex"/> as one consistent snapshot.</summary>
-	public (Height Height, uint256? BlockHash, int BlockIndex) GetBlockInfo()
-	{
-		lock (_stateLock)
-		{
-			return (_height, _blockHash, _blockIndex);
 		}
 	}
 
