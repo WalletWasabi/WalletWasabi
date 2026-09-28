@@ -29,7 +29,7 @@ public class ExternalApiTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = providerFactory(new HttpClientFactory());
-		var exchangeRate = await provider(CancellationToken.None).ConfigureAwait(false);
+		var exchangeRate = await provider(timeoutCts.Token).ConfigureAwait(false);
 		Assert.True(exchangeRate.Rate > 0);
 	}
 
@@ -45,7 +45,7 @@ public class ExternalApiTests
 	{
 		using CancellationTokenSource timeoutCts = new(TimeSpan.FromMinutes(3));
 		var provider = providerFactory(new HttpClientFactory());
-		var estimations = await provider(CancellationToken.None).ConfigureAwait(false);
+		var estimations = await provider(timeoutCts.Token).ConfigureAwait(false);
 		Assert.NotEmpty(estimations.Estimations);
 	}
 }
