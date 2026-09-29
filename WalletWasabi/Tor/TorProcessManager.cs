@@ -82,16 +82,30 @@ public class TorProcessManager
 		{
 			using var tcp = new TcpClient(_settings.SocksEndpoint.AddressFamily);
 			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
-			byte[] msg =
-			[
-				0x05, // Version
-				0x01, // One method
-				0x00, // No authentication
-			];
-			var response = new byte[2];
-			await tcp.Client.SendAsync(msg, cancellationToken).ConfigureAwait(false);
-			var read = await tcp.Client.ReceiveAsync(response, cancellationToken).ConfigureAwait(false);
-			var isTorRunning = read == 2 && response is [0x05, 0x00];
+
+			var stream = tcp.GetStream();
+
+			byte[] msg = [
+					0x05, // Version
+					0x01, // One method
+					0x00, // No authentication
+				];
+
+			await stream.WriteAsync(msg, cancellationToken).ConfigureAwait(false);
+
+			bool isTorRunning;
+
+			try
+			{
+				var response = new byte[2];
+				await stream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
+				isTorRunning = response is [0x05, 0x00];
+			}
+			catch (EndOfStreamException)
+			{
+				Logger.LogDebug("Connection closed before two bytes arrived.");
+				isTorRunning = false;
+			}
 
 			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
 			return isTorRunning;
@@ -104,7 +118,7 @@ public class TorProcessManager
 		catch (SocketException ex)
 		{
 			// Any other socket error means Tor is not usable right now.
-			Logger.LogDebug($"Failed to connect to {_settings.SocksEndpoint}. Socket error code was {ex.SocketErrorCode} ({ex.ErrorCode}).");
+			Logger.LogInfo($"Failed to connect to {_settings.SocksEndpoint}. Socket error code was {ex.SocketErrorCode} ({ex.ErrorCode}): {ex.Message}");
 			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
