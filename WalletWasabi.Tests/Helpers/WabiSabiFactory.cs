@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Channels;
 using System.Threading.Tasks;
 using WabiSabi.CredentialRequesting;
-using WabiSabi.Crypto;
 using WabiSabi.Crypto.ZeroKnowledge;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
@@ -28,7 +27,6 @@ using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.Coordinator.WabiSabi;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
-using CredentialIssuer = WabiSabi.Native.CredentialIssuer;
 
 namespace WalletWasabi.Tests.Helpers;
 

@@ -1,9 +1,5 @@
-using WabiSabi.Crypto;
 using WabiSabi.Crypto.Randomness;
-using WalletWasabi.WabiSabi.Coordinator.Rounds;
 using WalletWasabi.WabiSabi.Crypto;
-using WalletWasabi.WabiSabi.Models.MultipartyTransaction;
-using CredentialIssuerParameters = WabiSabi.Crypto.CredentialIssuerParameters;
 
 namespace WalletWasabi.WabiSabi.Models;
 
