@@ -213,14 +213,14 @@ public class UiConfig : ConfigBase
 		catch (FileNotFoundException)
 		{
 			var config = new UiConfig(filePath);
-			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
+			config.ToFile();
 			Logging.Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return config;
 		}
 		catch (Exception ex)
 		{
 			var config = new UiConfig(filePath);
-			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
+			config.ToFile();
 			Logging.Logger.LogInfo($"{nameof(UiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
 			Logging.Logger.LogWarning(ex);
 			return config;

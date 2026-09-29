@@ -7,9 +7,11 @@ using NBitcoin;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.TransactionBroadcasting;
 using WalletWasabi.Blockchain.TransactionBuilding;
+using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.IntegrationTests.Infrastructure;
 using WalletWasabi.Services;
+using WalletWasabi.Wallets;
 using Xunit;
 
 namespace WalletWasabi.IntegrationTests.WalletTests;
@@ -91,6 +93,10 @@ public class WalletSendTests
 		Assert.Single(txResult.SpentCoins);
 		Assert.True(txResult.Fee > Money.Zero);
 
+		// The privacy-preserving lock-time distribution can select tip + 1.
+		// Advance regtest so every supported selection is final before broadcasting.
+		await env.RpcClient.GenerateAsync(1);
+
 		// Broadcast the transaction
 		var broadcaster = new TransactionBroadcaster([new RpcBroadcaster(env.RpcClient)], env.MempoolService);
 		await broadcaster.SendTransactionAsync(txResult.Transaction);
@@ -103,6 +109,52 @@ public class WalletSendTests
 		await env.RpcClient.GenerateAsync(1);
 
 		await wallet.StopAsync(CancellationToken.None);
+	}
+
+	[Theory(Timeout = 120_000)]
+	[InlineData(0.95)]
+	[InlineData(0.978)] // Select tip + 1, as allowed by the production privacy distribution.
+	[InlineData(0.99)]
+	public async Task Wallet_BroadcastsTransactionWithSelectedLockTime(double randomValue)
+	{
+		await using var env = await RegTestEnvironment.CreateAsync(_fixture);
+		var keyManager = env.CreateKeyManager();
+		var wallet = env.CreateWallet(keyManager);
+		wallet.Password = RegTestEnvironment.DefaultPassword;
+
+		var receiveAddress = keyManager.GetNextReceiveKey("Funding").GetP2wpkhAddress(env.Network);
+		await env.FundAddressAsync(receiveAddress, Money.Coins(1m), confirmations: 1);
+		await env.SyncFiltersRpcAsync(TestContext.Current.CancellationToken);
+
+		await wallet.StartAsync(TestContext.Current.CancellationToken);
+		try
+		{
+			await env.WaitForConditionAsync(() => wallet.Coins.Any(c => c.Confirmed), TimeSpan.FromSeconds(30));
+
+			using var destinationKey = new Key();
+			var destination = destinationKey.PubKey.GetAddress(ScriptPubKeyType.Segwit, env.Network);
+			var parameters = new TransactionParameters(
+				new PaymentIntent(destination.ScriptPubKey, Money.Coins(0.5m)),
+				new FeeRate(5m),
+				AllowUnconfirmed: false,
+				AllowDoubleSpend: false,
+				AllowedInputs: null,
+				TryToSign: true,
+				OverrideFeeOverpaymentProtection: false);
+			var factory = new TransactionFactory(env.Network, keyManager, wallet.Coins, env.TransactionStore, RegTestEnvironment.DefaultPassword);
+			var selector = new LockTimeSelector(new FixedRandom(randomValue));
+			var result = factory.BuildTransaction(parameters, () => selector.GetLockTimeBasedOnDistribution(wallet.FilterHeaderChain.TipHeight));
+
+			await env.RpcClient.GenerateAsync(1);
+
+			// Use RPC directly so failures include Bitcoin Core's exact rejection reason.
+			await env.RpcClient.SendRawTransactionAsync(result.Transaction.Transaction, TestContext.Current.CancellationToken);
+			Assert.Contains(result.Transaction.GetHash(), await env.RpcClient.GetRawMempoolAsync());
+		}
+		finally
+		{
+			await wallet.StopAsync(CancellationToken.None);
+		}
 	}
 
 	[Fact(Timeout = 120_000)] // 2 minute timeout
@@ -284,5 +336,11 @@ public class WalletSendTests
 		Assert.InRange(txResult.SpentCoins.Count(), 1, 2);
 
 		await wallet.StopAsync(CancellationToken.None);
+	}
+
+	private sealed class FixedRandom(double value) : Random
+	{
+		public override double NextDouble() => value;
+		public override int Next(int minValue, int maxValue) => maxValue - 1;
 	}
 }
