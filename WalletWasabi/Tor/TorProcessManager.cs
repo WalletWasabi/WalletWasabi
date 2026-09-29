@@ -93,19 +93,9 @@ public class TorProcessManager
 
 			await stream.WriteAsync(msg, cancellationToken).ConfigureAwait(false);
 
-			bool isTorRunning;
-
-			try
-			{
-				var response = new byte[2];
-				await stream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
-				isTorRunning = response is [0x05, 0x00];
-			}
-			catch (EndOfStreamException)
-			{
-				Logger.LogDebug("Connection closed before two bytes arrived.");
-				isTorRunning = false;
-			}
+			var response = new byte[2];
+			await stream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
+			bool isTorRunning = response is [0x05, 0x00];
 
 			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
 			return isTorRunning;
@@ -119,6 +109,13 @@ public class TorProcessManager
 		{
 			// Any other socket error means Tor is not usable right now.
 			Logger.LogInfo($"Failed to connect to {_settings.SocksEndpoint}. Socket error code was {ex.SocketErrorCode} ({ex.ErrorCode}): {ex.Message}");
+			_eventBus.Publish(new TorConnectionStateChanged(false));
+			return false;
+		}
+		catch (IOException ex)
+		{
+			// NetworkStream wraps socket errors (e.g. a reset) in IOException; EndOfStreamException means the peer closed early.
+			Logger.LogInfo($"SOCKS5 handshake with {_settings.SocksEndpoint} failed: {ex.Message}");
 			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
