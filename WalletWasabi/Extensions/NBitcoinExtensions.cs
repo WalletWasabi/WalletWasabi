@@ -424,7 +424,7 @@ public static class NBitcoinExtensions
 			.DeriveChild("Ownership identification key").Key;
 
 		var signingKey = secret.PrivateKey;
-		var ownershipProof = OwnershipProof.GenerateCoinJoinInputProof(
+		var ownershipProof = OwnershipProofProvider.GenerateCoinJoinInputProof(
 			signingKey,
 			new OwnershipIdentifier(identificationKey, scriptPubKey),
 			commitmentData,
