@@ -18,7 +18,7 @@ public static class AppLifetimeHelper
 	/// This method is only functional on the published builds
 	/// and not on debugging runs.
 	/// </remarks>
-	public static void StartAppWithArgs()
+	public static void StartAppWithArgs(params string[] args)
 	{
 		var path = Process.GetCurrentProcess().MainModule?.FileName;
 
@@ -27,7 +27,7 @@ public static class AppLifetimeHelper
 			throw new InvalidOperationException($"Invalid path: '{path}'");
 		}
 
-		var startInfo = ProcessStartInfoFactory.Make(path, []);
+		var startInfo = ProcessStartInfoFactory.Make(path, args);
 		using var p = Process.Start(startInfo);
 	}
 

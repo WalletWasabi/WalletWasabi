@@ -15,7 +15,7 @@
     <ContentArea EnableNext="True"
                           EnableCancel="True"
                           NextContent="Close"
-                          CancelContent="Restart Wasabi"
+                          CancelContent="{Binding CancelContent}"
                           FocusNext="True"
                           Title="{Binding Title}"
                           Caption="{Binding Caption}"
@@ -28,7 +28,7 @@
       </ContentArea.Styles>
       <DockPanel LastChildFill="True">
         <InfoMessage DockPanel.Dock="Bottom" VerticalAlignment="Center" HorizontalAlignment="Center"
-                              Margin="0 20 0 0">
+                              Margin="0 20 0 0" IsVisible="{Binding !IsUnreadableConfig}">
           <Panel>
             <WrapPanel>
               <TextBlock Text="You can click this icon" />
