@@ -66,7 +66,12 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.PlebStopThreshold,
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation,
-				x => x.OnlyUsePrivateFundsForPayments,
+				x => x.OnlyUsePrivateFundsForPayments)
+			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		this.WhenAnyValue(
 				x => x.CoinJoinDeviceMaxRounds,
 				x => x.CoinJoinDeviceMaxMiningFeeRate)
 			.Skip(1)
