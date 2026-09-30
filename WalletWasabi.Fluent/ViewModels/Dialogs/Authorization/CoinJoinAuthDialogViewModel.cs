@@ -24,7 +24,7 @@ public partial class CoinJoinAuthDialogViewModel : AuthorizationDialogBase
 
 		EnableBack = false;
 
-		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.FileSystem.OpenBrowserAsync(HardwareWalletService.BridgeDownloadUrl));
+		OpenBridgeDownloadCommand = ReactiveCommand.CreateFromTask(() => UiContext.OpenBrowserAsync(HardwareWalletService.BridgeDownloadUrl));
 	}
 
 	public WalletType WalletType { get; }
