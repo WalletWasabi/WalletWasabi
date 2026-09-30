@@ -13,6 +13,12 @@ namespace WalletWasabi.Tor;
 
 public class TorProcessManager
 {
+	private static readonly byte[] NoAuthHandshakeMsg = [
+		0x05, // Version
+		0x01, // One method
+		0x00, // No authentication
+	];
+
 	public TorProcessManager(TorSettings settings, EventBus eventBus)
 	{
 		_settings = settings;
@@ -83,18 +89,12 @@ public class TorProcessManager
 			using var tcp = new TcpClient(_settings.SocksEndpoint.AddressFamily);
 			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
 
-			var stream = tcp.GetStream();
+			var networkStream = tcp.GetStream();
 
-			byte[] msg = [
-					0x05, // Version
-					0x01, // One method
-					0x00, // No authentication
-				];
-
-			await stream.WriteAsync(msg, cancellationToken).ConfigureAwait(false);
+			await networkStream.WriteAsync(NoAuthHandshakeMsg, cancellationToken).ConfigureAwait(false);
 
 			var response = new byte[2];
-			await stream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
+			await networkStream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
 			bool isTorRunning = response is [0x05, 0x00];
 
 			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
