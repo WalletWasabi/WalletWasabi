@@ -114,7 +114,7 @@ public class TorProcessManager
 		}
 		catch (IOException ex)
 		{
-			// NetworkStream wraps socket errors (e.g. a reset) in IOException; EndOfStreamException means the peer closed early.
+			// Handles reading and writing operations of the network stream.
 			Logger.LogInfo($"SOCKS5 handshake with {_settings.SocksEndpoint} failed: {ex.Message}");
 			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
