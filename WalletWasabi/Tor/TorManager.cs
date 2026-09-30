@@ -1,8 +1,4 @@
 using System.Diagnostics;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
