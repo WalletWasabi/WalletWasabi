@@ -1,15 +1,9 @@
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
 using Nito.AsyncEx;
-using System.Collections.Generic;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Services.Terminate;
 using WalletWasabi.Stores;
