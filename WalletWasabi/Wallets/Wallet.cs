@@ -343,14 +343,22 @@ public class Wallet : BackgroundService
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
 		int i = 0;
-		while (KeyManager.GetBestHeight() < FilterHeaderChain.ServerTipHeight)
+		while (true)
 		{
+			var walletBestHeight = KeyManager.GetBestHeight();
+			var serverTipHeight = FilterHeaderChain.ServerTipHeight;
+
+			if (walletBestHeight >= serverTipHeight)
+			{
+				break;
+			}
+
 			i++;
 
 			// Every ten seconds, log a message to indicate that the wallet is waiting for filters to be processed.
 			if (i % 100 == 0)
 			{
-				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({KeyManager.GetBestHeight()} < {FilterHeaderChain.ServerTipHeight})", this));
+				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({walletBestHeight} < {serverTipHeight})", this));
 			}
 
 			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
