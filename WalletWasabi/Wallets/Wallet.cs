@@ -1,21 +1,11 @@
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -70,14 +60,16 @@ public class Wallet : BackgroundService
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
 			.DisposeUsing(_disposables);
+
 		_eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
-		{
-			if (e.WalletName == WalletName)
 			{
-				WalletRelevantTransactionProcessed(e.Result);
-			}
-		})
+				if (e.WalletName == WalletName)
+				{
+					WalletRelevantTransactionProcessed(e.Result);
+				}
+			})
 			.DisposeUsing(_disposables);
+
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
 	}
