@@ -57,6 +57,7 @@ public class Wallet : BackgroundService
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
 		WalletId = new WalletId(Guid.NewGuid());
+		_lastFilterProcess = keyManager.GetBestHeight();
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
 			.DisposeUsing(_disposables);
@@ -72,10 +73,13 @@ public class Wallet : BackgroundService
 
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
+		_eventBus.Subscribe<FilterProcessed>(e => _lastFilterProcess = e.Filter.Header.Height)
+			.DisposeUsing(_disposables);
 	}
 
 	private readonly EventBus _eventBus;
 	private readonly FilterStore _filterStore;
+	private ChainHeight _lastFilterProcess;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 
@@ -345,10 +349,10 @@ public class Wallet : BackgroundService
 		int i = 0;
 		while (true)
 		{
-			var walletBestHeight = KeyManager.GetBestHeight();
+			var lastFilterProcess = _lastFilterProcess;
 			var serverTipHeight = FilterHeaderChain.ServerTipHeight;
 
-			if (walletBestHeight >= serverTipHeight)
+			if (lastFilterProcess >= serverTipHeight)
 			{
 				break;
 			}
@@ -358,7 +362,7 @@ public class Wallet : BackgroundService
 			// Every ten seconds, log a message to indicate that the wallet is waiting for filters to be processed.
 			if (i % 100 == 0)
 			{
-				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({walletBestHeight} < {serverTipHeight})", this));
+				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({lastFilterProcess} < {serverTipHeight})", this));
 			}
 
 			await Task.Delay(100, cancellationToken).ConfigureAwait(false);
