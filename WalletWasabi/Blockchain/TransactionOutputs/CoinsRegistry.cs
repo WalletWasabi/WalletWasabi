@@ -105,7 +105,6 @@ public class CoinsRegistry : ICoinsView
 		}
 
 		bool added = _coins.Add(coin);
-		OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
 
 		if (!CoinsByPubKeys.TryGetValue(coin.HdPubKey, out HashSet<SmartCoin>? coinsOfPubKey))
 		{
@@ -117,6 +116,8 @@ public class CoinsRegistry : ICoinsView
 
 		if (added)
 		{
+			OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+
 			uint256 txid = coin.TransactionId;
 
 			if (!CoinsByTransactionId.TryGetValue(txid, out HashSet<SmartCoin>? hashSet))

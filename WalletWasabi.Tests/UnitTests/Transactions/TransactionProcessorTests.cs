@@ -242,6 +242,25 @@ public class TransactionProcessorTests
 		Assert.True(coin.Confirmed);
 	}
 
+	[Fact]
+	public async Task OutPointLookupReturnsTrackedCoinAfterConfirmationAsync()
+	{
+		using var txStore = await CreateTransactionStoreAsync();
+		var transactionProcessor = CreateTransactionProcessor(txStore);
+
+		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
+
+		// An unconfirmed transaction for us that gets confirmed later.
+		var tx = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
+		transactionProcessor.Process(tx);
+		transactionProcessor.Process(new SmartTransaction(tx.Transaction, new Height.ChainHeight(77551)));
+
+		// Looking the coin up by outpoint (e.g. to exclude it from coinjoins) must return the coin the wallet tracks.
+		var coin = Assert.Single(transactionProcessor.Coins);
+		Assert.True(transactionProcessor.Coins.TryGetByOutPoint(coin.Outpoint, out var lookedUpCoin));
+		Assert.Same(coin, lookedUpCoin);
+	}
+
 	/// <summary>
 	/// Make sure that coins with <see cref="HdPubKey"/>s are tracked and that we track latest spending heights for <see cref="HdPubKey"/>s as well.
 	/// </summary>
