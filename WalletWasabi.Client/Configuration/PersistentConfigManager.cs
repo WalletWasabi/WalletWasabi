@@ -101,7 +101,7 @@ public static class PersistentConfigManager
 			Logger.LogInfo($"Failed to load '{filePath}'. The config file is corrupted.");
 			Logger.LogWarning(ex);
 
-			var defaultFilePath = $"{filePath}.default";
+			var defaultFilePath = Path.ChangeExtension(filePath, ".Default.json");
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
 			ToFile(defaultFilePath, defaultConfig);
 			Logger.LogInfo($"Default config was stored to '{defaultFilePath}'. Use the config to start fresh.");
