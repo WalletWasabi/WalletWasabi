@@ -105,9 +105,9 @@
       },
       "WabiSabi": {
         "type": "Direct",
-        "requested": "[1.3.1, )",
-        "resolved": "1.3.1",
-        "contentHash": "iDcQHvBVfB2ytPsnFCqfrGvmPCtwxo4xYODYjXvNEPd7LLAtchD02tds/iT5vfzoQCUYDg3VCvtUB8QqQKfn3A==",
+        "requested": "[1.4.1, )",
+        "resolved": "1.4.1",
+        "contentHash": "OzR3PwLrf5eE2MFkQVVZhDlq48lR/sER5L5fytggtX+vO6G7oBZ/Ny01pws/xxBQRofag55DJFM3tFJDFein8A==",
         "dependencies": {
           "NBitcoin.Secp256k1": "3.1.0"
         }

@@ -23,10 +23,6 @@ public class InsecureRandom : WasabiRandom
 
 	public override void GetBytes(Span<byte> buffer) => _random.NextBytes(buffer);
 
-	public override int GetInt(int fromInclusive, int toExclusive) => _random.Next(fromInclusive, toExclusive);
-
-	public long GetInt64(long fromInclusive, long toExclusive) => _random.NextInt64(fromInclusive, toExclusive);
-
 	public void Shuffle<T>(Span<T> values) =>
 		_random.Shuffle(values);
 }
