@@ -329,7 +329,7 @@ public class PersistentConfigManagerTests
 		File.SetUnixFileMode(configPath, UnixFileMode.UserWrite);
 		try
 		{
-			Assert.Throws<UnreadableConfigException>(() => PersistentConfigManager.LoadFile(configPath));
+			Assert.Throws<UnauthorizedAccessException>(() => PersistentConfigManager.LoadFile(configPath));
 		}
 		finally
 		{
@@ -340,46 +340,31 @@ public class PersistentConfigManagerTests
 	}
 
 	[Fact]
-	public async Task CorruptedConfigFileIsLeftAsItIsAsync()
+	public async Task CorruptedConfigFileIsBackedUpAsync()
 	{
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
 		string configPath = Path.Combine(workDirectory, "Config.json");
 		File.WriteAllText(configPath, "{ not json");
 
-		var ex = Assert.Throws<UnreadableConfigException>(() => PersistentConfigManager.LoadFile(configPath));
+		var config = PersistentConfigManager.LoadFile(configPath);
 
-		Assert.Contains(configPath, ex.Message);
-		Assert.Contains(PersistentConfigManager.ResetUnreadableConfigArgument, ex.Message);
-		Assert.Equal("{ not json", File.ReadAllText(configPath));
-		Assert.Equal([configPath], Directory.GetFiles(workDirectory));
+		Assert.Equal(PersistentConfigManager.DefaultMainNetConfig.Network, ((PersistentConfig)config).Network);
+		Assert.Equal("{ not json", File.ReadAllText($"{configPath}.corrupted"));
 	}
 
 	[Fact]
-	public async Task ResetMovesUnreadableConfigFileAsideAsync()
+	public async Task CorruptedConfigFileRecoversWhenBackupFailsAsync()
 	{
 		string workDirectory = await Common.GetEmptyWorkDirAsync();
 		string configPath = Path.Combine(workDirectory, "Config.json");
 		File.WriteAllText(configPath, "{ not json");
 
-		var config = PersistentConfigManager.LoadFile(configPath, setAsideIfUnreadable: true);
+		// A directory in the way makes the backup copy fail.
+		Directory.CreateDirectory($"{configPath}.corrupted");
 
-		Assert.Equal(PersistentConfigManager.DefaultMainNetConfig, config);
+		var config = PersistentConfigManager.LoadFile(configPath);
+
+		Assert.Equal(PersistentConfigManager.DefaultMainNetConfig.Network, ((PersistentConfig)config).Network);
 		Assert.Equal(config, PersistentConfigManager.LoadFile(configPath));
-		var asideFile = Assert.Single(Directory.GetFiles(workDirectory, "Config.json.unreadable-*"));
-		Assert.Equal("{ not json", File.ReadAllText(asideFile));
-	}
-
-	[Fact]
-	public async Task ResetLeavesReadableConfigFileAloneAsync()
-	{
-		string workDirectory = await Common.GetEmptyWorkDirAsync();
-		string configPath = Path.Combine(workDirectory, "Config.json");
-		var userConfig = PersistentConfigManager.DefaultMainNetConfig with { MaxCoinJoinMiningFeeRate = 42 };
-		PersistentConfigManager.ToFile(configPath, userConfig);
-
-		var config = PersistentConfigManager.LoadFile(configPath, setAsideIfUnreadable: true);
-
-		Assert.Equal(userConfig, config);
-		Assert.Equal([configPath], Directory.GetFiles(workDirectory));
 	}
 }

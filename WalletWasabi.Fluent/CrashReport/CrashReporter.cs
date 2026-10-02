@@ -2,7 +2,6 @@ using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using WalletWasabi.BundledApps;
-using WalletWasabi.Client.Configuration;
 using WalletWasabi.Extensions;
 using WalletWasabi.Logging;
 
@@ -16,10 +15,7 @@ public static class CrashReporter
 		{
 			var serializedException = exceptionToReport.ToSerializableException();
 			var base64ExceptionString = SerializableException.ToBase64String(serializedException);
-			// For a config that can't be read, the original arguments go along (e.g. --datadir), so the user's choice
-			// applies to the same files. The failing instance already started with them, so they are known to parse.
-			string[] originalArgs = exceptionToReport is UnreadableConfigException ? Environment.GetCommandLineArgs()[1..] : [];
-			string[] args = ["crashreport", $"-exception={base64ExceptionString}", .. originalArgs];
+			string[] args = ["crashreport", $"-exception={base64ExceptionString}"];
 
 			var path = Process.GetCurrentProcess().MainModule?.FileName;
 			if (string.IsNullOrEmpty(path))
@@ -39,10 +35,6 @@ public static class CrashReporter
 			Logger.LogWarning($"There was a problem while invoking crash report: '{ex}'.");
 		}
 	}
-
-	/// <summary>The arguments the reported instance was started with, see <see cref="Invoke"/>.</summary>
-	public static string[] GetOriginalArgs() =>
-		Environment.GetCommandLineArgs().Skip(1).Where(x => x != "crashreport" && !x.Contains("-exception=")).ToArray();
 
 	public static bool TryGetExceptionFromCliArgs(string[] args, [NotNullWhen(true)] out SerializableException? exception)
 	{

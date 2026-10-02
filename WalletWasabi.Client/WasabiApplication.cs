@@ -141,9 +141,6 @@ public class WasabiApplication
 		Logger.LogInfo($"{AppConfig.AppName} stopped gracefully ({InstanceGuid}).", callerFilePath: "", callerLineNumber: -1);
 	}
 
-	/// <summary>Every config file read at startup honors <see cref="PersistentConfigManager.ResetUnreadableConfigArgument"/>.</summary>
-	private bool ResetUnreadableConfig => AppConfig.Arguments.Contains(PersistentConfigManager.ResetUnreadableConfigArgument);
-
 	private PersistentConfig LoadOrCreateConfigs()
 	{
 		CreateConfigFiles();
@@ -188,7 +185,7 @@ public class WasabiApplication
 		var configFilePath = Path.Combine(Config.DataDir, configFileName);
 
 		Logger.LogInfo($"Loading config file '{configFilePath}'.");
-		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath, ResetUnreadableConfig);
+		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
 		if (persistentConfig is PersistentConfig config)
 		{
@@ -223,7 +220,7 @@ public class WasabiApplication
 	private void MigrateConfigFilesTo260()
 	{
 		var configFilePath = Path.Combine(Config.DataDir, "Config.json");
-		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath, ResetUnreadableConfig);
+		var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
 		if (persistentConfig is PersistentConfigPrev2_6_0 oldConfig)
 		{
@@ -243,10 +240,10 @@ public class WasabiApplication
 
 	private void MigrateConfigFilesTo280()
 	{
-		void Upgrade(string configFileName)
+		static void Upgrade(string configFileName)
 		{
 			var configFilePath = Path.Combine(Config.DataDir, configFileName);
-			var persistentConfig = PersistentConfigManager.LoadFile(configFilePath, ResetUnreadableConfig);
+			var persistentConfig = PersistentConfigManager.LoadFile(configFilePath);
 
 			if (persistentConfig is PersistentConfig_2_6_0 oldConfig)
 			{

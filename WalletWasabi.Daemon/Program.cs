@@ -4,7 +4,6 @@ using System.Linq;
 using System.Net.Sockets;
 using System.Threading.Tasks;
 using WalletWasabi.Client;
-using WalletWasabi.Client.Configuration;
 using WalletWasabi.Logging;
 
 namespace WalletWasabi.Daemon;
@@ -13,22 +12,12 @@ public class Program
 {
 	public static async Task<int> Main(string[] args)
 	{
-		WasabiApplication app;
-		try
-		{
-			app = WasabiAppBuilder
-				.Create("Wasabi Daemon", args)
-				.EnsureSingleInstance()
-				.OnUnhandledExceptions(LogUnhandledException)
-				.OnUnobservedTaskExceptions(LogUnobservedTaskException)
-				.Build();
-		}
-		catch (UnreadableConfigException ex)
-		{
-			// The message tells the user how to choose: fix the file, or start again with the reset argument.
-			Logger.LogCritical(ex.Message);
-			return 1;
-		}
+		var app = WasabiAppBuilder
+			.Create("Wasabi Daemon", args)
+			.EnsureSingleInstance()
+			.OnUnhandledExceptions(LogUnhandledException)
+			.OnUnobservedTaskExceptions(LogUnobservedTaskException)
+			.Build();
 
 		var exitCode = await app.RunAsConsoleAsync().ConfigureAwait(false);
 		return (int)exitCode;

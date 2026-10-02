@@ -81,14 +81,7 @@ public static class PersistentConfigManager
 		File.WriteAllText(networkFilePath, network.ToString());
 	}
 
-	/// <summary>
-	/// Start argument that lets Wasabi start with the default settings when a config file can't be read:
-	/// the unreadable file is moved aside, never overwritten. Without it, Wasabi stops and leaves the file as it is.
-	/// </summary>
-	public const string ResetUnreadableConfigArgument = "--reset-unreadable-config";
-
-	/// <exception cref="UnreadableConfigException">The file exists but can't be read, and <paramref name="setAsideIfUnreadable"/> is <c>false</c>.</exception>
-	public static IPersistentConfig LoadFile(string filePath, bool setAsideIfUnreadable = false)
+	public static IPersistentConfig LoadFile(string filePath)
 	{
 		try
 		{
@@ -99,26 +92,42 @@ public static class PersistentConfigManager
 		}
 		catch (FileNotFoundException)
 		{
-			var defaultConfig = CreateDefaultFile(filePath);
+			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
+
+			ToFile(filePath, defaultConfig);
+			UpdateNetwork(filePath, defaultConfig.Network);
+
 			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return defaultConfig;
 		}
-		catch (Exception ex) when (setAsideIfUnreadable)
+		// A file that can't be read right now (e.g. locked by another process) is not corrupted, so it must not be
+		// replaced with the defaults: that would silently discard the user's settings.
+		catch (Exception ex) when (ex is not (IOException or UnauthorizedAccessException))
 		{
-			var asideFilePath = $"{filePath}.unreadable-{DateTime.Now:yyyyMMddHHmmss}";
-			File.Move(filePath, asideFilePath);
-			var defaultConfig = CreateDefaultFile(filePath);
-			Logger.LogWarning($"'{filePath}' could not be read ({ex.Message}). Moved it to '{asideFilePath}' and created a default version.");
+			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
+
+			// The backup is best effort: failing to write it must not prevent recovering with the defaults.
+			var backupFilePath = $"{filePath}.corrupted";
+			try
+			{
+				File.Copy(filePath, backupFilePath, overwrite: true);
+				Logger.LogInfo($"{nameof(Config)} file was corrupted and has been backed up to '{backupFilePath}'.");
+			}
+			catch (Exception backupEx)
+			{
+				Logger.LogWarning($"{nameof(Config)} file was corrupted and could not be backed up to '{backupFilePath}': {backupEx.Message}");
+			}
+
+			ToFile(filePath, defaultConfig);
+			UpdateNetwork(filePath, defaultConfig.Network);
+
+			Logger.LogInfo($"Recreated default {nameof(Config)} version at path: '{filePath}'.");
+			Logger.LogWarning(ex);
 			return defaultConfig;
 		}
-		catch (Exception ex)
-		{
-			throw new UnreadableConfigException(filePath, ex);
-		}
 
-		static PersistentConfig CreateDefaultFile(string configFilePath)
-		{
-			var defaultConfig = Path.GetFileName(configFilePath) switch
+		static PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
+			Path.GetFileName(configFilePath) switch
 			{
 				"Config.json" => DefaultMainNetConfig,
 				"Config.TestNet.json" => DefaultTestNetConfig,
@@ -126,11 +135,6 @@ public static class PersistentConfigManager
 				"Config.Signet.json" => DefaultSignetConfig,
 				_ => throw new ArgumentException($"The file '{configFilePath}' is not a valid config file name.")
 			};
-
-			ToFile(configFilePath, defaultConfig);
-			UpdateNetwork(configFilePath, defaultConfig.Network);
-			return defaultConfig;
-		}
 	}
 
 	private static string GetDefaultTorMode()
