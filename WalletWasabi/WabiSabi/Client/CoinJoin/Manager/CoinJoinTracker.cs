@@ -78,6 +78,7 @@ public class CoinJoinTracker : IDisposable
 				if (roundEnded.LastRoundState.EndRoundState != EndRoundState.TransactionBroadcasted)
 				{
 					Wallet.BatchedPayments.MovePaymentsToPending();
+					Wallet.BatchedPayments.MoveSignedPaymentsToPending();
 				}
 
 				roundEnded.IsStopped = IsStopped;

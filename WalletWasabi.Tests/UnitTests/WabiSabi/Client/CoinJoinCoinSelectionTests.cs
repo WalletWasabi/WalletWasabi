@@ -166,9 +166,12 @@ public class CoinJoinCoinSelectionTests
 			sc.Transaction.TryAddWalletInput(sci);
 		}
 
-		// Two failed attempts. The inputs that are not ours or not available can never be selected.
+		// Simulate that there were two failed attempts to pay in coinjoin in the past. Besides two of our coins,
+		// each spent an input that isn't among our candidates, like an input of another participant.
 		var firstAttempt = coinCandidates.Take(2).Select(x => x.Outpoint).Append(BitcoinFactory.CreateOutPoint()).ToImmutableArray();
 		var secondAttempt = coinCandidates.Skip(2).Take(2).Select(x => x.Outpoint).Append(BitcoinFactory.CreateOutPoint()).ToImmutableArray();
+
+		// A failed attempt none of whose inputs is among our candidates, e.g. because our coins in it were spent since.
 		var unavailableAttempt = ImmutableArray.Create(BitcoinFactory.CreateOutPoint());
 
 		for (var i = 0; i < 20; i++)
@@ -179,8 +182,10 @@ public class CoinJoinCoinSelectionTests
 				semiPrivateThreshold: 0,
 				CreateSelectorGenerator(inputTarget: 2),
 				arePaymentsPending: () => true,
-				failedAttemptInputs: () => [firstAttempt, secondAttempt, unavailableAttempt]);
+				getFailedAttemptInputSets: () => [firstAttempt, secondAttempt, unavailableAttempt]);
 
+			// The selector is expected to select at least one input of each failed attempt, except the unavailable one,
+			// because none of its inputs is among our candidates.
 			var coins = coinJoinCoinSelector.SelectCoinsForRound(
 				coins: coinCandidates,
 				CreateUtxoSelectionParameters(),

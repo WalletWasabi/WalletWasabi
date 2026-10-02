@@ -1,4 +1,5 @@
 using System.Collections.ObjectModel;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 
 namespace WalletWasabi.WabiSabi.Client.Batching;
@@ -13,10 +14,10 @@ namespace WalletWasabi.WabiSabi.Client.Batching;
 // Depending on whether a set of payments is done successfully or not all its belonging
 // payments are moved to finished or back to pending state.
 //
-// A payment that was signed but not broadcast goes back to pending too, remembering the signed
-// transaction as a failed attempt. It is then only paid in a transaction that also spends an input
-// of each of its failed attempts, so that the payment cannot be made twice.
-public class PaymentBatch
+// A payment that was signed but not broadcast goes back to pending too, and the signed transaction
+// stays in its history as a failed attempt. The payment is then only made in a transaction that also
+// spends an input of each failed attempt that can still confirm, so that it cannot be made twice.
+public class PaymentBatch(CoinsRegistry coins)
 {
 	private readonly List<Payment> _payments = new();
 	private readonly Lock _syncObj = new();
@@ -60,7 +61,7 @@ public class PaymentBatch
 		}
 	}
 
-	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters, IEnumerable<OutPoint> registeredInputs)
+	public PaymentSet GetBestPaymentSet(Money availableAmount, int availableVsize, RoundParameters roundParameters, ImmutableArray<OutPoint> registeredInputs)
 	{
 		// Not all payments are allowed. Wasabi coordinator only supports P2WPKH and Taproot
 		// and even those depend on the round parameters.
@@ -72,11 +73,11 @@ public class PaymentBatch
 			.ToArray();
 
 		var retryInputs = registeredInputs.ToHashSet();
-		foreach (var payment in allowedPayments.Where(payment => !payment.IsProtectedBy(retryInputs)))
+		foreach (var payment in allowedPayments.Where(payment => !CanBeRetriedWith(payment, retryInputs)))
 		{
 			Logger.LogInfo($"Payment {payment.Id} is postponed: none of the inputs of an earlier signed transaction paying it is registered in this round.");
 		}
-		allowedPayments = allowedPayments.Where(payment => payment.IsProtectedBy(retryInputs)).ToArray();
+		allowedPayments = allowedPayments.Where(payment => CanBeRetriedWith(payment, retryInputs)).ToArray();
 
 		// Once we know how much money we have registered in the coinjoin, lets see how many payments
 		// we can do we that. Maximum 4 payments in a single coinjoin (arbitrary number)
@@ -95,7 +96,7 @@ public class PaymentBatch
 	}
 
 	// Selecting and moving under the same lock, so the selected payments cannot change in between.
-	public PaymentSet MoveBestPaymentSetToInProgress(Money availableAmount, int availableVsize, RoundParameters roundParameters, IEnumerable<OutPoint> registeredInputs, uint256 roundId)
+	public PaymentSet MoveBestPaymentSetToInProgress(Money availableAmount, int availableVsize, RoundParameters roundParameters, ImmutableArray<OutPoint> registeredInputs, uint256 roundId)
 	{
 		lock (_syncObj)
 		{
@@ -114,21 +115,11 @@ public class PaymentBatch
 	public void MovePaymentsToFinished(uint256 txId) =>
 		MovePaymentsTo(SignedPayments.Where(p => ((SignedUnknownPayment)p.State).TransactionId == txId), payment => payment with { State = new FinishedPayment(payment.State, txId) });
 
-	// Signed payments go back to pending if the round ends without broadcasting them. They are remembered as failed attempts. 
-	public void MovePaymentsToPending()
-	{
+	public void MovePaymentsToPending() =>
 		MovePaymentsTo(InProgressPayments, payment => payment with { State = new PendingPayment(payment.State) });
-		MovePaymentsTo(SignedPayments, payment =>
-		{
-			var signed = (SignedUnknownPayment)payment.State;
-			Logger.LogInfo($"Payment {payment.Id} is pending again. Transaction {signed.TransactionId} was signed but not broadcast, so the payment will only be made in a transaction that conflicts with it.");
-			return payment with
-			{
-				State = new PendingPayment(payment.State),
-				FailedAttempts = payment.FailedAttempts.Add(new FailedAttempt(signed.TransactionId, signed.Inputs))
-			};
-		});
-	}
+
+	public void MoveSignedPaymentsToPending() =>
+		MovePaymentsTo(SignedPayments, payment => payment with { State = new PendingPayment(payment.State) });
 
 	public void MovePaymentsToSigned(uint256 transactionId, ImmutableArray<OutPoint> inputs) =>
 		MovePaymentsTo(InProgressPayments, payment => payment with
@@ -136,47 +127,40 @@ public class PaymentBatch
 			State = new SignedUnknownPayment(payment.State, DateTimeOffset.UtcNow, transactionId, inputs)
 		});
 
-	// A transaction retrying the payments must spend at least one input of each group, to prevent double spending.
-	public ImmutableArray<ImmutableArray<OutPoint>> GetFailedAttemptInputs() =>
-		PendingPayments.SelectMany(p => p.FailedAttempts).Select(a => a.Inputs).ToImmutableArray();
+	// The inputs of each failed attempt that can still confirm. A transaction retrying the payments must spend an input of each set.
+	public ImmutableArray<ImmutableArray<OutPoint>> GetFailedAttemptInputSets() =>
+		[.. PendingPayments.SelectMany(p => p.SignedAttempts).DistinctBy(a => a.TransactionId).Where(CanStillConfirm).Select(a => a.Inputs)];
 
 	public bool TryResolvePaymentsWithTransaction(SmartTransaction transaction)
 	{
-		var resolved = false;
 		var txId = transaction.GetHash();
-		var spentInputs = transaction.Transaction.Inputs.Select(i => i.PrevOut).ToHashSet();
 
 		lock (_syncObj)
 		{
-			foreach (var payment in _payments.Where(p => p.State is not FinishedPayment).ToArray())
+			var paidPayments = _payments.Where(p => p.State is not FinishedPayment && p.SignedAttempts.Any(a => a.TransactionId == txId)).ToArray();
+			foreach (var payment in paidPayments)
 			{
-				if ((payment.State is SignedUnknownPayment s && s.TransactionId == txId) || payment.FailedAttempts.Any(a => a.TransactionId == txId))
-				{
-					Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} seen.");
-					_payments.Remove(payment);
-					_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
-					resolved = true;
-				}
-				else if (transaction.Confirmed && payment.FailedAttempts.Any(a => a.Inputs.Any(spentInputs.Contains)))
-				{
-					var invalidatedAttempts = payment.FailedAttempts.Where(a => a.Inputs.Any(spentInputs.Contains)).ToArray();
-					foreach (var attempt in invalidatedAttempts)
-					{
-						Logger.LogInfo($"Payment {payment.Id}: transaction {attempt.TransactionId} can no longer confirm, confirmed transaction {txId} spends one of its inputs.");
-					}
-					_payments.Remove(payment);
-					_payments.Add(payment with { FailedAttempts = payment.FailedAttempts.RemoveRange(invalidatedAttempts) });
-					resolved = true;
-				}
+				Logger.LogInfo($"Payment {payment.Id} resolved as successful - transaction {txId} seen.");
+				_payments.Remove(payment);
+				_payments.Add(payment with { State = new FinishedPayment(payment.State, txId) });
 			}
-		}
 
-		return resolved;
+			return paidPayments.Length != 0;
+		}
 	}
 
 	public bool AreTherePendingPayments => PendingPayments.Any();
 
 	public bool AreThereUncertainPayments => SignedPayments.Any();
+
+	private bool CanBeRetriedWith(Payment payment, IReadOnlySet<OutPoint> inputs) =>
+		payment.SignedAttempts.Where(CanStillConfirm).All(attempt => attempt.Inputs.Any(inputs.Contains));
+
+	private bool CanStillConfirm(SignedUnknownPayment attempt) =>
+		!attempt.Inputs.Any(input =>
+			coins.TryGetByOutPoint(input, out var coin)
+			&& coin.SpenderTransaction is { Confirmed: true } spender
+			&& spender.GetHash() != attempt.TransactionId);
 
 	private void MovePaymentsTo<TOldState, TNewState>(
 		IEnumerable<TOldState> payments,

@@ -16,7 +16,7 @@ public class PaymentAwareOutputProvider(
 	public override IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
 		RoundParameters roundParameters,
-		IEnumerable<OutPoint> registeredInputs,
+		ImmutableArray<OutPoint> registeredInputs,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize,
@@ -38,7 +38,7 @@ public class PaymentAwareOutputProvider(
 	private IEnumerable<TxOut> GetOutputsIncludingPayments(
 		uint256 roundId,
 		RoundParameters roundParameters,
-		IEnumerable<OutPoint> registeredInputs,
+		ImmutableArray<OutPoint> registeredInputs,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize)

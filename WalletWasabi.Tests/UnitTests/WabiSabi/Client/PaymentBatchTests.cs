@@ -1,6 +1,8 @@
 using System.Collections.Immutable;
 using System.Linq;
 using NBitcoin;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Helpers;
 using WalletWasabi.Models;
@@ -24,7 +26,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void UncertainPaymentsAreNotSelectedForNewCoinjoins()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
@@ -61,7 +63,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void UncertainPaymentsAreResolvedWhenMatchingTransactionArrives()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
@@ -97,7 +99,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void UncertainPaymentsNotResolvedWhenTransactionIdDoesNotMatch()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
 
@@ -129,7 +131,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void FailedSignedPaymentIsOnlyRetriedInConflictingTransaction()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
@@ -140,13 +142,13 @@ public class PaymentBatchTests
 		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
 		paymentBatch.MovePaymentsToSigned(tx.GetHash(), inputs);
 
-		paymentBatch.MovePaymentsToPending();
+		paymentBatch.MoveSignedPaymentsToPending();
 
 		Assert.True(paymentBatch.AreTherePendingPayments);
 		Assert.False(paymentBatch.AreThereUncertainPayments);
-		var failedAttempt = Assert.Single(paymentBatch.GetPayments().Single().FailedAttempts);
+		var failedAttempt = Assert.Single(paymentBatch.GetPayments().Single().SignedAttempts);
 		Assert.Equal(tx.GetHash(), failedAttempt.TransactionId);
-		Assert.Equal([inputs], paymentBatch.GetFailedAttemptInputs());
+		Assert.Equal([inputs], paymentBatch.GetFailedAttemptInputSets());
 
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [BitcoinFactory.CreateOutPoint()]).PaymentCount);
@@ -160,7 +162,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void RetryMustConflictWithEveryFailedAttempt()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
@@ -170,49 +172,113 @@ public class PaymentBatchTests
 		paymentBatch.AddPayment(destination, amount);
 		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
 		paymentBatch.MovePaymentsToSigned(tx1.GetHash(), GetInputs(tx1));
-		paymentBatch.MovePaymentsToPending();
+		paymentBatch.MoveSignedPaymentsToPending();
 
 		var retry = paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [GetInputs(tx1)[0]]);
 		paymentBatch.MovePaymentsToInProgress(retry.Payments, uint256.One);
 		paymentBatch.MovePaymentsToSigned(tx2.GetHash(), GetInputs(tx2));
-		paymentBatch.MovePaymentsToPending();
+		paymentBatch.MoveSignedPaymentsToPending();
 
-		Assert.Equal(2, paymentBatch.GetPayments().Single().FailedAttempts.Count);
+		Assert.Equal(2, paymentBatch.GetPayments().Single().SignedAttempts.Length);
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: GetInputs(tx2)).PaymentCount);
 		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: GetInputs(tx1)).PaymentCount);
 		Assert.Equal(1, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [GetInputs(tx1)[1], GetInputs(tx2)[0]]).PaymentCount);
 	}
 
 	/// <summary>
-	/// A failed attempt can never confirm once another confirmed transaction spends one of its inputs,
-	/// so from then on the retry doesn't need to spend any of its inputs. An unconfirmed spend is not enough.
+	/// A failed attempt can never confirm once a confirmed transaction spent one of our coins it spends, so from then on
+	/// the retry doesn't need to spend any of its inputs. An unconfirmed spend is not enough, and a reorg brings it back.
 	/// </summary>
 	[Fact]
-	public void FailedAttemptIsForgottenOnceInvalidatedByConfirmedTransaction()
+	public void FailedAttemptNoLongerCountsOnceItCanNoLongerConfirm()
 	{
-		var paymentBatch = new PaymentBatch();
+		var coins = new CoinsRegistry();
+		var paymentBatch = new PaymentBatch(coins);
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
-		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
+		var ourCoin = CreateOurCoin(coins);
+		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 1);
+		tx.Inputs.Add(ourCoin.Outpoint);
 
 		paymentBatch.AddPayment(destination, amount);
 		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
 		paymentBatch.MovePaymentsToSigned(tx.GetHash(), GetInputs(tx));
+		paymentBatch.MoveSignedPaymentsToPending();
+
+		var spenderTx = Transaction.Create(Network.Main);
+		spenderTx.Inputs.Add(ourCoin.Outpoint);
+		spenderTx.Outputs.Add(new TxOut(Money.Coins(0.5m), GetNewSegwitAddress().ScriptPubKey));
+		var spender = new SmartTransaction(spenderTx, Height.Mempool);
+		coins.Spend(ourCoin, spender);
+
+		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
+
+		spender.TryUpdate(new SmartTransaction(spenderTx, new Height.ChainHeight(100)));
+
+		Assert.Empty(paymentBatch.GetFailedAttemptInputSets());
+		Assert.Equal(1, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
+
+		spender.SetUnconfirmed();
+
+		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
+	}
+
+	/// <summary>
+	/// A failed attempt that confirmed made the payment, it must not free the payment for another one.
+	/// </summary>
+	[Fact]
+	public void PaymentIsNotRetriedWhenItsFailedAttemptConfirmed()
+	{
+		var coins = new CoinsRegistry();
+		var paymentBatch = new PaymentBatch(coins);
+		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
+		var destination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+		var ourCoin = CreateOurCoin(coins);
+		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 1);
+		tx.Inputs.Add(ourCoin.Outpoint);
+
+		paymentBatch.AddPayment(destination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		paymentBatch.MovePaymentsToSigned(tx.GetHash(), GetInputs(tx));
+		paymentBatch.MoveSignedPaymentsToPending();
+
+		coins.Spend(ourCoin, new SmartTransaction(tx, new Height.ChainHeight(100)));
+
+		Assert.Single(paymentBatch.GetFailedAttemptInputSets());
+		Assert.Equal(0, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: [BitcoinFactory.CreateOutPoint()]).PaymentCount);
+	}
+
+	/// <summary>
+	/// The manager moves the in-progress payments back after every coinjoin. A signed payment is only moved back
+	/// by the tracker, when its round didn't broadcast the transaction.
+	/// </summary>
+	[Fact]
+	public void OnlyInProgressPaymentsAreMovedBackToPending()
+	{
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
+		var signedDestination = GetNewSegwitAddress();
+		var inProgressDestination = GetNewSegwitAddress();
+		var amount = Money.Coins(0.1m);
+		var tx = CreateTransactionWithOutput(signedDestination.ScriptPubKey, amount, inputCount: 2);
+
+		paymentBatch.AddPayment(signedDestination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
+		paymentBatch.MovePaymentsToSigned(tx.GetHash(), GetInputs(tx));
+		paymentBatch.AddPayment(inProgressDestination, amount);
+		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().Where(p => p.State is PendingPayment).ToArray(), uint256.One);
+
 		paymentBatch.MovePaymentsToPending();
 
-		var spender = Transaction.Create(Network.Main);
-		spender.Inputs.Add(GetInputs(tx)[1]);
-		spender.Outputs.Add(new TxOut(Money.Coins(0.5m), GetNewSegwitAddress().ScriptPubKey));
+		Assert.IsType<SignedUnknownPayment>(paymentBatch.GetPayments().Single(p => p.Destination.ScriptPubKey == signedDestination.ScriptPubKey).State);
+		Assert.IsType<PendingPayment>(paymentBatch.GetPayments().Single(p => p.Destination.ScriptPubKey == inProgressDestination.ScriptPubKey).State);
 
-		Assert.False(paymentBatch.TryResolvePaymentsWithTransaction(new SmartTransaction(spender, Height.Mempool)));
-		Assert.Single(paymentBatch.GetPayments().Single().FailedAttempts);
+		paymentBatch.MoveSignedPaymentsToPending();
 
-		Assert.True(paymentBatch.TryResolvePaymentsWithTransaction(new SmartTransaction(spender, new Height.ChainHeight(100))));
-		var payment = paymentBatch.GetPayments().Single();
-		Assert.IsType<PendingPayment>(payment.State);
-		Assert.Empty(payment.FailedAttempts);
-		Assert.Equal(1, paymentBatch.GetBestPaymentSet(Money.Coins(1m), 1000, roundParameters, registeredInputs: []).PaymentCount);
+		Assert.All(paymentBatch.GetPayments(), p => Assert.IsType<PendingPayment>(p.State));
 	}
 
 	/// <summary>
@@ -221,7 +287,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void PendingPaymentIsFinishedWhenFailedAttemptIsSeen()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
@@ -229,9 +295,9 @@ public class PaymentBatchTests
 		paymentBatch.AddPayment(destination, amount);
 		paymentBatch.MovePaymentsToInProgress(paymentBatch.GetPayments().ToArray(), uint256.One);
 		paymentBatch.MovePaymentsToSigned(tx.GetHash(), GetInputs(tx));
-		paymentBatch.MovePaymentsToPending();
+		paymentBatch.MoveSignedPaymentsToPending();
 
-		Assert.True(paymentBatch.TryResolvePaymentsWithTransaction(new SmartTransaction(tx, new Height.ChainHeight(100))));
+		Assert.True(paymentBatch.TryResolvePaymentsWithTransaction(new SmartTransaction(tx, Height.Mempool)));
 
 		var finished = Assert.IsType<FinishedPayment>(paymentBatch.GetPayments().Single().State);
 		Assert.Equal(tx.GetHash(), finished.TransactionId);
@@ -241,7 +307,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void SignedPaymentsOfBroadcastTransactionAreFinished()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.1m);
 		var tx = CreateTransactionWithOutput(destination.ScriptPubKey, amount, inputCount: 2);
@@ -265,7 +331,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void AllPaymentsFromSameCoinjoinResolvedTogether()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var destination1 = GetNewSegwitAddress();
 		var destination2 = GetNewSegwitAddress();
 		var amount1 = Money.Coins(0.1m);
@@ -303,7 +369,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void PendingPaymentsStillAvailableWhileUncertainPaymentsExist()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var uncertainDestination = GetNewSegwitAddress();
 		var pendingDestination = GetNewSegwitAddress();
@@ -341,7 +407,7 @@ public class PaymentBatchTests
 	[Fact]
 	public void DoublePaymentPreventionScenario()
 	{
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
 		var destination = GetNewSegwitAddress();
 		var amount = Money.Coins(0.006m); // The exact amount from the bug report
@@ -393,4 +459,12 @@ public class PaymentBatchTests
 
 	private static ImmutableArray<OutPoint> GetInputs(Transaction tx) =>
 		tx.Inputs.Select(i => i.PrevOut).ToImmutableArray();
+
+	private static SmartCoin CreateOurCoin(CoinsRegistry coins)
+	{
+		var keyManager = KeyManager.CreateNew(out _, "", Network.Main);
+		var coin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(keyManager), Money.Coins(0.5m));
+		coins.TryAdd(coin);
+		return coin;
+	}
 }

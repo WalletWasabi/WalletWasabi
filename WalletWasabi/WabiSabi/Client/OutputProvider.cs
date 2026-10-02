@@ -18,7 +18,7 @@ public class OutputProvider
 	public virtual IEnumerable<TxOut> GetOutputs(
 		uint256 roundId,
 		RoundParameters roundParameters,
-		IEnumerable<OutPoint> registeredInputs,
+		ImmutableArray<OutPoint> registeredInputs,
 		IEnumerable<Money> registeredCoinEffectiveValues,
 		IEnumerable<Money> theirCoinEffectiveValues,
 		int availableVsize,

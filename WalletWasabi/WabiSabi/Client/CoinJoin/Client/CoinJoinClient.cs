@@ -799,7 +799,7 @@ public class CoinJoinClient
 
 		var arePaymentsAllowed = registeredAliceClients.All(x => x.SmartCoin.IsPrivate(_minAnonScoreForPayments));
 
-		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoins.Select(x => x.Outpoint), registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum(), arePaymentsAllowed).ToArray();
+		var outputTxOuts = _outputProvider.GetOutputs(roundId, roundParameters, registeredCoins.Select(x => x.Outpoint).ToImmutableArray(), registeredCoinEffectiveValues, theirCoinEffectiveValues, (int)availableVsizes.Sum(), arePaymentsAllowed).ToArray();
 
 		DependencyGraph dependencyGraph = DependencyGraph.ResolveCredentialDependencies(registeredCoinEffectiveValues, outputTxOuts, roundParameters.MiningFeeRate, availableVsizes, roundParameters.MaxAmountCredentialValue, roundParameters.MaxVsizeCredentialValue);
 		DependencyGraphTaskScheduler scheduler = new(dependencyGraph);

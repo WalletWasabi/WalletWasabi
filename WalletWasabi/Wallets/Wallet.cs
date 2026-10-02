@@ -64,7 +64,7 @@ public class Wallet : BackgroundService
 		TransactionProcessor = new TransactionProcessor(TransactionStore, mempoolService, keyManager, ServiceConfiguration.DustThreshold, eventBus);
 		WalletFilterProcessor = new WalletFilterProcessor(keyManager, TransactionStore, _filterStore, FilterHeaderChain, TransactionProcessor, blockProvider, eventBus);
 		Coins = TransactionProcessor.Coins;
-		BatchedPayments = new PaymentBatch();
+		BatchedPayments = new PaymentBatch(Coins);
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
 		WalletId = new WalletId(Guid.NewGuid());
@@ -318,7 +318,14 @@ public class Wallet : BackgroundService
 			{
 				CpfpInfoProvider.ScheduleRequest(e.Transaction);
 			}
+		}
+		catch (Exception ex)
+		{
+			Logger.LogError(FormatLog(ex.ToString(), this));
+		}
 
+		try
+		{
 			if (BatchedPayments.TryResolvePaymentsWithTransaction(e.Transaction))
 			{
 				_eventBus.Publish(new PaymentBatchChanged(BatchedPayments.GetPayments()));

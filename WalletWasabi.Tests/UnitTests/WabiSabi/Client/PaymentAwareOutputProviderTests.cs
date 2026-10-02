@@ -1,6 +1,7 @@
 using NBitcoin;
 using System.Linq;
 using WabiSabi.Crypto;
+using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Tests.Helpers;
@@ -20,7 +21,7 @@ public class PaymentAwareOutputProviderTests
 	{
 		var rpc = new MockRpcClient();
 		var wallet = new TestWallet("random-wallet", rpc);
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 
 		using Key key = new();
 		paymentBatch.AddPayment(
@@ -71,7 +72,7 @@ public class PaymentAwareOutputProviderTests
 		var payments = testData.Split(",").Select(decimal.Parse).ToArray();
 		var rpc = new MockRpcClient();
 		var wallet = new TestWallet("random-wallet", rpc);
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 		var outputProvider = new PaymentAwareOutputProvider(wallet, paymentBatch, RandomnessProviders.Insecure);
 
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
@@ -113,7 +114,7 @@ public class PaymentAwareOutputProviderTests
 	{
 		var rpc = new MockRpcClient();
 		var wallet = new TestWallet("random-wallet", rpc);
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 
 		using Key key = new();
 		var destination = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, rpc.Network);
@@ -165,7 +166,7 @@ public class PaymentAwareOutputProviderTests
 	public void BestPaymentSetTest(string[] amountsToPay, string availableAmountStr, int availableVsize, int expectedOutputs)
 	{
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig());
-		var paymentBatch = new PaymentBatch();
+		var paymentBatch = new PaymentBatch(new CoinsRegistry());
 
 		var payments = amountsToPay.Select(a => (Destination: GetNewSegwitAddress(), Amount: Money.Coins(decimal.Parse(a))));
 		payments.ToList().ForEach(p => paymentBatch.AddPayment(p.Destination, p.Amount));
