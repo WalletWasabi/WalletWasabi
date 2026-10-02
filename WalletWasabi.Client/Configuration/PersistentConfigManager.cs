@@ -66,11 +66,7 @@ public static class PersistentConfigManager
 	public static string ToFile(string filePath, PersistentConfig obj)
 	{
 		string jsonString = JsonEncoder.ToReadableString(obj, PersistentConfigEncode.PersistentConfig);
-
-		// Write-then-rename, so a concurrent reader never sees a truncated file (which would be treated as corrupted).
-		var tempFilePath = $"{filePath}.tmp";
-		File.WriteAllText(tempFilePath, jsonString, Encoding.UTF8);
-		File.Move(tempFilePath, filePath, overwrite: true);
+		File.WriteAllText(filePath, jsonString, Encoding.UTF8);
 
 		return jsonString;
 	}
@@ -100,28 +96,14 @@ public static class PersistentConfigManager
 			Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
 			return defaultConfig;
 		}
-		// A file that can't be read right now (e.g. locked by another process) is not corrupted, so it must not be
-		// replaced with the defaults: that would silently discard the user's settings.
-		catch (Exception ex) when (ex is not (IOException or UnauthorizedAccessException))
+		catch (Exception ex)
 		{
 			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
-
-			// The backup is best effort: failing to write it must not prevent recovering with the defaults.
-			var backupFilePath = $"{filePath}.corrupted";
-			try
-			{
-				File.Copy(filePath, backupFilePath, overwrite: true);
-				Logger.LogInfo($"{nameof(Config)} file was corrupted and has been backed up to '{backupFilePath}'.");
-			}
-			catch (Exception backupEx)
-			{
-				Logger.LogWarning($"{nameof(Config)} file was corrupted and could not be backed up to '{backupFilePath}': {backupEx.Message}");
-			}
 
 			ToFile(filePath, defaultConfig);
 			UpdateNetwork(filePath, defaultConfig.Network);
 
-			Logger.LogInfo($"Recreated default {nameof(Config)} version at path: '{filePath}'.");
+			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
 			Logger.LogWarning(ex);
 			return defaultConfig;
 		}
