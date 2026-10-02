@@ -1,7 +1,7 @@
+using NBitcoin;
 using System;
 using System.IO;
 using System.Text;
-using NBitcoin;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Helpers;
 using WalletWasabi.Logging;
@@ -98,14 +98,16 @@ public static class PersistentConfigManager
 		}
 		catch (Exception ex)
 		{
-			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
-
-			ToFile(filePath, defaultConfig);
-			UpdateNetwork(filePath, defaultConfig.Network);
-
-			Logger.LogInfo($"{nameof(Config)} file has been deleted because it was corrupted. Recreated default version at path: '{filePath}'.");
+			Logger.LogInfo($"Failed to load '{filePath}'. The config file is corrupted.");
 			Logger.LogWarning(ex);
-			return defaultConfig;
+
+			var defaultFilePath = $"{filePath}.default";
+			var defaultConfig = GetDefaultPersistentConfigByFileName(filePath);
+			ToFile(defaultFilePath, defaultConfig);
+			Logger.LogInfo($"Default config was stored to '{defaultFilePath}'. Use the config to start fresh.");
+
+			string msg = $"Failed to load '{filePath}' config.\n\nDefault config was stored to '{defaultFilePath}'. Use the config to start fresh.";
+			throw new InvalidDataException(msg, ex);
 		}
 
 		static PersistentConfig GetDefaultPersistentConfigByFileName(string configFilePath) =>
