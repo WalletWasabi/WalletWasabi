@@ -41,7 +41,6 @@ public class CoinJoinClient
 		_coinJoinConfiguration = coinJoinConfiguration;
 		_verifyInputsExistance = verifyInputsExistance;
 		_coinJoinCoinSelector = coinJoinCoinSelector;
-		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 		_minAnonScoreForPayments = minAnonScoreForPayments;
 	}
@@ -50,7 +49,6 @@ public class CoinJoinClient
 
 	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = [];
 
-	private readonly SecureRandom _secureRandom;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly IKeyChain _keyChain;
 	private readonly OutputProvider _outputProvider;
@@ -421,8 +419,8 @@ public class CoinJoinClient
 			try
 			{
 				var aliceArenaClient = new ArenaClient(
-					roundState.CreateAmountCredentialClient(_secureRandom),
-					roundState.CreateVsizeCredentialClient(_secureRandom),
+					roundState.CreateAmountCredentialClient(RandomnessProviders.Secure),
+					roundState.CreateVsizeCredentialClient(RandomnessProviders.Secure),
 					_coinJoinConfiguration.CoordinatorIdentifier,
 					ArenaRequestHandlerFactory($"alice-{coin.Outpoint}"));
 
@@ -578,12 +576,12 @@ public class CoinJoinClient
 
 	private BobClient CreateBobClient(RoundState roundState)
 	{
-		var identity = Convert.ToHexString(_secureRandom.GetBytes(20)).ToLower();
+		var identity = Convert.ToHexString(RandomnessProviders.Secure.GetBytes(20)).ToLower();
 		return new BobClient(
 			roundState.Id,
 			new(
-				roundState.CreateAmountCredentialClient(_secureRandom),
-				roundState.CreateVsizeCredentialClient(_secureRandom),
+				roundState.CreateAmountCredentialClient(RandomnessProviders.Secure),
+				roundState.CreateVsizeCredentialClient(RandomnessProviders.Secure),
 				_coinJoinConfiguration.CoordinatorIdentifier,
 				ArenaRequestHandlerFactory($"bob-{identity}")));
 	}
@@ -921,7 +919,7 @@ public class CoinJoinClient
 		var combinedToken = linkedCts.Token;
 		var alicesToSign = mustSignAllInputs
 			? registeredAliceClients
-			: registeredAliceClients.RemoveAt(_secureRandom.GetInt(0, registeredAliceClients.Length));
+			: registeredAliceClients.RemoveAt(RandomnessProviders.Secure.GetInt(0, registeredAliceClients.Length));
 
 		var delayBeforeSigning = TimeSpan.FromSeconds(roundState.CoinjoinState.Parameters.DelayTransactionSigning ? 50 : 0);
 		var signingStateStartTime = DateTimeOffset.UtcNow + delayBeforeSigning;

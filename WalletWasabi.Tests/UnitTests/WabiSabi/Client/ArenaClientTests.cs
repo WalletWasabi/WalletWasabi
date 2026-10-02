@@ -95,9 +95,8 @@ public class ArenaClientTests
 
 		var wabiSabiApi = new WabiSabiController(idempotencyRequestCache, arena);
 
-		InsecureRandom rnd = InsecureRandom.Instance;
-		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, rnd, 4300000000000L);
-		var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, rnd, 2000L);
+		var amountClient = new WabiSabiClient(round.AmountCredentialIssuerParameters, RandomnessProviders.Insecure.ToWasabiRandom(), 4300000000000L);
+		var vsizeClient = new WabiSabiClient(round.VsizeCredentialIssuerParameters, RandomnessProviders.Insecure.ToWasabiRandom(), 2000L);
 		var apiClient = new ArenaClient(amountClient, vsizeClient, config.CoordinatorIdentifier, wabiSabiApi);
 
 		round.SetPhase(Phase.TransactionSigning);
@@ -177,8 +176,8 @@ public class ArenaClientTests
 
 		var roundState = RoundState.FromRound(round);
 		var aliceArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
-			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 		var ownershipProof = WabiSabiFactory.CreateOwnershipProof(key, round.Id, scriptPubKeyType);
@@ -237,8 +236,8 @@ public class ArenaClientTests
 		Assert.Equal(Phase.OutputRegistration, round.Phase);
 
 		var bobArenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
-			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			config.CoordinatorIdentifier,
 			wabiSabiApi);
 

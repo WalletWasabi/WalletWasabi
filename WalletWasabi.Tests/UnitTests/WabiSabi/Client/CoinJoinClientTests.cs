@@ -189,8 +189,8 @@ public class CoinJoinClientTests
 		IWabiSabiApiRequestHandler requestHandler)
 	{
 		var arenaClient = new ArenaClient(
-			roundState.CreateAmountCredentialClient(InsecureRandom.Instance),
-			roundState.CreateVsizeCredentialClient(InsecureRandom.Instance),
+			roundState.CreateAmountCredentialClient(RandomnessProviders.Insecure),
+			roundState.CreateVsizeCredentialClient(RandomnessProviders.Insecure),
 			roundState.CoinjoinState.Parameters.CoordinationIdentifier,
 			requestHandler);
 

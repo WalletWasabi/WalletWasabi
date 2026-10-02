@@ -461,7 +461,7 @@ public partial class Arena : PeriodicRunner
 			.ToHashSet();
 
 		RoundParameters parameters = _roundParametersFactory(feeRate, round.Parameters.MaxSuggestedAmount, _config.MinInputCountByBlameRound);
-		BlameRound blameRound = new(parameters, round, blameWhitelist, SecureRandom.Instance);
+		BlameRound blameRound = new(parameters, round, blameWhitelist, RandomnessProviders.Secure);
 		Rounds.Add(blameRound);
 		Logger.LogInfo($"Blame round created from round '{round.Id}'.", blameRound);
 	}
@@ -476,7 +476,7 @@ public partial class Arena : PeriodicRunner
 			FeeRate feeRate = await GetFeeRateEstimationAsync(cancellationToken).ConfigureAwait(false);
 			RoundParameters parameters = _roundParametersFactory(feeRate, _maxSuggestedAmountProvider.MaxSuggestedAmount);
 
-			var r = new Round(parameters, SecureRandom.Instance);
+			var r = new Round(parameters, RandomnessProviders.Secure);
 			Rounds.Add(r);
 			Logger.LogInfo($"Created round with parameters: {nameof(r.Parameters.MaxSuggestedAmount)}:'{r.Parameters.MaxSuggestedAmount}' BTC.", r);
 		}

@@ -10,7 +10,7 @@ public class CredentialTests
 	[Trait("UnitTest", "UnitTest")]
 	public void CorrectRangeProof()
 	{
-		SecureRandom rnd = SecureRandom.Instance;
+		var rnd = RandomnessProviders.Secure.ToWasabiRandom();
 		var sk = new CredentialIssuerSecretKey(rnd);
 
 		var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
@@ -30,7 +30,7 @@ public class CredentialTests
 		public void Splitting()
 		{
 			// Split 10 sats into 1, 1, 1, 1, 6.
-			using var rnd = new SecureRandom();
+			var rnd = RandomnessProviders.Secure.ToWasabiRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
@@ -82,7 +82,7 @@ public class CredentialTests
 		[Trait("UnitTest", "UnitTest")]
 		public void CredentialIssuance()
 		{
-			using var rnd = new SecureRandom();
+			var rnd = RandomnessProviders.Secure.ToWasabiRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var client = new WabiSabiClient(sk.ComputeCredentialIssuerParameters(), rnd, 4300000000000);
@@ -182,7 +182,7 @@ public class CredentialTests
 		[Trait("UnitTest", "UnitTest")]
 		public void InvalidCredentialRequests()
 		{
-			using var rnd = new SecureRandom();
+			var rnd = RandomnessProviders.Secure.ToWasabiRandom();
 			var sk = new CredentialIssuerSecretKey(rnd);
 
 			var issuer = new CredentialIssuer(sk, rnd, 4300000000000);
