@@ -42,7 +42,7 @@ public enum TrezorInputScriptType : uint
 public enum TrezorOutputScriptType : uint
 {
 	PayToAddress = 0,
-	PayToWitness = 3,
+	PayToWitness = 4,
 	PayToTaproot = 6,
 }
 
