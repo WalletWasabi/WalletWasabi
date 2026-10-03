@@ -180,10 +180,10 @@ public class WabiSabiConfig : ConfigBase
 		}
 		catch (Exception ex)
 		{
-			Logger.LogInfo($"Failed to load '{filePath}' config file is corrupted.");
+			Logger.LogInfo($"Failed to load '{filePath}'. The config file is corrupted.");
 			Logger.LogWarning(ex);
 
-			var defaultFilePath = $"{filePath}.default";
+			var defaultFilePath = Path.ChangeExtension(filePath, ".Default.json");
 			var defaultConfig = new WabiSabiConfig(defaultFilePath);
 			defaultConfig.ToFile();
 
