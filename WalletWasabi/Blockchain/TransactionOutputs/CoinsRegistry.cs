@@ -1,12 +1,6 @@
-using NBitcoin;
 using System.Collections;
-using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
-using System.Linq;
-using System.Threading;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Models;
 
@@ -117,8 +111,7 @@ public class CoinsRegistry : ICoinsView
 		if (added)
 		{
 			OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
-
-			uint256 txid = coin.TransactionId;
+			var txid = coin.TransactionId;
 
 			if (!CoinsByTransactionId.TryGetValue(txid, out HashSet<SmartCoin>? hashSet))
 			{
@@ -408,7 +401,7 @@ public class CoinsRegistry : ICoinsView
 		{
 			IEnumerable<SmartCoin> childrenOf = parentCoin.SpenderTransaction is not null
 				? allCoins.Where(x => x.TransactionId == parentCoin.SpenderTransaction.GetHash()) // Inefficient.
-				: Array.Empty<SmartCoin>();
+				: [];
 
 			foreach (var child in childrenOf)
 			{
