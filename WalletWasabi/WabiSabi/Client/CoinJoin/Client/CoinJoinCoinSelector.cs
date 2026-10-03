@@ -304,7 +304,8 @@ public class CoinJoinCoinSelector
 		}
 
 		// A payment that was signed in a transaction which was not broadcast can only be made in a transaction
-		// that conflicts with it. Add one of its inputs to the selection if none was selected.
+		// that conflicts with it. Add one of its inputs to the selection if none was selected, but NOT a second
+		// red coin: red coins are isolated from each other.
 		foreach (var inputs in _getFailedAttemptInputSets())
 		{
 			if (winner.Any(x => inputs.Contains(x.Outpoint)))
@@ -312,7 +313,8 @@ public class CoinJoinCoinSelector
 				continue;
 			}
 
-			if (filteredCoins.Where(x => inputs.Contains(x.Outpoint)).RandomElement(Rnd) is { } failedAttemptCoin)
+			var hasRedCoin = winner.Any(x => x.IsRedCoin(SemiPrivateThreshold));
+			if (filteredCoins.Where(x => inputs.Contains(x.Outpoint) && !(hasRedCoin && x.IsRedCoin(SemiPrivateThreshold))).RandomElement(Rnd) is { } failedAttemptCoin)
 			{
 				winner.Add(failedAttemptCoin);
 				Logger.LogInfo($"Coin {failedAttemptCoin.Outpoint} was added to the selection to protect a pending payment from being made twice.");

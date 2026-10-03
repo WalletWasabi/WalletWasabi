@@ -197,6 +197,77 @@ public class CoinJoinCoinSelectionTests
 		}
 	}
 
+	/// <summary>
+	/// The input added for a failed attempt must not break red coin isolation: the selection already has a red coin,
+	/// so another red coin of the failed attempt isn't added.
+	/// </summary>
+	[Fact]
+	public void DoNotAddASecondRedCoinForAFailedPaymentAttempt()
+	{
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var redCoins = Enumerable
+			.Range(0, 4)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: 1))
+			.ToList();
+
+		// Simulate a failed attempt that spent three of the four red coins.
+		var failedAttempt = redCoins.Skip(1).Select(x => x.Outpoint).ToImmutableArray();
+
+		for (var i = 0; i < 20; i++)
+		{
+			var coinJoinCoinSelector = new CoinJoinCoinSelector(
+				consolidationMode: false,
+				anonScoreTarget: 10,
+				semiPrivateThreshold: Constants.SemiPrivateThreshold,
+				CreateSelectorGenerator(inputTarget: 2),
+				arePaymentsPending: () => true,
+				getFailedAttemptInputSets: () => [failedAttempt]);
+
+			var coins = coinJoinCoinSelector.SelectCoinsForRound(
+				coins: redCoins,
+				CreateUtxoSelectionParameters(),
+				liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+			Assert.Single(coins);
+		}
+	}
+
+	/// <summary>
+	/// When the selection already has a red coin, a failed attempt that also spent a coin that isn't red is covered by that coin.
+	/// </summary>
+	[Fact]
+	public void CoverFailedPaymentAttemptWithoutASecondRedCoin()
+	{
+		var km = KeyManager.CreateNew(out _, "", Network.Main);
+		var redCoins = Enumerable
+			.Range(0, 4)
+			.Select(i => BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(1m), anonymitySet: 1))
+			.ToList();
+		var semiPrivateCoin = BitcoinFactory.CreateSmartCoin(BitcoinFactory.CreateHdPubKey(km), Money.Coins(0.5m), anonymitySet: 5);
+
+		// Simulate a failed attempt that spent a red coin and the semi-private coin.
+		ImmutableArray<OutPoint> failedAttempt = [redCoins[0].Outpoint, semiPrivateCoin.Outpoint];
+
+		for (var i = 0; i < 20; i++)
+		{
+			var coinJoinCoinSelector = new CoinJoinCoinSelector(
+				consolidationMode: false,
+				anonScoreTarget: 10,
+				semiPrivateThreshold: Constants.SemiPrivateThreshold,
+				CreateSelectorGenerator(inputTarget: 1),
+				arePaymentsPending: () => true,
+				getFailedAttemptInputSets: () => [failedAttempt]);
+
+			var coins = coinJoinCoinSelector.SelectCoinsForRound(
+				coins: [.. redCoins, semiPrivateCoin],
+				CreateUtxoSelectionParameters(),
+				liquidityClue: Constants.MaximumNumberOfBitcoinsMoney);
+
+			Assert.Contains(coins, coin => failedAttempt.Contains(coin.Outpoint));
+			Assert.True(coins.Count(coin => coin.IsRedCoin(Constants.SemiPrivateThreshold)) <= 1);
+		}
+	}
+
 	[Fact]
 	public void SelectNothingFromTooSmallCoin()
 	{
