@@ -126,11 +126,6 @@ public class TransactionProcessor(
 
 			var doubleSpentTransactions = doubleSpentCoins.Select(x => x.SpenderTransaction!).Concat(doubleSpentSpenders.Select(x => x.Transaction)).ToHashSet();
 
-			if (doubleSpentTransactions.Count > 0)
-			{
-				tx.SetReplacement();
-			}
-
 			if (tx.Height == Height.Mempool)
 			{
 				// if the received transaction is spending at least one input already
@@ -154,7 +149,7 @@ public class TransactionProcessor(
 				foreach (var doubleSpentTx in doubleSpentTransactions)
 				{
 					var unconfirmedDoubleSpentTxId = doubleSpentTx.GetHash();
-					if (TransactionStore.MempoolStore.TryGetTransaction(unconfirmedDoubleSpentTxId, out var replacedTx) && replacedTx.IsReplacement)
+					if (TransactionStore.MempoolStore.Contains(unconfirmedDoubleSpentTxId))
 					{
 						var (replaced, restored) = Coins.Undo(unconfirmedDoubleSpentTxId);
 

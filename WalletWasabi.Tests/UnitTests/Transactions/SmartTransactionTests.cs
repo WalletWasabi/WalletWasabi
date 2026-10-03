@@ -271,11 +271,6 @@ public class SmartTransactionTests
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, firstSeen: firstSeen), defaultNetwork };
 		}
 
-		foreach (var isReplacement in booleans)
-		{
-			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isReplacement: isReplacement), defaultNetwork };
-		}
-
 		foreach (var isSpeedup in booleans)
 		{
 			yield return new object[] { new SmartTransaction(defaultTx, defaultHeight, isSpeedup: isSpeedup), defaultNetwork };
