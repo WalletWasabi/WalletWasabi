@@ -89,6 +89,12 @@ public class Program
 				throw app.TerminateService.GracefulCrashException;
 			}
 
+			if (AppLifetimeHelper.RestartRequested)
+			{
+				// The single instance lock is released once RunAsGui has returned, so the new process can take it.
+				AppLifetimeHelper.StartAppWithArgs();
+			}
+
 			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: var installerFilePath}})
 			{
 				Installer.StartInstallingNewVersion(installerFilePath);
