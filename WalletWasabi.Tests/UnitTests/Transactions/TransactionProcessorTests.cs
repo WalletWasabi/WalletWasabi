@@ -247,17 +247,21 @@ public class TransactionProcessorTests
 	{
 		using var txStore = await CreateTransactionStoreAsync();
 		var transactionProcessor = CreateTransactionProcessor(txStore);
+		var coinsRegistry = transactionProcessor.Coins;
 
+		// Create a test transaction.
 		var hdPubKey = transactionProcessor.KeyManager.GetKeys().First();
-
-		// An unconfirmed transaction for us that gets confirmed later.
 		var tx = CreateCreditingTransaction(hdPubKey.PubKey.GetScriptPubKey(ScriptPubKeyType.Segwit), Money.Coins(1.0m));
+
+		// Simulate that an unconfirmed transaction is processed.
 		transactionProcessor.Process(tx);
+
+		// Then simulate that the same transaction gets confirmed is processed again.
 		transactionProcessor.Process(new SmartTransaction(tx.Transaction, new Height.ChainHeight(77551)));
 
-		// Looking the coin up by outpoint (e.g. to exclude it from coinjoins) must return the coin the wallet tracks.
-		var coin = Assert.Single(transactionProcessor.Coins);
-		Assert.True(transactionProcessor.Coins.TryGetByOutPoint(coin.Outpoint, out var lookedUpCoin));
+		// Consequently, looking the coin up by outpoint (e.g. to exclude it from coinjoins) must return the coin the wallet tracks.
+		var coin = Assert.Single(coinsRegistry);
+		Assert.True(coinsRegistry.TryGetByOutPoint(coin.Outpoint, out var lookedUpCoin));
 		Assert.Same(coin, lookedUpCoin);
 	}
 
