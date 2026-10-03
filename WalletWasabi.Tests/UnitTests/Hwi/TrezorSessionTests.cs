@@ -34,6 +34,17 @@ public class TrezorSessionTests
 		Assert.False(await device.IsSessionAliveAsync(CancellationToken.None));
 	}
 
+	/// <summary>The bridge and the device are untrusted: an answer that does not parse fails like any device error, not with whatever the parser threw.</summary>
+	[Fact]
+	public async Task AnUnreadableAnswerIsATrezorFailureAsync()
+	{
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(new TrezorMessage(TrezorMessageType.PublicKey, [0x18])); // root_fingerprint (field 3) cut off before its value.
+		using var device = new TrezorDevice(transport);
+
+		await Assert.ThrowsAsync<TrezorException>(() => device.GetMasterFingerprintAsync(CancellationToken.None));
+	}
+
 	[Fact]
 	public async Task ADisposedDeviceIsDeadWithoutAskingTheBridgeAsync()
 	{
