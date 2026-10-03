@@ -80,7 +80,7 @@ public class MultipartyTransactionStateTests
 
 		MaxSuggestedAmountProvider maxSuggestedAmountProvider = new(config);
 		RoundParameters parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-		Round roundLargest = new(parameters, SecureRandom.Instance);
+		Round roundLargest = new(parameters, RandomnessProviders.Secure);
 
 		// First Round is the largest.
 		Assert.Equal(Money.Satoshis(ProtocolConstants.MaxAmountPerAlice), roundLargest.Parameters.MaxSuggestedAmount);
@@ -91,7 +91,7 @@ public class MultipartyTransactionStateTests
 		{
 			maxSuggestedAmountProvider.StepMaxSuggested(roundLargest, true);
 			parameters = RoundParameters.Create(config, new FeeRate(12m), maxSuggestedAmountProvider.MaxSuggestedAmount);
-			Round round = new(parameters, SecureRandom.Instance);
+			Round round = new(parameters, RandomnessProviders.Secure);
 
 			var maxSuggested = round.Parameters.MaxSuggestedAmount;
 
@@ -132,7 +132,7 @@ public class MultipartyTransactionStateTests
 			MinInputCountByRound = config.MinInputCountByBlameRound
 		};
 
-		BlameRound blameRound = new(blameParameters, roundLargest, new HashSet<OutPoint>(), SecureRandom.Instance);
+		BlameRound blameRound = new(blameParameters, roundLargest, new HashSet<OutPoint>(), RandomnessProviders.Secure);
 
 		// Blame rounds never change the MaxSuggestedAmount.
 		for (int i = 0; i < 2; i++)

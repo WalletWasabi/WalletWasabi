@@ -68,7 +68,7 @@ public partial class Arena : IWabiSabiApiRequestHandler
 			// that it is not guessable (Guid.NewGuid() documentation does
 			// not say anything about GUID version or randomness source,
 			// only that the probability of duplicates is very low).
-			var id = new Guid(SecureRandom.Instance.GetBytes(16));
+			var id = new Guid(RandomnessProviders.Secure.GetBytes(16));
 
 			var alice = new Alice(coin, request.OwnershipProof, id);
 

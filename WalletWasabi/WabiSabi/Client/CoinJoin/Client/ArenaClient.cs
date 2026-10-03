@@ -1,5 +1,3 @@
-using WabiSabi.Crypto;
-using WalletWasabi.Crypto;
 using WalletWasabi.WabiSabi.Coordinator.PostRequests;
 
 namespace WalletWasabi.WabiSabi.Client.CoinJoin.Client;
