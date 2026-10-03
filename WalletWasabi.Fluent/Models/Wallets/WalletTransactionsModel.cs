@@ -52,7 +52,7 @@ public class WalletTransactionsModel : ReactiveObject, IDisposable
 			.ObserveOn(RxApp.MainThreadScheduler);
 
 		Cache = TransactionProcessed.Merge(RequestedCpfpInfoArrived)
-			.FetchAsync(() => BuildSummaryAsync(CancellationToken.None), model => model.Id)
+			.FetchAsync(BuildSummaryAsync, model => model.Id)
 			.DisposeWith(_disposable);
 
 		IsEmpty = Cache.Empty();
