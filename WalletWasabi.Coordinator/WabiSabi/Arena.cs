@@ -138,6 +138,7 @@ public partial class Arena : PeriodicRunner
 			{
 				EndRound(round, EndRoundState.AbortedWithError);
 				Logger.LogError(FormatLog(ex.Message, round));
+				Logger.LogError(ex);
 			}
 		}
 	}
