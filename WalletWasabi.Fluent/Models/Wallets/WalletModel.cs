@@ -2,6 +2,8 @@ using System.Collections.Generic;
 using System.ComponentModel;
 using System.Linq;
 using System.Reactive.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 using NBitcoin;
 using ReactiveUI;
 using WalletWasabi.Fluent.Extensions;
@@ -64,6 +66,20 @@ public partial interface IWalletModel : INotifyPropertyChanged
 	AmountProvider AmountProvider { get; }
 
 	bool IsHardwareWallet { get; }
+
+	/// <summary>Whether this wallet can coinjoin at all: a watch-only wallet can, if a device signs for it.</summary>
+	bool CanCoinJoin { get; }
+
+	/// <summary>
+	/// Whether coinjoin funds live in an account of their own, which only coinjoins can spend. Deposits meant
+	/// for coinjoin have to land in it, and its change cannot go anywhere else. The device has to authorize a
+	/// batch of rounds before coinjoining can start, and no payment can be made inside a coinjoin round.
+	/// </summary>
+	bool HasSeparateCoinJoinAccount { get; }
+
+	bool CanEnableCoinjoin { get; }
+
+	Task EnableCoinjoinAsync(IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken);
 
 	bool IsWatchOnlyWallet { get; }
 
@@ -187,6 +203,17 @@ public partial class WalletModel : ReactiveObject, IWalletModel
 	public AmountProvider AmountProvider { get; }
 
 	public bool IsHardwareWallet => Wallet.KeyManager.IsHardwareWallet;
+
+	private bool CoinJoinIsSignedByDevice => Wallet.KeyManager.HasCoinJoinAccount;
+
+	public bool CanCoinJoin => !IsWatchOnlyWallet || CoinJoinIsSignedByDevice;
+
+	public bool HasSeparateCoinJoinAccount => CoinJoinIsSignedByDevice;
+
+	public bool CanEnableCoinjoin => Wallet.KeyManager.CanAddCoinJoinAccount;
+
+	public Task EnableCoinjoinAsync(IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken) =>
+		_services.HardwareWallets.EnableCoinJoinAsync(Wallet.KeyManager, addressToConfirm, cancellationToken);
 
 	public bool IsWatchOnlyWallet => Wallet.KeyManager.IsWatchOnly;
 

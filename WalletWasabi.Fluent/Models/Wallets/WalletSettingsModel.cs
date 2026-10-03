@@ -22,6 +22,8 @@ public partial class WalletSettingsModel : ReactiveObject
 	[AutoNotify] private bool _preferPsbtWorkflow;
 	[AutoNotify] private Money _plebStopThreshold;
 	[AutoNotify] private int _anonScoreTarget;
+	[AutoNotify] private int _coinJoinDeviceMaxRounds;
+	[AutoNotify] private decimal _coinJoinDeviceMaxMiningFeeRate;
 	[AutoNotify] private bool _nonPrivateCoinIsolation;
 	[AutoNotify] private bool _onlyUsePrivateFundsForPayments;
 	[AutoNotify] private WalletId? _outputWalletId;
@@ -42,6 +44,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_preferPsbtWorkflow = _keyManager.PreferPsbtWorkflow;
 		_plebStopThreshold = _keyManager.PlebStopThreshold ?? KeyManager.DefaultPlebStopThreshold;
 		_anonScoreTarget = _keyManager.AnonScoreTarget;
+		_coinJoinDeviceMaxRounds = _keyManager.CoinJoinDeviceMaxRounds;
+		_coinJoinDeviceMaxMiningFeeRate = _keyManager.CoinJoinDeviceMaxMiningFeeRate;
 		_nonPrivateCoinIsolation = _keyManager.NonPrivateCoinIsolation;
 		_onlyUsePrivateFundsForPayments = _keyManager.OnlyUsePrivateFundsForPayments;
 
@@ -63,6 +67,13 @@ public partial class WalletSettingsModel : ReactiveObject
 				x => x.AnonScoreTarget,
 				x => x.NonPrivateCoinIsolation,
 				x => x.OnlyUsePrivateFundsForPayments)
+			.Skip(1)
+			.Do(_ => SetValues())
+			.Subscribe();
+
+		this.WhenAnyValue(
+				x => x.CoinJoinDeviceMaxRounds,
+				x => x.CoinJoinDeviceMaxMiningFeeRate)
 			.Skip(1)
 			.Do(_ => SetValues())
 			.Subscribe();
@@ -110,6 +121,8 @@ public partial class WalletSettingsModel : ReactiveObject
 		_keyManager.PreferPsbtWorkflow = PreferPsbtWorkflow;
 		_keyManager.PlebStopThreshold = PlebStopThreshold;
 		_keyManager.AnonScoreTarget = AnonScoreTarget;
+		_keyManager.CoinJoinDeviceMaxRounds = CoinJoinDeviceMaxRounds;
+		_keyManager.CoinJoinDeviceMaxMiningFeeRate = CoinJoinDeviceMaxMiningFeeRate;
 		_keyManager.NonPrivateCoinIsolation = NonPrivateCoinIsolation;
 		_keyManager.OnlyUsePrivateFundsForPayments = OnlyUsePrivateFundsForPayments;
 		_keyManager.DefaultSendWorkflow = DefaultSendWorkflow;

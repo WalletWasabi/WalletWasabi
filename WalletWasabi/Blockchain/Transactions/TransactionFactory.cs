@@ -1,17 +1,8 @@
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
 using System.Net.Http;
-using System.Threading;
 using NBitcoin.Policy;
 using WalletWasabi.Blockchain.Analysis.Clustering;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Exceptions;
-using WalletWasabi.Extensions;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Wallets.SilentPayment;
 using WalletWasabi.WebClients.PayJoin;
 
@@ -111,6 +102,8 @@ public class TransactionFactory
 			}
 		}
 
+		allowedSmartCoinInputs = RestrictToSingleAccount(allowedSmartCoinInputs, totalAmount);
+
 		var builder = new TransactionBuilderWithSilentPaymentSupport(Network);
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
 		builder.AddCoins(allowedSmartCoinInputs.Select(c => c.Coin));
@@ -149,7 +142,9 @@ public class TransactionFactory
 		}
 		else
 		{
-			changeHdPubKey = KeyManager.GetNextChangeKey();
+			bool spendsCoinJoinAccountOnly = KeyManager.HasCoinJoinAccount
+				&& allowedSmartCoinInputs.All(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath());
+			changeHdPubKey = KeyManager.GetNextChangeKey(coinJoinAccount: spendsCoinJoinAccountOnly);
 
 			builder.SetChange(changeHdPubKey.GetAssumedScriptPubKey());
 		}
@@ -317,6 +312,37 @@ public class TransactionFactory
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);
+	}
+
+	/// <summary>
+	/// A device unlocks the segwit and the SLIP-25 coinjoin account separately, so one transaction can only be
+	/// signed from one of them: never mix them.
+	/// </summary>
+	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, long totalAmount)
+	{
+		if (!KeyManager.HasCoinJoinAccount)
+		{
+			return allowedSmartCoinInputs;
+		}
+
+		var slip25Coins = allowedSmartCoinInputs.Where(x => x.HdPubKey.FullKeyPath.IsSlip25KeyPath()).ToList();
+		var otherCoins = allowedSmartCoinInputs.Where(x => !x.HdPubKey.FullKeyPath.IsSlip25KeyPath()).ToList();
+		if (slip25Coins.Count == 0 || otherCoins.Count == 0)
+		{
+			return allowedSmartCoinInputs;
+		}
+
+		// Prefer the regular account so the coinjoined (private) coins stay untouched; fall back to the coinjoin account when only it covers the payment.
+		if (otherCoins.Sum(x => x.Amount.Satoshi) >= totalAmount)
+		{
+			return otherCoins;
+		}
+		if (slip25Coins.Sum(x => x.Amount.Satoshi) >= totalAmount)
+		{
+			return slip25Coins;
+		}
+
+		throw new InvalidOperationException("The amount spans both the regular and the coinjoin account, which cannot be spent in one transaction. Send a smaller amount or use two transactions.");
 	}
 
 	private PSBT TryNegotiatePayjoin(
