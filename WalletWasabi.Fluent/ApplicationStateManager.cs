@@ -71,7 +71,7 @@ public class ApplicationStateManager : IMainWindowService
 				{
 					if (_restartRequest)
 					{
-						AppLifetimeHelper.StartAppWithArgs();
+						AppLifetimeHelper.RestartRequested = true;
 					}
 
 					_lifetime.Shutdown();
