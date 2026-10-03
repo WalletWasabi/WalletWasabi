@@ -1,4 +1,6 @@
 using System.Buffers.Binary;
+using System.IO;
+using System.Text.Json;
 
 namespace WalletWasabi.Hwi.Trezor;
 
@@ -68,9 +70,9 @@ public class TrezorDevice : IDisposable
 						break; // Wrong device, or the passphrase entered on the device gives a different wallet.
 					}
 				}
-				catch (TrezorException e)
+				catch (Exception e) when (e is TrezorException || IsUnreadableAnswer(e))
 				{
-					lastError = e.Message;
+					lastError = (e as TrezorException ?? UnreadableAnswer(e)).Message;
 					Logger.LogDebug($"Skipping Trezor device '{bridgeDevice.Path}': {e.Message}");
 					break;
 				}
@@ -100,9 +102,9 @@ public class TrezorDevice : IDisposable
 			{
 				return (candidateUri, await transport.EnumerateAsync(cancellationToken).ConfigureAwait(false), null);
 			}
-			catch (TrezorException e)
+			catch (Exception e) when (e is TrezorException || IsUnreadableAnswer(e))
 			{
-				error = e.Message;
+				error = (e as TrezorException ?? UnreadableAnswer(e)).Message;
 				Logger.LogDebug(e.Message);
 			}
 		}
@@ -150,21 +152,22 @@ public class TrezorDevice : IDisposable
 	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken) =>
 		(await EnumerateAnyBridgeAsync(cancellationToken).ConfigureAwait(false)).Uri is not null;
 
-	public async Task<HDFingerprint> GetMasterFingerprintAsync(CancellationToken cancellationToken)
-	{
-		// Any GetPublicKey response carries the master fingerprint, use a fixed path that needs no unlocking.
-		uint[] path = [84 | HardenedIndex, HardenedIndex, HardenedIndex];
-		var response = await LockedCallAsync(
-			TrezorMessages.GetPublicKey(path, "Bitcoin", TrezorInputScriptType.SpendWitness),
-			TrezorMessageType.PublicKey,
-			cancellationToken).ConfigureAwait(false);
+	public Task<HDFingerprint> GetMasterFingerprintAsync(CancellationToken cancellationToken) =>
+		LockedAsync(async () =>
+		{
+			// Any GetPublicKey response carries the master fingerprint, use a fixed path that needs no unlocking.
+			uint[] path = [84 | HardenedIndex, HardenedIndex, HardenedIndex];
+			var response = await CallAsync(
+				TrezorMessages.GetPublicKey(path, "Bitcoin", TrezorInputScriptType.SpendWitness),
+				TrezorMessageType.PublicKey,
+				cancellationToken).ConfigureAwait(false);
 
-		var fields = response.ReadFields();
-		uint rootFingerprint = (uint)fields[3][0].VarInt;
-		byte[] fingerprintBytes = new byte[4];
-		BinaryPrimitives.WriteUInt32BigEndian(fingerprintBytes, rootFingerprint);
-		return new HDFingerprint(fingerprintBytes);
-	}
+			var fields = response.ReadFields();
+			uint rootFingerprint = (uint)fields[3][0].VarInt;
+			byte[] fingerprintBytes = new byte[4];
+			BinaryPrimitives.WriteUInt32BigEndian(fingerprintBytes, rootFingerprint);
+			return new HDFingerprint(fingerprintBytes);
+		}, cancellationToken);
 
 	/// <summary>Gets an account xpub through the bridge; a SLIP-25 path first needs UnlockPath, which the device confirms on screen.</summary>
 	public Task<ExtPubKey> GetAccountXpubAsync(KeyPath accountKeyPath, Network network, CancellationToken cancellationToken) =>
@@ -365,6 +368,10 @@ public class TrezorDevice : IDisposable
 		{
 			return await operation().ConfigureAwait(false);
 		}
+		catch (Exception e) when (IsUnreadableAnswer(e))
+		{
+			throw UnreadableAnswer(e);
+		}
 		finally
 		{
 			_lock.Release();
@@ -410,6 +417,17 @@ public class TrezorDevice : IDisposable
 			}
 		}
 	}
+
+	/// <summary>
+	/// Whether an exception comes from an answer that does not parse: a malformed frame, protobuf or JSON, a missing
+	/// field, an index out of range. The bridge and the device are untrusted input, so such an answer is a device
+	/// failure like any other rather than whatever the parser happened to throw.
+	/// </summary>
+	private static bool IsUnreadableAnswer(Exception e) =>
+		e is FormatException or InvalidDataException or JsonException or KeyNotFoundException or IndexOutOfRangeException or ArgumentException or InvalidOperationException;
+
+	private static TrezorException UnreadableAnswer(Exception e) =>
+		new($"The Trezor or its bridge sent an answer that cannot be read. ({e.Message})");
 
 	private static TrezorException UnexpectedMessage(TrezorMessage response, TrezorMessageType expected) =>
 		new($"Unexpected message '{response.MessageType}' from Trezor, expected '{expected}'.");
