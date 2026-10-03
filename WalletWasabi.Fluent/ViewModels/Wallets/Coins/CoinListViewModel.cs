@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
+using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Reactive;
 using System.Reactive.Disposables;
@@ -21,8 +22,14 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 	private readonly bool _ignorePrivacyMode;
 	private readonly bool _allowCoinjoiningCoinSelection;
 
-	[System.Diagnostics.CodeAnalysis.SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
-	public CoinListViewModel(UiContext uiContext, ICoinListModel availableCoins, IList<CoinModel> initialCoinSelection, bool allowCoinjoiningCoinSelection, bool ignorePrivacyMode, bool allowSelection = true) : base(uiContext)
+	[SuppressMessage("Reliability", "CA2000:Dispose objects before losing scope", Justification = "Uses DisposeWith()")]
+	public CoinListViewModel(
+		UiContext uiContext,
+		ICoinListModel availableCoins,
+		IList<CoinModel> initialCoinSelection,
+		bool allowCoinjoiningCoinSelection,
+		bool ignorePrivacyMode,
+		bool allowSelection = true) : base(uiContext)
 	{
 		_ignorePrivacyMode = ignorePrivacyMode;
 		_allowCoinjoiningCoinSelection = allowCoinjoiningCoinSelection;
@@ -78,9 +85,11 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 				{
 					IList<CoinModel> oldSelection = Selection.ToArray();
 					var oldExpandedItemsLabel = _itemsCollection.Where(x => x.IsExpanded).Select(x => x.Labels).ToArray();
+					var oldSinglePocket = GetSinglePocket();
 					Rebuild(viewModels, pockets, availableCoins);
 					UpdateSelection(coinItemsCollection, oldSelection);
 					RestoreExpandedRows(oldExpandedItemsLabel);
+					ExpandSinglePocket(oldSinglePocket);
 				})
 			.Subscribe()
 			.DisposeWith(_disposables);
@@ -174,6 +183,16 @@ public class CoinListViewModel : ViewModelBase, IDisposable
 		foreach (var item in itemsToExpand)
 		{
 			item.IsExpanded = true;
+		}
+	}
+
+	private PocketViewModel? GetSinglePocket() => _itemsCollection is [PocketViewModel pocket] ? pocket : null;
+
+	private void ExpandSinglePocket(PocketViewModel? oldSinglePocket)
+	{
+		if (GetSinglePocket() is { } pocket && pocket != oldSinglePocket)
+		{
+			pocket.IsExpanded = true;
 		}
 	}
 }
