@@ -79,6 +79,9 @@ public partial class WalletSettingsModel : ReactiveObject
 
 	public int MinGapLimit => _keyManager.MinGapLimit;
 
+	/// <summary>The height the wallet has been synchronized to; filter processing continues from the next block.</summary>
+	public uint BestHeight => _keyManager.GetBestHeight();
+
 	public bool IsCoinJoinPaused { get; set; }
 
 	/// <summary>
