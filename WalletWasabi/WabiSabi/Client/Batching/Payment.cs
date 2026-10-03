@@ -14,13 +14,29 @@ public abstract record PaymentState
 
 public record PendingPayment(PaymentState? PreviousState) : PaymentState(PreviousState);
 public record InProgressPayment(PaymentState PreviousState, uint256 RoundId) : PaymentState(PreviousState);
-public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 TransactionId) : PaymentState(PreviousState);
+public record SignedUnknownPayment(PaymentState PreviousState, DateTimeOffset Timestamp, uint256 TransactionId, ImmutableArray<OutPoint> Inputs) : PaymentState(PreviousState);
 public record FinishedPayment(PaymentState PreviousState, uint256 TransactionId) : PaymentState(PreviousState);
 
 public record Payment(IDestination Destination, Money Amount)
 {
 	public Guid Id { get; } = Guid.NewGuid();
 	public PaymentState State { get; init; } = new PendingPayment(null);
+
+	public ImmutableArray<SignedUnknownPayment> SignedAttempts
+	{
+		get
+		{
+			var signedAttempts = ImmutableArray.CreateBuilder<SignedUnknownPayment>();
+			for (PaymentState? state = State; state is not null; state = state.PreviousState)
+			{
+				if (state is SignedUnknownPayment signedAttempt)
+				{
+					signedAttempts.Add(signedAttempt);
+				}
+			}
+			return signedAttempts.ToImmutable();
+		}
+	}
 
 	public TxOut ToTxOut() => new(Amount, Destination.ScriptPubKey);
 
