@@ -88,6 +88,15 @@ public class TrezorProtocolTests
 		Assert.False(fields.ContainsKey(19)); // script_pubkey is only set for external inputs.
 	}
 
+	[Fact]
+	public void EveryNetworkGetsTheTrezorCoinOfItsAddresses()
+	{
+		Assert.Equal("Bitcoin", TrezorDevice.GetCoinName(Network.Main));
+		Assert.Equal("Testnet", TrezorDevice.GetCoinName(Network.TestNet));
+		Assert.Equal("Testnet", TrezorDevice.GetCoinName(Bitcoin.Instance.Signet));
+		Assert.Equal("Regtest", TrezorDevice.GetCoinName(Network.RegTest));
+	}
+
 	/// <summary>The values are the wire format, from trezor-firmware common/protob/messages-bitcoin.proto; a wrong one is only caught by a real device.</summary>
 	[Fact]
 	public void ScriptTypesMatchFirmware()
