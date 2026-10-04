@@ -48,7 +48,6 @@ public class ApplicationStateManager : IMainWindowService
 						_activatable = activatableLifetime;
 						activatableLifetime.TryEnterBackground();
 						activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-						activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
 					},
 					DispatcherPriority.Background);
 			}
@@ -56,7 +55,6 @@ public class ApplicationStateManager : IMainWindowService
 			{
 				_activatable = activatableLifetime;
 				activatableLifetime.Activated += ActivatableLifetimeOnActivated;
-				activatableLifetime.Deactivated += ActivatableLifetimeOnDeactivated;
 			}
 		}
 
@@ -154,22 +152,6 @@ public class ApplicationStateManager : IMainWindowService
 				if (this is IMainWindowService service)
 				{
 					service.Show();
-				}
-				break;
-		}
-	}
-
-	private void ActivatableLifetimeOnDeactivated(object? sender, ActivatedEventArgs e)
-	{
-		switch (e.Kind)
-		{
-			case ActivationKind.Background:
-				if (this is IMainWindowService service)
-				{
-					if (_lifetime.MainWindow is not null)
-					{
-						service.Hide();
-					}
 				}
 				break;
 		}
