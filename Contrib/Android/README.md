@@ -6,6 +6,9 @@ project; building the desktop solution does not require the Android workload.
 
 ## Release status
 
+The remaining work and acceptance criteria for personal phone use are tracked in
+[IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md).
+
 Version 0.1.0 is a development build. The APK supports Android 7.0 / API 24 and later
 on arm64 and x86_64. Its runtime is .NET 10 CoreCLR for Android, which Microsoft
 [labels experimental](https://learn.microsoft.com/en-us/dotnet/maui/deployment/runtimes-compilation?view=net-maui-10.0).
