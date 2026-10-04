@@ -662,6 +662,11 @@ public class WasabiJsonRpcService : IJsonRpcService
 			throw new InvalidOperationException("Output wallet name is invalid.");
 		}
 
+		if (activeWallet.KeyManager.HasCoinJoinAccount)
+		{
+			throw new InvalidOperationException("A device only signs rounds whose outputs return to its coinjoin account, so it cannot sweep to another wallet.");
+		}
+
 		var outputWallet = Global.WalletManager.GetWalletByName(outputWalletName);
 
 		StartCoinjoinSweepAsync(coinJoinManager, activeWallet, outputWallet).ConfigureAwait(false);

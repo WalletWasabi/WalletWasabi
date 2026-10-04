@@ -133,8 +133,9 @@ public partial class WalletCoinJoinSettingsViewModel : RoutableViewModel
 			.ObserveOn(RxApp.TaskpoolScheduler)
 			.Subscribe(x => _wallet.Settings.OutputWalletId = x.Id);
 
+		// A device only signs rounds whose outputs return to its own coinjoin account.
 		walletModel.IsCoinjoinStarted
-			.Select(isRunning => !isRunning)
+			.Select(isRunning => !isRunning && !_wallet.HasSeparateCoinJoinAccount)
 			.BindTo(this, x => x.IsOutputWalletSelectionEnabled);
 
 		ManuallyUpdateOutputWalletList();
