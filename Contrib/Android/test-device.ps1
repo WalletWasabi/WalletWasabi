@@ -87,6 +87,10 @@ try {
         }
         $taskResult = & adb -s $Serial shell am instrument -w -e mode $taskMode 'io.wasabiwallet.android/io.wasabiwallet.android.WalletInstrumentation' 2>&1
         $taskResult | Set-Content -LiteralPath (Join-Path $taskRun "$taskMode.log")
+        # The engine logs only to its private files. This supported Debug-only
+        # read retrieves this fixture's log, without exporting wallet backups.
+        $taskEngineLog = & adb -s $Serial exec-out run-as io.wasabiwallet.android cat "files/instrumentation-$taskMode.log" 2>&1
+        if ($LASTEXITCODE -eq 0) { $taskEngineLog | Set-Content -LiteralPath (Join-Path $taskRun "android-$taskMode-engine.log") }
         if (($taskResult -join "`n") -notmatch "PASS: $taskMode Android integration") {
             $taskResult | Write-Output
             & adb -s $Serial logcat -d -t 2000 | Set-Content -LiteralPath (Join-Path $taskRun 'android-logcat.log')
