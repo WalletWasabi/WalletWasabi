@@ -303,6 +303,10 @@ public class TrezorDevice : IDisposable
 			var txRequest = TrezorTxRequest.FromMessage(response);
 			if (txRequest.SignatureIndex is { } signatureIndex)
 			{
+				if (signatureIndex < 0 || signatureIndex >= inputs.Count || inputs[signatureIndex].ScriptType == TrezorInputScriptType.External)
+				{
+					throw new TrezorException($"The device signed input {signatureIndex}, which is not one of ours.");
+				}
 				signatures[signatureIndex] = txRequest.Signature;
 			}
 
@@ -349,6 +353,10 @@ public class TrezorDevice : IDisposable
 					break;
 
 				case TrezorTxRequestType.TxFinished:
+					if (signatures.Count != inputs.Count(input => input.ScriptType != TrezorInputScriptType.External))
+					{
+						throw new TrezorException("The device finished without signing every input of ours.");
+					}
 					return signatures;
 
 				default:
