@@ -391,6 +391,28 @@ public class CoinsRegistryTests
 		Assert.Equal(tx0CreditingAmount, tx0Amount);
 	}
 
+	/// <summary>
+	/// Tests that <see cref="CoinsRegistry.TryGetByOutPoint(OutPoint, out SmartCoin?)"/> keeps returning the tracked coin when the same coin is added again.
+	/// </summary>
+	[Fact]
+	public void TryGetByOutPointAfterAddingSameCoinAgain()
+	{
+		HdPubKey pubKey = NewInternalKey(label: "A");
+		SmartTransaction unconfirmedTx = CreateCreditingTransaction(pubKey.P2wpkhScript, Money.Coins(1.0m), height: 0);
+		SmartCoin coin = new(unconfirmedTx, outputIndex: 0, pubKey: pubKey);
+		Assert.True(Coins.TryAdd(coin));
+
+		// The same transaction gets confirmed, which creates another SmartCoin instance for the same outpoint.
+		SmartTransaction confirmedTx = new(unconfirmedTx.Transaction, new Height.ChainHeight(54321));
+		SmartCoin sameCoin = new(confirmedTx, outputIndex: 0, pubKey: pubKey);
+		Assert.False(Coins.TryAdd(sameCoin));
+
+		// Looking the coin up by outpoint (e.g. to exclude it from coinjoins) must return the coin the registry tracks.
+		Assert.Same(coin, Assert.Single(Coins));
+		Assert.True(Coins.TryGetByOutPoint(coin.Outpoint, out SmartCoin? lookedUpCoin));
+		Assert.Same(coin, lookedUpCoin);
+	}
+
 	/// <summary>Modify UTXO set in <see cref="CoinsRegistry"/> with <paramref name="tx">transaction</paramref> in mind.</summary>
 	private IReadOnlyList<SmartCoin> ProcessTransaction(SmartTransaction tx)
 	{

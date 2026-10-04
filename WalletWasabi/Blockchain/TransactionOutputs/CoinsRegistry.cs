@@ -110,7 +110,7 @@ public class CoinsRegistry : ICoinsView
 
 		if (added)
 		{
-			OutpointCoinCache.AddOrReplace(coin.Outpoint, coin);
+			OutpointCoinCache[coin.Outpoint] = coin;
 			var txid = coin.TransactionId;
 
 			if (!CoinsByTransactionId.TryGetValue(txid, out HashSet<SmartCoin>? hashSet))
