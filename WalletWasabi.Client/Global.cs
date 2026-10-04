@@ -99,7 +99,7 @@ public class Global
 		var cpfpProvider = ConfigureCpfpInfoProvider();
 		var blockProvider = ConfigureBlockProvider(_p2pConnectionManager, fileSystemBlockRepository);
 
-		HardwareWallets = new HardwareWalletService(Config.Network);
+		HardwareWallets = new HardwareWalletService(Config.Network, () => WalletCoinJoiningOnDevice());
 
 		var walletFactory = Wallet.CreateFactory(
 			Config.Network,
@@ -151,6 +151,12 @@ public class Global
 	public Config Config { get; }
 	public WalletManager WalletManager { get; }
 	public HardwareWalletService HardwareWallets { get; }
+
+	/// <summary>The wallet whose coinjoin is using its device right now, if any.</summary>
+	private string? WalletCoinJoiningOnDevice() =>
+		HostedServices.GetOrDefault<CoinJoinManager>() is { } coinJoinManager
+			? WalletManager.GetWallets().FirstOrDefault(w => w.KeyManager.HasCoinJoinAccount && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle)?.WalletName
+			: null;
 	public TransactionBroadcaster TransactionBroadcaster { get; }
 	public HostedServices HostedServices { get; }
 	public Network Network => Config.Network;
