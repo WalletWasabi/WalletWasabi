@@ -17,6 +17,7 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 	private readonly IWalletModel _wallet;
 	[AutoNotify] private bool _fullyMixed;
 	[AutoNotify] private string _percentText = "";
+	[AutoNotify] private double _progressFraction;
 	[AutoNotify] private Amount _balancePrivate;
 	[AutoNotify] private bool _hasPrivateBalance;
 
@@ -95,10 +96,11 @@ public partial class PrivacyControlTileViewModel : ActivatableViewModel, IPrivac
 
 	private void Update(int privacyProgress, bool isWalletPrivate, IReadOnlyCollection<CoinModel> coins)
 	{
-		PercentText =
-			coins.TotalAmount() > Money.Zero
-			? $"{privacyProgress} %"
-			: "N/A";
+		var hasBalance = coins.TotalAmount() > Money.Zero;
+
+		PercentText = hasBalance ? $"{privacyProgress} %" : "N/A";
+
+		ProgressFraction = hasBalance ? privacyProgress / 100d : 0;
 
 		FullyMixed = isWalletPrivate;
 
