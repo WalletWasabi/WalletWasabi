@@ -41,12 +41,8 @@ public class HardwareWalletService : IDisposable
 	public HardwareWalletTransport TransportStatus => _bridge.Status;
 
 	/// <summary>Whether a bridge is reachable, to warn before offering coinjoin on an import screen. Answers within a few seconds.</summary>
-	public async Task<bool> IsCoinJoinTransportAvailableAsync(CancellationToken cancellationToken)
-	{
-		using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
-		timeout.CancelAfter(TimeSpan.FromSeconds(5));
-		return await TrezorDevice.IsBridgeAvailableAsync(timeout.Token).ConfigureAwait(false);
-	}
+	public Task<bool> IsCoinJoinTransportAvailableAsync(CancellationToken cancellationToken) =>
+		TrezorDevice.IsBridgeAvailableAsync(cancellationToken);
 
 	/// <summary>Most coinjoin rounds one device authorization may cover; the firmware refuses more under its own safety checks.</summary>
 	public const int MaxAuthorizationRounds = 500;

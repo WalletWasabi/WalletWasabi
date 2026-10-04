@@ -148,9 +148,20 @@ public class TrezorDevice : IDisposable
 		}
 	}
 
-	/// <summary>Whether a Trezor Bridge (Trezor Suite or standalone trezord) is reachable, to warn the user before offering coinjoin.</summary>
-	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken) =>
-		(await EnumerateAnyBridgeAsync(cancellationToken).ConfigureAwait(false)).Uri is not null;
+	/// <summary>Whether a Trezor Bridge (Trezor Suite or standalone trezord) is reachable. Answers within seconds: a listener that never answers is no bridge.</summary>
+	public static async Task<bool> IsBridgeAvailableAsync(CancellationToken cancellationToken)
+	{
+		using var timeout = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+		timeout.CancelAfter(TimeSpan.FromSeconds(5));
+		try
+		{
+			return (await EnumerateAnyBridgeAsync(timeout.Token).ConfigureAwait(false)).Uri is not null;
+		}
+		catch (OperationCanceledException) when (!cancellationToken.IsCancellationRequested)
+		{
+			return false;
+		}
+	}
 
 	public Task<HDFingerprint> GetMasterFingerprintAsync(CancellationToken cancellationToken) =>
 		LockedAsync(async () =>
