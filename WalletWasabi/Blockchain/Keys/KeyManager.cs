@@ -549,6 +549,10 @@ public class KeyManager
 			ChangeScriptPubKeyType = PreferredScriptPubKeyType.Specified.SegWit;
 
 			AssertCleanKeysIndexedNoLock();
+
+			// The account may hold coins already (from an earlier coinjoin app on the same device), and the filters
+			// seen so far were only matched against the other accounts: look at them again.
+			_blockchainState.Height = _blockchainState.BirthHeight ?? ChainHeight.Genesis;
 		}
 
 		ToFile();
