@@ -90,17 +90,16 @@ public class ProtoReader
 				break;
 
 			case 2:
-				int length = (int)ReadVarInt();
-				lengthDelimitedValue = _buffer[_position..(_position + length)];
-				_position += length;
+				int length = Skip(ReadVarInt());
+				lengthDelimitedValue = _buffer[(_position - length).._position];
 				break;
 
 			case 5:
-				_position += 4;
+				Skip(4);
 				break;
 
 			case 1:
-				_position += 8;
+				Skip(8);
 				break;
 
 			default:
@@ -126,11 +125,21 @@ public class ProtoReader
 		return fields;
 	}
 
+	/// <summary>Moves past a field's bytes, which must all be in the buffer; returns their count.</summary>
+	private int Skip(ulong count)
+	{
+		if (count > (ulong)(_buffer.Length - _position))
+		{
+			throw new InvalidDataException("A protobuf field runs past the end of the message.");
+		}
+		_position += (int)count;
+		return (int)count;
+	}
+
 	private ulong ReadVarInt()
 	{
 		ulong result = 0;
-		int shift = 0;
-		while (true)
+		for (int shift = 0; shift < 64; shift += 7)
 		{
 			byte b = _buffer[_position++];
 			result |= (ulong)(b & 0x7F) << shift;
@@ -138,7 +147,7 @@ public class ProtoReader
 			{
 				return result;
 			}
-			shift += 7;
 		}
+		throw new InvalidDataException("A protobuf varint is longer than 64 bits.");
 	}
 }
