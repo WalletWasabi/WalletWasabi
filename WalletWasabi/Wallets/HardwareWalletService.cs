@@ -1,3 +1,4 @@
+using System.Collections.Concurrent;
 using System.Diagnostics.CodeAnalysis;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Hwi;
@@ -26,6 +27,9 @@ public class HardwareWalletService : IDisposable
 
 	private readonly Network _network;
 	private readonly TrezorBridgeProcess _bridge;
+
+	/// <summary>The device each coinjoin key chain holds, by master fingerprint. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
+	private readonly ConcurrentDictionary<HDFingerprint, TrezorDevice> _coinJoinDevices = new();
 
 	/// <summary>Raised when the transport used to reach the device changes, so the UI can show it.</summary>
 	public event EventHandler<HardwareWalletTransport>? TransportStatusChanged;
@@ -246,8 +250,7 @@ public class HardwareWalletService : IDisposable
 			{
 				// A coinjoin account address needs the UnlockPath that only the bridge can send, and the bridge
 				// holds the device anyway - so both accounts of such a wallet are verified over the bridge.
-				using var device = await AcquireAsync(fingerprint, linkedCts.Token).ConfigureAwait(false);
-				await ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token).ConfigureAwait(false);
+				await WithDeviceAsync(fingerprint, device => ConfirmAddressOnDeviceAsync(device, fullKeyPath, expectedAddress, addressToConfirm: null, linkedCts.Token), linkedCts.Token).ConfigureAwait(false);
 				return;
 			}
 
@@ -293,6 +296,7 @@ public class HardwareWalletService : IDisposable
 		{
 			var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
 			keyChain = new TrezorKeyChain(device, keyManager);
+			_coinJoinDevices[keyManager.MasterFingerprint!.Value] = device;
 		}
 
 		await keyChain.Device
@@ -335,6 +339,19 @@ public class HardwareWalletService : IDisposable
 	{
 		await _bridge.EnsureRunningAsync(cancellationToken).ConfigureAwait(false);
 		return await TrezorDevice.FindAsync(masterFingerprint, cancellationToken).ConfigureAwait(false);
+	}
+
+	/// <summary>Runs an operation on the session a coinjoin key chain holds for this device, or on a session of its own when there is none.</summary>
+	private async Task WithDeviceAsync(HDFingerprint fingerprint, Func<TrezorDevice, Task> operation, CancellationToken cancellationToken)
+	{
+		if (_coinJoinDevices.TryGetValue(fingerprint, out var held) && await held.IsSessionAliveAsync(cancellationToken).ConfigureAwait(false))
+		{
+			await operation(held).ConfigureAwait(false);
+			return;
+		}
+
+		using var device = await AcquireAsync(fingerprint, cancellationToken).ConfigureAwait(false);
+		await operation(device).ConfigureAwait(false);
 	}
 
 	/// <summary>
@@ -440,15 +457,18 @@ public class HardwareWalletService : IDisposable
 			.DistinctBy(tx => tx.GetHash())
 			.ToDictionary(tx => tx.GetHash(), tx => tx);
 
-		using var device = await AcquireAsync(keyManager.MasterFingerprint, cancellationToken).ConfigureAwait(false);
-		var signatures = await device.SignTransactionAsync(
-			inputs,
-			outputs,
-			globalTransaction.Version,
-			globalTransaction.LockTime.Value,
-			_network,
-			unlockCoinJoinAccount: spendsCoinJoinAccount,
-			previousTransactions,
+		Dictionary<int, byte[]> signatures = [];
+		await WithDeviceAsync(
+			keyManager.MasterFingerprint!.Value,
+			async device => signatures = await device.SignTransactionAsync(
+				inputs,
+				outputs,
+				globalTransaction.Version,
+				globalTransaction.LockTime.Value,
+				_network,
+				unlockCoinJoinAccount: spendsCoinJoinAccount,
+				previousTransactions,
+				cancellationToken).ConfigureAwait(false),
 			cancellationToken).ConfigureAwait(false);
 
 		var signedPsbt = psbt.Clone();
