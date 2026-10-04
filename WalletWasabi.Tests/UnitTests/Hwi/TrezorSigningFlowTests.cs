@@ -42,33 +42,7 @@ public class TrezorSigningFlowTests
 		transport.Responses.Enqueue(TxRequest(TrezorTxRequestType.TxInput, 0));                   // TxAckOutput 1, signing pass starts
 		transport.Responses.Enqueue(TxRequest(TrezorTxRequestType.TxFinished, serialized: (0, signature)));
 
-		var accountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
-		var inputs = new List<TrezorTxInput>
-		{
-			new()
-			{
-				AddressN = accountKeyPath.Derive(1, false).Derive(0, false).Indexes,
-				PrevHash = new byte[32],
-				PrevIndex = 0,
-				ScriptType = TrezorInputScriptType.SpendTaproot,
-				Amount = 100_000,
-			},
-			new()
-			{
-				PrevHash = new byte[32],
-				PrevIndex = 1,
-				ScriptType = TrezorInputScriptType.External,
-				Amount = 200_000,
-				ScriptPubKey = [0x51, 0x20],
-				OwnershipProof = [0x53, 0x4C],
-				CommitmentData = [0x01],
-			},
-		};
-		var outputs = new List<TrezorTxOutput>
-		{
-			new() { AddressN = accountKeyPath.Derive(1, false).Derive(1, false).Indexes, Amount = 99_000, ScriptType = TrezorOutputScriptType.PayToTaproot },
-			new() { Address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Amount = 200_500, ScriptType = TrezorOutputScriptType.PayToAddress },
-		};
+		var (inputs, outputs) = CoinJoin();
 
 		using var device = new TrezorDevice(transport);
 		var signatures = await device.SignCoinJoinAsync(inputs, outputs, version: 1, lockTime: 0, Money.Satoshis(5000), Network.Main, CancellationToken.None);
@@ -97,5 +71,53 @@ public class TrezorSigningFlowTests
 		Assert.Equal(new byte[] { 0x51, 0x20 }, txInputFields[19][0].Bytes);
 		Assert.Equal(2UL, txInputFields[6][0].VarInt); // EXTERNAL
 		Assert.False(txInputFields.ContainsKey(1)); // No address_n for a foreign input.
+	}
+
+	/// <summary>Our taproot input and a foreign one, our output and a foreign one.</summary>
+	private static (List<TrezorTxInput> Inputs, List<TrezorTxOutput> Outputs) CoinJoin()
+	{
+		var accountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
+		var inputs = new List<TrezorTxInput>
+		{
+			new()
+			{
+				AddressN = accountKeyPath.Derive(1, false).Derive(0, false).Indexes,
+				PrevHash = new byte[32],
+				PrevIndex = 0,
+				ScriptType = TrezorInputScriptType.SpendTaproot,
+				Amount = 100_000,
+			},
+			new()
+			{
+				PrevHash = new byte[32],
+				PrevIndex = 1,
+				ScriptType = TrezorInputScriptType.External,
+				Amount = 200_000,
+				ScriptPubKey = [0x51, 0x20],
+				OwnershipProof = [0x53, 0x4C],
+				CommitmentData = [0x01],
+			},
+		};
+		var outputs = new List<TrezorTxOutput>
+		{
+			new() { AddressN = accountKeyPath.Derive(1, false).Derive(1, false).Indexes, Amount = 99_000, ScriptType = TrezorOutputScriptType.PayToTaproot },
+			new() { Address = "bc1qw508d6qejxtdg4y5r3zarvary0c5xw7kv8f3t4", Amount = 200_500, ScriptType = TrezorOutputScriptType.PayToAddress },
+		};
+		return (inputs, outputs);
+	}
+
+	/// <summary>The signatures come from the device, which is untrusted input like everything the bridge relays.</summary>
+	[Theory]
+	[InlineData(5)] // An input that does not exist.
+	[InlineData(1)] // The foreign input, while ours stays unsigned.
+	public async Task ASignatureForAnotherInputThanOursIsRefusedAsync(int signatureIndex)
+	{
+		using var transport = new ScriptedTransport();
+		transport.Responses.Enqueue(TrezorMessage.Empty(TrezorMessageType.PreauthorizedRequest));
+		transport.Responses.Enqueue(TxRequest(TrezorTxRequestType.TxFinished, serialized: (signatureIndex, new byte[64])));
+		var (inputs, outputs) = CoinJoin();
+
+		using var device = new TrezorDevice(transport);
+		await Assert.ThrowsAsync<TrezorException>(() => device.SignCoinJoinAsync(inputs, outputs, version: 1, lockTime: 0, Money.Satoshis(5000), Network.Main, CancellationToken.None));
 	}
 }

@@ -88,6 +88,16 @@ public class TrezorProtocolTests
 		Assert.False(fields.ContainsKey(19)); // script_pubkey is only set for external inputs.
 	}
 
+	/// <summary>A malformed answer must fail to read, not decode into wrong values.</summary>
+	[Theory]
+	[InlineData("0d0102")] // fixed32 field with 2 of its 4 bytes.
+	[InlineData("0a05aa")] // bytes field claiming 5 bytes, holding 1.
+	[InlineData("08ffffffffffffffffffff01")] // varint of 11 bytes.
+	public void AFieldThatDoesNotFitIsRefused(string hex)
+	{
+		Assert.Throws<System.IO.InvalidDataException>(() => ProtoReader.ReadAllFields(Convert.FromHexString(hex)));
+	}
+
 	[Fact]
 	public void EveryNetworkGetsTheTrezorCoinOfItsAddresses()
 	{
