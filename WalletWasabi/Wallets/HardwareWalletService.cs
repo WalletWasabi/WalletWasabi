@@ -18,15 +18,18 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Where to get a bridge when none is running. Callers may show this to the user.</summary>
 	public static string BridgeDownloadUrl => TrezorBridgeProcess.SuiteDownloadUrl;
 
-	public HardwareWalletService(Network network)
+	/// <param name="walletCoinJoiningOnDevice">Names the wallet whose coinjoin is using its device right now, if any.</param>
+	public HardwareWalletService(Network network, Func<string?>? walletCoinJoiningOnDevice = null)
 	{
 		_network = network;
+		_walletCoinJoiningOnDevice = walletCoinJoiningOnDevice ?? (() => null);
 		_bridge = new TrezorBridgeProcess();
 		_bridge.StatusChanged += (_, status) => TransportStatusChanged?.Invoke(this, status);
 	}
 
 	private readonly Network _network;
 	private readonly TrezorBridgeProcess _bridge;
+	private readonly Func<string?> _walletCoinJoiningOnDevice;
 
 	/// <summary>The device each coinjoin key chain holds, by master fingerprint. Opening the device again would end that session and its authorization, so the wallet's other device operations run on it.</summary>
 	private readonly ConcurrentDictionary<HDFingerprint, TrezorDevice> _coinJoinDevices = new();
@@ -111,6 +114,7 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Lists the connected devices. Releases a bridge we own first, since HWI needs the device itself.</summary>
 	public async Task<HwiEnumerateEntry[]> DetectAsync(CancellationToken cancellationToken)
 	{
+		AssertNoCoinJoinOnDevice();
 		_bridge.StopIfOurs();
 
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(3));
@@ -151,6 +155,7 @@ public class HardwareWalletService : IDisposable
 		{
 			throw new InvalidOperationException("The device did not report a master fingerprint.");
 		}
+		AssertNoCoinJoinOnDevice();
 
 		using var genCts = ConfirmationTimeout(cancellationToken);
 
@@ -170,6 +175,7 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Imports the connected device without detecting it over HWI first, which a headless host cannot do.</summary>
 	public async Task<KeyManager> ImportConnectedAsync(string walletFilePath, bool enableCoinjoin, IProgress<BitcoinAddress>? addressToConfirm, CancellationToken cancellationToken)
 	{
+		AssertNoCoinJoinOnDevice();
 		using var timeout = ConfirmationTimeout(cancellationToken);
 		cancellationToken = timeout.Token;
 		using var device = await AcquireAsync(masterFingerprint: null, cancellationToken).ConfigureAwait(false);
@@ -188,6 +194,7 @@ public class HardwareWalletService : IDisposable
 		{
 			throw new InvalidOperationException("Only a hardware wallet without a taproot account can have a coinjoin account added.");
 		}
+		AssertNoCoinJoinOnDevice();
 
 		using var timeout = ConfirmationTimeout(cancellationToken);
 		cancellationToken = timeout.Token;
@@ -220,7 +227,12 @@ public class HardwareWalletService : IDisposable
 		// A Trezor wallet (recognised by its icon) shares the bridge, so HWI has to borrow the device from a bridge
 		// of ours; only put that bridge back if we actually took it. The device forgets a coinjoin authorization
 		// when its session ends, so the next coinjoin start asks for a new confirmation.
-		bool borrowedFromOurBridge = string.Equals(keyManager.Icon, nameof(WalletType.Trezor), StringComparison.OrdinalIgnoreCase) && _bridge.StopIfOurs();
+		bool isTrezor = string.Equals(keyManager.Icon, nameof(WalletType.Trezor), StringComparison.OrdinalIgnoreCase);
+		if (isTrezor)
+		{
+			AssertNoCoinJoinOnDevice();
+		}
+		bool borrowedFromOurBridge = isTrezor && _bridge.StopIfOurs();
 		try
 		{
 			var signedPsbt = await new HwiClient(_network).SignTxAsync(keyManager.MasterFingerprint!.Value, psbt, cancellationToken).ConfigureAwait(false);
@@ -320,9 +332,25 @@ public class HardwareWalletService : IDisposable
 	/// <summary>Hands the device back, for when this wallet no longer needs it.</summary>
 	public void Release(KeyManager keyManager)
 	{
-		if (keyManager.HasCoinJoinAccount)
+		if (!keyManager.HasCoinJoinAccount)
+		{
+			return;
+		}
+
+		// The bridge stays while another wallet's coinjoin key chain still holds a device through it.
+		_coinJoinDevices.TryRemove(keyManager.MasterFingerprint!.Value, out _);
+		if (_coinJoinDevices.IsEmpty)
 		{
 			_bridge.StopIfOurs();
+		}
+	}
+
+	/// <summary>Taking the device away from a coinjoin ends its authorization mid-round, and a round past input registration bans the inputs that fail to sign.</summary>
+	private void AssertNoCoinJoinOnDevice()
+	{
+		if (_walletCoinJoiningOnDevice() is { } walletName)
+		{
+			throw new HardwareWalletException($"Wallet '{walletName}' is coinjoining with its device. Stop its coinjoin first.");
 		}
 	}
 
