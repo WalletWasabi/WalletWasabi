@@ -56,6 +56,17 @@ public class HardwareWalletServiceTests
 			() => service.AuthorizeCoinJoinAsync(keyManager, existingKeyChain: null, "coordinator", maxRounds: 1, new FeeRate(1m), CancellationToken.None));
 	}
 
+	/// <summary>Detecting takes the device away from the bridge, which would end a running coinjoin's authorization mid-round.</summary>
+	[Fact]
+	public async Task DetectingIsRefusedWhileAWalletCoinjoinsOnItsDeviceAsync()
+	{
+		using var service = new HardwareWalletService(Network.Main, () => "Mixer");
+
+		var exception = await Assert.ThrowsAsync<HardwareWalletException>(() => service.DetectAsync(CancellationToken.None));
+
+		Assert.Contains("Mixer", exception.Message);
+	}
+
 	[Fact]
 	public async Task EnablingCoinJoinOnASoftwareWalletIsRefusedAsync()
 	{
