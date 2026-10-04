@@ -652,10 +652,16 @@ public class CoinJoinClient
 		// - the fast track signing phase will be 1m 30s, so we want to give a decent time for the requests to be sent out.
 		var maximumSigningRequestDelay = TimeSpan.FromSeconds(50);
 
-		// A device signer needs the whole phase to sign, so it is asked at once instead of on the spread-out schedule.
-		var scheduledDates = _keyChain.SigningTakesTime
-			? Enumerable.Repeat(DateTimeOffset.UtcNow, aliceClients.Count()).ToImmutableList()
-			: signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
+		// A device signs all our inputs in one go and takes its time doing it: sign first, then post the signatures
+		// on the same spread-out schedule as any other signer, so that their timing does not link our inputs.
+		if (_keyChain.SigningTakesTime)
+		{
+			var firstCoin = aliceClients.First().SmartCoin.Coin;
+			await Task.Run(() => _keyChain.Sign(unsignedCoinJoinTransaction, firstCoin), cancellationToken).ConfigureAwait(false);
+			signingStartTime = DateTimeOffset.UtcNow;
+		}
+
+		var scheduledDates = signingEndTime.GetScheduledDates(aliceClients.Count(), signingStartTime, maximumSigningRequestDelay);
 
 		var tasks = aliceClients.Zip(
 			scheduledDates,
