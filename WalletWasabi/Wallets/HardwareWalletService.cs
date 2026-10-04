@@ -304,6 +304,7 @@ public class HardwareWalletService : IDisposable
 			.ConfigureAwait(false);
 
 		keyChain.MaxMiningFeeRate = maxMiningFeeRate;
+		keyChain.NeedsAuthorization = false;
 		return keyChain;
 	}
 
