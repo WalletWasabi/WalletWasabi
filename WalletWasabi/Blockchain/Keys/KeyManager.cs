@@ -456,6 +456,17 @@ public class KeyManager
 
 	private (byte[] PasswordHash, ExtKey MasterKey)? MasterKeyAndPasswordHash { get; set; }
 
+	/// <summary>Releases cached signing material after callers have stopped using it.</summary>
+	public void ClearCachedSecrets()
+	{
+		if (MasterKeyAndPasswordHash is { } cached)
+		{
+			MasterKeyAndPasswordHash = null;
+			CryptographicOperations.ZeroMemory(cached.PasswordHash);
+			cached.MasterKey.PrivateKey.Dispose();
+		}
+	}
+
 	public ExtKey GetMasterExtKey(string password)
 	{
 		if (IsWatchOnly)

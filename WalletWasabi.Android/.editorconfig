@@ -1,0 +1,12 @@
+root = false
+
+# Android view trees, layout parameters, intents and notification builders are owned
+# by the Java runtime. CA2000 does not model that transferred native ownership.
+[MainActivity.cs]
+dotnet_diagnostic.CA2000.severity = none
+
+[ScannerActivity.cs]
+dotnet_diagnostic.CA2000.severity = none
+
+[WalletService.cs]
+dotnet_diagnostic.CA2000.severity = none

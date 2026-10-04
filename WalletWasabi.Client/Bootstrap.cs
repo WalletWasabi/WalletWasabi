@@ -28,7 +28,7 @@ public class Scheme
 	{
 		var scriptsDir = Path.Combine(global.DataDir, "scripts");
 
-		EnsureScriptsDirectory(scriptsDir);
+		EnsureScriptsDirectory(scriptsDir, global.TorSettings.DistributionFolder);
 
 		// Create IoCapabilities that only allows reading files by name from scripts directory
 		var ioCapabilities = new IoCapabilities(
@@ -213,11 +213,11 @@ public class Scheme
 		}
 	}
 
-	private static void EnsureScriptsDirectory(string scriptsDir)
+	private static void EnsureScriptsDirectory(string scriptsDir, string distributionFolder)
 	{
 		Directory.CreateDirectory(scriptsDir);
 
-		var appSchemeDir = Path.Combine(EnvironmentHelpers.GetFullBaseDirectory(), "Scheme");
+		var appSchemeDir = Path.Combine(distributionFolder, "Scheme");
 		string[] libraryFiles = ["Stdlib.scm"];
 
 		foreach (var fileName in libraryFiles)

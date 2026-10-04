@@ -136,7 +136,8 @@ public class TorSettings
 	/// <returns>Full path to Tor binary for selected <paramref name="platform"/>.</returns>
 	public static string GetTorBinaryFilePath(string path)
 	{
-		return Path.Combine(path, BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
+		// Android installs executable native libraries in the application's native library directory.
+		return Path.Combine(path, OperatingSystem.IsAndroid() ? "libtor.so" : BundledAppHelpers.GetFilenameWithExtension(TorBinaryFileName));
 	}
 
 	/// <seealso href="https://github.com/torproject/tor/blob/7528524aee3ffe3c9b7c69fa18f659e1993f59a3/doc/man/tor.1.txt#L1505-L1509">For <c>KeepAliveIsolateSOCKSAuth</c> explanation.</seealso>

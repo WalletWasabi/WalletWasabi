@@ -83,4 +83,8 @@
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
 	</ItemGroup>
+
+	<ItemGroup Condition="'$(WasabiSkipBundledApps)' == 'true'">
+		<None Update="BundledApps\Binaries\**\*;Tor\Geoip\*;Announcements\ReleaseHighlights.md;Scheme\Stdlib.scm" CopyToOutputDirectory="Never" />
+	</ItemGroup>
 </Project>

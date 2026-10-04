@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi.Client\WalletWasabi.Client.csproj" />
+	</ItemGroup>
+</Project>

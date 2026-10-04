@@ -1,0 +1,7 @@
+{
+  "version": "0.4.9.13",
+  "url": "https://raw.githubusercontent.com/guardianproject/gpmaven/master/info/guardianproject/tor-android/0.4.9.13/tor-android-0.4.9.13.aar",
+  "sha256": "6a1fd13e9961e5398fe73e4dc507a859431ed7998f229b121d43dcc56b311b0a",
+  "source": "https://github.com/guardianproject/tor-android",
+  "license": "BSD-3-Clause; Tor and its bundled dependencies retain their upstream licenses"
+}

@@ -1,0 +1,45 @@
+<Project Sdk="Microsoft.NET.Sdk">
+	<PropertyGroup>
+		<TargetFramework>net10.0-android36.0</TargetFramework>
+		<SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+		<OutputType>Exe</OutputType>
+		<ImplicitUsings>enable</ImplicitUsings>
+		<ApplicationId>io.wasabiwallet.android</ApplicationId>
+		<ApplicationTitle>Wasabi Wallet</ApplicationTitle>
+		<ApplicationVersion>1</ApplicationVersion>
+		<ApplicationDisplayVersion>0.1.0</ApplicationDisplayVersion>
+		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+		<RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
+		<AndroidPackageFormats>apk</AndroidPackageFormats>
+		<AndroidUseAssemblyStore>true</AndroidUseAssemblyStore>
+		<EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+		<PublishTrimmed>false</PublishTrimmed>
+		<RunAOTCompilation>false</RunAOTCompilation>
+		<!-- The Android assembly pipeline cannot rewrite ReadyToRun assemblies. -->
+		<PublishReadyToRun>false</PublishReadyToRun>
+		<!-- The shared .NET 10 Bitcoin engine requires CoreCLR. Android CoreCLR
+		     is experimental in .NET 10; see Contrib/Android/README.md. -->
+		<UseMonoRuntime>false</UseMonoRuntime>
+		<!-- The Java HTTP handler treats SOCKS proxies as HTTP CONNECT proxies. -->
+		<UseNativeHttpHandler>false</UseNativeHttpHandler>
+		<EnablePreviewFeatures>true</EnablePreviewFeatures>
+		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DefineConstants Condition="'$(WasabiUiTest)' == 'true'">$(DefineConstants);WASABI_UI_TEST</DefineConstants>
+	</PropertyGroup>
+	<ItemGroup>
+		<ProjectReference Include="..\WalletWasabi.Mobile\WalletWasabi.Mobile.csproj" />
+		<PackageReference Include="ZXing.Net" />
+		<!-- Android uses the managed credential implementation, not desktop ELF libraries. -->
+		<PackageReference Include="WabiSabi" ExcludeAssets="native" />
+		<AndroidNativeLibrary Update="Native\arm64-v8a\libtor.so" />
+		<AndroidNativeLibrary Update="Native\x86_64\libtor.so" />
+		<AndroidAsset Include="..\WalletWasabi\Tor\Geoip\geoip" Link="Tor\geoip" />
+		<AndroidAsset Include="..\WalletWasabi\Tor\Geoip\geoip6" Link="Tor\geoip6" />
+		<AndroidAsset Include="..\LICENSE.md" Link="Legal\Wasabi.txt" />
+		<AndroidAsset Include="..\WalletWasabi\BundledApps\Binaries\win-x64\Tor\LICENSE" Link="Legal\Tor.txt" />
+	</ItemGroup>
+	<Target Name="RequireTor" BeforeTargets="PrepareForBuild">
+		<Error Condition="!Exists('Native/arm64-v8a/libtor.so') Or !Exists('Native/x86_64/libtor.so')" Text="Run Contrib/Android/prepare-tor.ps1 before building Android." />
+		<Error Condition="'$(Configuration)' == 'Release' And '$(WasabiUiTest)' == 'true'" Text="UI test screenshot access cannot be enabled in a Release package." />
+	</Target>
+</Project>

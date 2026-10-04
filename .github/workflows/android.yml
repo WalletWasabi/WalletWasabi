@@ -1,0 +1,58 @@
+name: Android
+on:
+  push:
+    branches: [master]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: android-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 35
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      AVALONIA_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Android toolchain
+        run: |
+          dotnet workload install android
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0'
+      - name: Pinned Android dependencies
+        shell: pwsh
+        run: |
+          ./Contrib/Android/prepare-tor.ps1
+      - name: Mobile wallet tests
+        run: dotnet test --project WalletWasabi.Mobile.Tests/WalletWasabi.Mobile.Tests.csproj -p:WasabiSkipBundledApps=true --no-progress --no-ansi
+      - name: Android package
+        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+      - name: Development-signed APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-development-apk
+          path: WalletWasabi.Android/bin/Release/net10.0-android36.0/*-Signed.apk
+          if-no-files-found: error
+      - name: Device-test package
+        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -p:WasabiSkipBundledApps=true -p:WasabiEmulatorOnly=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+      - name: Regtest and Tor device tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          disable-animations: true
+          script: pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore

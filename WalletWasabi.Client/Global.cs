@@ -55,13 +55,13 @@ public class Global
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="_stoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
-	public Global(string dataDir, Config config)
+	public Global(string dataDir, Config config, string? distributionFolderPath = null)
 	{
 		DataDir = dataDir;
 		Config = config;
 		TorSettings = new TorSettings(
 			DataDir,
-			distributionFolderPath: EnvironmentHelpers.GetFullBaseDirectory(),
+			distributionFolderPath: distributionFolderPath ?? EnvironmentHelpers.GetFullBaseDirectory(),
 			terminateOnExit: Config.TerminateTorOnExit,
 			torMode: Config.UseTor,
 			socksPort: config.TorSocksPort,
@@ -503,6 +503,12 @@ public class Global
 
 	private void ConfigureWasabiUpdater(CancellationToken cancellationToken)
 	{
+		if (OperatingSystem.IsAndroid())
+		{
+			// Desktop installers cannot update an Android package.
+			return;
+		}
+
 		if (Config.UseTor is TorMode.Disabled)
 		{
 			Logger.LogInfo("Update manager requires Tor. Aborting...");

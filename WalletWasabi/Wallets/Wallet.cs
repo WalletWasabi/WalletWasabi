@@ -242,6 +242,15 @@ public class Wallet : BackgroundService
 		IsLoggedIn = false;
 	}
 
+	/// <summary>Releases cached signing credentials once CoinJoin has been stopped by the host.</summary>
+	public void ClearSensitiveKeys()
+	{
+		Logout();
+		Password = "";
+		KeyChain = null;
+		KeyManager.ClearCachedSecrets();
+	}
+
 	/// <inheritdoc/>
 	public override async Task StartAsync(CancellationToken cancellationToken)
 	{
