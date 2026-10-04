@@ -15,7 +15,23 @@ concurrency:
 jobs:
   android:
     runs-on: ubuntu-latest
-    timeout-minutes: 35
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - api: 24
+            target: default
+            page: 4096
+          - api: 35
+            target: google_apis
+            page: 4096
+          - api: 36
+            target: google_apis
+            page: 4096
+          - api: 36
+            target: google_apis_ps16k
+            page: 16384
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       AVALONIA_TELEMETRY_OPTOUT: '1'
@@ -23,14 +39,14 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-dotnet@v4
         with:
-          dotnet-version: '10.0.x'
+          global-json-file: global.json
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
           java-version: '21'
       - name: Android toolchain
         run: |
-          dotnet workload install android
+          dotnet workload install android@36.1.69
           "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' emulator
       - name: Emulator acceleration
         run: |
@@ -45,30 +61,78 @@ jobs:
       - name: Mobile wallet tests
         run: dotnet test --project WalletWasabi.Mobile.Tests/WalletWasabi.Mobile.Tests.csproj -p:WasabiSkipBundledApps=true --no-progress --no-ansi
       - name: Android package
-        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
       - name: Development-signed APK
         uses: actions/upload-artifact@v4
         with:
-          name: wasabi-android-development-apk
+          name: wasabi-android-development-apk-${{ matrix.api }}-${{ matrix.page }}
           path: WalletWasabi.Android/bin/Release/net10.0-android36.0/*-Signed.apk
           if-no-files-found: error
       - name: Device-test package
-        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -p:WasabiSkipBundledApps=true -p:WasabiEmulatorOnly=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+        run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -m:1 -p:WasabiSkipBundledApps=true -p:WasabiEmulatorOnly=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+      - name: Separate Release engine qualification package
+        run: dotnet build Contrib/Android/ReleaseHarness/ReleaseHarness.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
       - name: Regtest and Tor device tests
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: ${{ matrix.api }}
+          arch: x86_64
+          target: ${{ matrix.target }}
+          disable-animations: true
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on
+          script: |
+            pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ExpectedPageSize ${{ matrix.page }}
+            pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -ExpectedPageSize ${{ matrix.page }}
+      - name: Device verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-device-logs-${{ matrix.api }}-${{ matrix.page }}
+          path: artifacts/android/device-*/**/*.log
+          if-no-files-found: ignore
+
+  consecutive-coinjoins:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      AVALONIA_TELEMETRY_OPTOUT: '1'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: global.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Pinned toolchain
+        run: |
+          dotnet workload install android@36.1.69
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' emulator
+          sudo chown "$(id -u):$(id -g)" /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -accel-check
+      - name: Pinned Tor and Release engine
+        shell: pwsh
+        run: |
+          ./Contrib/Android/prepare-tor.ps1
+          dotnet build Contrib/Android/ReleaseHarness/ReleaseHarness.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true "-p:JavaSdkDirectory=$env:JAVA_HOME" "-p:AndroidSdkDirectory=$env:ANDROID_HOME"
+          if ($LASTEXITCODE -ne 0) { throw 'Release engine build failed.' }
+      - name: Twenty consecutive fresh rounds
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: google_apis
           disable-animations: true
-          disable-linux-hw-accel: false
-          emulator-boot-timeout: 300
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on
-          script: pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore
-      - name: Device verification logs
+          script: pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -Modes runtime,coinjoin -CoinJoinRounds 20
+      - name: CoinJoin evidence
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: wasabi-android-device-logs
+          name: wasabi-android-consecutive-coinjoins
           path: artifacts/android/device-*/**/*.log
           if-no-files-found: ignore

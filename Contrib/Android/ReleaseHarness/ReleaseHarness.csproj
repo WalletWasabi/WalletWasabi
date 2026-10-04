@@ -1,0 +1,39 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android36.0</TargetFramework>
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationId>io.wasabiwallet.android.qualification</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <RuntimeIdentifiers>android-x64</RuntimeIdentifiers>
+    <UseMonoRuntime>true</UseMonoRuntime>
+    <UseInterpreter>false</UseInterpreter>
+    <UseNativeHttpHandler>false</UseNativeHttpHandler>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
+    <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
+    <RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+    <DefineConstants>$(DefineConstants);WASABI_PERSONAL;WASABI_RELEASE_HARNESS;WASABI_RUNTIME_PROBE</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../MonoRuntime.props" />
+  <ItemGroup>
+    <ProjectReference Include="../../../WalletWasabi.Mobile/WalletWasabi.Mobile.csproj" AdditionalProperties="WasabiAndroidPackage=Personal" />
+    <PackageReference Include="ZXing.Net" />
+    <PackageReference Include="WabiSabi" ExcludeAssets="native" />
+    <Compile Include="../../../WalletWasabi.Android/WalletInstrumentation.cs" Link="WalletInstrumentation.cs" />
+    <Compile Include="../../../WalletWasabi.Android/WalletFaultTests.cs" Link="WalletFaultTests.cs" />
+    <Compile Include="../../../WalletWasabi.Android/RuntimeProbe.cs" Link="RuntimeProbe.cs" />
+    <Compile Include="../../../WalletWasabi.Android/AppIdentity.cs" Link="AppIdentity.cs" />
+    <Compile Include="../../../WalletWasabi.Android/CredentialVault.cs" Link="CredentialVault.cs" />
+    <Compile Include="../../../WalletWasabi.Android/TorHost.cs" Link="TorHost.cs" />
+    <AndroidNativeLibrary Include="../../../WalletWasabi.Android/Native/x86_64/libtor.so" Abi="x86_64" />
+    <AndroidAsset Include="../../../WalletWasabi/Tor/Geoip/geoip" Link="Tor/geoip" />
+    <AndroidAsset Include="../../../WalletWasabi/Tor/Geoip/geoip6" Link="Tor/geoip6" />
+  </ItemGroup>
+  <Import Project="../NativePageAlignment.targets" />
+</Project>

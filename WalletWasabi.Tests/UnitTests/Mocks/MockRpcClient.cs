@@ -25,6 +25,7 @@ public class MockRpcClient : IRPCClient
 	public Func<Task<PeerInfo[]>>? OnGetPeersInfoAsync { get; set; }
 	public Func<int, BitcoinAddress, Task<uint256[]>>? OnGenerateToAddressAsync { get; set; }
 	public Func<Task<int>>? OnGetBlockCountAsync { get; set; }
+	public Func<Task>? OnSendBatchAsync { get; set; }
 	public Func<Task<TimeSpan>>? OnUptimeAsync { get; set; }
 	public Network Network { get; set; } = Network.RegTest;
 	public RPCCredentialString CredentialString => new();
@@ -131,7 +132,7 @@ public class MockRpcClient : IRPCClient
 
 	public Task SendBatchAsync(CancellationToken cancellationToken = default)
 	{
-		return Task.CompletedTask;
+		return OnSendBatchAsync?.Invoke() ?? Task.CompletedTask;
 	}
 
 	public Task<GetBlockRPCResponse> GetVerboseBlockAsync(uint256 blockHash, CancellationToken cancellationToken = default)

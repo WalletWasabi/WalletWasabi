@@ -8,6 +8,11 @@
 		<Deterministic>true</Deterministic>
 		<InvariantGlobalization>true</InvariantGlobalization>
 		<TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+		<!-- Mobile policy is compiled per APK channel; do not reuse host/personal
+		     outputs when building the development application's session layer. -->
+		<BaseIntermediateOutputPath Condition="'$(MSBuildProjectName)' == 'WalletWasabi.Mobile' And '$(WasabiAndroidPackage)' != ''">obj\$(WasabiAndroidPackage)\</BaseIntermediateOutputPath>
+		<MSBuildProjectExtensionsPath Condition="'$(MSBuildProjectName)' == 'WalletWasabi.Mobile'">$(MSBuildProjectDirectory)\obj\</MSBuildProjectExtensionsPath>
+		<BaseOutputPath Condition="'$(MSBuildProjectName)' == 'WalletWasabi.Mobile' And '$(WasabiAndroidPackage)' != ''">bin\$(WasabiAndroidPackage)\</BaseOutputPath>
 
 		<!-- Audit both top-level and transitive dependencies for vulnerabilities in NuGet packages. -->
 		<!-- https://learn.microsoft.com/en-us/nuget/concepts/auditing-packages#setting-a-security-audit-mode -->

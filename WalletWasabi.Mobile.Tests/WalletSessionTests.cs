@@ -20,7 +20,9 @@ public class WalletSessionTests
 		var address = session.Receive("test");
 		Assert.StartsWith("bcrt1p", address);
 		Assert.NotEqual(session.Receive(""), session.Receive(""));
-		Assert.NotNull(wallet.KeyChain);
+		Assert.True(session.IsUnlocked);
+		Assert.Null(wallet.KeyChain);
+		Assert.Empty(wallet.Password);
 		var cachedMaster = wallet.KeyManager.GetMasterExtKey(Password);
 		var file = File.ReadAllText(wallet.KeyManager.FilePath!);
 		Assert.DoesNotContain(Words, file);
@@ -47,7 +49,7 @@ public class WalletSessionTests
 	public async Task MainnetRecoveryStartsAtTheEarliestSupportedCheckpoint()
 	{
 		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
-		await using var session = new WalletSession(path, new MobileSettings(), path);
+		await using var session = new WalletSession(path, new MobileSettings { Network = "main" }, path, WalletPolicy.Personal);
 		var wallet = await session.CreateAsync("Recovered", Password, new Mnemonic(Words), true);
 		Assert.Equal(FilterCheckpoints.GetWasabiGenesisFilter(Network.Main).Header.Height, wallet.KeyManager.GetBestHeight());
 		Assert.Equal(wallet.KeyManager.GetBestHeight(), wallet.KeyManager.GetBirthHeight());
@@ -66,7 +68,8 @@ public class WalletSessionTests
 		Assert.False(imported.IsLoggedIn);
 		Assert.Equal(0u, (uint)imported.KeyManager.GetBestHeight());
 		session.Unlock(imported, Password);
-		Assert.NotNull(imported.KeyChain);
+		Assert.True(session.IsUnlocked);
+		Assert.Null(imported.KeyChain);
 		await Assert.ThrowsAsync<ArgumentException>(() => session.ImportAsync("Imported", json));
 		await Assert.ThrowsAsync<ArgumentException>(() => session.ImportAsync("../outside", json));
 		await Assert.ThrowsAsync<FormatException>(() => session.ImportAsync("Oversize", new string('x', 4 * 1024 * 1024 + 1)));
@@ -83,15 +86,15 @@ public class WalletSessionTests
 		await using var session = new WalletSession(path, new MobileSettings { Network = "regtest" }, path);
 		await session.CreateAsync("Offline", Password, new Mnemonic(Words), false);
 		var request = PaymentRequest.Parse(session.Receive("test"), Network.RegTest);
-		Assert.Throws<InvalidOperationException>(() => session.Preview(request, Money.Coins(1), new FeeRate(1m), null));
-		Assert.Throws<InvalidOperationException>(session.StartCoinJoin);
+		await Assert.ThrowsAsync<InvalidOperationException>(() => session.PrepareAsync(request, Money.Coins(1), new FeeRate(1m), null));
+		await Assert.ThrowsAsync<InvalidOperationException>(() => session.StartCoinJoinAsync(Password));
 	}
 
 	[Fact]
 	public async Task NetworkSettingsKeepWalletsSeparate()
 	{
 		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
-		await using (var main = new WalletSession(path, new MobileSettings(), path))
+		await using (var main = new WalletSession(path, new MobileSettings { Network = "main" }, path, WalletPolicy.Personal))
 		{
 			await main.CreateAsync("Same name", Password, new Mnemonic(Words), false);
 			Assert.StartsWith("bc1", main.Receive("test"));
@@ -122,7 +125,8 @@ public class WalletSessionTests
 		var path = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
 		var settings = new MobileSettings { BitcoinRpcUri = "http://127.0.0.1:18443", BitcoinRpcCredentials = "public:test" };
 		settings.Save(path);
-		Assert.Equal(settings, MobileSettings.Load(path));
+		Assert.Equal(settings with { BitcoinRpcCredentials = "" }, MobileSettings.Load(path));
+		Assert.DoesNotContain("public:test", File.ReadAllText(Path.Combine(path, "mobile-settings.json")));
 		Assert.Throws<FormatException>(() => (settings with { Network = null! }).Validate());
 	}
 }

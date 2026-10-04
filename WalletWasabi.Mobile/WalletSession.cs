@@ -1,5 +1,9 @@
 using NBitcoin;
 using System.Collections.Concurrent;
+using System.Collections.Immutable;
+using System.Security.Cryptography;
+using System.Text;
+using System.Diagnostics;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionBuilding;
@@ -27,19 +31,31 @@ public sealed class WalletSession : IAsyncDisposable
 	private readonly string _dataDir;
 	private readonly string _torDirectory;
 	private readonly Config _config;
+	private readonly WalletPolicy _policy;
+	private readonly TransactionJournal _journal;
+	private readonly CoinJoinJournal _coinJoinJournal;
+	private readonly object _authorizationGate = new();
+	private readonly Func<bool> _transportReady;
+	private bool _interfaceLocked = true;
 	private bool _initialized;
 	private int _disposed;
-	private (BuildTransactionResult Result, string Hex, WalletId Wallet, DateTime Created)? _reviewed;
+	private sealed record Reviewed(PaymentProposal Proposal, BuildTransactionResult Result, string Psbt, WalletId Owner, SmartTransaction? Parent, long CreatedTimestamp);
+	private Reviewed? _reviewed;
 	public string CoinJoinStatus { get; private set; } = "Idle";
 	public string? SynchronizationError { get; private set; }
 
-	public WalletSession(string dataDir, MobileSettings settings, string torDirectory)
+	public WalletSession(string dataDir, MobileSettings settings, string torDirectory, WalletPolicy? policy = null, int socksPort = 37154, Func<bool>? transportReady = null)
 	{
 		settings.Validate();
+		_policy = policy ?? WalletPolicy.Development;
+		_policy.RequireNetwork(settings.GetNetwork());
+		_transportReady = transportReady ?? (() => settings.GetNetwork() == Network.RegTest);
 		Settings = settings;
 		_dataDir = dataDir;
 		_torDirectory = torDirectory;
 		Directory.CreateDirectory(dataDir);
+		_journal = new(dataDir, settings.GetNetwork());
+		_coinJoinJournal = new(dataDir, settings.GetNetwork());
 		var defaults = settings.GetNetwork() == Network.RegTest
 			? PersistentConfigManager.DefaultRegTestConfig
 			: PersistentConfigManager.DefaultMainNetConfig;
@@ -59,7 +75,7 @@ public sealed class WalletSession : IAsyncDisposable
 			ExperimentalFeatures = [],
 			AbsoluteMinInputCount = settings.GetNetwork() == Network.RegTest ? 2 : defaults.AbsoluteMinInputCount
 		};
-		_config = new Config(persistent, [$"--torfolder={torDirectory}", "--torsocksport=37154", "--torcontrolport=37155"]);
+		_config = new Config(persistent, [$"--torfolder={torDirectory}", $"--torsocksport={socksPort}", $"--torcontrolport={socksPort + 1}"]);
 		Global = new Global(dataDir, _config, torDirectory);
 	}
 
@@ -67,9 +83,14 @@ public sealed class WalletSession : IAsyncDisposable
 	public MobileSettings Settings { get; }
 	public Wallet? Current { get; private set; }
 	public bool IsMixing => !_mixing.IsEmpty;
-	public bool IsUnlocked => Current?.IsLoggedIn is true;
+	public bool IsUnlocked => !_interfaceLocked && Current is not null;
+	public ImmutableArray<BroadcastReceipt> PendingTransactions => _journal.Entries.Select(e => new BroadcastReceipt(e.ProposalId, e.TransactionId, e.State)).ToImmutableArray();
+	public ImmutableArray<SubmissionDetails> SubmissionHistory => Current is { } wallet
+		? _journal.Entries.Where(e => e.WalletId == AccountId(wallet)).Select(e => new SubmissionDetails(e.TransactionId, e.Operation, e.State,
+			e.AmountSatoshis, e.FeeSatoshis, e.CreatedAt, e.Outputs.IsDefault ? [] : e.Outputs)).ToImmutableArray() : [];
 	public bool IsReady => _initialized;
 	public bool IsSynchronized => _initialized && Current is { Loaded: true } wallet
+		&& _transportReady()
 		&& Global.FilterHeaders.HashCount > 0
 		&& wallet.KeyManager.GetBestHeight() >= Global.FilterHeaders.TipHeight
 		&& Global.FilterHeaders.HashesLeft == 0
@@ -99,6 +120,7 @@ public sealed class WalletSession : IAsyncDisposable
 
 	private void StartWallet(Wallet wallet)
 	{
+		wallet.CoinJoinCheckpoints = _coinJoinJournal.ForWallet(AccountId(wallet), wallet.KeyManager.ToFile, input => _journal.Reservations().Contains(input));
 		var global = Global;
 		_walletStarts.GetOrAdd(wallet.WalletId, _ => Task.Run(async () =>
 		{
@@ -204,37 +226,66 @@ public sealed class WalletSession : IAsyncDisposable
 		}
 		finally
 		{
-			File.Delete(temporary);
-			_operations.Release();
+			try { File.Delete(temporary); }
+			finally { _operations.Release(); }
 		}
 	}
 
 	public void Unlock(Wallet wallet, string password)
 	{
+		lock (_authorizationGate)
+		{
+		if (IsMixing && Current != wallet) { throw new InvalidOperationException("Stop CoinJoin before switching wallets."); }
+		_policy.RequireNetwork(wallet.Network);
+		if (wallet.Network != Global.Network || !Global.WalletManager.GetWallets().Contains(wallet)) { throw new InvalidOperationException("This wallet does not belong to this session."); }
 		if (Current is { } previous && previous != wallet)
 		{
 			Lock();
 		}
+		try
+		{
 		if (!wallet.KeyManager.IsWatchOnly && !PasswordHelper.TryPassword(wallet.KeyManager, password, out _)
 			|| !wallet.TryLogin(password, out _))
 		{
 			throw new UnauthorizedAccessException("Incorrect wallet password.");
 		}
+		if (!wallet.KeyManager.IsWatchOnly)
+		{
+			var manager = wallet.KeyManager;
+			var master = manager.GetMasterExtKey(wallet.Password);
+			if (master.Derive(manager.SegwitAccountKeyPath).Neuter() != manager.SegwitExtPubKey
+				|| manager.TaprootExtPubKey is not null && master.Derive(manager.TaprootAccountKeyPath).Neuter() != manager.TaprootExtPubKey)
+			{
+				wallet.ClearSensitiveKeys();
+				throw new FormatException("The backup's account keys do not match its encrypted signing key.");
+			}
+		}
 		Current = wallet;
+		_interfaceLocked = false;
+		}
+		finally { if (!IsMixing) { wallet.ClearSensitiveKeys(); } }
+		}
 	}
 
-	public void Lock()
+	public void Lock(bool preserveProposal = false)
 	{
+		lock (_authorizationGate)
+		{
+		_interfaceLocked = true;
+		if (!preserveProposal) { _reviewed = null; }
 		if (IsMixing)
 		{
-			throw new InvalidOperationException("Stop CoinJoin before locking the signing keys.");
+			// Only the explicitly authorized manager retains credentials. UI operations
+			// still require unlocking and a fresh password/Keystore authorization.
+			return;
 		}
 		if (Current is { } wallet)
 		{
 			wallet.ClearSensitiveKeys();
 		}
 		Current = null;
-		_reviewed = null;
+		if (!preserveProposal) { _reviewed = null; }
+		}
 	}
 
 	public string Receive(string label, ScriptPubKeyType type = ScriptPubKeyType.TaprootBIP86)
@@ -247,85 +298,249 @@ public sealed class WalletSession : IAsyncDisposable
 		return (type == ScriptPubKeyType.Segwit ? key.P2wpkhScript : key.P2Taproot).GetDestinationAddress(Global.Network)!.ToString();
 	}
 
-	public BuildTransactionResult Preview(PaymentRequest request, Money amount, FeeRate rate, OutPoint[]? selectedCoins, bool sendAll = false)
-	{
-		var wallet = RequireWallet();
-		if (IsMixing) { throw new InvalidOperationException("Stop CoinJoin before preparing a payment."); }
-		if (!IsSynchronized)
-		{
-			throw new InvalidOperationException("Wait for the wallet to finish synchronizing.");
-		}
-		var available = wallet.GetAllCoins().Unspent().Where(c => c.IsAvailable()).Select(c => c.Outpoint).ToHashSet();
-		var allowed = selectedCoins is null ? available.ToArray() : selectedCoins.Where(available.Contains).ToArray();
-		var intent = sendAll
-			? new PaymentIntent(request.Address, MoneyRequest.CreateAllRemaining(), new LabelsArray(request.Label))
-			: new PaymentIntent(request.Address.ScriptPubKey, amount, label: new LabelsArray(request.Label));
-		var result = new TransactionFactory(Global.Network, wallet.KeyManager, wallet.GetAllCoins(), Global.TransactionStore, wallet.Password)
-			.BuildTransaction(new(intent, rate, false, false, allowed, false, false));
-		_reviewed = (result, result.Psbt.GetGlobalTransaction().ToHex(), wallet.WalletId, DateTime.UtcNow);
-		return result;
-	}
-
-	public async Task<string> SendAsync(BuildTransactionResult preview, string password, CancellationToken cancellationToken)
+	public async Task<PaymentProposal> PrepareAsync(PaymentRequest request, Money amount, FeeRate rate, OutPoint[]? selectedCoins, bool sendAll = false, CancellationToken cancellationToken = default)
 	{
 		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
 		try
 		{
-			var wallet = RequireWallet();
-			if (_reviewed is not { } reviewed || !ReferenceEquals(reviewed.Result, preview) || reviewed.Wallet != wallet.WalletId
-				|| DateTime.UtcNow - reviewed.Created > TimeSpan.FromMinutes(5) || preview.Psbt.GetGlobalTransaction().ToHex() != reviewed.Hex || IsMixing)
-			{
-				throw new InvalidOperationException("Review this transaction again before sending.");
-			}
-			if (!IsSynchronized || !PasswordHelper.TryPassword(wallet.KeyManager, password, out var compatiblePassword))
-			{
-				throw new InvalidOperationException("The wallet must be synchronized and the password correct.");
-			}
-			var available = wallet.GetAllCoins().Unspent().Where(c => c.IsAvailable()).Select(c => c.Outpoint).ToHashSet();
-			if (preview.SpentCoins.Any(c => !available.Contains(c.Outpoint)))
-			{
-				throw new InvalidOperationException("The selected coins changed. Review a new transaction.");
-			}
-			var psbt = preview.Psbt.Clone();
-			var unsigned = psbt.GetGlobalTransaction().ToHex();
-			var keys = wallet.KeyManager.GetSecrets(compatiblePassword ?? password, preview.SpentCoins.Select(c => c.ScriptPubKey).ToArray());
-			var builder = Global.Network.CreateTransactionBuilder();
-			builder.AddCoins(preview.SpentCoins.Select(c => c.Coin));
-			builder.AddKeys(keys.ToArray());
-			builder.SignPSBT(psbt);
-			if (psbt.GetGlobalTransaction().ToHex() != unsigned)
-			{
-				throw new InvalidOperationException("The transaction changed during signing.");
-			}
-			psbt.Finalize();
-			var transaction = psbt.ExtractTransaction();
-			if (builder.Check(transaction).Any())
-			{
-				throw new InvalidOperationException("Transaction validation failed.");
-			}
-			var smart = new SmartTransaction(transaction, Height.Mempool);
-			_reviewed = null;
-			await Global.TransactionBroadcaster.SendTransactionAsync(smart, cancellationToken).ConfigureAwait(false);
-			wallet.UpdateUsedHdPubKeysLabels(preview.HdPubKeysWithNewLabels);
-			return transaction.GetHash().ToString();
+			var wallet = RequirePreparedWallet();
+			if (request.Address.Network != Global.Network) { throw new FormatException("The payment belongs to a different Bitcoin network."); }
+			var reserved = ReservedInputs();
+			var available = wallet.GetAllCoins().Unspent().Where(c => c.IsAvailable() && !reserved.Contains(c.Outpoint)).Select(c => c.Outpoint).ToHashSet();
+			if (selectedCoins?.Any(c => !available.Contains(c)) is true) { throw new InvalidOperationException("Some selected coins are unavailable or reserved."); }
+			var allowed = selectedCoins ?? available.ToArray();
+			var intent = sendAll
+				? new PaymentIntent(request.Address, MoneyRequest.CreateAllRemaining(), new LabelsArray(request.Label))
+				: new PaymentIntent(request.Address.ScriptPubKey, amount, label: new LabelsArray(request.Label));
+			var result = new TransactionFactory(Global.Network, wallet.KeyManager, wallet.GetAllCoins(), Global.TransactionStore, "")
+				.BuildTransaction(new(intent, rate, false, false, allowed, false, false));
+			var sent = result.Transaction.Transaction.Outputs.Where(o => o.ScriptPubKey == request.Address.ScriptPubKey).Sum(o => o.Value.Satoshi);
+			return RegisterProposal(wallet, result, PaymentOperation.Payment, sent, null);
 		}
-		finally
-		{
-			_operations.Release();
-		}
+		finally { _operations.Release(); }
 	}
 
-	public void StartCoinJoin()
+	public async Task<PaymentProposal> PrepareReplacementAsync(string transactionId, PaymentOperation operation, FeeRate? feeRate, CancellationToken cancellationToken)
+	{
+		if (operation == PaymentOperation.Payment) { throw new ArgumentException("Choose speed-up or cancellation."); }
+		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			var wallet = RequirePreparedWallet();
+			if (!Global.TransactionStore.TryGetTransaction(uint256.Parse(transactionId), out var parent) || parent.Confirmed
+				|| !wallet.GetTransactions().Any(t => t.GetHash() == parent.GetHash())) { throw new InvalidOperationException("This pending transaction is no longer eligible."); }
+			if (operation == PaymentOperation.SpeedUp && parent.TryGetLargestCPFP(wallet.KeyManager, out var child)) { parent = child; }
+			var uncertain = _journal.Entries.Where(e => e.State == SubmissionState.Uncertain).SelectMany(e => Transaction.Parse(e.Hex, Global.Network).Inputs.Select(i => i.PrevOut)).ToHashSet();
+			if (parent.WalletInputs.Any(c => uncertain.Contains(c.Outpoint))) { throw new InvalidOperationException("Reconcile the interrupted submission before replacing it."); }
+			var result = operation == PaymentOperation.Cancel
+				? wallet.CancelTransaction(parent, tryToSign: false)
+				: await wallet.SpeedUpTransactionAsync(parent, feeRate, cancellationToken, tryToSign: false, preserveRecipients: true).ConfigureAwait(false);
+			// A CPFP keeps the parent intact. An RBF must preserve every foreign output.
+			if (operation == PaymentOperation.SpeedUp && result.SpentCoins.Any(c => parent.WalletInputs.Contains(c)))
+			{
+				var original = parent.GetForeignOutputs(wallet.KeyManager).Select(o => (o.TxOut.ScriptPubKey.ToHex(), o.TxOut.Value.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
+				var replacement = result.OuterWalletOutputs.Select(o => (o.ScriptPubKey.ToHex(), o.Amount.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
+				if (!original.SequenceEqual(replacement)) { throw new InvalidOperationException("This replacement would change the approved recipients."); }
+			}
+			var amount = operation == PaymentOperation.Cancel ? 0 : result.OuterWalletOutputs.Sum(o => o.Amount.Satoshi);
+			return RegisterProposal(wallet, result, operation, amount, parent);
+		}
+		finally { _operations.Release(); }
+	}
+
+	private Wallet RequirePreparedWallet()
 	{
 		var wallet = RequireWallet();
-		if (!IsSynchronized || !Global.Config.TryGetCoordinatorUri(out _))
+		if (wallet.KeyManager.IsWatchOnly) { throw new InvalidOperationException("A watch-only wallet cannot sign payments or CoinJoins."); }
+		if (IsMixing) { throw new InvalidOperationException("Stop CoinJoin before preparing a payment."); }
+		if (!IsSynchronized) { throw new InvalidOperationException("Wait for the wallet to finish synchronizing."); }
+		return wallet;
+	}
+
+	private PaymentProposal RegisterProposal(Wallet wallet, BuildTransactionResult result, PaymentOperation operation, long amount, SmartTransaction? parent)
+	{
+		if (result.Signed) { throw new InvalidOperationException("Preparation unexpectedly signed the transaction."); }
+		var tx = result.Psbt.GetGlobalTransaction();
+		var own = result.InnerWalletOutputs.Select(c => c.ScriptPubKey).ToHashSet();
+		var proposal = new PaymentProposal(Guid.NewGuid().ToString("N"), AccountId(wallet), Global.Network.Name, operation,
+			result.SpentCoins.Select(c => new ProposalInput(c.Outpoint.Hash.ToString(), c.Outpoint.N, c.Amount.Satoshi)).ToImmutableArray(),
+			tx.Outputs.Select(o => new ProposalOutput(o.ScriptPubKey.ToHex(), o.ScriptPubKey.GetDestinationAddress(Global.Network)?.ToString(), o.Value.Satoshi, own.Contains(o.ScriptPubKey))).ToImmutableArray(),
+			amount, result.Fee.Satoshi, checked(amount + result.Fee.Satoshi), DateTimeOffset.UtcNow.AddMinutes(5), parent?.GetHash().ToString());
+		wallet.KeyManager.ToFile(); // Persist allocated change before revealing or registering it.
+		lock (_authorizationGate)
 		{
-			throw new InvalidOperationException("Synchronize the wallet and configure a coordinator first.");
+			if (!IsUnlocked || Current != wallet) { throw new InvalidOperationException("Unlock the wallet and review again."); }
+			_reviewed = new(proposal, result, result.Psbt.ToBase64(), wallet.WalletId, parent, Stopwatch.GetTimestamp());
 		}
-		_reviewed = null;
-		_mixing.TryAdd(wallet.WalletId, new(TaskCreationOptions.RunContinuationsAsynchronously));
-		CoinJoinStatus = "Starting";
-		Global.HostedServices.Get<CoinJoinManager>().RequestCoinJoinStart(wallet, wallet, true, false);
+		return proposal;
+	}
+
+	// Legacy backups acquire a Taproot account on their first successful unlock.
+	// Their vault/journal identity must remain stable across that migration.
+	private static string AccountId(Wallet wallet) => Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(wallet.Network.Name + ":" + wallet.KeyManager.SegwitAccountKeyPath + ":" + wallet.KeyManager.SegwitExtPubKey)));
+	public static string WalletReference(Wallet wallet) => AccountId(wallet);
+
+	public async Task<byte[]> ExportEncryptedBackupAsync(string password, CancellationToken cancellationToken)
+	{
+		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			lock (_authorizationGate)
+			{
+				var wallet = RequireWallet();
+				try
+				{
+				if (!wallet.KeyManager.IsWatchOnly && !PasswordHelper.TryPassword(wallet.KeyManager, password, out _)) { throw new UnauthorizedAccessException("Incorrect wallet password."); }
+				wallet.KeyManager.ToFile();
+				return File.ReadAllBytes(wallet.KeyManager.FilePath!);
+				}
+				finally { if (!IsMixing) { wallet.ClearSensitiveKeys(); } }
+			}
+		}
+		finally { _operations.Release(); }
+	}
+
+	public async Task<BroadcastReceipt> ConfirmAsync(string proposalId, string password, CancellationToken cancellationToken)
+	{
+		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			if (_journal.Entries.FirstOrDefault(e => e.ProposalId == proposalId) is { } alreadySubmitted) { return Receipt(alreadySubmitted); }
+			JournalEntry entry;
+			Wallet wallet;
+			lock (_authorizationGate)
+			{
+				wallet = RequirePreparedWallet();
+				try
+				{
+				if (_reviewed is not { } reviewed || reviewed.Proposal.Id != proposalId || reviewed.Owner != wallet.WalletId
+					|| reviewed.Proposal.WalletId != AccountId(wallet) || reviewed.Proposal.Network != Global.Network.Name
+					|| Stopwatch.GetElapsedTime(reviewed.CreatedTimestamp) >= TimeSpan.FromMinutes(5) || reviewed.Result.Psbt.ToBase64() != reviewed.Psbt)
+				{ throw new InvalidOperationException("Review this transaction again before sending."); }
+				cancellationToken.ThrowIfCancellationRequested();
+				if (!PasswordHelper.TryPassword(wallet.KeyManager, password, out var compatiblePassword)) { throw new UnauthorizedAccessException("Incorrect wallet password."); }
+				var preview = reviewed.Result;
+				if (reviewed.Parent is { } parent && (!Global.TransactionStore.TryGetTransaction(parent.GetHash(), out var currentParent) || currentParent.Confirmed))
+				{ throw new InvalidOperationException("The original transaction changed. Review again."); }
+				var reserved = ReservedInputs();
+				if (preview.SpentCoins.Any(c => c.CoinJoinInProgress ||
+					!(c.IsAvailable() && !reserved.Contains(c.Outpoint) || reviewed.Parent is { } original && c.SpenderTransaction?.GetHash() == original.GetHash() && !original.Confirmed)))
+				{ throw new InvalidOperationException("The selected inputs changed or are reserved. Review again."); }
+				var psbt = preview.Psbt.Clone();
+				var unsigned = psbt.GetGlobalTransaction().ToHex();
+				var keys = new List<Key>();
+				Transaction transaction;
+				try
+				{
+					keys.AddRange(wallet.KeyManager.GetSecrets(compatiblePassword ?? password, preview.SpentCoins.Select(c => c.ScriptPubKey).ToArray()));
+					var builder = Global.Network.CreateTransactionBuilder();
+					builder.AddCoins(preview.SpentCoins.Select(c => c.Coin));
+					builder.AddKeys(keys.ToArray());
+					builder.SignPSBT(psbt);
+					if (psbt.GetGlobalTransaction().ToHex() != unsigned) { throw new InvalidOperationException("The transaction changed during signing."); }
+					psbt.Finalize();
+					transaction = psbt.ExtractTransaction();
+					if (builder.Check(transaction).Any()) { throw new InvalidOperationException("Transaction validation failed."); }
+				}
+				finally { foreach (var key in keys) { key.Dispose(); } }
+				entry = new(proposalId, AccountId(wallet), Global.Network.Name, reviewed.Proposal.Operation, reviewed.Proposal.OriginalTransactionId,
+					transaction.GetHash().ToString(), transaction.ToHex(), SubmissionState.Uncertain, DateTimeOffset.UtcNow,
+					reviewed.Proposal.AmountSatoshis, reviewed.Proposal.FeeSatoshis, reviewed.Proposal.Outputs);
+				_journal.Put(entry); // Never broadcast before the exact signed bytes are durable.
+				_reviewed = null;
+				wallet.UpdateUsedHdPubKeysLabels(preview.HdPubKeysWithNewLabels);
+				wallet.KeyManager.ToFile();
+				}
+				finally { wallet.ClearSensitiveKeys(); }
+			}
+			return await SubmitNoLockAsync(entry, cancellationToken).ConfigureAwait(false);
+		}
+		finally { _operations.Release(); }
+	}
+
+	private async Task<BroadcastReceipt> SubmitNoLockAsync(JournalEntry entry, CancellationToken cancellationToken)
+	{
+		var smart = new SmartTransaction(Transaction.Parse(entry.Hex, Global.Network), Height.Mempool);
+		if (entry.Operation == PaymentOperation.Cancel) { smart.SetCancellation(); }
+		if (entry.Operation == PaymentOperation.SpeedUp) { smart.SetSpeedup(); }
+		try
+		{
+			await Global.TransactionBroadcaster.SendTransactionAsync(smart, cancellationToken).ConfigureAwait(false);
+			entry = entry with { State = SubmissionState.Pending };
+			_journal.Put(entry);
+		}
+		catch (Exception ex) when (ex is not OutOfMemoryException)
+		{
+			// A failed response does not prove rejection. Retain bytes and reservations.
+			Logger.LogWarning("Transaction submission needs reconciliation.");
+		}
+		return Receipt(entry);
+	}
+
+	private static BroadcastReceipt Receipt(JournalEntry entry) => new(entry.ProposalId, entry.TransactionId, entry.State);
+	private HashSet<OutPoint> ReservedInputs() => _journal.Reservations().Concat(_coinJoinJournal.Reservations()).ToHashSet();
+
+	public async Task ReconcilePendingAsync(CancellationToken cancellationToken)
+	{
+		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			if (!IsMixing)
+			{
+				foreach (var checkpoint in _coinJoinJournal.Entries)
+				{
+					var owner = Global.WalletManager.GetWallets().FirstOrDefault(w => AccountId(w) == checkpoint.WalletId && w.Loaded);
+					if (owner is null || !_initialized || !_transportReady() || Global.FilterHeaders.HashesLeft != 0 || owner.KeyManager.GetBestHeight() < Global.FilterHeaders.TipHeight || Global.GetPeerCount() == 0) { continue; }
+					if (checkpoint.TransactionId is null || Global.TransactionStore.TryGetTransaction(uint256.Parse(checkpoint.TransactionId), out _)
+						|| checkpoint.Inputs.All(i => owner.GetAllCoins().Any(c => c.Outpoint == new OutPoint(uint256.Parse(i.TransactionId), i.Index) && c.SpenderTransaction is { Confirmed: true })))
+					{ _coinJoinJournal.Remove(checkpoint); }
+				}
+			}
+			foreach (var entry in _journal.Entries)
+			{
+				var wallet = Global.WalletManager.GetWallets().FirstOrDefault(w => AccountId(w) == entry.WalletId && w.Loaded);
+				if (wallet is null || !_initialized || !_transportReady() || Global.FilterHeaders.HashesLeft != 0 || wallet.KeyManager.GetBestHeight() < Global.FilterHeaders.TipHeight || Global.GetPeerCount() == 0) { continue; }
+				var inputs = Transaction.Parse(entry.Hex, Global.Network).Inputs.Select(i => i.PrevOut).ToHashSet();
+				var conflict = wallet.GetAllCoins().FirstOrDefault(c => inputs.Contains(c.Outpoint) && c.SpenderTransaction is { } spender && spender.GetHash().ToString() != entry.TransactionId)?.SpenderTransaction;
+				var replacement = conflict is not null && _journal.Entries.Any(e => e.TransactionId == conflict.GetHash().ToString() && e.OriginalTransactionId == entry.TransactionId);
+				if (conflict is not null && (conflict.Confirmed || replacement))
+				{
+					_journal.Put(entry with { State = replacement ? SubmissionState.Replaced : SubmissionState.Conflicted });
+					continue;
+				}
+				if (Global.TransactionStore.TryGetTransaction(uint256.Parse(entry.TransactionId), out var known))
+				{
+					_journal.Put(entry with { State = known.Confirmed ? SubmissionState.Confirmed : SubmissionState.Pending });
+					continue;
+				}
+				var retry = entry with { State = SubmissionState.Uncertain };
+				_journal.Put(retry);
+				await SubmitNoLockAsync(retry, cancellationToken).ConfigureAwait(false);
+			}
+		}
+		finally { _operations.Release(); }
+	}
+
+	public async Task StartCoinJoinAsync(string password, CancellationToken cancellationToken = default)
+	{
+		await _operations.WaitAsync(cancellationToken).ConfigureAwait(false);
+		try
+		{
+			lock (_authorizationGate)
+			{
+				var wallet = RequirePreparedWallet();
+				if (!Global.Config.TryGetCoordinatorUri(out _)) { throw new InvalidOperationException("Configure a coordinator first."); }
+				if (_journal.Entries.Any(e => e.State == SubmissionState.Uncertain)) { throw new InvalidOperationException("Reconcile interrupted payments before starting CoinJoin."); }
+				if (_coinJoinJournal.Entries.Any(e => e.WalletId == AccountId(wallet))) { throw new InvalidOperationException("Reconcile the interrupted CoinJoin before starting another round."); }
+				if (!PasswordHelper.TryPassword(wallet.KeyManager, password, out var compatiblePassword) || !wallet.TryLogin(compatiblePassword ?? password, out _)) { throw new UnauthorizedAccessException("Incorrect wallet password."); }
+				_reviewed = null;
+				wallet.KeyManager.ToFile();
+				_mixing.TryAdd(wallet.WalletId, new(TaskCreationOptions.RunContinuationsAsynchronously));
+				CoinJoinStatus = "Starting";
+				Global.HostedServices.Get<CoinJoinManager>().RequestCoinJoinStart(wallet, wallet, true, false);
+			}
+		}
+		finally { _operations.Release(); }
 	}
 
 	public async Task StopCoinJoinAsync(CancellationToken cancellationToken)
@@ -376,7 +591,15 @@ public sealed class WalletSession : IAsyncDisposable
 			WalletStartedCoinJoinEventArgs => "Joining a round",
 			_ => CoinJoinStatus
 		};
-		if (e is WalletStoppedCoinJoinEventArgs && _mixing.TryRemove(e.Wallet.WalletId, out var stopped)) { stopped.TrySetResult(); }
+		if (e is WalletStoppedCoinJoinEventArgs)
+		{
+			lock (_authorizationGate)
+			{
+				e.Wallet.ClearSensitiveKeys();
+				if (Current == e.Wallet) { _interfaceLocked = true; _reviewed = null; }
+			}
+			if (_mixing.TryRemove(e.Wallet.WalletId, out var stopped)) { stopped.TrySetResult(); }
+		}
 	}
 
 	private Wallet RequireWallet() => IsUnlocked && Current is { } wallet ? wallet : throw new InvalidOperationException("Unlock a wallet first.");

@@ -27,12 +27,17 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 public class CoinJoinClientTests
 {
 	[Fact]
-	public async Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimum()
+	public Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimum() => VerifySigningRefusalAsync(21, false);
+
+	[Fact]
+	public Task FailedDurableCheckpointPreventsAnySignatureSubmission() => VerifySigningRefusalAsync(2, true);
+
+	private static async Task VerifySigningRefusalAsync(int minimumInputs, bool failCheckpoint)
 	{
 		var roundParameters = WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig()) with
 		{
 			MiningFeeRate = new FeeRate(1m),
-			MinInputCountByRound = 21,
+			MinInputCountByRound = minimumInputs,
 			TransactionSigningTimeout = TimeSpan.FromSeconds(11)
 		};
 		var round = WabiSabiFactory.CreateRound(roundParameters);
@@ -73,15 +78,16 @@ public class CoinJoinClientTests
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		// Create CoinJoinClient with AbsoluteMinInputCount = 21
+		var checkpoint = new FailingCheckpoint();
 		var coinJoinClient = new CoinJoinClient(
 			_ => requestHandler,
 			keyChain,
 			outputProvider: null!,
 			roundStateProvider,
 			new CoinJoinCoinSelector(consolidationMode: true, anonScoreTarget: int.MaxValue, semiPrivateThreshold: 0),
-			new CoinJoinConfiguration(roundParameters.CoordinationIdentifier, 150m, AbsoluteMinInputCount: 21, AllowSoloCoinjoining: false),
+			new CoinJoinConfiguration(roundParameters.CoordinationIdentifier, 150m, AbsoluteMinInputCount: minimumInputs, AllowSoloCoinjoining: false),
 			InputVerifiers.NoVerification(),
-			new LiquidityClueProvider());
+			new LiquidityClueProvider(), checkpoints: failCheckpoint ? checkpoint : null);
 
 		// Create an AliceClient for the victim
 		var aliceClient = CreateAliceClient(roundState, victimCoin, requestHandler);
@@ -94,6 +100,13 @@ public class CoinJoinClientTests
 		// Deliver the coordinator's two-input signing state to the awaiting client
 		roundStateUpdater.Update();
 
+		if (failCheckpoint)
+		{
+			await Assert.ThrowsAsync<System.IO.IOException>(() => signingTask);
+			Assert.Equal(1, checkpoint.Attempts);
+			Assert.Equal(0, requestHandler.SignatureRequests);
+			return;
+		}
 		var (_, aliceClientsThatSigned) = await signingTask;
 
 		// Assert: With the fix, hasTooFewInputs = true (2 < 21), so mustSignAllInputs = false.
@@ -102,6 +115,15 @@ public class CoinJoinClientTests
 		Assert.Empty(aliceClientsThatSigned);
 		Assert.Equal(0, requestHandler.SignatureRequests);
 		Assert.Null(requestHandler.CapturedSignature);
+	}
+
+	private sealed class FailingCheckpoint : ICoinJoinCheckpointStore
+	{
+		public int Attempts { get; private set; }
+		public bool IsReserved(OutPoint input) => false;
+		public void BeginRound(uint256 roundId, IEnumerable<OutPoint> inputs) { }
+		public void EndRound(uint256 roundId, EndRoundState outcome) { }
+		public void BeforeSigning(uint256 roundId, uint256 transactionId) { Attempts++; throw new System.IO.IOException("Synthetic disk failure before signing."); }
 	}
 
 	[Fact]

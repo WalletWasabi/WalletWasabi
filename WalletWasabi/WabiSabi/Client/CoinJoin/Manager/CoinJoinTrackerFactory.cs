@@ -53,7 +53,8 @@ public class CoinJoinTrackerFactory
 			_inputVerifier,
 			_liquidityClueProvider,
 			doNotRegisterInLastMinuteTimeLimit: TimeSpan.FromMinutes(1),
-			minAnonScoreForPayments: wallet.OnlyUsePrivateFundsForPayments ? wallet.AnonScoreTarget : 0);
+			minAnonScoreForPayments: wallet.OnlyUsePrivateFundsForPayments ? wallet.AnonScoreTarget : 0,
+			checkpoints: wallet.CoinJoinCheckpoints);
 
 		return new CoinJoinTracker(wallet, coinJoinClient, coinCandidatesFunc, stopWhenAllMixed, overridePlebStop, outputWallet, _cancellationToken);
 	}

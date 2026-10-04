@@ -5,7 +5,8 @@ using WalletWasabi.FeeRateEstimation;
 using WalletWasabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator;
 
-if (args.Length != 1) { throw new ArgumentException("Supply a private regtest fixture directory."); }
+if (args.Length is < 1 or > 2 || args.Length == 2 && args[1] != "qualification") { throw new ArgumentException("Supply a private regtest fixture directory and optional qualification mode."); }
+var qualification = args.Length == 2;
 var dataDir = Path.GetFullPath(args[0]);
 Directory.CreateDirectory(dataDir);
 var config = new WabiSabiConfig(Path.Combine(dataDir, "Config.json"))
@@ -16,11 +17,11 @@ var config = new WabiSabiConfig(Path.Combine(dataDir, "Config.json"))
 	CoordinatorIdentifier = "WasabiAndroidRegtest",
 	MaxInputCountByRound = 2,
 	MinInputCountByRoundMultiplier = 1,
-	StandardInputRegistrationTimeout = TimeSpan.FromMinutes(5),
+	StandardInputRegistrationTimeout = qualification ? TimeSpan.FromSeconds(100) : TimeSpan.FromMinutes(5),
 	ConnectionConfirmationTimeout = TimeSpan.FromMinutes(2),
 	// Managed credential proofs on an emulator share CPU with the host's
 	// compiler and test runner. Avoid making host load a protocol failure.
-	OutputRegistrationTimeout = TimeSpan.FromMinutes(3),
+	OutputRegistrationTimeout = qualification ? TimeSpan.FromSeconds(90) : TimeSpan.FromMinutes(3),
 	TransactionSigningTimeout = TimeSpan.FromMinutes(2),
 	PublishAsOnionService = false
 };

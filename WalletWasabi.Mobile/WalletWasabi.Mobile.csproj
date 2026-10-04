@@ -2,8 +2,10 @@
 	<PropertyGroup>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<RestorePackagesWithLockFile>true</RestorePackagesWithLockFile>
+		<DefineConstants Condition="'$(WasabiAndroidPackage)' == 'Development'">$(DefineConstants);WASABI_DEVELOPMENT_ANDROID</DefineConstants>
 	</PropertyGroup>
 	<ItemGroup>
+		<Compile Remove="obj/**/*.cs;bin/**/*.cs" />
 		<ProjectReference Include="..\WalletWasabi.Client\WalletWasabi.Client.csproj" />
 	</ItemGroup>
 </Project>

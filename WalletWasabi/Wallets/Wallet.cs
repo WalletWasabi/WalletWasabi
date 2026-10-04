@@ -119,6 +119,7 @@ public class Wallet : BackgroundService
 
 	public OutputProvider OutputProvider { get; }
 	public PaymentBatch BatchedPayments { get; }
+	public ICoinJoinCheckpointStore? CoinJoinCheckpoints { get; set; }
 
 	public int AnonScoreTarget => KeyManager.AnonScoreTarget;
 	public bool ConsolidationMode { get; set; }

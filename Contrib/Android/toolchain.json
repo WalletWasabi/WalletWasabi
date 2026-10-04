@@ -1,0 +1,14 @@
+{
+  "dotnetSdk": "10.0.401",
+  "androidWorkloadManifest": "36.1.69",
+  "monoRuntime": "10.0.12",
+  "initialMonoRuntime": "10.0.9",
+  "jdkMajor": 21,
+  "androidPlatform": 36,
+  "androidBuildTools": "36.0.0",
+  "runtime": "Mono JIT",
+  "assemblyStore": false,
+  "interpreter": false,
+  "trimming": false,
+  "releaseAot": "untrimmed AOT rejected by workload XA1030; release uses JIT"
+}

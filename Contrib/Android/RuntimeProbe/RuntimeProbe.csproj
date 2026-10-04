@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <TargetFramework>net10.0-android36.0</TargetFramework>
+    <SupportedOSPlatformVersion>24.0</SupportedOSPlatformVersion>
+    <OutputType>Exe</OutputType>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <ApplicationId>io.wasabiwallet.android.runtimeprobe</ApplicationId>
+    <ApplicationVersion>1</ApplicationVersion>
+    <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
+    <RuntimeIdentifiers>android-x64</RuntimeIdentifiers>
+    <UseMonoRuntime>true</UseMonoRuntime>
+    <UseInterpreter>false</UseInterpreter>
+    <UseNativeHttpHandler>false</UseNativeHttpHandler>
+    <PublishTrimmed>false</PublishTrimmed>
+    <PublishReadyToRun>false</PublishReadyToRun>
+    <RunAOTCompilation>false</RunAOTCompilation>
+    <EmbedAssembliesIntoApk>true</EmbedAssembliesIntoApk>
+    <AndroidUseAssemblyStore>false</AndroidUseAssemblyStore>
+    <AndroidEnableMarshalMethods>false</AndroidEnableMarshalMethods>
+    <AndroidPackageFormats>apk</AndroidPackageFormats>
+    <DefineConstants>$(DefineConstants);WASABI_RUNTIME_PROBE</DefineConstants>
+  </PropertyGroup>
+  <Import Project="../MonoRuntime.props" />
+  <ItemGroup Condition="'$(WasabiProbeRuntimeVersion)' != ''">
+    <FrameworkReference Update="Microsoft.NETCore.App" RuntimeFrameworkVersion="$(WasabiProbeRuntimeVersion)" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="NBitcoin" />
+    <PackageReference Include="WabiSabi" ExcludeAssets="native" />
+    <Compile Include="../../../WalletWasabi.Android/RuntimeProbe.cs" Link="RuntimeProbe.cs" />
+    <ProjectReference Include="../../../WalletWasabi/WalletWasabi.csproj" />
+  </ItemGroup>
+  <Import Project="../NativePageAlignment.targets" />
+</Project>

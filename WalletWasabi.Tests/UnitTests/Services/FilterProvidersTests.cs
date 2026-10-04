@@ -15,6 +15,89 @@ public class FilterProvidersTests(ITestOutputHelper output)
 	private static readonly byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
 
 	[Fact]
+	public async Task BitcoinRpcProvider_DoesNotRollBackRpcTipToStaleHeaderBranchAsync()
+	{
+		var headers = InitializeBlockchain(Network.Main);
+		var rpcTip = new uint256(987654UL);
+		var rpc = new MockRpcClient
+		{
+			Network = Network.Main,
+			OnGetBlockCountAsync = () => Task.FromResult(headers.Height),
+			OnGetBlockHashAsync = _ => Task.FromResult(rpcTip)
+		};
+		// The store already follows RPC's replacement tip. Stale P2P headers must
+		// not repeatedly remove and redownload that valid filter.
+		var result = await FilterProviders.CreateBitcoinRpcFilterProvider(rpc, headers)((uint)headers.Height, rpcTip, TestContext.Current.CancellationToken);
+		Assert.True(result.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value);
+	}
+
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task BitcoinRpcProvider_SameHeightChecksRpcTipWithStaleHeadersAsync(bool reorg)
+	{
+		var headers = InitializeBlockchain(Network.Main);
+		var storedTip = headers.Tip;
+		var rpcTip = reorg ? new uint256(987654UL) : storedTip.HashBlock;
+		var requestedHeight = -1;
+		var rpc = new MockRpcClient
+		{
+			Network = Network.Main,
+			OnGetBlockCountAsync = () => Task.FromResult(storedTip.Height),
+			OnGetBlockHashAsync = height => { requestedHeight = height; return Task.FromResult(rpcTip); }
+		};
+		// The P2P headers still describe the previous tip. RPC is the authoritative
+		// filter source and must detect a replacement with the same block count.
+		var provider = FilterProviders.CreateBitcoinRpcFilterProvider(rpc, headers);
+		var result = await provider((uint)storedTip.Height, storedTip.HashBlock, TestContext.Current.CancellationToken);
+		Assert.True(result.IsOk);
+		Assert.Equal(storedTip.Height, requestedHeight);
+		if (reorg) { Assert.IsType<FiltersResponse.BestBlockUnknown>(result.Value); }
+		else { Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value); }
+	}
+
+	[Fact]
+	public async Task BitcoinRpcProvider_WaitsForBatchContinuationsBeforeClassifyingReorgAsync()
+	{
+		var genesis = Network.Main.GetGenesis().GetHash();
+		var first = new TaskCompletionSource<uint256>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var next = new TaskCompletionSource<uint256>(TaskCreationOptions.RunContinuationsAsynchronously);
+		var sent = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var rpc = new MockRpcClient
+		{
+			Network = Network.Main,
+			OnGetBlockCountAsync = () => Task.FromResult(1),
+			OnGetBlockHashAsync = height => height == 0 ? first.Task : next.Task,
+			OnSendBatchAsync = () => { sent.TrySetResult(); return Task.CompletedTask; },
+			OnGetBlockFilterAsync = hash => Task.FromResult(CreateBlockFilter(hash))
+		};
+		var provider = FilterProviders.CreateBitcoinRpcFilterProvider(rpc, new ConcurrentChain(Network.Main));
+		var fetching = provider(0, genesis, TestContext.Current.CancellationToken);
+		await sent.Task.WaitAsync(TestContext.Current.CancellationToken);
+		try { Assert.False(fetching.IsCompleted, "Sending an RPC batch does not complete its parsing continuations."); }
+		finally { first.TrySetResult(genesis); next.TrySetResult(new uint256(1UL)); }
+		var result = await fetching;
+		Assert.True(result.IsOk);
+		Assert.Single(Assert.IsType<FiltersResponse.NewFiltersAvailable>(result.Value).Filters);
+	}
+
+	[Fact]
+	public async Task BitcoinRpcProvider_BatchTransportFailureRetriesWithoutRollbackAsync()
+	{
+		var genesis = Network.Main.GetGenesis().GetHash();
+		var rpc = new MockRpcClient
+		{
+			Network = Network.Main,
+			OnGetBlockCountAsync = () => Task.FromResult(1),
+			OnGetBlockHashAsync = _ => Task.FromException<uint256>(new System.Net.Http.HttpRequestException("Synthetic RPC connection failure."))
+		};
+		var result = await FilterProviders.CreateBitcoinRpcFilterProvider(rpc, new ConcurrentChain(Network.Main))(0, genesis, TestContext.Current.CancellationToken);
+		Assert.False(result.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(15), result.Error);
+	}
+
+	[Fact]
 	public async Task BitcoinRpcProvider_FetchesBoundedPageAndKeepsBestHeightAsync()
 	{
 		using CancellationTokenSource testCts = new(TimeSpan.FromMinutes(1));

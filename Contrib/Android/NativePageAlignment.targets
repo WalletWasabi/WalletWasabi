@@ -1,0 +1,25 @@
+<Project>
+  <!-- The pinned SDK passes max-page-size but omits common-page-size when
+       linking libxamarin-app.so. Reuse its exact response file and supported
+       linker, adding Android's documented RELRO page-size flag. No runtime
+       code, cryptography, or security flags are patched. -->
+  <Target Name="WasabiAlignNativeMetadata" AfterTargets="_CreateApplicationSharedLibraries"
+      Condition="'$(UseMonoRuntime)' == 'true' And '@(_ApplicationSharedLibrary)' != ''">
+    <PropertyGroup>
+      <_WasabiExecutableSuffix Condition="$([MSBuild]::IsOSPlatform('Windows'))">.exe</_WasabiExecutableSuffix>
+      <_WasabiNativeLinker>$([System.IO.Path]::Combine('$(AndroidBinUtilsDirectory)', 'ld$(_WasabiExecutableSuffix)'))</_WasabiNativeLinker>
+      <_WasabiNativeObjcopy>$([System.IO.Path]::Combine('$(AndroidBinUtilsDirectory)', 'llvm-objcopy$(_WasabiExecutableSuffix)'))</_WasabiNativeObjcopy>
+    </PropertyGroup>
+    <ItemGroup>
+      <_WasabiAlignedLibrary Include="@(_ApplicationSharedLibrary)">
+        <Response>$(IntermediateOutputPath)ld.libxamarin-app.%(_ApplicationSharedLibrary.abi).rsp</Response>
+        <Symbols>%(_ApplicationSharedLibrary.RootDir)%(_ApplicationSharedLibrary.Directory)%(_ApplicationSharedLibrary.Filename).dbg.so</Symbols>
+      </_WasabiAlignedLibrary>
+    </ItemGroup>
+    <Error Condition="!Exists('%(_WasabiAlignedLibrary.Response)')" Text="The pinned SDK native linker response file is missing. Requalify native page alignment before updating the SDK." />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Command="&quot;$(_WasabiNativeLinker)&quot; &quot;@%(_WasabiAlignedLibrary.Response)&quot; -z common-page-size=16384 -o &quot;%(_WasabiAlignedLibrary.Identity)&quot;" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Condition="'$(AndroidIncludeDebugSymbols)' != 'true'" Command="&quot;$(_WasabiNativeObjcopy)&quot; --only-keep-debug &quot;%(_WasabiAlignedLibrary.Identity)&quot; &quot;%(_WasabiAlignedLibrary.Symbols)&quot;" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Condition="'$(AndroidIncludeDebugSymbols)' != 'true'" Command="&quot;$(_WasabiNativeObjcopy)&quot; --strip-debug --strip-unneeded &quot;%(_WasabiAlignedLibrary.Identity)&quot;" />
+    <Exec WorkingDirectory="$(MSBuildProjectDirectory)" Condition="'$(AndroidIncludeDebugSymbols)' != 'true'" Command="&quot;$(_WasabiNativeObjcopy)&quot; &quot;--add-gnu-debuglink=%(_WasabiAlignedLibrary.Symbols)&quot; &quot;%(_WasabiAlignedLibrary.Identity)&quot;" />
+  </Target>
+</Project>

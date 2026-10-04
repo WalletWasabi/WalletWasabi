@@ -12,6 +12,9 @@ public static class DenominationBuilder
 		RandomnessProvider random) =>
 		CreateDenominationAmounts(minAllowedOutputAmount, maxAllowedOutputAmount)
 			.Select(denomination => Output.FromDenomination(denomination, allowedOutputTypes.RandomElement(random), feeRate))
+			// Each participant's histogram must use the same sampled script for
+			// an amount. Deferred sampling made equal denominations fail to match.
+			.ToArray()
 			.OrderByDescending(x => x.EffectiveAmount);
 
 	public static IReadOnlyList<Money> CreateDenominationAmounts(Money minAllowedOutputAmount, Money maxAllowedOutputAmount)

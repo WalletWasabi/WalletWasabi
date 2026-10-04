@@ -313,7 +313,7 @@ public class TransactionFactory
 			}
 		}
 
-		var sign = !KeyManager.IsWatchOnly;
+		var sign = !KeyManager.IsWatchOnly && parameters.TryToSign;
 
 		Logger.LogDebug($"Built tx: {totalOutgoingAmountNoFee.ToString(fplus: false, trimExcessZero: true)} BTC. Fee: {fee.Satoshi} sats. Vsize: {vSize} vBytes. Fee/Total ratio: {feePercentage:0.#}%. Tx hash: {tx.GetHash()}.");
 		return new BuildTransactionResult(smartTransaction, psbt, sign, fee, feePercentage, hdPubKeysWithNewLabels);

@@ -13,6 +13,7 @@ using Gma.QrCodeNet.Encoding;
 using NBitcoin;
 using System.Globalization;
 using System.Security.Cryptography;
+using Stopwatch = System.Diagnostics.Stopwatch;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Mobile;
@@ -22,7 +23,7 @@ using Orientation = Android.Widget.Orientation;
 
 namespace WalletWasabi.Android;
 
-[Activity(Name = "io.wasabiwallet.android.MainActivity", Label = "Wasabi Wallet", Theme = "@style/WasabiTheme", MainLauncher = true, Exported = true,
+[Activity(Name = "io.wasabiwallet.android.MainActivity", Label = AppIdentity.ApplicationLabel, Theme = "@style/WasabiTheme", MainLauncher = true, Exported = true,
 	LaunchMode = LaunchMode.SingleTask, ConfigurationChanges = ConfigChanges.Orientation | ConfigChanges.ScreenSize | ConfigChanges.UiMode)]
 [IntentFilter([Intent.ActionView], Categories = [Intent.CategoryDefault, Intent.CategoryBrowsable], DataScheme = "bitcoin")]
 public sealed class MainActivity : Activity
@@ -42,10 +43,14 @@ public sealed class MainActivity : Activity
 	private bool _busy;
 	private bool _externalFlow;
 	private bool _uiLocked = true;
+	private bool _authenticating;
+	private readonly CancellationTokenSource _activityLifetime = new();
 	private string _screen = "wallets";
-	private DateTime _lastInteraction = DateTime.UtcNow;
+	private long _lastInteraction = Stopwatch.GetTimestamp();
+	private long _uiGeneration;
+	private long? _workGeneration;
 	private Action<string>? _scanned;
-	private string? _exportPath;
+	private byte[]? _exportPayload;
 	private string? _importName;
 	private HashSet<OutPoint>? _selectedCoins;
 	private string _sendAddress = "";
@@ -55,6 +60,8 @@ public sealed class MainActivity : Activity
 	private bool _sendAll;
 
 	private WalletSession? Session => WalletRuntime.Session;
+	private WalletSession? _observedSession;
+	private CredentialVault Vault => new(this, WalletRuntime.DataDir(this));
 	private int Dp(float value) => (int)(value * Resources!.DisplayMetrics!.Density);
 
 	protected override void OnCreate(Bundle? savedInstanceState)
@@ -85,22 +92,26 @@ public sealed class MainActivity : Activity
 	{
 		base.OnResume();
 		_foreground = true;
-		_lastInteraction = DateTime.UtcNow;
+		WalletRuntime.InterfaceForeground = true;
+		_lastInteraction = Stopwatch.GetTimestamp();
 		if (Session is null && WalletRuntime.Error is null) { StartWalletService(); }
-		if (_uiLocked && !_externalFlow) { ShowWallets(); }
+		if (_uiLocked && !_externalFlow && !_authenticating) { ShowWallets(); }
 		_externalFlow = false;
 	}
 
 	protected override void OnStop()
 	{
 		_foreground = false;
-		if (!_externalFlow) { LockUi(); }
+		WalletRuntime.InterfaceForeground = false;
+		LockUi();
 		base.OnStop();
 	}
 
 	protected override void OnDestroy()
 	{
 		_refresh?.Dispose();
+		_activityLifetime.Cancel();
+		_activityLifetime.Dispose();
 		base.OnDestroy();
 	}
 
@@ -116,7 +127,7 @@ public sealed class MainActivity : Activity
 
 	public override bool DispatchTouchEvent(MotionEvent? e)
 	{
-		_lastInteraction = DateTime.UtcNow;
+		_lastInteraction = Stopwatch.GetTimestamp();
 		return base.DispatchTouchEvent(e);
 	}
 
@@ -131,19 +142,20 @@ public sealed class MainActivity : Activity
 
 	private void LockUi()
 	{
+		_uiGeneration++;
 		_uiLocked = true;
 		_selectedCoins = null;
 		ClearSendDraft();
-		_payment = null;
-		if (!_busy && Session is { IsMixing: false } session) { session.Lock(); }
+		Session?.Lock(preserveProposal: _authenticating);
 		ShowWallets();
 	}
 
 	private void Refresh()
 	{
 		if (IsFinishing || IsDestroyed || !_foreground) { return; }
-		if (!_busy && !_uiLocked && DateTime.UtcNow - _lastInteraction > TimeSpan.FromMinutes(2)) { LockUi(); }
+		if ((!_uiLocked || _screen is "create" or "backup" or "unlock") && Stopwatch.GetElapsedTime(_lastInteraction) > TimeSpan.FromMinutes(2)) { LockUi(); }
 		var session = Session;
+		if (_observedSession != session) { _observedSession = session; LockUi(); }
 		_status.Text = WalletRuntime.Error is { } error ? error
 			: session?.SynchronizationError is { } syncError ? syncError
 			: session is null || !session.IsReady ? $"●  Tor {WalletRuntime.Bootstrap}%"
@@ -158,6 +170,10 @@ public sealed class MainActivity : Activity
 
 	private void Screen(string title, string screen, Action? back = null)
 	{
+		// A completion queued before background/inactivity lock must not replace
+		// the locked screen with wallet details, even after the activity resumes.
+		if (screen != "wallets" && _workGeneration is { } generation && generation != _uiGeneration)
+		{ throw new System.OperationCanceledException("Unlock the wallet and try again."); }
 		_screen = screen;
 		_back = back;
 		_updateScreen = null;
@@ -167,7 +183,8 @@ public sealed class MainActivity : Activity
 		var header = Row();
 		if (back is not null) { header.AddView(Button("‹", back, false, 48), new LinearLayout.LayoutParams(Dp(48), Dp(48))); }
 		var heading = Text(title, 24, Color.White, true);
-		header.AddView(heading, new LinearLayout.LayoutParams(0, Dp(64), 1));
+		heading.SetMinHeight(Dp(64));
+		header.AddView(heading, new LinearLayout.LayoutParams(0, -2, 1));
 		_root.AddView(header);
 		var scroll = new ScrollView(this) { FillViewport = true };
 		_body = Column();
@@ -224,6 +241,46 @@ public sealed class MainActivity : Activity
 			_uiLocked = false;
 			if (_payment is not null) { ShowSend(); } else { ShowHome(); }
 		}));
+		if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
+		{
+			AddButton("Use device unlock", () => Work(async () =>
+			{
+				await WithDeviceAuthorization(wallet, "Unlock " + wallet.WalletName, _ => { if (_payment is not null) { ShowSend(); } else { ShowHome(); } return Task.CompletedTask; });
+			}), false);
+		}
+	}
+
+	private async Task WithDeviceAuthorization(Wallet wallet, string purpose, Func<string, Task> action)
+	{
+		var session = Session ?? throw new InvalidOperationException("Reconnect the wallet first.");
+		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(_activityLifetime.Token);
+		deadline.CancelAfter(TimeSpan.FromMinutes(1));
+		_authenticating = true;
+		try
+		{
+			var password = await Vault.RetrieveWalletPasswordAsync(WalletSession.WalletReference(wallet), purpose, deadline.Token);
+			// Device-credential confirmation can briefly put this activity behind the
+			// system lock screen. Resume only after our own activity is foreground.
+			for (var i = 0; !_foreground && i < 40; i++) { await Task.Delay(50, deadline.Token); }
+			if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and authorize again."); }
+			session.Unlock(wallet, password);
+			_workGeneration = _uiGeneration; // A fresh per-use device grant authorizes this resumed UI.
+			_lastInteraction = Stopwatch.GetTimestamp();
+			_uiLocked = false;
+			await action(password);
+		}
+		finally { _authenticating = false; }
+	}
+
+	private void AddAuthorization(string title, string purpose, Func<string, Task> action)
+	{
+		var wallet = Session?.Current ?? throw new InvalidOperationException("Unlock a wallet first.");
+		var password = Field("Confirm wallet password", true);
+		AddButton(title, () => Work(async () => { var secret = password.Text ?? ""; password.Text = ""; if (!_foreground || _uiLocked) { throw new System.OperationCanceledException("Unlock the wallet and review again."); } await action(secret); }));
+		if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
+		{
+			AddButton("Use device unlock", () => Work(() => WithDeviceAuthorization(wallet, purpose, action)), false);
+		}
 	}
 
 	private void ShowImport()
@@ -321,8 +378,8 @@ public sealed class MainActivity : Activity
 		var fiat = AddText("", 16, Muted);
 		Gap(24);
 		var actions = Row();
-		actions.AddView(Button("↑  Send", ShowSend), new LinearLayout.LayoutParams(0, Dp(60), 1) { MarginEnd = Dp(10) });
-		actions.AddView(Button("↓  Receive", ShowReceive, false), new LinearLayout.LayoutParams(0, Dp(60), 1));
+		actions.AddView(Button("↑  Send", ShowSend), new LinearLayout.LayoutParams(0, -2, 1) { MarginEnd = Dp(10) });
+		actions.AddView(Button("↓  Receive", ShowReceive, false), new LinearLayout.LayoutParams(0, -2, 1));
 		_body.AddView(actions);
 		Gap(24);
 		var privateCard = Card();
@@ -449,30 +506,28 @@ public sealed class MainActivity : Activity
 			var request = PaymentRequest.Parse(address.Text ?? "", Session!.Global.Network) with { Label = label.Text ?? "" };
 			var paymentAmount = all.Checked ? Money.Zero : string.IsNullOrWhiteSpace(amount.Text) && request.Amount is { } requested ? requested : PaymentRequest.ParseAmount(amount.Text ?? "");
 			if (!decimal.TryParse(fee.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var rate) || rate is < 1 or > 10000) { throw new FormatException("Use a fee rate between 1 and 10,000 sat/vB."); }
-			var preview = await Task.Run(() => Session.Preview(request, paymentAmount, new FeeRate(rate), _selectedCoins?.ToArray(), all.Checked));
+			var preview = await Task.Run(() => Session.PrepareAsync(request, paymentAmount, new FeeRate(rate), _selectedCoins?.ToArray(), all.Checked));
 			Screen("Review transaction", "review", ShowSend);
-			var sent = Money.Satoshis(preview.Transaction.Transaction.Outputs.Where(o => o.ScriptPubKey == request.Address.ScriptPubKey).Sum(o => o.Value.Satoshi));
+			var sent = Money.Satoshis(preview.AmountSatoshis);
 			AddText(sent.ToString(false, false) + " BTC", 32, Color.White, true);
 			AddText("TO", 12, Muted);
 			AddText(request.Address.ToString(), 15, Color.White).SetTextIsSelectable(true);
 			Gap(16);
-			AddText($"Network fee   {preview.Fee.Satoshi:N0} sats", 16, Muted);
-			AddText($"Total   {(sent + preview.Fee).ToString(false, false)} BTC", 18, Color.White);
-			AddText($"{preview.SpentCoins.Count()} inputs · {Session.Global.Network.Name}", 14, Muted);
-			var password = Field("Confirm wallet password", true);
-			AddButton("Confirm and send", () => Work(async () =>
+			AddText($"Network fee   {preview.FeeSatoshis:N0} sats", 16, Muted);
+			AddText($"Total   {Money.Satoshis(preview.TotalSatoshis).ToString(false, false)} BTC", 18, Color.White);
+			AddText($"{preview.Inputs.Length} inputs · {preview.Network}", 14, Muted);
+			AddAuthorization("Confirm and send", $"Send {sent.ToString(false, false)} BTC", async secret =>
 			{
-				var secret = password.Text ?? "";
-				password.Text = "";
 				using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
-				var transactionId = await Task.Run(() => Session!.SendAsync(preview, secret, timeout.Token));
-				Screen("Transaction sent", "sent", ShowHome);
-				AddText("✓", 72, Accent, true);
-				AddText("Waiting for confirmation", 24, Color.White, true);
+				var receipt = await Task.Run(() => Session!.ConfirmAsync(preview.Id, secret, timeout.Token));
+				var transactionId = receipt.TransactionId;
+				Screen(receipt.State == SubmissionState.Uncertain ? "Submission pending" : "Transaction sent", "sent", ShowHome);
+				AddText(receipt.State == SubmissionState.Uncertain ? "◷" : "✓", 72, Accent, true);
+				AddText(receipt.State == SubmissionState.Uncertain ? "Checking broadcast outcome" : "Waiting for confirmation", 24, Color.White, true);
 				AddText(transactionId, 14, Muted).SetTextIsSelectable(true);
 				AddButton("Copy transaction ID", () => Copy(transactionId), false);
 				AddButton("Done", ShowHome);
-			}));
+			});
 		}));
 	}
 
@@ -506,9 +561,23 @@ public sealed class MainActivity : Activity
 
 	private void ShowHistory() => Work(async () =>
 	{
-		var transactions = await Session!.Current!.BuildHistorySummaryAsync(true);
+		var session = Session!;
+		var wallet = session.Current!;
+		var transactions = await wallet.BuildHistorySummaryAsync(true);
+		if (!_foreground || !session.IsUnlocked || Session != session || session.Current != wallet) { return; }
+		var submissions = session.SubmissionHistory;
 		Screen("Transactions", "history", ShowHome);
-		if (transactions.Count == 0) { AddText("Your transactions will appear here", 20, Muted); }
+		if (transactions.Count == 0 && submissions.IsEmpty) { AddText("Your transactions will appear here", 20, Muted); }
+		foreach (var submission in submissions.Where(s => transactions.All(t => t.GetHash().ToString() != s.TransactionId)).OrderByDescending(s => s.CreatedAt))
+		{
+			var card = Column();
+			card.Background = Rounded(Surface);
+			card.SetPadding(Dp(16), Dp(16), Dp(16), Dp(16));
+			card.AddView(Text($"◷  {SubmissionTitle(submission.Operation)}    {Money.Satoshis(submission.AmountSatoshis).ToString(false, false)} BTC", 17, Color.White, true));
+			card.AddView(Text($"{submission.CreatedAt.LocalDateTime:g} · {SubmissionStateText(submission.State)}", 13, Muted));
+			card.Click += (_, _) => ShowSubmission(submission);
+			_body.AddView(card, new LinearLayout.LayoutParams(-1, -2) { BottomMargin = Dp(12) });
+		}
 		foreach (var transaction in transactions.OrderByDescending(t => t.FirstSeen))
 		{
 			var tx = transaction;
@@ -516,17 +585,32 @@ public sealed class MainActivity : Activity
 			card.Background = Rounded(Surface);
 			card.SetPadding(Dp(16), Dp(16), Dp(16), Dp(16));
 			card.AddView(Text($"{(tx.IsOwnCoinjoin() ? "◈  CoinJoin" : tx.Amount > Money.Zero ? "↓  Received" : "↑  Sent")}    {tx.Amount.ToString(false, false)} BTC", 17, tx.Amount > Money.Zero ? Accent : Color.White, true));
-			card.AddView(Text($"{tx.FirstSeen.LocalDateTime:g} · {(tx.Transaction.Confirmed ? "Confirmed" : "Pending")}", 13, Muted));
+			card.AddView(Text($"{tx.FirstSeen.LocalDateTime:g} · {TransactionState(tx)}", 13, Muted));
 			card.Click += (_, _) => ShowTransaction(tx);
 			_body.AddView(card, new LinearLayout.LayoutParams(-1, -2) { BottomMargin = Dp(12) });
 		}
 	});
+	private static string SubmissionTitle(PaymentOperation operation) => operation switch { PaymentOperation.Cancel => "Cancellation", PaymentOperation.SpeedUp => "Speed-up", _ => "Sent" };
+	private static string SubmissionStateText(SubmissionState state) => state == SubmissionState.Uncertain ? "Checking submission" : state.ToString();
+	private string TransactionState(TransactionSummary tx) => tx.Transaction.Confirmed ? "Confirmed"
+		: Session!.SubmissionHistory.FirstOrDefault(s => s.TransactionId == tx.GetHash().ToString()) is { } submission ? SubmissionStateText(submission.State) : "Pending";
+	private void ShowSubmission(SubmissionDetails submission)
+	{
+		Screen(SubmissionTitle(submission.Operation), "history", ShowHistory);
+		AddText(Money.Satoshis(submission.AmountSatoshis).ToString(false, false) + " BTC", 30, Color.White, true);
+		AddText(SubmissionStateText(submission.State), 16, Accent);
+		AddText(submission.TransactionId, 14, Muted).SetTextIsSelectable(true);
+		AddText($"Fee: {submission.FeeSatoshis:N0} sats", 16, Muted);
+		AddText($"Total: {Money.Satoshis(checked(submission.AmountSatoshis + submission.FeeSatoshis)).ToString(false, false)} BTC", 16, Muted);
+		foreach (var output in submission.Outputs.Where(o => !o.IsWalletOutput)) { AddText($"{Money.Satoshis(output.AmountSatoshis).ToString(false, false)} BTC\n{output.Address ?? output.ScriptHex}", 13, Muted); }
+		AddButton("Copy transaction ID", () => Copy(submission.TransactionId));
+	}
 
 	private void ShowTransaction(TransactionSummary tx)
 	{
 		Screen("Transaction details", "history", ShowHistory);
 		AddText(tx.Amount.ToString(false, false) + " BTC", 30, Color.White, true);
-		AddText(tx.Transaction.Confirmed ? "Confirmed" : "Pending", 16, Accent);
+		AddText(TransactionState(tx), 16, Accent);
 		Gap(20);
 		AddText("TRANSACTION ID", 12, Muted);
 		AddText(tx.GetHash().ToString(), 14, Color.White).SetTextIsSelectable(true);
@@ -534,12 +618,49 @@ public sealed class MainActivity : Activity
 		AddText("Label: " + tx.Labels, 16, Muted);
 		foreach (var output in tx.Transaction.Transaction.Outputs) { AddText($"{output.Value.ToString(false, false)} BTC\n{output.ScriptPubKey.GetDestinationAddress(Session!.Global.Network)}", 13, Muted); }
 		AddButton("Copy transaction ID", () => Copy(tx.GetHash().ToString()));
+		if (!tx.Transaction.Confirmed && !tx.IsOwnCoinjoin())
+		{
+			if (tx.Transaction.IsSpeedupable(Session!.Current!.KeyManager)) { AddButton("Speed up", () => ShowReplacement(tx, PaymentOperation.SpeedUp), false); }
+			if (tx.Transaction.IsCancellable(Session!.Current!.KeyManager)) { AddButton("Cancel payment", () => ShowReplacement(tx, PaymentOperation.Cancel), false); }
+		}
+	}
+
+	private void ShowReplacement(TransactionSummary transaction, PaymentOperation operation)
+	{
+		Screen(operation == PaymentOperation.SpeedUp ? "Speed up" : "Cancel payment", "replacement", () => ShowTransaction(transaction));
+		EditText? fee = operation == PaymentOperation.SpeedUp ? Field("New fee rate in sat/vB") : null;
+		if (fee is not null) { fee.InputType = InputTypes.ClassNumber | InputTypes.NumberFlagDecimal; fee.Text = "5"; }
+		AddButton("Review", () => Work(async () =>
+		{
+			FeeRate? rate = null;
+			if (fee is not null)
+			{
+				if (!decimal.TryParse(fee.Text, NumberStyles.AllowDecimalPoint, CultureInfo.InvariantCulture, out var value) || value is < 1 or > 10000) { throw new FormatException("Use a fee rate between 1 and 10,000 sat/vB."); }
+				rate = new FeeRate(value);
+			}
+			using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+			var proposal = await Session!.PrepareReplacementAsync(transaction.GetHash().ToString(), operation, rate, timeout.Token);
+			Screen(operation == PaymentOperation.SpeedUp ? "Review speed-up" : "Review cancellation", "review", () => ShowTransaction(transaction));
+			foreach (var output in proposal.Outputs.Where(o => !o.IsWalletOutput)) { AddText(Money.Satoshis(output.AmountSatoshis).ToString(false, false) + " BTC", 24, Color.White, true); AddText(output.Address ?? output.ScriptHex, 14, Muted).SetTextIsSelectable(true); }
+			if (proposal.AmountSatoshis == 0) { AddText(operation == PaymentOperation.Cancel ? "Return pending funds to this wallet" : "Add a transaction to accelerate confirmation", 22, Color.White, true); }
+			AddText($"Network fee   {proposal.FeeSatoshis:N0} sats", 18, Muted);
+			AddText($"Total   {Money.Satoshis(proposal.TotalSatoshis).ToString(false, false)} BTC", 18, Color.White);
+			AddAuthorization(operation == PaymentOperation.SpeedUp ? "Confirm speed-up" : "Confirm cancellation", "Authorize transaction replacement", async secret =>
+			{
+				using var submitTimeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
+				var receipt = await Session!.ConfirmAsync(proposal.Id, secret, submitTimeout.Token);
+				Screen("Submission pending", "sent", ShowHistory);
+				AddText("◷", 72, Accent, true);
+				AddText(receipt.TransactionId, 14, Muted).SetTextIsSelectable(true);
+				AddButton("Transaction history", ShowHistory);
+			});
+		}));
 	}
 
 	private void ShowPrivacy()
 	{
 		Screen("Privacy", "privacy", ShowHome);
-		var ring = new PrivacyRing(this) { Progress = Session!.Current!.GetPrivacyPercentage() };
+		var ring = new PrivacyRing(this) { Progress = Session!.Current!.GetPrivacyPercentage(), ContentDescription = $"Wallet privacy {Session.Current.GetPrivacyPercentage():N0} percent" };
 		_body.AddView(ring, new LinearLayout.LayoutParams(-1, Dp(180)));
 		AddText($"{Session.Current.GetPrivacyPercentage()}% private", 26, Color.White, true);
 		AddText(Session.Settings.Coordinator.Length == 0 ? "Set a coordinator in Settings to use CoinJoin." : Session.Settings.Coordinator, 14, Muted);
@@ -553,10 +674,25 @@ public sealed class MainActivity : Activity
 				using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 				await Session.StopCoinJoinAsync(timeout.Token);
 			}
-			else { Session.StartCoinJoin(); }
+			else
+			{
+				ShowCoinJoinAuthorization();
+				return;
+			}
 			ShowPrivacy();
 		}));
 		AddButton("Coordinator settings", ShowSettings, false);
+	}
+
+	private void ShowCoinJoinAuthorization()
+	{
+		Screen("Authorize CoinJoin", "privacy", ShowPrivacy);
+		AddText("Coordinator: " + Session!.Settings.Coordinator, 16, Muted);
+		AddAuthorization("Start CoinJoin", "Authorize CoinJoin", async secret =>
+		{
+			await Session!.StartCoinJoinAsync(secret);
+			ShowPrivacy();
+		});
 	}
 
 	private void ShowBackup()
@@ -578,27 +714,35 @@ public sealed class MainActivity : Activity
 				var recovered = await Task.Run(() => KeyManager.Recover(mnemonic, secret, Session.Global.Network, original.SegwitAccountKeyPath, original.TaprootAccountKeyPath));
 				words.Text = "";
 				password.Text = "";
-				if (recovered.SegwitExtPubKey != original.SegwitExtPubKey || original.TaprootExtPubKey is not null && recovered.TaprootExtPubKey != original.TaprootExtPubKey) { throw new InvalidOperationException("These words and passphrase belong to a different wallet."); }
+				try
+				{
+					if (recovered.SegwitExtPubKey != original.SegwitExtPubKey || original.TaprootExtPubKey is not null && recovered.TaprootExtPubKey != original.TaprootExtPubKey) { throw new InvalidOperationException("These words and passphrase belong to a different wallet."); }
+				}
+				finally { recovered.ClearCachedSecrets(); }
 				Alert("Backup verified.");
 			}));
 		});
 		AddButton("Export encrypted wallet file", () =>
 		{
-			Session!.Current!.KeyManager.ToFile();
-			_exportPath = Session.Current.KeyManager.FilePath;
-			_externalFlow = true;
-			var intent = new Intent(Intent.ActionCreateDocument).AddCategory(Intent.CategoryOpenable)!.SetType("application/json")!.PutExtra(Intent.ExtraTitle, Session.Current.WalletName + ".json");
-			StartActivityForResult(intent, 4);
+			Screen("Authorize backup", "backup", ShowBackup);
+			var name = Session!.Current!.WalletName;
+			AddAuthorization("Export encrypted backup", "Authorize wallet backup", async secret =>
+			{
+				_exportPayload = await Session!.ExportEncryptedBackupAsync(secret, _activityLifetime.Token);
+				_externalFlow = true;
+				var intent = new Intent(Intent.ActionCreateDocument).AddCategory(Intent.CategoryOpenable)!.SetType("application/json")!.PutExtra(Intent.ExtraTitle, name + ".json");
+				StartActivityForResult(intent, 4);
+			});
 		}, false);
 	}
 
 	private void ShowSettings()
 	{
 		Screen("Settings", "settings", Session?.IsUnlocked is true && !_uiLocked ? ShowHome : ShowWallets);
-		var settings = MobileSettings.Load(WalletRuntime.DataDir(this));
+		var settings = WalletRuntime.ReadSettings(this);
 		AddText("BITCOIN NETWORK", 12, Muted);
 		var network = new Spinner(this);
-		var names = new[] { "main", "testnet", "signet" };
+		var names = AppIdentity.IsPersonal ? new[] { "main", "testnet", "signet" } : new[] { "testnet", "signet" };
 		network.Adapter = new ArrayAdapter<string>(this, global::Android.Resource.Layout.SimpleSpinnerDropDownItem, names);
 		network.SetSelection(Array.IndexOf(names, settings.Network) is var index && index >= 0 ? index : 0);
 		_body.AddView(network, new LinearLayout.LayoutParams(-1, Dp(56)));
@@ -612,7 +756,9 @@ public sealed class MainActivity : Activity
 		var node = Field("RPC URL (optional onion or localhost)");
 		node.Text = settings.BitcoinRpcUri;
 		var credentials = Field("RPC user:password", true);
-		credentials.Text = settings.BitcoinRpcCredentials;
+		var clearCredentials = new CheckBox(this) { Text = "Remove saved RPC credentials", TextSize = 14 };
+		clearCredentials.SetTextColor(Muted);
+		_body.AddView(clearCredentials);
 		AddButton("Save and reconnect", () => Work(async () =>
 		{
 			if (Session?.IsMixing is true) { throw new InvalidOperationException("Stop CoinJoin before changing settings."); }
@@ -624,6 +770,9 @@ public sealed class MainActivity : Activity
 				BitcoinRpcUri = node.Text?.Trim() ?? "",
 				BitcoinRpcCredentials = credentials.Text ?? ""
 			};
+			updated.Validate();
+			if (clearCredentials.Checked || updated.BitcoinRpcUri.Length == 0) { Vault.StoreRpcCredentials(""); }
+			else if (updated.BitcoinRpcCredentials.Length > 0) { Vault.StoreRpcCredentials(updated.BitcoinRpcCredentials); }
 			updated.Save(WalletRuntime.DataDir(this));
 			credentials.Text = "";
 			await WalletRuntime.StopAsync();
@@ -631,8 +780,37 @@ public sealed class MainActivity : Activity
 			StartWalletService();
 			ShowWallets();
 		}));
+		if (Session?.Current is { } wallet && !_uiLocked)
+		{
+			Gap(24);
+			AddText("WALLET UNLOCKING", 12, Muted);
+			if (Vault.HasWalletPassword(WalletSession.WalletReference(wallet)))
+			{
+				AddButton("Remove device unlocking", () => { Vault.RemoveWalletPassword(WalletSession.WalletReference(wallet)); ShowSettings(); }, false);
+			}
+			else if (OperatingSystem.IsAndroidVersionAtLeast(30))
+			{
+				var original = Field("Original wallet password", true);
+				AddButton("Enable device unlocking", () => Work(async () =>
+				{
+					var session = Session!;
+					var secret = original.Text ?? "";
+					original.Text = "";
+					session.Unlock(wallet, secret);
+					_authenticating = true;
+					try { await Vault.EnrollWalletPasswordAsync(WalletSession.WalletReference(wallet), secret, _activityLifetime.Token); }
+					finally { _authenticating = false; }
+					if (!_foreground || Session != session) { throw new System.OperationCanceledException("Return to Wasabi and unlock again."); }
+					session.Unlock(wallet, secret);
+					_workGeneration = _uiGeneration;
+					_lastInteraction = Stopwatch.GetTimestamp();
+					_uiLocked = false;
+					ShowSettings();
+				}));
+			}
+		}
 		Gap(24);
-		AddText("Wasabi Wallet for Android · 0.1.0", 14, Muted);
+		AddText(AppIdentity.IsPersonal ? "Wasabi Wallet for Android · 0.2.0" : "Wasabi Wallet Test · 0.2.0", 14, Muted);
 		AddText("Tor 0.4.9.13 · Bitcoin keys and signing use the shared Wasabi engine.", 13, Muted);
 		AddButton("Open-source licenses", () => Work(async () =>
 		{
@@ -665,16 +843,24 @@ public sealed class MainActivity : Activity
 	protected override void OnActivityResult(int requestCode, Result resultCode, Intent? data)
 	{
 		base.OnActivityResult(requestCode, resultCode, data);
-		if (resultCode != Result.Ok) { return; }
-		if (requestCode == 3 && data?.GetStringExtra("payment") is { } payment) { try { _scanned?.Invoke(payment); } catch (Exception ex) { Alert(ex.Message); } }
-		if (requestCode == 4 && data?.Data is { } uri && _exportPath is { } path)
+		if (resultCode != Result.Ok) { if (requestCode == 4) { _exportPayload = null; } if (requestCode == 5) { _importName = null; } return; }
+		if (requestCode == 3 && data?.GetStringExtra("payment") is { } payment)
+		{
+			try
+			{
+				_ = PaymentRequest.Parse(payment, Session?.Global.Network ?? WalletRuntime.ReadSettings(this).GetNetwork());
+				_payment = payment;
+				if (!_uiLocked) { ShowSend(); } else { ShowWallets(); }
+			}
+			catch (Exception ex) { Alert(ex.Message); }
+		}
+		if (requestCode == 4 && data?.Data is { } uri && _exportPayload is { } payload)
 		{
 			Work(async () =>
 			{
-				await using var source = File.OpenRead(path);
 				await using var target = ContentResolver!.OpenOutputStream(uri, "wt") ?? throw new IOException("Could not open the backup destination.");
-				await source.CopyToAsync(target);
-				_exportPath = null;
+				try { await target.WriteAsync(payload); }
+				finally { _exportPayload = null; }
 				Alert("Encrypted wallet exported. Keep your recovery words and password too.");
 			});
 		}
@@ -703,9 +889,16 @@ public sealed class MainActivity : Activity
 	{
 		if (_busy) { return; }
 		_busy = true;
+		_workGeneration = _uiGeneration;
 		try { await action(); }
-		catch (Exception ex) { if (!IsFinishing) { Alert(ex.Message); } }
-		finally { _busy = false; if (!_foreground && !_externalFlow) { LockUi(); } }
+		catch (Exception ex) { if (!IsFinishing && _foreground && _workGeneration == _uiGeneration) { Alert(ex.Message); } }
+		finally
+		{
+			var lockedDuringOperation = _workGeneration != _uiGeneration;
+			_workGeneration = null;
+			_busy = false;
+			if (lockedDuringOperation || !_foreground && !_externalFlow) { LockUi(); }
+		}
 	}
 
 	private void Alert(string message) => new AlertDialog.Builder(this).SetTitle("Wasabi Wallet")!.SetMessage(message)!.SetPositiveButton("OK", (_, _) => { })!.Show();
@@ -760,10 +953,11 @@ public sealed class MainActivity : Activity
 		button.SetTextColor(primary ? Background : Color.White);
 		button.Background = Rounded(primary ? Accent : Surface);
 		button.SetPadding(Dp(12), Dp(12), Dp(12), Dp(12));
-		button.Click += (_, _) => { _lastInteraction = DateTime.UtcNow; if (!_busy) { action(); } };
+		button.Click += (_, _) => { _lastInteraction = Stopwatch.GetTimestamp(); if (!_busy) { action(); } };
+		if (value == "‹") { button.ContentDescription = "Back"; }
 		return button;
 	}
-	private void AddButton(string value, Action action, bool primary = true) => _body.AddView(Button(value, action, primary), new LinearLayout.LayoutParams(-1, Dp(58)) { TopMargin = Dp(12) });
+	private void AddButton(string value, Action action, bool primary = true) => _body.AddView(Button(value, action, primary), new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12) });
 	private EditText Field(string hint, bool secret = false)
 	{
 		var field = new EditText(this) { Hint = hint, TextSize = 16, InputType = secret ? InputTypes.ClassText | InputTypes.TextVariationPassword : InputTypes.ClassText | InputTypes.TextFlagNoSuggestions };
@@ -773,8 +967,9 @@ public sealed class MainActivity : Activity
 		field.SetHintTextColor(Muted);
 		field.SetPadding(Dp(14), Dp(12), Dp(14), Dp(12));
 		field.Background = Rounded(Surface);
-		field.TextChanged += (_, _) => _lastInteraction = DateTime.UtcNow;
-		_body.AddView(field, new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12), BottomMargin = Dp(12), Height = Dp(64) });
+		field.TextChanged += (_, _) => _lastInteraction = Stopwatch.GetTimestamp();
+		field.SetMinHeight(Dp(64));
+		_body.AddView(field, new LinearLayout.LayoutParams(-1, -2) { TopMargin = Dp(12), BottomMargin = Dp(12) });
 		return field;
 	}
 	private void Gap(int height) => _body.AddView(new View(this), new LinearLayout.LayoutParams(1, Dp(height)));

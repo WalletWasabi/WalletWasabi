@@ -43,7 +43,11 @@ public class SynchronizerReorgTests(ITestOutputHelper output)
 		Proof($"RPC  filters={fork.Orphan.ToString()[..8]}…  headers={fork.Winner.ToString()[..8]}…  height={fork.Height}");
 
 		var result = await FilterProviders
-			.CreateBitcoinRpcFilterProvider(new MockRpcClient(), fork.BlockHeaders)
+			.CreateBitcoinRpcFilterProvider(new MockRpcClient
+			{
+				OnGetBlockCountAsync = () => Task.FromResult((int)fork.Height),
+				OnGetBlockHashAsync = _ => Task.FromResult(fork.Winner)
+			}, fork.BlockHeaders)
 			(fork.Height, fork.Orphan, CancellationToken.None);
 
 		Proof($"RPC  got {Describe(result)}  want BestBlockUnknown");

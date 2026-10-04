@@ -31,7 +31,8 @@ public class CoinJoinClient
 		InputVerifier verifyInputsExistance,
 		LiquidityClueProvider liquidityClueProvider,
 		TimeSpan doNotRegisterInLastMinuteTimeLimit = default,
-		int minAnonScoreForPayments = 0)
+		int minAnonScoreForPayments = 0,
+		ICoinJoinCheckpointStore? checkpoints = null)
 	{
 		ArenaRequestHandlerFactory = arenaRequestHandlerFactory;
 		_keyChain = keyChain;
@@ -44,6 +45,7 @@ public class CoinJoinClient
 		_secureRandom = SecureRandom.Instance;
 		_doNotRegisterInLastMinuteTimeLimit = doNotRegisterInLastMinuteTimeLimit;
 		_minAnonScoreForPayments = minAnonScoreForPayments;
+		_checkpoints = checkpoints;
 	}
 
 	public event EventHandler<CoinJoinProgressEventArgs>? CoinJoinClientProgress;
@@ -51,6 +53,7 @@ public class CoinJoinClient
 	public ImmutableList<SmartCoin> CoinsInCriticalPhase { get; private set; } = [];
 
 	private readonly SecureRandom _secureRandom;
+	private readonly ICoinJoinCheckpointStore? _checkpoints;
 	private Func<string, IWabiSabiApiRequestHandler> ArenaRequestHandlerFactory { get; }
 	private readonly IKeyChain _keyChain;
 	private readonly OutputProvider _outputProvider;
@@ -151,7 +154,7 @@ public class CoinJoinClient
 				}
 			}
 
-			coinCandidates = coinCandidatesFunc();
+			coinCandidates = coinCandidatesFunc().Where(c => _checkpoints?.IsReserved(c.Outpoint) is not true);
 
 			var liquidityClue = _liquidityClueProvider.GetLiquidityClue(roundParameters.MaxSuggestedAmount);
 			var utxoSelectionParameters = UtxoSelectionParameters.FromRoundParameters(roundParameters, _outputProvider.DestinationProvider.SupportedScriptTypes.ToArray());
@@ -234,6 +237,7 @@ public class CoinJoinClient
 	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
+		_checkpoints?.BeginRound(roundId, mySmartCoins.Select(c => c.Outpoint));
 
 		// the task is watching if the round ends during operations. If it does it will trigger cancellation.
 		using CancellationTokenSource waitRoundEndedTaskCts = new();
@@ -348,6 +352,7 @@ public class CoinJoinClient
 			}
 
 			CoinJoinClientProgress.SafeInvoke(this, new LeavingCriticalPhase());
+			_checkpoints?.EndRound(roundId, roundState.EndRoundState);
 			CoinJoinClientProgress.SafeInvoke(this, new RoundEnded(roundState));
 		}
 	}
@@ -929,6 +934,7 @@ public class CoinJoinClient
 		// Once our last witness reaches the coordinator it can broadcast the transaction, whether or not
 		// we get to know it: the response can be lost, the round can be cancelled, the app can be closed.
 		// So the payments have to leave the in-progress state.
+		if (alicesToSign.Length > 0) { _checkpoints?.BeforeSigning(roundState.Id, unsignedCoinJoin.Transaction.GetHash()); }
 		if (mustSignAllInputs)
 		{
 			CoinJoinClientProgress.SafeInvoke(this, new TransactionSigned(unsignedCoinJoin.Transaction.GetHash()));

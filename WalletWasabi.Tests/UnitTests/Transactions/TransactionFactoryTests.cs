@@ -23,6 +23,18 @@ namespace WalletWasabi.Tests.UnitTests.Transactions;
 public class TransactionFactoryTests
 {
 	[Fact]
+	public void UnsignedPreparationDoesNotReportOrContainSignatures()
+	{
+		var factory = ServiceFactory.CreateTransactionFactory(new[] { ("Alice", 0, 0.08m, confirmed: true, anonymitySet: 1) });
+		using var destination = new Key();
+		var parameters = CreateBuilder().SetPayment(new PaymentIntent(destination, Money.Coins(0.02m))).Build() with { TryToSign = false };
+		var result = factory.BuildTransaction(parameters);
+		Assert.False(result.Signed);
+		Assert.All(result.Transaction.Transaction.Inputs, input => Assert.Equal(WitScript.Empty, input.WitScript));
+		Assert.All(result.Psbt.Inputs, input => { Assert.Empty(input.PartialSigs); Assert.Null(input.FinalScriptWitness); });
+	}
+
+	[Fact]
 	public void InsufficientBalance()
 	{
 		var transactionFactory = ServiceFactory.CreateTransactionFactory(

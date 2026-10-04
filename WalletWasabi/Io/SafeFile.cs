@@ -35,17 +35,16 @@ public static class SafeFile
 			IoHelpers.EnsureContainingDirectoryExists(newFilePath);
 
 			write(newFilePath);
+			// Close() alone does not make a wallet or broadcast journal durable.
+			using (var pending = new FileStream(newFilePath, FileMode.Open, FileAccess.ReadWrite, FileShare.Read)) { pending.Flush(flushToDisk: true); }
 			if (File.Exists(filePath))
 			{
-				if (File.Exists(oldFilePath))
-				{
-					File.Delete(oldFilePath);
-				}
-
-				File.Move(filePath, oldFilePath);
+				File.Copy(filePath, oldFilePath, overwrite: true);
 			}
 
-			File.Move(newFilePath, filePath);
+			// Replace in one rename: the live path always names a complete version.
+			File.Move(newFilePath, filePath, overwrite: true);
+			DirectoryDurability.FlushContainingDirectory(filePath);
 
 			if (File.Exists(oldFilePath))
 			{
@@ -67,6 +66,7 @@ public static class SafeFile
 					(true, _, true) => oldFilePath,
 					// If foo.data and foo.data.old exist, then foo.data should be fine, but again something went wrong, or possibly the file could not be deleted.
 					(_, true, _) => filePath,
+					(true, false, false) => oldFilePath,
 					_ => throw new InvalidOperationException($"No safe version was found for {filePath}")
 				};
 

@@ -15,6 +15,33 @@ public class AmountDecomposerTests
 {
 	private static readonly RandomnessProvider Random = RandomExtensions.CreateSeeded(seed: 0);
 
+	[Fact]
+	public void DenominationsDoNotResampleOutputScriptsDuringEnumeration()
+	{
+		var denominations = DenominationBuilder.CreateDenominations(Money.Satoshis(5000), Money.Coins(1),
+			new FeeRate(2m), [ScriptType.Taproot, ScriptType.P2WPKH], RandomExtensions.CreateSeeded(0));
+		// The frequency histogram enumerates these for each participant. If the
+		// scripts change, matching amounts appear as unrelated denominations.
+		Assert.Equal(denominations.ToArray(), denominations.ToArray());
+	}
+
+	[Theory]
+	[InlineData(0)]
+	[InlineData(1)]
+	[InlineData(2)]
+	[InlineData(3)]
+	[InlineData(80)]
+	public void TwoIndependentParticipantsKeepFundsAndOutputLimits(int seed)
+	{
+		var inputs = new[] { Money.Satoshis(39_999_884), Money.Satoshis(49_999_884) };
+		var decomposer = new AmountDecomposer(new FeeRate(2m), Money.Satoshis(5000), Money.Coins(1), 310,
+			[ScriptType.Taproot, ScriptType.P2WPKH], RandomExtensions.CreateSeeded(seed));
+		var outputs = decomposer.Decompose(inputs[0], inputs).ToArray();
+		Assert.NotEmpty(outputs);
+		Assert.InRange(outputs.Sum(o => o.EffectiveCost.Satoshi), inputs[0].Satoshi - 5086, inputs[0].Satoshi);
+		Assert.InRange(outputs.Sum(o => o.ScriptType.EstimateOutputVsize()), 1, 310);
+	}
+
 	[Theory]
 	[InlineData(0, 0, 8)]
 	[InlineData(0, 0, 1)]

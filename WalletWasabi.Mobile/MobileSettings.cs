@@ -1,14 +1,18 @@
 using NBitcoin;
 using System.Text.Json;
+using System.Text.Json.Serialization;
+using System.Text;
+using WalletWasabi.Io;
 
 namespace WalletWasabi.Mobile;
 
 public sealed record MobileSettings
 {
-	public string Network { get; init; } = "main";
+	public string Network { get; init; } = "testnet";
 	public string Coordinator { get; init; } = "";
 	public string CoordinatorIdentifier { get; init; } = "CoinJoinCoordinatorIdentifier";
 	public string BitcoinRpcUri { get; init; } = "";
+	[JsonIgnore]
 	public string BitcoinRpcCredentials { get; init; } = "";
 
 	public Network GetNetwork() => Network.ToLowerInvariant() switch
@@ -53,10 +57,10 @@ public sealed record MobileSettings
 		}
 	}
 
-	public static MobileSettings Load(string dataDir)
+	public static MobileSettings Load(string dataDir, MobileSettings? defaults = null)
 	{
 		var path = Path.Combine(dataDir, "mobile-settings.json");
-		var settings = File.Exists(path) ? JsonSerializer.Deserialize<MobileSettings>(File.ReadAllText(path)) ?? throw new FormatException("Invalid settings.") : new();
+		var settings = File.Exists(path) || File.Exists(path + ".old") ? JsonSerializer.Deserialize<MobileSettings>(File.SafelyReadAllText(path, Encoding.UTF8)) ?? throw new FormatException("Invalid settings.") : defaults ?? new();
 		settings.Validate();
 		return settings;
 	}
@@ -66,7 +70,6 @@ public sealed record MobileSettings
 		Validate();
 		Directory.CreateDirectory(dataDir);
 		var path = Path.Combine(dataDir, "mobile-settings.json");
-		File.WriteAllText(path + ".new", JsonSerializer.Serialize(this));
-		File.Move(path + ".new", path, true);
+		File.SafelyWriteAllText(path, JsonSerializer.Serialize(this), Encoding.UTF8);
 	}
 }

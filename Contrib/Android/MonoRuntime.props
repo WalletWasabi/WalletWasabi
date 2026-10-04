@@ -1,0 +1,10 @@
+<Project>
+  <PropertyGroup>
+    <WasabiMonoRuntimeVersion>10.0.12</WasabiMonoRuntimeVersion>
+  </PropertyGroup>
+  <!-- Pin only the .NET servicing runtime. A global RuntimeFrameworkVersion
+       would incorrectly apply the .NET version to the Android workload packs. -->
+  <ItemGroup>
+    <FrameworkReference Update="Microsoft.NETCore.App" RuntimeFrameworkVersion="$(WasabiMonoRuntimeVersion)" />
+  </ItemGroup>
+</Project>
