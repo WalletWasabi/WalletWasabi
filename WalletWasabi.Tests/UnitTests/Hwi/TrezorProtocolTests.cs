@@ -273,6 +273,21 @@ public class TrezorProtocolTests
 		// A mixed selection (the GUI's automatic coin selection produces those) is narrowed to one account.
 		var narrowedResult = factory.BuildTransaction(Parameters(0.5m, [segwitCoin.Outpoint, slip25Coin.Outpoint]));
 		Assert.Single(narrowedResult.SpentCoins.Select(coin => coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()).Distinct());
+
+		// The segwit coin covers the amount but not its fee: the coinjoin account pays instead of the build failing.
+		var feeEdgeResult = factory.BuildTransaction(Parameters(1.0m));
+		Assert.All(feeEdgeResult.SpentCoins, coin => Assert.True(coin.HdPubKey.FullKeyPath.IsSlip25KeyPath()));
+
+		// Sending everything needs both accounts, and "everything" must not quietly become one account's coins.
+		var sendAll = new TransactionParameters(
+			PaymentIntent: new PaymentIntent(destinationKey.GetScriptPubKey(ScriptPubKeyType.Segwit), MoneyRequest.CreateAllRemaining(subtractFee: true)),
+			FeeRate: new FeeRate(2m),
+			AllowUnconfirmed: true,
+			AllowDoubleSpend: false,
+			AllowedInputs: [segwitCoin.Outpoint, slip25Coin.Outpoint],
+			TryToSign: false,
+			OverrideFeeOverpaymentProtection: false);
+		Assert.Throws<InvalidOperationException>(() => factory.BuildTransaction(sendAll));
 	}
 
 	/// <summary>
