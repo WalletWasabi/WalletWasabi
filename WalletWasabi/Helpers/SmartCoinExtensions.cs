@@ -1,5 +1,3 @@
-using WalletWasabi.Blockchain.TransactionOutputs;
-
 namespace WalletWasabi.Helpers;
 
 public static class SmartCoinExtensions
