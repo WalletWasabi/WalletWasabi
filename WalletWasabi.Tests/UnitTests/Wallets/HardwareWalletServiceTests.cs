@@ -68,6 +68,19 @@ public class HardwareWalletServiceTests
 	}
 
 	[Fact]
+	public void AddingTheCoinJoinAccountRescansFromTheWalletBirth()
+	{
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: false);
+		var birthHeight = keyManager.GetBirthHeight();
+		keyManager.SetBestHeight(900_000u, toFile: false);
+
+		var coinJoinAccountKeyPath = Slip25.GetCoinJoinAccountKeyPath(Network.Main);
+		keyManager.SetCoinJoinAccount(coinJoinAccountKeyPath, TestKeyManagers.MasterKey.Derive(coinJoinAccountKeyPath).Neuter());
+
+		Assert.Equal(birthHeight, keyManager.GetBestHeight());
+	}
+
+	[Fact]
 	public async Task EnablingCoinJoinOnASoftwareWalletIsRefusedAsync()
 	{
 		using var service = new HardwareWalletService(Network.Main);
