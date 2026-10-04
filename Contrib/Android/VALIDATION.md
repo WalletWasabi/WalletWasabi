@@ -39,11 +39,27 @@ Visual QA screenshots are in `artifacts/android/launcher.png` and `receive.png`.
 The screenshots come from a dedicated Debug build with test-only screenshot access;
 the distributed Release package blocks screenshots.
 
+## Independent CI verification
+
+[GitHub run 37173987041](https://github.com/nopara73/WalletWasabi/actions/runs/37173987041)
+passed on Linux at source commit `419332cfbe4e5161d38cdf85cb6d8ad2a599dacc`.
+It passed all 29 mobile tests, built both APK configurations, and passed all three
+device suites on a fresh API 35 x86_64 emulator. The CoinJoin transaction was
+broadcast and confirmed; both independent participants completed the round.
+The development APK and device logs are retained as workflow artifacts.
+
+Earlier run 37171537798 failed before tests because the runner lacked KVM access;
+the workflow now verifies hardware acceleration. Run 37172782782 passed the wallet
+suite but timed out after the Android participant exited during output registration.
+That trial did not retain the private engine log, so its underlying cause remains
+unverified. The next run passed without changing wallet or protocol code. The
+fixture now retains private engine diagnostics for future failures; the passing run
+does not erase the earlier timeout or establish production reliability.
+
 ## Release limits
 
 This is a development-signed 0.1.0 APK, not an independently audited production
 release. .NET 10 CoreCLR on Android is experimental. Physical ARM devices, store
 distribution, hardware-wallet signing, real-funds mainnet payments, and real-world
-CoinJoin anonymity have not been verified. A configured GitHub workflow is not a
-confirmed successful remote CI run. See [README.md](README.md) for build, operation,
+CoinJoin anonymity have not been verified. See [README.md](README.md) for build, operation,
 test commands, supported features, and additional platform limits.
