@@ -87,7 +87,11 @@ try {
         }
         $taskResult = & adb -s $Serial shell am instrument -w -e mode $taskMode 'io.wasabiwallet.android/io.wasabiwallet.android.WalletInstrumentation' 2>&1
         $taskResult | Set-Content -LiteralPath (Join-Path $taskRun "$taskMode.log")
-        if (($taskResult -join "`n") -notmatch "PASS: $taskMode Android integration") { throw "Android $taskMode integration failed. See $taskRun/$taskMode.log" }
+        if (($taskResult -join "`n") -notmatch "PASS: $taskMode Android integration") {
+            $taskResult | Write-Output
+            & adb -s $Serial logcat -d -t 2000 | Set-Content -LiteralPath (Join-Path $taskRun 'android-logcat.log')
+            throw "Android $taskMode integration failed. See $taskRun/$taskMode.log"
+        }
         if ($taskMode -eq 'coinjoin') {
             $taskParticipantDeadline = [DateTime]::UtcNow.AddSeconds(30)
             while (!(Test-Path -LiteralPath (Join-Path $taskRun 'participant/completed.txt')) -and [DateTime]::UtcNow -lt $taskParticipantDeadline -and !$taskParticipant.HasExited) { Start-Sleep -Milliseconds 250 }

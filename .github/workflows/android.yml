@@ -31,7 +31,13 @@ jobs:
       - name: Android toolchain
         run: |
           dotnet workload install android
-          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0'
+          "$ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' emulator
+      - name: Emulator acceleration
+        run: |
+          # Grant only this disposable runner access to its virtualization device.
+          sudo chown "$(id -u):$(id -g)" /dev/kvm
+          test -r /dev/kvm && test -w /dev/kvm
+          "$ANDROID_HOME/emulator/emulator" -accel-check
       - name: Pinned Android dependencies
         shell: pwsh
         run: |
@@ -55,4 +61,14 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
+          disable-linux-hw-accel: false
+          emulator-boot-timeout: 300
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on
           script: pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore
+      - name: Device verification logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-device-logs
+          path: artifacts/android/device-*/**/*.log
+          if-no-files-found: ignore
