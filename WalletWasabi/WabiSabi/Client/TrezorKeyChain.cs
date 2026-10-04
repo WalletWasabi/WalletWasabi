@@ -31,6 +31,9 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 	/// <summary>The cap the device was authorized with; set by the authorization, so it never drifts from what the device enforces.</summary>
 	public FeeRate? MaxMiningFeeRate { get; internal set; }
 
+	/// <summary>Set when the device fails a preauthorized call, cleared by the next authorization.</summary>
+	public bool NeedsAuthorization { get; internal set; }
+
 	/// <summary>The device has to be asked, and it verifies every foreign input of the round before it signs.</summary>
 	public bool SigningTakesTime => true;
 
@@ -42,10 +45,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 		var keyPath = _keyManager.TryGetKeyPath(destination.ScriptPubKey)
 			?? throw new InvalidOperationException($"The key path for '{destination.ScriptPubKey}' was not found.");
 		_roundCommitmentData = commitmentData.ToBytes();
-		byte[] proof = Device
-			.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), CancellationToken.None)
-			.GetAwaiter()
-			.GetResult();
+		byte[] proof = WhileAuthorized(() => Device.GetOwnershipProofAsync(keyPath, _roundCommitmentData, _keyManager.GetNetwork(), CancellationToken.None));
 
 		return OwnershipProof.FromBytes(proof);
 	}
@@ -116,10 +116,7 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			})
 			.ToList();
 
-		var signatures = Device
-			.SignCoinJoinAsync(inputs, outputs, transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, CancellationToken.None)
-			.GetAwaiter()
-			.GetResult();
+		var signatures = WhileAuthorized(() => Device.SignCoinJoinAsync(inputs, outputs, transaction.Version, transaction.LockTime.Value, MinRegistrableAmount, network, CancellationToken.None));
 
 		return signatures.ToDictionary(
 			signature => transaction.Inputs[signature.Key].PrevOut,
@@ -129,6 +126,20 @@ public class TrezorKeyChain : IKeyChain, IDisposable
 			unsignedCoinJoin.OwnershipProofs.TryGetValue(outpoint, out var proof)
 				? proof.ToBytes()
 				: throw new InvalidOperationException($"The ownership proof of the foreign input '{outpoint}' was not found.");
+	}
+
+	/// <summary>A preauthorized call fails once the authorization is spent or the session is gone, and it will keep failing until the device authorizes again.</summary>
+	private T WhileAuthorized<T>(Func<Task<T>> deviceCall)
+	{
+		try
+		{
+			return deviceCall().GetAwaiter().GetResult();
+		}
+		catch (TrezorException)
+		{
+			NeedsAuthorization = true;
+			throw;
+		}
 	}
 
 	public void Dispose()
