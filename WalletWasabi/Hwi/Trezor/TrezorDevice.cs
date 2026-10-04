@@ -432,8 +432,9 @@ public class TrezorDevice : IDisposable
 	private static TrezorException UnexpectedMessage(TrezorMessage response, TrezorMessageType expected) =>
 		new($"Unexpected message '{response.MessageType}' from Trezor, expected '{expected}'.");
 
-	private static string GetCoinName(Network network) =>
-		network == Network.Main ? "Bitcoin" : network == Network.TestNet ? "Testnet" : "Regtest";
+	/// <summary>Trezor has no signet coin: signet uses testnet addresses (tb1), while its Regtest coin speaks bcrt1.</summary>
+	internal static string GetCoinName(Network network) =>
+		network == Network.Main ? "Bitcoin" : network == Network.RegTest ? "Regtest" : "Testnet";
 
 	/// <summary>
 	/// Whether the bridge session this device was acquired with still answers; a restarted bridge forgets it
