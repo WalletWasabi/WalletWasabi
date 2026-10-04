@@ -1,4 +1,9 @@
 using System.Threading;
+using NBitcoin;
+using WalletWasabi.Blockchain.Analysis.Clustering;
+using WalletWasabi.Blockchain.Keys;
+using WalletWasabi.Crypto;
+using WalletWasabi.WabiSabi.Client;
 using System.Threading.Tasks;
 using WalletWasabi.Hwi.Trezor;
 using Xunit;
@@ -43,6 +48,21 @@ public class TrezorSessionTests
 		using var device = new TrezorDevice(transport);
 
 		await Assert.ThrowsAsync<TrezorException>(() => device.GetMasterFingerprintAsync(CancellationToken.None));
+	}
+
+	/// <summary>A spent authorization or a forgotten session fails every later round, so the key chain says it needs a new authorization.</summary>
+	[Fact]
+	public void AFailedPreauthorizedCallAsksForANewAuthorization()
+	{
+		using var transport = new ScriptedTransport(); // Nothing scripted: DoPreauthorized fails as on a forgotten session.
+		var keyManager = TestKeyManagers.WatchOnlyHardwareWallet(withCoinJoinAccount: true);
+		using var device = new TrezorDevice(transport);
+		using var keyChain = new TrezorKeyChain(device, keyManager);
+		var destination = keyManager.GetNextReceiveKey(new LabelsArray("test"), ScriptPubKeyType.TaprootBIP86).GetAddress(Network.Main);
+
+		Assert.False(((IKeyChain)keyChain).NeedsAuthorization);
+		Assert.Throws<TrezorException>(() => keyChain.GetOwnershipProof(destination, new CoinJoinInputCommitmentData("coordinator", uint256.One)));
+		Assert.True(((IKeyChain)keyChain).NeedsAuthorization);
 	}
 
 	[Fact]
