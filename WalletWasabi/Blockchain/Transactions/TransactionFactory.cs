@@ -102,7 +102,7 @@ public class TransactionFactory
 			}
 		}
 
-		allowedSmartCoinInputs = RestrictToSingleAccount(allowedSmartCoinInputs, totalAmount);
+		allowedSmartCoinInputs = RestrictToSingleAccount(allowedSmartCoinInputs, payments, parameters.FeeRate);
 
 		var builder = new TransactionBuilderWithSilentPaymentSupport(Network);
 		builder.SetCoinSelector(new SmartCoinSelector(allowedSmartCoinInputs));
@@ -318,7 +318,7 @@ public class TransactionFactory
 	/// A device unlocks the segwit and the SLIP-25 coinjoin account separately, so one transaction can only be
 	/// signed from one of them: never mix them.
 	/// </summary>
-	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, long totalAmount)
+	private List<SmartCoin> RestrictToSingleAccount(List<SmartCoin> allowedSmartCoinInputs, PaymentIntent payments, FeeRate feeRate)
 	{
 		if (!KeyManager.HasCoinJoinAccount)
 		{
@@ -332,14 +332,20 @@ public class TransactionFactory
 			return allowedSmartCoinInputs;
 		}
 
-		// Prefer the regular account so the coinjoined (private) coins stay untouched; fall back to the coinjoin account when only it covers the payment.
-		if (otherCoins.Sum(x => x.Amount.Satoshi) >= totalAmount)
+		// Sending everything would need both accounts. Otherwise prefer the regular account so the coinjoined (private)
+		// coins stay untouched, and fall back to the coinjoin account when only it covers the payment and its fee.
+		if (payments.ChangeStrategy != ChangeStrategy.AllRemainingCustom)
 		{
-			return otherCoins;
-		}
-		if (slip25Coins.Sum(x => x.Amount.Satoshi) >= totalAmount)
-		{
-			return slip25Coins;
+			// The outputs (payments and change) and the transaction overhead cost the same from either account; each coin pays for its own input.
+			var needed = payments.TotalAmount + feeRate.GetFee(10 + (payments.Requests.Count() + 1) * Constants.P2trOutputVirtualSize);
+			if (otherCoins.Sum(x => x.EffectiveValue(feeRate)) >= needed)
+			{
+				return otherCoins;
+			}
+			if (slip25Coins.Sum(x => x.EffectiveValue(feeRate)) >= needed)
+			{
+				return slip25Coins;
+			}
 		}
 
 		throw new InvalidOperationException("The amount spans both the regular and the coinjoin account, which cannot be spent in one transaction. Send a smaller amount or use two transactions.");
