@@ -623,7 +623,7 @@ public class WasabiJsonRpcService : IJsonRpcService
 
 	private void AssertWalletIsLoggedIn(Wallet activeWallet, string password)
 	{
-		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password, out _))
+		if (!activeWallet.IsLoggedIn && !activeWallet.TryLogin(password))
 		{
 			throw new Exception($"'{activeWallet.WalletName}' wallet requires the passphrase to start coinjoining.");
 		}
