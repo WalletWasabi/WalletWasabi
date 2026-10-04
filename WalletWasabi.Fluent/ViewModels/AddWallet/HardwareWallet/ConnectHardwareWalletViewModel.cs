@@ -105,6 +105,10 @@ public partial class ConnectHardwareWalletViewModel : RoutableViewModel
 			var result = await UiContext.HardwareWalletInterface.DetectAsync(cancel);
 			EvaluateDetectionResult(result, cancel);
 		}
+		catch (HardwareWalletException ex)
+		{
+			Message = ex.Message;
+		}
 		catch (Exception ex) when (ex is not OperationCanceledException)
 		{
 			Logger.LogError(ex);

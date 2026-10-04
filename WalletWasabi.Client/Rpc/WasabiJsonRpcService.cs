@@ -112,9 +112,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("enumeratedevices", initializable: false)]
 	public async Task<JsonRpcResultList> EnumerateDevicesAsync()
 	{
-		// Detection takes the device away from any transport we own, which would break a running coinjoin.
-		AssertNoDeviceCoinJoinInProgress();
-
 		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(1));
 		var devices = await Global.HardwareWallets.DetectAsync(cts.Token).ConfigureAwait(false);
 
@@ -137,7 +134,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 	[JsonRpcMethod("importhardwarewallet", initializable: false)]
 	public async Task<object> ImportHardwareWalletAsync(string walletName, bool enableCoinjoin = false)
 	{
-		AssertNoDeviceCoinJoinInProgress();
 		var walletFilePath = WalletGenerator.GetWalletFilePath(walletName, Global.WalletManager.WalletDirectories.WalletsDir);
 
 		var verifiedAddresses = new List<string>();
@@ -158,7 +154,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 	public async Task<object> EnableCoinJoinAsync()
 	{
 		var activeWallet = Guard.NotNull(nameof(ActiveWallet), ActiveWallet);
-		AssertNoDeviceCoinJoinInProgress();
 
 		var verifiedAddresses = new List<string>();
 		await Global.HardwareWallets.EnableCoinJoinAsync(activeWallet.KeyManager, new AddressCollector(verifiedAddresses), CancellationToken.None).ConfigureAwait(false);
@@ -255,22 +250,6 @@ public class WasabiJsonRpcService : IJsonRpcService
 		}
 
 		return [.. accounts];
-	}
-
-	/// <summary>Opening the device for an import steals the session a coinjoining wallet holds, killing its authorization mid-round; refuse instead.</summary>
-	private void AssertNoDeviceCoinJoinInProgress()
-	{
-		if (Global.HostedServices.GetOrDefault<CoinJoinManager>() is not { } coinJoinManager)
-		{
-			return;
-		}
-
-		var busy = Global.WalletManager.GetWallets()
-			.FirstOrDefault(w => w.KeyManager.HasCoinJoinAccount && coinJoinManager.GetCoinjoinClientState(w.WalletId) is not CoinJoinClientState.Idle);
-		if (busy is not null)
-		{
-			throw new InvalidOperationException($"Wallet '{busy.WalletName}' is coinjoining with its device. Stop it with stopcoinjoin first.");
-		}
 	}
 
 	/// <summary>Collects the addresses the device was asked to show, synchronously: a <see cref="Progress{T}"/> reports after the result would already be built.</summary>
