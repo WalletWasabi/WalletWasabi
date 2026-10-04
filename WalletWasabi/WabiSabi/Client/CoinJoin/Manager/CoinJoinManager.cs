@@ -52,6 +52,9 @@ public class CoinJoinManager : BackgroundService
 	private readonly MailboxProcessor<CoinJoinCommand> _mailboxProcessor;
 	private readonly CancellationTokenSource _stopCts = new();
 
+	/// <summary>The wallets whose device is asking for an authorization, with the start to resume once it agrees.</summary>
+	private readonly ConcurrentDictionary<WalletId, StartCoinJoinCommand> _pendingAuthorizations = new();
+
 	public CoinJoinClientState HighestCoinJoinClientState => _state.CoinJoinClientStates.Values.Any()
 		? _state.CoinJoinClientStates.Values.Select(x => x.CoinJoinClientState).MaxBy(s => (int)s)
 		: CoinJoinClientState.Idle;
@@ -224,19 +227,30 @@ public class CoinJoinManager : BackgroundService
 
 		// A device-signed wallet is watch-only until the device authorizes a batch of rounds, which also builds
 		// its key chain. The wait for the hold-to-confirm must not stall the command loop, so authorize in a
-		// task and re-post the command when done.
+		// task and re-post the command when done. A start while the device is already asking adds no second prompt.
 		if (NeedsDeviceAuthorization(walletToStart))
 		{
+			if (!_pendingAuthorizations.TryAdd(walletToStart.WalletId, startCommand))
+			{
+				return;
+			}
+
 			_ = Task.Run(
 				async () =>
 				{
 					try
 					{
 						await AuthorizeDeviceAsync(walletToStart, cancellationToken).ConfigureAwait(false);
-						_mailboxProcessor.Post(startCommand);
+
+						// A stop while the device was asking took the start away: the coinjoin stays stopped.
+						if (_pendingAuthorizations.TryRemove(walletToStart.WalletId, out var resume))
+						{
+							_mailboxProcessor.Post(resume);
+						}
 					}
 					catch (Exception ex)
 					{
+						_pendingAuthorizations.TryRemove(walletToStart.WalletId, out _);
 						Logger.LogWarning(FormatLog($"Coinjoin authorization failed: {ex.Message}", walletToStart));
 						NotifyCoinJoinStartError(walletToStart, CoinjoinError.DeviceAuthorizationFailed);
 					}
@@ -287,6 +301,7 @@ public class CoinJoinManager : BackgroundService
 		var walletToStop = stopCommand.Wallet;
 
 		var autoStartRemoved = TryRemoveTrackedAutoStart(_state.TrackedAutoStarts, walletToStop);
+		var authorizationAbandoned = _pendingAuthorizations.TryRemove(walletToStop.WalletId, out _);
 
 		if (_state.TrackedCoinJoins.TryGetValue(walletToStop.WalletId, out var coinJoinTrackerToStop))
 		{
@@ -296,7 +311,7 @@ public class CoinJoinManager : BackgroundService
 				Logger.LogWarning(FormatLog("Coinjoin is in critical phase, it cannot be stopped - it won't restart later.", walletToStop));
 			}
 		}
-		else if (autoStartRemoved)
+		else if (autoStartRemoved || authorizationAbandoned)
 		{
 			NotifyWalletStoppedCoinJoin(walletToStop);
 		}
