@@ -24,7 +24,18 @@ if ($ResumeFixture -and (!$taskRun.StartsWith((Join-Path $Repository 'artifacts/
 New-Item -ItemType Directory -Force -Path $taskRun | Out-Null
 $taskVerificationPath = Join-Path $taskRun 'verification.json'
 if ($ResumeFixture -and (Test-Path -LiteralPath $taskVerificationPath)) {
-    Copy-Item -LiteralPath $taskVerificationPath -Destination (Join-Path $taskRun ('verification-before-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '.json'))
+    $taskPrevious = Get-Content -LiteralPath $taskVerificationPath -Raw | ConvertFrom-Json
+    if ($taskPrevious.result -eq 'PASS') {
+        foreach ($taskLog in $taskPrevious.logs) {
+            if ([IO.Path]::GetFileName($taskLog.path) -ne $taskLog.path -or [IO.Path]::GetExtension($taskLog.path) -ne '.log') { throw 'Previous verification has an invalid log reference.' }
+            $taskLogPath = Join-Path $taskRun $taskLog.path
+            if (!(Test-Path -LiteralPath $taskLogPath) -or (Get-FileHash -LiteralPath $taskLogPath -Algorithm SHA256).Hash.ToLowerInvariant() -ne $taskLog.sha256) { throw 'Previous verification logs changed. Preserve and investigate the evidence before resuming.' }
+        }
+    }
+    $taskArchive = Join-Path $taskRun ('evidence-before-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '-' + [guid]::NewGuid().ToString('N'))
+    New-Item -ItemType Directory -Path $taskArchive | Out-Null
+    Copy-Item -LiteralPath $taskVerificationPath -Destination (Join-Path $taskArchive 'verification.json')
+    Get-ChildItem -LiteralPath $taskRun -File -Filter '*.log' | Copy-Item -Destination $taskArchive
 }
 function Get-NativeApkIdentity([string]$Apk, [bool]$RequireChecks = $true) {
     $taskHash = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()

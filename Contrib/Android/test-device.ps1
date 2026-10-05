@@ -67,10 +67,11 @@ $taskParticipant = $null
 $taskDisruptingParticipant = $null
 $taskTest = $null
 try {
+  $taskSourceChanges = @(& git -C $Repository status --porcelain)
   $taskVerification = [ordered]@{
     recordedUtc=[DateTime]::UtcNow.ToString('o'); result='INCOMPLETE'; serial=$Serial
     sourceCommit=(& git -C $Repository rev-parse HEAD).Trim()
-    workingTreeModified=[bool](& git -C $Repository status --porcelain)
+    workingTreeModified=($taskSourceChanges.Count -ne 0); workingTreeChanges=$taskSourceChanges
     apkSha256=(Get-FileHash -LiteralPath (Join-Path $Repository $taskApk) -Algorithm SHA256).Hash.ToLowerInvariant()
     package=$taskPackage; configuration=$(if ($ReleaseEngine) { 'Release' } else { 'Debug' })
     expectedPageSize=$ExpectedPageSize; coinJoinScenario=$CoinJoinScenario; modes=@()

@@ -13,6 +13,7 @@
 		<ApplicationDisplayVersion>0.3.1</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
+		<NuGetLockFilePath Condition="'$(WasabiEmulatorOnly)' == 'true'">packages.emulator.lock.json</NuGetLockFilePath>
 		<AndroidPackageFormats>apk</AndroidPackageFormats>
 		<!-- Mono 10.0.9 deadlocks during class initialization with this engine in
 		     the assembly store. Individual assembly packaging preserves engine IL. -->

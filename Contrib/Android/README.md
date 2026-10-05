@@ -157,6 +157,9 @@ dotnet test --project WalletWasabi.Mobile.Tests/WalletWasabi.Mobile.Tests.csproj
 verifies its pinned Bitcoin Core download, rejects occupied fixture ports, and
 cleans up its own processes. Its runtime, wallet, faults, vault, Tor and CoinJoin
 suites retain synthetic diagnostics and APK/source/environment verification JSON.
+Records include the exact changed-file list when the checkout is modified.
+Emulator-only Android builds use `packages.emulator.lock.json`; the full ARM64/x64
+dependency lock remains unchanged, and both configurations support locked restore.
 Optional `fees` and `public-sync` modes read actual public networks through Tor
 without real-bitcoin transactions; public synchronization uses only fresh unfunded
 Release-harness wallets. `-ExpectedPageSize 16384` verifies execution
@@ -168,6 +171,8 @@ personal engine policy. **Never distribute it or install it on a real-funds phon
 APK with its security flags intact. `test-release-ui.ps1` tests funded UI sending,
 wrong-password rejection, duplicate taps, locking, restart and data-preserving
 updates. It refuses unrelated wallets and never clears app data.
+Resuming an owned fixture verifies its previous successful log hashes and archives
+the record with all top-level logs before any new run can overwrite them.
 
 `inspect-package.py` needs Python 3.9+ and `lz4==4.4.4` for qualification only. It
 verifies the certificate, manifest, ZIP and ELF alignment, decompresses every
