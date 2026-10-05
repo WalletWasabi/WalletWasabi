@@ -47,9 +47,10 @@ public class Program
 		return exception.StackTrace?.Contains("Avalonia.FreeDesktop.DBusMenuExporter", StringComparison.Ordinal) == true;
 	}
 
-	// Initialization code. Don't use any Avalonia, third-party APIs or any
-	// SynchronizationContext-reliant code before AppMain is called: things aren't initialized
-	// yet and stuff might break.
+	/// <remarks>
+	/// Initialization code. Don't use any Avalonia, third-party APIs or any SynchronizationContext-reliant code before AppMain is called:
+	/// things aren't initialized yet and stuff might break.
+	/// </remarks>
 	[STAThread]
 	public static int Main(string[] args)
 	{
@@ -93,9 +94,10 @@ public class Program
 			{
 				Installer.StartInstallingNewVersion(installerFilePath);
 			}
-			else if (AppLifetimeHelper.RestartRequested)
+
+			if (AppLifetimeHelper.RestartRequested)
 			{
-				// The single instance lock is released once RunAsGui has returned, so the new process can take it.
+				// The single instance lock is released now, so we can start a new instance of the application now.
 				AppLifetimeHelper.StartAppWithArgs();
 			}
 
