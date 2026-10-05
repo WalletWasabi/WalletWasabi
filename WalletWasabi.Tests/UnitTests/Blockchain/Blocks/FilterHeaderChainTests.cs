@@ -122,6 +122,27 @@ public class FilterHeaderChainTests
 		Assert.Equal(0, chain.HashesLeft);
 	}
 
+	[Theory]
+	[InlineData(0u)]
+	[InlineData(930_000u)]
+	public void CachedFiltersRequireAReportedMatchingNetworkTip(uint height)
+	{
+		var chain = new FilterHeaderChain();
+		chain.AppendTip(CreateSmartHeader(new uint256(1), uint256.Zero, height));
+		Assert.Equal(0, chain.HashesLeft);
+		Assert.False(chain.IsSynchronized);
+		chain.SetServerTipHeight(height + 1);
+		Assert.False(chain.IsSynchronized);
+		chain.AppendTip(CreateSmartHeader(new uint256(2), uint256.Zero, height + 1));
+		Assert.True(chain.IsSynchronized);
+		// A lower reported tip requires rollback, even though hashes-left is zero.
+		chain.SetServerTipHeight(height);
+		Assert.Equal(0, chain.HashesLeft);
+		Assert.False(chain.IsSynchronized);
+		chain.RemoveTip();
+		Assert.True(chain.IsSynchronized);
+	}
+
 	[Fact]
 	public void HashCountTests()
 	{

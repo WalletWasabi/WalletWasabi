@@ -74,6 +74,27 @@ Google APIs image, and boot-property probes alone have a two-second bound.
 Instrumentation keeps its own deadline. These changes need a new remote run;
 configuration alone is not a passing result.
 
+At source `3ccfd8b45895fab71a69891b7708cd65e46a9d2b`, Android run `37277210233`
+passed its native build, API 35 and both API 36 Debug/Release suites, and all
+20 consecutive fresh Release CoinJoins. The retained 21-mode verification record
+is in `ci-3ccfd8b4-consecutive/device-6aa02bc98c0a4fa7a259597e72a5a0dc`.
+API 24 again failed before emulator boot, executing no wallet tests; a 2 GB
+configuration and kernel diagnostics are being checked separately. Its signing
+interruption fixture attempted two process-global engines simultaneously;
+the corrected fixture disposes one before recovery and passes locally.
+
+Desktop run `37277210338` exposed a Windows configuration sharing race and a
+Nix blame-test failure. Configuration saves now share a path lock and publish
+complete files atomically; initial creation is synchronous and read errors do
+not replace valid settings. Six settings and two safe-file tests pass. The blame
+fixture used registration windows below Arena's one-minute threshold, phase
+windows below client safety margins, an unintended one-coin isolation policy,
+and a test factory that discarded the blame minimum-input argument. These test
+conditions are corrected without changing production privacy or participation
+rules. The exception-to-success shortcut was removed; three consecutive actual
+blame rounds and the full 325-test WabiSabi suite pass locally. New remote results
+are still required.
+
 Source-native local Release runtime/wallet/fault/vault suites pass on API 24
 (`device-b6adafd5f7924356af0fbeef87b6f8a1`) and API 36/16384 bytes
 (`device-18261fafb1f34476934c7b1dc6da7430`). API 24 Tor passes in
@@ -143,6 +164,14 @@ It passed in `device-c3c9ab77ff0a43c09cef4bde13844956`. Random registration wind
 require a longer fixture deadline without reducing privacy delays or minimum
 participation. Earlier deadline failures remain recorded.
 
+Actual coordinator confirmation withholding passes in
+`device-ce573f1f71264385b28a1a7cfb280c2f`: both honest participants finish and
+the excluded input remains unspent. Signing process death passes in
+`device-e588d357cc41484bbcba1fb0a0b9884d`: a fresh-directory encrypted recovery
+signs and mines a conflicting spend, then the reopened original observes that
+confirmed conflict before releasing its reservations. Neither uses previous
+device keys or a funded user seed.
+
 The process-death fixture force-stops Android after a durable signing checkpoint,
 reopens without clearing data, verifies uncertain reservations and absent signing
 credentials, and requires confirmed-conflict reconciliation before release.
@@ -159,6 +188,18 @@ updates returning old cached information without a network fetch. Both are fixed
 all 39 CPFP host checks pass. Four HTTP retry tests verify discarded responses
 are disposed before the next attempt; three existing retry-policy tests pass.
 These host checks do not substitute for public service execution through Tor.
+
+Additional transport diagnostics reproduced mempool.space connection timeouts
+before TLS in both the Android client and host curl using the same Android Tor
+process; the official onion endpoint responds. CPFP now shares the onion selection
+already used by mining-fee estimates. Two Main/Testnet4 route regressions fail
+against the prior implementation, while HTTPS remains selected for direct desktop
+operation. Two P2P regressions also reproduce publishing a cached filter tip as
+current before network catch-up. The provider now waits for the reported tip and
+headers; signing and reservation reconciliation require matching network/filter
+tips. All 17 routing/filter/synchronization checks pass after correction. Public
+execution and the final APK are qualified separately; earlier timeout failures
+are retained.
 
 ## Required external gates
 

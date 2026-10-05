@@ -106,7 +106,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 	{
 		var path = Path.Combine(TargetContext!.FilesDir!.AbsolutePath, "instrumentation-" + _mode + ".log");
 		File.Delete(path); // This fixture's log only; previous runs are retained by the host.
-		Logger.Configure(path, _mode == "fees" ? LogLevel.Trace : LogLevel.Info, [LogMode.File]);
+		Logger.Configure(path, _mode is "fees" or "public-sync" ? LogLevel.Trace : LogLevel.Info, [LogMode.File]);
 	}
 
 	private async Task DiagnoseTransportAsync()

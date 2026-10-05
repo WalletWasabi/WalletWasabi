@@ -19,6 +19,23 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 /// </summary>
 public class SynchronizerReorgTests(ITestOutputHelper output)
 {
+	[Theory]
+	[InlineData(false)]
+	[InlineData(true)]
+	public async Task P2pProvider_CachedTipWaitsForReportedNetworkCatchUp(bool reportHigherTip)
+	{
+		var blockHeaders = new ConcurrentChain(Network.RegTest);
+		var filters = new FilterHeaderChain();
+		var checkpoint = FilterCheckpoints.GetWasabiGenesisFilter(Network.RegTest).Header;
+		filters.AppendTip(checkpoint);
+		if (reportHigherTip) { filters.SetServerTipHeight(1); }
+		var synchronization = new FilterSynchronizationState(blockHeaders, filters, checkpoint.Height);
+		var provider = FilterProviders.CreateBitcoinP2pFilterProvider(filters, blockHeaders, synchronization);
+		var result = await provider(checkpoint.Height, checkpoint.BlockHash, TestContext.Current.CancellationToken);
+		Assert.False(result.IsOk);
+		Assert.Equal(TimeSpan.FromSeconds(1), result.Error);
+	}
+
 	[Fact]
 	public async Task P2pProvider_HeaderChainBehindFilterCheckpoint_WaitsForHeaderChainToCatchUp()
 	{

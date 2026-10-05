@@ -13,6 +13,7 @@ using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Serialization;
 using WalletWasabi.Services;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Wallets;
 
@@ -64,9 +65,7 @@ public static class CpfpInfoUpdater
 	public static MessageHandler<CpfpInfoMessage, Unit> Create(
 		IHttpClientFactory httpClientFactory, Network network, EventBus eventBus)
 	{
-		var uri = network == Network.Main
-			? new Uri("https://mempool.space/api/")
-			: new Uri("https://mempool.space/testnet4/api/");
+		var uri = MempoolSpaceApi.GetBaseUri(httpClientFactory, network);
 		var tasks = new List<Task>();
 		var cache = new ConcurrentDictionary<uint256, CachedCpfpInfo>();
 		return (msg, _, cancellationToken) => ProcessMessagesAsync(msg, httpClientFactory, uri, tasks, cache, eventBus, cancellationToken);

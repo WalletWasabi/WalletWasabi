@@ -9,7 +9,17 @@ public sealed partial class WalletInstrumentation
 {
 	private async Task VerifyPublicSynchronizationAsync()
 	{
-		foreach (var name in new[] { "main", "testnet" }) { await VerifyPublicNetworkAsync(name); }
+		var failures = new List<Exception>();
+		foreach (var name in new[] { "main", "testnet" })
+		{
+			try { await VerifyPublicNetworkAsync(name); }
+			catch (Exception error)
+			{
+				Logger.LogInfo("Synthetic public " + name + " synchronization failed: " + error.GetType().Name);
+				failures.Add(new InvalidOperationException("Public " + name + " synchronization failed.", error));
+			}
+		}
+		if (failures.Count > 0) { throw new AggregateException(failures); }
 	}
 
 	private async Task VerifyPublicNetworkAsync(string name)
@@ -29,12 +39,18 @@ public sealed partial class WalletInstrumentation
 		await using var session = new WalletSession(directory, settings, context.ApplicationInfo!.NativeLibraryDir!, WalletPolicy.Personal,
 			AppIdentity.SocksPort, () => tor.IsAlive && tor.Bootstrap == 100, AndroidCertificateTrust.Configure);
 		await session.InitializeAsync(deadline.Token);
+		var initialFilterHeight = session.Global.FilterHeaders.TipHeight;
 		// This fresh, unfunded emulator wallet performs only synchronization.
 		// No words, password, addresses, key files or backups are exported.
 		var wallet = await session.CreateAsync("Public synchronization fixture", "synthetic public synchronization " + Guid.NewGuid().ToString("N"),
 			new Mnemonic(Wordlist.English, WordCount.Twelve), false);
-		await WaitAsync(() => session.IsSynchronized, deadline.Token);
-		Check(session.Global.GetPeerCount() > 0 && session.Global.FilterHeaders.HashesLeft == 0 && wallet.Loaded,
+		while (!session.IsSynchronized)
+		{
+			Logger.LogInfo($"Synthetic public {name} readiness: peers={session.Global.GetPeerCount()}, filters={session.Global.FilterHeaders.TipHeight}, network={session.Global.FilterHeaders.ServerTipHeight}, remaining={session.Global.FilterHeaders.HashesLeft}, wallet={wallet.KeyManager.GetBestHeight()}");
+			await Task.Delay(TimeSpan.FromSeconds(10), deadline.Token);
+		}
+		Check(session.Global.GetPeerCount() > 0 && session.Global.FilterHeaders.IsSynchronized
+			&& session.Global.FilterHeaders.TipHeight > initialFilterHeight && wallet.Loaded,
 			"Public peers and compact filters synchronize through Tor without RPC credentials");
 		Check(!wallet.GetAllCoins().Any(), "The public synchronization fixture remains unfunded");
 		Logger.LogInfo("Verified public " + settings.GetNetwork().Name + " synchronization at filter height " + session.Global.FilterHeaders.TipHeight);

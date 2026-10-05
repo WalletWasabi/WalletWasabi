@@ -20,7 +20,7 @@
     "dependencies": {
       "elf-cleaner": "e4f87f8d13541779756f4907c6957d2a000653da",
       "libevent": "79ddfb460847999b807cba76d04e73891f29c6ee",
-      "openssl": "f4dc4d58b48d346a8270183f89acf826d459b0ca",
+      "openssl": "45e844fa2a14ec92d146bd8f5778ac130b6625fb",
       "tor": "8aa9ce2e4e3332ef10f5b7f7e0562c60affe2ece",
       "zlib": "da607da739fa6047df13e66a2af6b8bec7c2a498",
       "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99"

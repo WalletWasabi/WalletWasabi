@@ -69,15 +69,20 @@ jobs:
           - api: 24
             target: google_apis
             page: 4096
+            memory: 2048
+            diagnostics: -show-kernel
           - api: 35
             target: google_apis
             page: 4096
+            memory: 4096
           - api: 36
             target: google_apis
             page: 4096
+            memory: 4096
           - api: 36
             target: google_apis_ps16k
             page: 16384
+            memory: 4096
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       AVALONIA_TELEMETRY_OPTOUT: '1'
@@ -138,9 +143,9 @@ jobs:
           # Match the stable emulator used for the local API 24/35/36 matrix.
           emulator-build: '15507667'
           pre-emulator-launch-script: bash Contrib/Android/bound-ci-adb.sh
-          # The 16 KB image's first-boot services exhausted its default RAM and
-          # lmkd killed the foreground wallet. Keep this resource limit explicit.
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
+          # Modern first-boot services need 4 GiB. API 24 uses its verified local
+          # 2 GiB profile, with kernel diagnostics for the retained CI boot stall.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory ${{ matrix.memory }} -cores 2 ${{ matrix.diagnostics }}
           script: |
             python3 Contrib/Android/test-tls.py --serial emulator-5554 --apk Contrib/Android/RuntimeProbe/bin/Release/net10.0-android36.0/io.wasabiwallet.android.runtimeprobe-Signed.apk --duplicate-activity
             pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ExpectedPageSize ${{ matrix.page }}

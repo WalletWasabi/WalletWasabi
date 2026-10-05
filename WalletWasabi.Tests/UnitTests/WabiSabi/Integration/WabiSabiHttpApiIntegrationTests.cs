@@ -1,6 +1,7 @@
 using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.Collections.Immutable;
+using System.Collections.Concurrent;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -15,6 +16,7 @@ using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Tests.UnitTests.Services;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
 using WalletWasabi.WabiSabi.Coordinator.Models;
@@ -282,8 +284,12 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager2 = KeyManager.CreateNew(out var _, password: "", Network.Main);
 		KeyManager keyManager3 = KeyManager.CreateNew(out var _, password: "", Network.Main);
+		// This fixture explicitly consolidates both inputs expected by its assertions.
+		keyManager1.NonPrivateCoinIsolation = false;
+		keyManager2.NonPrivateCoinIsolation = false;
+		keyManager3.NonPrivateCoinIsolation = false;
 
-		// There are three participants. The second participant will fail to register outputs and will enforce a blame round.
+		// Three participants register outputs; the second withholds signatures to force blame.
 		var participant1Coins = GenerateSmartCoins(keyManager1, satAmounts1, inputCount);
 		var participant2CoinsBad = GenerateSmartCoins(keyManager2, satAmounts2, inputCount);
 		var participant3Coins = GenerateSmartCoins(keyManager3, satAmounts3, inputCount);
@@ -318,11 +324,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					AllowP2trInputs = true,
 					AllowP2trOutputs = true,
 					MaxInputCountByRound = 3 * inputCount,
-					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(10),
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(10),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(4 * inputCount),
+					// Arena creates another registrable round below one minute. A ten-second
+					// fixture splits concurrently starting clients across different rounds.
+					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(90),
+					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(30),
+					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(30),
+					// Leave room for the client's output/signing safety margins as well.
+					OutputRegistrationTimeout = TimeSpan.FromSeconds(30),
+					TransactionSigningTimeout = TimeSpan.FromSeconds(30),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
 
@@ -358,6 +367,20 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
 		var coinJoinClient2Bad = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2Bad, keyManager2, roundStateProvider);
 		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
+		var progress = new ConcurrentQueue<string>();
+		void RecordProgress(string participant, CoinJoinProgressEventArgs change)
+		{
+			var detail = change switch
+			{
+				RoundEnded ended => $"{ended.LastRoundState.Id} ended {ended.LastRoundState.EndRoundState}",
+				RoundStateChanged phase => $"{phase.RoundState.Id} {change.GetType().Name}; deadline {phase.TimeoutAt:O}; remaining {(phase.TimeoutAt - DateTimeOffset.UtcNow).TotalSeconds:F2}s",
+				_ => change.GetType().Name
+			};
+			progress.Enqueue($"{DateTimeOffset.UtcNow:O} {participant}: {detail}");
+		}
+		coinJoinClient1.CoinJoinClientProgress += (_, change) => RecordProgress("honest-1", change);
+		coinJoinClient2Bad.CoinJoinClientProgress += (_, change) => RecordProgress("withheld-signatures", change);
+		coinJoinClient3.CoinJoinClientProgress += (_, change) => RecordProgress("honest-3", change);
 
 		var participant1CoinjoinTask = coinJoinClient1.StartCoinJoinAsync(() => participant1Coins, cts.Token);
 		var participant2CoinjoinTaskBad = coinJoinClient2Bad.StartRoundAsync(participant2CoinsBad, UnrestrictedRound.Instance, roundState, cts.Token);
@@ -367,13 +390,9 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		{
 			await Task.WhenAll(new Task[] { participant2CoinjoinTaskBad, participant1CoinjoinTask, participant3CoinjoinTask });
 		}
-		catch (InvalidOperationException e) when (e.Message.Contains("No valid output denominations found.")
-		                                         || e.Message.Contains("Not enough coins registered to participate in the coinjoin."))
+		finally
 		{
-			// This happens because the `GetFilteredDenominations` removes all coins sometimes,
-			// or the smallest available denomination exceeds a participant's input sum in the blame round.
-			// With fewer participants after blame, denomination selection becomes more constrained.
-			return;
+			foreach (var entry in progress) { _output.WriteLine(entry); }
 		}
 
 		var participant1Result = await participant1CoinjoinTask;
@@ -382,16 +401,15 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 
 		Assert.IsType<SuccessfulCoinJoinResult>(participant1Result);
 
-		// The mock acknowledges signatures without forwarding them to the coordinator.
-		// Its local result can be disrupted or failed, but it must never succeed.
-		Assert.IsNotType<SuccessfulCoinJoinResult>(participant2ResultBad);
+		// The mock acknowledges witnesses but the coordinator never receives them.
+		Assert.IsType<DisruptedCoinJoinResult>(participant2ResultBad);
 
 		Assert.IsType<SuccessfulCoinJoinResult>(participant3Result);
 
 		var broadcastedTx = await broadcastedTxTcs.Task; // wait for the transaction to be broadcasted.
 		Assert.NotNull(broadcastedTx);
 
-		// Only coins of the first and the third participant are expected here. The second one failed to register outputs and was blamed.
+		// Only the honest participants' coins remain; the withheld signatures caused blame.
 		var expectedInputs = participant1Coins.Concat(participant3Coins)
 			.Select(x => x.Coin.Outpoint.ToString())
 			.Order()

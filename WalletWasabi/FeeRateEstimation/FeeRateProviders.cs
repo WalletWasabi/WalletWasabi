@@ -39,7 +39,7 @@ public static class FeeRateProviders
 
 	public static FeeRateProvider MempoolSpaceAsync(IHttpClientFactory httpClientFactory) =>
 		cancellationToken => GetFeeRateEstimationsAsync("MempoolSpace",
-			("https://mempool.space", "http://mempoolhqx4isw62xs7abwphsq7ldayuidyx2v2oethdhhj6mlo2r6ad.onion"),
+			(MempoolSpaceApi.ClearNetDomain, MempoolSpaceApi.OnionDomain),
 			"/api/v1/fees/precise",
 			httpClientFactory, PickRandomUserAgent(), MempoolSpaceHandler(), cancellationToken);
 

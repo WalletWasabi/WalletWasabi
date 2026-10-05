@@ -203,26 +203,32 @@ public class UiConfig : ConfigBase
 
 	public static UiConfig LoadFile(string filePath)
 	{
-		try
+		lock (GetFileLock(filePath))
 		{
-			using var cfgFile = File.Open(filePath, FileMode.Open, FileAccess.Read);
-			var decoder = JsonDecoder.FromStream(UiConfigDecode.UiConfig(filePath));
-			var decodingResult = decoder(cfgFile);
-			return decodingResult.Match(cfg => cfg, error => throw new InvalidOperationException(error));
-		}
-		catch (FileNotFoundException)
-		{
+			string json;
+			try
+			{
+				// Close the handle before decoding constructs reactive save subscriptions.
+				json = File.ReadAllText(filePath);
+			}
+			catch (FileNotFoundException)
+			{
+				var created = new UiConfig(filePath);
+				created.ToFile();
+				Logging.Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
+				return created;
+			}
+
+			var decodingResult = JsonDecoder.FromString(UiConfigDecode.UiConfig(filePath))(json);
+			if (decodingResult.IsOk)
+			{
+				return decodingResult.Value;
+			}
+
 			var config = new UiConfig(filePath);
-			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
-			Logging.Logger.LogInfo($"File did not exist. Created at path: '{filePath}'.");
-			return config;
-		}
-		catch (Exception ex)
-		{
-			var config = new UiConfig(filePath);
-			File.WriteAllTextAsync(filePath, config.EncodeAsJson());
-			Logging.Logger.LogInfo($"{nameof(UiConfig)} file has been deleted because it was corrupted. Recreated default version at path: `{filePath}`.");
-			Logging.Logger.LogWarning(ex);
+			config.ToFile();
+			Logging.Logger.LogInfo($"{nameof(UiConfig)} file was corrupted. Recreated default version at path: '{filePath}'.");
+			Logging.Logger.LogWarning(decodingResult.Error);
 			return config;
 		}
 	}

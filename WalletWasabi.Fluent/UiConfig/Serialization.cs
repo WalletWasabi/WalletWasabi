@@ -46,7 +46,9 @@ public static class UiConfigEncode
 public static class UiConfigDecode
 {
 	public static readonly Decoder<Version> Version =
-		Decode.String.Map(System.Version.Parse);
+		Decode.String.AndThen(value => System.Version.TryParse(value, out var version)
+			? Succeed(version)
+			: Fail<Version>("Invalid version."));
 
     public static Decoder<UiConfig> UiConfig(string filePath) =>
         Object(get =>
@@ -66,8 +68,9 @@ public static class UiConfigDecode
 	        var sendAmountConversionReversed = get.Required("SendAmountConversionReversed", Decode.Bool);
 	        var windowWidth = get.Optional("WindowWidth", Decode.Double, 0);
 	        var windowHeight = get.Optional("WindowHeight", Decode.Double, 0);
-	        return new UiConfig(filePath, privacyMode, isCustomChangeAddress, autocopy, darkModeEnabled,
+	        // Decode every field before starting reactive persistence for a valid config.
+	        return new Func<UiConfig>(() => new UiConfig(filePath, privacyMode, isCustomChangeAddress, autocopy, darkModeEnabled,
 		        lastSelectedWallet, windowState, runOnSystemStartup, oobe, lastVersionHighlightsDisplayed, hideOnClose,
-		        autoPaste, feeTarget, sendAmountConversionReversed, windowWidth > 0 ? windowWidth : null, windowHeight > 0 ? windowHeight : null);
-        });
+		        autoPaste, feeTarget, sendAmountConversionReversed, windowWidth > 0 ? windowWidth : null, windowHeight > 0 ? windowHeight : null));
+        }).Map(create => create());
 }

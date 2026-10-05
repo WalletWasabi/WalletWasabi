@@ -9,6 +9,7 @@ public class FilterHeaderChain
 	private SmartHeader? _tip;
 
 	private ChainHeight _serverTipHeight = ChainHeight.Genesis;
+	private bool _serverTipKnown;
 
 #pragma warning disable IDE0032 // Use auto property – we want to control the setter and getter with locks, so we can't use auto properties here.
 	private int _hashesLeft;
@@ -81,6 +82,18 @@ public class FilterHeaderChain
 			lock (_lock)
 			{
 				return _hashesLeft;
+			}
+		}
+	}
+
+	/// <summary>Filters reach a network tip reported during this process.</summary>
+	public bool IsSynchronized
+	{
+		get
+		{
+			lock (_lock)
+			{
+				return _serverTipKnown && _tip is { } tip && tip.Height == _serverTipHeight;
 			}
 		}
 	}
@@ -162,6 +175,7 @@ public class FilterHeaderChain
 		lock (_lock)
 		{
 			_serverTipHeight = height;
+			_serverTipKnown = true;
 			SetHashesLeftNoLock();
 		}
 	}

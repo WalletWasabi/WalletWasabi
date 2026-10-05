@@ -14,11 +14,13 @@ Release acceptance is blocked by the findings and missing device evidence below.
 | Review versus signing | Immutable public details, private PSBT snapshot, wallet/network binding, monotonic five-minute expiry and serialized confirmation. The transaction factory's unsigned Signed flag was corrected and covered by a regression. |
 | Ambiguous broadcast | Exact signed bytes are durably journaled before broadcast, inputs stay reserved, duplicate confirmation returns the same receipt, reconciliation never constructs a new payment. Failed journal writes conservatively retain in-memory reservations and never broadcast. |
 | Replacement | Mobile RBF preserves foreign and explicitly marked owned recipient scripts/amounts. Legacy journals without markers conservatively protect all owned outputs. Eligible CPFP is the fallback; unavailable cases fail. Funded self-transfer reproduces the old fee deduction and proves the new protected replacement through Core acceptance/mining. Desktop defaults remain unchanged. Public CPFP service qualification is separate. |
-| Reorganization / synchronization | RPC filter hashes come from the RPC chain; batch parsing is awaited, transport failure retries without rollback, and a same-height replacement is detected. Five regression cases failed before correction; 15 related host tests and funded Android reorganization/reconfirmation pass. |
+| Reorganization / synchronization | RPC filter hashes come from the RPC chain; batch parsing is awaited, transport failure retries without rollback, and a same-height replacement is detected. Cached filters require a reported matching network tip; P2P cannot publish a cached tip as current while headers are behind the reported network. Signing and reservation reconciliation use the same readiness check. Two new cases fail before correction; all 17 routing/filter/synchronization tests pass. Funded Android reorganization/reconfirmation has separate retained evidence. |
 | Recovery / address allocation | Both account public keys checked, import scan height reset, atomic complete-file publication with flush, directory flush on Android/Linux, and address persistence before disclosure. Fresh-directory encrypted recovery and restored signing passed. |
 | CoinJoin | Denomination randomness materialized once; minimum-participation and failed-checkpoint signing refusals retained; durable interrupted-round reservations; serialized stop/retry prevents obsolete retries. Signed checkpoints survive every coordinator failure until observed transaction/confirmed-conflict reconciliation. Credential waits observe cancellation; all issuance tasks cancel siblings on failure, and vanished rounds propagate promptly. Three new cancellation regressions fail against old behavior; all 325 WabiSabi host checks pass. Source-native 20/20 CI and local five-phase stop/blame/restart tests have separate retained evidence. |
 | Transport | Public factories retain Tor SOCKS authentication isolation, onion RPC remains through Tor, public direct fallback absent, failure closes transport. Tor stop/restart test passes on the 16 KB emulator. |
-| External fee information | Concurrent cache updates no longer collide, periodic updates fetch fresh information, and discarded retry responses are disposed. Two fee regressions fail against the prior implementation; 39 CPFP and seven HTTP retry checks pass. Live Main/Testnet4 provider qualification remains a separate gate. |
+| External fee information | Concurrent cache updates no longer collide, periodic updates fetch fresh information, and discarded retry responses are disposed. CPFP now selects the same official onion service already used by fee estimates when Tor is enabled, preserving HTTPS for direct desktop operation. Two route regressions fail before correction. Live Main/Testnet4 provider qualification remains a separate gate. |
+| Settings publication | The Windows CI sharing failure was reproduced. Configuration instances share a normalized path lock; saves publish complete files atomically, initial creation completes before returning, and read failures propagate without overwriting usable settings. Corrupt UI decoding starts reactive persistence only after validation. Six settings and two safe-file regressions pass. |
+| Blame qualification | The failing desktop fixture had registration and phase windows incompatible with Arena/client rules, unintended single-coin isolation, and a factory discarding the blame input minimum. Corrected fixture conditions retain production privacy and participation protections. Removed exception-to-success shortcut; three real blame rounds and all 325 WabiSabi checks pass locally. |
 | Android / package | Secure windows, disabled backups/debugging, separate instrumentation, sensitive inputs/clipboard, generation-aware Camera2 teardown, bounded decoding and foreground/wake-lock limits. Pure-Java testing exercises the actual signed APK without security exemptions. |
 | Native metadata | Added documented common-page-size flag to the pinned SDK's generated app-library linker invocation, retaining RELRO/NOW/non-executable stack. Prebuilt binaries are not patched. |
 
@@ -42,9 +44,11 @@ Release acceptance is blocked by the findings and missing device evidence below.
    and 438 managed payloads. Inspect the final clean-source package and qualify
    corrected ARM64 execution while retaining original security flags.
 3. **Remaining qualification:** five phase-specific safe stops, actual signing
-   dropout/blame and coordinator restart pass locally. Deterministic confirmation
-   withholding and process-death/confirmed-conflict recovery require their own
-   evidence. The newest nine-scenario CI, public CPFP fee service and unfunded
+   dropout/blame and coordinator restart pass locally. Actual confirmation
+   withholding passed in `device-ce573f1f71264385b28a1a7cfb280c2f` and process-death
+   recovery, a fresh recovered signing spend, and original-wallet confirmed-conflict
+   reconciliation passed in `device-e588d357cc41484bbcba1fb0a0b9884d`. The newest
+   nine-scenario CI, public CPFP fee service and unfunded
    public synchronization remain separate checks; delivery JSON records their
    actual final outcomes. Uncertain signed inputs remain reserved until observed
    or reconciled. Retained timeout/startup failures are not silently waived.
@@ -82,3 +86,16 @@ Local NuGet vulnerability feeds reported no package findings, but native compone
 coordinator behavior and upstream cryptographic implementations were not independently
 audited. Regtest round counts do not measure real-world anonymity. Preserve the
 exact source/dependency/package manifest and all failed checks with delivery evidence.
+
+## Native advisory assessment
+
+Tor's independently pinned OpenSSL vendor was advanced from 3.5.8 to the supported
+3.5.9 servicing commit `45e844fa2a14ec92d146bd8f5778ac130b6625fb`. The official
+[29 September advisory](https://openssl-library.org/news/secadv/20260929.txt)
+reports excessive allocation from crafted X.509 CRL distribution points during
+normal TLS handshakes (CVE-2026-35189, low). This is relevant to client availability.
+The same update fixes the high DTLS advisory; this wallet's Tor transport uses
+TCP/TLS rather than DTLS. QUIC, CMP, SM2 and generic EC advisories are not used
+by the wallet's Bitcoin signing code. Bitcoin derivation/signing remains in
+NBitcoin; no Bitcoin algorithm was changed for this servicing update. Qualification
+must record the rebuilt native hashes and actual Tor execution separately.

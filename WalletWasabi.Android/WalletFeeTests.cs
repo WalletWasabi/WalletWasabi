@@ -8,6 +8,7 @@ using WalletWasabi.Mobile;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Wallets;
+using WalletWasabi.WebClients.Wasabi;
 
 namespace WalletWasabi.Android;
 
@@ -39,7 +40,7 @@ public sealed partial class WalletInstrumentation
 		// obtains no signing keys and never submits a real-bitcoin transaction.
 		foreach (var network in new[] { Network.Main, Network.TestNet4 })
 		{
-			var service = new Uri(network == Network.Main ? "https://mempool.space/api/" : "https://mempool.space/testnet4/api/");
+			var service = MempoolSpaceApi.GetBaseUri(session.Global.ExternalSourcesHttpClientFactory, network);
 			async Task<string> ReadPublicAsync(string path)
 			{
 				for (var attempt = 0; ; attempt++)

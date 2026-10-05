@@ -194,6 +194,12 @@ public static class FilterProviders
 
 			if (filterHeadersTip.Height == fromHeight)
 			{
+				// A cached filter checkpoint is not a current network tip. Headers can
+				// still be downloading or waiting for their first peer announcement.
+				if (blockHeadersChain.Height > fromHeight || !filterHeadersChain.IsSynchronized)
+				{
+					return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
+				}
 				return AlreadyOnBestBlock;
 			}
 

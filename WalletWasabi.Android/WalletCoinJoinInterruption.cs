@@ -77,6 +77,8 @@ public sealed partial class WalletInstrumentation
 		// original session must learn it from the chain before releasing inputs.
 		var self = BitcoinAddress.Create(session.Receive("Confirmed conflict recovery"), Network.RegTest);
 		var backup = await session.ExportEncryptedBackupAsync(metadata.Password, timeout.Token);
+		session.Lock();
+		await session.DisposeAsync(); // The engine's named workers have one owner per process.
 		await using (var recovered = new WalletSession(Path.Combine(TargetContext.FilesDir.AbsolutePath, "interrupted-recovery-" + Guid.NewGuid().ToString("N")), settings, TargetContext.ApplicationInfo.NativeLibraryDir!))
 		{
 			await recovered.InitializeAsync(timeout.Token);
@@ -87,11 +89,15 @@ public sealed partial class WalletInstrumentation
 			var receipt = await recovered.ConfirmAsync(proposal.Id, metadata.Password, timeout.Token);
 			Check(receipt.TransactionId != metadata.TransactionId && (await rpc.GetRawTransactionAsync(uint256.Parse(receipt.TransactionId))).Inputs.Any(i => i.PrevOut == input), "Fresh recovery signs the fixture input without lost device keys");
 			await rpc.GenerateToAddressAsync(1, await rpc.GetNewAddressAsync());
-			await WaitAsync(() => session.IsSynchronized && wallet.GetAllCoins().Any(c => c.Outpoint == input && c.SpenderTransaction is { Confirmed: true }), timeout.Token);
-			await session.ReconcilePendingAsync(timeout.Token);
-			Check(session.PendingCoinJoins == 0 && wallet.GetAllCoins().Unspent().TotalAmount() > Money.Coins(0.039m), "Only observed chain confirmation releases the old checkpoint and preserves recovered funds");
 		}
-		session.Lock();
+		await using var reopened = new WalletSession(directory, settings, TargetContext.ApplicationInfo.NativeLibraryDir!);
+		await reopened.InitializeAsync(timeout.Token);
+		wallet = reopened.Global.WalletManager.GetWallets().Single();
+		reopened.Unlock(wallet, metadata.Password);
+		await WaitAsync(() => reopened.IsSynchronized && wallet.GetAllCoins().Any(c => c.Outpoint == input && c.SpenderTransaction is { Confirmed: true }), timeout.Token);
+		await reopened.ReconcilePendingAsync(timeout.Token);
+		Check(reopened.PendingCoinJoins == 0 && wallet.GetAllCoins().Unspent().TotalAmount() > Money.Coins(0.039m), "Only observed chain confirmation releases the old checkpoint and preserves recovered funds");
+		reopened.Lock();
 		Check(wallet.KeyChain is null && wallet.Password.Length == 0 && !wallet.IsLoggedIn, "Locking the recovered fixture releases signing credentials");
 	}
 }

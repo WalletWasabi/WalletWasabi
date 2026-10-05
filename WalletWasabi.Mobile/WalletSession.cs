@@ -97,11 +97,11 @@ public sealed class WalletSession : IAsyncDisposable
 		? _journal.Entries.Where(e => e.WalletId == AccountId(wallet)).Select(e => new SubmissionDetails(e.TransactionId, e.Operation, e.State,
 			e.AmountSatoshis, e.FeeSatoshis, e.CreatedAt, e.Outputs.IsDefault ? [] : e.Outputs)).ToImmutableArray() : [];
 	public bool IsReady => _initialized;
-	public bool IsSynchronized => _initialized && Current is { Loaded: true } wallet
+	public bool IsSynchronized => Current is { } wallet && IsSynchronizedWallet(wallet);
+	private bool IsSynchronizedWallet(Wallet wallet) => _initialized && wallet.Loaded
 		&& _transportReady()
-		&& Global.FilterHeaders.HashCount > 0
+		&& Global.FilterHeaders.IsSynchronized
 		&& wallet.KeyManager.GetBestHeight() >= Global.FilterHeaders.TipHeight
-		&& Global.FilterHeaders.HashesLeft == 0
 		&& Global.GetPeerCount() > 0;
 
 	public async Task InitializeAsync(CancellationToken cancellationToken)
@@ -508,7 +508,7 @@ public sealed class WalletSession : IAsyncDisposable
 				foreach (var checkpoint in _coinJoinJournal.Entries)
 				{
 					var owner = Global.WalletManager.GetWallets().FirstOrDefault(w => AccountId(w) == checkpoint.WalletId && w.Loaded);
-					if (owner is null || !_initialized || !_transportReady() || Global.FilterHeaders.HashesLeft != 0 || owner.KeyManager.GetBestHeight() < Global.FilterHeaders.TipHeight || Global.GetPeerCount() == 0) { continue; }
+					if (owner is null || !IsSynchronizedWallet(owner)) { continue; }
 					if (checkpoint.TransactionId is null || Global.TransactionStore.TryGetTransaction(uint256.Parse(checkpoint.TransactionId), out _)
 						|| checkpoint.Inputs.All(i => owner.GetAllCoins().Any(c => c.Outpoint == new OutPoint(uint256.Parse(i.TransactionId), i.Index) && c.SpenderTransaction is { Confirmed: true })))
 					{ _coinJoinJournal.Remove(checkpoint); }
@@ -517,7 +517,7 @@ public sealed class WalletSession : IAsyncDisposable
 			foreach (var entry in _journal.Entries)
 			{
 				var wallet = Global.WalletManager.GetWallets().FirstOrDefault(w => AccountId(w) == entry.WalletId && w.Loaded);
-				if (wallet is null || !_initialized || !_transportReady() || Global.FilterHeaders.HashesLeft != 0 || wallet.KeyManager.GetBestHeight() < Global.FilterHeaders.TipHeight || Global.GetPeerCount() == 0) { continue; }
+				if (wallet is null || !IsSynchronizedWallet(wallet)) { continue; }
 				var inputs = Transaction.Parse(entry.Hex, Global.Network).Inputs.Select(i => i.PrevOut).ToHashSet();
 				var conflict = wallet.GetAllCoins().FirstOrDefault(c => inputs.Contains(c.Outpoint) && c.SpenderTransaction is { } spender && spender.GetHash().ToString() != entry.TransactionId)?.SpenderTransaction;
 				var replacement = conflict is not null && _journal.Entries.Any(e => e.TransactionId == conflict.GetHash().ToString() && e.OriginalTransactionId == entry.TransactionId);
