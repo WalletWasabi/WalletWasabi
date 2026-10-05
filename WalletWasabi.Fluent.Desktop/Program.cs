@@ -91,7 +91,6 @@ public class Program
 
 			if (exitCode == ExitCode.Ok && app.Global is {Status: {InstallOnClose: true, InstallerFilePath: {Length: > 0} installerFilePath}})
 			{
-				// Skip the restart, otherwise the installer would replace a running Wasabi.
 				Installer.StartInstallingNewVersion(installerFilePath);
 			}
 			else if (AppLifetimeHelper.RestartRequested)
