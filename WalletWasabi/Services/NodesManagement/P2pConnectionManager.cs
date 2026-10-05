@@ -895,10 +895,16 @@ public class P2pConnectionManager : IDisposable
 			}
 		}
 
-		var dnsHosts = _network.DNSSeeds.Select(x => x.Host);
+		// Bitcoin's DNS seed service mask x49 requests full blocks, witness and
+		// BIP157 filters (sipa/bitcoin-seeder's supported service-bit convention).
+		// General seeds remain available when a seed does not support that mask.
+		// Handshakes and the existing netgroup limits still validate/select peers.
+		var dnsHosts = _network.DNSSeeds.SelectMany(x => new[] { "x49." + x.Host, x.Host });
 		if (_dnsResolver is DnsSocksResolver)
 		{
-			dnsHosts = Enumerable.Repeat(dnsHosts, 16).SelectMany(x => x).Shuffle();
+			// Tor RESOLVE returns one address per request. Keep the original total
+			// query budget while sampling both filtered and general seed answers.
+			dnsHosts = Enumerable.Repeat(dnsHosts, 8).SelectMany(x => x).Shuffle();
 		}
 		var tasks = dnsHosts.Select(GetAddressesFromDnsAsync);
 

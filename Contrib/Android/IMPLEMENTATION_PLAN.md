@@ -8,14 +8,14 @@ unlocking. Hardware wallets and Play Store publication remain excluded.
 
 | Workstream | Implemented | Acceptance still required |
 | --- | --- | --- |
-| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; fixed packaging/interpreter selection; published vectors and Core acceptance on x64 Debug/Release; isolated Release vectors on the ARM64 phone | Full qualification of source native rebuilds and API 24 TLS correction; AOT remains separately unqualified |
+| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; published vectors and Core acceptance; source-native Debug/Release matrix passes API 24, 35 and 36, including verified 16 KB pages, at recorded source | Corrected source-native execution on ARM64 phone; untrimmed AOT attempt is separately recorded as unsupported |
 | 2. Package separation | `.dev` and `.personal`; Testnet4 development default; session-level mainnet prohibition; Release build guards; two-field coordinator bootstrap | Final delivered-package record and handset installation |
 | 3. Authorization and vault | Authenticated Keystore AES-GCM, StrongBox preference/hardware requirement for wallet convenience, per-operation auth, separate RPC encryption, invalidation fallback, background/inactivity lock and CoinJoin key release | Real hardware success/cancellation, device-key loss and OS credential changes on the phone |
 | 4. Recovery and persistence | Original backup/password handling; both account public keys; fresh import rescan; atomic/fsynced saves; persisted addresses; wrong-network/watch-only guards | Handset fresh recovery and storage/document-picker interruption tests |
-| 5. Transaction pipeline | Immutable opaque proposals; five-minute monotonic expiry; serialized confirmation/revalidation; internal unsigned PSBT; exact-byte durable journal; uncertainty/reservations; funded RBF/cancel/CPFP; lost-reply/restart/reorg tests; explicit receipt/history states | Complete fault matrix, production CPFP fee-service and final-package qualification |
-| 6. Lifecycle/network/camera | Serialized runtime states; Tor-only public factories; fail-closed transport; corrected RPC batch/reorg handling; reconnect/stop handling; foreground service limits/wake-lock release; Camera2 bounded decoding, focus/orientation and generation guards; common parser | API 24 TLS fix; final native page checks; physical camera, accessibility, small-screen and background-budget checks |
-| 7. CoinJoin | Denomination regression fixed; durable address/input/signing checkpoints; minimum-input/refusal tests; stop/retry race fixed; keys released on stop; initial-runtime 20 fresh Release rounds and 20 Debug rounds; updated-runtime results recorded separately in delivery evidence | Full Android dropout/blame/restart/signing-interruption matrix; production coordinator availability |
-| 8. Qualification/delivery | Host checks, emulator matrix, dependency query, source review, external stable signing identity, package inspector, pure-Java actual-APK test/update tooling and installation instructions | Close runtime/native findings, final package checks and publication record, then phone and authorized mainnet gates |
+| 5. Transaction pipeline | Immutable proposals; five-minute expiry; serialized confirmation/revalidation; private PSBT; exact-byte durable journal; uncertainty/reservations; funded RBF/cancel/CPFP; lost-reply/restart/reorg tests; production Main/Testnet4 CPFP through Tor | Final personal APK payment and update qualification; handset recovery and update |
+| 6. Lifecycle/network/camera | Serialized runtime states; Tor-only public factories; fail-closed transport; RPC batch/reorg handling; reconnect/stop; foreground/wake-lock limits; Camera2 bounded decoding, focus/orientation and generation guards; common parser; API 24 TLS and native matrix pass | Fresh Main/Testnet4 synchronization through Tor after filter-peer discovery correction; physical camera, accessibility, small-screen and background-budget checks |
+| 7. CoinJoin | Denomination and credential cancellation regressions fixed; durable reservations; minimum-input/refusal tests; stop/retry serialization; keys released on stop; all nine fault scenarios and 20 consecutive fresh Release rounds pass in CI at clean `24abf94c` | New-source evidence for subsequent changes; desktop single-CPU blame correction; production coordinator availability |
+| 8. Qualification/delivery | Host and emulator checks, dependency/source review, stable external signing identity, package inspector, actual-APK UI/update tooling and instructions | Final clean-source package and publication record, complete delivery evidence, then phone and explicitly authorized mainnet gates |
 
 `VALIDATION.md` identifies the actual local checks and retained failures. A passing
 round or rerun never erases an unexplained historical failure. The historical
@@ -46,11 +46,13 @@ the newly reproduced denomination failure has a verified cause and regression.
    holds its mutex. The retained reproduction, native trace and narrow reentrancy
    guard pass valid/untrusted/wrong-hostname localhost tests. Source Release
    funded wallet/vault and public Tor stop/restart checks pass on API 24 x64 after
-   supplementing its missing public CA root; the complete matrix remains open.
+   supplementing its missing public CA root; the complete x64 matrix passed in
+   Android CI `37285067882` at clean source `24abf94c`.
 2. The old candidate's prebuilt runtime/Tor/SQLite libraries fail strict RELRO-end
    checks. Pinned source rebuilds now pass 38 native protection checks, and a
    packaging path verifies their hashes and assembly-container layout. This does
-   not qualify their complete execution matrix. A first loader build failed on the
+   qualifies the recorded x64 execution matrix, while corrected ARM64 execution
+   is still required. A first loader build failed on the
    phone because its container constants differed from the SDK; the build now uses
    the pinned SDK stub and retains a regression gate for that mismatch.
 3. The actual ARM64 phone passed the isolated stock-runtime
@@ -60,7 +62,8 @@ the newly reproduced denomination failure has a verified cause and regression.
 4. A real mainnet transaction requires a new disposable wallet and an explicitly
    authorized amount and destination. Existing funded seeds are excluded from tests.
 
-Finish the remaining deterministic Android fault scenarios after the runtime/native
-baseline passes, then execute `PHONE_HANDOFF.md` on the connected, authorized phone.
+All nine deterministic Android fault scenarios passed in that CI run. Finish
+current-source public synchronization and final APK checks, then execute
+`PHONE_HANDOFF.md` on the connected, authorized phone.
 Retain its backup privately. Independent security review and production coordinator
 availability remain external dependencies and are never claimed by local tests.

@@ -124,7 +124,7 @@ try {
         if ($IsWindows) { $taskTestStart.WindowStyle = 'Hidden' }
         $taskTest = Start-Process @taskTestStart
         $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(11)
-        if ($taskMode -eq 'public-sync') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(28) }
+        if ($taskMode -eq 'public-sync') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(85) }
         if ($taskMode -eq 'coinjoin' -and $CoinJoinScenario -eq 'restart-output') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(20) }
         if ($taskMode -eq 'coinjoin') {
             # Cold Mono JIT and filter scanning can exceed two minutes on a
@@ -193,7 +193,14 @@ try {
             $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(5)
         }
         while (!$taskTest.HasExited -and [DateTime]::UtcNow -lt $taskTestDeadline) { Start-Sleep -Milliseconds 500 }
-        if (!$taskTest.HasExited) { & adb -s $Serial shell am force-stop $taskPackage; Stop-Process -Id $taskTest.Id; throw 'Android instrumentation exceeded its bounded timeout.' }
+        if (!$taskTest.HasExited) {
+            & adb -s $Serial shell am force-stop $taskPackage
+            # Force-stop normally ends this ADB child itself. Preserve the timeout
+            # diagnostic instead of racing that exit with Stop-Process by PID.
+            if (!$taskTest.WaitForExit(10000)) { $taskTest.Kill() }
+            & adb -s $Serial logcat -d -t 2000 | Set-Content -LiteralPath (Join-Path $taskRun 'android-timeout-logcat.log')
+            throw 'Android instrumentation exceeded its bounded timeout.'
+        }
         $taskResult = Get-Content -LiteralPath (Join-Path $taskRun "$taskEvidenceName.log")
         # The engine logs only to its private files. This supported Debug-only
         # read retrieves this fixture's log, without exporting wallet backups.

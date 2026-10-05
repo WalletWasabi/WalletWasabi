@@ -31,8 +31,9 @@ Release acceptance is blocked by the findings and missing device evidence below.
    passes trust/hostname vectors. A separate missing public CA root is supplemented
    only on API 24/25 through full chain validation; negative signature, usage,
    expiry, hostname and unrelated-root checks pass. Public Tor stop/restart now
-   passes API 24. API 35 and API 36/16 KB source-native CI suites pass at their
-   recorded source. The newest source and corrected ARM64 handset execution need
+   passes API 24. At clean `24abf94c`, every API 24, 35, 36/4 KB and 36/16 KB
+   Debug/Release job passed Android CI `37285067882`, using OpenSSL 3.5.9.
+   Subsequent changes and corrected ARM64 handset execution need
    separate results; an old pass is not attributed to a new build.
 2. **Strict native 16 KB qualification:** static RELRO-end checks flag the old prebuilt
    .NET runtime/Tor libraries and ARM64 SQLite, including after the Mono 10.0.12
@@ -48,10 +49,17 @@ Release acceptance is blocked by the findings and missing device evidence below.
    withholding passed in `device-ce573f1f71264385b28a1a7cfb280c2f` and process-death
    recovery, a fresh recovered signing spend, and original-wallet confirmed-conflict
    reconciliation passed in `device-e588d357cc41484bbcba1fb0a0b9884d`. The newest
-   nine-scenario CI, public CPFP fee service and unfunded
-   public synchronization remain separate checks; delivery JSON records their
+   nine-scenario CI and 20 consecutive fresh rounds passed at `24abf94c`.
+   Production Main/Testnet4 CPFP also passed through the official onion service
+   in `device-ed11374569524885a226a04140a88999`. Fresh public synchronization,
+   current-source desktop blame qualification and final personal APK checks remain
+   separate gates; delivery JSON records their
    actual final outcomes. Uncertain signed inputs remain reserved until observed
    or reconciled. Retained timeout/startup failures are not silently waived.
+   Public Testnet4 diagnosis found peers without compact-filter support; discovery
+   now queries the existing seeds' service-filtered answers through the same
+   resolver, while retaining general answers, service handshakes and netgroup
+   limits. Three regressions pass, with their pre-correction failures retained.
 4. **Remaining handset evidence:** the isolated stock-runtime Release crypto probe
    passed on the ARM64 Android 16 phone. Hardware-backed per-use authentication and
    cancellation, real camera scanning/rotation, wallet recovery, accessibility and

@@ -2,6 +2,7 @@ using Microsoft.Extensions.DependencyInjection;
 using NBitcoin;
 using System.Collections.Immutable;
 using System.Collections.Concurrent;
+using System.Diagnostics;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -11,6 +12,7 @@ using System.Threading.Tasks;
 using WalletWasabi.BitcoinRpc;
 using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.TransactionOutputs;
+using WalletWasabi.Logging;
 using WalletWasabi.Tests.Helpers;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using WalletWasabi.Tests.UnitTests.Services;
@@ -273,12 +275,14 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 	public async Task CoinJoinWithBlameRoundTestAsync(long[] satAmounts1, long[] satAmounts2, long[] satAmounts3)
 	{
 		int inputCount = satAmounts1.Length;
+		var progress = new ConcurrentQueue<string>();
+		var observedRounds = new ConcurrentDictionary<string, byte>();
 
 		// At the end of the test a coinjoin transaction has to be created and broadcasted.
 		var broadcastedTxTcs = new TaskCompletionSource<Transaction>(TaskCreationOptions.RunContinuationsAsynchronously);
 
 		// Total test timeout.
-		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(5));
+		using var cts = new CancellationTokenSource(TimeSpan.FromMinutes(10));
 		cts.Token.Register(() => broadcastedTxTcs.TrySetCanceled(), useSynchronizationContext: false);
 
 		KeyManager keyManager1 = KeyManager.CreateNew(out var _, password: "", Network.Main);
@@ -327,24 +331,28 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 					// Arena creates another registrable round below one minute. A ten-second
 					// fixture splits concurrently starting clients across different rounds.
 					StandardInputRegistrationTimeout = TimeSpan.FromSeconds(90),
-					BlameInputRegistrationTimeout = TimeSpan.FromSeconds(30),
-					ConnectionConfirmationTimeout = TimeSpan.FromSeconds(30),
-					// Leave room for the client's output/signing safety margins as well.
-					OutputRegistrationTimeout = TimeSpan.FromSeconds(30),
-					TransactionSigningTimeout = TimeSpan.FromSeconds(30),
+					BlameInputRegistrationTimeout = TimeSpan.FromMinutes(1),
+					// Thirty seconds expires registered Alices on a contended CPU.
+					// These three clients share a process/CPU with their coordinator;
+					// use the production fail-fast output budget for their ZK work.
+					ConnectionConfirmationTimeout = TimeSpan.FromMinutes(1),
+					OutputRegistrationTimeout = TimeSpan.FromMinutes(3),
+					TransactionSigningTimeout = TimeSpan.FromMinutes(1),
 					MaxSuggestedAmountBase = Money.Satoshis(ProtocolConstants.MaxAmountPerAlice)
 				})));
 
 		await Task.Delay(100);
 
 		// Create the coinjoin client
-		var apiClient1 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+		using var honestHttpClient1 = coordinatorApp.CreateDefaultClient(new Uri("http://localhost"), new BlameRequestTraceHandler("honest-1", progress));
+		var apiClient1 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(honestHttpClient1);
 		using var roundStateUpdater = RoundStateUpdaterForTesting.Create(apiClient1, cts.Token);
 		var roundStateProvider = new RoundStateProvider(roundStateUpdater);
 
 		var roundState = await roundStateProvider.CreateRoundAwaiterAsync(roundState => roundState.Phase == Phase.InputRegistration, cts.Token);
+		Assert.Equal(TimeSpan.FromMinutes(3), roundState.CoinjoinState.Parameters.OutputRegistrationTimeout);
 
-		var httpClient = coordinatorApp.CreateClient();
+		using var httpClient = coordinatorApp.CreateDefaultClient(new Uri("http://localhost"), new BlameRequestTraceHandler("withheld-signatures", progress));
 
 		// Creates a mocked HttpClient that says everything is okay when a signature is sent but it doesn't really send it.
 		using var nonSigningHttpClientMock = new MockHttpClient();
@@ -362,14 +370,15 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		};
 
 		var apiClient2Bad = _apiApplicationFactory.CreateWabiSabiHttpApiClient(nonSigningHttpClientMock);
-		var apiClient3 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(coordinatorApp.CreateClient());
+		using var honestHttpClient3 = coordinatorApp.CreateDefaultClient(new Uri("http://localhost"), new BlameRequestTraceHandler("honest-3", progress));
+		var apiClient3 = _apiApplicationFactory.CreateWabiSabiHttpApiClient(honestHttpClient3);
 
 		var coinJoinClient1 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient1, keyManager1, roundStateProvider);
 		var coinJoinClient2Bad = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient2Bad, keyManager2, roundStateProvider);
 		var coinJoinClient3 = WabiSabiFactory.CreateTestCoinJoinClient(_ => apiClient3, keyManager3, roundStateProvider);
-		var progress = new ConcurrentQueue<string>();
 		void RecordProgress(string participant, CoinJoinProgressEventArgs change)
 		{
+			if (change is RoundStateChanged changed) { observedRounds.TryAdd(changed.RoundState.Id.ToString(), 0); }
 			var detail = change switch
 			{
 				RoundEnded ended => $"{ended.LastRoundState.Id} ended {ended.LastRoundState.EndRoundState}",
@@ -393,6 +402,13 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 		finally
 		{
 			foreach (var entry in progress) { _output.WriteLine(entry); }
+			// Only synthetic rounds from this fixture. Preserve the engine's failure
+			// reason as well as phase/request timings when CI cannot complete blame.
+			foreach (var line in File.ReadLines(Logger.FilePath))
+			{
+				if (observedRounds.Keys.Any(id => line.Contains("Round " + id[..8], StringComparison.Ordinal)
+					|| line.Contains("Round (" + id, StringComparison.Ordinal))) { _output.WriteLine(line); }
+			}
 		}
 
 		var participant1Result = await participant1CoinjoinTask;
@@ -420,6 +436,31 @@ public class WabiSabiHttpApiIntegrationTests : IClassFixture<WabiSabiApiApplicat
 			.Order();
 
 		Assert.Equal(expectedInputs, actualInputs);
+	}
+
+	private sealed class BlameRequestTraceHandler(string participant, ConcurrentQueue<string> progress) : DelegatingHandler
+	{
+		private int _sequence;
+
+		protected override async Task<HttpResponseMessage> SendAsync(HttpRequestMessage request, CancellationToken cancellationToken)
+		{
+			var route = request.RequestUri!.AbsolutePath;
+			if (route.EndsWith("/status", StringComparison.Ordinal)) { return await base.SendAsync(request, cancellationToken); }
+			var number = Interlocked.Increment(ref _sequence);
+			var started = Stopwatch.GetTimestamp();
+			progress.Enqueue($"{DateTimeOffset.UtcNow:O} {participant}: request {number} {route} started");
+			try
+			{
+				var response = await base.SendAsync(request, cancellationToken);
+				progress.Enqueue($"{DateTimeOffset.UtcNow:O} {participant}: request {number} {route} HTTP {(int)response.StatusCode}; {Stopwatch.GetElapsedTime(started).TotalSeconds:F2}s");
+				return response;
+			}
+			catch (Exception error)
+			{
+				progress.Enqueue($"{DateTimeOffset.UtcNow:O} {participant}: request {number} {route} {error.GetType().Name}; {Stopwatch.GetElapsedTime(started).TotalSeconds:F2}s");
+				throw;
+			}
+		}
 	}
 
 	[Theory]

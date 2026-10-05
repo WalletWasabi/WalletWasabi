@@ -22,6 +22,40 @@ foreach ($taskPort in @(18553,18554)) {
 $taskRun = if ($ResumeFixture) { (Resolve-Path -LiteralPath $ResumeFixture).Path } else { Join-Path $Repository ('artifacts/android/native-ui-' + [guid]::NewGuid().ToString('N')) }
 if ($ResumeFixture -and (!$taskRun.StartsWith((Join-Path $Repository 'artifacts/android/native-ui-'), [StringComparison]::OrdinalIgnoreCase) -or !(Test-Path -LiteralPath (Join-Path $taskRun 'bitcoin.conf')))) { throw 'Resume only an existing owned synthetic regtest fixture.' }
 New-Item -ItemType Directory -Force -Path $taskRun | Out-Null
+$taskVerificationPath = Join-Path $taskRun 'verification.json'
+if ($ResumeFixture -and (Test-Path -LiteralPath $taskVerificationPath)) {
+    Copy-Item -LiteralPath $taskVerificationPath -Destination (Join-Path $taskRun ('verification-before-' + [DateTime]::UtcNow.ToString('yyyyMMddTHHmmssfff') + '.json'))
+}
+function Get-NativeApkIdentity([string]$Apk, [bool]$RequireChecks = $true) {
+    $taskHash = (Get-FileHash -LiteralPath $Apk -Algorithm SHA256).Hash.ToLowerInvariant()
+    $taskManifestPath = Join-Path (Split-Path -Parent $Apk) 'package-manifest.json'
+    if (!(Test-Path -LiteralPath $taskManifestPath)) { throw "Inspect the signed package before UI qualification: $Apk" }
+    $taskManifest = Get-Content -LiteralPath $taskManifestPath -Raw | ConvertFrom-Json
+    if ($taskManifest.apkSha256 -ne $taskHash -or ($RequireChecks -and (!$taskManifest.packageChecksPassed -or $taskManifest.failedChecks.Count -gt 0))) { throw 'Package inspection does not qualify these APK bytes.' }
+    @{ sha256=$taskHash; sourceCommit=$taskManifest.sourceCommit; versionCode=$taskManifest.versionCode; certificateSha256=$taskManifest.certificateSha256; packageChecksPassed=$taskManifest.packageChecksPassed; failedChecks=$taskManifest.failedChecks }
+}
+$taskVerification = [ordered]@{
+    recordedUtc=[DateTime]::UtcNow.ToString('O'); result='INCOMPLETE'; serial=$Serial
+    driverSourceCommit=(& git -C $Repository rev-parse HEAD).Trim()
+    driverWorkingTreeModified=[bool](& git -C $Repository status --porcelain)
+}
+$taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
+try {
+    # Upgrades may start from the retained older candidate with known findings.
+    # Record those findings; only the final updated APK must pass inspection.
+    $taskVerification.baseline=Get-NativeApkIdentity $BaselineApk $false
+    $taskVerification.update=Get-NativeApkIdentity $UpdateApk
+    if ($taskVerification.baseline.certificateSha256 -ne $taskVerification.update.certificateSha256) { throw 'The update must retain the baseline signing identity.' }
+    $taskVerification.api=[int]((& $taskAdb -s $Serial shell getprop ro.build.version.sdk).Trim())
+    $taskVerification.architecture=((& $taskAdb -s $Serial shell getprop ro.product.cpu.abi).Trim())
+    $taskVerification.pageSize=[int]((& $taskAdb -s $Serial shell getconf PAGE_SIZE).Trim())
+    $taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
+}
+catch {
+    $taskVerification.result='FAIL'; $taskVerification.failure=$_.Exception.Message
+    $taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
+    throw
+}
 @'
 regtest=1
 server=1
@@ -46,8 +80,21 @@ function Invoke-NativeRpc([string]$Method, [object[]]$Params = @()) {
 }
 function Invoke-NativeMode([string]$Mode, [string[]]$Extra = @()) {
     $taskLog = Join-Path $taskRun "$Mode.log"
-    & $taskAdb -s $Serial shell am instrument -w -r -e mode $Mode @Extra io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation | Tee-Object $taskLog
-    if ($LASTEXITCODE -ne 0 -or (Get-Content -LiteralPath $taskLog -Raw) -notmatch "PASS: actual Release $Mode UI") { throw "Actual APK $Mode qualification failed. See $taskLog" }
+    $taskModeStart = @{ FilePath=$taskAdb; ArgumentList=@('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode',$Mode) + $Extra + @('io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation'); RedirectStandardOutput=$taskLog; RedirectStandardError=(Join-Path $taskRun "$Mode-error.log"); PassThru=$true }
+    if ($IsWindows) { $taskModeStart.WindowStyle='Hidden' }
+    $taskModeProcess = Start-Process @taskModeStart
+    try {
+        $taskModeDeadline = [DateTime]::UtcNow.AddMinutes(3)
+        while (!$taskModeProcess.HasExited -and [DateTime]::UtcNow -lt $taskModeDeadline) { Start-Sleep -Milliseconds 250 }
+        if (!$taskModeProcess.HasExited) {
+            & $taskAdb -s $Serial shell am force-stop $taskPackage
+            if (!$taskModeProcess.WaitForExit(10000)) { $taskModeProcess.Kill() }
+            throw "Actual APK $Mode instrumentation exceeded its bounded timeout. See $taskLog"
+        }
+        Get-Content -LiteralPath $taskLog
+        if ($taskModeProcess.ExitCode -ne 0 -or (Get-Content -LiteralPath $taskLog -Raw) -notmatch "PASS: actual Release $Mode UI") { throw "Actual APK $Mode qualification failed. See $taskLog" }
+    }
+    finally { $taskModeProcess.Dispose() }
 }
 $taskNodeStart = @{ FilePath=$BitcoindPath; ArgumentList=@("-datadir=$taskRun"); RedirectStandardOutput=(Join-Path $taskRun 'node.log'); RedirectStandardError=(Join-Path $taskRun 'node-error.log'); PassThru=$true }
 if ($IsWindows) { $taskNodeStart.WindowStyle='Hidden'; $taskNodeStart.ArgumentList='"-datadir=' + $taskRun + '"' }
@@ -129,6 +176,8 @@ try {
     if (!$taskInstrumentation.HasExited) { throw 'Native UI qualification exceeded its bounded timeout.' }
     $taskResult = Get-Content -LiteralPath $taskLog -Raw
     if ($taskResult -notmatch 'PASS: actual Release wallet UI' -or !$taskTransaction -or $taskResult -notmatch 'AUTH_REJECTED') { throw "Native payment/authorization/locking qualification failed. See $taskLog" }
+    if ($taskResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)') { throw 'Actual baseline version was not reported.' }
+    $taskVerification.baseline.versionCode=[int]$Matches[1]
     $taskRaw = Invoke-NativeRpc getrawtransaction @($taskTransaction,$true)
     $taskRecipientOutputs = @($taskRaw.vout | Where-Object { $_.scriptPubKey.address -eq $taskDestination })
     if ($taskRecipientOutputs.Count -ne 1 -or [decimal]$taskRecipientOutputs[0].value -ne 0.1) { throw 'Actual approved recipient output mismatch.' }
@@ -139,19 +188,41 @@ try {
     if (@($taskJournal).Count -ne 1) { throw 'Actual durable journal missing.' }
     $taskBefore = (& $taskAdb -s $Serial shell "sha256sum $taskJournal").Split(' ')[0]
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
+    Copy-Item -LiteralPath (Join-Path $taskRun 'resume.log') -Destination (Join-Path $taskRun 'resume-before-update.log')
     & $taskAdb -s $Serial shell am force-stop $taskPackage
     & $taskAdb -s $Serial install --no-incremental -r $UpdateApk
     if ($LASTEXITCODE -ne 0) { throw 'Signed update failed; wallet data is preserved.' }
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
+    $taskUpdatedResult=Get-Content -LiteralPath (Join-Path $taskRun 'resume.log') -Raw
+    if ($taskUpdatedResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)' -or [int]$Matches[1] -ne $taskVerification.update.versionCode) { throw 'Actual updated version does not match the inspected package.' }
     $taskAfter = (& $taskAdb -s $Serial shell "sha256sum $taskJournal").Split(' ')[0]
     if ($taskBefore -ne $taskAfter) { throw 'Update changed pending transaction journal bytes.' }
     $taskBlock = @(Invoke-NativeRpc generatetoaddress @(1,$taskMining))[0]
     if ((Invoke-NativeRpc getrawtransaction @($taskTransaction,$true)).confirmations -lt 1) { throw 'Actual payment did not confirm.' }
-    @{ serial=$Serial; destination=$taskDestination; transactionId=$taskTransaction; journalSha256=$taskAfter; baselineSha256=(Get-FileHash $BaselineApk -Algorithm SHA256).Hash; updateSha256=(Get-FileHash $UpdateApk -Algorithm SHA256).Hash; confirmationBlock=$taskBlock; checkedUtc=[DateTime]::UtcNow.ToString('O'); result='PASS' } | ConvertTo-Json | Set-Content -LiteralPath (Join-Path $taskRun 'verification.json')
+    $taskVerification.destination=$taskDestination
+    $taskVerification.transactionId=$taskTransaction
+    $taskVerification.journalSha256=$taskAfter
+    $taskVerification.baselineSha256=$taskVerification.baseline.sha256
+    $taskVerification.updateSha256=$taskVerification.update.sha256
+    $taskVerification.confirmationBlock=$taskBlock
+    $taskVerification.checkedUtc=[DateTime]::UtcNow.ToString('O')
+    $taskVerification.result='PASS'
+    $taskVerification.logs=@('setup-rpc.log','wallet.log','resume-before-update.log','resume.log') | ForEach-Object { @{ path=$_; sha256=(Get-FileHash -LiteralPath (Join-Path $taskRun $_) -Algorithm SHA256).Hash.ToLowerInvariant() } }
+    $taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
     Write-Output "Actual Release APK native UI evidence: $taskRun"
 }
+catch {
+    $taskVerification.result='FAIL'
+    $taskVerification.failure=$_.Exception.Message
+    $taskVerification.checkedUtc=[DateTime]::UtcNow.ToString('O')
+    $taskVerification | ConvertTo-Json -Depth 6 | Set-Content -LiteralPath $taskVerificationPath
+    throw
+}
 finally {
-    if ($taskInstrumentation -and !$taskInstrumentation.HasExited) { & $taskAdb -s $Serial shell am force-stop $taskPackage; Stop-Process -Id $taskInstrumentation.Id -ErrorAction SilentlyContinue }
+    if ($taskInstrumentation -and !$taskInstrumentation.HasExited) {
+        & $taskAdb -s $Serial shell am force-stop $taskPackage
+        if (!$taskInstrumentation.WaitForExit(10000)) { $taskInstrumentation.Kill() }
+    }
     if (!$taskNode.HasExited) { try { Invoke-NativeRpc stop | Out-Null } catch { Stop-Process -Id $taskNode.Id -ErrorAction SilentlyContinue } }
     foreach ($taskPort in @(18443,18444)) { & $taskAdb -s $Serial reverse --remove "tcp:$taskPort" | Out-Null }
 }

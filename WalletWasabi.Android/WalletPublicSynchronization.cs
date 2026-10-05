@@ -27,7 +27,9 @@ public sealed partial class WalletInstrumentation
 		var context = TargetContext!;
 		var directory = Path.Combine(context.FilesDir!.AbsolutePath, "public-sync-" + name + "-" + Guid.NewGuid().ToString("N"));
 		var settings = new MobileSettings { Network = name };
-		using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(12));
+		// Fresh P2P synchronization validates the full header chain from genesis
+		// before consuming the filter checkpoint. Tor can exceed twelve minutes.
+		using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(40));
 		await using var tor = new TorHost();
 		Logger.LogInfo("Starting unfunded public " + name + " synchronization qualification.");
 		try { await tor.StartAsync(context, directory, settings, deadline.Token); }
@@ -46,7 +48,7 @@ public sealed partial class WalletInstrumentation
 			new Mnemonic(Wordlist.English, WordCount.Twelve), false);
 		while (!session.IsSynchronized)
 		{
-			Logger.LogInfo($"Synthetic public {name} readiness: peers={session.Global.GetPeerCount()}, filters={session.Global.FilterHeaders.TipHeight}, network={session.Global.FilterHeaders.ServerTipHeight}, remaining={session.Global.FilterHeaders.HashesLeft}, wallet={wallet.KeyManager.GetBestHeight()}");
+			Logger.LogInfo($"Synthetic public {name} readiness: peers={session.Global.GetPeerCount()}, headers={session.Global.GetBlockHeadersTipHeight()}, filters={session.Global.FilterHeaders.TipHeight}, network={session.Global.FilterHeaders.ServerTipHeight}, remaining={session.Global.FilterHeaders.HashesLeft}, wallet={wallet.KeyManager.GetBestHeight()}");
 			await Task.Delay(TimeSpan.FromSeconds(10), deadline.Token);
 		}
 		Check(session.Global.GetPeerCount() > 0 && session.Global.FilterHeaders.IsSynchronized

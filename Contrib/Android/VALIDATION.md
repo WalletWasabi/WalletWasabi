@@ -95,6 +95,34 @@ rules. The exception-to-success shortcut was removed; three consecutive actual
 blame rounds and the full 325-test WabiSabi suite pass locally. New remote results
 are still required.
 
+At clean source `24abf94cb4ade34018d9f4548f1ca3ad2997f41e`, Android run
+[`37285067882`](https://github.com/nopara73/WalletWasabi/actions/runs/37285067882)
+passed every job: the locked native build with OpenSSL 3.5.9; API 24, 35,
+36/4096 and 36/**16384** Debug/Release suites; all nine deterministic CoinJoin
+failure scenarios; and 20 consecutive fresh Release rounds. Downloaded records
+in `ci-24abf94c` contain 18 PASS verification files and 78 executed mode logs.
+Every recorded log hash was checked, with clean source, actual x64 Mono 10.0.12
+execution and requested page sizes. The consecutive-round qualification APK is
+`02e485fbde23fe4ba7040c506f6ad4f6643fe0cf0aafae3b0c41197673ab50c4`.
+These results qualify that source, not subsequent changes or the phone.
+
+Desktop run [`37285067800`](https://github.com/nopara73/WalletWasabi/actions/runs/37285067800)
+passed Linux, Nix and both macOS architectures. Windows passed 1102 of 1103 tests;
+the retained blame fixture failed. Affinity-limited synthetic reproductions
+established that three credential-producing clients and their coordinator exceed
+the fixture's shortened 30/60-second phases on one contended CPU. Retained request
+timings separate local cryptographic work from subsecond HTTP requests; the
+coordinator rejects late work with `WrongPhase`. The test now uses the production
+three-minute fail-fast output budget, retains real blame/input assertions, and
+records only its own synthetic round diagnostics. Qualification of this correction
+is recorded separately; no production CoinJoin protection was relaxed.
+
+The corrected fixture passed with its coordinator and all three clients confined
+to one CPU (`blame-production-budget-compiled-one-cpu-tests.log`, 6m13s).
+Both honest participants completed the blame round, its four expected inputs were
+checked, and the withheld-signature participant was excluded. The earlier
+30/60-second failures and request timings remain retained.
+
 Source-native local Release runtime/wallet/fault/vault suites pass on API 24
 (`device-b6adafd5f7924356af0fbeef87b6f8a1`) and API 36/16384 bytes
 (`device-18261fafb1f34476934c7b1dc6da7430`). API 24 Tor passes in
@@ -179,9 +207,25 @@ Use delivery JSON for the final nine-scenario results and their hashes.
 
 Public fee and unfunded Main/Testnet4 synchronization fixtures exercise actual
 Tor transports without RPC credentials or real-bitcoin submissions. They are
-separate from regtest CPFP tests. Earlier public fee requests timed out through
-Tor and remain failures until a recorded production-provider pass. Twenty local
-rounds or deterministic fault tests do not establish real-world anonymity.
+separate from regtest CPFP tests. At source `24abf94c`, live production CPFP
+provider execution passed for Main and Testnet4 in
+`device-ed11374569524885a226a04140a88999`: Tor bootstrap, raw transaction hash,
+fees, virtual sizes and ancestor units were checked against the official onion
+service. Earlier HTTPS-through-Tor timeouts remain recorded. Twenty local rounds
+or deterministic fault tests do not establish real-world anonymity.
+
+Fresh public synchronization remains a distinct gate. One run reached 574,000
+mainnet headers but exhausted its 12-minute fixture budget. Its Testnet4 peers
+advertised no compact-filter service, so the engine correctly refused to use
+them for filters. A 46-minute host sleep is recorded separately in
+`host-suspend-evidence.json`; failed instrumentation remains failed. The fixture
+now allows 40 minutes per network and reports actual header height. Peer discovery
+also queries the existing DNS seeds with Bitcoin's `x49` service mask through
+the configured resolver, retaining general answers and handshake validation.
+Three regressions fail before that correction and pass after it. The mask follows
+[Bitcoin Core's seed queries](https://github.com/bitcoin/bitcoin/blob/master/src/net.cpp)
+and [bitcoin-seeder's service whitelist](https://github.com/sipa/bitcoin-seeder/blob/master/main.cpp).
+This change requires a new real Tor synchronization result.
 
 Fee-cache regressions also reproduced duplicate concurrent insertion and periodic
 updates returning old cached information without a network fetch. Both are fixed;
