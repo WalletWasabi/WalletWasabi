@@ -17,6 +17,7 @@ def main():
     parser.add_argument("--apk", type=Path, required=True)
     parser.add_argument("--output", type=Path, default=Path("artifacts/android"))
     parser.add_argument("--openssl", default=shutil.which("openssl"))
+    parser.add_argument("--duplicate-activity", action="store_true", help="Reproduce a second OnCreate in the same process")
     args = parser.parse_args()
     if not args.openssl:
         raise ValueError("Supply the installed OpenSSL executable with --openssl")
@@ -71,6 +72,10 @@ def main():
         adb("logcat", "-c")
         adb("shell", "am", "start", "-n", package + "/io.wasabiwallet.android.RuntimeProbeActivity",
             "--ez", "tls-vectors", "true", "--es", "fixture-certificate", public_argument)
+        if args.duplicate_activity:
+            adb("shell", "am", "start", "-f", "0x18000000",
+                "-n", package + "/io.wasabiwallet.android.RuntimeProbeActivity",
+                "--ez", "tls-vectors", "true", "--es", "fixture-certificate", public_argument)
         deadline = time.monotonic() + 120
         while time.monotonic() < deadline:
             result = adb("logcat", "-d", "-s", "WasabiRuntime:I", "*:S")

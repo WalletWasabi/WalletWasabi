@@ -1,307 +1,176 @@
 # Android personal candidate verification
 
-Recorded 2026-10-05 (Asia/Singapore). This record distinguishes implementation,
-local emulator evidence, static package checks, and uncompleted release gates.
-**Overall release qualification is BLOCKED. The physical phone passed the
-isolated runtime probe; full handset qualification and a real mainnet payment
-remain outstanding. This work is not an independent security audit.**
+Recorded 2026-10-05 (Asia/Singapore). Version 0.3.0 / version code 5 is a
+qualification candidate. **Release acceptance remains blocked by the uncompleted
+checks in the delivered `verification.json`.** Source changes, earlier successful
+tests and a signed APK do not qualify an untested handset or authorize bitcoin.
+This implementing review is not an independent security audit.
 
-## Runtime and host checks
+## Runtime and native dependencies
 
-The selected baseline is SDK 10.0.401, Android workload 36.1.69 and Mono 10.0.12
-JIT. Trimming, interpreter, assembly store, ReadyToRun and AOT are disabled.
-The original assembly-store initialization deadlock and interpreter proof failure
-were isolated with `RuntimeProbe`. Individual assembly packaging and Mono JIT
-execute the existing engine without replacing Bitcoin algorithms or serialization.
-Release AOT with trimming disabled was separately attempted and rejected by the
-workload with XA1030, including the Mono 10.0.12 reproduction recorded in
-`mono12-untrimmed-aot-build.log`. AOT is unqualified; the candidate uses JIT. Experimental
-Android CoreCLR is not selected.
+The pinned baseline is .NET SDK 10.0.401, Android workload 36.1.69 and Mono
+10.0.12 JIT. Trimming, interpreter, assembly store, ReadyToRun and AOT are disabled.
+The original initialization deadlock and interpreter proof failure are retained
+in `RuntimeProbe`. Existing Bitcoin algorithms and serialization are preserved.
+Release AOT with trimming disabled was attempted separately and rejected with
+XA1030; the retained `mono12-untrimmed-aot-build.log` records that failure.
+Experimental Android CoreCLR is not selected.
 
-The workload initially supplied Mono 10.0.9. Stable servicing runtime 10.0.12
-passed the isolated Release reproduction before adoption. The pin applies only to
-`Microsoft.NETCore.App`, leaving the Android runtime packs at 36.1.69. The
-qualification results below distinguish these versions; an earlier pass is not
-silently attributed to the updated runtime. Microsoft publishes the current
-[.NET servicing releases](https://github.com/dotnet/core/blob/main/release-notes/10.0/10.0.12/10.0.12.md).
+Runtime checks cover genesis and serialization, published BIP39/32/84/86/340
+vectors, ECDSA verification and rejection, marshalling and managed WabiSabi
+proofs. Funded regtest checks require Bitcoin Core acceptance of Segwit and
+Taproot signatures.
 
-The runtime suite checks genesis/serialization, published BIP39, BIP32, BIP84,
-BIP86 and BIP340 vectors, ECDSA verification, modified-message rejection, Android
-marshalling and managed WabiSabi credential proofs. Funded suites additionally
-require Bitcoin Core acceptance of Segwit ECDSA and Taproot payments.
+`NativeSources/source.lock.json` pins the runtime, Android SDK, Tor 0.4.9.13 and
+vendors, SQLite 3.53.3, NDK r29 and CMake 3.31.8. All 38 staged native files pass
+16 KB LOAD/RELRO alignment, immediate binding and nonexecutable-stack checks.
+No SDK pack is overwritten, ELF security header patched or protection waived.
+Personal builds require verified source libraries. Inspection also checks APK
+bytes against the native manifest and SDK assembly-container layout.
 
-| Host check | Local result | Evidence under `artifacts/android/` |
-| --- | --- | --- |
-| Mobile tests | 35 initially; 48 after signed-round reservation and TLS trust regressions | `mobile-tests.log`; `native-source-build/mobile-regressions.log` |
-| WabiSabi suite, including coordinator/client safeguards | 322 passed | `desktop-wabisabi-tests.log` |
-| Relevant SafeFile, KeyManager, TransactionFactory, CPFP-provider and Tor settings checks | 52 passed | `desktop-relevant-tests.log` |
-| RPC/P2P filter synchronization regressions | 15 passed | `filter-regression-tests.log` |
-| Desktop Fluent build | Passed, zero warnings/errors | Local build output |
-| Personal and qualification Release builds | Passed, zero warnings/errors | Local build output |
-| NuGet transitive vulnerability query | No vulnerabilities reported by queried feed | `dependency-audit.json` |
+The API 24 TLS deadlock was reproduced as nested `SSLStreamHandshake` entry
+during certificate rejection while legacy Conscrypt held its mutex. The scoped
+source guard rejects reentry. Separate API 24/25 missing-anchor handling supplies
+the verified public ISRG Root X1 certificate only when that anchor is absent;
+full chain, signature, validity, usage and hostname checks still apply. Seven
+host trust regressions pass. Public Tor TLS, fail-closed shutdown and restart
+pass on API 24; the packaged probe passes all 15 valid/untrusted/wrong-hostname
+connections. Repeated Activity creation is tested without starting two probes.
+Earlier failing native/TLS diagnostics remain retained.
 
-A dependency query does not audit native components or establish absence of
-vulnerabilities. A clean build does not establish wallet safety.
+The first rebuilt loader failed with decompression error -31 because its local
+container stub had 10 sections whereas the pinned SDK container has 11. Constants
+now come from the hashed SDK stub; incompatible metadata is rejected. Corrected
+source loader execution passes x64 tests. Corrected ARM64 handset execution is
+still required; the earlier stock-runtime handset result is separate evidence.
 
-## Android execution matrix
+## Verification records and architectures
 
-The funded emulator suites actually executed **x86_64**. Some emulator ABI lists
-include ARM64 translation support; those lists do not prove an ARM64 execution.
-The isolated Release runtime probe subsequently executed **Arm64** on the connected
-SM-S948B, Android 16/API 36, with 4096-byte pages, using Mono 10.0.12. Its genesis,
-BIP39/32/84/86/340, ECDSA and managed WabiSabi checks passed. Evidence:
-`handset-runtime-probe.log` and `handset-runtime-probe-verification.json`.
-This does not qualify handset payments, recovery, biometrics, camera or updates.
+`test-device.ps1` records source commit, dirty-tree state, APK checksum, package,
+configuration, actual API/page size/architecture/runtime and result/log hashes.
+Incomplete or failed runs never become PASS. CI uploads synthetic logs and
+verification records, excluding wallet fixtures, databases and vaults. Delivery
+binds selected evidence to clean published source and the inspected APK. Earlier
+checks qualify only their recorded source/build.
 
-The expanded initial **Mono 10.0.9** matrix:
+Funded emulator execution is **x86_64**, even where ABI lists advertise ARM
+translation. The SM-S948B separately passed the isolated stock Mono 10.0.12
+Release crypto probe on **Arm64**, Android 16/API 36, 4096-byte pages
+(`handset-runtime-probe.log` and its verification JSON). It has not passed the
+complete source-native wallet, hardware authorization or camera qualification.
 
-| Emulator | API / actual page size | Release runtime, funded wallet, faults and vault | Evidence directory |
-| --- | --- | --- | --- |
-| emulator-5582 | 24 / 4096 | Passed | `device-20b9f47c76b1481c9f4213d6314b5bcd` |
-| emulator-5580 | 35 / 4096 | Passed in two runs | `device-a6d11a5adb6a4dab9144ff543ff361ca`, `device-91f2dd2dab0e411cbd748fb96efffa4b` |
-| emulator-5584 | 36 / 4096 | Passed, including funded faults | `device-b1f6543700dd40f3beb0ece2d0df5907` |
-| emulator-5586 | 36 / **16384** | Passed, including Tor | `device-3b14a96ec38b471684f22d85cc00c716` |
+At source `0321b93ea78aca6a1c77cf27165eb48973397425`, Android CI run `37262644418`
+verified the locked native build, full API 35/4096-byte and API 36/**16384-byte**
+Debug/Release suites, and 20 consecutive fresh Release CoinJoins. All 20 unique
+transactions completed on Android and an independently keyed host, then were
+accepted and mined by Core. Its API 36/4096-byte TLS fixture failed when repeated
+Activity creation restarted the probe; the corrected fixture passes locally.
+API 24 CI boot was cancelled during an unbounded boot-property query; that job
+executed no runtime tests. Desktop CI run `37262644316` passed Windows, Linux,
+macOS Intel/ARM and Nix checks at that source.
 
-The updated **Mono 10.0.12** matrix:
+The CI emulator is now pinned to the locally tested build, API 24 uses the same
+Google APIs image, and boot-property probes alone have a two-second bound.
+Instrumentation keeps its own deadline. These changes need a new remote run;
+configuration alone is not a passing result.
 
-| Emulator | API / actual page size | Release runtime, funded wallet, faults and vault | Evidence directory |
-| --- | --- | --- | --- |
-| emulator-5582 | 24 / 4096 | Passed | `device-bfc5872e62994b409aba67098295e28f` |
-| emulator-5580 | 35 / 4096 | Passed | `device-87c9d47731504101a7307c12571fdf34` |
-| emulator-5584 | 36 / 4096 | Passed | `device-d98d4d918e124e71996f38acb7505f1b` |
-| emulator-5586 | 36 / **16384** | Passed | `device-8d8d9049094d4d91ae275e9f603aade2` |
+Source-native local Release runtime/wallet/fault/vault suites pass on API 24
+(`device-b6adafd5f7924356af0fbeef87b6f8a1`) and API 36/16384 bytes
+(`device-18261fafb1f34476934c7b1dc6da7430`). API 24 Tor passes in
+`device-af7b42ef9641424785f401a5bb85660e`; packaged TLS passes in
+`device-tls-9ec0b59fbf3444c7ac3fd6e81ee27759`. Consult delivery JSON for the newest
+matrix, exact checksums and latest source qualification.
 
-Earlier Debug runtime/vault checks passed on the same four environments; Debug
-funded-wallet and 20-round evidence also exist. This is not a claim that the entire
-latest Debug/Release failure matrix ran everywhere. CI defines that larger matrix;
-a current remote CI result must be read separately.
+## Payments, recovery and authorization
 
-On Mono 10.0.12, the Debug runtime (including the session-level mainnet prohibition)
-and vault suites passed on all four environments, recorded in
-`mono12-debug-api35-runtime.log`, `mono12-debug-api35-vault.log` and
-files matching `mono12-debug-emulator-*-runtime.log` and
-`mono12-debug-emulator-*-vault.log` (one file per serial/mode). The funded Debug
-runtime, wallet, faults and vault suites also passed on API 35 in
-`device-4c8a3afdc0564618bbec51573c880aec/`.
+Funded fixtures cover both account derivations, persisted receive/change
+addresses, exact recipient amounts, wrong password, expired review, cancelled
+authorization, duplicate confirmation, RBF, cancellation, CPFP, interrupted
+broadcast, same-height reorganization and confirmation. Signed bytes are
+journaled before broadcast; ambiguous submission reserves inputs and reconciles
+or rebroadcasts those same bytes. Fresh-directory encrypted backup recovery
+requires neither the old database nor device keys and restores signing.
 
-The funded Release wallet suite checks persisted Taproot and Segwit addresses,
-exact recipient amount, password/stale-review rejection, duplicate confirmation,
-recipient-preserving RBF, cancellation returning outputs to the wallet, mining,
-history, lock/key clearing, encrypted backup import into a fresh directory with no
-previous database or device keys, restored signing, and both seed-derived accounts.
-Vault checks cover encrypted RPC round-trip, reopening, tamper rejection, key loss
-and removal. Hardware-backed per-use biometric success/cancellation remains untested.
+The self-transfer fixture reproduced desktop RBF deducting fees from an approved
+owned recipient. Mobile proposals now mark owned recipients and protect their
+exact script/amount during RBF; absent legacy markers protect all owned outputs.
+Eligible CPFP remains the fallback. Core accepted and mined the protected
+replacement (`device-0154a8a40f074d44b1bd303f5103a0a0`). Two journal regressions
+preserve legacy JSON serialization and owned-recipient markers across
+reconciliation. All 50 current mobile tests pass.
 
-The Release funded failure suite passed on API 35 in
-`device-91f2dd2dab0e411cbd748fb96efffa4b/` and on API 36 in
-`device-b1f6543700dd40f3beb0ece2d0df5907/`. It expires a proposal, cancels confirmation,
-lets Core accept a transaction while deliberately discarding its RPC reply, checks
-uncertain-input reservations and duplicate confirmation, reopens the wallet, and
-reconciles/rebroadcasts the exact approved bytes. A same-height reorganization makes
-the payment pending and then reconfirms the same transaction. A funded CPFP child
-also passes preparation, authorization, Core acceptance, journaling and confirmation
-without changing its parent's recipients. The regtest-only fixture supplies actual
-Core mempool metadata to the existing fee-info interface; it does not qualify the
-production public CPFP fee endpoint or replace the production transaction pipeline.
+RPC vault tests cover encrypted persistence, tamper, removal and key loss.
+Hardware-backed per-use biometric/device-credential success and cancellation
+require the phone. Device credentials do not alter Bitcoin derivation or replace
+the original recovery password.
 
-These tests found delayed RPC-batch continuations being classified as a reorg,
-same-height RPC reorgs being missed, and stale P2P headers repeatedly rolling back
-valid RPC filters. RPC filters now use the RPC chain consistently, await batch
-completion and check the tip hash even when the height is unchanged. Five new
-regression cases failed before their corrections; all 15 related cases now pass.
-Failed Android attempts and their engine traces remain retained, including
-`device-fef57b831e064a16ad9005418de71870/` and
-`device-ed70c9acbdad43409a07f36d4d9e99f6/faults-engine-before-stop.log`.
+A co-signed pure-Java harness drives the actual personal APK with release
+security flags intact: wrong-password rejection, duplicate taps, background and
+two-minute inactivity locking, delayed unlock rejection, process death, journal
+preservation and updates. Preliminary version 0.3.0 package checksum
+`96658ff503a6788274746f14a3ab0c405d6a5eaaafaa43b73d2a53f4f44b82f3` passed this
+suite on API 36/4096 bytes (`native-ui-902f35a54eff4e968ae71a526e951933`). This is
+**not the final delivery checksum**. Final bits and the version-4-to-5 update
+require separate recorded checks.
 
-## CoinJoin qualification
+## CoinJoin failures and public networking
 
-On initial Mono 10.0.9, twenty consecutive **fresh Release rounds passed** with an independently keyed
-host wallet and the real Wasabi coordinator. Both participants completed every
-round; Core accepted and mined the transactions. Evidence:
-`device-ca93fb3dcb1b4ecdbf905aff0d618648/coinjoin-1.log` through `coinjoin-20.log`,
-plus participant and coordinator logs for each round. A separate Debug 20/20 run
-is retained in `device-2f951bfd1ba64bde83b9656bfdefd212/`. These counts do not qualify
-the subsequent Mono 10.0.12 update. Its separate fresh-round run is retained in
-`device-b441f50c6e2e40a39dce17b06f891bc1/`; consult the delivered
-`verification.json` for the final verified count, round transaction identities and
-evidence hashes. An unfinished run does not satisfy the twenty-round gate.
+Denomination construction's deferred random script selection was reproduced
+and fixed by materializing choices once. Its regression failed before the fix.
+An older historical output-registration timeout had insufficient private traces:
+the correction does not uniquely establish that historical timeout's cause.
 
-A deferred random script selection in denomination construction was reproduced
-and fixed by materializing each choice once. Its regression failed against the
-old behavior and passes against the change. Tests also verify minimum-input
-signing refusal and that a failed durable checkpoint prevents signature submission.
-The manager's stop/retry race was fixed; stops release credentials while locked.
+Further regressions reproduced uncancellable waits for credential dependencies
+and an initial issuance failure leaving graph workers blocked. Waits now observe
+cancellation; every issuance participates in sibling failure cancellation. A
+vanished round propagates `RoundNotFound` promptly. Both old behaviors fail the
+retained tests; all 325 WabiSabi host tests now pass.
 
-An earlier historical output-registration timeout lacked private engine diagnostics.
-The reproduced denomination defect is resolved, but that does not uniquely prove
-the cause of the historical timeout. A later Release trial failed at round seven
-because the host fixture called start while still catching up with the Android
-funding block; retained logs establish that cause. Both fixture participants now
-recheck the final funding height after their readiness barrier. The fresh 20/20
-rerun passed after this correction.
+Android fixtures exercise stop at input, confirmation, output, pre-signing and
+post-signing phases. All five local source-native cases passed. Critical phases
+complete safely, Core accepts/mines completed rounds, and stop clears signing
+credentials while the interface is locked. Signed checkpoints survive every
+coordinator failure until transaction or confirmed-conflict reconciliation;
+six regressions retain those reservations.
 
-These rounds do not establish real-world anonymity. A complete Android-specific
-fault matrix for dropout, blame rounds, coordinator restart, process death during
-signing and safe stopping at each protocol phase is still an open gate. Unknown
-signed outcomes retain reservations until reconciliation; they are not inferred
-rejected from an unavailable coordinator.
+The deterministic three-participant blame fixture withholds a signature, kills
+that fixture process, completes a two-participant blame round and verifies its
+excluded input remains unspent (`device-e36182ca0f4c406abb39ed130ceff6a1`). The
+separate confirmation fixture withholds the actual coordinator confirmation
+action; events emitted after confirmation are insufficient evidence. Restart
+uses the same coordinator directory and requires a different successful round.
+It passed in `device-c3c9ab77ff0a43c09cef4bde13844956`. Random registration windows
+require a longer fixture deadline without reducing privacy delays or minimum
+participation. Earlier deadline failures remain recorded.
 
-The remote Android workflow at source `03c2bc4` completed 20/20 fresh Release
-CoinJoin rounds in run `37251402453`. API 35/4K and API 36/4K also passed its full
-Debug/Release suites. API 24 retained the TLS failure. API 36/16K failed because
-`lmkd` killed the foreground development wallet after first-boot services exhausted
-the emulator's default memory; its actual 16 KB runtime check had already passed.
-The workflow now sets 4096 MB RAM explicitly. These results qualify the stock
-native baseline, not subsequent source native builds.
+The process-death fixture force-stops Android after a durable signing checkpoint,
+reopens without clearing data, verifies uncertain reservations and absent signing
+credentials, and requires confirmed-conflict reconciliation before release.
+Use delivery JSON for the final nine-scenario results and their hashes.
 
-Six new journal tests reproduced premature reservation release after a coordinator
-reported failure following the signing checkpoint. All signed checkpoints now
-remain reserved for observed transaction/confirmed-conflict reconciliation,
-regardless of coordinator status. The UI reports awaiting reconciliation after
-the manager stops. All 41 then-current mobile tests passed after this change;
-seven subsequent certificate trust cases bring the passing total to 48.
+Public fee and unfunded Main/Testnet4 synchronization fixtures exercise actual
+Tor transports without RPC credentials or real-bitcoin submissions. They are
+separate from regtest CPFP tests. Earlier public fee requests timed out through
+Tor and remain failures until a recorded production-provider pass. Twenty local
+rounds or deterministic fault tests do not establish real-world anonymity.
 
-## Tor and native package findings
+Fee-cache regressions also reproduced duplicate concurrent insertion and periodic
+updates returning old cached information without a network fetch. Both are fixed;
+all 39 CPFP host checks pass. Four HTTP retry tests verify discarded responses
+are disposed before the next attempt; three existing retry-policy tests pass.
+These host checks do not substitute for public service execution through Tor.
 
-### Source native rebuild qualification in progress
+## Required external gates
 
-`NativeSources/source.lock.json` pins runtime 10.0.12, Android SDK 36.1.69, Tor
-0.4.9.13 and its vendors, the currently packaged SQLite 3.53.3 source ID and
-published amalgamation SHA3-256, stable NDK r29 and CMake 3.31.8. The build recipe
-preserves RELRO/NOW/nonexecutable stacks and adds both 16 KB linker flags.
-All 38 staged Debug/Release native files pass strict ELF protection checks.
-No installed SDK pack is overwritten and no ELF security header is patched.
+- Corrected source-native ARM64 execution and full wallet tests on the connected
+  phone, including hardware authentication, physical camera, accessibility,
+  network/background/battery behavior, recovery and updates.
+- A privately retained backup and a new disposable mainnet wallet's small
+  receive/send/confirmation test with the user's explicit amount, destination
+  and fee budget. Existing funded seeds are never test fixtures.
+- Production coordinator availability; an independent review, if sought, remains
+  external and is not implied by this work.
 
-The API 24 localhost TLS reproduction uniquely traces certificate rejection
-re-entering `SSLStreamHandshake` while legacy Conscrypt holds its native mutex.
-`runtime-tls-reentrancy.patch` fails that nested call and lets the existing trust
-callback reject the certificate. Valid fixture TLS, untrusted certificates and
-wrong hostnames passed three fresh cycles. Java SSLSocket/SSLEngine controls reject
-the same untrusted fixture without the managed re-entry. Retained diagnostics are
-under `native-source-build/local-tls-*.log`.
-
-A first rebuilt Android loader failed on the phone with assembly decompression
-error -31: its locally rebuilt data-container stub had 10 ELF sections after
-payload insertion, but SDK-generated containers have 11. The loader build now
-derives constants from the exact hashed SDK container stub. Stage and APK checks
-verify the layout; the retained incompatible metadata/APK is rejected. The
-corrected loader passes the engine crypto probe on API 24 x64. Its full rebuilt
-runtime matrix and corrected ARM64 execution remain pending.
-Evidence includes `native-source-build/handset-source-native-startup.log` and
-`incompatible-loader-metadata.json`. The earlier stock-runtime phone pass remains
-separate from this failed source-build attempt.
-
-The source Release package also passes API 24 funded payments/recovery,
-replacements, interrupted submission/reorganization and vault tamper/key-loss
-checks in `device-b6adafd5f7924356af0fbeef87b6f8a1/`. Its initial public TLS request
-rejected a chain ending at a CA root absent from Android 7. The retained diagnostic
-reports `PartialChain` with issuer YR1. The Android API 24/25 adapter now supplements
-only missing-anchor failures with the verified ISRG Root X1 public certificate;
-full chain, hostname, validity, usage and signature checks remain enforced.
-Seven host regressions pass. Public Tor TLS, shutdown/fail-closed behavior and
-restart pass on API 24 in `device-af7b42ef9641424785f401a5bb85660e/tor.log`.
-The certificate's provenance and retirement boundary are in
-`WalletWasabi/Certificates/README.md`. No device trust store is modified.
-The packaged API 24 Release localhost test runs 15 TLS connections: three
-untrusted-root rejections, six wrong-hostname rejections and six authenticated
-responses across normal/custom/supplemental trust paths. Evidence:
-`device-tls-6becbc8122bd489ca5f176b4cbe219c2/tls.log`.
-
-The following historical findings remain applicable to the old 0.2.0 candidate.
-
-The 16 KB Release Tor suite passed public TLS verified by the destination as a
-Tor exit, stopped-Tor fail-closed behavior, idempotent disposal, restart and another
-verified public request on both runtimes. Evidence: initial Mono 10.0.9
-`tor-api36-16k-final.log` and updated Mono 10.0.12 `mono12-tor-api36-16k.log`. GeoIP assets are
-normalized to LF atomically; CRLF records had caused parser warnings during startup.
-
-**API 24 public TLS is blocked.** Tor bootstraps and establishes a SOCKS connection,
-but managed `SslStream` stalls during the platform handshake. The raw transport
-reproduction reports TCP and Tor-tunnel success before the stall. A native dump
-shows the worker in `SSL_do_handshake_bio`; this narrows the failure and does not
-prove an upstream fix. Evidence includes `tor-api24-tls12.log`,
-`tor-api24-native-stack.txt` and retained bounded Tor diagnostics. Cancellation did
-not interrupt the native stall; the owned emulator fixture was force-stopped.
-TLS certificate validation was not disabled and no direct-network fallback was added.
-The original raw-transport reproduction also stalls on stable Mono 10.0.12 after
-TCP and Tor-tunnel success. Its 45-second cancellation did not interrupt the
-native operation; the owned process was stopped after more than four minutes.
-Evidence: `mono12-api24-transport-engine.log`, `mono12-api24-native-stack.txt` and
-`mono12-api24-transport-verification.json`. An API 35 attempt separately timed out
-in Tor bootstrap (`mono12-tor-api35.log`); that network/bootstrap failure is not
-misclassified as the API 24 TLS defect.
-
-Strict package inspection verifies v2/v3 signatures and the dedicated certificate,
-ZIP alignment and ELF LOAD alignment. It decompresses managed assembly payloads,
-checks absence of test instrumentation/fixture markers, and verifies their hashes
-against SDK-prepared outputs. The generated `libxamarin-app.so` omitted the common
-page-size flag; a scoped target now relinks it with the SDK's exact response file
-and the documented flag, retaining RELRO and the original security options.
-
-However, static inspection still reports non-16-KB RELRO ends in prebuilt .NET
-runtime, Tor and ARM64 SQLite libraries. Actual 16 KB emulator tests passed, but
-that does **not** close these static findings or qualify other devices. They are
-recorded in the manifest and the inspection tool returns failure. See
-[Android's native page-size guidance](https://developer.android.com/guide/practices/page-sizes).
-Do not patch those runtime binaries or disable RELRO to turn the check green.
-The servicing update's personal APK still has 15 static RELRO findings across
-the two architectures, recorded in `mono12-precommit-package-manifest.json`.
-
-## Actual personal APK and update evidence
-
-A separate pure-Java, co-signed harness drove the **actual personal APK** on API 36
-with 16384-byte pages, without changing its security flags. Wrong-password
-confirmation was rejected; one 0.1 BTC regtest payment survived duplicate taps.
-Background lock, original-password unlocking, two-minute inactivity lock, process
-death and a version-code 2 to 3 update passed. The wallet and encrypted RPC vault
-remained usable and the pending journal hash stayed identical across restart/update.
-Core accepted and confirmed the approved transaction.
-
-Initial evidence: `native-ui-e811ce520ebb4fc39ea0d0b2a881c31f/verification.json`.
-Baseline APK SHA-256: `c7c1f050903fdf59158e08962fe8b6add1db9c52b572acabe3ac58822d5f12b5`.
-Tested update SHA-256: `38a82d7afaa444a49ee74e5272f3d9602946ccbb8124cafb1575d1e7631d2dfd`.
-Subsequent source/build changes require final-package inspection and retesting;
-those hashes must not be presented as the final delivery hash.
-
-The implementing review reproduced a delayed-unlock completion reopening the
-interface after background/resume. The original signed Mono 10.0.12 APK failed
-the co-signed native lifecycle test (`late-unlock-before/instrumentation.log`).
-UI lock generations now invalidate old completions, and busy operations and
-recovery-word screens obey inactivity locking. The same native test passed all
-three background/resume cycles after correction
-(`late-unlock-after/instrumentation.log`). Hardware authentication remains a
-separate handset gate; this test uses the synthetic wallet's original password.
-
-The updated Mono 10.0.12 personal candidate also passed the complete native UI
-suite and version-code 3 to 4 update. Evidence is retained in
-`native-ui-version3-to4/verification.json` and
-`native-ui-version4.log`; the original version 2 to 3 record is preserved in
-`native-ui-version2-to3/`. The version 3 baseline hash is
-`cbb879fbae5085fba88abb8aca46b8b7eb916462dd6dbf761c117663d1bea703`; the
-tested version 4 update hash is
-`5166cee2a8657ec099bc5ea8962383be71a04ab57669ed50610b775616050af0`.
-This was a synthetic regtest payment, not a mainnet or physical-phone test.
-These prepublication hashes are not the delivery checksum. The delivered
-`package-manifest.json` and `verification.json` record the final source publication,
-APK checksum and native retest against that exact package. The final native test
-also checks in-place installation over version 4, separately from the retained
-version 3 to 4 evidence.
-
-The final delivery manifest records the exact APK checksum, certificate, source
-commit/tree, source-file hashes, managed/native payload hashes and dependency locks.
-Preserve failed findings alongside successful evidence. Local signing and testing
-never imply physical-handset compatibility, successful mainnet spending or an audit.
-
-## Unclosed acceptance gates
-
-- Supported resolution and rerun of API 24 TLS and strict native RELRO findings.
-- Complete Android failure scenarios, production CPFP fee-service qualification and CoinJoin
-  phase-specific disruption/restart tests.
-- Physical phone architecture/version, real biometric/credential authorization and
-  cancellation, camera rotation/autofocus/scanning, accessibility/large text,
-  background budgets, battery behavior, recovery and update preservation.
-- New disposable mainnet wallet, privately retained backup and an explicitly
-  authorized small receive/send/confirmation test. No funded existing seed is a fixture.
-- Current production coordinator availability and any independent security review.
-
-Hardware-wallet integration and Play Store publication are outside this release.
+Hardware wallets and Play Store publication are outside this release. Preserve
+the signing key and wallet data. The delivery record is authoritative for final
+package/source identity, executed checks, failures and remaining gates.

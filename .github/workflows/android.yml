@@ -67,7 +67,7 @@ jobs:
       matrix:
         include:
           - api: 24
-            target: default
+            target: google_apis
             page: 4096
           - api: 35
             target: google_apis
@@ -126,6 +126,7 @@ jobs:
       - name: Isolated Release TLS probe
         run: dotnet build Contrib/Android/RuntimeProbe/RuntimeProbe.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
       - name: Regtest and Tor device tests
+        timeout-minutes: 45
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: ${{ matrix.api }}
@@ -134,11 +135,14 @@ jobs:
           disable-animations: true
           disable-linux-hw-accel: false
           emulator-boot-timeout: 300
+          # Match the stable emulator used for the local API 24/35/36 matrix.
+          emulator-build: '15507667'
+          pre-emulator-launch-script: bash Contrib/Android/bound-ci-adb.sh
           # The 16 KB image's first-boot services exhausted its default RAM and
           # lmkd killed the foreground wallet. Keep this resource limit explicit.
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
           script: |
-            python3 Contrib/Android/test-tls.py --serial emulator-5554 --apk Contrib/Android/RuntimeProbe/bin/Release/net10.0-android36.0/io.wasabiwallet.android.runtimeprobe-Signed.apk
+            python3 Contrib/Android/test-tls.py --serial emulator-5554 --apk Contrib/Android/RuntimeProbe/bin/Release/net10.0-android36.0/io.wasabiwallet.android.runtimeprobe-Signed.apk --duplicate-activity
             pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ExpectedPageSize ${{ matrix.page }}
             pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -ExpectedPageSize ${{ matrix.page }}
       - name: Device verification logs
@@ -146,7 +150,61 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasabi-android-device-logs-${{ matrix.api }}-${{ matrix.page }}
-          path: artifacts/android/device-*/**/*.log
+          path: |
+            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/verification.json
+          if-no-files-found: ignore
+
+  coinjoin-failures:
+    needs: native
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      DOTNET_CLI_TELEMETRY_OPTOUT: '1'
+      AVALONIA_TELEMETRY_OPTOUT: '1'
+      WasabiNativeBuildDirectory: ${{ github.workspace }}/artifacts/android/native-source-build/staged
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasabi-android-native-sources
+          path: artifacts/android/native-source-build/staged
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Contrib/Android/global.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Pinned toolchain and qualification engine
+        shell: pwsh
+        run: |
+          dotnet workload install android@36.1.69
+          & "$env:ANDROID_HOME/cmdline-tools/latest/bin/sdkmanager" 'platforms;android-36' 'build-tools;36.0.0' emulator
+          sudo chown "$(id -u):$(id -g)" /dev/kvm
+          ./Contrib/Android/prepare-tor.ps1
+          dotnet build Contrib/Android/ReleaseHarness/ReleaseHarness.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true "-p:JavaSdkDirectory=$env:JAVA_HOME" "-p:AndroidSdkDirectory=$env:ANDROID_HOME"
+          if ($LASTEXITCODE -ne 0) { throw 'Release engine build failed.' }
+      - name: Deterministic CoinJoin failure scenarios
+        timeout-minutes: 45
+        uses: reactivecircus/android-emulator-runner@v2
+        with:
+          api-level: 35
+          arch: x86_64
+          target: google_apis
+          emulator-build: '15507667'
+          pre-emulator-launch-script: bash Contrib/Android/bound-ci-adb.sh
+          disable-animations: true
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
+          script: pwsh -File Contrib/Android/test-coinjoin-failures.ps1 -Serial emulator-5554 -DownloadBitcoinCore
+      - name: Disruption evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-coinjoin-failures
+          path: |
+            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/verification.json
           if-no-files-found: ignore
 
   consecutive-coinjoins:
@@ -183,11 +241,14 @@ jobs:
           dotnet build Contrib/Android/ReleaseHarness/ReleaseHarness.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true "-p:JavaSdkDirectory=$env:JAVA_HOME" "-p:AndroidSdkDirectory=$env:ANDROID_HOME"
           if ($LASTEXITCODE -ne 0) { throw 'Release engine build failed.' }
       - name: Twenty consecutive fresh rounds
+        timeout-minutes: 95
         uses: reactivecircus/android-emulator-runner@v2
         with:
           api-level: 35
           arch: x86_64
           target: google_apis
+          emulator-build: '15507667'
+          pre-emulator-launch-script: bash Contrib/Android/bound-ci-adb.sh
           disable-animations: true
           emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
           script: pwsh -Command "& ./Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -Modes @('runtime','coinjoin') -CoinJoinRounds 20"
@@ -196,5 +257,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: wasabi-android-consecutive-coinjoins
-          path: artifacts/android/device-*/**/*.log
+          path: |
+            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/verification.json
           if-no-files-found: ignore

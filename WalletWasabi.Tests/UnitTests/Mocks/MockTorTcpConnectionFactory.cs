@@ -1,5 +1,6 @@
 using System.Net;
 using System.Net.Http;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace WalletWasabi.Tests.UnitTests.Mocks;
@@ -15,17 +16,17 @@ public class MockHttpClientFactory : IHttpClientFactory
 	public static MockHttpClientFactory Create(params Func<HttpResponseMessage>[] responses)
 	{
 #pragma warning disable CA2000 // Dispose objects before losing scope - MockHttpClient is returned via factory and disposed by caller
-		var mockHttpClient = new MockHttpClient();
-#pragma warning restore CA2000
-		var mockHttpClientFactory = new MockHttpClientFactory {OnCreateClient = _ => mockHttpClient};
-
-		var callCounter = 0;
-		mockHttpClient.OnSendAsync = _ =>
+		// Match IHttpClientFactory ownership: every call returns a client that
+		// its consumer may dispose, while the response sequence is shared.
+		var callCounter = -1;
+		var mockHttpClientFactory = new MockHttpClientFactory
 		{
-			var responseFn = responses[callCounter];
-			callCounter++;
-			return Task.FromResult(responseFn());
+			OnCreateClient = _ => new MockHttpClient
+			{
+				OnSendAsync = _ => Task.FromResult(responses[Interlocked.Increment(ref callCounter)]())
+			}
 		};
+#pragma warning restore CA2000
 		return mockHttpClientFactory;
 	}
 }

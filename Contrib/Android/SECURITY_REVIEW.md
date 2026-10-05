@@ -13,11 +13,12 @@ Release acceptance is blocked by the findings and missing device evidence below.
 | Authorization and lock | Fresh payment/replacement/backup/CoinJoin authorization; secrets released after non-CoinJoin use; stop releases retained CoinJoin secrets while locked. Cancelled/queued biometric callbacks retain Java peer lifetime instead of being disposed early. UI lock generations invalidate delayed completions; busy operations and recovery-word screens no longer bypass inactivity locking. Hardware authorization still needs the phone. |
 | Review versus signing | Immutable public details, private PSBT snapshot, wallet/network binding, monotonic five-minute expiry and serialized confirmation. The transaction factory's unsigned Signed flag was corrected and covered by a regression. |
 | Ambiguous broadcast | Exact signed bytes are durably journaled before broadcast, inputs stay reserved, duplicate confirmation returns the same receipt, reconciliation never constructs a new payment. Failed journal writes conservatively retain in-memory reservations and never broadcast. |
-| Replacement | Mobile RBF preserves every foreign recipient address/amount. Eligible CPFP is attempted when RBF cannot preserve them; unavailable cases fail. Desktop defaults remain signed and retain existing policy. Funded RBF/cancel and CPFP passed; CPFP's production fee service remains unqualified. |
+| Replacement | Mobile RBF preserves foreign and explicitly marked owned recipient scripts/amounts. Legacy journals without markers conservatively protect all owned outputs. Eligible CPFP is the fallback; unavailable cases fail. Funded self-transfer reproduces the old fee deduction and proves the new protected replacement through Core acceptance/mining. Desktop defaults remain unchanged. Public CPFP service qualification is separate. |
 | Reorganization / synchronization | RPC filter hashes come from the RPC chain; batch parsing is awaited, transport failure retries without rollback, and a same-height replacement is detected. Five regression cases failed before correction; 15 related host tests and funded Android reorganization/reconfirmation pass. |
 | Recovery / address allocation | Both account public keys checked, import scan height reset, atomic complete-file publication with flush, directory flush on Android/Linux, and address persistence before disclosure. Fresh-directory encrypted recovery and restored signing passed. |
-| CoinJoin | Denomination randomness materialized once; minimum-participation and failed-checkpoint signing refusals retained; durable interrupted-round reservations; request versions and serialized stop/retry transitions prevent an obsolete retry from superseding a stop. Signed checkpoints now survive every coordinator-reported failure until transaction/confirmed-conflict reconciliation; six regressions failed before the fix and pass afterward. Fresh 20/20 Release rounds passed locally and in remote CI on Mono 10.0.12; source native rebuilds need separate qualification. |
+| CoinJoin | Denomination randomness materialized once; minimum-participation and failed-checkpoint signing refusals retained; durable interrupted-round reservations; serialized stop/retry prevents obsolete retries. Signed checkpoints survive every coordinator failure until observed transaction/confirmed-conflict reconciliation. Credential waits observe cancellation; all issuance tasks cancel siblings on failure, and vanished rounds propagate promptly. Three new cancellation regressions fail against old behavior; all 325 WabiSabi host checks pass. Source-native 20/20 CI and local five-phase stop/blame/restart tests have separate retained evidence. |
 | Transport | Public factories retain Tor SOCKS authentication isolation, onion RPC remains through Tor, public direct fallback absent, failure closes transport. Tor stop/restart test passes on the 16 KB emulator. |
+| External fee information | Concurrent cache updates no longer collide, periodic updates fetch fresh information, and discarded retry responses are disposed. Two fee regressions fail against the prior implementation; 39 CPFP and seven HTTP retry checks pass. Live Main/Testnet4 provider qualification remains a separate gate. |
 | Android / package | Secure windows, disabled backups/debugging, separate instrumentation, sensitive inputs/clipboard, generation-aware Camera2 teardown, bounded decoding and foreground/wake-lock limits. Pure-Java testing exercises the actual signed APK without security exemptions. |
 | Native metadata | Added documented common-page-size flag to the pinned SDK's generated app-library linker invocation, retaining RELRO/NOW/non-executable stack. Prebuilt binaries are not patched. |
 
@@ -28,19 +29,25 @@ Release acceptance is blocked by the findings and missing device evidence below.
    passes trust/hostname vectors. A separate missing public CA root is supplemented
    only on API 24/25 through full chain validation; negative signature, usage,
    expiry, hostname and unrelated-root checks pass. Public Tor stop/restart now
-   passes API 24. The full rebuilt runtime/architecture matrix remains open.
+   passes API 24. API 35 and API 36/16 KB source-native CI suites pass at their
+   recorded source. The newest source and corrected ARM64 handset execution need
+   separate results; an old pass is not attributed to a new build.
 2. **Strict native 16 KB qualification:** static RELRO-end checks flag the old prebuilt
    .NET runtime/Tor libraries and ARM64 SQLite, including after the Mono 10.0.12
    servicing update. The package inspector records them
    and exits nonzero. Successful x64 16 KB execution does not clear the findings or
-   establish ARM64 safety. Pinned source rebuilds pass all 38 native ELF checks,
-   with packaging hashes and SDK/loader container-layout verification. Qualify the
-   full final package and ARM64 execution while retaining original security flags.
-3. **Incomplete disruption matrix:** host protocol tests and successful emulator
-   rounds are narrower evidence than Android coordinator restart, blame/dropout,
-   process death during signing, every stop race, production CPFP fee service and long background-budget
-   qualification. Uncertain signed-round inputs remain reserved until observed or
-   reconciled; manual availability recovery is not proven.
+   establish ARM64 safety. Required pinned source rebuilds pass all 38 native ELF
+   checks, including packaging hashes and SDK/loader container-layout verification.
+   Preliminary version-5 personal package inspection passes all 20 native payloads
+   and 438 managed payloads. Inspect the final clean-source package and qualify
+   corrected ARM64 execution while retaining original security flags.
+3. **Remaining qualification:** five phase-specific safe stops, actual signing
+   dropout/blame and coordinator restart pass locally. Deterministic confirmation
+   withholding and process-death/confirmed-conflict recovery require their own
+   evidence. The newest nine-scenario CI, public CPFP fee service and unfunded
+   public synchronization remain separate checks; delivery JSON records their
+   actual final outcomes. Uncertain signed inputs remain reserved until observed
+   or reconciled. Retained timeout/startup failures are not silently waived.
 4. **Remaining handset evidence:** the isolated stock-runtime Release crypto probe
    passed on the ARM64 Android 16 phone. Hardware-backed per-use authentication and
    cancellation, real camera scanning/rotation, wallet recovery, accessibility and

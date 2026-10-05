@@ -80,7 +80,6 @@ try {
     }
     & $taskAdb -s $Serial install --no-incremental -r (Join-Path $PSScriptRoot 'NativeUiHarness/bin/io.wasabiwallet.android.uiqualification.apk')
     if ($LASTEXITCODE -ne 0) { throw 'Native harness installation failed.' }
-    Invoke-NativeMode setup-rpc
     & $taskAdb -s $Serial shell am force-stop $taskPackage
     $taskSettings = Join-Path $taskRun 'mobile-settings.json'
     @{ Network='regtest'; Coordinator=''; CoordinatorIdentifier='CoinJoinCoordinatorIdentifier'; BitcoinRpcUri='http://127.0.0.1:18443/' } | ConvertTo-Json | Set-Content -LiteralPath $taskSettings -Encoding utf8NoBOM
@@ -88,9 +87,26 @@ try {
     & $taskAdb -s $Serial push $taskSettings $taskRemote | Out-Null
     $taskUid = (& $taskAdb -s $Serial shell "stat -c %u /data/user/0/$taskPackage").Trim()
     if ($taskUid -notmatch '^\d+$') { throw 'Application UID could not be verified.' }
+    # Seed only public regtest settings before the first app launch. Otherwise
+    # unrelated public Tor bootstrap becomes a prerequisite of this funded UI
+    # fixture. Credentials are still entered and vaulted through the real UI.
+    & $taskAdb -s $Serial shell "mkdir -p $taskPrivate"
+    & $taskAdb -s $Serial shell "cp $taskRemote $taskPrivate/mobile-settings.json"
+    & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate"
+    & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate/mobile-settings.json"
+    & $taskAdb -s $Serial shell "chmod 600 $taskPrivate/mobile-settings.json"
+    & $taskAdb -s $Serial shell "rm $taskRemote"
+    & $taskAdb -s $Serial shell "restorecon -R $taskPrivate"
+    Invoke-NativeMode setup-rpc
+    & $taskAdb -s $Serial shell am force-stop $taskPackage
+    # Regtest is intentionally absent from the production network selector.
+    # Its real settings UI saved mainnet while enrolling the RPC credential;
+    # restore the emulator's public fixture network before starting the wallet.
+    & $taskAdb -s $Serial push $taskSettings $taskRemote | Out-Null
     & $taskAdb -s $Serial shell "cp $taskRemote $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "chown ${taskUid}:${taskUid} $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "chmod 600 $taskPrivate/mobile-settings.json"
+    & $taskAdb -s $Serial shell "restorecon $taskPrivate/mobile-settings.json"
     & $taskAdb -s $Serial shell "rm $taskRemote"
     $taskLog = Join-Path $taskRun 'wallet.log'
     $taskArgs = @('-s',$Serial,'shell','am','instrument','-w','-r','-e','mode','wallet','-e','destination',$taskDestination,'-e','inactivity','true','io.wasabiwallet.android.uiqualification/io.wasabiwallet.android.tests.ReleaseUiInstrumentation')

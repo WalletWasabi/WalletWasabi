@@ -1,11 +1,13 @@
 # Personal APK phone handoff
 
-**Current status: qualification blocked.** Close the runtime/native findings and
-remaining automated failure scenarios in `VALIDATION.md` before treating this APK
+**Version 0.3.0 / version code 5: qualification blocked.** Close all uncompleted
+software and handset gates in the delivered `verification.json` before treating this APK
 as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
 SM-S948B phone passed the isolated stock-runtime ARM64 cryptographic probe on
 Android 16/API 36 with 4096-byte pages. Wallet installation and full handset
 qualification remain outstanding; no real-bitcoin amount or destination is authorized.
+First rerun the corrected source-native runtime, TLS and SQLite probes on that
+phone. The earlier stock-runtime pass does not qualify its new native libraries.
 
 ## Files and signing identity
 

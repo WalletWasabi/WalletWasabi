@@ -13,9 +13,14 @@ namespace WalletWasabi.Android;
 [Activity(Name = "io.wasabiwallet.android.RuntimeProbeActivity", MainLauncher = true, Exported = true)]
 public sealed class ProbeActivity : Activity
 {
+  private static int _probeStarted;
   protected override void OnCreate(Bundle? savedInstanceState)
   {
     base.OnCreate(savedInstanceState);
+    // Android can recreate the activity while an emulator finishes booting or
+    // changes configuration. The process owns this probe's asynchronous work;
+    // recreation must not launch a second set of TLS connections.
+    if (Interlocked.Exchange(ref _probeStarted, 1) != 0) { return; }
     global::Android.Util.Log.Info("WasabiRuntime", "Probe activity started");
     global::Android.Util.Log.Info("WasabiRuntime", System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription + "; process " + System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture);
     var tlsOnly = Intent?.GetBooleanExtra("tls-local", false) is true;

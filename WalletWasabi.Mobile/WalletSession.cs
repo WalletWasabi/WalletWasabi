@@ -323,7 +323,7 @@ public sealed class WalletSession : IAsyncDisposable
 			var result = new TransactionFactory(Global.Network, wallet.KeyManager, wallet.GetAllCoins(), Global.TransactionStore, "")
 				.BuildTransaction(new(intent, rate, false, false, allowed, false, false));
 			var sent = result.Transaction.Transaction.Outputs.Where(o => o.ScriptPubKey == request.Address.ScriptPubKey).Sum(o => o.Value.Satoshi);
-			return RegisterProposal(wallet, result, PaymentOperation.Payment, sent, null);
+			return RegisterProposal(wallet, result, PaymentOperation.Payment, sent, null, new HashSet<Script> { request.Address.ScriptPubKey });
 		}
 		finally { _operations.Release(); }
 	}
@@ -338,20 +338,30 @@ public sealed class WalletSession : IAsyncDisposable
 			if (!Global.TransactionStore.TryGetTransaction(uint256.Parse(transactionId), out var parent) || parent.Confirmed
 				|| !wallet.GetTransactions().Any(t => t.GetHash() == parent.GetHash())) { throw new InvalidOperationException("This pending transaction is no longer eligible."); }
 			if (operation == PaymentOperation.SpeedUp && parent.TryGetLargestCPFP(wallet.KeyManager, out var child)) { parent = child; }
+			var originalSubmission = _journal.Entries.FirstOrDefault(e => e.TransactionId == parent.GetHash().ToString());
+			// A destination belonging to this wallet is still an approved payment.
+			// Older journals do not identify such destinations. Protect all their
+			// wallet outputs conservatively and use CPFP if RBF has no safe change.
+			var protectedWalletRecipients = originalSubmission is not null && !originalSubmission.Outputs.IsDefault && (originalSubmission.Outputs.Any(o => o.IsRecipient) || originalSubmission.Operation != PaymentOperation.Payment)
+				? originalSubmission.Outputs.Where(o => o.IsRecipient && o.IsWalletOutput).Select(o => Script.FromHex(o.ScriptHex)).ToHashSet()
+				: parent.GetWalletOutputs(wallet.KeyManager).Select(o => o.ScriptPubKey).ToHashSet();
+			var recipients = parent.GetForeignOutputs(wallet.KeyManager).Select(o => o.TxOut.ScriptPubKey).Concat(protectedWalletRecipients).ToHashSet();
 			var uncertain = _journal.Entries.Where(e => e.State == SubmissionState.Uncertain).SelectMany(e => Transaction.Parse(e.Hex, Global.Network).Inputs.Select(i => i.PrevOut)).ToHashSet();
 			if (parent.WalletInputs.Any(c => uncertain.Contains(c.Outpoint))) { throw new InvalidOperationException("Reconcile the interrupted submission before replacing it."); }
 			var result = operation == PaymentOperation.Cancel
 				? wallet.CancelTransaction(parent, tryToSign: false)
-				: await wallet.SpeedUpTransactionAsync(parent, feeRate, cancellationToken, tryToSign: false, preserveRecipients: true).ConfigureAwait(false);
-			// A CPFP keeps the parent intact. An RBF must preserve every foreign output.
+				: await wallet.SpeedUpTransactionAsync(parent, feeRate, cancellationToken, tryToSign: false, preserveRecipients: true, protectedWalletRecipients: protectedWalletRecipients).ConfigureAwait(false);
+			// A CPFP keeps the parent intact. An RBF must preserve every recipient,
+			// including destinations owned by this wallet.
 			if (operation == PaymentOperation.SpeedUp && result.SpentCoins.Any(c => parent.WalletInputs.Contains(c)))
 			{
-				var original = parent.GetForeignOutputs(wallet.KeyManager).Select(o => (o.TxOut.ScriptPubKey.ToHex(), o.TxOut.Value.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
-				var replacement = result.OuterWalletOutputs.Select(o => (o.ScriptPubKey.ToHex(), o.Amount.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
+				var original = parent.Transaction.Outputs.Where(o => recipients.Contains(o.ScriptPubKey)).Select(o => (o.ScriptPubKey.ToHex(), o.Value.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
+				var replacement = result.Transaction.Transaction.Outputs.Where(o => recipients.Contains(o.ScriptPubKey)).Select(o => (o.ScriptPubKey.ToHex(), o.Value.Satoshi)).OrderBy(o => o.Item1).ThenBy(o => o.Satoshi);
 				if (!original.SequenceEqual(replacement)) { throw new InvalidOperationException("This replacement would change the approved recipients."); }
 			}
-			var amount = operation == PaymentOperation.Cancel ? 0 : result.OuterWalletOutputs.Sum(o => o.Amount.Satoshi);
-			return RegisterProposal(wallet, result, operation, amount, parent);
+			var replacementRecipients = operation == PaymentOperation.SpeedUp && result.SpentCoins.Any(c => parent.WalletInputs.Contains(c)) ? recipients : new HashSet<Script>();
+			var amount = result.Transaction.Transaction.Outputs.Where(o => replacementRecipients.Contains(o.ScriptPubKey)).Sum(o => o.Value.Satoshi);
+			return RegisterProposal(wallet, result, operation, amount, parent, replacementRecipients);
 		}
 		finally { _operations.Release(); }
 	}
@@ -365,14 +375,14 @@ public sealed class WalletSession : IAsyncDisposable
 		return wallet;
 	}
 
-	private PaymentProposal RegisterProposal(Wallet wallet, BuildTransactionResult result, PaymentOperation operation, long amount, SmartTransaction? parent)
+	private PaymentProposal RegisterProposal(Wallet wallet, BuildTransactionResult result, PaymentOperation operation, long amount, SmartTransaction? parent, HashSet<Script> recipients)
 	{
 		if (result.Signed) { throw new InvalidOperationException("Preparation unexpectedly signed the transaction."); }
 		var tx = result.Psbt.GetGlobalTransaction();
 		var own = result.InnerWalletOutputs.Select(c => c.ScriptPubKey).ToHashSet();
 		var proposal = new PaymentProposal(Guid.NewGuid().ToString("N"), AccountId(wallet), Global.Network.Name, operation,
 			result.SpentCoins.Select(c => new ProposalInput(c.Outpoint.Hash.ToString(), c.Outpoint.N, c.Amount.Satoshi)).ToImmutableArray(),
-			tx.Outputs.Select(o => new ProposalOutput(o.ScriptPubKey.ToHex(), o.ScriptPubKey.GetDestinationAddress(Global.Network)?.ToString(), o.Value.Satoshi, own.Contains(o.ScriptPubKey))).ToImmutableArray(),
+			tx.Outputs.Select(o => new ProposalOutput(o.ScriptPubKey.ToHex(), o.ScriptPubKey.GetDestinationAddress(Global.Network)?.ToString(), o.Value.Satoshi, own.Contains(o.ScriptPubKey), recipients.Contains(o.ScriptPubKey))).ToImmutableArray(),
 			amount, result.Fee.Satoshi, checked(amount + result.Fee.Satoshi), DateTimeOffset.UtcNow.AddMinutes(5), parent?.GetHash().ToString());
 		wallet.KeyManager.ToFile(); // Persist allocated change before revealing or registering it.
 		lock (_authorizationGate)

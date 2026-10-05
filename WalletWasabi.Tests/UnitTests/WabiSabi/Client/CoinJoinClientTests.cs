@@ -13,6 +13,7 @@ using WalletWasabi.Tests.UnitTests.WabiSabi.Models;
 using WalletWasabi.WabiSabi.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Client.Decomposer;
+using WalletWasabi.WabiSabi.Client.CredentialDependencies;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.RoundStateAwaiters;
 using WalletWasabi.WabiSabi.Coordinator;
@@ -26,6 +27,30 @@ namespace WalletWasabi.Tests.UnitTests.WabiSabi.Client;
 
 public class CoinJoinClientTests
 {
+	[Fact]
+	public async Task InitialReissuanceFailureStopsEveryDependentTask()
+	{
+		var round = WabiSabiFactory.CreateRound(WabiSabiFactory.CreateRoundParameters(new WabiSabiConfig()));
+		var state = RoundState.FromRound(round);
+		var handler = new SigningCaptureRequestHandler(state);
+		var (_, firstCoin, _) = WabiSabiFactory.CreateCoinKeyPairs();
+		var (_, secondCoin, _) = WabiSabiFactory.CreateCoinKeyPairs();
+		var alices = new[] { CreateAliceClient(state, firstCoin, handler), CreateAliceClient(state, secondCoin, handler) };
+		var graph = DependencyGraph.ResolveCredentialDependencies(
+			new[] { (10000L, 1930L), (1000L, 1930L) }, new[] { (5000L, 31L), (3500L, 31L), (2500L, 31L) },
+			ProtocolConstants.MaxAmountPerAlice, ProtocolConstants.MaxVsizeCredentialValue);
+		Assert.NotEmpty(graph.GetReissuances());
+		var arenaClient = new ArenaClient(state.CreateAmountCredentialClient(InsecureRandom.Instance),
+			state.CreateVsizeCredentialClient(InsecureRandom.Instance), state.CoinjoinState.Parameters.CoordinationIdentifier, handler);
+		using var stop = new CancellationTokenSource(TimeSpan.FromSeconds(10));
+		var operation = new DependencyGraphTaskScheduler(graph).StartReissuancesAsync(alices, () => new BobClient(round.Id, arenaClient), stop.Token);
+		var error = await Record.ExceptionAsync(() => operation.WaitAsync(TimeSpan.FromSeconds(2)));
+		Assert.NotNull(error);
+		Assert.IsNotType<TimeoutException>(error);
+		Assert.False(error is OperationCanceledException);
+		Assert.True(operation.IsCompleted);
+	}
+
 	[Fact]
 	public Task ClientRefusesToSignWhenActualInputCountBelowConfiguredMinimum() => VerifySigningRefusalAsync(21, false);
 

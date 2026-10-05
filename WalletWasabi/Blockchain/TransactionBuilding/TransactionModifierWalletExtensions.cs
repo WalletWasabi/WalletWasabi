@@ -86,7 +86,8 @@ public static class TransactionModifierWalletExtensions
 		FeeRate? preferredFeeRate,
 		CancellationToken cancellationToken,
 		bool tryToSign = true,
-		bool preserveRecipients = false)
+		bool preserveRecipients = false,
+		IReadOnlySet<Script>? protectedWalletRecipients = null)
 	{
 		var keyManager = wallet.KeyManager;
 
@@ -100,7 +101,7 @@ public static class TransactionModifierWalletExtensions
 		{
 			try
 			{
-				return wallet.RbfTransaction(transactionToSpeedUp, preferredFeeRate, tryToSign, preserveRecipients);
+				return wallet.RbfTransaction(transactionToSpeedUp, preferredFeeRate, tryToSign, preserveRecipients, protectedWalletRecipients);
 			}
 			catch (Exception rbfEx)
 			{
@@ -125,7 +126,7 @@ public static class TransactionModifierWalletExtensions
 		}
 	}
 
-	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null, bool tryToSign = true, bool preserveRecipients = false)
+	private static BuildTransactionResult RbfTransaction(this Wallet wallet, SmartTransaction transactionToSpeedUp, FeeRate? preferredFeeRate = null, bool tryToSign = true, bool preserveRecipients = false, IReadOnlySet<Script>? protectedWalletRecipients = null)
 	{
 		var keyManager = wallet.KeyManager;
 		var network = wallet.Network;
@@ -147,8 +148,8 @@ public static class TransactionModifierWalletExtensions
 			: bestFeeRate;
 
 		// Take the largest own output and if we have it that's what we will want to deduct RBF fee from.
-		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).OrderByDescending(x => x.Amount).FirstOrDefault();
-		if (preserveRecipients && ownOutput is null && transactionToSpeedUp.GetForeignOutputs(keyManager).Any())
+		var ownOutput = transactionToSpeedUp.GetWalletOutputs(keyManager).Where(x => protectedWalletRecipients?.Contains(x.ScriptPubKey) is not true).OrderByDescending(x => x.Amount).FirstOrDefault();
+		if (preserveRecipients && ownOutput is null && (transactionToSpeedUp.GetForeignOutputs(keyManager).Any() || protectedWalletRecipients?.Count > 0))
 		{
 			throw new InvalidOperationException("A fee replacement cannot reduce an approved recipient amount.");
 		}

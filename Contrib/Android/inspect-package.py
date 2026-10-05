@@ -53,9 +53,23 @@ def elf(data):
     # Assembly wrappers are data containers read by Mono, not dlopen() code.
     # Native code needs page-aligned RELRO boundaries as well as LOAD alignment.
     if payload is None:
+        relro = stack = now = False
         for kind, _, _, address, _, _, memory_size, _ in segments:
             if kind == 0x6474E552 and (address + memory_size) % 16384:
                 raise ValueError("Native ELF RELRO end is not aligned for 16 KB pages")
+        for kind, flags, file_offset, _, _, file_size, _, _ in segments:
+            if kind == 0x6474E552:
+                relro = True
+            if kind == 0x6474E551:
+                if flags & 1:
+                    raise ValueError("Native ELF stack is executable")
+                stack = True
+            if kind == 2:
+                for offset in range(file_offset, file_offset + file_size, 16):
+                    tag, value = struct.unpack_from("<QQ", data, offset)
+                    now |= tag == 24 or tag == 30 and bool(value & 8) or tag == 0x6FFFFFFB and bool(value & 1)
+        if not (relro and stack and now):
+            raise ValueError("Native ELF lacks RELRO, immediate binding or stack protection")
     return payload
 
 
@@ -66,6 +80,7 @@ def main():
     parser.add_argument("--java", type=Path, required=True, help="JDK bin/java executable")
     parser.add_argument("--output", type=Path, required=True)
     parser.add_argument("--require-clean", action="store_true")
+    parser.add_argument("--native-manifest", type=Path, required=True, help="Manifest of the selected pinned source build")
     args = parser.parse_args()
     repository = Path(__file__).resolve().parents[2]
     os.chdir(repository)
@@ -82,6 +97,10 @@ def main():
             raise ValueError(f"Release manifest must disable {name}")
     if re.search(r":debuggable\([^\n]*\)=true", manifest) or "targetSdkVersion(0x01010270)=36" not in manifest:
         raise ValueError("Debuggable APK or unexpected target SDK")
+    badging = run([str(tools / ("aapt2" + executable)), "dump", "badging", str(args.apk)])
+    version = re.search(r"package: name='io.wasabiwallet.android.personal' versionCode='([0-9]+)' versionName='([^']+)'", badging)
+    if not version or (version[1], version[2]) != ("5", "0.3.0"):
+        raise ValueError("Unexpected personal candidate version")
     certificate = run([str(args.java), "-jar", str(tools / "lib/apksigner.jar"), "verify", "--verbose", "--print-certs", str(args.apk)])
     digest = re.search(r"Signer #1 certificate SHA-256 digest: ([a-f0-9]+)", certificate)
     expected = "894b7317cd04fa09534d9bd0e8d09b08bf90e9cad6718e9020f33a6fd3f7db48"
@@ -89,8 +108,18 @@ def main():
         raise ValueError("APK does not have the recorded personal signing identity and v2/v3 signatures")
     run([str(tools / ("zipalign" + executable)), "-c", "-P", "16", "-v", "4", str(args.apk)])
     entries, assemblies, native, failed_checks = [], [], [], []
-    forbidden = ("WalletInstrumentation", "WASABI_RELEASE_HARNESS", "wasabi-android-regtest", "WasabiAndroidRegtest", "public android test passphrase", "public native Android test passphrase", "RuntimeProbe", "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
+    forbidden = ("WalletInstrumentation", "WASABI_RELEASE_HARNESS", "wasabi-android-regtest", "WasabiAndroidRegtest", "public android test passphrase", "public native Android test passphrase", "RuntimeProbe", "coinjoin-interrupted-fixture.json", "disruption-ready.txt", "CHECKPOINT: synthetic CoinJoin signing", "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about")
+    source_native = json.loads(args.native_manifest.read_text())
+    recipes = repository / "Contrib/Android/NativeSources"
+    if sha((recipes / "source.lock.json").read_bytes()) != source_native["sourceLockSha256"] or json.loads((recipes / "source.lock.json").read_text()) != source_native["sources"]:
+        raise ValueError("Native sources differ from the checked-in lock")
+    for name, expected in source_native["recipeSha256"].items():
+        if sha((recipes / name).read_bytes()) != expected:
+            raise ValueError("Native build recipe differs: " + name)
     with zipfile.ZipFile(args.apk) as archive:
+        for item in source_native["files"]:
+            if item["configuration"] == "Release" and sha(archive.read(item["archivePath"])) != item["sha256"]:
+                raise ValueError("Packaged native code differs from the verified source artifact: " + item["archivePath"])
         bootstrap = json.loads(archive.read("assets/PersonalCoordinator.json"))
         if set(bootstrap) != {"Coordinator", "CoordinatorIdentifier"}:
             raise ValueError("Unapproved coordinator bootstrap fields")
@@ -124,10 +153,12 @@ def main():
         "sourceTree": run(["git", "rev-parse", "HEAD^{tree}"]).strip(),
         "workingTreeModified": dirty,
         "apk": args.apk.name, "apkSha256": sha(args.apk.read_bytes()),
+        "version": version[2], "versionCode": int(version[1]),
         "certificateSha256": digest[1], "signatures": ["v2", "v3"],
         "toolchain": json.loads((repository / "Contrib/Android/toolchain.json").read_text()),
         "coordinatorBootstrap": bootstrap,
         "tor": json.loads((repository / "WalletWasabi.Android/Native/tor.lock.json").read_text()),
+        "nativeSourceBuild": source_native,
         "dependencies": json.loads((repository / "WalletWasabi.Android/packages.lock.json").read_text()),
         "nativeLibraries": native, "managedAssemblies": assemblies, "apkEntries": entries,
         "packageChecksPassed": not failed_checks, "failedChecks": failed_checks,

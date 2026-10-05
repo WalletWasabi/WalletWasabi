@@ -7,9 +7,11 @@ using NBitcoin.RPC;
 using System.Net;
 using WalletWasabi.Crypto.Randomness;
 using WalletWasabi.Mobile;
+using WalletWasabi.Blockchain.TransactionBuilding;
 using WalletWasabi.Wallets;
 using WalletWasabi.WabiSabi.Client.CoinJoin.Manager;
 using WalletWasabi.WabiSabi.Client.StatusChangedEvents;
+using WalletWasabi.WabiSabi.Client.CoinJoinProgressEvents;
 using WabiSabi;
 using WabiSabi.Crypto;
 using ZXing;
@@ -29,9 +31,11 @@ public sealed partial class WalletInstrumentation : Instrumentation
 {
 	public WalletInstrumentation(IntPtr handle, global::Android.Runtime.JniHandleOwnership ownership) : base(handle, ownership) { }
 	private string _mode = "wallet";
+	private string _coinJoinScenario = "complete";
 	public override void OnCreate(Bundle? arguments)
 	{
 		_mode = arguments?.GetString("mode") ?? "wallet";
+		_coinJoinScenario = arguments?.GetString("coinjoin-scenario") ?? "complete";
 		base.OnCreate(arguments);
 		Start();
 	}
@@ -47,7 +51,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		result.PutString("runtime", $"{System.Runtime.InteropServices.RuntimeInformation.FrameworkDescription}; process {System.Runtime.InteropServices.RuntimeInformation.ProcessArchitecture}");
 		try
 		{
-			if (_mode is not ("runtime" or "wallet" or "faults" or "coinjoin" or "tor" or "vault" or "transport")) { throw new ArgumentException("Unknown test mode."); }
+			if (_mode is not ("runtime" or "wallet" or "faults" or "coinjoin" or "tor" or "vault" or "transport" or "fees" or "public-sync")) { throw new ArgumentException("Unknown test mode."); }
 #if WASABI_RELEASE_HARNESS
 			if (!(Build.Hardware?.Contains("ranchu") is true || Build.Hardware?.Contains("goldfish") is true)) { throw new InvalidOperationException("The qualification package is emulator-only."); }
 #endif
@@ -65,6 +69,8 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			}
 			else if (_mode == "tor") { await VerifyTorAsync(); }
 			else if (_mode == "transport") { await DiagnoseTransportAsync(); }
+			else if (_mode == "fees") { await VerifyPublicFeesAsync(); }
+			else if (_mode == "public-sync") { await VerifyPublicSynchronizationAsync(); }
 			else if (_mode == "wallet") { await VerifyWalletAsync(); }
 			else if (_mode == "faults") { await VerifySubmissionFailuresAsync(); }
 			else if (_mode == "coinjoin") { await VerifyCoinJoinAsync(); }
@@ -100,7 +106,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 	{
 		var path = Path.Combine(TargetContext!.FilesDir!.AbsolutePath, "instrumentation-" + _mode + ".log");
 		File.Delete(path); // This fixture's log only; previous runs are retained by the host.
-		Logger.Configure(path, LogLevel.Info, [LogMode.File]);
+		Logger.Configure(path, _mode == "fees" ? LogLevel.Trace : LogLevel.Info, [LogMode.File]);
 	}
 
 	private async Task DiagnoseTransportAsync()
@@ -261,6 +267,20 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			Check((await rpc.GetRawTransactionAsync(uint256.Parse(cancelReceipt.TransactionId))).Outputs.All(o => o.ScriptPubKey != destination.ScriptPubKey), "Core accepts cancellation without a second recipient payment");
 			await rpc.GenerateToAddressAsync(1, mining);
 			await WaitAsync(() => wallet.GetTransactions().Any(t => t.GetHash().ToString() == cancelReceipt.TransactionId && t.Confirmed), timeout.Token);
+			var selfDestination = BitcoinAddress.Create(session.Receive("Self-transfer recipient"), Network.RegTest);
+			var selfInput = wallet.GetAllCoins().Unspent().OrderByDescending(c => c.Amount).First();
+			var selfProposal = await session.PrepareAsync(new PaymentRequest(selfDestination, Money.Coins(0.6m), "Self-transfer", ""), Money.Coins(0.6m), new FeeRate(2m), [selfInput.Outpoint], cancellationToken: timeout.Token);
+			Check(selfProposal.Outputs.Any(o => o.IsRecipient && o.IsWalletOutput && o.AmountSatoshis == Money.Coins(0.6m).Satoshi), "A wallet-owned destination is recorded as a recipient");
+			var selfReceipt = await session.ConfirmAsync(selfProposal.Id, password, timeout.Token);
+			var selfTransaction = wallet.GetTransactions().Single(t => t.GetHash().ToString() == selfReceipt.TransactionId);
+			var legacyPreparation = await wallet.SpeedUpTransactionAsync(selfTransaction, new FeeRate(5m), timeout.Token, tryToSign: false, preserveRecipients: true);
+			Check(legacyPreparation.Transaction.Transaction.Outputs.Single(o => o.ScriptPubKey == selfDestination.ScriptPubKey).Value < Money.Coins(0.6m), "The prior mobile call reproduced deduction from the largest self-transfer output");
+			var selfReplacement = await session.PrepareReplacementAsync(selfReceipt.TransactionId, PaymentOperation.SpeedUp, new FeeRate(5m), timeout.Token);
+			Check(selfReplacement.AmountSatoshis == Money.Coins(0.6m).Satoshi && selfReplacement.Outputs.Any(o => o.IsRecipient && o.Address == selfDestination.ToString() && o.AmountSatoshis == Money.Coins(0.6m).Satoshi), "Speed-up review preserves a self-transfer's address and amount");
+			var selfReplacementReceipt = await session.ConfirmAsync(selfReplacement.Id, password, timeout.Token);
+			Check((await rpc.GetRawTransactionAsync(uint256.Parse(selfReplacementReceipt.TransactionId))).Outputs.Single(o => o.ScriptPubKey == selfDestination.ScriptPubKey).Value == Money.Coins(0.6m), "Core accepts the exact approved self-transfer replacement");
+			await rpc.GenerateToAddressAsync(1, mining);
+			await WaitAsync(() => wallet.GetTransactions().Any(t => t.GetHash().ToString() == selfReplacementReceipt.TransactionId && t.Confirmed), timeout.Token);
 			backup = await session.ExportEncryptedBackupAsync(password, timeout.Token);
 			recoveryDestination = destination;
 			session.Lock();
@@ -295,10 +315,15 @@ public sealed partial class WalletInstrumentation : Instrumentation
 
 	private async Task VerifyCoinJoinAsync()
 	{
+		if (_coinJoinScenario == "resume-interruption") { await VerifyInterruptedCoinJoinAsync(); return; }
+		if (_coinJoinScenario is not ("complete" or "stop-input" or "stop-confirmation" or "stop-output" or "stop-signing" or "stop-signed" or "interrupt-signing" or "dropout-confirmation" or "blame-signing" or "restart-output"))
+		{ throw new ArgumentException("Unknown synthetic CoinJoin scenario."); }
 		var context = TargetContext!;
 		var dataDir = Path.Combine(context.FilesDir!.AbsolutePath, "coinjoin-instrumentation-" + Guid.NewGuid().ToString("N"));
 		var settings = RegtestSettings() with { Coordinator = "http://127.0.0.1:18545/", CoordinatorIdentifier = "WasabiAndroidRegtest" };
-		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(8));
+		// A coordinator restart can require two full input-registration windows,
+		// with independent randomized privacy delays on each participant.
+		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(_coinJoinScenario == "restart-output" ? 16 : 8));
 		var rpc = new RPCClient(new NetworkCredential("wasabiandroid", "wasabi-android-regtest"), new Uri("http://127.0.0.1:18443"), Network.RegTest);
 		await using var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!);
 		await session.InitializeAsync(timeout.Token);
@@ -310,7 +335,19 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		var inputAddress = BitcoinAddress.Create(session.Receive("Android participant input"), Network.RegTest);
 		await rpc.SendToAddressAsync(inputAddress, Money.Coins(0.04m));
 		await rpc.GenerateToAddressAsync(1, mining);
-		await WaitAsync(() => session.IsSynchronized && wallet.GetAllCoins().Unspent().Count() == 1, timeout.Token);
+		var nextReadinessNotice = DateTimeOffset.MinValue;
+		await WaitAsync(() =>
+		{
+			var coins = wallet.GetAllCoins().Unspent().Count();
+			if (DateTimeOffset.UtcNow >= nextReadinessNotice)
+			{
+				using var notice = new Bundle();
+				notice.PutString("stream", $"PROGRESS: synthetic readiness loaded={wallet.Loaded}; peers={session.Global.GetPeerCount()}; coins={coins}; walletHeight={wallet.KeyManager.GetBestHeight()}; filterHeight={session.Global.FilterHeaders.TipHeight}; filtersLeft={session.Global.FilterHeaders.HashesLeft}\n");
+				SendStatus((global::Android.App.Result)1, notice);
+				nextReadinessNotice = DateTimeOffset.UtcNow.AddSeconds(10);
+			}
+			return session.IsSynchronized && coins == 1;
+		}, timeout.Token);
 		File.WriteAllText(Path.Combine(context.FilesDir.AbsolutePath, "coinjoin-ready"), "Synthetic Android participant synchronized.");
 		using (var ready = new Bundle()) { ready.PutString("stream", "READY: synthetic Android participant\n"); SendStatus((global::Android.App.Result)1, ready); }
 		// Starting the coordinator is the host's release of the readiness barrier.
@@ -325,21 +362,88 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		var finalFundingHeight = await rpc.GetBlockCountAsync(timeout.Token);
 		await WaitAsync(() => session.IsSynchronized && wallet.KeyManager.GetBestHeight() >= finalFundingHeight, timeout.Token);
 		var before = wallet.GetTransactions().Select(t => t.GetHash()).ToHashSet();
+		if (_coinJoinScenario == "interrupt-signing")
+		{
+			wallet.CoinJoinCheckpoints = new SigningBarrier(wallet.CoinJoinCheckpoints ?? throw new InvalidOperationException("The mobile durability boundary is missing."),
+				transactionId => RetainInterruptionFixture(dataDir, password, wallet, transactionId));
+		}
 		var completed = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
-		session.Global.HostedServices.Get<CoinJoinManager>().StatusChanged += (_, e) =>
+		var stoppedAtPhase = new TaskCompletionSource(TaskCreationOptions.RunContinuationsAsynchronously);
+		var threeInputs = false;
+		var enteredBlame = false;
+		var waitingForBlame = false;
+		uint256? interruptedRound = null;
+		var enteredNewRound = false;
+		var manager = session.Global.HostedServices.Get<CoinJoinManager>();
+		manager.StatusChanged += (_, e) =>
 		{
 			global::Android.Util.Log.Info("WasabiTests", "CoinJoin " + e.GetType().Name + " " + session.CoinJoinStatus);
+			if (e is CoinJoinStatusEventArgs progress)
+			{
+				if (progress.CoinJoinProgressEventArgs is RoundStateChanged state && state.RoundState.CoinjoinState.Inputs.Count() >= 3)
+				{ threeInputs = true; }
+				if (progress.CoinJoinProgressEventArgs is WaitingForBlameRound) { waitingForBlame = true; }
+				if (progress.CoinJoinProgressEventArgs is EnteringInputRegistrationPhase registration)
+				{
+					enteredBlame |= registration.RoundState.IsBlame;
+					enteredNewRound |= interruptedRound is not null && registration.RoundState.Id != interruptedRound;
+				}
+				if (_coinJoinScenario == "restart-output" && interruptedRound is null && progress.CoinJoinProgressEventArgs is EnteringOutputRegistrationPhase output)
+				{
+					interruptedRound = output.RoundState.Id;
+					using var status = new Bundle();
+					status.PutString("stream", "DISRUPTION: restart synthetic coordinator\n");
+					SendStatus((global::Android.App.Result)1, status);
+					// Hold before the output POST while the host restarts its own
+					// fixture coordinator. This code never enters a personal APK.
+					Thread.Sleep(TimeSpan.FromSeconds(10));
+				}
+				var selectedPhase = (_coinJoinScenario, progress.CoinJoinProgressEventArgs) switch
+				{
+					("stop-input", EnteringInputRegistrationPhase) => true,
+					("stop-confirmation", EnteringConnectionConfirmationPhase) => true,
+					("stop-output", EnteringOutputRegistrationPhase) => true,
+					("stop-signing", EnteringSigningPhase) => true,
+					("stop-signed", TransactionSigned) => true,
+					_ => false
+				};
+				if (selectedPhase && stoppedAtPhase.TrySetResult())
+				{
+					manager.RequestCoinJoinStop(wallet);
+					Logger.LogInfo("Synthetic safe stop requested at " + progress.CoinJoinProgressEventArgs.GetType().Name);
+				}
+			}
 			if (e is CompletedEventArgs { CompletionStatus: CompletionStatus.Success }) { completed.TrySetResult(); }
 		};
 		await session.StartCoinJoinAsync(password, timeout.Token);
 		session.Lock();
 		Check(!session.IsUnlocked && wallet.KeyChain is not null, "Background lock retains only authorized active CoinJoin credentials");
-		await completed.Task.WaitAsync(timeout.Token);
+		if (!_coinJoinScenario.StartsWith("stop-", StringComparison.Ordinal)) { await completed.Task.WaitAsync(timeout.Token); }
+		else { await stoppedAtPhase.Task.WaitAsync(timeout.Token); }
 		await session.StopCoinJoinAsync(timeout.Token);
+		if (_coinJoinScenario == "stop-input")
+		{
+			Check((await rpc.GetRawMempoolAsync()).Length == 0, "Stopping before registration cannot publish a CoinJoin");
+			Check(session.PendingCoinJoins == 0, "An unsigned cancelled round releases its reservations");
+			Check(wallet.GetAllCoins().Unspent().TotalAmount() == Money.Coins(0.04m), "Early stop preserves its funded input");
+		}
+		else
+		{
+		await completed.Task.WaitAsync(timeout.Token);
 		var pending = await rpc.GetRawMempoolAsync();
 		Check(pending.Length > 0, "The completed CoinJoin was broadcast to Bitcoin Core");
 		await rpc.GenerateToAddressAsync(1, mining);
 		await WaitAsync(() => wallet.GetTransactions().Any(t => !before.Contains(t.GetHash()) && t.Confirmed && t.Transaction.Inputs.Count >= 2), timeout.Token);
+		await WaitAsync(() => session.IsSynchronized, timeout.Token);
+		await session.ReconcilePendingAsync(cancellationToken: timeout.Token);
+		Check(session.PendingCoinJoins == 0, "Confirmed CoinJoin checkpoints reconcile after a safe stop");
+		if (_coinJoinScenario == "blame-signing")
+		{ Check(threeInputs, "The disrupted round contained three independently keyed inputs"); }
+		if (_coinJoinScenario == "blame-signing")
+		{ Check(waitingForBlame && enteredBlame, "The Android engine observed disruption and completed its blame round"); }
+		if (_coinJoinScenario == "restart-output")
+		{ Check(interruptedRound is not null && enteredNewRound, "Coordinator restart discarded the old round and completed a fresh one"); }
+		}
 		Check(!session.IsMixing, "CoinJoin signing keys can be safely released after stopping");
 		Check(wallet.KeyChain is null && wallet.Password.Length == 0 && !wallet.IsLoggedIn, "Stopping while locked clears CoinJoin signing keys");
 	}

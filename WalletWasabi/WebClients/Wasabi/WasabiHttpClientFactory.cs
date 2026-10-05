@@ -182,10 +182,12 @@ public class RetryHttpClientHandler : NotifyHttpClientHandler
 					case HttpStatusCode.BadGateway:
 					case HttpStatusCode.ServiceUnavailable:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
+						response.Dispose();
 						await Task.Delay(_config.TimeBeforeRetryingAfterServerError, cancellationToken).ConfigureAwait(false);
 						continue;
 					case HttpStatusCode.TooManyRequests:
 						Logger.LogTrace($"Retrying {request.RequestUri} because {response.ReasonPhrase}");
+						response.Dispose();
 						// Be nice with third-party server overwhelmed by request from Tor exit nodes
 						await Task.Delay(_config.TimeBeforeRetryingAfterTooManyRequests, cancellationToken).ConfigureAwait(false);
 						continue;

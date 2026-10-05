@@ -28,7 +28,7 @@ try {
     $taskTarget = if ($Rebuild) { '-t:Rebuild' } else { '-t:Build' }
     $taskNativeArguments = @()
     if ($NativeBuildDirectory) { $taskNativeArguments = @("-p:WasabiNativeBuildDirectory=$((Resolve-Path -LiteralPath $NativeBuildDirectory).Path)") }
-    & dotnet build (Join-Path $Repository $taskProject) $taskTarget -m:1 -c Release -p:WasabiSkipBundledApps=true -p:WasabiPackageChannel=Personal -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$taskKeyPath" -p:AndroidSigningKeyAlias=wasabi-personal -p:AndroidSigningStorePass=env:WASABI_PERSONAL_STORE_PASS -p:AndroidSigningKeyPass=env:WASABI_PERSONAL_STORE_PASS "-p:WasabiCoordinatorBootstrapFile=$taskBootstrapPath" @taskNativeArguments --nologo -v:q
+    & dotnet build (Join-Path $Repository $taskProject) $taskTarget --disable-build-servers -m:1 -c Release -p:WasabiSkipBundledApps=true -p:WasabiPackageChannel=Personal -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$taskKeyPath" -p:AndroidSigningKeyAlias=wasabi-personal -p:AndroidSigningStorePass=env:WASABI_PERSONAL_STORE_PASS -p:AndroidSigningKeyPass=env:WASABI_PERSONAL_STORE_PASS "-p:WasabiCoordinatorBootstrapFile=$taskBootstrapPath" @taskNativeArguments --nologo -v:q
     if ($LASTEXITCODE -ne 0) { throw 'Personal APK build failed.' }
 } finally {
     Remove-Item Env:WASABI_PERSONAL_STORE_PASS -ErrorAction SilentlyContinue

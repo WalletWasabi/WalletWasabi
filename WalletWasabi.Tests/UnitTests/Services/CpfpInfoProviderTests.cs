@@ -666,20 +666,24 @@ public class CpfpInfoUpdaterCancellationTests
 		var cpfpJson = """{"effectiveFeePerVsize": 10.5, "fee": 1.0, "adjustedVsize": 100, "ancestors": []}""";
 		var callCount = 0;
 		var firstRequestStarted = new TaskCompletionSource();
-
-		using var mockHttpClient = new MockHttpClient();
-		mockHttpClient.OnSendAsync = async _ =>
+		using var cts1 = new CancellationTokenSource();
+		// IHttpClientFactory returns a disposable client per request. Reusing
+		// the first disposed client would test an invalid fixture lifecycle.
+		var httpClientFactory = new MockHttpClientFactory
 		{
-			callCount++;
-			if (callCount == 1)
+			OnCreateClient = _ => new MockHttpClient
 			{
-				firstRequestStarted.SetResult();
-				await Task.Delay(TimeSpan.FromSeconds(30));
+				OnSendAsync = async _ =>
+				{
+					if (Interlocked.Increment(ref callCount) == 1)
+					{
+						firstRequestStarted.SetResult();
+						await Task.Delay(Timeout.InfiniteTimeSpan, cts1.Token);
+					}
+					return HttpResponseMessageEx.Ok(cpfpJson);
+				}
 			}
-			return HttpResponseMessageEx.Ok(cpfpJson);
 		};
-
-		var httpClientFactory = new MockHttpClientFactory { OnCreateClient = _ => mockHttpClient };
 		var eventBus = new EventBus();
 		var handler = CpfpInfoUpdater.Create(httpClientFactory, Network.Main, eventBus);
 
@@ -687,7 +691,6 @@ public class CpfpInfoUpdaterCancellationTests
 		var tx2 = BitcoinFactory.CreateSmartTransaction(height: Height.Mempool);
 
 		// First request - will be cancelled
-		using var cts1 = new CancellationTokenSource();
 		var replyChannel1 = new TestReplyChannel<Result<CpfpInfo, string>>();
 		var task1 = handler(new CpfpInfoMessage.GetInfoForTransaction(tx1, replyChannel1), null!, cts1.Token);
 

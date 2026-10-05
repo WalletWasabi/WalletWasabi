@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.2.0 / version code 4** produces a personally signed APK. This is a
+Version **0.3.0 / version code 5** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -18,10 +18,10 @@ acceptance pass on x86_64 emulators. The isolated Release crypto probe also
 passed on the connected ARM64 Android 16 phone; full handset qualification is
 still outstanding. Android 7/API 24 source Release funded-wallet and public Tor
 stop/restart checks pass after a scoped native handshake guard and a verified
-public CA supplement. The full source-build matrix remains open. Strict 16 KB native
-RELRO inspection reports findings in the old candidate's bundled prebuilt libraries, despite
-successful runtime tests on the 16 KB emulator. These findings remain visible;
-tests are not an independent security audit.
+public CA supplement. Verified native source builds retain all ELF protections
+and pass strict 16 KB inspection. API 35 and API 36/16 KB source-native CI suites
+and 20 consecutive fresh Release rounds have passed at their recorded source;
+new changes require new evidence. Full handset qualification remains open.
 
 ## Build and signing
 
@@ -53,7 +53,7 @@ coordinator URL and identifier; CoinJoin still requires an explicit start.
 On the configured Windows workstation:
 
 ```powershell
-./Contrib/Android/build-personal.ps1 -CoordinatorBootstrap artifacts/android/PersonalCoordinator.json
+./Contrib/Android/build-personal.ps1 -CoordinatorBootstrap artifacts/android/PersonalCoordinator.json -NativeBuildDirectory artifacts/android/native-source-build/staged
 ```
 
 The APK and checksum appear in
@@ -96,9 +96,9 @@ hashed SDK assembly-container stub to match the unchanged packaging tools.
 
 Select staged libraries with `-p:WasabiNativeBuildDirectory=ABSOLUTE_STAGED_PATH`.
 Every selected file is hash-checked before packaging, and the APK is checked for
-those bytes and compatible assembly-container layouts. Source builds remain opt-in
-while their complete runtime/wallet qualification is in progress; static checks
-alone do not qualify them for a real-funds release.
+those bytes and compatible assembly-container layouts. Personal builds require
+the verified native source directory; old prebuilt libraries do not satisfy the
+strict package gate. Static checks alone do not qualify a real-funds release.
 
 The Android workflow builds the locked native dependencies on a dedicated Linux
 runner and passes that artifact to every device job. Its TLS fixture runs the
@@ -148,14 +148,18 @@ Hardware-wallet integration and Play Store publication are excluded.
 ```powershell
 dotnet test --project WalletWasabi.Mobile.Tests/WalletWasabi.Mobile.Tests.csproj -p:WasabiSkipBundledApps=true --no-progress --no-ansi
 ./Contrib/Android/test-device.ps1 -Serial emulator-5580 -DownloadBitcoinCore
-./Contrib/Android/build-personal.ps1 -CoordinatorBootstrap artifacts/android/PersonalCoordinator.json -QualificationHarness
+./Contrib/Android/build-personal.ps1 -CoordinatorBootstrap artifacts/android/PersonalCoordinator.json -QualificationHarness -NativeBuildDirectory artifacts/android/native-source-build/staged
 ./Contrib/Android/test-device.ps1 -Serial emulator-5580 -DownloadBitcoinCore -ReleaseEngine -Modes runtime,coinjoin -CoinJoinRounds 20
+./Contrib/Android/test-coinjoin-failures.ps1 -Serial emulator-5580 -BitcoindPath artifacts/android/bitcoin-31.1/bin/bitcoind.exe
 ```
 
 `test-device.ps1` only accepts a selected emulator, owns a new regtest directory,
 verifies its pinned Bitcoin Core download, rejects occupied fixture ports, and
 cleans up its own processes. Its runtime, wallet, faults, vault, Tor and CoinJoin
-suites retain synthetic diagnostics. `-ExpectedPageSize 16384` verifies execution
+suites retain synthetic diagnostics and APK/source/environment verification JSON.
+Optional `fees` and `public-sync` modes read actual public networks through Tor
+without real-bitcoin transactions; public synchronization uses only fresh unfunded
+Release-harness wallets. `-ExpectedPageSize 16384` verifies execution
 on a real 16 KB kernel; an AVD name alone is not evidence.
 
 `ReleaseHarness` is a separate, emulator-only package compiled in Release with the
@@ -171,8 +175,14 @@ managed payload to check for test markers, compares engine payloads to SDK-prepa
 build outputs, and writes source/dependency/package hashes. Failed native checks
 are recorded and produce a nonzero exit; they are not silently waived.
 
+`record-delivery.py --delivery DELIVERY_DIRECTORY --evidence-index INDEX_JSON`
+binds a clean inspected APK to published source and explicitly selected public or
+synthetic evidence. It copies no fixture directories or signing material and
+records uncompleted handset/mainnet gates. The final package manifest and
+verification record identify the exact delivered bits; earlier APK hashes do not.
+
 The CI workflow defines API 24, 35, 36 and 36/16 KB Debug and Release matrix jobs,
-plus a separate 20-round Release CoinJoin job. A configured workflow does not prove
+plus separate 20-round and nine-scenario Release CoinJoin jobs. A configured workflow does not prove
 that a remote run passed. Current local checks and limitations are recorded in
 [VALIDATION.md](VALIDATION.md). Use [PHONE_HANDOFF.md](PHONE_HANDOFF.md) for the
 remaining handset gate; do not use an existing funded seed as a fixture.

@@ -64,6 +64,42 @@ public class ReleaseSafetyTests
   }
 
   [Fact]
+  public void LegacyOutputMetadataKeepsItsExactSerializedFormOnUpdate()
+  {
+    const string legacy = "{\"ScriptHex\":\"00140000000000000000000000000000000000000000\",\"Address\":null,\"AmountSatoshis\":10000,\"IsWalletOutput\":true}";
+    var output = JsonSerializer.Deserialize<ProposalOutput>(legacy)!;
+    Assert.True(output.IsWalletOutput);
+    Assert.False(output.IsRecipient);
+    Assert.Equal(legacy, JsonSerializer.Serialize(output));
+  }
+
+  [Fact]
+  public void OwnedRecipientSurvivesJournalReloadAndStateReconciliation()
+  {
+    var directory = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(directory);
+    var transaction = Network.RegTest.CreateTransaction();
+    var input = new OutPoint(uint256.One, 7);
+    transaction.Inputs.Add(new TxIn(input));
+    using var key = new Key();
+    var destination = key.PubKey.GetAddress(ScriptPubKeyType.Segwit, Network.RegTest);
+    transaction.Outputs.Add(Money.Satoshis(10000), destination.ScriptPubKey);
+    var recipient = new ProposalOutput(destination.ScriptPubKey.ToHex(), destination.ToString(), 10000, true, true);
+    var entry = new JournalEntry("self-transfer-review", "public-account", Network.RegTest.Name, PaymentOperation.Payment, null,
+      transaction.GetHash().ToString(), transaction.ToHex(), SubmissionState.Uncertain, DateTimeOffset.UtcNow, 10000, 500, [recipient]);
+    var journal = new TransactionJournal(directory, Network.RegTest);
+    journal.Put(entry);
+    var reopened = new TransactionJournal(directory, Network.RegTest);
+    Assert.Equal(recipient, reopened.Entries.Single().Outputs.Single());
+    Assert.Contains(input, reopened.Reservations());
+    reopened.Put(reopened.Entries.Single() with { State = SubmissionState.Confirmed });
+    var confirmed = new TransactionJournal(directory, Network.RegTest).Entries.Single();
+    Assert.Equal(recipient, confirmed.Outputs.Single());
+    Assert.Equal(transaction.ToHex(), confirmed.Hex);
+    Assert.Equal(10000, confirmed.AmountSatoshis);
+  }
+
+  [Fact]
   public void JournalSurvivesRestartAndReservesExactSignedInputs()
   {
     var directory = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));

@@ -46,19 +46,8 @@ public class DependencyGraphTaskScheduler
 			// unconditionally request the full amount in one credential and
 			// then do an equivalent reissuance request for every connection
 			// confirmation.
-			var task = smartRequestNode
-				.StartReissuanceAsync(bobClient, amountsToRequest, vsizesToRequest, linkedCts.Token)
-				.ContinueWith(
-				(t) =>
-				{
-					if (t.IsFaulted && t.Exception is { } exception)
-					{
-						// If one task is failing, cancel all the tasks and throw.
-						ctsOnError.Cancel();
-						throw exception;
-					}
-				},
-				linkedCts.Token);
+			var task = CancelSiblingsOnFailureAsync(
+				smartRequestNode.StartReissuanceAsync(bobClient, amountsToRequest, vsizesToRequest, linkedCts.Token), ctsOnError);
 
 			connectionConfirmationTasks.Add(task);
 		}
@@ -77,7 +66,8 @@ public class DependencyGraphTaskScheduler
 
 	public async Task StartReissuancesAsync(IEnumerable<AliceClient> aliceClients, Func<BobClient> bobClientFactory, CancellationToken cancellationToken)
 	{
-		var aliceNodePairs = PairAliceClientAndRequestNodes(aliceClients, _graph);
+		using CancellationTokenSource ctsOnError = new();
+		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
 		// Build tasks and link them together.
 		List<Task> allTasks = new()
@@ -87,11 +77,8 @@ public class DependencyGraphTaskScheduler
 			// connection confirmation loop even though they are already known
 			// after the final successful input registration, which may be well
 			// before the connection confirmation phase actually starts.
-			CompleteConnectionConfirmationAsync(aliceClients, bobClientFactory(), cancellationToken)
+			CancelSiblingsOnFailureAsync(CompleteConnectionConfirmationAsync(aliceClients, bobClientFactory(), linkedCts.Token), ctsOnError)
 		};
-
-		using CancellationTokenSource ctsOnError = new();
-		using CancellationTokenSource linkedCts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken, ctsOnError.Token);
 
 		foreach (var node in _graph.GetReissuances())
 		{
@@ -110,19 +97,8 @@ public class DependencyGraphTaskScheduler
 				outputAmountEdgeTaskCompSources,
 				outputVsizeEdgeTaskCompSources);
 
-			var task = smartRequestNode
-				.StartReissuanceAsync(bobClientFactory(), requestedAmounts, requestedVSizes, linkedCts.Token)
-				.ContinueWith(
-				(t) =>
-				{
-					if (t.IsFaulted && t.Exception is { } exception)
-					{
-						// If one task is failing, cancel all the tasks and throw.
-						ctsOnError.Cancel();
-						throw exception;
-					}
-				},
-				linkedCts.Token);
+			var task = CancelSiblingsOnFailureAsync(
+				smartRequestNode.StartReissuanceAsync(bobClientFactory(), requestedAmounts, requestedVSizes, linkedCts.Token), ctsOnError);
 
 			allTasks.Add(task);
 		}
@@ -136,6 +112,18 @@ public class DependencyGraphTaskScheduler
 		if (!amountEdges.Concat(vsizeEdges).All(edge => DependencyTasks[edge].Task.IsCompletedSuccessfully))
 		{
 			throw new InvalidOperationException("Some Output nodes in-edges failed to complete");
+		}
+	}
+
+	private static async Task CancelSiblingsOnFailureAsync(Task request, CancellationTokenSource siblings)
+	{
+		try { await request.ConfigureAwait(false); }
+		catch
+		{
+			// Initial issuance participates in this boundary too. Await actual
+			// request tasks, so cancellation cannot leave hidden dependency workers.
+			siblings.Cancel();
+			throw;
 		}
 	}
 
@@ -172,15 +160,20 @@ public class DependencyGraphTaskScheduler
 					var delay = scheduledDate - DateTimeOffset.UtcNow;
 					if (delay > TimeSpan.Zero)
 					{
-						await Task.Delay(delay, cancellationToken).ConfigureAwait(false);
+						await Task.Delay(delay, linkedCts.Token).ConfigureAwait(false);
 					}
-					await smartRequestNode.StartOutputRegistrationAsync(bobClientFactory(), txOut.ScriptPubKey, cancellationToken).ConfigureAwait(false);
+					await smartRequestNode.StartOutputRegistrationAsync(bobClientFactory(), txOut.ScriptPubKey, linkedCts.Token).ConfigureAwait(false);
 					return Result<OutputRegistrationError>.Ok();
 				}
 				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.AlreadyRegisteredScript)
 				{
 					Logger.LogDebug($"Output registration error, code:'{ex.ErrorCode}' message:'{ex.Message}'.");
 					return new AlreadyRegisteredScriptError(txOut.ScriptPubKey);
+				}
+				catch (WabiSabiProtocolException ex) when (ex.ErrorCode == WabiSabiProtocolErrorCode.RoundNotFound)
+				{
+					ctsOnError.Cancel();
+					throw;
 				}
 				catch (Exception ex)
 				{

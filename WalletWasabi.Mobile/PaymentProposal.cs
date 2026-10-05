@@ -1,11 +1,13 @@
 using System.Collections.Immutable;
+using System.Text.Json.Serialization;
 
 namespace WalletWasabi.Mobile;
 
 public enum PaymentOperation { Payment, SpeedUp, Cancel }
 public enum SubmissionState { Uncertain, Pending, Confirmed, Replaced, Conflicted }
 public sealed record ProposalInput(string TransactionId, uint Index, long AmountSatoshis);
-public sealed record ProposalOutput(string ScriptHex, string? Address, long AmountSatoshis, bool IsWalletOutput);
+public sealed record ProposalOutput(string ScriptHex, string? Address, long AmountSatoshis, bool IsWalletOutput,
+  [property: JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingDefault)] bool IsRecipient = false);
 
 // Public review data never exposes the PSBT, signing keys, or mutable Bitcoin objects.
 public sealed record PaymentProposal(

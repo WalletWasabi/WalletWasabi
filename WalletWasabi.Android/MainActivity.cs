@@ -602,7 +602,7 @@ public sealed class MainActivity : Activity
 		AddText(submission.TransactionId, 14, Muted).SetTextIsSelectable(true);
 		AddText($"Fee: {submission.FeeSatoshis:N0} sats", 16, Muted);
 		AddText($"Total: {Money.Satoshis(checked(submission.AmountSatoshis + submission.FeeSatoshis)).ToString(false, false)} BTC", 16, Muted);
-		foreach (var output in submission.Outputs.Where(o => !o.IsWalletOutput)) { AddText($"{Money.Satoshis(output.AmountSatoshis).ToString(false, false)} BTC\n{output.Address ?? output.ScriptHex}", 13, Muted); }
+		foreach (var output in submission.Outputs.Where(o => o.IsRecipient || !o.IsWalletOutput)) { AddText($"{Money.Satoshis(output.AmountSatoshis).ToString(false, false)} BTC\n{output.Address ?? output.ScriptHex}", 13, Muted); }
 		AddButton("Copy transaction ID", () => Copy(submission.TransactionId));
 	}
 
@@ -641,7 +641,7 @@ public sealed class MainActivity : Activity
 			using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(2));
 			var proposal = await Session!.PrepareReplacementAsync(transaction.GetHash().ToString(), operation, rate, timeout.Token);
 			Screen(operation == PaymentOperation.SpeedUp ? "Review speed-up" : "Review cancellation", "review", () => ShowTransaction(transaction));
-			foreach (var output in proposal.Outputs.Where(o => !o.IsWalletOutput)) { AddText(Money.Satoshis(output.AmountSatoshis).ToString(false, false) + " BTC", 24, Color.White, true); AddText(output.Address ?? output.ScriptHex, 14, Muted).SetTextIsSelectable(true); }
+			foreach (var output in proposal.Outputs.Where(o => o.IsRecipient || !o.IsWalletOutput)) { AddText(Money.Satoshis(output.AmountSatoshis).ToString(false, false) + " BTC", 24, Color.White, true); AddText(output.Address ?? output.ScriptHex, 14, Muted).SetTextIsSelectable(true); }
 			if (proposal.AmountSatoshis == 0) { AddText(operation == PaymentOperation.Cancel ? "Return pending funds to this wallet" : "Add a transaction to accelerate confirmation", 22, Color.White, true); }
 			AddText($"Network fee   {proposal.FeeSatoshis:N0} sats", 18, Muted);
 			AddText($"Total   {Money.Satoshis(proposal.TotalSatoshis).ToString(false, false)} BTC", 18, Color.White);
@@ -810,7 +810,8 @@ public sealed class MainActivity : Activity
 			}
 		}
 		Gap(24);
-		AddText(AppIdentity.IsPersonal ? "Wasabi Wallet for Android · 0.2.0" : "Wasabi Wallet Test · 0.2.0", 14, Muted);
+		var version = PackageManager!.GetPackageInfo(PackageName!, global::Android.Content.PM.PackageInfoFlags.MetaData)!.VersionName;
+		AddText((AppIdentity.IsPersonal ? "Wasabi Wallet for Android · " : "Wasabi Wallet Test · ") + version, 14, Muted);
 		AddText("Tor 0.4.9.13 · Bitcoin keys and signing use the shared Wasabi engine.", 13, Muted);
 		AddButton("Open-source licenses", () => Work(async () =>
 		{

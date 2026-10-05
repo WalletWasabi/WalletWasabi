@@ -826,6 +826,12 @@ public class CoinJoinClient
 				OnOutputRegistrationSuccess,
 				OnOutputRegistrationErrors);
 		}
+		catch (WabiSabiProtocolException e) when (e.ErrorCode == WabiSabiProtocolErrorCode.RoundNotFound)
+		{
+			// A restarted coordinator cannot complete this round. Do not wait
+			// until the old phase deadline before retrying a fresh round.
+			throw;
+		}
 		catch (Exception e)
 		{
 			Logger.LogInfo(FormatLog($"Failed to register outputs with message '{e.Message}'. Ignoring...", roundState));

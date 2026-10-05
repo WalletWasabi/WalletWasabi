@@ -22,6 +22,7 @@ Contrib/Android/NativeSources/* text eol=lf
 # Unified patches require a space prefix on empty context lines.
 Contrib/Android/NativeSources/*.patch whitespace=-blank-at-eol
 Contrib/Android/test-tls.py text eol=lf
+Contrib/Android/*.sh text eol=lf
 
 ###############################################################################
 # Set the merge driver for project and solution files

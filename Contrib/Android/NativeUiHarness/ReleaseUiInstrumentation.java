@@ -2,6 +2,7 @@ package io.wasabiwallet.android.tests;
 
 import android.app.Activity;
 import android.app.Instrumentation;
+import android.app.Application;
 import android.content.Intent;
 import android.content.pm.ApplicationInfo;
 import android.content.pm.PackageInfo;
@@ -19,6 +20,7 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicReference;
+import java.util.concurrent.atomic.AtomicBoolean;
 
 // Pure Java: no second Mono runtime or copied wallet assemblies enter the app.
 // This APK is co-signed for testing, kept out of delivery, and emulator-only.
@@ -28,6 +30,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     private static final String WORDS = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";
     private Activity activity;
     private Bundle arguments;
+    private final AtomicBoolean mainStopped = new AtomicBoolean();
 
     @Override public void onCreate(Bundle values) { super.onCreate(values); arguments = values; start(); }
     @Override public void onStart() {
@@ -35,6 +38,15 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         try {
             check(Build.HARDWARE.contains("ranchu") || Build.HARDWARE.contains("goldfish"), "Emulator-only harness");
             activity = startActivitySync(mainIntent());
+            activity.getApplication().registerActivityLifecycleCallbacks(new Application.ActivityLifecycleCallbacks() {
+                public void onActivityCreated(Activity current, Bundle state) { }
+                public void onActivityStarted(Activity current) { }
+                public void onActivityResumed(Activity current) { }
+                public void onActivityPaused(Activity current) { }
+                public void onActivityStopped(Activity current) { if (current == activity) mainStopped.set(true); }
+                public void onActivitySaveInstanceState(Activity current, Bundle state) { }
+                public void onActivityDestroyed(Activity current) { }
+            });
             waitFor(() -> has("Recover a wallet"), 20000, "Main screen");
             if (Build.VERSION.SDK_INT >= 33 && accessible("Allow Wasabi Wallet to send you notifications?", false)) {
                 check(accessible("Allow", true), "Normal notification permission prompt");
@@ -118,8 +130,9 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         String id = texts().stream().filter(t -> t.matches("[0-9a-f]{64}")).findFirst().orElseThrow(() -> new IllegalStateException("Transaction ID missing"));
         status("TRANSACTION=" + id);
         click("Done");
-        getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME);
-        Thread.sleep(1000);
+        mainStopped.set(false);
+        check(getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME), "The OS accepted the Home action");
+        waitFor(() -> mainStopped.get(), 30000, "The OS stopped the backgrounded main activity");
         getTargetContext().startActivity(mainIntent());
         waitFor(() -> has("Recover a wallet"), 10000, "Backgrounding locks the interface");
         check(!has("TOTAL BALANCE"), "Balance is concealed after background lock");

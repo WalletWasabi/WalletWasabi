@@ -9,8 +9,8 @@
 		<ApplicationId Condition="'$(WasabiPackageChannel)' == 'Personal'">io.wasabiwallet.android.personal</ApplicationId>
 		<ApplicationTitle>Wasabi Wallet Test</ApplicationTitle>
 		<ApplicationTitle Condition="'$(WasabiPackageChannel)' == 'Personal'">Wasabi Wallet</ApplicationTitle>
-		<ApplicationVersion>4</ApplicationVersion>
-		<ApplicationDisplayVersion>0.2.0</ApplicationDisplayVersion>
+		<ApplicationVersion>5</ApplicationVersion>
+		<ApplicationDisplayVersion>0.3.0</ApplicationDisplayVersion>
 		<RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
 		<RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
 		<AndroidPackageFormats>apk</AndroidPackageFormats>
@@ -60,5 +60,6 @@
 		<Error Condition="'$(Configuration)' == 'Release' And ('$(UseMonoRuntime)' != 'true' Or '$(UseInterpreter)' != 'false' Or '$(AndroidUseAssemblyStore)' != 'false' Or '$(PublishTrimmed)' != 'false' Or '$(RunAOTCompilation)' != 'false' Or '$(PublishReadyToRun)' != 'false' Or '$(AndroidEnableMarshalMethods)' != 'false')" Text="Release requires the qualified untrimmed Mono JIT, dynamic JNI and individual assembly packaging. AOT needs separate qualification." />
 		<Error Condition="'$(WasabiPackageChannel)' == 'Personal' And ('$(Configuration)' != 'Release' Or '$(AndroidKeyStore)' != 'true' Or !Exists('$(AndroidSigningKeyStore)'))" Text="Personal packages require Release configuration and the dedicated external signing key." />
 		<Error Condition="'$(WasabiPackageChannel)' == 'Personal' And !Exists('$(WasabiCoordinatorBootstrapFile)')" Text="Personal packages require the approved two-field coordinator bootstrap." />
+		<Error Condition="'$(WasabiPackageChannel)' == 'Personal' And !Exists('$(WasabiNativeBuildDirectory)/native-manifest.json')" Text="Personal packages require the verified pinned native source build." />
 	</Target>
 </Project>

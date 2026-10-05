@@ -27,6 +27,9 @@
     <PackageReference Include="WabiSabi" ExcludeAssets="native" />
     <Compile Include="../../../WalletWasabi.Android/WalletInstrumentation.cs" Link="WalletInstrumentation.cs" />
     <Compile Include="../../../WalletWasabi.Android/WalletFaultTests.cs" Link="WalletFaultTests.cs" />
+    <Compile Include="../../../WalletWasabi.Android/WalletFeeTests.cs" Link="WalletFeeTests.cs" />
+    <Compile Include="../../../WalletWasabi.Android/WalletPublicSynchronization.cs" Link="WalletPublicSynchronization.cs" />
+    <Compile Include="../../../WalletWasabi.Android/WalletCoinJoinInterruption.cs" Link="WalletCoinJoinInterruption.cs" />
     <Compile Include="../../../WalletWasabi.Android/RuntimeProbe.cs" Link="RuntimeProbe.cs" />
     <Compile Include="../../../WalletWasabi.Android/AppIdentity.cs" Link="AppIdentity.cs" />
     <Compile Include="../../../WalletWasabi.Android/CredentialVault.cs" Link="CredentialVault.cs" />
