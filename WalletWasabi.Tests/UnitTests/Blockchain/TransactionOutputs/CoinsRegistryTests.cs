@@ -129,8 +129,8 @@ public class CoinsRegistryTests
 			tx0Coin = tx0.Transaction.Outputs.AsCoins().First();
 
 			IReadOnlyList<SmartCoin> tx0Coins = ProcessTransaction(tx0);
-			Assert.Single(tx0Coins);
-			Assert.Single(Coins);
+			_ = Assert.Single(tx0Coins);
+			_ = Assert.Single(Coins);
 			Assert.Equal(tx0Coins[0], Coins.First());
 
 			// Verify that both tx0 inputs' prevOuts are set to be spent by the single tx0's coin.
@@ -297,8 +297,8 @@ public class CoinsRegistryTests
 
 			// Now process tx0.
 			IReadOnlyList<SmartCoin> tx0Coins = ProcessTransaction(tx0);
-			Assert.Single(tx0Coins);
-			Assert.Single(Coins);
+			_ = Assert.Single(tx0Coins);
+			_ = Assert.Single(Coins);
 			Assert.Equal(tx0Coins[0], Coins.First());
 
 			// Tx0's inputs are made up. So money appears out of thin air, but the result is correct.
@@ -391,7 +391,32 @@ public class CoinsRegistryTests
 		Assert.Equal(tx0CreditingAmount, tx0Amount);
 	}
 
-	/// <summary>Modify UTXO set in <see cref="CoinsRegistry"/> with <paramref name="tx">transaction</paramref> in mind.</summary>
+	/// <summary>
+	/// Tests that <see cref="CoinsRegistry.TryGetByOutPoint(OutPoint, out SmartCoin?)"/> keeps returning the tracked coin when the same coin is added again.
+	/// </summary>
+	[Fact]
+	public void TryGetByOutPointAfterAddingSameCoinAgain()
+	{
+		HdPubKey pubKey = NewInternalKey(label: "A");
+		SmartTransaction unconfirmedTx = CreateCreditingTransaction(pubKey.P2wpkhScript, Money.Coins(1.0m), height: 0);
+		SmartCoin coin = new(unconfirmedTx, outputIndex: 0, pubKey: pubKey);
+		Assert.True(Coins.TryAdd(coin));
+
+		// The same transaction gets confirmed, which creates another SmartCoin instance for the same outpoint.
+		SmartTransaction confirmedTx = new(unconfirmedTx.Transaction, new Height.ChainHeight(54321));
+		SmartCoin sameCoin = new(confirmedTx, outputIndex: 0, pubKey: pubKey);
+		Assert.NotSame(coin, sameCoin);
+		Assert.False(Coins.TryAdd(sameCoin));
+
+		// Looking the coin up by outpoint (e.g. to exclude it from coinjoins) must return the coin the registry tracks.
+		Assert.Same(coin, Assert.Single(Coins));
+		Assert.True(Coins.TryGetByOutPoint(coin.Outpoint, out SmartCoin? lookedUpCoin));
+		Assert.Same(coin, lookedUpCoin);
+	}
+
+	/// <summary>
+	/// Modify UTXO set in <see cref="CoinsRegistry"/> with <paramref name="tx">transaction</paramref> in mind.
+	/// </summary>
 	private IReadOnlyList<SmartCoin> ProcessTransaction(SmartTransaction tx)
 	{
 		List<SmartCoin> result = new(capacity: tx.Transaction.Outputs.Count);
@@ -454,7 +479,7 @@ public class CoinsRegistryTests
 
 	/// <summary>Compare coins registry and actual coins as two sets (disregarding ordering).</summary>
 	private void AssertEqualCoinSets(CoinsRegistry coins, IEnumerable<SmartCoin> actualCoins)
-		=> Assert.Equal(new HashSet<SmartCoin>(coins), new HashSet<SmartCoin>(actualCoins));
+		=> Assert.Equal(new HashSet<SmartCoin>(coins), [.. actualCoins]);
 
 	/// <summary>Asserts that the transaction is assigned specified amount (representing a balance change for a wallet) in the coins registry.</summary>
 	private void AssertTransactionAmount(SmartTransaction tx, Money expectedAmount)
