@@ -127,7 +127,11 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			var length = header[3] switch {4 => 16, 1 => 4, 3 => stream.ReadByte(), _ => throw new IOException("Invalid SOCKS reply")};
 			var tail = new byte[length + 2]; await stream.ReadExactlyAsync(tail, probe.Token);
 			TransportStatus("Tor tunnel connected.");
-			using var tls = new System.Net.Security.SslStream(stream, leaveInnerStreamOpen: true);
+			using var tls = new System.Net.Security.SslStream(stream, leaveInnerStreamOpen: true, (_, certificate, chain, errors) =>
+			{
+				TransportStatus("TLS policy: " + errors + "; certificate: " + certificate?.Issuer + "; chain: " + string.Join(",", chain?.ChainStatus.Select(s => s.Status + ": " + s.StatusInformation.Trim()) ?? []));
+				return errors == System.Net.Security.SslPolicyErrors.None;
+			});
 			await tls.AuthenticateAsClientAsync(new System.Net.Security.SslClientAuthenticationOptions { TargetHost = "check.torproject.org", EnabledSslProtocols = System.Security.Authentication.SslProtocols.Tls12 }, probe.Token);
 			TransportStatus("Platform TLS authenticated.");
 			await tls.WriteAsync(System.Text.Encoding.ASCII.GetBytes("GET /api/ip HTTP/1.1\r\nHost: check.torproject.org\r\nConnection: close\r\n\r\n"), probe.Token);
@@ -158,7 +162,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		Check(!tor.Diagnostics.Contains("Unable to parse line from GEOIP", StringComparison.Ordinal), "Android Tor accepts bundled GeoIP records");
 		// Confirm an actual public TLS connection through the same isolated SOCKS
 		// transport used by the wallet rather than only checking the local listener.
-		await using var session = new WalletSession(dataDir, new MobileSettings(), context.ApplicationInfo!.NativeLibraryDir!, socksPort: AppIdentity.SocksPort);
+		await using var session = new WalletSession(dataDir, new MobileSettings(), context.ApplicationInfo!.NativeLibraryDir!, socksPort: AppIdentity.SocksPort, configureHttpHandler: AndroidCertificateTrust.Configure);
 		await VerifyTorExitAsync(session, timeout.Token);
 		await tor.DisposeAsync();
 		Check(!tor.IsAlive && tor.Bootstrap == 0, "Stopped Tor cannot report a usable transport");

@@ -16,8 +16,10 @@ interpreter, assembly store, ReadyToRun or AOT. The minimal reproduction is in
 `Contrib/Android/RuntimeProbe`. Published Bitcoin vectors and funded Bitcoin Core
 acceptance pass on x86_64 emulators. The isolated Release crypto probe also
 passed on the connected ARM64 Android 16 phone; full handset qualification is
-still outstanding. Android 7/API 24 public TLS remains blocked. Strict 16 KB native
-RELRO inspection also reports findings in bundled prebuilt libraries, despite
+still outstanding. Android 7/API 24 source Release funded-wallet and public Tor
+stop/restart checks pass after a scoped native handshake guard and a verified
+public CA supplement. The full source-build matrix remains open. Strict 16 KB native
+RELRO inspection reports findings in the old candidate's bundled prebuilt libraries, despite
 successful runtime tests on the 16 KB emulator. These findings remain visible;
 tests are not an independent security audit.
 
@@ -72,6 +74,38 @@ Recorded personal certificate SHA-256:
 [documented common-page-size flag](https://developer.android.com/guide/practices/page-sizes)
 for the generated application metadata library, retaining RELRO, immediate symbol
 binding and non-executable stacks. It does not patch prebuilt runtime or Tor code.
+
+Pinned native source builds are in `Contrib/Android/NativeSources`. On Linux, after
+restoring the probe with the pinned Android workload:
+
+```sh
+python3 Contrib/Android/NativeSources/build.py \
+  --work /tmp/wasabi-android-native \
+  --runtime-packs /usr/share/dotnet/packs \
+  --output artifacts/android/native-source-build/staged
+```
+
+The recipe requires the compiler/build tools listed in `build.py`, an installed
+JDK (`JAVA_HOME`) and 24 GiB free in the cache. Check the host disk too when using
+a WSL VHD. Downloads go to explicit cache files and are verified before use. The
+runtime receives only the pinned TLS reentrancy guard; other native code is built
+from its locked source. SQLite retains the packaged version and compile options.
+Tor uses stable NDK r29 and skips upstream ELF-header cleaning. Normal LLVM
+stripping preserves the checked protections. SDK loader constants use the exact
+hashed SDK assembly-container stub to match the unchanged packaging tools.
+
+Select staged libraries with `-p:WasabiNativeBuildDirectory=ABSOLUTE_STAGED_PATH`.
+Every selected file is hash-checked before packaging, and the APK is checked for
+those bytes and compatible assembly-container layouts. Source builds remain opt-in
+while their complete runtime/wallet qualification is in progress; static checks
+alone do not qualify them for a real-funds release.
+
+The Android workflow builds the locked native dependencies on a dedicated Linux
+runner and passes that artifact to every device job. Its TLS fixture runs the
+packaged Release probe through valid, untrusted and wrong-hostname connections,
+including the supplemental-root path. Run it locally with `test-tls.py --serial
+EMULATOR_SERIAL --apk PATH_TO_SIGNED_PROBE --openssl PATH_TO_OPENSSL`. It creates
+only synthetic localhost credentials and removes its generated private key.
 
 ## Wallet operation
 

@@ -31,9 +31,11 @@
     <Compile Include="../../../WalletWasabi.Android/AppIdentity.cs" Link="AppIdentity.cs" />
     <Compile Include="../../../WalletWasabi.Android/CredentialVault.cs" Link="CredentialVault.cs" />
     <Compile Include="../../../WalletWasabi.Android/TorHost.cs" Link="TorHost.cs" />
+    <Compile Include="../../../WalletWasabi.Android/AndroidCertificateTrust.cs" Link="AndroidCertificateTrust.cs" />
     <AndroidNativeLibrary Include="../../../WalletWasabi.Android/Native/x86_64/libtor.so" Abi="x86_64" />
     <AndroidAsset Include="../../../WalletWasabi/Tor/Geoip/geoip" Link="Tor/geoip" />
     <AndroidAsset Include="../../../WalletWasabi/Tor/Geoip/geoip6" Link="Tor/geoip6" />
   </ItemGroup>
   <Import Project="../NativePageAlignment.targets" />
+  <Import Project="../NativeSources.targets" />
 </Project>

@@ -23,13 +23,15 @@ public record HttpClientHandlerConfiguration
 public class HttpClientFactory : IHttpClientFactory
 {
 	private readonly HttpClientHandlerConfiguration _httpHandlerConfig;
+	private readonly Action<HttpClientHandler>? _configureHandler;
 	private readonly ConcurrentDictionary<string, DateTime> _expirationDatetimes = new();
 	private readonly ConcurrentDictionary<string, HttpClientHandler> _httpClientHandlers = new();
 	private readonly ConcurrentBag<LifetimeResolver> _lifetimeResolvers = new();
 
-	public HttpClientFactory(HttpClientHandlerConfiguration? httpHandlerConfig = null)
+	public HttpClientFactory(HttpClientHandlerConfiguration? httpHandlerConfig = null, Action<HttpClientHandler>? configureHandler = null)
 	{
 		_httpHandlerConfig = httpHandlerConfig ?? HttpClientHandlerConfiguration.Default;
+		_configureHandler = configureHandler;
 		AddLifetimeResolver(identity => identity.StartsWith("long-live")
 			? DateTime.MaxValue
 			: DateTime.UtcNow.AddHours(6));
@@ -71,6 +73,7 @@ public class HttpClientFactory : IHttpClientFactory
 			}, _httpHandlerConfig);
 
 		handler.AutomaticDecompression = DecompressionMethods.All;
+		_configureHandler?.Invoke(handler);
 		return handler;
 	}
 
@@ -81,8 +84,8 @@ public class HttpClientFactory : IHttpClientFactory
 	}
 }
 
-public class OnionHttpClientFactory(Uri proxyUri, HttpClientHandlerConfiguration? configurator = null)
-	: HttpClientFactory(configurator)
+public class OnionHttpClientFactory(Uri proxyUri, HttpClientHandlerConfiguration? configurator = null, Action<HttpClientHandler>? configureHandler = null)
+	: HttpClientFactory(configurator, configureHandler)
 {
 	protected override HttpClientHandler CreateHttpClientHandler(string name)
 	{

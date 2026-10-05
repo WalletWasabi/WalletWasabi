@@ -82,6 +82,7 @@
 
 	<ItemGroup>
 		<RuntimeHostConfigurationOption Include="System.Globalization.Invariant" Value="true" />
+		<EmbeddedResource Include="Certificates/isrgrootx1.pem" LogicalName="WalletWasabi.Certificates.isrgrootx1.pem" />
 	</ItemGroup>
 
 	<ItemGroup Condition="'$(WasabiSkipBundledApps)' == 'true'">

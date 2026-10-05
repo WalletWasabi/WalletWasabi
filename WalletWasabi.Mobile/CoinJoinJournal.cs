@@ -62,12 +62,13 @@ internal sealed class CoinJoinJournal
 		}
 		public void EndRound(uint256 roundId, EndRoundState outcome)
 		{
-			// Unknown outcomes and successful broadcasts remain reserved until the
-			// wallet observes the transaction. Never infer rejection from a timeout.
+			// Once witnesses might have left this device, a coordinator's failure
+			// report cannot prove that the signed transaction cannot be broadcast.
+			// Only observed transaction/conflict reconciliation releases these inputs.
 			lock (journal._gate)
 			{
 				var checkpoint = journal._entries.FirstOrDefault(e => e.WalletId == walletId && e.RoundId == roundId.ToString());
-				if (checkpoint?.TransactionId is not null && outcome is (EndRoundState.None or EndRoundState.TransactionBroadcasted or EndRoundState.TransactionBroadcastFailed)) { return; }
+				if (checkpoint?.TransactionId is not null) { return; }
 				journal.Save(journal._entries.Where(e => e.WalletId != walletId || e.RoundId != roundId.ToString()).ToImmutableArray());
 			}
 		}

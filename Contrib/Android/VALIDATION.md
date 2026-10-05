@@ -32,7 +32,7 @@ require Bitcoin Core acceptance of Segwit ECDSA and Taproot payments.
 
 | Host check | Local result | Evidence under `artifacts/android/` |
 | --- | --- | --- |
-| Mobile tests | 35 passed | `mobile-tests.log` |
+| Mobile tests | 35 initially; 48 after signed-round reservation and TLS trust regressions | `mobile-tests.log`; `native-source-build/mobile-regressions.log` |
 | WabiSabi suite, including coordinator/client safeguards | 322 passed | `desktop-wabisabi-tests.log` |
 | Relevant SafeFile, KeyManager, TransactionFactory, CPFP-provider and Tor settings checks | 52 passed | `desktop-relevant-tests.log` |
 | RPC/P2P filter synchronization regressions | 15 passed | `filter-regression-tests.log` |
@@ -146,7 +146,68 @@ signing and safe stopping at each protocol phase is still an open gate. Unknown
 signed outcomes retain reservations until reconciliation; they are not inferred
 rejected from an unavailable coordinator.
 
+The remote Android workflow at source `03c2bc4` completed 20/20 fresh Release
+CoinJoin rounds in run `37251402453`. API 35/4K and API 36/4K also passed its full
+Debug/Release suites. API 24 retained the TLS failure. API 36/16K failed because
+`lmkd` killed the foreground development wallet after first-boot services exhausted
+the emulator's default memory; its actual 16 KB runtime check had already passed.
+The workflow now sets 4096 MB RAM explicitly. These results qualify the stock
+native baseline, not subsequent source native builds.
+
+Six new journal tests reproduced premature reservation release after a coordinator
+reported failure following the signing checkpoint. All signed checkpoints now
+remain reserved for observed transaction/confirmed-conflict reconciliation,
+regardless of coordinator status. The UI reports awaiting reconciliation after
+the manager stops. All 41 then-current mobile tests passed after this change;
+seven subsequent certificate trust cases bring the passing total to 48.
+
 ## Tor and native package findings
+
+### Source native rebuild qualification in progress
+
+`NativeSources/source.lock.json` pins runtime 10.0.12, Android SDK 36.1.69, Tor
+0.4.9.13 and its vendors, the currently packaged SQLite 3.53.3 source ID and
+published amalgamation SHA3-256, stable NDK r29 and CMake 3.31.8. The build recipe
+preserves RELRO/NOW/nonexecutable stacks and adds both 16 KB linker flags.
+All 38 staged Debug/Release native files pass strict ELF protection checks.
+No installed SDK pack is overwritten and no ELF security header is patched.
+
+The API 24 localhost TLS reproduction uniquely traces certificate rejection
+re-entering `SSLStreamHandshake` while legacy Conscrypt holds its native mutex.
+`runtime-tls-reentrancy.patch` fails that nested call and lets the existing trust
+callback reject the certificate. Valid fixture TLS, untrusted certificates and
+wrong hostnames passed three fresh cycles. Java SSLSocket/SSLEngine controls reject
+the same untrusted fixture without the managed re-entry. Retained diagnostics are
+under `native-source-build/local-tls-*.log`.
+
+A first rebuilt Android loader failed on the phone with assembly decompression
+error -31: its locally rebuilt data-container stub had 10 ELF sections after
+payload insertion, but SDK-generated containers have 11. The loader build now
+derives constants from the exact hashed SDK container stub. Stage and APK checks
+verify the layout; the retained incompatible metadata/APK is rejected. The
+corrected loader passes the engine crypto probe on API 24 x64. Its full rebuilt
+runtime matrix and corrected ARM64 execution remain pending.
+Evidence includes `native-source-build/handset-source-native-startup.log` and
+`incompatible-loader-metadata.json`. The earlier stock-runtime phone pass remains
+separate from this failed source-build attempt.
+
+The source Release package also passes API 24 funded payments/recovery,
+replacements, interrupted submission/reorganization and vault tamper/key-loss
+checks in `device-b6adafd5f7924356af0fbeef87b6f8a1/`. Its initial public TLS request
+rejected a chain ending at a CA root absent from Android 7. The retained diagnostic
+reports `PartialChain` with issuer YR1. The Android API 24/25 adapter now supplements
+only missing-anchor failures with the verified ISRG Root X1 public certificate;
+full chain, hostname, validity, usage and signature checks remain enforced.
+Seven host regressions pass. Public Tor TLS, shutdown/fail-closed behavior and
+restart pass on API 24 in `device-af7b42ef9641424785f401a5bb85660e/tor.log`.
+The certificate's provenance and retirement boundary are in
+`WalletWasabi/Certificates/README.md`. No device trust store is modified.
+The packaged API 24 Release localhost test runs 15 TLS connections: three
+untrusted-root rejections, six wrong-hostname rejections and six authenticated
+responses across normal/custom/supplemental trust paths. Evidence:
+`device-tls-6becbc8122bd489ca5f176b4cbe219c2/tls.log`.
+
+The following historical findings remain applicable to the old 0.2.0 candidate.
 
 The 16 KB Release Tor suite passed public TLS verified by the destination as a
 Tor exit, stopped-Tor fail-closed behavior, idempotent disposal, restart and another

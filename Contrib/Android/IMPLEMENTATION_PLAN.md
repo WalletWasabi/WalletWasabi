@@ -8,7 +8,7 @@ unlocking. Hardware wallets and Play Store publication remain excluded.
 
 | Workstream | Implemented | Acceptance still required |
 | --- | --- | --- |
-| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; fixed packaging/interpreter selection; published vectors and Core acceptance on x64 Debug/Release | ARM64 execution; supported resolution of API 24 TLS and native page findings; AOT remains separately unqualified |
+| 1. Supported runtime | Pinned .NET 10 Mono JIT; retained minimal reproduction; fixed packaging/interpreter selection; published vectors and Core acceptance on x64 Debug/Release; isolated Release vectors on the ARM64 phone | Full qualification of source native rebuilds and API 24 TLS correction; AOT remains separately unqualified |
 | 2. Package separation | `.dev` and `.personal`; Testnet4 development default; session-level mainnet prohibition; Release build guards; two-field coordinator bootstrap | Final delivered-package record and handset installation |
 | 3. Authorization and vault | Authenticated Keystore AES-GCM, StrongBox preference/hardware requirement for wallet convenience, per-operation auth, separate RPC encryption, invalidation fallback, background/inactivity lock and CoinJoin key release | Real hardware success/cancellation, device-key loss and OS credential changes on the phone |
 | 4. Recovery and persistence | Original backup/password handling; both account public keys; fresh import rescan; atomic/fsynced saves; persisted addresses; wrong-network/watch-only guards | Handset fresh recovery and storage/document-picker interruption tests |
@@ -42,18 +42,21 @@ the newly reproduced denomination failure has a verified cause and regression.
 
 ## Blocking findings and boundaries
 
-1. API 24 establishes Tor transport but stalls in platform TLS on both initial
-   Mono 10.0.9 and stable servicing 10.0.12. The supported pinned
-   runtime needs a verified remedy. Certificate checks and transport privacy cannot
-   be weakened to bypass it.
-2. Static 16 KB RELRO checks still flag prebuilt runtime/Tor/SQLite binaries after
-   the servicing update. The generated
-   app-library omission is corrected using documented linker flags, while prebuilt
-   binaries remain unchanged. Successful 16 KB x64 execution is narrower evidence
-   than universal native compatibility.
-3. No actual handset is connected. ARM64 execution, hardware-backed authorization,
-   physical camera decoding and handset background behavior cannot be inferred from
-   emulator results.
+1. API 24 TLS rejection re-enters the same native handshake while legacy Conscrypt
+   holds its mutex. The retained reproduction, native trace and narrow reentrancy
+   guard pass valid/untrusted/wrong-hostname localhost tests. Source Release
+   funded wallet/vault and public Tor stop/restart checks pass on API 24 x64 after
+   supplementing its missing public CA root; the complete matrix remains open.
+2. The old candidate's prebuilt runtime/Tor/SQLite libraries fail strict RELRO-end
+   checks. Pinned source rebuilds now pass 38 native protection checks, and a
+   packaging path verifies their hashes and assembly-container layout. This does
+   not qualify their complete execution matrix. A first loader build failed on the
+   phone because its container constants differed from the SDK; the build now uses
+   the pinned SDK stub and retains a regression gate for that mismatch.
+3. The actual ARM64 phone passed the isolated stock-runtime
+   cryptographic probe. Hardware-backed authorization, physical camera decoding,
+   full wallet recovery/updates and handset background behavior remain unverified.
+   It disconnected before corrected source-runtime installation.
 4. A real mainnet transaction requires a new disposable wallet and an explicitly
    authorized amount and destination. Existing funded seeds are excluded from tests.
 

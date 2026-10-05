@@ -13,7 +13,53 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
+  native:
+    runs-on: ubuntu-24.04
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - name: Native build disk budget
+        run: |
+          # This dedicated ephemeral job does not build Java APKs or emulators.
+          # Reclaim its unused preinstalled Android/Swift/Haskell toolchains.
+          test "$RUNNER_ENVIRONMENT" = github-hosted
+          sudo rm -rf -- /usr/local/lib/android /usr/share/swift /opt/ghc /usr/local/.ghcup /usr/local/share/boost
+          df -h "$RUNNER_TEMP"
+      - uses: actions/setup-dotnet@v4
+        with:
+          global-json-file: Contrib/Android/global.json
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - name: Native toolchain and pinned headers
+        run: |
+          sudo apt-get update -qq
+          sudo apt-get install -y --no-install-recommends clang ninja-build gcc g++ autoconf automake libtool gettext pkg-config unzip
+          dotnet workload install android@36.1.69
+          dotnet restore Contrib/Android/RuntimeProbe/RuntimeProbe.csproj -p:WasabiSkipBundledApps=true
+      - name: Build and verify pinned native sources
+        run: |
+          python3 Contrib/Android/NativeSources/build.py \
+            --work "$RUNNER_TEMP/wasabi-native" \
+            --runtime-packs "$DOTNET_ROOT/packs" \
+            --output artifacts/android/native-source-build/staged
+      - name: Native source artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-native-sources
+          path: artifacts/android/native-source-build/staged/
+          if-no-files-found: error
+      - name: Native build diagnostics
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: wasabi-android-native-build-logs
+          path: ${{ runner.temp }}/wasabi-native/*.log
+          if-no-files-found: ignore
+
   android:
+    needs: native
     runs-on: ubuntu-latest
     timeout-minutes: 60
     strategy:
@@ -35,8 +81,13 @@ jobs:
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       AVALONIA_TELEMETRY_OPTOUT: '1'
+      WasabiNativeBuildDirectory: ${{ github.workspace }}/artifacts/android/native-source-build/staged
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasabi-android-native-sources
+          path: artifacts/android/native-source-build/staged
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: Contrib/Android/global.json
@@ -72,6 +123,8 @@ jobs:
         run: dotnet build WalletWasabi.Android/WalletWasabi.Android.csproj -m:1 -p:WasabiSkipBundledApps=true -p:WasabiEmulatorOnly=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
       - name: Separate Release engine qualification package
         run: dotnet build Contrib/Android/ReleaseHarness/ReleaseHarness.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
+      - name: Isolated Release TLS probe
+        run: dotnet build Contrib/Android/RuntimeProbe/RuntimeProbe.csproj -m:1 -c Release -p:WasabiSkipBundledApps=true -p:JavaSdkDirectory="$JAVA_HOME" -p:AndroidSdkDirectory="$ANDROID_HOME"
       - name: Regtest and Tor device tests
         uses: reactivecircus/android-emulator-runner@v2
         with:
@@ -81,8 +134,11 @@ jobs:
           disable-animations: true
           disable-linux-hw-accel: false
           emulator-boot-timeout: 300
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on
+          # The 16 KB image's first-boot services exhausted its default RAM and
+          # lmkd killed the foreground wallet. Keep this resource limit explicit.
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
           script: |
+            python3 Contrib/Android/test-tls.py --serial emulator-5554 --apk Contrib/Android/RuntimeProbe/bin/Release/net10.0-android36.0/io.wasabiwallet.android.runtimeprobe-Signed.apk
             pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ExpectedPageSize ${{ matrix.page }}
             pwsh -File Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -ExpectedPageSize ${{ matrix.page }}
       - name: Device verification logs
@@ -94,13 +150,19 @@ jobs:
           if-no-files-found: ignore
 
   consecutive-coinjoins:
+    needs: native
     runs-on: ubuntu-latest
     timeout-minutes: 120
     env:
       DOTNET_CLI_TELEMETRY_OPTOUT: '1'
       AVALONIA_TELEMETRY_OPTOUT: '1'
+      WasabiNativeBuildDirectory: ${{ github.workspace }}/artifacts/android/native-source-build/staged
     steps:
       - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: wasabi-android-native-sources
+          path: artifacts/android/native-source-build/staged
       - uses: actions/setup-dotnet@v4
         with:
           global-json-file: Contrib/Android/global.json
@@ -127,7 +189,7 @@ jobs:
           arch: x86_64
           target: google_apis
           disable-animations: true
-          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on
+          emulator-options: -no-window -gpu swiftshader_indirect -no-snapshot -noaudio -no-boot-anim -no-metrics -accel on -memory 4096 -cores 2
           script: pwsh -Command "& ./Contrib/Android/test-device.ps1 -Serial emulator-5554 -DownloadBitcoinCore -ReleaseEngine -Modes @('runtime','coinjoin') -CoinJoinRounds 20"
       - name: CoinJoin evidence
         if: always()

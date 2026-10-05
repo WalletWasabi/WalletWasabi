@@ -55,8 +55,9 @@ public class Global
 	/// <remarks>Use this variable as a guard to prevent touching <see cref="_stoppingCts"/> that might have already been disposed.</remarks>
 	private volatile bool _disposeRequested;
 
-	public Global(string dataDir, Config config, string? distributionFolderPath = null)
+	public Global(string dataDir, Config config, string? distributionFolderPath = null, Action<HttpClientHandler>? configureHttpHandler = null)
 	{
+		_configureHttpHandler = configureHttpHandler;
 		DataDir = dataDir;
 		Config = config;
 		TorSettings = new TorSettings(
@@ -125,6 +126,7 @@ public class Global
 	}
 
 	private readonly AsyncLock _initializationAsyncLock = new();
+	private readonly Action<HttpClientHandler>? _configureHttpHandler;
 	private readonly CancellationTokenSource _stoppingCts = new();
 
 	private readonly P2pConnectionManager _p2pConnectionManager;
@@ -347,8 +349,8 @@ public class Global
 
 	private HttpClientFactory BuildHttpClientFactory(HttpClientHandlerConfiguration? config = null) =>
 		Config.UseTor != TorMode.Disabled
-			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config)
-			: new HttpClientFactory(config);
+			? new OnionHttpClientFactory(TorSettings.SocksEndpoint.ToUri("socks5"), config, _configureHttpHandler)
+			: new HttpClientFactory(config, _configureHttpHandler);
 
 	private void ConfigureFeeRateUpdater(CancellationToken cancellationToken)
 	{

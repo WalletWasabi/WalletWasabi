@@ -36,16 +36,24 @@ public sealed class WalletSession : IAsyncDisposable
 	private readonly CoinJoinJournal _coinJoinJournal;
 	private readonly object _authorizationGate = new();
 	private readonly Func<bool> _transportReady;
+	private readonly Action<HttpClientHandler>? _configureHttpHandler;
 	private bool _interfaceLocked = true;
 	private bool _initialized;
 	private int _disposed;
 	private sealed record Reviewed(PaymentProposal Proposal, BuildTransactionResult Result, string Psbt, WalletId Owner, SmartTransaction? Parent, long CreatedTimestamp);
 	private Reviewed? _reviewed;
-	public string CoinJoinStatus { get; private set; } = "Idle";
+	private string _coinJoinStatus = "Idle";
+	public string CoinJoinStatus
+	{
+		get => !IsMixing && PendingCoinJoins > 0 ? "Awaiting CoinJoin reconciliation" : _coinJoinStatus;
+		private set => _coinJoinStatus = value;
+	}
+	public int PendingCoinJoins => _coinJoinJournal.Entries.Count(e => e.TransactionId is not null);
 	public string? SynchronizationError { get; private set; }
 
-	public WalletSession(string dataDir, MobileSettings settings, string torDirectory, WalletPolicy? policy = null, int socksPort = 37154, Func<bool>? transportReady = null)
+	public WalletSession(string dataDir, MobileSettings settings, string torDirectory, WalletPolicy? policy = null, int socksPort = 37154, Func<bool>? transportReady = null, Action<HttpClientHandler>? configureHttpHandler = null)
 	{
+		_configureHttpHandler = configureHttpHandler;
 		settings.Validate();
 		_policy = policy ?? WalletPolicy.Development;
 		_policy.RequireNetwork(settings.GetNetwork());
@@ -76,7 +84,7 @@ public sealed class WalletSession : IAsyncDisposable
 			AbsoluteMinInputCount = settings.GetNetwork() == Network.RegTest ? 2 : defaults.AbsoluteMinInputCount
 		};
 		_config = new Config(persistent, [$"--torfolder={torDirectory}", $"--torsocksport={socksPort}", $"--torcontrolport={socksPort + 1}"]);
-		Global = new Global(dataDir, _config, torDirectory);
+		Global = new Global(dataDir, _config, torDirectory, _configureHttpHandler);
 	}
 
 	public Global Global { get; private set; }
@@ -147,7 +155,7 @@ public sealed class WalletSession : IAsyncDisposable
 		_reviewed = null;
 		_walletStarts.Clear();
 		SynchronizationError = null;
-		Global = new Global(_dataDir, _config, _torDirectory);
+		Global = new Global(_dataDir, _config, _torDirectory, _configureHttpHandler);
 		await InitializeNoLockAsync(_stop.Token).ConfigureAwait(false);
 	}
 

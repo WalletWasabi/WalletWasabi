@@ -2,8 +2,10 @@
 
 **Current status: qualification blocked.** Close the runtime/native findings and
 remaining automated failure scenarios in `VALIDATION.md` before treating this APK
-as a real-bitcoin wallet. The APK can be inspected as a signed candidate. No phone
-has been tested and no real-bitcoin amount or destination has been authorized.
+as a real-bitcoin wallet. The APK can be inspected as a signed candidate. The
+SM-S948B phone passed the isolated stock-runtime ARM64 cryptographic probe on
+Android 16/API 36 with 4096-byte pages. Wallet installation and full handset
+qualification remain outstanding; no real-bitcoin amount or destination is authorized.
 
 ## Files and signing identity
 
@@ -22,7 +24,7 @@ Keep the signing identity stable for updates. Never delete wallet data or uninst
 an existing package to fix a signing mismatch. The development package has another
 identity and remains independently installed.
 
-## Handset qualification once access exists
+## Remaining handset qualification
 
 1. Connect the phone, enable USB debugging and authorize this computer on the phone.
    Record the exact serial, Android version, ABI and page size using read-only ADB

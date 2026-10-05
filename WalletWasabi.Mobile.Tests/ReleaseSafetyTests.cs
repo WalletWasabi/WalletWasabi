@@ -8,6 +8,31 @@ namespace WalletWasabi.Mobile.Tests;
 
 public class ReleaseSafetyTests
 {
+  [Theory]
+  [InlineData(EndRoundState.AbortedWithError)]
+  [InlineData(EndRoundState.AbortedNotEnoughAlices)]
+  [InlineData(EndRoundState.NotAllAlicesSign)]
+  [InlineData(EndRoundState.AbortedNotEnoughAlicesSigned)]
+  [InlineData(EndRoundState.AbortedNotAllAlicesConfirmed)]
+  [InlineData(EndRoundState.AbortedLoadBalancing)]
+  public void CoordinatorFailureCannotReleasePotentiallyExposedSignatures(EndRoundState reportedOutcome)
+  {
+    var directory = Path.Combine(Path.GetTempPath(), "wasabi-mobile-tests", Guid.NewGuid().ToString("N"));
+    Directory.CreateDirectory(directory);
+    var input = new OutPoint(uint256.One, 4);
+    var journal = new CoinJoinJournal(directory, Network.RegTest);
+    var checkpoints = journal.ForWallet("account", () => { }, _ => false);
+    checkpoints.BeginRound(uint256.One, [input]);
+    checkpoints.BeforeSigning(uint256.One, new uint256(2));
+    // The coordinator can retain witnesses even when another participant
+    // drops out, and its status response cannot prove a transaction is gone.
+    checkpoints.EndRound(uint256.One, reportedOutcome);
+    var reopened = new CoinJoinJournal(directory, Network.RegTest);
+    Assert.Contains(input, reopened.Reservations());
+    Assert.True(reopened.ForWallet("account", () => { }, _ => false).IsReserved(input));
+    Assert.Equal(new uint256(2).ToString(), reopened.Entries.Single().TransactionId);
+  }
+
   [Fact]
   public void CoinJoinCheckpointSurvivesLostSigningOutcome()
   {

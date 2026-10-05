@@ -3,6 +3,7 @@ param(
     [Parameter(Mandatory = $true)][string]$CoordinatorBootstrap,
     [switch]$QualificationHarness,
     [switch]$Rebuild,
+    [string]$NativeBuildDirectory,
     [string]$Repository = (Resolve-Path (Join-Path $PSScriptRoot '../..')).Path
 )
 $ErrorActionPreference = 'Stop'
@@ -25,7 +26,9 @@ try {
     $env:WASABI_PERSONAL_STORE_PASS = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($taskPointer)
     $taskProject = if ($QualificationHarness) { 'Contrib/Android/ReleaseHarness/ReleaseHarness.csproj' } else { 'WalletWasabi.Android/WalletWasabi.Android.csproj' }
     $taskTarget = if ($Rebuild) { '-t:Rebuild' } else { '-t:Build' }
-    & dotnet build (Join-Path $Repository $taskProject) $taskTarget -m:1 -c Release -p:WasabiSkipBundledApps=true -p:WasabiPackageChannel=Personal -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$taskKeyPath" -p:AndroidSigningKeyAlias=wasabi-personal -p:AndroidSigningStorePass=env:WASABI_PERSONAL_STORE_PASS -p:AndroidSigningKeyPass=env:WASABI_PERSONAL_STORE_PASS "-p:WasabiCoordinatorBootstrapFile=$taskBootstrapPath" --nologo -v:q
+    $taskNativeArguments = @()
+    if ($NativeBuildDirectory) { $taskNativeArguments = @("-p:WasabiNativeBuildDirectory=$((Resolve-Path -LiteralPath $NativeBuildDirectory).Path)") }
+    & dotnet build (Join-Path $Repository $taskProject) $taskTarget -m:1 -c Release -p:WasabiSkipBundledApps=true -p:WasabiPackageChannel=Personal -p:AndroidKeyStore=true "-p:AndroidSigningKeyStore=$taskKeyPath" -p:AndroidSigningKeyAlias=wasabi-personal -p:AndroidSigningStorePass=env:WASABI_PERSONAL_STORE_PASS -p:AndroidSigningKeyPass=env:WASABI_PERSONAL_STORE_PASS "-p:WasabiCoordinatorBootstrapFile=$taskBootstrapPath" @taskNativeArguments --nologo -v:q
     if ($LASTEXITCODE -ne 0) { throw 'Personal APK build failed.' }
 } finally {
     Remove-Item Env:WASABI_PERSONAL_STORE_PASS -ErrorAction SilentlyContinue

@@ -51,6 +51,7 @@
 		<AndroidAsset Include="..\WalletWasabi\BundledApps\Binaries\win-x64\Tor\LICENSE" Link="Legal\Tor.txt" />
 	</ItemGroup>
 	<Import Project="../Contrib/Android/NativePageAlignment.targets" />
+	<Import Project="../Contrib/Android/NativeSources.targets" />
 	<Target Name="RequireTor" BeforeTargets="PrepareForBuild">
 		<Error Condition="'$(WasabiPackageChannel)' != 'Development' And '$(WasabiPackageChannel)' != 'Personal'" Text="Choose the Development or Personal package channel." />
 		<Error Condition="!Exists('Native/arm64-v8a/libtor.so') Or !Exists('Native/x86_64/libtor.so')" Text="Run Contrib/Android/prepare-tor.ps1 before building Android." />

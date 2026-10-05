@@ -32,4 +32,13 @@
     <ProjectReference Include="../../../WalletWasabi/WalletWasabi.csproj" />
   </ItemGroup>
   <Import Project="../NativePageAlignment.targets" />
+  <Import Project="../NativeSources.targets" />
+  <Target Name="UseIsolatedTlsDiagnostic" BeforeTargets="_BuildApkEmbed"
+      Condition="'$(WasabiTlsDiagnosticLibrary)' != ''">
+    <Error Condition="'$(Configuration)' != 'Debug' Or '$(WasabiEmulatorOnly)' != 'true' Or !Exists('$(WasabiTlsDiagnosticLibrary)')" Text="TLS diagnostics require the isolated Debug emulator probe and an existing diagnostic library." />
+    <ItemGroup>
+      <FrameworkNativeLibrary Remove="@(FrameworkNativeLibrary)" Condition="'%(FrameworkNativeLibrary.Filename)' == 'libSystem.Security.Cryptography.Native.Android'" />
+      <FrameworkNativeLibrary Include="$(WasabiTlsDiagnosticLibrary)" Abi="x86_64" />
+    </ItemGroup>
+  </Target>
 </Project>

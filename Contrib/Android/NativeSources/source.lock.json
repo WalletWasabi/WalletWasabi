@@ -1,0 +1,47 @@
+{
+  "runtime": { "url": "https://github.com/dotnet/runtime", "tag": "v10.0.12", "commit": "4271d88e0aebf3d04f188f1334c2220d80555ef6" },
+  "android": {
+    "url": "https://github.com/dotnet/android", "tag": "36.1.69", "commit": "d549e1dc4e2a083b08b4f24cb5495e81b99d79b5",
+    "assemblyContainerStubs": {
+      "arm64": "d21f55e58705217da3fc70d05ae674614cf3e250094dc65bd008c54c7f84ac8d",
+      "x64": "dc5ae6f58e4a3481f0abea89eea98c78c4f566830e1cb6cd46e13eed85fd9cba"
+    },
+    "nativeDependencies": {
+      "Java.Interop": "33992194b9373e9322244612c94ed9941b9bc2fd",
+      "libunwind": "e97c9ef82f8b48d0c7f713be4fa7b15e634d76b8",
+      "constexpr-xxh3": "aebcee75c8b6c2458fa8ae151754a8ba833bd697",
+      "lz4": "ebb370ca83af193212df4dcbadcc5d87bc0de2f0",
+      "robin-map": "d37a41003bfbc7e12e34601f93c18ca2ff6d7c07",
+      "xxHash": "bbb27a5efb85b92a0486cf361a8635715a53f6ba"
+    }
+  },
+  "tor": {
+    "url": "https://github.com/guardianproject/tor-android", "tag": "0.4.9.13", "commit": "0ddfd34625035e8d3ff8a7006b265914e6fe67c0",
+    "dependencies": {
+      "elf-cleaner": "e4f87f8d13541779756f4907c6957d2a000653da",
+      "libevent": "79ddfb460847999b807cba76d04e73891f29c6ee",
+      "openssl": "f4dc4d58b48d346a8270183f89acf826d459b0ca",
+      "tor": "8aa9ce2e4e3332ef10f5b7f7e0562c60affe2ece",
+      "zlib": "da607da739fa6047df13e66a2af6b8bec7c2a498",
+      "zstd": "f8745da6ff1ad1e7bab384bd1f9d742439278e99"
+    }
+  },
+  "sqlite": {
+    "version": "3.53.3", "url": "https://www.sqlite.org/2026/sqlite-amalgamation-3530300.zip",
+    "sourceId": "2026-06-26 20:14:12 d4c0e51e4aeb96955b99185ab9cde75c339e2c29c3f3f12428d364a10d782c62",
+    "amalgamationSha3_256": "28e484abdaa43630e34040ef6ed92be973a1ad54107803d8af5145b889c23ed7",
+    "defines": [
+      "SQLITE_OS_UNIX=1", "SQLITE_DQS=0", "SQLITE_DEFAULT_AUTOVACUUM=1", "SQLITE_DEFAULT_FOREIGN_KEYS=1", "SQLITE_DEFAULT_RECURSIVE_TRIGGERS=1",
+      "SQLITE_ENABLE_COLUMN_METADATA=1", "SQLITE_ENABLE_FTS3_PARENTHESIS=1", "SQLITE_ENABLE_FTS4=1", "SQLITE_ENABLE_FTS5=1",
+      "SQLITE_ENABLE_GEOPOLY=1", "SQLITE_ENABLE_MATH_FUNCTIONS=1", "SQLITE_ENABLE_PREUPDATE_HOOK=1", "SQLITE_ENABLE_RTREE=1",
+      "SQLITE_ENABLE_SESSION=1", "SQLITE_ENABLE_SNAPSHOT=1", "SQLITE_LIKE_DOESNT_MATCH_BLOBS=1", "SQLITE_MAX_DEFAULT_PAGE_SIZE=8192", "SQLITE_MAX_MMAP_SIZE=0x7fff0000"
+    ]
+  },
+  "ndk": {
+    "version": "29.0.14206865", "url": "https://dl.google.com/android/repository/android-ndk-r29-linux.zip", "size": 783549481,
+    "sha256": "4abbbcdc842f3d4879206e9695d52709603e52dd68d3c1fff04b3b5e7a308ecf"
+  },
+  "cmake": { "version": "3.31.8", "url": "https://github.com/Kitware/CMake/releases/download/v3.31.8/cmake-3.31.8-linux-x86_64.tar.gz", "sha256": "630615d8e98ac33eba7fbe472626dff5c899c85af3c024585ae109166a6909d0" },
+  "linkerFlags": "-Wl,-z,max-page-size=16384,-z,common-page-size=16384,-z,relro,-z,now,-z,noexecstack",
+  "tlsPatchSha256": "ea1a45c4df865c9072cf786494255f9830b5edebcc90f58c5ce66f522687cc89"
+}

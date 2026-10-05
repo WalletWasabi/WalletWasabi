@@ -20,7 +20,7 @@ internal static class WalletRuntime
   public static RuntimeStatus Snapshot => Volatile.Read(ref _snapshot);
   private static void PublishStatus() => Volatile.Write(ref _snapshot, new(_lifecycle, Bootstrap, Session?.Global.GetPeerCount() ?? 0,
     Session?.IsSynchronized is true, Session?.CoinJoinStatus ?? "Idle",
-    Session?.PendingTransactions.Count(e => e.State is SubmissionState.Pending or SubmissionState.Uncertain) ?? 0, Error));
+    Session?.PendingTransactions.Count(e => e.State is SubmissionState.Pending or SubmissionState.Uncertain) ?? 0, Error, Session?.PendingCoinJoins ?? 0));
   public static string DataDir(Context context) => Path.Combine(context.FilesDir!.AbsolutePath, "Wasabi");
 
   public static async Task StartAsync(Context context)
@@ -63,7 +63,7 @@ internal static class WalletRuntime
     await _tor.StartAsync(context, dataDir, settings, cancellationToken).ConfigureAwait(false);
     var session = new WalletSession(dataDir, settings, context.ApplicationInfo!.NativeLibraryDir!,
       AppIdentity.IsPersonal ? WalletPolicy.Personal : WalletPolicy.Development, AppIdentity.SocksPort,
-      () => _tor is { IsAlive: true, Bootstrap: 100 });
+      () => _tor is { IsAlive: true, Bootstrap: 100 }, AndroidCertificateTrust.Configure);
     Session = session;
     await session.InitializeAsync(cancellationToken).ConfigureAwait(false);
     _lifecycle = RuntimeLifecycle.Ready;

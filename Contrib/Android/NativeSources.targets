@@ -1,0 +1,24 @@
+<Project>
+  <!-- Opt in only after source builds pass qualification. Never overwrite packs. -->
+  <Import Project="$(WasabiNativeBuildDirectory)/native-libraries.props" Condition="'$(WasabiNativeBuildDirectory)' != '' And Exists('$(WasabiNativeBuildDirectory)/native-libraries.props')" />
+  <Target Name="WasabiUseSourceNativeLibraries" BeforeTargets="_BuildApkEmbed" Condition="'$(WasabiNativeBuildDirectory)' != ''">
+    <Error Condition="!Exists('$(WasabiNativeBuildDirectory)/native-manifest.json') Or '@(WasabiSourceFramework)' == '' Or '@(WasabiSourceNative)' == ''" Text="Build and stage the pinned native sources before selecting this directory." />
+    <GetFileHash Files="@(WasabiSourceFramework);@(WasabiSourceNative)" Algorithm="SHA256">
+      <Output TaskParameter="Items" ItemName="_WasabiVerifiedNative" />
+    </GetFileHash>
+    <Error Condition="$([System.String]::Copy('%(_WasabiVerifiedNative.FileHash)').ToLowerInvariant()) != '%(_WasabiVerifiedNative.ExpectedSha256)'" Text="A staged native library changed after source manifest generation: %(_WasabiVerifiedNative.Identity)" />
+    <ItemGroup>
+      <FrameworkNativeLibrary Remove="@(FrameworkNativeLibrary)" Condition="'%(FrameworkNativeLibrary.Filename)' == 'libmonosgen-2.0' Or '%(FrameworkNativeLibrary.Filename)' == 'libmono-component-marshal-ilgen' Or '%(FrameworkNativeLibrary.Filename)' == 'libmono-component-debugger' Or '%(FrameworkNativeLibrary.Filename)' == 'libmono-android.debug' Or '%(FrameworkNativeLibrary.Filename)' == 'libmono-android.release' Or '%(FrameworkNativeLibrary.Filename)' == 'libSystem.Native' Or '%(FrameworkNativeLibrary.Filename)' == 'libSystem.Globalization.Native' Or '%(FrameworkNativeLibrary.Filename)' == 'libSystem.IO.Compression.Native' Or '%(FrameworkNativeLibrary.Filename)' == 'libSystem.Security.Cryptography.Native.Android'" />
+      <AndroidNativeLibrary Remove="@(AndroidNativeLibrary)" Condition="'%(AndroidNativeLibrary.Filename)' == 'libtor' Or '%(AndroidNativeLibrary.Filename)' == 'libe_sqlite3'" />
+      <_AdditionalNativeLibraryReferences Remove="@(_AdditionalNativeLibraryReferences)" Condition="'%(_AdditionalNativeLibraryReferences.Filename)' == 'libe_sqlite3' Or '%(_AdditionalNativeLibraryReferences.Filename)' == 'libtor'" />
+      <FrameworkNativeLibrary Include="@(WasabiSourceFramework)" />
+      <AndroidNativeLibrary Include="@(WasabiSourceNative)" />
+    </ItemGroup>
+    <PropertyGroup>
+      <_BuildApkEmbedInputs>$(_BuildApkEmbedInputs);@(WasabiSourceFramework);@(WasabiSourceNative);$(WasabiNativeBuildDirectory)/native-manifest.json;$(WasabiNativeBuildDirectory)/native-libraries.props</_BuildApkEmbedInputs>
+    </PropertyGroup>
+  </Target>
+  <Target Name="WasabiVerifyPackagedNativeLibraries" AfterTargets="_BuildApkEmbed" Condition="'$(WasabiNativeBuildDirectory)' != ''">
+    <Exec Command="python &quot;$(MSBuildThisFileDirectory)NativeSources/verify-package.py&quot; --apk &quot;$(ApkFileIntermediate)&quot; --manifest &quot;$(WasabiNativeBuildDirectory)/native-manifest.json&quot; --configuration $(Configuration)" />
+  </Target>
+</Project>

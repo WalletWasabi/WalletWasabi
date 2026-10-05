@@ -1,0 +1,86 @@
+diff --git a/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.c b/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.c
+index a7fda9f37..0da63121b 100644
+--- a/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.c
++++ b/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.c
+@@ -485,6 +485,7 @@ SSLStream* AndroidCryptoNative_SSLStreamCreate(intptr_t sslStreamProxyHandle)
+     ON_EXCEPTION_PRINT_AND_GOTO(cleanup);
+ 
+     sslStream = xcalloc(1, sizeof(SSLStream));
++    atomic_init(&sslStream->handshakeInProgress, false);
+     sslStream->sslContext = ToGRef(env, loc[sslContext]);
+     loc[sslContext] = NULL;
+ 
+@@ -607,6 +608,7 @@ SSLStream* AndroidCryptoNative_SSLStreamCreateWithCertificates(intptr_t sslStrea
+     ON_EXCEPTION_PRINT_AND_GOTO(cleanup);
+ 
+     sslStream = xcalloc(1, sizeof(SSLStream));
++    atomic_init(&sslStream->handshakeInProgress, false);
+     sslStream->sslContext = ToGRef(env, loc[sslContext]);
+     loc[sslContext] = NULL;
+ 
+@@ -644,6 +646,7 @@ SSLStream* AndroidCryptoNative_SSLStreamCreateWithKeyStorePrivateKeyEntry(intptr
+     ON_EXCEPTION_PRINT_AND_GOTO(cleanup);
+ 
+     sslStream = xcalloc(1, sizeof(SSLStream));
++    atomic_init(&sslStream->handshakeInProgress, false);
+     sslStream->sslContext = ToGRef(env, loc[sslContext]);
+     loc[sslContext] = NULL;
+ 
+@@ -791,21 +794,34 @@ cleanup:
+ PAL_SSLStreamStatus AndroidCryptoNative_SSLStreamHandshake(SSLStream* sslStream)
+ {
+     abort_if_invalid_pointer_argument (sslStream);
++    // Certificate validation runs synchronously inside SSLEngine.unwrap. On
++    // rejection, managed SslStream asks for an alert by re-entering this same
++    // handshake. Legacy Conscrypt holds a non-recursive native mutex there.
++    // Fail this nested call; the original trust callback still rejects the
++    // certificate and lets the original handshake unwind with authentication
++    // failure. Unrelated SSLStream instances and normal handshakes are unchanged.
++    if (atomic_exchange_explicit(&sslStream->handshakeInProgress, true, memory_order_acquire))
++        return SSLStreamStatus_Error;
++
++    PAL_SSLStreamStatus ret = SSLStreamStatus_Error;
+     JNIEnv* env = GetJNIEnv();
+ 
+     int handshakeStatus = GetHandshakeStatus(env, sslStream);
+     if (handshakeStatus == -1)
+-        return SSLStreamStatus_Error;
++        goto cleanup;
+ 
+     if (!IsHandshaking(handshakeStatus))
+     {
+         // sslEngine.beginHandshake();
+         (*env)->CallVoidMethod(env, sslStream->sslEngine, g_SSLEngineBeginHandshake);
+         if (CheckJNIExceptions(env))
+-            return SSLStreamStatus_Error;
++            goto cleanup;
+     }
+ 
+-    return DoHandshake(env, sslStream);
++    ret = DoHandshake(env, sslStream);
++cleanup:
++    atomic_store_explicit(&sslStream->handshakeInProgress, false, memory_order_release);
++    return ret;
+ }
+ 
+ PAL_SSLStreamStatus
+diff --git a/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.h b/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.h
+index 000677d54..57b07c006 100644
+--- a/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.h
++++ b/src/native/libs/System.Security.Cryptography.Native.Android/pal_sslstream.h
+@@ -7,6 +7,7 @@
+ #include "pal_x509.h"
+ 
+ #include <pal_ssl_types.h>
++#include <stdatomic.h>
+ 
+ typedef intptr_t ManagedContextHandle;
+ typedef void (*STREAM_WRITER)(ManagedContextHandle, uint8_t*, int32_t);
+@@ -26,6 +27,7 @@ typedef struct SSLStream
+     STREAM_READER streamReader;
+     STREAM_WRITER streamWriter;
+     MANAGED_CONTEXT_CLEANUP managedContextCleanup;
++    atomic_bool handshakeInProgress;
+ } SSLStream;
+ 
+ typedef struct ApplicationProtocolData_t ApplicationProtocolData;
