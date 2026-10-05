@@ -236,6 +236,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			var segwitCoin = wallet.GetAllCoins().Unspent().Single(c => c.ScriptPubKey == segwitAddress.ScriptPubKey);
 			var segwitProposal = await session.PrepareAsync(new PaymentRequest(destination, Money.Coins(0.02m), "Segwit Core acceptance", ""), Money.Coins(0.02m), new FeeRate(2m), [segwitCoin.Outpoint], cancellationToken: timeout.Token);
 			var segwitReceipt = await session.ConfirmAsync(segwitProposal.Id, password, timeout.Token);
+			await DiagnoseSubmissionAsync(rpc, dataDir, segwitReceipt, segwitProposal.FeeSatoshis, timeout.Token);
 			Check((await rpc.GetRawTransactionAsync(uint256.Parse(segwitReceipt.TransactionId))).Inputs.All(i => !WitScript.IsNullOrEmpty(i.WitScript)), "Core accepts Segwit ECDSA signing");
 			await rpc.GenerateToAddressAsync(1, mining);
 			await WaitAsync(() => wallet.GetTransactions().Any(t => t.GetHash().ToString() == segwitReceipt.TransactionId && t.Confirmed), timeout.Token);
@@ -245,6 +246,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			await RejectAsync(() => session.ConfirmAsync(stale.Id, password, timeout.Token), "Stale review must be rejected");
 			await RejectAsync(() => session.ConfirmAsync(preview.Id, "wrong password", timeout.Token), "Wrong password must be rejected");
 			var receipt = await session.ConfirmAsync(preview.Id, password, timeout.Token);
+			await DiagnoseSubmissionAsync(rpc, dataDir, receipt, preview.FeeSatoshis, timeout.Token);
 			var transactionId = receipt.TransactionId;
 			Check((await session.ConfirmAsync(preview.Id, password, timeout.Token)).TransactionId == transactionId, "Duplicate confirmation keeps the same bytes");
 			var raw = await rpc.GetRawTransactionAsync(uint256.Parse(transactionId));
@@ -252,6 +254,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			var replacement = await session.PrepareReplacementAsync(transactionId, PaymentOperation.SpeedUp, new FeeRate(5m), timeout.Token);
 			Check(replacement.Outputs.Any(o => o.ScriptHex == destination.ScriptPubKey.ToHex() && o.AmountSatoshis == Money.Coins(0.2m).Satoshi), "Speed-up preserves the recipient amount");
 			var replacementReceipt = await session.ConfirmAsync(replacement.Id, password, timeout.Token);
+			await DiagnoseSubmissionAsync(rpc, dataDir, replacementReceipt, replacement.FeeSatoshis, timeout.Token);
 			var replacementRaw = await rpc.GetRawTransactionAsync(uint256.Parse(replacementReceipt.TransactionId));
 			Check(replacementRaw.Outputs.Any(o => o.ScriptPubKey == destination.ScriptPubKey && o.Value == Money.Coins(0.2m)), "Core accepts the exact approved replacement");
 			await rpc.GenerateToAddressAsync(1, mining);
@@ -264,6 +267,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 			var cancellation = await session.PrepareReplacementAsync(cancelParent.TransactionId, PaymentOperation.Cancel, null, timeout.Token);
 			Check(cancellation.Outputs.All(o => o.IsWalletOutput), "Cancellation returns all outputs to this wallet");
 			var cancelReceipt = await session.ConfirmAsync(cancellation.Id, password, timeout.Token);
+			await DiagnoseSubmissionAsync(rpc, dataDir, cancelReceipt, cancellation.FeeSatoshis, timeout.Token);
 			Check((await rpc.GetRawTransactionAsync(uint256.Parse(cancelReceipt.TransactionId))).Outputs.All(o => o.ScriptPubKey != destination.ScriptPubKey), "Core accepts cancellation without a second recipient payment");
 			await rpc.GenerateToAddressAsync(1, mining);
 			await WaitAsync(() => wallet.GetTransactions().Any(t => t.GetHash().ToString() == cancelReceipt.TransactionId && t.Confirmed), timeout.Token);

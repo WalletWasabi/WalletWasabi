@@ -156,7 +156,8 @@ jobs:
         with:
           name: wasabi-android-device-logs-${{ matrix.api }}-${{ matrix.page }}
           path: |
-            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/*.log
+            artifacts/android/device-*/regtest/debug.log
             artifacts/android/device-*/verification.json
           if-no-files-found: ignore
 
@@ -208,7 +209,8 @@ jobs:
         with:
           name: wasabi-android-coinjoin-failures
           path: |
-            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/*.log
+            artifacts/android/device-*/regtest/debug.log
             artifacts/android/device-*/verification.json
           if-no-files-found: ignore
 
@@ -263,6 +265,7 @@ jobs:
         with:
           name: wasabi-android-consecutive-coinjoins
           path: |
-            artifacts/android/device-*/**/*.log
+            artifacts/android/device-*/*.log
+            artifacts/android/device-*/regtest/debug.log
             artifacts/android/device-*/verification.json
           if-no-files-found: ignore

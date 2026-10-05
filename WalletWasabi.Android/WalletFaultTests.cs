@@ -132,6 +132,7 @@ public sealed partial class WalletInstrumentation
 			var proposal = await session.PrepareReplacementAsync(parentId.ToString(), PaymentOperation.SpeedUp, new FeeRate(10m), token);
 			Check(proposal.Inputs.Any(i => i.TransactionId == parentId.ToString()), "CPFP review spends a parent output rather than replacing its recipients");
 			var receipt = await session.ConfirmAsync(proposal.Id, password, token);
+			await DiagnoseSubmissionAsync(rpc, directory, receipt, proposal.FeeSatoshis, token);
 			Check(receipt.State == SubmissionState.Pending, "Core accepts the authorized CPFP child");
 			var child = await rpc.GetRawTransactionAsync(uint256.Parse(receipt.TransactionId), cancellationToken: token);
 			Check(child.ToHex() == JournalHex(directory, receipt.TransactionId), "CPFP broadcasts the durably approved bytes");

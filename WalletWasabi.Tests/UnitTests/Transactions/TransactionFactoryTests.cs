@@ -811,8 +811,8 @@ public class TransactionFactoryTests
 		}
 
 		Assert.InRange(dictionary[lockTimeZero], samplingSize * 0.85, samplingSize * 0.95); // around 90%
-		Assert.InRange(dictionary[0], samplingSize * 0.070, samplingSize * 0.080); // around 7.5%
-		Assert.InRange(dictionary[1], samplingSize * 0.003, samplingSize * 0.009); // around 0.65%
+		Assert.InRange(dictionary[0], samplingSize * 0.075, samplingSize * 0.090); // around 8.15%, including samples that previously chose a non-final next-tip locktime
+		Assert.Equal(0, dictionary[1]);
 
 		var rest = dictionary.Where(x => x.Key < 0).Select(x => x.Value);
 		Assert.DoesNotContain(rest, x => x > samplingSize * 0.001);

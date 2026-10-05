@@ -96,6 +96,24 @@ function Invoke-NativeMode([string]$Mode, [string[]]$Extra = @()) {
     }
     finally { $taskModeProcess.Dispose() }
 }
+function Install-NativeApk([string]$Apk, [string]$Label) {
+    $taskInstallLog = Join-Path $taskRun "$Label-install.log"
+    $taskInstallStart = @{ FilePath=$taskAdb; ArgumentList=@('-s',$Serial,'install','--no-incremental','-r',('"' + (Resolve-Path -LiteralPath $Apk).Path + '"')); RedirectStandardOutput=$taskInstallLog; RedirectStandardError=(Join-Path $taskRun "$Label-install-error.log"); PassThru=$true }
+    if ($IsWindows) { $taskInstallStart.WindowStyle='Hidden' }
+    $taskInstallProcess = Start-Process @taskInstallStart
+    try {
+        $taskInstallDeadline = [DateTime]::UtcNow.AddMinutes(3)
+        while (!$taskInstallProcess.HasExited -and [DateTime]::UtcNow -lt $taskInstallDeadline) { Start-Sleep -Milliseconds 250 }
+        if (!$taskInstallProcess.HasExited) {
+            $taskInstallProcess.Kill()
+            $taskInstallProcess.WaitForExit(10000) | Out-Null
+            throw "$Label installation exceeded its bounded timeout; existing wallet data is preserved. See $taskInstallLog"
+        }
+        Get-Content -LiteralPath $taskInstallLog
+        if ($taskInstallProcess.ExitCode -ne 0 -or (Get-Content -LiteralPath $taskInstallLog -Raw) -notmatch '(?m)^Success\s*$') { throw "$Label installation failed; existing wallet data is preserved. See $taskInstallLog" }
+    }
+    finally { $taskInstallProcess.Dispose() }
+}
 $taskNodeStart = @{ FilePath=$BitcoindPath; ArgumentList=@("-datadir=$taskRun"); RedirectStandardOutput=(Join-Path $taskRun 'node.log'); RedirectStandardError=(Join-Path $taskRun 'node-error.log'); PassThru=$true }
 if ($IsWindows) { $taskNodeStart.WindowStyle='Hidden'; $taskNodeStart.ArgumentList='"-datadir=' + $taskRun + '"' }
 $taskNode = Start-Process @taskNodeStart
@@ -118,15 +136,13 @@ try {
     # deleting data. Use another fresh, disposable emulator in that situation.
     $taskExisting = & $taskAdb -s $Serial shell "find $taskPrivate/Wallets -type f 2>/dev/null"
     if ($taskExisting -and (!$ResumeFixture -or @($taskExisting | Where-Object { $_ -notmatch '/Native qualification\.json(\.old)?$' }).Count -gt 0)) { throw 'The selected emulator contains an unrelated wallet. Qualification preserves it; select a fresh emulator.' }
-    & $taskAdb -s $Serial install --no-incremental -r $BaselineApk
-    if ($LASTEXITCODE -ne 0) { throw 'Baseline installation failed; existing data is preserved.' }
+    Install-NativeApk $BaselineApk 'baseline'
     $taskApi = [int]((& $taskAdb -s $Serial shell getprop ro.build.version.sdk).Trim())
     if ($taskApi -ge 33) {
         & $taskAdb -s $Serial shell pm grant $taskPackage android.permission.POST_NOTIFICATIONS
         if ($LASTEXITCODE -ne 0) { throw 'Notification permission setup failed.' }
     }
-    & $taskAdb -s $Serial install --no-incremental -r (Join-Path $PSScriptRoot 'NativeUiHarness/bin/io.wasabiwallet.android.uiqualification.apk')
-    if ($LASTEXITCODE -ne 0) { throw 'Native harness installation failed.' }
+    Install-NativeApk (Join-Path $PSScriptRoot 'NativeUiHarness/bin/io.wasabiwallet.android.uiqualification.apk') 'harness'
     & $taskAdb -s $Serial shell am force-stop $taskPackage
     $taskSettings = Join-Path $taskRun 'mobile-settings.json'
     @{ Network='regtest'; Coordinator=''; CoordinatorIdentifier='CoinJoinCoordinatorIdentifier'; BitcoinRpcUri='http://127.0.0.1:18443/' } | ConvertTo-Json | Set-Content -LiteralPath $taskSettings -Encoding utf8NoBOM
@@ -190,8 +206,7 @@ try {
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
     Copy-Item -LiteralPath (Join-Path $taskRun 'resume.log') -Destination (Join-Path $taskRun 'resume-before-update.log')
     & $taskAdb -s $Serial shell am force-stop $taskPackage
-    & $taskAdb -s $Serial install --no-incremental -r $UpdateApk
-    if ($LASTEXITCODE -ne 0) { throw 'Signed update failed; wallet data is preserved.' }
+    Install-NativeApk $UpdateApk 'update'
     Invoke-NativeMode resume @('-e','transaction',$taskTransaction)
     $taskUpdatedResult=Get-Content -LiteralPath (Join-Path $taskRun 'resume.log') -Raw
     if ($taskUpdatedResult -notmatch 'INSTRUMENTATION_RESULT: versionCode=(\d+)' -or [int]$Matches[1] -ne $taskVerification.update.versionCode) { throw 'Actual updated version does not match the inspected package.' }

@@ -31,7 +31,8 @@ public class LockTimeSelector
 		// Network observations:
 		// 90.0% uses LockTime = 0
 		//  7.5% uses LockTime = current tip
-		//  0.65% uses LockTime = next tip (current tip + 1)
+		//  0.65% uses LockTime = next tip (current tip + 1), which cannot be
+		//  relayed immediately. Fold this sample into the current-tip choice.
 		//  1.85% uses up to 5 blocks in the future (we don't do this)
 		//  0.65% uses an uniform random from -1 to -99
 
@@ -40,9 +41,8 @@ public class LockTimeSelector
 		return randomValue switch
 		{
 			var r when r < (0.9) => LockTime.Zero,
-			var r when r < (0.9 + 0.075) => tipHeight,
-			var r when r < (0.9 + 0.075 + 0.0065) => tipHeight + 1,
-			_ => (uint)(tipHeight - _random.Next(1, 100))
+			var r when r < (0.9 + 0.075 + 0.0065) => tipHeight,
+			_ => (uint)Math.Max(0L, (long)tipHeight - _random.Next(1, 100))
 		};
 	}
 }

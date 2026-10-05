@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-05 (Asia/Singapore). Version 0.3.0 / version code 5 is a
+Recorded 2026-10-05 (Asia/Singapore). Version 0.3.1 / version code 6 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -131,6 +131,36 @@ Source-native local Release runtime/wallet/fault/vault suites pass on API 24
 matrix, exact checksums and latest source qualification.
 
 ## Payments, recovery and authorization
+
+The subsequent `41f878af` run (`37297289462`) passed API 24 and 35, the
+source native build, and 20 consecutive Release CoinJoins. Its nine deterministic
+CoinJoin scenarios also passed, but their artifact upload failed at GitHub; the
+completed job log is retained. API 36/4 KB rejected a CPFP child, and API 36/16 KB
+rejected a cancellation. Both remain failed evidence. The old broadcaster lost
+Core's specific rejection behind its generic error-code description. It now
+retains the node message, with a regression, and synthetic-only instrumentation
+records final size/fee/locktime and Core's policy result for uncertain receipts.
+Current-source matrix qualification must be recorded separately.
+
+Two cancellation regressions reproduce insufficient replacement fees because
+the original unsigned-size check omitted witnesses. Five input/fee cases pass
+after estimating the signed size. A funded Core 31.1 fixture with 1 sat/vB
+incremental relay policy rejects the old 96-satoshi bump where 110 is required;
+all five corrected cases are accepted. Its default policy accepts the old cases,
+so this defect alone is not asserted to explain the earlier CI rejections.
+
+Three deterministic locktime cases reproduce selecting the next block or
+unsigned underflow at low heights. Core's default policy rejects a signed
+transaction at height 102 with locktime 103 as `non-final`, then accepts the
+corrected locktime 102. Future samples now use the current tip, and backward
+samples clamp at zero. Confirmation also rechecks reviewed height locktimes
+after reorganization. Bitcoin signing and serialization are unchanged.
+
+The diagnostic Release engine at modified `41f878af` passed funded wallet and
+fault/reorganization/CPFP checks on API 35 in
+`device-3bfcfc32fb224fe180216d54ccb6d500`. This predates the locktime correction
+and does not qualify the final clean source. CI artifact patterns now select
+top-level text logs and Core's named debug log, excluding LevelDB log files.
 
 Funded fixtures cover both account derivations, persisted receive/change
 addresses, exact recipient amounts, wrong password, expired review, cancelled

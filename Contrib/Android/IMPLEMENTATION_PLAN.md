@@ -50,7 +50,7 @@ the newly reproduced denomination failure has a verified cause and regression.
    Android CI `37285067882` at clean source `24abf94c`.
 2. The old candidate's prebuilt runtime/Tor/SQLite libraries fail strict RELRO-end
    checks. Pinned source rebuilds now pass 38 native protection checks, and a
-   packaging path verifies their hashes and assembly-container layout. This does
+   packaging path verifies their hashes and assembly-container layout. This
    qualifies the recorded x64 execution matrix, while corrected ARM64 execution
    is still required. A first loader build failed on the
    phone because its container constants differed from the SDK; the build now uses
@@ -67,3 +67,10 @@ current-source public synchronization and final APK checks, then execute
 `PHONE_HANDOFF.md` on the connected, authorized phone.
 Retain its backup privately. Independent security review and production coordinator
 availability remain external dependencies and are never claimed by local tests.
+
+Version 0.3.1/code 6 additionally corrects unsigned cancellation fee sizing and
+the engine's occasionally non-final/underflowed locktimes. Retained host/Core
+reproductions identify these defects, while earlier API 36 rejection logs lack
+the precise node reasons. The broadcaster and synthetic qualification now
+retain those reasons. A new current-source Android matrix is required; a
+successful earlier rerun alone does not close an unresolved failure.

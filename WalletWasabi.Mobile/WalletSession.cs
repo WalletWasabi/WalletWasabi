@@ -445,7 +445,12 @@ public sealed class WalletSession : IAsyncDisposable
 					!(c.IsAvailable() && !reserved.Contains(c.Outpoint) || reviewed.Parent is { } original && c.SpenderTransaction?.GetHash() == original.GetHash() && !original.Confirmed)))
 				{ throw new InvalidOperationException("The selected inputs changed or are reserved. Review again."); }
 				var psbt = preview.Psbt.Clone();
-				var unsigned = psbt.GetGlobalTransaction().ToHex();
+				var unsignedTransaction = psbt.GetGlobalTransaction();
+				// The engine prepares immediate, height-locked payments. A reorg
+				// after review can make the reviewed locktime non-final again.
+				if (unsignedTransaction.LockTime.Value > Global.FilterHeaders.TipHeight)
+				{ throw new InvalidOperationException("The chain changed after review. Review this transaction again."); }
+				var unsigned = unsignedTransaction.ToHex();
 				var keys = new List<Key>();
 				Transaction transaction;
 				try

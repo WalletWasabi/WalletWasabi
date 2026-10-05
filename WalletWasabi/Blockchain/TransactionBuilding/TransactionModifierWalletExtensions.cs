@@ -60,7 +60,7 @@ public static class TransactionModifierWalletExtensions
 			// https://github.com/bitcoin/bips/blob/master/bip-0125.mediawiki
 			// The replacement transaction must also pay for its own bandwidth at or above the rate set by the node's minimum relay fee setting. For example, if the minimum relay fee is 1 satoshi/byte and the replacement transaction is 500 bytes total, then the replacement must pay a fee at least 500 satoshis higher than the sum of the originals.
 		}
-		while (originalFee + minRelayFeeRate.GetFee(cancelTransaction.Transaction.Transaction) >= cancelTransaction.Fee);
+		while (originalFee + minRelayFeeRate.GetFee(GetSignedVirtualSize(cancelTransaction, network)) >= cancelTransaction.Fee);
 
 		cancelTransaction.Transaction.SetCancellation();
 
@@ -327,11 +327,7 @@ public static class TransactionModifierWalletExtensions
 		// An unsigned proposal has no witness yet. Estimate its final virtual size
 		// from the spent scripts so preparation pays the same package rate as a
 		// signed desktop build.
-		var sizeEstimator = network.CreateTransactionBuilder();
-		sizeEstimator.AddCoins(tempTx.SpentCoins.Select(c => c.Coin));
-		var tempTxSizeVBytes = tryToSign
-			? tempTx.Transaction.Transaction.GetVirtualSize()
-			: sizeEstimator.EstimateSize(tempTx.Transaction.Transaction, true);
+		var tempTxSizeVBytes = GetSignedVirtualSize(tempTx, network);
 
 		var totalSizeOfTheChain = ancestorsSizeVBytes + txSizeVBytes + tempTxSizeVBytes;
 		var missingFeeForBestFeeRate = (totalSizeOfTheChain * bestFeeRate.SatoshiPerByte) - feePaidByAncestorsAndTx;
@@ -349,6 +345,16 @@ public static class TransactionModifierWalletExtensions
 		AssertMaxCpfpFee(transactionToCpfp, cpfp, keyManager);
 
 		return cpfp;
+	}
+
+	private static int GetSignedVirtualSize(BuildTransactionResult result, Network network)
+	{
+		if (result.Signed) { return result.Transaction.Transaction.GetVirtualSize(); }
+		// Witnesses are absent from an unsigned proposal. Replacement policy and
+		// package fees must cover the transaction after authorization adds them.
+		var estimator = network.CreateTransactionBuilder();
+		estimator.AddCoins(result.SpentCoins.Select(c => c.Coin));
+		return estimator.EstimateSize(result.Transaction.Transaction, true);
 	}
 
 	private static void AssertMaxCpfpFee(SmartTransaction transactionToCpfp, BuildTransactionResult cpfp, KeyManager keyManager)

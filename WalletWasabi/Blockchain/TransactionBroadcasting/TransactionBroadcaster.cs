@@ -56,7 +56,7 @@ public class RpcBroadcaster(IRPCClient rpcClient) : IBroadcaster
 		}
 		catch (RPCException ex)
 		{
-			return BroadcastingResult.Fail(new BroadcastError.RpcError(ex.RPCCodeMessage));
+			return BroadcastingResult.Fail(new BroadcastError.RpcError(ex.Message));
 		}
 		catch (SocketException se) when (se.SocketErrorCode == SocketError.ConnectionRefused)
 		{

@@ -6,6 +6,7 @@ using Xunit;
 
 namespace WalletWasabi.Mobile.Tests;
 
+[Collection("Wallet sessions")]
 public class WalletSessionTests
 {
 	private const string Words = "abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about";

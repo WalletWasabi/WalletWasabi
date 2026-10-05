@@ -14,6 +14,7 @@ Release acceptance is blocked by the findings and missing device evidence below.
 | Review versus signing | Immutable public details, private PSBT snapshot, wallet/network binding, monotonic five-minute expiry and serialized confirmation. The transaction factory's unsigned Signed flag was corrected and covered by a regression. |
 | Ambiguous broadcast | Exact signed bytes are durably journaled before broadcast, inputs stay reserved, duplicate confirmation returns the same receipt, reconciliation never constructs a new payment. Failed journal writes conservatively retain in-memory reservations and never broadcast. |
 | Replacement | Mobile RBF preserves foreign and explicitly marked owned recipient scripts/amounts. Legacy journals without markers conservatively protect all owned outputs. Eligible CPFP is the fallback; unavailable cases fail. Funded self-transfer reproduces the old fee deduction and proves the new protected replacement through Core acceptance/mining. Desktop defaults remain unchanged. Public CPFP service qualification is separate. |
+| Immediate relay | Cancellation's incremental fee now uses signed size when preparing without credentials. Two failing fee regressions and funded Core rejection/acceptance records are retained. The shared locktime selector no longer chooses the next block or underflows at low heights; Core reproduces the old `non-final` rejection. Mobile confirmation rechecks height locktime after reorganization. |
 | Reorganization / synchronization | RPC filter hashes come from the RPC chain; batch parsing is awaited, transport failure retries without rollback, and a same-height replacement is detected. Cached filters require a reported matching network tip; P2P cannot publish a cached tip as current while headers are behind the reported network. Signing and reservation reconciliation use the same readiness check. Two new cases fail before correction; all 17 routing/filter/synchronization tests pass. Funded Android reorganization/reconfirmation has separate retained evidence. |
 | Recovery / address allocation | Both account public keys checked, import scan height reset, atomic complete-file publication with flush, directory flush on Android/Linux, and address persistence before disclosure. Fresh-directory encrypted recovery and restored signing passed. |
 | CoinJoin | Denomination randomness materialized once; minimum-participation and failed-checkpoint signing refusals retained; durable interrupted-round reservations; serialized stop/retry prevents obsolete retries. Signed checkpoints survive every coordinator failure until observed transaction/confirmed-conflict reconciliation. Credential waits observe cancellation; all issuance tasks cancel siblings on failure, and vanished rounds propagate promptly. Three new cancellation regressions fail against old behavior; all 325 WabiSabi host checks pass. Source-native 20/20 CI and local five-phase stop/blame/restart tests have separate retained evidence. |
@@ -65,6 +66,14 @@ Release acceptance is blocked by the findings and missing device evidence below.
    cancellation, real camera scanning/rotation, wallet recovery, accessibility and
    updates still require qualification. No funded user seed or real-bitcoin
    transaction was used.
+5. **Latest transaction rejections:** `41f878af` API 36 jobs rejected a
+   cancellation and a CPFP child while retaining their uncertain bytes and
+   reservations. Generic error handling discarded Core's specific reasons.
+   Signed-size and non-final locktime defects now have deterministic reproductions
+   and corrections; the original failures cannot be assigned a specific cause
+   from those older logs alone. New diagnostics retain the node reason without
+   exporting fixture wallets or journals. The final matrix must pass and any
+   further rejection must be resolved before release acceptance.
 
 This review found and corrected the concrete implementation issues listed above.
 It does not certify absence of other critical/high findings. No release-ready
