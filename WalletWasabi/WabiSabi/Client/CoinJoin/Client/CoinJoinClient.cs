@@ -231,7 +231,7 @@ public class CoinJoinClient
 		throw new InvalidOperationException("Blame rounds were not successful.");
 	}
 
-	public async Task<CoinJoinResult> StartRoundAsync(IEnumerable<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
+	public async Task<CoinJoinResult> StartRoundAsync(ImmutableList<SmartCoin> mySmartCoins, IRoundRestrictions roundRestrictions, RoundState roundState, CancellationToken cancellationToken)
 	{
 		var roundId = roundState.Id;
 
@@ -255,8 +255,7 @@ public class CoinJoinClient
 			Transaction? unsignedCoinJoin = null;
 			try
 			{
-				using CancellationTokenSource cancelOrRoundEndedCts =
-					CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
+				using CancellationTokenSource cancelOrRoundEndedCts = CancellationTokenSource.CreateLinkedTokenSource(roundEndedCts.Token, cancellationToken);
 				(myAliceClientsThatSigned, outputTxOuts, unsignedCoinJoin) = await ProceedWithRoundAsync(roundState, mySmartCoins, roundRestrictions, cancelOrRoundEndedCts.Token)
 						.ConfigureAwait(false);
 			}
@@ -271,6 +270,10 @@ public class CoinJoinClient
 			catch (UnexpectedRoundPhaseException ex) when (ex.Actual == Phase.Ended)
 			{
 				// Do nothing - if the actual state of the round is Ended we let the execution continue.
+			}
+			catch (WabiSabiProtocolException ex) when (ex.ExceptionData is WrongPhaseExceptionData { CurrentPhase: Phase.Ended })
+			{
+				// Same as above, the coordinator told us the round ended before our round status did.
 			}
 
 			var mySignedCoins = myAliceClientsThatSigned.Select(a => a.SmartCoin).ToImmutableList();
@@ -354,7 +357,7 @@ public class CoinJoinClient
 
 	private async Task<(ImmutableArray<AliceClient> aliceClientsThatSigned, TxOut[] OutputTxOuts, Transaction UnsignedCoinJoin)> ProceedWithRoundAsync(
 		RoundState roundState,
-		IEnumerable<SmartCoin> smartCoins,
+		ImmutableList<SmartCoin> smartCoins,
 		IRoundRestrictions roundRestrictions,
 		CancellationToken cancellationToken)
 	{
@@ -366,7 +369,8 @@ public class CoinJoinClient
 			registeredAliceClients = await ProceedWithInputRegAndConfirmAsync(smartCoins, roundState, cancellationToken).ConfigureAwait(false);
 			if (!registeredAliceClients.Any())
 			{
-				throw new CoinJoinClientException(CoinjoinError.CoinsRejected, $"The coordinator rejected all {smartCoins.Count()} inputs.");
+				var error = smartCoins.Any(coin => coin.IsBanned) ? CoinjoinError.CoinsRejected : CoinjoinError.UserWasntInRound;
+				throw new CoinJoinClientException(error, $"None of the {smartCoins.Count} inputs could be registered.");
 			}
 
 			Logger.LogInfo(FormatLog($"Successfully registered {registeredAliceClients.Length} inputs.", roundState));
@@ -397,7 +401,7 @@ public class CoinJoinClient
 		}
 	}
 
-	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancel)
+	private async Task<ImmutableArray<AliceClient>> CreateRegisterAndConfirmCoinsAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		int eventInvokedAlready = 0;
 
@@ -412,9 +416,9 @@ public class CoinJoinClient
 		using CancellationTokenSource confirmationsCts = new();
 
 		using CancellationTokenSource linkedUnregisterCts = CancellationTokenSource.CreateLinkedTokenSource(strictInputRegTimeoutCts.Token, registrationsCts.Token);
-		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancel);
-		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancel);
-		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancel);
+		using CancellationTokenSource linkedRegistrationsCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, registrationsCts.Token, cancellationToken);
+		using CancellationTokenSource linkedConfirmationsCts = CancellationTokenSource.CreateLinkedTokenSource(connConfTimeoutCts.Token, confirmationsCts.Token, cancellationToken);
+		using CancellationTokenSource timeoutAndGlobalCts = CancellationTokenSource.CreateLinkedTokenSource(inputRegTimeoutCts.Token, connConfTimeoutCts.Token, cancellationToken);
 
 		async Task<AliceClient?> RegisterInputAsync(SmartCoin coin)
 		{
@@ -462,6 +466,11 @@ public class CoinJoinClient
 									confirmationsCts.Cancel();
 								}
 							}
+
+							if (wrongPhaseExceptionData.CurrentPhase == Phase.Ended)
+							{
+								throw;
+							}
 						}
 						else
 						{
@@ -489,6 +498,9 @@ public class CoinJoinClient
 							Logger.LogError(FormatLog($"{nameof(InputBannedExceptionData)} is missing.", roundState));
 						}
 						var bannedUntil = inputBannedExData?.BannedUntil ?? DateTimeOffset.UtcNow + TimeSpan.FromDays(1);
+
+						// Mark the coin now so that we can tell a ban apart from other registration failures.
+						coin.BannedUntilUtc = bannedUntil;
 						CoinJoinClientProgress.SafeInvoke(this, new CoinBanned(coin, bannedUntil));
 						Logger.LogInfo(FormatLog($"{coin.Coin.Outpoint} is banned until {bannedUntil}.", roundState));
 						break;
@@ -504,9 +516,10 @@ public class CoinJoinClient
 			}
 			catch (OperationCanceledException ex)
 			{
-				if (cancel.IsCancellationRequested)
+				if (cancellationToken.IsCancellationRequested)
 				{
 					Logger.LogDebug(FormatLog("User requested cancellation of registration and confirmation.", roundState));
+					throw;
 				}
 				else if (registrationsCts.IsCancellationRequested)
 				{
@@ -567,9 +580,8 @@ public class CoinJoinClient
 			.Cast<AliceClient>()
 			.ToImmutableArray();
 
-		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is { })
+		if (!successfulAlices.Any() && lastUnexpectedRoundPhaseException is not null)
 		{
-			// In this case the coordinator aborted the round - throw only one exception and log outside.
 			throw lastUnexpectedRoundPhaseException;
 		}
 
@@ -940,7 +952,7 @@ public class CoinJoinClient
 		return (unsignedCoinJoin.Transaction, alicesToSign);
 	}
 
-	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(IEnumerable<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
+	private async Task<ImmutableArray<AliceClient>> ProceedWithInputRegAndConfirmAsync(ImmutableList<SmartCoin> smartCoins, RoundState roundState, CancellationToken cancellationToken)
 	{
 		// Because of the nature of the protocol, the input registration and the connection confirmation phases are done subsequently thus they have a merged timeout.
 		var timeUntilOutputReg = roundState.InputRegistrationEnd - DateTimeOffset.UtcNow + roundState.CoinjoinState.Parameters.ConnectionConfirmationTimeout;

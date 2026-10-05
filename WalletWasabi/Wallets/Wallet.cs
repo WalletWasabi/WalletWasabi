@@ -1,22 +1,11 @@
 using Microsoft.Extensions.Hosting;
-using NBitcoin;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
-using WalletWasabi.Backend.Models;
 using WalletWasabi.Blockchain.Analysis.Clustering;
 using WalletWasabi.Blockchain.Blocks;
-using WalletWasabi.Blockchain.Keys;
 using WalletWasabi.Blockchain.Mempool;
-using WalletWasabi.Blockchain.TransactionOutputs;
 using WalletWasabi.Blockchain.TransactionProcessing;
 using WalletWasabi.Blockchain.Transactions;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
 using WalletWasabi.FeeRateEstimation;
-using WalletWasabi.Helpers;
-using WalletWasabi.Logging;
 using WalletWasabi.Models;
 using WalletWasabi.Services;
 using WalletWasabi.Stores;
@@ -68,17 +57,20 @@ public class Wallet : BackgroundService
 		OutputProvider = new PaymentAwareOutputProvider(DestinationProvider, BatchedPayments, RandomnessProviders.Secure);
 		_eventBus = eventBus;
 		WalletId = new WalletId(Guid.NewGuid());
+		_lastFilterProcess = keyManager.GetBestHeight();
 
 		_eventBus.Subscribe<MiningFeeRatesChanged>(e => FeeRateEstimations = e.AllFeeEstimate)
 			.DisposeUsing(_disposables);
+
 		_eventBus.Subscribe<WalletRelevantTransactionProcessed>(e =>
-		{
-			if (e.WalletName == WalletName)
 			{
-				WalletRelevantTransactionProcessed(e.Result);
-			}
-		})
+				if (e.WalletName == WalletName)
+				{
+					WalletRelevantTransactionProcessed(e.Result);
+				}
+			})
 			.DisposeUsing(_disposables);
+
 		_eventBus.Subscribe<NewTransactionInMempool>(e => Mempool_TransactionReceived(e.Transaction))
 			.DisposeUsing(_disposables);
 		_eventBus.Subscribe<FilterProcessed>(e => _lastFilterProcess = e.Filter.Header.Height)
@@ -87,7 +79,7 @@ public class Wallet : BackgroundService
 
 	private readonly EventBus _eventBus;
 	private readonly FilterStore _filterStore;
-	private ChainHeight _lastFilterProcess = 0;
+	private ChainHeight _lastFilterProcess;
 	public AllTransactionStore TransactionStore { get; }
 	public FilterHeaderChain FilterHeaderChain { get; }
 
@@ -360,14 +352,22 @@ public class Wallet : BackgroundService
 		TransactionProcessor.Process(TransactionStore.ConfirmedStore.GetTransactions());
 
 		int i = 0;
-		while (_lastFilterProcess < FilterHeaderChain.ServerTipHeight)
+		while (true)
 		{
+			var lastFilterProcess = _lastFilterProcess;
+			var serverTipHeight = FilterHeaderChain.ServerTipHeight;
+
+			if (lastFilterProcess >= serverTipHeight)
+			{
+				break;
+			}
+
 			i++;
 
 			// Every ten seconds, log a message to indicate that the wallet is waiting for filters to be processed.
 			if (i % 100 == 0)
 			{
-				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({_lastFilterProcess} < {FilterHeaderChain.ServerTipHeight})", this));
+				Logger.LogDebug(FormatLog($"Waiting until filters are processed ({lastFilterProcess} < {serverTipHeight})", this));
 			}
 
 			await Task.Delay(100, cancellationToken).ConfigureAwait(false);

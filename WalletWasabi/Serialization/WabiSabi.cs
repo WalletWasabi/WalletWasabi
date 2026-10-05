@@ -6,6 +6,7 @@ using WabiSabi.Crypto;
 using WabiSabi.Crypto.Groups;
 using WabiSabi.Crypto.ZeroKnowledge;
 using static WalletWasabi.JsonConverters.ReflectionUtils;
+using ProtocolConstants = WalletWasabi.WabiSabi.ProtocolConstants;
 
 namespace WalletWasabi.Serialization;
 
@@ -65,7 +66,7 @@ public static partial class Decode
 	public static Decoder<IssuanceRequest> IssuanceRequest =>
 		Object(get => CreateInstance<IssuanceRequest>([
 			get.Required("Ma", GroupElement),
-			get.Required("BitCommitments", Array(GroupElement))
+			get.Required("BitCommitments", Array(GroupElement, ProtocolConstants.MaxRangeProofWidth))
 		])).Catch();
 
 	private static Decoder<MAC> MAC =>
@@ -75,10 +76,10 @@ public static partial class Decode
 		])).Catch();
 
 	private static Decoder<GroupElementVector> GroupElementVector =>
-		Array(GroupElement).Map(CreateInstance<GroupElementVector>).Catch();
+		Array(GroupElement, ProtocolConstants.MaxProofNonces).Map(CreateInstance<GroupElementVector>).Catch();
 
 	private static Decoder<ScalarVector> ScalarVector =>
-		Array(Scalar).Map(a => CreateInstance<ScalarVector>(a.Cast<object>().ToArray())).Catch();
+		Array(Scalar, ProtocolConstants.MaxProofResponses).Map(a => CreateInstance<ScalarVector>(a.Cast<object>().ToArray())).Catch();
 
 	private static Decoder<Proof> Proof =>
 		Object(get => CreateInstance<Proof>([

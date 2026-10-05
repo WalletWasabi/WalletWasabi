@@ -2,12 +2,8 @@ using System.Diagnostics;
 using System.IO;
 using System.Net.Sockets;
 using System.Runtime.InteropServices;
-using System.Threading;
-using System.Threading.Tasks;
 using WalletWasabi.BundledApps;
 using WalletWasabi.Crypto.Randomness;
-using WalletWasabi.Extensions;
-using WalletWasabi.Logging;
 using WalletWasabi.Services;
 using WalletWasabi.Tor.Control;
 using WalletWasabi.Tor.Control.Exceptions;
@@ -17,6 +13,12 @@ namespace WalletWasabi.Tor;
 
 public class TorProcessManager
 {
+	private static readonly byte[] NoAuthHandshakeMsg = [
+		0x05, // Version
+		0x01, // One method
+		0x00, // No authentication
+	];
+
 	public TorProcessManager(TorSettings settings, EventBus eventBus)
 	{
 		_settings = settings;
@@ -72,28 +74,28 @@ public class TorProcessManager
 		process.Kill();
 	}
 
+	/// <summary>
+	/// Connects to the Tor SOCKS5 proxy and starts the handshaking process to find out if Tor is up and ready.
+	/// </summary>
 	public virtual async Task<bool> IsTorRunningAsync(CancellationToken cancellationToken)
 	{
-		// This function connects to the Tor Socks5 proxy and starts the handshaking process
 		if (!_settings.SocksEndpoint.TryGetHostAndPort(out var host, out var port))
 		{
-			throw new InvalidOperationException("The Tor socks5 endpoint is not supported.");
+			throw new InvalidOperationException("The Tor SOCKS5 endpoint is not supported.");
 		}
 
 		try
 		{
 			using var tcp = new TcpClient(_settings.SocksEndpoint.AddressFamily);
 			await tcp.ConnectAsync(host, port.Value, cancellationToken).ConfigureAwait(false);
-			byte[] msg =
-			[
-				0x05, // Version
-				0x01, // One method
-				0x00, // No authentication
-			];
+
+			var networkStream = tcp.GetStream();
+
+			await networkStream.WriteAsync(NoAuthHandshakeMsg, cancellationToken).ConfigureAwait(false);
+
 			var response = new byte[2];
-			await tcp.Client.SendAsync(msg, cancellationToken).ConfigureAwait(false);
-			var read = await tcp.Client.ReceiveAsync(response, cancellationToken).ConfigureAwait(false);
-			var isTorRunning = read == 2 && response is [0x05, 0x00];
+			await networkStream.ReadExactlyAsync(response, cancellationToken).ConfigureAwait(false);
+			bool isTorRunning = response is [0x05, 0x00];
 
 			_eventBus.Publish(new TorConnectionStateChanged(isTorRunning));
 			return isTorRunning;
@@ -103,14 +105,25 @@ public class TorProcessManager
 			// The expectation is that if the conditions are met that the user really canceled the operation. Rarely it might not be true but it's a reasonable assumption.
 			throw new OperationCanceledException("The operation was canceled.", socketException);
 		}
-		catch (SocketException socketException) when (socketException.SocketErrorCode == SocketError.ConnectionRefused)
+		catch (SocketException ex)
 		{
+			// Any other socket error means Tor is not usable right now.
+			Logger.LogInfo($"Failed to connect to {_settings.SocksEndpoint}. Socket error code was {ex.SocketErrorCode} ({ex.ErrorCode}): {ex.Message}");
+			_eventBus.Publish(new TorConnectionStateChanged(false));
+			return false;
+		}
+		catch (IOException ex)
+		{
+			// Handles reading and writing operations of the network stream.
+			Logger.LogInfo($"SOCKS5 handshake with {_settings.SocksEndpoint} failed: {ex.Message}");
 			_eventBus.Publish(new TorConnectionStateChanged(false));
 			return false;
 		}
 	}
 
-	/// <summary>Ensure <paramref name="process"/> is actually running.</summary>
+	/// <summary>
+	/// Ensure <paramref name="process"/> is actually running.
+	/// </summary>
 	public virtual async Task<bool> EnsureRunningAsync(Process process, CancellationToken token)
 	{
 		int i = 0;
@@ -149,7 +162,9 @@ public class TorProcessManager
 		return Process.GetProcessesByName(TorSettings.TorBinaryFileName);
 	}
 
-	/// <summary>Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.</summary>
+	/// <summary>
+	/// Connects to Tor control using a TCP client or throws <see cref="TorControlException"/>.
+	/// </summary>
 	/// <exception cref="TorControlException">When authentication fails for some reason.</exception>
 	/// <seealso href="https://gitweb.torproject.org/torspec.git/tree/control-spec.txt">This method follows instructions in 3.23. TAKEOWNERSHIP.</seealso>
 	public virtual async Task<TorControlClient> InitTorControlAsync(CancellationToken token)

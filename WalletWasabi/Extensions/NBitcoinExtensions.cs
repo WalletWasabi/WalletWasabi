@@ -60,7 +60,7 @@ public static class NBitcoinExtensions
 	}
 
 	/// <summary>
-	/// Based on transaction data, it decides if it's possible that native segwit script played a par in this transaction.
+	/// Based on transaction data, it decides if it's possible that native segwit script played a part in this transaction.
 	/// </summary>
 	public static bool SegWitInvolved(this Transaction me) =>
 		me.Inputs.Any(i => Script.IsNullOrEmpty(i.ScriptSig)) ||
