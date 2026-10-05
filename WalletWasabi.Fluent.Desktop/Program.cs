@@ -51,6 +51,7 @@ public class Program
 	/// Initialization code. Don't use any Avalonia, third-party APIs or any SynchronizationContext-reliant code before AppMain is called:
 	/// things aren't initialized yet and stuff might break.
 	/// </remarks>
+	/// <seealso cref="SingleInstanceChecker"/>
 	[STAThread]
 	public static int Main(string[] args)
 	{
@@ -97,7 +98,7 @@ public class Program
 
 			if (AppLifetimeHelper.RestartRequested)
 			{
-				// The single instance lock is released now, so we can start a new instance of the application now.
+				// The single-instance lock in SingleInstanceChecker is released now, so we can start a new instance of the application now.
 				AppLifetimeHelper.StartAppWithArgs();
 			}
 
