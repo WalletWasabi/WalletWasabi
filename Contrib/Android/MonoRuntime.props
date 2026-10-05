@@ -7,4 +7,7 @@
   <ItemGroup>
     <FrameworkReference Update="Microsoft.NETCore.App" RuntimeFrameworkVersion="$(WasabiMonoRuntimeVersion)" />
   </ItemGroup>
+  <Target Name="WasabiRequireAndroidSdkBaseline" BeforeTargets="PrepareForBuild">
+    <Error Condition="'$(NETCoreSdkVersion)' != '10.0.401'" Text="Android requires SDK 10.0.401. Use Contrib/Android/global.json to select the pinned SDK; desktop/Nix SDK selection is separate." />
+  </Target>
 </Project>

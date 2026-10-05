@@ -14,8 +14,9 @@ acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
 The supported runtime selection is .NET 10 **Mono JIT**, with no trimming,
 interpreter, assembly store, ReadyToRun or AOT. The minimal reproduction is in
 `Contrib/Android/RuntimeProbe`. Published Bitcoin vectors and funded Bitcoin Core
-acceptance pass on x86_64 emulators. ARM64 is packaged but has not executed on a
-physical phone. Android 7/API 24 public TLS remains blocked. Strict 16 KB native
+acceptance pass on x86_64 emulators. The isolated Release crypto probe also
+passed on the connected ARM64 Android 16 phone; full handset qualification is
+still outstanding. Android 7/API 24 public TLS remains blocked. Strict 16 KB native
 RELRO inspection also reports findings in bundled prebuilt libraries, despite
 successful runtime tests on the 16 KB emulator. These findings remain visible;
 tests are not an independent security audit.
@@ -24,7 +25,8 @@ tests are not an independent security audit.
 
 Use the exact baseline in [toolchain.json](toolchain.json): SDK 10.0.401, Android
 workload 36.1.69, Mono 10.0.12, JDK 21, Android platform 36 and build-tools 36.0.0.
-The root `global.json` pins the SDK without roll-forward. `MonoRuntime.props`
+`Contrib/Android/global.json` pins the Android SDK without roll-forward; the root
+keeps the existing desktop/Nix SDK selection. `MonoRuntime.props`
 pins the .NET servicing runtime through framework-reference metadata while
 retaining the installed Android workload. Initial Mono 10.0.9 evidence is
 identified separately in the validation record.

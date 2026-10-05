@@ -2,8 +2,9 @@
 
 Recorded 2026-10-05 (Asia/Singapore). This record distinguishes implementation,
 local emulator evidence, static package checks, and uncompleted release gates.
-**Overall release qualification is BLOCKED. No physical phone or real mainnet
-payment was tested. This work is not an independent security audit.**
+**Overall release qualification is BLOCKED. The physical phone passed the
+isolated runtime probe; full handset qualification and a real mainnet payment
+remain outstanding. This work is not an independent security audit.**
 
 ## Runtime and host checks
 
@@ -44,8 +45,13 @@ vulnerabilities. A clean build does not establish wallet safety.
 
 ## Android execution matrix
 
-Only **x86_64 actually executed**. Some emulator ABI lists include ARM64 translation
-support; those lists do not prove an ARM64 execution. ARM64 remains a handset gate.
+The funded emulator suites actually executed **x86_64**. Some emulator ABI lists
+include ARM64 translation support; those lists do not prove an ARM64 execution.
+The isolated Release runtime probe subsequently executed **Arm64** on the connected
+SM-S948B, Android 16/API 36, with 4096-byte pages, using Mono 10.0.12. Its genesis,
+BIP39/32/84/86/340, ECDSA and managed WabiSabi checks passed. Evidence:
+`handset-runtime-probe.log` and `handset-runtime-probe-verification.json`.
+This does not qualify handset payments, recovery, biometrics, camera or updates.
 
 The expanded initial **Mono 10.0.9** matrix:
 

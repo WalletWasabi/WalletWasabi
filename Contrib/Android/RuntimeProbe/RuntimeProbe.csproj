@@ -7,7 +7,8 @@
     <ApplicationId>io.wasabiwallet.android.runtimeprobe</ApplicationId>
     <ApplicationVersion>1</ApplicationVersion>
     <ApplicationDisplayVersion>1.0</ApplicationDisplayVersion>
-    <RuntimeIdentifiers>android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers>android-arm64;android-x64</RuntimeIdentifiers>
+    <RuntimeIdentifiers Condition="'$(WasabiEmulatorOnly)' == 'true'">android-x64</RuntimeIdentifiers>
     <UseMonoRuntime>true</UseMonoRuntime>
     <UseInterpreter>false</UseInterpreter>
     <UseNativeHttpHandler>false</UseNativeHttpHandler>
