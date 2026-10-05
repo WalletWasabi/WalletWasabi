@@ -12,6 +12,7 @@ import re
 import struct
 import subprocess
 import zipfile
+import xml.etree.ElementTree as ElementTree
 from datetime import datetime, timezone
 
 import lz4.block
@@ -99,8 +100,10 @@ def main():
         raise ValueError("Debuggable APK or unexpected target SDK")
     badging = run([str(tools / ("aapt2" + executable)), "dump", "badging", str(args.apk)])
     version = re.search(r"package: name='io.wasabiwallet.android.personal' versionCode='([0-9]+)' versionName='([^']+)'", badging)
-    if not version or (version[1], version[2]) != ("5", "0.3.0"):
-        raise ValueError("Unexpected personal candidate version")
+    project = ElementTree.parse(repository / "WalletWasabi.Android/WalletWasabi.Android.csproj").getroot()
+    expected_version = tuple(project.findtext("./PropertyGroup/" + name) for name in ("ApplicationVersion", "ApplicationDisplayVersion"))
+    if not version or None in expected_version or (version[1], version[2]) != expected_version:
+        raise ValueError("Personal APK version differs from the recorded source project")
     certificate = run([str(args.java), "-jar", str(tools / "lib/apksigner.jar"), "verify", "--verbose", "--print-certs", str(args.apk)])
     digest = re.search(r"Signer #1 certificate SHA-256 digest: ([a-f0-9]+)", certificate)
     expected = "894b7317cd04fa09534d9bd0e8d09b08bf90e9cad6718e9020f33a6fd3f7db48"
