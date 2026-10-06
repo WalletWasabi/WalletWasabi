@@ -15,7 +15,7 @@ public class TorSettingsTests
 		string dataDir = Path.Combine("temp", "tempDataDir");
 		string distributionFolder = "tempDistributionDir";
 
-		TorSettings settings = new(dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
+		TorSettings settings = new(TorBackend.CTor, dataDir, distributionFolder, terminateOnExit: true, owningProcessId: 7);
 
 		string arguments = settings.GetCmdArguments();
 

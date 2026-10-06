@@ -16,7 +16,7 @@ namespace WalletWasabi.Tor.Control;
 public static class PipeReaderLineReaderExtension
 {
 	/// <summary>
-	/// Reads a single line ending with <c>\r\n</c> and returns the line without <c>\r\n</c> suffix.
+	/// Reads a single line ending with <c>\r\n</c> or <c>\n</c> and returns the line without the suffix.
 	/// </summary>
 	/// <remarks>
 	/// <para>
@@ -41,7 +41,7 @@ public static class PipeReaderLineReaderExtension
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/pipelines#read-a-single-message"/>
 	/// <exception cref="InvalidDataException">The message is incomplete and there's no more data to process.</exception>
 	/// <exception cref="OperationCanceledException"/>
-	public static async ValueTask<string> ReadLineAsync(this PipeReader reader, CancellationToken cancellationToken = default)
+	public static async ValueTask<string> ReadLineAsync(this PipeReader reader, LineEnding lineEnding = LineEnding.CRLF, CancellationToken cancellationToken = default)
 	{
 		while (true)
 		{
@@ -55,10 +55,9 @@ public static class PipeReaderLineReaderExtension
 
 			try
 			{
-				if (TryParseLine(ref buffer, out ReadOnlySequence<byte> messageBytes))
+				if (TryParseLine(ref buffer, lineEnding, out ReadOnlySequence<byte> messageBytes))
 				{
 					string message = messageBytes.GetString(Encoding.ASCII);
-					Logger.LogTrace($"Read message: '{message}'");
 
 					// A single message was successfully parsed so mark the start as the
 					// parsed buffer as consumed. TryParseMessage trims the buffer to
@@ -98,7 +97,7 @@ public static class PipeReaderLineReaderExtension
 	/// <summary>Finds the first newline (<c>\r\n</c>) in the buffer.</summary>
 	/// <param name="line">Trims that line, excluding the <c>\r\n</c> from the input buffer.</param>
 	/// <seealso href="https://docs.microsoft.com/en-us/dotnet/standard/io/buffers#process-text-data"/>
-	private static bool TryParseLine(ref ReadOnlySequence<byte> buffer, out ReadOnlySequence<byte> line)
+	private static bool TryParseLine(ref ReadOnlySequence<byte> buffer, LineEnding lineEnding, out ReadOnlySequence<byte> line)
 	{
 		SequencePosition position = buffer.Start;
 		SequencePosition previous = position;
@@ -109,31 +108,45 @@ public static class PipeReaderLineReaderExtension
 		{
 			ReadOnlySpan<byte> span = segment.Span;
 
-			// Look for \r in the current segment.
-			index = span.IndexOf((byte)'\r');
-
-			if (index != -1)
+			if (lineEnding == LineEnding.LF)
 			{
-				// Check next segment for \n.
-				if (index + 1 >= span.Length)
-				{
-					SequencePosition next = position;
-					if (!buffer.TryGet(ref next, out ReadOnlyMemory<byte> nextSegment))
-					{
-						// You're at the end of the sequence.
-						return false;
-					}
-					else if (nextSegment.Span[0] == (byte)'\n')
-					{
-						//  A match was found.
-						break;
-					}
-				}
-				// Check the current segment of \n.
-				else if (span[index + 1] == (byte)'\n')
+				// Look for \n in the current segment.
+				index = span.IndexOf((byte)'\n');
+
+				if (index != -1)
 				{
 					// It was found.
 					break;
+				}
+			}
+			else
+			{
+				// Look for \r in the current segment.
+				index = span.IndexOf((byte)'\r');
+
+				if (index != -1)
+				{
+					// Check next segment for \n.
+					if (index + 1 >= span.Length)
+					{
+						SequencePosition next = position;
+						if (!buffer.TryGet(ref next, out ReadOnlyMemory<byte> nextSegment))
+						{
+							// You're at the end of the sequence.
+							return false;
+						}
+						else if (nextSegment.Span[0] == (byte)'\n')
+						{
+							//  A match was found.
+							break;
+						}
+					}
+					// Check the current segment of \n.
+					else if (span[index + 1] == (byte)'\n')
+					{
+						// It was found.
+						break;
+					}
 				}
 			}
 
@@ -143,13 +156,14 @@ public static class PipeReaderLineReaderExtension
 		if (index != -1)
 		{
 			// Get the position just before the \r\n.
-			SequencePosition delimeter = buffer.GetPosition(index, previous);
+			SequencePosition delimiter = buffer.GetPosition(index, previous);
 
 			// Slice the line (excluding \r\n).
-			line = buffer.Slice(buffer.Start, delimeter);
+			line = buffer.Slice(buffer.Start, delimiter);
 
 			// Slice the buffer to get the remaining data after the line.
-			buffer = buffer.Slice(buffer.GetPosition(2, delimeter));
+			var offset = lineEnding == LineEnding.CRLF ? 2 : 1;
+			buffer = buffer.Slice(buffer.GetPosition(offset, delimiter));
 			return true;
 		}
 
@@ -179,5 +193,11 @@ public static class PipeReaderLineReaderExtension
 				ArrayPool<byte>.Shared.Return(oversized);
 			}
 		}
+	}
+
+	public enum LineEnding
+	{
+		CRLF,
+		LF
 	}
 }
