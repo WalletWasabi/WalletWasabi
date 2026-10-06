@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.3 / version code 8** produces a personally signed APK. This is a
+Version **0.3.4 / version code 9** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the

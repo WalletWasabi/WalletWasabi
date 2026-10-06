@@ -95,3 +95,11 @@ Complete new-source public Main/Testnet4 synchronization, matrix checks and actu
 personal APK payment/update tests before closing these software gates. The selected
 desktop coordinator currently redirects its WabiSabi status endpoint; retain its
 configuration until the user supplies a working replacement.
+
+Version 0.3.4/code 9 retains that production implementation and signing identity.
+Its qualification fixtures handle unavailable live fee samples, preserve the
+supported Tor startup budget, and allow bounded full public-header validation.
+An explicitly selected synthetic Tor cache tests startup retry while wallet,
+database and P2P header state remain fresh. Retain all earlier failed records;
+new package/update checks and the final delivery record identify exactly what
+executed. These fixture refinements do not change Bitcoin algorithms or fees.

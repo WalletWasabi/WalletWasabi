@@ -24,7 +24,9 @@ public sealed partial class WalletInstrumentation
 	{
 		var context = TargetContext!;
 		var directory = Path.Combine(context.FilesDir!.AbsolutePath, "fee-instrumentation");
-		using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+		// Leave the supported cold-bootstrap deadline intact, with a separate
+		// bounded allowance for both networks' live HTTP reads afterwards.
+		using var deadline = new CancellationTokenSource(TimeSpan.FromMinutes(20));
 		await using var tor = new TorHost();
 		Logger.LogInfo("Starting synthetic public fee transport qualification.");
 		try { await tor.StartAsync(context, directory, new MobileSettings(), deadline.Token); }
@@ -62,7 +64,16 @@ public sealed partial class WalletInstrumentation
 			foreach (var candidate in candidates)
 			{
 				var id = candidate.GetProperty("txid").GetString()!;
-				var transaction = Transaction.Parse(await ReadPublicAsync("tx/" + id + "/hex"), network);
+				string transactionHex;
+				try { transactionHex = await ReadPublicAsync("tx/" + id + "/hex"); }
+				catch (HttpRequestException error) when (error.StatusCode == System.Net.HttpStatusCode.NotFound)
+				{
+					// The live mempool snapshot and raw-transaction endpoint are not
+					// atomic. An unavailable sample is not a verified CPFP response.
+					Logger.LogInfo("Public " + network.Name + " fee sample " + id + " is unavailable; trying the next candidate.");
+					continue;
+				}
+				var transaction = Transaction.Parse(transactionHex, network);
 				Check(transaction.GetHash().ToString() == id, "The public transaction bytes match the requested identity");
 				var reply = new FeeReply();
 				await handler(new CpfpInfoMessage.GetInfoForTransaction(new SmartTransaction(transaction, Height.Mempool), reply), Unit.Instance, deadline.Token);

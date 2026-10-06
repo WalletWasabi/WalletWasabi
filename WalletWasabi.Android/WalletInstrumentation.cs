@@ -33,11 +33,17 @@ public sealed partial class WalletInstrumentation : Instrumentation
 	private string _mode = "wallet";
 	private string _coinJoinScenario = "complete";
 	private string _publicNetwork = "both";
+#if WASABI_RELEASE_HARNESS
+	private string? _publicTorData;
+#endif
 	public override void OnCreate(Bundle? arguments)
 	{
 		_mode = arguments?.GetString("mode") ?? "wallet";
 		_coinJoinScenario = arguments?.GetString("coinjoin-scenario") ?? "complete";
 		_publicNetwork = arguments?.GetString("public-network") ?? "both";
+#if WASABI_RELEASE_HARNESS
+		_publicTorData = arguments?.GetString("public-tor-data");
+#endif
 		base.OnCreate(arguments);
 		Start();
 	}

@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.3 / version code 8 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.4 / version code 9 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -352,6 +352,47 @@ transport and normal HTTPS certificate validation, with no input registration.
 The original two-field coordinator bootstrap is retained pending a working URL
 and identifier from the user. Synthetic coordinator tests do not qualify this
 external service's availability.
+
+## Qualified version-8 source and live-fixture limits
+
+At clean source `557eccb86e2f3ce9a3dfacd307af9f95bd902f98`, Android CI
+`37415026438` completed successfully. The downloaded records independently verify
+all 38 native source payloads, eight Debug/Release API/page configurations,
+nine disruption scenarios and twenty fresh independently keyed CoinJoins.
+All 18 records are clean; all 78 executed mode logs match their hashes. Twenty
+distinct CoinJoin transaction IDs are retained; the fixtures require Core mempool
+acceptance, mining and confirmed-wallet reconciliation. Desktop CI `37415026410`
+passed all five jobs, 1,143 unit tests per platform and 39 Nix integration checks.
+Its complete log is retained and hashed.
+
+The personally signed version-8 APK at that source passed fresh-install payment,
+password rejection, duplicate submission, background/inactivity lock, late unlock,
+process restart, exact-byte reconciliation and an actual version 7 to 8 update.
+Both UI fixture records and all eight mode logs are independently hash-verified.
+Source-native Release crypto, SQLite and repeated TLS checks also pass on API 35
+x64. The delivered package's own manifest remains authoritative for its identity.
+
+The first version-8 public-fee aggregate remains FAIL: a live mempool sample's
+raw transaction endpoint returned HTTP 404 after a preceding CPFP timeout. The
+fixture now skips only unavailable raw-transaction samples and still requires a
+valid production CPFP response on each network. A subsequent fixture's six-minute
+outer budget interrupted a progressing cold Tor bootstrap; it remains FAIL.
+The bounded twenty-minute fee budget preserves the Tor startup deadline and
+allows subsequent reads. The corrected fixture passed Main and Testnet4 production
+CPFP parsing through Tor. These fixture edits change no production wallet code.
+
+The fresh mainnet synchronization fixture advanced to header 338000 before its
+forty-minute limit; it did not qualify synchronization. Its subsequent cold
+Testnet4 startup, and another standalone cold startup, hit Tor's idle deadline.
+Those records remain failed. Full mainnet/Testnet4 header validation now has
+separate 180/90-minute absolute fixture bounds and a ten-minute chain-progress
+limit. An explicitly selected synthetic Tor cache can test retry behavior while
+wallet, database and P2P header state remain fresh. Cached Tor startup is recorded
+separately from a cold-start result and cannot erase its failure. Actual public
+synchronization remains an open gate until the new records pass.
+
+Later fixture builds and commits have their own checksums and source records.
+The earlier clean CI results are not relabeled as execution of a later build.
 
 ## Required external gates
 
