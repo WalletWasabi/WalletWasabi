@@ -156,6 +156,7 @@ public sealed class MainActivity : Activity
 		if (IsFinishing || IsDestroyed || !_foreground) { return; }
 		if ((!_uiLocked || _screen is "create" or "backup" or "unlock") && Stopwatch.GetElapsedTime(_lastInteraction) > TimeSpan.FromMinutes(2)) { LockUi(); }
 		var session = Session;
+		if (!_busy && session is null && WalletRuntime.Error is null && WalletRuntime.Snapshot.Lifecycle == RuntimeLifecycle.Stopped) { StartWalletService(); }
 		if (_observedSession != session) { _observedSession = session; _synchronization.Reset(); LockUi(); }
 		ShowSynchronization();
 		if (_screen == "wallets" && _body.Tag?.ToString() != WalletListSignature()) { ShowWallets(); }

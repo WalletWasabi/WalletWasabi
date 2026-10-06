@@ -164,6 +164,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         String id = texts().stream().filter(t -> t.matches("[0-9a-f]{64}")).findFirst().orElseThrow(() -> new IllegalStateException("Transaction ID missing"));
         status("TRANSACTION=" + id);
         click("Done");
+        if (getTargetContext().getPackageManager().getPackageInfo(PACKAGE, 0).versionCode >= 14) { verifyQueuedIdleStopIsRevoked(); }
         mainStopped.set(false);
         check(getUiAutomation().performGlobalAction(AccessibilityService.GLOBAL_ACTION_HOME), "The OS accepted the Home action");
         waitFor(() -> mainStopped.get(), 30000, "The OS stopped the backgrounded main activity");
@@ -197,6 +198,22 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
         status("LATE_UNLOCK_LOCKED");
     }
 
+    private void verifyQueuedIdleStopIsRevoked() throws Exception {
+        // Cover more than two 30-second service timer periods. Briefly hold the
+        // real main-thread queue while backgrounded, then resume before queued
+        // decisions can execute. This exercises the actual Release service.
+        for (int attempt = 0; attempt < 16; attempt++) {
+            runOnMainSync(() -> {
+                callActivityOnStop(activity);
+                try { Thread.sleep(2250); } catch (InterruptedException error) { throw new RuntimeException(error); }
+                callActivityOnResume(activity);
+            });
+            Thread.sleep(1750);
+            check(hasPart("Native qualification") && hasPart("Connected"), "Returning before a queued idle stop preserves the active wallet runtime");
+        }
+        status("QUEUED_IDLE_STOP_RESUME_PRESERVED");
+    }
+
     private void resume() throws Exception {
         // A saved wallet is listed while its runtime is still initializing.
         // Match wallet()'s startup gate before measuring password authorization.
@@ -228,7 +245,7 @@ public final class ReleaseUiInstrumentation extends Instrumentation {
     private void lostDeviceKey() throws Exception {
         waitFor(() -> hasPart("Connected") || hasPart("Synchronizing"), 90000, "Engine initialized for device-key loss");
         File root = new File(activity.getFilesDir(), "Wasabi");
-        org.json.JSONObject wallet = new org.json.JSONObject(new String(read(new File(root, "Wallets/Native qualification.json")), StandardCharsets.UTF_8));
+        org.json.JSONObject wallet = new org.json.JSONObject(new String(read(new File(root, "Wallets/RegTest/Native qualification.json")), StandardCharsets.UTF_8));
         String reference = hash("RegTest:" + wallet.getString("AccountKeyPath") + ":" + wallet.getString("ExtPubKey"));
         File vault = new File(root, "vault");
         check(vault.isDirectory() || vault.mkdir(), "Qualification vault directory");

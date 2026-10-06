@@ -15,7 +15,8 @@ internal static class WalletRuntime
   private static RuntimeStatus _snapshot = new(RuntimeLifecycle.Stopped, 0, 0, false, "Idle", 0, null);
   public static WalletSession? Session { get; private set; }
   public static string? Error { get; private set; }
-  public static bool InterfaceForeground { get; set; }
+  public static RuntimeForegroundState ForegroundState { get; } = new();
+  public static bool InterfaceForeground { get => ForegroundState.IsForeground; set => ForegroundState.IsForeground = value; }
   public static int Bootstrap => _tor?.Bootstrap ?? 0;
   public static RuntimeStatus Snapshot => Volatile.Read(ref _snapshot);
   public static SynchronizationSnapshot Synchronization => Session?.GetSynchronizationSnapshot(Bootstrap)

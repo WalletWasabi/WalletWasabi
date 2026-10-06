@@ -50,10 +50,13 @@ public sealed class WalletService : Service
 						wake.Acquire(10 * 60 * 1000);
 					}
 					else if (wake.IsHeld) { wake.Release(); }
-					if (!WalletRuntime.InterfaceForeground && session is { IsReady: true, IsMixing: false }
-						&& session.Global.FilterHeaders.HashesLeft == 0
-						&& session.Global.WalletManager.GetWallets().All(w => w.Loaded && w.KeyManager.GetBestHeight() >= session.Global.FilterHeaders.TipHeight))
-					{ new Handler(Looper.MainLooper!).Post(Shutdown); }
+					if (IsIdle(session) && WalletRuntime.ForegroundState.CaptureIdleStop(session) is { } ticket)
+					{
+						new Handler(Looper.MainLooper!).Post(() =>
+						{
+							if (!_stopping && WalletRuntime.ForegroundState.IsCurrent(ticket, WalletRuntime.Session) && IsIdle(session)) { Shutdown(); }
+						});
+					}
 				}
 				catch (Java.Lang.Exception) { }
 				catch (ObjectDisposedException) { }
@@ -64,6 +67,10 @@ public sealed class WalletService : Service
 	}
 
 	public override void OnTimeout(int startId, ForegroundService foregroundServiceType) => Shutdown();
+
+	private static bool IsIdle(WalletSession? session) => session is { IsReady: true, IsMixing: false }
+		&& session.Global.FilterHeaders.HashesLeft == 0
+		&& session.Global.WalletManager.GetWallets().All(w => w.Loaded && w.KeyManager.GetBestHeight() >= session.Global.FilterHeaders.TipHeight);
 
 	private async void Shutdown()
 	{

@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.9 / version code 14 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.10 / version code 15 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -503,6 +503,19 @@ This tooling is separate from successful physical Keystore authentication,
 which remains a handset gate until it has actually executed.
 
 Version 14 uses "Wasabi Wallet" as the main screen title at the user's request.
+
+Version 15 binds queued idle-service stops to the foreground generation and
+runtime identity. A resumed or replaced runtime revokes the queued decision,
+and its idle condition is rechecked on the main thread. Foreground refresh can
+restart a fully stopped runtime. The older version-11 update fixture's lost
+session remains an unexplained failed run. A separate actual-APK timing exercise
+delays background decisions before resuming; it passed on version 14 and does
+not reproduce or uniquely explain the older failure. Its later key-loss check
+failed because the harness omitted the network directory in the wallet path;
+the harness now uses the verified RegTest path. State-transition checks cover returning
+to the app, a second background period and replacement-runtime identity. All
+69 mobile checks pass after the change; hardware and actual-APK execution remain
+separate gates until their records report success.
 
 ## Required external gates
 
