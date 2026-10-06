@@ -14,9 +14,15 @@ using FilterFetchingResult = Result<FiltersResponse, TimeSpan>;
 
 public abstract record FiltersResponse
 {
-	public record AlreadyOnBestBlock : FiltersResponse;
+	public record AlreadyOnBestBlock : FiltersResponse
+	{
+		public bool PreserveReportedTip { get; init; }
+	}
 	public record BestBlockUnknown : FiltersResponse;
-	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse;
+	public record NewFiltersAvailable(ChainHeight BestHeight, FilterModel[] Filters) : FiltersResponse
+	{
+		public bool PreserveReportedTip { get; init; }
+	}
 }
 
 public delegate Task<FilterFetchingResult> FilterProvider(uint fromHeight, uint256 fromHash, CancellationToken cancellationToken);
@@ -27,8 +33,10 @@ public static class FilterProviders
 	private const int MaxFiltersPerBitcoinRpcRequest = 100;
 
 	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestBlock = new();
+	private static readonly FiltersResponse.AlreadyOnBestBlock AlreadyOnBestP2pBlock = new() { PreserveReportedTip = true };
 	private static readonly FiltersResponse.BestBlockUnknown BestBlockUnknown = new();
-	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters) => new(bestHeight, filters);
+	private static FiltersResponse.NewFiltersAvailable NewFiltersAvailable(ChainHeight bestHeight, FilterModel[] filters, bool preserveReportedTip = false)
+		=> new(bestHeight, filters) { PreserveReportedTip = preserveReportedTip };
 
 	public static FilterProvider CreateBitcoinRpcFilterProvider(IRPCClient bitcoinClient, ConcurrentChain blockHeaderChain) =>
 		(fromHeight, fromHash, cancellationToken) => GetFiltersFromBitcoinRpcAsync(bitcoinClient, fromHash, fromHeight, cancellationToken);
@@ -200,7 +208,7 @@ public static class FilterProviders
 				{
 					return FilterFetchingResult.Fail(TimeSpan.FromSeconds(1));
 				}
-				return AlreadyOnBestBlock;
+				return AlreadyOnBestP2pBlock;
 			}
 
 			Logger.LogDebug($"Requesting filters from height {fromHeight + 1} (filter headers tip: {filterHeadersTip.Height})");
@@ -220,7 +228,11 @@ public static class FilterProviders
 				}
 
 				Logger.LogDebug($"Successfully received {filters.Length} filters from P2P (heights {filters[0].Header.Height}-{filters[^1].Header.Height})");
-				return NewFiltersAvailable((uint)blockHeadersChain.Tip.Height, filters.ToArray());
+				// A downloaded header batch can be below the peer's announced tip.
+				// Reading after the await also preserves a newer announcement received
+				// while filters were arriving. Consumption advances the target atomically.
+				var bestHeight = Math.Max((uint)blockHeadersChain.Tip.Height, filterHeadersChain.ServerTipHeight.Height);
+				return NewFiltersAvailable(bestHeight, filters.ToArray(), preserveReportedTip: true);
 			}
 			catch (OperationCanceledException) when (timeoutCts.IsCancellationRequested)
 			{
@@ -283,10 +295,12 @@ public static class Synchronizer
 	{
 		switch (response)
 		{
-			case FiltersResponse.AlreadyOnBestBlock:
+			case FiltersResponse.AlreadyOnBestBlock caughtUp:
 				// Already synchronized. Nothing to do.
-				var tip = filterHeaderChain.TipHeight;
-				filterHeaderChain.SetServerTipHeight(tip);
+				var tip = caughtUp.PreserveReportedTip
+					? filterHeaderChain.AdvanceServerTipHeight(filterHeaderChain.TipHeight)
+					: filterHeaderChain.TipHeight;
+				if (!caughtUp.PreserveReportedTip) { filterHeaderChain.SetServerTipHeight(tip); }
 				eventBus.Publish(new NetworkTipHeightChanged(tip));
 				return true;
 			case FiltersResponse.BestBlockUnknown:
@@ -299,8 +313,11 @@ public static class Synchronizer
 			case FiltersResponse.NewFiltersAvailable newFiltersAvailable:
 				var localTipHeight = filterStore.GetTip()?.Header.Height ?? 0;
 
-				filterHeaderChain.SetServerTipHeight(newFiltersAvailable.BestHeight);
-				eventBus.Publish(new NetworkTipHeightChanged(newFiltersAvailable.BestHeight));
+				var bestHeight = newFiltersAvailable.PreserveReportedTip
+					? filterHeaderChain.AdvanceServerTipHeight(newFiltersAvailable.BestHeight)
+					: newFiltersAvailable.BestHeight;
+				if (!newFiltersAvailable.PreserveReportedTip) { filterHeaderChain.SetServerTipHeight(bestHeight); }
+				eventBus.Publish(new NetworkTipHeightChanged(bestHeight));
 
 				var downloadedFilters = newFiltersAvailable.Filters;
 				var newFilters = downloadedFilters.Where(x => localTipHeight < x.Header.Height).ToArray();

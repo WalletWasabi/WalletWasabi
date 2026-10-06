@@ -102,17 +102,19 @@ internal sealed class TorHost : IAsyncDisposable
 				}
 			}
 		}, _stop.Token);
-		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
-		deadline.CancelAfter(TimeSpan.FromMinutes(3));
+		var bootstrapDeadline = new TorBootstrapDeadline();
 		while (Bootstrap < 100)
 		{
-			deadline.Token.ThrowIfCancellationRequested();
+			token.ThrowIfCancellationRequested();
+			bootstrapDeadline.CheckProgress(Bootstrap);
 			if (!IsAlive)
 			{
 				throw new InvalidOperationException("Tor could not start. Reopen Wasabi to retry.");
 			}
-			await Task.Delay(250, deadline.Token).ConfigureAwait(false);
+			await Task.Delay(250, token).ConfigureAwait(false);
 		}
+		using var deadline = CancellationTokenSource.CreateLinkedTokenSource(token);
+		deadline.CancelAfter(TimeSpan.FromSeconds(15));
 		using var tcp = new TcpClient();
 		await tcp.ConnectAsync(IPAddress.Loopback, AppIdentity.SocksPort, deadline.Token).ConfigureAwait(false);
 		await tcp.GetStream().WriteAsync(new byte[] { 5, 1, 0 }, deadline.Token).ConfigureAwait(false);

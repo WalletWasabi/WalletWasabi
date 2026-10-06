@@ -5,7 +5,7 @@ Android views, Camera2, Android Keystore and a bundled Tor process.
 
 ## Personal candidate status
 
-Version **0.3.2 / version code 7** produces a personally signed APK. This is a
+Version **0.3.3 / version code 8** produces a personally signed APK. This is a
 **qualification candidate, not a qualified real-funds release**. The implementation
 and evidence are described in [VALIDATION.md](VALIDATION.md), with outstanding
 acceptance gates in [IMPLEMENTATION_PLAN.md](IMPLEMENTATION_PLAN.md) and the
@@ -137,6 +137,12 @@ only synthetic localhost credentials and removes its generated private key.
   RPC accepts only loopback or onion addresses; remote onion RPC uses Tor. Tor loss
   never enables direct public networking. Foreground work and wake locks remain
   subject to Android's background limits.
+
+Cold Tor startup allows continuing descriptor/circuit progress, with a three-minute
+idle limit and a ten-minute total limit. Cancellation still interrupts startup.
+Compact-filter sends use bounded asynchronous waits, and timeout/disconnect cleanup
+releases ranges for another peer. Partial P2P downloads preserve the reported network
+target instead of presenting the downloaded height as current.
 
 Backups and device-transfer backup are disabled. Release windows retain screenshot
 protection; secret fields disable autofill and personalized keyboard learning.

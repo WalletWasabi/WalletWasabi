@@ -162,7 +162,7 @@ public sealed partial class WalletInstrumentation : Instrumentation
 		var context = TargetContext!;
 		var dataDir = Path.Combine(context.FilesDir!.AbsolutePath, "tor-instrumentation");
 		await using var tor = new TorHost();
-		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(6));
+		using var timeout = new CancellationTokenSource(TimeSpan.FromMinutes(15));
 		try
 		{
 		await tor.StartAsync(context, dataDir, new MobileSettings(), timeout.Token);

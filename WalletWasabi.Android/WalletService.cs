@@ -2,6 +2,7 @@ using Android.App;
 using Android.Content;
 using Android.Content.PM;
 using Android.OS;
+using WalletWasabi.Mobile;
 
 namespace WalletWasabi.Android;
 
@@ -42,7 +43,9 @@ public sealed class WalletService : Service
 				{
 					if (_stopping || _wake is not { } wake) { return; }
 					var session = WalletRuntime.Session;
-					if (session is not null && (!session.IsReady || session.IsMixing || session.Global.WalletManager.GetWallets().Any(w => !w.Loaded)))
+					if (WalletRuntime.Snapshot.Lifecycle is RuntimeLifecycle.Starting or RuntimeLifecycle.Reconnecting
+						|| session is not null && (!session.IsReady || session.IsMixing
+							|| session.Global.WalletManager.GetWallets().Any(w => !w.Loaded || w.KeyManager.GetBestHeight() < session.Global.FilterHeaders.TipHeight)))
 					{
 						wake.Acquire(10 * 60 * 1000);
 					}

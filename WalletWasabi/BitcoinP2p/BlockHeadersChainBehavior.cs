@@ -37,8 +37,8 @@ public class BlockHeadersChainBehavior(
 			var theirBestFilterHeight = AttachedNode.PeerVersion.StartHeight;
 			if (theirBestFilterHeight > myBestFilterHeight)
 			{
-				filterHeaderChain.SetServerTipHeight((uint)theirBestFilterHeight);
-				eventBus.Publish(new NetworkTipHeightChanged((uint)theirBestFilterHeight));
+				var reportedTip = filterHeaderChain.AdvanceServerTipHeight((uint)theirBestFilterHeight);
+				eventBus.Publish(new NetworkTipHeightChanged(reportedTip));
 			}
 		}
 	}

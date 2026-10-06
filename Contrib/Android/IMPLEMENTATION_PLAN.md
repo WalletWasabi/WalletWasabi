@@ -84,3 +84,14 @@ and logs no generated receive addresses. Complete the new source's automated
 matrix, personally signed APK payment/update checks and independent public-network
 results before closing those software gates. Physical-phone and real-bitcoin
 authorization gates remain separate.
+
+Version 0.3.3/code 8 corrects two public synchronization defects: P2P progress can
+no longer erase a higher peer target, and a stalled compact-filter socket send
+cannot block timeout or detach cleanup while holding the assignment lock.
+Controlled pre-correction reproductions and retained public stall diagnostics are
+qualified separately. Cold Tor startup now uses bounded progress/idle deadlines
+after the three-minute cutoff failed on a progressing API 36/16 KB bootstrap.
+Complete new-source public Main/Testnet4 synchronization, matrix checks and actual
+personal APK payment/update tests before closing these software gates. The selected
+desktop coordinator currently redirects its WabiSabi status endpoint; retain its
+configuration until the user supplies a working replacement.

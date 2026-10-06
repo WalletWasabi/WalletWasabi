@@ -180,6 +180,18 @@ public class FilterHeaderChain
 		}
 	}
 
+	/// <summary>Retain a higher peer target while consuming partial P2P progress.</summary>
+	public ChainHeight AdvanceServerTipHeight(ChainHeight height)
+	{
+		lock (_lock)
+		{
+			if (height > _serverTipHeight) { _serverTipHeight = height; }
+			_serverTipKnown = true;
+			SetHashesLeftNoLock();
+			return _serverTipHeight;
+		}
+	}
+
 	private void SetTipNoLock(SmartHeader? tip)
 	{
 		_tip = tip;

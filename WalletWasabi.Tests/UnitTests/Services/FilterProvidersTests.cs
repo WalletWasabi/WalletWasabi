@@ -4,6 +4,9 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using WalletWasabi.Backend.Models;
+using WalletWasabi.BitcoinP2p;
+using WalletWasabi.Blockchain.Blocks;
 using WalletWasabi.Services;
 using WalletWasabi.Tests.UnitTests.Mocks;
 using Xunit;
@@ -13,6 +16,39 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 public class FilterProvidersTests(ITestOutputHelper output)
 {
 	private static readonly byte[] DummyFilterData = Convert.FromHexString("02832810ec08a0");
+
+	[Theory]
+	[InlineData(3u, 0u)]
+	[InlineData(5u, 0u)]
+	[InlineData(5u, 7u)]
+	public async Task P2pProvider_FilterBatchKeepsReportedNetworkTargetAsync(uint announcedTip, uint laterTip)
+	{
+		var headers = new ConcurrentChain(Network.RegTest);
+		for (var height = 1; height <= 3; height++)
+		{
+			var header = CreateNewBlockHeader(Network.RegTest, headers.Tip, height);
+			headers.SetTip(new ChainedBlock(header, header.GetHash(), headers.Tip));
+		}
+		var filterHeaders = new FilterHeaderChain();
+		for (var height = 0; height <= 3; height++)
+		{
+			filterHeaders.AppendTip(new SmartHeader(headers.GetBlock(height).HashBlock, new uint256((ulong)height + 1), (uint)height, DateTimeOffset.UtcNow));
+		}
+		filterHeaders.SetServerTipHeight(announcedTip);
+		var state = new FilterSynchronizationState(headers, filterHeaders, 0);
+		Assert.True(state.TryAssignFilterRange(out var assignment));
+		var batch = Enumerable.Range(1, 3)
+			.Select(height => new FilterModel(filterHeaders[(uint)height]!, new GolombRiceFilter(DummyFilterData, 20, 1 << 20)))
+			.ToArray();
+		var fetching = FilterProviders.CreateBitcoinP2pFilterProvider(filterHeaders, headers, state)(0, headers.Genesis.HashBlock, TestContext.Current.CancellationToken);
+		if (laterTip > 0) { filterHeaders.SetServerTipHeight(laterTip); }
+		state.OnFilterRangeCompleted(assignment!.StartHeight, batch);
+		var result = await fetching;
+		Assert.True(result.IsOk);
+		var available = Assert.IsType<FiltersResponse.NewFiltersAvailable>(result.Value);
+		Assert.Equal(Math.Max(announcedTip, laterTip), available.BestHeight.Height);
+		Assert.Equal(3, available.Filters.Length);
+	}
 
 	[Fact]
 	public async Task BitcoinRpcProvider_DoesNotRollBackRpcTipToStaleHeaderBranchAsync()

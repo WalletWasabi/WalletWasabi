@@ -20,6 +20,37 @@ namespace WalletWasabi.Tests.UnitTests.Services;
 public class SynchronizerReorgTests(ITestOutputHelper output)
 {
 	[Theory]
+	[InlineData(true)]
+	[InlineData(false)]
+	public async Task P2pCaughtUpResponse_DoesNotEraseANewerPeerTarget(bool p2p)
+	{
+		var blocks = new ConcurrentChain(Network.RegTest);
+		var filters = new FilterHeaderChain();
+		var genesis = FilterCheckpoints.GetWasabiGenesisFilter(Network.RegTest).Header;
+		filters.AppendTip(genesis);
+		filters.SetServerTipHeight(0);
+		var state = new FilterSynchronizationState(blocks, filters, 0);
+		var provider = p2p
+			? FilterProviders.CreateBitcoinP2pFilterProvider(filters, blocks, state)
+			: FilterProviders.CreateBitcoinRpcFilterProvider(new MockRpcClient
+			{
+				OnGetBlockCountAsync = () => Task.FromResult(0),
+				OnGetBlockHashAsync = _ => Task.FromResult(genesis.BlockHash)
+			}, blocks);
+		var result = await provider(0, genesis.BlockHash, TestContext.Current.CancellationToken);
+		Assert.True(result.IsOk);
+		Assert.IsType<FiltersResponse.AlreadyOnBestBlock>(result.Value);
+		// A peer announces a higher tip after the provider checked its old snapshot.
+		// RPC's authoritative result can instead describe a shorter replacement chain.
+		filters.SetServerTipHeight(1);
+		var process = typeof(Synchronizer).GetMethod("ProcessFiltersAsync", System.Reflection.BindingFlags.Static | System.Reflection.BindingFlags.NonPublic)!;
+		// This terminal response never accesses the filter store.
+		await (Task<bool>)process.Invoke(null, [result.Value, null, filters, new EventBus()])!;
+		Assert.Equal(p2p ? 1u : 0u, filters.ServerTipHeight.Height);
+		Assert.Equal(!p2p, filters.IsSynchronized);
+	}
+
+	[Theory]
 	[InlineData(false)]
 	[InlineData(true)]
 	public async Task P2pProvider_CachedTipWaitsForReportedNetworkCatchUp(bool reportHigherTip)

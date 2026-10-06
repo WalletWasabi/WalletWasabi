@@ -1,6 +1,6 @@
 # Android personal candidate verification
 
-Recorded 2026-10-06 (Asia/Singapore). Version 0.3.2 / version code 7 is a
+Recorded 2026-10-06 (Asia/Singapore). Version 0.3.3 / version code 8 is a
 qualification candidate. **Release acceptance remains blocked by the uncompleted
 checks in the delivered `verification.json`.** Source changes, earlier successful
 tests and a signed APK do not qualify an untested handset or authorize bitcoin.
@@ -310,6 +310,48 @@ on API 35/Release at clean `3299d9b2`, in `device-3a22dc18bc5c4f949830e36021fb5a
 That aggregate run remains FAIL because its preceding cold mainnet Tor bootstrap
 timed out. Independent public-network selection retains this distinction; Info
 logging avoids exporting generated receive addresses from these unfunded fixtures.
+
+## Public P2P and cold Tor startup correction
+
+At clean `5d51713b`, local Release public Testnet4 synchronization stopped at wallet
+height 69500 while block/filter headers reached 155328/155327. The next range at
+69501 timed out repeatedly. The retained complete Info log and native thread dump
+do not uniquely establish every thread's managed call stack. The unfunded fixture
+was intentionally stopped after retaining those diagnostics; its record remains
+FAIL. A controlled local NBitcoin transport reproduces a concrete defect: a
+stalled synchronous compact-filter send holds the assignment lock and prevents
+the shared ticker from reaching timeout cleanup. Both pre-correction header and
+filter regressions fail. Sends now use bounded asynchronous waits, observe late
+failures, cancel on detach and release ranges for reassignment. NBitcoin's send
+filters also report exceptions without completing the returned send task; two
+additional negative cases require that callback to disconnect and release ranges.
+All 37 focused networking checks, 60 mobile checks and 1,143 desktop unit tests
+pass after correction. The full local unit run completed in 7m07s with no failures
+or skips. Its earlier broad run included acceptance/external API cases while
+bundled binaries were omitted; that failed invocation is retained separately.
+
+Separate deterministic P2P tests reproduce partial filter batches replacing a
+higher announced network tip and a caught-up response erasing a newer announcement.
+P2P consumption now advances the reported target atomically. Authoritative RPC
+responses retain their ability to lower the target after a reorganization.
+
+Android CI `37407957108` at `5d51713b` passed native builds, API 24/35/36 with 4 KB
+pages, nine failure scenarios and twenty consecutive rounds. Its API 36/16 KB
+Release Tor test failed: bootstrap reached 73 percent but the fixed three-minute
+startup deadline expired before completion. A separate cold public mainnet fixture
+also timed out at 50 percent. These failures remain recorded. Startup now allows
+progress beyond three minutes while bounding idle time to three minutes and total
+time to ten; monotonic-clock tests cover progress, repeated notices, stalls and
+the absolute cap. The Tor fixture's outer deadline reflects those bounded waits.
+New-source actual public synchronization and matrix execution remain required.
+
+The selected desktop coordinator `https://coinjoin.kruw.io/` returned HTTP 301 for
+the engine's `/wabisabi/status` request, redirecting to `https://kruw.io` rather than
+returning WabiSabi JSON. This read-only request used the bundled Android Tor SOCKS
+transport and normal HTTPS certificate validation, with no input registration.
+The original two-field coordinator bootstrap is retained pending a working URL
+and identifier from the user. Synthetic coordinator tests do not qualify this
+external service's availability.
 
 ## Required external gates
 

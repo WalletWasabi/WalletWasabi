@@ -170,6 +170,22 @@ public class FilterHeaderChainTests
 		Assert.Equal(4, chain.HashCount);
 	}
 
+	[Fact]
+	public void PeerTargetsAdvanceAtomicallyWithoutErasingHigherAnnouncements()
+	{
+		var chain = new FilterHeaderChain();
+		chain.AppendTip(CreateGenesisHeader());
+		System.Threading.Tasks.Parallel.For(1, 5_001, height => chain.AdvanceServerTipHeight((uint)height));
+		Assert.Equal(5_000u, chain.ServerTipHeight.Height);
+		Assert.Equal(5_000, chain.HashesLeft);
+		Assert.False(chain.IsSynchronized);
+		Assert.Equal(5_000u, chain.AdvanceServerTipHeight(1).Height);
+		// Authoritative RPC reorganization handling retains its ability to lower
+		// the target. P2P progress must not silently perform that rollback.
+		chain.SetServerTipHeight(0);
+		Assert.True(chain.IsSynchronized);
+	}
+
 	/// <remarks>Dummy genesis header.</remarks>
 	private static SmartHeader CreateGenesisHeader()
 	{

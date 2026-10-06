@@ -31,29 +31,59 @@ public class CompactFilterBehavior(
 	private DateTime _assignedFilterRangeAt;
 
 	private volatile bool _invalidReceived;
+	private CancellationTokenSource? _sendCancellation;
 
 	protected override void AttachCore()
 	{
+		lock (_lock)
+		{
+			_sendCancellation = new CancellationTokenSource();
+			_invalidReceived = false;
+			_headerAssignmentTimeout = HeaderAssignmentTimeoutForTor;
+			_filterAssignmentTimeout = FilterAssignmentTimeoutForTor;
+		}
 		AttachedNode.StateChanged += OnStateChanged;
 		AttachedNode.MessageReceived += OnMessageReceived;
+		AttachedNode.UncaughtException += OnUncaughtException;
 		if (AttachedNode.Behaviors.Find<SocksSettingsBehavior>() is null)
 		{
 			_headerAssignmentTimeout = HeaderAssignmentTimeoutForClearnet;
 			_filterAssignmentTimeout = FilterAssignmentTimeoutForClearnet;
 		}
-
 	}
 
 	protected override void DetachCore()
 	{
 		AttachedNode.StateChanged -= OnStateChanged;
 		AttachedNode.MessageReceived -= OnMessageReceived;
+		AttachedNode.UncaughtException -= OnUncaughtException;
 
-		ReleaseAssignments();
+		CancellationTokenSource? cancellation;
+		lock (_lock)
+		{
+			cancellation = _sendCancellation;
+			_sendCancellation = null;
+			_invalidReceived = true;
+			ReleaseAssignmentsNoLock();
+		}
+		// Cancel outside the assignment lock so an in-flight send can retire.
+		cancellation?.Cancel();
+		cancellation?.Dispose();
 	}
 
 	public override object Clone() =>
 		new CompactFilterBehavior(synchronizationState, blockHeaderChain, eventBus);
+
+	private void OnUncaughtException(Node node, Exception error)
+	{
+		lock (_lock)
+		{
+			if (IsNodeInValidState(node))
+			{
+				HandleInvalidNoLock(node, "Compact filter peer message processing failed");
+			}
+		}
+	}
 
 	private void OnStateChanged(Node node, NodeState oldState)
 	{
@@ -338,8 +368,7 @@ public class CompactFilterBehavior(
 
 		lock (_lock)
 		{
-			TrySyncHeadersNoLock(node);
-			TrySyncFiltersNoLock(node);
+			TrySyncNoLock(node);
 		}
 	}
 
@@ -351,7 +380,7 @@ public class CompactFilterBehavior(
 		}
 
 		TrySyncHeadersNoLock(node);
-		TrySyncFiltersNoLock(node);
+		if (IsNodeInValidState(node)) { TrySyncFiltersNoLock(node); }
 	}
 
 	private void TrySyncFiltersNoLock(Node node)
@@ -375,7 +404,7 @@ public class CompactFilterBehavior(
 
 		var payload = new GetCompactFiltersPayload(FilterType.Basic, filterAssignment.StartHeight,
 			filterAssignment.StopHash);
-		node.SendMessage(payload);
+		SendRequestNoLock(node, payload, _filterAssignmentTimeout);
 	}
 
 	private void TrySyncHeadersNoLock(Node node)
@@ -396,7 +425,41 @@ public class CompactFilterBehavior(
 
 		var payload = new GetCompactFilterHeadersPayload(FilterType.Basic, headerAssignment.StartHeight,
 			headerAssignment.StopHash);
-		node.SendMessage(payload);
+		SendRequestNoLock(node, payload, _headerAssignmentTimeout);
+	}
+
+	private void SendRequestNoLock(Node node, Payload payload, TimeSpan timeout)
+	{
+		var token = _sendCancellation!.Token;
+		try
+		{
+			var sending = node.SendMessageAsync(payload);
+			// WaitAsync can stop waiting before the underlying socket send fails.
+			// Observe that late failure as well; neither wait holds the state lock.
+			_ = sending.ContinueWith(task => _ = task.Exception, CancellationToken.None,
+				TaskContinuationOptions.OnlyOnFaulted | TaskContinuationOptions.ExecuteSynchronously, TaskScheduler.Default);
+			_ = ObserveSendAsync(node, sending, timeout, token);
+		}
+		catch (Exception)
+		{
+			HandleInvalidNoLock(node, "Compact filter request could not be queued");
+		}
+	}
+
+	private async Task ObserveSendAsync(Node node, Task sending, TimeSpan timeout, CancellationToken token)
+	{
+		try { await sending.WaitAsync(timeout, token).ConfigureAwait(false); }
+		catch (OperationCanceledException) when (token.IsCancellationRequested) { }
+		catch (Exception)
+		{
+			lock (_lock)
+			{
+				if (_sendCancellation is { } cancellation && cancellation.Token == token && IsNodeInValidState(node))
+				{
+					HandleInvalidNoLock(node, "Compact filter request send failed or timed out");
+				}
+			}
+		}
 	}
 
 	private void HandleInvalidNoLock(Node node, string reason)
@@ -409,14 +472,6 @@ public class CompactFilterBehavior(
 
 		// Disconnect the node
 		node.DisconnectAsync(reason);
-	}
-
-	private void ReleaseAssignments()
-	{
-		lock (_lock)
-		{
-			ReleaseAssignmentsNoLock();
-		}
 	}
 
 	private void ReleaseAssignmentsNoLock()
@@ -468,7 +523,7 @@ public class CompactFilterBehavior(
 
 	private bool IsNodeInValidState(Node node)
 	{
-		if (_invalidReceived)
+		if (_invalidReceived || _sendCancellation is null)
 		{
 			return false;
 		}

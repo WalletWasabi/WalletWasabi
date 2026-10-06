@@ -126,6 +126,7 @@ try {
         if ($IsWindows) { $taskTestStart.WindowStyle = 'Hidden' }
         $taskTest = Start-Process @taskTestStart
         $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(11)
+        if ($taskMode -eq 'tor') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(16) }
         if ($taskMode -eq 'public-sync') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes($(if ($PublicNetwork -eq 'both') { 85 } else { 45 })) }
         if ($taskMode -eq 'coinjoin' -and $CoinJoinScenario -eq 'restart-output') { $taskTestDeadline = [DateTime]::UtcNow.AddMinutes(20) }
         if ($taskMode -eq 'coinjoin') {

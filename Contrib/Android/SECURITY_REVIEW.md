@@ -80,6 +80,32 @@ This review found and corrected the concrete implementation issues listed above.
 It does not certify absence of other critical/high findings. No release-ready
 claim is allowed while runtime/package findings or required phone gates remain.
 
+## Public synchronization findings
+
+A partial P2P filter response could lower the reported target to the currently
+downloaded block-header height, and a response prepared before a new peer
+announcement could erase that newer target. Atomic P2P advancement now preserves
+those targets; authoritative RPC reorganization handling can still lower them.
+Retained negative tests cover both races before correction.
+
+A stalled compact-filter send also held its behavior lock synchronously, blocking
+timeout/disconnect cleanup and the shared ticker. Local transport fault injection
+reproduces that class of stall. Bounded asynchronous sends observe late failures
+and cancel on detach. The retained public height-69501 stall lacks a complete
+managed stack, so its unique cause is not inferred solely from the successful
+controlled regression. New actual public-network execution is required.
+
+Tor startup was prematurely cancelled after three minutes even when cold descriptor
+and circuit bootstrap was progressing. The new monotonic progress deadline keeps
+three-minute idle and ten-minute absolute bounds, with no transport fallback.
+Wake locks now cover startup/reconnection and wallets behind the filter height,
+while preserving foreground-service shutdown and timeout handling. Physical handset
+background behavior remains a separate gate.
+
+The selected desktop coordinator currently redirects `/wabisabi/status` to a
+homepage. Production CoinJoin availability is blocked; no synthetic round count
+establishes external service availability.
+
 ## Residual technical limits
 
 The installed workload's initial Mono 10.0.9 was advanced to the stable 10.0.12
